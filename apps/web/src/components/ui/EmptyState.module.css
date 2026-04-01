@@ -1,0 +1,51 @@
+/* -------------------------------------------------------------------------- */
+/*  EmptyState — OGDEN Atlas Design System                                    */
+/* -------------------------------------------------------------------------- */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: var(--space-8, 32px) var(--space-4, 16px);
+}
+
+/* Icon */
+.icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-subtle, #b49a74);
+  margin-bottom: var(--space-4, 16px);
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Title */
+.title {
+  margin: 0;
+  font-size: var(--text-lg, 1.125rem);
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-text, #1a1a1a);
+  line-height: 1.3;
+}
+
+/* Description */
+.description {
+  margin: var(--space-2, 8px) 0 0;
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--color-text-muted, #6b6b6b);
+  line-height: 1.5;
+}
+
+/* Action */
+.action {
+  margin-top: var(--space-6, 24px);
+}

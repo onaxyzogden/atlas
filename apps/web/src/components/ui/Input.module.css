@@ -1,0 +1,127 @@
+/* -------------------------------------------------------------------------- */
+/*  Input — OGDEN Atlas Design System                                        */
+/* -------------------------------------------------------------------------- */
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  border: 1.5px solid var(--color-border, #e4d9c6);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-text, #312617);
+  font-family: inherit;
+  font-size: var(--text-base, 0.875rem);
+  line-height: var(--leading-normal, 1.5);
+  transition:
+    border-color var(--duration-base, 200ms) var(--ease-default, ease),
+    box-shadow var(--duration-base, 200ms) var(--ease-default, ease);
+}
+
+.input::placeholder {
+  color: var(--color-text-subtle, #b49a74);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Sizes                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.sm {
+  font-size: var(--text-sm, 0.8125rem);
+  padding: var(--space-1\.5, 6px) var(--space-2, 8px);
+  min-height: 2rem; /* 32px — compact but still usable */
+}
+
+.md {
+  font-size: var(--text-base, 0.875rem);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  min-height: 2.75rem; /* 44px — touch target */
+}
+
+.lg {
+  font-size: var(--text-md, 0.9375rem);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  min-height: 3rem; /* 48px */
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Icon padding overrides                                                    */
+/* -------------------------------------------------------------------------- */
+
+.hasIconLeft.sm  { padding-left: calc(var(--space-2, 8px) + 1em + var(--space-1, 4px)); }
+.hasIconLeft.md  { padding-left: calc(var(--space-3, 12px) + 1em + var(--space-1\.5, 6px)); }
+.hasIconLeft.lg  { padding-left: calc(var(--space-4, 16px) + 1em + var(--space-2, 8px)); }
+
+.hasIconRight.sm { padding-right: calc(var(--space-2, 8px) + 1em + var(--space-1, 4px)); }
+.hasIconRight.md { padding-right: calc(var(--space-3, 12px) + 1em + var(--space-1\.5, 6px)); }
+.hasIconRight.lg { padding-right: calc(var(--space-4, 16px) + 1em + var(--space-2, 8px)); }
+
+/* -------------------------------------------------------------------------- */
+/*  Focus                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent, #527852);
+  box-shadow: 0 0 0 3px var(--color-focus-ring, rgba(82, 120, 82, 0.45));
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Error state                                                               */
+/* -------------------------------------------------------------------------- */
+
+.error {
+  border-color: var(--color-error-500, #c4493a);
+}
+
+.error:focus-visible {
+  border-color: var(--color-error-500, #c4493a);
+  box-shadow: 0 0 0 3px rgba(196, 73, 58, 0.2);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Disabled                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background-color: var(--color-earth-50, #faf8f4);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Icons                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.iconLeft,
+.iconRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--color-text-muted, #7d6140);
+  font-size: 1em;
+}
+
+.iconLeft svg,
+.iconRight svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Position based on size */
+.wrapper.sm .iconLeft  { left: var(--space-2, 8px); }
+.wrapper.sm .iconRight { right: var(--space-2, 8px); }
+
+.wrapper.md .iconLeft  { left: var(--space-3, 12px); }
+.wrapper.md .iconRight { right: var(--space-3, 12px); }
+
+.wrapper.lg .iconLeft  { left: var(--space-4, 16px); }
+.wrapper.lg .iconRight { right: var(--space-4, 16px); }

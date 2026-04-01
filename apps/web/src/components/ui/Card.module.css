@@ -1,0 +1,83 @@
+/* -------------------------------------------------------------------------- */
+/*  Card — OGDEN Atlas Design System                                          */
+/* -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4d9c6);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+}
+
+/* --- Variants ------------------------------------------------------------- */
+
+.variant-default {
+  /* base styles above */
+}
+
+.variant-outlined {
+  background: transparent;
+}
+
+.variant-elevated {
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Interactive ---------------------------------------------------------- */
+
+.interactive {
+  cursor: pointer;
+  transition:
+    box-shadow var(--duration-base, 200ms) var(--ease-default, ease),
+    transform var(--duration-base, 200ms) var(--ease-default, ease);
+}
+
+.interactive:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.interactive:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring, rgba(82, 120, 82, 0.45));
+}
+
+.interactive:active {
+  transform: translateY(0);
+}
+
+/* --- Padding scale -------------------------------------------------------- */
+
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+}
+
+.padding-md {
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+}
+
+.padding-lg {
+  padding: var(--space-6, 24px) var(--space-8, 32px);
+}
+
+/* --- Header --------------------------------------------------------------- */
+
+.header {
+  border-bottom: 1px solid var(--color-border-subtle, #f2ede3);
+}
+
+/* --- Body ----------------------------------------------------------------- */
+
+.body {
+  /* inherits padding from scale only */
+}
+
+/* --- Footer --------------------------------------------------------------- */
+
+.footer {
+  border-top: 1px solid var(--color-border-subtle, #f2ede3);
+}

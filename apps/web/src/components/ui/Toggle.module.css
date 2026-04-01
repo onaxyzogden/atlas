@@ -1,0 +1,106 @@
+/* -------------------------------------------------------------------------- */
+/*  Toggle — OGDEN Atlas Design System                                        */
+/* -------------------------------------------------------------------------- */
+
+/* Wrapper — inline label layout */
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  cursor: pointer;
+}
+
+.wrapper:has(.disabled) {
+  cursor: not-allowed;
+}
+
+/* Label text */
+.label {
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--color-text, #1a1a1a);
+  user-select: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Track                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9999px;
+  padding: 0;
+  background-color: var(--color-earth-200, #e4d9c6);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-base, 200ms) ease;
+}
+
+.track:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring, #5b8a72);
+}
+
+/* Checked state */
+.track.checked {
+  background-color: var(--color-accent, #5b8a72);
+}
+
+/* Disabled state */
+.track.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Sizes                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/* Small — 32x18 track, 14px thumb */
+.sm {
+  width: 32px;
+  height: 18px;
+}
+
+.sm .thumb {
+  width: 14px;
+  height: 14px;
+  transform: translateX(2px);
+}
+
+.sm.checked .thumb {
+  transform: translateX(16px);
+}
+
+/* Medium — 44x24 track, 20px thumb */
+.md {
+  width: 44px;
+  height: 24px;
+}
+
+.md .thumb {
+  width: 20px;
+  height: 20px;
+  transform: translateX(2px);
+}
+
+.md.checked .thumb {
+  transform: translateX(22px);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Thumb                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.thumb {
+  display: block;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition:
+    transform var(--duration-base, 200ms) ease;
+  pointer-events: none;
+}

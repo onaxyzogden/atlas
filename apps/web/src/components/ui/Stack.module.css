@@ -1,0 +1,36 @@
+/* -------------------------------------------------------------------------- */
+/*  Stack — OGDEN Atlas Design System                                         */
+/* -------------------------------------------------------------------------- */
+
+.stack {
+  display: flex;
+}
+
+/* Direction */
+.column { flex-direction: column; }
+.row    { flex-direction: row; }
+
+/* Gap — mapped to design-system space tokens */
+.gap-1 { gap: var(--space-1, 4px); }
+.gap-2 { gap: var(--space-2, 8px); }
+.gap-3 { gap: var(--space-3, 12px); }
+.gap-4 { gap: var(--space-4, 16px); }
+.gap-6 { gap: var(--space-6, 24px); }
+.gap-8 { gap: var(--space-8, 32px); }
+
+/* Align items */
+.align-start    { align-items: flex-start; }
+.align-center   { align-items: center; }
+.align-end      { align-items: flex-end; }
+.align-stretch  { align-items: stretch; }
+.align-baseline { align-items: baseline; }
+
+/* Justify content */
+.justify-start   { justify-content: flex-start; }
+.justify-center  { justify-content: center; }
+.justify-end     { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around  { justify-content: space-around; }
+
+/* Wrap */
+.wrap { flex-wrap: wrap; }

@@ -1,0 +1,392 @@
+/* ==========================================================================
+   ProjectPage Styles
+   Main workspace: icon sidebar | map canvas | right panel
+   ========================================================================== */
+
+/* ─── Layout ──────────────────────────────────────────────────────────── */
+
+.layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mapArea {
+  flex: 1;
+  position: relative;
+}
+
+.mapAreaMobile {
+  composes: mapArea;
+  padding-bottom: 56px;
+}
+
+/* ─── Not-found state ─────────────────────────────────────────────────── */
+
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-4);
+  color: var(--color-text);
+}
+
+.notFoundTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-normal);
+}
+
+.notFoundLink {
+  color: var(--color-earth-600);
+  font-size: var(--text-base);
+  text-decoration: underline;
+}
+
+/* ─── Map header overlay ──────────────────────────────────────────────── */
+
+.mapHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--space-12);
+  background: var(--color-map-header-bg);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--space-4);
+  gap: var(--space-3);
+  z-index: 5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.backLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--space-4);
+  display: flex;
+  align-items: center;
+}
+
+.projectName {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-map-header-text);
+}
+
+.projectAddress {
+  font-size: var(--text-xs);
+  color: var(--color-map-header-muted);
+}
+
+.headerSpacer {
+  flex: 1;
+}
+
+/* ─── Header action buttons ───────────────────────────────────────────── */
+
+.btnCancelDraw {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border: 1px solid rgba(155, 58, 42, 0.4);
+  border-radius: var(--radius-md);
+  background: rgba(155, 58, 42, 0.15);
+  color: var(--color-error-500);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.btnCancelDraw:hover {
+  background: rgba(155, 58, 42, 0.25);
+}
+
+.btnDrawBoundary {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(196, 162, 101, 0.1);
+  color: var(--color-sidebar-active);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.btnDrawBoundary:hover {
+  background: rgba(196, 162, 101, 0.2);
+}
+
+.btnDrawBoundary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.headerStats {
+  font-size: var(--text-xs);
+  color: var(--color-map-header-muted);
+}
+
+.btnSettings {
+  background: none;
+  border: none;
+  color: var(--color-map-header-muted);
+  cursor: pointer;
+  font-size: var(--text-base);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.btnSettings:hover {
+  color: var(--color-map-header-text);
+}
+
+/* ─── Right panel (desktop) ───────────────────────────────────────────── */
+
+.rightPanel {
+  width: 340px;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-bg);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* ─── Panel loading fallback ──────────────────────────────────────────── */
+
+.panelLoading {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--color-panel-muted);
+  font-size: var(--text-sm);
+}
+
+/* ─── History panel wrapper ───────────────────────────────────────────── */
+
+.historyWrapper {
+  padding: var(--space-5);
+}
+
+.historyTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-panel-title);
+  margin-bottom: var(--space-4);
+}
+
+/* ─── Mobile bottom bar ───────────────────────────────────────────────── */
+
+.mobileBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--color-panel-bg, #1a1611);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 40;
+  padding: 0 var(--space-2);
+}
+
+.mobileBarBtn {
+  background: none;
+  border: none;
+  color: var(--color-panel-muted);
+  font-size: 10px;
+  font-weight: var(--font-normal);
+  cursor: pointer;
+  padding: var(--space-1\.5) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.mobileBarBtnActive {
+  composes: mobileBarBtn;
+  color: var(--color-sidebar-active);
+  font-weight: var(--font-semibold);
+}
+
+.mobileBarIcon {
+  font-size: var(--space-4);
+}
+
+/* ─── Modal overlay (shared by editor + delete confirm) ───────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Editor modal ────────────────────────────────────────────────────── */
+
+.editorModal {
+  width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* ─── Delete confirmation dialog ──────────────────────────────────────── */
+
+.deleteDialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+}
+
+.deleteTitle {
+  font-size: var(--space-4);
+  font-weight: var(--font-medium);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.deleteDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+  line-height: var(--leading-relaxed);
+}
+
+.deleteActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.btnDeleteConfirm {
+  padding: 10px var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-error-600);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.btnDeleteConfirm:hover {
+  background: var(--color-error-700);
+}
+
+.btnDeleteCancel {
+  padding: 10px var(--space-6);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default),
+              color var(--duration-fast) var(--ease-default);
+}
+
+.btnDeleteCancel:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ─── Settings panel ──────────────────────────────────────────────────── */
+
+.settingsPanel {
+  padding: var(--space-5);
+}
+
+.settingsTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.settingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settingsBtn {
+  width: 100%;
+  padding: 10px var(--space-3\.5, 14px);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-default),
+              border-color var(--duration-fast) var(--ease-default);
+}
+
+.settingsBtn:hover {
+  background: var(--color-panel-subtle);
+  border-color: var(--color-earth-300);
+}
+
+.settingsBtnDanger {
+  composes: settingsBtn;
+  background: rgba(155, 58, 42, 0.08);
+  color: var(--color-error-600);
+}
+
+.settingsBtnDanger:hover {
+  background: rgba(155, 58, 42, 0.15);
+}
+
+/* ─── Placeholder panel ───────────────────────────────────────────────── */
+
+.placeholder {
+  padding: var(--space-5);
+}
+
+.placeholderTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.placeholderDesc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.placeholderBadge {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

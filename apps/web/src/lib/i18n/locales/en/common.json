@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "OGDEN",
+    "tagline": "Land Design Atlas",
+    "loading": "Loading map…"
+  },
+  "nav": {
+    "newProject": "New Project",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "map": {
+    "styles": {
+      "satellite": "Satellite",
+      "terrain": "Terrain",
+      "street": "Street",
+      "hybrid": "Hybrid"
+    },
+    "layers": {
+      "title": "Data Layers",
+      "loading": "Fetching site data…",
+      "elevation": "Elevation & Slope",
+      "soils": "Soils",
+      "watershed": "Watershed & Hydrology",
+      "wetlands_flood": "Wetlands & Flood Risk",
+      "land_cover": "Land Cover",
+      "climate": "Climate Normals",
+      "zoning": "Zoning & Setbacks"
+    }
+  },
+  "confidence": {
+    "high": "High confidence",
+    "medium": "Medium confidence",
+    "low": "Low confidence",
+    "description": {
+      "high": "Well-sourced data with good resolution. Results are reliable.",
+      "medium": "Some data gaps. Consider supplementing with site observation.",
+      "low": "Inference-heavy. Verify on site before making design decisions."
+    }
+  },
+  "spiritual": {
+    "zones": {
+      "prayer_space": "Prayer Space",
+      "quiet_zone": "Quiet Contemplation Zone",
+      "qibla_axis": "Qibla Axis",
+      "dawn_viewpoint": "Dawn Viewpoint",
+      "dusk_viewpoint": "Dusk Viewpoint",
+      "contemplative_path": "Contemplative Path",
+      "water_worship_integration": "Water & Worship Integration",
+      "scenic_overlook": "Scenic Overlook",
+      "gathering_circle": "Gathering Circle"
+    },
+    "qibla": "Qibla bearing: {{bearing}}° from north ({{distance}} km to Mecca)"
+  }
+}

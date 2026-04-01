@@ -1,0 +1,54 @@
+/* -------------------------------------------------------------------------- */
+/*  FormField — OGDEN Atlas Design System                                    */
+/* -------------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Label                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.label {
+  font-size: var(--text-sm, 0.8125rem);
+  font-weight: var(--font-medium, 500);
+  color: var(--color-text, #312617);
+  line-height: var(--leading-normal, 1.5);
+}
+
+.required {
+  color: var(--color-error-500, #c4493a);
+  margin-left: 0.2em;
+  font-weight: var(--font-normal, 400);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Content (children wrapper for consistent spacing)                         */
+/* -------------------------------------------------------------------------- */
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Helper & Error text                                                       */
+/* -------------------------------------------------------------------------- */
+
+.helperText,
+.errorText {
+  font-size: var(--text-xs, 0.6875rem);
+  line-height: var(--leading-normal, 1.5);
+  margin-top: var(--space-1, 4px);
+}
+
+.helperText {
+  color: var(--color-text-muted, #7d6140);
+}
+
+.errorText {
+  color: var(--color-error-500, #c4493a);
+}

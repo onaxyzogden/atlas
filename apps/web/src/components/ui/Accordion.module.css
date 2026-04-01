@@ -1,0 +1,102 @@
+/* -------------------------------------------------------------------------- */
+/*  Accordion — OGDEN Atlas Design System                                    */
+/* -------------------------------------------------------------------------- */
+
+.root {
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Item                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.item {
+  border-bottom: 1px solid var(--color-border, #d4d4d4);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Trigger                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.triggerHeading {
+  margin: 0;
+  padding: 0;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  font-family: inherit;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-medium, 500);
+  line-height: 1.4;
+  text-align: left;
+  color: var(--color-text, #1a1a1a);
+  background: none;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--duration-base, 200ms) ease;
+}
+
+.trigger:hover:not(:disabled) {
+  background-color: var(--color-panel-subtle, #f5f3f0);
+}
+
+.trigger:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring, #5b8a72);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.triggerLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Chevron                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.chevron {
+  flex-shrink: 0;
+  margin-left: var(--space-2, 0.5rem);
+  color: var(--color-text-muted, #6b6b6b);
+  transition: transform var(--duration-base, 200ms) ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Content                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.content {
+  overflow: hidden;
+  transition: max-height var(--duration-base, 200ms) ease;
+}
+
+.contentOpen {
+  /* max-height handled inline via JS */
+}
+
+.contentClosed {
+  /* max-height handled inline via JS */
+}
+
+.contentInner {
+  padding: 0 var(--space-4, 1rem) var(--space-3, 0.75rem);
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.5;
+  color: var(--color-text, #1a1a1a);
+}

@@ -1,0 +1,193 @@
+/* -------------------------------------------------------------------------- */
+/*  Button — OGDEN Atlas Design System                                       */
+/* -------------------------------------------------------------------------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md, 6px);
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-base, 200ms) ease,
+    color var(--duration-base, 200ms) ease,
+    border-color var(--duration-base, 200ms) ease,
+    box-shadow var(--duration-base, 200ms) ease,
+    opacity var(--duration-base, 200ms) ease;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring, #5b8a72);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Sizes                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.sm {
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.75rem;
+  min-height: 2rem;
+}
+
+.md {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  min-height: 2.5rem;
+}
+
+.lg {
+  font-size: 1rem;
+  padding: 0.625rem 1.5rem;
+  min-height: 3rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Variants                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/* Primary — warm earth brown */
+.primary {
+  background-color: var(--color-primary, #7d6140);
+  color: #fff;
+  border-color: var(--color-primary, #7d6140);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover, #6a5236);
+  border-color: var(--color-primary-hover, #6a5236);
+}
+
+.primary:active:not(:disabled) {
+  background-color: var(--color-primary-active, #5a452e);
+  border-color: var(--color-primary-active, #5a452e);
+}
+
+/* Secondary — outlined, transparent fill */
+.secondary {
+  background-color: transparent;
+  color: var(--color-text, #1a1a1a);
+  border-color: var(--color-border, #d4d4d4);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-raised, rgba(0, 0, 0, 0.03));
+  border-color: var(--color-border-hover, #b0b0b0);
+}
+
+.secondary:active:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Ghost — minimal, no border */
+.ghost {
+  background-color: transparent;
+  color: var(--color-text-muted, #6b6b6b);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-text, #1a1a1a);
+}
+
+.ghost:active:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Danger — destructive red-brown */
+.danger {
+  background-color: var(--color-error-600, #9b3a2a);
+  color: #fff;
+  border-color: var(--color-error-600, #9b3a2a);
+}
+
+.danger:hover:not(:disabled) {
+  background-color: var(--color-error-700, #842f22);
+  border-color: var(--color-error-700, #842f22);
+}
+
+.danger:active:not(:disabled) {
+  background-color: var(--color-error-800, #6e261b);
+  border-color: var(--color-error-800, #6e261b);
+}
+
+/* Accent — sage green */
+.accent {
+  background-color: var(--color-accent, #5b8a72);
+  color: #fff;
+  border-color: var(--color-accent, #5b8a72);
+}
+
+.accent:hover:not(:disabled) {
+  background-color: var(--color-accent-hover, #4d7661);
+  border-color: var(--color-accent-hover, #4d7661);
+}
+
+.accent:active:not(:disabled) {
+  background-color: var(--color-accent-active, #426653);
+  border-color: var(--color-accent-active, #426653);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Full width                                                                */
+/* -------------------------------------------------------------------------- */
+
+.fullWidth {
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Loading state                                                             */
+/* -------------------------------------------------------------------------- */
+
+.loading {
+  cursor: wait;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Icons & spinner                                                           */
+/* -------------------------------------------------------------------------- */
+
+.iconLeft,
+.iconRight {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.iconLeft svg,
+.iconRight svg {
+  width: 1em;
+  height: 1em;
+}
+
+.spinner {
+  width: 1.125em;
+  height: 1.125em;
+  flex-shrink: 0;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

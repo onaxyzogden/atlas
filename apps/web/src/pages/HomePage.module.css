@@ -1,0 +1,164 @@
+/* ==========================================================================
+   HomePage Styles
+   ========================================================================== */
+
+.page {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ─── Header row ───────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ─── Project grid ─────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ─── Project card ─────────────────────────────────────────────────────── */
+.card {
+  display: block;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: box-shadow var(--duration-base) var(--ease-default),
+              transform var(--duration-base) var(--ease-default),
+              border-color var(--duration-base) var(--ease-default);
+  cursor: pointer;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-earth-300);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.cardName {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-1);
+  color: var(--color-text);
+}
+
+.cardDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-normal);
+  margin-top: var(--space-2);
+}
+
+.cardMeta {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle, var(--color-border));
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cardMetaRight {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.boundaryDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.boundaryDotSet {
+  background: var(--color-confidence-high);
+}
+
+.boundaryDotNone {
+  background: var(--color-text-subtle, var(--color-earth-400));
+}
+
+/* ─── Empty state ──────────────────────────────────────────────────────── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-10);
+  text-align: center;
+}
+
+.emptyInner {
+  max-width: 440px;
+}
+
+.emptyIcon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--space-6);
+  color: var(--color-text-subtle, var(--color-earth-400));
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-normal);
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
+}
+
+.emptyTagline {
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: var(--text-xl);
+  }
+}

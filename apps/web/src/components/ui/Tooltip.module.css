@@ -1,0 +1,104 @@
+/* -------------------------------------------------------------------------- */
+/*  Tooltip — OGDEN Atlas Design System                                      */
+/* -------------------------------------------------------------------------- */
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tooltip bubble                                                           */
+/* -------------------------------------------------------------------------- */
+
+.tooltip {
+  position: absolute;
+  z-index: var(--z-tooltip, 1000);
+  max-width: 240px;
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--color-earth-50, #faf6f1);
+  background-color: var(--color-earth-900, #2c1e10);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast, 150ms) ease;
+}
+
+.visible {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Arrow                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  border: 5px solid transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Positions                                                                */
+/* -------------------------------------------------------------------------- */
+
+/* Top (default) */
+.top {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.top::after {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--color-earth-900, #2c1e10);
+}
+
+/* Bottom */
+.bottom {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bottom::after {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--color-earth-900, #2c1e10);
+}
+
+/* Left */
+.left {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.left::after {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--color-earth-900, #2c1e10);
+}
+
+/* Right */
+.right {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.right::after {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--color-earth-900, #2c1e10);
+}

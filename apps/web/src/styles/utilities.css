@@ -1,0 +1,33 @@
+/* ==========================================================================
+   OGDEN Atlas — Utility Classes
+   ========================================================================== */
+
+/* ─── Animations ───────────────────────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.animate-fade-in { animation: fadeIn var(--duration-base) var(--ease-out); }
+.animate-fade-in-up { animation: fadeInUp var(--duration-slow) var(--ease-out); }
+.animate-slide-right { animation: slideInRight var(--duration-base) var(--ease-out); }
+.animate-slide-left { animation: slideInLeft var(--duration-base) var(--ease-out); }
+.animate-slide-up { animation: slideUp var(--duration-slow) var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-fade-in-up, .animate-slide-right, .animate-slide-left, .animate-slide-up {
+    animation: none;
+  }
+}
+
+/* ─── Scrollbar styling ────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); }
+
+/* ─── Truncation ───────────────────────────────────────────────────────── */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

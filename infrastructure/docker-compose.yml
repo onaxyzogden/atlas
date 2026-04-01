@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: ogden-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ogden_atlas
+      POSTGRES_USER: ogden
+      POSTGRES_PASSWORD: ogden_dev_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../apps/api/src/db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ogden -d ogden_atlas']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: ogden-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

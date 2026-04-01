@@ -1,0 +1,211 @@
+/* -------------------------------------------------------------------------- */
+/*  StepIndicator — OGDEN Atlas Design System                                */
+/* -------------------------------------------------------------------------- */
+
+.root {
+  width: 100%;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Horizontal layout                                                         */
+/* -------------------------------------------------------------------------- */
+
+.horizontal .list {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.horizontal .step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.horizontal .connector {
+  position: absolute;
+  top: 16px; /* half of circle height */
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+/* Offset to not overlap circles */
+.horizontal .step:not(:first-child) .connector {
+  left: -50%;
+  right: auto;
+  width: 100%;
+}
+
+.horizontal .label {
+  margin-top: var(--space-2, 0.5rem);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Vertical layout                                                           */
+/* -------------------------------------------------------------------------- */
+
+.vertical .list {
+  flex-direction: column;
+  gap: 0;
+}
+
+.vertical .step {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  padding-bottom: var(--space-4, 1rem);
+}
+
+.vertical .connector {
+  position: absolute;
+  left: 15px; /* center of 32px circle */
+  top: -50%;
+  width: 2px;
+  height: 100%;
+  z-index: 0;
+}
+
+.vertical .step:first-child .connector {
+  display: none;
+}
+
+.vertical .label {
+  margin-left: var(--space-3, 0.75rem);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Connector                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.connector {
+  display: block;
+}
+
+.connectorCompleted {
+  background-color: var(--color-accent, #5b8a72);
+}
+
+.connectorUpcoming {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-earth-200, #d6cfc4) 0,
+    var(--color-earth-200, #d6cfc4) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  background-size: 12px 2px;
+  background-repeat: repeat-x;
+}
+
+.vertical .connectorUpcoming {
+  background-image: repeating-linear-gradient(
+    180deg,
+    var(--color-earth-200, #d6cfc4) 0,
+    var(--color-earth-200, #d6cfc4) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  background-size: 2px 12px;
+  background-repeat: repeat-y;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Circle                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.circle {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  font-family: inherit;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-semibold, 600);
+  line-height: 1;
+  cursor: default;
+  padding: 0;
+  transition:
+    background-color var(--duration-base, 200ms) ease,
+    border-color var(--duration-base, 200ms) ease,
+    box-shadow var(--duration-base, 200ms) ease;
+}
+
+.circle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring, #5b8a72);
+}
+
+/* Completed */
+.completed .circle {
+  background-color: var(--color-accent, #5b8a72);
+  border-color: var(--color-accent, #5b8a72);
+  color: #fff;
+}
+
+/* Current */
+.current .circle {
+  background-color: var(--color-primary, #7d6140);
+  border-color: var(--color-primary, #7d6140);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(125, 97, 64, 0.25);
+}
+
+/* Upcoming */
+.upcoming .circle {
+  background-color: var(--color-earth-200, #d6cfc4);
+  border-color: var(--color-earth-200, #d6cfc4);
+  color: var(--color-text-muted, #6b6b6b);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Clickable (completed + onStepClick)                                       */
+/* -------------------------------------------------------------------------- */
+
+.clickable .circle {
+  cursor: pointer;
+}
+
+.clickable .circle:hover {
+  opacity: 0.85;
+  box-shadow: 0 0 0 3px rgba(91, 138, 114, 0.25);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Label                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.label {
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--font-normal, 400);
+  color: var(--color-text-muted, #6b6b6b);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.current .label {
+  font-weight: var(--font-medium, 500);
+  color: var(--color-text, #1a1a1a);
+}
+
+.completed .label {
+  color: var(--color-text, #1a1a1a);
+}

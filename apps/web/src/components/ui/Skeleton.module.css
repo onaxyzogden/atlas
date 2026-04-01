@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Skeleton — OGDEN Atlas Design System
+   ========================================================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────── */
+.skeleton {
+  display: block;
+  background: var(--color-panel-card, #e5e0da);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-panel-card, #e5e0da) 25%,
+    rgba(255, 255, 255, 0.35) 50%,
+    var(--color-panel-card, #e5e0da) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ─── Variants ─────────────────────────────────────────────────────────── */
+.text {
+  border-radius: var(--radius-sm, 4px);
+}
+
+.circular {
+  border-radius: 50%;
+}
+
+.rectangular {
+  border-radius: var(--radius-md, 8px);
+}
+
+/* ─── Stack (multiple skeletons) ───────────────────────────────────────── */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ─── Reduced motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+  }
+}
