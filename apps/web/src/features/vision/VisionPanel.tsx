@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useMapStore } from '../../store/mapStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import p from '../../styles/panel.module.css';
 
 interface VisionPanelProps {
   project: LocalProject;
@@ -38,13 +39,13 @@ export default function VisionPanel({ project }: VisionPanelProps) {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
+    <div className={p.container}>
+      <h2 className={p.title}>
         Vision Layer
       </h2>
 
       {/* Mode switcher */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={`${p.tabBar} ${p.mb20}`}>
         {([
           { key: 'current' as VisionMode, label: 'Current' },
           { key: 'vision' as VisionMode, label: 'Full Vision' },
@@ -53,14 +54,8 @@ export default function VisionPanel({ project }: VisionPanelProps) {
           <button
             key={m.key}
             onClick={() => handleModeChange(m.key)}
-            style={{
-              flex: 1, padding: '10px 0', fontSize: 12,
-              fontWeight: mode === m.key ? 600 : 400,
-              background: mode === m.key ? 'rgba(196,162,101,0.12)' : 'transparent',
-              border: 'none',
-              color: mode === m.key ? '#c4a265' : 'var(--color-panel-muted)',
-              cursor: 'pointer', letterSpacing: '0.02em',
-            }}
+            className={`${p.tabBtn} ${mode === m.key ? p.tabBtnActive : ''}`}
+            style={{ padding: '10px 0', fontSize: 12, letterSpacing: '0.02em' }}
           >
             {m.label}
           </button>
@@ -69,9 +64,9 @@ export default function VisionPanel({ project }: VisionPanelProps) {
 
       {mode === 'current' && (
         <div>
-          <div style={{ padding: '16px', background: 'rgba(196,162,101,0.06)', borderRadius: 10, border: '1px solid rgba(196,162,101,0.1)', marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-panel-text)', marginBottom: 6 }}>Current State</div>
-            <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.6 }}>
+          <div className={`${p.highlightBox} ${p.highlightBoxGold}`}>
+            <div className={p.highlightBoxTitle}>Current State</div>
+            <div className={p.highlightBoxText}>
               Showing only Phase 1 elements \u2014 what exists or is under construction now.
               The map filters to show infrastructure, initial habitation, and established zones only.
             </div>
@@ -85,9 +80,9 @@ export default function VisionPanel({ project }: VisionPanelProps) {
 
       {mode === 'vision' && (
         <div>
-          <div style={{ padding: '16px', background: 'rgba(45,122,79,0.06)', borderRadius: 10, border: '1px solid rgba(45,122,79,0.1)', marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-panel-text)', marginBottom: 6 }}>Full Vision</div>
-            <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.6 }}>
+          <div className={`${p.highlightBox} ${p.highlightBoxGreen}`}>
+            <div className={p.highlightBoxTitle}>Full Vision</div>
+            <div className={p.highlightBoxText}>
               All phases visible \u2014 the complete design as envisioned at maturity.
               Every zone, structure, path, and system rendered together.
             </div>
@@ -101,40 +96,28 @@ export default function VisionPanel({ project }: VisionPanelProps) {
 
       {mode === 'compare' && (
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 12 }}>
+          <div className={`${p.label} ${p.mb12}`}>
             Step through the design narrative phase by phase
           </div>
 
           {/* Narrative step cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <div className={`${p.section} ${p.sectionGapLg}`}>
             {narrativeSteps.map((step, i) => (
               <button
                 key={i}
                 onClick={() => handleNarrativeStep(i)}
-                style={{
-                  textAlign: 'left', padding: '14px 16px',
-                  background: narrativeStep === i ? 'rgba(196,162,101,0.08)' : 'transparent',
-                  border: narrativeStep === i ? '1px solid rgba(196,162,101,0.2)' : '1px solid var(--color-panel-card-border)',
-                  borderRadius: 10, cursor: 'pointer',
-                  color: 'var(--color-panel-text)',
-                }}
+                className={`${p.stepCard} ${narrativeStep === i ? p.stepCardActive : ''}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                  <span style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    border: `2px solid ${narrativeStep === i ? '#c4a265' : 'var(--color-panel-subtle)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 600, color: narrativeStep === i ? '#c4a265' : 'var(--color-panel-muted)',
-                    flexShrink: 0,
-                  }}>
+                <div className={`${p.row} ${p.mb8}`} style={{ gap: 10 }}>
+                  <span className={`${p.stepNumber} ${narrativeStep === i ? p.stepNumberActive : ''}`}>
                     {i + 1}
                   </span>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{step.title}</div>
+                    <div className={`${p.text13} ${p.fontSemibold}`}>{step.title}</div>
                   </div>
                 </div>
                 {narrativeStep === i && (
-                  <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.6, marginTop: 4, fontStyle: 'italic', paddingLeft: 38 }}>
+                  <div className={p.stepDesc}>
                     {`"${step.description}"`}
                   </div>
                 )}
@@ -143,29 +126,18 @@ export default function VisionPanel({ project }: VisionPanelProps) {
           </div>
 
           {/* Navigation */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={p.flexGap8}>
             <button
               onClick={() => handleNarrativeStep(Math.max(0, narrativeStep - 1))}
               disabled={narrativeStep === 0}
-              style={{
-                flex: 1, padding: '10px', fontSize: 12, border: '1px solid var(--color-panel-card-border)',
-                borderRadius: 8, background: 'transparent',
-                color: narrativeStep === 0 ? 'var(--color-panel-subtle)' : 'var(--color-panel-muted)',
-                cursor: narrativeStep === 0 ? 'not-allowed' : 'pointer',
-              }}
+              className={`${p.navBtnPrev} ${narrativeStep === 0 ? p.navBtnDisabled : ''}`}
             >
               {'\u2190'} Previous
             </button>
             <button
               onClick={() => handleNarrativeStep(Math.min(narrativeSteps.length - 1, narrativeStep + 1))}
               disabled={narrativeStep === narrativeSteps.length - 1}
-              style={{
-                flex: 1, padding: '10px', fontSize: 12, border: 'none',
-                borderRadius: 8,
-                background: narrativeStep === narrativeSteps.length - 1 ? 'var(--color-panel-subtle)' : 'rgba(196,162,101,0.15)',
-                color: narrativeStep === narrativeSteps.length - 1 ? 'var(--color-panel-muted)' : '#c4a265',
-                cursor: narrativeStep === narrativeSteps.length - 1 ? 'not-allowed' : 'pointer',
-              }}
+              className={`${p.navBtnNext} ${narrativeStep === narrativeSteps.length - 1 ? p.navBtnNextDisabled : ''}`}
             >
               Next {'\u2192'}
             </button>
@@ -178,15 +150,11 @@ export default function VisionPanel({ project }: VisionPanelProps) {
 
 function InfoCard({ title, text }: { title: string; text: string }) {
   return (
-    <div style={{
-      padding: '16px', background: 'rgba(196,162,101,0.04)',
-      borderRadius: 10, border: '1px solid rgba(196,162,101,0.08)',
-      borderLeft: '3px solid rgba(196,162,101,0.3)',
-    }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-panel-text)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+    <div className={p.infoCard}>
+      <div className={p.infoCardTitle}>
         {title}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.7, fontStyle: 'italic' }}>
+      <div className={p.infoCardText}>
         {text}
       </div>
     </div>

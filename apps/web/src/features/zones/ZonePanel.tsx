@@ -15,6 +15,8 @@ import {
   type ZoneCategory,
   type LandZone,
 } from '../../store/zoneStore.js';
+import p from '../../styles/panel.module.css';
+import s from './ZonePanel.module.css';
 
 interface ZonePanelProps {
   projectId: string;
@@ -117,75 +119,24 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
 
   if (!isMapReady) return null;
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '6px 8px',
-    fontSize: 12,
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: 4,
-    background: 'rgba(255,255,255,0.08)',
-    color: '#f2ede3',
-    fontFamily: 'inherit',
-    outline: 'none',
-  };
-
   return (
-    <div
-      style={{
-        pointerEvents: 'auto',
-        flexShrink: 0,
-        background: 'rgba(26, 22, 17, 0.92)',
-        borderRadius: 10,
-        padding: 12,
-        backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
-        width: collapsed ? 'auto' : 240,
-        maxHeight: 'calc(100vh - 200px)',
-        overflowY: 'auto',
-        zIndex: 5,
-      }}
-    >
+    <div className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}>
       <button
         onClick={() => setCollapsed((v) => !v)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#9a8a74',
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          padding: 0,
-          width: '100%',
-          textAlign: 'left',
-          display: 'flex',
-          justifyContent: 'space-between',
-        }}
+        className={s.toggleBtn}
       >
         <span>Zones ({zones.length})</span>
         <span>{collapsed ? '▸' : '▾'}</span>
       </button>
 
       {!collapsed && (
-        <div style={{ marginTop: 8 }}>
+        <div className={s.body}>
           {/* Draw button */}
           {!showForm && (
             <button
               onClick={startDraw}
               disabled={isDrawing}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                fontSize: 12,
-                fontWeight: 500,
-                border: 'none',
-                borderRadius: 6,
-                background: isDrawing ? '#3d3328' : '#7d6140',
-                color: '#fff',
-                cursor: isDrawing ? 'wait' : 'pointer',
-                marginBottom: 10,
-              }}
+              className={s.drawBtn}
             >
               {isDrawing ? 'Drawing… double-click to finish' : '+ Draw New Zone'}
             </button>
@@ -193,33 +144,25 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
 
           {/* Zone creation form */}
           {showForm && (
-            <div
-              style={{
-                border: '1px solid rgba(125, 97, 64, 0.4)',
-                borderRadius: 8,
-                padding: 10,
-                marginBottom: 10,
-                background: 'rgba(125, 97, 64, 0.1)',
-              }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9a8a74', marginBottom: 8, textTransform: 'uppercase' }}>
+            <div className={s.formCard}>
+              <div className={s.formTitle}>
                 New Zone — {formatArea(pendingArea)}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className={s.formFields}>
                 <input
                   type="text"
                   placeholder="Zone name *"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  style={inputStyle}
+                  className={p.input}
                   autoFocus
                 />
 
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as ZoneCategory)}
-                  style={{ ...inputStyle, cursor: 'pointer' }}
+                  className={`${p.input} ${s.selectInput}`}
                 >
                   {Object.entries(ZONE_CATEGORY_CONFIG).map(([key, cfg]) => (
                     <option key={key} value={key}>
@@ -233,7 +176,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   placeholder="Primary use"
                   value={formPrimaryUse}
                   onChange={(e) => setFormPrimaryUse(e.target.value)}
-                  style={inputStyle}
+                  className={p.input}
                 />
 
                 <input
@@ -241,7 +184,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   placeholder="Secondary use"
                   value={formSecondaryUse}
                   onChange={(e) => setFormSecondaryUse(e.target.value)}
-                  style={inputStyle}
+                  className={p.input}
                 />
 
                 <textarea
@@ -249,23 +192,14 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
                   rows={2}
-                  style={{ ...inputStyle, resize: 'vertical' }}
+                  className={`${p.input} ${s.textareaInput}`}
                 />
 
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div className={s.formActions}>
                   <button
                     onClick={handleSaveZone}
                     disabled={!formName.trim()}
-                    style={{
-                      flex: 1,
-                      padding: '6px',
-                      fontSize: 12,
-                      border: 'none',
-                      borderRadius: 4,
-                      background: formName.trim() ? '#527852' : '#3d3328',
-                      color: '#fff',
-                      cursor: formName.trim() ? 'pointer' : 'not-allowed',
-                    }}
+                    className={`${s.saveBtn} ${formName.trim() ? s.saveBtnEnabled : s.saveBtnDisabled}`}
                   >
                     Save Zone
                   </button>
@@ -275,15 +209,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                       setPendingGeometry(null);
                       draw?.deleteAll();
                     }}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 12,
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 4,
-                      background: 'transparent',
-                      color: '#9a8a74',
-                      cursor: 'pointer',
-                    }}
+                    className={s.cancelBtn}
                   >
                     Cancel
                   </button>
@@ -294,47 +220,24 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
 
           {/* Zone list */}
           {zones.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className={s.zoneList}>
               {zones.map((z) => (
-                <div
-                  key={z.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 8px',
-                    borderRadius: 6,
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    fontSize: 12,
-                  }}
-                >
+                <div key={z.id} className={s.zoneItem}>
                   <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 2,
-                      background: z.color,
-                      flexShrink: 0,
-                    }}
+                    className={s.zoneSwatch}
+                    style={{ background: z.color }}
                   />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className={s.zoneInfo}>
+                    <div className={s.zoneName}>
                       {z.name}
                     </div>
-                    <div style={{ fontSize: 10, color: '#9a8a74' }}>
+                    <div className={s.zoneMeta}>
                       {ZONE_CATEGORY_CONFIG[z.category].label} — {formatArea(z.areaM2)}
                     </div>
                   </div>
                   <button
                     onClick={() => handleDeleteZone(z.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#9a8a74',
-                      cursor: 'pointer',
-                      fontSize: 14,
-                      padding: '0 2px',
-                    }}
+                    className={s.deleteBtn}
                     title="Delete zone"
                   >
                     ×
@@ -345,7 +248,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
           )}
 
           {zones.length === 0 && !showForm && (
-            <div style={{ fontSize: 11, color: '#9a8a74', textAlign: 'center', padding: 8 }}>
+            <div className={s.emptyState}>
               No zones yet. Draw one to start organizing the land.
             </div>
           )}

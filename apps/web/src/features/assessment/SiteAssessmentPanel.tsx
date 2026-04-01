@@ -13,6 +13,8 @@
 import type { ConfidenceLevel } from '@ogden/shared';
 import ConfidenceIndicator from './ConfidenceIndicator.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import p from '../../styles/panel.module.css';
+import s from './SiteAssessmentPanel.module.css';
 
 interface ScoreEntry {
   label: string;
@@ -33,28 +35,25 @@ interface SiteAssessmentPanelProps {
   project: LocalProject;
 }
 
+const FLAG_TYPE_CONFIG: Record<string, { className: string; icon: string }> = {
+  risk: { className: 'flagRisk', icon: '⚠' },
+  opportunity: { className: 'flagOpportunity', icon: '✦' },
+  limitation: { className: 'flagLimitation', icon: '◆' },
+};
+
 export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProps) {
   // Compute scores based on what data we have locally
   const scores = computeLocalScores(project);
   const flags = computeLocalFlags(project);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h3
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          color: 'var(--color-text-muted)',
-          marginBottom: 16,
-        }}
-      >
+    <div className={p.container}>
+      <h3 className={p.sectionLabel}>
         Site Assessment
       </h3>
 
       {/* Score cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className={`${p.section} ${p.sectionGapLg}`}>
         {scores.map((score) => (
           <ScoreCard key={score.label} score={score} />
         ))}
@@ -62,20 +61,11 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
 
       {/* Flags */}
       {flags.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <h4
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--color-text-muted)',
-              marginBottom: 10,
-            }}
-          >
+        <div className={p.mb24}>
+          <h4 className={p.sectionLabel}>
             Site Flags
           </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={`${p.section} ${p.sectionGapLg}`}>
             {flags.map((flag, i) => (
               <FlagCard key={i} flag={flag} />
             ))}
@@ -84,17 +74,7 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
       )}
 
       {/* Data sources notice */}
-      <div
-        style={{
-          marginTop: 20,
-          padding: 12,
-          background: 'var(--color-earth-100)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 11,
-          color: 'var(--color-earth-700)',
-          lineHeight: 1.6,
-        }}
-      >
+      <div className={s.notice}>
         <strong>Note:</strong> These preliminary scores are based on available project metadata.
         Full assessment requires Tier 1 data layers (elevation, soils, watershed, climate) which
         will auto-populate when the data pipeline is connected.
@@ -114,51 +94,28 @@ function ScoreCard({ score }: { score: ScoreEntry }) {
           : 'var(--color-confidence-low)';
 
   return (
-    <div
-      style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        padding: 12,
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)' }}>{score.label}</span>
+    <div className={p.card}>
+      <div className={`${p.rowBetween} ${p.mb8}`}>
+        <span className={p.cardTitle}>{score.label}</span>
         <span
-          style={{
-            fontSize: 16,
-            fontWeight: 600,
-            fontFamily: 'var(--font-mono)',
-            color: score.value !== null ? barColor : 'var(--color-text-muted)',
-          }}
+          className={s.scoreValue}
+          style={{ color: score.value !== null ? barColor : 'var(--color-text-muted)' }}
         >
           {score.value !== null ? `${score.value}` : '—'}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div
-        style={{
-          height: 4,
-          borderRadius: 2,
-          background: 'var(--color-border)',
-          marginBottom: 6,
-        }}
-      >
+      <div className={s.progressTrack}>
         {score.value !== null && (
           <div
-            style={{
-              height: '100%',
-              width: `${score.value}%`,
-              borderRadius: 2,
-              background: barColor,
-              transition: 'width 400ms ease',
-            }}
+            className={s.progressFill}
+            style={{ width: `${score.value}%`, background: barColor }}
           />
         )}
       </div>
 
-      <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4 }}>
+      <div className={s.scoreDesc}>
         {score.description}
       </div>
 
@@ -168,29 +125,16 @@ function ScoreCard({ score }: { score: ScoreEntry }) {
 }
 
 function FlagCard({ flag }: { flag: AssessmentFlag }) {
-  const typeColors = {
-    risk: { bg: 'rgba(155, 58, 42, 0.08)', border: 'rgba(155, 58, 42, 0.2)', icon: '⚠' },
-    opportunity: { bg: 'rgba(45, 122, 79, 0.08)', border: 'rgba(45, 122, 79, 0.2)', icon: '✦' },
-    limitation: { bg: 'rgba(138, 109, 30, 0.08)', border: 'rgba(138, 109, 30, 0.2)', icon: '◆' },
-  };
-
-  const cfg = typeColors[flag.type];
+  const cfg = FLAG_TYPE_CONFIG[flag.type]!;
 
   return (
-    <div
-      style={{
-        background: cfg.bg,
-        border: `1px solid ${cfg.border}`,
-        borderRadius: 'var(--radius-md)',
-        padding: 10,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ fontSize: 12 }}>{cfg.icon}</span>
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>{flag.title}</span>
+    <div className={`${s.flagCard} ${s[cfg.className]}`}>
+      <div className={s.flagHeader}>
+        <span className={s.flagIcon}>{cfg.icon}</span>
+        <span className={s.flagTitle}>{flag.title}</span>
         <ConfidenceIndicator confidence={flag.confidence} compact />
       </div>
-      <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5, paddingLeft: 18 }}>
+      <div className={s.flagDesc}>
         {flag.description}
       </div>
     </div>

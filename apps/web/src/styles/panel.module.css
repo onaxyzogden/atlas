@@ -1,0 +1,1051 @@
+/* ==========================================================================
+   OGDEN Atlas — Shared Panel Styles
+   Common CSS classes for all right-side panels and feature panels.
+   ========================================================================== */
+
+/* ─── Root container ───────────────────────────────────────────────────── */
+.container {
+  padding: var(--space-5);
+  overflow-y: auto;
+  height: 100%;
+  color: var(--color-panel-text);
+}
+
+.containerCompact {
+  padding: var(--space-3);
+}
+
+/* ─── Panel title (h2) ─────────────────────────────────────────────────── */
+.title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-panel-title);
+  margin-bottom: var(--space-5);
+}
+
+/* ─── Section label (h3) ───────────────────────────────────────────────── */
+.sectionLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-panel-section);
+  margin-bottom: var(--space-2);
+}
+
+/* ─── Sections ─────────────────────────────────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--space-6);
+}
+
+.sectionGapSm {
+  gap: 4px;
+}
+
+.sectionGapLg {
+  gap: 8px;
+}
+
+/* ─── Cards ────────────────────────────────────────────────────────────── */
+.card {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.cardCompact {
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.cardTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+}
+
+.cardDesc {
+  font-size: var(--text-xs);
+  color: var(--color-panel-muted);
+  margin-top: 1px;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ─── List items (with separator) ──────────────────────────────────────── */
+.listItem {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-panel-card-border);
+  gap: 10px;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+/* ─── Buttons ──────────────────────────────────────────────────────────── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 14px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: var(--radius-md);
+  background: var(--color-panel-card);
+  color: var(--color-panel-text);
+  cursor: pointer;
+  transition: background var(--duration-base) var(--ease-default),
+              border-color var(--duration-base) var(--ease-default);
+}
+
+.btn:hover {
+  background: rgba(196, 162, 101, 0.08);
+}
+
+.btnActive {
+  background: rgba(196, 162, 101, 0.08);
+  border-color: rgba(196, 162, 101, 0.25);
+}
+
+.btnCompact {
+  padding: 8px 12px;
+  font-size: var(--text-xs);
+}
+
+.btnSmall {
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  width: auto;
+}
+
+.btnPrimary {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: var(--color-primary-hover, #634c31);
+}
+
+.btnAccent {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+}
+
+.btnAccent:hover {
+  background: var(--color-accent-hover);
+}
+
+.btnDisabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Collapsible toggle header ────────────────────────────────────────── */
+.toggleHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 14px;
+  background: rgba(196, 162, 101, 0.06);
+  border: none;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.1);
+  cursor: pointer;
+  color: var(--color-panel-text);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  text-align: left;
+}
+
+.toggleHeader:hover {
+  background: rgba(196, 162, 101, 0.1);
+}
+
+/* ─── Eye toggle icon ──────────────────────────────────────────────────── */
+.eyeIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--duration-base);
+}
+
+.eyeIcon:hover {
+  opacity: 1;
+}
+
+/* ─── Badges ───────────────────────────────────────────────────────────── */
+.badge {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.badgeConfidence {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.badgeHigh {
+  background: rgba(45, 122, 79, 0.15);
+  color: var(--color-confidence-high);
+}
+
+.badgeMedium {
+  background: rgba(196, 162, 101, 0.15);
+  color: var(--color-confidence-medium);
+}
+
+.badgeLow {
+  background: rgba(155, 58, 42, 0.15);
+  color: var(--color-confidence-low);
+}
+
+.badgeActive {
+  background: rgba(82, 120, 82, 0.15);
+  color: var(--color-accent);
+}
+
+.badgePending {
+  background: rgba(154, 138, 116, 0.15);
+  color: var(--color-panel-muted);
+}
+
+/* ─── Color swatch / status dot ────────────────────────────────────────── */
+.colorSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* ─── Inputs ───────────────────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: var(--text-xs);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-panel-text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--duration-base);
+}
+
+.input:focus {
+  border-color: rgba(196, 162, 101, 0.4);
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.colorInput {
+  width: 24px;
+  height: 20px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ─── Progress bar ─────────────────────────────────────────────────────── */
+.progressBar {
+  width: 100%;
+  height: 12px;
+  background: var(--color-panel-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  background: #c4a265;
+  transition: width var(--duration-base);
+}
+
+/* ─── Grid layouts ─────────────────────────────────────────────────────── */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.gridTwo {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.gridTwo > * {
+  flex: 1;
+}
+
+/* ─── Label / value ────────────────────────────────────────────────────── */
+.label {
+  font-size: var(--text-xs);
+  color: var(--color-panel-muted);
+}
+
+.value {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+}
+
+.valueSmall {
+  font-size: var(--text-xs);
+  color: var(--color-panel-text);
+}
+
+/* ─── Separator ────────────────────────────────────────────────────────── */
+.separator {
+  height: 1px;
+  background: var(--color-panel-card-border);
+  margin: var(--space-4) 0;
+}
+
+/* ─── Empty / placeholder ──────────────────────────────────────────────── */
+.empty {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-panel-muted);
+  font-size: var(--text-xs);
+}
+
+/* ─── Spacing utilities ────────────────────────────────────────────────── */
+.mb4 { margin-bottom: var(--space-1); }
+.mb8 { margin-bottom: var(--space-2); }
+.mb12 { margin-bottom: var(--space-3); }
+.mb16 { margin-bottom: var(--space-4); }
+.mb20 { margin-bottom: var(--space-5); }
+.mb24 { margin-bottom: var(--space-6); }
+
+.mt4 { margin-top: var(--space-1); }
+.mt8 { margin-top: var(--space-2); }
+
+/* ─── Modal overlay ──────────────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContent {
+  width: 440px;
+  max-width: 90vw;
+  background: var(--color-panel-bg);
+  border: 1px solid rgba(196, 162, 101, 0.15);
+  border-radius: 14px;
+  padding: 28px 32px;
+  color: var(--color-panel-text);
+}
+
+.modalContentSm {
+  width: 380px;
+}
+
+.modalContentMd {
+  width: 400px;
+}
+
+.modalTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.modalSubtitle {
+  font-size: 12px;
+  color: var(--color-panel-muted);
+  margin-bottom: 16px;
+}
+
+/* ─── Tab / segmented control ─────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(196, 162, 101, 0.2);
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 9px 0;
+  font-size: 11px;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.tabBtnActive {
+  font-weight: 600;
+  background: rgba(196, 162, 101, 0.12);
+  color: #c4a265;
+}
+
+.tabBtnSm {
+  padding: 8px 0;
+  font-size: 10px;
+}
+
+/* ─── Selector grid (species, types, utilities) ───────────────────── */
+.selectorGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.selectorGrid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.selectorBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  background: transparent;
+  border: 1px solid var(--color-panel-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-panel-muted);
+  font-size: 11px;
+  text-align: left;
+}
+
+.selectorBtnActive {
+  background: rgba(122, 107, 58, 0.15);
+  border-color: rgba(122, 107, 58, 0.3);
+  color: #c4a265;
+}
+
+.selectorBtnCol {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  font-size: 10px;
+}
+
+.selectorIcon {
+  font-size: 13px;
+}
+
+.selectorIconLg {
+  font-size: 16px;
+}
+
+.selectorCheck {
+  margin-left: auto;
+  font-size: 10px;
+}
+
+/* ─── Draw / action button (full-width) ───────────────────────────── */
+.drawBtn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: rgba(122, 107, 58, 0.15);
+  color: #c4a265;
+  cursor: pointer;
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+
+.drawBtnDisabled {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  cursor: wait;
+}
+
+/* ─── Delete / close icon button ──────────────────────────────────── */
+.deleteBtn {
+  background: none;
+  border: none;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+/* ─── Inline link / text button ───────────────────────────────────── */
+.textBtn {
+  background: none;
+  border: none;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+}
+
+/* ─── Item row (paddock, path, utility list row) ──────────────────── */
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 8px;
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-panel-text);
+}
+
+.itemMeta {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+/* ─── Info card (with left accent border) ─────────────────────────── */
+.infoCard {
+  padding: 16px;
+  background: rgba(196, 162, 101, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(196, 162, 101, 0.08);
+  border-left: 3px solid rgba(196, 162, 101, 0.3);
+}
+
+.infoCardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-panel-text);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.infoCardText {
+  font-size: 12px;
+  color: var(--color-panel-muted);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ─── Highlight box (callout / notification) ──────────────────────── */
+.highlightBox {
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.highlightBoxGold {
+  background: rgba(196, 162, 101, 0.06);
+  border: 1px solid rgba(196, 162, 101, 0.1);
+}
+
+.highlightBoxGreen {
+  background: rgba(45, 122, 79, 0.06);
+  border: 1px solid rgba(45, 122, 79, 0.1);
+}
+
+.highlightBoxTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-panel-text);
+  margin-bottom: 6px;
+}
+
+.highlightBoxText {
+  font-size: 12px;
+  color: var(--color-panel-muted);
+  line-height: 1.6;
+}
+
+/* ─── Narrative step card ─────────────────────────────────────────── */
+.stepCard {
+  text-align: left;
+  padding: 14px 16px;
+  background: transparent;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-panel-text);
+}
+
+.stepCardActive {
+  background: rgba(196, 162, 101, 0.08);
+  border-color: rgba(196, 162, 101, 0.2);
+}
+
+.stepNumber {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-panel-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-panel-muted);
+  flex-shrink: 0;
+}
+
+.stepNumberActive {
+  border-color: #c4a265;
+  color: #c4a265;
+}
+
+.stepDesc {
+  font-size: 12px;
+  color: var(--color-panel-muted);
+  line-height: 1.6;
+  margin-top: 4px;
+  font-style: italic;
+  padding-left: 38px;
+}
+
+/* ─── Prev / Next navigation ──────────────────────────────────────── */
+.navBtnPrev {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+}
+
+.navBtnNext {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(196, 162, 101, 0.15);
+  color: #c4a265;
+  cursor: pointer;
+}
+
+.navBtnDisabled {
+  color: var(--color-panel-subtle);
+  cursor: not-allowed;
+}
+
+.navBtnNextDisabled {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  cursor: not-allowed;
+}
+
+/* ─── Form label (modal forms) ────────────────────────────────────── */
+.formLabel {
+  font-size: 11px;
+  color: var(--color-panel-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.formLabelInline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+/* ─── Form input (modal forms) ────────────────────────────────────── */
+.formInput {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+  background: var(--color-panel-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--color-panel-text);
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.formTextarea {
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+/* ─── Cancel / Save button pair ───────────────────────────────────── */
+.btnRow {
+  display: flex;
+  gap: 10px;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.saveBtnEnabled {
+  background: rgba(196, 162, 101, 0.2);
+  color: #c4a265;
+}
+
+.saveBtnDisabled {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  cursor: not-allowed;
+}
+
+/* ─── Stocking / info hint box ────────────────────────────────────── */
+.hintBox {
+  padding: 8px 10px;
+  background: rgba(122, 107, 58, 0.06);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: var(--color-panel-muted);
+}
+
+/* ─── Chip / pill (small tag button) ──────────────────────────────── */
+.chip {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+}
+
+.chipActive {
+  background: rgba(122, 107, 58, 0.15);
+  border-color: rgba(122, 107, 58, 0.3);
+  color: #c4a265;
+}
+
+/* ─── Flex helpers ────────────────────────────────────────────────── */
+.flex1 { flex: 1; }
+.flexWrap { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+.flexGap12 { display: flex; gap: 12px; margin-bottom: 12px; }
+.flexGap8 { display: flex; gap: 8px; }
+.flexCol { display: flex; flex-direction: column; }
+
+/* ─── Muted text ──────────────────────────────────────────────────── */
+.muted { color: var(--color-panel-muted); }
+.mutedItalic { color: var(--color-panel-muted); font-style: italic; }
+
+/* ─── Subtitle / description text ─────────────────────────────────── */
+.subtitle {
+  font-size: 11px;
+  color: var(--color-panel-muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.subtitleItalic {
+  font-size: 11px;
+  color: var(--color-panel-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ─── Color swatch inline ─────────────────────────────────────────── */
+.swatchSm {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.swatchLine {
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* ─── Placement mode banner ───────────────────────────────────────── */
+.placementBanner {
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: rgba(196, 162, 101, 0.08);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #c4a265;
+  text-align: center;
+}
+
+/* ─── Section toggle header (PortalConfig) ────────────────────────── */
+.sectionToggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-panel-card-border);
+  color: var(--color-panel-text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sectionToggleExpanded {
+  margin-bottom: 8px;
+}
+
+.sectionToggleChevron {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+/* ─── Progress dots ───────────────────────────────────────────────── */
+.progressDots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.progressDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-panel-card-border);
+}
+
+.progressDotActive {
+  background: #c4a265;
+}
+
+/* ─── Score circle ────────────────────────────────────────────────── */
+.scoreCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scoreCircleHigh { border-color: #2d7a4f; }
+.scoreCircleMed  { border-color: #c4a265; }
+.scoreCircleLow  { border-color: #c44e3f; }
+
+.scoreValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-panel-text);
+}
+
+/* ─── Good-fit / bad-fit items ────────────────────────────────────── */
+.fitItem {
+  font-size: 12px;
+  color: var(--color-panel-text);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.fitItemGood {
+  background: rgba(45, 122, 79, 0.06);
+  border-left: 3px solid rgba(45, 122, 79, 0.3);
+}
+
+.fitItemBad {
+  background: rgba(196, 78, 63, 0.06);
+  border-left: 3px solid rgba(196, 78, 63, 0.3);
+}
+
+/* ─── Resolve / Delete action buttons (comments) ──────────────────── */
+.actionBtnResolve {
+  padding: 3px 8px;
+  font-size: 10px;
+  border: 1px solid rgba(45, 122, 79, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: #2d7a4f;
+  cursor: pointer;
+}
+
+.actionBtnDelete {
+  padding: 3px 8px;
+  font-size: 10px;
+  border: 1px solid rgba(196, 78, 63, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: #c44e3f;
+  cursor: pointer;
+}
+
+/* ─── Publish toggle card ─────────────────────────────────────────── */
+.publishCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.publishCardOn {
+  background: rgba(45, 122, 79, 0.08);
+  border: 1px solid rgba(45, 122, 79, 0.2);
+}
+
+.publishCardOff {
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+/* ─── White-label / note box ──────────────────────────────────────── */
+.noteBox {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(196, 162, 101, 0.06);
+  border: 1px solid rgba(196, 162, 101, 0.15);
+}
+
+/* ─── Inline icon + label row ─────────────────────────────────────── */
+.iconLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* ─── Font size overrides ─────────────────────────────────────────── */
+.textXs  { font-size: var(--text-xs); }
+.textSm  { font-size: var(--text-sm); }
+.textMd  { font-size: 13px; }
+.textLg  { font-size: 16px; }
+.textXl  { font-size: 18px; }
+.text9   { font-size: 9px; }
+.text10  { font-size: 10px; }
+.text11  { font-size: 11px; }
+.text12  { font-size: 12px; }
+.text13  { font-size: 13px; }
+.text14  { font-size: 14px; }
+.text22  { font-size: 22px; }
+.text28  { font-size: 28px; }
+
+/* ─── Font weight overrides ───────────────────────────────────────── */
+.fontNormal  { font-weight: 400; }
+.fontMedium  { font-weight: 500; }
+.fontSemibold{ font-weight: 600; }
+.fontBold    { font-weight: 700; }
+
+/* ─── Line-height overrides ───────────────────────────────────────── */
+.leading1   { line-height: 1; }
+.leading12  { line-height: 1.2; }
+.leading14  { line-height: 1.4; }
+.leading15  { line-height: 1.5; }
+.leading16  { line-height: 1.6; }
+.leading17  { line-height: 1.7; }
+
+/* ─── Opacity helpers ─────────────────────────────────────────────── */
+.opacity50 { opacity: 0.5; }
+.opacity60 { opacity: 0.6; }
+.opacity70 { opacity: 0.7; }
+
+/* ─── Cursor helpers ──────────────────────────────────────────────── */
+.cursorPointer    { cursor: pointer; }
+.cursorNotAllowed { cursor: not-allowed; }
+.cursorWait       { cursor: wait; }
+
+/* ─── Text alignment ──────────────────────────────────────────────── */
+.textCenter { text-align: center; }
+.textLeft   { text-align: left; }
+
+/* ─── Word break ──────────────────────────────────────────────────── */
+.breakAll { word-break: break-all; }
+
+/* ─── White-space ─────────────────────────────────────────────────── */
+.nowrap { white-space: nowrap; }
+
+/* ─── Monospace ───────────────────────────────────────────────────── */
+.mono { font-family: monospace; }

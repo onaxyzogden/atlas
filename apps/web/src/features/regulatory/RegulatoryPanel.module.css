@@ -1,0 +1,153 @@
+/* RegulatoryPanel — component-specific styles */
+
+/* ─── Risk score card ───────────────────────────────────────────────────── */
+.riskCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: var(--space-4);
+}
+
+.riskHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.riskTitle {
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  color: var(--color-text);
+}
+
+.riskLabel {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  font-family: var(--font-mono);
+}
+
+.progressTrack {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 400ms ease;
+}
+
+.riskDesc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ─── Collapsible section ───────────────────────────────────────────────── */
+.regSection {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.regSectionToggle {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.regSectionToggleExpanded {
+  background: var(--color-surface);
+}
+
+.regSectionToggleCollapsed {
+  background: transparent;
+}
+
+.regSectionChevron {
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+.regSectionBody {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ─── Content text ──────────────────────────────────────────────────────── */
+.contentText {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* ─── Permit row ────────────────────────────────────────────────────────── */
+.permitRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.permitDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.permitName {
+  flex: 1;
+  color: var(--color-text);
+}
+
+.permitStatus {
+  font-size: 10px;
+  font-weight: var(--font-medium);
+}
+
+/* ─── Empty state ───────────────────────────────────────────────────────── */
+.emptyState {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ─── Info badge ────────────────────────────────────────────────────────── */
+.infoBadge {
+  margin-top: var(--space-2);
+  font-size: 10px;
+  color: var(--color-earth-600);
+  padding: 4px 8px;
+  background: var(--color-earth-100);
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Disclaimer ────────────────────────────────────────────────────────── */
+.disclaimer {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background: rgba(138, 109, 30, 0.08);
+  border: 1px solid rgba(138, 109, 30, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 10px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}

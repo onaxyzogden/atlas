@@ -23,6 +23,8 @@ import LivestockPanel from '../../features/livestock/LivestockPanel.js';
 import CropPanel from '../../features/crops/CropPanel.js';
 import AccessPanel from '../../features/access/AccessPanel.js';
 import UtilityPanel from '../../features/utilities/UtilityPanel.js';
+import p from '../../styles/panel.module.css';
+import s from './DesignToolsPanel.module.css';
 
 interface DesignToolsPanelProps {
   projectId: string;
@@ -46,22 +48,22 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
   const [modalPhase, setModalPhase] = useState('Phase 1');
   const [modalDescription, setModalDescription] = useState('');
 
-  const allZones = useZoneStore((s) => s.zones);
+  const allZones = useZoneStore((zs) => zs.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
-  const addZone = useZoneStore((s) => s.addZone);
-  const deleteZone = useZoneStore((s) => s.deleteZone);
+  const addZone = useZoneStore((zs) => zs.addZone);
+  const deleteZone = useZoneStore((zs) => zs.deleteZone);
 
   // Structure state
-  const allStructures = useStructureStore((s) => s.structures);
-  const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
-  const addStructure = useStructureStore((s) => s.addStructure);
-  const deleteStructure = useStructureStore((s) => s.deleteStructure);
-  const placementMode = useStructureStore((s) => s.placementMode);
-  const setPlacementMode = useStructureStore((s) => s.setPlacementMode);
+  const allStructures = useStructureStore((ss) => ss.structures);
+  const structures = useMemo(() => allStructures.filter((st) => st.projectId === projectId), [allStructures, projectId]);
+  const addStructure = useStructureStore((ss) => ss.addStructure);
+  const deleteStructure = useStructureStore((ss) => ss.deleteStructure);
+  const placementMode = useStructureStore((ss) => ss.placementMode);
+  const setPlacementMode = useStructureStore((ss) => ss.setPlacementMode);
   const [showStructureModal, setShowStructureModal] = useState(false);
   const [pendingStructureCenter, setPendingStructureCenter] = useState<[number, number] | null>(null);
   const [editingStructure, setEditingStructure] = useState<Structure | null>(null);
-  const updateStructure = useStructureStore((s) => s.updateStructure);
+  const updateStructure = useStructureStore((ss) => ss.updateStructure);
 
   // Click-to-place handler for structures
   const handleMapClick = useCallback((e: { lngLat: { lng: number; lat: number } }) => {
@@ -151,28 +153,16 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
 
   return (
     <>
-      <div style={{ padding: 20 }}>
-        <PanelTitle>Design Tools</PanelTitle>
+      <div className={p.container}>
+        <h2 className={p.title}>Design Tools</h2>
 
         {/* Tab switcher */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20 }}>
+        <div className={s.tabRow}>
           {(['zones', 'structures', 'livestock', 'crops', 'paths', 'utilities'] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '7px 12px',
-                fontSize: 11,
-                fontWeight: activeTab === tab ? 600 : 400,
-                background: activeTab === tab ? 'rgba(196, 162, 101, 0.12)' : 'transparent',
-                border: activeTab === tab ? '1px solid rgba(196, 162, 101, 0.3)' : '1px solid rgba(196, 162, 101, 0.15)',
-                borderRadius: 6,
-                color: activeTab === tab ? '#c4a265' : 'var(--color-panel-muted)',
-                cursor: 'pointer',
-                textTransform: 'capitalize',
-                letterSpacing: '0.02em',
-                whiteSpace: 'nowrap',
-              }}
+              className={`${s.tabBtn} ${activeTab === tab ? s.tabBtnActive : ''}`}
             >
               {tab}
             </button>
@@ -182,8 +172,8 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
         {activeTab === 'zones' && (
           <>
             {/* Zone type selector */}
-            <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 10 }}>Select Zone Type</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
+            <div className={p.label} style={{ marginBottom: 10 }}>Select Zone Type</div>
+            <div className={s.zoneGrid}>
               {(Object.entries(ZONE_CATEGORY_CONFIG) as [ZoneCategory, typeof ZONE_CATEGORY_CONFIG[ZoneCategory]][]).map(
                 ([key, config]) => {
                   const isSelected = selectedCategory === key;
@@ -191,34 +181,23 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                     <button
                       key={key}
                       onClick={() => setSelectedCategory(key)}
+                      className={s.zoneTypeBtn}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '8px 10px',
-                        background: isSelected ? `${config.color}15` : 'transparent',
-                        border: isSelected ? `1px solid ${config.color}40` : '1px solid var(--color-panel-subtle)',
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        color: isSelected ? config.color : 'var(--color-panel-text)',
-                        fontSize: 11,
-                        textAlign: 'left',
-                        transition: 'all 150ms ease',
+                        background: isSelected ? `${config.color}15` : undefined,
+                        borderColor: isSelected ? `${config.color}40` : undefined,
+                        color: isSelected ? config.color : undefined,
                       }}
                     >
                       <span
+                        className={`${s.zoneTypeDot} ${isSelected ? s.zoneTypeDotActive : ''}`}
                         style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
                           background: config.color,
-                          flexShrink: 0,
-                          border: isSelected ? `2px solid ${config.color}` : '1px solid rgba(255,255,255,0.15)',
+                          borderColor: isSelected ? config.color : undefined,
                           boxShadow: isSelected ? `0 0 6px ${config.color}40` : 'none',
                         }}
                       />
                       <span style={{ lineHeight: 1.2, fontWeight: isSelected ? 500 : 400 }}>{config.label}</span>
-                      {isSelected && <span style={{ marginLeft: 'auto', fontSize: 10, color: config.color }}>✓</span>}
+                      {isSelected && <span className={s.zoneTypeCheck} style={{ color: config.color }}>{'\u2713'}</span>}
                     </button>
                   );
                 },
@@ -229,52 +208,26 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
             <button
               onClick={startDraw}
               disabled={isDrawing || !draw}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                fontSize: 13,
-                fontWeight: 600,
-                border: 'none',
-                borderRadius: 8,
-                background: isDrawing ? 'var(--color-panel-subtle)' : 'rgba(196, 162, 101, 0.15)',
-                color: isDrawing ? 'var(--color-panel-muted)' : '#c4a265',
-                cursor: isDrawing ? 'wait' : 'pointer',
-                marginBottom: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                letterSpacing: '0.02em',
-              }}
+              className={`${s.drawBtn} ${isDrawing ? s.drawBtnDisabled : ''}`}
             >
-              <span style={{ fontSize: 16 }}>▢</span>
+              <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
               {isDrawing ? 'Drawing... double-click to finish' : 'Draw Zone on Map'}
             </button>
 
             {/* Defined zones */}
-            <SectionLabel>Defined Zones ({zones.length})</SectionLabel>
+            <h3 className={p.sectionLabel}>Defined Zones ({zones.length})</h3>
             {zones.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', textAlign: 'center', padding: 16 }}>
+              <div className={p.empty}>
                 No zones drawn yet
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className={p.section}>
                 {zones.map((z) => (
-                  <div
-                    key={z.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '10px 12px',
-                      border: '1px solid var(--color-panel-card-border)',
-                      borderRadius: 8,
-                    }}
-                  >
-                    <span style={{ width: 10, height: 10, borderRadius: 2, background: z.color, flexShrink: 0 }} />
+                  <div key={z.id} className={s.itemCard}>
+                    <span className={p.colorSwatch} style={{ background: z.color }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>{z.name}</div>
-                      <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>
+                      <div className={s.itemName}>{z.name}</div>
+                      <div className={s.itemMeta}>
                         {ZONE_CATEGORY_CONFIG[z.category].label}
                         {z.areaM2 > 0 && ` \u2014 ${formatArea(z.areaM2)}`}
                       </div>
@@ -290,16 +243,9 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                           if (map.getSource(`zone-${z.id}`)) map.removeSource(`zone-${z.id}`);
                         }
                       }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-panel-muted)',
-                        cursor: 'pointer',
-                        fontSize: 14,
-                        padding: '0 2px',
-                      }}
+                      className={s.deleteBtn}
                     >
-                      ×
+                      {'\u00D7'}
                     </button>
                   </div>
                 ))}
@@ -318,10 +264,10 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
               const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
               return (
                 <div key={cat} style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 6 }}>
+                  <div className={s.structCatLabel}>
                     {catLabel}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                  <div className={s.structGrid}>
                     {types.map(([key, tmpl]) => {
                       const isActive = placementMode === key;
                       return (
@@ -334,19 +280,7 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                               setPlacementMode(key);
                             }
                           }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '7px 8px',
-                            background: isActive ? 'rgba(196, 162, 101, 0.12)' : 'transparent',
-                            border: isActive ? '1px solid rgba(196, 162, 101, 0.3)' : '1px solid var(--color-panel-subtle)',
-                            borderRadius: 6,
-                            cursor: 'pointer',
-                            color: isActive ? '#c4a265' : 'var(--color-panel-text)',
-                            fontSize: 11,
-                            textAlign: 'left',
-                          }}
+                          className={`${s.structBtn} ${isActive ? s.structBtnActive : ''}`}
                         >
                           <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
                           <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{tmpl.label}</span>
@@ -360,72 +294,44 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
 
             {/* Placement mode indicator */}
             {placementMode && (
-              <div
-                style={{
-                  padding: '10px 12px',
-                  marginBottom: 14,
-                  background: 'rgba(196, 162, 101, 0.08)',
-                  border: '1px solid rgba(196, 162, 101, 0.2)',
-                  borderRadius: 8,
-                  fontSize: 12,
-                  color: '#c4a265',
-                  textAlign: 'center',
-                }}
-              >
+              <div className={s.placementIndicator}>
                 Click on the map to place {STRUCTURE_TEMPLATES[placementMode].label}
               </div>
             )}
 
             {/* Placed structures list */}
-            <SectionLabel>Placed Structures ({structures.length})</SectionLabel>
+            <h3 className={p.sectionLabel}>Placed Structures ({structures.length})</h3>
             {structures.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', textAlign: 'center', padding: 16 }}>
+              <div className={p.empty}>
                 No structures placed yet
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {structures.map((s) => {
-                  const tmpl = STRUCTURE_TEMPLATES[s.type];
+              <div className={p.section}>
+                {structures.map((st) => {
+                  const tmpl = STRUCTURE_TEMPLATES[st.type];
                   return (
-                    <div
-                      key={s.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 12px',
-                        border: '1px solid var(--color-panel-card-border)',
-                        borderRadius: 8,
-                      }}
-                    >
+                    <div key={st.id} className={s.itemCard}>
                       <span style={{ fontSize: 14 }}>{tmpl?.icon ?? '\u{1F3E0}'}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>{s.name}</div>
-                        <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>
-                          {tmpl?.label ?? s.type} {'\u2014'} {s.phase}
-                          {s.costEstimate && ` \u2014 $${s.costEstimate.toLocaleString()}`}
+                        <div className={s.itemName}>{st.name}</div>
+                        <div className={s.itemMeta}>
+                          {tmpl?.label ?? st.type} {'\u2014'} {st.phase}
+                          {st.costEstimate && ` \u2014 $${st.costEstimate.toLocaleString()}`}
                         </div>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteStructure(s.id);
+                          deleteStructure(st.id);
                           if (map) {
                             ['fill', 'line', 'label'].forEach((t) => {
-                              const id = `structure-${t}-${s.id}`;
+                              const id = `structure-${t}-${st.id}`;
                               if (map.getLayer(id)) map.removeLayer(id);
                             });
-                            if (map.getSource(`structure-${s.id}`)) map.removeSource(`structure-${s.id}`);
+                            if (map.getSource(`structure-${st.id}`)) map.removeSource(`structure-${st.id}`);
                           }
                         }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--color-panel-muted)',
-                          cursor: 'pointer',
-                          fontSize: 14,
-                          padding: '0 2px',
-                        }}
+                        className={s.deleteBtn}
                         title="Delete structure"
                       >
                         {'\u00D7'}
@@ -433,16 +339,9 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setEditingStructure(s);
+                          setEditingStructure(st);
                         }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--color-panel-muted)',
-                          cursor: 'pointer',
-                          fontSize: 12,
-                          padding: '0 2px',
-                        }}
+                        className={s.editBtn}
                         title="Edit structure"
                       >
                         {'\u270E'}
@@ -538,62 +437,29 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
 
       {/* ── Zone Naming Modal ─────────────────────────────────────── */}
       {showModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            background: 'rgba(0, 0, 0, 0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onClick={handleCancelModal}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 460, maxWidth: '90vw',
-              background: 'var(--color-panel-bg)',
-              border: '1px solid rgba(196, 162, 101, 0.15)',
-              borderRadius: 14,
-              padding: '28px 32px',
-              color: 'var(--color-panel-text)',
-            }}
-          >
-            <h2 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4, color: 'var(--color-panel-text)' }}>
+        <div className={s.modalOverlay} onClick={handleCancelModal}>
+          <div onClick={(e) => e.stopPropagation()} className={s.modalBox}>
+            <h2 className={s.modalTitle}>
               Name This Zone
             </h2>
-            <p style={{ fontSize: 12, color: 'var(--color-panel-muted)', marginBottom: 20 }}>
+            <p className={s.modalSubtitle}>
               Define the type and purpose of this area
             </p>
 
             {/* Zone Name */}
-            <label style={{ fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 }}>Zone Name *</label>
+            <label className={s.modalLabel}>Zone Name *</label>
             <input
               type="text"
               value={modalName}
               onChange={(e) => setModalName(e.target.value)}
               placeholder="e.g. Pond one"
               autoFocus
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                fontSize: 13,
-                background: 'var(--color-panel-subtle)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6,
-                color: 'var(--color-panel-text)',
-                outline: 'none',
-                fontFamily: 'inherit',
-                marginBottom: 16,
-              }}
+              className={s.modalInput}
             />
 
             {/* Zone Type */}
-            <label style={{ fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 6 }}>Zone Type</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 16 }}>
+            <label className={s.modalLabel} style={{ marginBottom: 6 }}>Zone Type</label>
+            <div className={s.zoneGrid} style={{ marginBottom: 16 }}>
               {(Object.entries(ZONE_CATEGORY_CONFIG) as [ZoneCategory, typeof ZONE_CATEGORY_CONFIG[ZoneCategory]][]).map(
                 ([key, config]) => {
                   const isSelected = modalCategory === key;
@@ -601,23 +467,16 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                     <button
                       key={key}
                       onClick={() => setModalCategory(key)}
+                      className={s.zoneTypeBtn}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '7px 10px',
-                        background: isSelected ? `${config.color}18` : 'transparent',
-                        border: isSelected ? `1px solid ${config.color}40` : '1px solid var(--color-panel-subtle)',
-                        borderRadius: 6,
-                        cursor: 'pointer',
+                        background: isSelected ? `${config.color}18` : undefined,
+                        borderColor: isSelected ? `${config.color}40` : undefined,
                         color: isSelected ? config.color : 'var(--color-panel-muted)',
-                        fontSize: 11,
-                        textAlign: 'left',
                       }}
                     >
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: config.color, flexShrink: 0 }} />
+                      <span className={s.zoneTypeDot} style={{ background: config.color }} />
                       <span>{config.label}</span>
-                      {isSelected && <span style={{ marginLeft: 'auto', fontSize: 10, color: config.color }}>✓</span>}
+                      {isSelected && <span className={s.zoneTypeCheck} style={{ color: config.color }}>{'\u2713'}</span>}
                     </button>
                   );
                 },
@@ -625,24 +484,13 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
             </div>
 
             {/* Build Phase + Phase Color */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <div className={s.modalPhaseRow}>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 }}>Build Phase</label>
+                <label className={s.modalLabel}>Build Phase</label>
                 <select
                   value={modalPhase}
                   onChange={(e) => setModalPhase(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 10px',
-                    fontSize: 12,
-                    background: 'var(--color-panel-subtle)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 6,
-                    color: 'var(--color-panel-text)',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
+                  className={s.modalSelect}
                 >
                   <option value="Phase 1">Phase 1</option>
                   <option value="Phase 2">Phase 2</option>
@@ -651,27 +499,14 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 }}>Phase Color</label>
+                <label className={s.modalLabel}>Phase Color</label>
                 <div
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: 12,
-                    background: 'var(--color-panel-subtle)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 6,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    color: ZONE_CATEGORY_CONFIG[modalCategory].color,
-                  }}
+                  className={s.modalPhaseColor}
+                  style={{ color: ZONE_CATEGORY_CONFIG[modalCategory].color }}
                 >
                   <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: ZONE_CATEGORY_CONFIG[modalCategory].color,
-                    }}
+                    className={s.modalPhaseColorDot}
+                    style={{ background: ZONE_CATEGORY_CONFIG[modalCategory].color }}
                   />
                   {ZONE_CATEGORY_CONFIG[modalCategory].label}
                 </div>
@@ -679,60 +514,24 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
             </div>
 
             {/* Description */}
-            <label style={{ fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 }}>Description</label>
+            <label className={s.modalLabel}>Description</label>
             <textarea
               value={modalDescription}
               onChange={(e) => setModalDescription(e.target.value)}
               placeholder="Purpose and design notes..."
               rows={3}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                fontSize: 12,
-                background: 'var(--color-panel-subtle)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6,
-                color: 'var(--color-panel-text)',
-                outline: 'none',
-                fontFamily: 'inherit',
-                resize: 'vertical',
-                marginBottom: 20,
-              }}
+              className={s.modalTextarea}
             />
 
             {/* Buttons */}
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={handleCancelModal}
-                style={{
-                  flex: 1,
-                  padding: '12px 0',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 8,
-                  background: 'transparent',
-                  color: 'var(--color-panel-muted)',
-                  cursor: 'pointer',
-                }}
-              >
+            <div className={s.modalBtnRow}>
+              <button onClick={handleCancelModal} className={s.modalCancelBtn}>
                 Cancel
               </button>
               <button
                 onClick={handleSaveZone}
                 disabled={!modalName.trim()}
-                style={{
-                  flex: 1,
-                  padding: '12px 0',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: 'none',
-                  borderRadius: 8,
-                  background: modalName.trim() ? 'rgba(196, 162, 101, 0.2)' : 'var(--color-panel-subtle)',
-                  color: modalName.trim() ? '#c4a265' : 'var(--color-panel-muted)',
-                  cursor: modalName.trim() ? 'pointer' : 'not-allowed',
-                  letterSpacing: '0.02em',
-                }}
+                className={`${s.modalSaveBtn} ${!modalName.trim() ? s.modalSaveBtnDisabled : ''}`}
               >
                 Save Zone
               </button>
@@ -745,22 +544,6 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
-
-function PanelTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
-      {children}
-    </h2>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
-      {children}
-    </h3>
-  );
-}
 
 function formatArea(m2: number): string {
   if (m2 > 10000) return `${(m2 / 10000).toFixed(2)} ha`;

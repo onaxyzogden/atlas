@@ -6,6 +6,8 @@
 
 import { useState } from 'react';
 import AdvancedEducationPanel from '../../features/education/AdvancedEducationPanel.js';
+import p from '../../styles/panel.module.css';
+import s from './EducationalAtlasPanel.module.css';
 
 interface Hotspot {
   title: string;
@@ -112,21 +114,22 @@ export default function EducationalAtlasPanel() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [tab, setTab] = useState<'hotspots' | 'learning'>('hotspots');
 
-  const totalHotspots = CATEGORIES.reduce((s, c) => s + c.hotspots.length, 0);
+  const totalHotspots = CATEGORIES.reduce((sum, c) => sum + c.hotspots.length, 0);
 
   return (
-    <div style={{ padding: 20 }}>
-      <PanelTitle>Educational Atlas</PanelTitle>
+    <div className={p.container}>
+      <h2 className={p.title} style={{ marginBottom: 4 }}>Educational Atlas</h2>
 
       {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={s.tabRow}>
         {(['hotspots', 'learning'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '9px 0', fontSize: 11, fontWeight: tab === t ? 600 : 400,
-            background: tab === t ? 'rgba(196,162,101,0.12)' : 'transparent',
-            border: 'none', color: tab === t ? '#c4a265' : 'var(--color-panel-muted)',
-            cursor: 'pointer',
-          }}>{t === 'hotspots' ? `Hotspots (${totalHotspots})` : 'Learning Center'}</button>
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`${s.tabBtn} ${tab === t ? s.tabBtnActive : ''}`}
+          >
+            {t === 'hotspots' ? `Hotspots (${totalHotspots})` : 'Learning Center'}
+          </button>
         ))}
       </div>
 
@@ -134,92 +137,57 @@ export default function EducationalAtlasPanel() {
 
       {tab === 'hotspots' && (
       <>
-      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
+      <p className={s.introText}>
         {totalHotspots} learning hotspots on the map. Click any &ldquo;i&rdquo; marker or select below.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {CATEGORIES.map((cat) => (
           <div key={cat.label}>
-            <h3
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: cat.color,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                marginBottom: 8,
-              }}
-            >
+            <h3 className={s.catLabel} style={{ color: cat.color }}>
               {cat.label}
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={p.section}>
               {cat.hotspots.map((hotspot) => {
                 const isExpanded = expandedCard === hotspot.title;
                 return (
                   <button
                     key={hotspot.title}
                     onClick={() => setExpandedCard(isExpanded ? null : hotspot.title)}
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      background: isExpanded ? 'rgba(196, 162, 101, 0.04)' : 'var(--color-surface)',
-                      border: `1px solid ${isExpanded ? cat.color + '40' : 'var(--color-border)'}`,
-                      borderRadius: 10,
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      color: 'var(--color-text)',
-                    }}
+                    className={`${s.hotspotBtn} ${isExpanded ? s.hotspotBtnExpanded : ''}`}
+                    style={{ borderColor: isExpanded ? `${cat.color}40` : undefined }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div className={s.hotspotInner}>
                       {/* Info icon */}
                       <div
+                        className={s.hotspotIcon}
                         style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
                           background: `${cat.color}18`,
                           border: `1px solid ${cat.color}40`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 11,
-                          fontWeight: 700,
                           color: cat.color,
-                          flexShrink: 0,
-                          marginTop: 1,
                         }}
                       >
                         i
                       </div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 3 }}>
+                        <div className={s.hotspotTitle}>
                           {hotspot.title}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                        <div className={s.hotspotDesc}>
                           {hotspot.description}
                         </div>
 
                         {isExpanded && (
-                          <div
-                            style={{
-                              marginTop: 10,
-                              paddingTop: 10,
-                              borderTop: '1px solid var(--color-border)',
-                              fontSize: 12,
-                              color: 'var(--color-text)',
-                              lineHeight: 1.7,
-                            }}
-                          >
+                          <div className={s.hotspotDetail}>
                             {hotspot.detail}
                           </div>
                         )}
                       </div>
 
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: 12, marginTop: 4, flexShrink: 0 }}>
-                        {isExpanded ? '▾' : '›'}
+                      <span className={s.hotspotChevron}>
+                        {isExpanded ? '\u25BE' : '\u203A'}
                       </span>
                     </div>
                   </button>
@@ -232,13 +200,5 @@ export default function EducationalAtlasPanel() {
       </>
       )}
     </div>
-  );
-}
-
-function PanelTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 4 }}>
-      {children}
-    </h2>
   );
 }

@@ -9,6 +9,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useStructureStore, type Structure } from '../../store/structureStore.js';
 import TemplateMarketplace from './TemplateMarketplace.js';
+import p from '../../styles/panel.module.css';
 
 interface TemplatePanelProps {
   project: LocalProject;
@@ -22,19 +23,16 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
   const selected = allTemplates.find((t) => t.id === selectedId);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 6 }}>
+    <div className={p.container}>
+      <h2 className={p.title} style={{ marginBottom: 6 }}>
         Design Templates
       </h2>
       {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={p.tabBar}>
         {(['library', 'marketplace'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '9px 0', fontSize: 11, fontWeight: tab === t ? 600 : 400,
-            background: tab === t ? 'rgba(196,162,101,0.12)' : 'transparent',
-            border: 'none', color: tab === t ? '#c4a265' : 'var(--color-panel-muted)',
-            cursor: 'pointer', textTransform: 'capitalize',
-          }}>{t === 'library' ? 'Library' : 'Marketplace'}</button>
+          <button key={t} onClick={() => setTab(t)} className={`${p.tabBtn} ${tab === t ? p.tabBtnActive : ''}`}>
+            {t === 'library' ? 'Library' : 'Marketplace'}
+          </button>
         ))}
       </div>
 
@@ -42,36 +40,30 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
 
       {tab === 'library' && (
       <>
-      <p style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+      <p className={p.subtitle}>
         Start from proven frameworks. Templates provide pre-configured zones, structures, and phasing plans.
       </p>
 
       {/* Template list */}
       {!selected && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={`${p.section} ${p.sectionGapLg}`}>
           {allTemplates.map((tmpl) => (
             <button
               key={tmpl.id}
               onClick={() => setSelectedId(tmpl.id)}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                padding: '12px 14px', borderRadius: 8, textAlign: 'left',
-                background: 'var(--color-panel-card)',
-                border: '1px solid var(--color-panel-card-border)',
-                cursor: 'pointer', color: 'var(--color-panel-text)',
-                width: '100%',
-              }}
+              className={p.card}
+              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', cursor: 'pointer', width: '100%', color: 'var(--color-panel-text)' }}
             >
-              <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{tmpl.icon}</span>
+              <span className={p.text22} style={{ flexShrink: 0, lineHeight: 1 }}>{tmpl.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 2 }}>
+                <div className={`${p.text13} ${p.fontMedium} ${p.mb4}`}>
                   {tmpl.name}
                   {tmpl.category === 'moontrance' && (
-                    <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.15)', color: '#c4a265', marginLeft: 6 }}>OGDEN</span>
+                    <span className={p.badge} style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.15)', color: '#c4a265', marginLeft: 6 }}>OGDEN</span>
                   )}
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', lineHeight: 1.4 }}>{tmpl.description}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: 10, color: 'var(--color-panel-muted)' }}>
+                <div className={`${p.text10} ${p.muted} ${p.leading14}`}>{tmpl.description}</div>
+                <div className={`${p.row} ${p.text10} ${p.muted}`} style={{ gap: 8, marginTop: 6 }}>
                   <span>{tmpl.zones.length} zones</span>
                   <span>{tmpl.structures.length} structures</span>
                   <span>${tmpl.costEstimateRange[0]}K–${tmpl.costEstimateRange[1]}K</span>
@@ -87,52 +79,52 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
         <div>
           <button
             onClick={() => setSelectedId(null)}
-            style={{ background: 'none', border: 'none', color: 'var(--color-panel-muted)', cursor: 'pointer', fontSize: 11, padding: 0, marginBottom: 12 }}
+            className={`${p.textBtn} ${p.mb12}`}
           >
             {'<'} Back to templates
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 28 }}>{selected.icon}</span>
+          <div className={`${p.row} ${p.mb12}`} style={{ gap: 10 }}>
+            <span className={p.text28}>{selected.icon}</span>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-panel-text)', margin: 0 }}>{selected.name}</h3>
-              <p style={{ fontSize: 11, color: 'var(--color-panel-muted)', margin: 0, lineHeight: 1.4 }}>{selected.description}</p>
+              <h3 className={`${p.textLg} ${p.fontSemibold}`} style={{ color: 'var(--color-panel-text)', margin: 0 }}>{selected.name}</h3>
+              <p className={`${p.text11} ${p.muted} ${p.leading14}`} style={{ margin: 0 }}>{selected.description}</p>
             </div>
           </div>
 
           {/* Cost estimate */}
-          <div style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(196,162,101,0.2)', background: 'var(--color-panel-card)', marginBottom: 16 }}>
-            <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>Estimated Investment</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#c4a265' }}>${selected.costEstimateRange[0]}K–${selected.costEstimateRange[1]}K</div>
+          <div className={`${p.card} ${p.mb16}`} style={{ border: '1px solid rgba(196,162,101,0.2)' }}>
+            <div className={`${p.text10} ${p.muted}`}>Estimated Investment</div>
+            <div className={`${p.textXl} ${p.fontBold}`} style={{ color: '#c4a265' }}>${selected.costEstimateRange[0]}K–${selected.costEstimateRange[1]}K</div>
           </div>
 
           {/* Zones */}
-          <SectionLabel>Zone Layout ({selected.zones.length})</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+          <h3 className={p.sectionLabel}>Zone Layout ({selected.zones.length})</h3>
+          <div className={`${p.section} ${p.sectionGapSm} ${p.mb16}`}>
             {selected.zones.map((z, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6, background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)', fontSize: 11 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: z.color, flexShrink: 0 }} />
+              <div key={i} className={`${p.cardCompact} ${p.cardRow}`} style={{ background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)', fontSize: 11 }}>
+                <span className={p.colorSwatch} style={{ background: z.color }} />
                 <span style={{ flex: 1, color: 'var(--color-panel-text)', fontWeight: 500 }}>{z.name}</span>
-                <span style={{ color: 'var(--color-panel-muted)', fontSize: 10 }}>{z.areaPercent}%</span>
+                <span className={`${p.text10} ${p.muted}`}>{z.areaPercent}%</span>
               </div>
             ))}
           </div>
 
           {/* Phases */}
-          <SectionLabel>Phasing Plan</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <h3 className={p.sectionLabel}>Phasing Plan</h3>
+          <div className={`${p.section} ${p.sectionGapLg} ${p.mb16}`}>
             {selected.phases.map((phase, i) => (
-              <div key={i} style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>{phase.name}</span>
-                  <span style={{ fontSize: 10, color: '#c4a265' }}>Year {phase.yearRange}</span>
+              <div key={i} className={p.card}>
+                <div className={`${p.rowBetween} ${p.mb4}`}>
+                  <span className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>{phase.name}</span>
+                  <span className={p.text10} style={{ color: '#c4a265' }}>Year {phase.yearRange}</span>
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', fontStyle: 'italic', marginBottom: 6, lineHeight: 1.4 }}>
+                <div className={`${p.text10} ${p.muted} ${p.mutedItalic} ${p.leading14} ${p.mb8}`}>
                   "{phase.description}"
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div className={p.flexCol} style={{ gap: 2 }}>
                   {phase.features.map((f, fi) => (
-                    <div key={fi} style={{ fontSize: 10, color: 'var(--color-panel-muted)', paddingLeft: 8 }}>
+                    <div key={fi} className={`${p.text10} ${p.muted}`} style={{ paddingLeft: 8 }}>
                       <span style={{ color: '#c4a265', marginRight: 4 }}>{'\u25CF'}</span> {f}
                     </div>
                   ))}
@@ -143,12 +135,8 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
 
           {/* Apply button */}
           <button
-            style={{
-              width: '100%', padding: '12px', fontSize: 13, fontWeight: 600,
-              border: 'none', borderRadius: 8,
-              background: 'rgba(196,162,101,0.15)', color: '#c4a265',
-              cursor: 'pointer',
-            }}
+            className={`${p.drawBtn}`}
+            style={{ background: 'rgba(196,162,101,0.15)', color: '#c4a265' }}
             onClick={() => {
               const count = applyTemplate(selected, project);
               alert(`Template "${selected.name}" applied: ${count.zones} zones and ${count.structures} structures created.`);
@@ -157,7 +145,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
             Apply Template to {project.name}
           </button>
 
-          <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', textAlign: 'center', marginTop: 8, lineHeight: 1.4 }}>
+          <div className={`${p.text10} ${p.muted} ${p.textCenter} ${p.leading14} ${p.mt8}`}>
             Applying a template will suggest zone placements based on your property boundary. You can adjust everything afterward.
           </div>
         </div>
@@ -165,14 +153,6 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
       </>
       )}
     </div>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
-      {children}
-    </h3>
   );
 }
 

@@ -1,0 +1,325 @@
+/* DesignToolsPanel — component-specific styles */
+
+/* ── Tab switcher ─────────────────────────────────────────────── */
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--space-5);
+}
+
+.tabBtn {
+  padding: 7px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: transparent;
+  border: 1px solid rgba(196, 162, 101, 0.15);
+  color: var(--color-panel-muted);
+  font-weight: 400;
+}
+
+.tabBtnActive {
+  font-weight: var(--font-semibold);
+  background: rgba(196, 162, 101, 0.12);
+  border-color: rgba(196, 162, 101, 0.3);
+  color: #c4a265;
+}
+
+/* ── Zone type grid ───────────────────────────────────────────── */
+.zoneGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: var(--space-4);
+}
+
+.zoneTypeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+  transition: all 150ms ease;
+  background: transparent;
+  border: 1px solid var(--color-panel-subtle);
+  color: var(--color-panel-text);
+}
+
+.zoneTypeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.zoneTypeDotActive {
+  border-width: 2px;
+}
+
+.zoneTypeCheck {
+  margin-left: auto;
+  font-size: 10px;
+}
+
+/* ── Draw button ──────────────────────────────────────────────── */
+.drawBtn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  border: none;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.02em;
+  background: rgba(196, 162, 101, 0.15);
+  color: #c4a265;
+  cursor: pointer;
+}
+
+.drawBtnDisabled {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  cursor: wait;
+}
+
+/* ── Zone / structure item card ───────────────────────────────── */
+.itemCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: var(--radius-md);
+}
+
+.itemName {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+}
+
+.itemMeta {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+/* ── Structure grid ───────────────────────────────────────────── */
+.structGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.structBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--color-panel-subtle);
+  color: var(--color-panel-text);
+}
+
+.structBtnActive {
+  background: rgba(196, 162, 101, 0.12);
+  border-color: rgba(196, 162, 101, 0.3);
+  color: #c4a265;
+}
+
+.structCatLabel {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-panel-section);
+  margin-bottom: 6px;
+}
+
+/* ── Placement indicator ──────────────────────────────────────── */
+.placementIndicator {
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: rgba(196, 162, 101, 0.08);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: #c4a265;
+  text-align: center;
+}
+
+/* ── Modal overlay ────────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBox {
+  width: 460px;
+  max-width: 90vw;
+  background: var(--color-panel-bg);
+  border: 1px solid rgba(196, 162, 101, 0.15);
+  border-radius: 14px;
+  padding: 28px 32px;
+  color: var(--color-panel-text);
+}
+
+.modalTitle {
+  font-size: 14px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  color: var(--color-panel-text);
+}
+
+.modalSubtitle {
+  font-size: var(--text-xs);
+  color: var(--color-panel-muted);
+  margin-bottom: var(--space-5);
+}
+
+.modalLabel {
+  font-size: 11px;
+  color: var(--color-panel-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  background: var(--color-panel-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--color-panel-text);
+  outline: none;
+  font-family: inherit;
+  margin-bottom: var(--space-4);
+}
+
+.modalSelect {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: var(--text-xs);
+  background: var(--color-panel-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--color-panel-text);
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.modalTextarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--text-xs);
+  background: var(--color-panel-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--color-panel-text);
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: var(--space-5);
+}
+
+.modalPhaseRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: var(--space-4);
+}
+
+.modalPhaseColor {
+  padding: 8px 10px;
+  font-size: var(--text-xs);
+  background: var(--color-panel-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modalPhaseColorDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.modalBtnRow {
+  display: flex;
+  gap: 10px;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+}
+
+.modalSaveBtn {
+  flex: 1;
+  padding: 12px 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  border: none;
+  border-radius: var(--radius-md);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: rgba(196, 162, 101, 0.2);
+  color: #c4a265;
+}
+
+.modalSaveBtnDisabled {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-muted);
+  cursor: not-allowed;
+}

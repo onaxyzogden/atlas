@@ -8,6 +8,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { useMemo } from 'react';
+import p from '../../styles/panel.module.css';
 
 interface MoontancePanelProps {
   project: LocalProject;
@@ -71,28 +72,29 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
   ];
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 6 }}>
+    <div className={p.container}>
+      <h2 className={p.title} style={{ marginBottom: 6 }}>
         OGDEN Identity
       </h2>
-      <p style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 20, lineHeight: 1.5, fontStyle: 'italic' }}>
+      <p className={p.subtitleItalic}>
         Features that make this distinctly OGDEN {'\u2014'} not a generic farm tool or retreat planner.
       </p>
 
       {sections.map((section) => (
-        <div key={section.title} style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <div key={section.title} className={p.mb20}>
+          <div className={p.iconLabelRow}>
             <span style={{ fontSize: 16 }}>{section.icon}</span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: section.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span className={p.text12} style={{ fontWeight: 600, color: section.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               {section.title}
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className={p.section}>
             {section.items.map((item) => {
               const met = item.target === 0 || item.count >= item.target;
               return (
                 <div
                   key={item.label}
+                  className={p.card}
                   style={{
                     display: 'flex', alignItems: 'flex-start', gap: 8,
                     padding: '8px 10px', borderRadius: 6,
@@ -100,19 +102,19 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
                     border: `1px solid ${met ? 'rgba(45,122,79,0.1)' : 'rgba(196,162,101,0.1)'}`,
                   }}
                 >
-                  <span style={{ fontSize: 12, marginTop: 1, flexShrink: 0 }}>
+                  <span className={`${p.text12} ${p.mt4}`} style={{ flexShrink: 0 }}>
                     {met ? '\u2705' : '\u25CB'}
                   </span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>
+                    <div className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>
                       {item.label}
                       {item.target > 0 && (
-                        <span style={{ marginLeft: 6, fontSize: 10, color: met ? '#2d7a4f' : '#c4a265' }}>
+                        <span className={p.text10} style={{ marginLeft: 6, color: met ? '#2d7a4f' : '#c4a265' }}>
                           {item.count}/{item.target}
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', lineHeight: 1.4, marginTop: 2 }}>
+                    <div className={`${p.text10} ${p.muted} ${p.leading14}`} style={{ marginTop: 2 }}>
                       {item.note}
                     </div>
                   </div>
@@ -124,16 +126,16 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
       ))}
 
       {/* Guiding principle */}
-      <div style={{
-        padding: '14px 16px', background: 'rgba(107,91,138,0.06)',
-        borderRadius: 10, border: '1px solid rgba(107,91,138,0.12)',
+      <div className={p.infoCard} style={{
+        background: 'rgba(107,91,138,0.06)',
+        border: '1px solid rgba(107,91,138,0.12)',
         borderLeft: '3px solid rgba(107,91,138,0.3)',
         marginTop: 8,
       }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#6B5B8A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+        <div className={p.text11} style={{ fontWeight: 600, color: '#6B5B8A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
           Design Principle
         </div>
-        <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.7, fontStyle: 'italic' }}>
+        <div className={`${p.text12} ${p.muted} ${p.leading17} ${p.mutedItalic}`}>
           {'"'}Every feature exists to help land serve its highest purpose {'\u2014'} ecologically, spiritually, economically, and generationally.{'"'}
         </div>
       </div>

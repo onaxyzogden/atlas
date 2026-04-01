@@ -1,0 +1,84 @@
+/* MapLayersPanel — component-specific styles */
+
+.baseMapBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-panel-text);
+  width: 100%;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.baseMapBtnActive {
+  background: rgba(196, 162, 101, 0.08);
+  border-color: rgba(196, 162, 101, 0.25);
+}
+
+.baseMapBtnLabel {
+  font-size: var(--text-sm);
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+.baseMapBtnLabelActive {
+  font-weight: var(--font-semibold);
+}
+
+.overlayCard {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.overlayLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+  letter-spacing: 0.01em;
+}
+
+.envRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-panel-card-border);
+}
+
+.envRow:last-child {
+  border-bottom: none;
+}
+
+.envLabel {
+  font-size: var(--text-sm);
+  color: var(--color-panel-text);
+  letter-spacing: 0.01em;
+}
+
+.colorRowWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.colorRowLabel {
+  font-size: 11px;
+  flex: 1;
+  color: var(--color-panel-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

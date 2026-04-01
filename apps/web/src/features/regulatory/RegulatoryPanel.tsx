@@ -17,6 +17,8 @@
 
 import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
+import p from '../../styles/panel.module.css';
+import s from './RegulatoryPanel.module.css';
 
 interface RegulatoryPanelProps {
   project: LocalProject;
@@ -36,61 +38,26 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
   const riskScore = computeRegulatoryRisk(project);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h3
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          color: 'var(--color-text-muted)',
-          marginBottom: 16,
-        }}
-      >
+    <div className={p.container}>
+      <h3 className={p.sectionLabel}>
         Regulatory & Permitting
       </h3>
 
       {/* Regulatory risk score */}
-      <div
-        style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-md)',
-          padding: 14,
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text)' }}>Regulatory Complexity</span>
-          <span
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: 'var(--font-mono)',
-              color: riskScore.color,
-            }}
-          >
+      <div className={s.riskCard}>
+        <div className={s.riskHeader}>
+          <span className={s.riskTitle}>Regulatory Complexity</span>
+          <span className={s.riskLabel} style={{ color: riskScore.color }}>
             {riskScore.label}
           </span>
         </div>
-        <div
-          style={{
-            height: 4,
-            borderRadius: 2,
-            background: 'var(--color-border)',
-          }}
-        >
+        <div className={s.progressTrack}>
           <div
-            style={{
-              height: '100%',
-              width: `${riskScore.value}%`,
-              borderRadius: 2,
-              background: riskScore.color,
-              transition: 'width 400ms ease',
-            }}
+            className={s.progressFill}
+            style={{ width: `${riskScore.value}%`, background: riskScore.color }}
           />
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 6, lineHeight: 1.5 }}>
+        <div className={s.riskDesc}>
           {riskScore.description}
         </div>
       </div>
@@ -102,7 +69,7 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
         onToggle={() => setExpanded(expanded === 'zoning' ? null : 'zoning')}
       >
         {project.zoningNotes ? (
-          <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-text)' }}>
+          <div className={s.contentText}>
             {project.zoningNotes}
           </div>
         ) : (
@@ -120,7 +87,7 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
         onToggle={() => setExpanded(expanded === 'water' ? null : 'water')}
       >
         {project.waterRightsNotes ? (
-          <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-text)' }}>
+          <div className={s.contentText}>
             {project.waterRightsNotes}
           </div>
         ) : (
@@ -137,7 +104,7 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
         onToggle={() => setExpanded(expanded === 'access' ? null : 'access')}
       >
         {project.accessNotes ? (
-          <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-text)' }}>
+          <div className={s.contentText}>
             {project.accessNotes}
           </div>
         ) : (
@@ -153,7 +120,7 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
         expanded={expanded === 'permits'}
         onToggle={() => setExpanded(expanded === 'permits' ? null : 'permits')}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className={p.section}>
           {permits.map((permit) => (
             <PermitRow key={permit.name} permit={permit} />
           ))}
@@ -162,18 +129,7 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
       </RegSection>
 
       {/* Disclaimer */}
-      <div
-        style={{
-          marginTop: 16,
-          padding: 12,
-          background: 'rgba(138, 109, 30, 0.08)',
-          border: '1px solid rgba(138, 109, 30, 0.2)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 10,
-          color: 'var(--color-text-muted)',
-          lineHeight: 1.6,
-        }}
-      >
+      <div className={s.disclaimer}>
         <strong>Regulatory Disclaimer:</strong> The Atlas provides regulatory orientation, not legal advice.
         Zoning, permitting, and regulatory information must be verified with the relevant municipal authority
         before making design or construction decisions.
@@ -196,80 +152,42 @@ function RegSection({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        marginBottom: 10,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={s.regSection}>
       <button
         onClick={onToggle}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          border: 'none',
-          background: expanded ? 'var(--color-surface)' : 'transparent',
-          color: 'var(--color-text)',
-          cursor: 'pointer',
-          fontSize: 12,
-          fontWeight: 500,
-          textAlign: 'left',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
+        className={`${s.regSectionToggle} ${expanded ? s.regSectionToggleExpanded : s.regSectionToggleCollapsed}`}
       >
         {title}
-        <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>{expanded ? '▾' : '▸'}</span>
+        <span className={s.regSectionChevron}>{expanded ? '▾' : '▸'}</span>
       </button>
-      {expanded && <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border)' }}>{children}</div>}
+      {expanded && <div className={s.regSectionBody}>{children}</div>}
     </div>
   );
 }
 
 function PermitRow({ permit }: { permit: PermitItem }) {
   const statusConfig = {
-    needed: { color: '#c44e3f', label: 'Likely Needed', icon: '!' },
-    not_needed: { color: '#2d7a4f', label: 'Not Needed', icon: '-' },
-    unknown: { color: '#8a6d1e', label: 'Unknown', icon: '?' },
-    applied: { color: '#4a90d9', label: 'Applied', icon: '>' },
-    approved: { color: '#2d7a4f', label: 'Approved', icon: '+' },
+    needed: { color: 'var(--color-confidence-low)', label: 'Likely Needed' },
+    not_needed: { color: 'var(--color-confidence-high)', label: 'Not Needed' },
+    unknown: { color: '#8a6d1e', label: 'Unknown' },
+    applied: { color: '#4a90d9', label: 'Applied' },
+    approved: { color: 'var(--color-confidence-high)', label: 'Approved' },
   };
 
   const cfg = statusConfig[permit.status];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '6px 8px',
-        background: 'var(--color-surface)',
-        borderRadius: 'var(--radius-sm)',
-        fontSize: 12,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: cfg.color,
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ flex: 1, color: 'var(--color-text)' }}>{permit.name}</span>
-      <span style={{ fontSize: 10, color: cfg.color, fontWeight: 500 }}>{cfg.label}</span>
+    <div className={s.permitRow}>
+      <span className={s.permitDot} style={{ background: cfg.color }} />
+      <span className={s.permitName}>{permit.name}</span>
+      <span className={s.permitStatus} style={{ color: cfg.color }}>{cfg.label}</span>
     </div>
   );
 }
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic', lineHeight: 1.6 }}>
+    <div className={s.emptyState}>
       {children}
     </div>
   );
@@ -277,16 +195,7 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 
 function InfoBadge({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        marginTop: 8,
-        fontSize: 10,
-        color: 'var(--color-earth-600)',
-        padding: '4px 8px',
-        background: 'var(--color-earth-100)',
-        borderRadius: 'var(--radius-sm)',
-      }}
-    >
+    <div className={s.infoBadge}>
       {children}
     </div>
   );
@@ -395,10 +304,10 @@ function computeRegulatoryRisk(project: LocalProject): {
   score = Math.min(100, score);
 
   if (score >= 70) {
-    return { value: score, label: 'High', color: '#c44e3f', description: 'Multiple permits likely required. Engage a planner early.' };
+    return { value: score, label: 'High', color: 'var(--color-confidence-low)', description: 'Multiple permits likely required. Engage a planner early.' };
   }
   if (score >= 40) {
     return { value: score, label: 'Medium', color: '#8a6d1e', description: 'Standard permitting expected. Document regulatory research.' };
   }
-  return { value: score, label: 'Low', color: '#2d7a4f', description: 'Relatively straightforward regulatory path.' };
+  return { value: score, label: 'Low', color: 'var(--color-confidence-high)', description: 'Relatively straightforward regulatory path.' };
 }

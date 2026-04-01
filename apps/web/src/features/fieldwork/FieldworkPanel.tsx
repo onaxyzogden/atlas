@@ -7,6 +7,7 @@ import { useState, useMemo } from 'react';
 import { useFieldworkStore, type FieldworkEntry, type FieldworkType } from '../../store/fieldworkStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import WalkRouteRecorder from './WalkRouteRecorder.js';
+import p from '../../styles/panel.module.css';
 
 interface Props {
   project: LocalProject;
@@ -73,23 +74,18 @@ export default function FieldworkPanel({ project, map }: Props) {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
+    <div className={p.container}>
+      <h2 className={p.title}>
         Fieldwork
       </h2>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={p.tabBar}>
         {TAB_CONFIG.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              flex: 1, padding: '8px 0', fontSize: 10, fontWeight: activeTab === tab.id ? 600 : 400,
-              background: activeTab === tab.id ? 'rgba(196,162,101,0.12)' : 'transparent',
-              border: 'none', color: activeTab === tab.id ? '#c4a265' : 'var(--color-panel-muted)',
-              cursor: 'pointer',
-            }}
+            className={`${p.tabBtn} ${p.tabBtnSm} ${activeTab === tab.id ? p.tabBtnActive : ''}`}
           >
             {tab.label}
           </button>
@@ -104,13 +100,10 @@ export default function FieldworkPanel({ project, map }: Props) {
           {/* Add from map */}
           <button
             onClick={handleAddFromMap}
+            className={p.btn}
             style={{
-              width: '100%', padding: '10px', fontSize: 12, fontWeight: 500,
-              border: isPlacing ? '1px solid rgba(196,162,101,0.3)' : '1px solid var(--color-panel-card-border)',
-              borderRadius: 8,
-              background: isPlacing ? 'rgba(196,162,101,0.08)' : 'transparent',
-              color: isPlacing ? '#c4a265' : 'var(--color-panel-muted)',
-              cursor: 'pointer', marginBottom: 16,
+              marginBottom: 16,
+              ...(isPlacing ? { borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' } : {}),
             }}
           >
             {isPlacing ? 'Click on map to place...' : `+ Add ${currentType.replace('_', ' ')} on Map`}
@@ -118,21 +111,18 @@ export default function FieldworkPanel({ project, map }: Props) {
 
           {/* Entry list */}
           {tabEntries.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={p.section}>
               {tabEntries.map((entry) => (
-                <div key={entry.id} style={{
-                  padding: '10px 12px', borderRadius: 8,
-                  background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--color-panel-text)' }}>
+                <div key={entry.id} className={p.card}>
+                  <div className={p.rowBetween} style={{ marginBottom: 4 }}>
+                    <span className={`${p.text11} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>
                       {entry.notes.slice(0, 40)}{entry.notes.length > 40 ? '...' : ''}
                     </span>
-                    <button onClick={() => deleteEntry(entry.id)} style={{ background: 'none', border: 'none', color: 'var(--color-panel-muted)', cursor: 'pointer', fontSize: 14, padding: 0 }}>
+                    <button onClick={() => deleteEntry(entry.id)} className={p.deleteBtn}>
                       {'\u00D7'}
                     </button>
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>
+                  <div className={`${p.text10} ${p.muted}`}>
                     {new Date(entry.timestamp).toLocaleString()} &middot; [{entry.location[0].toFixed(4)}, {entry.location[1].toFixed(4)}]
                     {entry.verified && <span style={{ color: '#2d7a4f', marginLeft: 4 }}>{'\u2713'} verified</span>}
                   </div>
@@ -140,7 +130,7 @@ export default function FieldworkPanel({ project, map }: Props) {
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', textAlign: 'center', padding: 20 }}>
+            <div className={p.empty}>
               No {currentType.replace('_', ' ')} entries yet.
             </div>
           )}

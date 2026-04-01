@@ -13,6 +13,7 @@
 
 import { useState, useMemo } from 'react';
 import ClimateScenarioOverlay from './ClimateScenarioOverlay.js';
+import s from './SolarClimatePanel.module.css';
 
 interface SolarClimatePanelProps {
   center: [number, number] | null; // [lng, lat]
@@ -62,72 +63,44 @@ export default function SolarClimatePanel({ center, map, isMapReady }: SolarClim
 
   return (
     <div
+      className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}
       style={{
-        position: 'absolute',
         top: collapsed ? 250 : 200,
         insetInlineEnd: collapsed ? 16 : 250,
-        background: 'rgba(26, 22, 17, 0.90)',
-        borderRadius: 10,
-        padding: collapsed ? '6px 10px' : 14,
-        backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
-        zIndex: 5,
-        width: collapsed ? 'auto' : 260,
       }}
     >
       <button
         onClick={() => setCollapsed((v) => !v)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#d4a843',
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          padding: 0,
-        }}
+        className={s.toggleBtn}
       >
         Solar & Climate {collapsed ? '▸' : '▾'}
       </button>
 
       {!collapsed && (
-        <div style={{ marginTop: 10 }}>
+        <div className={s.body}>
           {/* Season selector */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
-            {(Object.keys(SEASON_DATES) as Season[]).map((s) => (
+          <div className={s.seasonRow}>
+            {(Object.keys(SEASON_DATES) as Season[]).map((season) => (
               <button
-                key={s}
-                onClick={() => setActiveSeason(s)}
-                style={{
-                  flex: 1,
-                  padding: '4px 0',
-                  borderRadius: 4,
-                  border: 'none',
-                  fontSize: 10,
-                  fontWeight: activeSeason === s ? 600 : 400,
-                  background: activeSeason === s ? 'rgba(212, 168, 67, 0.3)' : 'transparent',
-                  color: activeSeason === s ? '#d4a843' : '#9a8a74',
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                }}
+                key={season}
+                onClick={() => setActiveSeason(season)}
+                className={`${s.seasonBtn} ${activeSeason === season ? s.seasonBtnActive : s.seasonBtnInactive}`}
               >
-                {s}
+                {season}
               </button>
             ))}
           </div>
 
           {/* Sun arc visualization */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: '#9a8a74', marginBottom: 6 }}>
+          <div className={s.sunArcSection}>
+            <div className={s.seasonLabel}>
               {SEASON_DATES[activeSeason].label}
             </div>
             <SunArcDiagram sunPath={sunPath} />
           </div>
 
           {/* Key metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+          <div className={s.metricGrid}>
             <MetricBox label="Daylight" value={`${daylightHours}h`} />
             <MetricBox label="Noon Alt." value={`${solarNoon.elevation.toFixed(0)}°`} />
             <MetricBox label="Sunrise Az." value={formatAzimuth(sunPath.find((p) => p.elevation > 0)?.azimuth)} />
@@ -137,25 +110,15 @@ export default function SolarClimatePanel({ center, map, isMapReady }: SolarClim
           {/* Wind Rose toggle */}
           <button
             onClick={() => setShowWindRose((v) => !v)}
-            style={{
-              width: '100%',
-              padding: '6px 10px',
-              borderRadius: 6,
-              border: showWindRose ? '1px solid rgba(212, 168, 67, 0.5)' : '1px solid transparent',
-              background: showWindRose ? 'rgba(212, 168, 67, 0.15)' : 'transparent',
-              color: '#f2ede3',
-              cursor: 'pointer',
-              fontSize: 12,
-              textAlign: 'left',
-            }}
+            className={`${s.windToggle} ${showWindRose ? s.windToggleActive : s.windToggleInactive}`}
           >
             Wind Rose {showWindRose ? '▾' : '▸'}
           </button>
 
           {showWindRose && (
-            <div style={{ marginTop: 8 }}>
+            <div className={s.windRoseSection}>
               <WindRoseMini lat={lat} />
-              <div style={{ fontSize: 10, color: '#9a8a74', marginTop: 6 }}>
+              <div className={s.windRoseNote}>
                 Prevailing wind data from NOAA/ECCC climate normals.
                 Actual conditions vary by season and terrain.
               </div>
@@ -166,7 +129,7 @@ export default function SolarClimatePanel({ center, map, isMapReady }: SolarClim
           <ClimateScenarioOverlay />
 
           {/* Data source badge */}
-          <div style={{ marginTop: 10, fontSize: 10, color: '#6b5b4a' }}>
+          <div className={s.sourceBadge}>
             Source: Astronomical calculations + NOAA normals
           </div>
         </div>
@@ -249,7 +212,6 @@ function WindRoseMini({ lat }: { lat: number }) {
   const maxR = 38;
 
   // Approximate prevailing wind frequencies for mid-latitude continental
-  // In production, this would come from NOAA/ECCC climate data API
   const windFrequencies = getApproxWindFrequencies(lat);
 
   return (
@@ -268,7 +230,7 @@ function WindRoseMini({ lat }: { lat: number }) {
       ))}
       {/* Wind bars */}
       {WIND_DIRECTIONS.map((dir, i) => {
-        const angle = (i * 45 - 90) * (Math.PI / 180); // -90 to start from north
+        const angle = (i * 45 - 90) * (Math.PI / 180);
         const freq = windFrequencies[i]!;
         const r = maxR * freq;
         const x = center + Math.cos(angle) * r;
@@ -308,9 +270,9 @@ function WindRoseMini({ lat }: { lat: number }) {
 
 function MetricBox({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 6, padding: '6px 8px' }}>
-      <div style={{ fontSize: 9, color: '#9a8a74', marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#d4a843' }}>{value}</div>
+    <div className={s.metricBox}>
+      <div className={s.metricLabel}>{label}</div>
+      <div className={s.metricValue}>{value}</div>
     </div>
   );
 }
@@ -319,10 +281,8 @@ function MetricBox({ label, value }: { label: string; value: string }) {
 
 function computeSunPath(lat: number, season: Season): SunPosition[] {
   const { month, day } = SEASON_DATES[season];
-  // Day of year approximation
   const doy = Math.floor((month - 1) * 30.44 + day);
 
-  // Solar declination (Spencer formula approximation)
   const B = ((doy - 1) * 360) / 365;
   const Br = (B * Math.PI) / 180;
   const declination =
@@ -339,16 +299,13 @@ function computeSunPath(lat: number, season: Season): SunPosition[] {
   const positions: SunPosition[] = [];
 
   for (let hour = 4; hour <= 21; hour++) {
-    // Hour angle: 15 degrees per hour from solar noon (12:00)
     const hourAngle = (hour - 12) * 15;
     const haRad = (hourAngle * Math.PI) / 180;
 
-    // Solar elevation
     const sinEl =
       Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad);
     const elevation = (Math.asin(Math.max(-1, Math.min(1, sinEl))) * 180) / Math.PI;
 
-    // Solar azimuth
     const cosAz =
       (Math.sin(decRad) - Math.sin(latRad) * sinEl) / (Math.cos(latRad) * Math.cos((elevation * Math.PI) / 180));
     let azimuth = (Math.acos(Math.max(-1, Math.min(1, cosAz))) * 180) / Math.PI;
@@ -361,9 +318,6 @@ function computeSunPath(lat: number, season: Season): SunPosition[] {
 }
 
 function getApproxWindFrequencies(lat: number): number[] {
-  // Approximate wind frequencies for 8 compass directions
-  // Mid-latitude: prevailing westerlies dominate
-  // Higher latitudes: stronger westerly component
   const westBias = lat > 40 ? 0.85 : 0.7;
 
   return [

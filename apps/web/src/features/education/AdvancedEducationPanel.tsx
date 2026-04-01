@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import p from '../../styles/panel.module.css';
 
 type Mode = 'browse' | 'tour' | 'quiz';
 
@@ -21,24 +22,18 @@ export default function AdvancedEducationPanel() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
+    <div className={p.container}>
+      <h2 className={p.title}>
         Learning Center
       </h2>
 
       {/* Mode selector */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={p.tabBar}>
         {(['browse', 'tour', 'quiz'] as Mode[]).map((m) => (
           <button
             key={m}
             onClick={() => { setMode(m); setTourStep(0); }}
-            style={{
-              flex: 1, padding: '9px 0', fontSize: 11,
-              fontWeight: mode === m ? 600 : 400,
-              background: mode === m ? 'rgba(196,162,101,0.12)' : 'transparent',
-              border: 'none', color: mode === m ? '#c4a265' : 'var(--color-panel-muted)',
-              cursor: 'pointer', textTransform: 'capitalize',
-            }}
+            className={`${p.tabBtn} ${mode === m ? p.tabBtnActive : ''}`}
           >
             {m === 'tour' ? 'Guided Tour' : m === 'quiz' ? 'Quiz Mode' : 'Browse'}
           </button>
@@ -47,21 +42,18 @@ export default function AdvancedEducationPanel() {
 
       {/* Browse mode */}
       {mode === 'browse' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={`${p.section} ${p.sectionGapLg}`}>
           {HOTSPOTS.map((h) => (
             <button
               key={h.id}
               onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}
-              style={{
-                padding: '12px 14px', borderRadius: 8,
-                background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)',
-                cursor: 'pointer', textAlign: 'left', color: 'inherit', width: '100%',
-              }}
+              className={p.card}
+              style={{ cursor: 'pointer', textAlign: 'left', color: 'inherit', width: '100%' }}
             >
-              <div style={{ fontSize: 10, color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h.category}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-panel-text)', marginTop: 2 }}>{h.title}</div>
+              <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h.category}</div>
+              <div className={`${p.text13} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', marginTop: 2 }}>{h.title}</div>
               {expandedId === h.id && (
-                <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', lineHeight: 1.6, marginTop: 8 }}>
+                <div className={`${p.text12} ${p.muted} ${p.leading16}`} style={{ marginTop: 8 }}>
                   {h.desc}
                 </div>
               )}
@@ -73,45 +65,42 @@ export default function AdvancedEducationPanel() {
       {/* Tour mode */}
       {mode === 'tour' && (
         <div>
-          <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', marginBottom: 8 }}>
+          <div className={`${p.text10} ${p.muted} ${p.mb8}`}>
             Step {tourStep + 1} of {HOTSPOTS.length}
           </div>
-          <div style={{
-            padding: 16, borderRadius: 10,
-            background: 'rgba(196,162,101,0.04)',
-            border: '1px solid rgba(196,162,101,0.1)',
-            marginBottom: 16,
-          }}>
-            <div style={{ fontSize: 10, color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+          <div className={`${p.highlightBox} ${p.highlightBoxGold}`}>
+            <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
               {HOTSPOTS[tourStep]?.category}
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-panel-text)', marginBottom: 8, marginTop: 0 }}>
+            <h3 className={`${p.textLg} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', marginBottom: 8, marginTop: 0 }}>
               {HOTSPOTS[tourStep]?.title}
             </h3>
-            <p style={{ fontSize: 13, color: 'var(--color-panel-muted)', lineHeight: 1.7, margin: 0 }}>
+            <p className={`${p.text13} ${p.muted} ${p.leading17}`} style={{ margin: 0 }}>
               {HOTSPOTS[tourStep]?.desc}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={p.flexGap8}>
             <button
               onClick={() => setTourStep(Math.max(0, tourStep - 1))}
               disabled={tourStep === 0}
-              style={{ flex: 1, padding: '8px', fontSize: 11, border: '1px solid var(--color-panel-card-border)', borderRadius: 6, background: 'transparent', color: tourStep === 0 ? 'var(--color-panel-muted)' : 'var(--color-panel-text)', cursor: tourStep === 0 ? 'not-allowed' : 'pointer' }}
+              className={`${p.navBtnPrev} ${tourStep === 0 ? p.navBtnDisabled : ''}`}
+              style={{ padding: 8, fontSize: 11 }}
             >
               {'\u2190'} Previous
             </button>
             <button
               onClick={() => setTourStep(Math.min(HOTSPOTS.length - 1, tourStep + 1))}
               disabled={tourStep === HOTSPOTS.length - 1}
-              style={{ flex: 1, padding: '8px', fontSize: 11, fontWeight: 600, border: 'none', borderRadius: 6, background: tourStep === HOTSPOTS.length - 1 ? 'var(--color-panel-subtle)' : 'rgba(196,162,101,0.15)', color: tourStep === HOTSPOTS.length - 1 ? 'var(--color-panel-muted)' : '#c4a265', cursor: tourStep === HOTSPOTS.length - 1 ? 'not-allowed' : 'pointer' }}
+              className={`${p.navBtnNext} ${tourStep === HOTSPOTS.length - 1 ? p.navBtnNextDisabled : ''}`}
+              style={{ padding: 8, fontSize: 11 }}
             >
               Next {'\u2192'}
             </button>
           </div>
           {/* Progress dots */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginTop: 12 }}>
+          <div className={p.progressDots}>
             {HOTSPOTS.map((_, i) => (
-              <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === tourStep ? '#c4a265' : 'var(--color-panel-card-border)' }} />
+              <div key={i} className={`${p.progressDot} ${i === tourStep ? p.progressDotActive : ''}`} />
             ))}
           </div>
         </div>
@@ -119,14 +108,11 @@ export default function AdvancedEducationPanel() {
 
       {/* Quiz mode */}
       {mode === 'quiz' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className={p.flexCol} style={{ gap: 12 }}>
           {HOTSPOTS.map((h) => (
-            <div key={h.id} style={{
-              padding: '12px 14px', borderRadius: 8,
-              background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)',
-            }}>
-              <div style={{ fontSize: 10, color: '#6B5B8A', fontWeight: 600, marginBottom: 4 }}>{h.category}</div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)', marginBottom: 8 }}>
+            <div key={h.id} className={p.card}>
+              <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, marginBottom: 4 }}>{h.category}</div>
+              <div className={`${p.text12} ${p.fontMedium} ${p.mb8}`} style={{ color: 'var(--color-panel-text)' }}>
                 {h.quiz}
               </div>
               <textarea
@@ -134,16 +120,12 @@ export default function AdvancedEducationPanel() {
                 value={quizAnswers[h.id] ?? ''}
                 onChange={(e) => setQuizAnswers({ ...quizAnswers, [h.id]: e.target.value })}
                 rows={2}
-                style={{
-                  width: '100%', padding: '6px 8px', fontSize: 11,
-                  background: 'var(--color-panel-subtle)', border: '1px solid var(--color-panel-card-border)',
-                  borderRadius: 4, color: 'var(--color-panel-text)', fontFamily: 'inherit',
-                  outline: 'none', resize: 'vertical', boxSizing: 'border-box',
-                }}
+                className={p.input}
+                style={{ resize: 'vertical', fontSize: 11, boxSizing: 'border-box' }}
               />
             </div>
           ))}
-          <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', textAlign: 'center', fontStyle: 'italic' }}>
+          <div className={`${p.text10} ${p.muted} ${p.textCenter} ${p.mutedItalic}`}>
             Quiz answers are for self-reflection. Click Browse to review the concepts.
           </div>
         </div>

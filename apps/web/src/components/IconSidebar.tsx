@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import s from './IconSidebar.module.css';
 
 export type SidebarView =
   | 'layers'
@@ -55,9 +56,6 @@ const SIDEBAR_ITEMS: { id: SidebarView; label: string }[] = [
   { id: 'history',       label: 'Version History' },
 ];
 
-const COLLAPSED_WIDTH = 52;
-const EXPANDED_WIDTH = 200;
-
 export default function IconSidebar({ activeView, onViewChange }: IconSidebarProps) {
   // Pinned state — persisted, keeps sidebar open permanently
   const [pinned, setPinned] = useState(() => {
@@ -90,42 +88,14 @@ export default function IconSidebar({ activeView, onViewChange }: IconSidebarPro
         clearTimeout(hoverTimerRef.current);
         setHovered(false);
       }}
-      style={{
-        width: isOpen ? EXPANDED_WIDTH : COLLAPSED_WIDTH,
-        background: 'var(--color-sidebar-bg)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: isOpen ? 'stretch' : 'center',
-        paddingTop: 4,
-        gap: 2,
-        flexShrink: 0,
-        zIndex: 6,
-        transition: 'width 200ms ease',
-        overflow: 'hidden',
-      }}
+      className={`${s.sidebar} ${isOpen ? s.sidebarExpanded : s.sidebarCollapsed}`}
     >
       {/* Pin/unpin toggle */}
       <button
         onClick={togglePinned}
         title={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
         aria-label={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
-        style={{
-          width: isOpen ? '100%' : 40,
-          height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: isOpen ? 'flex-end' : 'center',
-          background: 'transparent',
-          border: 'none',
-          borderBottom: '1px solid var(--color-border)',
-          cursor: 'pointer',
-          padding: isOpen ? '0 12px' : 0,
-          marginBottom: 4,
-          alignSelf: 'center',
-          color: pinned ? '#c4a265' : 'var(--color-sidebar-icon)',
-          transition: 'all 150ms ease',
-        }}
+        className={`${s.pinBtn} ${isOpen ? s.pinBtnExpanded : s.pinBtnCollapsed} ${pinned ? s.pinBtnActive : ''}`}
       >
         <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
           {pinned ? (
@@ -153,43 +123,16 @@ export default function IconSidebar({ activeView, onViewChange }: IconSidebarPro
             onClick={() => onViewChange(isActive ? null : item.id)}
             title={isOpen ? undefined : item.label}
             aria-label={item.label}
-            style={{
-              width: isOpen ? '100%' : 40,
-              height: 38,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: isOpen ? 'flex-start' : 'center',
-              gap: isOpen ? 10 : 0,
-              paddingLeft: isOpen ? 12 : 0,
-              paddingRight: isOpen ? 8 : 0,
-              background: isActive ? 'rgba(125, 97, 64, 0.25)' : 'transparent',
-              border: 'none',
-              borderLeft: isActive ? '2px solid #c4a265' : '2px solid transparent',
-              borderRadius: '0 8px 8px 0',
-              cursor: 'pointer',
-              color: iconColor,
-              transition: 'all 150ms ease',
-              position: 'relative',
-              alignSelf: isOpen ? undefined : 'center',
-              flexShrink: 0,
-            }}
+            className={`${s.navBtn} ${isOpen ? s.navBtnExpanded : s.navBtnCollapsed} ${isActive ? s.navBtnActive : ''}`}
+            style={{ color: iconColor }}
           >
-            <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20 }}>
+            <span className={s.iconWrap}>
               <SidebarIcon id={item.id!} color={iconColor} />
             </span>
             {isOpen && (
               <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: isActive ? 600 : 400,
-                  color: iconColor,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  opacity: isOpen ? 1 : 0,
-                  transition: 'opacity 150ms ease',
-                  fontFamily: 'inherit',
-                }}
+                className={`${s.navLabel} ${isActive ? s.navLabelActive : ''} ${isOpen ? s.navLabelVisible : s.navLabelHidden}`}
+                style={{ color: iconColor }}
               >
                 {item.label}
               </span>
@@ -198,45 +141,23 @@ export default function IconSidebar({ activeView, onViewChange }: IconSidebarPro
         );
       })}
 
-      <div style={{ flex: 1 }} />
+      <div className={s.spacer} />
 
       {/* Settings gear at bottom */}
       <button
         onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
         title={isOpen ? undefined : 'Settings'}
         aria-label="Settings"
-        style={{
-          width: isOpen ? '100%' : 40,
-          height: 38,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: isOpen ? 'flex-start' : 'center',
-          gap: isOpen ? 10 : 0,
-          paddingLeft: isOpen ? 12 : 0,
-          background: activeView === 'settings' ? 'rgba(125, 97, 64, 0.25)' : 'transparent',
-          border: 'none',
-          borderRadius: 8,
-          cursor: 'pointer',
-          padding: 0,
-          paddingInlineStart: isOpen ? 12 : 0,
-          marginBottom: 8,
-          alignSelf: isOpen ? undefined : 'center',
-          color: activeView === 'settings' ? 'var(--color-sidebar-active)' : 'var(--color-sidebar-icon)',
-          transition: 'all 150ms ease',
-        }}
+        className={`${s.settingsBtn} ${isOpen ? s.settingsBtnExpanded : s.settingsBtnCollapsed} ${activeView === 'settings' ? s.settingsBtnActive : ''}`}
+        style={{ color: activeView === 'settings' ? 'var(--color-sidebar-active)' : 'var(--color-sidebar-icon)' }}
       >
-        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20 }}>
+        <span className={s.iconWrap}>
           <SidebarIcon id="settings" color={activeView === 'settings' ? 'var(--color-sidebar-active)' : 'var(--color-sidebar-icon)'} />
         </span>
         {isOpen && (
           <span
-            style={{
-              fontSize: 12,
-              fontWeight: activeView === 'settings' ? 600 : 400,
-              color: activeView === 'settings' ? 'var(--color-sidebar-active)' : 'var(--color-sidebar-icon)',
-              whiteSpace: 'nowrap',
-              fontFamily: 'inherit',
-            }}
+            className={`${s.navLabel} ${activeView === 'settings' ? s.navLabelActive : ''}`}
+            style={{ color: activeView === 'settings' ? 'var(--color-sidebar-active)' : 'var(--color-sidebar-icon)' }}
           >
             Settings
           </span>
@@ -247,9 +168,9 @@ export default function IconSidebar({ activeView, onViewChange }: IconSidebarPro
 }
 
 function SidebarIcon({ id, color }: { id: string; color: string }) {
-  const s = 20; // viewBox size
+  const sz = 20; // viewBox size
   const sw = 1.8; // stroke width
-  const props = { width: s, height: s, viewBox: `0 0 ${s} ${s}`, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  const props = { width: sz, height: sz, viewBox: `0 0 ${sz} ${sz}`, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 
   switch (id) {
     case 'layers':

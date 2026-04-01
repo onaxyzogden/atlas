@@ -1,0 +1,189 @@
+/* TimelinePanel — component-specific styles */
+
+.subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+/* ── Filter chips ─────────────────────────────────────────────── */
+.filterLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filterChip {
+  padding: 5px 12px;
+  font-size: 11px;
+  border-radius: 16px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.filterChipActive {
+  font-weight: var(--font-semibold);
+  border-color: #c4a265;
+  background: rgba(196, 162, 101, 0.12);
+  color: #c4a265;
+}
+
+/* ── Phase card header ────────────────────────────────────────── */
+.phaseHeader {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+}
+
+.phaseHeaderCollapsed {
+  border-radius: 10px;
+}
+
+.phaseHeaderExpanded {
+  border-radius: 10px 10px 0 0;
+}
+
+.phaseCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-bold);
+  flex-shrink: 0;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.phaseNameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.phaseName {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+}
+
+.phaseYears {
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+}
+
+.phaseSubtitle {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.phaseInvestment {
+  font-size: var(--text-xs);
+  color: #c4a265;
+  font-weight: var(--font-semibold);
+  font-family: var(--font-mono);
+  margin-bottom: 4px;
+}
+
+.phaseChevron {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ── Phase expanded detail ────────────────────────────────────── */
+.phaseDetail {
+  padding: 16px;
+  background: rgba(196, 162, 101, 0.04);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+.phaseDetailTitle {
+  font-size: 14px;
+  font-weight: var(--font-medium);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.phaseQuote {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--color-text);
+  margin-bottom: 14px;
+}
+
+.keyFeaturesLabel {
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.featureList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+}
+
+.featureItem {
+  display: flex;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.featureDot {
+  flex-shrink: 0;
+}
+
+/* ── Status badge ─────────────────────────────────────────────── */
+.statusBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.statusInProgress {
+  background: rgba(196, 162, 101, 0.12);
+  color: #c4a265;
+  border: 1px solid rgba(196, 162, 101, 0.3);
+}
+
+.statusPlanned {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.statusComplete {
+  background: rgba(45, 122, 79, 0.12);
+  color: #2d7a4f;
+  border: 1px solid rgba(45, 122, 79, 0.3);
+}

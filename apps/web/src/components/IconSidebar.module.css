@@ -1,0 +1,180 @@
+/* ==========================================================================
+   IconSidebar — vertical icon strip on the left edge of the project view.
+   ========================================================================== */
+
+/* ─── Sidebar container ───────────────────────────────────────────────── */
+.sidebar {
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  padding-top: 4px;
+  gap: 2px;
+  flex-shrink: 0;
+  z-index: 6;
+  transition: width 200ms ease;
+  overflow: hidden;
+}
+
+.sidebarCollapsed {
+  width: 52px;
+  align-items: center;
+}
+
+.sidebarExpanded {
+  width: 200px;
+  align-items: stretch;
+}
+
+/* ─── Pin / unpin toggle ──────────────────────────────────────────────── */
+.pinBtn {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  margin-bottom: 4px;
+  align-self: center;
+  color: var(--color-sidebar-icon);
+  transition: all 150ms ease;
+}
+
+.pinBtnCollapsed {
+  width: 40px;
+  justify-content: center;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.pinBtnExpanded {
+  width: 100%;
+  justify-content: flex-end;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.pinBtnActive {
+  color: #c4a265;
+}
+
+/* ─── Nav item button ─────────────────────────────────────────────────── */
+.navBtn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  color: var(--color-sidebar-icon);
+  transition: all 150ms ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.navBtnCollapsed {
+  width: 40px;
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+  align-self: center;
+}
+
+.navBtnExpanded {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-left: 12px;
+  padding-right: 8px;
+}
+
+.navBtnActive {
+  background: rgba(125, 97, 64, 0.25);
+  border-left-color: #c4a265;
+}
+
+/* ─── Icon wrapper ────────────────────────────────────────────────────── */
+.iconWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+/* ─── Label text ──────────────────────────────────────────────────────── */
+.navLabel {
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 150ms ease;
+  font-family: inherit;
+}
+
+.navLabelActive {
+  font-weight: 600;
+}
+
+.navLabelVisible {
+  opacity: 1;
+}
+
+.navLabelHidden {
+  opacity: 0;
+}
+
+/* ─── Spacer ──────────────────────────────────────────────────────────── */
+.spacer {
+  flex: 1;
+}
+
+/* ─── Settings button at bottom ───────────────────────────────────────── */
+.settingsBtn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  color: var(--color-sidebar-icon);
+  transition: all 150ms ease;
+}
+
+.settingsBtnCollapsed {
+  width: 40px;
+  justify-content: center;
+  gap: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  align-self: center;
+}
+
+.settingsBtnExpanded {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 12px;
+  padding-right: 0;
+}
+
+.settingsBtnActive {
+  background: rgba(125, 97, 64, 0.25);
+  color: var(--color-sidebar-active);
+}

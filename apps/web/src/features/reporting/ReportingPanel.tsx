@@ -13,6 +13,7 @@ import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
+import p from '../../styles/panel.module.css';
 
 interface ReportingPanelProps {
   project: LocalProject;
@@ -52,9 +53,9 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
   const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
-  const paddocks = useLivestockStore((s) => s.paddocks).filter((p) => p.projectId === project.id);
+  const paddocks = useLivestockStore((s) => s.paddocks).filter((pk) => pk.projectId === project.id);
   const crops = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === project.id);
-  const paths = usePathStore((s) => s.paths).filter((p) => p.projectId === project.id);
+  const paths = usePathStore((s) => s.paths).filter((pa) => pa.projectId === project.id);
   const utilities = useUtilityStore((s) => s.utilities).filter((u) => u.projectId === project.id);
 
   const handleExport = async (option: ExportOption) => {
@@ -80,16 +81,16 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 6 }}>
+    <div className={p.container}>
+      <h2 className={p.title} style={{ marginBottom: 6 }}>
         Reports & Export
       </h2>
-      <p style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+      <p className={p.subtitle}>
         Export your project data for presentations, grant applications, or GIS analysis.
       </p>
 
       {/* Export options */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className={`${p.section} ${p.sectionGapLg}`}>
         {EXPORT_OPTIONS.map((opt) => {
           const cfg = PHASE_CONFIG[opt.phase];
           const isDisabled = opt.phase === 'coming';
@@ -100,28 +101,27 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
               key={opt.id}
               onClick={() => handleExport(opt)}
               disabled={isDisabled || isGenerating}
+              className={p.card}
               style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                padding: '12px 14px', borderRadius: 8, textAlign: 'left',
-                background: isGenerating ? 'rgba(196,162,101,0.08)' : 'var(--color-panel-card)',
-                border: `1px solid ${isGenerating ? 'rgba(196,162,101,0.3)' : 'var(--color-panel-card-border)'}`,
+                display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left',
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                 opacity: isDisabled ? 0.5 : 1,
                 color: 'var(--color-panel-text)',
                 width: '100%',
+                ...(isGenerating ? { background: 'rgba(196,162,101,0.08)', borderColor: 'rgba(196,162,101,0.3)' } : {}),
               }}
             >
-              <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1 }}>{opt.icon}</span>
+              <span className={p.textXl} style={{ flexShrink: 0, lineHeight: 1 }}>{opt.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500 }}>{opt.name}</span>
-                  <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
+                <div className={`${p.row} ${p.mb4}`} style={{ gap: 6 }}>
+                  <span className={`${p.text12} ${p.fontMedium}`}>{opt.name}</span>
+                  <span className={p.badge} style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', lineHeight: 1.4 }}>{opt.description}</div>
-                <div style={{ fontSize: 9, color: 'var(--color-panel-muted)', marginTop: 4, opacity: 0.7 }}>Format: {opt.format}</div>
+                <div className={`${p.text10} ${p.muted} ${p.leading14}`}>{opt.description}</div>
+                <div className={`${p.text9} ${p.muted} ${p.mt4} ${p.opacity70}`}>Format: {opt.format}</div>
               </div>
               {isGenerating && (
-                <span style={{ fontSize: 12, color: '#c4a265', animation: 'spin 1s linear infinite' }}>{'\u23F3'}</span>
+                <span className={p.text12} style={{ color: '#c4a265', animation: 'spin 1s linear infinite' }}>{'\u23F3'}</span>
               )}
             </button>
           );
@@ -129,10 +129,10 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
       </div>
 
       {/* White-label note */}
-      <div style={{ marginTop: 16, padding: '10px 12px', borderRadius: 8, background: 'rgba(196,162,101,0.06)', border: '1px solid rgba(196,162,101,0.15)' }}>
-        <div style={{ fontSize: 11, lineHeight: 1.5 }}>
-          <span style={{ fontWeight: 600, color: '#c4a265' }}>White-Label Mode:</span>{' '}
-          <span style={{ color: 'var(--color-panel-muted)' }}>
+      <div className={p.noteBox}>
+        <div className={`${p.text11} ${p.leading15}`}>
+          <span className={p.fontSemibold} style={{ color: '#c4a265' }}>White-Label Mode:</span>{' '}
+          <span className={p.muted}>
             Future update will allow custom branding on all exports — your logo, colors, and organization name.
           </span>
         </div>
@@ -173,40 +173,26 @@ async function exportGeoJSON(project: LocalProject, spatial: SpatialData) {
     } catch { /* */ }
   }
 
-  // Add zones
   for (const z of spatial.zones) {
     features.push({ type: 'Feature', properties: { layer: 'zone', name: z.name, category: z.category, color: z.color, areaM2: z.areaM2 }, geometry: z.geometry });
   }
-
-  // Add structures
   for (const s of spatial.structures) {
     features.push({ type: 'Feature', properties: { layer: 'structure', name: s.name, structureType: s.type }, geometry: s.geometry });
   }
-
-  // Add paddocks
-  for (const p of spatial.paddocks) {
-    features.push({ type: 'Feature', properties: { layer: 'paddock', name: p.name }, geometry: p.geometry });
+  for (const pk of spatial.paddocks) {
+    features.push({ type: 'Feature', properties: { layer: 'paddock', name: pk.name }, geometry: pk.geometry });
   }
-
-  // Add crops
   for (const c of spatial.crops) {
     features.push({ type: 'Feature', properties: { layer: 'crop', name: c.name, cropType: c.type }, geometry: c.geometry });
   }
-
-  // Add paths
-  for (const p of spatial.paths) {
-    features.push({ type: 'Feature', properties: { layer: 'path', name: p.name, pathType: p.type }, geometry: p.geometry });
+  for (const pa of spatial.paths) {
+    features.push({ type: 'Feature', properties: { layer: 'path', name: pa.name, pathType: pa.type }, geometry: pa.geometry });
   }
-
-  // Add utilities
   for (const u of spatial.utilities) {
     features.push({ type: 'Feature', properties: { layer: 'utility', name: u.name, utilityType: u.type }, geometry: { type: 'Point', coordinates: u.center } });
   }
 
-  const data: GeoJSON.FeatureCollection = {
-    type: 'FeatureCollection',
-    features,
-  };
+  const data: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' });
   const url = URL.createObjectURL(blob);

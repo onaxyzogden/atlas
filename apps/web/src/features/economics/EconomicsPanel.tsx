@@ -8,6 +8,8 @@ import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
+import p from '../../styles/panel.module.css';
+import s from './EconomicsPanel.module.css';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -57,9 +59,16 @@ const REVENUE_ITEMS: RevenueItem[] = [
 ];
 
 const CONFIDENCE_COLORS: Record<string, string> = {
-  high: '#2d7a4f',
-  medium: '#c4a265',
-  low: '#c44e3f',
+  high: 'var(--color-confidence-high)',
+  medium: 'var(--color-confidence-medium)',
+  low: 'var(--color-confidence-low)',
+};
+
+const CAT_BAR_CLASSES: Record<string, string> = {
+  Structures: 'catBarStructures',
+  Water: 'catBarWater',
+  Infrastructure: 'catBarInfrastructure',
+  Agricultural: 'catBarAgricultural',
 };
 
 export default function EconomicsPanel({ project }: EconomicsPanelProps) {
@@ -75,8 +84,8 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
   // Derive structure costs from actual placed structures using STRUCTURE_TEMPLATES cost ranges
   const structureCosts = useMemo(() => {
     let low = 0, high = 0;
-    for (const s of projectStructures) {
-      const tmpl = STRUCTURE_TEMPLATES[s.type];
+    for (const st of projectStructures) {
+      const tmpl = STRUCTURE_TEMPLATES[st.type];
       if (tmpl?.costRange) {
         low += tmpl.costRange[0] / 1000;
         high += tmpl.costRange[1] / 1000;
@@ -88,16 +97,16 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
   }, [projectStructures]);
 
   // Base infrastructure costs (non-structure items)
-  const infraCostLow = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((s, c) => s + c.lowK, 0);
-  const infraCostHigh = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((s, c) => s + c.highK, 0);
+  const infraCostLow = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((acc, c) => acc + c.lowK, 0);
+  const infraCostHigh = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((acc, c) => acc + c.highK, 0);
 
   // Total = infrastructure + actual structures (or baseline if none placed)
-  const baselineStructLow = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((s, c) => s + c.lowK, 0);
-  const baselineStructHigh = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((s, c) => s + c.highK, 0);
+  const baselineStructLow = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((acc, c) => acc + c.lowK, 0);
+  const baselineStructHigh = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((acc, c) => acc + c.highK, 0);
   const totalCostLow = infraCostLow + (projectStructures.length > 0 ? structureCosts.low : baselineStructLow);
   const totalCostHigh = infraCostHigh + (projectStructures.length > 0 ? structureCosts.high : baselineStructHigh);
-  const totalRevenueLow = REVENUE_ITEMS.reduce((s, r) => s + r.lowK, 0);
-  const totalRevenueHigh = REVENUE_ITEMS.reduce((s, r) => s + r.highK, 0);
+  const totalRevenueLow = REVENUE_ITEMS.reduce((acc, r) => acc + r.lowK, 0);
+  const totalRevenueHigh = REVENUE_ITEMS.reduce((acc, r) => acc + r.highK, 0);
 
   // Simple cashflow projection
   const cashflow = useMemo(() => {
@@ -134,37 +143,30 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
   const maxCat = Math.max(...categoryTotals.map(([, v]) => v));
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
+    <div className={p.container}>
+      <h2 className={p.title}>
         Economic Planning
       </h2>
 
       {/* Summary cards */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(196,162,101,0.2)', background: 'var(--color-panel-card)' }}>
-          <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>Total Investment</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#c4a265' }}>${totalCostLow}K–${totalCostHigh}K</div>
+      <div className={s.summaryRow}>
+        <div className={s.summaryCard}>
+          <div className={s.summaryLabel}>Total Investment</div>
+          <div className={`${s.summaryValue} ${s.summaryValueAccent}`}>${totalCostLow}K–${totalCostHigh}K</div>
         </div>
-        <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(196,162,101,0.2)', background: 'var(--color-panel-card)' }}>
-          <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>Break-Even</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-panel-text)' }}>Year {cashflow.find((c) => c.cumulative >= 0)?.year ?? '5+'}</div>
+        <div className={s.summaryCard}>
+          <div className={s.summaryLabel}>Break-Even</div>
+          <div className={s.summaryValue}>Year {cashflow.find((c) => c.cumulative >= 0)?.year ?? '5+'}</div>
         </div>
       </div>
 
       {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(196,162,101,0.2)' }}>
+      <div className={s.tabBar}>
         {(['overview', 'costs', 'revenue'] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1, padding: '9px 0', fontSize: 11,
-              fontWeight: activeTab === tab ? 600 : 400,
-              background: activeTab === tab ? 'rgba(196,162,101,0.12)' : 'transparent',
-              border: 'none',
-              color: activeTab === tab ? '#c4a265' : 'var(--color-panel-muted)',
-              cursor: 'pointer', textTransform: 'capitalize',
-            }}
+            className={`${s.tab} ${activeTab === tab ? s.tabActive : ''}`}
           >
             {tab}
           </button>
@@ -176,23 +178,22 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
         <>
           {/* Cashflow chart */}
           <SectionLabel>Cumulative Cashflow (10yr)</SectionLabel>
-          <div style={{ position: 'relative', height: 160, marginBottom: 20, background: 'var(--color-panel-card)', borderRadius: 8, padding: '12px 8px 24px', border: '1px solid var(--color-panel-card-border)' }}>
+          <div className={s.chartContainer}>
             {/* Y axis labels */}
-            <div style={{ position: 'absolute', left: 4, top: 10, fontSize: 9, color: 'var(--color-panel-muted)' }}>${Math.round(maxCash / 1000)}K</div>
-            <div style={{ position: 'absolute', left: 4, bottom: 22, fontSize: 9, color: 'var(--color-panel-muted)' }}>-${Math.round(Math.abs(minCash) / 1000)}K</div>
+            <div className={`${s.chartYLabel} ${s.chartYTop}`}>${Math.round(maxCash / 1000)}K</div>
+            <div className={`${s.chartYLabel} ${s.chartYBottom}`}>-${Math.round(Math.abs(minCash) / 1000)}K</div>
 
             {/* Zero line */}
-            <div style={{
-              position: 'absolute', left: 40, right: 8,
-              top: `${12 + (1 - (0 - minCash) / range) * 110}px`,
-              height: 1, background: 'rgba(196,162,101,0.2)',
-            }} />
+            <div
+              className={s.chartZeroLine}
+              style={{ top: `${12 + (1 - (0 - minCash) / range) * 110}px` }}
+            />
 
             {/* Line chart */}
-            <svg viewBox={`0 0 ${cashflow.length * 30} 120`} style={{ width: '100%', height: '100%', paddingLeft: 40 }}>
+            <svg viewBox={`0 0 ${cashflow.length * 30} 120`} className={s.chartSvg}>
               <polyline
                 fill="none"
-                stroke="#c4a265"
+                stroke="var(--color-confidence-medium)"
                 strokeWidth="2"
                 points={cashflow.map((c, i) => `${i * 30 + 5},${110 - ((c.cumulative - minCash) / range) * 110}`).join(' ')}
               />
@@ -202,45 +203,48 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                   cx={i * 30 + 5}
                   cy={110 - ((c.cumulative - minCash) / range) * 110}
                   r="3"
-                  fill={c.cumulative >= 0 ? '#2d7a4f' : '#c4a265'}
-                  stroke="#f2ede3"
+                  fill={c.cumulative >= 0 ? 'var(--color-confidence-high)' : 'var(--color-confidence-medium)'}
+                  stroke="var(--color-panel-text)"
                   strokeWidth="1"
                 />
               ))}
             </svg>
 
             {/* X axis labels */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: 40, paddingRight: 8, fontSize: 9, color: 'var(--color-panel-muted)' }}>
+            <div className={s.chartXLabels}>
               {cashflow.map((c) => <span key={c.year}>Y{c.year}</span>)}
             </div>
           </div>
 
           {/* Category breakdown */}
           <SectionLabel>Investment by Category</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={`${p.section} ${p.sectionGapLg}`}>
             {categoryTotals.map(([cat, val]) => (
-              <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
-                <span style={{ width: 80, color: 'var(--color-panel-muted)', fontSize: 11, flexShrink: 0 }}>{cat}</span>
-                <div style={{ flex: 1, height: 12, background: 'var(--color-panel-subtle)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${(val / maxCat) * 100}%`, height: '100%', background: cat === 'Structures' ? '#8B6E4E' : cat === 'Water' ? '#4A6B8A' : cat === 'Infrastructure' ? '#c4a265' : '#4A7C3F', borderRadius: 3 }} />
+              <div key={cat} className={s.catRow}>
+                <span className={s.catLabel}>{cat}</span>
+                <div className={s.catBarTrack}>
+                  <div
+                    className={`${s.catBarFill} ${s[CAT_BAR_CLASSES[cat] ?? 'catBarInfrastructure']}`}
+                    style={{ width: `${(val / maxCat) * 100}%` }}
+                  />
                 </div>
-                <span style={{ fontSize: 10, color: 'var(--color-panel-muted)', flexShrink: 0 }}>${Math.round(val)}K</span>
+                <span className={s.catValue}>${Math.round(val)}K</span>
               </div>
             ))}
           </div>
 
           {/* Placed structures value */}
           {projectStructures.length > 0 && (
-            <div style={{ marginTop: 16, padding: '10px 12px', borderRadius: 8, background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)' }}>
-              <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', marginBottom: 4 }}>Placed Structures ({projectStructures.length})</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#c4a265' }}>
-                ${projectStructures.reduce((s, st) => {
+            <div className={s.structuresCard}>
+              <div className={`${s.summaryLabel} ${p.mb4}`}>Placed Structures ({projectStructures.length})</div>
+              <div className={s.structuresValue}>
+                ${projectStructures.reduce((acc, st) => {
                   const tmpl = STRUCTURE_TEMPLATES[st.type];
                   const avg = tmpl?.costRange ? (tmpl.costRange[0] + tmpl.costRange[1]) / 2 : 50000;
-                  return s + avg;
+                  return acc + avg;
                 }, 0).toLocaleString()}
               </div>
-              <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>estimated base cost</div>
+              <div className={s.summaryLabel}>estimated base cost</div>
             </div>
           )}
         </>
@@ -248,17 +252,22 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
 
       {/* Costs tab */}
       {activeTab === 'costs' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={`${p.section} ${p.sectionGapLg}`}>
           {COST_ITEMS.map((item) => (
-            <div key={item.name} style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-panel-text)' }}>{item.name}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#c4a265', flexShrink: 0 }}>${item.lowK}K–${item.highK}K</span>
+            <div key={item.name} className={p.card}>
+              <div className={s.itemHeader}>
+                <span className={s.itemName}>{item.name}</span>
+                <span className={s.itemCostRange}>${item.lowK}K–${item.highK}K</span>
               </div>
-              <div style={{ display: 'flex', gap: 6, fontSize: 10 }}>
-                <span style={{ padding: '1px 6px', borderRadius: 3, background: 'rgba(196,162,101,0.1)', color: '#c4a265' }}>{item.phase}</span>
-                <span style={{ padding: '1px 6px', borderRadius: 3, background: `${CONFIDENCE_COLORS[item.confidence]}15`, color: CONFIDENCE_COLORS[item.confidence] }}>{item.confidence} confidence</span>
-                <span style={{ color: 'var(--color-panel-muted)' }}>{item.category}</span>
+              <div className={s.itemTags}>
+                <span className={s.tagPhase}>{item.phase}</span>
+                <span
+                  className={s.tagConfidence}
+                  style={{ background: `color-mix(in srgb, ${CONFIDENCE_COLORS[item.confidence]} 15%, transparent)`, color: CONFIDENCE_COLORS[item.confidence] }}
+                >
+                  {item.confidence} confidence
+                </span>
+                <span className={s.tagCategory}>{item.category}</span>
               </div>
             </div>
           ))}
@@ -268,27 +277,32 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Revenue tab */}
       {activeTab === 'revenue' && (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className={`${p.section} ${p.sectionGapLg}`}>
             {REVENUE_ITEMS.map((item) => (
-              <div key={item.name} style={{ padding: '10px 12px', borderRadius: 8, background: 'var(--color-panel-card)', border: '1px solid var(--color-panel-card-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-panel-text)' }}>{item.name}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#2d7a4f', flexShrink: 0 }}>${item.lowK}K–${item.highK}K/yr</span>
+              <div key={item.name} className={p.card}>
+                <div className={s.itemHeader}>
+                  <span className={s.itemName}>{item.name}</span>
+                  <span className={s.itemRevenueRange}>${item.lowK}K–${item.highK}K/yr</span>
                 </div>
-                <div style={{ display: 'flex', gap: 6, fontSize: 10, marginBottom: 4 }}>
-                  <span style={{ padding: '1px 6px', borderRadius: 3, background: 'rgba(45,122,79,0.1)', color: '#2d7a4f' }}>From Year {item.fromYear}</span>
-                  <span style={{ padding: '1px 6px', borderRadius: 3, background: `${CONFIDENCE_COLORS[item.confidence]}15`, color: CONFIDENCE_COLORS[item.confidence] }}>{item.confidence} confidence</span>
+                <div className={`${s.itemTags} ${p.mb4}`}>
+                  <span className={s.tagFromYear}>From Year {item.fromYear}</span>
+                  <span
+                    className={s.tagConfidence}
+                    style={{ background: `color-mix(in srgb, ${CONFIDENCE_COLORS[item.confidence]} 15%, transparent)`, color: CONFIDENCE_COLORS[item.confidence] }}
+                  >
+                    {item.confidence} confidence
+                  </span>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', lineHeight: 1.4 }}>{item.description}</div>
+                <div className={s.itemDesc}>{item.description}</div>
               </div>
             ))}
           </div>
 
           {/* Note */}
-          <div style={{ marginTop: 16, padding: '10px 12px', borderRadius: 8, background: 'rgba(196,162,101,0.06)', border: '1px solid rgba(196,162,101,0.15)' }}>
-            <div style={{ fontSize: 11, lineHeight: 1.5 }}>
-              <span style={{ fontWeight: 600, color: '#c4a265' }}>Note:</span>{' '}
-              <span style={{ color: 'var(--color-panel-muted)' }}>
+          <div className={s.revenueNote}>
+            <div className={s.revenueNoteText}>
+              <span className={s.revenueNoteLabel}>Note:</span>{' '}
+              <span className={s.revenueNoteBody}>
                 Revenue projections are estimates based on comparable operations. Local market conditions, permitting, and management skill will significantly impact actual results.
               </span>
             </div>
@@ -301,7 +315,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
+    <h3 className={p.sectionLabel}>
       {children}
     </h3>
   );

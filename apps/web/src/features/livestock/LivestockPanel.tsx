@@ -13,6 +13,7 @@ import {
   type FenceType,
 } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
+import p from '../../styles/panel.module.css';
 
 interface LivestockPanelProps {
   projectId: string;
@@ -125,27 +126,16 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   return (
     <>
       {/* Species selector */}
-      <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 8 }}>Select Species</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5, marginBottom: 14 }}>
+      <div className={`${p.label} ${p.mb8}`}>Select Species</div>
+      <div className={p.selectorGrid3}>
         {(Object.entries(LIVESTOCK_SPECIES) as [LivestockSpecies, typeof LIVESTOCK_SPECIES[LivestockSpecies]][]).map(([key, info]) => (
           <button
             key={key}
             onClick={() => toggleSpecies(key)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-              padding: '6px 4px',
-              background: selectedSpecies.includes(key) ? 'rgba(122, 107, 58, 0.15)' : 'transparent',
-              border: selectedSpecies.includes(key) ? '1px solid rgba(122, 107, 58, 0.3)' : '1px solid var(--color-panel-subtle)',
-              borderRadius: 6,
-              cursor: 'pointer',
-              color: selectedSpecies.includes(key) ? '#c4a265' : 'var(--color-panel-muted)',
-              fontSize: 10,
-            }}
+            className={`${p.selectorBtn} ${p.selectorBtnCol} ${selectedSpecies.includes(key) ? p.selectorBtnActive : ''}`}
+            style={selectedSpecies.includes(key) ? undefined : undefined}
           >
-            <span style={{ fontSize: 16 }}>{info.icon}</span>
+            <span className={p.selectorIconLg}>{info.icon}</span>
             <span>{info.label}</span>
           </button>
         ))}
@@ -155,65 +145,43 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
       <button
         onClick={startDraw}
         disabled={isDrawing || !draw}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          fontSize: 13,
-          fontWeight: 600,
-          border: 'none',
-          borderRadius: 8,
-          background: isDrawing ? 'var(--color-panel-subtle)' : 'rgba(122, 107, 58, 0.15)',
-          color: isDrawing ? 'var(--color-panel-muted)' : '#c4a265',
-          cursor: isDrawing ? 'wait' : 'pointer',
-          marginBottom: 16,
-          letterSpacing: '0.02em',
-        }}
+        className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
       >
         {isDrawing ? 'Drawing... double-click to finish' : 'Draw Paddock on Map'}
       </button>
 
       {/* Paddock list */}
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
+      <div className={p.sectionLabel}>
         Paddocks ({paddocks.length})
       </div>
       {paddocks.length === 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', textAlign: 'center', padding: 16 }}>
+        <div className={p.empty}>
           No paddocks drawn yet
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {paddocks.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                border: '1px solid var(--color-panel-card-border)',
-                borderRadius: 8,
-              }}
-            >
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: '#7A6B3A', flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>{p.name}</div>
-                <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>
-                  {p.species.map((sp) => LIVESTOCK_SPECIES[sp].icon).join(' ')}
-                  {p.areaM2 > 0 && ` \u2014 ${(p.areaM2 / 10000).toFixed(2)} ha`}
+        <div className={p.section}>
+          {paddocks.map((pk) => (
+            <div key={pk.id} className={p.itemRow}>
+              <span className={p.swatchSm} style={{ background: '#7A6B3A' }} />
+              <div className={p.itemContent}>
+                <div className={p.itemTitle}>{pk.name}</div>
+                <div className={p.itemMeta}>
+                  {pk.species.map((sp) => LIVESTOCK_SPECIES[sp].icon).join(' ')}
+                  {pk.areaM2 > 0 && ` \u2014 ${(pk.areaM2 / 10000).toFixed(2)} ha`}
                 </div>
               </div>
               <button
                 onClick={() => {
-                  deletePaddock(p.id);
+                  deletePaddock(pk.id);
                   if (map) {
                     ['fill', 'line', 'label'].forEach((t) => {
-                      const id = `paddock-${t}-${p.id}`;
+                      const id = `paddock-${t}-${pk.id}`;
                       if (map.getLayer(id)) map.removeLayer(id);
                     });
-                    if (map.getSource(`paddock-${p.id}`)) map.removeSource(`paddock-${p.id}`);
+                    if (map.getSource(`paddock-${pk.id}`)) map.removeSource(`paddock-${pk.id}`);
                   }
                 }}
-                style={{ background: 'none', border: 'none', color: 'var(--color-panel-muted)', cursor: 'pointer', fontSize: 14 }}
+                className={p.deleteBtn}
               >
                 {'\u00D7'}
               </button>
@@ -225,32 +193,27 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
       {/* ── Paddock Properties Modal ── */}
       {showModal && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className={p.modalOverlay}
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '90vw', background: 'var(--color-panel-bg)', border: '1px solid rgba(196,162,101,0.15)', borderRadius: 14, padding: '28px 32px', color: 'var(--color-panel-text)' }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent}>
+            <h2 className={p.modalTitle}>
               Name This Paddock
             </h2>
-            <p style={{ fontSize: 12, color: 'var(--color-panel-muted)', marginBottom: 16 }}>
+            <p className={p.modalSubtitle}>
               {areaHa.toFixed(2)} ha ({(pendingArea / 4046.86).toFixed(2)} acres)
             </p>
 
-            <label style={labelStyle}>Paddock Name *</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus style={inputStyle} placeholder="e.g. North Pasture" />
+            <label className={p.formLabel}>Paddock Name *</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus className={p.formInput} placeholder="e.g. North Pasture" />
 
-            <label style={labelStyle}>Species</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+            <label className={p.formLabel}>Species</label>
+            <div className={p.flexWrap}>
               {(Object.entries(LIVESTOCK_SPECIES) as [LivestockSpecies, typeof LIVESTOCK_SPECIES[LivestockSpecies]][]).map(([key, info]) => (
                 <button
                   key={key}
                   onClick={() => toggleSpecies(key)}
-                  style={{
-                    padding: '4px 8px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
-                    background: selectedSpecies.includes(key) ? 'rgba(122,107,58,0.15)' : 'transparent',
-                    border: selectedSpecies.includes(key) ? '1px solid rgba(122,107,58,0.3)' : '1px solid var(--color-panel-subtle)',
-                    color: selectedSpecies.includes(key) ? '#c4a265' : 'var(--color-panel-muted)',
-                  }}
+                  className={`${p.chip} ${selectedSpecies.includes(key) ? p.chipActive : ''}`}
                 >
                   {info.icon} {info.label}
                 </button>
@@ -259,7 +222,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
 
             {/* Stocking info */}
             {selectedSpecies.length > 0 && (
-              <div style={{ padding: '8px 10px', background: 'rgba(122,107,58,0.06)', borderRadius: 6, marginBottom: 12, fontSize: 11, color: 'var(--color-panel-muted)' }}>
+              <div className={p.hintBox}>
                 {selectedSpecies.map((sp) => {
                   const info = LIVESTOCK_SPECIES[sp];
                   const capacity = Math.floor(areaHa * info.typicalStocking);
@@ -267,23 +230,23 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
                     <div key={sp} style={{ marginBottom: 4 }}>
                       {info.icon} <strong>{info.label}:</strong> ~{capacity} head at typical stocking ({info.typicalStocking}/ha)
                       <br />
-                      <span style={{ opacity: 0.7 }}>{info.fencingNote}</span>
+                      <span className={p.opacity70}>{info.fencingNote}</span>
                     </div>
                   );
                 })}
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Fencing</label>
-                <select value={fencing} onChange={(e) => setFencing(e.target.value as FenceType)} style={inputStyle}>
+            <div className={p.flexGap12}>
+              <div className={p.flex1}>
+                <label className={p.formLabel}>Fencing</label>
+                <select value={fencing} onChange={(e) => setFencing(e.target.value as FenceType)} className={p.formInput}>
                   {FENCE_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Phase</label>
-                <select value={phase} onChange={(e) => setPhase(e.target.value)} style={inputStyle}>
+              <div className={p.flex1}>
+                <label className={p.formLabel}>Phase</label>
+                <select value={phase} onChange={(e) => setPhase(e.target.value)} className={p.formInput}>
                   <option value="Phase 1">Phase 1</option>
                   <option value="Phase 2">Phase 2</option>
                   <option value="Phase 3">Phase 3</option>
@@ -292,17 +255,17 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
               </div>
             </div>
 
-            <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', marginBottom: 12 }}>
+            <label className={`${p.formLabel} ${p.formLabelInline}`}>
               <input type="checkbox" checked={guestSafe} onChange={(e) => setGuestSafe(e.target.checked)} />
               Guest-safe buffer required
             </label>
 
-            <label style={labelStyle}>Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical', marginBottom: 16 }} placeholder="Grazing notes, water access..." />
+            <label className={p.formLabel}>Notes</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${p.formInput} ${p.formTextarea}`} placeholder="Grazing notes, water access..." />
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => { setShowModal(false); draw?.deleteAll(); }} style={cancelBtnStyle}>Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim()} style={{ ...saveBtnStyle, background: name.trim() ? 'rgba(196,162,101,0.2)' : 'var(--color-panel-subtle)', color: name.trim() ? '#c4a265' : 'var(--color-panel-muted)', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+            <div className={p.btnRow}>
+              <button onClick={() => { setShowModal(false); draw?.deleteAll(); }} className={p.cancelBtn}>Cancel</button>
+              <button onClick={handleSave} disabled={!name.trim()} className={`${p.saveBtn} ${name.trim() ? p.saveBtnEnabled : p.saveBtnDisabled}`}>
                 Save Paddock
               </button>
             </div>
@@ -312,12 +275,6 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
     </>
   );
 }
-
-// Styles
-const labelStyle: React.CSSProperties = { fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 };
-const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 12, background: 'var(--color-panel-subtle)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--color-panel-text)', outline: 'none', fontFamily: 'inherit', marginBottom: 12 };
-const cancelBtnStyle: React.CSSProperties = { flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, background: 'transparent', color: 'var(--color-panel-muted)', cursor: 'pointer' };
-const saveBtnStyle: React.CSSProperties = { flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, letterSpacing: '0.02em' };
 
 function renderPaddockOnMap(map: mapboxgl.Map, paddock: Paddock) {
   const sourceId = `paddock-${paddock.id}`;

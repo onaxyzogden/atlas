@@ -12,6 +12,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import s from './HydrologyPanel.module.css';
 
 interface HydrologyPanelProps {
   map: mapboxgl.Map | null;
@@ -71,79 +72,44 @@ export default function HydrologyPanel({ map, isMapReady, boundaryGeojson }: Hyd
   if (!isMapReady) return null;
 
   return (
-    <div
-      style={{
-        background: 'rgba(26, 22, 17, 0.90)',
-        borderRadius: 10,
-        padding: collapsed ? '6px 10px' : 12,
-        backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
-        pointerEvents: 'auto',
-        flexShrink: 0,
-        maxWidth: 220,
-      }}
-    >
+    <div className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}>
       <button
         onClick={() => setCollapsed((v) => !v)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#4a90d9',
-          cursor: 'pointer',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          padding: 0,
-        }}
+        className={s.toggleBtn}
       >
         Hydrology {collapsed ? '▸' : '▾'}
       </button>
 
       {!collapsed && (
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {HYDRO_LAYERS.map((hl) => (
-            <button
-              key={hl.key}
-              onClick={() => toggleLayer(hl.key)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: activeLayers.has(hl.key) ? 'rgba(74, 144, 217, 0.2)' : 'transparent',
-                border: activeLayers.has(hl.key) ? '1px solid rgba(74, 144, 217, 0.5)' : '1px solid transparent',
-                borderRadius: 6,
-                padding: '6px 10px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                color: '#f2ede3',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: activeLayers.has(hl.key) ? hl.color : '#3d3328',
-                  flexShrink: 0,
-                }}
-              />
-              <div>
-                <div style={{ fontSize: 12, fontWeight: activeLayers.has(hl.key) ? 600 : 400 }}>{hl.label}</div>
-                <div style={{ fontSize: 10, color: '#9a8a74' }}>{hl.description}</div>
-              </div>
-            </button>
-          ))}
+        <div className={s.body}>
+          {HYDRO_LAYERS.map((hl) => {
+            const isActive = activeLayers.has(hl.key);
+            return (
+              <button
+                key={hl.key}
+                onClick={() => toggleLayer(hl.key)}
+                className={`${s.layerBtn} ${isActive ? s.layerBtnActive : s.layerBtnInactive}`}
+              >
+                <span
+                  className={`${s.layerDot} ${isActive ? '' : s.layerDotInactive}`}
+                  style={isActive ? { background: hl.color } : undefined}
+                />
+                <div>
+                  <div className={`${s.layerLabel} ${isActive ? s.layerLabelActive : s.layerLabelInactive}`}>{hl.label}</div>
+                  <div className={s.layerDesc}>{hl.description}</div>
+                </div>
+              </button>
+            );
+          })}
 
           {/* Legend */}
           {activeLayers.size > 0 && (
-            <div style={{ marginTop: 6, padding: '6px 8px', background: 'rgba(0,0,0,0.2)', borderRadius: 6, fontSize: 10 }}>
-              <div style={{ color: '#9a8a74', marginBottom: 4 }}>Data Sources</div>
-              {activeLayers.has('flowPaths') && <div style={{ color: '#4a90d9' }}>Mapbox Terrain DEM v1</div>}
-              {activeLayers.has('watershed') && <div style={{ color: '#2d6b9e' }}>NHD / OHN Watersheds</div>}
-              {activeLayers.has('floodRisk') && <div style={{ color: '#c44e3f' }}>FEMA NFHL / CA Flood Maps</div>}
-              {activeLayers.has('wetlands') && <div style={{ color: '#3a8a6b' }}>NWI / Ontario Wetlands</div>}
+            <div className={s.legend}>
+              <div className={s.legendTitle}>Data Sources</div>
+              {activeLayers.has('flowPaths') && <div className={s.legendFlow}>Mapbox Terrain DEM v1</div>}
+              {activeLayers.has('watershed') && <div className={s.legendWatershed}>NHD / OHN Watersheds</div>}
+              {activeLayers.has('floodRisk') && <div className={s.legendFlood}>FEMA NFHL / CA Flood Maps</div>}
+              {activeLayers.has('wetlands') && <div className={s.legendWetland}>NWI / Ontario Wetlands</div>}
             </div>
           )}
         </div>
@@ -173,8 +139,6 @@ function addHydroLayer(
 
   switch (layer) {
     case 'flowPaths': {
-      // Simulated flow paths using terrain contour data
-      // In production, this would use real NHD/OHN stream network data
       if (!map.getSource('hydro-flow-source')) {
         map.addSource('hydro-flow-source', {
           type: 'vector',
@@ -203,9 +167,7 @@ function addHydroLayer(
     }
 
     case 'watershed': {
-      // Simulated watershed boundary — uses boundary if available
       if (boundary && !map.getSource('hydro-watershed-source')) {
-        // Create a buffered version of the boundary to simulate watershed extent
         map.addSource('hydro-watershed-source', { type: 'geojson', data: boundary });
         map.addLayer(
           {
@@ -236,9 +198,7 @@ function addHydroLayer(
     }
 
     case 'floodRisk': {
-      // Placeholder — in production, overlays FEMA NFHL tiles or Conservation Authority flood mapping
       if (!map.getSource('hydro-flood-source')) {
-        // Use terrain to approximate low-lying areas
         map.addSource('hydro-flood-source', {
           type: 'raster-dem',
           url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -267,7 +227,6 @@ function addHydroLayer(
     }
 
     case 'wetlands': {
-      // Placeholder wetland areas — in production uses NWI/Ontario wetland polygons
       if (boundary && !map.getSource('hydro-wetland-source')) {
         map.addSource('hydro-wetland-source', { type: 'geojson', data: boundary });
         map.addLayer(
@@ -278,7 +237,7 @@ function addHydroLayer(
             paint: {
               'fill-color': 'rgba(58, 138, 107, 0.15)',
               'fill-outline-color': '#3a8a6b',
-              'fill-pattern': undefined, // Would use wetland hatch pattern in production
+              'fill-pattern': undefined,
             },
           },
           before,

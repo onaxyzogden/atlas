@@ -1,0 +1,242 @@
+/* EconomicsPanel — component-specific styles */
+
+/* ─── Summary cards ─────────────────────────────────────────────────────── */
+.summaryRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.summaryCard {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  background: var(--color-panel-card);
+}
+
+.summaryLabel {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+.summaryValue {
+  font-size: 16px;
+  font-weight: var(--font-bold);
+}
+
+.summaryValueAccent {
+  color: var(--color-confidence-medium);
+}
+
+/* ─── Tab switcher ──────────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(196, 162, 101, 0.2);
+}
+
+.tab {
+  flex: 1;
+  padding: 9px 0;
+  font-size: var(--text-xs);
+  border: none;
+  cursor: pointer;
+  text-transform: capitalize;
+  background: transparent;
+  color: var(--color-panel-muted);
+  font-weight: 400;
+}
+
+.tabActive {
+  font-weight: var(--font-semibold);
+  background: rgba(196, 162, 101, 0.12);
+  color: var(--color-confidence-medium);
+}
+
+/* ─── Chart container ───────────────────────────────────────────────────── */
+.chartContainer {
+  position: relative;
+  height: 160px;
+  margin-bottom: var(--space-5);
+  background: var(--color-panel-card);
+  border-radius: var(--radius-md);
+  padding: 12px 8px 24px;
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.chartYLabel {
+  position: absolute;
+  left: 4px;
+  font-size: 9px;
+  color: var(--color-panel-muted);
+}
+
+.chartYTop { top: 10px; }
+.chartYBottom { bottom: 22px; }
+
+.chartZeroLine {
+  position: absolute;
+  left: 40px;
+  right: 8px;
+  height: 1px;
+  background: rgba(196, 162, 101, 0.2);
+}
+
+.chartSvg {
+  width: 100%;
+  height: 100%;
+  padding-left: 40px;
+}
+
+.chartXLabels {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 40px;
+  padding-right: 8px;
+  font-size: 9px;
+  color: var(--color-panel-muted);
+}
+
+/* ─── Category bar chart ────────────────────────────────────────────────── */
+.catRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+}
+
+.catLabel {
+  width: 80px;
+  color: var(--color-panel-muted);
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+}
+
+.catBarTrack {
+  flex: 1;
+  height: 12px;
+  background: var(--color-panel-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.catBarFill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.catBarStructures { background: #8B6E4E; }
+.catBarWater { background: #4A6B8A; }
+.catBarInfrastructure { background: var(--color-confidence-medium); }
+.catBarAgricultural { background: #4A7C3F; }
+
+.catValue {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  flex-shrink: 0;
+}
+
+/* ─── Placed structures card ────────────────────────────────────────────── */
+.structuresCard {
+  margin-top: var(--space-4);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.structuresValue {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  color: var(--color-confidence-medium);
+}
+
+/* ─── Cost / Revenue item cards ─────────────────────────────────────────── */
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.itemName {
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+}
+
+.itemCostRange {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-confidence-medium);
+  flex-shrink: 0;
+}
+
+.itemRevenueRange {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-confidence-high);
+  flex-shrink: 0;
+}
+
+.itemTags {
+  display: flex;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.tagPhase {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.1);
+  color: var(--color-confidence-medium);
+}
+
+.tagFromYear {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(45, 122, 79, 0.1);
+  color: var(--color-confidence-high);
+}
+
+.tagConfidence {
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.tagCategory {
+  color: var(--color-panel-muted);
+}
+
+.itemDesc {
+  font-size: var(--text-xs);
+  color: var(--color-panel-muted);
+  line-height: 1.4;
+}
+
+/* ─── Revenue note ──────────────────────────────────────────────────────── */
+.revenueNote {
+  margin-top: var(--space-4);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(196, 162, 101, 0.06);
+  border: 1px solid rgba(196, 162, 101, 0.15);
+}
+
+.revenueNoteText {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.revenueNoteLabel {
+  font-weight: var(--font-semibold);
+  color: var(--color-confidence-medium);
+}
+
+.revenueNoteBody {
+  color: var(--color-panel-muted);
+}

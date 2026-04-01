@@ -8,6 +8,8 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { getCachedLayers } from '../../lib/layerFetcher.js';
+import p from '../../styles/panel.module.css';
+import s from './HydrologyRightPanel.module.css';
 
 interface HydrologyRightPanelProps {
   project: LocalProject;
@@ -87,82 +89,44 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
   const waterMetrics = useMemo(() => getWaterMetrics(project), [project]);
 
   return (
-    <div style={{ padding: 20 }}>
-      <PanelTitle>Hydrology</PanelTitle>
+    <div className={p.container}>
+      <h2 className={p.title}>Hydrology</h2>
 
       {/* Water metrics */}
-      <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 24 }}>
-        {waterMetrics.map((m, i) => (
-          <div
-            key={m.label}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              padding: '14px 0',
-              borderBottom: i < waterMetrics.length - 1 ? '1px solid var(--color-panel-subtle, rgba(255,255,255,0.06))' : 'none',
-            }}
-          >
-            <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{m.label}</span>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: m.color }}>{m.value}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{m.detail}</div>
+      <div className={p.mb24}>
+        {waterMetrics.map((m) => (
+          <div key={m.label} className={s.metricRow}>
+            <span className={s.metricLabel}>{m.label}</span>
+            <div className={s.metricValueWrap}>
+              <div className={s.metricValue} style={{ color: m.color }}>{m.value}</div>
+              <div className={s.metricDetail}>{m.detail}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Keyline insight quote */}
-      <div
-        style={{
-          padding: 16,
-          background: 'rgba(91, 157, 184, 0.06)',
-          border: '1px solid rgba(91, 157, 184, 0.2)',
-          borderRadius: 10,
-          marginBottom: 24,
-        }}
-      >
-        <p
-          style={{
-            fontSize: 13,
-            lineHeight: 1.7,
-            fontStyle: 'italic',
-            color: 'var(--color-text)',
-            margin: 0,
-            marginBottom: 8,
-          }}
-        >
+      <div className={s.quoteCard}>
+        <p className={s.quoteText}>
           &ldquo;The keyline point &mdash; where valley transitions to slope &mdash; is the highest leverage point for water retention. A single well-placed pond here could irrigate 40+ acres by gravity alone.&rdquo;
         </p>
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+        <div className={s.quoteAttr}>
           &mdash; Water Retention Landscape zone
         </div>
       </div>
 
       {/* Water System Interventions */}
-      <SectionLabel>Water System Interventions</SectionLabel>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <h3 className={p.sectionLabel}>Water System Interventions</h3>
+      <div className={`${p.section} ${p.sectionGapLg}`}>
         {INTERVENTIONS.map((item, i) => (
-          <div
-            key={i}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 0',
-              borderBottom: '1px solid var(--color-border)',
-            }}
-          >
-            <span style={{ fontSize: 14, color: item.color, width: 20, textAlign: 'center', flexShrink: 0 }}>
+          <div key={i} className={s.interventionRow}>
+            <span className={s.interventionIcon} style={{ color: item.color }}>
               {item.icon}
             </span>
-            <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)' }}>{item.label}</span>
+            <span className={s.interventionLabel}>{item.label}</span>
             <span
+              className={p.badge}
               style={{
-                fontSize: 10,
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: 4,
                 background: item.phase === 'Phase 1'
                   ? 'rgba(45, 122, 79, 0.12)'
                   : item.phase === 'Phase 2'
@@ -182,22 +146,14 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
       </div>
 
       {/* Water budget summary */}
-      <div
-        style={{
-          marginTop: 20,
-          padding: 12,
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 8,
-        }}
-      >
-        <SectionLabel>Annual Water Budget</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
+      <div className={s.budgetCard}>
+        <h3 className={p.sectionLabel}>Annual Water Budget</h3>
+        <div className={`${p.section} ${p.sectionGapSm}`} style={{ fontSize: 11 }}>
           <BudgetRow label="Precipitation input" value="~14.2M gal/yr" />
           <BudgetRow label="Current retention" value="~2.1M gal (15%)" />
           <BudgetRow label="Post-intervention target" value="~8.5M gal (60%)" />
           <BudgetRow label="Irrigation demand (12 ac)" value="~3.2M gal/yr" />
-          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 6, marginTop: 4 }}>
+          <div className={s.budgetDivider}>
             <BudgetRow label="Surplus capacity" value="+5.3M gal" highlight />
           </div>
         </div>
@@ -206,27 +162,11 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
   );
 }
 
-function PanelTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-title)', marginBottom: 16 }}>
-      {children}
-    </h2>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
-      {children}
-    </h3>
-  );
-}
-
 function BudgetRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ color: 'var(--color-text-muted)' }}>{label}</span>
-      <span style={{ fontWeight: highlight ? 700 : 500, color: highlight ? '#2d7a4f' : 'var(--color-text)', fontFamily: 'var(--font-mono)' }}>{value}</span>
+    <div className={s.budgetRow}>
+      <span className={s.budgetLabel}>{label}</span>
+      <span className={highlight ? s.budgetValueHighlight : s.budgetValue}>{value}</span>
     </div>
   );
 }

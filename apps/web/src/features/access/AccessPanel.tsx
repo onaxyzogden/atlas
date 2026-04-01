@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { usePathStore, PATH_TYPE_CONFIG, type PathType, type DesignPath } from '../../store/pathStore.js';
+import p from '../../styles/panel.module.css';
 
 interface AccessPanelProps {
   projectId: string;
@@ -14,7 +15,7 @@ interface AccessPanelProps {
 
 export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) {
   const allPaths = usePathStore((s) => s.paths);
-  const paths = useMemo(() => allPaths.filter((p) => p.projectId === projectId), [allPaths, projectId]);
+  const paths = useMemo(() => allPaths.filter((pa) => pa.projectId === projectId), [allPaths, projectId]);
   const addPath = usePathStore((s) => s.addPath);
   const deletePath = usePathStore((s) => s.deletePath);
 
@@ -37,7 +38,6 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
       const last = all.features[all.features.length - 1];
       if (last?.geometry.type === 'LineString') {
         setPendingGeometry(last.geometry as GeoJSON.LineString);
-        // Approximate length
         const coords = (last.geometry as GeoJSON.LineString).coordinates;
         let len = 0;
         for (let i = 1; i < coords.length; i++) {
@@ -84,27 +84,25 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
   return (
     <>
-      <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 8 }}>Select Path Type</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14 }}>
+      <div className={`${p.label} ${p.mb8}`}>Select Path Type</div>
+      <div className={`${p.flexCol} ${p.mb16}`} style={{ gap: 4 }}>
         {(Object.entries(PATH_TYPE_CONFIG) as [PathType, typeof PATH_TYPE_CONFIG[PathType]][]).map(([key, cfg]) => {
           const isSelected = selectedType === key;
           return (
             <button
               key={key}
               onClick={() => setSelectedType(key)}
+              className={p.selectorBtn}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
                 padding: '7px 10px',
-                background: isSelected ? `${cfg.color}15` : 'transparent',
-                border: isSelected ? `1px solid ${cfg.color}40` : '1px solid var(--color-panel-subtle)',
-                borderRadius: 6, cursor: 'pointer',
-                color: isSelected ? cfg.color : 'var(--color-panel-muted)',
-                fontSize: 11, textAlign: 'left',
+                background: isSelected ? `${cfg.color}15` : undefined,
+                border: isSelected ? `1px solid ${cfg.color}40` : undefined,
+                color: isSelected ? cfg.color : undefined,
               }}
             >
               <span style={{ width: 20, height: 2, background: cfg.color, borderRadius: 1, flexShrink: 0, ...(cfg.dashArray.length > 0 ? { backgroundImage: `repeating-linear-gradient(90deg, ${cfg.color} 0px, ${cfg.color} ${cfg.dashArray[0]}px, transparent ${cfg.dashArray[0]}px, transparent ${(cfg.dashArray[0] ?? 0) + (cfg.dashArray[1] ?? 0)}px)`, background: 'none', height: cfg.width } : {}) }} />
               <span style={{ fontWeight: isSelected ? 500 : 400 }}>{cfg.label}</span>
-              {isSelected && <span style={{ marginLeft: 'auto', fontSize: 10, color: cfg.color }}>{'\u2713'}</span>}
+              {isSelected && <span className={p.selectorCheck} style={{ color: cfg.color }}>{'\u2713'}</span>}
             </button>
           );
         })}
@@ -113,46 +111,39 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
       <button
         onClick={startDraw}
         disabled={isDrawing || !draw}
-        style={{
-          width: '100%', padding: '12px 16px', fontSize: 13, fontWeight: 600,
-          border: 'none', borderRadius: 8,
-          background: isDrawing ? 'var(--color-panel-subtle)' : 'rgba(196,162,101,0.15)',
-          color: isDrawing ? 'var(--color-panel-muted)' : '#c4a265',
-          cursor: isDrawing ? 'wait' : 'pointer',
-          marginBottom: 16, letterSpacing: '0.02em',
-        }}
+        className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
       >
         {isDrawing ? 'Drawing... double-click to finish' : `Draw ${PATH_TYPE_CONFIG[selectedType].label}`}
       </button>
 
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)', marginBottom: 8 }}>
+      <div className={p.sectionLabel}>
         Paths ({paths.length})
       </div>
       {paths.length === 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--color-panel-muted)', textAlign: 'center', padding: 16 }}>No paths drawn yet</div>
+        <div className={p.empty}>No paths drawn yet</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {paths.map((p) => {
-            const cfg = PATH_TYPE_CONFIG[p.type];
+        <div className={p.section}>
+          {paths.map((pa) => {
+            const cfg = PATH_TYPE_CONFIG[pa.type];
             return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', border: '1px solid var(--color-panel-card-border)', borderRadius: 8 }}>
-                <span style={{ width: 14, height: 3, background: p.color ?? cfg?.color, borderRadius: 1, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-panel-text)' }}>{p.name}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-panel-muted)' }}>
-                    {cfg?.label} {'\u2014'} {p.lengthM > 1000 ? `${(p.lengthM / 1000).toFixed(1)} km` : `${Math.round(p.lengthM)} m`}
+              <div key={pa.id} className={p.itemRow}>
+                <span className={p.swatchLine} style={{ background: pa.color ?? cfg?.color }} />
+                <div className={p.itemContent}>
+                  <div className={p.itemTitle}>{pa.name}</div>
+                  <div className={p.itemMeta}>
+                    {cfg?.label} {'\u2014'} {pa.lengthM > 1000 ? `${(pa.lengthM / 1000).toFixed(1)} km` : `${Math.round(pa.lengthM)} m`}
                   </div>
                 </div>
                 <button
                   onClick={() => {
-                    deletePath(p.id);
+                    deletePath(pa.id);
                     if (map) {
-                      if (map.getLayer(`path-line-${p.id}`)) map.removeLayer(`path-line-${p.id}`);
-                      if (map.getLayer(`path-label-${p.id}`)) map.removeLayer(`path-label-${p.id}`);
-                      if (map.getSource(`path-${p.id}`)) map.removeSource(`path-${p.id}`);
+                      if (map.getLayer(`path-line-${pa.id}`)) map.removeLayer(`path-line-${pa.id}`);
+                      if (map.getLayer(`path-label-${pa.id}`)) map.removeLayer(`path-label-${pa.id}`);
+                      if (map.getSource(`path-${pa.id}`)) map.removeSource(`path-${pa.id}`);
                     }
                   }}
-                  style={{ background: 'none', border: 'none', color: 'var(--color-panel-muted)', cursor: 'pointer', fontSize: 14 }}
+                  className={p.deleteBtn}
                 >{'\u00D7'}</button>
               </div>
             );
@@ -162,24 +153,24 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
       {/* Path naming modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        <div className={p.modalOverlay}
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 400, background: 'var(--color-panel-bg)', border: '1px solid rgba(196,162,101,0.15)', borderRadius: 14, padding: '28px 32px', color: 'var(--color-panel-text)' }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Name This Path</h2>
-            <p style={{ fontSize: 12, color: 'var(--color-panel-muted)', marginBottom: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`}>
+            <h2 className={p.modalTitle}>Name This Path</h2>
+            <p className={p.modalSubtitle}>
               {pendingLength > 1000 ? `${(pendingLength / 1000).toFixed(1)} km` : `${Math.round(pendingLength)} m`} {'\u2014'} {PATH_TYPE_CONFIG[selectedType].label}
             </p>
-            <label style={labelStyle}>Path Name *</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus style={inputStyle} />
-            <label style={labelStyle}>Phase</label>
-            <select value={phase} onChange={(e) => setPhase(e.target.value)} style={inputStyle}>
+            <label className={p.formLabel}>Path Name *</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus className={p.formInput} />
+            <label className={p.formLabel}>Phase</label>
+            <select value={phase} onChange={(e) => setPhase(e.target.value)} className={p.formInput}>
               <option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option><option value="Phase 4">Phase 4</option>
             </select>
-            <label style={labelStyle}>Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical', marginBottom: 16 }} placeholder="Surface type, width, access notes..." />
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => { setShowModal(false); draw?.deleteAll(); }} style={cancelBtnStyle}>Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim()} style={{ ...saveBtnStyle, background: name.trim() ? 'rgba(196,162,101,0.2)' : 'var(--color-panel-subtle)', color: name.trim() ? '#c4a265' : 'var(--color-panel-muted)', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>Save Path</button>
+            <label className={p.formLabel}>Notes</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${p.formInput} ${p.formTextarea}`} placeholder="Surface type, width, access notes..." />
+            <div className={p.btnRow}>
+              <button onClick={() => { setShowModal(false); draw?.deleteAll(); }} className={p.cancelBtn}>Cancel</button>
+              <button onClick={handleSave} disabled={!name.trim()} className={`${p.saveBtn} ${name.trim() ? p.saveBtnEnabled : p.saveBtnDisabled}`}>Save Path</button>
             </div>
           </div>
         </div>
@@ -187,11 +178,6 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
     </>
   );
 }
-
-const labelStyle: React.CSSProperties = { fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 };
-const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 12, background: 'var(--color-panel-subtle)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--color-panel-text)', outline: 'none', fontFamily: 'inherit', marginBottom: 12 };
-const cancelBtnStyle: React.CSSProperties = { flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, background: 'transparent', color: 'var(--color-panel-muted)', cursor: 'pointer' };
-const saveBtnStyle: React.CSSProperties = { flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, letterSpacing: '0.02em' };
 
 function renderPathOnMap(map: mapboxgl.Map, path: DesignPath) {
   const sourceId = `path-${path.id}`;
