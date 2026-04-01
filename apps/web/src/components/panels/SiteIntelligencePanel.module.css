@@ -7,6 +7,62 @@
   margin-bottom: var(--space-4);
 }
 
+.refreshBtn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background var(--duration-base);
+}
+
+.refreshBtn:hover {
+  background: rgba(196, 162, 101, 0.08);
+}
+
+.refreshBtnSpinning {
+  pointer-events: none;
+}
+
+.refreshIconSpin {
+  animation: refreshSpin 0.8s linear infinite;
+}
+
+@keyframes refreshSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.refreshHint {
+  font-size: 10px;
+  color: #c4a265;
+  white-space: nowrap;
+}
+
+.refreshBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: var(--space-4);
+  background: rgba(196, 162, 101, 0.08);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: #c4a265;
+  animation: fadeIn 200ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ── Overall suitability card ─────────────────────────────────── */
 .suitabilityCard {
   display: flex;

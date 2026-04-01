@@ -79,17 +79,51 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
   },
 
   async refreshProject(projectId, center, country) {
-    // Remove cached entry so we get fresh data
-    const { [projectId]: _, ...rest } = get().dataByProject;
-    set({ dataByProject: rest });
-
     // Clear the layer fetcher's localStorage cache to bypass 24h TTL
     try {
       localStorage.removeItem('ogden-layer-cache');
     } catch { /* SSR safety */ }
 
-    // Re-fetch from scratch
-    await get().fetchForProject(projectId, center, country);
+    // Mark as loading but keep existing layers visible during refresh
+    const existing = get().dataByProject[projectId];
+    set((s) => ({
+      dataByProject: {
+        ...s.dataByProject,
+        [projectId]: {
+          layers: existing?.layers ?? [],
+          isLive: existing?.isLive ?? false,
+          liveCount: existing?.liveCount ?? 0,
+          fetchedAt: existing?.fetchedAt ?? 0,
+          status: 'loading',
+        },
+      },
+    }));
+
+    try {
+      const result: FetchLayerResults = await fetchAllLayers({ center, country });
+      set((s) => ({
+        dataByProject: {
+          ...s.dataByProject,
+          [projectId]: {
+            layers: result.layers,
+            isLive: result.isLive,
+            liveCount: result.liveCount,
+            fetchedAt: Date.now(),
+            status: 'complete',
+          },
+        },
+      }));
+    } catch {
+      set((s) => ({
+        dataByProject: {
+          ...s.dataByProject,
+          [projectId]: {
+            ...s.dataByProject[projectId],
+            status: 'error',
+          },
+        },
+      }));
+    }
   },
 
   clearProject(projectId) {

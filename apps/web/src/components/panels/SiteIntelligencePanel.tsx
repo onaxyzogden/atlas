@@ -43,6 +43,7 @@ function getConservationAuth(project: LocalProject) {
 
 export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
   const [liveDataOpen, setLiveDataOpen] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const siteData = useSiteData(project.id);
   const refreshProject = useSiteDataStore((st) => st.refreshProject);
 
@@ -111,16 +112,20 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   }, [siteData?.fetchedAt]);
 
   const handleRefresh = useCallback(() => {
-    if (!project.parcelBoundaryGeojson) return;
+    if (!project.parcelBoundaryGeojson || isRefreshing) return;
     try {
       const centroid = turf.centroid(project.parcelBoundaryGeojson);
       const [lng, lat] = centroid.geometry.coordinates;
-      refreshProject(project.id, [lng, lat], project.country);
+      setIsRefreshing(true);
+      // Ensure spinner is visible for at least 2s so user sees feedback
+      const minDelay = new Promise<void>((r) => setTimeout(r, 2000));
+      Promise.all([refreshProject(project.id, [lng, lat], project.country), minDelay])
+        .finally(() => setIsRefreshing(false));
     } catch { /* boundary may be invalid */ }
-  }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject]);
+  }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject, isRefreshing]);
 
-  // ── Loading state ──────────────────────────────────────────────────────
-  if (siteData?.status === 'loading') {
+  // ── First load — show spinner when no data exists yet ──────────────────
+  if (siteData?.status === 'loading' && layers.length === 0) {
     return (
       <div className={p.container}>
         <div className={s.headerRow}>
@@ -154,10 +159,19 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* Header */}
       <div className={s.headerRow}>
         <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
-        <button onClick={handleRefresh} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-          <RefreshIcon />
+        <button onClick={handleRefresh} className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`} aria-label="Refresh site data">
+          <RefreshIcon spinning={isRefreshing} />
+          {isRefreshing && <span className={s.refreshHint}>Refreshing...</span>}
         </button>
       </div>
+
+      {/* ── Refresh banner ───────────────────────────────────────── */}
+      {isRefreshing && (
+        <div className={s.refreshBanner}>
+          <Spinner size="sm" color="#c4a265" />
+          Refreshing environmental data...
+        </div>
+      )}
 
       {/* ── Overall Suitability ────────────────────────────────────── */}
       <div className={s.suitabilityCard}>
@@ -190,9 +204,6 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             </span>
           )}
           <div style={{ flex: 1 }} />
-          <span onClick={(e) => { e.stopPropagation(); handleRefresh(); }} style={{ display: 'flex' }}>
-            <RefreshIcon />
-          </span>
           <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="#9a8a74" strokeWidth={1.5} strokeLinecap="round" className={`${s.chevron} ${!liveDataOpen ? s.chevronClosed : ''}`}>
             <path d="M3 7l3-3 3 3" />
           </svg>
@@ -314,9 +325,18 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-function RefreshIcon() {
+function RefreshIcon({ spinning }: { spinning?: boolean }) {
   return (
-    <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke="#9a8a74" strokeWidth={1.5} strokeLinecap="round" style={{ cursor: 'pointer' }}>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke={spinning ? '#c4a265' : '#9a8a74'}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      className={spinning ? s.refreshIconSpin : undefined}
+    >
       <path d="M1 1v5h5M15 15v-5h-5" />
       <path d="M2.5 10A6 6 0 0113.5 6M13.5 6A6 6 0 012.5 10" />
     </svg>
