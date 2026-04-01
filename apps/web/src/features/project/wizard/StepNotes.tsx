@@ -5,6 +5,7 @@
 
 import { useState, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import * as turf from '@turf/turf';
 import { useProjectStore, type ProjectAttachment } from '../../../store/projectStore.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
@@ -54,10 +55,25 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       units: data.units,
     });
 
-    // Apply boundary + notes
+    // Calculate acreage from boundary if available
+    let acreage: number | null = null;
+    const boundaryGeo = data.parcelBoundaryGeojson as GeoJSON.FeatureCollection | null;
+    if (boundaryGeo) {
+      try {
+        const areaM2 = turf.area(boundaryGeo);
+        acreage = project.units === 'metric'
+          ? Math.round((areaM2 / 10000) * 100) / 100   // hectares
+          : Math.round((areaM2 / 4046.86) * 100) / 100; // acres
+      } catch {
+        // Best-effort — leave null if calculation fails
+      }
+    }
+
+    // Apply boundary + notes + calculated acreage
     updateProjectFn(project.id, {
-      parcelBoundaryGeojson: (data.parcelBoundaryGeojson as GeoJSON.FeatureCollection | null) ?? null,
-      hasParcelBoundary: data.parcelBoundaryGeojson !== null,
+      parcelBoundaryGeojson: boundaryGeo,
+      hasParcelBoundary: boundaryGeo !== null,
+      acreage,
       ownerNotes: data.ownerNotes || null,
       zoningNotes: data.zoningNotes || null,
       accessNotes: data.accessNotes || null,

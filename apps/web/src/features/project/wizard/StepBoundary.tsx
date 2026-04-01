@@ -81,6 +81,19 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
       // If boundary already exists (e.g. user went back), display it
       if (data.parcelBoundaryGeojson) {
         showBoundaryOnMap(map, data.parcelBoundaryGeojson as GeoJSON.FeatureCollection);
+      } else if (data.address && mapboxgl.accessToken) {
+        // Geocode the address from Step 2 to center the map
+        fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxgl.accessToken}&limit=1`
+        )
+          .then((r) => r.json())
+          .then((result) => {
+            const feature = result?.features?.[0];
+            if (feature?.center) {
+              map.flyTo({ center: feature.center, zoom: 15, duration: 1200 });
+            }
+          })
+          .catch(() => {}); // Best-effort geocode
       }
     });
 
@@ -190,8 +203,8 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
             fontSize: 12,
             border: mode === 'draw' ? '2px solid var(--color-earth-600)' : '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
-            background: mode === 'draw' ? 'var(--color-earth-100)' : 'var(--color-surface)',
-            color: 'var(--color-text)',
+            background: mode === 'draw' ? 'var(--color-earth-600)' : 'var(--color-bg)',
+            color: mode === 'draw' ? '#fff' : 'var(--color-text)',
             cursor: 'pointer',
             fontWeight: mode === 'draw' ? 600 : 400,
           }}
@@ -205,8 +218,8 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
             fontSize: 12,
             border: mode === 'import' ? '2px solid var(--color-earth-600)' : '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
-            background: mode === 'import' ? 'var(--color-earth-100)' : 'var(--color-surface)',
-            color: 'var(--color-text)',
+            background: mode === 'import' ? 'var(--color-earth-600)' : 'var(--color-bg)',
+            color: mode === 'import' ? '#fff' : 'var(--color-text)',
             cursor: 'pointer',
             fontWeight: mode === 'import' ? 600 : 400,
           }}

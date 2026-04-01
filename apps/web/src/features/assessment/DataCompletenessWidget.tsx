@@ -13,6 +13,7 @@
  */
 
 import type { LocalProject } from '../../store/projectStore.js';
+import { useSiteData } from '../../store/siteDataStore.js';
 
 interface DataCompletenessWidgetProps {
   project: LocalProject;
@@ -28,7 +29,8 @@ interface CompletenessBreakdown {
 }
 
 export default function DataCompletenessWidget({ project, compact }: DataCompletenessWidgetProps) {
-  const breakdown = computeCompleteness(project);
+  const siteData = useSiteData(project.id);
+  const breakdown = computeCompleteness(project, siteData);
   const overallScore = Math.round(
     breakdown.reduce((sum, b) => sum + b.score * b.weight, 0) /
       breakdown.reduce((sum, b) => sum + b.weight, 0),
@@ -207,7 +209,13 @@ function CategoryRow({ breakdown }: { breakdown: CompletenessBreakdown }) {
 
 // ─── Scoring logic ───────────────────────────────────────────────────────
 
-function computeCompleteness(project: LocalProject): CompletenessBreakdown[] {
+function isLayerComplete(siteData: import('../../store/siteDataStore.js').SiteData | null, layerType: string): boolean {
+  if (!siteData) return false;
+  const layer = siteData.layers.find((l) => l.layer_type === layerType);
+  return layer?.fetch_status === 'complete';
+}
+
+function computeCompleteness(project: LocalProject, siteData: import('../../store/siteDataStore.js').SiteData | null): CompletenessBreakdown[] {
   const categories: CompletenessBreakdown[] = [];
 
   // 1. Property basics (weight 0.3)
@@ -241,15 +249,15 @@ function computeCompleteness(project: LocalProject): CompletenessBreakdown[] {
     score: Math.round((regItems.filter((i) => i.complete).length / regItems.length) * 100),
   });
 
-  // 3. Tier 1 data layers (weight 0.3) — all shown as pending until API connected
+  // 3. Tier 1 data layers (weight 0.3) — checks real fetch status from siteDataStore
   const layerItems = [
-    { name: 'Elevation', complete: false },
-    { name: 'Soils', complete: false },
-    { name: 'Watershed', complete: false },
-    { name: 'Wetlands/Flood', complete: false },
-    { name: 'Land Cover', complete: false },
-    { name: 'Climate', complete: false },
-    { name: 'Zoning GIS', complete: false },
+    { name: 'Elevation', complete: isLayerComplete(siteData, 'elevation') },
+    { name: 'Soils', complete: isLayerComplete(siteData, 'soils') },
+    { name: 'Watershed', complete: isLayerComplete(siteData, 'watershed') },
+    { name: 'Wetlands/Flood', complete: isLayerComplete(siteData, 'wetlands_flood') },
+    { name: 'Land Cover', complete: isLayerComplete(siteData, 'land_cover') },
+    { name: 'Climate', complete: isLayerComplete(siteData, 'climate') },
+    { name: 'Zoning GIS', complete: isLayerComplete(siteData, 'zoning') },
   ];
   categories.push({
     category: 'tier1',

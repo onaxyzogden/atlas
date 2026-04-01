@@ -74,11 +74,6 @@ export default function HomePage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Your Projects</h1>
-          <Link to="/new" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="md">
-              + New Project
-            </Button>
-          </Link>
         </div>
 
         <div className={styles.grid}>

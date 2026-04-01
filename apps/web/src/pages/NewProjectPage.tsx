@@ -69,6 +69,7 @@ export default function NewProjectPage() {
   const StepComponent = STEPS[step]!.component;
   const isFirst = step === 0;
   const isLast = step === STEPS.length - 1;
+  const isBoundaryStep = step === 2;
 
   const completedSteps = STEP_IDS.filter((_, i) => i < step).map((s) => s.id);
 
@@ -99,8 +100,8 @@ export default function NewProjectPage() {
       </div>
 
       {/* Step content */}
-      <div className={styles.content}>
-        <div className={styles.card}>
+      <div className={isBoundaryStep ? styles.contentExpanded : styles.content}>
+        <div className={isBoundaryStep ? styles.cardExpanded : styles.card}>
           <StepComponent
             data={data}
             updateData={updateData}

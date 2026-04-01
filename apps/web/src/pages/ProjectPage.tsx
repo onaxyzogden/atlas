@@ -7,6 +7,8 @@ import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
+import { useSiteDataStore } from '../store/siteDataStore.js';
+import * as turf from '@turf/turf';
 import MapCanvas from '../features/map/MapCanvas.js';
 import ProjectEditor from '../features/project/ProjectEditor.js';
 import ProjectSummaryExport from '../features/export/ProjectSummaryExport.js';
@@ -150,6 +152,17 @@ export default function ProjectPage() {
     setActiveProject(projectId);
     return () => setActiveProject(null);
   }, [projectId, setActiveProject]);
+
+  // Auto-fetch environmental data when project has a boundary
+  const fetchSiteData = useSiteDataStore((s) => s.fetchForProject);
+  useEffect(() => {
+    if (!project?.parcelBoundaryGeojson) return;
+    try {
+      const centroid = turf.centroid(project.parcelBoundaryGeojson);
+      const [lng, lat] = centroid.geometry.coordinates;
+      fetchSiteData(project.id, [lng, lat], project.country);
+    } catch { /* boundary may be invalid */ }
+  }, [project?.id, project?.parcelBoundaryGeojson, project?.country, fetchSiteData]);
 
   if (!ready) return null;
 

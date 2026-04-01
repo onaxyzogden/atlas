@@ -1,47 +1,33 @@
 /**
  * SiteIntelligencePanel — comprehensive site assessment.
- * Matches target design with "LIVE ONTARIO DATA" section,
+ * Matches target design with "LIVE DATA" section,
  * Conservation Authority card, score circle, site summary,
  * and "What This Land Wants" block.
+ *
+ * All environmental data is sourced from the siteDataStore
+ * and transformed via computeScores pure functions.
  */
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
+import { useSiteData, useSiteDataStore } from '../../store/siteDataStore.js';
+import {
+  computeAssessmentScores,
+  computeOverallScore,
+  deriveDataLayerRows,
+  deriveLiveDataRows,
+  deriveOpportunities,
+  deriveRisks,
+  deriveSiteSummary,
+  deriveLandWants,
+} from '../../lib/computeScores.js';
+import { Spinner } from '../ui/Spinner.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
 
 interface SiteIntelligencePanelProps {
   project: LocalProject;
-}
-
-// ─── Live data rows ──────────────────────────────────────────────────────
-
-interface LiveDataRow {
-  icon: string;
-  label: string;
-  value: string;
-  detail?: string;
-  confidence: 'High' | 'Medium' | 'Low';
-  color: string;
-}
-
-function getLiveData(project: LocalProject): LiveDataRow[] {
-  if (project.country === 'CA') {
-    return [
-      { icon: '▲', label: 'Elevation',  value: '266–295 m',                                  confidence: 'High',   color: '#9a8a74' },
-      { icon: '●', label: 'Climate',    value: '820 mm/yr · 175 frost-free days',  detail: '6b', confidence: 'High',   color: '#2d7a4f' },
-      { icon: '◉', label: 'Soil',       value: 'Clay Loam (Southern Ontario typical)', detail: '2-3\n(CSCS)', confidence: 'High', color: '#9a8a74' },
-      { icon: '≋', label: 'Wetlands',   value: 'Yes (298 found)',                              confidence: 'High',   color: '#5b9db8' },
-      { icon: '∿', label: 'Hydrology',  value: 'None within 1km',                              confidence: 'High',   color: '#5b9db8' },
-    ];
-  }
-  return [
-    { icon: '▲', label: 'Elevation',  value: '185–312 m',                               confidence: 'High',   color: '#9a8a74' },
-    { icon: '●', label: 'Climate',    value: '920 mm/yr · 165 frost-free days', detail: '6b', confidence: 'High', color: '#2d7a4f' },
-    { icon: '◉', label: 'Soil',       value: 'Loam, Well drained',             detail: 'Prime', confidence: 'High', color: '#9a8a74' },
-    { icon: '≋', label: 'Wetlands',   value: '4.2% of area',                              confidence: 'Medium', color: '#5b9db8' },
-    { icon: '∿', label: 'Hydrology',  value: '420m to nearest stream',                    confidence: 'Medium', color: '#5b9db8' },
-  ];
 }
 
 function getConservationAuth(project: LocalProject) {
@@ -55,47 +41,122 @@ function getConservationAuth(project: LocalProject) {
   return null;
 }
 
-const DATA_LAYER_ROWS = [
-  { label: 'Elevation',          value: '280\u2013358 m asl',     confidence: 'High' as const },
-  { label: 'Rainfall',           value: '875 mm/year',           confidence: 'High' as const },
-  { label: 'Soil Type',          value: 'Brookston Clay Loam',   confidence: 'High' as const },
-  { label: 'Slope',              value: 'Not detected',          confidence: 'High' as const },
-  { label: 'Frost Free Days',    value: 'Not detected',          confidence: 'High' as const },
-  { label: 'Tree Cover',         value: 'Not detected',          confidence: 'Medium' as const },
-  { label: 'Wetland Presence',   value: 'Present',               confidence: 'Medium' as const },
-  { label: 'Floodplain',         value: 'Present',               confidence: 'High' as const },
-];
-
-const ASSESSMENT_SCORES = [
-  { label: 'Water Resilience',       score: 76, rating: 'Good' },
-  { label: 'Agricultural Suitability', score: 80, rating: 'Good' },
-  { label: 'Regenerative Potential',  score: 88, rating: 'Exceptional' },
-  { label: 'Buildability',           score: 62, rating: 'Moderate' },
-  { label: 'Habitat Sensitivity',    score: 79, rating: 'Good' },
-  { label: 'Economic Viability',     score: 74, rating: 'Good' },
-];
-
 export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
   const [liveDataOpen, setLiveDataOpen] = useState(true);
-  const liveData = useMemo(() => getLiveData(project), [project]);
+  const siteData = useSiteData(project.id);
+  const refreshProject = useSiteDataStore((st) => st.refreshProject);
+
   const consAuth = useMemo(() => getConservationAuth(project), [project]);
 
+  // Metadata-based completeness (project fields, not layer data)
   const fields = [
     project.hasParcelBoundary, !!project.address, !!project.projectType,
     !!project.parcelId, !!project.provinceState, !!project.ownerNotes,
     !!project.zoningNotes, !!project.waterRightsNotes,
   ];
   const completeness = Math.round((fields.filter(Boolean).length / fields.length) * 100);
-  const overallScore = 78;
-  const now = new Date();
-  const lastFetched = `${now.toLocaleDateString()}, ${now.toLocaleTimeString()}`;
 
+  // Derive all computed values from layer data
+  const layers = siteData?.layers ?? [];
+
+  const liveData = useMemo(
+    () => deriveLiveDataRows(layers),
+    [layers],
+  );
+
+  const dataLayerRows = useMemo(
+    () => deriveDataLayerRows(layers),
+    [layers],
+  );
+
+  const assessmentScores = useMemo(
+    () => computeAssessmentScores(layers, project.acreage ?? null),
+    [layers, project.acreage],
+  );
+
+  const overallScore = useMemo(
+    () => computeOverallScore(assessmentScores),
+    [assessmentScores],
+  );
+
+  const opportunities = useMemo(
+    () => deriveOpportunities(layers, project.country),
+    [layers, project.country],
+  );
+
+  const risks = useMemo(
+    () => deriveRisks(layers, project.country),
+    [layers, project.country],
+  );
+
+  const siteSummary = useMemo(
+    () => deriveSiteSummary(layers, {
+      name: project.name,
+      acreage: project.acreage ?? null,
+      provinceState: project.provinceState ?? null,
+      country: project.country,
+    }),
+    [layers, project.name, project.acreage, project.provinceState, project.country],
+  );
+
+  const landWants = useMemo(
+    () => deriveLandWants(layers),
+    [layers],
+  );
+
+  const lastFetched = useMemo(() => {
+    if (!siteData?.fetchedAt) return null;
+    const d = new Date(siteData.fetchedAt);
+    return `${d.toLocaleDateString()}, ${d.toLocaleTimeString()}`;
+  }, [siteData?.fetchedAt]);
+
+  const handleRefresh = useCallback(() => {
+    if (!project.parcelBoundaryGeojson) return;
+    try {
+      const centroid = turf.centroid(project.parcelBoundaryGeojson);
+      const [lng, lat] = centroid.geometry.coordinates;
+      refreshProject(project.id, [lng, lat], project.country);
+    } catch { /* boundary may be invalid */ }
+  }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject]);
+
+  // ── Loading state ──────────────────────────────────────────────────────
+  if (siteData?.status === 'loading') {
+    return (
+      <div className={p.container}>
+        <div className={s.headerRow}>
+          <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 0' }}>
+          <Spinner size="lg" />
+          <span style={{ fontSize: 13, color: 'var(--color-panel-muted)' }}>Fetching environmental data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Idle / no data state ───────────────────────────────────────────────
+  if (!siteData || siteData.status === 'idle') {
+    return (
+      <div className={p.container}>
+        <div className={s.headerRow}>
+          <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--color-panel-muted)', textAlign: 'center', padding: '48px 0' }}>
+          Draw a property boundary to fetch site data
+        </p>
+      </div>
+    );
+  }
+
+  // ── Complete / error state — render full panel ─────────────────────────
   return (
     <div className={p.container}>
       {/* Header */}
       <div className={s.headerRow}>
         <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
-        <RefreshIcon />
+        <button onClick={handleRefresh} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+          <RefreshIcon />
+        </button>
       </div>
 
       {/* ── Overall Suitability ────────────────────────────────────── */}
@@ -110,7 +171,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         </div>
       </div>
 
-      {/* ── LIVE ONTARIO DATA ──────────────────────────────────────── */}
+      {/* ── LIVE DATA ──────────────────────────────────────────────── */}
       <div className={s.liveDataWrap}>
         {/* Header bar — clickable to collapse */}
         <button
@@ -123,11 +184,15 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
           <span className={s.liveDataTitle}>
             Live {project.country === 'CA' ? 'Ontario' : 'US'} Data
           </span>
-          <span className={`${p.badgeConfidence} ${p.badgeHigh}`}>
-            Live
-          </span>
+          {siteData.isLive && (
+            <span className={`${p.badgeConfidence} ${p.badgeHigh}`}>
+              Live
+            </span>
+          )}
           <div style={{ flex: 1 }} />
-          <RefreshIcon />
+          <span onClick={(e) => { e.stopPropagation(); handleRefresh(); }} style={{ display: 'flex' }}>
+            <RefreshIcon />
+          </span>
           <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="#9a8a74" strokeWidth={1.5} strokeLinecap="round" className={`${s.chevron} ${!liveDataOpen ? s.chevronClosed : ''}`}>
             <path d="M3 7l3-3 3 3" />
           </svg>
@@ -168,35 +233,28 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         )}
 
         {/* Last fetched */}
-        <div className={s.lastFetched}>
-          Last fetched: {lastFetched}
-        </div>
+        {lastFetched && (
+          <div className={s.lastFetched}>
+            Last fetched: {lastFetched}
+          </div>
+        )}
         </>)}
       </div>
 
       {/* ── Site Summary ───────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Site Summary</h3>
-      <p className={s.summaryText}>
-        The {project.name} property is a {project.acreage ? `${project.acreage}-acre` : 'None-acre'} parcel
-        {project.provinceState === 'ON'
-          ? ' situated within the Conservation Halton watershed in Halton Hills, Ontario. The land features gently rolling drumlin topography \u2014 characteristic of the Halton Uplands \u2014 with remnant Carolinian forest edges, tile-drained agricultural fields, and a seasonal tributary to Sixteen Mile Creek. Soils are primarily Brookston clay loam (CSCS Capability Class 2\u20133) with high organic matter recovery potential. Conservation Halton holds regulatory authority over all floodplain, wetland, and watercourse buffers on the property.'
-          : ' with terrain suitable for regenerative land use planning. Site analysis indicates mixed agricultural and conservation potential based on available environmental data layers.'}
-      </p>
+      <p className={s.summaryText}>{siteSummary}</p>
 
       {/* ── What This Land Wants ───────────────────────────────────── */}
       <div className={s.landWantsCard}>
         <h3 className={p.sectionLabel}>What This Land Wants</h3>
-        <p className={s.landWantsText}>
-          {project.provinceState === 'ON'
-            ? '"This land bears the marks of intensive cash cropping \u2014 compacted soils, tile drains pushing water away rather than into the land, hedgerows long removed. It wants to slow water down, rebuild biological activity in the soil, and reestablish the forest\u2013field\u2013water mosaic that once defined this Carolinian landscape. The existing tile drainage is an asset in reverse: redirected and controlled through water control structures, it becomes a precision water management tool. The land is asking to breathe again."'
-            : '"This land holds potential for thoughtful stewardship. The soil structure, water patterns, and existing vegetation suggest a landscape that would respond well to regenerative practices."'}
-        </p>
+        <p className={s.landWantsText}>{landWants}</p>
       </div>
 
       {/* ── Assessment Scores ──────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Assessment Scores</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {ASSESSMENT_SCORES.map((item) => (
+        {assessmentScores.map((item) => (
           <div key={item.label} className={s.scoreRow}>
             <ScoreCircle score={item.score} size={36} />
             <div style={{ flex: 1 }}>
@@ -218,7 +276,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Opportunities ──────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Opportunities</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {getOpportunities(project).map((opp, i) => (
+        {opportunities.map((opp, i) => (
           <div key={i} className={s.oppRiskRow}>
             <span className={s.oppIcon}>{'\u2197'}</span>
             <span>{opp}</span>
@@ -229,7 +287,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Risks ──────────────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Risks</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {getRisks(project).map((risk, i) => (
+        {risks.map((risk, i) => (
           <div key={i} className={s.oppRiskRow}>
             <span className={s.riskIcon}>{'\u26A0'}</span>
             <span>{risk}</span>
@@ -240,7 +298,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Data Layers ────────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Data Layers</h3>
       <div>
-        {DATA_LAYER_ROWS.map((row) => (
+        {dataLayerRows.map((row) => (
           <div key={row.label} className={s.dataLayerRow}>
             <span className={p.valueSmall}>{row.label}</span>
             <div className={p.row}>
@@ -297,35 +355,4 @@ function getScoreColor(score: number): string {
   if (score >= 80) return '#2d7a4f';
   if (score >= 60) return '#c4a265';
   return '#9b3a2a';
-}
-
-function getOpportunities(proj: LocalProject): string[] {
-  if (proj.country === 'CA') return [
-    'Strong local food economy \u2014 Halton-Peel farm gate, agri-tourism, and farmers market networks well-established',
-    'Conservation Halton stewardship partnerships: cost-share programs for tree planting, wetland restoration, and riparian buffers',
-    'OMAFRA Environmental Farm Plan (EFP) + Growing Forward 3 funding for beneficial management practices',
-    "Carolinian forest fringe restoration aligns with Ontario's 30\u00d730 and Greenbelt priorities \u2014 grant-eligible",
-  ];
-  return [
-    'Regional agricultural market access and direct-to-consumer sales potential',
-    'Conservation stewardship program eligibility for habitat restoration',
-    'Regenerative agriculture practices qualify for USDA EQIP and CSP funding',
-    'Growing demand for agritourism and educational farm experiences',
-  ];
-}
-
-function getRisks(proj: LocalProject): string[] {
-  if (proj.country === 'CA') return [
-    'Conservation Halton permit required for ANY work within Regulated Area \u2014 engage early, timeline 3\u20136 months',
-    'Tile drainage disruption is a major hydrological intervention \u2014 independent drainage study required before action',
-    'Dog-strangling vine (DSV), common buckthorn, and Norway maple dominate disturbed edges \u2014 multi-year removal program',
-    'Ontario Nutrient Management Act applies if livestock planned at commercial scale \u2014 compliance plan required',
-    'Bobolink and meadowlark nesting habitat (Species at Risk Act Ontario) may restrict pasture disturbance May\u2013Aug',
-  ];
-  return [
-    'Local zoning may restrict agricultural operations \u2014 verify permitted uses before investment',
-    'Soil compaction from prior use may require remediation before productive planting',
-    'Stormwater management requirements may apply to any new impervious surfaces',
-    'Environmental assessments may be required for wetland-adjacent development',
-  ];
 }

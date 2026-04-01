@@ -6,7 +6,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  height: 100%;
   background: var(--color-bg);
 }
 
@@ -43,6 +43,9 @@
   flex: 1;
   overflow-y: auto;
   padding: 0 var(--space-5) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .card {
@@ -54,6 +57,30 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-8);
+}
+
+/* When the step contains a map (Boundary step), expand to fill height */
+.contentExpanded {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cardExpanded {
+  flex: 1;
+  max-width: none;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* --------------------------------------------------------------------------

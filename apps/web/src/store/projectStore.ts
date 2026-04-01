@@ -206,6 +206,24 @@ useProjectStore.persist.onFinishHydration(() => {
   });
 });
 
+// Restore boundary GeoJSON from IndexedDB after hydration
+useProjectStore.persist.onFinishHydration(() => {
+  const { projects: hydratedProjects } = useProjectStore.getState();
+  for (const hp of hydratedProjects) {
+    if (hp.hasParcelBoundary && !hp.parcelBoundaryGeojson) {
+      geodataCache.get<GeoJSON.FeatureCollection>(`boundary:${hp.id}`).then((geo) => {
+        if (geo) {
+          useProjectStore.setState((state) => ({
+            projects: state.projects.map((proj) =>
+              proj.id === hp.id ? { ...proj, parcelBoundaryGeojson: geo } : proj,
+            ),
+          }));
+        }
+      }).catch(() => {});
+    }
+  }
+});
+
 // Hydrate from localStorage (Zustand v5 requires explicit rehydrate)
 useProjectStore.persist.rehydrate();
 
