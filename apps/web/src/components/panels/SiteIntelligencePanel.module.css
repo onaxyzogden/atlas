@@ -293,6 +293,45 @@
   flex-shrink: 0;
 }
 
+.flagContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.flagMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.flagSource {
+  font-size: 10px;
+  color: var(--color-panel-muted, #888);
+  letter-spacing: 0.02em;
+}
+
+.severityBadge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.severity_critical {
+  color: #c44e3f;
+  background: rgba(196, 78, 63, 0.1);
+}
+
+.severity_warning {
+  color: #8a6d1e;
+  background: rgba(138, 109, 30, 0.1);
+}
+
 /* ── Data layers ──────────────────────────────────────────────── */
 .dataLayerRow {
   display: flex;

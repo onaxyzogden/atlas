@@ -11,6 +11,7 @@ import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import authPlugin from './plugins/auth.js';
 
+import authRoutes from './routes/auth/index.js';
 import projectRoutes from './routes/projects/index.js';
 import layerRoutes from './routes/layers/index.js';
 import spiritualRoutes from './routes/spiritual/index.js';
@@ -35,8 +36,8 @@ await fastify.register(cors, {
 });
 
 await fastify.register(rateLimit, {
-  max: 200,
-  timeWindow: '1 minute',
+  max: config.RATE_LIMIT_MAX,
+  timeWindow: config.RATE_LIMIT_WINDOW,
 });
 
 await fastify.register(multipart, {
@@ -49,6 +50,7 @@ await fastify.register(authPlugin);
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
+await fastify.register(authRoutes, { prefix: '/api/v1/auth' });
 await fastify.register(projectRoutes, { prefix: '/api/v1/projects' });
 await fastify.register(layerRoutes, { prefix: '/api/v1/layers' });
 await fastify.register(spiritualRoutes, { prefix: '/api/v1/spiritual' });

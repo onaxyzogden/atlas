@@ -9,7 +9,7 @@ import type { ProjectSummary, CreateProjectInput, UpdateProjectInput } from '@og
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
 
-interface ApiEnvelope<T> {
+export interface ApiEnvelope<T> {
   data: T;
   meta?: { total?: number };
   error: { code: string; message: string; details?: unknown } | null;
@@ -68,9 +68,32 @@ async function request<T>(
   return json;
 }
 
+// ─── Auth user type ───────────────────────────────────────────────────────────
+
+export interface ApiAuthUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+}
+
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 export const api = {
+  auth: {
+    register: (email: string, password: string, displayName?: string) =>
+      request<{ token: string; user: ApiAuthUser }>(
+        'POST', '/api/v1/auth/register', { email, password, displayName },
+      ),
+
+    login: (email: string, password: string) =>
+      request<{ token: string; user: ApiAuthUser }>(
+        'POST', '/api/v1/auth/login', { email, password },
+      ),
+
+    me: () =>
+      request<{ id: string; email: string; displayName: string | null }>('GET', '/api/v1/auth/me'),
+  },
+
   projects: {
     list: () =>
       request<ProjectSummary[]>('GET', '/api/v1/projects'),

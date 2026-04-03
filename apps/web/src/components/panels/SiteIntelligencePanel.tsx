@@ -30,6 +30,15 @@ interface SiteIntelligencePanelProps {
   project: LocalProject;
 }
 
+function severityColor(severity: string, fallback: string): string {
+  switch (severity) {
+    case 'critical': return '#c44e3f';
+    case 'warning': return '#8a6d1e';
+    case 'info': return fallback;
+    default: return fallback;
+  }
+}
+
 function getConservationAuth(project: LocalProject) {
   if (project.country === 'CA') {
     return {
@@ -115,7 +124,9 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     if (!project.parcelBoundaryGeojson || isRefreshing) return;
     try {
       const centroid = turf.centroid(project.parcelBoundaryGeojson);
-      const [lng, lat] = centroid.geometry.coordinates;
+      const coords = centroid.geometry.coordinates;
+      const lng = coords[0] ?? 0;
+      const lat = coords[1] ?? 0;
       setIsRefreshing(true);
       // Ensure spinner is visible for at least 2s so user sees feedback
       const minDelay = new Promise<void>((r) => setTimeout(r, 2000));
@@ -287,23 +298,56 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Opportunities ──────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Opportunities</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {opportunities.map((opp, i) => (
-          <div key={i} className={s.oppRiskRow}>
-            <span className={s.oppIcon}>{'\u2197'}</span>
-            <span>{opp}</span>
+        {opportunities.map((flag) => (
+          <div key={flag.id} className={s.oppRiskRow}>
+            <span
+              className={s.oppIcon}
+              style={{ color: severityColor(flag.severity, '#2d7a4f') }}
+            >
+              {'\u2197'}
+            </span>
+            <div className={s.flagContent}>
+              <span>{flag.message}</span>
+              {flag.layerSource && (
+                <span className={s.flagSource}>{flag.layerSource}</span>
+              )}
+            </div>
           </div>
         ))}
+        {opportunities.length === 0 && (
+          <span className={s.flagSource}>No opportunities identified from current data</span>
+        )}
       </div>
 
       {/* ── Risks ──────────────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Risks</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {risks.map((risk, i) => (
-          <div key={i} className={s.oppRiskRow}>
-            <span className={s.riskIcon}>{'\u26A0'}</span>
-            <span>{risk}</span>
+        {risks.map((flag) => (
+          <div key={flag.id} className={s.oppRiskRow}>
+            <span
+              className={s.riskIcon}
+              style={{ color: severityColor(flag.severity, '#9b3a2a') }}
+            >
+              {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
+            </span>
+            <div className={s.flagContent}>
+              <span>{flag.message}</span>
+              <div className={s.flagMeta}>
+                {flag.severity !== 'info' && (
+                  <span className={`${s.severityBadge} ${s[`severity_${flag.severity}`]}`}>
+                    {flag.severity}
+                  </span>
+                )}
+                {flag.layerSource && (
+                  <span className={s.flagSource}>{flag.layerSource}</span>
+                )}
+              </div>
+            </div>
           </div>
         ))}
+        {risks.length === 0 && (
+          <span className={s.flagSource}>No risks identified from current data</span>
+        )}
       </div>
 
       {/* ── Data Layers ────────────────────────────────────────────── */}

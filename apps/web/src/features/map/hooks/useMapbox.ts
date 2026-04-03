@@ -13,6 +13,7 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const style = useMapStore((s) => s.style);
 
   // Initialize map
@@ -20,6 +21,7 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
     if (!containerRef.current || mapRef.current) return;
     if (!mapboxgl.accessToken) {
       console.warn('[OGDEN] No Mapbox token — map will not render. Set VITE_MAPBOX_TOKEN.');
+      setMapError('Map unavailable — Mapbox access token is not configured.');
       return;
     }
 
@@ -119,5 +121,5 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
     mapRef.current.setStyle(MAP_STYLES[style] ?? MAP_STYLES['satellite']!);
   }, [style, isLoaded]);
 
-  return { map: mapRef.current, draw: drawRef.current, isLoaded };
+  return { map: mapRef.current, draw: drawRef.current, isLoaded, mapError };
 }

@@ -47,8 +47,8 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
         try {
           import('@turf/turf').then((turf) => {
             setPendingArea(turf.area(last as GeoJSON.Feature<GeoJSON.Polygon>));
-          }).catch(() => {});
-        } catch { /* */ }
+          }).catch((err) => { console.warn('[OGDEN] Turf area calculation failed:', err); });
+        } catch (err) { console.warn('[OGDEN] Turf import failed:', err); }
         const info = CROP_TYPES[selectedType];
         setName(info.label);
         setTreeSpacing(info.defaultSpacingM ?? 5);

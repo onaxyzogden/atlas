@@ -9,6 +9,13 @@
     <title>OGDEN Land Design Atlas</title>
   </head>
   <body>
+    <!-- Restore path from GitHub Pages 404 redirect -->
+    <script>
+      (function () {
+        var p = new URLSearchParams(window.location.search).get('p');
+        if (p) window.history.replaceState(null, '', decodeURIComponent(p));
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

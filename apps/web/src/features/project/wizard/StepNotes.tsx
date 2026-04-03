@@ -7,6 +7,8 @@ import { useState, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import * as turf from '@turf/turf';
 import { useProjectStore, type ProjectAttachment } from '../../../store/projectStore.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import { api } from '../../../lib/apiClient.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 
@@ -39,6 +41,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
   const createProject = useProjectStore((s) => s.createProject);
   const updateProjectFn = useProjectStore((s) => s.updateProject);
   const addAttachment = useProjectStore((s) => s.addAttachment);
+  const { token } = useAuthStore();
   const [attachments, setAttachments] = useState<{ file: File; type: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,8 +96,33 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Navigate to the new project
+    // Navigate immediately — local copy is the source of truth
     navigate({ to: '/project/$projectId', params: { projectId: project.id } });
+
+    // Fire-and-forget backend sync (only when authenticated)
+    if (token) {
+      api.projects.create({
+        name: data.name,
+        description: data.description || undefined,
+        address: data.address || undefined,
+        parcelId: data.parcelId || undefined,
+        projectType: (data.projectType as any) || undefined,
+        country: data.country,
+        provinceState: data.provinceState || undefined,
+        units: data.units,
+      }).then(async ({ data: serverProject }) => {
+        // Store the backend-assigned UUID so future syncs can reference it
+        updateProjectFn(project.id, { serverId: serverProject.id });
+
+        // Push boundary if one was drawn
+        const geo = data.parcelBoundaryGeojson;
+        if (geo) {
+          await api.projects.setBoundary(serverProject.id, geo);
+        }
+      }).catch(() => {
+        // Backend unavailable — local copy is intact, sync will retry later
+      });
+    }
   };
 
   const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {

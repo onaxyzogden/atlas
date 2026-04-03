@@ -101,7 +101,7 @@ export class DataPipelineOrchestrator {
     private readonly db: postgres.Sql,
     private readonly redis: Redis,
   ) {
-    this.queue = new Queue('tier1-data', { connection: redis });
+    this.queue = new Queue('tier1-data', { connection: redis as never });
   }
 
   /** Enqueue a Tier 1 data fetch for a project. Called after boundary is set. */
@@ -123,7 +123,7 @@ export class DataPipelineOrchestrator {
         const { projectId } = job.data as { projectId: string };
         await this.processTier1Job(projectId, job);
       },
-      { connection: this.redis, concurrency: 5 },
+      { connection: this.redis as never, concurrency: 5 },
     );
   }
 
@@ -160,7 +160,7 @@ export class DataPipelineOrchestrator {
       ),
     );
 
-    const failed = results.filter((r) => r.status === 'rejected');
+    const failed = results.filter((r: PromiseSettledResult<void>) => r.status === 'rejected');
     if (failed.length > 0) {
       console.error(`${failed.length}/${LAYER_TYPES.length} layers failed for project ${projectId}`);
     }

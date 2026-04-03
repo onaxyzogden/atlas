@@ -13,6 +13,7 @@
 
 import { useState, useMemo } from 'react';
 import ClimateScenarioOverlay from './ClimateScenarioOverlay.js';
+import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import s from './SolarClimatePanel.module.css';
 
 interface SolarClimatePanelProps {
@@ -59,7 +60,7 @@ export default function SolarClimatePanel({ center, map, isMapReady }: SolarClim
     return sunPath.reduce((max, p) => (p.elevation > max.elevation ? p : max), sunPath[0]!);
   }, [sunPath]);
 
-  if (!isMapReady) return null;
+  if (!isMapReady) return <PanelLoader label="Waiting for map..." />;
 
   return (
     <div

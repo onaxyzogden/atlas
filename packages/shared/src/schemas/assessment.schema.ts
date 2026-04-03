@@ -1,11 +1,25 @@
 import { z } from 'zod';
 import { WithConfidence } from './confidence.schema.js';
 
+export const AssessmentFlagCategory = z.enum([
+  'agriculture',
+  'conservation',
+  'development',
+  'regulatory',
+  'climate',
+]);
+export type AssessmentFlagCategory = z.infer<typeof AssessmentFlagCategory>;
+
 export const AssessmentFlag = z.object({
+  id: z.string(),
   type: z.enum(['risk', 'opportunity', 'limitation', 'site_visit_required', 'data_gap']),
   severity: z.enum(['info', 'warning', 'critical']),
+  category: AssessmentFlagCategory,
   message: z.string(),
   layerSource: z.string().optional(),
+  priority: z.number().int().min(0).max(100).default(50),
+  country: z.enum(['US', 'CA', 'all']).default('all'),
+  needsSiteVisit: z.boolean().default(false),
 });
 export type AssessmentFlag = z.infer<typeof AssessmentFlag>;
 
@@ -52,3 +66,26 @@ export const AIOutput = WithConfidence.extend({
   userRating: z.enum(['helpful', 'not_helpful']).optional(),
 });
 export type AIOutput = z.infer<typeof AIOutput>;
+
+// Phase 3 — AI enrichment of assessment flags
+export const AIEnrichmentRequest = z.object({
+  projectId: z.string().uuid(),
+  flags: z.array(AssessmentFlag),
+  layerSummaries: z.record(z.record(z.unknown())),
+  country: z.enum(['US', 'CA']),
+});
+export type AIEnrichmentRequest = z.infer<typeof AIEnrichmentRequest>;
+
+export const EnrichedAssessmentFlag = AssessmentFlag.extend({
+  aiNarrative: z.string().optional(),
+  aiConfidence: z.enum(['high', 'medium', 'low']).optional(),
+});
+export type EnrichedAssessmentFlag = z.infer<typeof EnrichedAssessmentFlag>;
+
+export const AIEnrichmentResponse = z.object({
+  enrichedFlags: z.array(EnrichedAssessmentFlag),
+  siteSynthesis: z.string().optional(),
+  generatedAt: z.string().datetime(),
+  modelId: z.string(),
+});
+export type AIEnrichmentResponse = z.infer<typeof AIEnrichmentResponse>;

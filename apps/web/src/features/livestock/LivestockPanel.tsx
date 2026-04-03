@@ -62,8 +62,8 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         try {
           import('@turf/turf').then((turf) => {
             setPendingArea(turf.area(last as GeoJSON.Feature<GeoJSON.Polygon>));
-          }).catch(() => {});
-        } catch { /* */ }
+          }).catch((err) => { console.warn('[OGDEN] Turf area calculation failed:', err); });
+        } catch (err) { console.warn('[OGDEN] Turf import failed:', err); }
         setName('');
         setSelectedSpecies([]);
         setFencing('electric');

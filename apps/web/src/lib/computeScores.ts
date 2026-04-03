@@ -5,7 +5,9 @@
  * No side effects, no API calls. All functions are deterministic given their inputs.
  */
 
+import type { AssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from './mockLayerData.js';
+import { evaluateAssessmentRules } from './rules/index.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -433,63 +435,8 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
 export function deriveOpportunities(
   layers: MockLayerResult[],
   country: 'US' | 'CA',
-): string[] {
-  const soilsLayer = layerByType(layers, 'soils');
-  const wetlands = layerByType(layers, 'wetlands_flood');
-  const landCover = layerByType(layers, 'land_cover');
-  const climate = layerByType(layers, 'climate');
-
-  const opps: string[] = [];
-
-  const farmland = str(soilsLayer, 'farmland_class').toLowerCase();
-  if (
-    farmland.includes('prime') ||
-    farmland.includes('class 1') ||
-    farmland.includes('class 2')
-  ) {
-    opps.push('High-quality agricultural soils support diverse crop potential');
-  }
-
-  const wetlandPct = num(wetlands, 'wetland_pct');
-  if (wetlandPct > 0) {
-    opps.push(
-      'Wetland restoration eligible for conservation stewardship funding',
-    );
-  }
-
-  const treeCanopy = num(landCover, 'tree_canopy_pct');
-  if (treeCanopy > 20) {
-    opps.push(
-      'Existing forest cover provides carbon credit and habitat corridor opportunities',
-    );
-  }
-
-  const frostFree = num(climate, 'growing_season_days');
-  if (frostFree > 150) {
-    opps.push(
-      'Extended growing season supports season-extension agriculture',
-    );
-  }
-
-  if (country === 'CA') {
-    opps.push(
-      'Conservation Authority partnerships for buffer planting',
-    );
-  } else {
-    opps.push('USDA EQIP and CSP program eligibility');
-  }
-
-  // Ensure at least 3
-  if (opps.length < 3) {
-    if (!opps.some((o) => o.includes('soil'))) {
-      opps.push('Soil health improvement programs available for regenerative practices');
-    }
-    if (opps.length < 3) {
-      opps.push('Site conditions support diversified land use strategies');
-    }
-  }
-
-  return opps;
+): AssessmentFlag[] {
+  return evaluateAssessmentRules(layers, country).opportunities;
 }
 
 /* ------------------------------------------------------------------ */
@@ -499,72 +446,8 @@ export function deriveOpportunities(
 export function deriveRisks(
   layers: MockLayerResult[],
   country: 'US' | 'CA',
-): string[] {
-  const elevation = layerByType(layers, 'elevation');
-  const wetlands = layerByType(layers, 'wetlands_flood');
-  const landCover = layerByType(layers, 'land_cover');
-
-  const risks: string[] = [];
-
-  const meanSlope = num(elevation, 'mean_slope_deg');
-  if (meanSlope > 10) {
-    risks.push(
-      'Steep terrain requires erosion management and limits equipment access',
-    );
-  }
-
-  const floodZone = str(wetlands, 'flood_zone').toLowerCase();
-  if (
-    !floodZone.includes('minimal risk') &&
-    !floodZone.includes('not regulated') &&
-    floodZone.length > 0
-  ) {
-    risks.push(
-      'Flood zone designation restricts development \u2014 verify with local authority',
-    );
-  }
-
-  const regulated = num(wetlands, 'regulated_area_pct');
-  if (regulated > 15) {
-    risks.push('Regulated conservation area limits development footprint');
-  }
-
-  const wetlandPct = num(wetlands, 'wetland_pct');
-  if (wetlandPct > 5) {
-    risks.push('Wetland buffers constrain buildable area');
-  }
-
-  const impervious = num(landCover, 'impervious_pct');
-  if (impervious > 15) {
-    risks.push(
-      'Existing impervious cover may require stormwater management',
-    );
-  }
-
-  if (country === 'CA') {
-    risks.push(
-      'Conservation Authority permits required for regulated area work',
-    );
-  } else {
-    risks.push(
-      'Environmental review may be required for wetland-adjacent development',
-    );
-  }
-
-  // Ensure at least 3
-  if (risks.length < 3) {
-    if (meanSlope > 5 && !risks.some((r) => r.includes('erosion'))) {
-      risks.push('Moderate slopes may require grading plans for construction');
-    }
-    if (risks.length < 3) {
-      risks.push('Seasonal weather variability may affect agricultural scheduling');
-    }
-    if (risks.length < 3) {
-      risks.push('Local zoning and setback requirements may limit building placement');
-    }
-  }
-
-  return risks;
+): AssessmentFlag[] {
+  return evaluateAssessmentRules(layers, country).risks;
 }
 
 /* ------------------------------------------------------------------ */

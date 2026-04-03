@@ -7,17 +7,19 @@ import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
+import { useStructureStore } from '../store/structureStore.js';
 import { useSiteDataStore } from '../store/siteDataStore.js';
 import * as turf from '@turf/turf';
 import MapCanvas from '../features/map/MapCanvas.js';
 import ProjectEditor from '../features/project/ProjectEditor.js';
 import ProjectSummaryExport from '../features/export/ProjectSummaryExport.js';
-import IconSidebar, { type SidebarView } from '../components/IconSidebar.js';
+import IconSidebar, { type SidebarView, type SubItemId } from '../components/IconSidebar.js';
 import { useCommentStore } from '../store/commentStore.js';
 import SlideUpPanel from '../components/SlideUpPanel.js';
 import ErrorBoundary from '../components/ErrorBoundary.js';
 import GPSTracker from '../features/mobile/GPSTracker.js';
 import { useIsMobile } from '../hooks/useMediaQuery.js';
+import { PanelLoader } from '../components/ui/PanelLoader.js';
 import css from './ProjectPage.module.css';
 
 // Lazy-loaded panels — split into separate chunks
@@ -50,8 +52,11 @@ export default function ProjectPage() {
 
   const allZones = useZoneStore((s) => s.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
+  const allStructures = useStructureStore((s) => s.structures);
+  const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
 
   const [activeView, setActiveView] = useState<SidebarView>('layers');
+  const [activeSubItem, setActiveSubItem] = useState<SubItemId | null>('dashboard');
   const [isEditing, setIsEditing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -125,6 +130,11 @@ export default function ProjectPage() {
     mapRef?.on('draw.create', handleCreate);
   };
 
+  const handleSubItemChange = (id: SubItemId, panel: SidebarView) => {
+    setActiveSubItem(id);
+    setActiveView(panel);
+  };
+
   const cancelBoundaryDraw = () => {
     drawRef?.deleteAll();
     drawRef?.changeMode('simple_select');
@@ -159,7 +169,9 @@ export default function ProjectPage() {
     if (!project?.parcelBoundaryGeojson) return;
     try {
       const centroid = turf.centroid(project.parcelBoundaryGeojson);
-      const [lng, lat] = centroid.geometry.coordinates;
+      const coords = centroid.geometry.coordinates;
+      const lng = coords[0] ?? 0;
+      const lat = coords[1] ?? 0;
       fetchSiteData(project.id, [lng, lat], project.country);
     } catch { /* boundary may be invalid */ }
   }, [project?.id, project?.parcelBoundaryGeojson, project?.country, fetchSiteData]);
@@ -191,30 +203,23 @@ export default function ProjectPage() {
         <IconSidebar
           activeView={activeView}
           onViewChange={setActiveView}
+          activeSubItem={activeSubItem}
+          onSubItemChange={handleSubItemChange}
           zoneCount={zones.length}
-          structureCount={0}
+          structureCount={structures.length}
         />
       )}
 
       {/* Map fills remaining space */}
       <div className={isMobile ? css.mapAreaMobile : css.mapArea}>
-        {/* Header bar over map */}
-        <div className={css.mapHeader}>
-          <Link to="/" className={css.backLink}>
-            &larr;
-          </Link>
+        {/* Floating project name card (top-left of map) */}
+        <div className={css.floatingProjectCard}>
+          <div className={css.floatingProjectName}>{project.name}</div>
+          <div className={css.floatingProjectSub}>OGDEN LAND DESIGN ATLAS</div>
+        </div>
 
-          <div>
-            <div className={css.projectName}>{project.name}</div>
-            <div className={css.projectAddress}>
-              {project.address ?? 'No address set'}
-              {project.address ? ' \u00b7 ' : ''}
-            </div>
-          </div>
-
-          <div className={css.headerSpacer} />
-
-          {/* Boundary draw button */}
+        {/* Boundary draw button (floating, top-right) */}
+        <div className={css.floatingControls}>
           {isDrawingBoundary ? (
             <button onClick={cancelBoundaryDraw} className={css.btnCancelDraw}>
               Cancel Drawing
@@ -228,17 +233,9 @@ export default function ProjectPage() {
               {project.hasParcelBoundary ? 'Redraw Boundary' : 'Draw Boundary'}
             </button>
           )}
-
           <span className={css.headerStats}>
-            {zones.length} zones &middot; 0 structures
+            {zones.length} zones &middot; {structures.length} structures
           </span>
-
-          <button
-            onClick={() => setActiveView(activeView === 'settings' ? null : 'settings')}
-            className={css.btnSettings}
-          >
-            &#9881;
-          </button>
         </div>
 
         <ErrorBoundary>
@@ -260,7 +257,7 @@ export default function ProjectPage() {
         if (!activeView) return null;
         const panelContent = (
           <ErrorBoundary name="panel">
-          <Suspense fallback={<div className={css.panelLoading}>Loading panel...</div>}>
+          <Suspense fallback={<PanelLoader />}>
             {activeView === 'layers' && (
               <MapLayersPanel project={project} map={mapRef} marker={markerRef} onCenterProperty={handleCenterProperty} boundaryColor={boundaryColor} onBoundaryColorChange={setBoundaryColor} />
             )}
@@ -358,7 +355,7 @@ export default function ProjectPage() {
               onClick={() => setActiveView(activeView === item.id ? null : item.id)}
               className={activeView === item.id ? css.mobileBarBtnActive : css.mobileBarBtn}
             >
-              <span className={css.mobileBarIcon}>{item.icon}</span>
+              <span className={css.mobileBarIcon} aria-hidden="true">{item.icon}</span>
               {item.label}
             </button>
           ))}

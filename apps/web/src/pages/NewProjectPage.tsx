@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { StepIndicator, Button } from '../components/ui/index.js';
+import { StepIndicator } from '../components/ui/index.js';
 import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
 import StepLocation from '../features/project/wizard/StepLocation.js';
 import StepBoundary from '../features/project/wizard/StepBoundary.js';
@@ -113,29 +113,7 @@ export default function NewProjectPage() {
         </div>
       </div>
 
-      {/* Navigation buttons */}
-      <div className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div>
-            {!isFirst && (
-              <Button variant="ghost" size="md" onClick={goBack}>
-                Back
-              </Button>
-            )}
-          </div>
-          <div className={styles.footerRight}>
-            {isLast ? (
-              <Button variant="primary" size="md" onClick={goNext}>
-                Create Project
-              </Button>
-            ) : (
-              <Button variant="primary" size="md" onClick={goNext}>
-                Next
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Navigation is handled by each step's WizardNav component */}
     </div>
   );
 }

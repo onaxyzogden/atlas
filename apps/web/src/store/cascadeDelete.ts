@@ -19,67 +19,69 @@ import { useUtilityStore } from './utilityStore.js';
 import { useVersionStore } from './versionStore.js';
 
 export function cascadeDeleteProject(projectId: string): void {
-  // Zones
-  useZoneStore.setState((s) => ({
+  const errors: Array<{ store: string; error: unknown }> = [];
+
+  const safeDelete = (store: string, fn: () => void) => {
+    try { fn(); } catch (err) { errors.push({ store, error: err }); }
+  };
+
+  safeDelete('zones', () => useZoneStore.setState((s) => ({
     zones: s.zones.filter((z) => z.projectId !== projectId),
-  }));
+  })));
 
-  // Structures
-  useStructureStore.setState((s) => ({
+  safeDelete('structures', () => useStructureStore.setState((s) => ({
     structures: s.structures.filter((st) => st.projectId !== projectId),
-  }));
+  })));
 
-  // Comments
-  useCommentStore.setState((s) => ({
+  safeDelete('comments', () => useCommentStore.setState((s) => ({
     comments: s.comments.filter((c) => c.projectId !== projectId),
-  }));
+  })));
 
-  // Crops
-  useCropStore.setState((s) => ({
+  safeDelete('crops', () => useCropStore.setState((s) => ({
     cropAreas: s.cropAreas.filter((c) => c.projectId !== projectId),
-  }));
+  })));
 
-  // Fieldwork (entries, walkRoutes, punchList)
-  useFieldworkStore.setState((s) => ({
+  safeDelete('fieldwork', () => useFieldworkStore.setState((s) => ({
     entries: s.entries.filter((e) => e.projectId !== projectId),
     walkRoutes: s.walkRoutes.filter((r) => r.projectId !== projectId),
     punchList: s.punchList.filter((p) => p.projectId !== projectId),
-  }));
+  })));
 
-  // Livestock
-  useLivestockStore.setState((s) => ({
+  safeDelete('livestock', () => useLivestockStore.setState((s) => ({
     paddocks: s.paddocks.filter((p) => p.projectId !== projectId),
-  }));
+  })));
 
-  // Paths
-  usePathStore.setState((s) => ({
+  safeDelete('paths', () => usePathStore.setState((s) => ({
     paths: s.paths.filter((p) => p.projectId !== projectId),
-  }));
+  })));
 
-  // Phases
-  usePhaseStore.setState((s) => ({
+  safeDelete('phases', () => usePhaseStore.setState((s) => ({
     phases: s.phases.filter((p) => p.projectId !== projectId),
-  }));
+  })));
 
-  // Portal
-  usePortalStore.getState().deleteConfig(projectId);
+  safeDelete('portal', () => usePortalStore.getState().deleteConfig(projectId));
 
-  // Scenarios
-  useScenarioStore.setState((s) => ({
+  safeDelete('scenarios', () => useScenarioStore.setState((s) => ({
     scenarios: s.scenarios.filter((sc) => sc.projectId !== projectId),
-  }));
+  })));
 
-  // Utilities
-  useUtilityStore.setState((s) => ({
+  safeDelete('utilities', () => useUtilityStore.setState((s) => ({
     utilities: s.utilities.filter((u) => u.projectId !== projectId),
-  }));
+  })));
 
-  // Version snapshots
-  useVersionStore.setState((s) => ({
+  safeDelete('versions', () => useVersionStore.setState((s) => ({
     snapshots: s.snapshots.filter((sn) => sn.projectId !== projectId),
-  }));
+  })));
+
+  if (errors.length > 0) {
+    console.warn('[OGDEN] Cascade delete partial failures:', errors);
+  }
 
   // IndexedDB geospatial blobs (fire-and-forget — non-blocking)
-  geodataCache.remove(`boundary:${projectId}`).catch(() => {});
-  geodataCache.removeByPrefix(`attachment:${projectId}:`).catch(() => {});
+  geodataCache.remove(`boundary:${projectId}`).catch((err) => {
+    console.warn('[OGDEN] Failed to remove boundary cache:', err);
+  });
+  geodataCache.removeByPrefix(`attachment:${projectId}:`).catch((err) => {
+    console.warn('[OGDEN] Failed to remove attachment cache:', err);
+  });
 }

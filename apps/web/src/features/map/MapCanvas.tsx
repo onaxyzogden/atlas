@@ -33,7 +33,7 @@ interface MapCanvasProps {
 
 export default function MapCanvas({ projectId, initialCenter, initialZoom, boundaryGeojson, boundaryColor, address, onMapReady, onMarkerCreated }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { map, draw, isLoaded } = useMapbox({ containerRef, initialCenter, initialZoom });
+  const { map, draw, isLoaded, mapError } = useMapbox({ containerRef, initialCenter, initialZoom });
   const mapReadyFiredRef = useRef(false);
 
   // Notify parent when map is ready
@@ -95,7 +95,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
           try {
             const bbox = computeBBox(boundaryGeojson);
             if (bbox) map.fitBounds(bbox, { padding: 60, maxZoom: 16 });
-          } catch { /* */ }
+          } catch (err) { console.warn('[OGDEN] Boundary bbox fit failed:', err); }
           hasFittedRef.current = true;
         }
       }
@@ -481,7 +481,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
           const mPerDeg = 111320 * Math.cos(centroidLat * toRad);
           newArea = Math.abs(area / 2) * mPerDeg * 111320;
         }
-      } catch { /* best effort */ }
+      } catch (err) { console.warn('[OGDEN] Area computation failed:', err); }
 
       if (type === 'zone') {
         updateZone(id, { geometry: newGeometry, areaM2: newArea });

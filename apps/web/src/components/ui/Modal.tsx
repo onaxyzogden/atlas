@@ -71,12 +71,12 @@ export const Modal: React.FC<ModalProps> = ({
         if (e.shiftKey) {
           if (document.activeElement === first) {
             e.preventDefault();
-            last.focus();
+            last?.focus();
           }
         } else {
           if (document.activeElement === last) {
             e.preventDefault();
-            first.focus();
+            first?.focus();
           }
         }
       }
@@ -95,7 +95,7 @@ export const Modal: React.FC<ModalProps> = ({
       requestAnimationFrame(() => {
         const focusable = getFocusableElements();
         if (focusable.length > 0) {
-          focusable[0].focus();
+          focusable[0]?.focus();
         } else {
           panelRef.current?.focus();
         }

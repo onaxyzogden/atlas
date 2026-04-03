@@ -1,180 +1,337 @@
 /* ==========================================================================
-   IconSidebar — vertical icon strip on the left edge of the project view.
+   IconSidebar — phase-grouped full-height navigation panel
+   Dark biophilic aesthetic matching the v2.1 mockup
    ========================================================================== */
 
 /* ─── Sidebar container ───────────────────────────────────────────────── */
 .sidebar {
-  background: var(--color-sidebar-bg);
-  border-right: 1px solid var(--color-border);
+  background: #0f1a12;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  padding-top: 4px;
-  gap: 2px;
   flex-shrink: 0;
+  height: 100%;
   z-index: 6;
-  transition: width 200ms ease;
+  transition: width 220ms cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-}
-
-.sidebarCollapsed {
-  width: 52px;
-  align-items: center;
 }
 
 .sidebarExpanded {
-  width: 200px;
-  align-items: stretch;
+  width: 280px;
 }
 
-/* ─── Pin / unpin toggle ──────────────────────────────────────────────── */
-.pinBtn {
-  height: 32px;
+.sidebarCollapsed {
+  width: 56px;
+}
+
+/* ─── Logo row ────────────────────────────────────────────────────────── */
+.logoRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 16px 14px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  min-height: 56px;
+}
+
+.logoLink {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.logoMark {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #e8dcc8;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.logoSub {
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: rgba(200, 185, 160, 0.5);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.collapseBtn {
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
-  margin-bottom: 4px;
-  align-self: center;
-  color: var(--color-sidebar-icon);
-  transition: all 150ms ease;
-}
-
-.pinBtnCollapsed {
-  width: 40px;
-  justify-content: center;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.pinBtnExpanded {
-  width: 100%;
-  justify-content: flex-end;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
-.pinBtnActive {
-  color: #c4a265;
-}
-
-/* ─── Nav item button ─────────────────────────────────────────────────── */
-.navBtn {
-  height: 38px;
+  color: rgba(200, 185, 160, 0.4);
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.collapseBtn:hover {
+  color: rgba(200, 185, 160, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ─── Phase list ──────────────────────────────────────────────────────── */
+.phaseList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0 4px;
+  /* Thin scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.phaseList::-webkit-scrollbar {
+  width: 3px;
+}
+.phaseList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.phaseList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.phaseGroup {
+  /* No extra gap — each group stacks naturally */
+}
+
+/* ─── Phase header button ─────────────────────────────────────────────── */
+.phaseHeader {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease;
+}
+
+.phaseHeader:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.phaseHeaderActive {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Phase badge ─────────────────────────────────────────────────────── */
+.phaseBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  margin-top: 1px;
+  line-height: 1.4;
+}
+
+/* ─── Phase header text (name + description) ─────────────────────────── */
+.phaseHeaderText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.phaseName {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.phaseDesc {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.4;
+  /* Allow wrapping for the description */
+}
+
+/* ─── Phase chevron ───────────────────────────────────────────────────── */
+.phaseChevron {
+  flex-shrink: 0;
+  color: rgba(180, 165, 140, 0.4);
+  margin-top: 3px;
+  transition: transform 200ms ease;
+  display: flex;
+  align-items: center;
+}
+
+.phaseChevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ─── Phase items container ───────────────────────────────────────────── */
+.phaseItems {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Sub-item button ─────────────────────────────────────────────────── */
+.subItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px 7px 28px;
   background: transparent;
   border: none;
   border-left: 2px solid transparent;
-  border-radius: 0 8px 8px 0;
   cursor: pointer;
-  color: var(--color-sidebar-icon);
-  transition: all 150ms ease;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.navBtnCollapsed {
-  width: 40px;
-  justify-content: center;
-  gap: 0;
-  padding-left: 0;
-  padding-right: 0;
-  align-self: center;
-}
-
-.navBtnExpanded {
   width: 100%;
-  justify-content: flex-start;
-  gap: 10px;
-  padding-left: 12px;
-  padding-right: 8px;
+  text-align: left;
+  transition: background 120ms ease, border-left-color 120ms ease;
 }
 
-.navBtnActive {
-  background: rgba(125, 97, 64, 0.25);
-  border-left-color: #c4a265;
+.subItem:hover {
+  background: rgba(107, 143, 107, 0.1);
 }
 
-/* ─── Icon wrapper ────────────────────────────────────────────────────── */
-.iconWrap {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+.subItemActive {
+  background: rgba(107, 143, 107, 0.18);
+  border-left-color: currentColor; /* overridden inline by phase color */
 }
 
-/* ─── Label text ──────────────────────────────────────────────────────── */
-.navLabel {
-  font-size: 12px;
+.subItemLabel {
+  font-size: 12.5px;
   font-weight: 400;
+  color: rgba(200, 185, 160, 0.7);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity 150ms ease;
-  font-family: inherit;
+  transition: color 120ms ease;
 }
 
-.navLabelActive {
-  font-weight: 600;
+.subItem:hover .subItemLabel {
+  color: rgba(232, 220, 200, 0.9);
 }
 
-.navLabelVisible {
-  opacity: 1;
+.subItemActive .subItemLabel {
+  color: rgba(232, 220, 200, 1);
+  font-weight: 500;
 }
 
-.navLabelHidden {
-  opacity: 0;
+/* ─── Collapsed phase divider ─────────────────────────────────────────── */
+.collapsedPhaseDivider {
+  height: 3px;
+  margin: 4px 10px;
+  border-radius: 2px;
 }
 
 /* ─── Spacer ──────────────────────────────────────────────────────────── */
 .spacer {
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 16px;
 }
 
-/* ─── Settings button at bottom ───────────────────────────────────────── */
-.settingsBtn {
-  height: 38px;
+/* ─── Bottom section ──────────────────────────────────────────────────── */
+.bottomSection {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.bottomBtn {
   display: flex;
   align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
-  margin-bottom: 8px;
-  color: var(--color-sidebar-icon);
-  transition: all 150ms ease;
-}
-
-.settingsBtnCollapsed {
-  width: 40px;
-  justify-content: center;
-  gap: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-  align-self: center;
-}
-
-.settingsBtnExpanded {
   width: 100%;
-  justify-content: flex-start;
-  gap: 10px;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 12px;
-  padding-right: 0;
+  text-align: left;
+  color: rgba(180, 165, 140, 0.5);
+  transition: background 150ms ease, color 150ms ease;
 }
 
-.settingsBtnActive {
-  background: rgba(125, 97, 64, 0.25);
-  color: var(--color-sidebar-active);
+.bottomBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(200, 185, 160, 0.85);
+}
+
+.bottomBtnActive {
+  color: rgba(196, 162, 101, 0.9);
+}
+
+.bottomBtnLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ─── User account row ────────────────────────────────────────────────── */
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.userAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(107, 143, 107, 0.3);
+  border: 1px solid rgba(107, 143, 107, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(200, 230, 200, 0.9);
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(220, 208, 188, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.4);
+  white-space: nowrap;
 }

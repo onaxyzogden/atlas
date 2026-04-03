@@ -5,9 +5,17 @@
 
 import { create } from 'zustand';
 import { fetchAllLayers, type FetchLayerResults } from '../lib/layerFetcher.js';
+import type { AssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from '../lib/mockLayerData.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────
+
+export interface AIEnrichmentState {
+  status: 'idle' | 'loading' | 'complete' | 'error';
+  enrichedFlags?: AssessmentFlag[];
+  siteSynthesis?: string;
+  fetchedAt?: number;
+}
 
 export interface SiteData {
   layers: MockLayerResult[];
@@ -15,6 +23,8 @@ export interface SiteData {
   liveCount: number;
   fetchedAt: number;
   status: 'idle' | 'loading' | 'complete' | 'error';
+  /** Phase 3: AI-enriched assessment data */
+  enrichment?: AIEnrichmentState;
 }
 
 export interface SiteDataState {
@@ -24,6 +34,20 @@ export interface SiteDataState {
   fetchForProject: (projectId: string, center: [number, number], country: 'US' | 'CA') => Promise<void>;
   refreshProject: (projectId: string, center: [number, number], country: 'US' | 'CA') => Promise<void>;
   clearProject: (projectId: string) => void;
+}
+
+// ── Request tracking (prevents stale responses from overwriting fresh data) ──
+
+const fetchGeneration = new Map<string, number>();
+
+function nextGen(projectId: string): number {
+  const gen = (fetchGeneration.get(projectId) ?? 0) + 1;
+  fetchGeneration.set(projectId, gen);
+  return gen;
+}
+
+function isStale(projectId: string, gen: number): boolean {
+  return (fetchGeneration.get(projectId) ?? 0) !== gen;
 }
 
 // ── Store ─────────────────────────────────────────────────────────────────
@@ -36,6 +60,8 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     if (existing && (existing.status === 'loading' || existing.status === 'complete')) {
       return;
     }
+
+    const gen = nextGen(projectId);
 
     set((s) => ({
       dataByProject: {
@@ -53,6 +79,9 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     try {
       const result: FetchLayerResults = await fetchAllLayers({ center, country });
 
+      // Discard if a newer request was started while this one was in-flight
+      if (isStale(projectId, gen)) return;
+
       set((s) => ({
         dataByProject: {
           ...s.dataByProject,
@@ -66,15 +95,23 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
         },
       }));
     } catch {
-      set((s) => ({
-        dataByProject: {
-          ...s.dataByProject,
-          [projectId]: {
-            ...s.dataByProject[projectId],
-            status: 'error',
+      if (isStale(projectId, gen)) return;
+
+      set((s) => {
+        const existing = s.dataByProject[projectId];
+        return {
+          dataByProject: {
+            ...s.dataByProject,
+            [projectId]: {
+              layers: existing?.layers ?? [],
+              isLive: existing?.isLive ?? false,
+              liveCount: existing?.liveCount ?? 0,
+              fetchedAt: existing?.fetchedAt ?? 0,
+              status: 'error' as const,
+            },
           },
-        },
-      }));
+        };
+      });
     }
   },
 
@@ -83,6 +120,8 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     try {
       localStorage.removeItem('ogden-layer-cache');
     } catch { /* SSR safety */ }
+
+    const gen = nextGen(projectId);
 
     // Mark as loading but keep existing layers visible during refresh
     const existing = get().dataByProject[projectId];
@@ -101,6 +140,9 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
 
     try {
       const result: FetchLayerResults = await fetchAllLayers({ center, country });
+
+      if (isStale(projectId, gen)) return;
+
       set((s) => ({
         dataByProject: {
           ...s.dataByProject,
@@ -114,15 +156,23 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
         },
       }));
     } catch {
-      set((s) => ({
-        dataByProject: {
-          ...s.dataByProject,
-          [projectId]: {
-            ...s.dataByProject[projectId],
-            status: 'error',
+      if (isStale(projectId, gen)) return;
+
+      set((s) => {
+        const existing = s.dataByProject[projectId];
+        return {
+          dataByProject: {
+            ...s.dataByProject,
+            [projectId]: {
+              layers: existing?.layers ?? [],
+              isLive: existing?.isLive ?? false,
+              liveCount: existing?.liveCount ?? 0,
+              fetchedAt: existing?.fetchedAt ?? 0,
+              status: 'error' as const,
+            },
           },
-        },
-      }));
+        };
+      });
     }
   },
 

@@ -8,6 +8,7 @@ import { Link, useRouter } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { useUIStore } from '../store/uiStore.js';
+import { useAuthStore } from '../store/authStore.js';
 import { Button } from '../components/ui/Button.js';
 import styles from './AppShell.module.css';
 
@@ -18,14 +19,16 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const isHome = router.state.location.pathname === '/';
+  const isProjectPage = router.state.location.pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
+  const { token, user, logout } = useAuthStore();
   const openPalette = useUIStore((s) => s.openCommandPalette);
 
   useKeyboardShortcuts();
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
+      {!isProjectPage && <header className={styles.header}>
         <Link to="/" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
           <span className={styles.logoSub}>Land Design Atlas</span>
@@ -68,6 +71,21 @@ export default function AppShell({ children }: AppShellProps) {
           )}
         </button>
 
+        {/* Auth: show user email or Sign In link */}
+        {token ? (
+          <button
+            onClick={logout}
+            title={`Signed in as ${user?.email ?? ''} — click to sign out`}
+            className={styles.authButton}
+          >
+            {user?.displayName ?? user?.email?.split('@')[0] ?? 'Account'}
+          </button>
+        ) : (
+          <Link to="/login" className={styles.signInLink}>
+            Sign In
+          </Link>
+        )}
+
         {/* New Project button */}
         {router.state.location.pathname !== '/new' && (
           <Link to="/new" className={styles.newProjectLink}>
@@ -81,7 +99,7 @@ export default function AppShell({ children }: AppShellProps) {
             All Projects
           </Link>
         )}
-      </header>
+      </header>}
 
       <main className={styles.main}>
         {children}

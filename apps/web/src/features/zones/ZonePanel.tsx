@@ -15,6 +15,7 @@ import {
   type ZoneCategory,
   type LandZone,
 } from '../../store/zoneStore.js';
+import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
 
@@ -117,7 +118,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
     [deleteZone, map],
   );
 
-  if (!isMapReady) return null;
+  if (!isMapReady) return <PanelLoader label="Waiting for map..." />;
 
   return (
     <div className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}>

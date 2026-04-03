@@ -116,6 +116,42 @@
   outline-offset: 2px;
 }
 
+/* ─── Auth controls ────────────────────────────────────────────────────── */
+.signInLink {
+  font-size: var(--text-xs);
+  color: var(--color-earth-600);
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color var(--duration-base) var(--ease-default);
+}
+
+.signInLink:hover {
+  color: var(--color-earth-700, #5c4830);
+}
+
+.authButton {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-base) var(--ease-default),
+              border-color var(--duration-base) var(--ease-default);
+}
+
+.authButton:hover {
+  color: var(--color-text);
+  border-color: var(--color-earth-300);
+}
+
 /* ─── Header links ─────────────────────────────────────────────────────── */
 .newProjectLink {
   text-decoration: none;

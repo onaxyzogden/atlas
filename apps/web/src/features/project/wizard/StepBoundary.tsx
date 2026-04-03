@@ -93,7 +93,9 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
               map.flyTo({ center: feature.center, zoom: 15, duration: 1200 });
             }
           })
-          .catch(() => {}); // Best-effort geocode
+          .catch((err) => {
+            console.warn('[OGDEN] Address geocode failed:', err);
+          });
       }
     });
 

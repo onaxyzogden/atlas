@@ -43,7 +43,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div style={{
+        <div role="alert" aria-live="polite" style={{
           padding: 20,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           gap: 10, minHeight: 120,

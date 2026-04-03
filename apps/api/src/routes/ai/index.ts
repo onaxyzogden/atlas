@@ -9,6 +9,8 @@ import { z } from 'zod';
 import { config } from '../../lib/config.js';
 import { AppError } from '../../lib/errors.js';
 
+import { AIEnrichmentRequest } from '@ogden/shared';
+
 const ChatRequestSchema = z.object({
   messages: z.array(
     z.object({
@@ -68,6 +70,28 @@ export default async function aiRoutes(fastify: FastifyInstance) {
         model: data.model,
         inputTokens: data.usage.input_tokens,
         outputTokens: data.usage.output_tokens,
+      },
+      meta: undefined,
+      error: null,
+    };
+  });
+
+  // POST /ai/enrich-assessment — Phase 3 stub for AI-enriched assessment flags
+  fastify.post('/enrich-assessment', { preHandler: [authenticate] }, async (req) => {
+    if (!config.ANTHROPIC_API_KEY) {
+      throw new AppError('AI_NOT_CONFIGURED', 'AI features are not configured. Set ANTHROPIC_API_KEY in the server environment.', 503);
+    }
+
+    const body = AIEnrichmentRequest.parse(req.body);
+
+    // Phase 3: call ClaudeClient.enrichAssessmentFlags(body) here
+    // For now, return the flags unchanged with a stub response
+    return {
+      data: {
+        enrichedFlags: body.flags,
+        siteSynthesis: undefined,
+        generatedAt: new Date().toISOString(),
+        modelId: 'stub',
       },
       meta: undefined,
       error: null,

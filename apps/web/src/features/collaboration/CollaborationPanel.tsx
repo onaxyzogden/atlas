@@ -54,7 +54,9 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
   const handleGenerateShareLink = () => {
     const url = `${window.location.origin}/project/${project.id}?view=readonly`;
     setShareUrl(url);
-    navigator.clipboard.writeText(url).catch(() => {});
+    navigator.clipboard.writeText(url).catch((err) => {
+      console.warn('[OGDEN] Clipboard write failed:', err);
+    });
   };
 
   const flyToComment = (comment: Comment) => {

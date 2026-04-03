@@ -5,12 +5,14 @@
  *   /              → Home (project list)
  *   /new           → New project wizard
  *   /project/$id   → Project view (map + dashboard)
+ *   /login         → Login / register (outside AppShell)
  */
 
 import {
   createRootRoute,
   createRoute,
   createRouter,
+  redirect,
   Outlet,
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
@@ -18,16 +20,22 @@ import HomePage from '../pages/HomePage.js';
 import NewProjectPage from '../pages/NewProjectPage.js';
 import ProjectPage from '../pages/ProjectPage.js';
 import PortalPage from '../pages/PortalPage.js';
+import LoginPage from '../pages/LoginPage.js';
 
 // ─── Root layout (with AppShell) ──────────────────────────────────────────
 const rootRoute = createRootRoute({
   component: Outlet,
 });
 
-// App shell wrapper for main routes
+// App shell wrapper for main routes — requires auth token
 const appShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
+  // Auth disabled for development
+  // beforeLoad: () => {
+  //   const token = localStorage.getItem('ogden-auth-token');
+  //   if (!token) throw redirect({ to: '/login' });
+  // },
   component: () => (
     <AppShell>
       <Outlet />
@@ -52,6 +60,13 @@ const projectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/project/$projectId',
   component: ProjectPage,
+});
+
+// ─── Login page (outside AppShell — own centered layout) ─────────────────
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: LoginPage,
 });
 
 // ─── Portal page (outside AppShell — own layout) ─────────────────────────
@@ -82,6 +97,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     notFoundRoute,
   ]),
+  loginRoute,
   portalRoute,
 ]);
 

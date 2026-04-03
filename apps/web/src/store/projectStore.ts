@@ -35,6 +35,8 @@ export interface LocalProject {
   waterRightsNotes: string | null;
   units: 'metric' | 'imperial';
   attachments: ProjectAttachment[];
+  // Sprint 3 — server-assigned UUID after backend sync (undefined = not yet synced)
+  serverId?: string;
 }
 
 export interface ProjectAttachment {
@@ -114,7 +116,9 @@ export const useProjectStore = create<ProjectState>()(
       updateProject: (id, updates) => {
         // Persist large GeoJSON to IndexedDB if boundary is being updated
         if (updates.parcelBoundaryGeojson) {
-          geodataCache.put(`boundary:${id}`, updates.parcelBoundaryGeojson).catch(() => {});
+          geodataCache.put(`boundary:${id}`, updates.parcelBoundaryGeojson).catch((err) => {
+            console.warn('[OGDEN] Failed to cache boundary:', err);
+          });
         }
         set((state) => ({
           projects: state.projects.map((p) =>
@@ -136,7 +140,9 @@ export const useProjectStore = create<ProjectState>()(
       addAttachment: (projectId, attachment) => {
         // Persist parsed geospatial data to IndexedDB
         if (attachment.data && (attachment.type === 'geojson' || attachment.type === 'kml')) {
-          geodataCache.put(`attachment:${projectId}:${attachment.id}`, attachment.data).catch(() => {});
+          geodataCache.put(`attachment:${projectId}:${attachment.id}`, attachment.data).catch((err) => {
+            console.warn('[OGDEN] Failed to cache attachment:', err);
+          });
         }
         set((state) => ({
           projects: state.projects.map((p) =>
@@ -219,7 +225,9 @@ useProjectStore.persist.onFinishHydration(() => {
             ),
           }));
         }
-      }).catch(() => {});
+      }).catch((err) => {
+        console.warn('[OGDEN] Failed to restore boundary from IndexedDB:', err);
+      });
     }
   }
 });

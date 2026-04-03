@@ -6,7 +6,7 @@
  * No redesign needed when Phase 3 arrives.
  */
 
-import type { AIOutput } from '@ogden/shared';
+import type { AIOutput, AIEnrichmentRequest, AIEnrichmentResponse } from '@ogden/shared';
 
 export class ClaudeClient {
   // Phase 3: inject Anthropic SDK client here
@@ -17,6 +17,10 @@ export class ClaudeClient {
   }
 
   async generateDesignRecommendation(_projectId: string, _context: string): Promise<AIOutput> {
+    throw new Error('AI analysis is not enabled. Set FEATURE_AI=true to enable Phase 3 features.');
+  }
+
+  async enrichAssessmentFlags(_request: AIEnrichmentRequest): Promise<AIEnrichmentResponse> {
     throw new Error('AI analysis is not enabled. Set FEATURE_AI=true to enable Phase 3 features.');
   }
 }

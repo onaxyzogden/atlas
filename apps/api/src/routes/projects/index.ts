@@ -172,12 +172,12 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         WHERE project_id = ${req.params.id}
         ORDER BY layer_type
       `;
-      const [{ score }] = await db`
+      const [scoreRow] = await db`
         SELECT data_completeness_score AS score
         FROM projects
         WHERE id = ${req.params.id} AND owner_id = ${req.userId}
       `;
-      return { data: { score, layers }, meta: undefined, error: null };
+      return { data: { score: (scoreRow?.score as number | null) ?? null, layers }, meta: undefined, error: null };
     },
   );
 }

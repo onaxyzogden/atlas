@@ -103,8 +103,8 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
         try {
           import('@turf/turf').then((turf) => {
             setPendingArea(turf.area(lastFeature as GeoJSON.Feature<GeoJSON.Polygon>));
-          }).catch(() => {});
-        } catch { /* */ }
+          }).catch((err) => { console.warn('[OGDEN] Turf area calculation failed:', err); });
+        } catch (err) { console.warn('[OGDEN] Turf import failed:', err); }
         setModalCategory(selectedCategory);
         setModalName('');
         setModalPhase('Phase 1');

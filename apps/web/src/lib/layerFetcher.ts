@@ -2,13 +2,22 @@
  * Layer Fetcher — replaces mock data with real API calls where possible.
  *
  * Strategy:
- *   - USGS EPQS: Real elevation data (US only, CORS-friendly)
- *   - SSURGO SDA: Real soil data (US only, CORS-friendly)
- *   - Climate: Latitude-based model (no API key required)
- *   - Watershed/Wetlands/Flood/LandCover/Zoning: Latitude-based estimates
- *   - Canadian data: Latitude-based models (Ontario APIs need backend proxy)
+ *   US:
+ *     - USGS EPQS: Real elevation data (CORS-friendly)
+ *     - SSURGO SDA: Real soil data (CORS-friendly)
+ *     - USGS WBD: Real watershed/HUC data (CORS-friendly)
+ *     - FEMA NFHL + USFWS NWI: Real wetlands/flood data
+ *     - MRLC NLCD: Real land cover (WMS)
+ *     - Climate: Latitude-based model (NOAA-derived)
+ *   CA (Ontario):
+ *     - ECCC Climate Normals (OGC API): Real climate station data
+ *     - Ontario Hydro Network (LIO ArcGIS REST): Real watershed/stream data
+ *     - Ontario Soil Survey Complex (LIO ArcGIS REST): Real soils data
+ *     - AAFC Annual Crop Inventory (ImageServer Identify): Real land cover
+ *     - Elevation: Latitude-based model (NRCan HRDEM needs backend WCS proxy — Sprint 3)
+ *     - Wetlands/Flood: Latitude-based model (Conservation Authority varies — Sprint 3)
  *
- * All fetchers fall back to mock data on failure. Results cached 24h.
+ * All fetchers fall back gracefully on failure. Results cached 24h in localStorage.
  */
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
@@ -102,50 +111,34 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   const results: MockLayerResult[] = [...mock];
   let liveCount = 0;
 
+  // Only count results from real APIs (not latitude-based estimates)
+  function trackLive(r: MockLayerResult | null) {
+    if (r) {
+      replaceLayer(results, r);
+      if (isLiveResult(r)) liveCount++;
+    }
+  }
+
   // Fetch real data in parallel — each fetcher replaces its mock entry
   const fetchers: Promise<void>[] = [];
 
-  // Elevation (US only — USGS EPQS)
-  fetchers.push(
-    fetchElevation(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Elevation (US: USGS EPQS — CA: latitude model, NRCan HRDEM needs backend proxy)
+  fetchers.push(fetchElevation(lat, lng, options.country).then(trackLive));
 
-  // Soils (US only — SSURGO SDA)
-  fetchers.push(
-    fetchSoils(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Soils (US: SSURGO SDA — CA: LIO Ontario Soil Survey Complex)
+  fetchers.push(fetchSoils(lat, lng, options.country).then(trackLive));
 
-  // Climate (latitude-based model — works everywhere)
-  fetchers.push(
-    fetchClimate(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Climate (US: latitude model — CA: ECCC Climate Normals OGC API)
+  fetchers.push(fetchClimate(lat, lng, options.country).then(trackLive));
 
-  // Watershed (USGS WBD for US, estimate for CA)
-  fetchers.push(
-    fetchWatershed(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Watershed (US: USGS WBD — CA: Ontario Hydro Network LIO)
+  fetchers.push(fetchWatershed(lat, lng, options.country).then(trackLive));
 
-  // Wetlands & Flood (FEMA for US when available)
-  fetchers.push(
-    fetchWetlandsFlood(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Wetlands & Flood (US: FEMA NFHL + NWI — CA: latitude model, Conservation Authority varies)
+  fetchers.push(fetchWetlandsFlood(lat, lng, options.country).then(trackLive));
 
-  // Land cover (latitude-based classification)
-  fetchers.push(
-    fetchLandCover(lat, lng, options.country).then((r) => {
-      if (r) { replaceLayer(results, r); liveCount++; }
-    }),
-  );
+  // Land Cover (US: MRLC NLCD — CA: AAFC Annual Crop Inventory)
+  fetchers.push(fetchLandCover(lat, lng, options.country).then(trackLive));
 
   await Promise.allSettled(fetchers);
 
@@ -158,6 +151,12 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
   const idx = results.findIndex((r) => r.layer_type === replacement.layer_type);
   if (idx >= 0) results[idx] = replacement;
+}
+
+/** True when the result came from a real API, not a latitude-based estimate. */
+function isLiveResult(r: MockLayerResult): boolean {
+  return !r.source_api.startsWith('Estimated') &&
+         !r.source_api.startsWith('Climate model');
 }
 
 // ── Elevation fetcher (USGS EPQS) ──────────────────────────────────────────
@@ -177,7 +176,7 @@ async function fetchElevation(lat: number, lng: number, country: string): Promis
     const elevations = await Promise.all(
       offsets.map(async ([dlng, dlat]) => {
         const url = `https://epqs.nationalmap.gov/v1/json?x=${lng + dlng!}&y=${lat + dlat!}&wkid=4326&units=Meters&includeDate=false`;
-        const resp = await fetchWithTimeout(url, 8000);
+        const resp = await fetchWithRetry(url, 8000);
         const data = await resp.json();
         const val = parseFloat(data.value);
         return isNaN(val) ? null : val;
@@ -243,15 +242,21 @@ function estimateAspect(lat: number, _lng: number): string {
   return lat > 44 ? 'S' : lat > 40 ? 'SE' : 'SW';
 }
 
-// ── Soils fetcher (SSURGO SDA) ─────────────────────────────────────────────
+// ── Soils (SSURGO for US, LIO Ontario Soil Survey for CA) ─────────────────
 
 async function fetchSoils(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
-  if (country === 'CA') return soilsFromLatitude(lat, country);
+  if (country === 'CA') {
+    try {
+      return await fetchLioSoils(lat, lng);
+    } catch {
+      return soilsFromLatitude(lat, country);
+    }
+  }
 
   try {
     const query = `SELECT TOP 1 mu.muname, mu.musym, c.drainagecl, c.hydgrp, c.taxorder, c.nirrcapcl, c.comppct_r, ch.om_r, ch.ph1to1h2o_r, ch.sandtotal_r, ch.claytotal_r FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey LEFT JOIN chorizon ch ON c.cokey = ch.cokey AND ch.hzdept_r = 0 WHERE mu.mukey IN (SELECT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT(${lng} ${lat})')) ORDER BY c.comppct_r DESC`;
 
-    const resp = await fetchWithTimeout('https://SDMDataAccess.sc.egov.usda.gov/Tabular/SDMTabularService/post.rest', 10000, {
+    const resp = await fetchWithRetry('https://SDMDataAccess.sc.egov.usda.gov/Tabular/SDMTabularService/post.rest', 10000, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ SERVICE: 'query', REQUEST: 'query', QUERY: query, FORMAT: 'JSON+COLUMNNAME+METADATA' }),
@@ -319,6 +324,102 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
   }
 }
 
+async function fetchLioSoils(lat: number, lng: number): Promise<MockLayerResult> {
+  // Tight buffer ~300 m to intersect the polygon the centroid sits within
+  const buf = 0.003;
+  const envelope = encodeURIComponent(JSON.stringify({
+    xmin: lng - buf, ymin: lat - buf,
+    xmax: lng + buf, ymax: lat + buf,
+    spatialReference: { wkid: 4326 },
+  }));
+  const url =
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open05/MapServer/9/query` +
+    `?geometry=${envelope}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects` +
+    `&outFields=*&returnGeometry=false&f=json`;
+
+  const resp = await fetchWithRetry(url, 10000);
+  const data = await resp.json() as { features?: { attributes: Record<string, unknown> }[] };
+
+  const features = data?.features;
+  if (!features || features.length === 0) throw new Error('LIO soils: no features at point');
+
+  // Take first (dominant) polygon — LIO returns most-overlapping first at small bbox
+  const attrs = features[0]!.attributes;
+
+  // Field name fallback chains — LIO schema varies across service versions
+  const textureRaw =
+    attrs['TEXTURE'] ?? attrs['SOIL_TEXTURE'] ?? attrs['TEX'] ?? attrs['TEXTURE_CLASS'] ?? null;
+  const drainageRaw =
+    attrs['DRAINAGE'] ?? attrs['DRAIN_CL'] ?? attrs['DRAINAGE_CLASS'] ?? attrs['DRAIN'] ?? null;
+  const omRaw =
+    attrs['ORG_MATTER'] ?? attrs['ORGANIC_MATTER'] ?? attrs['OM_PCT'] ?? attrs['ORGANIC_CARBON'] ?? null;
+  const farmlandRaw =
+    attrs['FARMLAND_CL'] ?? attrs['CANADA_LAND_INV'] ?? attrs['CLI_CLASS'] ?? attrs['CAPABILITY'] ?? null;
+  const phRaw =
+    attrs['PH'] ?? attrs['SOIL_PH'] ?? attrs['REACTION'] ?? null;
+  const soilNameRaw =
+    attrs['SOIL_SERIES'] ?? attrs['SOIL_NAME'] ?? attrs['SERIES_NAME'] ?? attrs['MAP_UNIT'] ?? 'Unknown';
+  const bedrockRaw =
+    attrs['DEPTH_BEDROCK'] ?? attrs['BEDROCK_DEPTH'] ?? attrs['DEPTH_TO_BEDROCK'] ?? null;
+  const taxonRaw =
+    attrs['TAXON_ORDER'] ?? attrs['GREAT_GROUP'] ?? attrs['ORDER_'] ?? null;
+
+  const texture = textureRaw ? lioNormalizeTexture(String(textureRaw)) : 'Loam';
+  const drainage = drainageRaw ? String(drainageRaw) : 'Moderately well drained';
+  const om = omRaw != null ? +parseFloat(String(omRaw)).toFixed(1) : 3.0;
+  const farmlandClass = farmlandRaw ? lioFormatCscsClass(String(farmlandRaw)) : 'Class 2 (CSCS)';
+  const phVal = phRaw != null ? parseFloat(String(phRaw)) : 6.5;
+  const phRange = `${(phVal - 0.3).toFixed(1)} - ${(phVal + 0.3).toFixed(1)}`;
+  const depth = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : 'N/A';
+
+  return {
+    layer_type: 'soils',
+    fetch_status: 'complete',
+    confidence: 'high',
+    data_date: new Date().toISOString().split('T')[0]!,
+    source_api: 'Ontario Soil Survey Complex (LIO)',
+    attribution: 'OMAFRA / Ontario Ministry of Natural Resources',
+    summary: {
+      predominant_texture: texture,
+      soil_name: String(soilNameRaw),
+      drainage_class: drainage,
+      organic_matter_pct: om,
+      ph_range: phRange,
+      hydrologic_group: lioHydroGroup(texture, drainage),
+      farmland_class: farmlandClass,
+      depth_to_bedrock_m: depth,
+      taxonomic_order: taxonRaw ? String(taxonRaw) : '',
+    },
+  };
+}
+
+function lioNormalizeTexture(raw: string): string {
+  const t = raw.toLowerCase();
+  if (t.includes('clay loam')) return 'Clay loam';
+  if (t.includes('silty clay')) return 'Silty clay';
+  if (t.includes('clay')) return 'Clay';
+  if (t.includes('sandy loam') || t === 'sl') return 'Sandy loam';
+  if (t.includes('silt loam') || t === 'sil') return 'Silt loam';
+  if (t.includes('loamy sand') || t === 'ls') return 'Loamy sand';
+  if (t.includes('loam')) return 'Loam';
+  if (t.includes('sand')) return 'Sand';
+  return raw;
+}
+
+function lioFormatCscsClass(raw: string): string {
+  const n = raw.trim().replace(/^class\s*/i, '').replace(/^c\s*/i, '');
+  return `Class ${n} (CSCS)`;
+}
+
+function lioHydroGroup(texture: string, drainage: string): string {
+  const t = texture.toLowerCase();
+  const d = drainage.toLowerCase();
+  if (t.includes('clay')) return 'D';
+  if (d.includes('poor') || d.includes('very poor')) return 'C';
+  if (t.includes('sandy')) return 'A';
+  return 'B';
+}
+
 function soilsFromLatitude(lat: number, country: string): MockLayerResult {
   // Ontario soils are predominantly clay loam in the south
   const texture = lat > 44 ? 'Sandy loam' : 'Clay loam';
@@ -341,10 +442,19 @@ function soilsFromLatitude(lat: number, country: string): MockLayerResult {
   };
 }
 
-// ── Climate (latitude-based model) ─────────────────────────────────────────
+// ── Climate (ECCC OGC API for CA, latitude model for US) ───────────────────
 
-async function fetchClimate(lat: number, _lng: number, country: string): Promise<MockLayerResult> {
-  // Climate normals modeled from latitude for Eastern North America
+async function fetchClimate(lat: number, lng: number, country: string): Promise<MockLayerResult> {
+  // CA: try ECCC Climate Normals OGC API first
+  if (country === 'CA') {
+    try {
+      return await fetchEcccClimate(lat, lng);
+    } catch {
+      // Fall through to latitude model
+    }
+  }
+
+  // US / CA fallback: latitude-based model
   const annualTemp = +(14.5 - (lat - 35) * 0.55).toFixed(1);
   const precipMm = Math.round(800 + (lat > 42 ? (48 - lat) * 20 : (lat - 35) * 15));
   const growingDays = Math.round(220 - (lat - 35) * 6.5);
@@ -379,21 +489,84 @@ async function fetchClimate(lat: number, _lng: number, country: string): Promise
   };
 }
 
+async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResult> {
+  // OGC API Features — find nearest climate normal station within 0.5° (~50 km)
+  const bbox = `${(lng - 0.5).toFixed(4)},${(lat - 0.5).toFixed(4)},${(lng + 0.5).toFixed(4)},${(lat + 0.5).toFixed(4)}`;
+  const url = `https://api.weather.gc.ca/collections/climate-normals/items?f=json&bbox=${bbox}&limit=5`;
+  const resp = await fetchWithRetry(url, 10000);
+  const data = await resp.json() as { features?: { geometry: { coordinates: [number, number] }; properties: Record<string, unknown> }[] };
+
+  const features = data?.features;
+  if (!features || features.length === 0) throw new Error('ECCC: no stations in bbox');
+
+  // Pick nearest station by Euclidean degree distance
+  const nearest = features.reduce((best, f) => {
+    const [fLng, fLat] = f.geometry.coordinates;
+    const dist = Math.hypot((fLng - lng), (fLat - lat));
+    const [bLng, bLat] = best.geometry.coordinates;
+    const bestDist = Math.hypot((bLng - lng), (bLat - lat));
+    return dist < bestDist ? f : best;
+  });
+
+  const p = nearest.properties;
+
+  const annualPrecip = p['ANNUAL_PRECIP'] != null ? parseFloat(String(p['ANNUAL_PRECIP'])) : null;
+  const meanTemp = p['MEAN_TEMP'] != null ? parseFloat(String(p['MEAN_TEMP'])) : null;
+  const frostFreeDays = p['FROST_FREE_PERIOD'] != null ? parseInt(String(p['FROST_FREE_PERIOD']), 10) : null;
+  const lastFrost = p['LAST_SPRING_FROST_DATE'] ?? p['LAST_FROST_DATE'] ?? null;
+  const firstFrost = p['FIRST_FALL_FROST_DATE'] ?? p['FIRST_FROST_DATE'] ?? null;
+  const hardinessZone = p['HARDINESS_ZONE'] ?? p['CLIMATE_ZONE'] ?? null;
+
+  if (annualPrecip === null && meanTemp === null) {
+    throw new Error('ECCC: missing core climate fields');
+  }
+
+  // annual_sunshine_hours not in ECCC normals — use latitude estimate
+  const sunshineFallback = Math.round(1800 + (35 - Math.abs(lat - 38)) * 30);
+
+  return {
+    layer_type: 'climate',
+    fetch_status: 'complete',
+    confidence: 'high',
+    data_date: new Date().toISOString().split('T')[0]!,
+    source_api: 'ECCC Climate Normals (OGC API)',
+    attribution: 'Environment and Climate Change Canada',
+    summary: {
+      annual_precip_mm: annualPrecip ?? 'N/A',
+      annual_temp_mean_c: meanTemp != null ? +meanTemp.toFixed(1) : 'N/A',
+      growing_season_days: !isNaN(frostFreeDays!) ? frostFreeDays : 'N/A',
+      last_frost_date: lastFrost ?? 'N/A',
+      first_frost_date: firstFrost ?? 'N/A',
+      hardiness_zone: hardinessZone ?? 'N/A',
+      prevailing_wind: lat > 42 ? 'W-SW' : 'SW',
+      annual_sunshine_hours: sunshineFallback,
+    },
+  };
+}
+
 function dayOfYearToDate(doy: number): string {
   const d = new Date(2024, 0, doy);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${months[d.getMonth()]} ${d.getDate()}`;
 }
 
-// ── Watershed (USGS WBD for US) ────────────────────────────────────────────
+// ── Watershed (USGS WBD for US, OHN for CA) ───────────────────────────────
 
 async function fetchWatershed(lat: number, lng: number, country: string): Promise<MockLayerResult> {
+  if (country === 'CA') {
+    try {
+      return await fetchOhnWatercourse(lat, lng);
+    } catch {
+      return watershedFromLatitude(lat, lng, country);
+    }
+  }
+
   if (country !== 'US') return watershedFromLatitude(lat, lng, country);
 
   try {
     // Query HUC12 from USGS Watershed Boundary Dataset
     const url = `https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer/6/query?where=1%3D1&geometry=${lng}%2C${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=HUC12%2CNAME%2CSTATES&returnGeometry=false&f=json`;
-    const resp = await fetchWithTimeout(url, 10000);
+    const resp = await fetchWithRetry(url, 10000);
     const data = await resp.json();
 
     const feature = data.features?.[0]?.attributes;
@@ -421,6 +594,85 @@ async function fetchWatershed(lat: number, lng: number, country: string): Promis
   } catch {
     return watershedFromLatitude(lat, lng, country);
   }
+}
+
+async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerResult> {
+  // Buffer ~1 km at Ontario latitudes (1° ≈ 111 km)
+  const buf = 0.009;
+  const envelope = encodeURIComponent(JSON.stringify({
+    xmin: lng - buf, ymin: lat - buf,
+    xmax: lng + buf, ymax: lat + buf,
+    spatialReference: { wkid: 4326 },
+  }));
+  const url =
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis2/rest/services/LIO_OPEN_DATA/LIO_Open01/MapServer/26/query` +
+    `?geometry=${envelope}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects` +
+    `&outFields=*&returnGeometry=true&f=json`;
+
+  const resp = await fetchWithRetry(url, 10000);
+  const data = await resp.json() as { features?: { attributes: Record<string, unknown>; geometry?: { paths: number[][][] } }[] };
+
+  const features = data?.features;
+  if (!features || features.length === 0) throw new Error('OHN: no watercourse features in bbox');
+
+  // Find vertex closest to query point (degrees → metres with cos(lat) correction)
+  const cosLat = Math.cos(lat * Math.PI / 180);
+  let minDistM = Infinity;
+  let closestAttrs: Record<string, unknown> = {};
+
+  for (const feature of features) {
+    const paths = feature.geometry?.paths ?? [];
+    for (const path of paths) {
+      for (const vertex of path) {
+        const dy = ((vertex[1] ?? 0) - lat) * 111000;
+        const dx = ((vertex[0] ?? 0) - lng) * 111000 * cosLat;
+        const dist = Math.hypot(dx, dy);
+        if (dist < minDistM) {
+          minDistM = dist;
+          closestAttrs = feature.attributes;
+        }
+      }
+    }
+  }
+
+  const nearestM = Math.round(minDistM);
+
+  // Field name fallback chains — LIO field names vary between service versions
+  const watercourseNameRaw =
+    closestAttrs['OFFICIAL_NAME'] ??
+    closestAttrs['NAME_EN'] ??
+    closestAttrs['WATERCOURSE_NAME'] ??
+    closestAttrs['FEAT_NAME'] ??
+    'Unnamed watercourse';
+
+  const streamOrderRaw =
+    closestAttrs['STREAM_ORDER'] ??
+    closestAttrs['STRAHLER_ORDER'] ??
+    closestAttrs['ORDER_'] ??
+    closestAttrs['STRAHLER'] ??
+    deriveFallbackStreamOrder(features.length);
+
+  return {
+    layer_type: 'watershed',
+    fetch_status: 'complete',
+    confidence: nearestM < 1000 ? 'high' : 'medium',
+    data_date: new Date().toISOString().split('T')[0]!,
+    source_api: 'Ontario Hydro Network (LIO)',
+    attribution: 'Ontario Ministry of Natural Resources and Forestry',
+    summary: {
+      huc_code: 'N/A',
+      watershed_name: String(watercourseNameRaw),
+      nearest_stream_m: nearestM,
+      stream_order: streamOrderRaw,
+      catchment_area_ha: 'N/A',
+      flow_direction: lng < -79 ? 'E to S' : 'SE to NW',
+    },
+  };
+}
+
+function deriveFallbackStreamOrder(featureCount: number): number {
+  // Rough proxy: more features in 1 km bbox → smaller (tributary) streams
+  return featureCount > 5 ? 1 : featureCount > 2 ? 2 : 3;
 }
 
 function watershedFromLatitude(lat: number, lng: number, country: string): MockLayerResult {
@@ -487,7 +739,7 @@ async function fetchWetlandsFlood(lat: number, lng: number, country: string): Pr
 async function fetchFemaFlood(lat: number, lng: number): Promise<{ zone: string; subtype: string } | null> {
   try {
     const url = `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry=${lng}%2C${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE%2CZONE_SUBTY&returnGeometry=false&f=json`;
-    const resp = await fetchWithTimeout(url, 8000);
+    const resp = await fetchWithRetry(url, 8000);
     const data = await resp.json();
     const attr = data.features?.[0]?.attributes;
     if (!attr) return null;
@@ -502,7 +754,7 @@ async function fetchNwiWetlands(lat: number, lng: number): Promise<{ count: numb
     // NWI wetlands query — search within ~500m of point
     const buf = 0.005; // ~500m
     const url = `https://www.fws.gov/wetlands/arcgis/rest/services/Wetlands/MapServer/0/query?where=1%3D1&geometry=${lng - buf}%2C${lat - buf}%2C${lng + buf}%2C${lat + buf}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=WETLAND_TYPE%2CATTRIBUTE&returnGeometry=false&resultRecordCount=50&f=json`;
-    const resp = await fetchWithTimeout(url, 10000);
+    const resp = await fetchWithRetry(url, 10000);
     const data = await resp.json();
     const features = data.features;
     if (!features || features.length === 0) return null;
@@ -553,16 +805,23 @@ function wetlandsFromLatitude(lat: number, country: string): MockLayerResult {
   };
 }
 
-// ── Land Cover (NLCD for US, latitude model for CA) ─────────────────────────
+// ── Land Cover (NLCD for US, AAFC Annual Crop Inventory for CA) ─────────────
 
 async function fetchLandCover(lat: number, lng: number, country: string): Promise<MockLayerResult> {
+  if (country === 'CA') {
+    try {
+      return await fetchAafcLandCover(lat, lng);
+    } catch {
+      return landCoverFromLatitude(lat, country);
+    }
+  }
   if (country !== 'US') return landCoverFromLatitude(lat, country);
 
   try {
     // MRLC NLCD web service — query land cover at point
     // Uses the NLCD 2021 Tree Canopy + Land Cover service
     const url = `https://www.mrlc.gov/geoserver/mrlc_display/NLCD_2021_Land_Cover_L48/ows?service=WMS&version=1.1.1&request=GetFeatureInfo&layers=NLCD_2021_Land_Cover_L48&query_layers=NLCD_2021_Land_Cover_L48&info_format=application/json&feature_count=1&x=128&y=128&width=256&height=256&srs=EPSG:4326&bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}`;
-    const resp = await fetchWithTimeout(url, 8000);
+    const resp = await fetchWithRetry(url, 8000);
     const data = await resp.json();
 
     // Try to extract NLCD class from response
@@ -636,6 +895,136 @@ function nlcdClassDistribution(primaryCode: number): Record<string, number> {
   return dist;
 }
 
+// AAFC Annual Crop Inventory 2024 class lookup
+// https://open.canada.ca/data/en/dataset/ba2645d5-4458-414d-b196-6303ac06c1c9
+// Year 2024 hardcoded — update annually or parameterize in Sprint 3
+const AAFC_CROP_CLASSES: Record<number, string> = {
+  1:   'Cloud',
+  2:   'Corn',
+  3:   'Soybeans',
+  4:   'Cereals',
+  5:   'Canola/Rapeseed',
+  6:   'Flaxseed',
+  7:   'Sunflowers',
+  10:  'Spring Wheat',
+  11:  'Winter Wheat',
+  12:  'Durum Wheat',
+  13:  'Barley',
+  14:  'Rye',
+  15:  'Oats',
+  16:  'Mixed Grain',
+  20:  'Seeded Forage',
+  25:  'Other Forage',
+  30:  'Beets',
+  31:  'Potatoes',
+  32:  'Other Vegetables',
+  33:  'Other Crops',
+  34:  'Other Leguminous Crops',
+  35:  'Peas',
+  36:  'Dry Beans',
+  37:  'Chickpeas',
+  38:  'Lentils',
+  39:  'Mustard',
+  40:  'Hemp',
+  50:  'Orchards & Vineyards',
+  110: 'Grassland',
+  120: 'Shrubland',
+  130: 'Hedgerow',
+  131: 'Wetland',
+  132: 'Aquatic',
+  133: 'Exposed Land / Barren',
+  134: 'Developed / Urban',
+  135: 'Open Water',
+  136: 'Cloud Shadow',
+};
+
+/** Build a `classes` distribution object matching the shape computeScores.ts expects. */
+function aafcCodeToDistribution(code: number): Record<string, number> {
+  const primaryName = AAFC_CROP_CLASSES[code] ?? 'Other Crops';
+  const dist: Record<string, number> = { [primaryName]: 50 };
+  // Row crops and cereals → add pasture, forest, wetland neighbours
+  if ([2, 3, 5, 10, 11, 12, 13, 15].includes(code)) {
+    dist['Seeded Forage'] = 20;
+    dist['Deciduous Forest'] = 12;
+    dist['Wetland'] = 8;
+    dist['Developed, Low'] = 6;
+    dist['Grassland'] = 4;
+  } else if ([110, 120, 25, 20].includes(code)) {
+    dist['Deciduous Forest'] = 20;
+    dist['Seeded Forage'] = 12;
+    dist['Cultivated Cropland'] = 8;
+    dist['Wetland'] = 6;
+    dist['Developed, Low'] = 4;
+  } else if (code === 131) {
+    dist['Deciduous Forest'] = 15;
+    dist['Grassland'] = 15;
+    dist['Open Water'] = 10;
+    dist['Shrubland'] = 10;
+  } else {
+    dist['Deciduous Forest'] = 18;
+    dist['Cultivated Cropland'] = 14;
+    dist['Grassland'] = 10;
+    dist['Developed, Low'] = 5;
+    dist['Wetland'] = 3;
+  }
+  return dist;
+}
+
+async function fetchAafcLandCover(lat: number, lng: number): Promise<MockLayerResult> {
+  // AAFC Annual Crop Inventory 2024 — ImageServer Identify (point query)
+  // CORS risk: agriculture.canada.ca may block browser requests — fallback exists in caller
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    sr: '4326',
+    f: 'json',
+  });
+  const url =
+    `https://agriculture.canada.ca/imagery-images/rest/services/annual_crop_inventory/2024/ImageServer/identify?${params.toString()}`;
+
+  const resp = await fetchWithRetry(url, 8000);
+  const data = await resp.json() as { value?: string | number };
+
+  const rawValue = data?.value;
+  if (rawValue === 'NoData' || rawValue === undefined || rawValue === null) {
+    throw new Error('AAFC: NoData at point');
+  }
+
+  const code = typeof rawValue === 'number' ? rawValue : parseInt(String(rawValue), 10);
+  if (isNaN(code)) throw new Error(`AAFC: unparseable value "${rawValue}"`);
+
+  // Cloud / cloud-shadow codes are not usable
+  if (code === 1 || code === 136) throw new Error('AAFC: cloud/cloud-shadow pixel — not usable');
+
+  const primaryClass = AAFC_CROP_CLASSES[code] ?? 'Other Crops';
+
+  // Derive canopy and impervious from code range
+  const treeCanopyPct = [50].includes(code) ? 55        // orchards
+    : code === 110 ? 5                                   // grassland
+    : code === 120 ? 20                                  // shrubland
+    : [41, 42, 43].includes(code) ? 70                  // (NLCD forest — not in AAFC but guard)
+    : code === 134 ? 40                                  // developed
+    : [2, 3, 5, 10, 11, 12, 13, 15, 35].includes(code) ? 2  // row crops / cereals
+    : 5;
+  const imperviousPct = code === 134 ? 45 : code === 135 ? 0 : 3;
+
+  return {
+    layer_type: 'land_cover',
+    fetch_status: 'complete',
+    confidence: 'high',
+    data_date: new Date().toISOString().split('T')[0]!,
+    source_api: 'AAFC Annual Crop Inventory 2024',
+    attribution: 'Agriculture and Agri-Food Canada',
+    summary: {
+      primary_class: primaryClass,
+      aafc_code: code,
+      classes: aafcCodeToDistribution(code),
+      tree_canopy_pct: treeCanopyPct,
+      impervious_pct: imperviousPct,
+    },
+  };
+}
+
 function landCoverFromLatitude(lat: number, country: string): MockLayerResult {
   const forestPct = Math.round(20 + (lat - 35) * 3);
   const cropPct = Math.round(40 - (lat - 35) * 2.5);
@@ -679,4 +1068,20 @@ async function fetchWithTimeout(url: string, timeoutMs: number, init?: RequestIn
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Retry wrapper — retries transient failures with exponential backoff. */
+async function fetchWithRetry(url: string, timeoutMs: number, init?: RequestInit, maxRetries = 2): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fetchWithTimeout(url, timeoutMs, init);
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+      }
+    }
+  }
+  throw lastError;
 }

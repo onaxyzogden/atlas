@@ -8,6 +8,9 @@ import { ToastContainer } from './components/Toast.js';
 import './app/index.css';
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
+// Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
+import { useAuthStore } from './store/authStore.js';
+useAuthStore.getState().initFromStorage();
 
 const queryClient = new QueryClient({
   defaultOptions: {

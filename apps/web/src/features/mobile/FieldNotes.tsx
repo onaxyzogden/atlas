@@ -74,6 +74,7 @@ export default function FieldNotes({ projectId, onNoteAdded }: FieldNotesProps) 
 
       {/* Input area */}
       <textarea
+        aria-label="Field observation notes"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="What do you observe? Soil condition, drainage, vegetation, access..."
@@ -103,6 +104,7 @@ export default function FieldNotes({ projectId, onNoteAdded }: FieldNotesProps) 
           />
           <button
             onClick={() => setPendingPhoto(null)}
+            aria-label="Remove photo"
             style={{
               position: 'absolute', top: 4, right: 4,
               width: 24, height: 24, borderRadius: '50%',
