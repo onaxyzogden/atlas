@@ -1,0 +1,64 @@
+/* MetricCard — large serif number display */
+
+.card {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.icon {
+  color: rgba(180, 165, 140, 0.35);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.value {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 36px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trend {
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+.trendUp { color: #8a9a74; }
+.trendDown { color: #9a6a5a; }
+
+.desc {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.45);
+}

@@ -4,7 +4,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { Link, useRouter } from '@tanstack/react-router';
+import { Link, useRouter, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { useUIStore } from '../store/uiStore.js';
@@ -18,8 +18,9 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
-  const isHome = router.state.location.pathname === '/';
-  const isProjectPage = router.state.location.pathname.startsWith('/project/');
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isHome = pathname === '/';
+  const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
   const openPalette = useUIStore((s) => s.openCommandPalette);
@@ -87,14 +88,14 @@ export default function AppShell({ children }: AppShellProps) {
         )}
 
         {/* New Project button */}
-        {router.state.location.pathname !== '/new' && (
+        {pathname !== '/new' && (
           <Link to="/new" className={styles.newProjectLink}>
             <Button variant="primary" size="sm">New Project</Button>
           </Link>
         )}
 
         {/* Back to Projects */}
-        {!isHome && router.state.location.pathname !== '/new' && (
+        {!isHome && pathname !== '/new' && (
           <Link to="/" aria-label="Back to all projects" className={styles.backLink}>
             All Projects
           </Link>

@@ -1,0 +1,61 @@
+/* DashboardMetrics — right sidebar with metric cards */
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.015);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 24px 20px;
+  overflow-y: auto;
+}
+
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  margin: 0 0 20px;
+  line-height: 1.3;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stewardship guidance card */
+.guidanceCard {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(196, 162, 101, 0.04);
+  border: 1px solid rgba(196, 162, 101, 0.12);
+  border-radius: 10px;
+}
+
+.guidanceIcon {
+  margin-bottom: 10px;
+}
+
+.guidanceTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.8);
+  margin: 0 0 8px;
+}
+
+.guidanceDesc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.5);
+  margin: 0;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(180, 165, 140, 0.12);
+  border-radius: 2px;
+}

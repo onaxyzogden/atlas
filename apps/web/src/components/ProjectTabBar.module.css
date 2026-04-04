@@ -1,0 +1,82 @@
+/* ProjectTabBar — thin navigation bar above Dashboard / Map View */
+
+.bar {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  background: #0f1a12;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.backLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: rgba(180, 165, 140, 0.6);
+  transition: color 150ms, background 150ms;
+  text-decoration: none;
+}
+.backLink:hover {
+  color: rgba(232, 220, 200, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.projectName {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+  line-height: 1;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+.tab:hover {
+  color: rgba(232, 220, 200, 0.8);
+}
+
+.tabActive {
+  color: #c4a265;
+  border-bottom-color: #c4a265;
+}
+
+.right {
+  flex: 1;
+}

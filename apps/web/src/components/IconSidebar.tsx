@@ -33,7 +33,7 @@ export type SidebarView =
 
 // Granular navigation item id (what appears highlighted in the sidebar)
 export type SubItemId =
-  | 'dashboard' | 'property-intake' | 'terrain-viz' | 'site-data'
+  | 'terrain-viz' | 'site-data'
   | 'site-assessment' | 'hydrology-basic' | 'solar-climate' | 'soil-ecology'
   | 'zones' | 'structures' | 'access' | 'livestock' | 'crops' | 'utilities'
   | 'timeline' | 'vision' | 'economics' | 'regulatory'
@@ -60,11 +60,9 @@ const PHASE_GROUPS: PhaseGroup[] = [
   {
     phase: 'P1',
     name: 'Site Intelligence',
-    desc: 'Property intake, terrain visualization, automated site assessment',
+    desc: 'Terrain visualization, site data layers, automated site assessment',
     color: '#c4a265',
     items: [
-      { id: 'dashboard',       label: 'Dashboard',            panel: 'layers' },
-      { id: 'property-intake', label: 'Property Intake',      panel: 'settings' },
       { id: 'terrain-viz',     label: 'Terrain Visualization', panel: 'layers' },
       { id: 'site-data',       label: 'Site Data Layers',     panel: 'intelligence' },
       { id: 'site-assessment', label: 'Site Assessment',      panel: 'intelligence' },
@@ -321,10 +319,6 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
   };
 
   switch (id) {
-    case 'dashboard':
-      return <svg {...props}><rect x="1" y="1" width="5" height="5" rx="0.5"/><rect x="8" y="1" width="5" height="5" rx="0.5"/><rect x="1" y="8" width="5" height="5" rx="0.5"/><rect x="8" y="8" width="5" height="5" rx="0.5"/></svg>;
-    case 'property-intake':
-      return <svg {...props}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="7.5" x2="10" y2="7.5"/><line x1="4" y1="10" x2="7" y2="10"/></svg>;
     case 'terrain-viz':
       return <svg {...props}><polyline points="1 11 4 5 7 8 10 3 13 11"/><line x1="1" y1="11" x2="13" y2="11"/></svg>;
     case 'site-data':
