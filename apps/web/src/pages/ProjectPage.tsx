@@ -95,12 +95,12 @@ export default function ProjectPage() {
 
       <div className={css.contentArea}>
         {/* Dashboard view */}
-        <div className={css.tabPanel} style={{ display: activeTab === 'dashboard' ? 'flex' : 'none' }}>
+        <div className={activeTab === 'dashboard' ? css.tabPanel : css.tabPanelHidden}>
           <DashboardView project={project} onSwitchToMap={() => setActiveTab('map')} />
         </div>
 
         {/* Map view */}
-        <div className={css.tabPanel} style={{ display: activeTab === 'map' ? 'flex' : 'none' }}>
+        <div className={activeTab === 'map' ? css.tabPanel : css.tabPanelHidden}>
           <MapView
             project={project}
             zones={zones}

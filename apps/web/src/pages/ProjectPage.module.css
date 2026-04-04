@@ -16,8 +16,15 @@
 }
 
 .tabPanel {
-  height: 100%;
-  width: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.tabPanelHidden {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* ─── Not-found state ─────────────────────────────────────────────────── */

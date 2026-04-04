@@ -3,12 +3,14 @@
 .layout {
   display: flex;
   height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 
 .mapArea {
   flex: 1;
   position: relative;
+  overflow: hidden;
 }
 
 .mapAreaMobile {

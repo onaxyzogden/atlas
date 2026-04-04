@@ -3,7 +3,7 @@
  * Contains IconSidebar + MapCanvas + right panel + mobile bar.
  */
 
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
 import type { Structure } from '../../store/structureStore.js';
@@ -61,6 +61,17 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const [isAddingComment, setIsAddingComment] = useState(false);
   const addComment = useCommentStore((s) => s.addComment);
   const authorName = useCommentStore((s) => s.authorName);
+  const layoutRef = useRef<HTMLDivElement>(null);
+
+  // Resize map when container becomes visible (after tab switch from display:none)
+  useEffect(() => {
+    if (!mapRef || !layoutRef.current) return;
+    const observer = new ResizeObserver(() => {
+      mapRef.resize();
+    });
+    observer.observe(layoutRef.current);
+    return () => observer.disconnect();
+  }, [mapRef]);
 
   const handleCenterProperty = () => {
     if (!mapRef) return;
@@ -116,7 +127,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const center = computeCenterFromBoundary(project.parcelBoundaryGeojson);
 
   return (
-    <div className={css.layout}>
+    <div ref={layoutRef} className={css.layout}>
       {/* Icon sidebar — hidden on mobile */}
       {!isMobile && (
         <IconSidebar
