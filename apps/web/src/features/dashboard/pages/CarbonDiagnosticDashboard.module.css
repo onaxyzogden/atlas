@@ -1,0 +1,228 @@
+/* CarbonDiagnosticDashboard */
+
+.page { max-width: 860px; }
+
+.hero { margin-bottom: 20px; }
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.heroTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+}
+
+/* Top metrics */
+.topMetrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.topMetric {
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+.topMetricLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 8px;
+}
+.topMetricValue {
+  display: block;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 36px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  line-height: 1;
+}
+.topMetricNote {
+  display: block;
+  font-size: 12px;
+  color: rgba(180,165,140,0.45);
+  margin-top: 4px;
+}
+
+/* Chart card */
+.chartCard {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 20px;
+}
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.chartTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 18px;
+  font-weight: 500;
+  font-style: italic;
+  color: rgba(232,220,200,0.85);
+  margin: 0;
+}
+.chartPeriod {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(180,165,140,0.4);
+}
+
+/* Stewardship guidance */
+.guidanceCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(138,154,116,0.15);
+  background: rgba(138,154,116,0.04);
+  margin-bottom: 20px;
+}
+.guidanceLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(138,154,116,0.6);
+  margin-bottom: 10px;
+}
+.guidanceQuote {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgba(232,220,200,0.7);
+  margin: 0;
+}
+
+/* Report button */
+.reportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: 1px solid rgba(196,162,101,0.4);
+  border-radius: 8px;
+  background: rgba(196,162,101,0.1);
+  color: #c4a265;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+  margin-bottom: 24px;
+}
+.reportBtn:hover { background: rgba(196,162,101,0.2); }
+
+/* Environmental bar */
+.envBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 700px) { .envBar { grid-template-columns: repeat(2, 1fr); } }
+
+.envStat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+.envLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(180,165,140,0.4);
+}
+.envValue {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232,220,200,0.9);
+}
+
+/* Timeline */
+.timelineCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.timelineTrack {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+.timelineTrack::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-50%);
+  z-index: 0;
+}
+.timelineStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+.timelineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(180,165,140,0.25);
+  border: 2px solid #0f1a12;
+}
+.timelineStageActive .timelineDot {
+  width: 14px;
+  height: 14px;
+  background: #c4a265;
+  box-shadow: 0 0 8px rgba(196,162,101,0.4);
+}
+.timelineLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(180,165,140,0.35);
+  white-space: nowrap;
+}
+.timelineCurrentLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(232,220,200,0.85);
+  white-space: nowrap;
+  background: rgba(196,162,101,0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+}

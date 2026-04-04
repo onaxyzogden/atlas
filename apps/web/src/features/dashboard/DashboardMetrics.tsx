@@ -45,7 +45,9 @@ const SECTION_TITLES: Record<string, string> = {
   'paddock-design': 'Paddock Overview',
   'livestock-inventory': 'Inventory Summary',
   'health-ledger': 'Health Metrics',
+  'planting-tool': 'Design Metrics',
   'forest-hub': 'Forest Metrics',
+  'carbon-diagnostic': 'Carbon Metrics',
   'nursery-ledger': 'Nursery Summary',
   'hydrology-dashboard': 'Water Metrics',
   'biomass': 'Biomass Metrics',
@@ -90,7 +92,27 @@ function getMetricsForSection(section: string): MetricData[] {
         { label: 'Stocking Rate', value: '1.2', unit: 'AU/Acre' },
         { label: 'Forage Demand', value: 'High' },
       ];
+    case 'planting-tool':
+      return [
+        { label: 'Total Linear Feet', value: '2,480' },
+        { label: 'Tree Count', value: '124' },
+        { label: 'Canopy Cover (Yr 15)', value: '22', unit: '%' },
+        { label: 'In-Row Spacing', value: '20', unit: 'ft' },
+      ];
     case 'forest-hub':
+      return [
+        { label: 'Tree Health Index', value: '94', unit: '%', trend: '+1.2%', trendPositive: true },
+        { label: 'Canopy Vitality', value: '0.82', unit: 'NDVI' },
+        { label: 'F:B Ratio', value: '3.2:1', description: 'Optimal for forest — target range 2.0–5.0' },
+        { label: 'Mycorrhizal Colonization', value: '78', unit: '%' },
+      ];
+    case 'carbon-diagnostic':
+      return [
+        { label: 'Maturity Score', value: '8.2', description: 'Prime Growth phase' },
+        { label: 'Carbon Sequestration', value: '42.5', unit: 'TCO2e/HA' },
+        { label: 'Biomass Accumulation', value: '+18', unit: '% YoY', trend: '+18%', trendPositive: true },
+        { label: 'Stand Age', value: '7', unit: 'Years' },
+      ];
     case 'nursery-ledger':
       return [
         { label: 'Total Trees on Site', value: '2,480' },

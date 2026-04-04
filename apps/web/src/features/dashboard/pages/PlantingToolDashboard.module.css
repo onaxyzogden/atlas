@@ -1,0 +1,241 @@
+/* PlantingToolDashboard */
+
+.page { max-width: 860px; }
+
+/* Terrain hero */
+.terrainHero {
+  position: relative;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: linear-gradient(160deg, #1a2e1a 0%, #0f1a12 40%, #12231a 70%, #0f1a12 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.terrainOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px 28px;
+  background: linear-gradient(transparent 30%, rgba(0,0,0,0.5));
+}
+.terrainTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(196,162,101,0.6);
+  margin-bottom: 6px;
+}
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0;
+  line-height: 1.2;
+}
+.terrainSub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(180,165,140,0.4);
+  margin-top: 4px;
+}
+
+/* Sections */
+.section { margin-bottom: 24px; }
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+/* Species list */
+.speciesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.speciesCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+  transition: background 120ms;
+}
+.speciesCard:hover { background: rgba(255,255,255,0.04); }
+.speciesActive {
+  border-color: rgba(138,154,116,0.3);
+  background: rgba(138,154,116,0.06);
+}
+.speciesName {
+  display: block;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 500;
+  font-style: italic;
+  color: rgba(232,220,200,0.9);
+}
+.speciesLatin {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(180,165,140,0.4);
+  margin-top: 2px;
+}
+
+/* Metrics grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.metricBox {
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+.metricBoxWide {
+  composes: metricBox;
+  grid-column: 1 / -1;
+}
+.metricValue {
+  display: block;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.metricUnit {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+}
+
+/* Spacing logic */
+.spacingCard {
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.spacingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.spacingLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(180,165,140,0.45);
+}
+.spacingValue {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+}
+.spacingTrack {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  margin-bottom: 18px;
+}
+.spacingFill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(180,165,140,0.3);
+}
+.spacingThumb {
+  position: absolute;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(232,220,200,0.8);
+  border: 2px solid #0f1a12;
+  transform: translateX(-50%);
+}
+
+/* AI card */
+.aiCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(138,154,116,0.2);
+  background: rgba(138,154,116,0.05);
+  margin-bottom: 20px;
+}
+.aiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.aiLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(180,165,140,0.5);
+}
+.aiQuote {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgba(232,220,200,0.75);
+  margin: 0 0 16px;
+}
+.aiBtn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(196,162,101,0.35);
+  border-radius: 6px;
+  background: rgba(196,162,101,0.08);
+  color: #c4a265;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.aiBtn:hover { background: rgba(196,162,101,0.18); }
+
+/* Map CTA */
+.mapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid rgba(196,162,101,0.35);
+  border-radius: 6px;
+  background: rgba(196,162,101,0.08);
+  color: #c4a265;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.mapBtn:hover { background: rgba(196,162,101,0.18); }

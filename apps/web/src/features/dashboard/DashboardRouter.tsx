@@ -11,6 +11,10 @@ const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
 const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
 const LivestockDashboard = lazy(() => import('./pages/LivestockDashboard.js'));
 const PaddockDesignDashboard = lazy(() => import('./pages/PaddockDesignDashboard.js'));
+const PlantingToolDashboard = lazy(() => import('./pages/PlantingToolDashboard.js'));
+const ForestHubDashboard = lazy(() => import('./pages/ForestHubDashboard.js'));
+const CarbonDiagnosticDashboard = lazy(() => import('./pages/CarbonDiagnosticDashboard.js'));
+const NurseryLedgerDashboard = lazy(() => import('./pages/NurseryLedgerDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -19,10 +23,6 @@ interface DashboardRouterProps {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  'planting-tool': 'Planting Tool',
-  'forest-hub': 'Forest Hub',
-  'carbon-diagnostic': 'Carbon Diagnostic',
-  'nursery-ledger': 'Nursery Ledger',
   'cartographic': 'Cartographic',
   'hydrology-dashboard': 'Hydrology',
   'ecological': 'Ecological',
@@ -58,6 +58,30 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <Suspense fallback={<PanelLoader />}>
           <PaddockDesignDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'planting-tool':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <PlantingToolDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'forest-hub':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <ForestHubDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'carbon-diagnostic':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <CarbonDiagnosticDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'nursery-ledger':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <NurseryLedgerDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </Suspense>
       );
     default:

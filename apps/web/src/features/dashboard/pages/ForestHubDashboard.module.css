@@ -1,0 +1,230 @@
+/* ForestHubDashboard */
+
+.page { max-width: 860px; }
+
+/* Alerts */
+.alertStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.alertCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid;
+  background: rgba(255,255,255,0.025);
+}
+.alertIcon { flex-shrink: 0; }
+.alertTitle {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232,220,200,0.9);
+}
+.alertDetail {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(180,165,140,0.4);
+  text-transform: uppercase;
+}
+
+/* Status header */
+.statusHeader { margin-bottom: 24px; }
+.statusTag {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 6px;
+}
+.sectorTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0;
+  line-height: 1.2;
+}
+.sectorSub {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-style: italic;
+  color: rgba(138,154,116,0.7);
+}
+
+/* Health gauge */
+.healthCard {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.healthLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 16px;
+}
+.gaugeWrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+.gaugeText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.gaugeValue {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+}
+.gaugeLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #8a9a74;
+}
+.gaugeTrend {
+  font-size: 12px;
+  color: rgba(180,165,140,0.45);
+  margin-top: 10px;
+}
+
+/* Sections */
+.section { margin-bottom: 20px; }
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+/* Data list */
+.dataList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dataRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.dataRow:last-child { border-bottom: none; }
+.dataLabel {
+  font-size: 13px;
+  color: rgba(232,220,200,0.7);
+}
+.dataValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232,220,200,0.9);
+  text-align: right;
+}
+.dataUnit {
+  font-weight: 400;
+  font-size: 12px;
+  color: rgba(180,165,140,0.45);
+  margin-left: 4px;
+}
+.dataOptimal {
+  font-weight: 600;
+  font-size: 11px;
+  color: #8a9a74;
+  margin-left: 6px;
+}
+
+/* Soil context card */
+.soilCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(138,154,116,0.15);
+  background: rgba(138,154,116,0.04);
+  margin-bottom: 20px;
+}
+
+/* Maintenance list */
+.maintenanceList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.maintenanceItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.maintenanceIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.maintenanceTitle {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.85);
+}
+.maintenanceDue {
+  display: block;
+  font-size: 11px;
+  color: rgba(196,162,101,0.6);
+  margin-top: 2px;
+}
+
+/* CTA */
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  justify-content: center;
+  padding: 14px 24px;
+  border: 1px solid rgba(196,162,101,0.4);
+  border-radius: 8px;
+  background: rgba(196,162,101,0.1);
+  color: #c4a265;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.ctaBtn:hover { background: rgba(196,162,101,0.2); }
