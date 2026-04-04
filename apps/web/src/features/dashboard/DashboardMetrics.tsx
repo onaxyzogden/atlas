@@ -41,6 +41,8 @@ export default function DashboardMetrics({ section }: DashboardMetricsProps) {
 
 const SECTION_TITLES: Record<string, string> = {
   'grazing-analysis': 'Regenerative Metrics',
+  'herd-rotation': 'Rotation Metrics',
+  'paddock-design': 'Paddock Overview',
   'livestock-inventory': 'Inventory Summary',
   'health-ledger': 'Health Metrics',
   'forest-hub': 'Forest Metrics',
@@ -66,12 +68,27 @@ function getMetricsForSection(section: string): MetricData[] {
         { label: 'Soil Carbon Sequestration', value: '12.8', unit: 'TCO2E/HA', description: 'Estimated annual capture via root depth and mycorrhizal networks.' },
         { label: 'Cumulative Grazing Days', value: '1,420', unit: 'Optimal', description: 'Total pressure across all sectors. Sustainability threshold maintained.' },
       ];
+    case 'herd-rotation':
+      return [
+        { label: 'Active Paddock', value: '09', description: 'The Basin — 4.5 acres, 3 days on site.' },
+        { label: 'Herd Size', value: '142', unit: 'Head', description: 'Angus Cross herd, North Range sector.' },
+        { label: 'Rest Cycle Target', value: '120', unit: 'Days', description: 'Minimum rest for structural root resilience.' },
+        { label: 'Soil Moisture', value: '22.4', unit: '%', trend: '+3.1%', trendPositive: true },
+      ];
+    case 'paddock-design':
+      return [
+        { label: 'Total Paddocks', value: '6' },
+        { label: 'Total Acreage', value: '20.9', unit: 'Acres' },
+        { label: 'Avg Rest Period', value: '40', unit: 'Days' },
+        { label: 'Active Grazing', value: '04A', description: 'The Basin — currently occupied.' },
+      ];
     case 'livestock-inventory':
     case 'health-ledger':
       return [
-        { label: 'Total Animal Units', value: '218.4' },
-        { label: 'Forage Demand', value: 'Within Capacity' },
-        { label: 'Avg Body Condition', value: '6.2', unit: 'Score' },
+        { label: 'Total Animal Units', value: '218.4', unit: 'AU' },
+        { label: 'Total Head', value: '452' },
+        { label: 'Stocking Rate', value: '1.2', unit: 'AU/Acre' },
+        { label: 'Forage Demand', value: 'High' },
       ];
     case 'forest-hub':
     case 'nursery-ledger':

@@ -1,0 +1,201 @@
+/* PaddockDesignDashboard */
+
+.page { max-width: 860px; }
+
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+.desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(180,165,140,0.55);
+  max-width: 560px;
+  margin: 0 0 24px;
+}
+
+/* Summary row */
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 700px) { .summaryRow { grid-template-columns: repeat(2, 1fr); } }
+
+.summaryCard {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  text-align: center;
+}
+.summaryLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 6px;
+}
+.summaryValue {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+}
+
+/* Paddock grid */
+.paddockGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media (max-width: 700px) { .paddockGrid { grid-template-columns: 1fr; } }
+
+.paddockCard {
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+}
+.paddockCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.paddockName {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+  margin: 0;
+}
+.paddockSub {
+  display: block;
+  font-size: 11px;
+  color: rgba(180,165,140,0.4);
+  margin-top: 2px;
+}
+.paddockStatus {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+
+.paddockMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.metaLabel {
+  display: block;
+  font-size: 10px;
+  color: rgba(180,165,140,0.4);
+}
+.metaValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(232,220,200,0.85);
+}
+
+.forageType {
+  display: block;
+  font-size: 11px;
+  color: rgba(180,165,140,0.45);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.biomassRow { }
+.biomassLabel {
+  display: block;
+  font-size: 10px;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 4px;
+}
+
+/* Rotation schedule */
+.scheduleSection {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 20px;
+}
+.scheduleTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.85);
+  margin: 0 0 16px;
+}
+
+.scheduleTable {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.scheduleHeaderRow {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 2fr;
+  gap: 12px;
+  padding: 8px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.35);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.scheduleRow {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 2fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 100ms;
+}
+.scheduleRow:hover { background: rgba(255,255,255,0.02); }
+
+.scheduleCell {
+  font-size: 13px;
+  color: rgba(232,220,200,0.8);
+  font-weight: 500;
+}
+.scheduleCellMuted {
+  font-size: 12px;
+  color: rgba(180,165,140,0.45);
+  font-style: italic;
+}
+
+/* Map CTA */
+.mapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid rgba(196,162,101,0.35);
+  border-radius: 6px;
+  background: rgba(196,162,101,0.08);
+  color: #c4a265;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.mapBtn:hover { background: rgba(196,162,101,0.18); }

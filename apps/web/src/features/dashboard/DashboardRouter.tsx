@@ -8,6 +8,9 @@ import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import DashboardPlaceholder from './pages/DashboardPlaceholder.js';
 
 const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
+const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
+const LivestockDashboard = lazy(() => import('./pages/LivestockDashboard.js'));
+const PaddockDesignDashboard = lazy(() => import('./pages/PaddockDesignDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -16,10 +19,6 @@ interface DashboardRouterProps {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  'paddock-design': 'Paddock Design',
-  'herd-rotation': 'Herd Rotation',
-  'livestock-inventory': 'Livestock Inventory',
-  'health-ledger': 'Health Ledger',
   'planting-tool': 'Planting Tool',
   'forest-hub': 'Forest Hub',
   'carbon-diagnostic': 'Carbon Diagnostic',
@@ -40,6 +39,25 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <Suspense fallback={<PanelLoader />}>
           <GrazingDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'herd-rotation':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <HerdRotationDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'livestock-inventory':
+    case 'health-ledger':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <LivestockDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'paddock-design':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <PaddockDesignDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </Suspense>
       );
     default:
