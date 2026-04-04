@@ -1,0 +1,162 @@
+/* TerrainDashboard */
+.page { max-width: 860px; }
+
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 12px;
+}
+.desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(180,165,140,0.55);
+  max-width: 560px;
+  margin: 0 0 24px;
+}
+
+.section { margin-bottom: 24px; }
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+/* Elevation grid */
+.elevGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 700px) { .elevGrid { grid-template-columns: repeat(2, 1fr); } }
+
+.elevCard {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  text-align: center;
+}
+.elevLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 8px;
+}
+.elevValue {
+  display: block;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  line-height: 1;
+}
+.elevUnit {
+  display: block;
+  font-size: 10px;
+  color: rgba(180,165,140,0.4);
+  margin-top: 4px;
+}
+
+/* Slope card */
+.slopeCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+
+/* Aspect card */
+.aspectCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.aspectGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.aspectItem {
+  display: grid;
+  grid-template-columns: 30px 1fr 40px;
+  gap: 10px;
+  align-items: center;
+}
+.aspectDir {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(180,165,140,0.5);
+  text-align: center;
+}
+.aspectBarTrack {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.aspectBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: #8a9a74;
+  transition: width 400ms ease;
+}
+.aspectPct {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.7);
+  text-align: right;
+}
+.aspectNote {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(180,165,140,0.45);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Drainage card */
+.drainageCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.drainageRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.drainageRow:last-child { border-bottom: none; }
+.drainageLabel { font-size: 13px; color: rgba(232,220,200,0.65); }
+.drainageValue { font-size: 14px; font-weight: 700; color: rgba(232,220,200,0.9); }
+
+.mapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid rgba(196,162,101,0.35);
+  border-radius: 6px;
+  background: rgba(196,162,101,0.08);
+  color: #c4a265;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.mapBtn:hover { background: rgba(196,162,101,0.18); }

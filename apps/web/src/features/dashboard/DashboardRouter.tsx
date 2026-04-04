@@ -15,6 +15,11 @@ const PlantingToolDashboard = lazy(() => import('./pages/PlantingToolDashboard.j
 const ForestHubDashboard = lazy(() => import('./pages/ForestHubDashboard.js'));
 const CarbonDiagnosticDashboard = lazy(() => import('./pages/CarbonDiagnosticDashboard.js'));
 const NurseryLedgerDashboard = lazy(() => import('./pages/NurseryLedgerDashboard.js'));
+const HydrologyDashboard = lazy(() => import('./pages/HydrologyDashboard.js'));
+const CartographicDashboard = lazy(() => import('./pages/CartographicDashboard.js'));
+const EcologicalDashboard = lazy(() => import('./pages/EcologicalDashboard.js'));
+const TerrainDashboard = lazy(() => import('./pages/TerrainDashboard.js'));
+const StewardshipDashboard = lazy(() => import('./pages/StewardshipDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -23,11 +28,6 @@ interface DashboardRouterProps {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  'cartographic': 'Cartographic',
-  'hydrology-dashboard': 'Hydrology',
-  'ecological': 'Ecological',
-  'terrain-dashboard': 'Terrain',
-  'stewardship': 'Stewardship',
   'biomass': 'Biomass',
   'dashboard-settings': 'Settings',
   'archive': 'Archive',
@@ -82,6 +82,36 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <Suspense fallback={<PanelLoader />}>
           <NurseryLedgerDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'hydrology-dashboard':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <HydrologyDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'cartographic':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <CartographicDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'ecological':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <EcologicalDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'terrain-dashboard':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <TerrainDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'stewardship':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <StewardshipDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </Suspense>
       );
     default:

@@ -50,6 +50,10 @@ const SECTION_TITLES: Record<string, string> = {
   'carbon-diagnostic': 'Carbon Metrics',
   'nursery-ledger': 'Nursery Summary',
   'hydrology-dashboard': 'Water Metrics',
+  'cartographic': 'Spatial Data',
+  'ecological': 'Ecological Metrics',
+  'terrain-dashboard': 'Terrain Metrics',
+  'stewardship': 'Stewardship Goals',
   'biomass': 'Biomass Metrics',
 };
 
@@ -122,9 +126,36 @@ function getMetricsForSection(section: string): MetricData[] {
       ];
     case 'hydrology-dashboard':
       return [
-        { label: 'Total Storage Capacity', value: '1.2M', unit: 'Gallons' },
-        { label: 'Annual Catchment Potential', value: '4.8M', unit: 'Gallons/Year' },
-        { label: 'Drought Buffer', value: '214', unit: 'Days' },
+        { label: 'Water Resilience Score', value: '84', unit: '/100' },
+        { label: 'Total Storage', value: '1.2M', unit: 'Gallons' },
+        { label: 'Catchment Potential', value: '4.8M', unit: 'Gal/Year' },
+        { label: 'Drought Buffer', value: '214', unit: 'Days', trend: '+14 days', trendPositive: true },
+      ];
+    case 'cartographic':
+      return [
+        { label: 'Active Layers', value: '5', description: 'Topographic, Watershed, Soil, Flood, Aerial' },
+        { label: 'Survey Accuracy', value: '\u00b10.5', unit: 'm' },
+        { label: 'Datum', value: 'NAD83' },
+      ];
+    case 'ecological':
+      return [
+        { label: 'Regenerative Potential', value: '85', unit: '/100' },
+        { label: 'Organic Matter', value: '5', unit: '%' },
+        { label: 'Shannon Diversity', value: '3.2', description: 'Target: >3.5 for high biodiversity' },
+        { label: 'Zones Assessed', value: '4' },
+      ];
+    case 'terrain-dashboard':
+      return [
+        { label: 'Total Relief', value: '44', unit: 'm' },
+        { label: 'Avg Slope', value: '6.2', unit: '%' },
+        { label: 'Highest Point', value: '412', unit: 'm ASL' },
+        { label: 'Erosion Risk', value: 'Low-Mod' },
+      ];
+    case 'stewardship':
+      return [
+        { label: 'Goals on Track', value: '4/5' },
+        { label: 'Action Items', value: '4', description: '1 high priority, 2 medium, 1 low' },
+        { label: 'Carbon Target', value: '50', unit: 'TCO2e/ha', description: 'By Year 10 — currently at 85%' },
       ];
     default:
       return [
