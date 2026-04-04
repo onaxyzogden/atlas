@@ -117,7 +117,6 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
     default:
       return (
         <DashboardPlaceholder
-          sectionId={section}
           sectionLabel={SECTION_LABELS[section] ?? section}
         />
       );

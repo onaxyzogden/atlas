@@ -4,7 +4,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { Link, useRouter, useRouterState } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { useUIStore } from '../store/uiStore.js';
@@ -17,7 +17,6 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children }: AppShellProps) {
-  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isHome = pathname === '/';
   const isProjectPage = pathname.startsWith('/project/');

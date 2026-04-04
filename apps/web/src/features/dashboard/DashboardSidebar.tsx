@@ -23,8 +23,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
       { id: 'paddock-design', label: 'Paddock Design' },
       { id: 'herd-rotation', label: 'Herd Rotation' },
       { id: 'grazing-analysis', label: 'Grazing Analysis' },
-      { id: 'livestock-inventory', label: 'Inventory' },
-      { id: 'health-ledger', label: 'Health Ledger' },
+      { id: 'livestock-inventory', label: 'Inventory & Health Ledger' },
     ],
   },
   {
@@ -113,8 +112,6 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><polyline points="1 11 4 5 7 8 10 3 13 11"/><line x1="1" y1="11" x2="13" y2="11"/></svg>;
     case 'livestock-inventory':
       return <svg {...p}><ellipse cx="7" cy="8" rx="4" ry="3"/><circle cx="4.5" cy="5.5" r="1.5"/><line x1="3" y1="11" x2="3" y2="13"/><line x1="11" y1="11" x2="11" y2="13"/></svg>;
-    case 'health-ledger':
-      return <svg {...p}><path d="M7 3C5 1 1 2 1 5.5C1 9 7 13 7 13C7 13 13 9 13 5.5C13 2 9 1 7 3Z"/></svg>;
     case 'planting-tool':
       return <svg {...p}><line x1="7" y1="13" x2="7" y2="5"/><path d="M7 9C7 9 5 7 3 7"/><path d="M7 7C7 7 9 5 11 5"/><path d="M7 5C7 5 5 3 4 2"/></svg>;
     case 'forest-hub':

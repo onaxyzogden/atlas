@@ -135,8 +135,6 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           onViewChange={setActiveView}
           activeSubItem={activeSubItem}
           onSubItemChange={handleSubItemChange}
-          zoneCount={zones.length}
-          structureCount={structures.length}
         />
       )}
 

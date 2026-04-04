@@ -63,7 +63,7 @@
 }
 
 .editorModal {
-  width: 500px;
+  width: min(500px, 92vw);
   max-height: 85vh;
   overflow-y: auto;
   background: var(--color-bg);

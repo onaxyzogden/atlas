@@ -5,7 +5,6 @@
 import css from './DashboardPlaceholder.module.css';
 
 interface DashboardPlaceholderProps {
-  sectionId: string;
   sectionLabel: string;
 }
 

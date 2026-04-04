@@ -122,8 +122,6 @@ interface IconSidebarProps {
   onViewChange: (view: SidebarView) => void;
   activeSubItem: SubItemId | null;
   onSubItemChange: (id: SubItemId, panel: SidebarView) => void;
-  zoneCount: number;
-  structureCount: number;
 }
 
 type PhaseKey = 'P1' | 'P2' | 'P3' | 'P4';

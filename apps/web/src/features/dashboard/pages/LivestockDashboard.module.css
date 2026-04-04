@@ -60,7 +60,7 @@
   gap: 16px;
   margin-bottom: 28px;
 }
-@media (max-width: 700px) { .herdRow { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .herdRow { grid-template-columns: 1fr; } }
 
 .herdCard {
   padding: 20px;
@@ -189,7 +189,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-@media (max-width: 700px) { .ledgerGrid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .ledgerGrid { grid-template-columns: 1fr; } }
 
 .ledgerCard {
   padding: 16px;
