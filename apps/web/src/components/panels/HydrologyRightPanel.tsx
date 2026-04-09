@@ -1,13 +1,20 @@
 /**
- * HydrologyRightPanel — water systems analysis for the right sidebar.
- * Shows rainfall, watershed, flood zone, wetland data, water retention score,
- * keyline insight quote, and water system intervention recommendations.
- * Reads from siteDataStore for environmental layer data.
+ * HydrologyRightPanel — redesigned map-view right sidebar for Hydrology.
+ *
+ * Two modes (tab-switched):
+ *   Real-Time Analysis — live runoff/infiltration/discharge metrics, sub-basin chart,
+ *                        storm simulation bar, critical alerts, site layer data
+ *   Design Parameters  — catchment volume, pond depth, seepage risk, AI siting support,
+ *                        water system interventions, annual water budget
+ *
+ * All metrics computed from real siteDataStore data (climate, watershed, wetlands_flood,
+ * elevation, soils layers) via hydrologyMetrics utility.
  */
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
+import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
 import { Spinner } from '../ui/Spinner.js';
 import p from '../../styles/panel.module.css';
 import s from './HydrologyRightPanel.module.css';
@@ -19,221 +26,401 @@ interface HydrologyRightPanelProps {
 interface ClimateSummary {
   annual_precip_mm?: number;
   annual_temp_mean_c?: number;
-  growing_season_days?: number;
-  hardiness_zone?: string;
 }
-
 interface WatershedSummary {
   watershed_name?: string;
   nearest_stream_m?: number | string;
-  stream_order?: number;
-  catchment_area_ha?: number;
+  catchment_area_ha?: number | string;
+  flow_direction?: string;
 }
-
 interface WetlandsFloodSummary {
   flood_zone?: string;
   flood_risk?: string;
   wetland_pct?: number | string;
-  wetland_types?: string[];
-  riparian_buffer_m?: number;
+}
+interface ElevationSummary {
+  mean_slope_deg?: number;
+  min_elevation_m?: number;
+  max_elevation_m?: number;
+}
+interface SoilsSummary {
+  hydrologic_group?: string;
+  drainage_class?: string;
 }
 
-type MetricRow = {
-  label: string;
-  value: string;
-  detail: string;
-  color: string;
-};
+type PanelMode = 'realtime' | 'design';
 
 const INTERVENTIONS = [
-  { icon: '\u25C9', label: 'Keyline pond (1 acre)', phase: 'Phase 2', color: '#5b9db8' },
-  { icon: '\u2261', label: 'Swale network on contour', phase: 'Phase 2', color: '#5b9db8' },
-  { icon: '\u25BC', label: 'Roof catchment system', phase: 'Phase 1', color: '#2d7a4f' },
-  { icon: '\u25CB', label: 'Wetland restoration buffer', phase: 'Phase 3', color: '#8a6d1e' },
-  { icon: '\u25C6', label: 'Tile drain control structures', phase: 'Phase 1', color: '#2d7a4f' },
+  { icon: '◉', label: 'Keyline pond (1 acre)',         phase: 'Phase 2', color: '#5b9db8' },
+  { icon: '≡', label: 'Swale network on contour',      phase: 'Phase 2', color: '#5b9db8' },
+  { icon: '▼', label: 'Roof catchment system',          phase: 'Phase 1', color: '#2d7a4f' },
+  { icon: '○', label: 'Wetland restoration buffer',     phase: 'Phase 3', color: '#8a6d1e' },
+  { icon: '◆', label: 'Tile drain control structures',  phase: 'Phase 1', color: '#2d7a4f' },
   { icon: '~', label: 'Riparian planting (30m buffer)', phase: 'Phase 2', color: '#5b9db8' },
 ];
 
-function buildLoadingMetrics(): MetricRow[] {
-  return [
-    { label: 'Annual Rainfall', value: 'Loading...', detail: '', color: '#5b9db8' },
-    { label: 'Watershed', value: 'Loading...', detail: '', color: '#5b9db8' },
-    { label: 'Nearest Stream', value: 'Loading...', detail: '', color: '#5b9db8' },
-    { label: 'Wetland Area', value: 'Loading...', detail: '', color: '#2d7a4f' },
-    { label: 'Flood Zone', value: 'Loading...', detail: '', color: '#9a8a74' },
-    { label: 'Water Retention Score', value: 'Loading...', detail: '', color: '#c4a265' },
-  ];
+// ─── Shared sub-components ────────────────────────────────────────────────────
+
+function BigMetric({ label, value, unit, bar = 0, note }: {
+  label: string;
+  value: string;
+  unit?: string;
+  bar?: number;   // 0–1
+  note?: string;
+}) {
+  return (
+    <div className={s.bigMetric}>
+      <span className={s.bigMetricLabel}>{label}</span>
+      <div className={s.bigMetricValueRow}>
+        <span className={s.bigMetricValue}>{value}</span>
+        {unit && <span className={s.bigMetricUnit}>{unit}</span>}
+      </div>
+      {bar > 0 && (
+        <div className={s.thinBarTrack}>
+          <div className={s.thinBarFill} style={{ width: `${Math.min(bar * 100, 100)}%` }} />
+        </div>
+      )}
+      {note && <span className={s.bigMetricNote}>{note}</span>}
+    </div>
+  );
 }
 
-function buildNoDataMetrics(): MetricRow[] {
-  return [
-    { label: 'Annual Rainfall', value: '\u2014', detail: 'No boundary data', color: '#5b9db8' },
-    { label: 'Watershed', value: '\u2014', detail: 'No boundary data', color: '#5b9db8' },
-    { label: 'Nearest Stream', value: '\u2014', detail: 'No boundary data', color: '#5b9db8' },
-    { label: 'Wetland Area', value: '\u2014', detail: 'No boundary data', color: '#9a8a74' },
-    { label: 'Flood Zone', value: '\u2014', detail: 'No boundary data', color: '#9a8a74' },
-    { label: 'Water Retention Score', value: '\u2014', detail: 'No boundary data', color: '#9a8a74' },
-  ];
+function SegmentedBar({ value, max, segments = 8 }: { value: number; max: number; segments?: number }) {
+  const filled = Math.round((value / max) * segments);
+  return (
+    <div className={s.segBar}>
+      {Array.from({ length: segments }).map((_, i) => (
+        <div key={i} className={i < filled ? s.segFilled : s.segEmpty} />
+      ))}
+    </div>
+  );
 }
+
+function StatusWord({ label, value, icon, description, color }: {
+  label: string;
+  value: string;
+  icon: string;
+  description: string;
+  color: string;
+}) {
+  return (
+    <div className={s.statusBlock}>
+      <span className={s.bigMetricLabel}>{label}</span>
+      <div className={s.statusWordRow}>
+        <span className={s.statusWord} style={{ color }}>{value}</span>
+        <span className={s.statusIcon}>{icon}</span>
+      </div>
+      <p className={s.statusDesc}>{description}</p>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function HydrologyRightPanel({ project }: HydrologyRightPanelProps) {
+  const [mode, setMode] = useState<PanelMode>('realtime');
   const siteData = useSiteData(project.id);
 
-  const waterMetrics = useMemo((): MetricRow[] => {
-    if (!siteData) return buildNoDataMetrics();
-    if (siteData.status === 'loading') return buildLoadingMetrics();
-    if (siteData.status !== 'complete') return buildNoDataMetrics();
+  const { live, metrics } = useMemo(() => {
+    const loading = !siteData || siteData.status !== 'complete';
 
-    const climate = getLayerSummary<ClimateSummary>(siteData, 'climate');
-    const watershed = getLayerSummary<WatershedSummary>(siteData, 'watershed');
-    const wetFlood = getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood');
+    const climate   = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate')             : null;
+    const watershed = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed')         : null;
+    const wetFlood  = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood'): null;
+    const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')         : null;
+    const soils     = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
 
-    const precipMm = climate?.annual_precip_mm;
-    const rainfall = precipMm ? `${precipMm} mm/yr` : '\u2014';
-    const rainfallDetail = siteData.isLive ? 'NOAA 30-yr avg' : 'Estimated';
+    const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
+    const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
+    const isLive     = siteData?.isLive ?? false;
 
-    const watershedName = watershed?.watershed_name ?? '\u2014';
-
-    const nearestStream = watershed?.nearest_stream_m;
-    const nearestStreamVal = nearestStream != null ? `${nearestStream}m` : '\u2014';
-
-    const wetlandPct = wetFlood?.wetland_pct;
-    const wetlandVal = wetlandPct != null ? `${wetlandPct}%` : '\u2014';
-    const wetlandDetail = siteData.isLive ? 'NWI classified' : 'Estimated';
-
-    const floodZone = wetFlood?.flood_zone ?? '\u2014';
-    const floodRisk = wetFlood?.flood_risk ?? '';
-    const floodDetail = floodRisk.includes('High') ? 'High risk'
-      : floodRisk.includes('Moderate') ? 'Moderate risk'
-      : 'Minimal risk';
-
-    // Simple retention score based on rainfall
-    const retScore = precipMm ? Math.min(95, Math.round(50 + precipMm / 30)) : 72;
-
-    return [
-      { label: 'Annual Rainfall', value: rainfall, detail: rainfallDetail, color: '#5b9db8' },
-      { label: 'Watershed', value: watershedName, detail: '', color: '#5b9db8' },
-      { label: 'Nearest Stream', value: nearestStreamVal, detail: '', color: '#5b9db8' },
-      { label: 'Wetland Area', value: String(wetlandVal), detail: wetlandDetail, color: '#2d7a4f' },
-      { label: 'Flood Zone', value: String(floodZone), detail: floodDetail, color: floodZone.includes('Zone X') || floodZone === '\u2014' ? '#2d7a4f' : '#c44e3f' },
-      { label: 'Water Retention Score', value: `${retScore}/100`, detail: retScore >= 70 ? 'Good potential' : 'Moderate potential', color: '#c4a265' },
-    ];
-  }, [siteData]);
-
-  const waterBudget = useMemo(() => {
-    if (!siteData || siteData.status !== 'complete') return null;
-
-    const climate = getLayerSummary<ClimateSummary>(siteData, 'climate');
-    const precipMm = climate?.annual_precip_mm;
-    const acreage = project.acreage;
-
-    if (!precipMm || !acreage) return null;
-
-    const isMetric = (project as { units?: string }).units === 'metric';
-
-    if (isMetric) {
-      // hectares * mm = liters (1 ha * 1mm = 10 L, so ha * mm * 10 = liters)
-      const hectares = acreage * 0.404686;
-      const totalLiters = hectares * precipMm * 10;
-      const totalM3 = totalLiters / 1000;
-      const fmt = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${Math.round(v)}`;
-      return {
-        precip: `~${fmt(totalM3)} m\u00B3/yr`,
-        retention: `~${fmt(totalM3 * 0.15)} m\u00B3 (15%)`,
-        target: `~${fmt(totalM3 * 0.60)} m\u00B3 (60%)`,
-        demand: `~${fmt(totalM3 * 0.23)} m\u00B3/yr`,
-        surplus: `+${fmt(totalM3 * 0.60 - totalM3 * 0.23)} m\u00B3`,
-      };
-    }
-
-    // Imperial: acreage * precipMm * 0.001 (m) * 264.172 (gal/m3) * 4046.86 (m2/ac)
-    // Simplified: acreage * precipMm * 1.069 gallons
-    const totalGallons = acreage * precipMm * 0.001 * 4046.86 * 264.172;
-    const fmt = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${Math.round(v)}`;
-    return {
-      precip: `~${fmt(totalGallons)} gal/yr`,
-      retention: `~${fmt(totalGallons * 0.15)} gal (15%)`,
-      target: `~${fmt(totalGallons * 0.60)} gal (60%)`,
-      demand: `~${fmt(totalGallons * 0.23)} gal/yr`,
-      surplus: `+${fmt(totalGallons * 0.60 - totalGallons * 0.23)} gal`,
+    const inputs = {
+      precipMm,
+      catchmentHa:    (() => { const v = parseFloat(String(watershed?.catchment_area_ha ?? '')); return isFinite(v) ? v : null; })(),
+      propertyAcres:  project.acreage ?? HYDRO_DEFAULTS.propertyAcres,
+      slopeDeg:       elevation?.mean_slope_deg ?? HYDRO_DEFAULTS.slopeDeg,
+      hydrologicGroup: parseHydrologicGroup(soils?.hydrologic_group),
+      drainageClass:  soils?.drainage_class ?? HYDRO_DEFAULTS.drainageClass,
+      floodZone:      wetFlood?.flood_zone ?? HYDRO_DEFAULTS.floodZone,
+      wetlandPct:     Number(wetFlood?.wetland_pct ?? HYDRO_DEFAULTS.wetlandPct),
+      annualTempC:    tempC,
     };
-  }, [siteData, project.acreage, (project as { units?: string }).units]);
+
+    const m = computeHydrologyMetrics(inputs);
+
+    // Annual water budget formatted strings
+    const budget = {
+      precip:    `~${fmtGal(m.annualRainfallGal)} gal/yr`,
+      retention: `~${fmtGal(m.currentRetentionGal)} gal (${Math.round(m.currentRetentionGal / m.annualRainfallGal * 100)}%)`,
+      target:    `~${fmtGal(m.targetRetentionGal)} gal (${Math.round(m.targetRetentionGal / m.annualRainfallGal * 100)}%)`,
+      demand:    `~${fmtGal(m.irrigationDemandGal)} gal/yr`,
+      surplus:   `+${fmtGal(Math.max(m.surplusGal, 0))} gal`,
+    };
+
+    return {
+      live: {
+        rainfall:      `${precipMm} mm/yr`,
+        rainfallNote:  isLive ? 'NOAA/ECCC 30-yr avg' : 'Estimated',
+        watershed:     watershed?.watershed_name ?? '—',
+        nearestStream: watershed?.nearest_stream_m != null ? `${watershed.nearest_stream_m}m` : '—',
+        flowDirection: watershed?.flow_direction ?? '—',
+        floodZone:     wetFlood?.flood_zone ?? '—',
+        wetlandPct:    wetFlood?.wetland_pct != null ? `${wetFlood.wetland_pct}%` : '—',
+        retScore:      m.retentionScore,
+        budget: loading ? null : budget,
+      },
+      metrics: m,
+    };
+  }, [siteData, project.acreage]);
+
+  const isLoading = siteData?.status === 'loading';
 
   return (
     <div className={p.container}>
-      <h2 className={p.title}>Hydrology</h2>
-
-      {/* Water metrics */}
-      <div className={p.mb24}>
-        {siteData?.status === 'loading' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Spinner size="sm" />
-            <span style={{ fontSize: 11, color: '#9a8a74' }}>Fetching water data...</span>
-          </div>
-        )}
-        {waterMetrics.map((m) => (
-          <div key={m.label} className={s.metricRow}>
-            <span className={s.metricLabel}>{m.label}</span>
-            <div className={s.metricValueWrap}>
-              <div className={s.metricValue} style={{ color: m.color }}>{m.value}</div>
-              {m.detail && <div className={s.metricDetail}>{m.detail}</div>}
-            </div>
-          </div>
-        ))}
+      {/* Mode toggle */}
+      <div className={s.modeToggle}>
+        <button
+          className={mode === 'realtime' ? s.modeTabActive : s.modeTab}
+          onClick={() => setMode('realtime')}
+        >
+          Real-Time
+        </button>
+        <button
+          className={mode === 'design' ? s.modeTabActive : s.modeTab}
+          onClick={() => setMode('design')}
+        >
+          Design
+        </button>
       </div>
 
-      {/* Keyline insight quote */}
+      {mode === 'realtime' ? (
+        <RealtimePanel live={live} metrics={metrics} isLoading={isLoading} />
+      ) : (
+        <DesignPanel live={live} metrics={metrics} />
+      )}
+    </div>
+  );
+}
+
+// ─── Real-Time Analysis panel ─────────────────────────────────────────────────
+
+function RealtimePanel({ live, metrics, isLoading }: {
+  live: ReturnType<typeof buildLive>;
+  metrics: ReturnType<typeof buildMetrics>;
+  isLoading: boolean;
+}) {
+  const [storm, setStorm] = useState<'baseline' | 'frequent' | 'active' | 'catastrophic'>('active');
+
+  return (
+    <>
+      <div className={s.panelSection}>
+        <span className={s.sectionTag}>REAL-TIME ANALYSIS</span>
+        {isLoading && (
+          <div className={s.loadingRow}>
+            <Spinner size="sm" />
+            <span className={s.loadingText}>Fetching water data…</span>
+          </div>
+        )}
+
+        <BigMetric
+          label="RUNOFF VELOCITY"
+          value={metrics.runoffVelocity.toFixed(2)}
+          unit="m/s"
+          bar={Math.min(metrics.runoffVelocity / 5, 1)}
+        />
+        <BigMetric
+          label="INFILTRATION RATE"
+          value={metrics.infiltrationRate.toFixed(1)}
+          unit="mm/hr"
+          bar={Math.min(metrics.infiltrationRate / 30, 1)}
+        />
+        <BigMetric
+          label="PEAK DISCHARGE"
+          value={metrics.peakDischarge.toFixed(1)}
+          unit="m³/s"
+          bar={Math.min(metrics.peakDischarge / 500, 1)}
+          note="ESTIMATED AT WATERSHED OUTLET"
+        />
+
+        {/* Sub-basin loading chart */}
+        <div className={s.subBasinBlock}>
+          <span className={s.bigMetricLabel}>SUB-BASIN LOADING</span>
+          <div className={s.subBasinBars}>
+            {metrics.subBasinBars.map((h, i) => {
+              const peak = Math.max(...metrics.subBasinBars);
+              return (
+                <div key={i} className={s.subBasinBarWrap}>
+                  <div
+                    className={s.subBasinBar}
+                    style={{
+                      height: `${(h / peak) * 100}%`,
+                      background: h === peak ? '#8a9a74' : 'rgba(138,154,116,0.3)',
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Critical alert */}
+      <div className={s.alertCard}>
+        <div className={s.alertHeader}>
+          <span className={s.alertIcon}>
+            <svg width={13} height={13} viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 1L12.5 11.5H0.5L6.5 1Z" stroke="#c4a265" strokeWidth={1.4} strokeLinejoin="round"/>
+              <line x1="6.5" y1="5" x2="6.5" y2="8.5" stroke="#c4a265" strokeWidth={1.4} strokeLinecap="round"/>
+              <circle cx="6.5" cy="10" r="0.6" fill="#c4a265"/>
+            </svg>
+          </span>
+          <span className={s.alertTitle}>SITE ALERT</span>
+        </div>
+        <p className={s.alertText}>{metrics.alertText}</p>
+      </div>
+
+      {/* Storm simulation bar */}
+      <div className={s.stormBar}>
+        <span className={s.stormLabel}>Storm Event Simulation</span>
+        <div className={s.stormScale}>
+          {(['baseline', 'frequent', 'active', 'catastrophic'] as const).map((level) => (
+            <button
+              key={level}
+              className={storm === level ? s.stormSegActive : s.stormSeg}
+              onClick={() => setStorm(level)}
+            >
+              {level === 'active' && <span className={s.stormActiveLabel}>50-Year Storm</span>}
+              <span className={s.stormSegLabel}>{level.toUpperCase()}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Live site data */}
+      <div className={s.panelSection} style={{ marginTop: 16 }}>
+        <span className={s.sectionTag}>SITE WATER DATA</span>
+        <div className={s.dataRows}>
+          <DataRow label="Annual Rainfall"  value={live?.rainfall ?? '—'}      note={live?.rainfallNote} />
+          <DataRow label="Watershed"        value={live?.watershed ?? '—'} />
+          <DataRow label="Nearest Stream"   value={live?.nearestStream ?? '—'} />
+          <DataRow label="Flow Direction"   value={live?.flowDirection ?? '—'} />
+          <DataRow label="Flood Zone"       value={live?.floodZone ?? '—'}
+            color={/Zone X|minimal|not regulated/i.test(live?.floodZone ?? '') ? '#2d7a4f' : '#c44e3f'} />
+          <DataRow label="Wetland Coverage" value={live?.wetlandPct ?? '—'} />
+          <DataRow label="Retention Score"  value={live?.retScore ? `${live.retScore}/100` : '—'} color="#c4a265" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Design Parameters panel ──────────────────────────────────────────────────
+
+function DesignPanel({ live, metrics }: {
+  live: ReturnType<typeof buildLive>;
+  metrics: ReturnType<typeof buildMetrics>;
+}) {
+  const catchmentFmt = metrics.catchmentVolume >= 1000
+    ? `${(metrics.catchmentVolume / 1000).toFixed(1)}k`
+    : `${metrics.catchmentVolume.toFixed(0)}`;
+
+  return (
+    <>
+      <div className={s.panelSection}>
+        <span className={s.sectionTag}>DESIGN PARAMETERS</span>
+
+        <BigMetric label="CATCHMENT VOLUME" value={catchmentFmt} unit="m³" bar={Math.min(metrics.catchmentVolume / 20000, 1)} />
+
+        <div className={s.bigMetric}>
+          <span className={s.bigMetricLabel}>POND DEPTH</span>
+          <div className={s.bigMetricValueRow}>
+            <span className={s.bigMetricValue}>{metrics.pondDepth.toFixed(1)}</span>
+            <span className={s.bigMetricUnit}>meters</span>
+          </div>
+          <SegmentedBar value={metrics.pondDepth} max={6} segments={8} />
+        </div>
+
+        <StatusWord
+          label="SEEPAGE RISK"
+          value={metrics.seepageRisk}
+          icon={metrics.seepageRisk === 'LOWEST' || metrics.seepageRisk === 'LOW' ? '🛡' : '⚠'}
+          description={metrics.seepageDesc}
+          color={metrics.seepageRiskColor}
+        />
+      </div>
+
+      {/* AI Siting Support */}
+      <div className={s.aiCard}>
+        <div className={s.aiHeader}>
+          <span className={s.aiIcon}>✦</span>
+          <span className={s.aiLabel}>AI SITING SUPPORT</span>
+        </div>
+        <p className={s.aiText}>&ldquo;{metrics.aiSitingText}&rdquo;</p>
+      </div>
+
+      {/* Keyline insight */}
       <div className={s.quoteCard}>
         <p className={s.quoteText}>
-          &ldquo;The keyline point &mdash; where valley transitions to slope &mdash; is the highest leverage point for water retention. A single well-placed pond here could irrigate 40+ acres by gravity alone.&rdquo;
+          &ldquo;The keyline point — where valley transitions to slope — is the highest
+          leverage point for water retention. A single well-placed pond here could irrigate
+          40+ acres by gravity alone.&rdquo;
         </p>
-        <div className={s.quoteAttr}>
-          &mdash; Water Retention Landscape zone
-        </div>
+        <div className={s.quoteAttr}>— Water Retention Landscape principle</div>
       </div>
 
       {/* Water System Interventions */}
-      <h3 className={p.sectionLabel}>Water System Interventions</h3>
-      <div className={`${p.section} ${p.sectionGapLg}`}>
-        {INTERVENTIONS.map((item, i) => (
-          <div key={i} className={s.interventionRow}>
-            <span className={s.interventionIcon} style={{ color: item.color }}>
-              {item.icon}
-            </span>
-            <span className={s.interventionLabel}>{item.label}</span>
-            <span
-              className={p.badge}
-              style={{
-                background: item.phase === 'Phase 1'
-                  ? 'rgba(45, 122, 79, 0.12)'
-                  : item.phase === 'Phase 2'
-                    ? 'rgba(91, 157, 184, 0.12)'
-                    : 'rgba(138, 109, 30, 0.12)',
-                color: item.phase === 'Phase 1'
-                  ? '#2d7a4f'
-                  : item.phase === 'Phase 2'
-                    ? '#5b9db8'
-                    : '#8a6d1e',
-              }}
-            >
-              {item.phase}
-            </span>
-          </div>
-        ))}
+      <div className={s.panelSection}>
+        <span className={s.sectionTag}>WATER SYSTEM INTERVENTIONS</span>
+        <div className={s.interventionList}>
+          {INTERVENTIONS.map((item, i) => (
+            <div key={i} className={s.interventionRow}>
+              <span className={s.interventionIcon} style={{ color: item.color }}>{item.icon}</span>
+              <span className={s.interventionLabel}>{item.label}</span>
+              <span className={s.phaseBadge} style={{
+                color: item.phase === 'Phase 1' ? '#2d7a4f' : item.phase === 'Phase 2' ? '#5b9db8' : '#8a6d1e',
+                background: item.phase === 'Phase 1' ? 'rgba(45,122,79,0.1)' : item.phase === 'Phase 2' ? 'rgba(91,157,184,0.1)' : 'rgba(138,109,30,0.1)',
+              }}>{item.phase}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Water budget summary */}
-      <div className={s.budgetCard}>
-        <h3 className={p.sectionLabel}>Annual Water Budget</h3>
-        <div className={`${p.section} ${p.sectionGapSm}`} style={{ fontSize: 11 }}>
-          <BudgetRow label="Precipitation input" value={waterBudget?.precip ?? '\u2014'} />
-          <BudgetRow label="Current retention" value={waterBudget?.retention ?? '\u2014'} />
-          <BudgetRow label="Post-intervention target" value={waterBudget?.target ?? '\u2014'} />
-          <BudgetRow label="Irrigation demand" value={waterBudget?.demand ?? '\u2014'} />
-          <div className={s.budgetDivider}>
-            <BudgetRow label="Surplus capacity" value={waterBudget?.surplus ?? '\u2014'} highlight />
+      {/* Annual Water Budget */}
+      {live?.budget && (
+        <div className={s.budgetCard}>
+          <span className={s.sectionTag}>ANNUAL WATER BUDGET</span>
+          <div className={s.budgetRows}>
+            <BudgetRow label="Precipitation input"      value={live.budget.precip} />
+            <BudgetRow label="Current retention"         value={live.budget.retention} />
+            <BudgetRow label="Post-intervention target"  value={live.budget.target} />
+            <BudgetRow label="Irrigation demand"         value={live.budget.demand} />
+            <BudgetRow label="Surplus capacity"          value={live.budget.surplus} highlight />
           </div>
         </div>
+      )}
+    </>
+  );
+}
+
+// ─── Utility sub-components ───────────────────────────────────────────────────
+
+// Dummy stubs to satisfy TypeScript return type inference for the panel props
+function buildLive() { return null as unknown as {
+  rainfall: string; rainfallNote: string; watershed: string;
+  nearestStream: string; flowDirection: string; floodZone: string;
+  wetlandPct: string; retScore: number;
+  budget: { precip: string; retention: string; target: string; demand: string; surplus: string } | null;
+}; }
+
+function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }
+
+function DataRow({ label, value, note, color }: { label: string; value: string; note?: string; color?: string }) {
+  return (
+    <div className={s.dataRow}>
+      <span className={s.dataLabel}>{label}</span>
+      <div className={s.dataValueWrap}>
+        <span className={s.dataValue} style={color ? { color } : undefined}>{value}</span>
+        {note && <span className={s.dataNote}>{note}</span>}
       </div>
     </div>
   );

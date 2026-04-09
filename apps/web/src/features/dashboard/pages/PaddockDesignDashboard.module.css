@@ -199,3 +199,14 @@
   transition: background 150ms;
 }
 .mapBtn:hover { background: rgba(196,162,101,0.18); }
+
+.soilNote {
+  font-size: 11px;
+  color: rgba(180,165,140,0.5);
+  margin: -8px 0 16px;
+}
+.soilNoteLabel {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(180,165,140,0.4);
+}

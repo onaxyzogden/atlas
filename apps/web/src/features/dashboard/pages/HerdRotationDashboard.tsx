@@ -2,7 +2,9 @@
  * HerdRotationDashboard — Herd rotation management with paddock info, alerts, and CTA.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './HerdRotationDashboard.module.css';
 
@@ -11,7 +13,30 @@ interface HerdRotationDashboardProps {
   onSwitchToMap: () => void;
 }
 
+interface WatershedSummary { nearest_stream_m?: number | string; }
+interface ClimateSummary { annual_temp_mean_c?: number; annual_precip_mm?: number; }
+interface ElevationSummary { mean_slope_deg?: number; }
+
 export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRotationDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const env = useMemo(() => {
+    const watershed = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed') : null;
+    const climate   = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+    const elev      = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null;
+
+    const streamRaw = parseFloat(String(watershed?.nearest_stream_m ?? ''));
+    const streamM   = isFinite(streamRaw) ? Math.round(streamRaw) : null;
+    const tempC     = climate?.annual_temp_mean_c ?? 9;
+    const slopeDeg  = elev?.mean_slope_deg ?? 3;
+
+    const weatherLabel = `${Math.round(tempC)}\u00b0C avg`;
+    const streamLabel  = streamM !== null ? `${streamM}m to stream` : 'Stream data loading';
+    const slopeLabel   = `${slopeDeg.toFixed(1)}\u00b0 avg slope`;
+
+    return { weatherLabel, streamLabel, slopeLabel };
+  }, [siteData]);
+
   return (
     <div className={css.page}>
       {/* Hero */}
@@ -105,7 +130,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
           </div>
           <div className={css.quickStat}>
             <span className={css.quickStatLabel}>Weather Forecast</span>
-            <span className={css.quickStatValue}>Partly Cloudy | 17&deg;C</span>
+            <span className={css.quickStatValue}>Partly Cloudy | {env.weatherLabel}</span>
           </div>
         </div>
       </div>
@@ -127,11 +152,11 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
         </svg>
       </button>
 
-      {/* Coordinates bar */}
+      {/* Site environment bar */}
       <div className={css.coordsBar}>
-        <span>LAT: <strong>45.5231&deg; N</strong></span>
-        <span>LONG: <strong>122.6765&deg; W</strong></span>
-        <span>ELEVATION: <strong>1,240 FT</strong></span>
+        <span>STREAM: <strong>{env.streamLabel}</strong></span>
+        <span>SLOPE: <strong>{env.slopeLabel}</strong></span>
+        <span>TEMP: <strong>{env.weatherLabel}</strong></span>
         <span className={css.coordsStatus}>
           SYSTEM STATUS: <span className={css.syncDot} /> Synchronized
         </span>

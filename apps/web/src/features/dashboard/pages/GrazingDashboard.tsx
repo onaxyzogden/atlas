@@ -1,9 +1,10 @@
 /**
  * GrazingDashboard — Grazing Analysis & Recovery dashboard page.
- * Based on mockup with biomass trends, recovery compliance, hotspot card.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './GrazingDashboard.module.css';
@@ -13,7 +14,39 @@ interface GrazingDashboardProps {
   onSwitchToMap: () => void;
 }
 
+interface ClimateSummary { annual_precip_mm?: number; annual_temp_mean_c?: number; growing_season_days?: number; }
+interface SoilsSummary { organic_matter_pct?: number | string; drainage_class?: string; }
+
 export default function GrazingDashboard({ project, onSwitchToMap }: GrazingDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const historical = useMemo(() => {
+    const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+    const soils   = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+
+    const precip = climate?.annual_precip_mm ?? 440;
+    const tempC  = climate?.annual_temp_mean_c ?? 9;
+    const omRaw  = parseFloat(String(soils?.organic_matter_pct ?? ''));
+    const om     = isFinite(omRaw) ? omRaw : 3.5;
+    const drain  = (soils?.drainage_class ?? '').toLowerCase();
+
+    // Growing season soil temp heuristic: mean annual + 5°C
+    const soilTempC = Math.round((tempC + 5) * 10) / 10;
+
+    // Evaporation rate
+    const evap = tempC > 15 && precip < 700 ? 'High' : tempC < 10 ? 'Low' : 'Moderate';
+
+    // Status from OM + drainage
+    const status = (om >= 4 && drain.includes('well')) ? 'Stable' : om < 2 ? 'Monitor' : 'Stable';
+
+    return {
+      precip: `${precip}mm`,
+      soilTemp: `${soilTempC}\u00b0C`,
+      evap,
+      status,
+    };
+  }, [siteData]);
+
   return (
     <div className={css.page}>
       {/* Hero section */}
@@ -121,19 +154,19 @@ export default function GrazingDashboard({ project, onSwitchToMap }: GrazingDash
         <div className={css.historicalGrid}>
           <div className={css.historicalStat}>
             <span className={css.historicalLabel}>PRECIPITATION</span>
-            <span className={css.historicalValue}>440mm</span>
+            <span className={css.historicalValue}>{historical.precip}</span>
           </div>
           <div className={css.historicalStat}>
             <span className={css.historicalLabel}>SOIL TEMP</span>
-            <span className={css.historicalValue}>18.2&deg;C</span>
+            <span className={css.historicalValue}>{historical.soilTemp}</span>
           </div>
           <div className={css.historicalStat}>
             <span className={css.historicalLabel}>EVAP RATE</span>
-            <span className={css.historicalValue}>Low</span>
+            <span className={css.historicalValue}>{historical.evap}</span>
           </div>
           <div className={css.historicalStat}>
             <span className={css.historicalLabel}>STATUS</span>
-            <span className={css.historicalValue}>Stable</span>
+            <span className={css.historicalValue}>{historical.status}</span>
           </div>
         </div>
       </div>

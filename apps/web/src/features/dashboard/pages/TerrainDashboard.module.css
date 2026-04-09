@@ -65,6 +65,13 @@
   color: rgba(180,165,140,0.4);
   margin-top: 4px;
 }
+.elevNote {
+  display: block;
+  font-size: 9px;
+  color: rgba(180,165,140,0.28);
+  margin-top: 2px;
+  font-style: italic;
+}
 
 /* Slope card */
 .slopeCard {

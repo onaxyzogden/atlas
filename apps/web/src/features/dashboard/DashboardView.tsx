@@ -1,14 +1,14 @@
 /**
- * DashboardView — full-page dashboard with sidebar + content + metrics.
+ * DashboardView — content area + metrics panel.
+ * The left sidebar is now rendered by ProjectPage (shared with Map View).
  * On mobile, a dropdown selector replaces the sidebar.
  */
 
-import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import DashboardSidebar from './DashboardSidebar.js';
 import DashboardRouter from './DashboardRouter.js';
 import DashboardMetrics from './DashboardMetrics.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
+import { useUIStore } from '../../store/uiStore.js';
 import css from './DashboardView.module.css';
 
 interface DashboardViewProps {
@@ -34,20 +34,14 @@ const MOBILE_SECTIONS = [
 ];
 
 export default function DashboardView({ project, onSwitchToMap }: DashboardViewProps) {
-  const [activeSection, setActiveSection] = useState('grazing-analysis');
   const isMobile = useIsMobile();
+  const activeSection = useUIStore((s) => s.activeDashboardSection);
+  const setActiveSection = useUIStore((s) => s.setActiveDashboardSection);
 
   return (
     <div className={css.layout}>
-      {!isMobile && (
-        <DashboardSidebar
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
-      )}
-
       <div className={css.content}>
-        {/* Mobile section selector */}
+        {/* Mobile section selector (desktop sidebar is in ProjectPage) */}
         {isMobile && (
           <select
             className={css.mobileSelect}

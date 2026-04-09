@@ -50,6 +50,37 @@
 }
 .desc em { color: #8a9a74; font-style: italic; }
 
+/* Live soil data row */
+.soilDataRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.soilDataItem {
+  flex: 1;
+  min-width: 100px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.soilDataLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.4);
+  margin-bottom: 6px;
+}
+.soilDataValue {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+}
+
 .section { margin-bottom: 24px; }
 .sectionLabel {
   font-size: 10px;

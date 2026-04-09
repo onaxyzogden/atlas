@@ -2,7 +2,9 @@
  * PaddockDesignDashboard — Paddock layout overview with grid, summary stats, rotation schedule.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './PaddockDesignDashboard.module.css';
 
@@ -10,6 +12,9 @@ interface PaddockDesignDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
+
+interface ClimateSummary { growing_season_days?: number; }
+interface SoilsSummary { drainage_class?: string; predominant_texture?: string; }
 
 const PADDOCKS = [
   { name: 'Paddock 01', sub: 'North Ridge', acres: 3.2, status: 'Resting', restDays: 18, forage: 'Tall Fescue / Clover', biomass: 85, color: '#8a9a74' },
@@ -28,8 +33,25 @@ const SCHEDULE = [
 ];
 
 export default function PaddockDesignDashboard({ project, onSwitchToMap }: PaddockDesignDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const siteContext = useMemo(() => {
+    const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+    const soils   = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+
+    const growSeason = climate?.growing_season_days;
+    const avgRest = growSeason
+      ? Math.round(growSeason / PADDOCKS.length / 5) * 5
+      : Math.round(PADDOCKS.filter((p) => p.restDays > 0).reduce((s, p) => s + p.restDays, 0) / PADDOCKS.filter((p) => p.restDays > 0).length);
+
+    const drain   = soils?.drainage_class ?? null;
+    const texture = soils?.predominant_texture ?? null;
+    const soilNote = drain && texture ? `${texture}, ${drain.toLowerCase()}` : drain ?? texture ?? null;
+
+    return { avgRest, soilNote };
+  }, [siteData]);
+
   const totalAcres = PADDOCKS.reduce((s, p) => s + p.acres, 0);
-  const avgRest = Math.round(PADDOCKS.filter((p) => p.restDays > 0).reduce((s, p) => s + p.restDays, 0) / PADDOCKS.filter((p) => p.restDays > 0).length);
 
   return (
     <div className={css.page}>
@@ -51,13 +73,19 @@ export default function PaddockDesignDashboard({ project, onSwitchToMap }: Paddo
         </div>
         <div className={css.summaryCard}>
           <span className={css.summaryLabel}>AVG REST DAYS</span>
-          <span className={css.summaryValue}>{avgRest}</span>
+          <span className={css.summaryValue}>{siteContext.avgRest}</span>
         </div>
         <div className={css.summaryCard}>
           <span className={css.summaryLabel}>ACTIVE PADDOCK</span>
           <span className={css.summaryValue}>04A</span>
         </div>
       </div>
+
+      {siteContext.soilNote && (
+        <p className={css.soilNote}>
+          <span className={css.soilNoteLabel}>SITE SOILS:</span> {siteContext.soilNote}
+        </p>
+      )}
 
       {/* Paddock grid */}
       <div className={css.paddockGrid}>

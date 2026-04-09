@@ -2,7 +2,9 @@
  * LivestockDashboard — Inventory & Health Ledger with herd cards, analytics, activity logs.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './LivestockDashboard.module.css';
 
@@ -10,6 +12,9 @@ interface LivestockDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
+
+interface ClimateSummary { annual_temp_mean_c?: number; growing_season_days?: number; hardiness_zone?: string; }
+interface SoilsSummary { organic_matter_pct?: number | string; }
 
 const HERDS = [
   {
@@ -41,6 +46,28 @@ const RECENT_LOGS = [
 ];
 
 export default function LivestockDashboard({ project, onSwitchToMap }: LivestockDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const pasture = useMemo(() => {
+    const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+    const soils   = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+
+    const omRaw  = parseFloat(String(soils?.organic_matter_pct ?? ''));
+    const om     = isFinite(omRaw) ? omRaw : 3.5;
+    const growSeason = climate?.growing_season_days ?? 165;
+    const zone       = climate?.hardiness_zone ?? null;
+
+    const forageQuality = (om >= 5 && growSeason > 180) ? 'High Quality'
+      : om >= 3 ? 'Good'
+      : 'Moderate';
+
+    const seasonNote = zone
+      ? `${growSeason}-day growing season · Hardiness zone ${zone}`
+      : `${growSeason}-day growing season`;
+
+    return { forageQuality, seasonNote };
+  }, [siteData]);
+
   return (
     <div className={css.page}>
       {/* Hero */}
@@ -127,7 +154,9 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
             />
             <p className={css.trendNote}>
               Daily average gain (ADG) is tracking +2.4 lbs/day since North Range rotation.
+              Forage quality: <strong>{pasture.forageQuality}</strong>.
             </p>
+            <p className={css.trendNote} style={{ marginTop: 4 }}>{pasture.seasonNote}</p>
           </div>
 
           {/* Recent Logs */}

@@ -37,6 +37,12 @@ interface UIState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
 
+  // Navigation context — session only, not persisted
+  activeDashboardSection: string;
+  setActiveDashboardSection: (section: string) => void;
+  pendingMapContext: boolean;
+  setPendingMapContext: (v: boolean) => void;
+
   // Undo/redo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -70,6 +76,12 @@ export const useUIStore = create<UIState>()(
       // Sidebar
       sidebarOpen: true,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+
+      // Navigation context
+      activeDashboardSection: 'grazing-analysis',
+      setActiveDashboardSection: (section) => set({ activeDashboardSection: section }),
+      pendingMapContext: false,
+      setPendingMapContext: (v) => set({ pendingMapContext: v }),
 
       // Undo/redo
       undoStack: [],

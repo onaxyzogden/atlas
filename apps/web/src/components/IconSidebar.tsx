@@ -28,6 +28,7 @@ export type SidebarView =
   | 'templates'
   | 'reporting'
   | 'fieldnotes'
+  | 'livestock'
   | 'settings'
   | null;
 

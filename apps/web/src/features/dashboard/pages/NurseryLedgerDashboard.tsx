@@ -2,7 +2,9 @@
  * NurseryLedgerDashboard — Stock inventory, growth trends, trials, milestones.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './NurseryLedgerDashboard.module.css';
 
@@ -11,18 +13,52 @@ interface NurseryLedgerDashboardProps {
   onSwitchToMap: () => void;
 }
 
+interface ClimateSummary {
+  first_frost_date?: string;
+  last_frost_date?: string;
+  hardiness_zone?: string;
+  growing_season_days?: number;
+}
+interface SoilsSummary { predominant_texture?: string; }
+
 const STOCKS = [
   { name: 'Hybrid Chestnut Batch A', count: 1420, unit: 'Heads', vitality: 94.2, lastCheck: '14h ago' },
   { name: 'Elderberry Nursery B', count: 1060, unit: 'Heads', vitality: 88.7, lastCheck: '2d ago' },
 ];
 
-const MILESTONES = [
-  { num: '01', title: 'Spring Planting Window', date: 'Mar 15 — Apr 20' },
-  { num: '02', title: 'Inventory Audit', date: 'Scheduled for May 02' },
-  { num: '03', title: 'Seed Stratification', date: 'Mid-summer cycle' },
-];
-
 export default function NurseryLedgerDashboard({ project, onSwitchToMap }: NurseryLedgerDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const milestones = useMemo(() => {
+    const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+    const soils   = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+
+    const lastFrost  = climate?.last_frost_date ?? null;
+    const firstFrost = climate?.first_frost_date ?? null;
+    const zone       = climate?.hardiness_zone ?? null;
+    const texture    = soils?.predominant_texture ?? null;
+    const zoneNote   = zone ? ` · Zone ${zone}` : '';
+    const rootNote   = texture ? ` (${texture.toLowerCase()} soils)` : '';
+
+    return [
+      {
+        num: '01',
+        title: 'Spring Planting Window',
+        date: lastFrost ? `4 weeks before last frost · ${lastFrost}${zoneNote}` : `Mar 15 — Apr 20${zoneNote}`,
+      },
+      {
+        num: '02',
+        title: 'Field-Ready Transition',
+        date: lastFrost ? `2 weeks after last frost · ${lastFrost}${rootNote}` : `Scheduled for May 02${rootNote}`,
+      },
+      {
+        num: '03',
+        title: 'Seed Stratification / Fall Planting',
+        date: firstFrost ? `6 weeks before first frost · ${firstFrost}` : 'Mid-summer cycle',
+      },
+    ];
+  }, [siteData]);
+
   return (
     <div className={css.page}>
       <h1 className={css.title}>Forest Inventory Ledger</h1>
@@ -93,7 +129,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       <div className={css.milestonesSection}>
         <h3 className={css.milestonesTitle}>Upcoming Milestones</h3>
         <div className={css.milestonesList}>
-          {MILESTONES.map((m) => (
+          {milestones.map((m) => (
             <div key={m.num} className={css.milestoneItem}>
               <span className={css.milestoneNum}>{m.num}</span>
               <div>

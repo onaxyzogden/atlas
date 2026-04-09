@@ -2,7 +2,9 @@
  * CarbonDiagnosticDashboard — Canopy maturity simulation, carbon sequestration, timeline.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './CarbonDiagnosticDashboard.module.css';
 
@@ -10,6 +12,10 @@ interface CarbonDiagnosticDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
+
+interface SoilsSummary { organic_matter_pct?: number | string; depth_to_bedrock_m?: number | string; }
+interface LandCoverSummary { tree_canopy_pct?: number | string; }
+interface ClimateSummary { annual_precip_mm?: number; annual_temp_mean_c?: number; }
 
 const TIMELINE_STAGES = [
   { label: 'PLANTING', year: 0, active: false },
@@ -20,6 +26,40 @@ const TIMELINE_STAGES = [
 ];
 
 export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: CarbonDiagnosticDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const carbon = useMemo(() => {
+    const soils    = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+    const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
+    const climate  = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+
+    const omRaw    = parseFloat(String(soils?.organic_matter_pct ?? ''));
+    const om       = isFinite(omRaw) ? omRaw : 4.0;
+    const canopyRaw = parseFloat(String(landCover?.tree_canopy_pct ?? ''));
+    const canopy   = isFinite(canopyRaw) ? canopyRaw : 40;
+    const precip   = climate?.annual_precip_mm ?? 800;
+    const tempC    = climate?.annual_temp_mean_c ?? 9;
+
+    // Maturity Score (1.0–10.0)
+    const canopyBonus = canopy > 60 ? 2.0 : canopy > 30 ? 1.2 : canopy > 10 ? 0.5 : 0.1;
+    const omBonus     = om >= 5 ? 1.5 : om >= 3 ? 1.0 : 0.3;
+    const maturity    = Math.min(Math.max(5.0 + canopyBonus + omBonus, 1.0), 10.0);
+
+    // Carbon Sequestration (TCO2e/HA)
+    const carbonSeq = Math.max((canopy / 100 * 35) + (om / 10 * 12) + (precip / 1000 * 5), 5.0);
+
+    // Biomass Accumulation YoY (%)
+    const biomassYoY = Math.round(8 + (canopy / 100 * 15) + (om / 5 * 5));
+
+    // Environmental stats
+    const precipDisplay = `${precip.toLocaleString()}mm / yr`;
+    const tempDisplay   = `${tempC.toFixed(1)}\u00b0C avg`;
+    const evap = tempC > 15 && precip < 700 ? 'High' : tempC < 10 ? 'Low' : 'Moderate';
+    const status = maturity >= 7 ? 'Stable Equilibrium' : 'Active Growth';
+
+    return { maturity, carbonSeq, biomassYoY, precipDisplay, tempDisplay, evap, status };
+  }, [siteData]);
+
   return (
     <div className={css.page}>
       {/* Hero */}
@@ -32,12 +72,12 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
       <div className={css.topMetrics}>
         <div className={css.topMetric}>
           <span className={css.topMetricLabel}>MATURITY SCORE</span>
-          <span className={css.topMetricValue}>8.2</span>
-          <span className={css.topMetricNote}>Prime Growth</span>
+          <span className={css.topMetricValue}>{carbon.maturity.toFixed(1)}</span>
+          <span className={css.topMetricNote}>{carbon.maturity >= 8 ? 'Prime Growth' : carbon.maturity >= 6 ? 'Establishing' : 'Early Stage'}</span>
         </div>
         <div className={css.topMetric}>
           <span className={css.topMetricLabel}>CARBON SEQ.</span>
-          <span className={css.topMetricValue}>42.5</span>
+          <span className={css.topMetricValue}>{carbon.carbonSeq.toFixed(1)}</span>
           <span className={css.topMetricNote}>TCO2e / HA</span>
         </div>
       </div>
@@ -95,7 +135,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
           </svg>
           <div>
             <span className={css.envLabel}>PRECIPITATION</span>
-            <span className={css.envValue}>1,240mm / yr</span>
+            <span className={css.envValue}>{carbon.precipDisplay}</span>
           </div>
         </div>
         <div className={css.envStat}>
@@ -104,7 +144,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
           </svg>
           <div>
             <span className={css.envLabel}>SOIL TEMP</span>
-            <span className={css.envValue}>14.2&deg;C</span>
+            <span className={css.envValue}>{carbon.tempDisplay}</span>
           </div>
         </div>
         <div className={css.envStat}>
@@ -113,7 +153,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
           </svg>
           <div>
             <span className={css.envLabel}>EVAP RATE</span>
-            <span className={css.envValue}>3.8mm / d</span>
+            <span className={css.envValue}>{carbon.evap}</span>
           </div>
         </div>
         <div className={css.envStat}>
@@ -122,7 +162,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
           </svg>
           <div>
             <span className={css.envLabel}>SYSTEM STATUS</span>
-            <span className={css.envValue}>Stable Equilibrium</span>
+            <span className={css.envValue}>{carbon.status}</span>
           </div>
         </div>
       </div>

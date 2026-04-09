@@ -1,6 +1,78 @@
 /* HydrologyDashboard */
 
-.page { max-width: 860px; }
+.page { max-width: 900px; }
+
+/* ─── Suite header ──────────────────────────────────────────────────────── */
+
+.suiteHeader {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-wrap: wrap;
+}
+
+.suiteTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.7);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.suiteNav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.suiteTab {
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  background: none;
+  color: rgba(180,165,140,0.4);
+  cursor: pointer;
+  border-radius: 5px;
+  transition: color 120ms, background 120ms;
+}
+.suiteTab:hover { color: rgba(180,165,140,0.7); background: rgba(255,255,255,0.04); }
+
+.suiteTabActive {
+  composes: suiteTab;
+  color: rgba(232,220,200,0.9);
+  background: rgba(255,255,255,0.06);
+  border-bottom: 2px solid #7a8a9a;
+}
+
+.suiteActions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.suiteIconBtn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(180,165,140,0.45);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.suiteIconBtn:hover { background: rgba(255,255,255,0.07); color: rgba(232,220,200,0.75); }
+
+/* ─── Overview tab ──────────────────────────────────────────────────────── */
 
 .hero { margin-bottom: 24px; }
 .heroTag {
@@ -20,10 +92,7 @@
   margin: 0 0 12px;
   line-height: 1.2;
 }
-.score {
-  font-style: italic;
-  color: #c4a265;
-}
+.score { font-style: italic; color: #c4a265; }
 .desc {
   font-size: 14px;
   line-height: 1.7;
@@ -31,7 +100,7 @@
   max-width: 540px;
   margin: 0 0 16px;
 }
-.heroActions { display: flex; gap: 10px; }
+.heroActions { display: flex; gap: 10px; flex-wrap: wrap; }
 .heroBtn {
   padding: 8px 16px;
   font-size: 11px;
@@ -69,6 +138,7 @@
   color: rgba(180,165,140,0.4);
   margin-bottom: 8px;
 }
+.metricValueRow { display: flex; align-items: baseline; gap: 6px; }
 .metricValue {
   display: block;
   font-family: var(--font-display, 'Lora', Georgia, serif);
@@ -91,18 +161,30 @@
   color: rgba(180,165,140,0.3);
   margin-top: 6px;
 }
+.metricTrend {
+  display: block;
+  font-size: 10px;
+  margin-top: 6px;
+}
 
-/* Aquifer card */
+/* Aquifer + drought buffer row */
+.bufferRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+@media (max-width: 768px) { .bufferRow { grid-template-columns: 1fr; } }
+
 .aquiferCard {
   padding: 20px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.02);
-  margin-bottom: 16px;
 }
 .aquiferTitle {
   font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
   margin: 0 0 8px;
@@ -113,15 +195,6 @@
   color: rgba(180,165,140,0.5);
   margin: 0;
 }
-
-/* Drought + flow row */
-.bufferRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-@media (max-width: 768px) { .bufferRow { grid-template-columns: 1fr; } }
 
 .droughtCard {
   padding: 20px;
@@ -149,11 +222,7 @@
   color: rgba(232,220,200,0.95);
   line-height: 1;
 }
-.droughtIcons {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.droughtIcons { display: flex; flex-direction: column; gap: 6px; }
 .droughtTrend {
   display: block;
   font-size: 11px;
@@ -161,11 +230,13 @@
   margin-top: 8px;
 }
 
+/* Flow card */
 .flowCard {
   padding: 20px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.025);
+  margin-bottom: 20px;
 }
 .flowLabel {
   display: block;
@@ -175,21 +246,20 @@
   color: rgba(180,165,140,0.45);
   margin-bottom: 14px;
 }
-.flowStats {
+.flowStats { display: flex; gap: 0; }
+.flowStat {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+  padding: 0 16px 0 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding-right: 16px;
 }
-.flowStat {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.flowStat:last-child { border-bottom: none; padding-bottom: 0; }
-.flowStatLabel { font-size: 13px; color: rgba(232,220,200,0.65); }
-.flowStatValue { font-size: 14px; font-weight: 700; color: rgba(232,220,200,0.9); }
+.flowStat:last-child { border-right: none; padding-left: 16px; padding-right: 0; }
+.flowStat:first-child { padding-left: 0; }
+.flowStatLabel { font-size: 11px; color: rgba(180,165,140,0.4); }
+.flowStatValue { font-size: 16px; font-weight: 700; color: rgba(232,220,200,0.9); }
 
 /* Comparison chart */
 .comparisonCard {
@@ -206,11 +276,7 @@
   color: rgba(232,220,200,0.85);
   margin: 0 0 8px;
 }
-.comparisonLegend {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
+.comparisonLegend { display: flex; gap: 16px; margin-bottom: 16px; }
 .legendItem {
   display: flex;
   align-items: center;
@@ -220,12 +286,7 @@
   letter-spacing: 0.06em;
   color: rgba(180,165,140,0.45);
 }
-.legendDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  display: inline-block;
-}
+.legendDot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 .comparisonChart {
   display: flex;
   align-items: flex-end;
@@ -247,12 +308,7 @@
   gap: 3px;
   width: 100%;
 }
-.bar {
-  flex: 1;
-  border-radius: 2px 2px 0 0;
-  min-height: 4px;
-  opacity: 0.8;
-}
+.bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 4px; opacity: 0.8; }
 .barLabel {
   font-size: 9px;
   font-weight: 600;
@@ -283,11 +339,7 @@
   color: rgba(232,220,200,0.85);
   margin: 0 0 16px;
 }
-.guidanceItem {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+.guidanceItem { display: flex; gap: 12px; margin-bottom: 16px; }
 .guidanceItem:last-child { margin-bottom: 0; }
 .guidanceIcon { flex-shrink: 0; margin-top: 2px; }
 .guidanceText {
@@ -322,3 +374,312 @@
   transition: background 150ms;
 }
 .reportBtn:hover { background: rgba(196,162,101,0.2); }
+
+/* ─── Flow Analysis tab ─────────────────────────────────────────────────── */
+
+.flowTabLayout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 800px) { .flowTabLayout { grid-template-columns: 1fr; } }
+
+.flowTabMain { display: flex; flex-direction: column; gap: 20px; }
+.flowTabSide { display: flex; flex-direction: column; gap: 16px; }
+
+/* Ledger header */
+.ledgerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ledgerTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+.ledgerDesc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(180,165,140,0.5);
+  margin: 0;
+  max-width: 480px;
+}
+.logBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(138,154,116,0.35);
+  border-radius: 7px;
+  background: rgba(138,154,116,0.08);
+  color: #8a9a74;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms;
+}
+.logBtn:hover { background: rgba(138,154,116,0.15); }
+
+/* Pump performance */
+.pumpCard {
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+}
+.pumpCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.pumpCardLabel {
+  display: block;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.85);
+  margin-bottom: 4px;
+}
+.pumpCardSub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(180,165,140,0.35);
+}
+.liveBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8a9a74;
+}
+
+.pumpChartArea {
+  height: 100px;
+  position: relative;
+  margin-bottom: 16px;
+}
+.pumpBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+}
+.pumpBarWrap { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.pumpBar { width: 100%; border-radius: 2px 2px 0 0; min-height: 4px; transition: height 300ms ease; }
+.pumpChartPeak {
+  position: absolute;
+  top: 2px;
+  left: 42%;
+  font-size: 9px;
+  font-style: italic;
+  color: rgba(180,165,140,0.35);
+}
+
+.pumpStats { display: flex; gap: 0; }
+.pumpStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 16px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+.pumpStat:first-child { padding-left: 0; }
+.pumpStat:last-child { border-right: none; }
+.pumpStatValue {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+  line-height: 1;
+}
+.pumpStatUnit {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(180,165,140,0.35);
+}
+
+/* Asset health cards */
+.assetGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 600px) { .assetGrid { grid-template-columns: 1fr; } }
+
+.assetCard {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.assetCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.assetIconWrap {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  font-size: 16px;
+  color: rgba(180,165,140,0.6);
+}
+.healthBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.assetName {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.85);
+  margin: 0 0 6px;
+}
+.assetNote {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180,165,140,0.45);
+  margin: 0 0 12px;
+}
+.assetMeta { display: flex; gap: 16px; }
+.assetMetaItem { display: flex; flex-direction: column; gap: 2px; }
+.assetMetaLabel {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(180,165,140,0.3);
+}
+.assetMetaValue {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.7);
+}
+
+/* Field observations */
+.fieldObsCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.fieldObsTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.85);
+  margin: 0 0 14px;
+}
+.fieldObsList { display: flex; flex-direction: column; gap: 12px; }
+.fieldObsItem { display: flex; gap: 10px; align-items: flex-start; }
+.fieldObsDot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.fieldObsText { font-size: 12px; line-height: 1.5; color: rgba(232,220,200,0.7); margin: 0 0 3px; }
+.fieldObsDate { font-size: 10px; color: rgba(180,165,140,0.35); }
+
+/* Maintenance sidebar */
+.maintenanceCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.maintenanceTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.85);
+  margin: 0 0 16px;
+}
+.maintenanceList { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.maintenanceItem { display: flex; gap: 10px; }
+.maintenanceDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.maintenanceDue {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 3px;
+}
+.maintenanceLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.8);
+  margin: 0 0 3px;
+}
+.maintenanceNote {
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(180,165,140,0.4);
+  margin: 0;
+}
+.maintenanceLogBtn {
+  width: 100%;
+  padding: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(180,165,140,0.5);
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+.maintenanceLogBtn:hover { background: rgba(255,255,255,0.04); color: rgba(232,220,200,0.7); }
+
+/* Quote card */
+.quoteCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(122,138,154,0.12);
+  background: rgba(122,138,154,0.04);
+}
+.quoteText {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.6;
+  color: rgba(232,220,200,0.75);
+  margin: 0 0 8px;
+}
+.quoteDetail {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180,165,140,0.4);
+  margin: 0;
+}
+
+/* ─── Water Metrics tab ─────────────────────────────────────────────────── */
+
+.metricsTabPlaceholder { padding-top: 4px; }
+.metricsTabGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 768px) { .metricsTabGrid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .metricsTabGrid { grid-template-columns: 1fr; } }

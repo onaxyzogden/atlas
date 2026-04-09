@@ -25,7 +25,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600, // Mapbox chunk will be large, that's OK
   },
   server: {
-    port: 5173,
+    port: Number(process.env.PORT) || 5200,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

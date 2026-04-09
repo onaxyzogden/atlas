@@ -1,0 +1,108 @@
+/* DomainFloatingToolbar — bottom-center glass pill, desktop only */
+/* Parent (.mapArea) already has position: relative in MapView.module.css */
+
+.toolbar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: rgba(15, 22, 12, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 6px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 48px);
+  min-width: 280px;
+  pointer-events: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Header row ──────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  gap: 8px;
+}
+
+.domainLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.chevron {
+  font-size: 8px;
+  color: rgba(180, 165, 140, 0.45);
+  flex-shrink: 0;
+}
+
+/* ─── Tool row ────────────────────────────────────────────────────────── */
+
+.toolRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ─── Tool buttons ────────────────────────────────────────────────────── */
+
+.toolBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 10px 6px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(232, 220, 200, 0.75);
+  min-width: 58px;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.toolBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.toolBtnActive {
+  composes: toolBtn;
+  background: rgba(125, 97, 64, 0.22);
+  border-color: rgba(196, 162, 101, 0.4);
+  color: #c4a265;
+}
+
+.toolBtnActive:hover {
+  background: rgba(125, 97, 64, 0.32);
+}
+
+.toolIcon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.toolLabel {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

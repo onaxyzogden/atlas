@@ -2,13 +2,19 @@
  * ForestHubDashboard — Forest management with health index, alerts, maintenance schedule.
  */
 
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import css from './ForestHubDashboard.module.css';
 
 interface ForestHubDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
+
+interface SoilsSummary { organic_matter_pct?: number | string; drainage_class?: string; ph_range?: string; }
+interface LandCoverSummary { tree_canopy_pct?: number | string; }
+interface ClimateSummary { annual_precip_mm?: number; annual_temp_mean_c?: number; }
 
 const ALERTS = [
   { type: 'warning', title: 'Irrigation System Alert', detail: 'PRESSURE DROP IN SECTOR B', color: '#c4a265' },
@@ -21,13 +27,52 @@ const MAINTENANCE = [
   { icon: 'audit', title: 'Nursery Stock Audit', due: null },
 ];
 
-const OPERATIONAL_DATA = [
-  { label: 'Soil Moisture', value: '24.5', unit: 'cb' },
-  { label: 'Canopy Vitality', value: '0.82', unit: 'NDVI' },
-  { label: 'Leaf Nutrient Levels', value: 'Balanced', unit: '' },
-];
-
 export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHubDashboardProps) {
+  const siteData = useSiteData(project.id);
+
+  const forest = useMemo(() => {
+    const soils    = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+    const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
+
+    const omRaw    = parseFloat(String(soils?.organic_matter_pct ?? ''));
+    const om       = isFinite(omRaw) ? omRaw : 4.5;
+    const canopyRaw = parseFloat(String(landCover?.tree_canopy_pct ?? ''));
+    const canopy   = isFinite(canopyRaw) ? canopyRaw : 45;
+    const drain    = (soils?.drainage_class ?? '').toLowerCase();
+    const ph       = soils?.ph_range ?? '';
+
+    // Tree Health Index (0–99)
+    const omBonus  = om >= 5 ? 15 : om >= 3 ? 10 : om >= 1 ? 6 : 2;
+    const drainBonus = drain.includes('well') ? 8 : drain.includes('poor') ? 2 : 5;
+    const healthIdx = Math.min(Math.max(Math.round(55 + (canopy / 100 * 20) + omBonus + drainBonus), 0), 99);
+
+    // Canopy Vitality NDVI (0.00–0.95)
+    const ndvi = Math.round((canopy / 100) * 0.9 * 100) / 100;
+
+    // F:B Ratio
+    const wellDrained = drain.includes('well');
+    const fbRatio = (om >= 5 && wellDrained) ? '4.2:1' : om >= 3 ? '3.2:1' : '1.8:1';
+
+    // Mycorrhizal colonization (%)
+    const mycOm = om >= 5 ? 20 : om >= 3 ? 15 : 5;
+    const mycDrain = wellDrained ? 8 : 0;
+    const myc = Math.min(Math.max(50 + mycOm + mycDrain, 0), 95);
+
+    // Nutrient balance from pH
+    let nutrients = 'Balanced';
+    if (ph) {
+      if (/^[45]\./.test(ph)) nutrients = 'Slightly Acidic';
+      else if (/^[89]\./.test(ph)) nutrients = 'Alkaline';
+    }
+
+    // Soil moisture proxy from drainage
+    const soilMoisture = wellDrained ? '18–22' : drain.includes('poor') ? '30–40' : '24–30';
+
+    return { healthIdx, ndvi, fbRatio, myc, nutrients, soilMoisture, om, canopy };
+  }, [siteData]);
+
+  const healthLabel = forest.healthIdx >= 90 ? 'OPTIMAL' : forest.healthIdx >= 75 ? 'GOOD' : 'MONITOR';
+
   return (
     <div className={css.page}>
       {/* Alerts */}
@@ -67,30 +112,34 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
           <svg viewBox="0 0 120 120" width={120} height={120}>
             <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
             <circle cx="60" cy="60" r="50" fill="none" stroke="#8a9a74" strokeWidth="8"
-              strokeDasharray={`${94 * 3.14} ${100 * 3.14}`}
+              strokeDasharray={`${forest.healthIdx * 3.14} ${100 * 3.14}`}
               strokeLinecap="round"
               transform="rotate(-90 60 60)" />
           </svg>
           <div className={css.gaugeText}>
-            <span className={css.gaugeValue}>94%</span>
-            <span className={css.gaugeLabel}>OPTIMAL</span>
+            <span className={css.gaugeValue}>{forest.healthIdx}%</span>
+            <span className={css.gaugeLabel}>{healthLabel}</span>
           </div>
         </div>
-        <span className={css.gaugeTrend}>+1.2% from June</span>
+        <span className={css.gaugeTrend}>Based on site soil &amp; canopy data</span>
       </div>
 
       {/* Operational Data */}
       <div className={css.section}>
         <h3 className={css.sectionLabel}>OPERATIONAL DATA</h3>
         <div className={css.dataList}>
-          {OPERATIONAL_DATA.map((d) => (
-            <div key={d.label} className={css.dataRow}>
-              <span className={css.dataLabel}>{d.label}</span>
-              <span className={css.dataValue}>
-                {d.value} {d.unit && <span className={css.dataUnit}>{d.unit}</span>}
-              </span>
-            </div>
-          ))}
+          <div className={css.dataRow}>
+            <span className={css.dataLabel}>Soil Moisture</span>
+            <span className={css.dataValue}>{forest.soilMoisture} <span className={css.dataUnit}>cb</span></span>
+          </div>
+          <div className={css.dataRow}>
+            <span className={css.dataLabel}>Canopy Vitality</span>
+            <span className={css.dataValue}>{forest.ndvi.toFixed(2)} <span className={css.dataUnit}>NDVI</span></span>
+          </div>
+          <div className={css.dataRow}>
+            <span className={css.dataLabel}>Leaf Nutrient Levels</span>
+            <span className={css.dataValue}>{forest.nutrients}</span>
+          </div>
         </div>
       </div>
 
@@ -100,11 +149,11 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
         <div className={css.dataList}>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Fungi:Bacteria Ratio</span>
-            <span className={css.dataValue}>3.2:1 <span className={css.dataOptimal}>Optimal</span></span>
+            <span className={css.dataValue}>{forest.fbRatio} <span className={css.dataOptimal}>Optimal</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Mycorrhizal Colonization</span>
-            <span className={css.dataValue}>78% <span className={css.dataUnit}>of roots</span></span>
+            <span className={css.dataValue}>{forest.myc}% <span className={css.dataUnit}>of roots</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Target F:B Range</span>

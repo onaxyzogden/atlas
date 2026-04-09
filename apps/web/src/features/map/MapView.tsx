@@ -3,11 +3,11 @@
  * Contains IconSidebar + MapCanvas + right panel + mobile bar.
  */
 
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
 import type { Structure } from '../../store/structureStore.js';
-import IconSidebar, { type SidebarView, type SubItemId } from '../../components/IconSidebar.js';
+import type { SidebarView } from '../../components/IconSidebar.js';
 import MapCanvas from './MapCanvas.js';
 import { useCommentStore } from '../../store/commentStore.js';
 import SlideUpPanel from '../../components/SlideUpPanel.js';
@@ -16,7 +16,12 @@ import GPSTracker from '../mobile/GPSTracker.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import { useUIStore } from '../../store/uiStore.js';
+import { useMapStore } from '../../store/mapStore.js';
+import { getDomainContext, type DomainKey } from './domainMapping.js';
 import css from './MapView.module.css';
+
+const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -36,6 +41,8 @@ const ScenarioPanel = lazy(() => import('../scenarios/ScenarioPanel.js'));
 const TemplatePanel = lazy(() => import('../templates/TemplatePanel.js'));
 const ReportingPanel = lazy(() => import('../reporting/ReportingPanel.js'));
 const FieldworkPanel = lazy(() => import('../fieldwork/FieldworkPanel.js'));
+const LivestockPanel = lazy(() => import('../livestock/LivestockPanel.js'));
+
 
 interface MapViewProps {
   project: LocalProject;
@@ -50,8 +57,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const isMobile = useIsMobile();
   const updateProject = useProjectStore((s) => s.updateProject);
 
-  const [activeView, setActiveView] = useState<SidebarView>('layers');
-  const [activeSubItem, setActiveSubItem] = useState<SubItemId | null>('terrain-viz');
+  const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
+  const setLayerVisible = useMapStore((s) => s.setLayerVisible);
+
+  const [activeView, setActiveView] = useState<SidebarView>(
+    () => getDomainContext(useUIStore.getState().activeDashboardSection).panel,
+  );
   const [isDrawingBoundary, setIsDrawingBoundary] = useState(false);
 
   const [mapRef, setMapRef] = useState<mapboxgl.Map | null>(null);
@@ -72,6 +83,19 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
     observer.observe(layoutRef.current);
     return () => observer.disconnect();
   }, [mapRef]);
+
+  // Sync panel + activate layers whenever the active dashboard section changes
+  useEffect(() => {
+    const ctx = getDomainContext(activeDashboardSection);
+    setActiveView(ctx.panel);
+    ctx.layers.forEach((layer) => setLayerVisible(layer, true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDashboardSection]);
+
+  // Derive active domain for the floating toolbar
+  const activeDomain = useMemo((): DomainKey => {
+    return getDomainContext(activeDashboardSection).domain;
+  }, [activeDashboardSection]);
 
   const handleCenterProperty = () => {
     if (!mapRef) return;
@@ -119,25 +143,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
     setIsDrawingBoundary(false);
   };
 
-  const handleSubItemChange = (id: SubItemId, panel: SidebarView) => {
-    setActiveSubItem(id);
-    setActiveView(panel);
-  };
 
   const center = computeCenterFromBoundary(project.parcelBoundaryGeojson);
 
   return (
     <div ref={layoutRef} className={css.layout}>
-      {/* Icon sidebar — hidden on mobile */}
-      {!isMobile && (
-        <IconSidebar
-          activeView={activeView}
-          onViewChange={setActiveView}
-          activeSubItem={activeSubItem}
-          onSubItemChange={handleSubItemChange}
-        />
-      )}
-
       {/* Map fills remaining space */}
       <div className={isMobile ? css.mapAreaMobile : css.mapArea}>
         {/* Floating project name card */}
@@ -172,11 +182,24 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             onMarkerCreated={(m) => setMarkerRef(m)}
           />
         </ErrorBoundary>
+
+        {!isMobile && (
+          <Suspense fallback={null}>
+            <DomainFloatingToolbar
+              domain={activeDomain}
+              map={mapRef}
+              draw={drawRef}
+              isMapReady={!!mapRef}
+              onExport={onExport}
+            />
+          </Suspense>
+        )}
       </div>
 
       {/* Right panel content */}
       {(() => {
         if (!activeView) return null;
+
         const panelContent = (
           <ErrorBoundary name="panel">
             <Suspense fallback={<PanelLoader />}>
@@ -240,6 +263,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} />
               )}
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
+              {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
             </Suspense>
           </ErrorBoundary>
         );

@@ -8,12 +8,15 @@ import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import { useStructureStore } from '../store/structureStore.js';
 import { useSiteDataStore } from '../store/siteDataStore.js';
+import { useUIStore } from '../store/uiStore.js';
+import { useIsMobile } from '../hooks/useMediaQuery.js';
 import * as turf from '@turf/turf';
 import ProjectEditor from '../features/project/ProjectEditor.js';
 import ProjectSummaryExport from '../features/export/ProjectSummaryExport.js';
 import ProjectTabBar from '../components/ProjectTabBar.js';
 import MapView from '../features/map/MapView.js';
 import DashboardView from '../features/dashboard/DashboardView.js';
+import DashboardSidebar from '../features/dashboard/DashboardSidebar.js';
 import css from './ProjectPage.module.css';
 
 export default function ProjectPage() {
@@ -30,6 +33,9 @@ export default function ProjectPage() {
   const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'map'>('dashboard');
+  const isMobile = useIsMobile();
+  const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
+  const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
   const [isEditing, setIsEditing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -93,22 +99,32 @@ export default function ProjectPage() {
         onTabChange={setActiveTab}
       />
 
-      <div className={css.contentArea}>
-        {/* Dashboard view */}
-        <div className={activeTab === 'dashboard' ? css.tabPanel : css.tabPanelHidden}>
-          <DashboardView project={project} onSwitchToMap={() => setActiveTab('map')} />
-        </div>
-
-        {/* Map view */}
-        <div className={activeTab === 'map' ? css.tabPanel : css.tabPanelHidden}>
-          <MapView
-            project={project}
-            zones={zones}
-            structures={structures}
-            onEdit={() => setIsEditing(true)}
-            onExport={() => setShowExport(true)}
-            onDelete={() => setShowDeleteConfirm(true)}
+      <div className={css.mainRow}>
+        {/* Shared left sidebar — always visible on desktop */}
+        {!isMobile && (
+          <DashboardSidebar
+            activeSection={activeDashboardSection}
+            onSectionChange={setActiveDashboardSection}
           />
+        )}
+
+        <div className={css.contentArea}>
+          {/* Dashboard view */}
+          <div className={activeTab === 'dashboard' ? css.tabPanel : css.tabPanelHidden}>
+            <DashboardView project={project} onSwitchToMap={() => setActiveTab('map')} />
+          </div>
+
+          {/* Map view */}
+          <div className={activeTab === 'map' ? css.tabPanel : css.tabPanelHidden}>
+            <MapView
+              project={project}
+              zones={zones}
+              structures={structures}
+              onEdit={() => setIsEditing(true)}
+              onExport={() => setShowExport(true)}
+              onDelete={() => setShowDeleteConfirm(true)}
+            />
+          </div>
         </div>
       </div>
 
