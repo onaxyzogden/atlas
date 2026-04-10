@@ -76,7 +76,9 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
         orchestrator.startWorker();
         orchestrator.startTerrainWorker();
         orchestrator.startWatershedWorker();
-        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed)');
+        orchestrator.startMicroclimateWorker();
+        orchestrator.startSoilRegenerationWorker();
+        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed + tier3-microclimate + tier3-soil-regeneration)');
       }
     } catch (err) {
       app.log.warn('Data pipeline workers not started (Redis/DB not available)');

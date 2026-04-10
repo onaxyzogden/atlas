@@ -23,6 +23,8 @@ import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden
 import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
+import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
+import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
 
 interface ProjectContext {
   projectId: string;
@@ -100,8 +102,12 @@ export class DataPipelineOrchestrator {
   private queue: Queue;
   private terrainQueue: Queue;
   private watershedQueue: Queue;
+  private microclimateQueue: Queue;
+  private soilRegenerationQueue: Queue;
   private terrainProcessor: TerrainAnalysisProcessor;
   private watershedProcessor: WatershedRefinementProcessor;
+  private microclimateProcessor: MicroclimateProcessor;
+  private soilRegenerationProcessor: SoilRegenerationProcessor;
 
   constructor(
     private readonly db: postgres.Sql,
@@ -110,8 +116,12 @@ export class DataPipelineOrchestrator {
     this.queue = new Queue('tier1-data', { connection: redis as never });
     this.terrainQueue = new Queue('tier3-terrain', { connection: redis as never });
     this.watershedQueue = new Queue('tier3-watershed', { connection: redis as never });
+    this.microclimateQueue = new Queue('tier3-microclimate', { connection: redis as never });
+    this.soilRegenerationQueue = new Queue('tier3-soil-regeneration', { connection: redis as never });
     this.terrainProcessor = new TerrainAnalysisProcessor(db);
     this.watershedProcessor = new WatershedRefinementProcessor(db);
+    this.microclimateProcessor = new MicroclimateProcessor(db);
+    this.soilRegenerationProcessor = new SoilRegenerationProcessor(db);
   }
 
   /** Enqueue a Tier 1 data fetch for a project. Called after boundary is set. */
@@ -168,6 +178,55 @@ export class DataPipelineOrchestrator {
           throw err;
         }
 
+        // Trigger microclimate analysis after terrain completes
+        await this.db`
+          INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+          VALUES (${projectId}, 'compute_microclimate', 'queued')
+        `;
+        await this.microclimateQueue.add('compute_microclimate', { projectId }, {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 10000 },
+          removeOnComplete: 50,
+          removeOnFail: 25,
+        });
+
+        await job.updateProgress(100);
+      },
+      { connection: this.redis as never, concurrency: 2 },
+    );
+  }
+
+  /** Start the BullMQ worker that processes Tier 3 microclimate jobs. */
+  startMicroclimateWorker(): Worker {
+    return new Worker(
+      'tier3-microclimate',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'compute_microclimate' AND status = 'queued'
+        `;
+
+        try {
+          await this.microclimateProcessor.process(projectId);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'compute_microclimate' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'compute_microclimate' AND status = 'running'
+          `;
+          throw err;
+        }
+
         await job.updateProgress(100);
       },
       { connection: this.redis as never, concurrency: 2 },
@@ -201,6 +260,43 @@ export class DataPipelineOrchestrator {
             UPDATE data_pipeline_jobs
             SET status = 'failed', error_message = ${message}
             WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status = 'running'
+          `;
+          throw err;
+        }
+
+        await job.updateProgress(100);
+      },
+      { connection: this.redis as never, concurrency: 2 },
+    );
+  }
+
+  /** Start the BullMQ worker that processes Tier 3 soil regeneration jobs. */
+  startSoilRegenerationWorker(): Worker {
+    return new Worker(
+      'tier3-soil-regeneration',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'compute_soil_regeneration' AND status = 'queued'
+        `;
+
+        try {
+          await this.soilRegenerationProcessor.process(projectId);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'compute_soil_regeneration' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'compute_soil_regeneration' AND status = 'running'
           `;
           throw err;
         }
@@ -276,6 +372,18 @@ export class DataPipelineOrchestrator {
       VALUES (${projectId}, 'compute_watershed', 'queued')
     `;
     await this.watershedQueue.add('compute_watershed', { projectId }, {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 10000 },
+      removeOnComplete: 50,
+      removeOnFail: 25,
+    });
+
+    // Trigger Tier 3 soil regeneration (depends on soils + land_cover, not terrain)
+    await this.db`
+      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+      VALUES (${projectId}, 'compute_soil_regeneration', 'queued')
+    `;
+    await this.soilRegenerationQueue.add('compute_soil_regeneration', { projectId }, {
       attempts: 2,
       backoff: { type: 'exponential', delay: 10000 },
       removeOnComplete: 50,

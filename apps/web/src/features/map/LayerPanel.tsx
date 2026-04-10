@@ -22,6 +22,8 @@ const LAYER_LABELS: Record<LayerType, string> = {
   climate:            'Climate Normals',
   zoning:             'Zoning & Setbacks',
   watershed_derived:  'Watershed Analysis',
+  microclimate:       'Microclimate',
+  soil_regeneration:  'Soil Regeneration',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -33,6 +35,8 @@ const LAYER_ICONS: Record<LayerType, string> = {
   climate:            '☀',
   zoning:             '⊞',
   watershed_derived:  '◈',
+  microclimate:       '❂',
+  soil_regeneration:  '◇',
 };
 
 const CONFIDENCE_COLORS = {
