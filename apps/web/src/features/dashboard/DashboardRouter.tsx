@@ -20,6 +20,7 @@ const CartographicDashboard = lazy(() => import('./pages/CartographicDashboard.j
 const EcologicalDashboard = lazy(() => import('./pages/EcologicalDashboard.js'));
 const TerrainDashboard = lazy(() => import('./pages/TerrainDashboard.js'));
 const StewardshipDashboard = lazy(() => import('./pages/StewardshipDashboard.js'));
+const SolarClimateDashboard = lazy(() => import('../../features/climate/SolarClimateDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -112,6 +113,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <Suspense fallback={<PanelLoader />}>
           <StewardshipDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'climate':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <SolarClimateDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </Suspense>
       );
     default:

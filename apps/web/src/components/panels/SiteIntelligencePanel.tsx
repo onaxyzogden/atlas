@@ -50,9 +50,33 @@ function getConservationAuth(project: LocalProject) {
   return null;
 }
 
+const TIER1_TYPES = ['elevation', 'soils', 'watershed', 'wetlands_flood', 'land_cover', 'climate', 'zoning'] as const;
+const TIER1_LABELS: Record<string, string> = {
+  elevation: 'Elevation', soils: 'Soils', watershed: 'Watershed',
+  wetlands_flood: 'Wetlands', land_cover: 'Land Cover', climate: 'Climate', zoning: 'Zoning',
+};
+
+const TIER3_TYPES = [
+  { type: 'terrain_analysis', label: 'Terrain Analysis' },
+  { type: 'watershed_derived', label: 'Watershed Derived' },
+  { type: 'microclimate', label: 'Microclimate' },
+  { type: 'soil_regeneration', label: 'Soil Regeneration' },
+] as const;
+
+function formatComponentName(name: string): string {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function capConf(c: 'high' | 'medium' | 'low'): 'High' | 'Medium' | 'Low' {
+  return (c.charAt(0).toUpperCase() + c.slice(1)) as 'High' | 'Medium' | 'Low';
+}
+
 export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
   const [liveDataOpen, setLiveDataOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [expandedScore, setExpandedScore] = useState<string | null>(null);
+  const [showAllOpps, setShowAllOpps] = useState(false);
+  const [showAllRisks, setShowAllRisks] = useState(false);
   const siteData = useSiteData(project.id);
   const refreshProject = useSiteDataStore((st) => st.refreshProject);
 
@@ -61,16 +85,36 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
 
   const consAuth = useMemo(() => getConservationAuth(project), [project]);
 
-  // Metadata-based completeness (project fields, not layer data)
-  const fields = [
-    project.hasParcelBoundary, !!project.address, !!project.projectType,
-    !!project.parcelId, !!project.provinceState, !!project.ownerNotes,
-    !!project.zoningNotes, !!project.waterRightsNotes,
-  ];
-  const completeness = Math.round((fields.filter(Boolean).length / fields.length) * 100);
-
   // Derive all computed values from layer data
   const layers = siteData?.layers ?? [];
+
+  // Layer-based completeness (Tier 1)
+  const layerCompleteness = useMemo(() => {
+    return TIER1_TYPES.map((type) => {
+      const layer = layers.find((l) => l.layer_type === type);
+      return {
+        type,
+        label: TIER1_LABELS[type] ?? type,
+        status: (layer?.fetch_status ?? 'unavailable') as 'complete' | 'pending' | 'failed' | 'unavailable',
+      };
+    });
+  }, [layers]);
+
+  const layerCompleteCount = layerCompleteness.filter((l) => l.status === 'complete').length;
+
+  // Tier 3 derived analysis status
+  const tier3Status = useMemo(() => {
+    return TIER3_TYPES.map(({ type, label }) => {
+      const layer = layers.find((l) => l.layer_type === type);
+      const status = layer?.fetch_status;
+      return {
+        label,
+        status: status === 'complete' ? 'complete' as const
+          : status === 'pending' ? 'computing' as const
+          : 'waiting' as const,
+      };
+    });
+  }, [layers]);
 
   const liveData = useMemo(
     () => deriveLiveDataRows(layers),
@@ -101,6 +145,45 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     () => deriveRisks(layers, project.country),
     [layers, project.country],
   );
+
+  // Blocking flags — critical risks surfaced prominently
+  const blockingFlags = useMemo(
+    () => risks.filter((r) => r.severity === 'critical'),
+    [risks],
+  );
+
+  // Top opportunities — prioritize those matching highest-scoring components
+  const topOpportunities = useMemo(() => {
+    const allComponents = assessmentScores.flatMap((sc) => sc.score_breakdown);
+    const topSources = new Set(
+      allComponents
+        .filter((c) => c.maxPossible > 0)
+        .sort((a, b) => (b.value / b.maxPossible) - (a.value / a.maxPossible))
+        .slice(0, 5)
+        .map((c) => c.sourceLayer),
+    );
+    const matched = opportunities.filter((o) => o.layerSource && topSources.has(o.layerSource));
+    const rest = opportunities.filter((o) => !matched.includes(o));
+    return [...matched, ...rest];
+  }, [assessmentScores, opportunities]);
+
+  // Top constraints — critical first, then those matching weakest components
+  const topConstraints = useMemo(() => {
+    const allComponents = assessmentScores.flatMap((sc) => sc.score_breakdown);
+    const weakSources = new Set(
+      allComponents
+        .filter((c) => c.maxPossible > 0)
+        .sort((a, b) => (a.value / a.maxPossible) - (b.value / b.maxPossible))
+        .slice(0, 5)
+        .map((c) => c.sourceLayer),
+    );
+    const critical = risks.filter((r) => r.severity === 'critical');
+    const matchedNonCritical = risks.filter(
+      (r) => r.severity !== 'critical' && r.layerSource && weakSources.has(r.layerSource),
+    );
+    const rest = risks.filter((r) => !critical.includes(r) && !matchedNonCritical.includes(r));
+    return [...critical, ...matchedNonCritical, ...rest];
+  }, [assessmentScores, risks]);
 
   const siteSummary = useMemo(
     () => deriveSiteSummary(layers, {
@@ -188,17 +271,69 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         </div>
       )}
 
+      {/* ── Blocking Flags ───────────────────────────────────────── */}
+      {blockingFlags.length > 0 && (
+        <div className={s.blockingAlertWrap}>
+          {blockingFlags.map((flag) => (
+            <div key={flag.id} className={s.blockingAlert}>
+              <span className={s.blockingAlertIcon}>{'\u26D4'}</span>
+              <div style={{ flex: 1 }}>
+                <span>{flag.message}</span>
+                <div style={{ marginTop: 2 }}>
+                  <span className={`${s.severityBadge} ${s.severity_critical}`}>Critical</span>
+                  {flag.layerSource && (
+                    <span className={s.flagSource} style={{ marginLeft: 6 }}>{flag.layerSource}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── Overall Suitability ────────────────────────────────────── */}
       <div className={s.suitabilityCard}>
         <ScoreCircle score={overallScore} size={68} />
         <div>
           <div className={s.suitabilityTitle}>Overall Suitability</div>
-          <div className={s.completenessLabel}>Data completeness: {completeness}%</div>
-          <div className={s.completenessTrack}>
-            <div className={s.completenessFill} style={{ width: `${completeness}%` }} />
+          <div className={s.completenessLabel}>Data layers: {layerCompleteCount}/7</div>
+          <div className={s.layerDotsRow} title={layerCompleteness.map((l) => `${l.label}: ${l.status}`).join(', ')}>
+            {layerCompleteness.map((l) => (
+              <div
+                key={l.type}
+                className={`${s.layerDot} ${l.status === 'pending' ? s.layerDotPending : ''}`}
+                title={`${l.label}: ${l.status}`}
+                style={{
+                  background: l.status === 'complete' ? '#2d7a4f'
+                    : l.status === 'pending' ? '#c4a265'
+                    : 'var(--color-panel-muted, #666)',
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
+
+      {/* ── Tier 3 Status ─────────────────────────────────────────── */}
+      {layerCompleteCount > 0 && (
+        <div className={s.tier3Card}>
+          <h3 className={p.sectionLabel} style={{ marginBottom: 4 }}>Derived Analyses</h3>
+          {tier3Status.map((t3) => (
+            <div key={t3.label} className={s.tier3Row}>
+              <span>{t3.label}</span>
+              <span className={`${s.tier3Status} ${
+                t3.status === 'complete' ? s.tier3Complete
+                  : t3.status === 'computing' ? s.tier3Computing
+                  : s.tier3Waiting
+              }`}>
+                {t3.status === 'complete' ? '\u2713 Complete'
+                  : t3.status === 'computing' ? '\u25CB Computing'
+                  : '\u2014 Waiting'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── LIVE DATA ──────────────────────────────────────────────── */}
       <div className={s.liveDataWrap}>
@@ -324,20 +459,51 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       <h3 className={p.sectionLabel}>Assessment Scores</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
         {assessmentScores.map((item) => (
-          <div key={item.label} className={s.scoreRow}>
-            <ScoreCircle score={item.score} size={36} />
-            <div style={{ flex: 1 }}>
-              <div className={s.scoreLabel}>{item.label}</div>
-              <div className={s.scoreBar}>
-                <div className={s.scoreBarFill} style={{ width: `${item.score}%`, background: getScoreColor(item.score) }} />
-              </div>
-            </div>
-            <span
-              className={s.scoreBadge}
-              style={{ background: `${getScoreColor(item.score)}18`, color: getScoreColor(item.score) }}
+          <div key={item.label}>
+            <div
+              className={`${s.scoreRow} ${s.scoreRowClickable}`}
+              onClick={() => setExpandedScore(expandedScore === item.label ? null : item.label)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedScore(expandedScore === item.label ? null : item.label); }}
             >
-              {item.rating}
-            </span>
+              <ScoreCircle score={item.score} size={36} />
+              <div style={{ flex: 1 }}>
+                <div className={s.scoreLabel}>{item.label}</div>
+                <div className={s.scoreBar}>
+                  <div className={s.scoreBarFill} style={{ width: `${item.score}%`, background: getScoreColor(item.score) }} />
+                </div>
+              </div>
+              <ConfBadge level={capConf(item.confidence)} />
+              <span
+                className={s.scoreBadge}
+                style={{ background: `${getScoreColor(item.score)}18`, color: getScoreColor(item.score) }}
+              >
+                {item.rating}
+              </span>
+            </div>
+            {expandedScore === item.label && (
+              <div className={s.scoreBreakdown}>
+                {item.score_breakdown.map((comp) => {
+                  const pct = comp.maxPossible > 0 ? Math.max(0, Math.min(100, (comp.value / comp.maxPossible) * 100)) : 0;
+                  return (
+                    <div key={comp.name} className={s.breakdownRow}>
+                      <span className={s.breakdownName}>{formatComponentName(comp.name)}</span>
+                      <div className={s.breakdownBarTrack}>
+                        <div
+                          className={s.breakdownBarFill}
+                          style={{ width: `${pct}%`, background: getScoreColor(pct) }}
+                        />
+                      </div>
+                      <span className={s.breakdownValue}>
+                        {comp.value}/{comp.maxPossible}
+                      </span>
+                      <ConfBadge level={capConf(comp.confidence)} />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -345,7 +511,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Opportunities ──────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Opportunities</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {opportunities.map((flag) => {
+        {(showAllOpps ? topOpportunities : topOpportunities.slice(0, 3)).map((flag) => {
           const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
           return (
             <div key={flag.id} className={s.oppRiskRow}>
@@ -367,15 +533,20 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             </div>
           );
         })}
-        {opportunities.length === 0 && (
+        {topOpportunities.length > 3 && (
+          <button className={s.showAllToggle} onClick={() => setShowAllOpps((v) => !v)}>
+            {showAllOpps ? 'Show fewer' : `Show all ${topOpportunities.length}`}
+          </button>
+        )}
+        {topOpportunities.length === 0 && (
           <span className={s.flagSource}>No opportunities identified from current data</span>
         )}
       </div>
 
-      {/* ── Risks ──────────────────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Main Risks</h3>
+      {/* ── Key Constraints ──────────────────────────────────────────── */}
+      <h3 className={p.sectionLabel}>Key Constraints</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {risks.map((flag) => {
+        {(showAllRisks ? topConstraints : topConstraints.slice(0, 3)).map((flag) => {
           const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
           return (
             <div key={flag.id} className={s.oppRiskRow}>
@@ -404,8 +575,13 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             </div>
           );
         })}
-        {risks.length === 0 && (
-          <span className={s.flagSource}>No risks identified from current data</span>
+        {topConstraints.length > 3 && (
+          <button className={s.showAllToggle} onClick={() => setShowAllRisks((v) => !v)}>
+            {showAllRisks ? 'Show fewer' : `Show all ${topConstraints.length}`}
+          </button>
+        )}
+        {topConstraints.length === 0 && (
+          <span className={s.flagSource}>No constraints identified from current data</span>
         )}
       </div>
 

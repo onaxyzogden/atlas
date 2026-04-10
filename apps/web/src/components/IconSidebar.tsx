@@ -29,6 +29,7 @@ export type SidebarView =
   | 'reporting'
   | 'fieldnotes'
   | 'livestock'
+  | 'educational'
   | 'settings'
   | null;
 
@@ -100,7 +101,7 @@ const PHASE_GROUPS: PhaseGroup[] = [
       { id: 'scenarios',     label: 'Scenarios',         panel: 'scenarios' },
       { id: 'collaboration', label: 'Collaboration',     panel: 'collaboration' },
       { id: 'moontrance',    label: 'OGDEN Identity',    panel: 'moontrance' },
-      { id: 'educational',   label: 'Educational Atlas', panel: 'collaboration' },
+      { id: 'educational',   label: 'Educational Atlas', panel: 'educational' },
       { id: 'templates',     label: 'Templates',         panel: 'templates' },
       { id: 'reporting',     label: 'Reports & Export',  panel: 'reporting' },
     ],

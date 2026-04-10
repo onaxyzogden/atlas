@@ -8,7 +8,7 @@
 
 /* ── Header ───────────────────────────────────────────────────── */
 .header {
-  padding: 16px 20px;
+  padding: 16px 20px 12px;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -40,6 +40,274 @@
 .headerSub {
   font-size: 11px;
   color: var(--color-text-muted);
+}
+
+/* ── Guardrails banner ───────────────────────────────────────── */
+.guardrailsBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(91, 157, 184, 0.06);
+  border-bottom: 1px solid rgba(91, 157, 184, 0.12);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.guardrailsIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #5b9db8;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 16px;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color var(--duration-base), border-color var(--duration-base);
+  text-align: center;
+}
+
+.tabBtn:hover {
+  color: var(--color-text);
+}
+
+.tabBtnActive {
+  color: #5b9db8;
+  border-bottom-color: #5b9db8;
+}
+
+/* ── Assessment area ─────────────────────────────────────────── */
+.assessmentArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.enrichingHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 32px 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.emptyAssessment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 0;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 260px;
+  margin: 0;
+}
+
+.emptyRecs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+/* ── Section header ──────────────────────────────────────────── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-panel-section, #9a7a53);
+  margin: 0;
+}
+
+.sectionMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── AI badge ────────────────────────────────────────────────── */
+.aiBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-style: italic;
+  color: #5b9db8;
+}
+
+.aiBadge svg {
+  opacity: 0.7;
+}
+
+/* ── Narrative section ───────────────────────────────────────── */
+.narrativeSection {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.narrativeContent {
+  font-size: var(--text-sm);
+  line-height: 1.75;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
+
+.caveat {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin: 8px 0;
+  padding-left: 10px;
+  border-left: 2px solid rgba(91, 157, 184, 0.25);
+  line-height: 1.5;
+}
+
+/* ── Source layers ────────────────────────────────────────────── */
+.sourceLayers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.sourceLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.sourceTag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(91, 157, 184, 0.1);
+  color: #5b9db8;
+}
+
+/* ── Regenerate button ───────────────────────────────────────── */
+.regenerateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-base), color var(--duration-base);
+}
+
+.regenerateBtn:hover:not(:disabled) {
+  background: rgba(91, 157, 184, 0.06);
+  color: #5b9db8;
+}
+
+.regenerateBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Recommendations section ─────────────────────────────────── */
+.recsSection {
+  margin-bottom: var(--space-5);
+}
+
+.recsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recCard {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.recNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(91, 157, 184, 0.1);
+  color: #5b9db8;
+  font-size: 12px;
+  font-weight: var(--font-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.recBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.recText {
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.recMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.domainTag {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.1);
+  color: #c4a265;
+  letter-spacing: 0.02em;
 }
 
 /* ── Chat area ────────────────────────────────────────────────── */
@@ -80,7 +348,7 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   line-height: 1.5;
-  max-width: 260px;
+  max-width: 280px;
   margin: 0 auto;
 }
 
@@ -196,6 +464,11 @@
   color: #5b9db8;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .cancelBtn {
   margin-left: auto;
   background: none;
@@ -242,5 +515,5 @@
 }
 
 .chatInput:focus {
-  border-color: rgba(196, 162, 101, 0.4);
+  border-color: rgba(91, 157, 184, 0.4);
 }

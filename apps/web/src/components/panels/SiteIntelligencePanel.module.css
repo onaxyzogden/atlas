@@ -453,3 +453,176 @@
   border-left: 2px solid rgba(196, 162, 101, 0.2);
   line-height: 1.5;
 }
+
+/* ── Blocking flag alerts ────────────────────────────────────────── */
+.blockingAlertWrap {
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.blockingAlert {
+  padding: 10px 12px;
+  background: rgba(196, 78, 63, 0.06);
+  border: 1px solid rgba(196, 78, 63, 0.2);
+  border-left: 3px solid #c44e3f;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-panel-text);
+}
+
+.blockingAlertIcon {
+  color: #c44e3f;
+  flex-shrink: 0;
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+/* ── Layer completeness dots ─────────────────────────────────────── */
+.layerDotsRow {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.layerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.layerDotPending {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Tier 3 status card ──────────────────────────────────────────── */
+.tier3Card {
+  padding: 10px 14px;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 10px;
+  margin-bottom: var(--space-5);
+}
+
+.tier3Row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--color-panel-text);
+}
+
+.tier3Status {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.tier3Complete {
+  color: #2d7a4f;
+  background: rgba(45, 122, 79, 0.1);
+}
+
+.tier3Computing {
+  color: #c4a265;
+  background: rgba(196, 162, 101, 0.1);
+}
+
+.tier3Waiting {
+  color: var(--color-panel-muted);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Score row clickable + breakdown ─────────────────────────────── */
+.scoreRowClickable {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  margin: -6px -8px;
+  transition: background var(--duration-base);
+}
+
+.scoreRowClickable:hover {
+  background: rgba(196, 162, 101, 0.04);
+}
+
+.scoreBreakdown {
+  padding: 8px 0 4px 46px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-panel-text);
+}
+
+.breakdownName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breakdownBarTrack {
+  width: 40px;
+  height: 2px;
+  background: var(--color-panel-subtle);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.breakdownBarFill {
+  height: 100%;
+  border-radius: 1px;
+}
+
+.breakdownValue {
+  font-size: 10px;
+  font-family: var(--font-mono, 'Fira Code', monospace);
+  color: var(--color-panel-muted);
+  min-width: 32px;
+  text-align: right;
+}
+
+.breakdownSource {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  white-space: nowrap;
+}
+
+/* ── Show all toggle ─────────────────────────────────────────────── */
+.showAllToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  color: #c4a265;
+  padding: 4px 0;
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.showAllToggle:hover {
+  text-decoration: underline;
+}

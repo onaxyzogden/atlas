@@ -45,6 +45,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
       { id: 'ecological', label: 'Ecological' },
       { id: 'terrain-dashboard', label: 'Terrain' },
       { id: 'stewardship', label: 'Stewardship' },
+      { id: 'climate', label: 'Solar & Climate' },
     ],
   },
   {
@@ -130,6 +131,8 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><polyline points="1 12 4 6 7 9 10 4 13 12"/></svg>;
     case 'stewardship':
       return <svg {...p}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/></svg>;
+    case 'climate':
+      return <svg {...p}><circle cx="7" cy="4" r="2.5"/><path d="M3 8C3 8 5 6 7 6C9 6 11 8 11 8"/><path d="M2 11C2 11 5 9 7 9C9 9 12 11 12 11"/></svg>;
     case 'biomass':
       return <svg {...p}><rect x="1" y="8" width="3" height="5" rx="0.3"/><rect x="5.5" y="5" width="3" height="8" rx="0.3"/><rect x="10" y="2" width="3" height="11" rx="0.3"/></svg>;
     case 'dashboard-settings':

@@ -30,6 +30,7 @@ const MOBILE_SECTIONS = [
   { id: 'ecological', label: 'Ecological' },
   { id: 'terrain-dashboard', label: 'Terrain' },
   { id: 'stewardship', label: 'Stewardship' },
+  { id: 'climate', label: 'Solar & Climate' },
   { id: 'biomass', label: 'Biomass' },
 ];
 

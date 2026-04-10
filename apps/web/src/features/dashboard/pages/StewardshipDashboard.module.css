@@ -27,7 +27,44 @@
   display: block;
 }
 
-/* Goals */
+/* ── Headline score card ───────────────────────────────────── */
+.headlineCard {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(138,154,116,0.15);
+  background: rgba(138,154,116,0.03);
+  margin-bottom: 28px;
+}
+.headlineScoreWrap {
+  flex-shrink: 0;
+}
+.headlineInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.headlineLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.45);
+}
+.headlineRating {
+  font-size: 22px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+}
+.headlineConf {
+  font-size: 11px;
+  color: rgba(180,165,140,0.4);
+}
+
+/* ── Goals ──────────────────────────────────────────────────── */
 .goalsCard {
   padding: 20px;
   border-radius: 12px;
@@ -52,8 +89,14 @@
   color: rgba(180,165,140,0.4);
   font-style: italic;
 }
+.goalPending {
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(180,165,140,0.35);
+  padding: 4px 0 8px;
+}
 
-/* Action table */
+/* ── Action table ──────────────────────────────────────────── */
 .actionTable {
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 10px;
@@ -61,7 +104,7 @@
 }
 .actionHeaderRow {
   display: grid;
-  grid-template-columns: 80px 3fr 80px 100px;
+  grid-template-columns: 80px 3fr 100px;
   gap: 12px;
   padding: 10px 16px;
   font-size: 9px;
@@ -74,7 +117,7 @@
 }
 .actionRow {
   display: grid;
-  grid-template-columns: 80px 3fr 80px 100px;
+  grid-template-columns: 80px 3fr 100px;
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
@@ -100,45 +143,34 @@
   color: rgba(180,165,140,0.4);
   text-transform: uppercase;
 }
-.actionTask { font-size: 13px; color: rgba(232,220,200,0.8); }
-.actionDue { font-size: 12px; color: rgba(180,165,140,0.5); }
-.actionStatus { font-size: 11px; font-weight: 600; color: rgba(232,220,200,0.65); }
+.actionTask { font-size: 13px; color: rgba(232,220,200,0.8); line-height: 1.5; }
+.actionSource { font-size: 11px; color: rgba(180,165,140,0.4); }
 
-/* Certifications */
-.certList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.certCard {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-radius: 10px;
+/* ── Pending card ──────────────────────────────────────────── */
+.pendingCard {
+  padding: 20px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.02);
-}
-.certName {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(232,220,200,0.85);
-}
-.certExpiry {
-  display: block;
-  font-size: 11px;
-  color: rgba(180,165,140,0.4);
-  margin-top: 2px;
-}
-.certStatus {
-  font-size: 11px;
-  font-weight: 600;
-  color: #8a9a74;
-  white-space: nowrap;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(180,165,140,0.45);
+  text-align: center;
 }
 
-/* Quote card */
+/* ── Certification placeholder ─────────────────────────────── */
+.certPlaceholder {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed rgba(196,162,101,0.2);
+  background: rgba(196,162,101,0.03);
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(180,165,140,0.45);
+  text-align: center;
+}
+
+/* ── Quote card ────────────────────────────────────────────── */
 .quoteCard {
   padding: 28px;
   border-radius: 12px;

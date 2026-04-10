@@ -44,6 +44,7 @@ const TemplatePanel = lazy(() => import('../templates/TemplatePanel.js'));
 const ReportingPanel = lazy(() => import('../reporting/ReportingPanel.js'));
 const FieldworkPanel = lazy(() => import('../fieldwork/FieldworkPanel.js'));
 const LivestockPanel = lazy(() => import('../livestock/LivestockPanel.js'));
+const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
 
 
 interface MapViewProps {
@@ -282,6 +283,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               )}
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
               {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
             </Suspense>
           </ErrorBoundary>
         );
