@@ -11,15 +11,19 @@
  * Mapbox terrain for shade/exposure analysis.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useMemo } from 'react';
 import ClimateScenarioOverlay from './ClimateScenarioOverlay.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
+import { useSiteDataStore } from '../../store/siteDataStore.js';
+import type { WindRoseData } from '../../lib/layerFetcher.js';
 import s from './SolarClimatePanel.module.css';
 
 interface SolarClimatePanelProps {
   center: [number, number] | null; // [lng, lat]
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
+  projectId?: string;
 }
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter';
@@ -37,14 +41,23 @@ const SEASON_DATES: Record<Season, { month: number; day: number; label: string }
   winter: { month: 12, day: 21, label: 'Winter Solstice' },
 };
 
-const WIND_DIRECTIONS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+const WIND_DIRECTIONS_8 = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+const WIND_DIRECTIONS_16 = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'] as const;
 
-export default function SolarClimatePanel({ center, map, isMapReady }: SolarClimatePanelProps) {
+export default function SolarClimatePanel({ center, map, isMapReady, projectId }: SolarClimatePanelProps) {
   const [collapsed, setCollapsed] = useState(true);
   const [activeSeason, setActiveSeason] = useState<Season>('summer');
   const [showWindRose, setShowWindRose] = useState(false);
 
   const lat = center?.[1] ?? 43.5;
+
+  // Read real wind rose data from the climate layer in the store
+  const windRoseData = useSiteDataStore((state) => {
+    if (!projectId) return null;
+    const siteData = state.dataByProject[projectId];
+    const climateLayer = siteData?.layers?.find((l: { layer_type: string }) => l.layer_type === 'climate');
+    return (climateLayer?.summary as Record<string, unknown> | undefined)?._wind_rose as WindRoseData | undefined ?? null;
+  });
 
   // Compute approximate sun positions for the selected season
   const sunPath = useMemo(() => computeSunPath(lat, activeSeason), [lat, activeSeason]);
@@ -118,11 +131,17 @@ export default function SolarClimatePanel({ center, map, isMapReady }: SolarClim
 
           {showWindRose && (
             <div className={s.windRoseSection}>
-              <WindRoseMini lat={lat} />
-              <div className={s.windRoseNote}>
-                Prevailing wind data from NOAA/ECCC climate normals.
-                Actual conditions vary by season and terrain.
-              </div>
+              <WindRoseMini lat={lat} windData={windRoseData} />
+              {windRoseData ? (
+                <div className={s.windRoseNote}>
+                  Station: {windRoseData.station_name} ({windRoseData.station_distance_km}km)
+                  {windRoseData.calm_pct > 0 ? ` \u00B7 Calm: ${windRoseData.calm_pct.toFixed(1)}%` : ''}
+                </div>
+              ) : (
+                <div className={s.windRoseNote}>
+                  Estimated from latitude model. Actual conditions vary by season and terrain.
+                </div>
+              )}
             </div>
           )}
 
@@ -207,13 +226,21 @@ function SunArcDiagram({ sunPath }: { sunPath: SunPosition[] }) {
 
 // ─── Wind Rose Mini ──────────────────────────────────────────────────────
 
-function WindRoseMini({ lat }: { lat: number }) {
-  const size = 100;
-  const center = size / 2;
-  const maxR = 38;
+function WindRoseMini({ lat, windData }: { lat: number; windData: WindRoseData | null }) {
+  const size = 120;
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxR = 44;
 
-  // Approximate prevailing wind frequencies for mid-latitude continental
-  const windFrequencies = getApproxWindFrequencies(lat);
+  // Use real 16-point data when available, else fall back to 8-point latitude model
+  const is16 = windData != null && windData.frequencies_16.length === 16;
+  const directions = is16 ? WIND_DIRECTIONS_16 : WIND_DIRECTIONS_8;
+  const frequencies = is16 ? windData!.frequencies_16 : getApproxWindFrequencies(lat);
+  const numDirs = directions.length;
+  const stepDeg = 360 / numDirs;
+
+  // Normalize frequencies so the max bar reaches maxR
+  const maxFreq = Math.max(...frequencies, 0.01);
 
   return (
     <svg width={size} height={size} style={{ display: 'block', margin: '0 auto' }}>
@@ -221,8 +248,8 @@ function WindRoseMini({ lat }: { lat: number }) {
       {[0.33, 0.66, 1].map((r) => (
         <circle
           key={r}
-          cx={center}
-          cy={center}
+          cx={cx}
+          cy={cy}
           r={maxR * r}
           fill="none"
           stroke="#3d3328"
@@ -230,39 +257,57 @@ function WindRoseMini({ lat }: { lat: number }) {
         />
       ))}
       {/* Wind bars */}
-      {WIND_DIRECTIONS.map((dir, i) => {
-        const angle = (i * 45 - 90) * (Math.PI / 180);
-        const freq = windFrequencies[i]!;
-        const r = maxR * freq;
-        const x = center + Math.cos(angle) * r;
-        const y = center + Math.sin(angle) * r;
-        const lx = center + Math.cos(angle) * (maxR + 8);
-        const ly = center + Math.sin(angle) * (maxR + 8);
+      {directions.map((dir, i) => {
+        const angle = (i * stepDeg - 90) * (Math.PI / 180);
+        const freq = frequencies[i] ?? 0;
+        const r = maxR * (freq / maxFreq);
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        const labelR = maxR + (is16 ? 10 : 8);
+        const lx = cx + Math.cos(angle) * labelR;
+        const ly = cy + Math.sin(angle) * labelR;
+
+        // Only show cardinal + intercardinal labels on 16-point to avoid clutter
+        const showLabel = !is16 || i % 2 === 0;
 
         return (
           <g key={dir}>
             <line
-              x1={center}
-              y1={center}
+              x1={cx}
+              y1={cy}
               x2={x}
               y2={y}
               stroke="#d4a843"
-              strokeWidth={3}
+              strokeWidth={is16 ? 2 : 3}
               strokeLinecap="round"
               opacity={0.7}
             />
-            <text
-              x={lx}
-              y={ly + 3}
-              fill="#9a8a74"
-              fontSize={7}
-              textAnchor="middle"
-            >
-              {dir}
-            </text>
+            {showLabel && (
+              <text
+                x={lx}
+                y={ly + 3}
+                fill="#9a8a74"
+                fontSize={is16 ? 6 : 7}
+                textAnchor="middle"
+              >
+                {dir}
+              </text>
+            )}
           </g>
         );
       })}
+      {/* Prevailing direction indicator */}
+      {windData && (
+        <text
+          x={cx}
+          y={size - 1}
+          fill="#d4a843"
+          fontSize={7}
+          textAnchor="middle"
+        >
+          Prevailing: {windData.prevailing}
+        </text>
+      )}
     </svg>
   );
 }

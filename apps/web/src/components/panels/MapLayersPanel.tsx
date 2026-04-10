@@ -4,6 +4,7 @@
  * and Ontario-specific environmental data sources.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useMemo, useState, useCallback } from 'react';
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
@@ -16,8 +17,8 @@ import s from './MapLayersPanel.module.css';
 
 interface MapLayersPanelProps {
   project: LocalProject;
-  map?: mapboxgl.Map | null;
-  marker?: mapboxgl.Marker | null;
+  map?: maplibregl.Map | null;
+  marker?: maplibregl.Marker | null;
   onCenterProperty?: () => void;
   boundaryColor?: string;
   onBoundaryColorChange?: (color: string) => void;
@@ -222,7 +223,7 @@ export default function MapLayersPanel({ project, map: mapInstance, marker, onCe
 
 function BoundaryColorsSection({ project, map, boundaryColor, onBoundaryColorChange }: {
   project: LocalProject;
-  map?: mapboxgl.Map | null;
+  map?: maplibregl.Map | null;
   boundaryColor?: string;
   onBoundaryColorChange?: (color: string) => void;
 }) {

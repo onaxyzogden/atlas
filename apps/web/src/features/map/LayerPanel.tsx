@@ -14,23 +14,25 @@ import { generateMockLayers, getLayerSummaryText, type MockLayerResult } from '.
 import { fetchAllLayers, type FetchLayerResults } from '../../lib/layerFetcher.js';
 
 const LAYER_LABELS: Record<LayerType, string> = {
-  elevation:      'Elevation & Slope',
-  soils:          'Soils',
-  watershed:      'Watershed & Hydrology',
-  wetlands_flood: 'Wetlands & Flood Risk',
-  land_cover:     'Land Cover',
-  climate:        'Climate Normals',
-  zoning:         'Zoning & Setbacks',
+  elevation:          'Elevation & Slope',
+  soils:              'Soils',
+  watershed:          'Watershed & Hydrology',
+  wetlands_flood:     'Wetlands & Flood Risk',
+  land_cover:         'Land Cover',
+  climate:            'Climate Normals',
+  zoning:             'Zoning & Setbacks',
+  watershed_derived:  'Watershed Analysis',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
-  elevation:      '▲',
-  soils:          '◆',
-  watershed:      '~',
-  wetlands_flood: '≈',
-  land_cover:     '◉',
-  climate:        '☀',
-  zoning:         '⊞',
+  elevation:          '▲',
+  soils:              '◆',
+  watershed:          '~',
+  wetlands_flood:     '≈',
+  land_cover:         '◉',
+  climate:            '☀',
+  zoning:             '⊞',
+  watershed_derived:  '◈',
 };
 
 const CONFIDENCE_COLORS = {
@@ -66,14 +68,34 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
     return null;
   }, [project]);
 
+  const bbox = useMemo<[number, number, number, number] | undefined>(() => {
+    if (!project?.parcelBoundaryGeojson) return undefined;
+    try {
+      const fc = project.parcelBoundaryGeojson as GeoJSON.FeatureCollection;
+      let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+      const visit = (c: unknown) => {
+        if (!Array.isArray(c)) return;
+        if (typeof c[0] === 'number' && typeof c[1] === 'number') {
+          if (c[0] < minLng) minLng = c[0]; if (c[0] > maxLng) maxLng = c[0];
+          if (c[1] < minLat) minLat = c[1]; if (c[1] > maxLat) maxLat = c[1];
+          return;
+        }
+        for (const item of c) visit(item);
+      };
+      for (const f of fc.features) visit((f.geometry as { coordinates: unknown }).coordinates);
+      if (minLng < Infinity) return [minLng, minLat, maxLng, maxLat];
+    } catch { /* */ }
+    return undefined;
+  }, [project]);
+
   useEffect(() => {
     if (!center || !project) return;
     setIsFetching(true);
-    fetchAllLayers({ center, country: project.country })
+    fetchAllLayers({ center, country: project.country, bbox })
       .then(setFetchResult)
       .catch(() => { /* fallback to mock */ })
       .finally(() => setIsFetching(false));
-  }, [center, project]);
+  }, [center, project, bbox]);
 
   // Use fetched data if available, otherwise mock
   const layers: MockLayerResult[] = fetchResult?.layers ?? generateMockLayers(project?.country ?? 'US');

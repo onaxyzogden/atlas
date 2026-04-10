@@ -1,0 +1,27 @@
+# ── OGDEN Atlas Web — multi-stage production build ────────────────────────
+FROM node:20-alpine AS base
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
+WORKDIR /app
+
+# ── Install dependencies ──────────────────────────────────────────────────
+FROM base AS deps
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/web/package.json apps/web/
+RUN pnpm install --frozen-lockfile --prod=false
+
+# ── Build (Vite injects env vars at build time via import.meta.env) ───────
+FROM deps AS build
+ARG VITE_MAPBOX_TOKEN
+ARG VITE_CESIUM_ION_TOKEN
+ARG VITE_API_URL
+COPY packages/shared packages/shared
+COPY apps/web apps/web
+RUN pnpm --filter @ogden/shared build 2>/dev/null || true
+RUN pnpm --filter @ogden/web build
+
+# ── Output stage — just the static files ──────────────────────────────────
+FROM alpine:3.20 AS production
+COPY --from=build /app/apps/web/dist /build/dist
+# The entrypoint in docker-compose copies these into the shared nginx volume
+VOLUME /app/dist

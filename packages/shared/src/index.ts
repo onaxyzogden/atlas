@@ -5,6 +5,8 @@ export * from './schemas/assessment.schema.js';
 export * from './schemas/project.schema.js';
 export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
+export * from './schemas/designFeature.schema.js';
+export * from './schemas/file.schema.js';
 
 // Utilities
 export * from './lib/caseTransform.js';

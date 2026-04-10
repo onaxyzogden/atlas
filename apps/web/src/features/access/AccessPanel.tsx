@@ -3,6 +3,7 @@
  * Uses MapboxDraw in line mode for path drawing.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import { usePathStore, PATH_TYPE_CONFIG, type PathType, type DesignPath } from '../../store/pathStore.js';
 import p from '../../styles/panel.module.css';
@@ -10,7 +11,7 @@ import p from '../../styles/panel.module.css';
 interface AccessPanelProps {
   projectId: string;
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) {
@@ -179,7 +180,7 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
   );
 }
 
-function renderPathOnMap(map: mapboxgl.Map, path: DesignPath) {
+function renderPathOnMap(map: maplibregl.Map, path: DesignPath) {
   const sourceId = `path-${path.id}`;
   if (map.getSource(sourceId)) return;
   const cfg = PATH_TYPE_CONFIG[path.type];
@@ -194,7 +195,7 @@ function renderPathOnMap(map: mapboxgl.Map, path: DesignPath) {
   if (cfg.dashArray.length > 0) {
     paintProps['line-dasharray'] = cfg.dashArray;
   }
-  map.addLayer({ id: `path-line-${path.id}`, type: 'line', source: sourceId, paint: paintProps as mapboxgl.LinePaint });
+  map.addLayer({ id: `path-line-${path.id}`, type: 'line', source: sourceId, paint: paintProps as maplibregl.LineLayerSpecification['paint'] });
   map.addLayer({
     id: `path-label-${path.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': path.name, 'text-size': 10, 'symbol-placement': 'line', 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'] },

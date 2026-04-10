@@ -379,3 +379,77 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
+
+/* ── AI Enrichment ───────────────────────────────────────────────── */
+
+.aiLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-style: italic;
+  color: #c4a265;
+  margin-bottom: 6px;
+}
+
+.aiLabel svg {
+  opacity: 0.7;
+}
+
+.aiNarrative {
+  margin-bottom: var(--space-4);
+}
+
+.aiCaveat {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-panel-muted);
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 2px solid rgba(196, 162, 101, 0.25);
+}
+
+.aiLoadingHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-panel-muted);
+  padding: 8px 0 12px;
+}
+
+.designRecSection {
+  margin-bottom: var(--space-5, 20px);
+}
+
+.designRecContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.designRecCard {
+  background: var(--color-panel-card-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-panel-card-border, rgba(196, 162, 101, 0.1));
+  border-radius: var(--radius-md, 6px);
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-panel-text);
+}
+
+.designRecCard p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.enrichedFlagNote {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-panel-muted);
+  margin: 4px 0 0;
+  padding-left: 8px;
+  border-left: 2px solid rgba(196, 162, 101, 0.2);
+  line-height: 1.5;
+}

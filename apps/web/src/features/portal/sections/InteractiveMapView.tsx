@@ -3,7 +3,7 @@
  */
 
 import { useRef, useEffect } from 'react';
-import { mapboxgl, MAP_STYLES } from '../../../lib/mapbox.js';
+import { maplibregl, MAP_STYLES, hasMapToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
 
@@ -11,26 +11,27 @@ interface Props { config: PortalConfig; project: LocalProject }
 
 export default function InteractiveMapView({ config, project }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current || !mapboxgl.accessToken) return;
+    if (!containerRef.current || mapRef.current || !hasMapToken) return;
 
     const center: [number, number] = config.storyScenes[0]?.mapCenter ?? [-79.8, 43.5];
     const zoom = config.storyScenes[0]?.mapZoom ?? 13;
 
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLES['satellite'] ?? MAP_STYLES['terrain']!,
       center,
       zoom,
-      attributionControl: true,
+      attributionControl: {},
       interactive: true,
+      transformRequest: mapboxTransformRequest,
       pitchWithRotate: false,
       dragRotate: false,
     });
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
     map.on('load', () => {
       // Show boundary if masking allows

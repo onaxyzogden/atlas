@@ -3,6 +3,7 @@
  * Tabs: Soil Samples, Water Issues, Structure Issues, Measurements, Walk Routes
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useMemo } from 'react';
 import { useFieldworkStore, type FieldworkEntry, type FieldworkType } from '../../store/fieldworkStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
@@ -11,7 +12,7 @@ import p from '../../styles/panel.module.css';
 
 interface Props {
   project: LocalProject;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 type Tab = 'soil' | 'water' | 'structure' | 'measurement' | 'walk';
@@ -50,7 +51,7 @@ export default function FieldworkPanel({ project, map }: Props) {
     setIsPlacing(true);
     map.getCanvas().style.cursor = 'crosshair';
 
-    const handler = (e: mapboxgl.MapMouseEvent) => {
+    const handler = (e: maplibregl.MapMouseEvent) => {
       const notes = prompt(`Add ${currentType.replace('_', ' ')} note:`) ?? '';
       if (notes) {
         const entry: FieldworkEntry = {

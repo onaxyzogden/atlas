@@ -5,12 +5,13 @@
  * These are P1 features from Section 2 of the Atlas spec.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect } from 'react';
 
 type TerrainLayer = 'hillshade' | 'contours' | 'slope';
 
 interface TerrainControlsProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
 }
 
@@ -157,7 +158,7 @@ function TerrainToggle({
 
 const DEM_SOURCE = 'mapbox-dem';
 
-function ensureDEM(map: mapboxgl.Map) {
+function ensureDEM(map: maplibregl.Map) {
   if (!map.getSource(DEM_SOURCE)) {
     map.addSource(DEM_SOURCE, {
       type: 'raster-dem',
@@ -168,7 +169,7 @@ function ensureDEM(map: mapboxgl.Map) {
   }
 }
 
-function addTerrain(map: mapboxgl.Map, layer: TerrainLayer) {
+function addTerrain(map: maplibregl.Map, layer: TerrainLayer) {
   ensureDEM(map);
 
   switch (layer) {
@@ -257,7 +258,7 @@ function addTerrain(map: mapboxgl.Map, layer: TerrainLayer) {
   }
 }
 
-function removeTerrain(map: mapboxgl.Map, layer: TerrainLayer) {
+function removeTerrain(map: maplibregl.Map, layer: TerrainLayer) {
   switch (layer) {
     case 'hillshade':
       if (map.getLayer('ogden-hillshade')) map.removeLayer('ogden-hillshade');
@@ -272,7 +273,7 @@ function removeTerrain(map: mapboxgl.Map, layer: TerrainLayer) {
   }
 }
 
-function getFirstSymbolLayer(map: mapboxgl.Map): string | undefined {
+function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   const layers = map.getStyle()?.layers;
   if (!layers) return undefined;
   for (const layer of layers) {

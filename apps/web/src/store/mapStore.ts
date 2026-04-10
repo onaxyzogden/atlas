@@ -22,6 +22,10 @@ interface MapState {
   activePhaseFilter: string; // 'all' or phase name
   setActivePhaseFilter: (filter: string) => void;
 
+  // 3D terrain (Cesium)
+  is3DTerrain: boolean;
+  set3DTerrain: (v: boolean) => void;
+
   // UI state
   isMeasuring: boolean;
   setMeasuring: (v: boolean) => void;
@@ -52,6 +56,9 @@ export const useMapStore = create<MapState>((set) => ({
 
   activePhaseFilter: 'all',
   setActivePhaseFilter: (activePhaseFilter) => set({ activePhaseFilter }),
+
+  is3DTerrain: false,
+  set3DTerrain: (is3DTerrain) => set({ is3DTerrain }),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),

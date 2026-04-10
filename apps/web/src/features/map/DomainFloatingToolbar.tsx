@@ -4,6 +4,7 @@
  * Desktop only; returns null on mobile or when domain is 'default'.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState } from 'react';
 import type { DomainKey } from './domainMapping.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -20,14 +21,14 @@ interface ToolDef {
 }
 
 interface ToolContext {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   draw: MapboxDraw | null;
   onExport: () => void;
 }
 
 interface DomainFloatingToolbarProps {
   domain: DomainKey;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   draw: MapboxDraw | null;
   isMapReady: boolean;
   onExport: () => void;
@@ -121,22 +122,9 @@ const DOMAIN_TOOLS: Record<Exclude<DomainKey, 'default'>, ToolDef[]> = {
       label: '3D Terrain',
       icon: '🏔',
       type: 'action',
-      onAction: ({ map }) => {
-        if (!map) return;
-        const current = map.getTerrain();
-        if (current) {
-          map.setTerrain(null);
-        } else {
-          if (!map.getSource('mapbox-dem')) {
-            map.addSource('mapbox-dem', {
-              type: 'raster-dem',
-              url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-              tileSize: 512,
-              maxzoom: 14,
-            });
-          }
-          map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
-        }
+      onAction: () => {
+        const { is3DTerrain, set3DTerrain } = useMapStore.getState();
+        set3DTerrain(!is3DTerrain);
       },
     },
     {
@@ -330,7 +318,7 @@ export default function DomainFloatingToolbar({
   onExport,
 }: DomainFloatingToolbarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const { visibleLayers, setLayerVisible } = useMapStore();
+  const { visibleLayers, setLayerVisible, is3DTerrain } = useMapStore();
 
   if (domain === 'default') return null;
 
@@ -351,9 +339,11 @@ export default function DomainFloatingToolbar({
       {!collapsed && (
         <div className={css.toolRow}>
           {tools.map((tool) => {
-            const isActive = tool.type === 'toggle' && tool.layerKey
-              ? visibleLayers.has(tool.layerKey)
-              : false;
+            const isActive = tool.id === '3d-terrain'
+              ? is3DTerrain
+              : tool.type === 'toggle' && tool.layerKey
+                ? visibleLayers.has(tool.layerKey)
+                : false;
 
             return (
               <button

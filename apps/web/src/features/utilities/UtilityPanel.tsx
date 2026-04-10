@@ -4,12 +4,12 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType, type Utility } from '../../store/utilityStore.js';
-import { mapboxgl } from '../../lib/mapbox.js';
+import type maplibregl from 'maplibre-gl';
 import p from '../../styles/panel.module.css';
 
 interface UtilityPanelProps {
   projectId: string;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
@@ -175,7 +175,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
   );
 }
 
-function renderUtilityOnMap(map: mapboxgl.Map, utility: Utility) {
+function renderUtilityOnMap(map: maplibregl.Map, utility: Utility) {
   const sourceId = `utility-${utility.id}`;
   if (map.getSource(sourceId)) return;
   const cfg = UTILITY_TYPE_CONFIG[utility.type];

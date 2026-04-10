@@ -11,11 +11,12 @@
  * When real API data is available (NHD/OHN), it renders actual hydrography.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import s from './HydrologyPanel.module.css';
 
 interface HydrologyPanelProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
   boundaryGeojson?: GeoJSON.FeatureCollection | null;
 }
@@ -120,7 +121,7 @@ export default function HydrologyPanel({ map, isMapReady, boundaryGeojson }: Hyd
 
 // ─── Map layer management ──────────────────────────────────────────────────
 
-function getFirstSymbolLayer(map: mapboxgl.Map): string | undefined {
+function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   const layers = map.getStyle()?.layers;
   if (!layers) return undefined;
   for (const layer of layers) {
@@ -130,7 +131,7 @@ function getFirstSymbolLayer(map: mapboxgl.Map): string | undefined {
 }
 
 function addHydroLayer(
-  map: mapboxgl.Map,
+  map: maplibregl.Map,
   layer: HydroLayer,
   boundary: GeoJSON.FeatureCollection | null,
   tracker: Set<string>,
@@ -249,7 +250,7 @@ function addHydroLayer(
   }
 }
 
-function removeHydroLayer(map: mapboxgl.Map, layer: HydroLayer, tracker: Set<string>) {
+function removeHydroLayer(map: maplibregl.Map, layer: HydroLayer, tracker: Set<string>) {
   const layerIds: Record<HydroLayer, string[]> = {
     flowPaths: ['hydro-flow-lines'],
     watershed: ['hydro-watershed-fill', 'hydro-watershed-line'],

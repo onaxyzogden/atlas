@@ -20,7 +20,9 @@ import { Queue, Worker, type Job } from 'bullmq';
 import type { Redis } from 'ioredis';
 import type postgres from 'postgres';
 import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden/shared';
-import type { LayerType, Country } from '@ogden/shared';
+import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
+import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
+import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 
 interface ProjectContext {
   projectId: string;
@@ -84,7 +86,7 @@ class ManualFlagAdapter implements DataSourceAdapter {
 }
 
 // Sprint 3: Replace each stub with a real implementation
-function resolveAdapter(layerType: LayerType, country: Country): DataSourceAdapter {
+function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSourceAdapter {
   const config = ADAPTER_REGISTRY[layerType]?.[country];
   if (!config) return new ManualFlagAdapter(`unknown_${layerType}`, layerType);
 
@@ -96,12 +98,20 @@ function resolveAdapter(layerType: LayerType, country: Country): DataSourceAdapt
 
 export class DataPipelineOrchestrator {
   private queue: Queue;
+  private terrainQueue: Queue;
+  private watershedQueue: Queue;
+  private terrainProcessor: TerrainAnalysisProcessor;
+  private watershedProcessor: WatershedRefinementProcessor;
 
   constructor(
     private readonly db: postgres.Sql,
     private readonly redis: Redis,
   ) {
     this.queue = new Queue('tier1-data', { connection: redis as never });
+    this.terrainQueue = new Queue('tier3-terrain', { connection: redis as never });
+    this.watershedQueue = new Queue('tier3-watershed', { connection: redis as never });
+    this.terrainProcessor = new TerrainAnalysisProcessor(db);
+    this.watershedProcessor = new WatershedRefinementProcessor(db);
   }
 
   /** Enqueue a Tier 1 data fetch for a project. Called after boundary is set. */
@@ -124,6 +134,80 @@ export class DataPipelineOrchestrator {
         await this.processTier1Job(projectId, job);
       },
       { connection: this.redis as never, concurrency: 5 },
+    );
+  }
+
+  /** Start the BullMQ worker that processes Tier 3 terrain analysis jobs. */
+  startTerrainWorker(): Worker {
+    return new Worker(
+      'tier3-terrain',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'queued'
+        `;
+
+        try {
+          await this.terrainProcessor.process(projectId);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
+          `;
+          throw err;
+        }
+
+        await job.updateProgress(100);
+      },
+      { connection: this.redis as never, concurrency: 2 },
+    );
+  }
+
+  /** Start the BullMQ worker that processes Tier 3 watershed refinement jobs. */
+  startWatershedWorker(): Worker {
+    return new Worker(
+      'tier3-watershed',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status = 'queued'
+        `;
+
+        try {
+          await this.watershedProcessor.process(projectId);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status = 'running'
+          `;
+          throw err;
+        }
+
+        await job.updateProgress(100);
+      },
+      { connection: this.redis as never, concurrency: 2 },
     );
   }
 
@@ -174,10 +258,34 @@ export class DataPipelineOrchestrator {
       VALUES (${projectId}, 'compute_assessment', 'queued')
     `;
 
+    // Trigger Tier 3 terrain analysis
+    await this.db`
+      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+      VALUES (${projectId}, 'compute_terrain', 'queued')
+    `;
+    await this.terrainQueue.add('compute_terrain', { projectId }, {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 10000 },
+      removeOnComplete: 50,
+      removeOnFail: 25,
+    });
+
+    // Trigger Tier 3 watershed refinement
+    await this.db`
+      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+      VALUES (${projectId}, 'compute_watershed', 'queued')
+    `;
+    await this.watershedQueue.add('compute_watershed', { projectId }, {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 10000 },
+      removeOnComplete: 50,
+      removeOnFail: 25,
+    });
+
     await job.updateProgress(100);
   }
 
-  private async fetchLayer(layerType: LayerType, ctx: ProjectContext): Promise<AdapterResult> {
+  private async fetchLayer(layerType: Tier1LayerType, ctx: ProjectContext): Promise<AdapterResult> {
     // Mark layer as fetching
     await this.db`
       INSERT INTO project_layers (project_id, layer_type, source_api, fetch_status)

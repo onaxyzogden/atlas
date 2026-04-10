@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { mapboxgl, MAP_STYLES } from '../../../lib/mapbox.js';
+import { maplibregl, MAP_STYLES, hasMapToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
 import { useMapStore } from '../../../store/mapStore.js';
 
 interface UseMapboxOptions {
@@ -10,7 +10,7 @@ interface UseMapboxOptions {
 }
 
 export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapboxOptions) {
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -19,27 +19,28 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
   // Initialize map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    if (!mapboxgl.accessToken) {
+    if (!hasMapToken) {
       console.warn('[OGDEN] No Mapbox token — map will not render. Set VITE_MAPBOX_TOKEN.');
       setMapError('Map unavailable — Mapbox access token is not configured.');
       return;
     }
 
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLES[style] ?? MAP_STYLES['satellite']!,
       center: initialCenter ?? [-79.8, 43.5], // Default: Halton Region, Ontario
       zoom: initialZoom ?? 12,
-      attributionControl: true,
+      attributionControl: {},
       preserveDrawingBuffer: true, // Required for map screenshot export
+      transformRequest: mapboxTransformRequest,
       // Smooth, contemplative navigation — no jarring transitions
       pitchWithRotate: false,
       dragRotate: false,
     });
 
     // Navigation controls (top-right)
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-    map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
 
     // MapboxGL Draw for zone/boundary editing
     const draw = new MapboxDraw({

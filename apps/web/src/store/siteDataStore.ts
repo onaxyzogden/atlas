@@ -5,15 +5,17 @@
 
 import { create } from 'zustand';
 import { fetchAllLayers, type FetchLayerResults } from '../lib/layerFetcher.js';
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AIOutput, AssessmentFlag, EnrichedAssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from '../lib/mockLayerData.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export interface AIEnrichmentState {
   status: 'idle' | 'loading' | 'complete' | 'error';
-  enrichedFlags?: AssessmentFlag[];
+  enrichedFlags?: EnrichedAssessmentFlag[];
   siteSynthesis?: string;
+  aiNarrative?: AIOutput;
+  designRecommendation?: AIOutput;
   fetchedAt?: number;
 }
 
@@ -31,8 +33,9 @@ export interface SiteDataState {
   dataByProject: Record<string, SiteData>;
 
   // Actions
-  fetchForProject: (projectId: string, center: [number, number], country: 'US' | 'CA') => Promise<void>;
-  refreshProject: (projectId: string, center: [number, number], country: 'US' | 'CA') => Promise<void>;
+  fetchForProject: (projectId: string, center: [number, number], country: 'US' | 'CA', bbox?: [number, number, number, number]) => Promise<void>;
+  refreshProject: (projectId: string, center: [number, number], country: 'US' | 'CA', bbox?: [number, number, number, number]) => Promise<void>;
+  enrichProject: (projectId: string) => Promise<void>;
   clearProject: (projectId: string) => void;
 }
 
@@ -55,7 +58,7 @@ function isStale(projectId: string, gen: number): boolean {
 export const useSiteDataStore = create<SiteDataState>((set, get) => ({
   dataByProject: {},
 
-  async fetchForProject(projectId, center, country) {
+  async fetchForProject(projectId, center, country, bbox?) {
     const existing = get().dataByProject[projectId];
     if (existing && (existing.status === 'loading' || existing.status === 'complete')) {
       return;
@@ -77,7 +80,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox });
 
       // Discard if a newer request was started while this one was in-flight
       if (isStale(projectId, gen)) return;
@@ -94,6 +97,9 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
           },
         },
       }));
+
+      // Fire-and-forget AI enrichment after layers arrive
+      get().enrichProject(projectId);
     } catch {
       if (isStale(projectId, gen)) return;
 
@@ -115,7 +121,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }
   },
 
-  async refreshProject(projectId, center, country) {
+  async refreshProject(projectId, center, country, bbox?) {
     // Clear the layer fetcher's localStorage cache to bypass 24h TTL
     try {
       localStorage.removeItem('ogden-layer-cache');
@@ -139,7 +145,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox });
 
       if (isStale(projectId, gen)) return;
 
@@ -155,6 +161,19 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
           },
         },
       }));
+
+      // Re-run AI enrichment with fresh layer data
+      set((s) => {
+        const cur = s.dataByProject[projectId];
+        if (!cur) return s;
+        return {
+          dataByProject: {
+            ...s.dataByProject,
+            [projectId]: { ...cur, enrichment: undefined },
+          },
+        };
+      });
+      get().enrichProject(projectId);
     } catch {
       if (isStale(projectId, gen)) return;
 
@@ -170,6 +189,76 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
               fetchedAt: existing?.fetchedAt ?? 0,
               status: 'error' as const,
             },
+          },
+        };
+      });
+    }
+  },
+
+  async enrichProject(projectId) {
+    const existing = get().dataByProject[projectId];
+    if (!existing || existing.status !== 'complete') return;
+
+    // Don't re-enrich if already loading or complete
+    if (existing.enrichment?.status === 'loading' || existing.enrichment?.status === 'complete') return;
+
+    set((s) => {
+      const cur = s.dataByProject[projectId];
+      if (!cur) return s;
+      return {
+        dataByProject: {
+          ...s.dataByProject,
+          [projectId]: { ...cur, enrichment: { status: 'loading' as const } },
+        },
+      };
+    });
+
+    try {
+      // Lazy import to avoid circular dependencies and keep initial bundle small
+      const { generateSiteNarrative, generateDesignRecommendation, enrichAssessmentFlags } =
+        await import('../lib/aiEnrichment.js');
+
+      const [narrativeResult, recommendationResult, enrichmentResult] = await Promise.allSettled([
+        generateSiteNarrative(projectId),
+        generateDesignRecommendation(projectId),
+        enrichAssessmentFlags(projectId),
+      ]);
+
+      const aiNarrative = narrativeResult.status === 'fulfilled' ? narrativeResult.value : null;
+      const designRecommendation = recommendationResult.status === 'fulfilled' ? recommendationResult.value : null;
+      const enrichResult = enrichmentResult.status === 'fulfilled' ? enrichmentResult.value : null;
+
+      // At least one succeeded
+      const hasAny = aiNarrative || designRecommendation || enrichResult;
+
+      set((s) => {
+        const cur = s.dataByProject[projectId];
+        if (!cur) return s;
+        return {
+          dataByProject: {
+            ...s.dataByProject,
+            [projectId]: {
+              ...cur,
+              enrichment: {
+                status: hasAny ? 'complete' as const : 'error' as const,
+                aiNarrative: aiNarrative ?? undefined,
+                designRecommendation: designRecommendation ?? undefined,
+                enrichedFlags: enrichResult?.enrichedFlags,
+                siteSynthesis: enrichResult?.siteSynthesis,
+                fetchedAt: Date.now(),
+              },
+            },
+          },
+        };
+      });
+    } catch {
+      set((s) => {
+        const cur = s.dataByProject[projectId];
+        if (!cur) return s;
+        return {
+          dataByProject: {
+            ...s.dataByProject,
+            [projectId]: { ...cur, enrichment: { status: 'error' as const } },
           },
         };
       });

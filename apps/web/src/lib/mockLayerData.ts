@@ -11,7 +11,7 @@ import type { LayerType } from '@ogden/shared';
 
 export interface MockLayerResult {
   layer_type: LayerType;
-  fetch_status: 'complete' | 'pending' | 'failed';
+  fetch_status: 'complete' | 'pending' | 'failed' | 'unavailable';
   confidence: 'high' | 'medium' | 'low';
   data_date: string;
   source_api: string;

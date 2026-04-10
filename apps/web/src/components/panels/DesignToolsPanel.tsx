@@ -5,6 +5,7 @@
  * category's own color.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import {
   useZoneStore,
@@ -29,7 +30,7 @@ import s from './DesignToolsPanel.module.css';
 interface DesignToolsPanelProps {
   projectId: string;
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 type Tab = 'zones' | 'structures' | 'livestock' | 'crops' | 'paths' | 'utilities';
@@ -421,7 +422,7 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
             // Update map layer
             if (map) {
               const sourceId = `structure-${editingStructure.id}`;
-              const src = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+              const src = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
               if (src) {
                 src.setData({
                   type: 'FeatureCollection',
@@ -550,7 +551,7 @@ function formatArea(m2: number): string {
   return `${m2.toFixed(0)} m\u00B2`;
 }
 
-function renderStructureOnMap(map: mapboxgl.Map, structure: Structure) {
+function renderStructureOnMap(map: maplibregl.Map, structure: Structure) {
   const sourceId = `structure-${structure.id}`;
   if (map.getSource(sourceId)) return;
 
@@ -585,7 +586,7 @@ function renderStructureOnMap(map: mapboxgl.Map, structure: Structure) {
   });
 }
 
-function renderZoneOnMap(map: mapboxgl.Map, zone: LandZone) {
+function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
   const sourceId = `zone-${zone.id}`;
   if (map.getSource(sourceId)) return;
 

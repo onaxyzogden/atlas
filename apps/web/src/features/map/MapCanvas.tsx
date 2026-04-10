@@ -7,7 +7,7 @@
 import { useRef, useEffect, useMemo } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { useMapbox } from './hooks/useMapbox.js';
-import { mapboxgl } from '../../lib/mapbox.js';
+import { maplibregl, hasMapToken, mapboxToken } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -27,8 +27,8 @@ interface MapCanvasProps {
   boundaryGeojson?: GeoJSON.FeatureCollection | null;
   boundaryColor?: string;
   address?: string | null;
-  onMapReady?: (map: mapboxgl.Map, draw: MapboxDraw) => void;
-  onMarkerCreated?: (marker: mapboxgl.Marker) => void;
+  onMapReady?: (map: maplibregl.Map, draw: MapboxDraw) => void;
+  onMarkerCreated?: (marker: maplibregl.Marker) => void;
 }
 
 export default function MapCanvas({ projectId, initialCenter, initialZoom, boundaryGeojson, boundaryColor, address, onMapReady, onMarkerCreated }: MapCanvasProps) {
@@ -104,7 +104,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       for (const zone of zones) {
         const sourceId = `zone-${zone.id}`;
         const zoneData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: zone.name }, geometry: zone.geometry }] };
-        const existingZone = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingZone = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingZone) { existingZone.setData(zoneData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: zoneData });
         map.addLayer({ id: `zone-fill-${zone.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': zone.color, 'fill-opacity': 0.25 } });
@@ -127,7 +127,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
           : tmpl?.category === 'utility' ? '#4A6B8A'
           : '#6B6B6B';
         const structData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: structure.name }, geometry: structure.geometry }] };
-        const existingStruct = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingStruct = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingStruct) { existingStruct.setData(structData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: structData });
         map.addLayer({ id: `structure-fill-${structure.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': 0.45 } });
@@ -144,7 +144,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         const sourceId = `paddock-${paddock.id}`;
         const pColor = paddock.color ?? '#7A6B3A';
         const paddockData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: paddock.name }, geometry: paddock.geometry }] };
-        const existingPaddock = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingPaddock = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingPaddock) { existingPaddock.setData(paddockData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: paddockData });
         map.addLayer({ id: `paddock-fill-${paddock.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': pColor, 'fill-opacity': 0.2 } });
@@ -162,7 +162,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         const ct = CROP_TYPES[crop.type];
         const color = crop.color ?? ct?.color ?? '#4A7C3F';
         const cropData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: crop.name }, geometry: crop.geometry }] };
-        const existingCrop = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingCrop = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingCrop) { existingCrop.setData(cropData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: cropData });
         map.addLayer({ id: `crop-fill-${crop.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': 0.2 } });
@@ -179,12 +179,12 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         const sourceId = `path-${path.id}`;
         const cfg = PATH_TYPE_CONFIG[path.type];
         const pathData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: path.name }, geometry: path.geometry }] };
-        const existingPath = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingPath = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingPath) { existingPath.setData(pathData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: pathData });
         const paintProps: Record<string, unknown> = { 'line-color': path.color ?? cfg.color, 'line-width': cfg.width };
         if (cfg.dashArray.length > 0) paintProps['line-dasharray'] = cfg.dashArray;
-        map.addLayer({ id: `path-line-${path.id}`, type: 'line', source: sourceId, paint: paintProps as mapboxgl.LinePaint });
+        map.addLayer({ id: `path-line-${path.id}`, type: 'line', source: sourceId, paint: paintProps as maplibregl.LineLayerSpecification['paint'] });
         map.addLayer({
           id: `path-label-${path.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': path.name, 'text-size': 10, 'symbol-placement': 'line', 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'] },
@@ -197,7 +197,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         const sourceId = `utility-${utility.id}`;
         const cfg = UTILITY_TYPE_CONFIG[utility.type];
         const utilData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: utility.name }, geometry: { type: 'Point', coordinates: utility.center } }] };
-        const existingUtil = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingUtil = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingUtil) { existingUtil.setData(utilData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: utilData });
         map.addLayer({
@@ -216,7 +216,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         if (!comment.location) continue;
         const sourceId = `comment-${comment.id}`;
         const commentData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { text: comment.text }, geometry: { type: 'Point', coordinates: comment.location } }] };
-        const existingComment = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;
+        const existingComment = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingComment) { existingComment.setData(commentData); continue; }
         map.addSource(sourceId, { type: 'geojson', data: commentData });
         map.addLayer({
@@ -318,7 +318,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   useEffect(() => {
     if (!map || !isLoaded) return;
 
-    const onMouseDown = (e: mapboxgl.MapMouseEvent) => {
+    const onMouseDown = (e: maplibregl.MapMouseEvent) => {
       // Check if click is on a structure fill layer
       const features = map.queryRenderedFeatures(e.point, {
         layers: structures.map((s) => `structure-fill-${s.id}`).filter((id) => map.getLayer(id)),
@@ -336,7 +336,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       map.getCanvas().style.cursor = 'grabbing';
     };
 
-    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+    const onMouseMove = (e: maplibregl.MapMouseEvent) => {
       if (!dragRef.current) return;
       const { structureId, startLng, startLat } = dragRef.current;
       const structure = structures.find((s) => s.id === structureId);
@@ -350,7 +350,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       const newGeometry = createFootprintPolygon(newCenter, structure.widthM, structure.depthM, structure.rotationDeg);
 
       // Update map source in real-time
-      const src = map.getSource(`structure-${structureId}`) as mapboxgl.GeoJSONSource | undefined;
+      const src = map.getSource(`structure-${structureId}`) as maplibregl.GeoJSONSource | undefined;
       if (src) {
         src.setData({
           type: 'FeatureCollection',
@@ -397,7 +397,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   useEffect(() => {
     if (!map || !isLoaded || !draw) return;
 
-    const onDblClick = (e: mapboxgl.MapMouseEvent) => {
+    const onDblClick = (e: maplibregl.MapMouseEvent) => {
       // Don't interfere with structure placement mode
       if (useStructureStore.getState().placementMode) return;
 
@@ -497,7 +497,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       if (map.getLayer(`${prefix}-line-${id}`)) map.setLayoutProperty(`${prefix}-line-${id}`, 'visibility', 'visible');
 
       // Update the GeoJSON source
-      const src = map.getSource(`${prefix}-${id}`) as mapboxgl.GeoJSONSource | undefined;
+      const src = map.getSource(`${prefix}-${id}`) as maplibregl.GeoJSONSource | undefined;
       if (src) {
         src.setData({
           type: 'FeatureCollection',
@@ -539,7 +539,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   }, [map, isLoaded, draw, zones, paddocks, cropAreas, updateZone, updatePaddock, updateCrop]);
 
   // Geocode address and place marker — only runs once per address
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
   const markerAddressRef = useRef<string | null>(null);
   const onMarkerCreatedRef = useRef(onMarkerCreated);
   onMarkerCreatedRef.current = onMarkerCreated;
@@ -549,12 +549,11 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
     // Skip if we already placed a marker for this address
     if (markerRef.current && markerAddressRef.current === address) return;
 
-    const token = mapboxgl.accessToken;
-    if (!token) return;
+    if (!mapboxToken) return;
 
     let cancelled = false;
     const encoded = encodeURIComponent(address);
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${token}&limit=1`)
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${mapboxToken}&limit=1`)
       .then((r) => r.json())
       .then((data: { features?: { center?: [number, number] }[] }) => {
         if (cancelled) return;
@@ -576,7 +575,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   }, [map, isLoaded, address]);
 
   // Show helpful message if no token
-  if (!mapboxgl.accessToken) {
+  if (!hasMapToken) {
     return <MapTokenMissing />;
   }
 
@@ -634,8 +633,8 @@ function computeBBox(geojson: GeoJSON.FeatureCollection): [number, number, numbe
 }
 
 function placeMarker(
-  map: mapboxgl.Map,
-  markerRef: React.MutableRefObject<mapboxgl.Marker | null>,
+  map: maplibregl.Map,
+  markerRef: React.MutableRefObject<maplibregl.Marker | null>,
   coords: [number, number],
   label: string,
 ) {
@@ -653,10 +652,10 @@ function placeMarker(
     box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   `;
 
-  const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom-left' })
+  const marker = new maplibregl.Marker({ element: el, anchor: 'bottom-left' })
     .setLngLat(coords)
     .setPopup(
-      new mapboxgl.Popup({ offset: 20, closeButton: false })
+      new maplibregl.Popup({ offset: 20, closeButton: false })
         .setHTML(`<div style="font-size:12px;font-weight:500;color:#312617;max-width:200px;line-height:1.4">${label}</div>`),
     )
     .addTo(map);

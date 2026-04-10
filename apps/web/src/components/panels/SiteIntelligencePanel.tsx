@@ -56,6 +56,9 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   const siteData = useSiteData(project.id);
   const refreshProject = useSiteDataStore((st) => st.refreshProject);
 
+  // AI enrichment data
+  const enrichment = siteData?.enrichment;
+
   const consAuth = useMemo(() => getConservationAuth(project), [project]);
 
   // Metadata-based completeness (project fields, not layer data)
@@ -127,10 +130,11 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       const coords = centroid.geometry.coordinates;
       const lng = coords[0] ?? 0;
       const lat = coords[1] ?? 0;
+      const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
+      const bbox: [number, number, number, number] = [turfBbox[0], turfBbox[1], turfBbox[2], turfBbox[3]];
       setIsRefreshing(true);
-      // Ensure spinner is visible for at least 2s so user sees feedback
       const minDelay = new Promise<void>((r) => setTimeout(r, 2000));
-      Promise.all([refreshProject(project.id, [lng, lat], project.country), minDelay])
+      Promise.all([refreshProject(project.id, [lng, lat], project.country, bbox), minDelay])
         .finally(() => setIsRefreshing(false));
     } catch { /* boundary may be invalid */ }
   }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject, isRefreshing]);
@@ -265,13 +269,56 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
 
       {/* ── Site Summary ───────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Site Summary</h3>
-      <p className={s.summaryText}>{siteSummary}</p>
+      {enrichment?.aiNarrative ? (
+        <div className={s.aiNarrative}>
+          <AILabel confidence={enrichment.aiNarrative.confidence} />
+          <p className={s.summaryText}>{enrichment.aiNarrative.content}</p>
+          {enrichment.aiNarrative.caveat && (
+            <p className={s.aiCaveat}>{enrichment.aiNarrative.caveat}</p>
+          )}
+        </div>
+      ) : (
+        <p className={s.summaryText}>{siteSummary}</p>
+      )}
 
       {/* ── What This Land Wants ───────────────────────────────────── */}
       <div className={s.landWantsCard}>
         <h3 className={p.sectionLabel}>What This Land Wants</h3>
-        <p className={s.landWantsText}>{landWants}</p>
+        {enrichment?.aiNarrative && enrichment.siteSynthesis ? (
+          <div className={s.aiNarrative}>
+            <AILabel confidence={enrichment.aiNarrative.confidence} />
+            <p className={s.landWantsText}>{enrichment.siteSynthesis}</p>
+          </div>
+        ) : (
+          <p className={s.landWantsText}>{landWants}</p>
+        )}
       </div>
+
+      {/* ── Design Recommendations (AI) ────────────────────────────── */}
+      {enrichment?.designRecommendation && (
+        <div className={s.designRecSection}>
+          <h3 className={p.sectionLabel}>Design Recommendations</h3>
+          <AILabel confidence={enrichment.designRecommendation.confidence} />
+          <div className={s.designRecContent}>
+            {enrichment.designRecommendation.content.split(/\n(?=\d+\.)/).map((block, i) => (
+              <div key={i} className={s.designRecCard}>
+                <p>{block.trim()}</p>
+              </div>
+            ))}
+          </div>
+          {enrichment.designRecommendation.caveat && (
+            <p className={s.aiCaveat}>{enrichment.designRecommendation.caveat}</p>
+          )}
+        </div>
+      )}
+
+      {/* ── AI Loading Indicator ───────────────────────────────────── */}
+      {enrichment?.status === 'loading' && (
+        <div className={s.aiLoadingHint}>
+          <Spinner size="sm" color="#c4a265" />
+          <span>Generating AI insights...</span>
+        </div>
+      )}
 
       {/* ── Assessment Scores ──────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Assessment Scores</h3>
@@ -298,22 +345,28 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Opportunities ──────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Opportunities</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {opportunities.map((flag) => (
-          <div key={flag.id} className={s.oppRiskRow}>
-            <span
-              className={s.oppIcon}
-              style={{ color: severityColor(flag.severity, '#2d7a4f') }}
-            >
-              {'\u2197'}
-            </span>
-            <div className={s.flagContent}>
-              <span>{flag.message}</span>
-              {flag.layerSource && (
-                <span className={s.flagSource}>{flag.layerSource}</span>
-              )}
+        {opportunities.map((flag) => {
+          const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
+          return (
+            <div key={flag.id} className={s.oppRiskRow}>
+              <span
+                className={s.oppIcon}
+                style={{ color: severityColor(flag.severity, '#2d7a4f') }}
+              >
+                {'\u2197'}
+              </span>
+              <div className={s.flagContent}>
+                <span>{flag.message}</span>
+                {flag.layerSource && (
+                  <span className={s.flagSource}>{flag.layerSource}</span>
+                )}
+                {enriched?.aiNarrative && (
+                  <p className={s.enrichedFlagNote}>{enriched.aiNarrative}</p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {opportunities.length === 0 && (
           <span className={s.flagSource}>No opportunities identified from current data</span>
         )}
@@ -322,29 +375,35 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Risks ──────────────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Main Risks</h3>
       <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {risks.map((flag) => (
-          <div key={flag.id} className={s.oppRiskRow}>
-            <span
-              className={s.riskIcon}
-              style={{ color: severityColor(flag.severity, '#9b3a2a') }}
-            >
-              {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
-            </span>
-            <div className={s.flagContent}>
-              <span>{flag.message}</span>
-              <div className={s.flagMeta}>
-                {flag.severity !== 'info' && (
-                  <span className={`${s.severityBadge} ${s[`severity_${flag.severity}`]}`}>
-                    {flag.severity}
-                  </span>
-                )}
-                {flag.layerSource && (
-                  <span className={s.flagSource}>{flag.layerSource}</span>
+        {risks.map((flag) => {
+          const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
+          return (
+            <div key={flag.id} className={s.oppRiskRow}>
+              <span
+                className={s.riskIcon}
+                style={{ color: severityColor(flag.severity, '#9b3a2a') }}
+              >
+                {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
+              </span>
+              <div className={s.flagContent}>
+                <span>{flag.message}</span>
+                <div className={s.flagMeta}>
+                  {flag.severity !== 'info' && (
+                    <span className={`${s.severityBadge} ${s[`severity_${flag.severity}`]}`}>
+                      {flag.severity}
+                    </span>
+                  )}
+                  {flag.layerSource && (
+                    <span className={s.flagSource}>{flag.layerSource}</span>
+                  )}
+                </div>
+                {enriched?.aiNarrative && (
+                  <p className={s.enrichedFlagNote}>{enriched.aiNarrative}</p>
                 )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {risks.length === 0 && (
           <span className={s.flagSource}>No risks identified from current data</span>
         )}
@@ -368,6 +427,17 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────
+
+function AILabel({ confidence }: { confidence?: string }) {
+  return (
+    <span className={s.aiLabel}>
+      <svg width={10} height={10} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M8 1l1.5 4.5H14l-3.5 2.5L12 13 8 10l-4 3 1.5-5L2 5.5h4.5z" strokeLinejoin="round" />
+      </svg>
+      AI-generated{confidence && confidence !== 'high' ? ` (${confidence} confidence)` : ''} &middot; verify on-site
+    </span>
+  );
+}
 
 function RefreshIcon({ spinning }: { spinning?: boolean }) {
   return (

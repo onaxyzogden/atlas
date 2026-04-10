@@ -193,6 +193,12 @@ useProjectStore.persist.onFinishHydration(() => {
   const { projects, createProject, updateProject } = useProjectStore.getState();
   if (projects.length > 0) return; // Already has projects — don't overwrite
 
+  // Skip seed if user is authenticated — initial sync will populate from server
+  try {
+    const token = localStorage.getItem('ogden-auth-token');
+    if (token) return;
+  } catch { /* localStorage unavailable — proceed with seed */ }
+
   const p = createProject({
     name: '351 House',
     description: 'Halton Hills homestead — regenerative land design for a 12-acre parcel on the Niagara Escarpment edge. Mixed Carolinian forest, agricultural fields, and seasonal creek.',

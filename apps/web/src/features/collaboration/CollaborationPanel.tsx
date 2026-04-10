@@ -3,6 +3,7 @@
  * Replaces the placeholder collaboration sidebar view.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import { useCommentStore, type Comment } from '../../store/commentStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
@@ -10,7 +11,7 @@ import p from '../../styles/panel.module.css';
 
 interface CollaborationPanelProps {
   project: LocalProject;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   onAddCommentMode: () => void;
   isAddingComment: boolean;
 }

@@ -46,6 +46,8 @@ export interface Structure {
   notes: string;
   createdAt: string;
   updatedAt: string;
+  /** Server-assigned UUID after backend sync (undefined = not yet synced) */
+  serverId?: string;
 }
 
 interface StructureState {
@@ -81,8 +83,16 @@ export const useStructureStore = create<StructureState>()(
     }),
     {
       name: 'ogden-structures',
-      version: 1,
+      version: 2,
       partialize: (state) => ({ structures: state.structures }),
+      migrate: (persisted, version) => {
+        const state = persisted as { structures?: Structure[] };
+        if (version < 2 && Array.isArray(state.structures)) {
+          // v1 → v2: add serverId field to all existing structures
+          state.structures = state.structures.map((s) => ({ serverId: undefined, ...s }));
+        }
+        return state;
+      },
     },
   ),
 );

@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
+import { useSiteDataStore } from '../../store/siteDataStore.js';
 import { sendMessage, type ClaudeMessage } from '../../lib/claude.js';
 import { buildProjectContext, SYSTEM_PROMPT } from '../../features/ai/ContextBuilder.js';
 import p from '../../styles/panel.module.css';
@@ -54,8 +55,9 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
     setIsThinking(true);
 
     try {
-      // Build context from all project stores
-      const context = buildProjectContext(project.id);
+      // Build context from all project stores with real layer data
+      const siteData = useSiteDataStore.getState().dataByProject[project.id];
+      const context = buildProjectContext(project.id, siteData?.layers ?? []);
       const systemWithContext = `${SYSTEM_PROMPT}\n\n${context}`;
 
       // Build message history for Claude

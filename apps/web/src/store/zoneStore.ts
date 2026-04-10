@@ -52,6 +52,8 @@ export interface LandZone {
   areaM2: number;
   createdAt: string;
   updatedAt: string;
+  /** Server-assigned UUID after backend sync (undefined = not yet synced) */
+  serverId?: string;
 }
 
 interface ZoneState {
@@ -81,7 +83,18 @@ export const useZoneStore = create<ZoneState>()(
 
       getProjectZones: (projectId) => get().zones.filter((z) => z.projectId === projectId),
     }),
-    { name: 'ogden-zones', version: 1 },
+    {
+      name: 'ogden-zones',
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as { zones?: LandZone[] };
+        if (version < 2 && Array.isArray(state.zones)) {
+          // v1 → v2: add serverId field to all existing zones
+          state.zones = state.zones.map((z) => ({ serverId: undefined, ...z }));
+        }
+        return state;
+      },
+    },
   ),
 );
 

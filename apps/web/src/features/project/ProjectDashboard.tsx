@@ -10,6 +10,7 @@ import DataCompletenessWidget from '../assessment/DataCompletenessWidget.js';
 import RegulatoryPanel from '../regulatory/RegulatoryPanel.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
+import FileList from './FileList.js';
 import { generateMockLayers } from '../../lib/mockLayerData.js';
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
@@ -197,32 +198,14 @@ export default function ProjectDashboard({ project }: Props) {
         </>
       )}
 
-      {/* Attachments */}
-      {project.attachments.length > 0 && (
-        <Section title={`Attachments (${project.attachments.length})`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {project.attachments.map((att) => (
-              <div
-                key={att.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '4px 0',
-                  fontSize: 12,
-                  color: 'var(--color-text)',
-                }}
-              >
-                <span>{att.type === 'photo' ? '🖼' : '📄'}</span>
-                <span style={{ flex: 1 }}>{att.filename}</span>
-                <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
-                  {formatFileSize(att.size)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
+      {/* Files & Attachments */}
+      <Section title="Files">
+        <FileList
+          projectId={project.id}
+          serverId={project.serverId}
+          localAttachments={project.attachments}
+        />
+      </Section>
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />
@@ -315,10 +298,4 @@ function NoteBlock({ label, text }: { label: string; text: string }) {
 
 function Divider() {
   return <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '16px 0' }} />;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

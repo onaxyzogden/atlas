@@ -17,9 +17,9 @@ import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { LIVESTOCK_SPECIES, CROP_TYPES } from '../livestock/speciesData.js';
 import { PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
-import { generateMockLayers, getLayerSummaryText } from '../../lib/mockLayerData.js';
+import { getLayerSummaryText, type MockLayerResult } from '../../lib/mockLayerData.js';
 
-export function buildProjectContext(projectId: string): string {
+export function buildProjectContext(projectId: string, layers: MockLayerResult[] = []): string {
   const project = useProjectStore.getState().projects.find((p) => p.id === projectId);
   if (!project) return 'No project found.';
 
@@ -29,7 +29,6 @@ export function buildProjectContext(projectId: string): string {
   const crops = useCropStore.getState().cropAreas.filter((c) => c.projectId === projectId);
   const paths = usePathStore.getState().paths.filter((p) => p.projectId === projectId);
   const utilities = useUtilityStore.getState().utilities.filter((u) => u.projectId === projectId);
-  const layers = generateMockLayers(project.country);
 
   const lines: string[] = [];
 
@@ -42,14 +41,16 @@ export function buildProjectContext(projectId: string): string {
   lines.push(`- Has boundary: ${project.hasParcelBoundary ? 'Yes' : 'No'}`);
   lines.push('');
 
-  // Site data
-  lines.push('## Site Data (Tier 1 - Auto-populated)');
-  for (const layer of layers) {
-    const summaryLines = getLayerSummaryText(layer);
-    lines.push(`### ${layer.layer_type} (${layer.confidence} confidence, source: ${layer.source_api})`);
-    summaryLines.forEach((l) => lines.push(`  - ${l}`));
+  // Site data — only included when real layers are provided
+  if (layers.length > 0) {
+    lines.push('## Site Data (Live Layers)');
+    for (const layer of layers) {
+      const summaryLines = getLayerSummaryText(layer);
+      lines.push(`### ${layer.layer_type} (${layer.confidence} confidence, source: ${layer.source_api})`);
+      summaryLines.forEach((l) => lines.push(`  - ${l}`));
+    }
+    lines.push('');
   }
-  lines.push('');
 
   // Notes
   if (project.ownerNotes) lines.push(`## Owner Notes\n${project.ownerNotes}\n`);

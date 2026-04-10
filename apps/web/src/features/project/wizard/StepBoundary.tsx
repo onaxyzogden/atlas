@@ -7,7 +7,7 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { mapboxgl, MAP_STYLES } from '../../../lib/mapbox.js';
+import { maplibregl, MAP_STYLES, hasMapToken, mapboxToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
 import { parseGeoFile } from '../../../lib/geoParsers.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
@@ -17,7 +17,7 @@ type BoundaryMode = 'none' | 'draw' | 'import';
 
 export default function StepBoundary({ data, updateData, onNext, onBack, isFirst, isLast }: WizardStepProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const [mode, setMode] = useState<BoundaryMode>(data.parcelBoundaryGeojson ? 'import' : 'none');
   const [importError, setImportError] = useState<string | null>(null);
@@ -30,19 +30,20 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
     if (!containerRef.current || mapRef.current) return;
 
     // Check for token before attempting map init
-    if (!mapboxgl.accessToken) {
+    if (!hasMapToken) {
       setMapError('No Mapbox token configured. Set VITE_MAPBOX_TOKEN in your .env file to enable the map. You can still import boundary files below.');
       return;
     }
 
-    let map: mapboxgl.Map;
+    let map: maplibregl.Map;
     try {
-      map = new mapboxgl.Map({
+      map = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLES['satellite']!,
       center: [-79.8, 43.5],
       zoom: 12,
       attributionControl: false,
+      transformRequest: mapboxTransformRequest,
       pitchWithRotate: false,
       dragRotate: false,
     });
@@ -73,7 +74,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
     });
 
     map.addControl(draw);
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
     map.on('load', () => {
       setIsMapReady(true);
@@ -81,10 +82,10 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
       // If boundary already exists (e.g. user went back), display it
       if (data.parcelBoundaryGeojson) {
         showBoundaryOnMap(map, data.parcelBoundaryGeojson as GeoJSON.FeatureCollection);
-      } else if (data.address && mapboxgl.accessToken) {
+      } else if (data.address && hasMapToken) {
         // Geocode the address from Step 2 to center the map
         fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxgl.accessToken}&limit=1`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxToken}&limit=1`
         )
           .then((r) => r.json())
           .then((result) => {
@@ -338,7 +339,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-function showBoundaryOnMap(map: mapboxgl.Map, geojson: GeoJSON.FeatureCollection) {
+function showBoundaryOnMap(map: maplibregl.Map, geojson: GeoJSON.FeatureCollection) {
   // Remove existing
   if (map.getSource('imported-boundary')) {
     if (map.getLayer('imported-boundary-fill')) map.removeLayer('imported-boundary-fill');

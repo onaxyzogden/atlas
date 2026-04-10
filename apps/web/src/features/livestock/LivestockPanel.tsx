@@ -5,6 +5,7 @@
  * is the metadata captured (species, stocking density, fencing type).
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import {
   useLivestockStore,
@@ -18,7 +19,7 @@ import p from '../../styles/panel.module.css';
 interface LivestockPanelProps {
   projectId: string;
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 const FENCE_OPTIONS: { value: FenceType; label: string }[] = [
@@ -276,7 +277,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   );
 }
 
-function renderPaddockOnMap(map: mapboxgl.Map, paddock: Paddock) {
+function renderPaddockOnMap(map: maplibregl.Map, paddock: Paddock) {
   const sourceId = `paddock-${paddock.id}`;
   if (map.getSource(sourceId)) return;
 

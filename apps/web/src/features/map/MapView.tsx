@@ -3,6 +3,7 @@
  * Contains IconSidebar + MapCanvas + right panel + mobile bar.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
@@ -22,6 +23,7 @@ import { getDomainContext, type DomainKey } from './domainMapping.js';
 import css from './MapView.module.css';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
+const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -59,15 +61,16 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
 
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setLayerVisible = useMapStore((s) => s.setLayerVisible);
+  const is3DTerrain = useMapStore((s) => s.is3DTerrain);
 
   const [activeView, setActiveView] = useState<SidebarView>(
     () => getDomainContext(useUIStore.getState().activeDashboardSection).panel,
   );
   const [isDrawingBoundary, setIsDrawingBoundary] = useState(false);
 
-  const [mapRef, setMapRef] = useState<mapboxgl.Map | null>(null);
+  const [mapRef, setMapRef] = useState<maplibregl.Map | null>(null);
   const [drawRef, setDrawRef] = useState<MapboxDraw | null>(null);
-  const [markerRef, setMarkerRef] = useState<mapboxgl.Marker | null>(null);
+  const [markerRef, setMarkerRef] = useState<maplibregl.Marker | null>(null);
   const [boundaryColor, setBoundaryColor] = useState('#7d6140');
   const [isAddingComment, setIsAddingComment] = useState(false);
   const addComment = useCommentStore((s) => s.addComment);
@@ -183,6 +186,21 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           />
         </ErrorBoundary>
 
+        {/* Cesium 3D terrain overlay — renders on top of MapLibre when active */}
+        {is3DTerrain && (
+          <div className={css.cesiumOverlay}>
+            <Suspense fallback={<div className={css.cesiumLoading}>Loading 3D terrain...</div>}>
+              <CesiumTerrainViewer
+                initialCenter={mapRef ? [mapRef.getCenter().lng, mapRef.getCenter().lat] as [number, number] : (center ?? [-79.8, 43.5]) as [number, number]}
+                initialZoom={mapRef?.getZoom() ?? 14}
+                onCameraSync={(syncCenter, syncZoom) => {
+                  mapRef?.jumpTo({ center: syncCenter, zoom: syncZoom });
+                }}
+              />
+            </Suspense>
+          </div>
+        )}
+
         {!isMobile && (
           <Suspense fallback={null}>
             <DomainFloatingToolbar
@@ -228,7 +246,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                     setIsAddingComment((v) => {
                       if (!v && mapRef) {
                         mapRef.getCanvas().style.cursor = 'crosshair';
-                        const handler = (e: mapboxgl.MapMouseEvent) => {
+                        const handler = (e: maplibregl.MapMouseEvent) => {
                           const comment = {
                             id: crypto.randomUUID(),
                             projectId: project.id,

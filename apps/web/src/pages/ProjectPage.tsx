@@ -71,7 +71,9 @@ export default function ProjectPage() {
       const coords = centroid.geometry.coordinates;
       const lng = coords[0] ?? 0;
       const lat = coords[1] ?? 0;
-      fetchSiteData(project.id, [lng, lat], project.country);
+      const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
+      const bbox: [number, number, number, number] = [turfBbox[0], turfBbox[1], turfBbox[2], turfBbox[3]];
+      fetchSiteData(project.id, [lng, lat], project.country, bbox);
     } catch { /* boundary may be invalid */ }
   }, [project?.id, project?.parcelBoundaryGeojson, project?.country, fetchSiteData]);
 

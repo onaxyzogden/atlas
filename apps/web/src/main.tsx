@@ -10,7 +10,23 @@ import './app/index.css';
 import './store/projectStore.js';
 // Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
 import { useAuthStore } from './store/authStore.js';
-useAuthStore.getState().initFromStorage();
+import { syncService } from './lib/syncService.js';
+
+// Boot auth, then start sync if authenticated
+useAuthStore.getState().initFromStorage().then(() => {
+  if (useAuthStore.getState().token) {
+    syncService.start();
+  }
+});
+
+// React to auth changes: start sync on login, stop on logout
+useAuthStore.subscribe((state, prev) => {
+  if (state.token && !prev.token) {
+    syncService.start();
+  } else if (!state.token && prev.token) {
+    syncService.stop();
+  }
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {

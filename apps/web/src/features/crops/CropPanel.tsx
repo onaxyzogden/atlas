@@ -4,6 +4,7 @@
  * Reuses the MapboxDraw polygon flow. Includes tree spacing calculator.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../livestock/speciesData.js';
@@ -12,7 +13,7 @@ import p from '../../styles/panel.module.css';
 interface CropPanelProps {
   projectId: string;
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
@@ -245,7 +246,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   );
 }
 
-function renderCropOnMap(map: mapboxgl.Map, crop: CropArea) {
+function renderCropOnMap(map: maplibregl.Map, crop: CropArea) {
   const sourceId = `crop-${crop.id}`;
   if (map.getSource(sourceId)) return;
 

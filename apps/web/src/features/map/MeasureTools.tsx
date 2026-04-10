@@ -5,6 +5,7 @@
  * Uses MapboxDraw in simple_select / draw_line_string / draw_polygon modes.
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback } from 'react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
@@ -13,7 +14,7 @@ type MeasureMode = 'none' | 'distance' | 'area';
 
 interface MeasureToolsProps {
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
 }
 
 export default function MeasureTools({ draw, map }: MeasureToolsProps) {

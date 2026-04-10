@@ -7,6 +7,7 @@
  *   - Zone sizing calculator
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import {
@@ -22,7 +23,7 @@ import s from './ZonePanel.module.css';
 interface ZonePanelProps {
   projectId: string;
   draw: MapboxDraw | null;
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
 }
 
@@ -268,7 +269,7 @@ function formatArea(m2: number): string {
   return `${m2.toFixed(0)} m²`;
 }
 
-function renderZoneOnMap(map: mapboxgl.Map, zone: LandZone) {
+function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
   const sourceId = `zone-${zone.id}`;
   const geojson: GeoJSON.FeatureCollection = {
     type: 'FeatureCollection',

@@ -3,7 +3,10 @@
  *
  * Proxies all requests through the backend at /api/v1/ai/chat.
  * The Anthropic API key is stored server-side — never in the browser.
+ * Auth token is injected automatically via apiClient.
  */
+
+import { api } from './apiClient.js';
 
 export interface ClaudeMessage {
   role: 'user' | 'assistant';
@@ -26,25 +29,10 @@ export async function sendMessage(
   systemPrompt: string,
   signal?: AbortSignal,
 ): Promise<ClaudeResponse> {
-  const response = await fetch('/api/v1/ai/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
-      systemPrompt,
-    }),
+  const envelope = await api.ai.chat(
+    messages.map((m) => ({ role: m.role, content: m.content })),
+    systemPrompt,
     signal,
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
-    const msg = err?.error?.message ?? `API error ${response.status}`;
-    throw new Error(msg);
-  }
-
-  const { data } = await response.json() as {
-    data: { content: string; model: string; inputTokens: number; outputTokens: number };
-  };
-
-  return data;
+  );
+  return envelope.data;
 }

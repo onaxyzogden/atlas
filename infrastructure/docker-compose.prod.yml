@@ -1,0 +1,169 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OGDEN Land Design Atlas — Production Docker Compose
+#
+# Usage:
+#   cp .env.prod.example .env.prod
+#   # Fill in real secrets in .env.prod
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+#
+# Services:
+#   nginx     — reverse proxy + SSL termination (ports 80, 443)
+#   api       — Fastify backend (internal port 3001)
+#   web       — static React build served by nginx
+#   postgres  — PostGIS database (internal only)
+#   redis     — cache + job queue (internal only)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Nginx reverse proxy ─────────────────────────────────────────────────────
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ogden-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - web_static:/usr/share/nginx/html:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - ogden-net
+
+  # ── Certbot for SSL (run manually, not a long-lived service) ────────────────
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: ogden-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Initial certificate:
+    #   docker compose -f docker-compose.prod.yml run --rm certbot \
+    #     certonly --webroot -w /var/www/certbot \
+    #     -d atlas.ogden.ag -d api.atlas.ogden.ag \
+    #     --email admin@ogden.ag --agree-tos --no-eff-email
+    #
+    # Renewal (add to cron):
+    #   docker compose -f docker-compose.prod.yml run --rm certbot renew
+    entrypoint: /bin/sh -c 'echo "Run certbot manually — see comments in docker-compose.prod.yml"; exit 0'
+
+  # ── Fastify API ─────────────────────────────────────────────────────────────
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.api
+    container_name: ogden-api
+    restart: unless-stopped
+    expose:
+      - '3001'
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: https://${DOMAIN}
+      MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_REGION: ${S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3001/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ogden-net
+
+  # ── React frontend (build stage copies static files into volume) ────────────
+
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.web
+      args:
+        VITE_MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+        VITE_CESIUM_ION_TOKEN: ${CESIUM_ION_TOKEN}
+        VITE_API_URL: https://${DOMAIN}/api
+    container_name: ogden-web
+    restart: 'no'
+    volumes:
+      - web_static:/app/dist
+    # Exits after copying built files — nginx serves them
+    entrypoint: /bin/sh -c 'cp -r /build/dist/* /app/dist/ && echo "Static files deployed" && exit 0'
+
+  # ── PostgreSQL + PostGIS ────────────────────────────────────────────────────
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: ogden-postgres
+    restart: unless-stopped
+    # No public ports — only accessible within ogden-net
+    expose:
+      - '5432'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../apps/api/src/db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - ogden-net
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+
+  redis:
+    image: redis:7-alpine
+    container_name: ogden-redis
+    restart: unless-stopped
+    # No public ports — only accessible within ogden-net
+    expose:
+      - '6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - ogden-net
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+
+volumes:
+  postgres_data:
+  redis_data:
+  web_static:
+
+# ── Networks ────────────────────────────────────────────────────────────────
+
+networks:
+  ogden-net:
+    driver: bridge

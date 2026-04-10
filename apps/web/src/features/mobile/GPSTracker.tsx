@@ -3,17 +3,17 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { mapboxgl } from '../../lib/mapbox.js';
+import { maplibregl } from '../../lib/maplibre.js';
 
 interface GPSTrackerProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
 }
 
 export default function GPSTracker({ map, isMapReady }: GPSTrackerProps) {
   const [isTracking, setIsTracking] = useState(false);
   const [accuracy, setAccuracy] = useState<number | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
   const startTracking = useCallback(() => {
@@ -52,7 +52,7 @@ export default function GPSTracker({ map, isMapReady }: GPSTrackerProps) {
             document.head.appendChild(style);
           }
 
-          markerRef.current = new mapboxgl.Marker({ element: el })
+          markerRef.current = new maplibregl.Marker({ element: el })
             .setLngLat([longitude, latitude])
             .addTo(map);
         } else {

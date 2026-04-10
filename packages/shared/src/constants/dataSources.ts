@@ -7,14 +7,18 @@ export type LayerType =
   | 'wetlands_flood'
   | 'land_cover'
   | 'climate'
-  | 'zoning';
+  | 'zoning'
+  | 'watershed_derived';
+
+/** Tier 1 layer types fetched from external adapters. */
+export type Tier1LayerType = Exclude<LayerType, 'watershed_derived'>;
 
 export interface AdapterConfig {
   adapter: string;
   source: string;
 }
 
-export const ADAPTER_REGISTRY: Record<LayerType, Record<Country, AdapterConfig>> = {
+export const ADAPTER_REGISTRY: Record<Tier1LayerType, Record<Country, AdapterConfig>> = {
   elevation: {
     US: { adapter: 'UsgsElevationAdapter', source: 'usgs_3dep' },
     CA: { adapter: 'NrcanHrdemAdapter', source: 'nrcan_hrdem' },
@@ -72,9 +76,9 @@ export const CONSERVATION_AUTHORITY_REGISTRY: Record<string, ConservationAuthori
   // Additional CAs added progressively
 };
 
-export const LAYER_TYPES = Object.keys(ADAPTER_REGISTRY) as LayerType[];
+export const LAYER_TYPES = Object.keys(ADAPTER_REGISTRY) as Tier1LayerType[];
 
-export const DATA_COMPLETENESS_WEIGHTS: Record<LayerType, number> = {
+export const DATA_COMPLETENESS_WEIGHTS: Partial<Record<LayerType, number>> = {
   soils: 0.20,
   elevation: 0.15,
   watershed: 0.15,
@@ -82,4 +86,5 @@ export const DATA_COMPLETENESS_WEIGHTS: Record<LayerType, number> = {
   zoning: 0.15,
   land_cover: 0.10,
   climate: 0.10,
+  // Derived layers do not contribute to Tier 1 completeness
 };

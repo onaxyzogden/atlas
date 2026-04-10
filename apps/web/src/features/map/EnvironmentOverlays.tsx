@@ -7,10 +7,11 @@
  *   - Layer visibility toggles, ordering, opacity controls
  */
 
+import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface EnvironmentOverlaysProps {
-  map: mapboxgl.Map | null;
+  map: maplibregl.Map | null;
   isMapReady: boolean;
 }
 
@@ -130,7 +131,7 @@ export default function EnvironmentOverlays({ map, isMapReady }: EnvironmentOver
 
 // ─── Map layer management ──────────────────────────────────────────────────
 
-function getFirstSymbolLayer(map: mapboxgl.Map): string | undefined {
+function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   const layers = map.getStyle()?.layers;
   if (!layers) return undefined;
   for (const layer of layers) {
@@ -139,7 +140,7 @@ function getFirstSymbolLayer(map: mapboxgl.Map): string | undefined {
   return undefined;
 }
 
-function addEnvLayer(map: mapboxgl.Map, layer: EnvLayer, tracker: Set<string>) {
+function addEnvLayer(map: maplibregl.Map, layer: EnvLayer, tracker: Set<string>) {
   const before = getFirstSymbolLayer(map);
 
   // Ensure composite source is available (Mapbox default)
@@ -256,7 +257,7 @@ function addEnvLayer(map: mapboxgl.Map, layer: EnvLayer, tracker: Set<string>) {
   }
 }
 
-function removeEnvLayer(map: mapboxgl.Map, layer: EnvLayer, tracker: Set<string>) {
+function removeEnvLayer(map: maplibregl.Map, layer: EnvLayer, tracker: Set<string>) {
   const ids: Record<EnvLayer, string[]> = {
     buildings: ['ogden-buildings-3d'],
     roads: ['ogden-roads-highlight'],

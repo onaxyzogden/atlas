@@ -5,7 +5,15 @@
  * Handles JSON serialization, error extraction, and auth token injection.
  */
 
-import type { ProjectSummary, CreateProjectInput, UpdateProjectInput } from '@ogden/shared';
+import type {
+  ProjectSummary,
+  CreateProjectInput,
+  UpdateProjectInput,
+  DesignFeatureSummary,
+  CreateDesignFeatureInput,
+  UpdateDesignFeatureInput,
+  ProjectFile,
+} from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
 
@@ -37,6 +45,7 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<ApiEnvelope<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -49,6 +58,7 @@ async function request<T>(
     method,
     headers,
     body: body != null ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   const json = await response.json().catch(() => ({
@@ -115,6 +125,35 @@ export const api = {
 
     completeness: (id: string) =>
       request<{ score: number; layers: unknown[] }>('GET', `/api/v1/projects/${id}/completeness`),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/projects/${id}`),
+  },
+
+  designFeatures: {
+    list: (projectId: string, featureType?: string) =>
+      request<DesignFeatureSummary[]>(
+        'GET',
+        featureType
+          ? `/api/v1/design-features/project/${projectId}/${featureType}`
+          : `/api/v1/design-features/project/${projectId}`,
+      ),
+
+    create: (projectId: string, input: CreateDesignFeatureInput) =>
+      request<DesignFeatureSummary>('POST', `/api/v1/design-features/project/${projectId}`, input),
+
+    update: (id: string, input: Partial<UpdateDesignFeatureInput>) =>
+      request<DesignFeatureSummary>('PATCH', `/api/v1/design-features/${id}`, input),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/design-features/${id}`),
+
+    bulkUpsert: (projectId: string, features: CreateDesignFeatureInput[]) =>
+      request<DesignFeatureSummary[]>(
+        'POST',
+        `/api/v1/design-features/project/${projectId}/bulk`,
+        { features },
+      ),
   },
 
   layers: {
@@ -151,9 +190,66 @@ export const api = {
   },
 
   ai: {
-    chat: (messages: { role: string; content: string }[], systemPrompt: string) =>
+    chat: (messages: { role: string; content: string }[], systemPrompt: string, signal?: AbortSignal) =>
       request<{ content: string; model: string; inputTokens: number; outputTokens: number }>(
-        'POST', '/api/v1/ai/chat', { messages, systemPrompt },
+        'POST', '/api/v1/ai/chat', { messages, systemPrompt }, signal,
       ),
+  },
+
+  files: {
+    /** Upload a file with optional progress tracking. Uses XMLHttpRequest for upload progress events. */
+    upload: (
+      projectId: string,
+      file: File,
+      onProgress?: (pct: number) => void,
+    ): Promise<ApiEnvelope<ProjectFile>> =>
+      new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `/api/v1/projects/${projectId}/files`);
+
+        if (authToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+        }
+
+        if (onProgress) {
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              onProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          };
+        }
+
+        xhr.onload = () => {
+          try {
+            const json = JSON.parse(xhr.responseText) as ApiEnvelope<ProjectFile>;
+            if (xhr.status >= 200 && xhr.status < 300 && !json.error) {
+              resolve(json);
+            } else {
+              reject(new ApiError(
+                json.error?.code ?? 'UNKNOWN',
+                json.error?.message ?? `Upload failed (${xhr.status})`,
+                xhr.status,
+                json.error?.details,
+              ));
+            }
+          } catch {
+            reject(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new ApiError('NETWORK_ERROR', 'Network error during upload', 0));
+        };
+
+        const formData = new FormData();
+        formData.append('file', file);
+        xhr.send(formData);
+      }),
+
+    list: (projectId: string) =>
+      request<(ProjectFile & { confidence?: string })[]>('GET', `/api/v1/projects/${projectId}/files`),
+
+    delete: (projectId: string, fileId: string) =>
+      request<null>('DELETE', `/api/v1/projects/${projectId}/files/${fileId}`),
   },
 };

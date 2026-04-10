@@ -137,7 +137,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     },
   );
 
-  // GET /projects/:id/assessment — current site assessment
+  // GET /projects/:id/assessment — current site assessment + terrain analysis
   fastify.get<{ Params: { id: string } }>(
     '/:id/assessment',
     { preHandler: [authenticate] },
@@ -157,7 +157,83 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           error: { code: 'NOT_READY', message: 'Assessment not yet computed. Data pipeline may still be running.' },
         };
       }
-      return { data: assessment, meta: undefined, error: null };
+
+      // Fetch terrain analysis (Tier 3)
+      const [terrain] = await db`
+        SELECT * FROM terrain_analysis
+        WHERE project_id = ${req.params.id}
+      `;
+
+      const terrainAnalysis = terrain ? {
+        curvature: {
+          profileMean: terrain.curvature_profile_mean,
+          planMean: terrain.curvature_plan_mean,
+          classification: terrain.curvature_classification,
+          geojson: terrain.curvature_geojson,
+          confidence: terrain.confidence,
+          dataSources: terrain.data_sources ?? [],
+          computedAt: terrain.computed_at,
+        },
+        viewshed: {
+          visiblePct: terrain.viewshed_visible_pct,
+          observerPoint: terrain.viewshed_observer_point,
+          geojson: terrain.viewshed_geojson,
+          confidence: terrain.confidence,
+          dataSources: terrain.data_sources ?? [],
+          computedAt: terrain.computed_at,
+        },
+        frostPocket: {
+          areaPct: terrain.frost_pocket_area_pct,
+          severity: terrain.frost_pocket_severity,
+          geojson: terrain.frost_pocket_geojson,
+          confidence: terrain.confidence,
+          dataSources: terrain.data_sources ?? [],
+          computedAt: terrain.computed_at,
+        },
+        coldAirDrainage: {
+          flowPaths: terrain.cold_air_drainage_paths,
+          poolingZones: terrain.cold_air_pooling_zones,
+          riskRating: terrain.cold_air_risk_rating,
+          confidence: terrain.confidence,
+          dataSources: terrain.data_sources ?? [],
+          computedAt: terrain.computed_at,
+        },
+        tpi: {
+          classification: terrain.tpi_classification,
+          dominantClass: terrain.tpi_dominant_class,
+          geojson: terrain.tpi_geojson,
+          confidence: terrain.confidence,
+          dataSources: terrain.data_sources ?? [],
+          computedAt: terrain.computed_at,
+        },
+        elevation: {
+          minM: terrain.elevation_min_m,
+          maxM: terrain.elevation_max_m,
+          meanM: terrain.elevation_mean_m,
+        },
+        sourceApi: terrain.source_api,
+      } : null;
+
+      return {
+        data: { ...assessment, terrainAnalysis },
+        meta: undefined,
+        error: null,
+      };
+    },
+  );
+
+  // DELETE /projects/:id — permanently delete project (cascades to design_features, etc.)
+  fastify.delete<{ Params: { id: string } }>(
+    '/:id',
+    { preHandler: [authenticate] },
+    async (req, reply) => {
+      const [existing] = await db`SELECT id, owner_id FROM projects WHERE id = ${req.params.id}`;
+      if (!existing) throw new NotFoundError('Project', req.params.id);
+      if (existing.owner_id !== req.userId) throw new ForbiddenError();
+
+      await db`DELETE FROM projects WHERE id = ${req.params.id}`;
+      reply.code(204);
+      return '';
     },
   );
 

@@ -119,6 +119,13 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         if (geo) {
           await api.projects.setBoundary(serverProject.id, geo);
         }
+
+        // Upload file attachments to the server
+        for (const att of attachments) {
+          api.files.upload(serverProject.id, att.file).catch(() => {
+            // Upload failure is non-fatal — local attachment is still in store
+          });
+        }
       }).catch(() => {
         // Backend unavailable — local copy is intact, sync will retry later
       });
