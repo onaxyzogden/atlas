@@ -126,7 +126,7 @@
      ======================================================================== */
 
   /* --- Font Families --- */
-  --font-display: 'Lora', Georgia, serif;
+  --font-display: 'Fira Code', monospace;
   --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 

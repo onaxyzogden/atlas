@@ -33,6 +33,7 @@ export interface LocalProject {
   zoningNotes: string | null;
   accessNotes: string | null;
   waterRightsNotes: string | null;
+  visionStatement: string | null;
   units: 'metric' | 'imperial';
   attachments: ProjectAttachment[];
   // Sprint 3 — server-assigned UUID after backend sync (undefined = not yet synced)
@@ -103,6 +104,7 @@ export const useProjectStore = create<ProjectState>()(
           zoningNotes: null,
           accessNotes: null,
           waterRightsNotes: null,
+          visionStatement: null,
           units: input.units ?? 'metric',
           attachments: [],
         };
@@ -168,7 +170,18 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 2,
+      version: 3,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version < 3) {
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            visionStatement: (p as Record<string, unknown>).visionStatement ?? null,
+          }));
+        }
+        return state;
+      },
       // Strip large geospatial blobs from localStorage to prevent quota issues.
       // GeoJSON boundaries and parsed file data are cached in IndexedDB via geodataCache.
       partialize: (state) => ({

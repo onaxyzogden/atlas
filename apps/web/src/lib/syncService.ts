@@ -512,6 +512,7 @@ async function initialSync(): Promise<void> {
           zoningNotes: null,
           accessNotes: null,
           waterRightsNotes: null,
+          visionStatement: null,
           units: 'metric',
           attachments: [],
           serverId: sp.id,

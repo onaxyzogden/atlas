@@ -1,0 +1,392 @@
+/* ==========================================================================
+   VisionPanel — Contemplative register styles.
+   Where intention meets land. Not a form — a place to think.
+   ========================================================================== */
+
+/* ─── Header row (title + overlay toggle) ──────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.overlayToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overlayLabel {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  letter-spacing: 0.04em;
+}
+
+.overlaySwitch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  background: var(--color-panel-card-border);
+  transition: background var(--duration-base) var(--ease-default);
+}
+
+.overlaySwitchOn {
+  background: rgba(196, 162, 101, 0.4);
+}
+
+.overlayDot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-panel-muted);
+  transition: transform var(--duration-base) var(--ease-default),
+              background var(--duration-base) var(--ease-default);
+}
+
+.overlayDotOn {
+  transform: translateX(14px);
+  background: #c4a265;
+}
+
+/* ─── Vision textarea (the big contemplative input) ────────────────── */
+.visionTextarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 16px 18px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  color: var(--color-panel-text);
+  background: rgba(196, 162, 101, 0.03);
+  border: 1px solid rgba(196, 162, 101, 0.08);
+  border-radius: 10px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--duration-base) var(--ease-default),
+              background var(--duration-base) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.visionTextarea:focus {
+  border-color: rgba(196, 162, 101, 0.25);
+  background: rgba(196, 162, 101, 0.05);
+}
+
+.visionTextarea::placeholder {
+  color: var(--color-panel-muted);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* ─── Project type selector ────────────────────────────────────────── */
+.typeSection {
+  margin-top: var(--space-6);
+}
+
+.typeLabel {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-panel-muted);
+  margin-bottom: var(--space-2);
+}
+
+.typeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.typeChip {
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--color-panel-card-border);
+  color: var(--color-panel-muted);
+  transition: all var(--duration-base) var(--ease-default);
+}
+
+.typeChip:hover {
+  border-color: rgba(196, 162, 101, 0.2);
+}
+
+.typeChipActive {
+  background: rgba(196, 162, 101, 0.12);
+  border-color: rgba(196, 162, 101, 0.25);
+  color: #c4a265;
+  font-weight: 500;
+}
+
+/* ─── Fit analysis ─────────────────────────────────────────────────── */
+.fitList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fitRow {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+}
+
+.fitRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.fitScoreName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-panel-text);
+}
+
+.fitWeightBadge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fitWeightCritical {
+  background: rgba(196, 162, 101, 0.12);
+  color: #c4a265;
+}
+
+.fitWeightImportant {
+  background: rgba(45, 122, 79, 0.1);
+  color: var(--color-confidence-high);
+}
+
+.fitWeightSupportive {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-panel-muted);
+}
+
+/* Fit bar visualization */
+.fitBar {
+  position: relative;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+  overflow: visible;
+  margin-bottom: 6px;
+}
+
+.fitBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 400ms var(--ease-default);
+}
+
+.fitBarFillStrong {
+  background: var(--color-sage-500, #6b8a5e);
+}
+
+.fitBarFillModerate {
+  background: var(--color-earth-400, #b09a7a);
+}
+
+.fitBarFillChallenge {
+  background: var(--color-warning-500, #c47a3f);
+}
+
+.fitThresholdMarker {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: var(--color-panel-muted);
+  border-radius: 1px;
+  opacity: 0.5;
+}
+
+.fitStatusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fitStatusLabel {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.fitStatusStrong {
+  color: var(--color-sage-600, #527852);
+}
+
+.fitStatusModerate {
+  color: var(--color-earth-500, #8a7a5e);
+}
+
+.fitStatusChallenge {
+  color: var(--color-warning-600, #a66230);
+}
+
+.fitScoreValue {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+.fitConfidence {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ─── Moontrance identity fields ───────────────────────────────────── */
+.moontranceField {
+  margin-bottom: var(--space-5);
+}
+
+.moontranceQuestion {
+  font-size: 12px;
+  color: var(--color-panel-text);
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: var(--space-2);
+}
+
+.moontranceTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  line-height: 1.7;
+  color: var(--color-panel-text);
+  background: rgba(107, 91, 138, 0.03);
+  border: 1px solid rgba(107, 91, 138, 0.1);
+  border-radius: 8px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--duration-base) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.moontranceTextarea:focus {
+  border-color: rgba(107, 91, 138, 0.25);
+}
+
+.moontranceTextarea::placeholder {
+  color: var(--color-panel-muted);
+  opacity: 0.6;
+}
+
+/* ─── Phase timeline cards ─────────────────────────────────────────── */
+.phaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phaseCard {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+  border-left: 3px solid var(--color-panel-card-border);
+}
+
+.phaseCardYear1 {
+  border-left-color: #c4a265;
+}
+
+.phaseCardYear2 {
+  border-left-color: #8a9a74;
+}
+
+.phaseCardYear4 {
+  border-left-color: #7a8a9a;
+}
+
+.phaseHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: var(--space-2);
+}
+
+.phaseLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-panel-text);
+}
+
+.phaseTimeframe {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+.phaseTextarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  line-height: 1.7;
+  color: var(--color-panel-text);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--duration-base) var(--ease-default),
+              background var(--duration-base) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.phaseTextarea:focus {
+  border-color: rgba(196, 162, 101, 0.2);
+  background: rgba(196, 162, 101, 0.02);
+}
+
+.phaseTextarea::placeholder {
+  color: var(--color-panel-muted);
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* ─── Empty states ─────────────────────────────────────────────────── */
+.emptyState {
+  padding: var(--space-8, 32px) var(--space-4);
+  text-align: center;
+  color: var(--color-panel-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.emptyHint {
+  margin-top: var(--space-3);
+  font-size: 11px;
+  font-style: normal;
+  opacity: 0.7;
+}
+
+/* ─── Saved indicator ──────────────────────────────────────────────── */
+.savedIndicator {
+  font-size: 9px;
+  color: var(--color-confidence-high);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-default);
+}
+
+.savedIndicatorVisible {
+  opacity: 1;
+}
