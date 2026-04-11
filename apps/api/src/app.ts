@@ -92,6 +92,44 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
 
+  // ─── Migration check (warn only, does not block startup) ─────────────────────
+
+  app.addHook('onReady', async () => {
+    try {
+      const db = (app as unknown as { db: import('postgres').Sql }).db;
+      if (!db) return;
+
+      // Check if schema_migrations table exists
+      const [tableExists] = await db`
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'schema_migrations'
+        LIMIT 1
+      `;
+
+      if (!tableExists) {
+        app.log.warn('schema_migrations table not found — run "pnpm migrate" to apply database migrations');
+        return;
+      }
+
+      const applied = await db`SELECT version FROM schema_migrations`;
+      const appliedSet = new Set(applied.map((r) => r.version as string));
+
+      // Read migration files from disk
+      const { readdirSync } = await import('fs');
+      const { resolve: pathResolve, dirname: pathDirname } = await import('path');
+      const { fileURLToPath: toPath } = await import('url');
+      const dir = pathResolve(pathDirname(toPath(import.meta.url)), 'db/migrations');
+      const files = readdirSync(dir).filter((f: string) => f.endsWith('.sql')).sort();
+
+      const pending = files.filter((f: string) => !appliedSet.has(f.replace(/\.sql$/, '')));
+      if (pending.length > 0) {
+        app.log.warn(`${pending.length} unapplied migration(s): ${pending.join(', ')} — run "pnpm migrate"`);
+      }
+    } catch {
+      app.log.warn('Could not check migration status — run "pnpm migrate" to ensure database is up to date');
+    }
+  });
+
   // ─── Data pipeline workers ───────────────────────────────────────────────────
 
   app.addHook('onReady', async () => {
@@ -158,13 +196,23 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
     await closeBrowser();
   });
 
+  // ─── 404 handler (always JSON) ────────────────────────────────────────────────
+
+  app.setNotFoundHandler((_req, reply) => {
+    reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({
+      data: null,
+      error: { code: 'NOT_FOUND', message: 'Route not found' },
+    });
+  });
+
   // ─── Global error handler ────────────────────────────────────────────────────
 
   app.setErrorHandler((error, _req, reply) => {
+    reply.header('Content-Type', 'application/json; charset=utf-8');
+
     if (error instanceof AppError) {
       reply.code(error.statusCode).send({
         data: null,
-        meta: undefined,
         error: { code: error.code, message: error.message, details: error.details },
       });
       return;
@@ -173,7 +221,6 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
     if (error instanceof ZodError) {
       reply.code(422).send({
         data: null,
-        meta: undefined,
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Request validation failed',
@@ -187,10 +234,15 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
     }
 
     app.log.error(error);
-    reply.code(500).send({
+
+    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+    const message = config.NODE_ENV !== 'production'
+      ? (error instanceof Error ? error.message : String(error))
+      : 'An unexpected error occurred';
+
+    reply.code(statusCode).send({
       data: null,
-      meta: undefined,
-      error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' },
+      error: { code: 'INTERNAL_ERROR', message },
     });
   });
 

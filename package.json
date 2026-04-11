@@ -2,11 +2,11 @@
   "name": "ogden-atlas",
   "private": true,
   "scripts": {
-    "dev": "pnpm install && pnpm db:migrate && turbo run dev",
+    "dev": "pnpm install && pnpm migrate && turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "db:migrate": "pnpm --filter @ogden/api db:migrate",
+    "migrate": "pnpm --filter @ogden/api migrate",
     "db:studio": "pnpm --filter @ogden/api db:studio"
   },
   "devDependencies": {
