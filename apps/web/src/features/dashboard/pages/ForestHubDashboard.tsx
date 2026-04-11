@@ -1,10 +1,24 @@
 /**
- * ForestHubDashboard — Forest management with health index, alerts, maintenance schedule.
+ * ForestHubDashboard — existing vegetation, forestry zones, carbon stock,
+ * silvopasture, tree health, canopy succession layers.
+ *
+ * All data from siteDataStore layers + zoneStore + cropStore + analysis module.
+ * No hardcoded alerts, maintenance, or sector data.
  */
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
+import { useZoneStore } from '../../../store/zoneStore.js';
+import { useCropStore } from '../../../store/cropStore.js';
+import {
+  computeExistingVegetation,
+  computeForestryZones,
+  computeCarbonStock,
+  computeSilvopastureOpportunities,
+  computeTreeHealthIndex,
+} from '../../forest/forestAnalysis.js';
+import { FOOD_FOREST_LAYERS } from '../../forest/canopyLayerData.js';
 import css from './ForestHubDashboard.module.css';
 
 interface ForestHubDashboardProps {
@@ -12,148 +26,130 @@ interface ForestHubDashboardProps {
   onSwitchToMap: () => void;
 }
 
-interface SoilsSummary { organic_matter_pct?: number | string; drainage_class?: string; ph_range?: string; }
-interface LandCoverSummary { tree_canopy_pct?: number | string; }
-interface ClimateSummary { annual_precip_mm?: number; annual_temp_mean_c?: number; }
-
-const ALERTS = [
-  { type: 'warning', title: 'Irrigation System Alert', detail: 'PRESSURE DROP IN SECTOR B', color: '#c4a265' },
-  { type: 'pest', title: 'Pest Activity Detected', detail: 'JAPANESE BEETLE IN ORCHARD A', color: '#9a6a5a' },
-];
-
-const MAINTENANCE = [
-  { icon: 'mulch', title: 'Mulch Refresh', due: null },
-  { icon: 'pruning', title: 'Pruning Window - Sector A', due: 'Due in 4 days' },
-  { icon: 'audit', title: 'Nursery Stock Audit', due: null },
-];
+interface SoilsSummary {
+  organic_matter_pct?: number | string;
+  drainage_class?: string;
+  ph_range?: string;
+}
+interface LandCoverSummary {
+  tree_canopy_pct?: number | string;
+  classes?: Record<string, number>;
+}
+interface MicroclimateSummary {
+  sun_trap_count?: number;
+  frost_risk_high_pct?: number;
+  wind_shelter_pct?: number;
+}
+interface SoilRegenSummary {
+  current_soc_tcha?: number;
+  potential_soc_tcha?: number;
+  annual_seq_rate_tcha_yr?: number;
+  silvopasture_suitability?: number;
+  intervention_recommendations?: string[];
+}
+interface ElevationSummary {
+  total_area_m2?: number;
+}
 
 export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHubDashboardProps) {
   const siteData = useSiteData(project.id);
+  const allZones = useZoneStore((s) => s.zones);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
 
-  const forest = useMemo(() => {
-    const soils    = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
-    const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === project.id), [allZones, project.id]);
+  const cropAreas = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === project.id &&
+      ['food_forest', 'silvopasture', 'windbreak', 'shelterbelt'].includes(c.type)),
+    [allCropAreas, project.id],
+  );
 
-    const omRaw    = parseFloat(String(soils?.organic_matter_pct ?? ''));
-    const om       = isFinite(omRaw) ? omRaw : 4.5;
-    const canopyRaw = parseFloat(String(landCover?.tree_canopy_pct ?? ''));
-    const canopy   = isFinite(canopyRaw) ? canopyRaw : 45;
-    const drain    = (soils?.drainage_class ?? '').toLowerCase();
-    const ph       = soils?.ph_range ?? '';
+  const soils = useMemo(() => siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null, [siteData]);
+  const landCover = useMemo(() => siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null, [siteData]);
+  const microclimate = useMemo(() => siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null, [siteData]);
+  const soilRegen = useMemo(() => siteData ? getLayerSummary<SoilRegenSummary>(siteData, 'soil_regeneration') : null, [siteData]);
+  const elevation = useMemo(() => siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null, [siteData]);
 
-    // Tree Health Index (0–99)
-    const omBonus  = om >= 5 ? 15 : om >= 3 ? 10 : om >= 1 ? 6 : 2;
-    const drainBonus = drain.includes('well') ? 8 : drain.includes('poor') ? 2 : 5;
-    const healthIdx = Math.min(Math.max(Math.round(55 + (canopy / 100 * 20) + omBonus + drainBonus), 0), 99);
-
-    // Canopy Vitality NDVI (0.00–0.95)
-    const ndvi = Math.round((canopy / 100) * 0.9 * 100) / 100;
-
-    // F:B Ratio
-    const wellDrained = drain.includes('well');
-    const fbRatio = (om >= 5 && wellDrained) ? '4.2:1' : om >= 3 ? '3.2:1' : '1.8:1';
-
-    // Mycorrhizal colonization (%)
-    const mycOm = om >= 5 ? 20 : om >= 3 ? 15 : 5;
-    const mycDrain = wellDrained ? 8 : 0;
-    const myc = Math.min(Math.max(50 + mycOm + mycDrain, 0), 95);
-
-    // Nutrient balance from pH
-    let nutrients = 'Balanced';
-    if (ph) {
-      if (/^[45]\./.test(ph)) nutrients = 'Slightly Acidic';
-      else if (/^[89]\./.test(ph)) nutrients = 'Alkaline';
-    }
-
-    // Soil moisture proxy from drainage
-    const soilMoisture = wellDrained ? '18–22' : drain.includes('poor') ? '30–40' : '24–30';
-
-    return { healthIdx, ndvi, fbRatio, myc, nutrients, soilMoisture, om, canopy };
-  }, [siteData]);
-
-  const healthLabel = forest.healthIdx >= 90 ? 'OPTIMAL' : forest.healthIdx >= 75 ? 'GOOD' : 'MONITOR';
+  // Analysis computations
+  const vegetation = useMemo(() => computeExistingVegetation(landCover), [landCover]);
+  const forestryZones = useMemo(() => computeForestryZones(zones, microclimate), [zones, microclimate]);
+  const totalAreaM2 = elevation?.total_area_m2 ?? zones.reduce((sum, z) => sum + z.areaM2, 0);
+  const carbon = useMemo(() => computeCarbonStock(soilRegen, landCover, totalAreaM2), [soilRegen, landCover, totalAreaM2]);
+  const silvopasture = useMemo(() => computeSilvopastureOpportunities(zones, soilRegen), [zones, soilRegen]);
+  const treeHealth = useMemo(() => computeTreeHealthIndex(soils, landCover), [soils, landCover]);
 
   return (
     <div className={css.page}>
-      {/* Alerts */}
-      <div className={css.alertStack}>
-        {ALERTS.map((a, i) => (
-          <div key={i} className={css.alertCard} style={{ borderLeftColor: a.color + '66' }}>
-            <span className={css.alertIcon} style={{ color: a.color }}>
-              {a.type === 'warning' ? (
-                <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="8" r="6.5" /><line x1="8" y1="5" x2="8" y2="8.5" /><circle cx="8" cy="11" r="0.5" fill="currentColor" />
-                </svg>
-              ) : (
-                <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 1C5 4 3 6 3 9C3 11.8 5.2 14 8 14C10.8 14 13 11.8 13 9C13 6 11 4 8 1Z" />
-                </svg>
-              )}
-            </span>
-            <div>
-              <span className={css.alertTitle}>{a.title}</span>
-              <span className={css.alertDetail}>{a.detail}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Management status header */}
+      {/* ── Status Header ──────────────────────────────────────── */}
       <div className={css.statusHeader}>
-        <span className={css.statusTag}>MANAGEMENT STATUS</span>
-        <h1 className={css.sectorTitle}>Sector 02</h1>
-        <span className={css.sectorSub}>Active Monitoring</span>
+        <span className={css.statusTag}>FOREST HUB</span>
+        <h1 className={css.sectorTitle}>Forest Management</h1>
+        <span className={css.sectorSub}>
+          {forestryZones.length} forestry zone{forestryZones.length !== 1 ? 's' : ''} &middot; {carbon.totalAreaHa} ha total
+        </span>
       </div>
 
-      {/* Tree Health Index */}
+      {/* ── Tree Health Index ──────────────────────────────────── */}
       <div className={css.healthCard}>
         <span className={css.healthLabel}>TREE HEALTH INDEX</span>
         <div className={css.gaugeWrapper}>
           <svg viewBox="0 0 120 120" width={120} height={120}>
             <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#8a9a74" strokeWidth="8"
-              strokeDasharray={`${forest.healthIdx * 3.14} ${100 * 3.14}`}
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#15803D" strokeWidth="8"
+              strokeDasharray={`${treeHealth.healthIdx * 3.14} ${100 * 3.14}`}
               strokeLinecap="round"
               transform="rotate(-90 60 60)" />
           </svg>
           <div className={css.gaugeText}>
-            <span className={css.gaugeValue}>{forest.healthIdx}%</span>
-            <span className={css.gaugeLabel}>{healthLabel}</span>
+            <span className={css.gaugeValue}>{treeHealth.healthIdx}%</span>
+            <span className={css.gaugeLabel}>{treeHealth.label}</span>
           </div>
         </div>
         <span className={css.gaugeTrend}>Based on site soil &amp; canopy data</span>
       </div>
 
-      {/* Operational Data */}
+      {/* ── Existing Vegetation ────────────────────────────────── */}
+      {vegetation.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>EXISTING VEGETATION</h3>
+          {vegetation.map((v) => (
+            <div key={v.className} className={css.vegRow}>
+              <span className={css.vegLabel}>{v.className}</span>
+              <span className={css.vegPct}>{v.pct.toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Operational Data ───────────────────────────────────── */}
       <div className={css.section}>
         <h3 className={css.sectionLabel}>OPERATIONAL DATA</h3>
         <div className={css.dataList}>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Soil Moisture</span>
-            <span className={css.dataValue}>{forest.soilMoisture} <span className={css.dataUnit}>cb</span></span>
+            <span className={css.dataValue}>{treeHealth.soilMoisture} <span className={css.dataUnit}>cb</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Canopy Vitality</span>
-            <span className={css.dataValue}>{forest.ndvi.toFixed(2)} <span className={css.dataUnit}>NDVI</span></span>
+            <span className={css.dataValue}>{treeHealth.ndvi.toFixed(2)} <span className={css.dataUnit}>NDVI</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Leaf Nutrient Levels</span>
-            <span className={css.dataValue}>{forest.nutrients}</span>
+            <span className={css.dataValue}>{treeHealth.nutrients}</span>
           </div>
         </div>
       </div>
 
-      {/* Soil context — F:B ratio for forestry */}
+      {/* ── Soil Biology ──────────────────────────────────────── */}
       <div className={css.soilCard}>
         <h3 className={css.sectionLabel}>SOIL BIOLOGY — FOREST CONTEXT</h3>
         <div className={css.dataList}>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Fungi:Bacteria Ratio</span>
-            <span className={css.dataValue}>{forest.fbRatio} <span className={css.dataOptimal}>Optimal</span></span>
+            <span className={css.dataValue}>{treeHealth.fbRatio} <span className={css.dataOptimal}>Optimal</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Mycorrhizal Colonization</span>
-            <span className={css.dataValue}>{forest.myc}% <span className={css.dataUnit}>of roots</span></span>
+            <span className={css.dataValue}>{treeHealth.myc}% <span className={css.dataUnit}>of roots</span></span>
           </div>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Target F:B Range</span>
@@ -162,44 +158,107 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
         </div>
       </div>
 
-      {/* Upcoming Maintenance */}
+      {/* ── Carbon Stock ──────────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>UPCOMING MAINTENANCE</h3>
-        <div className={css.maintenanceList}>
-          {MAINTENANCE.map((m, i) => (
-            <div key={i} className={css.maintenanceItem}>
-              <div className={css.maintenanceIcon}>
-                <MaintenanceIcon type={m.icon} />
+        <h3 className={css.sectionLabel}>CARBON STOCK ESTIMATE</h3>
+        <div className={css.carbonGrid}>
+          <div className={css.carbonCard}>
+            <span className={css.carbonValue}>{carbon.currentSOC}</span>
+            <span className={css.carbonUnit}>CURRENT tC/ha</span>
+          </div>
+          <div className={css.carbonCard}>
+            <span className={css.carbonValue}>{carbon.potentialSOC}</span>
+            <span className={css.carbonUnit}>POTENTIAL tC/ha</span>
+          </div>
+        </div>
+        <div className={css.dataList}>
+          <div className={css.projectionRow}>
+            <span className={css.projectionLabel}>10-yr no change</span>
+            <span className={css.projectionValue}>{carbon.projection10yr.noChange.toLocaleString()} tC</span>
+          </div>
+          <div className={css.projectionRow}>
+            <span className={css.projectionLabel}>10-yr moderate mgmt</span>
+            <span className={css.projectionValue}>{carbon.projection10yr.moderate.toLocaleString()} tC</span>
+          </div>
+          <div className={css.projectionRow}>
+            <span className={css.projectionLabel}>10-yr intensive regen</span>
+            <span className={css.projectionValue}>{carbon.projection10yr.intensive.toLocaleString()} tC</span>
+          </div>
+          <div className={css.projectionRow}>
+            <span className={css.projectionLabel}>Annual seq. rate</span>
+            <span className={css.projectionValue}>{carbon.annualSeqRate} tC/ha/yr</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Forestry Zones ────────────────────────────────────── */}
+      {forestryZones.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>FORESTRY ZONES</h3>
+          {forestryZones.map((fz) => (
+            <div key={fz.zoneId} className={css.zoneCard}>
+              <div className={css.zoneName}>{fz.zoneName}</div>
+              <div className={css.zoneArea}>
+                {(fz.areaM2 / 10000).toFixed(2)} ha &middot; {fz.category}
               </div>
-              <div>
-                <span className={css.maintenanceTitle}>{m.title}</span>
-                {m.due && <span className={css.maintenanceDue}>{m.due}</span>}
+              <div className={css.zoneMicro}>
+                Sun: {fz.sunExposure.toFixed(0)}% &middot; Frost risk: {fz.frostRisk.toFixed(0)}% &middot; Wind shelter: {fz.windShelter.toFixed(0)}%
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Silvopasture Opportunities ────────────────────────── */}
+      {silvopasture.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>SILVOPASTURE OPPORTUNITIES</h3>
+          {silvopasture.map((sp) => (
+            <div key={sp.zoneId} className={css.silvoCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className={css.silvoName}>{sp.zoneName}</span>
+                <span className={css.silvoScore}>{sp.suitabilityScore}%</span>
+              </div>
+              <div className={css.silvoRec}>{sp.recommendation}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Planting Tool Integration ─────────────────────────── */}
+      {cropAreas.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>FOREST CROP AREAS</h3>
+          {cropAreas.map((ca) => (
+            <div key={ca.id} className={css.zoneCard}>
+              <div className={css.zoneName}>{ca.name || ca.type}</div>
+              <div className={css.zoneArea}>
+                {ca.species.length} species &middot; {ca.type.replace(/_/g, ' ')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Canopy Succession — 7-Layer Food Forest ───────────── */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>CANOPY SUCCESSION — 7-LAYER FOOD FOREST</h3>
+        {FOOD_FOREST_LAYERS.map((layer) => (
+          <div key={layer.layer} className={css.canopyRow}>
+            <span className={css.canopyDot} style={{ background: layer.color }} />
+            <span className={css.canopyLayer}>{layer.label}</span>
+            <span className={css.canopyHeight}>{layer.heightRange}</span>
+            <span className={css.canopySpecies}>{layer.exampleSpecies.join(', ')}</span>
+          </div>
+        ))}
       </div>
 
       <button className={css.ctaBtn} onClick={onSwitchToMap}>
-        INITIATE MAINTENANCE PLAN
+        VIEW ON MAP
         <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 7H11M8 4L11 7L8 10" />
         </svg>
       </button>
     </div>
   );
-}
-
-function MaintenanceIcon({ type }: { type: string }) {
-  const p = { width: 14, height: 14, viewBox: '0 0 14 14', fill: 'none', stroke: 'rgba(180,165,140,0.5)', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  switch (type) {
-    case 'mulch':
-      return <svg {...p}><path d="M1 11L4 5L7 8L10 3L13 11" /><line x1="1" y1="11" x2="13" y2="11" /></svg>;
-    case 'pruning':
-      return <svg {...p}><circle cx="5" cy="5" r="3" /><line x1="7.5" y1="7.5" x2="12" y2="12" /></svg>;
-    case 'audit':
-      return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1" /><line x1="5" y1="5" x2="9" y2="5" /><line x1="5" y1="7.5" x2="9" y2="7.5" /><line x1="5" y1="10" x2="7" y2="10" /></svg>;
-    default:
-      return <svg {...p}><circle cx="7" cy="7" r="3" /></svg>;
-  }
 }

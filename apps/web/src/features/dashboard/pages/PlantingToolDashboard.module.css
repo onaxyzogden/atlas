@@ -1,16 +1,17 @@
-/* PlantingToolDashboard */
+/* PlantingToolDashboard — Atlas Design System */
+/* Earth Green #15803D · Harvest Gold #CA8A04 · Pale Green #F0FDF4 */
 
 .page { max-width: 860px; }
 
-/* Terrain hero */
+/* ── Hero ─────────────────────────────────────────────────────────── */
 .terrainHero {
   position: relative;
-  height: 200px;
+  height: 180px;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 24px;
-  background: linear-gradient(160deg, #1a2e1a 0%, #0f1a12 40%, #12231a 70%, #0f1a12 100%);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(160deg, #0a1f0a 0%, #0f1a12 40%, #0d1f14 70%, #0f1a12 100%);
+  border: 1px solid rgba(21,128,61,0.15);
 }
 .terrainOverlay {
   position: absolute;
@@ -26,14 +27,14 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(196,162,101,0.6);
+  color: rgba(202,138,4,0.65);
   margin-bottom: 6px;
 }
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 28px;
+  font-family: 'Fira Code', var(--font-display, 'Lora', Georgia, serif);
+  font-size: 26px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: #F0FDF4;
   margin: 0;
   line-height: 1.2;
 }
@@ -41,23 +42,23 @@
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: rgba(180,165,140,0.4);
+  color: rgba(21,128,61,0.45);
   margin-top: 4px;
 }
 
-/* Sections */
+/* ── Sections ─────────────────────────────────────────────────────── */
 .section { margin-bottom: 24px; }
 .sectionLabel {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.45);
+  color: rgba(21,128,61,0.55);
   margin: 0 0 12px;
   display: block;
 }
 
-/* Species list */
+/* ── Species list ─────────────────────────────────────────────────── */
 .speciesList {
   display: flex;
   flex-direction: column;
@@ -71,32 +72,40 @@
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.02);
-  cursor: pointer;
   transition: background 120ms;
 }
-.speciesCard:hover { background: rgba(255,255,255,0.04); }
 .speciesActive {
-  border-color: rgba(138,154,116,0.3);
-  background: rgba(138,154,116,0.06);
+  border-color: rgba(21,128,61,0.3);
+  background: rgba(21,128,61,0.06);
 }
 .speciesName {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 16px;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 15px;
   font-weight: 500;
-  font-style: italic;
-  color: rgba(232,220,200,0.9);
+  color: #F0FDF4;
 }
 .speciesLatin {
   display: block;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: rgba(180,165,140,0.4);
+  color: rgba(21,128,61,0.5);
   margin-top: 2px;
+  text-transform: uppercase;
+}
+.speciesCategory {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(21,128,61,0.12);
+  color: rgba(21,128,61,0.7);
 }
 
-/* Metrics grid */
+/* ── Metrics grid ─────────────────────────────────────────────────── */
 .metricsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -114,10 +123,10 @@
 }
 .metricValue {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 32px;
+  font-family: 'Fira Code', monospace;
+  font-size: 30px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: #F0FDF4;
   line-height: 1;
   margin-bottom: 6px;
 }
@@ -126,10 +135,10 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: rgba(21,128,61,0.45);
 }
 
-/* Spacing logic */
+/* ── Spacing logic ────────────────────────────────────────────────── */
 .spacingCard {
   padding: 20px;
   border-radius: 10px;
@@ -146,13 +155,13 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: rgba(180,165,140,0.45);
+  color: rgba(21,128,61,0.5);
 }
 .spacingValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 20px;
+  font-family: 'Fira Code', monospace;
+  font-size: 18px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: #F0FDF4;
 }
 .spacingTrack {
   position: relative;
@@ -164,7 +173,7 @@
 .spacingFill {
   height: 100%;
   border-radius: 2px;
-  background: rgba(180,165,140,0.3);
+  background: rgba(21,128,61,0.4);
 }
 .spacingThumb {
   position: absolute;
@@ -172,17 +181,136 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(232,220,200,0.8);
+  background: #15803D;
   border: 2px solid #0f1a12;
   transform: translateX(-50%);
 }
 
-/* AI card */
+/* ── Planting Windows ─────────────────────────────────────────────── */
+.windowCard {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(21,128,61,0.15);
+  background: rgba(21,128,61,0.04);
+  margin-bottom: 8px;
+}
+.windowTitle {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803D;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.windowDates {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 14px;
+  color: #F0FDF4;
+}
+
+/* ── Validation ───────────────────────────────────────────────────── */
+.validationCard {
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.validationOk {
+  composes: validationCard;
+  border: 1px solid rgba(21,128,61,0.2);
+  background: rgba(21,128,61,0.04);
+}
+.validationWarn {
+  composes: validationCard;
+  border: 1px solid rgba(202,138,4,0.25);
+  background: rgba(202,138,4,0.04);
+}
+.validationTitle {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #F0FDF4;
+  margin-bottom: 4px;
+}
+.validationMsg {
+  font-size: 11px;
+  color: rgba(202,138,4,0.8);
+  line-height: 1.5;
+}
+
+/* ── Companion Notes ──────────────────────────────────────────────── */
+.companionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #F0FDF4;
+}
+.companionGood { color: #15803D; font-weight: 700; font-size: 14px; }
+.companionBad { color: #CA8A04; font-weight: 700; font-size: 14px; }
+
+/* ── Yield Estimates ──────────────────────────────────────────────── */
+.yieldBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(202,138,4,0.15);
+  color: #CA8A04;
+  margin-bottom: 12px;
+}
+.yieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.yieldSpecies {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  color: #F0FDF4;
+}
+.yieldValue {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #15803D;
+}
+.yieldUnit {
+  font-size: 10px;
+  color: rgba(21,128,61,0.5);
+  margin-left: 4px;
+}
+
+/* ── Excluded species ─────────────────────────────────────────────── */
+.excludedList { margin-top: 8px; }
+.excludedItem {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.excludedReason {
+  font-size: 10px;
+  color: rgba(202,138,4,0.5);
+  margin-left: 8px;
+}
+
+/* ── AI card ──────────────────────────────────────────────────────── */
 .aiCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(138,154,116,0.2);
-  background: rgba(138,154,116,0.05);
+  border: 1px solid rgba(21,128,61,0.2);
+  background: rgba(21,128,61,0.04);
   margin-bottom: 20px;
 }
 .aiHeader {
@@ -195,23 +323,23 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(180,165,140,0.5);
+  color: rgba(21,128,61,0.55);
 }
 .aiQuote {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
-  font-size: 15px;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 14px;
   font-style: italic;
   line-height: 1.6;
-  color: rgba(232,220,200,0.75);
+  color: rgba(240,253,244,0.75);
   margin: 0 0 16px;
 }
 .aiBtn {
   width: 100%;
   padding: 12px;
-  border: 1px solid rgba(196,162,101,0.35);
+  border: 1px solid rgba(202,138,4,0.35);
   border-radius: 6px;
-  background: rgba(196,162,101,0.08);
-  color: #c4a265;
+  background: rgba(202,138,4,0.08);
+  color: #CA8A04;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -219,18 +347,18 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.aiBtn:hover { background: rgba(196,162,101,0.18); }
+.aiBtn:hover { background: rgba(202,138,4,0.18); }
 
-/* Map CTA */
+/* ── Map CTA ──────────────────────────────────────────────────────── */
 .mapBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 1px solid rgba(196,162,101,0.35);
+  border: 1px solid rgba(202,138,4,0.35);
   border-radius: 6px;
-  background: rgba(196,162,101,0.08);
-  color: #c4a265;
+  background: rgba(202,138,4,0.08);
+  color: #CA8A04;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -238,4 +366,12 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.mapBtn:hover { background: rgba(196,162,101,0.18); }
+.mapBtn:hover { background: rgba(202,138,4,0.18); }
+
+/* ── Empty state ──────────────────────────────────────────────────── */
+.emptyState {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+}

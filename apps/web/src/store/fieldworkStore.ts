@@ -6,7 +6,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type FieldworkType = 'soil_sample' | 'water_issue' | 'structure_issue' | 'measurement' | 'annotation';
+export type FieldworkType = 'soil_sample' | 'water_issue' | 'structure_issue' | 'measurement' | 'annotation' | 'observation' | 'question' | 'issue';
+export type NoteType = 'observation' | 'question' | 'measurement' | 'issue';
 
 export interface FieldworkEntry {
   id: string;
@@ -18,6 +19,8 @@ export interface FieldworkEntry {
   notes: string;
   photos: string[]; // data URLs
   verified: boolean;
+  audioDataUrl?: string;  // voice memo
+  noteType?: NoteType;
 }
 
 export interface WalkRoute {
@@ -49,6 +52,8 @@ interface FieldworkState {
   entries: FieldworkEntry[];
   walkRoutes: WalkRoute[];
   punchList: PunchListItem[];
+  pendingUploads: string[];  // entry IDs waiting for sync
+  isOnline: boolean;
 
   addEntry: (entry: FieldworkEntry) => void;
   updateEntry: (id: string, updates: Partial<FieldworkEntry>) => void;
@@ -61,6 +66,10 @@ interface FieldworkState {
   addPunchListItem: (item: PunchListItem) => void;
   updatePunchListItem: (id: string, updates: Partial<PunchListItem>) => void;
   resetPunchList: (projectId: string) => void;
+
+  setOnline: (online: boolean) => void;
+  addPendingUpload: (entryId: string) => void;
+  removePendingUpload: (entryId: string) => void;
 }
 
 export const useFieldworkStore = create<FieldworkState>()(
@@ -69,6 +78,8 @@ export const useFieldworkStore = create<FieldworkState>()(
       entries: [],
       walkRoutes: [],
       punchList: [],
+      pendingUploads: [],
+      isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
 
       addEntry: (entry) => set((s) => ({ entries: [...s.entries, entry] })),
       updateEntry: (id, updates) =>
@@ -85,6 +96,14 @@ export const useFieldworkStore = create<FieldworkState>()(
         set((s) => ({ punchList: s.punchList.map((p) => (p.id === id ? { ...p, ...updates } : p)) })),
       resetPunchList: (projectId) =>
         set((s) => ({ punchList: s.punchList.filter((p) => p.projectId !== projectId) })),
+
+      setOnline: (online) => set({ isOnline: online }),
+      addPendingUpload: (entryId) => set((s) => ({
+        pendingUploads: s.pendingUploads.includes(entryId) ? s.pendingUploads : [...s.pendingUploads, entryId],
+      })),
+      removePendingUpload: (entryId) => set((s) => ({
+        pendingUploads: s.pendingUploads.filter((id) => id !== entryId),
+      })),
     }),
     { name: 'ogden-fieldwork', version: 1 },
   ),

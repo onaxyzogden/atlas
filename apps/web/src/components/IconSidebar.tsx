@@ -30,6 +30,9 @@ export type SidebarView =
   | 'fieldnotes'
   | 'livestock'
   | 'educational'
+  | 'spiritual'
+  | 'zoning'
+  | 'siting'
   | 'settings'
   | null;
 
@@ -39,7 +42,7 @@ export type SubItemId =
   | 'site-assessment' | 'hydrology-basic' | 'solar-climate' | 'soil-ecology'
   | 'zones' | 'structures' | 'access' | 'livestock' | 'crops' | 'utilities'
   | 'timeline' | 'vision' | 'economics' | 'regulatory'
-  | 'ai' | 'scenarios' | 'collaboration' | 'moontrance' | 'educational'
+  | 'ai' | 'scenarios' | 'collaboration' | 'moontrance' | 'educational' | 'spiritual' | 'zoning' | 'siting-rules'
   | 'templates' | 'reporting'
   | 'portal' | 'fieldwork' | 'history'
   | 'settings';
@@ -87,7 +90,10 @@ const PHASE_GROUPS: PhaseGroup[] = [
       { id: 'utilities',   label: 'Utilities & Energy',    panel: 'design' },
       { id: 'timeline',    label: 'Timeline & Phasing',    panel: 'timeline' },
       { id: 'vision',      label: 'Vision Layer',          panel: 'vision' },
-      { id: 'economics',   label: 'Economics',             panel: 'economic' },
+      { id: 'spiritual',   label: 'Spiritual',             panel: 'spiritual' },
+      { id: 'zoning',        label: 'Zoning',                panel: 'zoning' },
+      { id: 'siting-rules', label: 'Siting Rules',          panel: 'siting' },
+      { id: 'economics',    label: 'Economics',             panel: 'economic' },
       { id: 'regulatory',  label: 'Regulatory',            panel: 'regulatory' },
     ],
   },
@@ -359,6 +365,12 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
       return <svg {...props}><circle cx="5" cy="5" r="2.5"/><circle cx="10" cy="5" r="2.5"/><path d="M1 13C1 10.2 2.8 8 5 8"/><path d="M13 13C13 10.2 11.2 8 9 8"/></svg>;
     case 'moontrance':
       return <svg {...props}><path d="M9 2C6.2 2 4 4.2 4 7C4 9.8 6.2 12 9 12C7 12 5 9.8 5 7C5 4.2 7 2 9 2Z" fill={color} fillOpacity="0.2"/></svg>;
+    case 'spiritual':
+      return <svg {...props}><circle cx="7" cy="7" r="5.5"/><path d="M7 3L8.2 6.5L7 11L5.8 6.5Z" fill={color} fillOpacity="0.2"/><circle cx="7" cy="7" r="1"/></svg>;
+    case 'zoning':
+      return <svg {...props}><rect x="1" y="1" width="12" height="12" rx="1" strokeDasharray="2 1.5"/><line x1="5" y1="1" x2="5" y2="13"/><line x1="9" y1="1" x2="9" y2="13"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="1" y1="9" x2="13" y2="9"/></svg>;
+    case 'siting-rules':
+      return <svg {...props}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/><line x1="4.5" y1="6.5" x2="6" y2="8.5"/><line x1="6" y1="8.5" x2="9.5" y2="5"/></svg>;
     case 'educational':
       return <svg {...props}><path d="M1 4L7 2L13 4L7 6L1 4Z"/><path d="M4 5V9C4 9 5.5 11 7 11C8.5 11 10 9 10 9V5"/><line x1="13" y1="4" x2="13" y2="8"/></svg>;
     case 'templates':

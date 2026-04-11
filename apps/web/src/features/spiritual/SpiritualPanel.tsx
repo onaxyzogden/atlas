@@ -1,110 +1,102 @@
 /**
- * SpiritualPanel — Qibla bearing display and spiritual zone management.
- *
- * From the Atlas spec: "Prayer spaces, quiet zones, dawn/dusk viewpoints,
- * and contemplative circulation are first-class design elements, not optional add-ons."
+ * SpiritualPanel — right-panel intelligence surface for spiritual design.
+ * Tabs: Qibla (compass + prayer alignment), Spaces (quiet zones + moontrance), Signs (solar events + ecological signs).
  */
 
-import { useMemo, useState } from 'react';
-import { computeQibla, bearingToCardinal, type QiblaResult } from '../../lib/qibla.js';
-import type { SpiritualZoneType } from '@ogden/shared';
-import s from './SpiritualPanel.module.css';
-
-const ZONE_TYPE_LABELS: Record<SpiritualZoneType, { label: string; icon: string; description: string }> = {
-  prayer_space: { label: 'Prayer Space', icon: '🕌', description: 'Designated area for salah' },
-  quiet_zone: { label: 'Quiet Zone', icon: '🤫', description: 'Contemplative silence area' },
-  qibla_axis: { label: 'Qibla Axis', icon: '🧭', description: 'Directional alignment to Mecca' },
-  dawn_viewpoint: { label: 'Dawn Viewpoint', icon: '🌅', description: 'Fajr observation point' },
-  dusk_viewpoint: { label: 'Dusk Viewpoint', icon: '🌇', description: 'Maghrib observation point' },
-  contemplative_path: { label: 'Contemplative Path', icon: '🚶', description: 'Walking meditation route' },
-  water_worship_integration: { label: 'Water Integration', icon: '💧', description: 'Wudu / water feature' },
-  scenic_overlook: { label: 'Scenic Overlook', icon: '👁', description: 'Landscape contemplation' },
-  gathering_circle: { label: 'Gathering Circle', icon: '⭕', description: 'Halaqah / circle seating' },
-};
+import { useState, useMemo } from 'react';
+import { computeQibla } from '../../lib/qibla.js';
+import { useStructureStore } from '../../store/structureStore.js';
+import { useZoneStore } from '../../store/zoneStore.js';
+import { usePathStore } from '../../store/pathStore.js';
+import { type LocalProject } from '../../store/projectStore.js';
+import { useVisionStore } from '../../store/visionStore.js';
+import { useSiteData } from '../../store/siteDataStore.js';
+import QiblaDisplay from './QiblaDisplay.js';
+import PrayerSpaceAlignment from './PrayerSpaceAlignment.js';
+import SolarEvents from './SolarEvents.js';
+import QuietZonePlanning from './QuietZonePlanning.js';
+import MoontranceSpiritual from './MoontranceSpiritual.js';
+import SignsInCreation from './SignsInCreation.js';
+import p from '../../styles/panel.module.css';
 
 interface SpiritualPanelProps {
-  center: [number, number] | null; // [lng, lat] — project centroid
+  project: LocalProject;
 }
 
-export default function SpiritualPanel({ center }: SpiritualPanelProps) {
-  const [collapsed, setCollapsed] = useState(true);
+type SpiritualTab = 'qibla' | 'spaces' | 'signs';
 
-  const qibla: QiblaResult | null = useMemo(() => {
-    if (!center) return null;
-    return computeQibla(center[1], center[0]); // lat, lng
-  }, [center]);
+export default function SpiritualPanel({ project }: SpiritualPanelProps) {
+  const [activeTab, setActiveTab] = useState<SpiritualTab>('qibla');
+
+  // Derive center from boundary
+  const center: [number, number] | null = useMemo(() => {
+    if (!project.parcelBoundaryGeojson) return null;
+    try {
+      const fc = project.parcelBoundaryGeojson as GeoJSON.FeatureCollection;
+      if (!fc.features?.length) return null;
+      let sumLng = 0, sumLat = 0, count = 0;
+      function visitCoords(coords: unknown): void {
+        if (!Array.isArray(coords)) return;
+        if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+          sumLng += coords[0] as number;
+          sumLat += coords[1] as number;
+          count++;
+          return;
+        }
+        for (const item of coords) visitCoords(item);
+      }
+      for (const f of fc.features) visitCoords((f.geometry as { coordinates: unknown }).coordinates);
+      if (count === 0) return null;
+      return [sumLng / count, sumLat / count];
+    } catch { return null; }
+  }, [project.parcelBoundaryGeojson]);
+
+  const qibla = useMemo(() => center ? computeQibla(center[1], center[0]) : null, [center]);
+
+  // Store subscriptions
+  const allStructures = useStructureStore((st) => st.structures);
+  const structures = useMemo(() => allStructures.filter((st) => st.projectId === project.id), [allStructures, project.id]);
+
+  const allZones = useZoneStore((st) => st.zones);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === project.id), [allZones, project.id]);
+  const spiritualZones = useMemo(() => zones.filter((z) => z.category === 'spiritual'), [zones]);
+  const infrastructureZones = useMemo(() => zones.filter((z) => z.category === 'infrastructure'), [zones]);
+
+  const allPaths = usePathStore((st) => st.paths);
+  const paths = useMemo(() => allPaths.filter((pa) => pa.projectId === project.id), [allPaths, project.id]);
+  const vehiclePaths = useMemo(() => paths.filter((pa) => ['main_road', 'secondary_road', 'service_road'].includes(pa.type)), [paths]);
+
+  const siteData = useSiteData(project.id);
+  const visionData = useVisionStore((st) => st.getVisionData(project.id));
 
   return (
-    <div className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}>
-      <button
-        onClick={() => setCollapsed((v) => !v)}
-        className={s.toggleBtn}
-      >
-        <span>Spiritual Zones</span>
-        <span>{collapsed ? '▸' : '▾'}</span>
-      </button>
+    <div className={p.container}>
+      <h2 className={p.title}>Spiritual Intelligence</h2>
 
-      {!collapsed && (
-        <div className={s.body}>
-          {/* Qibla bearing */}
-          {qibla && (
-            <div className={s.qiblaCard}>
-              <div className={s.qiblaTitle}>
-                Qibla Direction
-              </div>
-              <div className={s.qiblaRow}>
-                {/* Compass arrow */}
-                <div className={s.compassOuter}>
-                  <div
-                    className={s.compassNeedle}
-                    style={{ transform: `rotate(${qibla.bearing}deg)` }}
-                  />
-                  <div className={s.compassNorth}>N</div>
-                </div>
-                <div>
-                  <div className={s.qiblaBearing}>
-                    {qibla.bearing.toFixed(1)}°
-                  </div>
-                  <div className={s.qiblaDetail}>
-                    {bearingToCardinal(qibla.bearing)} — {qibla.distanceKm.toFixed(0)} km to Mecca
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+      <div className={p.tabBar}>
+        <button className={`${p.tabBtn} ${activeTab === 'qibla' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('qibla')}>Qibla</button>
+        <button className={`${p.tabBtn} ${activeTab === 'spaces' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('spaces')}>Spaces</button>
+        <button className={`${p.tabBtn} ${activeTab === 'signs' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('signs')}>Signs</button>
+      </div>
 
-          {!qibla && (
-            <div className={s.qiblaPlaceholder}>
-              Set a property boundary to calculate Qibla direction.
-            </div>
-          )}
+      {activeTab === 'qibla' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <QiblaDisplay center={center} />
+          <PrayerSpaceAlignment structures={structures} qiblaBearing={qibla?.bearing ?? null} />
+        </div>
+      )}
 
-          {/* Zone type palette */}
-          <div className={s.zoneTypesTitle}>
-            Zone Types
-          </div>
-          <div className={s.zoneTypeList}>
-            {(Object.entries(ZONE_TYPE_LABELS) as [SpiritualZoneType, { label: string; icon: string; description: string }][]).map(
-              ([type, config]) => (
-                <div
-                  key={type}
-                  className={s.zoneTypeItem}
-                  title={config.description}
-                >
-                  <span className={s.zoneTypeIcon}>{config.icon}</span>
-                  <div>
-                    <div className={s.zoneTypeLabel}>{config.label}</div>
-                    <div className={s.zoneTypeDesc}>{config.description}</div>
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
+      {activeTab === 'spaces' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <QuietZonePlanning spiritualZones={spiritualZones} infrastructureZones={infrastructureZones} vehiclePaths={vehiclePaths} />
+          <MoontranceSpiritual identity={visionData?.moontranceIdentity ?? null} projectType={project.projectType ?? ''} />
+        </div>
+      )}
 
-          <div className={s.phaseNotice}>
-            Zone placement tools will be available in Phase 2. For now, reference the Qibla bearing
-            when planning prayer spaces and contemplative areas.
-          </div>
+      {activeTab === 'signs' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <SolarEvents center={center} />
+          <SignsInCreation siteData={siteData} />
         </div>
       )}
     </div>

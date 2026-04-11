@@ -1,12 +1,24 @@
 /**
- * TimelinePanel — phased development timeline with expandable phase cards.
- * Shows 4 development phases with key features, investment totals,
- * status badges, and filter chips.
+ * TimelinePanel — dynamic phased development timeline.
+ * Tabs: Phases (dynamic cards + milestones), Features (assignment + build order), Complexity (assessment scores).
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
+import { usePhaseStore } from '../../store/phaseStore.js';
+import { useVisionStore } from '../../store/visionStore.js';
+import { useStructureStore } from '../../store/structureStore.js';
+import { usePathStore } from '../../store/pathStore.js';
+import { useUtilityStore } from '../../store/utilityStore.js';
 import { useMapStore } from '../../store/mapStore.js';
+import { useSiteData } from '../../store/siteDataStore.js';
+import { computeAssessmentScores, computeOverallScore } from '../../lib/computeScores.js';
+import { aggregatePhaseFeatures } from './timeline/timelineHelpers.js';
+import PhaseTimeline from './timeline/PhaseTimeline.js';
+import FeatureAssignment from './timeline/FeatureAssignment.js';
+import BuildOrderLogic from './timeline/BuildOrderLogic.js';
+import ComplexityScore from './timeline/ComplexityScore.js';
+import MilestoneMarkers from './timeline/MilestoneMarkers.js';
 import p from '../../styles/panel.module.css';
 import s from './TimelinePanel.module.css';
 
@@ -14,242 +26,96 @@ interface TimelinePanelProps {
   project: LocalProject;
 }
 
-type PhaseFilter = 'all' | '0-1' | '1-3' | '3-5' | '5+';
-
-interface Phase {
-  number: number;
-  name: string;
-  years: string;
-  filterKey: PhaseFilter;
-  subtitle: string;
-  investment: string;
-  status: 'In Progress' | 'Planned' | 'Complete';
-  quote: string;
-  features: string[];
-  color: string;
-}
-
-const PHASES: Phase[] = [
-  {
-    number: 1,
-    name: 'Site Intelligence',
-    years: 'Year 0\u20131',
-    filterKey: '0-1',
-    subtitle: 'Infrastructure & Habitation',
-    investment: '~$211K',
-    status: 'In Progress',
-    quote: 'Establish presence, secure water, build core infrastructure. The foundation from which all else grows.',
-    features: [
-      'Well drilling & water system',
-      'Road grading & access',
-      'Off-grid solar installation',
-      'Main cabin construction',
-      'Initial soil amendment & cover cropping',
-      'Emergency fencing',
-      'Conservation Halton pre-consultation',
-      'Tile drain assessment & control structures',
-    ],
-    color: '#c4a265',
-  },
-  {
-    number: 2,
-    name: 'Design Atlas',
-    years: 'Year 1\u20133',
-    filterKey: '1-3',
-    subtitle: 'Agricultural Systems',
-    investment: '~$65K',
-    status: 'Planned',
-    quote: 'Establish productive systems \u2014 food, water, livestock \u2014 generating sustenance and early revenue.',
-    features: [
-      'Keyline pond & swale network',
-      '8-paddock rotational grazing',
-      'Orchard planting (200 trees)',
-      'Market garden with irrigation',
-      'Livestock acquisition',
-      'Forest edge reforestation',
-      'Hedgerow establishment',
-      'Composting infrastructure',
-    ],
-    color: '#2d7a4f',
-  },
-  {
-    number: 3,
-    name: 'Collaboration & Community',
-    years: 'Year 3\u20135',
-    filterKey: '3-5',
-    subtitle: 'Retreat & Community',
-    investment: '~$285K',
-    status: 'Planned',
-    quote: 'Open the land to guests, seekers, and community. Build the hospitality and educational infrastructure.',
-    features: [
-      '4 guest cabins',
-      'Prayer pavilion & contemplation garden',
-      'Community hall & classroom',
-      'Educational farm trail',
-      'Event lawn & fire circle',
-      'Guest-safe livestock buffers',
-      'Interpretive signage',
-      'Kitchen garden expansion',
-    ],
-    color: '#5b9db8',
-  },
-  {
-    number: 4,
-    name: 'Full Vision',
-    years: 'Year 5+',
-    filterKey: '5+',
-    subtitle: 'Maturity & Expansion',
-    investment: '',
-    status: 'Planned',
-    quote: 'The mature expression \u2014 a living sanctuary for land, spirit, family, and community.',
-    features: [
-      'Expanded retreat (8+ units)',
-      "Men's cohort facilities",
-      'Mature food forest canopy',
-      'Carbon monitoring program',
-      'Atlas template publication',
-      'Advanced water system monitoring',
-      'Wildlife corridor completion',
-      'Community land trust exploration',
-    ],
-    color: '#9a8a74',
-  },
-];
-
-const TOTAL_INVESTMENT = '$561K';
-
-// Map phase filter keys to phase names used in stores
-const FILTER_TO_PHASE: Record<PhaseFilter, string> = {
-  'all': 'all',
-  '0-1': 'Phase 1',
-  '1-3': 'Phase 2',
-  '3-5': 'Phase 3',
-  '5+': 'Phase 4',
-};
+type TimelineTab = 'phases' | 'features' | 'complexity';
 
 export default function TimelinePanel({ project }: TimelinePanelProps) {
-  const [filter, setFilter] = useState<PhaseFilter>('all');
-  const [expandedPhase, setExpandedPhase] = useState<number | null>(1);
+  const [activeTab, setActiveTab] = useState<TimelineTab>('phases');
+
+  // Store subscriptions
+  const phases = usePhaseStore((st) => st.getProjectPhases(project.id));
   const setActivePhaseFilter = useMapStore((ms) => ms.setActivePhaseFilter);
 
-  const handleFilterChange = (f: PhaseFilter) => {
-    setFilter(f);
-    setActivePhaseFilter(FILTER_TO_PHASE[f]);
+  const visionData = useVisionStore((st) => st.getVisionData(project.id));
+  const addMilestone = useVisionStore((st) => st.addMilestone);
+  const updateMilestone = useVisionStore((st) => st.updateMilestone);
+  const deleteMilestone = useVisionStore((st) => st.deleteMilestone);
+
+  // Ensure defaults exist
+  usePhaseStore.getState().ensureDefaults(project.id);
+  useVisionStore.getState().ensureDefaults(project.id);
+
+  const allStructures = useStructureStore((st) => st.structures);
+  const structures = useMemo(() => allStructures.filter((st) => st.projectId === project.id), [allStructures, project.id]);
+
+  const allPaths = usePathStore((st) => st.paths);
+  const paths = useMemo(() => allPaths.filter((pa) => pa.projectId === project.id), [allPaths, project.id]);
+
+  const allUtilities = useUtilityStore((st) => st.utilities);
+  const utilities = useMemo(() => allUtilities.filter((u) => u.projectId === project.id), [allUtilities, project.id]);
+
+  // Aggregate features by phase
+  const phaseSummaries = useMemo(
+    () => aggregatePhaseFeatures(structures, paths, utilities),
+    [structures, paths, utilities],
+  );
+
+  const totalFeatures = structures.length + paths.length + utilities.length;
+
+  // Assessment scores for complexity tab
+  const siteData = useSiteData(project.id);
+  const scores = useMemo(() => {
+    if (!siteData || siteData.status !== 'complete') return null;
+    return computeAssessmentScores(siteData.layers, project.acreage ?? null);
+  }, [siteData, project.acreage]);
+  const overallScore = useMemo(() => scores ? computeOverallScore(scores) : null, [scores]);
+
+  const handleFilterPhase = (phaseName: string) => {
+    setActivePhaseFilter(phaseName);
   };
-
-  const filters: { key: PhaseFilter; label: string }[] = [
-    { key: 'all', label: 'All Phases' },
-    { key: '0-1', label: 'Year 0\u20131' },
-    { key: '1-3', label: 'Year 1\u20133' },
-    { key: '3-5', label: 'Year 3\u20135' },
-    { key: '5+', label: 'Year 5+' },
-  ];
-
-  const visiblePhases = filter === 'all' ? PHASES : PHASES.filter((ph) => ph.filterKey === filter);
 
   return (
     <div className={p.container}>
       <h2 className={p.title} style={{ marginBottom: 4 }}>Timeline & Phasing</h2>
       <div className={s.subtitle}>
-        Total investment: {TOTAL_INVESTMENT} over 10 years
+        {totalFeatures} features across {phases.length} phases
       </div>
 
-      {/* Filter chips */}
-      <div className={p.mb16}>
-        <div className={s.filterLabel}>Filter map by phase:</div>
-        <div className={s.filterRow}>
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => handleFilterChange(f.key)}
-              className={`${s.filterChip} ${filter === f.key ? s.filterChipActive : ''}`}
-            >
-              {f.label}
-            </button>
-          ))}
+      <div className={p.tabBar}>
+        <button className={`${p.tabBtn} ${activeTab === 'phases' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('phases')}>Phases</button>
+        <button className={`${p.tabBtn} ${activeTab === 'features' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('features')}>Features</button>
+        <button className={`${p.tabBtn} ${activeTab === 'complexity' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('complexity')}>Complexity</button>
+      </div>
+
+      {activeTab === 'phases' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <PhaseTimeline
+            phases={phases}
+            phaseNotes={visionData?.phaseNotes ?? []}
+            phaseSummaries={phaseSummaries}
+            onFilterPhase={handleFilterPhase}
+          />
+          <MilestoneMarkers
+            milestones={visionData?.milestones ?? []}
+            phases={phases}
+            onAdd={(m) => addMilestone(project.id, m)}
+            onUpdate={(id, updates) => updateMilestone(project.id, id, updates)}
+            onDelete={(id) => deleteMilestone(project.id, id)}
+          />
         </div>
-      </div>
+      )}
 
-      {/* Phase cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {visiblePhases.map((phase) => {
-          const isExpanded = expandedPhase === phase.number;
-          return (
-            <div key={phase.number}>
-              {/* Phase header card */}
-              <button
-                onClick={() => setExpandedPhase(isExpanded ? null : phase.number)}
-                className={`${s.phaseHeader} ${isExpanded ? s.phaseHeaderExpanded : s.phaseHeaderCollapsed}`}
-              >
-                {/* Number circle */}
-                <div
-                  className={s.phaseCircle}
-                  style={{ borderColor: phase.color, color: phase.color }}
-                >
-                  {phase.number}
-                </div>
+      {activeTab === 'features' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <FeatureAssignment phaseSummaries={phaseSummaries} totalFeatures={totalFeatures} />
+          <BuildOrderLogic utilities={utilities} />
+        </div>
+      )}
 
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className={s.phaseNameRow}>
-                    <span className={s.phaseName}>{phase.name}</span>
-                    <span className={s.phaseYears} style={{ color: phase.color }}>{phase.years}</span>
-                  </div>
-                  <div className={s.phaseSubtitle}>
-                    {phase.subtitle}
-                  </div>
-                  {phase.investment && (
-                    <div className={s.phaseInvestment}>
-                      {phase.investment} investment
-                    </div>
-                  )}
-                  <StatusBadge status={phase.status} />
-                </div>
-
-                {/* Chevron */}
-                <span className={s.phaseChevron}>
-                  {isExpanded ? '\u25BE' : '\u203A'}
-                </span>
-              </button>
-
-              {/* Expanded detail */}
-              {isExpanded && (
-                <div className={s.phaseDetail}>
-                  <h4 className={s.phaseDetailTitle} style={{ color: phase.color }}>
-                    {phase.name} &mdash; {phase.years}
-                  </h4>
-                  <p className={s.phaseQuote}>
-                    &ldquo;{phase.quote}&rdquo;
-                  </p>
-
-                  <div className={s.keyFeaturesLabel}>
-                    Key Features:
-                  </div>
-                  <ul className={s.featureList}>
-                    {phase.features.map((feat) => (
-                      <li key={feat} className={s.featureItem}>
-                        <span className={s.featureDot} style={{ color: phase.color }}>{'\u25CF'}</span>
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {activeTab === 'complexity' && (
+        <div style={{ marginTop: 8 }}>
+          <ComplexityScore scores={scores} overallScore={overallScore} />
+        </div>
+      )}
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: 'In Progress' | 'Planned' | 'Complete' }) {
-  const statusClass = status === 'In Progress' ? s.statusInProgress
-    : status === 'Complete' ? s.statusComplete
-    : s.statusPlanned;
-  return (
-    <span className={`${s.statusBadge} ${statusClass}`}>
-      {status}
-    </span>
   );
 }

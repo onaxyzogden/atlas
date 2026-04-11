@@ -36,6 +36,7 @@ const PortalConfigPanel = lazy(() => import('../portal/PortalConfigPanel.js'));
 const VisionPanel = lazy(() => import('../vision/VisionPanel.js'));
 const DecisionSupportPanel = lazy(() => import('../decision/DecisionSupportPanel.js'));
 const MoontrancePanel = lazy(() => import('../moontrance/MoontrancePanel.js'));
+const SpiritualPanel = lazy(() => import('../spiritual/SpiritualPanel.js'));
 const VersionHistory = lazy(() => import('../project/VersionHistory.js'));
 const CollaborationPanel = lazy(() => import('../collaboration/CollaborationPanel.js'));
 const EconomicsPanel = lazy(() => import('../economics/EconomicsPanel.js'));
@@ -45,6 +46,8 @@ const ReportingPanel = lazy(() => import('../reporting/ReportingPanel.js'));
 const FieldworkPanel = lazy(() => import('../fieldwork/FieldworkPanel.js'));
 const LivestockPanel = lazy(() => import('../livestock/LivestockPanel.js'));
 const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
+const ZonePanel = lazy(() => import('../zones/ZonePanel.js'));
+const SitingPanel = lazy(() => import('../rules/SitingPanel.js'));
 
 
 interface MapViewProps {
@@ -275,6 +278,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'vision' && <VisionPanel project={project} />}
               {activeView === 'scenarios' && <ScenarioPanel project={project} />}
               {activeView === 'moontrance' && <MoontrancePanel project={project} />}
+              {activeView === 'spiritual' && <SpiritualPanel project={project} />}
               {activeView === 'portal' && <PortalConfigPanel project={project} />}
               {activeView === 'templates' && <TemplatePanel project={project} />}
               {activeView === 'reporting' && <ReportingPanel project={project} onOpenExport={onExport} />}
@@ -284,6 +288,8 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
               {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
               {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
+              {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'siting' && <SitingPanel project={project} />}
             </Suspense>
           </ErrorBoundary>
         );

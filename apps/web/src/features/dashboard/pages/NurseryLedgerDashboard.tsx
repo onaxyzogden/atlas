@@ -1,11 +1,23 @@
 /**
- * NurseryLedgerDashboard — Stock inventory, growth trends, trials, milestones.
+ * NurseryLedgerDashboard — propagation inventory, germination calendar,
+ * readiness tracking, stock transfers, seed saving notes.
+ *
+ * All data from nurseryStore, climate adapter, zoneStore, and microclimate.
+ * No hardcoded stock or phenology data.
  */
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
-import SimpleBarChart from '../components/SimpleBarChart.js';
+import { useNurseryStore } from '../../../store/nurseryStore.js';
+import { useZoneStore } from '../../../store/zoneStore.js';
+import {
+  computeGerminationCalendar,
+  computeNurseryMicroclimate,
+  computeReadinessTracking,
+  computeStockSummary,
+} from '../../nursery/nurseryAnalysis.js';
+import { PROPAGATION_BY_SPECIES } from '../../nursery/propagationData.js';
 import css from './NurseryLedgerDashboard.module.css';
 
 interface NurseryLedgerDashboardProps {
@@ -19,130 +31,223 @@ interface ClimateSummary {
   hardiness_zone?: string;
   growing_season_days?: number;
 }
-interface SoilsSummary { predominant_texture?: string; }
+interface MicroclimateSummary {
+  sun_trap_count?: number;
+  frost_risk_high_pct?: number;
+  wind_shelter_pct?: number;
+}
 
-const STOCKS = [
-  { name: 'Hybrid Chestnut Batch A', count: 1420, unit: 'Heads', vitality: 94.2, lastCheck: '14h ago' },
-  { name: 'Elderberry Nursery B', count: 1060, unit: 'Heads', vitality: 88.7, lastCheck: '2d ago' },
-];
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STAGE_LABELS: Record<string, string> = {
+  seed: 'Seed', germinating: 'Germinating', seedling: 'Seedling',
+  juvenile: 'Juvenile', ready_to_plant: 'Ready',
+};
 
 export default function NurseryLedgerDashboard({ project, onSwitchToMap }: NurseryLedgerDashboardProps) {
   const siteData = useSiteData(project.id);
+  const allBatches = useNurseryStore((s) => s.batches);
+  const allTransfers = useNurseryStore((s) => s.transfers);
+  const allZones = useZoneStore((s) => s.zones);
 
-  const milestones = useMemo(() => {
-    const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
-    const soils   = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
+  const climate = useMemo(() => siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null, [siteData]);
+  const microclimate = useMemo(() => siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null, [siteData]);
 
-    const lastFrost  = climate?.last_frost_date ?? null;
-    const firstFrost = climate?.first_frost_date ?? null;
-    const zone       = climate?.hardiness_zone ?? null;
-    const texture    = soils?.predominant_texture ?? null;
-    const zoneNote   = zone ? ` · Zone ${zone}` : '';
-    const rootNote   = texture ? ` (${texture.toLowerCase()} soils)` : '';
+  const batches = useMemo(() => allBatches.filter((b) => b.projectId === project.id), [allBatches, project.id]);
+  const transfers = useMemo(() => allTransfers.filter((t) => t.projectId === project.id), [allTransfers, project.id]);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === project.id), [allZones, project.id]);
 
-    return [
-      {
-        num: '01',
-        title: 'Spring Planting Window',
-        date: lastFrost ? `4 weeks before last frost · ${lastFrost}${zoneNote}` : `Mar 15 — Apr 20${zoneNote}`,
-      },
-      {
-        num: '02',
-        title: 'Field-Ready Transition',
-        date: lastFrost ? `2 weeks after last frost · ${lastFrost}${rootNote}` : `Scheduled for May 02${rootNote}`,
-      },
-      {
-        num: '03',
-        title: 'Seed Stratification / Fall Planting',
-        date: firstFrost ? `6 weeks before first frost · ${firstFrost}` : 'Mid-summer cycle',
-      },
-    ];
-  }, [siteData]);
+  // Germination calendar from climate data
+  const calendar = useMemo(() => computeGerminationCalendar(climate), [climate]);
+
+  // Nursery zone microclimate
+  const nurseryMicro = useMemo(() => computeNurseryMicroclimate(zones, microclimate), [zones, microclimate]);
+
+  // Readiness tracking
+  const readiness = useMemo(() => computeReadinessTracking(batches, zones), [batches, zones]);
+
+  // Stock summary
+  const summary = useMemo(() => computeStockSummary(batches), [batches]);
+
+  // Seed saving batches
+  const seedSaving = useMemo(() => batches.filter((b) => b.seedSaving), [batches]);
 
   return (
     <div className={css.page}>
-      <h1 className={css.title}>Forest Inventory Ledger</h1>
+      <h1 className={css.title}>Nursery Ledger</h1>
       <p className={css.desc}>
-        Systematic monitoring of tree health, sapling mortality rates, and physiological
-        trends across the OGDEN estates.
+        Propagation inventory, germination calendar, and readiness tracking.
+        Climate zone: {climate?.hardiness_zone ?? 'loading...'}.
       </p>
 
-      {/* Stock cards */}
-      <div className={css.stockRow}>
-        {STOCKS.map((s) => (
-          <div key={s.name} className={css.stockCard}>
-            <span className={css.stockLabel}>ACTIVE STOCK</span>
-            <h3 className={css.stockName}>{s.name}</h3>
-            <div className={css.stockStats}>
-              <div>
-                <span className={css.stockValue}>{s.count.toLocaleString()}</span>
-                <span className={css.stockUnit}>{s.unit}</span>
-              </div>
-              <div className={css.stockRight}>
-                <span className={css.stockCheckLabel}>Last Check</span>
-                <span className={css.stockCheckValue}>{s.lastCheck}</span>
-              </div>
+      {/* ── Summary ────────────────────────────────────────────── */}
+      <div className={css.summaryGrid}>
+        <div className={css.summaryCard}>
+          <span className={css.summaryValue}>{summary.totalBatches}</span>
+          <span className={css.summaryUnit}>BATCHES</span>
+        </div>
+        <div className={css.summaryCard}>
+          <span className={css.summaryValue}>{summary.totalQuantity.toLocaleString()}</span>
+          <span className={css.summaryUnit}>TOTAL PLANTS</span>
+        </div>
+        <div className={css.summaryCard}>
+          <span className={css.summaryValue}>{summary.seedSavingCount}</span>
+          <span className={css.summaryUnit}>SEED SAVING</span>
+        </div>
+      </div>
+
+      {/* ── Propagation Inventory ──────────────────────────────── */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>PROPAGATION INVENTORY</h3>
+        {batches.length > 0 ? (
+          <div className={css.stockRow}>
+            {batches.map((b) => {
+              const info = PROPAGATION_BY_SPECIES[b.species];
+              return (
+                <div key={b.id} className={css.stockCard}>
+                  <div className={css.stockHeader}>
+                    <h3 className={css.stockName}>{info?.commonName ?? b.species}</h3>
+                    <div>
+                      <span className={css.stageBadge}>{STAGE_LABELS[b.stage] ?? b.stage}</span>
+                      <span className={css.methodBadge}>{b.method}</span>
+                    </div>
+                  </div>
+                  <div className={css.stockStats}>
+                    <span className={css.stockValue}>{b.quantity.toLocaleString()}<span className={css.stockUnit}>plants</span></span>
+                  </div>
+                  {b.notes && <div style={{ fontSize: 11, color: 'rgba(240,253,244,0.4)', marginTop: 6 }}>{b.notes}</div>}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className={css.emptyState}>
+            No propagation batches yet. Add batches to track nursery stock.
+          </div>
+        )}
+      </div>
+
+      {/* ── Germination Calendar ───────────────────────────────── */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>GERMINATION CALENDAR</h3>
+        <div className={css.calendarWrap}>
+          {/* Month headers */}
+          <div className={css.calMonthRow}>
+            <div />
+            {MONTH_LABELS.map((m) => (
+              <div key={m} className={css.calMonth}>{m}</div>
+            ))}
+          </div>
+
+          {/* Species rows */}
+          {calendar.slice(0, 12).map((entry) => (
+            <div key={entry.speciesId} className={css.calRow}>
+              <span className={css.calSpeciesLabel}>{entry.commonName}</span>
+              {MONTH_LABELS.map((_, idx) => {
+                const isSow = idx === entry.sowMonth;
+                const isTransplant = idx === entry.transplantMonth;
+                return (
+                  <div
+                    key={idx}
+                    className={isSow ? css.calCellSow : isTransplant ? css.calCellTransplant : css.calCell}
+                    title={isSow ? `Sow: ${entry.germinationDays}` : isTransplant ? 'Transplant window' : ''}
+                  />
+                );
+              })}
             </div>
-            <span className={css.stockVitality}>Vitality Score: {s.vitality}%</span>
-          </div>
-        ))}
-      </div>
+          ))}
 
-      {/* Detailed ledger */}
-      <div className={css.ledgerSection}>
-        <div className={css.ledgerHeader}>
-          <h3 className={css.ledgerTitle}>Hybrid Chestnut - Detailed Ledger</h3>
-          <span className={css.ledgerTrend}>GROWTH TREND (MOM)</span>
-        </div>
-
-        <SimpleBarChart
-          data={[
-            { label: 'JAN', value: 30, color: 'rgba(138,154,116,0.4)' },
-            { label: 'FEB', value: 35, color: 'rgba(138,154,116,0.45)' },
-            { label: 'MAR', value: 42, color: 'rgba(138,154,116,0.5)' },
-            { label: 'APR', value: 52, color: 'rgba(138,154,116,0.55)' },
-            { label: 'MAY', value: 65, color: 'rgba(138,154,116,0.65)' },
-            { label: 'JUN', value: 82, color: '#8a9a74' },
-            { label: 'JUL', value: 75, color: 'rgba(138,154,116,0.7)' },
-            { label: 'AUG', value: 70, color: 'rgba(138,154,116,0.6)' },
-          ]}
-          height={200}
-        />
-
-        <div className={css.trialStats}>
-          <div className={css.trialStat}>
-            <span className={css.trialLabel}>ACTIVE TRIALS</span>
-            <span className={css.trialValue}>12 Units</span>
-          </div>
-          <div className={css.trialStat}>
-            <span className={css.trialLabel}>TARGET BIO-MASS</span>
-            <span className={css.trialValue}>820kg</span>
-          </div>
-          <div className={css.trialStat}>
-            <span className={css.trialLabel}>EFFICIENCY</span>
-            <span className={css.trialValue}>+12.4%</span>
+          <div className={css.calLegend}>
+            <span><span className={css.calLegendDot} style={{ background: 'rgba(21,128,61,0.45)' }} /> Sow</span>
+            <span><span className={css.calLegendDot} style={{ background: 'rgba(202,138,4,0.45)' }} /> Transplant</span>
           </div>
         </div>
       </div>
 
-      {/* Upcoming milestones */}
-      <div className={css.milestonesSection}>
-        <h3 className={css.milestonesTitle}>Upcoming Milestones</h3>
-        <div className={css.milestonesList}>
-          {milestones.map((m) => (
-            <div key={m.num} className={css.milestoneItem}>
-              <span className={css.milestoneNum}>{m.num}</span>
-              <div>
-                <span className={css.milestoneName}>{m.title}</span>
-                <span className={css.milestoneDate}>{m.date}</span>
+      {/* ── Nursery Zone Microclimate ──────────────────────────── */}
+      {nurseryMicro.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>NURSERY ZONE MICROCLIMATE</h3>
+          {nurseryMicro.map((nz) => (
+            <div key={nz.zoneId} className={css.readinessItem}>
+              <div className={css.readinessLeft}>
+                <div className={css.readinessSpecies}>{nz.zoneName}</div>
+                <div className={css.readinessDest}>
+                  Sun: {nz.sunExposure}% &middot; Frost risk: {nz.frostRisk}% &middot; Wind shelter: {nz.windShelter}%
+                </div>
               </div>
+              <span className={css.readinessDays}>Score: {nz.overallScore}</span>
             </div>
           ))}
         </div>
-      </div>
+      )}
 
-      <button className={css.reportBtn}>
-        GENERATE INVENTORY REPORT
+      {/* ── Readiness Tracking ─────────────────────────────────── */}
+      {readiness.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>READINESS TRACKING</h3>
+          {readiness.map((r) => (
+            <div key={r.batchId} className={r.isOverdue ? css.readinessOverdue : css.readinessItem}>
+              <div className={css.readinessLeft}>
+                <div className={css.readinessSpecies}>
+                  {r.species} ({r.quantity} plants)
+                </div>
+                {r.destinationZone && (
+                  <div className={css.readinessDest}>{'\u2192'} {r.destinationZone}</div>
+                )}
+              </div>
+              <span className={r.isOverdue ? css.readinessDaysOverdue : css.readinessDays}>
+                {r.isOverdue ? 'Overdue' : `${r.daysRemaining}d`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Stock Transfer Log ─────────────────────────────────── */}
+      {transfers.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>STOCK TRANSFER LOG</h3>
+          {transfers.map((t) => (
+            <div key={t.id} className={css.transferItem}>
+              {t.quantity} plants transferred on {new Date(t.transferDate).toLocaleDateString()}
+              {t.notes && ` \u2014 ${t.notes}`}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Seed Saving Notes ──────────────────────────────────── */}
+      {seedSaving.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>SEED SAVING</h3>
+          {seedSaving.map((b) => {
+            const info = PROPAGATION_BY_SPECIES[b.species];
+            const windowLabel = info?.seedSavingWindow?.replace('_', ' ') ?? 'unknown';
+            return (
+              <div key={b.id} className={css.seedSavingItem}>
+                <div className={css.seedSavingSpecies}>{info?.commonName ?? b.species}</div>
+                <div className={css.seedSavingWindow}>Harvest window: {windowLabel}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Stock Summary by Stage ─────────────────────────────── */}
+      {summary.byStage.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>STOCK BY STAGE</h3>
+          {summary.byStage.map((s) => (
+            <div key={s.stage} className={css.readinessItem}>
+              <span className={css.readinessSpecies}>{STAGE_LABELS[s.stage] ?? s.stage}</span>
+              <span className={css.readinessDays}>{s.quantity.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button className={css.reportBtn} onClick={onSwitchToMap}>
+        VIEW ON MAP
         <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 7H11M8 4L11 7L8 10" />
         </svg>

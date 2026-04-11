@@ -1,72 +1,23 @@
-/* SpiritualPanel — component-specific styles */
+/* SpiritualPanel — right-panel layout (rewritten from floating overlay) */
 
-.root {
-  position: absolute;
-  bottom: 16px;
-  inset-inline-end: 16px;
-  background: rgba(26, 22, 17, 0.92);
-  border-radius: var(--radius-lg, 10px);
-  padding: var(--space-3);
-  backdrop-filter: blur(10px);
-  color: var(--color-panel-text);
-  z-index: 5;
-}
-
-.rootExpanded {
-  width: 260px;
-}
-
-.rootCollapsed {
-  width: auto;
-}
-
-.toggleBtn {
-  background: none;
-  border: none;
-  color: var(--color-panel-muted);
-  cursor: pointer;
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0;
-  width: 100%;
-  text-align: left;
-  display: flex;
-  justify-content: space-between;
-}
-
-.body {
-  margin-top: var(--space-3);
-}
-
-/* ─── Qibla card ────────────────────────────────────────────────────────── */
+/* ─── Qibla compass ────────────────────────────────────────────────────── */
 .qiblaCard {
-  background: rgba(125, 97, 64, 0.2);
-  border: 1px solid rgba(125, 97, 64, 0.4);
+  background: rgba(125, 97, 64, 0.12);
+  border: 1px solid rgba(125, 97, 64, 0.25);
   border-radius: var(--radius-md);
-  padding: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.qiblaTitle {
-  font-size: var(--text-xs);
-  color: var(--color-panel-muted);
-  margin-bottom: 6px;
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .qiblaRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .compassOuter {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-full);
   border: 2px solid #7d6140;
   display: flex;
@@ -78,7 +29,7 @@
 
 .compassNeedle {
   width: 2px;
-  height: 18px;
+  height: 22px;
   background: #7d6140;
   border-radius: 1px;
   transform-origin: center bottom;
@@ -94,71 +45,219 @@
   font-weight: var(--font-bold);
 }
 
+.compassCardinals {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.compassE {
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6px;
+  color: var(--color-panel-muted);
+}
+
+.compassS {
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--color-panel-muted);
+}
+
+.compassW {
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6px;
+  color: var(--color-panel-muted);
+}
+
 .qiblaBearing {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: var(--font-semibold);
   font-family: var(--font-mono);
 }
 
-.qiblaDetail {
+.qiblaCardinal {
   font-size: var(--text-xs);
   color: var(--color-panel-muted);
 }
 
-.qiblaPlaceholder {
-  font-size: var(--text-xs);
+.qiblaDistance {
+  font-size: 11px;
   color: var(--color-panel-muted);
-  margin-bottom: var(--space-3);
+  margin-top: 2px;
 }
 
-/* ─── Zone type palette ─────────────────────────────────────────────────── */
-.zoneTypesTitle {
+/* ─── Alignment cards ──────────────────────────────────────────────────── */
+.alignmentCard {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-card-border);
+  background: var(--color-panel-card);
+  margin-bottom: 6px;
+}
+
+.alignmentAligned {
+  border-left: 3px solid #2d7a4f;
+}
+
+.alignmentMisaligned {
+  border-left: 3px solid #c4a265;
+}
+
+.alignmentName {
   font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  margin-bottom: 2px;
+}
+
+.alignmentDetail {
+  font-size: 11px;
   color: var(--color-panel-muted);
-  margin-bottom: var(--space-2);
+}
+
+/* ─── Solar events table ───────────────────────────────────────────────── */
+.solarTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.solarTable th {
+  text-align: left;
   font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.zoneTypeList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.zoneTypeItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  font-size: var(--text-xs);
-  cursor: default;
-  border: 1px solid transparent;
-}
-
-.zoneTypeIcon {
-  font-size: 14px;
-}
-
-.zoneTypeLabel {
-  font-weight: 400;
-}
-
-.zoneTypeDesc {
   font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-panel-muted);
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--color-panel-card-border);
+}
+
+.solarTable td {
+  padding: 5px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.solarTable tr:last-child td {
+  border-bottom: none;
+}
+
+.solarToday {
+  font-weight: var(--font-semibold);
+  color: #c4a265;
+}
+
+/* ─── Quiet zones ──────────────────────────────────────────────────────── */
+.quietCard {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-card-border);
+  background: var(--color-panel-card);
+  margin-bottom: 6px;
+}
+
+.quietName {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  margin-bottom: 4px;
+}
+
+.quietMeta {
+  font-size: 11px;
   color: var(--color-panel-muted);
 }
 
-/* ─── Phase notice ──────────────────────────────────────────────────────── */
-.phaseNotice {
-  margin-top: var(--space-3);
-  padding: 10px;
+.riskBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+.riskLow {
   background: rgba(45, 122, 79, 0.15);
-  border-radius: 6px;
-  border: 1px solid rgba(45, 122, 79, 0.3);
+  color: #2d7a4f;
+}
+
+.riskMedium {
+  background: rgba(196, 162, 101, 0.15);
+  color: #c4a265;
+}
+
+.riskHigh {
+  background: rgba(196, 78, 63, 0.15);
+  color: #c44e3f;
+}
+
+/* ─── Signs in creation ────────────────────────────────────────────────── */
+.signCard {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-card-border);
+  background: var(--color-panel-card);
+  margin-bottom: 8px;
+}
+
+.signPresent {
+  border-left: 3px solid rgba(45, 122, 79, 0.5);
+}
+
+.signAbsent {
+  opacity: 0.5;
+}
+
+.signLabel {
   font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  margin-bottom: 3px;
+  font-style: italic;
+}
+
+.signDesc {
+  font-size: 11px;
   color: var(--color-panel-muted);
   line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.signValue {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: #2d7a4f;
+}
+
+/* ─── Moontrance section ───────────────────────────────────────────────── */
+.moonCard {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(125, 97, 64, 0.08);
+  border: 1px solid rgba(125, 97, 64, 0.2);
+  margin-bottom: 8px;
+}
+
+.moonLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-panel-muted);
+  margin-bottom: 4px;
+}
+
+.moonValue {
+  font-size: var(--text-xs);
+  color: var(--color-panel-text);
+  font-style: italic;
+  line-height: 1.4;
 }

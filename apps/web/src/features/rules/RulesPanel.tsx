@@ -41,7 +41,10 @@ export default function RulesPanel({ project }: RulesPanelProps) {
     crops,
     paths,
     utilities,
-  }), [project.hasParcelBoundary, structures, zones, paddocks, crops, paths, utilities]);
+    siteData: null,
+    projectCenter: null,
+    projectType: project.projectType,
+  }), [project.hasParcelBoundary, project.projectType, structures, zones, paddocks, crops, paths, utilities]);
 
   const errors = violations.filter((v) => v.severity === 'error');
   const warnings = violations.filter((v) => v.severity === 'warning');

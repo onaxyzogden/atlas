@@ -114,6 +114,12 @@ export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
     layers: ['soils', 'land_cover'],
     domain: 'forestry',
   },
+  'siting-rules': {
+    subItem: 'siting-rules',
+    panel: 'siting',
+    layers: ['elevation', 'soils', 'watershed', 'wetlands_flood'],
+    domain: 'default',
+  },
 };
 
 // Map sub-item → dashboard section (reverse lookup)

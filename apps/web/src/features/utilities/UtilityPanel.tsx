@@ -4,8 +4,14 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType, type Utility } from '../../store/utilityStore.js';
+import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import type maplibregl from 'maplibre-gl';
+import SolarPlacement from './SolarPlacement.js';
+import WaterSystemPlanning from './WaterSystemPlanning.js';
+import OffGridReadiness from './OffGridReadiness.js';
+import InfrastructurePhasing from './InfrastructurePhasing.js';
 import p from '../../styles/panel.module.css';
+import s from './UtilityPanel.module.css';
 
 interface UtilityPanelProps {
   projectId: string;
@@ -13,18 +19,28 @@ interface UtilityPanelProps {
 }
 
 export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
-  const allUtilities = useUtilityStore((s) => s.utilities);
+  const allUtilities = useUtilityStore((st) => st.utilities);
   const utilities = useMemo(() => allUtilities.filter((u) => u.projectId === projectId), [allUtilities, projectId]);
-  const addUtility = useUtilityStore((s) => s.addUtility);
-  const deleteUtility = useUtilityStore((s) => s.deleteUtility);
-  const placementMode = useUtilityStore((s) => s.placementMode);
-  const setPlacementMode = useUtilityStore((s) => s.setPlacementMode);
+  const addUtility = useUtilityStore((st) => st.addUtility);
+  const deleteUtility = useUtilityStore((st) => st.deleteUtility);
+  const placementMode = useUtilityStore((st) => st.placementMode);
+  const setPlacementMode = useUtilityStore((st) => st.setPlacementMode);
 
+  const [activeTab, setActiveTab] = useState<'place' | 'systems' | 'phasing'>('place');
   const [showModal, setShowModal] = useState(false);
   const [pendingCenter, setPendingCenter] = useState<[number, number] | null>(null);
   const [name, setName] = useState('');
   const [phase, setPhase] = useState('Phase 1');
   const [notes, setNotes] = useState('');
+
+  // Site intelligence data for systems tab
+  const siteData = useSiteData(projectId);
+  const microclimate = useMemo(() => siteData ? getLayerSummary<{ sunTraps?: { areaPct?: number } }>(siteData, 'microclimate') : null, [siteData]);
+  const watershed = useMemo(() => siteData ? getLayerSummary<{ detention_pct?: number }>(siteData, 'watershed_derived') : null, [siteData]);
+  const soilRegen = useMemo(() => siteData ? getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration') : null, [siteData]);
+  const sunTrapPct = microclimate?.sunTraps?.areaPct ?? null;
+  const detentionPct = watershed?.detention_pct ?? null;
+  const swaleCount = soilRegen?.interventions?.count ?? null;
 
   // Click-to-place handler
   const handleMapClick = useCallback((e: { lngLat: { lng: number; lat: number } }) => {
@@ -76,78 +92,102 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
 
   return (
     <>
-      {categories.map((cat) => {
-        const types = (Object.entries(UTILITY_TYPE_CONFIG) as [UtilityType, typeof UTILITY_TYPE_CONFIG[UtilityType]][])
-          .filter(([, cfg]) => cfg.category === cat);
-        return (
-          <div key={cat} className={p.mb16}>
-            <div className={`${p.text10} ${p.mb8}`} style={{ fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)' }}>
-              {cat}
-            </div>
-            <div className={p.selectorGrid2}>
-              {types.map(([key, cfg]) => {
-                const isActive = placementMode === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setPlacementMode(isActive ? null : key)}
-                    className={p.selectorBtn}
-                    style={{
-                      background: isActive ? `${cfg.color}18` : undefined,
-                      border: isActive ? `1px solid ${cfg.color}40` : undefined,
-                      color: isActive ? cfg.color : 'var(--color-panel-text)',
-                    }}
-                  >
-                    <span className={p.selectorIcon}>{cfg.icon}</span>
-                    <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{cfg.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-
-      {placementMode && (
-        <div className={p.placementBanner}>
-          Click on the map to place {UTILITY_TYPE_CONFIG[placementMode].label}
-        </div>
-      )}
-
-      <div className={p.sectionLabel} style={{ marginBottom: 8 }}>
-        Placed Utilities ({utilities.length})
+      <div className={p.tabBar}>
+        <button className={`${p.tabBtn} ${activeTab === 'place' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('place')}>Place</button>
+        <button className={`${p.tabBtn} ${activeTab === 'systems' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('systems')}>Systems</button>
+        <button className={`${p.tabBtn} ${activeTab === 'phasing' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('phasing')}>Phasing</button>
       </div>
-      {utilities.length === 0 ? (
-        <div className={p.empty}>No utilities placed yet</div>
-      ) : (
-        <div className={p.section}>
-          {utilities.map((u) => {
-            const cfg = UTILITY_TYPE_CONFIG[u.type];
+
+      {activeTab === 'place' && (
+        <>
+          {categories.map((cat) => {
+            const types = (Object.entries(UTILITY_TYPE_CONFIG) as [UtilityType, typeof UTILITY_TYPE_CONFIG[UtilityType]][])
+              .filter(([, cfg]) => cfg.category === cat);
             return (
-              <div key={u.id} className={p.itemRow}>
-                <span className={p.text14}>{cfg?.icon}</span>
-                <div className={p.itemContent}>
-                  <div className={p.itemTitle}>{u.name}</div>
-                  <div className={p.itemMeta}>{cfg?.label} {'\u2014'} {u.phase}</div>
+              <div key={cat} className={p.mb16}>
+                <div className={`${p.text10} ${p.mb8}`} style={{ fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-panel-section)' }}>
+                  {cat}
                 </div>
-                <button
-                  onClick={() => {
-                    deleteUtility(u.id);
-                    if (map) {
-                      if (map.getLayer(`utility-circle-${u.id}`)) map.removeLayer(`utility-circle-${u.id}`);
-                      if (map.getLayer(`utility-label-${u.id}`)) map.removeLayer(`utility-label-${u.id}`);
-                      if (map.getSource(`utility-${u.id}`)) map.removeSource(`utility-${u.id}`);
-                    }
-                  }}
-                  className={p.deleteBtn}
-                >{'\u00D7'}</button>
+                <div className={p.selectorGrid2}>
+                  {types.map(([key, cfg]) => {
+                    const isActive = placementMode === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setPlacementMode(isActive ? null : key)}
+                        className={p.selectorBtn}
+                        style={{
+                          background: isActive ? `${cfg.color}18` : undefined,
+                          border: isActive ? `1px solid ${cfg.color}40` : undefined,
+                          color: isActive ? cfg.color : 'var(--color-panel-text)',
+                        }}
+                      >
+                        <span className={p.selectorIcon}>{cfg.icon}</span>
+                        <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{cfg.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
+
+          {placementMode && (
+            <div className={p.placementBanner}>
+              Click on the map to place {UTILITY_TYPE_CONFIG[placementMode].label}
+            </div>
+          )}
+
+          <div className={p.sectionLabel} style={{ marginBottom: 8 }}>
+            Placed Utilities ({utilities.length})
+          </div>
+          {utilities.length === 0 ? (
+            <div className={p.empty}>No utilities placed yet</div>
+          ) : (
+            <div className={p.section}>
+              {utilities.map((u) => {
+                const cfg = UTILITY_TYPE_CONFIG[u.type];
+                return (
+                  <div key={u.id} className={p.itemRow}>
+                    <span className={p.text14}>{cfg?.icon}</span>
+                    <div className={p.itemContent}>
+                      <div className={p.itemTitle}>{u.name}</div>
+                      <div className={p.itemMeta}>{cfg?.label} {'\u2014'} {u.phase}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        deleteUtility(u.id);
+                        if (map) {
+                          if (map.getLayer(`utility-circle-${u.id}`)) map.removeLayer(`utility-circle-${u.id}`);
+                          if (map.getLayer(`utility-label-${u.id}`)) map.removeLayer(`utility-label-${u.id}`);
+                          if (map.getSource(`utility-${u.id}`)) map.removeSource(`utility-${u.id}`);
+                        }
+                      }}
+                      className={p.deleteBtn}
+                    >{'\u00D7'}</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'systems' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />
+          <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
+          <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
         </div>
       )}
 
-      {/* Utility naming modal */}
+      {activeTab === 'phasing' && (
+        <div style={{ marginTop: 8 }}>
+          <InfrastructurePhasing utilities={utilities} />
+        </div>
+      )}
+
+      {/* Utility naming modal — stays outside tabs */}
       {showModal && placementMode && (
         <div className={p.modalOverlay}
           onClick={() => { setShowModal(false); setPlacementMode(null); }}>

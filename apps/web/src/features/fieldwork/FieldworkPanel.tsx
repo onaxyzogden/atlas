@@ -1,36 +1,67 @@
 /**
  * FieldworkPanel — advanced field data collection for site visits.
- * Tabs: Soil Samples, Water Issues, Structure Issues, Measurements, Walk Routes
+ * Tabs: Field Notes, Soil/Water/Structure, Walk Routes, Site Checklist
+ *
+ * GPS, photo capture, voice memo, offline indicator.
+ * Integrates with fieldworkStore for persistence.
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useMemo } from 'react';
-import { useFieldworkStore, type FieldworkEntry, type FieldworkType } from '../../store/fieldworkStore.js';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import {
+  useFieldworkStore,
+  type FieldworkEntry,
+  type FieldworkType,
+  type NoteType,
+} from '../../store/fieldworkStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import WalkRouteRecorder from './WalkRouteRecorder.js';
-import p from '../../styles/panel.module.css';
+import SiteChecklist from './SiteChecklist.js';
+import FieldNoteExport from './FieldNoteExport.js';
+import css from './FieldworkPanel.module.css';
 
 interface Props {
   project: LocalProject;
   map: maplibregl.Map | null;
 }
 
-type Tab = 'soil' | 'water' | 'structure' | 'measurement' | 'walk';
+type Tab = 'notes' | 'data' | 'walk' | 'checklist';
 
-const TAB_CONFIG: { id: Tab; label: string; type: FieldworkType }[] = [
-  { id: 'soil', label: 'Soil', type: 'soil_sample' },
-  { id: 'water', label: 'Water', type: 'water_issue' },
-  { id: 'structure', label: 'Structure', type: 'structure_issue' },
-  { id: 'measurement', label: 'Measure', type: 'measurement' },
-  { id: 'walk', label: 'Routes', type: 'annotation' },
+const DATA_TYPES: { id: FieldworkType; label: string }[] = [
+  { id: 'soil_sample', label: 'Soil' },
+  { id: 'water_issue', label: 'Water' },
+  { id: 'structure_issue', label: 'Structure' },
+  { id: 'measurement', label: 'Measure' },
+];
+
+const NOTE_TYPES: { id: NoteType; label: string }[] = [
+  { id: 'observation', label: 'Observe' },
+  { id: 'question', label: 'Question' },
+  { id: 'measurement', label: 'Measure' },
+  { id: 'issue', label: 'Issue' },
 ];
 
 export default function FieldworkPanel({ project, map }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('soil');
+  const [activeTab, setActiveTab] = useState<Tab>('notes');
   const entries = useFieldworkStore((s) => s.entries);
   const walkRoutes = useFieldworkStore((s) => s.walkRoutes);
   const addEntry = useFieldworkStore((s) => s.addEntry);
   const deleteEntry = useFieldworkStore((s) => s.deleteEntry);
+  const isOnline = useFieldworkStore((s) => s.isOnline);
+  const setOnline = useFieldworkStore((s) => s.setOnline);
+  const pendingUploads = useFieldworkStore((s) => s.pendingUploads);
+
+  // Online/offline monitoring
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [setOnline]);
 
   const projectEntries = useMemo(
     () => entries.filter((e) => e.projectId === project.id),
@@ -40,11 +71,325 @@ export default function FieldworkPanel({ project, map }: Props) {
     () => walkRoutes.filter((r) => r.projectId === project.id),
     [walkRoutes, project.id],
   );
+  const fieldNotes = useMemo(
+    () => projectEntries.filter((e) =>
+      e.noteType || ['observation', 'question', 'issue'].includes(e.type),
+    ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    [projectEntries],
+  );
 
+  return (
+    <div className={css.container}>
+      {/* ── Header ──────────────────────────────────────── */}
+      <div className={css.header}>
+        <h2 className={css.title}>Fieldwork</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {pendingUploads.length > 0 && (
+            <span className={css.typeBadgeWarn}>{pendingUploads.length} pending</span>
+          )}
+          <span className={isOnline ? css.onlineBadge : css.offlineBadge}>
+            <span className={css.statusDot} />
+            {isOnline ? 'Online' : 'Offline'}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Tab Bar ─────────────────────────────────────── */}
+      <div className={css.tabBar}>
+        {([
+          { id: 'notes' as Tab, label: 'Field Notes' },
+          { id: 'data' as Tab, label: 'Data' },
+          { id: 'walk' as Tab, label: 'Routes' },
+          { id: 'checklist' as Tab, label: 'Checklist' },
+        ]).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={activeTab === tab.id ? css.tabBtnActive : css.tabBtn}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab Content ─────────────────────────────────── */}
+      {activeTab === 'notes' && (
+        <FieldNotesTab
+          project={project}
+          entries={fieldNotes}
+          addEntry={addEntry}
+          deleteEntry={deleteEntry}
+        />
+      )}
+
+      {activeTab === 'data' && (
+        <DataEntryTab
+          project={project}
+          map={map}
+          entries={projectEntries}
+          addEntry={addEntry}
+          deleteEntry={deleteEntry}
+        />
+      )}
+
+      {activeTab === 'walk' && (
+        <WalkRouteRecorder project={project} routes={projectRoutes} />
+      )}
+
+      {activeTab === 'checklist' && (
+        <SiteChecklist projectId={project.id} />
+      )}
+
+      {/* ── Export ──────────────────────────────────────── */}
+      {activeTab === 'notes' && fieldNotes.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <FieldNoteExport entries={fieldNotes} projectName={project.name} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Field Notes Tab                                                    */
+/* ================================================================== */
+
+interface FieldNotesTabProps {
+  project: LocalProject;
+  entries: FieldworkEntry[];
+  addEntry: (entry: FieldworkEntry) => void;
+  deleteEntry: (id: string) => void;
+}
+
+function FieldNotesTab({ project, entries, addEntry, deleteEntry }: FieldNotesTabProps) {
+  const [noteType, setNoteType] = useState<NoteType>('observation');
+  const [text, setText] = useState('');
+  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [audioDataUrl, setAudioDataUrl] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const captureGps = useCallback((): Promise<[number, number]> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve([0, 0]);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve([pos.coords.longitude, pos.coords.latitude]),
+        () => resolve([0, 0]),
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    });
+  }, []);
+
+  const handlePhotoCapture = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPendingPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
+  const startAudioRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => setAudioDataUrl(reader.result as string);
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecordingAudio(true);
+    } catch {
+      // Microphone not available
+    }
+  }, []);
+
+  const stopAudioRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+    setIsRecordingAudio(false);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (!text.trim() && !pendingPhoto && !audioDataUrl) return;
+    setIsCapturing(true);
+
+    const location = await captureGps();
+    const entry: FieldworkEntry = {
+      id: crypto.randomUUID(),
+      projectId: project.id,
+      type: noteType,
+      noteType,
+      location,
+      timestamp: new Date().toISOString(),
+      data: {},
+      notes: text.trim(),
+      photos: pendingPhoto ? [pendingPhoto] : [],
+      verified: false,
+      audioDataUrl: audioDataUrl ?? undefined,
+    };
+
+    addEntry(entry);
+    setText('');
+    setPendingPhoto(null);
+    setAudioDataUrl(null);
+    setIsCapturing(false);
+  }, [text, pendingPhoto, audioDataUrl, noteType, project.id, captureGps, addEntry]);
+
+  const TYPE_LABELS: Record<string, string> = {
+    observation: 'Observe', question: 'Question', measurement: 'Measure', issue: 'Issue',
+  };
+
+  return (
+    <div>
+      {/* ── Note Type Selector ─────────────────────────── */}
+      <div className={css.noteTypeRow}>
+        {NOTE_TYPES.map((nt) => (
+          <button
+            key={nt.id}
+            onClick={() => setNoteType(nt.id)}
+            className={noteType === nt.id ? css.noteTypeBtnActive : css.noteTypeBtn}
+          >
+            {nt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Text Input ─────────────────────────────────── */}
+      <textarea
+        aria-label="Field note"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="What do you observe? Soil condition, drainage, vegetation, access..."
+        rows={3}
+        className={css.textInput}
+      />
+
+      {/* ── Photo Preview ──────────────────────────────── */}
+      {pendingPhoto && (
+        <div className={css.photoPreview}>
+          <img src={pendingPhoto} alt="Captured" className={css.photoImg} />
+          <button onClick={() => setPendingPhoto(null)} className={css.photoRemoveBtn} aria-label="Remove photo">
+            {'\u00D7'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Audio Preview ──────────────────────────────── */}
+      {audioDataUrl && (
+        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <audio src={audioDataUrl} controls style={{ flex: 1, height: 32 }} />
+          <button onClick={() => setAudioDataUrl(null)} className={css.deleteBtn} aria-label="Remove audio">
+            {'\u00D7'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Capture Buttons ────────────────────────────── */}
+      <div className={css.captureRow}>
+        <label className={css.captureBtn} style={{ cursor: 'pointer' }}>
+          Photo
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoCapture}
+            style={{ display: 'none' }}
+          />
+        </label>
+        <button
+          onClick={isRecordingAudio ? stopAudioRecording : startAudioRecording}
+          className={isRecordingAudio ? css.captureBtnActive : css.captureBtn}
+        >
+          {isRecordingAudio ? 'Stop' : 'Voice'}
+        </button>
+      </div>
+
+      {/* ── Save Button ────────────────────────────────── */}
+      <button
+        onClick={handleSave}
+        disabled={isCapturing || (!text.trim() && !pendingPhoto && !audioDataUrl)}
+        className={css.saveBtn}
+      >
+        {isCapturing ? 'Capturing GPS...' : 'Save Note'}
+      </button>
+
+      {/* ── Notes List ─────────────────────────────────── */}
+      <div className={css.section} style={{ marginTop: 16 }}>
+        <h4 className={css.sectionLabel}>FIELD NOTES ({entries.length})</h4>
+        {entries.length === 0 ? (
+          <div className={css.emptyState}>
+            No field notes yet. Capture observations during your site visit.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <div key={entry.id} className={css.entryCard}>
+              <div className={css.entryHeader}>
+                <div style={{ flex: 1 }}>
+                  <span className={css.typeBadge}>
+                    {TYPE_LABELS[entry.noteType ?? ''] ?? entry.type}
+                  </span>
+                  {entry.verified && <span className={css.verifiedBadge}>Verified</span>}
+                  {entry.notes && <div className={css.entryNotes} style={{ marginTop: 4 }}>{entry.notes}</div>}
+                </div>
+                <button onClick={() => deleteEntry(entry.id)} className={css.deleteBtn}>
+                  {'\u00D7'}
+                </button>
+              </div>
+              {entry.photos.length > 0 && entry.photos[0] && (
+                <img
+                  src={entry.photos[0]}
+                  alt=""
+                  style={{ width: '100%', borderRadius: 6, maxHeight: 120, objectFit: 'cover', marginTop: 6 }}
+                />
+              )}
+              {entry.audioDataUrl && (
+                <audio src={entry.audioDataUrl} controls style={{ width: '100%', height: 28, marginTop: 6 }} />
+              )}
+              <div className={css.entryMeta}>
+                {new Date(entry.timestamp).toLocaleString()}
+                {entry.location[0] !== 0 && ` \u00B7 ${entry.location[1].toFixed(5)}, ${entry.location[0].toFixed(5)}`}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Data Entry Tab (original fieldwork types)                          */
+/* ================================================================== */
+
+interface DataEntryTabProps {
+  project: LocalProject;
+  map: maplibregl.Map | null;
+  entries: FieldworkEntry[];
+  addEntry: (entry: FieldworkEntry) => void;
+  deleteEntry: (id: string) => void;
+}
+
+function DataEntryTab({ project, map, entries, addEntry, deleteEntry }: DataEntryTabProps) {
+  const [dataType, setDataType] = useState<FieldworkType>('soil_sample');
   const [isPlacing, setIsPlacing] = useState(false);
 
-  const currentType = TAB_CONFIG.find((t) => t.id === activeTab)?.type ?? 'soil_sample';
-  const tabEntries = projectEntries.filter((e) => e.type === currentType);
+  const tabEntries = entries.filter((e) => e.type === dataType);
 
   const handleAddFromMap = () => {
     if (!map) return;
@@ -52,12 +397,12 @@ export default function FieldworkPanel({ project, map }: Props) {
     map.getCanvas().style.cursor = 'crosshair';
 
     const handler = (e: maplibregl.MapMouseEvent) => {
-      const notes = prompt(`Add ${currentType.replace('_', ' ')} note:`) ?? '';
+      const notes = prompt(`Add ${dataType.replace(/_/g, ' ')} note:`) ?? '';
       if (notes) {
         const entry: FieldworkEntry = {
           id: crypto.randomUUID(),
           projectId: project.id,
-          type: currentType,
+          type: dataType,
           location: [e.lngLat.lng, e.lngLat.lat],
           timestamp: new Date().toISOString(),
           data: {},
@@ -75,68 +420,55 @@ export default function FieldworkPanel({ project, map }: Props) {
   };
 
   return (
-    <div className={p.container}>
-      <h2 className={p.title}>
-        Fieldwork
-      </h2>
-
-      {/* Tabs */}
-      <div className={p.tabBar}>
-        {TAB_CONFIG.map((tab) => (
+    <div>
+      {/* ── Data Type Selector ─────────────────────────── */}
+      <div className={css.noteTypeRow}>
+        {DATA_TYPES.map((dt) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`${p.tabBtn} ${p.tabBtnSm} ${activeTab === tab.id ? p.tabBtnActive : ''}`}
+            key={dt.id}
+            onClick={() => setDataType(dt.id)}
+            className={dataType === dt.id ? css.noteTypeBtnActive : css.noteTypeBtn}
           >
-            {tab.label}
+            {dt.label}
           </button>
         ))}
       </div>
 
-      {/* Walk Routes tab */}
-      {activeTab === 'walk' ? (
-        <WalkRouteRecorder project={project} routes={projectRoutes} />
-      ) : (
-        <>
-          {/* Add from map */}
-          <button
-            onClick={handleAddFromMap}
-            className={p.btn}
-            style={{
-              marginBottom: 16,
-              ...(isPlacing ? { borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' } : {}),
-            }}
-          >
-            {isPlacing ? 'Click on map to place...' : `+ Add ${currentType.replace('_', ' ')} on Map`}
-          </button>
+      {/* ── Add from Map ───────────────────────────────── */}
+      <button
+        onClick={handleAddFromMap}
+        className={isPlacing ? css.captureBtnActive : css.captureBtn}
+        style={{ width: '100%', justifyContent: 'center', marginBottom: 16 }}
+      >
+        {isPlacing ? 'Click on map to place...' : `+ Add ${dataType.replace(/_/g, ' ')} on Map`}
+      </button>
 
-          {/* Entry list */}
-          {tabEntries.length > 0 ? (
-            <div className={p.section}>
-              {tabEntries.map((entry) => (
-                <div key={entry.id} className={p.card}>
-                  <div className={p.rowBetween} style={{ marginBottom: 4 }}>
-                    <span className={`${p.text11} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>
-                      {entry.notes.slice(0, 40)}{entry.notes.length > 40 ? '...' : ''}
-                    </span>
-                    <button onClick={() => deleteEntry(entry.id)} className={p.deleteBtn}>
-                      {'\u00D7'}
-                    </button>
-                  </div>
-                  <div className={`${p.text10} ${p.muted}`}>
-                    {new Date(entry.timestamp).toLocaleString()} &middot; [{entry.location[0].toFixed(4)}, {entry.location[1].toFixed(4)}]
-                    {entry.verified && <span style={{ color: '#2d7a4f', marginLeft: 4 }}>{'\u2713'} verified</span>}
-                  </div>
-                </div>
-              ))}
+      {/* ── Entry List ─────────────────────────────────── */}
+      <div className={css.section}>
+        <h4 className={css.sectionLabel}>{dataType.replace(/_/g, ' ').toUpperCase()} ({tabEntries.length})</h4>
+        {tabEntries.length === 0 ? (
+          <div className={css.emptyState}>
+            No {dataType.replace(/_/g, ' ')} entries yet.
+          </div>
+        ) : (
+          tabEntries.map((entry) => (
+            <div key={entry.id} className={css.entryCard}>
+              <div className={css.entryHeader}>
+                <span className={css.entryNotes}>
+                  {entry.notes.slice(0, 60)}{entry.notes.length > 60 ? '...' : ''}
+                </span>
+                <button onClick={() => deleteEntry(entry.id)} className={css.deleteBtn}>
+                  {'\u00D7'}
+                </button>
+              </div>
+              <div className={css.entryMeta}>
+                {new Date(entry.timestamp).toLocaleString()} &middot; [{entry.location[0].toFixed(4)}, {entry.location[1].toFixed(4)}]
+                {entry.verified && <span className={css.verifiedBadge} style={{ marginLeft: 4 }}>Verified</span>}
+              </div>
             </div>
-          ) : (
-            <div className={p.empty}>
-              No {currentType.replace('_', ' ')} entries yet.
-            </div>
-          )}
-        </>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

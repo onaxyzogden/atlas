@@ -53,6 +53,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
     color: '#9a7a8a',
     items: [
       { id: 'biomass', label: 'Biomass' },
+      { id: 'siting-rules', label: 'Siting Rules' },
       { id: 'dashboard-settings', label: 'Settings' },
       { id: 'archive', label: 'Archive' },
     ],
@@ -139,6 +140,8 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><circle cx="7" cy="7" r="2"/><path d="M7 1.5L8 3.5L10 2.7L9.7 4.8L11.8 5.3L10.5 7L11.8 8.7L9.7 9.2L10 11.3L8 10.5L7 12.5L6 10.5L4 11.3L4.3 9.2L2.2 8.7L3.5 7L2.2 5.3L4.3 4.8L4 2.7L6 3.5L7 1.5Z"/></svg>;
     case 'archive':
       return <svg {...p}><rect x="1" y="1" width="12" height="4" rx="1"/><path d="M2 5V12C2 12.6 2.4 13 3 13H11C11.6 13 12 12.6 12 12V5"/><line x1="5" y1="8" x2="9" y2="8"/></svg>;
+    case 'siting-rules':
+      return <svg {...p}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/><path d="M5 7L6.5 8.5L9.5 5.5"/></svg>;
     default:
       return <svg {...p}><circle cx="7" cy="7" r="3"/></svg>;
   }

@@ -1,12 +1,22 @@
 /**
  * AccessPanel — draw paths and roads with type classification.
  * Uses MapboxDraw in line mode for path drawing.
+ * Sprint 7.3: Added analysis tab with access status, corridors, conflicts, slopes.
  */
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import { usePathStore, PATH_TYPE_CONFIG, type PathType, type DesignPath } from '../../store/pathStore.js';
+import { useZoneStore } from '../../store/zoneStore.js';
+import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
+import AccessAnalysisCard from './AccessAnalysisCard.js';
+import AnimalCorridors from './AnimalCorridors.js';
+import ArrivalSequence from './ArrivalSequence.js';
+import RouteConflicts from './RouteConflicts.js';
+import SlopeWarnings from './SlopeWarnings.js';
 import p from '../../styles/panel.module.css';
+import s from './AccessPanel.module.css';
 
 interface AccessPanelProps {
   projectId: string;
@@ -15,11 +25,26 @@ interface AccessPanelProps {
 }
 
 export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) {
-  const allPaths = usePathStore((s) => s.paths);
+  const allPaths = usePathStore((st) => st.paths);
   const paths = useMemo(() => allPaths.filter((pa) => pa.projectId === projectId), [allPaths, projectId]);
-  const addPath = usePathStore((s) => s.addPath);
-  const deletePath = usePathStore((s) => s.deletePath);
+  const addPath = usePathStore((st) => st.addPath);
+  const deletePath = usePathStore((st) => st.deletePath);
 
+  // Analysis tab data
+  const allZones = useZoneStore((st) => st.zones);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
+  const project = useProjectStore((st) => st.projects.find((pr) => pr.id === projectId));
+  const siteData = useSiteData(projectId);
+  const terrainSummary = useMemo(
+    () => siteData ? getLayerSummary<{ elevation_max?: number; elevation_min?: number; mean_slope_deg?: number }>(siteData, 'terrain_analysis') : null,
+    [siteData],
+  );
+  const corridors = useMemo(() => paths.filter((pa) => pa.type === 'animal_corridor' || pa.type === 'grazing_route'), [paths]);
+  const livestockZones = useMemo(() => zones.filter((z) => z.category === 'livestock'), [zones]);
+  const waterZones = useMemo(() => zones.filter((z) => z.category === 'water_retention'), [zones]);
+  const arrivalPaths = useMemo(() => paths.filter((pa) => pa.type === 'arrival_sequence'), [paths]);
+
+  const [activeTab, setActiveTab] = useState<'draw' | 'analysis'>('draw');
   const [selectedType, setSelectedType] = useState<PathType>('main_road');
   const [isDrawing, setIsDrawing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -85,74 +110,93 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
   return (
     <>
-      <div className={`${p.label} ${p.mb8}`}>Select Path Type</div>
-      <div className={`${p.flexCol} ${p.mb16}`} style={{ gap: 4 }}>
-        {(Object.entries(PATH_TYPE_CONFIG) as [PathType, typeof PATH_TYPE_CONFIG[PathType]][]).map(([key, cfg]) => {
-          const isSelected = selectedType === key;
-          return (
-            <button
-              key={key}
-              onClick={() => setSelectedType(key)}
-              className={p.selectorBtn}
-              style={{
-                padding: '7px 10px',
-                background: isSelected ? `${cfg.color}15` : undefined,
-                border: isSelected ? `1px solid ${cfg.color}40` : undefined,
-                color: isSelected ? cfg.color : undefined,
-              }}
-            >
-              <span style={{ width: 20, height: 2, background: cfg.color, borderRadius: 1, flexShrink: 0, ...(cfg.dashArray.length > 0 ? { backgroundImage: `repeating-linear-gradient(90deg, ${cfg.color} 0px, ${cfg.color} ${cfg.dashArray[0]}px, transparent ${cfg.dashArray[0]}px, transparent ${(cfg.dashArray[0] ?? 0) + (cfg.dashArray[1] ?? 0)}px)`, background: 'none', height: cfg.width } : {}) }} />
-              <span style={{ fontWeight: isSelected ? 500 : 400 }}>{cfg.label}</span>
-              {isSelected && <span className={p.selectorCheck} style={{ color: cfg.color }}>{'\u2713'}</span>}
-            </button>
-          );
-        })}
+      <div className={p.tabBar}>
+        <button className={`${p.tabBtn} ${activeTab === 'draw' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('draw')}>Draw</button>
+        <button className={`${p.tabBtn} ${activeTab === 'analysis' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('analysis')}>Analysis</button>
       </div>
 
-      <button
-        onClick={startDraw}
-        disabled={isDrawing || !draw}
-        className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
-      >
-        {isDrawing ? 'Drawing... double-click to finish' : `Draw ${PATH_TYPE_CONFIG[selectedType].label}`}
-      </button>
-
-      <div className={p.sectionLabel}>
-        Paths ({paths.length})
-      </div>
-      {paths.length === 0 ? (
-        <div className={p.empty}>No paths drawn yet</div>
-      ) : (
-        <div className={p.section}>
-          {paths.map((pa) => {
-            const cfg = PATH_TYPE_CONFIG[pa.type];
-            return (
-              <div key={pa.id} className={p.itemRow}>
-                <span className={p.swatchLine} style={{ background: pa.color ?? cfg?.color }} />
-                <div className={p.itemContent}>
-                  <div className={p.itemTitle}>{pa.name}</div>
-                  <div className={p.itemMeta}>
-                    {cfg?.label} {'\u2014'} {pa.lengthM > 1000 ? `${(pa.lengthM / 1000).toFixed(1)} km` : `${Math.round(pa.lengthM)} m`}
-                  </div>
-                </div>
+      {activeTab === 'draw' && (
+        <>
+          <div className={`${p.label} ${p.mb8}`}>Select Path Type</div>
+          <div className={`${p.flexCol} ${p.mb16}`} style={{ gap: 4 }}>
+            {(Object.entries(PATH_TYPE_CONFIG) as [PathType, typeof PATH_TYPE_CONFIG[PathType]][]).map(([key, cfg]) => {
+              const isSelected = selectedType === key;
+              return (
                 <button
-                  onClick={() => {
-                    deletePath(pa.id);
-                    if (map) {
-                      if (map.getLayer(`path-line-${pa.id}`)) map.removeLayer(`path-line-${pa.id}`);
-                      if (map.getLayer(`path-label-${pa.id}`)) map.removeLayer(`path-label-${pa.id}`);
-                      if (map.getSource(`path-${pa.id}`)) map.removeSource(`path-${pa.id}`);
-                    }
+                  key={key}
+                  onClick={() => setSelectedType(key)}
+                  className={p.selectorBtn}
+                  style={{
+                    padding: '7px 10px',
+                    background: isSelected ? `${cfg.color}15` : undefined,
+                    border: isSelected ? `1px solid ${cfg.color}40` : undefined,
+                    color: isSelected ? cfg.color : undefined,
                   }}
-                  className={p.deleteBtn}
-                >{'\u00D7'}</button>
-              </div>
-            );
-          })}
+                >
+                  <span style={{ width: 20, height: 2, background: cfg.color, borderRadius: 1, flexShrink: 0, ...(cfg.dashArray.length > 0 ? { backgroundImage: `repeating-linear-gradient(90deg, ${cfg.color} 0px, ${cfg.color} ${cfg.dashArray[0]}px, transparent ${cfg.dashArray[0]}px, transparent ${(cfg.dashArray[0] ?? 0) + (cfg.dashArray[1] ?? 0)}px)`, background: 'none', height: cfg.width } : {}) }} />
+                  <span style={{ fontWeight: isSelected ? 500 : 400 }}>{cfg.label}</span>
+                  {isSelected && <span className={p.selectorCheck} style={{ color: cfg.color }}>{'\u2713'}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={startDraw}
+            disabled={isDrawing || !draw}
+            className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
+          >
+            {isDrawing ? 'Drawing... double-click to finish' : `Draw ${PATH_TYPE_CONFIG[selectedType].label}`}
+          </button>
+
+          <div className={p.sectionLabel}>
+            Paths ({paths.length})
+          </div>
+          {paths.length === 0 ? (
+            <div className={p.empty}>No paths drawn yet</div>
+          ) : (
+            <div className={p.section}>
+              {paths.map((pa) => {
+                const cfg = PATH_TYPE_CONFIG[pa.type];
+                return (
+                  <div key={pa.id} className={p.itemRow}>
+                    <span className={p.swatchLine} style={{ background: pa.color ?? cfg?.color }} />
+                    <div className={p.itemContent}>
+                      <div className={p.itemTitle}>{pa.name}</div>
+                      <div className={p.itemMeta}>
+                        {cfg?.label} {'\u2014'} {pa.lengthM > 1000 ? `${(pa.lengthM / 1000).toFixed(1)} km` : `${Math.round(pa.lengthM)} m`}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        deletePath(pa.id);
+                        if (map) {
+                          if (map.getLayer(`path-line-${pa.id}`)) map.removeLayer(`path-line-${pa.id}`);
+                          if (map.getLayer(`path-label-${pa.id}`)) map.removeLayer(`path-label-${pa.id}`);
+                          if (map.getSource(`path-${pa.id}`)) map.removeSource(`path-${pa.id}`);
+                        }
+                      }}
+                      className={p.deleteBtn}
+                    >{'\u00D7'}</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'analysis' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <AccessAnalysisCard paths={paths} />
+          <AnimalCorridors corridors={corridors} livestockZones={livestockZones} waterZones={waterZones} />
+          {project?.projectType && <ArrivalSequence arrivalPaths={arrivalPaths} projectType={project.projectType} />}
+          <RouteConflicts paths={paths} zones={zones} />
+          <SlopeWarnings paths={paths} terrainSummary={terrainSummary} />
         </div>
       )}
 
-      {/* Path naming modal */}
+      {/* Path naming modal — always rendered when showModal is true */}
       {showModal && (
         <div className={p.modalOverlay}
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}>

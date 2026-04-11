@@ -1,10 +1,8 @@
 /**
- * ZonePanel — draw, name, and manage custom land-use zones.
+ * ZonePanel — draw, name, and manage custom land-use zones + analysis intelligence.
  *
- * P1 features from Section 8:
- *   - Draw custom zones with naming and color coding
- *   - Zone categories, primary/secondary use designation
- *   - Zone sizing calculator
+ * Tab 1 "Zones": draw polygons, name/categorize, list zones
+ * Tab 2 "Analysis": sizing calculator, conflict detection, allocation, auto-suggest
  */
 
 import type maplibregl from 'maplibre-gl';
@@ -16,28 +14,50 @@ import {
   type ZoneCategory,
   type LandZone,
 } from '../../store/zoneStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
+import { useSiteData } from '../../store/siteDataStore.js';
+import { computeAssessmentScores } from '../../lib/computeScores.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
+import ZoneSizingCalculator from './ZoneSizingCalculator.js';
+import ZoneConflictDetector from './ZoneConflictDetector.js';
+import ZoneAllocationSummary from './ZoneAllocationSummary.js';
+import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
 
 interface ZonePanelProps {
   projectId: string;
-  draw: MapboxDraw | null;
-  map: maplibregl.Map | null;
-  isMapReady: boolean;
+  draw?: MapboxDraw | null;
+  map?: maplibregl.Map | null;
+  isMapReady?: boolean;
 }
 
-export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePanelProps) {
-  const allZones = useZoneStore((s) => s.zones);
-  const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
-  const addZone = useZoneStore((s) => s.addZone);
-  const deleteZone = useZoneStore((s) => s.deleteZone);
+type ZoneTab = 'zones' | 'analysis';
 
+export default function ZonePanel({ projectId, draw, map, isMapReady = true }: ZonePanelProps) {
+  const allZones = useZoneStore((st) => st.zones);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
+  const addZone = useZoneStore((st) => st.addZone);
+  const deleteZone = useZoneStore((st) => st.deleteZone);
+
+  const project = useProjectStore((st) => st.projects.find((pr) => pr.id === projectId));
+  const siteData = useSiteData(projectId);
+
+  const scores = useMemo(() => {
+    if (!siteData || siteData.status !== 'complete') return null;
+    return computeAssessmentScores(siteData.layers, project?.acreage ?? null);
+  }, [siteData, project?.acreage]);
+
+  const existingCategories = useMemo(
+    () => new Set(zones.map((z) => z.category)),
+    [zones],
+  );
+
+  const [activeTab, setActiveTab] = useState<ZoneTab>('zones');
   const [isDrawing, setIsDrawing] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
-  const [collapsed, setCollapsed] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState('');
@@ -86,13 +106,8 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
     };
 
     addZone(zone);
+    if (map && isMapReady) renderZoneOnMap(map, zone);
 
-    // Show zone on map
-    if (map && isMapReady) {
-      renderZoneOnMap(map, zone);
-    }
-
-    // Reset form
     setShowForm(false);
     setPendingGeometry(null);
     setFormName('');
@@ -122,25 +137,36 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
   if (!isMapReady) return <PanelLoader label="Waiting for map..." />;
 
   return (
-    <div className={`${s.root} ${collapsed ? s.rootCollapsed : s.rootExpanded}`}>
-      <button
-        onClick={() => setCollapsed((v) => !v)}
-        className={s.toggleBtn}
-      >
-        <span>Zones ({zones.length})</span>
-        <span>{collapsed ? '▸' : '▾'}</span>
-      </button>
+    <div className={p.container}>
+      <h2 className={p.title}>Land Use Zoning</h2>
 
-      {!collapsed && (
-        <div className={s.body}>
+      {/* Tab bar */}
+      <div className={p.tabBar}>
+        <button
+          onClick={() => setActiveTab('zones')}
+          className={`${p.tabBtn} ${activeTab === 'zones' ? p.tabBtnActive : ''}`}
+        >
+          Zones ({zones.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('analysis')}
+          className={`${p.tabBtn} ${activeTab === 'analysis' ? p.tabBtnActive : ''}`}
+        >
+          Analysis
+        </button>
+      </div>
+
+      {/* ── Tab: Zones (Draw + List) ────────────────────────────── */}
+      {activeTab === 'zones' && (
+        <div style={{ marginTop: 8 }}>
           {/* Draw button */}
-          {!showForm && (
+          {!showForm && draw && (
             <button
               onClick={startDraw}
               disabled={isDrawing}
               className={s.drawBtn}
             >
-              {isDrawing ? 'Drawing… double-click to finish' : '+ Draw New Zone'}
+              {isDrawing ? 'Drawing\u2026 double-click to finish' : '+ Draw New Zone'}
             </button>
           )}
 
@@ -148,9 +174,8 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
           {showForm && (
             <div className={s.formCard}>
               <div className={s.formTitle}>
-                New Zone — {formatArea(pendingArea)}
+                New Zone \u2014 {formatArea(pendingArea)}
               </div>
-
               <div className={s.formFields}>
                 <input
                   type="text"
@@ -160,7 +185,6 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   className={p.input}
                   autoFocus
                 />
-
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as ZoneCategory)}
@@ -172,7 +196,6 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                     </option>
                   ))}
                 </select>
-
                 <input
                   type="text"
                   placeholder="Primary use"
@@ -180,7 +203,6 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   onChange={(e) => setFormPrimaryUse(e.target.value)}
                   className={p.input}
                 />
-
                 <input
                   type="text"
                   placeholder="Secondary use"
@@ -188,7 +210,6 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   onChange={(e) => setFormSecondaryUse(e.target.value)}
                   className={p.input}
                 />
-
                 <textarea
                   placeholder="Notes"
                   value={formNotes}
@@ -196,7 +217,6 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                   rows={2}
                   className={`${p.input} ${s.textareaInput}`}
                 />
-
                 <div className={s.formActions}>
                   <button
                     onClick={handleSaveZone}
@@ -225,16 +245,11 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
             <div className={s.zoneList}>
               {zones.map((z) => (
                 <div key={z.id} className={s.zoneItem}>
-                  <span
-                    className={s.zoneSwatch}
-                    style={{ background: z.color }}
-                  />
+                  <span className={s.zoneSwatch} style={{ background: z.color }} />
                   <div className={s.zoneInfo}>
-                    <div className={s.zoneName}>
-                      {z.name}
-                    </div>
+                    <div className={s.zoneName}>{z.name}</div>
                     <div className={s.zoneMeta}>
-                      {ZONE_CATEGORY_CONFIG[z.category].label} — {formatArea(z.areaM2)}
+                      {ZONE_CATEGORY_CONFIG[z.category].label} \u2014 {formatArea(z.areaM2)}
                     </div>
                   </div>
                   <button
@@ -242,7 +257,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
                     className={s.deleteBtn}
                     title="Delete zone"
                   >
-                    ×
+                    \u00D7
                   </button>
                 </div>
               ))}
@@ -256,6 +271,16 @@ export default function ZonePanel({ projectId, draw, map, isMapReady }: ZonePane
           )}
         </div>
       )}
+
+      {/* ── Tab: Analysis ───────────────────────────────────────── */}
+      {activeTab === 'analysis' && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <ZoneAllocationSummary zones={zones} totalAcreage={project?.acreage ?? null} />
+          <ZoneSizingCalculator zones={zones} totalAcreage={project?.acreage ?? null} />
+          <ZoneConflictDetector zones={zones} siteData={siteData} />
+          <ZoneAutoSuggest scores={scores} siteData={siteData} existingCategories={existingCategories} />
+        </div>
+      )}
     </div>
   );
 }
@@ -266,60 +291,28 @@ function formatArea(m2: number): string {
   if (m2 > 10000) {
     return `${(m2 / 10000).toFixed(2)} ha (${(m2 / 4046.86).toFixed(2)} ac)`;
   }
-  return `${m2.toFixed(0)} m²`;
+  return `${m2.toFixed(0)} m\u00B2`;
 }
 
 function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
   const sourceId = `zone-${zone.id}`;
   const geojson: GeoJSON.FeatureCollection = {
     type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        properties: { name: zone.name, category: zone.category },
-        geometry: zone.geometry,
-      },
-    ],
+    features: [{
+      type: 'Feature',
+      properties: { name: zone.name, category: zone.category },
+      geometry: zone.geometry,
+    }],
   };
-
   if (map.getSource(sourceId)) return;
-
   map.addSource(sourceId, { type: 'geojson', data: geojson });
-
-  map.addLayer({
-    id: `zone-fill-${zone.id}`,
-    type: 'fill',
-    source: sourceId,
-    paint: {
-      'fill-color': zone.color,
-      'fill-opacity': 0.25,
-    },
-  });
-
-  map.addLayer({
-    id: `zone-line-${zone.id}`,
-    type: 'line',
-    source: sourceId,
-    paint: {
-      'line-color': zone.color,
-      'line-width': 2,
-    },
-  });
-
+  map.addLayer({ id: `zone-fill-${zone.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': zone.color, 'fill-opacity': 0.25 } });
+  map.addLayer({ id: `zone-line-${zone.id}`, type: 'line', source: sourceId, paint: { 'line-color': zone.color, 'line-width': 2 } });
   map.addLayer({
     id: `zone-label-${zone.id}`,
     type: 'symbol',
     source: sourceId,
-    layout: {
-      'text-field': zone.name,
-      'text-size': 11,
-      'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
-      'text-anchor': 'center',
-    },
-    paint: {
-      'text-color': '#f2ede3',
-      'text-halo-color': 'rgba(26, 22, 17, 0.8)',
-      'text-halo-width': 1.5,
-    },
+    layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
+    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26, 22, 17, 0.8)', 'text-halo-width': 1.5 },
   });
 }

@@ -187,3 +187,25 @@
   color: #2d7a4f;
   border: 1px solid rgba(45, 122, 79, 0.3);
 }
+
+/* ── Feature assignment (new) ─────────────────────────────────────────── */
+.featurePhaseGroup {
+  margin-bottom: var(--space-3);
+}
+
+.featurePhaseHeader {
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.tabSummary {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}

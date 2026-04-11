@@ -28,11 +28,19 @@ export interface MoontranceIdentity {
   waterLandWorshipIntegration: string;
 }
 
+export interface Milestone {
+  id: string;
+  phaseId: string;
+  note: string;
+  targetDate: string | null;
+}
+
 export interface VisionData {
   projectId: string;
   phaseNotes: VisionPhaseNote[];
   moontranceIdentity: MoontranceIdentity | null;
   conceptOverlayVisible: boolean;
+  milestones: Milestone[];
 }
 
 const DEFAULT_PHASE_NOTES: Omit<VisionPhaseNote, 'notes'>[] = [
@@ -67,6 +75,9 @@ interface VisionState {
   ensureMoontranceIdentity: (projectId: string) => void;
   clearMoontranceIdentity: (projectId: string) => void;
   setConceptOverlayVisible: (projectId: string, visible: boolean) => void;
+  addMilestone: (projectId: string, milestone: Milestone) => void;
+  updateMilestone: (projectId: string, milestoneId: string, updates: Partial<Omit<Milestone, 'id'>>) => void;
+  deleteMilestone: (projectId: string, milestoneId: string) => void;
 }
 
 export const useVisionStore = create<VisionState>()(
@@ -88,6 +99,7 @@ export const useVisionStore = create<VisionState>()(
               phaseNotes: DEFAULT_PHASE_NOTES.map((p) => ({ ...p, notes: '' })),
               moontranceIdentity: null,
               conceptOverlayVisible: false,
+              milestones: [],
             },
           ],
         }));
@@ -145,11 +157,48 @@ export const useVisionStore = create<VisionState>()(
               : v,
           ),
         })),
+
+      addMilestone: (projectId, milestone) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, milestones: [...v.milestones, milestone] }
+              : v,
+          ),
+        })),
+
+      updateMilestone: (projectId, milestoneId, updates) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, milestones: v.milestones.map((m) => m.id === milestoneId ? { ...m, ...updates } : m) }
+              : v,
+          ),
+        })),
+
+      deleteMilestone: (projectId, milestoneId) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, milestones: v.milestones.filter((m) => m.id !== milestoneId) }
+              : v,
+          ),
+        })),
     }),
     {
       name: 'ogden-vision',
-      version: 1,
+      version: 2,
       partialize: (state) => ({ visions: state.visions }),
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as { visions: VisionData[] };
+        if (version < 2) {
+          state.visions = state.visions.map((v) => ({
+            ...v,
+            milestones: (v as VisionData).milestones ?? [],
+          }));
+        }
+        return state;
+      },
     },
   ),
 );
