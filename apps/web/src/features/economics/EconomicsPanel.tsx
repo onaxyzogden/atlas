@@ -1,13 +1,14 @@
 /**
  * EconomicsPanel — Overview / Costs / Revenue tabs with charts and line items.
- * Matches the target design with total investment card, break-even, cashflow chart,
- * and detailed cost/revenue breakdowns.
+ * All financial data is computed from placed features via the financial engine.
  */
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
-import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
+import { useFinancialStore } from '../../store/financialStore.js';
+import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
+import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
+import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 
@@ -17,146 +18,138 @@ interface EconomicsPanelProps {
 
 type Tab = 'overview' | 'costs' | 'revenue';
 
-interface CostItem {
-  name: string;
-  phase: string;
-  confidence: 'high' | 'medium' | 'low';
-  category: string;
-  lowK: number;
-  highK: number;
-}
-
-interface RevenueItem {
-  name: string;
-  fromYear: number;
-  confidence: 'high' | 'medium' | 'low';
-  description: string;
-  lowK: number;
-  highK: number;
-}
-
-const COST_ITEMS: CostItem[] = [
-  { name: 'Well & Water System', phase: 'Phase 1', confidence: 'medium', category: 'Infrastructure', lowK: 45, highK: 65 },
-  { name: 'Road & Site Access', phase: 'Phase 1', confidence: 'medium', category: 'Infrastructure', lowK: 25, highK: 45 },
-  { name: 'Off-Grid Solar System', phase: 'Phase 1', confidence: 'medium', category: 'Infrastructure', lowK: 38, highK: 58 },
-  { name: 'Septic System', phase: 'Phase 1', confidence: 'low', category: 'Infrastructure', lowK: 18, highK: 32 },
-  { name: 'Main Dwelling (Cabin)', phase: 'Phase 1', confidence: 'medium', category: 'Structures', lowK: 85, highK: 135 },
-  { name: 'Fencing & Paddocks', phase: 'Phase 2', confidence: 'high', category: 'Agricultural', lowK: 18, highK: 28 },
-  { name: 'Orchard Establishment', phase: 'Phase 2', confidence: 'medium', category: 'Agricultural', lowK: 12, highK: 22 },
-  { name: 'Market Garden Setup', phase: 'Phase 2', confidence: 'medium', category: 'Agricultural', lowK: 15, highK: 25 },
-  { name: 'Keyline Pond & Swales', phase: 'Phase 2', confidence: 'medium', category: 'Water', lowK: 35, highK: 55 },
-  { name: 'Guest Cabins (4)', phase: 'Phase 3', confidence: 'medium', category: 'Structures', lowK: 120, highK: 200 },
-  { name: 'Prayer Pavilion', phase: 'Phase 3', confidence: 'low', category: 'Structures', lowK: 45, highK: 75 },
-  { name: 'Community Hall', phase: 'Phase 3', confidence: 'low', category: 'Structures', lowK: 80, highK: 140 },
-];
-
-const REVENUE_ITEMS: RevenueItem[] = [
-  { name: 'CSA & Farm Sales', fromYear: 2, confidence: 'medium', description: '20-30 CSA shares, farmers market, direct farm sales', lowK: 18, highK: 28 },
-  { name: 'Retreat & Hospitality', fromYear: 3, confidence: 'medium', description: '4 guest cabins @ $150-$250/night, 60-80% occupancy', lowK: 55, highK: 95 },
-  { name: 'Educational Programs', fromYear: 3, confidence: 'medium', description: 'Permaculture design courses, farm tours, seasonal workshops', lowK: 12, highK: 22 },
-  { name: 'Events & Gatherings', fromYear: 4, confidence: 'low', description: 'Community retreats, small weddings, faith gatherings', lowK: 15, highK: 30 },
-  { name: 'Grants & Stewardship', fromYear: 2, confidence: 'low', description: 'OMAFRA EFP, Growing Forward 3, Conservation Halton stewardship programs', lowK: 8, highK: 20 },
-];
-
 const CONFIDENCE_COLORS: Record<string, string> = {
   high: 'var(--color-confidence-high)',
   medium: 'var(--color-confidence-medium)',
   low: 'var(--color-confidence-low)',
 };
 
-const CAT_BAR_CLASSES: Record<string, string> = {
-  Structures: 'catBarStructures',
-  Water: 'catBarWater',
-  Infrastructure: 'catBarInfrastructure',
-  Agricultural: 'catBarAgricultural',
-};
+const REGION_OPTIONS: CostRegion[] = [
+  'ca-ontario', 'ca-bc', 'ca-prairies',
+  'us-midwest', 'us-northeast', 'us-southeast', 'us-west',
+];
+
+interface SoilRegenSummary {
+  carbonSequestration?: { meanSeqPotential?: number };
+  organicMatter?: { mean?: number };
+}
+
+interface LandCoverSummary {
+  canopy_pct?: number;
+}
+
+interface ClimateSummary {
+  annual_precip_mm?: number;
+}
 
 export default function EconomicsPanel({ project }: EconomicsPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const model = useFinancialModel(project.id);
+  const region = useFinancialStore((st) => st.region);
+  const setRegion = useFinancialStore((st) => st.setRegion);
+  const siteData = useSiteData(project.id);
 
-  // Include placed structures in cost calculation
-  const allStructures = useStructureStore((s) => s.structures);
-  const projectStructures = useMemo(
-    () => allStructures.filter((s) => s.projectId === project.id),
-    [allStructures, project.id],
+  if (!model) {
+    return (
+      <div className={p.container}>
+        <h2 className={p.title}>Economic Planning</h2>
+        <div className={p.empty}>
+          Place zones, structures, paths, or other features on the map to see cost and revenue estimates.
+        </div>
+      </div>
+    );
+  }
+
+  const { costLineItems, revenueStreams, totalInvestment, annualRevenueAtMaturity, cashflow, breakEven } = model;
+
+  // Cashflow chart — compute cumulative costs and revenue lines
+  const cumulativeCosts = cashflow.map((_, i) =>
+    cashflow.slice(0, i + 1).reduce((sum, c) => sum + c.capitalCosts.mid + c.operatingCosts.mid, 0),
+  );
+  const cumulativeRevenue = cashflow.map((_, i) =>
+    cashflow.slice(0, i + 1).reduce((sum, c) => sum + c.revenue.mid, 0),
   );
 
-  // Derive structure costs from actual placed structures using STRUCTURE_TEMPLATES cost ranges
-  const structureCosts = useMemo(() => {
-    let low = 0, high = 0;
-    for (const st of projectStructures) {
-      const tmpl = STRUCTURE_TEMPLATES[st.type];
-      if (tmpl?.costRange) {
-        low += tmpl.costRange[0] / 1000;
-        high += tmpl.costRange[1] / 1000;
-      } else {
-        low += 25; high += 50; // fallback estimate
-      }
-    }
-    return { low, high };
-  }, [projectStructures]);
-
-  // Base infrastructure costs (non-structure items)
-  const infraCostLow = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((acc, c) => acc + c.lowK, 0);
-  const infraCostHigh = COST_ITEMS.filter((c) => c.category !== 'Structures').reduce((acc, c) => acc + c.highK, 0);
-
-  // Total = infrastructure + actual structures (or baseline if none placed)
-  const baselineStructLow = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((acc, c) => acc + c.lowK, 0);
-  const baselineStructHigh = COST_ITEMS.filter((c) => c.category === 'Structures').reduce((acc, c) => acc + c.highK, 0);
-  const totalCostLow = infraCostLow + (projectStructures.length > 0 ? structureCosts.low : baselineStructLow);
-  const totalCostHigh = infraCostHigh + (projectStructures.length > 0 ? structureCosts.high : baselineStructHigh);
-  const totalRevenueLow = REVENUE_ITEMS.reduce((acc, r) => acc + r.lowK, 0);
-  const totalRevenueHigh = REVENUE_ITEMS.reduce((acc, r) => acc + r.highK, 0);
-
-  // Simple cashflow projection
-  const cashflow = useMemo(() => {
-    const years: { year: number; cumulative: number }[] = [];
-    let cum = 0;
-    const avgCost = (totalCostLow + totalCostHigh) / 2;
-    const avgRevenue = (totalRevenueLow + totalRevenueHigh) / 2;
-
-    for (let y = 0; y <= 9; y++) {
-      if (y === 0) cum -= avgCost * 0.4;
-      else if (y === 1) cum -= avgCost * 0.3;
-      else if (y === 2) cum -= avgCost * 0.2;
-      else if (y === 3) cum -= avgCost * 0.1;
-
-      if (y >= 2) cum += avgRevenue * Math.min(1, (y - 1) / 4);
-      years.push({ year: y, cumulative: cum });
-    }
-    return years;
-  }, [totalCostLow, totalCostHigh, totalRevenueLow, totalRevenueHigh]);
-
-  const minCash = Math.min(...cashflow.map((c) => c.cumulative));
-  const maxCash = Math.max(...cashflow.map((c) => c.cumulative));
+  const allValues = [
+    ...cashflow.map((c) => c.cumulativeCashflow.low),
+    ...cashflow.map((c) => c.cumulativeCashflow.high),
+    ...cumulativeCosts,
+    ...cumulativeRevenue,
+  ];
+  const minCash = Math.min(...allValues);
+  const maxCash = Math.max(...allValues);
   const range = maxCash - minCash || 1;
 
-  // Category breakdown for bar chart
-  const categoryTotals = useMemo(() => {
-    const cats: Record<string, number> = {};
-    for (const item of COST_ITEMS) {
-      cats[item.category] = (cats[item.category] ?? 0) + (item.lowK + item.highK) / 2;
-    }
-    return Object.entries(cats).sort((a, b) => b[1] - a[1]);
-  }, []);
+  // Category breakdown
+  const categoryTotals = new Map<string, number>();
+  for (const item of costLineItems) {
+    categoryTotals.set(item.category, (categoryTotals.get(item.category) ?? 0) + item.cost.mid);
+  }
+  const catEntries = [...categoryTotals.entries()].sort((a, b) => b[1] - a[1]);
+  const maxCat = Math.max(...catEntries.map(([, v]) => v), 1);
 
-  const maxCat = Math.max(...categoryTotals.map(([, v]) => v));
+  const CAT_BAR_CLASSES: Record<string, string> = {
+    Structures: 'catBarStructures',
+    Water: 'catBarWater',
+    Infrastructure: 'catBarInfrastructure',
+    Agricultural: 'catBarAgricultural',
+    'Land Preparation': 'catBarAgricultural',
+  };
+
+  const breakEvenYear = breakEven.breakEvenYear.mid;
+
+  // Grant readiness
+  const grantItems = computeGrantReadiness(model.enterprises, project);
+
+  // Carbon revenue
+  const carbonData = computeCarbonRevenue(siteData, project.acreage);
+
+  // Chart helper: y position from value
+  const yPos = (v: number) => 110 - ((v - minCash) / range) * 110;
+  const xPos = (i: number) => i * 30 + 5;
+  const svgWidth = cashflow.length * 30;
+
+  // Range band polygon points (low→high cumulative cashflow)
+  const rangeBandPoints = [
+    ...cashflow.map((c, i) => `${xPos(i)},${yPos(c.cumulativeCashflow.high)}`),
+    ...cashflow.map((_c, i) => {
+      const idx = cashflow.length - 1 - i;
+      const cf = cashflow[idx]!;
+      return `${xPos(idx)},${yPos(cf.cumulativeCashflow.low)}`;
+    }),
+  ].join(' ');
 
   return (
     <div className={p.container}>
-      <h2 className={p.title}>
-        Economic Planning
-      </h2>
+      <h2 className={p.title}>Economic Planning</h2>
+
+      {/* Region selector */}
+      <div style={{ marginBottom: 'var(--space-3)' }}>
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value as CostRegion)}
+          className={p.input}
+          style={{ fontSize: 11 }}
+        >
+          {REGION_OPTIONS.map((r) => (
+            <option key={r} value={r}>{REGION_LABELS[r]}</option>
+          ))}
+        </select>
+      </div>
 
       {/* Summary cards */}
       <div className={s.summaryRow}>
         <div className={s.summaryCard}>
-          <div className={s.summaryLabel}>Total Investment</div>
-          <div className={`${s.summaryValue} ${s.summaryValueAccent}`}>${totalCostLow}K–${totalCostHigh}K</div>
+          <div className={s.summaryLabel}>Total Investment (est.)</div>
+          <div className={`${s.summaryValue} ${s.summaryValueAccent}`}>
+            ${Math.round(totalInvestment.low / 1000)}K\u2013${Math.round(totalInvestment.high / 1000)}K
+          </div>
         </div>
         <div className={s.summaryCard}>
-          <div className={s.summaryLabel}>Break-Even</div>
-          <div className={s.summaryValue}>Year {cashflow.find((c) => c.cumulative >= 0)?.year ?? '5+'}</div>
+          <div className={s.summaryLabel}>Break-Even (est.)</div>
+          <div className={s.summaryValue}>
+            {breakEvenYear != null ? `Year ${breakEvenYear}` : '10+'}
+          </div>
         </div>
       </div>
 
@@ -176,50 +169,130 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Overview tab */}
       {activeTab === 'overview' && (
         <>
-          {/* Cashflow chart */}
-          <SectionLabel>Cumulative Cashflow (10yr)</SectionLabel>
+          {/* Enhanced cashflow chart */}
+          <SectionLabel>Cumulative Cashflow (10yr est.)</SectionLabel>
           <div className={s.chartContainer}>
-            {/* Y axis labels */}
             <div className={`${s.chartYLabel} ${s.chartYTop}`}>${Math.round(maxCash / 1000)}K</div>
             <div className={`${s.chartYLabel} ${s.chartYBottom}`}>-${Math.round(Math.abs(minCash) / 1000)}K</div>
 
-            {/* Zero line */}
             <div
               className={s.chartZeroLine}
               style={{ top: `${12 + (1 - (0 - minCash) / range) * 110}px` }}
             />
 
-            {/* Line chart */}
-            <svg viewBox={`0 0 ${cashflow.length * 30} 120`} className={s.chartSvg}>
+            <svg viewBox={`0 0 ${svgWidth} 120`} className={s.chartSvg}>
+              {/* Range band: low→high scenario area */}
+              <polygon
+                points={rangeBandPoints}
+                fill="rgba(196, 162, 101, 0.12)"
+                stroke="none"
+              />
+
+              {/* Cumulative costs line (brown) */}
+              <polyline
+                fill="none"
+                stroke="#8B6E4E"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+                points={cumulativeCosts.map((v, i) => `${xPos(i)},${yPos(-v)}`).join(' ')}
+              />
+
+              {/* Cumulative revenue line (sage green) */}
+              <polyline
+                fill="none"
+                stroke="var(--color-confidence-high)"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+                points={cumulativeRevenue.map((v, i) => `${xPos(i)},${yPos(v)}`).join(' ')}
+              />
+
+              {/* Mid cumulative cashflow line (gold) */}
               <polyline
                 fill="none"
                 stroke="var(--color-confidence-medium)"
                 strokeWidth="2"
-                points={cashflow.map((c, i) => `${i * 30 + 5},${110 - ((c.cumulative - minCash) / range) * 110}`).join(' ')}
+                points={cashflow.map((c, i) => `${xPos(i)},${yPos(c.cumulativeCashflow.mid)}`).join(' ')}
               />
+
+              {/* Break-even marker */}
+              {breakEvenYear != null && breakEvenYear <= 10 && (
+                <>
+                  <line
+                    x1={xPos(breakEvenYear)}
+                    y1={0}
+                    x2={xPos(breakEvenYear)}
+                    y2={120}
+                    stroke="var(--color-confidence-high)"
+                    strokeWidth="1"
+                    strokeDasharray="3 2"
+                  />
+                  <text
+                    x={xPos(breakEvenYear) + 3}
+                    y={12}
+                    fill="var(--color-confidence-high)"
+                    fontSize="7"
+                    fontWeight="600"
+                  >
+                    BE
+                  </text>
+                </>
+              )}
+
+              {/* Data points */}
               {cashflow.map((c, i) => (
                 <circle
                   key={i}
-                  cx={i * 30 + 5}
-                  cy={110 - ((c.cumulative - minCash) / range) * 110}
+                  cx={xPos(i)}
+                  cy={yPos(c.cumulativeCashflow.mid)}
                   r="3"
-                  fill={c.cumulative >= 0 ? 'var(--color-confidence-high)' : 'var(--color-confidence-medium)'}
+                  fill={c.cumulativeCashflow.mid >= 0 ? 'var(--color-confidence-high)' : 'var(--color-confidence-medium)'}
                   stroke="var(--color-panel-text)"
                   strokeWidth="1"
                 />
               ))}
             </svg>
 
-            {/* X axis labels */}
             <div className={s.chartXLabels}>
               {cashflow.map((c) => <span key={c.year}>Y{c.year}</span>)}
             </div>
           </div>
 
+          {/* Chart legend */}
+          <div className={s.chartLegend}>
+            <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'var(--color-confidence-medium)' }} /> Net Cashflow</span>
+            <span className={s.legendItem}><span className={s.legendDot} style={{ background: '#8B6E4E' }} /> Costs</span>
+            <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'var(--color-confidence-high)' }} /> Revenue</span>
+            <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'rgba(196, 162, 101, 0.3)', width: 12, height: 8, borderRadius: 2 }} /> Range</span>
+          </div>
+
+          {/* Scenario comparison */}
+          <SectionLabel>Scenario Comparison (est.)</SectionLabel>
+          <div className={s.scenarioRow}>
+            <ScenarioCard
+              label="Conservative"
+              breakEvenYear={breakEven.breakEvenYear.low}
+              roi={breakEven.tenYearROI.low}
+              peakNeg={breakEven.peakNegativeCashflow.low}
+            />
+            <ScenarioCard
+              label="Expected"
+              breakEvenYear={breakEven.breakEvenYear.mid}
+              roi={breakEven.tenYearROI.mid}
+              peakNeg={breakEven.peakNegativeCashflow.mid}
+              highlighted
+            />
+            <ScenarioCard
+              label="Optimistic"
+              breakEvenYear={breakEven.breakEvenYear.high}
+              roi={breakEven.tenYearROI.high}
+              peakNeg={breakEven.peakNegativeCashflow.high}
+            />
+          </div>
+
           {/* Category breakdown */}
           <SectionLabel>Investment by Category</SectionLabel>
           <div className={`${p.section} ${p.sectionGapLg}`}>
-            {categoryTotals.map(([cat, val]) => (
+            {catEntries.map(([cat, val]) => (
               <div key={cat} className={s.catRow}>
                 <span className={s.catLabel}>{cat}</span>
                 <div className={s.catBarTrack}>
@@ -228,24 +301,102 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                     style={{ width: `${(val / maxCat) * 100}%` }}
                   />
                 </div>
-                <span className={s.catValue}>${Math.round(val)}K</span>
+                <span className={s.catValue}>${Math.round(val / 1000)}K</span>
               </div>
             ))}
           </div>
 
-          {/* Placed structures value */}
-          {projectStructures.length > 0 && (
-            <div className={s.structuresCard}>
-              <div className={`${s.summaryLabel} ${p.mb4}`}>Placed Structures ({projectStructures.length})</div>
-              <div className={s.structuresValue}>
-                ${projectStructures.reduce((acc, st) => {
-                  const tmpl = STRUCTURE_TEMPLATES[st.type];
-                  const avg = tmpl?.costRange ? (tmpl.costRange[0] + tmpl.costRange[1]) / 2 : 50000;
-                  return acc + avg;
-                }, 0).toLocaleString()}
+          {/* Grant readiness */}
+          {grantItems.length > 0 && (
+            <>
+              <SectionLabel>Grant Readiness</SectionLabel>
+              <div className={`${p.section} ${p.sectionGapLg}`}>
+                {grantItems.map((item) => (
+                  <div key={item.name} className={s.grantRow}>
+                    <span className={s.grantName}>{item.name}</span>
+                    <span
+                      className={s.grantStatus}
+                      style={{
+                        color: item.status === 'ready' ? 'var(--color-confidence-high)' : item.status === 'partial' ? 'var(--color-confidence-medium)' : 'var(--color-text-muted)',
+                        background: item.status === 'ready' ? 'rgba(45,122,79,0.1)' : item.status === 'partial' ? 'rgba(138,109,30,0.1)' : 'transparent',
+                      }}
+                    >
+                      {item.status === 'ready' ? 'Ready' : item.status === 'partial' ? 'Partial' : 'N/A'}
+                    </span>
+                    <span className={s.grantReason}>{item.reason}</span>
+                  </div>
+                ))}
               </div>
-              <div className={s.summaryLabel}>estimated base cost</div>
+            </>
+          )}
+
+          {/* Carbon revenue potential */}
+          {carbonData && (
+            <>
+              <SectionLabel>Carbon Revenue Potential (est.)</SectionLabel>
+              <div className={s.carbonCard}>
+                <div className={s.carbonMetrics}>
+                  <div className={s.carbonMetric}>
+                    <span className={s.carbonMetricLabel}>Sequestration Rate</span>
+                    <span className={s.carbonMetricValue}>{carbonData.seqRate.toFixed(1)} tCO2/ha/yr</span>
+                  </div>
+                  <div className={s.carbonMetric}>
+                    <span className={s.carbonMetricLabel}>Annual Total</span>
+                    <span className={s.carbonMetricValue}>{carbonData.annualTonnes.toFixed(1)} tCO2</span>
+                  </div>
+                  <div className={s.carbonMetric}>
+                    <span className={s.carbonMetricLabel}>Credit Revenue</span>
+                    <span className={s.carbonMetricValue}>${carbonData.revenueLow.toLocaleString()}\u2013${carbonData.revenueHigh.toLocaleString()}/yr</span>
+                  </div>
+                </div>
+                <div className={s.carbonNote}>
+                  Based on ${carbonData.priceRange} carbon credit prices. Actual sequestration depends on management practices and verification.
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Mission alignment */}
+          <SectionLabel>Mission Alignment</SectionLabel>
+          <div className={s.structuresCard}>
+            {/* Overall score circle */}
+            <div className={s.missionOverall}>
+              <div
+                className={`${p.scoreCircle} ${model.missionScore.overall >= 60 ? p.scoreCircleHigh : model.missionScore.overall >= 35 ? p.scoreCircleMed : p.scoreCircleLow}`}
+              >
+                {model.missionScore.overall}
+              </div>
+              <span className={s.missionOverallLabel}>Overall</span>
             </div>
+
+            {/* Dimension scores */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {(['financial', 'ecological', 'spiritual', 'community'] as const).map((dim) => (
+                <div key={dim} style={{ textAlign: 'center', flex: '1 0 60px' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: model.missionScore[dim] >= 60 ? 'var(--color-confidence-high)' : 'var(--color-confidence-medium)' }}>
+                    {model.missionScore[dim]}
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--color-panel-muted)', textTransform: 'capitalize' }}>{dim}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mission-financial tradeoff */}
+            <div className={s.missionTradeoff}>
+              {getMissionTradeoffText(model.missionScore)}
+            </div>
+          </div>
+
+          {/* Enterprises detected */}
+          {model.enterprises.length > 0 && (
+            <>
+              <SectionLabel>Detected Enterprises</SectionLabel>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 'var(--space-3)' }}>
+                {model.enterprises.map((e) => (
+                  <span key={e} className={s.tagPhase} style={{ fontSize: 10 }}>{e.replace('_', ' ')}</span>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}
@@ -253,14 +404,19 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Costs tab */}
       {activeTab === 'costs' && (
         <div className={`${p.section} ${p.sectionGapLg}`}>
-          {COST_ITEMS.map((item) => (
-            <div key={item.name} className={p.card}>
+          {costLineItems.length === 0 && (
+            <div className={p.empty}>No cost items. Place features on the map.</div>
+          )}
+          {costLineItems.map((item) => (
+            <div key={item.id} className={p.card}>
               <div className={s.itemHeader}>
                 <span className={s.itemName}>{item.name}</span>
-                <span className={s.itemCostRange}>${item.lowK}K–${item.highK}K</span>
+                <span className={s.itemCostRange}>
+                  ${Math.round(item.cost.low / 1000)}K\u2013${Math.round(item.cost.high / 1000)}K
+                </span>
               </div>
               <div className={s.itemTags}>
-                <span className={s.tagPhase}>{item.phase}</span>
+                <span className={s.tagPhase}>{item.phaseName}</span>
                 <span
                   className={s.tagConfidence}
                   style={{ background: `color-mix(in srgb, ${CONFIDENCE_COLORS[item.confidence]} 15%, transparent)`, color: CONFIDENCE_COLORS[item.confidence] }}
@@ -269,6 +425,11 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                 </span>
                 <span className={s.tagCategory}>{item.category}</span>
               </div>
+              {item.unitCost && (
+                <div className={s.itemDesc}>
+                  ${item.unitCost.amount.toLocaleString()} {item.unitCost.unit} x {item.unitCost.quantity}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -278,40 +439,54 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {activeTab === 'revenue' && (
         <>
           <div className={`${p.section} ${p.sectionGapLg}`}>
-            {REVENUE_ITEMS.map((item) => (
-              <div key={item.name} className={p.card}>
+            {revenueStreams.length === 0 && (
+              <div className={p.empty}>
+                No revenue streams detected. Place retreat zones with cabins, crop areas, paddocks with livestock, or other enterprise features.
+              </div>
+            )}
+            {revenueStreams.map((stream) => (
+              <div key={stream.id} className={p.card}>
                 <div className={s.itemHeader}>
-                  <span className={s.itemName}>{item.name}</span>
-                  <span className={s.itemRevenueRange}>${item.lowK}K–${item.highK}K/yr</span>
-                </div>
-                <div className={`${s.itemTags} ${p.mb4}`}>
-                  <span className={s.tagFromYear}>From Year {item.fromYear}</span>
-                  <span
-                    className={s.tagConfidence}
-                    style={{ background: `color-mix(in srgb, ${CONFIDENCE_COLORS[item.confidence]} 15%, transparent)`, color: CONFIDENCE_COLORS[item.confidence] }}
-                  >
-                    {item.confidence} confidence
+                  <span className={s.itemName}>{stream.name}</span>
+                  <span className={s.itemRevenueRange}>
+                    ${Math.round(stream.annualRevenue.low / 1000)}K\u2013${Math.round(stream.annualRevenue.high / 1000)}K/yr
                   </span>
                 </div>
-                <div className={s.itemDesc}>{item.description}</div>
+                <div className={`${s.itemTags} ${p.mb4}`}>
+                  <span className={s.tagFromYear}>From Year {stream.startYear}</span>
+                  <span
+                    className={s.tagConfidence}
+                    style={{ background: `color-mix(in srgb, ${CONFIDENCE_COLORS[stream.confidence]} 15%, transparent)`, color: CONFIDENCE_COLORS[stream.confidence] }}
+                  >
+                    {stream.confidence} confidence
+                  </span>
+                </div>
+                <div className={s.itemDesc}>{stream.description}</div>
               </div>
             ))}
           </div>
 
-          {/* Note */}
-          <div className={s.revenueNote}>
-            <div className={s.revenueNoteText}>
-              <span className={s.revenueNoteLabel}>Note:</span>{' '}
-              <span className={s.revenueNoteBody}>
-                Revenue projections are estimates based on comparable operations. Local market conditions, permitting, and management skill will significantly impact actual results.
-              </span>
+          {revenueStreams.length > 0 && (
+            <div className={s.revenueNote}>
+              <div className={s.revenueNoteText}>
+                <span className={s.revenueNoteLabel}>Estimate Disclaimer:</span>{' '}
+                <span className={s.revenueNoteBody}>
+                  Revenue projections are estimates based on comparable operations and regional benchmarks.
+                  Local market conditions, permitting, and management skill will significantly impact actual results.
+                  {annualRevenueAtMaturity.mid > 0 && (
+                    <> Combined annual revenue at maturity: ${Math.round(annualRevenueAtMaturity.low / 1000)}K\u2013${Math.round(annualRevenueAtMaturity.high / 1000)}K.</>
+                  )}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>
   );
 }
+
+// ─── Sub-components ──────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -319,4 +494,155 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       {children}
     </h3>
   );
+}
+
+function ScenarioCard({
+  label,
+  breakEvenYear,
+  roi,
+  peakNeg,
+  highlighted,
+}: {
+  label: string;
+  breakEvenYear: number | null;
+  roi: number;
+  peakNeg: number;
+  highlighted?: boolean;
+}) {
+  return (
+    <div className={`${s.scenarioCard} ${highlighted ? s.scenarioCardHighlighted : ''}`}>
+      <div className={s.scenarioLabel}>{label}</div>
+      <div className={s.scenarioMetric}>
+        <span className={s.scenarioMetricLabel}>Break-Even</span>
+        <span className={s.scenarioMetricValue}>{breakEvenYear != null ? `Yr ${breakEvenYear}` : '10+'}</span>
+      </div>
+      <div className={s.scenarioMetric}>
+        <span className={s.scenarioMetricLabel}>10yr ROI</span>
+        <span className={s.scenarioMetricValue}>{roi}%</span>
+      </div>
+      <div className={s.scenarioMetric}>
+        <span className={s.scenarioMetricLabel}>Peak Outlay</span>
+        <span className={s.scenarioMetricValue}>-${Math.round(Math.abs(peakNeg) / 1000)}K</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Logic ───────────────────────────────────────────────────────────────
+
+interface GrantItem {
+  name: string;
+  status: 'ready' | 'partial' | 'na';
+  reason: string;
+}
+
+function computeGrantReadiness(
+  enterprises: string[],
+  project: LocalProject,
+): GrantItem[] {
+  const items: GrantItem[] = [];
+  const type = project.projectType;
+
+  // Agricultural grants
+  const hasAgEnterprise = enterprises.some((e) => e === 'livestock' || e === 'orchard' || e === 'market_garden');
+  items.push({
+    name: 'Agricultural Grants',
+    status: hasAgEnterprise ? 'ready' : 'na',
+    reason: hasAgEnterprise ? 'Active agricultural enterprises detected' : 'No agricultural enterprises',
+  });
+
+  // Conservation grants
+  const hasConservation = enterprises.includes('carbon');
+  items.push({
+    name: 'Conservation Grants',
+    status: hasConservation ? 'ready' : 'na',
+    reason: hasConservation ? 'Carbon/conservation enterprise detected' : 'No conservation zones or carbon enterprise',
+  });
+
+  // Renewable energy
+  items.push({
+    name: 'Renewable Energy',
+    status: 'partial',
+    reason: 'Solar/renewable readiness depends on utility placement',
+  });
+
+  // Rural development
+  const isRuralType = type === 'homestead' || type === 'regenerative_farm';
+  items.push({
+    name: 'Rural Development',
+    status: isRuralType ? 'ready' : 'partial',
+    reason: isRuralType ? 'Project type qualifies for rural development programs' : 'May qualify depending on project scope',
+  });
+
+  // Agritourism
+  const hasHospitality = enterprises.some((e) => e === 'retreat' || e === 'agritourism');
+  items.push({
+    name: 'Agritourism Programs',
+    status: hasHospitality ? 'ready' : 'na',
+    reason: hasHospitality ? 'Retreat or agritourism enterprise detected' : 'No hospitality enterprises',
+  });
+
+  return items;
+}
+
+interface CarbonData {
+  seqRate: number;
+  annualTonnes: number;
+  revenueLow: number;
+  revenueHigh: number;
+  priceRange: string;
+}
+
+function computeCarbonRevenue(
+  siteData: ReturnType<typeof useSiteData>,
+  acreage: number | null,
+): CarbonData | null {
+  if (!siteData || !acreage) return null;
+
+  const soilRegen = getLayerSummary<SoilRegenSummary>(siteData, 'soil_regeneration');
+  const landCover = getLayerSummary<LandCoverSummary>(siteData, 'land_cover');
+  const climate = getLayerSummary<ClimateSummary>(siteData, 'climate');
+  const soils = getLayerSummary<{ organic_matter?: number }>(siteData, 'soils');
+
+  let seqRate = 0;
+
+  if (soilRegen?.carbonSequestration?.meanSeqPotential) {
+    seqRate = soilRegen.carbonSequestration.meanSeqPotential;
+  } else {
+    // Fallback: derive from land cover + soils + climate
+    const canopy = landCover?.canopy_pct ?? 0;
+    const om = soils?.organic_matter ?? 3;
+    const precip = climate?.annual_precip_mm ?? 800;
+    seqRate = (canopy / 100 * 35) + (om / 10 * 12) + (precip / 1000 * 5);
+    if (seqRate <= 0) return null;
+  }
+
+  const hectares = acreage * 0.4047;
+  const annualTonnes = seqRate * hectares;
+  const priceLow = 30;
+  const priceHigh = 50;
+
+  return {
+    seqRate,
+    annualTonnes,
+    revenueLow: Math.round(annualTonnes * priceLow),
+    revenueHigh: Math.round(annualTonnes * priceHigh),
+    priceRange: `$${priceLow}\u2013$${priceHigh}/tonne`,
+  };
+}
+
+function getMissionTradeoffText(missionScore: { overall: number; financial: number; ecological: number; spiritual: number; community: number }): string {
+  if (missionScore.financial >= 70 && missionScore.ecological >= 70) {
+    return 'Strong alignment between financial returns and ecological stewardship.';
+  }
+  if (missionScore.financial >= 60 && missionScore.ecological < 40) {
+    return 'Financial strength is high but ecological dimension needs attention \u2014 consider adding conservation zones.';
+  }
+  if (missionScore.ecological >= 60 && missionScore.financial < 40) {
+    return 'Strong ecological design but financial returns are limited \u2014 consider adding revenue-generating enterprises.';
+  }
+  if (missionScore.spiritual >= 60 && missionScore.community >= 60) {
+    return 'Excellent spiritual and community dimensions. Financial viability may need enterprise diversification.';
+  }
+  return 'Balanced design with room for improvement across dimensions.';
 }

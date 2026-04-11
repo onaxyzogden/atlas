@@ -1,0 +1,145 @@
+/* DecisionSupportPanel — component-specific styles */
+
+/* ─── Blocking / advisory sections ──────────────────────────────────────── */
+.blockingSection {
+  padding: 8px;
+  background: rgba(155, 58, 42, 0.04);
+  border: 1px solid rgba(155, 58, 42, 0.12);
+  border-radius: var(--radius-md);
+}
+
+.advisorySection {
+  padding: 8px;
+  background: rgba(138, 109, 30, 0.04);
+  border: 1px solid rgba(138, 109, 30, 0.12);
+  border-radius: var(--radius-md);
+}
+
+/* ─── Constraint item ───────────────────────────────────────────────────── */
+.constraintItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.constraintItem:last-child {
+  border-bottom: none;
+}
+
+.constraintDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.constraintContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.constraintText {
+  color: var(--color-panel-text);
+}
+
+.constraintSource {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  text-transform: capitalize;
+}
+
+/* ─── Capital intensity card ────────────────────────────────────────────── */
+.capitalCard {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-card-border);
+  border-left: 3px solid var(--color-confidence-medium);
+  background: var(--color-panel-card);
+  margin-bottom: var(--space-4);
+}
+
+.capitalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.capitalLabel {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  font-family: var(--font-mono);
+}
+
+.capitalTotal {
+  font-size: var(--text-xs);
+  color: var(--color-panel-muted);
+}
+
+/* ─── Fit result rows ───────────────────────────────────────────────────── */
+.fitResultRow {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  border-left: 3px solid transparent;
+}
+
+.fitResultGood {
+  border-left-color: var(--color-confidence-high);
+  background: rgba(45, 122, 79, 0.05);
+}
+
+.fitResultModerate {
+  border-left-color: var(--color-confidence-medium);
+  background: rgba(138, 109, 30, 0.05);
+}
+
+.fitResultBad {
+  border-left-color: var(--color-confidence-low);
+  background: rgba(155, 58, 42, 0.05);
+}
+
+.fitResultMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.fitResultName {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-panel-text);
+}
+
+.fitResultStatus {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  color: var(--color-panel-muted);
+}
+
+.fitResultMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fitResultScores {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--color-panel-muted);
+}
+
+.weightBadge {
+  font-size: 9px;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
