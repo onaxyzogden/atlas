@@ -1,0 +1,56 @@
+/* PresenceBar — avatar row for connected users */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(196, 162, 101, 0.4);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.initials {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.pulse {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  border: 1.5px solid #0f1a12;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.overflow {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.6);
+  padding-left: 2px;
+  user-select: none;
+}

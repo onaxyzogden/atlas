@@ -23,6 +23,7 @@ import {
   deriveLandWants,
 } from '../../lib/computeScores.js';
 import { Spinner } from '../ui/Spinner.js';
+import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
 
@@ -72,6 +73,7 @@ function capConf(c: 'high' | 'medium' | 'low'): 'High' | 'Medium' | 'Low' {
 }
 
 export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
+  const { isOffline } = useOfflineGate();
   const [liveDataOpen, setLiveDataOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
@@ -257,7 +259,13 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* Header */}
       <div className={s.headerRow}>
         <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
-        <button onClick={handleRefresh} className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`} aria-label="Refresh site data">
+        <button
+          onClick={handleRefresh}
+          className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`}
+          aria-label="Refresh site data"
+          disabled={isOffline || isRefreshing}
+          title={isOffline ? 'Layer refresh requires internet' : undefined}
+        >
           <RefreshIcon spinning={isRefreshing} />
           {isRefreshing && <span className={s.refreshHint}>Refreshing...</span>}
         </button>

@@ -2,9 +2,10 @@
  * PortalConfigPanel — right-panel for configuring the public storytelling portal.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { usePortalStore, type PortalSection } from '../../store/portalStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 
 interface Props { project: LocalProject }
@@ -22,11 +23,14 @@ const SECTION_LABELS: Record<PortalSection, string> = {
 };
 
 export default function PortalConfigPanel({ project }: Props) {
+  const { isOffline } = useOfflineGate();
   const config = usePortalStore((s) => s.getConfig(project.id));
   const createConfig = usePortalStore((s) => s.createConfig);
   const updateConfig = usePortalStore((s) => s.updateConfig);
+  const loadFromBackend = usePortalStore((s) => s.loadFromBackend);
 
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Auto-create config if none exists
   const portalConfig = useMemo(() => {
@@ -35,7 +39,21 @@ export default function PortalConfigPanel({ project }: Props) {
     return createConfig(project.id, slug || 'project');
   }, [config, project.id, project.name, createConfig]);
 
-  const portalUrl = `${window.location.origin}/portal/${portalConfig.slug}`;
+  // Load from backend on mount
+  useEffect(() => {
+    loadFromBackend(project.id);
+  }, [project.id, loadFromBackend]);
+
+  const shareUrl = portalConfig.shareToken
+    ? `https://atlas.ogden.ag/portal/${portalConfig.shareToken}`
+    : `${window.location.origin}/portal/${portalConfig.slug}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <div className={p.container}>
@@ -56,26 +74,53 @@ export default function PortalConfigPanel({ project }: Props) {
         <button
           onClick={() => updateConfig(project.id, { isPublished: !portalConfig.isPublished })}
           className={p.btnSmall}
+          disabled={isOffline}
+          title={isOffline ? 'Publishing requires internet' : undefined}
           style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600, border: 'none',
-            background: portalConfig.isPublished ? 'rgba(196,78,63,0.15)' : 'rgba(45,122,79,0.15)',
-            color: portalConfig.isPublished ? '#c44e3f' : '#2d7a4f',
-            cursor: 'pointer',
+            background: isOffline ? '#d1d5db'
+              : portalConfig.isPublished ? 'rgba(196,78,63,0.15)' : 'rgba(45,122,79,0.15)',
+            color: isOffline ? '#9ca3af'
+              : portalConfig.isPublished ? '#c44e3f' : '#2d7a4f',
+            cursor: isOffline ? 'not-allowed' : 'pointer',
           }}
         >
           {portalConfig.isPublished ? 'Unpublish' : 'Publish'}
         </button>
       </div>
 
-      {/* Preview button */}
+      {/* Share URL & Preview */}
       {portalConfig.isPublished && (
-        <button
-          onClick={() => window.open(portalUrl, '_blank')}
-          className={p.btn}
-          style={{ marginBottom: 16, fontWeight: 600, borderColor: 'rgba(196,162,101,0.2)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' }}
-        >
-          Open Portal Preview
-        </button>
+        <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{
+            padding: '8px 12px', borderRadius: 8, fontSize: 10,
+            background: 'rgba(21,128,61,0.04)', border: '1px solid rgba(21,128,61,0.15)',
+            color: '#15803D', wordBreak: 'break-all', lineHeight: 1.5,
+          }}>
+            {shareUrl}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => window.open(shareUrl, '_blank')}
+              className={p.btn}
+              style={{ flex: 1, fontWeight: 600, borderColor: 'rgba(196,162,101,0.2)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' }}
+            >
+              Open Portal Preview
+            </button>
+            <button
+              onClick={handleCopyLink}
+              className={p.btnSmall}
+              style={{
+                padding: '6px 14px', fontSize: 11, fontWeight: 600,
+                border: '1px solid rgba(21,128,61,0.2)',
+                background: copied ? 'rgba(21,128,61,0.1)' : 'transparent',
+                color: '#15803D', cursor: 'pointer',
+              }}
+            >
+              {copied ? 'Copied!' : 'Copy Link'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Slug */}

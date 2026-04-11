@@ -19,6 +19,7 @@ import {
   computeOverallScore,
 } from '../../lib/computeScores.js';
 import { Spinner } from '../ui/Spinner.js';
+import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 import s from './AtlasAIPanel.module.css';
 
@@ -56,6 +57,7 @@ interface ChatMessage {
 type PanelTab = 'assessment' | 'chat';
 
 export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
+  const { isOffline } = useOfflineGate();
   const [activeTab, setActiveTab] = useState<PanelTab>('assessment');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -502,6 +504,17 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
             )}
           </div>
 
+          {/* Offline notice */}
+          {isOffline && (
+            <div style={{
+              padding: '10px 14px', fontSize: 12, textAlign: 'center',
+              color: 'var(--color-warning, #ca8a04)', background: 'rgba(202,138,4,0.06)',
+              borderTop: '1px solid rgba(202,138,4,0.15)',
+            }}>
+              AI assistant is unavailable offline
+            </div>
+          )}
+
           {/* Input */}
           <div className={s.inputBar}>
             <div className={s.inputRow}>
@@ -510,8 +523,9 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input); } }}
-                placeholder="Ask about your land..."
+                placeholder={isOffline ? 'Chat unavailable offline' : 'Ask about your land...'}
                 className={s.chatInput}
+                disabled={isOffline}
               />
             </div>
           </div>

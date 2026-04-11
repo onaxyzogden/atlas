@@ -21,6 +21,10 @@ const EcologicalDashboard = lazy(() => import('./pages/EcologicalDashboard.js'))
 const TerrainDashboard = lazy(() => import('./pages/TerrainDashboard.js'));
 const StewardshipDashboard = lazy(() => import('./pages/StewardshipDashboard.js'));
 const SolarClimateDashboard = lazy(() => import('../../features/climate/SolarClimateDashboard.js'));
+const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPanel.js'));
+const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
+const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
+const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -119,6 +123,30 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <Suspense fallback={<PanelLoader />}>
           <SolarClimateDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'economics':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <EconomicsPanel project={project} />
+        </Suspense>
+      );
+    case 'scenarios':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <ScenarioPanel project={project} />
+        </Suspense>
+      );
+    case 'investor-summary':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <InvestorSummaryExport project={project} onClose={onSwitchToMap} />
+        </Suspense>
+      );
+    case 'regulatory':
+      return (
+        <Suspense fallback={<PanelLoader />}>
+          <RegulatoryPanel project={project} />
         </Suspense>
       );
     default:

@@ -21,6 +21,7 @@ import type { Redis } from 'ioredis';
 import type postgres from 'postgres';
 import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden/shared';
 import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
+import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
@@ -427,6 +428,15 @@ export class DataPipelineOrchestrator {
         fetched_at       = now()
       WHERE project_id = ${ctx.projectId} AND layer_type = ${result.layerType}
     `;
+
+    // Broadcast layer completion to connected WebSocket clients
+    publishBroadcast(this.redis, ctx.projectId, {
+      type: 'layer_complete',
+      payload: { layerType: result.layerType, confidence: result.confidence },
+      userId: 'system',
+      userName: null,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private async updateCompletenessScore(projectId: string): Promise<void> {

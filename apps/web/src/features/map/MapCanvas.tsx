@@ -27,11 +27,12 @@ interface MapCanvasProps {
   boundaryGeojson?: GeoJSON.FeatureCollection | null;
   boundaryColor?: string;
   address?: string | null;
+  canEdit?: boolean;
   onMapReady?: (map: maplibregl.Map, draw: MapboxDraw) => void;
   onMarkerCreated?: (marker: maplibregl.Marker) => void;
 }
 
-export default function MapCanvas({ projectId, initialCenter, initialZoom, boundaryGeojson, boundaryColor, address, onMapReady, onMarkerCreated }: MapCanvasProps) {
+export default function MapCanvas({ projectId, initialCenter, initialZoom, boundaryGeojson, boundaryColor, address, canEdit = true, onMapReady, onMarkerCreated }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { map, draw, isLoaded, mapError } = useMapbox({ containerRef, initialCenter, initialZoom });
   const mapReadyFiredRef = useRef(false);
@@ -398,6 +399,8 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
     if (!map || !isLoaded || !draw) return;
 
     const onDblClick = (e: maplibregl.MapMouseEvent) => {
+      // Don't allow editing for Viewer/Reviewer roles
+      if (!canEdit) return;
       // Don't interfere with structure placement mode
       if (useStructureStore.getState().placementMode) return;
 
@@ -536,7 +539,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       map.off('draw.update', onDrawUpdate);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [map, isLoaded, draw, zones, paddocks, cropAreas, updateZone, updatePaddock, updateCrop]);
+  }, [map, isLoaded, draw, canEdit, zones, paddocks, cropAreas, updateZone, updatePaddock, updateCrop]);
 
   // Geocode address and place marker — only runs once per address
   const markerRef = useRef<maplibregl.Marker | null>(null);

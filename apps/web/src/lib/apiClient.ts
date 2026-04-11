@@ -13,6 +13,22 @@ import type {
   CreateDesignFeatureInput,
   UpdateDesignFeatureInput,
   ProjectFile,
+  ExportRecord,
+  PortalRecord,
+  CreatePortalInput,
+  CommentRecord,
+  CreateCommentInput,
+  UpdateCommentInput,
+  ProjectMemberRecord,
+  InviteMemberInput,
+  UpdateMemberRoleInput,
+  OrganizationRecord,
+  OrgMemberRecord,
+  ActivityRecord,
+  SuggestedEditRecord,
+  CreateSuggestedEditInput,
+  ReviewSuggestedEditInput,
+  ProjectRole,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -251,5 +267,98 @@ export const api = {
 
     delete: (projectId: string, fileId: string) =>
       request<null>('DELETE', `/api/v1/projects/${projectId}/files/${fileId}`),
+  },
+
+  exports: {
+    generate: (projectId: string, body: { exportType: string; payload?: unknown }) =>
+      request<ExportRecord>('POST', `/api/v1/projects/${projectId}/exports`, body),
+
+    list: (projectId: string) =>
+      request<ExportRecord[]>('GET', `/api/v1/projects/${projectId}/exports`),
+  },
+
+  portal: {
+    get: (projectId: string) =>
+      request<PortalRecord>('GET', `/api/v1/projects/${projectId}/portal`),
+
+    save: (projectId: string, config: CreatePortalInput) =>
+      request<PortalRecord>('POST', `/api/v1/projects/${projectId}/portal`, config),
+
+    getPublic: (shareToken: string) =>
+      request<PortalRecord>('GET', `/api/v1/portal/${shareToken}`),
+  },
+
+  comments: {
+    list: (projectId: string, resolved?: boolean) =>
+      request<CommentRecord[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/comments${resolved !== undefined ? `?resolved=${resolved}` : ''}`,
+      ),
+
+    create: (projectId: string, input: CreateCommentInput) =>
+      request<CommentRecord>('POST', `/api/v1/projects/${projectId}/comments`, input),
+
+    update: (projectId: string, commentId: string, input: UpdateCommentInput) =>
+      request<CommentRecord>('PATCH', `/api/v1/projects/${projectId}/comments/${commentId}`, input),
+
+    delete: (projectId: string, commentId: string) =>
+      request<void>('DELETE', `/api/v1/projects/${projectId}/comments/${commentId}`),
+  },
+
+  members: {
+    list: (projectId: string) =>
+      request<ProjectMemberRecord[]>('GET', `/api/v1/projects/${projectId}/members`),
+
+    invite: (projectId: string, input: InviteMemberInput) =>
+      request<ProjectMemberRecord>('POST', `/api/v1/projects/${projectId}/members`, input),
+
+    updateRole: (projectId: string, userId: string, input: UpdateMemberRoleInput) =>
+      request<ProjectMemberRecord>('PATCH', `/api/v1/projects/${projectId}/members/${userId}`, input),
+
+    remove: (projectId: string, userId: string) =>
+      request<void>('DELETE', `/api/v1/projects/${projectId}/members/${userId}`),
+
+    myRole: (projectId: string) =>
+      request<{ role: ProjectRole }>('GET', `/api/v1/projects/${projectId}/my-role`),
+  },
+
+  organizations: {
+    list: () =>
+      request<OrganizationRecord[]>('GET', '/api/v1/organizations'),
+
+    create: (name: string) =>
+      request<OrganizationRecord>('POST', '/api/v1/organizations', { name }),
+
+    listMembers: (orgId: string) =>
+      request<OrgMemberRecord[]>('GET', `/api/v1/organizations/${orgId}/members`),
+
+    inviteMember: (orgId: string, email: string, role: string) =>
+      request<OrgMemberRecord>('POST', `/api/v1/organizations/${orgId}/members`, { email, role }),
+
+    removeMember: (orgId: string, userId: string) =>
+      request<void>('DELETE', `/api/v1/organizations/${orgId}/members/${userId}`),
+  },
+
+  activity: {
+    list: (projectId: string, limit = 30, offset = 0) =>
+      request<ActivityRecord[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/activity?limit=${limit}&offset=${offset}`,
+      ),
+  },
+
+  suggestions: {
+    list: (projectId: string) =>
+      request<SuggestedEditRecord[]>('GET', `/api/v1/projects/${projectId}/suggestions`),
+
+    create: (projectId: string, input: CreateSuggestedEditInput) =>
+      request<SuggestedEditRecord>('POST', `/api/v1/projects/${projectId}/suggestions`, input),
+
+    review: (projectId: string, suggestionId: string, input: ReviewSuggestedEditInput) =>
+      request<SuggestedEditRecord>(
+        'PATCH',
+        `/api/v1/projects/${projectId}/suggestions/${suggestionId}`,
+        input,
+      ),
   },
 };

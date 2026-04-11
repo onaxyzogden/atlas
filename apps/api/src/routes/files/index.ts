@@ -5,7 +5,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { toCamelCase, FILE_SIZE_LIMITS, type FileType } from '@ogden/shared';
-import { NotFoundError, ForbiddenError, ValidationError } from '../../lib/errors.js';
+import { NotFoundError, ValidationError } from '../../lib/errors.js';
 import { getStorageProvider } from '../../services/storage/StorageProvider.js';
 import {
   classifyFileType,
@@ -19,28 +19,15 @@ import {
 const SYNC_PARSE_LIMIT = 10 * 1024 * 1024;
 
 export default async function fileRoutes(fastify: FastifyInstance) {
-  const { db, authenticate } = fastify;
+  const { db, authenticate, resolveProjectRole, requireRole } = fastify;
   const storage = getStorageProvider();
-
-  // ── Helper: verify project ownership ───────────────────────────────────
-
-  async function verifyOwnership(projectId: string, userId: string) {
-    const [project] = await db`
-      SELECT id, owner_id FROM projects WHERE id = ${projectId}
-    `;
-    if (!project) throw new NotFoundError('Project', projectId);
-    if (project.owner_id !== userId) throw new ForbiddenError('You do not own this project');
-    return project;
-  }
 
   // ── POST /projects/:id/files ──────────────────────────────────────────
 
   fastify.post<{ Params: { id: string } }>(
     '/:id/files',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer')] },
     async (req, reply) => {
-      await verifyOwnership(req.params.id, req.userId);
-
       // Consume multipart file
       const multipartFile = await req.file();
       if (!multipartFile) {
@@ -69,7 +56,7 @@ export default async function fileRoutes(fastify: FastifyInstance) {
       // Generate storage key
       const fileId = crypto.randomUUID();
       const sanitizedName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storageKey = `projects/${req.params.id}/files/${fileId}/${sanitizedName}`;
+      const storageKey = `projects/${req.projectId}/files/${fileId}/${sanitizedName}`;
 
       // Upload to storage
       const contentType = multipartFile.mimetype || 'application/octet-stream';
@@ -129,7 +116,7 @@ export default async function fileRoutes(fastify: FastifyInstance) {
           project_id, uploaded_by, filename, file_type, storage_url,
           file_size_bytes, processing_status, processed_geojson, metadata
         ) VALUES (
-          ${req.params.id}, ${req.userId}, ${filename}, ${fileType},
+          ${req.projectId}, ${req.userId}, ${filename}, ${fileType},
           ${storageUrl}, ${fileSizeBytes}, ${processingStatus},
           ${processedGeojson ? JSON.stringify(processedGeojson) : null}::jsonb,
           ${metadata ? JSON.stringify(metadata) : null}::jsonb
@@ -153,13 +140,11 @@ export default async function fileRoutes(fastify: FastifyInstance) {
 
   fastify.get<{ Params: { id: string } }>(
     '/:id/files',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole] },
     async (req) => {
-      await verifyOwnership(req.params.id, req.userId);
-
       const rows = await db`
         SELECT * FROM project_files
-        WHERE project_id = ${req.params.id}
+        WHERE project_id = ${req.projectId}
         ORDER BY created_at DESC
       `;
 
@@ -194,14 +179,12 @@ export default async function fileRoutes(fastify: FastifyInstance) {
 
   fastify.delete<{ Params: { id: string; fileId: string } }>(
     '/:id/files/:fileId',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req, reply) => {
-      await verifyOwnership(req.params.id, req.userId);
-
       // Find the file
       const [file] = await db`
         SELECT id, storage_url FROM project_files
-        WHERE id = ${req.params.fileId} AND project_id = ${req.params.id}
+        WHERE id = ${req.params.fileId} AND project_id = ${req.projectId}
       `;
       if (!file) throw new NotFoundError('File', req.params.fileId);
 

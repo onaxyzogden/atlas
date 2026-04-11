@@ -16,6 +16,7 @@ const EnvSchema = z.object({
   S3_REGION: z.string().default('us-east-1'),
   S3_ENDPOINT: z.string().url().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  PUPPETEER_EXECUTABLE_PATH: z.string().optional(),
 });
 
 function loadConfig() {

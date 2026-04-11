@@ -3,15 +3,19 @@
  */
 
 import { Link } from '@tanstack/react-router';
+import type { ProjectRole } from '@ogden/shared';
+import RoleBadge from './RoleBadge.js';
+import PresenceBar from './PresenceBar.js';
 import css from './ProjectTabBar.module.css';
 
 interface ProjectTabBarProps {
   projectName: string;
   activeTab: 'dashboard' | 'map';
   onTabChange: (tab: 'dashboard' | 'map') => void;
+  projectRole?: ProjectRole | null;
 }
 
-export default function ProjectTabBar({ projectName, activeTab, onTabChange }: ProjectTabBarProps) {
+export default function ProjectTabBar({ projectName, activeTab, onTabChange, projectRole }: ProjectTabBarProps) {
   return (
     <div className={css.bar}>
       <div className={css.left}>
@@ -21,6 +25,7 @@ export default function ProjectTabBar({ projectName, activeTab, onTabChange }: P
           </svg>
         </Link>
         <span className={css.projectName}>{projectName}</span>
+        <RoleBadge role={projectRole ?? null} size="sm" />
       </div>
 
       <div className={css.tabs} role="tablist">
@@ -42,7 +47,9 @@ export default function ProjectTabBar({ projectName, activeTab, onTabChange }: P
         </button>
       </div>
 
-      <div className={css.right} />
+      <div className={css.right}>
+        <PresenceBar />
+      </div>
     </div>
   );
 }

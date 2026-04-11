@@ -31,11 +31,12 @@ interface DesignToolsPanelProps {
   projectId: string;
   draw: MapboxDraw | null;
   map: maplibregl.Map | null;
+  canEdit?: boolean;
 }
 
 type Tab = 'zones' | 'structures' | 'livestock' | 'crops' | 'paths' | 'utilities';
 
-export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPanelProps) {
+export default function DesignToolsPanel({ projectId, draw, map, canEdit = true }: DesignToolsPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('zones');
   const [selectedCategory, setSelectedCategory] = useState<ZoneCategory>('habitation');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -207,9 +208,11 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
 
             {/* Draw button */}
             <button
-              onClick={startDraw}
-              disabled={isDrawing || !draw}
+              onClick={canEdit ? startDraw : undefined}
+              disabled={isDrawing || !draw || !canEdit}
+              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={`${s.drawBtn} ${isDrawing ? s.drawBtnDisabled : ''}`}
+              style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
               {isDrawing ? 'Drawing... double-click to finish' : 'Draw Zone on Map'}
@@ -234,7 +237,7 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                       </div>
                     </div>
                     <button
-                      onClick={() => {
+                      onClick={canEdit ? () => {
                         deleteZone(z.id);
                         if (map) {
                           ['fill', 'line', 'label'].forEach((t) => {
@@ -243,8 +246,11 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                           });
                           if (map.getSource(`zone-${z.id}`)) map.removeSource(`zone-${z.id}`);
                         }
-                      }}
+                      } : undefined}
+                      disabled={!canEdit}
+                      title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
                       className={s.deleteBtn}
+                      style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                     >
                       {'\u00D7'}
                     </button>
@@ -274,14 +280,17 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                       return (
                         <button
                           key={key}
-                          onClick={() => {
+                          onClick={canEdit ? () => {
                             if (isActive) {
                               setPlacementMode(null);
                             } else {
                               setPlacementMode(key);
                             }
-                          }}
+                          } : undefined}
+                          disabled={!canEdit}
+                          title={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}
                           className={`${s.structBtn} ${isActive ? s.structBtnActive : ''}`}
+                          style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                         >
                           <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
                           <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{tmpl.label}</span>
@@ -321,7 +330,7 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                         </div>
                       </div>
                       <button
-                        onClick={(e) => {
+                        onClick={canEdit ? (e) => {
                           e.stopPropagation();
                           deleteStructure(st.id);
                           if (map) {
@@ -331,19 +340,23 @@ export default function DesignToolsPanel({ projectId, draw, map }: DesignToolsPa
                             });
                             if (map.getSource(`structure-${st.id}`)) map.removeSource(`structure-${st.id}`);
                           }
-                        }}
+                        } : undefined}
+                        disabled={!canEdit}
                         className={s.deleteBtn}
-                        title="Delete structure"
+                        title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete structure'}
+                        style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u00D7'}
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={canEdit ? (e) => {
                           e.stopPropagation();
                           setEditingStructure(st);
-                        }}
+                        } : undefined}
+                        disabled={!canEdit}
                         className={s.editBtn}
-                        title="Edit structure"
+                        title={!canEdit ? 'Editing requires Designer or Owner role' : 'Edit structure'}
+                        style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u270E'}
                       </button>

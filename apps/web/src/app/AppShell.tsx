@@ -6,10 +6,12 @@
 import { type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
+import OfflineBanner from '../components/OfflineBanner.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import { Button } from '../components/ui/Button.js';
+import { FLAGS } from '@ogden/shared';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -28,6 +30,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   return (
     <div className={styles.shell}>
+      {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
         <Link to="/" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>

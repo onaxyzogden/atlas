@@ -10,5 +10,9 @@ export default defineConfig({
       JWT_SECRET: 'test-secret-key-for-vitest-smoke-tests-32ch',
       REDIS_URL: 'redis://localhost:6379',
     },
+    coverage: {
+      provider: 'v8',
+      include: ['src/routes/**', 'src/lib/**', 'src/services/**'],
+    },
   },
 });

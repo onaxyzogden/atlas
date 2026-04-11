@@ -1,0 +1,1397 @@
+openapi: 3.0.3
+info:
+  title: OGDEN Atlas API
+  description: |
+    Geospatial land intelligence API for the OGDEN Land Design Atlas.
+    Manages projects, data layers, design features, PDF exports, public portals, and AI enrichment.
+  version: 0.1.0
+  contact:
+    name: OGDEN Atlas
+    url: https://atlas.ogden.ag
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: User registration, login, and session
+  - name: Projects
+    description: Project CRUD, boundary, assessment, completeness
+  - name: Layers
+    description: Environmental data layers (soil, climate, elevation, etc.)
+  - name: Design Features
+    description: Zones, structures, paths, and other design elements
+  - name: Exports
+    description: PDF export generation and history
+  - name: Portal
+    description: Public storytelling portal configuration
+  - name: Files
+    description: File upload, processing, and management
+  - name: Spiritual
+    description: Spiritual zones, Qibla calculation
+  - name: Pipeline
+    description: Data processing pipeline jobs
+  - name: AI
+    description: AI chat and assessment enrichment
+  - name: Elevation
+    description: Elevation and terrain data
+  - name: Health
+    description: Health check
+
+paths:
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                displayName:
+                  type: string
+            example:
+              email: user@example.com
+              password: securepass123
+              displayName: Yousef
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email already registered
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+            example:
+              email: user@example.com
+              password: securepass123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      responses:
+        '200':
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '401':
+          description: Not authenticated
+
+  # ── Projects ────��───────────────────────────────���─────────────────────────
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List all projects for the authenticated user
+      responses:
+        '200':
+          description: Project list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectSummary'
+
+    post:
+      tags: [Projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectInput'
+            example:
+              name: Whispering Oaks Farm
+              description: 100-acre regenerative land design
+              country: US
+              units: imperial
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProjectSummary'
+
+  /projects/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projects]
+      summary: Get project details
+      responses:
+        '200':
+          description: Full project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Project not found
+
+    patch:
+      tags: [Projects]
+      summary: Update project metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectInput'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+    delete:
+      tags: [Projects]
+      summary: Delete project permanently
+      responses:
+        '204':
+          description: Project deleted
+
+  /projects/{id}/boundary:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      tags: [Projects]
+      summary: Set or replace parcel boundary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [geojson]
+              properties:
+                geojson:
+                  type: object
+                  description: GeoJSON MultiPolygon or Polygon
+      responses:
+        '200':
+          description: Boundary set
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          acreage:
+                            type: number
+
+  /projects/{id}/assessment:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projects]
+      summary: Get site assessment with terrain analysis
+      responses:
+        '200':
+          description: Assessment data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /projects/{id}/completeness:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projects]
+      summary: Get data completeness score
+      responses:
+        '200':
+          description: Completeness breakdown
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          score:
+                            type: number
+                          layers:
+                            type: array
+                            items:
+                              type: object
+
+  # ── Layers ────────────────────────────────────────────────────────────────
+  /layers/project/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Layers]
+      summary: List all data layers for a project
+      responses:
+        '200':
+          description: Layer list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /layers/project/{projectId}/{layerType}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: layerType
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Layers]
+      summary: Get a specific data layer
+      responses:
+        '200':
+          description: Layer data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /layers/project/{projectId}/{layerType}/refresh:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: layerType
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Layers]
+      summary: Re-fetch layer from source API
+      responses:
+        '202':
+          description: Refresh job queued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          jobId:
+                            type: string
+
+  # ── Design Features ───────────────────────────────────────────────────────
+  /design-features/project/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Design Features]
+      summary: List all design features for a project
+      responses:
+        '200':
+          description: Feature list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DesignFeature'
+
+    post:
+      tags: [Design Features]
+      summary: Create a design feature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDesignFeatureInput'
+      responses:
+        '201':
+          description: Feature created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DesignFeature'
+
+  /design-features/project/{projectId}/{featureType}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: featureType
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [zone, structure, path, point, annotation]
+    get:
+      tags: [Design Features]
+      summary: List features filtered by type
+      responses:
+        '200':
+          description: Filtered feature list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /design-features/project/{projectId}/bulk:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Design Features]
+      summary: Bulk upsert design features
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [features]
+              properties:
+                features:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CreateDesignFeatureInput'
+      responses:
+        '201':
+          description: Features upserted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /design-features/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Design Features]
+      summary: Update a design feature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subtype:
+                  type: string
+                label:
+                  type: string
+                properties:
+                  type: object
+                phaseTag:
+                  type: string
+                geometry:
+                  type: object
+                style:
+                  type: object
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: Feature updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+    delete:
+      tags: [Design Features]
+      summary: Delete a design feature
+      responses:
+        '204':
+          description: Feature deleted
+
+  # ── Exports ─────────────────��────────────────────��────────────────────────
+  /projects/{id}/exports:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      tags: [Exports]
+      summary: Generate a PDF export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportInput'
+            example:
+              exportType: site_assessment
+      responses:
+        '201':
+          description: Export generated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ExportRecord'
+
+    get:
+      tags: [Exports]
+      summary: List export history for a project
+      responses:
+        '200':
+          description: Export history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ExportRecord'
+
+  # ── Portal ──────────��──────────────────────────��──────────────────────────
+  /projects/{id}/portal:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      tags: [Portal]
+      summary: Create or update portal configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePortalInput'
+      responses:
+        '201':
+          description: Portal config saved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortalRecord'
+
+    get:
+      tags: [Portal]
+      summary: Get portal configuration for a project
+      responses:
+        '200':
+          description: Portal config
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortalRecord'
+        '404':
+          description: No portal configured
+
+  /portal/{shareToken}:
+    parameters:
+      - name: shareToken
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Portal]
+      summary: Get published portal by share token (public)
+      security: []
+      responses:
+        '200':
+          description: Public portal config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Portal not found or not published
+
+  # ── Files ───────���─────────────────────────────────────────────────────────
+  /projects/{id}/files:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      tags: [Files]
+      summary: Upload a file (multipart)
+      description: |
+        Accepts GeoJSON, Shapefile, KML, images, soil CSV, and documents.
+        Geo files are auto-parsed; images get EXIF extraction.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: File uploaded and processed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProjectFile'
+
+    get:
+      tags: [Files]
+      summary: List files for a project
+      responses:
+        '200':
+          description: File list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectFile'
+
+  /projects/{id}/files/{fileId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: fileId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Files]
+      summary: Delete a file
+      responses:
+        '204':
+          description: File deleted
+
+  # ── Spiritual ─────────────────────────────────────────────────────────────
+  /spiritual/project/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Spiritual]
+      summary: List spiritual zones for a project
+      responses:
+        '200':
+          description: Spiritual zone list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+    post:
+      tags: [Spiritual]
+      summary: Create a spiritual zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zoneType, geometry]
+              properties:
+                zoneType:
+                  type: string
+                  enum: [prayer_space, qibla_axis, contemplation_garden, wudu_station, cemetery, sacred_grove]
+                geometry:
+                  type: object
+                  description: GeoJSON geometry
+                name:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Spiritual zone created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /spiritual/project/{projectId}/qibla:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Spiritual]
+      summary: Compute Qibla bearing for project centroid
+      responses:
+        '200':
+          description: Qibla bearing and distance
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          bearing:
+                            type: number
+                            description: Bearing in degrees from north
+                          distanceKm:
+                            type: number
+                          fromLat:
+                            type: number
+                          fromLng:
+                            type: number
+
+  /spiritual/{zoneId}:
+    parameters:
+      - name: zoneId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Spiritual]
+      summary: Delete a spiritual zone
+      responses:
+        '204':
+          description: Spiritual zone deleted
+
+  # ── Pipeline ─────��──────────────────────────────────���─────────────────────
+  /pipeline/jobs/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Pipeline]
+      summary: List pipeline jobs for a project
+      responses:
+        '200':
+          description: Job list (last 50)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  /pipeline/job/{jobId}:
+    parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Pipeline]
+      summary: Get pipeline job status (for polling)
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  # ── AI ────────────────────────────────────────────────────────────────────
+  /ai/chat:
+    post:
+      tags: [AI]
+      summary: AI chat (proxied to Anthropic)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages, systemPrompt]
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    required: [role, content]
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+                systemPrompt:
+                  type: string
+            example:
+              messages:
+                - role: user
+                  content: What soil types are best for food forests?
+              systemPrompt: You are a land design assistant.
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          content:
+                            type: string
+                          model:
+                            type: string
+                          inputTokens:
+                            type: integer
+                          outputTokens:
+                            type: integer
+        '503':
+          description: AI service not configured
+
+  /ai/enrich-assessment:
+    post:
+      tags: [AI]
+      summary: AI-enrich assessment flags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Enriched assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+
+  # ─��� Elevation ───────────────────���─────────────────────────────────────────
+  /elevation/nrcan-hrdem:
+    get:
+      tags: [Elevation]
+      summary: Fetch NRCan HRDEM elevation raster
+      security: []
+      parameters:
+        - name: minLon
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: minLat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: maxLon
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: maxLat
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Elevation data with slope/aspect analysis
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          fetchStatus:
+                            type: string
+                          confidence:
+                            type: string
+                          summary:
+                            type: object
+                            properties:
+                              minElevationM:
+                                type: number
+                              maxElevationM:
+                                type: number
+                              meanElevationM:
+                                type: number
+                              meanSlopeDeg:
+                                type: number
+                              maxSlopeDeg:
+                                type: number
+                              predominantAspect:
+                                type: string
+
+  # ── Health ──────���─────────────────────────────────────────────────────────
+  /health:
+    servers:
+      - url: /
+    get:
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: 0.1.0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /auth/register or /auth/login (expires in 7 days)
+
+  parameters:
+    ProjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+        error:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/ApiError'
+
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details: {}
+
+    AuthResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            user:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                email:
+                  type: string
+                  format: email
+                displayName:
+                  type: string
+                  nullable: true
+        error:
+          type: 'null'
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        projectType:
+          type: string
+          nullable: true
+        country:
+          type: string
+        provinceState:
+          type: string
+          nullable: true
+        units:
+          type: string
+        address:
+          type: string
+          nullable: true
+        acreage:
+          type: number
+          nullable: true
+        hasParcelBoundary:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProjectInput:
+      type: object
+      required: [name, country, units]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        projectType:
+          type: string
+        country:
+          type: string
+        provinceState:
+          type: string
+        units:
+          type: string
+          enum: [imperial, metric]
+
+    UpdateProjectInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        projectType:
+          type: string
+        address:
+          type: string
+        parcelId:
+          type: string
+        ownerNotes:
+          type: string
+        zoningNotes:
+          type: string
+        accessNotes:
+          type: string
+        waterRightsNotes:
+          type: string
+
+    DesignFeature:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        featureType:
+          type: string
+          enum: [zone, structure, path, point, annotation]
+        subtype:
+          type: string
+          nullable: true
+        geometry:
+          type: object
+          description: GeoJSON geometry
+        label:
+          type: string
+          nullable: true
+        properties:
+          type: object
+        phaseTag:
+          type: string
+          nullable: true
+        style:
+          type: object
+          nullable: true
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateDesignFeatureInput:
+      type: object
+      required: [featureType, geometry, properties, sortOrder]
+      properties:
+        featureType:
+          type: string
+          enum: [zone, structure, path, point, annotation]
+        subtype:
+          type: string
+        geometry:
+          type: object
+        label:
+          type: string
+        properties:
+          type: object
+        phaseTag:
+          type: string
+        style:
+          type: object
+        sortOrder:
+          type: integer
+
+    ExportType:
+      type: string
+      enum:
+        - site_assessment
+        - design_brief
+        - feature_schedule
+        - field_notes
+        - investor_summary
+        - scenario_comparison
+        - educational_booklet
+
+    CreateExportInput:
+      type: object
+      required: [exportType]
+      properties:
+        exportType:
+          $ref: '#/components/schemas/ExportType'
+        scenarioId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+          properties:
+            fieldNotes:
+              type: object
+              description: FieldNotesPayload for field_notes export
+            financial:
+              type: object
+              description: FinancialPayload for investor_summary export
+            scenarios:
+              type: array
+              description: ScenarioPayload for scenario_comparison export
+              items:
+                type: object
+
+    ExportRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        exportType:
+          $ref: '#/components/schemas/ExportType'
+        storageUrl:
+          type: string
+          format: uri
+        generatedAt:
+          type: string
+          format: date-time
+
+    CostRange:
+      type: object
+      required: [low, mid, high]
+      properties:
+        low:
+          type: number
+        mid:
+          type: number
+        high:
+          type: number
+
+    CreatePortalInput:
+      type: object
+      required: [slug, isPublished, heroTitle, heroSubtitle, missionStatement, sections, dataMaskingLevel, curatedHotspots, brandColor, beforeAfterPairs, storyScenes]
+      properties:
+        slug:
+          type: string
+        isPublished:
+          type: boolean
+        heroTitle:
+          type: string
+        heroSubtitle:
+          type: string
+        missionStatement:
+          type: string
+        sections:
+          type: array
+          items:
+            type: string
+            enum: [hero, mission, map, stageReveal, beforeAfter, guidedTour, narrative, support, education]
+        donationUrl:
+          type: string
+          nullable: true
+        inquiryEmail:
+          type: string
+          nullable: true
+        dataMaskingLevel:
+          type: string
+          enum: [full, curated, minimal]
+        curatedHotspots:
+          type: array
+          items:
+            type: string
+        brandColor:
+          type: string
+        beforeAfterPairs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              caption:
+                type: string
+              beforeUrl:
+                type: string
+              afterUrl:
+                type: string
+        storyScenes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              narrative:
+                type: string
+              mapCenter:
+                type: array
+                items:
+                  type: number
+                minItems: 2
+                maxItems: 2
+              mapZoom:
+                type: number
+              mapStyle:
+                type: string
+                enum: [satellite, terrain, street]
+              phaseFilter:
+                type: string
+                nullable: true
+              highlightZones:
+                type: array
+                items:
+                  type: string
+
+    PortalRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        shareToken:
+          type: string
+          format: uuid
+        isPublished:
+          type: boolean
+        config:
+          $ref: '#/components/schemas/CreatePortalInput'
+        dataMaskingLevel:
+          type: string
+          enum: [full, curated, minimal]
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectFile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        fileType:
+          type: string
+        storageUrl:
+          type: string
+        fileSizeBytes:
+          type: integer
+        processingStatus:
+          type: string
+          enum: [complete, pending, failed]
+        processedGeojson:
+          type: object
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        confidence:
+          type: string
+          enum: [high, medium, low]
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time

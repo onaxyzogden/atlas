@@ -70,6 +70,7 @@ let loginHash: string;
 function projectRow() {
   return {
     id:                      TEST_PROJ_ID,
+    owner_id:                TEST_USER_ID,
     name:                    'Test Project',
     description:             null,
     status:                  'active',
@@ -200,7 +201,8 @@ describe('POST /api/v1/projects', () => {
 
 describe('GET /api/v1/projects/:id', () => {
   it('returns 200 for an existing project', async () => {
-    enqueue(projectRow());  // SELECT → project found
+    enqueue(projectRow());  // resolveProjectRole (owner shortcut)
+    enqueue(projectRow());  // actual GET query
 
     const res = await app.inject({
       method: 'GET',

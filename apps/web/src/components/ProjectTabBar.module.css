@@ -79,4 +79,9 @@
 
 .right {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-right: 8px;
 }

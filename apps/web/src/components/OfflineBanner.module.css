@@ -1,0 +1,73 @@
+/* ==========================================================================
+   OfflineBanner — persistent status bar for offline/sync state.
+   Uses Atlas design tokens (tokens.css).
+   ========================================================================== */
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-toast, 9999);
+  padding: var(--space-1\.5, 6px) var(--space-5, 20px);
+  font-size: var(--text-xs, 12px);
+  font-weight: 500;
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  flex-shrink: 0;
+  animation: slideDown 200ms ease-out;
+  letter-spacing: 0.01em;
+}
+
+/* ── Offline state ── */
+.offline {
+  background: var(--color-warning, #ca8a04);
+  color: var(--color-earth-900, #312617);
+}
+
+/* ── Syncing state ── */
+.syncing {
+  background: var(--color-info, #3d7f9e);
+  color: #ffffff;
+}
+
+/* ── Pending (online, but has queued ops) ── */
+.pending {
+  background: var(--color-earth-200, #e5ddd0);
+  color: var(--color-earth-800, #453321);
+}
+
+/* ── Icon ── */
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.spinIcon {
+  animation: spin 1.2s linear infinite;
+}
+
+/* ── Last synced timestamp ── */
+.timestamp {
+  opacity: 0.8;
+  font-weight: 400;
+}

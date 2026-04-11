@@ -49,6 +49,31 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
     ],
   },
   {
+    group: 'Finance',
+    color: '#7a9a8a',
+    items: [
+      { id: 'economics', label: 'Economics' },
+      { id: 'scenarios', label: 'Scenarios' },
+      { id: 'investor-summary', label: 'Investor Summary' },
+    ],
+  },
+  {
+    group: 'Compliance',
+    color: '#8a8a6a',
+    items: [
+      { id: 'regulatory', label: 'Regulatory' },
+    ],
+  },
+  {
+    group: 'Reporting & Portal',
+    color: '#15803D',
+    items: [
+      { id: 'reporting', label: 'Reports & Export' },
+      { id: 'portal', label: 'Public Portal' },
+      { id: 'educational', label: 'Educational Atlas' },
+    ],
+  },
+  {
     group: 'General',
     color: '#9a7a8a',
     items: [
@@ -142,6 +167,20 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><rect x="1" y="1" width="12" height="4" rx="1"/><path d="M2 5V12C2 12.6 2.4 13 3 13H11C11.6 13 12 12.6 12 12V5"/><line x1="5" y1="8" x2="9" y2="8"/></svg>;
     case 'siting-rules':
       return <svg {...p}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/><path d="M5 7L6.5 8.5L9.5 5.5"/></svg>;
+    case 'economics':
+      return <svg {...p}><rect x="1" y="9" width="2.5" height="4" rx="0.3"/><rect x="5.5" y="6" width="2.5" height="7" rx="0.3"/><rect x="10" y="3" width="2.5" height="10" rx="0.3"/><polyline points="1 7 5 4 9 6 13 2"/></svg>;
+    case 'scenarios':
+      return <svg {...p}><line x1="2" y1="7" x2="6" y2="7"/><line x1="6" y1="7" x2="9" y2="4"/><line x1="6" y1="7" x2="9" y2="10"/><line x1="9" y1="4" x2="12" y2="4"/><line x1="9" y1="10" x2="12" y2="10"/></svg>;
+    case 'investor-summary':
+      return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="7.5" x2="10" y2="7.5"/><path d="M4 10L5.5 11.5L8.5 9"/></svg>;
+    case 'regulatory':
+      return <svg {...p}><path d="M7 1L12 3V7C12 10 10 12 7 13C4 12 2 10 2 7V3L7 1Z"/><line x1="7" y1="5" x2="7" y2="8"/><circle cx="7" cy="9.5" r="0.7" fill={stroke}/></svg>;
+    case 'reporting':
+      return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="4" x2="10" y2="4"/><line x1="4" y1="6.5" x2="10" y2="6.5"/><line x1="4" y1="9" x2="8" y2="9"/></svg>;
+    case 'portal':
+      return <svg {...p}><circle cx="7" cy="7" r="5.5"/><line x1="1.5" y1="7" x2="12.5" y2="7"/><ellipse cx="7" cy="7" rx="2.5" ry="5.5"/></svg>;
+    case 'educational':
+      return <svg {...p}><path d="M7 1L1 4L7 7L13 4L7 1Z"/><polyline points="1 4 1 9"/><path d="M3.5 5.3V10C3.5 11 5 12.5 7 12.5C9 12.5 10.5 11 10.5 10V5.3"/></svg>;
     default:
       return <svg {...p}><circle cx="7" cy="7" r="3"/></svg>;
   }

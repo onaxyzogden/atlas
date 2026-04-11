@@ -8,6 +8,8 @@ import { ToastContainer } from './components/Toast.js';
 import './app/index.css';
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
+// Import connectivityStore to register online/offline listeners (side-effect import)
+import './store/connectivityStore.js';
 // Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
 import { useAuthStore } from './store/authStore.js';
 import { syncService } from './lib/syncService.js';

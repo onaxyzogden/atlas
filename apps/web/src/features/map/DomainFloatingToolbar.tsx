@@ -31,6 +31,7 @@ interface DomainFloatingToolbarProps {
   map: maplibregl.Map | null;
   draw: MapboxDraw | null;
   isMapReady: boolean;
+  canEdit?: boolean;
   onExport: () => void;
 }
 
@@ -315,6 +316,7 @@ export default function DomainFloatingToolbar({
   map,
   draw,
   isMapReady,
+  canEdit = true,
   onExport,
 }: DomainFloatingToolbarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -345,12 +347,18 @@ export default function DomainFloatingToolbar({
                 ? visibleLayers.has(tool.layerKey)
                 : false;
 
+            const isActionTool = tool.type === 'action';
+            const isDisabledByRole = isActionTool && !canEdit;
+
             return (
               <button
                 key={tool.id}
                 className={isActive ? css.toolBtnActive : css.toolBtn}
-                title={tool.label}
+                title={isDisabledByRole ? 'Editing requires Designer or Owner role' : tool.label}
+                disabled={isDisabledByRole}
+                style={isDisabledByRole ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                 onClick={() => {
+                  if (isDisabledByRole) return;
                   if (tool.type === 'toggle' && tool.layerKey) {
                     setLayerVisible(tool.layerKey, !visibleLayers.has(tool.layerKey));
                   } else {

@@ -10,9 +10,14 @@ import type { LandZone } from '../../store/zoneStore.js';
 import type { Structure } from '../../store/structureStore.js';
 import type { SidebarView } from '../../components/IconSidebar.js';
 import MapCanvas from './MapCanvas.js';
-import { useCommentStore } from '../../store/commentStore.js';
+import { useCommentStore, type Comment } from '../../store/commentStore.js';
+import { useAuthStore } from '../../store/authStore.js';
+import { useProjectRole } from '../../hooks/useProjectRole.js';
+import RoleBadge from '../../components/RoleBadge.js';
 import SlideUpPanel from '../../components/SlideUpPanel.js';
 import ErrorBoundary from '../../components/ErrorBoundary.js';
+import TypingIndicator from '../../components/TypingIndicator.js';
+import { wsService } from '../../lib/wsService.js';
 import GPSTracker from '../mobile/GPSTracker.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
@@ -77,8 +82,18 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const [markerRef, setMarkerRef] = useState<maplibregl.Marker | null>(null);
   const [boundaryColor, setBoundaryColor] = useState('#7d6140');
   const [isAddingComment, setIsAddingComment] = useState(false);
+  const [pendingCommentLngLat, setPendingCommentLngLat] = useState<[number, number] | null>(null);
+  const [pendingCommentText, setPendingCommentText] = useState('');
   const addComment = useCommentStore((s) => s.addComment);
-  const authorName = useCommentStore((s) => s.authorName);
+  const createCommentRemote = useCommentStore((s) => s.createComment);
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = !!user;
+  const authorName = user?.displayName ?? user?.email?.split('@')[0] ?? useCommentStore.getState().authorName;
+
+  // Role-based access control
+  const { role, canEdit } = useProjectRole(project.serverId ?? project.id);
+  // Unauthenticated users retain full local editing capability
+  const effectiveCanEdit = !isAuthenticated || canEdit;
   const layoutRef = useRef<HTMLDivElement>(null);
 
   // Resize map when container becomes visible (after tab switch from display:none)
@@ -118,6 +133,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const startBoundaryDraw = () => {
     if (!drawRef) return;
     setIsDrawingBoundary(true);
+    wsService.sendTyping('drawing');
     drawRef.deleteAll();
     drawRef.changeMode('draw_polygon');
 
@@ -139,6 +155,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         drawRef.deleteAll();
       }
       setIsDrawingBoundary(false);
+      wsService.stopTyping();
       mapRef?.off('draw.create', handleCreate);
     };
     mapRef?.on('draw.create', handleCreate);
@@ -148,6 +165,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
     drawRef?.deleteAll();
     drawRef?.changeMode('simple_select');
     setIsDrawingBoundary(false);
+    wsService.stopTyping();
   };
 
 
@@ -159,7 +177,10 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
       <div className={isMobile ? css.mapAreaMobile : css.mapArea}>
         {/* Floating project name card */}
         <div className={css.floatingProjectCard}>
-          <div className={css.floatingProjectName}>{project.name}</div>
+          <div className={css.floatingProjectName} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {project.name}
+            {isAuthenticated && <RoleBadge role={role} size="sm" />}
+          </div>
           <div className={css.floatingProjectSub}>OGDEN LAND DESIGN ATLAS</div>
         </div>
 
@@ -168,7 +189,13 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           {isDrawingBoundary ? (
             <button onClick={cancelBoundaryDraw} className={css.btnCancelDraw}>Cancel Drawing</button>
           ) : (
-            <button onClick={startBoundaryDraw} disabled={!drawRef} className={css.btnDrawBoundary}>
+            <button
+              onClick={startBoundaryDraw}
+              disabled={!drawRef || !effectiveCanEdit}
+              title={!effectiveCanEdit ? 'Editing requires Designer or Owner role' : undefined}
+              className={css.btnDrawBoundary}
+              style={!effectiveCanEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+            >
               {project.hasParcelBoundary ? 'Redraw Boundary' : 'Draw Boundary'}
             </button>
           )}
@@ -185,10 +212,119 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             boundaryGeojson={project.parcelBoundaryGeojson}
             boundaryColor={boundaryColor}
             address={project.address}
+            canEdit={effectiveCanEdit}
             onMapReady={(map, draw) => { setMapRef(map); setDrawRef(draw); }}
             onMarkerCreated={(m) => setMarkerRef(m)}
           />
         </ErrorBoundary>
+
+        {/* Typing indicator for real-time collaboration */}
+        <ErrorBoundary>
+          <TypingIndicator />
+        </ErrorBoundary>
+
+        {/* Floating comment input — appears after user clicks map in comment mode */}
+        {pendingCommentLngLat && (
+          <div style={{
+            position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 50, display: 'flex', gap: 6, alignItems: 'center',
+            background: 'var(--color-panel-bg, #1a1a1a)', border: '1px solid rgba(196,162,101,0.3)',
+            borderRadius: 10, padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            minWidth: 320, maxWidth: 420,
+          }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>{'\u{1F4CD}'}</span>
+            <input
+              type="text"
+              autoFocus
+              value={pendingCommentText}
+              onChange={(e) => setPendingCommentText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && pendingCommentText.trim()) {
+                  const projectId = project.serverId ?? project.id;
+                  if (isAuthenticated) {
+                    createCommentRemote(projectId, { text: pendingCommentText.trim(), location: pendingCommentLngLat }, authorName);
+                  } else {
+                    const comment: Comment = {
+                      id: crypto.randomUUID(),
+                      projectId: project.id,
+                      author: authorName,
+                      text: pendingCommentText.trim(),
+                      location: pendingCommentLngLat,
+                      featureId: null,
+                      featureType: null,
+                      resolved: false,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    };
+                    addComment(comment);
+                  }
+                  setPendingCommentLngLat(null);
+                  setPendingCommentText('');
+                  setIsAddingComment(false);
+                } else if (e.key === 'Escape') {
+                  setPendingCommentLngLat(null);
+                  setPendingCommentText('');
+                  setIsAddingComment(false);
+                }
+              }}
+              placeholder="Type your comment and press Enter..."
+              style={{
+                flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                color: 'var(--color-panel-text, #e0e0e0)', fontSize: 13,
+                fontFamily: 'inherit',
+              }}
+            />
+            <button
+              onClick={() => {
+                if (!pendingCommentText.trim()) return;
+                const projectId = project.serverId ?? project.id;
+                if (isAuthenticated) {
+                  createCommentRemote(projectId, { text: pendingCommentText.trim(), location: pendingCommentLngLat }, authorName);
+                } else {
+                  const comment: Comment = {
+                    id: crypto.randomUUID(),
+                    projectId: project.id,
+                    author: authorName,
+                    text: pendingCommentText.trim(),
+                    location: pendingCommentLngLat,
+                    featureId: null,
+                    featureType: null,
+                    resolved: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  };
+                  addComment(comment);
+                }
+                setPendingCommentLngLat(null);
+                setPendingCommentText('');
+                setIsAddingComment(false);
+              }}
+              disabled={!pendingCommentText.trim()}
+              style={{
+                padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                background: pendingCommentText.trim() ? 'rgba(196,162,101,0.2)' : 'rgba(255,255,255,0.05)',
+                color: pendingCommentText.trim() ? '#c4a265' : 'rgba(255,255,255,0.3)',
+                fontSize: 12, fontWeight: 600, flexShrink: 0,
+              }}
+            >
+              Add
+            </button>
+            <button
+              onClick={() => {
+                setPendingCommentLngLat(null);
+                setPendingCommentText('');
+                setIsAddingComment(false);
+              }}
+              style={{
+                padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)',
+                fontSize: 11, flexShrink: 0,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* Cesium 3D terrain overlay — renders on top of MapLibre when active */}
         {is3DTerrain && (
@@ -212,6 +348,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               map={mapRef}
               draw={drawRef}
               isMapReady={!!mapRef}
+              canEdit={effectiveCanEdit}
               onExport={onExport}
             />
           </Suspense>
@@ -229,7 +366,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <MapLayersPanel project={project} map={mapRef} marker={markerRef} onCenterProperty={handleCenterProperty} boundaryColor={boundaryColor} onBoundaryColorChange={setBoundaryColor} />
               )}
               {activeView === 'intelligence' && <SiteIntelligencePanel project={project} />}
-              {activeView === 'design' && <DesignToolsPanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'design' && <DesignToolsPanel projectId={project.id} draw={drawRef} map={mapRef} canEdit={effectiveCanEdit} />}
               {activeView === 'hydrology' && <HydrologyRightPanel project={project} />}
               {activeView === 'ai' && <AtlasAIPanel project={project} />}
               {activeView === 'economic' && <EconomicsPanel project={project} />}
@@ -251,24 +388,17 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                       if (!v && mapRef) {
                         mapRef.getCanvas().style.cursor = 'crosshair';
                         const handler = (e: maplibregl.MapMouseEvent) => {
-                          const comment = {
-                            id: crypto.randomUUID(),
-                            projectId: project.id,
-                            author: authorName,
-                            text: prompt('Enter comment:') ?? '',
-                            location: [e.lngLat.lng, e.lngLat.lat] as [number, number],
-                            featureId: null,
-                            featureType: null,
-                            resolved: false,
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
-                          };
-                          if (comment.text) addComment(comment);
+                          const lngLat: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+                          setPendingCommentLngLat(lngLat);
+                          setPendingCommentText('');
                           mapRef.getCanvas().style.cursor = '';
                           mapRef.off('click', handler);
-                          setIsAddingComment(false);
                         };
                         mapRef.once('click', handler);
+                      } else {
+                        // Cancelling — clean up pending state
+                        setPendingCommentLngLat(null);
+                        setPendingCommentText('');
                       }
                       return !v;
                     });
@@ -288,7 +418,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
               {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
               {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
-              {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} canEdit={effectiveCanEdit} />}
               {activeView === 'siting' && <SitingPanel project={project} />}
             </Suspense>
           </ErrorBoundary>

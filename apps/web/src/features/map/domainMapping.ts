@@ -120,6 +120,24 @@ export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
     layers: ['elevation', 'soils', 'watershed', 'wetlands_flood'],
     domain: 'default',
   },
+  'reporting': {
+    subItem: 'reporting',
+    panel: 'reporting',
+    layers: [],
+    domain: 'default',
+  },
+  'portal': {
+    subItem: 'portal',
+    panel: 'portal',
+    layers: [],
+    domain: 'default',
+  },
+  'educational': {
+    subItem: 'educational',
+    panel: 'educational',
+    layers: [],
+    domain: 'default',
+  },
 };
 
 // Map sub-item → dashboard section (reverse lookup)

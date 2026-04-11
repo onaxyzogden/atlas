@@ -14,6 +14,7 @@ import {
   type FieldworkType,
   type NoteType,
 } from '../../store/fieldworkStore.js';
+import { useConnectivityStore } from '../../store/connectivityStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import WalkRouteRecorder from './WalkRouteRecorder.js';
 import SiteChecklist from './SiteChecklist.js';
@@ -47,21 +48,8 @@ export default function FieldworkPanel({ project, map }: Props) {
   const walkRoutes = useFieldworkStore((s) => s.walkRoutes);
   const addEntry = useFieldworkStore((s) => s.addEntry);
   const deleteEntry = useFieldworkStore((s) => s.deleteEntry);
-  const isOnline = useFieldworkStore((s) => s.isOnline);
-  const setOnline = useFieldworkStore((s) => s.setOnline);
+  const isOnline = useConnectivityStore((s) => s.isOnline);
   const pendingUploads = useFieldworkStore((s) => s.pendingUploads);
-
-  // Online/offline monitoring
-  useEffect(() => {
-    const handleOnline = () => setOnline(true);
-    const handleOffline = () => setOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [setOnline]);
 
   const projectEntries = useMemo(
     () => entries.filter((e) => e.projectId === project.id),

@@ -10,6 +10,8 @@ import { useStructureStore } from '../store/structureStore.js';
 import { useSiteDataStore } from '../store/siteDataStore.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useIsMobile } from '../hooks/useMediaQuery.js';
+import { useProjectRole } from '../hooks/useProjectRole.js';
+import { useProjectWebSocket } from '../hooks/useProjectWebSocket.js';
 import * as turf from '@turf/turf';
 import ProjectEditor from '../features/project/ProjectEditor.js';
 import ProjectSummaryExport from '../features/export/ProjectSummaryExport.js';
@@ -39,6 +41,10 @@ export default function ProjectPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { role: projectRole } = useProjectRole(project?.serverId ?? projectId);
+
+  // Real-time WebSocket collaboration
+  useProjectWebSocket(project?.serverId);
 
   // Hydration
   const [ready, setReady] = useState(() => useProjectStore.persist.hasHydrated?.() ?? true);
@@ -99,6 +105,7 @@ export default function ProjectPage() {
         projectName={project.name}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        projectRole={projectRole}
       />
 
       <div className={css.mainRow}>

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { CreateSpiritualZoneInput, QiblaResult } from '@ogden/shared';
-import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import { NotFoundError } from '../../lib/errors.js';
 
 // Mecca coordinates
 const MECCA_LAT = 21.4225;
@@ -31,12 +31,12 @@ function computeQiblaBearing(fromLat: number, fromLng: number): QiblaResult {
 }
 
 export default async function spiritualRoutes(fastify: FastifyInstance) {
-  const { db, authenticate } = fastify;
+  const { db, authenticate, resolveProjectRole, requireRole } = fastify;
 
   // GET /spiritual/project/:projectId
   fastify.get<{ Params: { projectId: string } }>(
     '/project/:projectId',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole] },
     async (req) => {
       const zones = await db`
         SELECT
@@ -45,9 +45,7 @@ export default async function spiritualRoutes(fastify: FastifyInstance) {
           ST_AsGeoJSON(sz.geometry)::jsonb AS geometry,
           sz.created_at
         FROM spiritual_zones sz
-        JOIN projects p ON p.id = sz.project_id
-        WHERE sz.project_id = ${req.params.projectId}
-          AND p.owner_id = ${req.userId}
+        WHERE sz.project_id = ${req.projectId}
         ORDER BY sz.created_at
       `;
       return { data: zones, meta: { total: zones.length }, error: null };
@@ -57,22 +55,21 @@ export default async function spiritualRoutes(fastify: FastifyInstance) {
   // POST /spiritual/project/:projectId — create spiritual zone
   fastify.post<{ Params: { projectId: string } }>(
     '/project/:projectId',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer')] },
     async (req, reply) => {
       const body = CreateSpiritualZoneInput.parse({
         ...(req.body as object),
-        projectId: req.params.projectId,
+        projectId: req.projectId,
       });
 
       const [project] = await db`
-        SELECT id, owner_id,
+        SELECT id,
                ST_Y(centroid::geometry) AS lat,
                ST_X(centroid::geometry) AS lng
         FROM projects
-        WHERE id = ${body.projectId}
+        WHERE id = ${req.projectId}
       `;
-      if (!project) throw new NotFoundError('Project', body.projectId);
-      if (project.owner_id !== req.userId) throw new ForbiddenError();
+      if (!project) throw new NotFoundError('Project', req.projectId);
 
       // Auto-compute Qibla bearing for prayer_space and qibla_axis zones
       let qiblaBearing: number | null = null;
@@ -114,18 +111,17 @@ export default async function spiritualRoutes(fastify: FastifyInstance) {
   // GET /spiritual/project/:projectId/qibla — compute Qibla for parcel centroid
   fastify.get<{ Params: { projectId: string } }>(
     '/project/:projectId/qibla',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, resolveProjectRole] },
     async (req) => {
       const [project] = await db`
         SELECT
           ST_Y(centroid::geometry) AS lat,
           ST_X(centroid::geometry) AS lng
         FROM projects
-        WHERE id = ${req.params.projectId}
-          AND owner_id = ${req.userId}
+        WHERE id = ${req.projectId}
           AND centroid IS NOT NULL
       `;
-      if (!project) throw new NotFoundError('Project', req.params.projectId);
+      if (!project) throw new NotFoundError('Project', req.projectId);
 
       const result = computeQiblaBearing(Number(project.lat), Number(project.lng));
       return { data: QiblaResult.parse(result), meta: undefined, error: null };
@@ -137,12 +133,17 @@ export default async function spiritualRoutes(fastify: FastifyInstance) {
     '/:zoneId',
     { preHandler: [authenticate] },
     async (req, reply) => {
+      // Look up the zone's project_id, then resolve role inline
       const [zone] = await db`
-        SELECT sz.id FROM spiritual_zones sz
-        JOIN projects p ON p.id = sz.project_id
-        WHERE sz.id = ${req.params.zoneId} AND p.owner_id = ${req.userId}
+        SELECT sz.id, sz.project_id FROM spiritual_zones sz
+        WHERE sz.id = ${req.params.zoneId}
       `;
       if (!zone) throw new NotFoundError('SpiritualZone', req.params.zoneId);
+
+      // Resolve role via the RBAC middleware by injecting the project ID
+      (req.params as Record<string, string>)['id'] = zone.project_id;
+      await resolveProjectRole(req, reply);
+      await requireRole('owner')(req, reply);
 
       await db`DELETE FROM spiritual_zones WHERE id = ${req.params.zoneId}`;
       reply.code(204);

@@ -30,11 +30,12 @@ interface ZonePanelProps {
   draw?: MapboxDraw | null;
   map?: maplibregl.Map | null;
   isMapReady?: boolean;
+  canEdit?: boolean;
 }
 
 type ZoneTab = 'zones' | 'analysis';
 
-export default function ZonePanel({ projectId, draw, map, isMapReady = true }: ZonePanelProps) {
+export default function ZonePanel({ projectId, draw, map, isMapReady = true, canEdit = true }: ZonePanelProps) {
   const allZones = useZoneStore((st) => st.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
   const addZone = useZoneStore((st) => st.addZone);
@@ -162,9 +163,11 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true }: Z
           {/* Draw button */}
           {!showForm && draw && (
             <button
-              onClick={startDraw}
-              disabled={isDrawing}
+              onClick={canEdit ? startDraw : undefined}
+              disabled={isDrawing || !canEdit}
+              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={s.drawBtn}
+              style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {isDrawing ? 'Drawing\u2026 double-click to finish' : '+ Draw New Zone'}
             </button>
@@ -253,9 +256,11 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true }: Z
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDeleteZone(z.id)}
+                    onClick={canEdit ? () => handleDeleteZone(z.id) : undefined}
+                    disabled={!canEdit}
                     className={s.deleteBtn}
-                    title="Delete zone"
+                    title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
+                    style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                   >
                     \u00D7
                   </button>
