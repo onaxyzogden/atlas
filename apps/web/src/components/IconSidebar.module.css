@@ -5,7 +5,7 @@
 
 /* ─── Sidebar container ───────────────────────────────────────────────── */
 .sidebar {
-  background: #0f1a12;
+  background: var(--color-sidebar-bg);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
@@ -48,7 +48,7 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.18em;
-  color: #e8dcc8;
+  color: var(--color-sidebar-text);
   text-transform: uppercase;
   white-space: nowrap;
   line-height: 1;
@@ -207,11 +207,11 @@
 }
 
 .subItem:hover {
-  background: rgba(107, 143, 107, 0.1);
+  background: rgba(var(--color-sage-rgb), 0.1);
 }
 
 .subItemActive {
-  background: rgba(107, 143, 107, 0.18);
+  background: rgba(var(--color-sage-rgb), 0.18);
   border-left-color: currentColor; /* overridden inline by phase color */
 }
 
@@ -278,7 +278,7 @@
 }
 
 .bottomBtnActive {
-  color: rgba(196, 162, 101, 0.9);
+  color: rgba(var(--color-gold-rgb), 0.9);
 }
 
 .bottomBtnLabel {
@@ -302,8 +302,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(107, 143, 107, 0.3);
-  border: 1px solid rgba(107, 143, 107, 0.4);
+  background: rgba(var(--color-sage-rgb), 0.3);
+  border: 1px solid rgba(var(--color-sage-rgb), 0.4);
   display: flex;
   align-items: center;
   justify-content: center;

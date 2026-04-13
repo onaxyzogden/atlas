@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef, useCallback, type ReactNode } from 'react';
+import { zIndex } from '../lib/tokens.js';
 
 interface SlideUpPanelProps {
   children: ReactNode;
@@ -57,7 +58,7 @@ export default function SlideUpPanel({ children, isOpen, onClose, title }: Slide
           position: 'fixed',
           inset: 0,
           background: 'rgba(0,0,0,0.3)',
-          zIndex: 49,
+          zIndex: zIndex.modal,
         }}
       />
 
@@ -73,7 +74,7 @@ export default function SlideUpPanel({ children, isOpen, onClose, title }: Slide
           background: 'var(--color-panel-bg, #1a1611)',
           borderTopLeftRadius: 16,
           borderTopRightRadius: 16,
-          zIndex: 50,
+          zIndex: zIndex.modal + 1,
           display: 'flex',
           flexDirection: 'column',
           transition: 'height 250ms ease',

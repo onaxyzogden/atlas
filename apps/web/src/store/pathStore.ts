@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { path } from '../lib/tokens';
 
 export type PathType =
   | 'main_road'
@@ -33,17 +34,17 @@ export interface DesignPath {
 }
 
 export const PATH_TYPE_CONFIG: Record<PathType, { label: string; color: string; dashArray: number[]; width: number }> = {
-  main_road:        { label: 'Main Road',         color: '#8B6E4E', dashArray: [],     width: 3 },
-  secondary_road:   { label: 'Secondary Road',    color: '#7A6B3A', dashArray: [],     width: 2.5 },
-  emergency_access: { label: 'Emergency Access',  color: '#c44e3f', dashArray: [6, 3], width: 2.5 },
-  service_road:     { label: 'Service Road',      color: '#6B6B6B', dashArray: [],     width: 2 },
-  pedestrian_path:  { label: 'Pedestrian Path',   color: '#8A9A74', dashArray: [4, 4], width: 2 },
-  trail:            { label: 'Trail',             color: '#5B8A72', dashArray: [3, 3], width: 1.5 },
-  farm_lane:        { label: 'Farm Lane',         color: '#7A6B3A', dashArray: [8, 4], width: 2 },
-  animal_corridor:  { label: 'Animal Corridor',   color: '#8A7A4A', dashArray: [2, 2], width: 2 },
-  grazing_route:    { label: 'Grazing Route',     color: '#6B8A4A', dashArray: [4, 2], width: 1.5 },
-  arrival_sequence: { label: 'Arrival Sequence',  color: '#c4a265', dashArray: [],     width: 2.5 },
-  quiet_route:      { label: 'Quiet Route',       color: '#6B5B8A', dashArray: [6, 4], width: 1.5 },
+  main_road:        { label: 'Main Road',         color: path.main_road, dashArray: [],     width: 3 },
+  secondary_road:   { label: 'Secondary Road',    color: path.secondary_road, dashArray: [],     width: 2.5 },
+  emergency_access: { label: 'Emergency Access',  color: path.emergency_access, dashArray: [6, 3], width: 2.5 },
+  service_road:     { label: 'Service Road',      color: path.service_road, dashArray: [],     width: 2 },
+  pedestrian_path:  { label: 'Pedestrian Path',   color: path.pedestrian_path, dashArray: [4, 4], width: 2 },
+  trail:            { label: 'Trail',             color: path.trail, dashArray: [3, 3], width: 1.5 },
+  farm_lane:        { label: 'Farm Lane',         color: path.farm_lane, dashArray: [8, 4], width: 2 },
+  animal_corridor:  { label: 'Animal Corridor',   color: path.animal_corridor, dashArray: [2, 2], width: 2 },
+  grazing_route:    { label: 'Grazing Route',     color: path.grazing_route, dashArray: [4, 2], width: 1.5 },
+  arrival_sequence: { label: 'Arrival Sequence',  color: path.arrival_sequence, dashArray: [],     width: 2.5 },
+  quiet_route:      { label: 'Quiet Route',       color: path.quiet_route, dashArray: [6, 4], width: 1.5 },
 };
 
 interface PathState {

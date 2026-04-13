@@ -1,4 +1,5 @@
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
+import { semantic } from '../../lib/tokens.js';
 
 const STYLES: { id: MapStyle; label: string }[] = [
   { id: 'satellite', label: 'Satellite' },
@@ -34,7 +35,7 @@ export default function MapStyleSwitcher() {
             cursor: 'pointer',
             fontSize: 12,
             fontWeight: 500,
-            background: style === s.id ? '#7d6140' : 'transparent',
+            background: style === s.id ? semantic.primary : 'transparent',
             color: style === s.id ? '#fff' : '#c4b49a',
             transition: 'background 200ms ease, color 200ms ease',
           }}

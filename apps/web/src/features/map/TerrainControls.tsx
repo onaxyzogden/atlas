@@ -1,12 +1,14 @@
 /**
  * TerrainControls — adds hillshade, contour lines, slope/aspect heatmaps
- * to the Mapbox map using Mapbox Terrain DEM tiles.
+ * to the MapLibre map using MapTiler Terrain DEM tiles.
  *
  * These are P1 features from Section 2 of the Atlas spec.
  */
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect } from 'react';
+import { earth, map as mapTokens, semantic } from '../../lib/tokens.js';
+import { TERRAIN_DEM_URL, CONTOUR_TILES_URL } from '../../lib/maplibre.js';
 
 type TerrainLayer = 'hillshade' | 'contours' | 'slope';
 
@@ -62,7 +64,7 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
         borderRadius: 10,
         padding: collapsed ? '6px 10px' : 12,
         backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
+        color: mapTokens.label,
         zIndex: 5,
       }}
     >
@@ -71,7 +73,7 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
         style={{
           background: 'none',
           border: 'none',
-          color: '#9a8a74',
+          color: semantic.sidebarIcon,
           cursor: 'pointer',
           fontSize: 11,
           fontWeight: 600,
@@ -133,7 +135,7 @@ function TerrainToggle({
         padding: '6px 10px',
         cursor: 'pointer',
         textAlign: 'left',
-        color: '#f2ede3',
+        color: mapTokens.label,
         width: '100%',
       }}
     >
@@ -142,13 +144,13 @@ function TerrainToggle({
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: active ? '#7d6140' : '#3d3328',
+          background: active ? semantic.primary : '#3d3328',
           flexShrink: 0,
         }}
       />
       <div>
         <div style={{ fontSize: 12, fontWeight: active ? 600 : 400 }}>{label}</div>
-        <div style={{ fontSize: 10, color: '#9a8a74' }}>{description}</div>
+        <div style={{ fontSize: 10, color: semantic.sidebarIcon }}>{description}</div>
       </div>
     </button>
   );
@@ -162,7 +164,7 @@ function ensureDEM(map: maplibregl.Map) {
   if (!map.getSource(DEM_SOURCE)) {
     map.addSource(DEM_SOURCE, {
       type: 'raster-dem',
-      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      url: TERRAIN_DEM_URL,
       tileSize: 512,
       maxzoom: 14,
     });
@@ -183,8 +185,8 @@ function addTerrain(map: maplibregl.Map, layer: TerrainLayer) {
             paint: {
               'hillshade-exaggeration': 0.5,
               'hillshade-shadow-color': '#1a1611',
-              'hillshade-highlight-color': '#f2ede3',
-              'hillshade-accent-color': '#7d6140',
+              'hillshade-highlight-color': mapTokens.label,
+              'hillshade-accent-color': mapTokens.boundary,
             },
           },
           // Insert below labels
@@ -197,7 +199,7 @@ function addTerrain(map: maplibregl.Map, layer: TerrainLayer) {
       if (!map.getSource('contour-source')) {
         map.addSource('contour-source', {
           type: 'vector',
-          url: 'mapbox://mapbox.mapbox-terrain-v2',
+          url: CONTOUR_TILES_URL,
         });
       }
       if (!map.getLayer('ogden-contours')) {

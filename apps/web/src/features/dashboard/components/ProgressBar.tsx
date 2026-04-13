@@ -2,6 +2,8 @@
  * ProgressBar — horizontal bar with label and percentage.
  */
 
+import { status } from '../../../lib/tokens.js';
+
 const styles = {
   wrapper: { marginBottom: 12 } as React.CSSProperties,
   header: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 } as React.CSSProperties,
@@ -20,7 +22,7 @@ interface ProgressBarProps {
   color?: string;
 }
 
-export default function ProgressBar({ label, value, color = '#8a9a74' }: ProgressBarProps) {
+export default function ProgressBar({ label, value, color = status.good }: ProgressBarProps) {
   return (
     <div style={styles.wrapper}>
       <div style={styles.header}>

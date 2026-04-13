@@ -10,6 +10,7 @@ import { computeAssessmentScores, computeOverallScore, deriveOpportunities } fro
 import type { ScoredResult } from '../../../lib/computeScores.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './StewardshipDashboard.module.css';
+import { status as statusToken } from '../../../lib/tokens.js';
 
 interface StewardshipDashboardProps {
   project: LocalProject;
@@ -92,10 +93,10 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
       : null;
 
     return [
-      { name: 'Carbon Sequestration', target: annualSeq !== null ? `${annualSeq.toFixed(2)} tC/yr` : 'Pending analysis', progress: carbonProgress, color: '#8a9a74' },
-      { name: 'Biodiversity Index', target: habitatScore ? habitatScore.rating : 'Pending data', progress: habitatProgress, color: '#8a9a74' },
-      { name: 'Water Retention', target: waterScore ? waterScore.rating : 'Pending data', progress: waterProgress, color: '#8a9a74' },
-      { name: 'Soil Organic Matter', target: om !== null ? `${om.toFixed(1)}% (target: >6%)` : 'Pending soil data', progress: omProgress, color: '#c4a265' },
+      { name: 'Carbon Sequestration', target: annualSeq !== null ? `${annualSeq.toFixed(2)} tC/yr` : 'Pending analysis', progress: carbonProgress, color: statusToken.good },
+      { name: 'Biodiversity Index', target: habitatScore ? habitatScore.rating : 'Pending data', progress: habitatProgress, color: statusToken.good },
+      { name: 'Water Retention', target: waterScore ? waterScore.rating : 'Pending data', progress: waterProgress, color: statusToken.good },
+      { name: 'Soil Organic Matter', target: om !== null ? `${om.toFixed(1)}% (target: >6%)` : 'Pending soil data', progress: omProgress, color: statusToken.moderate },
       { name: 'Zero External Inputs', target: 'Requires field verification', progress: null, color: 'rgba(180,165,140,0.3)' },
     ];
   }, [annualSeq, habitatScore, waterScore, om, project.acreage]);
@@ -128,7 +129,7 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
             <circle
               cx={50} cy={50} r={42}
               fill="none"
-              stroke="#8a9a74"
+              stroke={statusToken.good}
               strokeWidth={4}
               strokeDasharray={`${(overallScore / 100) * 264} 264`}
               strokeLinecap="round"

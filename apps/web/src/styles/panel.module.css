@@ -115,12 +115,12 @@
 }
 
 .btn:hover {
-  background: rgba(196, 162, 101, 0.08);
+  background: rgba(var(--color-gold-rgb), 0.08);
 }
 
 .btnActive {
-  background: rgba(196, 162, 101, 0.08);
-  border-color: rgba(196, 162, 101, 0.25);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border-color: rgba(var(--color-gold-rgb), 0.25);
 }
 
 .btnCompact {
@@ -168,9 +168,9 @@
   align-items: center;
   gap: var(--space-2);
   padding: 10px 14px;
-  background: rgba(196, 162, 101, 0.06);
+  background: rgba(var(--color-gold-rgb), 0.06);
   border: none;
-  border-bottom: 1px solid rgba(196, 162, 101, 0.1);
+  border-bottom: 1px solid rgba(var(--color-gold-rgb), 0.1);
   cursor: pointer;
   color: var(--color-panel-text);
   font-size: var(--text-xs);
@@ -179,7 +179,7 @@
 }
 
 .toggleHeader:hover {
-  background: rgba(196, 162, 101, 0.1);
+  background: rgba(var(--color-gold-rgb), 0.1);
 }
 
 /* ─── Eye toggle icon ──────────────────────────────────────────────────── */
@@ -213,27 +213,27 @@
 }
 
 .badgeHigh {
-  background: rgba(45, 122, 79, 0.15);
+  background: rgba(var(--color-confidence-high-rgb), 0.15);
   color: var(--color-confidence-high);
 }
 
 .badgeMedium {
-  background: rgba(196, 162, 101, 0.15);
+  background: rgba(var(--color-gold-rgb), 0.15);
   color: var(--color-confidence-medium);
 }
 
 .badgeLow {
-  background: rgba(155, 58, 42, 0.15);
+  background: rgba(var(--color-confidence-low-rgb), 0.15);
   color: var(--color-confidence-low);
 }
 
 .badgeActive {
-  background: rgba(82, 120, 82, 0.15);
+  background: rgba(var(--color-accent-rgb), 0.15);
   color: var(--color-accent);
 }
 
 .badgePending {
-  background: rgba(154, 138, 116, 0.15);
+  background: rgba(var(--color-text-muted-rgb), 0.15);
   color: var(--color-panel-muted);
 }
 
@@ -267,7 +267,7 @@
 }
 
 .input:focus {
-  border-color: rgba(196, 162, 101, 0.4);
+  border-color: rgba(var(--color-gold-rgb), 0.4);
 }
 
 .input::placeholder {
@@ -296,7 +296,7 @@
 .progressFill {
   height: 100%;
   border-radius: 3px;
-  background: #c4a265;
+  background: var(--color-primary);
   transition: width var(--duration-base);
 }
 
@@ -370,7 +370,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-modal, 400);
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
   display: flex;
@@ -382,7 +382,7 @@
   width: 440px;
   max-width: 90vw;
   background: var(--color-panel-bg);
-  border: 1px solid rgba(196, 162, 101, 0.15);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.15);
   border-radius: 14px;
   padding: 28px 32px;
   color: var(--color-panel-text);
@@ -417,7 +417,7 @@
   margin-bottom: 16px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(196, 162, 101, 0.2);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
 }
 
 .tabBtn {
@@ -434,8 +434,8 @@
 
 .tabBtnActive {
   font-weight: 600;
-  background: rgba(196, 162, 101, 0.12);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: var(--color-primary);
 }
 
 .tabBtnSm {
@@ -473,9 +473,9 @@
 }
 
 .selectorBtnActive {
-  background: rgba(122, 107, 58, 0.15);
-  border-color: rgba(122, 107, 58, 0.3);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  border-color: rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
 }
 
 .selectorBtnCol {
@@ -507,8 +507,8 @@
   font-weight: 600;
   border: none;
   border-radius: 8px;
-  background: rgba(122, 107, 58, 0.15);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  color: var(--color-primary);
   cursor: pointer;
   margin-bottom: 16px;
   letter-spacing: 0.02em;
@@ -569,10 +569,10 @@
 /* ─── Info card (with left accent border) ─────────────────────────── */
 .infoCard {
   padding: 16px;
-  background: rgba(196, 162, 101, 0.04);
+  background: rgba(var(--color-gold-rgb), 0.04);
   border-radius: 10px;
-  border: 1px solid rgba(196, 162, 101, 0.08);
-  border-left: 3px solid rgba(196, 162, 101, 0.3);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.08);
+  border-left: 3px solid rgba(var(--color-gold-rgb), 0.3);
 }
 
 .infoCardTitle {
@@ -599,13 +599,13 @@
 }
 
 .highlightBoxGold {
-  background: rgba(196, 162, 101, 0.06);
-  border: 1px solid rgba(196, 162, 101, 0.1);
+  background: rgba(var(--color-gold-rgb), 0.06);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.1);
 }
 
 .highlightBoxGreen {
-  background: rgba(45, 122, 79, 0.06);
-  border: 1px solid rgba(45, 122, 79, 0.1);
+  background: rgba(var(--color-confidence-high-rgb), 0.06);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.1);
 }
 
 .highlightBoxTitle {
@@ -633,8 +633,8 @@
 }
 
 .stepCardActive {
-  background: rgba(196, 162, 101, 0.08);
-  border-color: rgba(196, 162, 101, 0.2);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border-color: rgba(var(--color-gold-rgb), 0.2);
 }
 
 .stepNumber {
@@ -652,8 +652,8 @@
 }
 
 .stepNumberActive {
-  border-color: #c4a265;
-  color: #c4a265;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .stepDesc {
@@ -683,8 +683,8 @@
   font-size: 12px;
   border: none;
   border-radius: 8px;
-  background: rgba(196, 162, 101, 0.15);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  color: var(--color-primary);
   cursor: pointer;
 }
 
@@ -765,8 +765,8 @@
 }
 
 .saveBtnEnabled {
-  background: rgba(196, 162, 101, 0.2);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.2);
+  color: var(--color-primary);
 }
 
 .saveBtnDisabled {
@@ -778,7 +778,7 @@
 /* ─── Stocking / info hint box ────────────────────────────────────── */
 .hintBox {
   padding: 8px 10px;
-  background: rgba(122, 107, 58, 0.06);
+  background: rgba(var(--color-gold-rgb), 0.06);
   border-radius: 6px;
   margin-bottom: 12px;
   font-size: 11px;
@@ -797,9 +797,9 @@
 }
 
 .chipActive {
-  background: rgba(122, 107, 58, 0.15);
-  border-color: rgba(122, 107, 58, 0.3);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  border-color: rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
 }
 
 /* ─── Flex helpers ────────────────────────────────────────────────── */
@@ -848,11 +848,11 @@
 .placementBanner {
   padding: 10px 12px;
   margin-bottom: 14px;
-  background: rgba(196, 162, 101, 0.08);
-  border: 1px solid rgba(196, 162, 101, 0.2);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
   border-radius: 8px;
   font-size: 12px;
-  color: #c4a265;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -897,7 +897,7 @@
 }
 
 .progressDotActive {
-  background: #c4a265;
+  background: var(--color-primary);
 }
 
 /* ─── Score circle ────────────────────────────────────────────────── */
@@ -912,9 +912,9 @@
   flex-shrink: 0;
 }
 
-.scoreCircleHigh { border-color: #2d7a4f; }
-.scoreCircleMed  { border-color: #c4a265; }
-.scoreCircleLow  { border-color: #c44e3f; }
+.scoreCircleHigh { border-color: var(--color-confidence-high); }
+.scoreCircleMed  { border-color: var(--color-primary); }
+.scoreCircleLow  { border-color: var(--color-error); }
 
 .scoreValue {
   font-size: 18px;
@@ -931,33 +931,33 @@
 }
 
 .fitItemGood {
-  background: rgba(45, 122, 79, 0.06);
-  border-left: 3px solid rgba(45, 122, 79, 0.3);
+  background: rgba(var(--color-confidence-high-rgb), 0.06);
+  border-left: 3px solid rgba(var(--color-confidence-high-rgb), 0.3);
 }
 
 .fitItemBad {
-  background: rgba(196, 78, 63, 0.06);
-  border-left: 3px solid rgba(196, 78, 63, 0.3);
+  background: rgba(var(--color-confidence-low-rgb), 0.06);
+  border-left: 3px solid rgba(var(--color-confidence-low-rgb), 0.3);
 }
 
 /* ─── Resolve / Delete action buttons (comments) ──────────────────── */
 .actionBtnResolve {
   padding: 3px 8px;
   font-size: 10px;
-  border: 1px solid rgba(45, 122, 79, 0.2);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.2);
   border-radius: 4px;
   background: transparent;
-  color: #2d7a4f;
+  color: var(--color-confidence-high);
   cursor: pointer;
 }
 
 .actionBtnDelete {
   padding: 3px 8px;
   font-size: 10px;
-  border: 1px solid rgba(196, 78, 63, 0.2);
+  border: 1px solid rgba(var(--color-confidence-low-rgb), 0.2);
   border-radius: 4px;
   background: transparent;
-  color: #c44e3f;
+  color: var(--color-error);
   cursor: pointer;
 }
 
@@ -972,8 +972,8 @@
 }
 
 .publishCardOn {
-  background: rgba(45, 122, 79, 0.08);
-  border: 1px solid rgba(45, 122, 79, 0.2);
+  background: rgba(var(--color-confidence-high-rgb), 0.08);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.2);
 }
 
 .publishCardOff {
@@ -986,8 +986,8 @@
   margin-top: 16px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: rgba(196, 162, 101, 0.06);
-  border: 1px solid rgba(196, 162, 101, 0.15);
+  background: rgba(var(--color-gold-rgb), 0.06);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.15);
 }
 
 /* ─── Inline icon + label row ─────────────────────────────────────── */

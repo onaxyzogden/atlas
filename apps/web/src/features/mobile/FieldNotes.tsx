@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useFieldworkStore, type FieldworkEntry, type NoteType } from '../../store/fieldworkStore.js';
+import { group, warning } from '../../lib/tokens.js';
 
 export interface FieldNote {
   id: string;
@@ -127,7 +128,7 @@ export default function FieldNotes({ projectId, onNoteAdded }: FieldNotesProps) 
               border: noteType === nt.id ? '1px solid rgba(21,128,61,0.25)' : '1px solid rgba(255,255,255,0.06)',
               borderRadius: 6,
               background: noteType === nt.id ? 'rgba(21,128,61,0.12)' : 'rgba(255,255,255,0.02)',
-              color: noteType === nt.id ? '#15803D' : 'rgba(240,253,244,0.4)',
+              color: noteType === nt.id ? group.reporting : 'rgba(240,253,244,0.4)',
               cursor: 'pointer', minHeight: 44,
             }}
           >
@@ -191,7 +192,7 @@ export default function FieldNotes({ projectId, onNoteAdded }: FieldNotesProps) 
             flex: 1, padding: '10px', fontSize: 12, fontWeight: 500,
             border: '1px solid rgba(21,128,61,0.2)',
             borderRadius: 8, background: 'rgba(21,128,61,0.06)',
-            color: '#15803D', cursor: 'pointer',
+            color: group.reporting, cursor: 'pointer',
             textAlign: 'center', minHeight: 44,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
@@ -212,7 +213,7 @@ export default function FieldNotes({ projectId, onNoteAdded }: FieldNotesProps) 
             flex: 2, padding: '10px', fontSize: 12, fontWeight: 600,
             border: 'none', borderRadius: 8, minHeight: 44,
             background: (text.trim() || pendingPhoto) ? 'rgba(202,138,4,0.2)' : 'var(--color-panel-subtle)',
-            color: (text.trim() || pendingPhoto) ? '#CA8A04' : 'var(--color-panel-muted)',
+            color: (text.trim() || pendingPhoto) ? warning.DEFAULT : 'var(--color-panel-muted)',
             cursor: (text.trim() || pendingPhoto) ? 'pointer' : 'not-allowed',
             letterSpacing: '0.02em',
           }}

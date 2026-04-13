@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { api } from '../../lib/apiClient.js';
+import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
   project: LocalProject;
@@ -66,8 +67,8 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 680, maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 12, color: '#14532D' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: zIndex.modal, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 680, maxHeight: '90vh', overflowY: 'auto', background: semantic.surface, borderRadius: 12, color: sage[900] }}>
         {/* Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid rgba(21,128,61,0.15)' }}>
           <span style={{ fontSize: 13, fontWeight: 500 }}>Educational Booklet</span>
@@ -75,14 +76,14 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             {status === 'idle' && (
               <button
                 onClick={handleGenerate}
-                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: '#15803D', color: '#fff', cursor: 'pointer', fontWeight: 500 }}
+                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: group.reporting, color: semantic.surface, cursor: 'pointer', fontWeight: 500 }}
               >
                 Generate PDF
               </button>
             )}
             {status === 'generating' && (
-              <span style={{ padding: '6px 16px', fontSize: 12, color: '#CA8A04', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+              <span style={{ padding: '6px 16px', fontSize: 12, color: warning.DEFAULT, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={warning.DEFAULT} strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
                   <line x1="12" y1="2" x2="12" y2="6" /><line x1="12" y1="18" x2="12" y2="22" />
                   <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" /><line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
                   <line x1="2" y1="12" x2="6" y2="12" /><line x1="18" y1="12" x2="22" y2="12" />
@@ -97,7 +98,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
                   href={downloadUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: '#15803D', color: '#fff', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}
+                  style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: group.reporting, color: semantic.surface, textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
@@ -106,7 +107,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
                 </a>
                 <button
                   onClick={handleGenerate}
-                  style={{ padding: '6px 12px', fontSize: 12, border: '1px solid rgba(202,138,4,0.25)', borderRadius: 6, background: 'transparent', color: '#CA8A04', cursor: 'pointer', fontWeight: 500 }}
+                  style={{ padding: '6px 12px', fontSize: 12, border: '1px solid rgba(202,138,4,0.25)', borderRadius: 6, background: 'transparent', color: warning.DEFAULT, cursor: 'pointer', fontWeight: 500 }}
                 >
                   Regenerate
                 </button>
@@ -115,7 +116,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             {status === 'error' && (
               <button
                 onClick={handleGenerate}
-                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: '#15803D', color: '#fff', cursor: 'pointer', fontWeight: 500 }}
+                style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 6, background: group.reporting, color: semantic.surface, cursor: 'pointer', fontWeight: 500 }}
               >
                 Retry
               </button>
@@ -135,10 +136,10 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
 
         {/* Preview summary */}
         <div style={{ padding: '20px 32px', borderBottom: '1px solid rgba(21,128,61,0.1)' }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.1em', color: '#15803D', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.1em', color: group.reporting, textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
             Booklet Preview
           </div>
-          <div style={{ fontSize: 12, color: '#14532D', lineHeight: 1.6, marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: sage[900], lineHeight: 1.6, marginBottom: 12 }}>
             This educational booklet for <strong>{project.name}</strong> will contain {EDUCATIONAL_CONTENT.length} chapters
             covering the core design principles and ecological strategies used in your project.
             Estimated length: ~8 pages.
@@ -147,7 +148,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             {EDUCATIONAL_CONTENT.map((ch) => (
               <span key={ch.category} style={{
                 fontSize: 10, padding: '2px 8px', borderRadius: 4,
-                background: '#F0FDF4', color: '#15803D', fontWeight: 500,
+                background: success[50], color: group.reporting, fontWeight: 500,
               }}>
                 {ch.category}
               </span>
@@ -157,14 +158,14 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
 
         {/* Chapter previews */}
         <div style={{ padding: '24px 32px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 32, paddingBottom: 20, borderBottom: '2px solid #15803D' }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.15em', color: '#CA8A04', textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ textAlign: 'center', marginBottom: 32, paddingBottom: 20, borderBottom: `2px solid ${group.reporting}` }}>
+            <div style={{ fontSize: 10, letterSpacing: '0.15em', color: warning.DEFAULT, textTransform: 'uppercase', marginBottom: 8 }}>
               OGDEN Land Design Atlas
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 300, margin: '0 0 8px', color: '#14532D', fontFamily: "'Fira Code', monospace" }}>
+            <h1 style={{ fontSize: 24, fontWeight: 300, margin: '0 0 8px', color: sage[900], fontFamily: "'Fira Code', monospace" }}>
               {project.name}
             </h1>
-            <p style={{ fontSize: 13, color: '#15803D', fontStyle: 'italic' }}>
+            <p style={{ fontSize: 13, color: group.reporting, fontStyle: 'italic' }}>
               An interpretive guide to the design decisions, ecology, and purpose behind the land.
             </p>
           </div>
@@ -174,23 +175,23 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  background: '#F0FDF4', border: '1px solid rgba(21,128,61,0.15)',
+                  background: success[50], border: '1px solid rgba(21,128,61,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, color: '#15803D', flexShrink: 0,
+                  fontSize: 13, fontWeight: 700, color: group.reporting, flexShrink: 0,
                   fontFamily: "'Fira Code', monospace",
                 }}>
                   {i + 1}
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: '#CA8A04', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+                  <div style={{ fontSize: 9, color: warning.DEFAULT, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
                     {chapter.category}
                   </div>
-                  <h2 style={{ fontSize: 16, fontWeight: 500, margin: 0, color: '#14532D', fontFamily: "'Fira Code', monospace" }}>
+                  <h2 style={{ fontSize: 16, fontWeight: 500, margin: 0, color: sage[900], fontFamily: "'Fira Code', monospace" }}>
                     {chapter.title}
                   </h2>
                 </div>
               </div>
-              <p style={{ fontSize: 12, lineHeight: 1.8, color: '#14532D', margin: 0, paddingLeft: 44, opacity: 0.85 }}>
+              <p style={{ fontSize: 12, lineHeight: 1.8, color: sage[900], margin: 0, paddingLeft: 44, opacity: 0.85 }}>
                 {chapter.content}
               </p>
             </div>
@@ -201,7 +202,7 @@ export default function EducationalBookletExport({ project, onClose }: Props) {
             <p style={{ margin: '0 0 4px' }}>
               Generated by OGDEN Land Design Atlas for {project.name}.
             </p>
-            <p style={{ margin: 0, fontStyle: 'italic', color: '#15803D' }}>
+            <p style={{ margin: 0, fontStyle: 'italic', color: group.reporting }}>
               &ldquo;A tool for seeing land whole \u2014 and building it wisely.&rdquo;
             </p>
             <p style={{ margin: '8px 0 0', fontSize: 9 }}>

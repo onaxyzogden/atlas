@@ -12,6 +12,7 @@ import { useProjectStore } from '../../store/projectStore.js';
 import type { LayerType } from '@ogden/shared';
 import { generateMockLayers, getLayerSummaryText, type MockLayerResult } from '../../lib/mockLayerData.js';
 import { fetchAllLayers, type FetchLayerResults } from '../../lib/layerFetcher.js';
+import { confidence, earth, map as mapTokens, semantic } from '../../lib/tokens.js';
 
 const LAYER_LABELS: Record<LayerType, string> = {
   elevation:          'Elevation & Slope',
@@ -40,9 +41,9 @@ const LAYER_ICONS: Record<LayerType, string> = {
 };
 
 const CONFIDENCE_COLORS = {
-  high:   '#2d7a4f',
-  medium: '#8a6d1e',
-  low:    '#9b3a2a',
+  high:   confidence.high,
+  medium: confidence.medium,
+  low:    confidence.low,
 };
 
 export default function LayerPanel({ projectId }: { projectId: string }) {
@@ -116,7 +117,7 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
         borderRadius: 10,
         padding: 12,
         backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
+        color: mapTokens.label,
         maxHeight: 'calc(100vh - 120px)',
         overflowY: 'auto',
       }}
@@ -127,7 +128,7 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: '#9a8a74',
+          color: semantic.sidebarIcon,
           marginBlockEnd: 8,
         }}
       >
@@ -136,7 +137,7 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
 
       <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
         {layers.map((layer) => (
-          <li key={layer.layer_type}>
+          <li key={layer.layerType}>
             <div
               style={{
                 display: 'flex',
@@ -147,8 +148,8 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
             >
               {/* Toggle */}
               <button
-                onClick={() => toggleLayer(layer.layer_type)}
-                aria-checked={visibleLayers.has(layer.layer_type)}
+                onClick={() => toggleLayer(layer.layerType)}
+                aria-checked={visibleLayers.has(layer.layerType)}
                 role="switch"
                 style={{
                   width: 30,
@@ -156,22 +157,22 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
                   borderRadius: 8,
                   border: 'none',
                   cursor: 'pointer',
-                  background: visibleLayers.has(layer.layer_type) ? '#7d6140' : '#3d3328',
+                  background: visibleLayers.has(layer.layerType) ? semantic.primary : '#3d3328',
                   flexShrink: 0,
                   transition: 'background 200ms ease',
                   position: 'relative',
                 }}
-                title={`Toggle ${LAYER_LABELS[layer.layer_type]}`}
+                title={`Toggle ${LAYER_LABELS[layer.layerType]}`}
               >
                 <span
                   style={{
                     position: 'absolute',
                     top: 2,
-                    left: visibleLayers.has(layer.layer_type) ? 16 : 2,
+                    left: visibleLayers.has(layer.layerType) ? 16 : 2,
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    background: '#f2ede3',
+                    background: mapTokens.label,
                     transition: 'left 200ms ease',
                   }}
                 />
@@ -179,7 +180,7 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
 
               {/* Icon + Label */}
               <button
-                onClick={() => setExpandedLayer(expandedLayer === layer.layer_type ? null : layer.layer_type)}
+                onClick={() => setExpandedLayer(expandedLayer === layer.layerType ? null : layer.layerType)}
                 style={{
                   flex: 1,
                   minWidth: 0,
@@ -188,18 +189,18 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
                   cursor: 'pointer',
                   textAlign: 'left',
                   padding: 0,
-                  color: '#f2ede3',
+                  color: mapTokens.label,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span style={{ fontSize: 10, opacity: 0.6, width: 14, textAlign: 'center' }}>
-                    {LAYER_ICONS[layer.layer_type]}
+                    {LAYER_ICONS[layer.layerType]}
                   </span>
                   <span style={{ fontSize: 12, lineHeight: 1.3 }}>
-                    {LAYER_LABELS[layer.layer_type]}
+                    {LAYER_LABELS[layer.layerType]}
                   </span>
                 </div>
-                <div style={{ fontSize: 10, color: '#9a8a74', display: 'flex', gap: 4, paddingLeft: 18 }}>
+                <div style={{ fontSize: 10, color: semantic.sidebarIcon, display: 'flex', gap: 4, paddingLeft: 18 }}>
                   <span
                     style={{
                       color: CONFIDENCE_COLORS[layer.confidence],
@@ -211,14 +212,14 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
                   </span>
                   <span>confidence</span>
                   <span style={{ marginLeft: 'auto', fontSize: 9, opacity: 0.5 }}>
-                    {expandedLayer === layer.layer_type ? '▾' : '▸'}
+                    {expandedLayer === layer.layerType ? '▾' : '▸'}
                   </span>
                 </div>
               </button>
             </div>
 
             {/* Expanded summary */}
-            {expandedLayer === layer.layer_type && (
+            {expandedLayer === layer.layerType && (
               <div
                 style={{
                   marginLeft: 38,
@@ -234,7 +235,7 @@ export default function LayerPanel({ projectId }: { projectId: string }) {
                   </div>
                 ))}
                 <div style={{ fontSize: 9, color: '#6b5b4a', marginTop: 4 }}>
-                  Source: {layer.source_api} — {layer.attribution}
+                  Source: {layer.sourceApi} — {layer.attribution}
                 </div>
               </div>
             )}

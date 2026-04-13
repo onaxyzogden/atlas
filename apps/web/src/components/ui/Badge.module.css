@@ -63,17 +63,17 @@
 }
 
 .variant-confidence-high {
-  background-color: rgba(45, 122, 79, 0.12);
+  background-color: rgba(var(--color-confidence-high-rgb), 0.12);
   color: var(--color-confidence-high, #2d7a4f);
 }
 
 .variant-confidence-medium {
-  background-color: rgba(138, 109, 30, 0.12);
+  background-color: rgba(var(--color-confidence-med-rgb), 0.12);
   color: var(--color-confidence-medium, #8a6d1e);
 }
 
 .variant-confidence-low {
-  background-color: rgba(155, 58, 42, 0.12);
+  background-color: rgba(var(--color-confidence-low-rgb), 0.12);
   color: var(--color-confidence-low, #9b3a2a);
 }
 

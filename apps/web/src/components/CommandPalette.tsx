@@ -11,6 +11,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useUIStore } from '../store/uiStore.js';
+import { zIndex } from '../lib/tokens.js';
 import { useProjectStore } from '../store/projectStore.js';
 import { useMapStore } from '../store/mapStore.js';
 
@@ -130,7 +131,7 @@ export default function CommandPalette() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 200,
+        zIndex: zIndex.overlay,
         background: 'rgba(0,0,0,0.5)',
         display: 'flex',
         justifyContent: 'center',

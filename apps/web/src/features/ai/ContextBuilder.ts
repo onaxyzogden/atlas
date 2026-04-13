@@ -46,7 +46,7 @@ export function buildProjectContext(projectId: string, layers: MockLayerResult[]
     lines.push('## Site Data (Live Layers)');
     for (const layer of layers) {
       const summaryLines = getLayerSummaryText(layer);
-      lines.push(`### ${layer.layer_type} (${layer.confidence} confidence, source: ${layer.source_api})`);
+      lines.push(`### ${layer.layerType} (${layer.confidence} confidence, source: ${layer.sourceApi})`);
       summaryLines.forEach((l) => lines.push(`  - ${l}`));
     }
     lines.push('');

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { NotFoundError } from '../../lib/errors.js';
 import type { LayerType } from '@ogden/shared';
+import { toCamelCase } from '@ogden/shared';
 
 export default async function layerRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole } = fastify;
@@ -20,7 +21,7 @@ export default async function layerRoutes(fastify: FastifyInstance) {
         WHERE pl.project_id = ${req.projectId}
         ORDER BY pl.layer_type
       `;
-      return { data: layers, meta: { total: layers.length }, error: null };
+      return { data: toCamelCase(layers), meta: { total: layers.length }, error: null };
     },
   );
 
@@ -36,7 +37,7 @@ export default async function layerRoutes(fastify: FastifyInstance) {
           AND pl.layer_type = ${req.params.layerType}
       `;
       if (!layer) throw new NotFoundError('Layer', req.params.layerType);
-      return { data: layer, meta: undefined, error: null };
+      return { data: toCamelCase(layer), meta: undefined, error: null };
     },
   );
 

@@ -25,6 +25,7 @@ import { useProjectStore } from '../../store/projectStore.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { getDomainContext, type DomainKey } from './domainMapping.js';
+import { map as mapTokens, group } from '../../lib/tokens.js';
 import css from './MapView.module.css';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
@@ -80,7 +81,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const [mapRef, setMapRef] = useState<maplibregl.Map | null>(null);
   const [drawRef, setDrawRef] = useState<MapboxDraw | null>(null);
   const [markerRef, setMarkerRef] = useState<maplibregl.Marker | null>(null);
-  const [boundaryColor, setBoundaryColor] = useState('#7d6140');
+  const [boundaryColor, setBoundaryColor] = useState<string>(mapTokens.boundary);
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [pendingCommentLngLat, setPendingCommentLngLat] = useState<[number, number] | null>(null);
   const [pendingCommentText, setPendingCommentText] = useState('');
@@ -303,7 +304,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               style={{
                 padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
                 background: pendingCommentText.trim() ? 'rgba(196,162,101,0.2)' : 'rgba(255,255,255,0.05)',
-                color: pendingCommentText.trim() ? '#c4a265' : 'rgba(255,255,255,0.3)',
+                color: pendingCommentText.trim() ? group.livestock : 'rgba(255,255,255,0.3)',
                 fontSize: 12, fontWeight: 600, flexShrink: 0,
               }}
             >

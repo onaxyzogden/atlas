@@ -35,7 +35,7 @@
 }
 
 .overlaySwitchOn {
-  background: rgba(196, 162, 101, 0.4);
+  background: rgba(var(--color-gold-rgb), 0.4);
 }
 
 .overlayDot {
@@ -52,7 +52,7 @@
 
 .overlayDotOn {
   transform: translateX(14px);
-  background: #c4a265;
+  background: var(--color-primary);
 }
 
 /* ─── Vision textarea (the big contemplative input) ────────────────── */
@@ -64,8 +64,8 @@
   font-family: var(--font-sans);
   line-height: 1.8;
   color: var(--color-panel-text);
-  background: rgba(196, 162, 101, 0.03);
-  border: 1px solid rgba(196, 162, 101, 0.08);
+  background: rgba(var(--color-gold-rgb), 0.03);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.08);
   border-radius: 10px;
   resize: vertical;
   outline: none;
@@ -75,8 +75,8 @@
 }
 
 .visionTextarea:focus {
-  border-color: rgba(196, 162, 101, 0.25);
-  background: rgba(196, 162, 101, 0.05);
+  border-color: rgba(var(--color-gold-rgb), 0.25);
+  background: rgba(var(--color-gold-rgb), 0.05);
 }
 
 .visionTextarea::placeholder {
@@ -116,13 +116,13 @@
 }
 
 .typeChip:hover {
-  border-color: rgba(196, 162, 101, 0.2);
+  border-color: rgba(var(--color-gold-rgb), 0.2);
 }
 
 .typeChipActive {
-  background: rgba(196, 162, 101, 0.12);
-  border-color: rgba(196, 162, 101, 0.25);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border-color: rgba(var(--color-gold-rgb), 0.25);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -163,12 +163,12 @@
 }
 
 .fitWeightCritical {
-  background: rgba(196, 162, 101, 0.12);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: var(--color-primary);
 }
 
 .fitWeightImportant {
-  background: rgba(45, 122, 79, 0.1);
+  background: rgba(var(--color-confidence-high-rgb), 0.1);
   color: var(--color-confidence-high);
 }
 
@@ -270,8 +270,8 @@
   font-family: var(--font-sans);
   line-height: 1.7;
   color: var(--color-panel-text);
-  background: rgba(107, 91, 138, 0.03);
-  border: 1px solid rgba(107, 91, 138, 0.1);
+  background: rgba(var(--color-zone-spiritual-rgb), 0.03);
+  border: 1px solid rgba(var(--color-zone-spiritual-rgb), 0.1);
   border-radius: 8px;
   resize: vertical;
   outline: none;
@@ -280,7 +280,7 @@
 }
 
 .moontranceTextarea:focus {
-  border-color: rgba(107, 91, 138, 0.25);
+  border-color: rgba(var(--color-zone-spiritual-rgb), 0.25);
 }
 
 .moontranceTextarea::placeholder {
@@ -304,15 +304,15 @@
 }
 
 .phaseCardYear1 {
-  border-left-color: #c4a265;
+  border-left-color: var(--color-primary);
 }
 
 .phaseCardYear2 {
-  border-left-color: #8a9a74;
+  border-left-color: var(--color-status-good);
 }
 
 .phaseCardYear4 {
-  border-left-color: #7a8a9a;
+  border-left-color: var(--color-group-hydrology);
 }
 
 .phaseHeader {
@@ -352,8 +352,8 @@
 }
 
 .phaseTextarea:focus {
-  border-color: rgba(196, 162, 101, 0.2);
-  background: rgba(196, 162, 101, 0.02);
+  border-color: rgba(var(--color-gold-rgb), 0.2);
+  background: rgba(var(--color-gold-rgb), 0.02);
 }
 
 .phaseTextarea::placeholder {

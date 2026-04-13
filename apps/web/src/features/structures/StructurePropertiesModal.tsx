@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import type { StructureType, Structure } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
+import { semantic, zIndex } from '../../lib/tokens.js';
 
 interface NewPlacementProps {
   mode: 'new';
@@ -60,7 +61,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 200,
+        zIndex: zIndex.modal,
         background: 'rgba(0, 0, 0, 0.65)',
         backdropFilter: 'blur(4px)',
         display: 'flex',
@@ -126,7 +127,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
               min={1} max={Math.max(30, widthM + 5)} step={0.5}
               value={widthM}
               onChange={(e) => setWidthM(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: '#c4a265' }}
+              style={{ width: '100%', accentColor: semantic.sidebarActive }}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -136,7 +137,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
               min={1} max={Math.max(30, depthM + 5)} step={0.5}
               value={depthM}
               onChange={(e) => setDepthM(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: '#c4a265' }}
+              style={{ width: '100%', accentColor: semantic.sidebarActive }}
             />
           </div>
         </div>
@@ -149,7 +150,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
             min={0} max={360} step={5}
             value={rotationDeg}
             onChange={(e) => setRotationDeg(parseInt(e.target.value))}
-            style={{ flex: 1, accentColor: '#c4a265' }}
+            style={{ flex: 1, accentColor: semantic.sidebarActive }}
           />
           <div
             style={{

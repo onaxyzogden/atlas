@@ -9,16 +9,17 @@ import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ProjectRole } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
+import { role as roleToken, semantic } from '../../lib/tokens.js';
 
 interface MembersTabProps {
   project: LocalProject;
 }
 
 const ROLE_CONFIG: Record<string, { icon: string; color: string; desc: string }> = {
-  owner:    { icon: '\u{1F451}', color: '#CA8A04', desc: 'Full access \u2014 create, edit, delete, share' },
-  designer: { icon: '\u270F\uFE0F',  color: '#15803D', desc: 'Edit zones, structures, paths \u2014 no delete' },
-  reviewer: { icon: '\u{1F4AC}', color: '#7a8a9a', desc: 'Comment, suggest edits \u2014 no direct changes' },
-  viewer:   { icon: '\u{1F441}\uFE0F',  color: '#9a8a7a', desc: 'View only \u2014 no comments or changes' },
+  owner:    { icon: '\u{1F451}', color: roleToken.owner, desc: 'Full access \u2014 create, edit, delete, share' },
+  designer: { icon: '\u270F\uFE0F',  color: roleToken.designer, desc: 'Edit zones, structures, paths \u2014 no delete' },
+  reviewer: { icon: '\u{1F4AC}', color: roleToken.reviewer, desc: 'Comment, suggest edits \u2014 no direct changes' },
+  viewer:   { icon: '\u{1F441}\uFE0F',  color: roleToken.viewer, desc: 'View only \u2014 no comments or changes' },
 };
 
 const ASSIGNABLE_ROLES: Array<Exclude<ProjectRole, 'owner'>> = ['designer', 'reviewer', 'viewer'];
@@ -133,7 +134,7 @@ export default function MembersTab({ project }: MembersTabProps) {
             {isInviting ? 'Inviting...' : 'Invite'}
           </button>
           {inviteError && (
-            <div className={`${p.text11}`} style={{ color: '#ef4444', marginTop: 6 }}>
+            <div className={`${p.text11}`} style={{ color: '#ef4444' /* red error */, marginTop: 6 }}>
               {inviteError}
             </div>
           )}

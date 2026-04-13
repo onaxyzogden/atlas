@@ -26,6 +26,10 @@ declare module 'fastify' {
   }
 }
 
+// Stale connection timeout: 3× the client heartbeat interval (30s)
+const STALE_TIMEOUT_MS = 90_000;
+const STALE_CHECK_MS = 30_000;
+
 export default fp(async (fastify: FastifyInstance) => {
   // Register the underlying WebSocket support
   await fastify.register(websocket);
@@ -51,8 +55,31 @@ export default fp(async (fastify: FastifyInstance) => {
     },
   );
 
+  // Periodic stale connection cleanup — removes connections with no
+  // heartbeat received within STALE_TIMEOUT_MS (90s)
+  let staleTimer: ReturnType<typeof setInterval> | null = null;
+
+  fastify.addHook('onReady', async () => {
+    staleTimer = setInterval(() => {
+      const now = Date.now();
+      for (const [projectId, room] of connections) {
+        for (const [userId, conn] of room) {
+          if (now - conn.lastSeen > STALE_TIMEOUT_MS) {
+            try {
+              conn.socket.close(4000, 'Stale connection');
+            } catch { /* ignore */ }
+            room.delete(userId);
+            fastify.log.info({ projectId, userId }, 'Removed stale WS connection');
+          }
+        }
+        if (room.size === 0) connections.delete(projectId);
+      }
+    }, STALE_CHECK_MS);
+  });
+
   // Cleanup all connections on server shutdown
   fastify.addHook('onClose', async () => {
+    if (staleTimer) clearInterval(staleTimer);
     for (const room of connections.values()) {
       for (const conn of room.values()) {
         try {

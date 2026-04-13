@@ -15,8 +15,8 @@
 }
 
 .baseMapBtnActive {
-  background: rgba(196, 162, 101, 0.08);
-  border-color: rgba(196, 162, 101, 0.25);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border-color: rgba(var(--color-gold-rgb), 0.25);
 }
 
 .baseMapBtnLabel {

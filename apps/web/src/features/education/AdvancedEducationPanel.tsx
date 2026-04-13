@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { structure } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 type Mode = 'browse' | 'tour' | 'quiz';
@@ -50,7 +51,7 @@ export default function AdvancedEducationPanel() {
               className={p.card}
               style={{ cursor: 'pointer', textAlign: 'left', color: 'inherit', width: '100%' }}
             >
-              <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h.category}</div>
+              <div className={p.text10} style={{ color: structure.spiritual, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h.category}</div>
               <div className={`${p.text13} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', marginTop: 2 }}>{h.title}</div>
               {expandedId === h.id && (
                 <div className={`${p.text12} ${p.muted} ${p.leading16}`} style={{ marginTop: 8 }}>
@@ -69,7 +70,7 @@ export default function AdvancedEducationPanel() {
             Step {tourStep + 1} of {HOTSPOTS.length}
           </div>
           <div className={`${p.highlightBox} ${p.highlightBoxGold}`}>
-            <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
+            <div className={p.text10} style={{ color: structure.spiritual, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
               {HOTSPOTS[tourStep]?.category}
             </div>
             <h3 className={`${p.textLg} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', marginBottom: 8, marginTop: 0 }}>
@@ -111,7 +112,7 @@ export default function AdvancedEducationPanel() {
         <div className={p.flexCol} style={{ gap: 12 }}>
           {HOTSPOTS.map((h) => (
             <div key={h.id} className={p.card}>
-              <div className={p.text10} style={{ color: '#6B5B8A', fontWeight: 600, marginBottom: 4 }}>{h.category}</div>
+              <div className={p.text10} style={{ color: structure.spiritual, fontWeight: 600, marginBottom: 4 }}>{h.category}</div>
               <div className={`${p.text12} ${p.fontMedium} ${p.mb8}`} style={{ color: 'var(--color-panel-text)' }}>
                 {h.quiz}
               </div>

@@ -57,11 +57,11 @@ function setCache(key: string, layers: MockLayerResult[], isLive: boolean) {
     // Strip large arrays before caching to stay within localStorage limits.
     // Stats are preserved; raw payloads are re-fetched when needed.
     const cacheable = layers.map((l) => {
-      if (l.layer_type === 'elevation' && l.summary?.raster_tile) {
+      if (l.layerType === 'elevation' && l.summary?.raster_tile) {
         const { raster_tile: _strip, ...rest } = l.summary;
         return { ...l, summary: rest };
       }
-      if (l.layer_type === 'climate') {
+      if (l.layerType === 'climate') {
         let summary = l.summary;
         if (summary?._monthly_normals) {
           const { _monthly_normals: _strip, ...rest } = summary;
@@ -175,15 +175,15 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
-  const idx = results.findIndex((r) => r.layer_type === replacement.layer_type);
+  const idx = results.findIndex((r) => r.layerType === replacement.layerType);
   if (idx >= 0) results[idx] = replacement;
 }
 
 /** True when the result came from a real API with usable data. */
 function isLiveResult(r: MockLayerResult): boolean {
-  return r.fetch_status === 'complete' &&
-         !r.source_api.startsWith('Estimated') &&
-         !r.source_api.startsWith('Climate model');
+  return r.fetchStatus === 'complete' &&
+         !r.sourceApi.startsWith('Estimated') &&
+         !r.sourceApi.startsWith('Climate model');
 }
 
 // ── Elevation fetcher (USGS 3DEP WCS raster tiles) ───────────────────────
@@ -244,16 +244,16 @@ async function fetchElevationNrcan(
   }
 
   const d = result.data;
-  if (!d || d.fetch_status !== 'complete' || !d.summary) {
+  if (!d || d.fetchStatus !== 'complete' || !d.summary) {
     throw new Error(d?.message ?? 'No HRDEM data available');
   }
 
   return {
-    layer_type: 'elevation',
-    fetch_status: d.fetch_status,
+    layerType: 'elevation',
+    fetchStatus: d.fetchStatus,
     confidence: d.confidence,
-    data_date: d.data_date ?? new Date().toISOString().split('T')[0]!,
-    source_api: d.source_api,
+    dataDate: d.dataDate ?? new Date().toISOString().split('T')[0]!,
+    sourceApi: d.sourceApi,
     attribution: d.attribution,
     summary: {
       min_elevation_m: d.summary.min_elevation_m,
@@ -265,7 +265,7 @@ async function fetchElevationNrcan(
       datum: d.datum,
       datum_offset_applied: d.datum_offset_applied,
       original_datum: d.original_datum,
-      raster_url: d.raster_url,
+      rasterUrl: d.rasterUrl,
       raster_tile: d.raster_tile,
     },
   };
@@ -402,11 +402,11 @@ async function fetchElevationWCS(
   };
 
   return {
-    layer_type: 'elevation',
-    fetch_status: 'complete',
+    layerType: 'elevation',
+    fetchStatus: 'complete',
     confidence: 'high',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: 'USGS 3DEP (WCS 1m)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: 'USGS 3DEP (WCS 1m)',
     attribution: 'U.S. Geological Survey, 3D Elevation Program',
     summary: {
       min_elevation_m: Math.round(min),
@@ -427,11 +427,11 @@ function elevationFromLatitude(lat: number, lng: number, country: string): MockL
   const elev = Math.round(baseElev + lngFactor);
 
   return {
-    layer_type: 'elevation',
-    fetch_status: 'complete',
+    layerType: 'elevation',
+    fetchStatus: 'complete',
     confidence: country === 'CA' ? 'medium' : 'low',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'Estimated (NRCan HRDEM unavailable)' : 'Estimated',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'Estimated (NRCan HRDEM unavailable)' : 'Estimated',
     attribution: 'Latitude-based estimate',
     summary: {
       min_elevation_m: elev - 30,
@@ -508,11 +508,11 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
       : `Class ${capClass}`;
 
     return {
-      layer_type: 'soils',
-      fetch_status: 'complete',
+      layerType: 'soils',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: new Date().toISOString().split('T')[0]!,
-      source_api: 'USDA SSURGO (SDA)',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'USDA SSURGO (SDA)',
       attribution: 'USDA Natural Resources Conservation Service',
       summary: {
         predominant_texture: texture,
@@ -580,11 +580,11 @@ async function fetchLioSoils(lat: number, lng: number): Promise<MockLayerResult>
   const depth = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : 'N/A';
 
   return {
-    layer_type: 'soils',
-    fetch_status: 'complete',
+    layerType: 'soils',
+    fetchStatus: 'complete',
     confidence: 'high',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: 'Ontario Soil Survey Complex (LIO)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: 'Ontario Soil Survey Complex (LIO)',
     attribution: 'OMAFRA / Ontario Ministry of Natural Resources',
     summary: {
       predominant_texture: texture,
@@ -631,11 +631,11 @@ function soilsFromLatitude(lat: number, country: string): MockLayerResult {
   // Ontario soils are predominantly clay loam in the south
   const texture = lat > 44 ? 'Sandy loam' : 'Clay loam';
   return {
-    layer_type: 'soils',
-    fetch_status: 'complete',
+    layerType: 'soils',
+    fetchStatus: 'complete',
     confidence: 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'Estimated (OMAFRA CanSIS unavailable)' : 'Estimated',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'Estimated (OMAFRA CanSIS unavailable)' : 'Estimated',
     attribution: country === 'CA' ? 'Latitude-based estimate (Ontario typical)' : 'Latitude-based estimate',
     summary: {
       predominant_texture: texture,
@@ -864,11 +864,11 @@ async function fetchNoaaClimate(
   } catch { /* wind data failure doesn't fail the climate layer */ }
 
   return {
-    layer_type: 'climate',
-    fetch_status: 'complete',
+    layerType: 'climate',
+    fetchStatus: 'complete',
     confidence,
-    data_date: '1991-2020',
-    source_api: 'NOAA ACIS (1991\u20132020 Normals)',
+    dataDate: '1991-2020',
+    sourceApi: 'NOAA ACIS (1991\u20132020 Normals)',
     attribution: `NOAA Regional Climate Centers \u2014 station: ${bestStation.name}`,
     summary: {
       annual_precip_mm: annualPrecipMm,
@@ -981,11 +981,11 @@ function climateFromLatitude(lat: number, lng: number, country: string): MockLay
   const windRose = windRoseFromLatitude(lat);
 
   return {
-    layer_type: 'climate',
-    fetch_status: 'complete',
+    layerType: 'climate',
+    fetchStatus: 'complete',
     confidence: 'low',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'Estimated (ECCC-derived)' : 'Estimated (NOAA-derived)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'Estimated (ECCC-derived)' : 'Estimated (NOAA-derived)',
     attribution: country === 'CA' ? 'Latitude-based estimate from ECCC normals' : 'Latitude-based estimate from NOAA normals',
     summary: {
       annual_precip_mm: precipMm,
@@ -1043,11 +1043,11 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
   } catch { /* wind data failure doesn't fail the climate layer */ }
 
   return {
-    layer_type: 'climate',
-    fetch_status: 'complete',
+    layerType: 'climate',
+    fetchStatus: 'complete',
     confidence: 'high',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: 'ECCC Climate Normals (OGC API)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: 'ECCC Climate Normals (OGC API)',
     attribution: 'Environment and Climate Change Canada',
     summary: {
       annual_precip_mm: annualPrecip ?? 'N/A',
@@ -1095,11 +1095,11 @@ async function fetchWatershed(lat: number, lng: number, country: string): Promis
     const name = feature.name ?? feature.NAME ?? 'Unknown';
 
     return {
-      layer_type: 'watershed',
-      fetch_status: 'complete',
+      layerType: 'watershed',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: new Date().toISOString().split('T')[0]!,
-      source_api: 'USGS WBD (NHD Plus)',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'USGS WBD (NHD Plus)',
       attribution: 'U.S. Geological Survey',
       summary: {
         huc_code: huc12,
@@ -1172,11 +1172,11 @@ async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerR
     deriveFallbackStreamOrder(features.length);
 
   return {
-    layer_type: 'watershed',
-    fetch_status: 'complete',
+    layerType: 'watershed',
+    fetchStatus: 'complete',
     confidence: nearestM < 1000 ? 'high' : 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: 'Ontario Hydro Network (LIO)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: 'Ontario Hydro Network (LIO)',
     attribution: 'Ontario Ministry of Natural Resources and Forestry',
     summary: {
       huc_code: 'N/A',
@@ -1201,11 +1201,11 @@ function watershedFromLatitude(lat: number, lng: number, country: string): MockL
     : (isGreatLakes ? 'Great Lakes Basin' : lat > 40 ? 'Upper Ohio Basin' : 'Chesapeake Bay Basin');
 
   return {
-    layer_type: 'watershed',
-    fetch_status: 'complete',
+    layerType: 'watershed',
+    fetchStatus: 'complete',
     confidence: 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'Estimated (Ontario Hydro Network)' : 'Estimated (NHD Plus)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'Estimated (Ontario Hydro Network)' : 'Estimated (NHD Plus)',
     attribution: 'Regional estimate',
     summary: {
       huc_code: 'N/A',
@@ -1284,11 +1284,11 @@ async function fetchWetlandsFlood(
   if (nwi) { sources.push('USFWS NWI'); attributions.push('U.S. Fish & Wildlife Service'); }
 
   return {
-    layer_type: 'wetlands_flood',
-    fetch_status: 'complete',
+    layerType: 'wetlands_flood',
+    fetchStatus: 'complete',
     confidence: flood && nwi ? 'high' : 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: sources.join(' + '),
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: sources.join(' + '),
     attribution: attributions.join(', '),
     summary: {
       flood_zone: floodLabel,
@@ -1665,11 +1665,11 @@ async function fetchLioFloodWetlands(
   if (wet) { sources.push('Ontario Wetland Inventory (LIO)'); attributions.push('Ontario NHIC / MNRF'); }
 
   return {
-    layer_type: 'wetlands_flood',
-    fetch_status: 'complete',
+    layerType: 'wetlands_flood',
+    fetchStatus: 'complete',
     confidence: reg && wet ? 'high' : 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: sources.join(' + '),
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: sources.join(' + '),
     attribution: [...new Set(attributions)].join(', '),
     summary: {
       flood_zone: floodZone,
@@ -1875,11 +1875,11 @@ function wetlandsUnavailable(country: string): MockLayerResult {
     : 'FEMA flood zone data and National Wetlands Inventory data could not be retrieved for this location. This may be due to service availability or the area not yet being mapped. Check local flood maps and wetland inventories directly.';
 
   return {
-    layer_type: 'wetlands_flood',
-    fetch_status: 'unavailable',
+    layerType: 'wetlands_flood',
+    fetchStatus: 'unavailable',
     confidence: 'low',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'LIO (unavailable for this area)' : 'FEMA / NWI (unavailable)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'LIO (unavailable for this area)' : 'FEMA / NWI (unavailable)',
     attribution: country === 'CA' ? 'Ontario MNRF / Conservation Authority' : 'FEMA / USFWS',
     summary: {
       flood_zone: 'Data not available for this area',
@@ -1918,11 +1918,11 @@ async function fetchLandCover(lat: number, lng: number, country: string): Promis
       const nlcdClass = NLCD_CLASSES[String(val)] ?? 'Unknown';
 
       return {
-        layer_type: 'land_cover',
-        fetch_status: 'complete',
+        layerType: 'land_cover',
+        fetchStatus: 'complete',
         confidence: 'high',
-        data_date: new Date().toISOString().split('T')[0]!,
-        source_api: 'USGS NLCD 2021',
+        dataDate: new Date().toISOString().split('T')[0]!,
+        sourceApi: 'USGS NLCD 2021',
         attribution: 'Multi-Resolution Land Characteristics Consortium',
         summary: {
           primary_class: nlcdClass,
@@ -2096,11 +2096,11 @@ async function fetchAafcLandCover(lat: number, lng: number): Promise<MockLayerRe
   const imperviousPct = code === 134 ? 45 : code === 135 ? 0 : 3;
 
   return {
-    layer_type: 'land_cover',
-    fetch_status: 'complete',
+    layerType: 'land_cover',
+    fetchStatus: 'complete',
     confidence: 'high',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: 'AAFC Annual Crop Inventory 2024',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: 'AAFC Annual Crop Inventory 2024',
     attribution: 'Agriculture and Agri-Food Canada',
     summary: {
       primary_class: primaryClass,
@@ -2122,11 +2122,11 @@ function landCoverFromLatitude(lat: number, country: string): MockLayerResult {
   const shrubPct = Math.max(0, remaining - wetlandPct);
 
   return {
-    layer_type: 'land_cover',
-    fetch_status: 'complete',
+    layerType: 'land_cover',
+    fetchStatus: 'complete',
     confidence: 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: country === 'CA' ? 'Estimated (AAFC model)' : 'Estimated (NLCD unavailable)',
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: country === 'CA' ? 'Estimated (AAFC model)' : 'Estimated (NLCD unavailable)',
     attribution: 'Latitude-based regional estimate',
     summary: {
       classes: {
@@ -2966,11 +2966,11 @@ async function fetchUsZoning(
     : result.zoneCode;
 
   return {
-    layer_type: 'zoning',
-    fetch_status: 'complete',
+    layerType: 'zoning',
+    fetchStatus: 'complete',
     confidence: 'medium',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: `${endpoint.countyLabel} GIS`,
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: `${endpoint.countyLabel} GIS`,
     attribution: `${endpoint.countyLabel} Planning Department`,
     summary: {
       zoning_code: result.zoneCode,
@@ -3211,11 +3211,11 @@ async function fetchCaZoning(
     : undefined;
 
   return {
-    layer_type: 'zoning',
-    fetch_status: 'complete',
+    layerType: 'zoning',
+    fetchStatus: 'complete',
     confidence: lio && cli ? 'medium' : 'low',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: sources.join(' + '),
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: sources.join(' + '),
     attribution: attributions.join(', '),
     summary: {
       zoning_code: zoningCode,
@@ -3270,11 +3270,11 @@ function zoningUnavailable(country: string, countyName?: string, stateCode?: str
   }
 
   return {
-    layer_type: 'zoning',
-    fetch_status: 'unavailable',
+    layerType: 'zoning',
+    fetchStatus: 'unavailable',
     confidence: 'low',
-    data_date: new Date().toISOString().split('T')[0]!,
-    source_api: sourceApi,
+    dataDate: new Date().toISOString().split('T')[0]!,
+    sourceApi: sourceApi,
     attribution: country === 'US' ? 'Municipal planning department' : 'Ontario MNRF / AAFC',
     summary: {
       zoning_code: 'Data not available for this area',

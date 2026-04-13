@@ -16,6 +16,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
 import { Spinner } from '../ui/Spinner.js';
+import { status as statusToken, semantic, confidence, error as errorToken, water } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './HydrologyRightPanel.module.css';
 
@@ -51,12 +52,12 @@ interface SoilsSummary {
 type PanelMode = 'realtime' | 'design';
 
 const INTERVENTIONS = [
-  { icon: '◉', label: 'Keyline pond (1 acre)',         phase: 'Phase 2', color: '#5b9db8' },
-  { icon: '≡', label: 'Swale network on contour',      phase: 'Phase 2', color: '#5b9db8' },
-  { icon: '▼', label: 'Roof catchment system',          phase: 'Phase 1', color: '#2d7a4f' },
-  { icon: '○', label: 'Wetland restoration buffer',     phase: 'Phase 3', color: '#8a6d1e' },
-  { icon: '◆', label: 'Tile drain control structures',  phase: 'Phase 1', color: '#2d7a4f' },
-  { icon: '~', label: 'Riparian planting (30m buffer)', phase: 'Phase 2', color: '#5b9db8' },
+  { icon: '◉', label: 'Keyline pond (1 acre)',         phase: 'Phase 2', color: water[400] },
+  { icon: '≡', label: 'Swale network on contour',      phase: 'Phase 2', color: water[400] },
+  { icon: '▼', label: 'Roof catchment system',          phase: 'Phase 1', color: confidence.high },
+  { icon: '○', label: 'Wetland restoration buffer',     phase: 'Phase 3', color: confidence.medium },
+  { icon: '◆', label: 'Tile drain control structures',  phase: 'Phase 1', color: confidence.high },
+  { icon: '~', label: 'Riparian planting (30m buffer)', phase: 'Phase 2', color: water[400] },
 ];
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
@@ -254,7 +255,7 @@ function RealtimePanel({ live, metrics, isLoading }: {
                     className={s.subBasinBar}
                     style={{
                       height: `${(h / peak) * 100}%`,
-                      background: h === peak ? '#8a9a74' : 'rgba(138,154,116,0.3)',
+                      background: h === peak ? statusToken.good : 'rgba(138,154,116,0.3)',
                     }}
                   />
                 </div>
@@ -269,9 +270,9 @@ function RealtimePanel({ live, metrics, isLoading }: {
         <div className={s.alertHeader}>
           <span className={s.alertIcon}>
             <svg width={13} height={13} viewBox="0 0 13 13" fill="none">
-              <path d="M6.5 1L12.5 11.5H0.5L6.5 1Z" stroke="#c4a265" strokeWidth={1.4} strokeLinejoin="round"/>
-              <line x1="6.5" y1="5" x2="6.5" y2="8.5" stroke="#c4a265" strokeWidth={1.4} strokeLinecap="round"/>
-              <circle cx="6.5" cy="10" r="0.6" fill="#c4a265"/>
+              <path d="M6.5 1L12.5 11.5H0.5L6.5 1Z" stroke={semantic.sidebarActive} strokeWidth={1.4} strokeLinejoin="round"/>
+              <line x1="6.5" y1="5" x2="6.5" y2="8.5" stroke={semantic.sidebarActive} strokeWidth={1.4} strokeLinecap="round"/>
+              <circle cx="6.5" cy="10" r="0.6" fill={semantic.sidebarActive}/>
             </svg>
           </span>
           <span className={s.alertTitle}>SITE ALERT</span>
@@ -305,9 +306,9 @@ function RealtimePanel({ live, metrics, isLoading }: {
           <DataRow label="Nearest Stream"   value={live?.nearestStream ?? '—'} />
           <DataRow label="Flow Direction"   value={live?.flowDirection ?? '—'} />
           <DataRow label="Flood Zone"       value={live?.floodZone ?? '—'}
-            color={/Zone X|minimal|not regulated/i.test(live?.floodZone ?? '') ? '#2d7a4f' : '#c44e3f'} />
+            color={/Zone X|minimal|not regulated/i.test(live?.floodZone ?? '') ? confidence.high : errorToken.DEFAULT} />
           <DataRow label="Wetland Coverage" value={live?.wetlandPct ?? '—'} />
-          <DataRow label="Retention Score"  value={live?.retScore ? `${live.retScore}/100` : '—'} color="#c4a265" />
+          <DataRow label="Retention Score"  value={live?.retScore ? `${live.retScore}/100` : '—'} color={semantic.sidebarActive} />
         </div>
       </div>
     </>
@@ -377,7 +378,7 @@ function DesignPanel({ live, metrics }: {
               <span className={s.interventionIcon} style={{ color: item.color }}>{item.icon}</span>
               <span className={s.interventionLabel}>{item.label}</span>
               <span className={s.phaseBadge} style={{
-                color: item.phase === 'Phase 1' ? '#2d7a4f' : item.phase === 'Phase 2' ? '#5b9db8' : '#8a6d1e',
+                color: item.phase === 'Phase 1' ? confidence.high : item.phase === 'Phase 2' ? water[400] : confidence.medium,
                 background: item.phase === 'Phase 1' ? 'rgba(45,122,79,0.1)' : item.phase === 'Phase 2' ? 'rgba(91,157,184,0.1)' : 'rgba(138,109,30,0.1)',
               }}>{item.phase}</span>
             </div>

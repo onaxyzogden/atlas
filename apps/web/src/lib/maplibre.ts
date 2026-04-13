@@ -12,6 +12,14 @@ export const MAP_STYLES: Record<string, string> = {
   hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${key}`,
 };
 
+// ── Tile source URLs (centralized so the key isn't scattered) ────────────────
+
+/** Raster-DEM tiles for hillshade, slope, and flood analysis */
+export const TERRAIN_DEM_URL = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${key}`;
+
+/** Vector contour lines (source-layer: "contour", property: "ele") */
+export const CONTOUR_TILES_URL = `https://api.maptiler.com/tiles/contours/tiles.json?key=${key}`;
+
 /** Whether a MapTiler API key is configured */
 export const hasMapToken = !!key;
 

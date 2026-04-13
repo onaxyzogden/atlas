@@ -22,6 +22,7 @@ import {
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './LivestockDashboard.module.css';
+import { status as statusToken, group } from '../../../lib/tokens.js';
 
 interface LivestockDashboardProps {
   project: LocalProject;
@@ -52,10 +53,10 @@ function truncate(str: string, max: number): string {
 }
 
 const FORAGE_COLORS: Record<string, string> = {
-  high: '#8a9a74',
+  high: statusToken.good,
   good: 'rgba(138,154,116,0.7)',
-  moderate: '#c4a265',
-  poor: '#9a6a5a',
+  moderate: statusToken.moderate,
+  poor: statusToken.poor,
 };
 
 const FORAGE_LABELS: Record<string, string> = {
@@ -131,7 +132,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
       return {
         label: truncate(p.name, 8),
         value: forage.biomassEstimate,
-        color: FORAGE_COLORS[forage.quality] ?? '#c4a265',
+        color: FORAGE_COLORS[forage.quality] ?? statusToken.moderate,
       };
     });
   }, [paddocks, siteParams]);
@@ -152,7 +153,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
           icon: p.species.length > 0 ? p.species[0]! : 'paddock',
           title: `${p.name} updated`,
           detail: `${relativeTime(p.updatedAt)} \u00b7 ${speciesLabel}`,
-          color: '#8a9a74',
+          color: statusToken.good,
           speciesIcon,
         };
       });
@@ -218,8 +219,8 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
             onClick={onSwitchToMap}
             style={{
               background: 'transparent',
-              border: '1px solid rgba(196,162,101,0.4)',
-              color: '#c4a265',
+              border: `1px solid ${group.livestock}66`,
+              color: group.livestock,
               padding: '10px 24px',
               borderRadius: 6,
               cursor: 'pointer',
@@ -264,9 +265,9 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
           const statusLabel = entry.avgCompliance >= 80 ? 'OPTIMAL'
             : entry.avgCompliance >= 50 ? 'MONITOR'
             : 'ALERT';
-          const statusColor = entry.avgCompliance >= 80 ? '#8a9a74'
-            : entry.avgCompliance >= 50 ? '#c4a265'
-            : '#9a6a5a';
+          const statusColor = entry.avgCompliance >= 80 ? statusToken.good
+            : entry.avgCompliance >= 50 ? statusToken.moderate
+            : statusToken.poor;
 
           return (
             <div key={entry.species} className={css.herdCard}>
@@ -375,19 +376,19 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '8px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'rgba(180,165,140,0.7)', fontSize: 13 }}>Shelter access (&le; 300m)</span>
-                <strong style={{ color: welfare.shelterCount === welfare.total ? '#8a9a74' : '#c4a265', fontSize: 14 }}>
+                <strong style={{ color: welfare.shelterCount === welfare.total ? statusToken.good : statusToken.moderate, fontSize: 14 }}>
                   {welfare.shelterCount} of {welfare.total} paddocks
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'rgba(180,165,140,0.7)', fontSize: 13 }}>Water access</span>
-                <strong style={{ color: welfare.waterCount === welfare.total ? '#8a9a74' : '#c4a265', fontSize: 14 }}>
+                <strong style={{ color: welfare.waterCount === welfare.total ? statusToken.good : statusToken.moderate, fontSize: 14 }}>
                   {welfare.waterCount} of {welfare.total} paddocks
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'rgba(180,165,140,0.7)', fontSize: 13 }}>Predator risk</span>
-                <strong style={{ color: welfare.highRisk > 0 ? '#9a6a5a' : welfare.moderateRisk > 0 ? '#c4a265' : '#8a9a74', fontSize: 14 }}>
+                <strong style={{ color: welfare.highRisk > 0 ? statusToken.poor : welfare.moderateRisk > 0 ? statusToken.moderate : statusToken.good, fontSize: 14 }}>
                   {welfare.highRisk + welfare.moderateRisk > 0
                     ? `${welfare.highRisk} high, ${welfare.moderateRisk} moderate`
                     : 'All low risk'}

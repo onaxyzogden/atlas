@@ -53,8 +53,8 @@
   font-weight: 600;
   margin-left: 4px;
 }
-.trendUp { color: #8a9a74; }
-.trendDown { color: #9a6a5a; }
+.trendUp { color: var(--color-status-good); }
+.trendDown { color: var(--color-status-poor); }
 
 .desc {
   margin: 10px 0 0;

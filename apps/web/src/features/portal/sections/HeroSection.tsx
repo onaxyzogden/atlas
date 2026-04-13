@@ -4,6 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { earth, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -33,7 +34,7 @@ export default function HeroSection({ config, project }: Props) {
         fontSize: 'clamp(32px, 5vw, 56px)',
         fontWeight: 300,
         letterSpacing: '0.08em',
-        color: '#f2ede3',
+        color: earth[100],
         marginBottom: 12,
         lineHeight: 1.2,
       }}>
@@ -42,7 +43,7 @@ export default function HeroSection({ config, project }: Props) {
 
       <p style={{
         fontSize: 'clamp(14px, 2vw, 18px)',
-        color: '#9a8a74',
+        color: semantic.sidebarIcon,
         maxWidth: 600,
         lineHeight: 1.7,
         marginBottom: 8,
@@ -51,7 +52,7 @@ export default function HeroSection({ config, project }: Props) {
       </p>
 
       {project.address && (
-        <p style={{ fontSize: 12, color: '#6b5b4a', letterSpacing: '0.05em', marginTop: 8 }}>
+        <p style={{ fontSize: 12, color: earth[800], letterSpacing: '0.05em', marginTop: 8 }}>
           {project.address}
           {project.provinceState && `, ${project.provinceState}`}
           {project.acreage && ` \u00B7 ${project.acreage} ${project.units === 'metric' ? 'ha' : 'ac'}`}
@@ -87,7 +88,7 @@ export default function HeroSection({ config, project }: Props) {
       <div style={{
         position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        color: '#6b5b4a', fontSize: 10, letterSpacing: '0.1em',
+        color: earth[800], fontSize: 10, letterSpacing: '0.1em',
         animation: 'portalBounce 2s infinite',
       }}>
         <span style={{ fontSize: 18 }}>{'\u2193'}</span>

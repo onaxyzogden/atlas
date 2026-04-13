@@ -22,6 +22,7 @@ import ZoneSizingCalculator from './ZoneSizingCalculator.js';
 import ZoneConflictDetector from './ZoneConflictDetector.js';
 import ZoneAllocationSummary from './ZoneAllocationSummary.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
+import { earth, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
 
@@ -318,6 +319,6 @@ function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26, 22, 17, 0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

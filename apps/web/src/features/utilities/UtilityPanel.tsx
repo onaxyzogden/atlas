@@ -12,6 +12,7 @@ import OffGridReadiness from './OffGridReadiness.js';
 import InfrastructurePhasing from './InfrastructurePhasing.js';
 import p from '../../styles/panel.module.css';
 import s from './UtilityPanel.module.css';
+import { earth, semantic, map as mapTokens } from '../../lib/tokens.js';
 
 interface UtilityPanelProps {
   projectId: string;
@@ -225,11 +226,11 @@ function renderUtilityOnMap(map: maplibregl.Map, utility: Utility) {
   });
   map.addLayer({
     id: `utility-circle-${utility.id}`, type: 'circle', source: sourceId,
-    paint: { 'circle-radius': 6, 'circle-color': cfg?.color ?? '#c4a265', 'circle-stroke-width': 2, 'circle-stroke-color': '#f2ede3' },
+    paint: { 'circle-radius': 6, 'circle-color': cfg?.color ?? semantic.sidebarActive, 'circle-stroke-width': 2, 'circle-stroke-color': earth[100] },
   });
   map.addLayer({
     id: `utility-label-${utility.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': utility.name, 'text-size': 10, 'text-offset': [0, 1.5], 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'top' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

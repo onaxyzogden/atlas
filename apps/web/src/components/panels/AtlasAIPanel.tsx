@@ -20,6 +20,7 @@ import {
 } from '../../lib/computeScores.js';
 import { Spinner } from '../ui/Spinner.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
+import { confidence, error as errorToken, water } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './AtlasAIPanel.module.css';
 
@@ -272,7 +273,7 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
         <div className={s.assessmentArea}>
           {isEnriching && (
             <div className={s.enrichingHint}>
-              <Spinner size="sm" color="#5b9db8" />
+              <Spinner size="sm" color={water[400]} />
               <span>Generating AI assessment...</span>
             </div>
           )}
@@ -329,7 +330,7 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                 disabled={isRegeneratingNarrative}
               >
                 {isRegeneratingNarrative ? (
-                  <><Spinner size="sm" color="#5b9db8" /> Regenerating...</>
+                  <><Spinner size="sm" color={water[400]} /> Regenerating...</>
                 ) : (
                   <><RefreshIcon /> Regenerate narrative</>
                 )}
@@ -377,7 +378,7 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                         disabled={regeneratingRecIdx !== null}
                       >
                         {regeneratingRecIdx === i ? (
-                          <><Spinner size="sm" color="#5b9db8" /> Regenerating...</>
+                          <><Spinner size="sm" color={water[400]} /> Regenerating...</>
                         ) : (
                           <><RefreshIcon /> Regenerate</>
                         )}
@@ -465,7 +466,7 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                       <button
                         onClick={() => handleRating(i, 'helpful')}
                         className={`${s.ratingBtn} ${msg.rating === 'helpful' ? s.ratingActive : s.ratingInactive}`}
-                        style={{ color: '#2d7a4f' }}
+                        style={{ color: confidence.high }}
                         title="Helpful"
                       >
                         {'\u{1F44D}'}
@@ -473,7 +474,7 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                       <button
                         onClick={() => handleRating(i, 'not_helpful')}
                         className={`${s.ratingBtn} ${msg.rating === 'not_helpful' ? s.ratingActive : s.ratingInactive}`}
-                        style={{ color: '#c44e3f' }}
+                        style={{ color: errorToken.DEFAULT }}
                         title="Not helpful"
                       >
                         {'\u{1F44E}'}

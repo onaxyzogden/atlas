@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import css from './SolarClimateDashboard.module.css';
+import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 
 interface SolarClimateDashboardProps {
   project: { id: string; acreage?: number | null };
@@ -72,7 +73,7 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
   const microclimate = siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null;
   const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null;
-  const microclimateStatus = siteData ? getLayer(siteData, 'microclimate')?.fetch_status : undefined;
+  const microclimateStatus = siteData ? getLayer(siteData, 'microclimate')?.fetchStatus : undefined;
 
   const windRoseData = climate?._wind_rose ?? null;
   const lat = 43.5; // Default latitude — would be derived from project center
@@ -188,16 +189,16 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
         {microclimate ? (
           <div className={css.microGrid}>
             {microclimate.sunTraps && microclimate.sunTraps.length > 0 && (
-              <MicroCard title="Sun Traps" count={microclimate.sunTraps.length} icon="\u2600" color="#c4a265" />
+              <MicroCard title="Sun Traps" count={microclimate.sunTraps.length} icon="\u2600" color={statusToken.moderate} />
             )}
             {microclimate.moistureZones && microclimate.moistureZones.length > 0 && (
-              <MicroCard title="Moisture Zones" count={microclimate.moistureZones.length} icon="\uD83D\uDCA7" color="#7a8a9a" />
+              <MicroCard title="Moisture Zones" count={microclimate.moistureZones.length} icon="\uD83D\uDCA7" color={group.hydrology} />
             )}
             {microclimate.windShelter && microclimate.windShelter.length > 0 && (
-              <MicroCard title="Wind Shelter" count={microclimate.windShelter.length} icon="\uD83C\uDF2C" color="#8a9a74" />
+              <MicroCard title="Wind Shelter" count={microclimate.windShelter.length} icon="\uD83C\uDF2C" color={statusToken.good} />
             )}
             {microclimate.frostRisk && microclimate.frostRisk.length > 0 && (
-              <MicroCard title="Frost Risk Zones" count={microclimate.frostRisk.length} icon="\u2744" color="#9a7a8a" />
+              <MicroCard title="Frost Risk Zones" count={microclimate.frostRisk.length} icon="\u2744" color={group.general} />
             )}
             {microclimate.outdoorComfort && (
               <div className={css.comfortCard}>
@@ -288,18 +289,18 @@ function SunArcDiagram({ sunPath, width, height }: { sunPath: SunPosition[]; wid
 
   return (
     <svg width={width} height={height} style={{ display: 'block', margin: '0 auto' }}>
-      <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#3d3328" strokeWidth={1} />
-      <path d={pathD} fill="none" stroke="#d4a843" strokeWidth={2} />
+      <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke={earth[800]} strokeWidth={1} />
+      <path d={pathD} fill="none" stroke={group.livestock} strokeWidth={2} />
       {visiblePath
         .filter((p) => p.elevation > 0 && p.hour % 3 === 0)
         .map((p) => (
           <g key={p.hour}>
-            <circle cx={scaleX(p.azimuth)} cy={scaleY(p.elevation)} r={3} fill="#d4a843" />
-            <text x={scaleX(p.azimuth)} y={scaleY(p.elevation) - 7} fill="#9a8a74" fontSize={9} textAnchor="middle">{p.hour}h</text>
+            <circle cx={scaleX(p.azimuth)} cy={scaleY(p.elevation)} r={3} fill={group.livestock} />
+            <text x={scaleX(p.azimuth)} y={scaleY(p.elevation) - 7} fill={semantic.textSubtle} fontSize={9} textAnchor="middle">{p.hour}h</text>
           </g>
         ))}
-      <text x={padding} y={height - 2} fill="#6b5b4a" fontSize={9}>E</text>
-      <text x={width - padding - 5} y={height - 2} fill="#6b5b4a" fontSize={9}>W</text>
+      <text x={padding} y={height - 2} fill={earth[700]} fontSize={9}>E</text>
+      <text x={width - padding - 5} y={height - 2} fill={earth[700]} fontSize={9}>W</text>
     </svg>
   );
 }
@@ -320,7 +321,7 @@ function WindRose({ lat, windData }: { lat: number; windData: WindRoseData | nul
   return (
     <svg width={size} height={size} style={{ display: 'block', margin: '0 auto' }}>
       {[0.33, 0.66, 1].map((r) => (
-        <circle key={r} cx={cx} cy={cy} r={maxR * r} fill="none" stroke="#3d3328" strokeWidth={0.5} />
+        <circle key={r} cx={cx} cy={cy} r={maxR * r} fill="none" stroke={earth[800]} strokeWidth={0.5} />
       ))}
       {directions.map((dir, i) => {
         const angle = (i * stepDeg - 90) * (Math.PI / 180);
@@ -334,13 +335,13 @@ function WindRose({ lat, windData }: { lat: number; windData: WindRoseData | nul
         const showLabel = !is16 || i % 2 === 0;
         return (
           <g key={dir}>
-            <line x1={cx} y1={cy} x2={x} y2={y} stroke="#d4a843" strokeWidth={is16 ? 2.5 : 3.5} strokeLinecap="round" opacity={0.7} />
-            {showLabel && <text x={lx} y={ly + 3} fill="#9a8a74" fontSize={is16 ? 7 : 8} textAnchor="middle">{dir}</text>}
+            <line x1={cx} y1={cy} x2={x} y2={y} stroke={group.livestock} strokeWidth={is16 ? 2.5 : 3.5} strokeLinecap="round" opacity={0.7} />
+            {showLabel && <text x={lx} y={ly + 3} fill={semantic.textSubtle} fontSize={is16 ? 7 : 8} textAnchor="middle">{dir}</text>}
           </g>
         );
       })}
       {windData && (
-        <text x={cx} y={size - 1} fill="#d4a843" fontSize={8} textAnchor="middle">Prevailing: {windData.prevailing}</text>
+        <text x={cx} y={size - 1} fill={group.livestock} fontSize={8} textAnchor="middle">Prevailing: {windData.prevailing}</text>
       )}
     </svg>
   );
@@ -365,8 +366,8 @@ function GrowingSeasonCalendar({ lastFrost, firstFrost }: { lastFrost: number; f
             <rect x={x} y={8} width={barWidth} height={barHeight} rx={4} fill={fill} stroke={stroke} strokeWidth={1} />
             {isGrowing && <rect x={x + 2} y={10} width={barWidth - 4} height={barHeight - 4} rx={3} fill="rgba(138,154,116,0.15)" />}
             <text x={x + barWidth / 2} y={50} textAnchor="middle" fill="rgba(180,165,140,0.5)" fontSize={9}>{month}</text>
-            {i === lastFrost && <text x={x + barWidth / 2} y={5} textAnchor="middle" fill="#8a9a74" fontSize={7}>Last Frost</text>}
-            {i === firstFrost && <text x={x + barWidth / 2} y={5} textAnchor="middle" fill="#7a8a9a" fontSize={7}>First Frost</text>}
+            {i === lastFrost && <text x={x + barWidth / 2} y={5} textAnchor="middle" fill={statusToken.good} fontSize={7}>Last Frost</text>}
+            {i === firstFrost && <text x={x + barWidth / 2} y={5} textAnchor="middle" fill={group.hydrology} fontSize={7}>First Frost</text>}
           </g>
         );
       })}

@@ -89,8 +89,8 @@
 .guidanceCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(138,154,116,0.15);
-  background: rgba(138,154,116,0.04);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.15);
+  background: rgba(var(--color-status-good-rgb),0.04);
   margin-bottom: 20px;
 }
 .guidanceLabel {
@@ -100,7 +100,7 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(138,154,116,0.6);
+  color: rgba(var(--color-status-good-rgb),0.6);
   margin-bottom: 10px;
 }
 .guidanceQuote {
@@ -118,10 +118,10 @@
   align-items: center;
   gap: 10px;
   padding: 14px 24px;
-  border: 1px solid rgba(196,162,101,0.4);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.4);
   border-radius: 8px;
-  background: rgba(196,162,101,0.1);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.1);
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -130,7 +130,7 @@
   transition: background 150ms;
   margin-bottom: 24px;
 }
-.reportBtn:hover { background: rgba(196,162,101,0.2); }
+.reportBtn:hover { background: rgba(var(--color-gold-rgb), 0.2); }
 
 /* Environmental bar */
 .envBar {
@@ -201,13 +201,13 @@
   height: 10px;
   border-radius: 50%;
   background: rgba(180,165,140,0.25);
-  border: 2px solid #0f1a12;
+  border: 2px solid var(--color-sidebar-bg);
 }
 .timelineStageActive .timelineDot {
   width: 14px;
   height: 14px;
-  background: #c4a265;
-  box-shadow: 0 0 8px rgba(196,162,101,0.4);
+  background: var(--color-primary);
+  box-shadow: 0 0 8px rgba(var(--color-gold-rgb), 0.4);
 }
 .timelineLabel {
   font-size: 9px;
@@ -222,7 +222,7 @@
   letter-spacing: 0.06em;
   color: rgba(232,220,200,0.85);
   white-space: nowrap;
-  background: rgba(196,162,101,0.15);
+  background: rgba(var(--color-gold-rgb), 0.15);
   padding: 3px 8px;
   border-radius: 4px;
 }

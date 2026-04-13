@@ -4,7 +4,7 @@
   display: flex;
   height: 100%;
   width: 100%;
-  background: #0f1a12;
+  background: var(--color-sidebar-bg);
 }
 
 .content {
@@ -43,7 +43,7 @@
   cursor: pointer;
 }
 .mobileSelect option {
-  background: #0f1a12;
+  background: var(--color-sidebar-bg);
   color: rgba(232, 220, 200, 0.9);
 }
 

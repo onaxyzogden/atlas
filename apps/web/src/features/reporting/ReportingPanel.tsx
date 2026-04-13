@@ -20,6 +20,7 @@ import { api } from '../../lib/apiClient.js';
 import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
+import { group, warning, sage, error as errorToken, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -103,10 +104,10 @@ const EXPORT_CATALOG: CatalogEntry[] = [
 ];
 
 const AUDIENCE_LABELS: Record<Audience, { label: string; color: string; bg: string }> = {
-  internal:   { label: 'Internal',   color: '#15803D', bg: 'rgba(21,128,61,0.10)' },
-  landowner:  { label: 'Landowner',  color: '#15803D', bg: 'rgba(21,128,61,0.10)' },
-  investor:   { label: 'Investor',   color: '#CA8A04', bg: 'rgba(202,138,4,0.10)' },
-  regulatory: { label: 'Regulatory', color: '#14532D', bg: 'rgba(20,83,45,0.10)' },
+  internal:   { label: 'Internal',   color: group.reporting, bg: 'rgba(21,128,61,0.10)' },
+  landowner:  { label: 'Landowner',  color: group.reporting, bg: 'rgba(21,128,61,0.10)' },
+  investor:   { label: 'Investor',   color: warning.DEFAULT, bg: 'rgba(202,138,4,0.10)' },
+  regulatory: { label: 'Regulatory', color: sage[900], bg: 'rgba(20,83,45,0.10)' },
 };
 
 const TYPE_LABELS: Record<ExportTypeId, string> = {
@@ -123,7 +124,7 @@ const TYPE_LABELS: Record<ExportTypeId, string> = {
 
 function IconDoc() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={group.reporting} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
@@ -135,7 +136,7 @@ function IconDoc() {
 
 function IconChart() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={warning.DEFAULT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="20" x2="18" y2="10" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
@@ -145,7 +146,7 @@ function IconChart() {
 
 function IconClipboard() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={group.reporting} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
       <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
     </svg>
@@ -154,7 +155,7 @@ function IconClipboard() {
 
 function IconMap() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={group.reporting} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
       <line x1="8" y1="2" x2="8" y2="18" />
       <line x1="16" y1="6" x2="16" y2="22" />
@@ -164,7 +165,7 @@ function IconMap() {
 
 function IconBook() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={group.reporting} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
     </svg>
@@ -173,7 +174,7 @@ function IconBook() {
 
 function IconLayers() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={warning.DEFAULT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="12 2 2 7 12 12 22 7 12 2" />
       <polyline points="2 17 12 22 22 17" />
       <polyline points="2 12 12 17 22 12" />
@@ -183,7 +184,7 @@ function IconLayers() {
 
 function IconPencil() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={group.reporting} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -202,7 +203,7 @@ function IconDownload() {
 
 function IconSpinner() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={warning.DEFAULT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
       <line x1="12" y1="2" x2="12" y2="6" />
       <line x1="12" y1="18" x2="12" y2="22" />
       <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
@@ -455,7 +456,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
           padding: '8px 12px', marginBottom: 12, borderRadius: 10,
           background: 'rgba(21,128,61,0.06)', border: '1px solid rgba(21,128,61,0.15)',
         }}>
-          <span className={p.text11} style={{ color: '#15803D', fontWeight: 500 }}>
+          <span className={p.text11} style={{ color: group.reporting, fontWeight: 500 }}>
             {selectedReadyCount} of {selected.size} selected ready
           </span>
           <button
@@ -463,7 +464,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
             disabled={bulkGenerating || selectedReadyCount === 0}
             className={p.btnSmall}
             style={{
-              background: '#15803D', color: '#fff', border: 'none', padding: '5px 14px',
+              background: group.reporting, color: '#fff', border: 'none', padding: '5px 14px',
               borderRadius: 6, cursor: bulkGenerating ? 'not-allowed' : 'pointer',
               fontWeight: 500, fontSize: 11, opacity: bulkGenerating ? 0.6 : 1,
             }}
@@ -501,7 +502,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleSelect(entry.exportType)}
-                  style={{ marginTop: 2, accentColor: '#15803D', cursor: 'pointer' }}
+                  style={{ marginTop: 2, accentColor: group.reporting, cursor: 'pointer' }}
                 />
                 {/* Icon */}
                 <div style={{ flexShrink: 0, marginTop: 1 }}><Icon /></div>
@@ -532,7 +533,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
               {/* Readiness warning */}
               {!rd.ready && rd.reason && (
                 <div style={{
-                  fontSize: 10, color: '#CA8A04', background: 'rgba(202,138,4,0.06)',
+                  fontSize: 10, color: warning.DEFAULT, background: 'rgba(202,138,4,0.06)',
                   padding: '4px 8px', borderRadius: 6, lineHeight: 1.4,
                 }}>
                   {rd.reason}
@@ -542,7 +543,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
               {/* Error message */}
               {err && (
                 <div style={{
-                  fontSize: 10, color: '#dc2626', background: 'rgba(220,38,38,0.06)',
+                  fontSize: 10, color: errorToken.DEFAULT, background: 'rgba(220,38,38,0.06)',
                   padding: '4px 8px', borderRadius: 6, lineHeight: 1.4,
                 }}>
                   {err}
@@ -559,7 +560,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '5px 12px', fontSize: 11, fontWeight: 500,
                     border: 'none', borderRadius: 6,
-                    background: rd.ready && !isOffline ? '#15803D' : '#d1d5db',
+                    background: rd.ready && !isOffline ? group.reporting : '#d1d5db',
                     color: rd.ready && !isOffline ? '#fff' : '#9ca3af',
                     cursor: rd.ready && !isGen && !isOffline ? 'pointer' : 'not-allowed',
                     opacity: isGen ? 0.7 : 1,
@@ -576,7 +577,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
                       display: 'flex', alignItems: 'center', gap: 4,
                       padding: '5px 12px', fontSize: 11, fontWeight: 500,
                       border: '1px solid rgba(21,128,61,0.2)', borderRadius: 6,
-                      color: '#15803D', textDecoration: 'none', background: 'rgba(21,128,61,0.04)',
+                      color: group.reporting, textDecoration: 'none', background: 'rgba(21,128,61,0.04)',
                     }}
                   >
                     <IconDownload /> Download PDF
@@ -643,7 +644,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
               rel="noopener noreferrer"
               style={{
                 display: 'flex', alignItems: 'center', gap: 3,
-                fontSize: 10, color: '#15803D', textDecoration: 'none',
+                fontSize: 10, color: group.reporting, textDecoration: 'none',
                 padding: '3px 8px', borderRadius: 4,
                 border: '1px solid rgba(21,128,61,0.15)',
               }}
@@ -654,7 +655,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
               onClick={() => handleGenerate(record.exportType as ExportTypeId)}
               disabled={generating[record.exportType]}
               style={{
-                fontSize: 10, color: '#CA8A04', background: 'transparent',
+                fontSize: 10, color: warning.DEFAULT, background: 'transparent',
                 border: '1px solid rgba(202,138,4,0.2)', borderRadius: 4,
                 padding: '3px 8px', cursor: 'pointer', fontWeight: 500,
               }}
@@ -668,7 +669,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
       {/* ── White-label note ── */}
       <div className={p.noteBox}>
         <div className={`${p.text11} ${p.leading15}`}>
-          <span className={p.fontSemibold} style={{ color: '#CA8A04' }}>White-Label Mode:</span>{' '}
+          <span className={p.fontSemibold} style={{ color: warning.DEFAULT }}>White-Label Mode:</span>{' '}
           <span className={p.muted}>
             Future update will allow custom branding on all exports — your logo, colors, and organization name.
           </span>

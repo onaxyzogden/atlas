@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   height: 42px;
-  background: #0f1a12;
+  background: var(--color-sidebar-bg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0 16px;
   flex-shrink: 0;
@@ -73,8 +73,8 @@
 }
 
 .tabActive {
-  color: #c4a265;
-  border-bottom-color: #c4a265;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .right {

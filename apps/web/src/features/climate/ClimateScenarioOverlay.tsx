@@ -4,14 +4,15 @@
  */
 
 import { useState } from 'react';
+import { confidence, group, error } from '../../lib/tokens.js';
 
 type Scenario = 'baseline' | '+1.5C' | '+2C' | '+3C';
 
 const SCENARIOS: { id: Scenario; label: string; tempDelta: number; color: string }[] = [
-  { id: 'baseline', label: 'Current', tempDelta: 0, color: '#2d7a4f' },
-  { id: '+1.5C', label: '+1.5\u00B0C', tempDelta: 1.5, color: '#c4a265' },
+  { id: 'baseline', label: 'Current', tempDelta: 0, color: confidence.high },
+  { id: '+1.5C', label: '+1.5\u00B0C', tempDelta: 1.5, color: group.livestock },
   { id: '+2C', label: '+2\u00B0C', tempDelta: 2, color: '#c47e3f' },
-  { id: '+3C', label: '+3\u00B0C', tempDelta: 3, color: '#c44e3f' },
+  { id: '+3C', label: '+3\u00B0C', tempDelta: 3, color: error.DEFAULT },
 ];
 
 interface BaseClimate {
@@ -124,7 +125,7 @@ export default function ClimateScenarioOverlay() {
         <div style={{
           marginTop: 8, padding: '8px 10px', borderRadius: 6,
           background: 'rgba(196,78,63,0.06)', border: '1px solid rgba(196,78,63,0.15)',
-          fontSize: 10, color: '#c44e3f', lineHeight: 1.5,
+          fontSize: 10, color: error.DEFAULT, lineHeight: 1.5,
         }}>
           {'\u26A0'} At {scenario.label} warming, plant selection and water strategy must adapt significantly.
           Species at range limits may no longer be viable.

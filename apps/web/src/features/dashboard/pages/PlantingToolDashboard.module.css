@@ -11,7 +11,7 @@
   overflow: hidden;
   margin-bottom: 24px;
   background: linear-gradient(160deg, #0a1f0a 0%, #0f1a12 40%, #0d1f14 70%, #0f1a12 100%);
-  border: 1px solid rgba(21,128,61,0.15);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.15);
 }
 .terrainOverlay {
   position: absolute;
@@ -27,14 +27,14 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(202,138,4,0.65);
+  color: rgba(var(--color-warning-rgb),0.65);
   margin-bottom: 6px;
 }
 .title {
   font-family: 'Fira Code', var(--font-display, 'Lora', Georgia, serif);
   font-size: 26px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   margin: 0;
   line-height: 1.2;
 }
@@ -42,7 +42,7 @@
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: rgba(21,128,61,0.45);
+  color: rgba(var(--color-group-reporting-rgb),0.45);
   margin-top: 4px;
 }
 
@@ -53,7 +53,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(21,128,61,0.55);
+  color: rgba(var(--color-group-reporting-rgb),0.55);
   margin: 0 0 12px;
   display: block;
 }
@@ -75,22 +75,22 @@
   transition: background 120ms;
 }
 .speciesActive {
-  border-color: rgba(21,128,61,0.3);
-  background: rgba(21,128,61,0.06);
+  border-color: rgba(var(--color-group-reporting-rgb),0.3);
+  background: rgba(var(--color-group-reporting-rgb),0.06);
 }
 .speciesName {
   display: block;
   font-family: 'Fira Sans', sans-serif;
   font-size: 15px;
   font-weight: 500;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .speciesLatin {
   display: block;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: rgba(21,128,61,0.5);
+  color: rgba(var(--color-group-reporting-rgb),0.5);
   margin-top: 2px;
   text-transform: uppercase;
 }
@@ -101,8 +101,8 @@
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(21,128,61,0.12);
-  color: rgba(21,128,61,0.7);
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: rgba(var(--color-group-reporting-rgb),0.7);
 }
 
 /* ── Metrics grid ─────────────────────────────────────────────────── */
@@ -126,7 +126,7 @@
   font-family: 'Fira Code', monospace;
   font-size: 30px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   line-height: 1;
   margin-bottom: 6px;
 }
@@ -135,7 +135,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(21,128,61,0.45);
+  color: rgba(var(--color-group-reporting-rgb),0.45);
 }
 
 /* ── Spacing logic ────────────────────────────────────────────────── */
@@ -155,13 +155,13 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: rgba(21,128,61,0.5);
+  color: rgba(var(--color-group-reporting-rgb),0.5);
 }
 .spacingValue {
   font-family: 'Fira Code', monospace;
   font-size: 18px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .spacingTrack {
   position: relative;
@@ -173,7 +173,7 @@
 .spacingFill {
   height: 100%;
   border-radius: 2px;
-  background: rgba(21,128,61,0.4);
+  background: rgba(var(--color-group-reporting-rgb),0.4);
 }
 .spacingThumb {
   position: absolute;
@@ -181,8 +181,8 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #15803D;
-  border: 2px solid #0f1a12;
+  background: var(--color-group-reporting);
+  border: 2px solid var(--color-sidebar-bg);
   transform: translateX(-50%);
 }
 
@@ -190,15 +190,15 @@
 .windowCard {
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid rgba(21,128,61,0.15);
-  background: rgba(21,128,61,0.04);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.15);
+  background: rgba(var(--color-group-reporting-rgb),0.04);
   margin-bottom: 8px;
 }
 .windowTitle {
   font-family: 'Fira Code', monospace;
   font-size: 12px;
   font-weight: 600;
-  color: #15803D;
+  color: var(--color-group-reporting);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 4px;
@@ -206,7 +206,7 @@
 .windowDates {
   font-family: 'Fira Sans', sans-serif;
   font-size: 14px;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 
 /* ── Validation ───────────────────────────────────────────────────── */
@@ -217,24 +217,24 @@
 }
 .validationOk {
   composes: validationCard;
-  border: 1px solid rgba(21,128,61,0.2);
-  background: rgba(21,128,61,0.04);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.2);
+  background: rgba(var(--color-group-reporting-rgb),0.04);
 }
 .validationWarn {
   composes: validationCard;
-  border: 1px solid rgba(202,138,4,0.25);
-  background: rgba(202,138,4,0.04);
+  border: 1px solid rgba(var(--color-warning-rgb),0.25);
+  background: rgba(var(--color-warning-rgb),0.04);
 }
 .validationTitle {
   font-family: 'Fira Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   margin-bottom: 4px;
 }
 .validationMsg {
   font-size: 11px;
-  color: rgba(202,138,4,0.8);
+  color: rgba(var(--color-warning-rgb),0.8);
   line-height: 1.5;
 }
 
@@ -249,10 +249,10 @@
   background: rgba(255,255,255,0.02);
   margin-bottom: 6px;
   font-size: 13px;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
-.companionGood { color: #15803D; font-weight: 700; font-size: 14px; }
-.companionBad { color: #CA8A04; font-weight: 700; font-size: 14px; }
+.companionGood { color: var(--color-group-reporting); font-weight: 700; font-size: 14px; }
+.companionBad { color: var(--color-warning); font-weight: 700; font-size: 14px; }
 
 /* ── Yield Estimates ──────────────────────────────────────────────── */
 .yieldBadge {
@@ -263,8 +263,8 @@
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(202,138,4,0.15);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.15);
+  color: var(--color-warning);
   margin-bottom: 12px;
 }
 .yieldRow {
@@ -277,17 +277,17 @@
 .yieldSpecies {
   font-family: 'Fira Sans', sans-serif;
   font-size: 13px;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .yieldValue {
   font-family: 'Fira Code', monospace;
   font-size: 14px;
   font-weight: 600;
-  color: #15803D;
+  color: var(--color-group-reporting);
 }
 .yieldUnit {
   font-size: 10px;
-  color: rgba(21,128,61,0.5);
+  color: rgba(var(--color-group-reporting-rgb),0.5);
   margin-left: 4px;
 }
 
@@ -301,7 +301,7 @@
 }
 .excludedReason {
   font-size: 10px;
-  color: rgba(202,138,4,0.5);
+  color: rgba(var(--color-warning-rgb),0.5);
   margin-left: 8px;
 }
 
@@ -309,8 +309,8 @@
 .aiCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(21,128,61,0.2);
-  background: rgba(21,128,61,0.04);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.2);
+  background: rgba(var(--color-group-reporting-rgb),0.04);
   margin-bottom: 20px;
 }
 .aiHeader {
@@ -323,23 +323,23 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(21,128,61,0.55);
+  color: rgba(var(--color-group-reporting-rgb),0.55);
 }
 .aiQuote {
   font-family: 'Fira Sans', sans-serif;
   font-size: 14px;
   font-style: italic;
   line-height: 1.6;
-  color: rgba(240,253,244,0.75);
+  color: rgba(var(--color-success-50-rgb),0.75);
   margin: 0 0 16px;
 }
 .aiBtn {
   width: 100%;
   padding: 12px;
-  border: 1px solid rgba(202,138,4,0.35);
+  border: 1px solid rgba(var(--color-warning-rgb),0.35);
   border-radius: 6px;
-  background: rgba(202,138,4,0.08);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.08);
+  color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -347,7 +347,7 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.aiBtn:hover { background: rgba(202,138,4,0.18); }
+.aiBtn:hover { background: rgba(var(--color-warning-rgb),0.18); }
 
 /* ── Map CTA ──────────────────────────────────────────────────────── */
 .mapBtn {
@@ -355,10 +355,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 1px solid rgba(202,138,4,0.35);
+  border: 1px solid rgba(var(--color-warning-rgb),0.35);
   border-radius: 6px;
-  background: rgba(202,138,4,0.08);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.08);
+  color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -366,7 +366,7 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.mapBtn:hover { background: rgba(202,138,4,0.18); }
+.mapBtn:hover { background: rgba(var(--color-warning-rgb),0.18); }
 
 /* ── Empty state ──────────────────────────────────────────────────── */
 .emptyState {

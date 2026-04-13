@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { zone } from '../lib/tokens';
 
 export interface ZoneTemplate {
   category: string;
@@ -66,13 +67,13 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     category: 'regenerative',
     isBuiltIn: true,
     zones: [
-      { category: 'habitation', name: 'Habitation Core', primaryUse: 'Dwelling & workspace', areaPercent: 5, color: '#8B6E4E' },
-      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Orchard & agroforestry', areaPercent: 15, color: '#4A7C3F' },
-      { category: 'livestock', name: 'Rotational Pasture', primaryUse: '8-paddock grazing', areaPercent: 35, color: '#7A6B3A' },
-      { category: 'water_retention', name: 'Water Retention', primaryUse: 'Keyline pond & swales', areaPercent: 8, color: '#4A6B8A' },
+      { category: 'habitation', name: 'Habitation Core', primaryUse: 'Dwelling & workspace', areaPercent: 5, color: zone.habitation },
+      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Orchard & agroforestry', areaPercent: 15, color: zone.food_production },
+      { category: 'livestock', name: 'Rotational Pasture', primaryUse: '8-paddock grazing', areaPercent: 35, color: zone.livestock },
+      { category: 'water_retention', name: 'Water Retention', primaryUse: 'Keyline pond & swales', areaPercent: 8, color: zone.education },
       { category: 'commons', name: 'Market Garden', primaryUse: 'Vegetables & herbs', areaPercent: 5, color: '#6B8A4A' },
       { category: 'forest_regen', name: 'Forest Regeneration', primaryUse: 'Native forest restoration', areaPercent: 20, color: '#3D6B3D' },
-      { category: 'service', name: 'Service Area', primaryUse: 'Workshop, compost, storage', areaPercent: 4, color: '#6B6B6B' },
+      { category: 'service', name: 'Service Area', primaryUse: 'Workshop, compost, storage', areaPercent: 4, color: zone.infrastructure },
     ],
     structures: [
       { type: 'cabin', name: 'Farmhouse', phase: 'Phase 1' },
@@ -98,14 +99,14 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     category: 'retreat',
     isBuiltIn: true,
     zones: [
-      { category: 'habitation', name: 'Host Residence', primaryUse: 'Owner dwelling', areaPercent: 3, color: '#8B6E4E' },
+      { category: 'habitation', name: 'Host Residence', primaryUse: 'Owner dwelling', areaPercent: 3, color: zone.habitation },
       { category: 'guest', name: 'Guest Village', primaryUse: 'Cabins & glamping', areaPercent: 10, color: '#A0845C' },
-      { category: 'prayer', name: 'Contemplation Garden', primaryUse: 'Prayer & reflection', areaPercent: 5, color: '#6B5B8A' },
-      { category: 'commons', name: 'Community Commons', primaryUse: 'Gathering & events', areaPercent: 8, color: '#c4a265' },
-      { category: 'food_forest', name: 'Kitchen Garden', primaryUse: 'Farm-to-table produce', areaPercent: 5, color: '#4A7C3F' },
+      { category: 'prayer', name: 'Contemplation Garden', primaryUse: 'Prayer & reflection', areaPercent: 5, color: zone.spiritual },
+      { category: 'commons', name: 'Community Commons', primaryUse: 'Gathering & events', areaPercent: 8, color: zone.commons },
+      { category: 'food_forest', name: 'Kitchen Garden', primaryUse: 'Farm-to-table produce', areaPercent: 5, color: zone.food_production },
       { category: 'education', name: 'Educational Zone', primaryUse: 'Classroom & trails', areaPercent: 10, color: '#7B6DAA' },
       { category: 'forest_regen', name: 'Forest Preserve', primaryUse: 'Walking trails & habitat', areaPercent: 40, color: '#3D6B3D' },
-      { category: 'water_retention', name: 'Water Feature', primaryUse: 'Pond & wetland garden', areaPercent: 5, color: '#4A6B8A' },
+      { category: 'water_retention', name: 'Water Feature', primaryUse: 'Pond & wetland garden', areaPercent: 5, color: zone.education },
     ],
     structures: [
       { type: 'cabin', name: 'Host House', phase: 'Phase 1' },
@@ -132,11 +133,11 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     category: 'homestead',
     isBuiltIn: true,
     zones: [
-      { category: 'habitation', name: 'Home Site', primaryUse: 'Family dwelling', areaPercent: 8, color: '#8B6E4E' },
-      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Fruit & nut trees', areaPercent: 12, color: '#4A7C3F' },
+      { category: 'habitation', name: 'Home Site', primaryUse: 'Family dwelling', areaPercent: 8, color: zone.habitation },
+      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Fruit & nut trees', areaPercent: 12, color: zone.food_production },
       { category: 'commons', name: 'Kitchen Garden', primaryUse: 'Annual vegetables', areaPercent: 4, color: '#6B8A4A' },
-      { category: 'livestock', name: 'Small Pasture', primaryUse: 'Poultry & small ruminants', areaPercent: 15, color: '#7A6B3A' },
-      { category: 'water_retention', name: 'Rain Garden', primaryUse: 'Water harvesting', areaPercent: 3, color: '#4A6B8A' },
+      { category: 'livestock', name: 'Small Pasture', primaryUse: 'Poultry & small ruminants', areaPercent: 15, color: zone.livestock },
+      { category: 'water_retention', name: 'Rain Garden', primaryUse: 'Water harvesting', areaPercent: 3, color: zone.education },
       { category: 'forest_regen', name: 'Woodlot', primaryUse: 'Firewood & wildlife', areaPercent: 30, color: '#3D6B3D' },
     ],
     structures: [
@@ -162,16 +163,16 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     category: 'moontrance',
     isBuiltIn: true,
     zones: [
-      { category: 'habitation', name: 'Habitation Core', primaryUse: 'Family dwelling & operations', areaPercent: 4, color: '#8B6E4E' },
-      { category: 'prayer', name: 'Prayer & Contemplation', primaryUse: 'Prayer pavilion & garden', areaPercent: 3, color: '#6B5B8A' },
+      { category: 'habitation', name: 'Habitation Core', primaryUse: 'Family dwelling & operations', areaPercent: 4, color: zone.habitation },
+      { category: 'prayer', name: 'Prayer & Contemplation', primaryUse: 'Prayer pavilion & garden', areaPercent: 3, color: zone.spiritual },
       { category: 'guest', name: 'Guest Retreat', primaryUse: '4-8 guest cabins', areaPercent: 6, color: '#A0845C' },
-      { category: 'commons', name: 'Community Commons', primaryUse: 'Gathering & hospitality', areaPercent: 5, color: '#c4a265' },
+      { category: 'commons', name: 'Community Commons', primaryUse: 'Gathering & hospitality', areaPercent: 5, color: zone.commons },
       { category: 'education', name: 'Educational Zone', primaryUse: 'Learning center & trails', areaPercent: 5, color: '#7B6DAA' },
-      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Orchard & agroforestry', areaPercent: 12, color: '#4A7C3F' },
-      { category: 'livestock', name: 'Rotational Pasture', primaryUse: 'Livestock grazing', areaPercent: 25, color: '#7A6B3A' },
-      { category: 'water_retention', name: 'Water Retention', primaryUse: 'Keyline ponds & swales', areaPercent: 6, color: '#4A6B8A' },
+      { category: 'food_forest', name: 'Food Forest', primaryUse: 'Orchard & agroforestry', areaPercent: 12, color: zone.food_production },
+      { category: 'livestock', name: 'Rotational Pasture', primaryUse: 'Livestock grazing', areaPercent: 25, color: zone.livestock },
+      { category: 'water_retention', name: 'Water Retention', primaryUse: 'Keyline ponds & swales', areaPercent: 6, color: zone.education },
       { category: 'forest_regen', name: 'Forest Regeneration', primaryUse: 'Carolinian restoration', areaPercent: 25, color: '#3D6B3D' },
-      { category: 'service', name: 'Service & Maintenance', primaryUse: 'Workshop & compost', areaPercent: 3, color: '#6B6B6B' },
+      { category: 'service', name: 'Service & Maintenance', primaryUse: 'Workshop & compost', areaPercent: 3, color: zone.infrastructure },
     ],
     structures: [
       { type: 'cabin', name: 'Main Dwelling', phase: 'Phase 1' },
@@ -201,9 +202,9 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     category: 'conservation',
     isBuiltIn: true,
     zones: [
-      { category: 'habitation', name: 'Caretaker Site', primaryUse: 'Minimal dwelling', areaPercent: 2, color: '#8B6E4E' },
+      { category: 'habitation', name: 'Caretaker Site', primaryUse: 'Minimal dwelling', areaPercent: 2, color: zone.habitation },
       { category: 'forest_regen', name: 'Forest Restoration', primaryUse: 'Native species planting', areaPercent: 45, color: '#3D6B3D' },
-      { category: 'water_retention', name: 'Wetland Restoration', primaryUse: 'Wetland creation & buffer', areaPercent: 15, color: '#4A6B8A' },
+      { category: 'water_retention', name: 'Wetland Restoration', primaryUse: 'Wetland creation & buffer', areaPercent: 15, color: zone.education },
       { category: 'commons', name: 'Meadow Habitat', primaryUse: 'Pollinator meadow', areaPercent: 20, color: '#8A9A4A' },
       { category: 'education', name: 'Monitoring Stations', primaryUse: 'Wildlife & water monitoring', areaPercent: 3, color: '#7B6DAA' },
     ],

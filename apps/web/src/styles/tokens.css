@@ -60,6 +60,7 @@
   --color-success-50:  #f2f5f0;
   --color-success-100: #e2e9df;
   --color-success-500: #6b8f6b;
+  --color-success-400: #84a47e;
   --color-success-600: #527852;
   --color-success-700: #3e5c3e;
 
@@ -113,11 +114,22 @@
   --color-accent-hover:    var(--color-sage-700);
   --color-focus-ring:      rgba(82, 120, 82, 0.45);
 
+  /* --- Status (semantic — light mode) --- */
+  --color-success:         var(--color-success-500);
+  --color-success-muted:   rgba(107, 143, 107, 0.15);
+  --color-warning:         var(--color-warning-500);
+  --color-warning-muted:   rgba(202, 138, 4, 0.15);
+  --color-error:           var(--color-error-500);
+  --color-error-muted:     rgba(196, 73, 58, 0.15);
+  --color-info:            var(--color-info-500);
+  --color-info-muted:      rgba(61, 127, 158, 0.15);
+
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       rgba(49, 38, 23, 0.97);
   --color-sidebar-bg:      rgba(49, 38, 23, 0.97);
   --color-sidebar-icon:    #9a8a74;
   --color-sidebar-active:  #c4a265;
+  --color-sidebar-text:    #e8dcc8;
   --color-panel-bg:        var(--color-sand-50);
   --color-panel-text:      var(--color-earth-900);
   --color-panel-muted:     var(--color-earth-600);
@@ -129,6 +141,94 @@
   --color-map-header-bg:   rgba(49, 38, 23, 0.92);
   --color-map-header-text: #f2ede3;
   --color-map-header-muted: #9a8a74;
+
+  /* ========================================================================
+     ZONE CATEGORY IDENTITY
+     ======================================================================== */
+
+  --color-zone-habitation:       #8B6E4E;
+  --color-zone-food-production:  #4A7C3F;
+  --color-zone-livestock:        #7A6B3A;
+  --color-zone-commons:          #5B8A72;
+  --color-zone-spiritual:        #6B5B8A;
+  --color-zone-education:        #4A6B8A;
+  --color-zone-retreat:          #8A6B5B;
+  --color-zone-conservation:     #2D6B4F;
+  --color-zone-water-retention:  #3A7A9A;
+  --color-zone-infrastructure:   #6B6B6B;
+  --color-zone-access:           #8A7B4A;
+  --color-zone-buffer:           #9B8A6A;
+  --color-zone-future-expansion: #7A8A9A;
+
+  /* ========================================================================
+     STRUCTURE CATEGORY IDENTITY
+     ======================================================================== */
+
+  --color-structure-dwelling:       #8B6E4E;
+  --color-structure-agricultural:   #4A7C3F;
+  --color-structure-spiritual:      #6B5B8A;
+  --color-structure-gathering:      #c4a265;
+  --color-structure-utility:        #4A6B8A;
+  --color-structure-infrastructure: #6B6B6B;
+
+  /* ========================================================================
+     PATH TYPE IDENTITY
+     ======================================================================== */
+
+  --color-path-main-road:        #8B6E4E;
+  --color-path-secondary-road:   #7A6B3A;
+  --color-path-emergency-access: #c44e3f;
+  --color-path-service-road:     #6B6B6B;
+  --color-path-pedestrian:       #8A9A74;
+  --color-path-trail:            #5B8A72;
+  --color-path-farm-lane:        #7A6B3A;
+  --color-path-animal-corridor:  #8A7A4A;
+  --color-path-grazing-route:    #6B8A4A;
+  --color-path-arrival-sequence: #c4a265;
+  --color-path-quiet-route:      #6B5B8A;
+
+  /* ========================================================================
+     STATUS INDICATORS (dashboard semantic)
+     ======================================================================== */
+
+  --color-status-good:     #8a9a74;
+  --color-status-moderate: #c4a265;
+  --color-status-poor:     #9a6a5a;
+
+  /* ========================================================================
+     MAP RENDERING DEFAULTS
+     ======================================================================== */
+
+  --color-map-label:      #f2ede3;
+  --color-map-label-halo: rgba(26, 22, 17, 0.8);
+  --color-map-boundary:   #7d6140;
+  --color-map-popup-bg:   #312617;
+
+  /* ========================================================================
+     RGB CHANNEL VARIANTS (for rgba() opacity manipulation)
+     ======================================================================== */
+
+  --color-primary-rgb:         125, 97, 64;
+  --color-accent-rgb:          82, 120, 82;
+  --color-success-rgb:         107, 143, 107;
+  --color-warning-rgb:         202, 138, 4;
+  --color-error-rgb:           196, 73, 58;
+  --color-info-rgb:            61, 127, 158;
+  --color-confidence-high-rgb: 45, 122, 79;
+  --color-confidence-med-rgb:  138, 109, 30;
+  --color-confidence-low-rgb:  155, 58, 42;
+  --color-gold-rgb:            196, 162, 101;
+  --color-sage-rgb:            107, 143, 107;
+  --color-earth-600-rgb:       125, 97, 64;
+  --color-text-muted-rgb:      125, 97, 64;
+  --color-water-rgb:           91, 157, 184;
+  --color-water-400-rgb:       91, 157, 184;
+  --color-group-reporting-rgb: 21, 128, 61;
+  --color-group-hydrology-rgb: 122, 138, 154;
+  --color-status-good-rgb:     138, 154, 116;
+  --color-success-50-rgb:      242, 245, 240;
+  --color-error-muted-rgb:     184, 91, 91;
+  --color-zone-spiritual-rgb:  107, 91, 138;
 
   /* ========================================================================
      TYPOGRAPHY

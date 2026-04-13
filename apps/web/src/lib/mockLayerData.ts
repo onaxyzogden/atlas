@@ -10,11 +10,11 @@
 import type { LayerType } from '@ogden/shared';
 
 export interface MockLayerResult {
-  layer_type: LayerType;
-  fetch_status: 'complete' | 'pending' | 'failed' | 'unavailable';
+  layerType: LayerType;
+  fetchStatus: 'complete' | 'pending' | 'failed' | 'unavailable';
   confidence: 'high' | 'medium' | 'low';
-  data_date: string;
-  source_api: string;
+  dataDate: string;
+  sourceApi: string;
   attribution: string;
   summary: Record<string, unknown>;
 }
@@ -28,11 +28,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
 
   return [
     {
-      layer_type: 'elevation',
-      fetch_status: 'complete',
+      layerType: 'elevation',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: now,
-      source_api: country === 'US' ? 'USGS 3DEP' : 'NRCan HRDEM',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'USGS 3DEP' : 'NRCan HRDEM',
       attribution: country === 'US' ? 'U.S. Geological Survey' : 'Natural Resources Canada',
       summary: {
         min_elevation_m: 185,
@@ -44,11 +44,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'soils',
-      fetch_status: 'complete',
+      layerType: 'soils',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: now,
-      source_api: country === 'US' ? 'SSURGO' : 'Ontario Soil Survey Complex (LIO)',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'SSURGO' : 'Ontario Soil Survey Complex (LIO)',
       attribution: country === 'US' ? 'USDA NRCS' : 'OMAFRA / Ontario Ministry of Natural Resources',
       summary: {
         predominant_texture: country === 'CA' ? 'Clay loam' : 'Loam',
@@ -61,11 +61,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'watershed',
-      fetch_status: 'complete',
+      layerType: 'watershed',
+      fetchStatus: 'complete',
       confidence: 'medium',
-      data_date: now,
-      source_api: country === 'US' ? 'NHD Plus' : 'Ontario Hydro Network (LIO)',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'NHD Plus' : 'Ontario Hydro Network (LIO)',
       attribution: country === 'US' ? 'USGS' : 'Ontario Ministry of Natural Resources and Forestry',
       summary: {
         huc_code: country === 'US' ? '041001020304' : 'N/A',
@@ -77,11 +77,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'wetlands_flood',
-      fetch_status: 'complete',
+      layerType: 'wetlands_flood',
+      fetchStatus: 'complete',
       confidence: 'medium',
-      data_date: now,
-      source_api: country === 'US' ? 'NWI + FEMA NFHL' : 'Conservation Authority',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'NWI + FEMA NFHL' : 'Conservation Authority',
       attribution: country === 'US' ? 'USFWS / FEMA' : 'Conservation Halton',
       summary: {
         flood_zone: country === 'US' ? 'Zone X (minimal risk)' : 'Not regulated',
@@ -92,11 +92,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'land_cover',
-      fetch_status: 'complete',
+      layerType: 'land_cover',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: now,
-      source_api: country === 'US' ? 'NLCD 2021' : 'AAFC Annual Crop Inventory 2024',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'NLCD 2021' : 'AAFC Annual Crop Inventory 2024',
       attribution: country === 'US' ? 'USGS EROS' : 'Agriculture and Agri-Food Canada',
       summary: {
         ...(country === 'CA' ? { primary_class: 'Soybeans', aafc_code: 3 } : {}),
@@ -121,11 +121,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'climate',
-      fetch_status: 'complete',
+      layerType: 'climate',
+      fetchStatus: 'complete',
       confidence: 'high',
-      data_date: now,
-      source_api: country === 'US' ? 'NOAA Climate Normals' : 'ECCC Climate Normals (OGC API)',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'NOAA Climate Normals' : 'ECCC Climate Normals (OGC API)',
       attribution: country === 'US' ? 'NOAA NCEI' : 'Environment and Climate Change Canada',
       summary: {
         annual_precip_mm: country === 'CA' ? 860 : 920,
@@ -139,11 +139,11 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
     {
-      layer_type: 'zoning',
-      fetch_status: 'complete',
+      layerType: 'zoning',
+      fetchStatus: 'complete',
       confidence: 'low',
-      data_date: now,
-      source_api: country === 'US' ? 'County GIS' : 'Ontario Municipal GIS',
+      dataDate: now,
+      sourceApi: country === 'US' ? 'County GIS' : 'Ontario Municipal GIS',
       attribution: 'Municipal planning department',
       summary: {
         zoning_code: country === 'US' ? 'A-1 (Agricultural)' : 'A (Agricultural)',
@@ -167,7 +167,7 @@ export function getLayerSummaryText(result: MockLayerResult): string[] {
   const s = result.summary;
   const lines: string[] = [];
 
-  switch (result.layer_type) {
+  switch (result.layerType) {
     case 'elevation':
       lines.push(`Elevation: ${s['min_elevation_m']}–${s['max_elevation_m']}m`);
       lines.push(`Mean slope: ${s['mean_slope_deg']}°, Aspect: ${s['predominant_aspect']}`);

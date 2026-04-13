@@ -4,6 +4,66 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-13 — Pre-Launch Hardening: Remaining Deferred Items
+- **WS stale connection cleanup:** Added server-side stale connection timeout to `apps/api/src/plugins/websocket.ts`. Connections without heartbeat for 90s (3× client interval) are now auto-closed. `lastSeen` tracking was already in place but unused — now enforced via `setInterval` cleanup loop.
+- **Layers route snake_case → camelCase:** Applied `toCamelCase()` transform to layers API route (`apps/api/src/routes/layers/index.ts`), aligning with existing pattern in projects/design-features/files routes. Updated 222 snake_case field references across 18 frontend files + 4 test files. `MockLayerResult` interface updated to camelCase.
+- **Terrain DEM migration:** Replaced 4 `mapbox://` tile source URLs with MapTiler equivalents. Centralized as `TERRAIN_DEM_URL` and `CONTOUR_TILES_URL` in `lib/maplibre.ts`. Removed unused `MAPBOX_TOKEN` from API .env.
+- **Still deferred:** TypeScript composite references (structural tsconfig change, risk of build breakage), Docker initdb race condition (needs Docker env)
+
+---
+
+## 2026-04-13 — Z-Index Standardization
+
+### 2026-04-13 — Z-Index Standardization
+- **Scope:** Standardized all z-index declarations to use the existing token scale from `tokens.css`
+- **Phase 1:** Added `zIndex` export to `tokens.ts` TS bridge (base/dropdown/sticky/overlay/modal/toast/tooltip/max)
+- **Phase 2:** Fixed 3 critical stacking bugs:
+  - SlideUpPanel (z-49/50 → z-modal 400/401) — was rendering behind Modal
+  - Toast (z-9999 → z-toast 500) — out-of-scale value
+  - Tooltip fallback (1000 → 600) — exceeded --z-max
+- **Phase 3:** Migrated 11 files from hardcoded z-index to token references (3 CSS modules + 8 TSX inline styles)
+- **Phase 4:** Documented map-internal z-index sub-scale in MapView.module.css
+- **Phase 5:** Removed 2 debug console.info statements from tilePrecache.ts
+- **Remaining:** 14 hardcoded z-index values are intentional (map-internal local stacking, layout stacking)
+
+---
+
+## 2026-04-13 — Design-Token Refactor (Hardcoded Hex Elimination)
+
+**Operator:** Claude Code (Opus 4.6)
+**Session scope:** Centralize ~1,135 hardcoded hex color values across 90+ files into the design token system
+
+### Phase 0 — Token Infrastructure Expansion
+- Expanded `tokens.css` with 50+ new CSS custom properties (zones, structures, paths, status, map, RGB channels)
+- Created `apps/web/src/lib/tokens.ts` — TypeScript bridge with 20+ `as const` objects for JS contexts (MapLibre paint, stores, exports)
+- Added dark mode overrides to `dark-mode.css`
+
+### Phase 1 — CSS Module Migration
+- Migrated 50 CSS module files (~666 replacements) to `var(--token)` references
+
+### Phase 2 — Store/Config Migration
+- Migrated 8 store/config files (83 replacements) — zoneStore, pathStore, utilityStore, phaseStore, templateStore, speciesData, portalStore, collaboration components
+
+### Phase 3 — Map File Migration
+- Migrated 10 map files (~59 replacements) for MapLibre GL paint properties
+
+### Phase 4 — TSX Component Migration
+- Migrated 23+ TSX files (~226 replacements) — exports, dashboards, panels, portal sections
+
+### Phase 5 — Chart Tokens + Verification
+- Added `chart` token object to `tokens.ts`
+- Final verification: tsc clean, vite build clean
+- Hex count reduced from ~1,340 to ~205 actionable (85% elimination)
+
+### New File
+- `apps/web/src/lib/tokens.ts` — TypeScript token bridge for JS contexts (MapLibre, stores, exports)
+
+### Deferred
+- Dark mode CSS deduplication
+- Tailwind gray tokenization
+
+---
+
 ## 2026-04-12 — Pre-Launch Hardening: MEDIUM/LOW Audit Sweep (Phases E+F)
 
 **Operator:** Claude Code (Opus 4.6)

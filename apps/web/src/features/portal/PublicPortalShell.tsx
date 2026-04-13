@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { zIndex } from '../../lib/tokens.js';
 import type { PortalConfig } from '../../store/portalStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import HeroSection from './sections/HeroSection.js';
@@ -13,6 +14,7 @@ import StageRevealStory from './sections/StageRevealStory.js';
 import BeforeAfterSlider from './sections/BeforeAfterSlider.js';
 import NarrativeSections from './sections/NarrativeSections.js';
 import SupportCTA from './sections/SupportCTA.js';
+import { earth, semantic } from '../../lib/tokens.js';
 
 interface Props {
   config: PortalConfig;
@@ -50,7 +52,7 @@ export default function PublicPortalShell({ config, project }: Props) {
       style={{
         minHeight: '100vh',
         background: '#1a1611',
-        color: '#f2ede3',
+        color: earth[100],
         fontFamily: "'Inter', 'Georgia', system-ui, serif",
         overflowX: 'hidden',
       }}
@@ -62,7 +64,7 @@ export default function PublicPortalShell({ config, project }: Props) {
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 100,
+          zIndex: zIndex.sticky,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -73,10 +75,10 @@ export default function PublicPortalShell({ config, project }: Props) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.12em', color: '#c4a265' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.12em', color: semantic.sidebarActive }}>
             OGDEN
           </span>
-          <span style={{ fontSize: 11, color: '#9a8a74', borderLeft: '1px solid #3d3328', paddingLeft: 8 }}>
+          <span style={{ fontSize: 11, color: semantic.sidebarIcon, borderLeft: `1px solid ${earth[800]}`, paddingLeft: 8 }}>
             {project.name}
           </span>
         </div>
@@ -93,7 +95,7 @@ export default function PublicPortalShell({ config, project }: Props) {
               style={{
                 background: 'none',
                 border: 'none',
-                color: activeSection === i ? '#c4a265' : '#9a8a74',
+                color: activeSection === i ? semantic.sidebarActive : semantic.sidebarIcon,
                 fontSize: 11,
                 cursor: 'pointer',
                 fontWeight: activeSection === i ? 600 : 400,
@@ -134,13 +136,13 @@ export default function PublicPortalShell({ config, project }: Props) {
           borderTop: '1px solid rgba(196,162,101,0.1)',
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: '#c4a265', marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: semantic.sidebarActive, marginBottom: 8 }}>
           OGDEN
         </div>
-        <div style={{ fontSize: 11, color: '#6b5b4a' }}>
+        <div style={{ fontSize: 11, color: earth[800] }}>
           Land Design Atlas — A tool for seeing land whole and building it wisely.
         </div>
-        <div style={{ fontSize: 10, color: '#4a3823', marginTop: 12 }}>
+        <div style={{ fontSize: 10, color: earth[800], marginTop: 12 }}>
           {project.address && <span>{project.address}</span>}
           {project.provinceState && <span> &middot; {project.provinceState}, {project.country}</span>}
         </div>

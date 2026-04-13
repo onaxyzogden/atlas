@@ -24,6 +24,7 @@ import {
 } from '../../lib/computeScores.js';
 import { Spinner } from '../ui/Spinner.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
+import { confidence, error as errorToken, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
 
@@ -33,8 +34,8 @@ interface SiteIntelligencePanelProps {
 
 function severityColor(severity: string, fallback: string): string {
   switch (severity) {
-    case 'critical': return '#c44e3f';
-    case 'warning': return '#8a6d1e';
+    case 'critical': return errorToken.DEFAULT;
+    case 'warning': return confidence.medium;
     case 'info': return fallback;
     default: return fallback;
   }
@@ -93,11 +94,11 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   // Layer-based completeness (Tier 1)
   const layerCompleteness = useMemo(() => {
     return TIER1_TYPES.map((type) => {
-      const layer = layers.find((l) => l.layer_type === type);
+      const layer = layers.find((l) => l.layerType === type);
       return {
         type,
         label: TIER1_LABELS[type] ?? type,
-        status: (layer?.fetch_status ?? 'unavailable') as 'complete' | 'pending' | 'failed' | 'unavailable',
+        status: (layer?.fetchStatus ?? 'unavailable') as 'complete' | 'pending' | 'failed' | 'unavailable',
       };
     });
   }, [layers]);
@@ -107,8 +108,8 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   // Tier 3 derived analysis status
   const tier3Status = useMemo(() => {
     return TIER3_TYPES.map(({ type, label }) => {
-      const layer = layers.find((l) => l.layer_type === type);
-      const status = layer?.fetch_status;
+      const layer = layers.find((l) => l.layerType === type);
+      const status = layer?.fetchStatus;
       return {
         label,
         status: status === 'complete' ? 'complete' as const
@@ -274,7 +275,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Refresh banner ───────────────────────────────────────── */}
       {isRefreshing && (
         <div className={s.refreshBanner}>
-          <Spinner size="sm" color="#c4a265" />
+          <Spinner size="sm" color={semantic.sidebarActive} />
           Refreshing environmental data...
         </div>
       )}
@@ -312,8 +313,8 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 className={`${s.layerDot} ${l.status === 'pending' ? s.layerDotPending : ''}`}
                 title={`${l.label}: ${l.status}`}
                 style={{
-                  background: l.status === 'complete' ? '#2d7a4f'
-                    : l.status === 'pending' ? '#c4a265'
+                  background: l.status === 'complete' ? confidence.high
+                    : l.status === 'pending' ? semantic.sidebarActive
                     : 'var(--color-panel-muted, #666)',
                 }}
               />
@@ -350,7 +351,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
           onClick={() => setLiveDataOpen((v) => !v)}
           className={`${s.liveDataHeader} ${liveDataOpen ? s.liveDataHeaderOpen : ''}`}
         >
-          <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke="#c4a265" strokeWidth={1.5}>
+          <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke={semantic.sidebarActive} strokeWidth={1.5}>
             <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" strokeLinecap="round" />
           </svg>
           <span className={s.liveDataTitle}>
@@ -362,7 +363,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             </span>
           )}
           <div style={{ flex: 1 }} />
-          <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="#9a8a74" strokeWidth={1.5} strokeLinecap="round" className={`${s.chevron} ${!liveDataOpen ? s.chevronClosed : ''}`}>
+          <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round" className={`${s.chevron} ${!liveDataOpen ? s.chevronClosed : ''}`}>
             <path d="M3 7l3-3 3 3" />
           </svg>
         </button>
@@ -458,7 +459,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── AI Loading Indicator ───────────────────────────────────── */}
       {enrichment?.status === 'loading' && (
         <div className={s.aiLoadingHint}>
-          <Spinner size="sm" color="#c4a265" />
+          <Spinner size="sm" color={semantic.sidebarActive} />
           <span>Generating AI insights...</span>
         </div>
       )}
@@ -525,7 +526,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             <div key={flag.id} className={s.oppRiskRow}>
               <span
                 className={s.oppIcon}
-                style={{ color: severityColor(flag.severity, '#2d7a4f') }}
+                style={{ color: severityColor(flag.severity, confidence.high) }}
               >
                 {'\u2197'}
               </span>
@@ -560,7 +561,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
             <div key={flag.id} className={s.oppRiskRow}>
               <span
                 className={s.riskIcon}
-                style={{ color: severityColor(flag.severity, '#9b3a2a') }}
+                style={{ color: severityColor(flag.severity, confidence.low) }}
               >
                 {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
               </span>
@@ -630,7 +631,7 @@ function RefreshIcon({ spinning }: { spinning?: boolean }) {
       height={14}
       viewBox="0 0 16 16"
       fill="none"
-      stroke={spinning ? '#c4a265' : '#9a8a74'}
+      stroke={spinning ? semantic.sidebarActive : semantic.sidebarIcon}
       strokeWidth={1.5}
       strokeLinecap="round"
       className={spinning ? s.refreshIconSpin : undefined}
@@ -670,7 +671,7 @@ function ScoreCircle({ score, size }: { score: number; size: number }) {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return '#2d7a4f';
-  if (score >= 60) return '#c4a265';
-  return '#9b3a2a';
+  if (score >= 80) return confidence.high;
+  if (score >= 60) return semantic.sidebarActive;
+  return confidence.low;
 }

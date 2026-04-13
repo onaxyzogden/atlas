@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { useProjectRole } from '../../hooks/useProjectRole.js';
 import type { SuggestedEditRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
+import { group, semantic } from '../../lib/tokens.js';
 
 interface SuggestEditPanelProps {
   projectId: string;
@@ -116,7 +117,7 @@ function SuggestionCard({
   return (
     <div className={p.card} style={{
       opacity: isPending ? 1 : 0.6,
-      borderLeft: `3px solid ${isPending ? '#c4a265' : isApproved ? '#15803D' : '#ef4444'}`,
+      borderLeft: `3px solid ${isPending ? semantic.sidebarActive : isApproved ? group.reporting : '#ef4444'}`,
     }}>
       <div className={`${p.row} ${p.mb4}`} style={{ gap: 6 }}>
         <span className={`${p.text11} ${p.fontSemibold}`} style={{ color: 'var(--color-panel-text)' }}>
@@ -125,7 +126,7 @@ function SuggestionCard({
         <span style={{
           fontSize: 9, fontWeight: 600, padding: '1px 6px', borderRadius: 3,
           background: isPending ? 'rgba(196,162,101,0.15)' : isApproved ? 'rgba(21,128,61,0.15)' : 'rgba(239,68,68,0.15)',
-          color: isPending ? '#c4a265' : isApproved ? '#15803D' : '#ef4444',
+          color: isPending ? semantic.sidebarActive : isApproved ? group.reporting : '#ef4444',
         }}>
           {suggestion.status.toUpperCase()}
         </span>

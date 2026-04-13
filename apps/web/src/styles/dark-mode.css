@@ -3,102 +3,36 @@
    A warm-evening palette: deep browns, warm golds, and muted sage.
    ============================================================================ */
 
-/* ── System preference (auto) ─────────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+/* ── Shared dark-mode overrides (used by both auto and manual toggle) ─────── */
+:root[data-theme="dark"],
+:root:not([data-theme="light"]):is(.prefers-dark) {
 
-    /* -- Background & Surface ------------------------------------------------ */
-    --color-bg:              #1a1611;
-    --color-surface:         #241e17;
-    --color-surface-raised:  #2d261e;
-
-    /* -- Borders ------------------------------------------------------------- */
-    --color-border:          #3d3328;
-    --color-border-subtle:   #332a1f;
-
-    /* -- Text ---------------------------------------------------------------- */
-    --color-text:            #f2ede3;
-    --color-text-muted:      #9a8a74;
-    --color-text-subtle:     #7d6e5a;
-
-    /* -- Primary (warm gold) ------------------------------------------------- */
-    --color-primary:         #c4a265;
-    --color-primary-hover:   #d4b478;
-
-    /* -- Accent (sage green) ------------------------------------------------- */
-    --color-accent:          #6b8f6b;
-    --color-accent-hover:    #7da17d;
-
-    /* -- Focus --------------------------------------------------------------- */
-    --color-focus-ring:      rgba(196, 162, 101, 0.5);
-
-    /* -- Panel / Sidebar ----------------------------------------------------- */
-    --color-panel-bg:          #1a1611;
-    --color-panel-text:        #f2ede3;
-    --color-panel-muted:       #9a8a74;
-    --color-panel-card:        rgba(255, 255, 255, 0.03);
-    --color-panel-card-border: rgba(255, 255, 255, 0.06);
-    --color-panel-title:       #c4a265;
-    --color-panel-section:     #9a8a74;
-    --color-panel-subtle:      rgba(255, 255, 255, 0.04);
-
-    /* -- Map Header ---------------------------------------------------------- */
-    --color-map-header-bg:     rgba(26, 22, 17, 0.95);
-    --color-map-header-text:   #f2ede3;
-    --color-map-header-muted:  #9a8a74;
-
-    /* -- Status (semantic) --------------------------------------------------- */
-    --color-success:         #5a9e6f;
-    --color-success-muted:   rgba(90, 158, 111, 0.15);
-    --color-warning:         #c4a044;
-    --color-warning-muted:   rgba(196, 160, 68, 0.15);
-    --color-error:           #c45a4a;
-    --color-error-muted:     rgba(196, 90, 74, 0.15);
-    --color-info:            #5a94b8;
-    --color-info-muted:      rgba(90, 148, 184, 0.15);
-
-    /* -- Confidence ---------------------------------------------------------- */
-    --color-confidence-high:   #5a9e6f;
-    --color-confidence-medium: #c4a044;
-    --color-confidence-low:    #c45a4a;
-
-    /* -- Shadows ------------------------------------------------------------- */
-    --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
-    --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
-    --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* ── Manual toggle ────────────────────────────────────────────────────────── */
-[data-theme="dark"] {
-
-  /* -- Background & Surface -------------------------------------------------- */
+  /* -- Background & Surface ------------------------------------------------ */
   --color-bg:              #1a1611;
   --color-surface:         #241e17;
   --color-surface-raised:  #2d261e;
 
-  /* -- Borders --------------------------------------------------------------- */
+  /* -- Borders ------------------------------------------------------------- */
   --color-border:          #3d3328;
   --color-border-subtle:   #332a1f;
 
-  /* -- Text ------------------------------------------------------------------ */
+  /* -- Text ---------------------------------------------------------------- */
   --color-text:            #f2ede3;
   --color-text-muted:      #9a8a74;
   --color-text-subtle:     #7d6e5a;
 
-  /* -- Primary (warm gold) --------------------------------------------------- */
+  /* -- Primary (warm gold) ------------------------------------------------- */
   --color-primary:         #c4a265;
   --color-primary-hover:   #d4b478;
 
-  /* -- Accent (sage green) --------------------------------------------------- */
+  /* -- Accent (sage green) ------------------------------------------------- */
   --color-accent:          #6b8f6b;
   --color-accent-hover:    #7da17d;
 
-  /* -- Focus ----------------------------------------------------------------- */
+  /* -- Focus --------------------------------------------------------------- */
   --color-focus-ring:      rgba(196, 162, 101, 0.5);
 
-  /* -- Panel / Sidebar ------------------------------------------------------- */
+  /* -- Panel / Sidebar ----------------------------------------------------- */
   --color-panel-bg:          #1a1611;
   --color-panel-text:        #f2ede3;
   --color-panel-muted:       #9a8a74;
@@ -108,12 +42,12 @@
   --color-panel-section:     #9a8a74;
   --color-panel-subtle:      rgba(255, 255, 255, 0.04);
 
-  /* -- Map Header ------------------------------------------------------------ */
+  /* -- Map Header ---------------------------------------------------------- */
   --color-map-header-bg:     rgba(26, 22, 17, 0.95);
   --color-map-header-text:   #f2ede3;
   --color-map-header-muted:  #9a8a74;
 
-  /* -- Status (semantic) ----------------------------------------------------- */
+  /* -- Status (semantic) --------------------------------------------------- */
   --color-success:         #5a9e6f;
   --color-success-muted:   rgba(90, 158, 111, 0.15);
   --color-warning:         #c4a044;
@@ -123,14 +57,104 @@
   --color-info:            #5a94b8;
   --color-info-muted:      rgba(90, 148, 184, 0.15);
 
-  /* -- Confidence ------------------------------------------------------------ */
+  /* -- Confidence ---------------------------------------------------------- */
   --color-confidence-high:   #5a9e6f;
   --color-confidence-medium: #c4a044;
   --color-confidence-low:    #c45a4a;
 
-  /* -- Shadows --------------------------------------------------------------- */
+  /* -- Status indicators (dashboard) --------------------------------------- */
+  --color-status-good:     #7a9a6a;
+  --color-status-moderate:  #c4a265;
+  --color-status-poor:     #c45a4a;
+
+  /* -- RGB channel variants (dark mode) ------------------------------------ */
+  --color-primary-rgb:         196, 162, 101;
+  --color-accent-rgb:          107, 143, 107;
+  --color-success-rgb:         90, 158, 111;
+  --color-warning-rgb:         196, 160, 68;
+  --color-error-rgb:           196, 90, 74;
+  --color-info-rgb:            90, 148, 184;
+  --color-confidence-high-rgb: 90, 158, 111;
+  --color-confidence-med-rgb:  196, 160, 68;
+  --color-confidence-low-rgb:  196, 90, 74;
+  --color-gold-rgb:            196, 162, 101;
+  --color-sage-rgb:            107, 143, 107;
+
+  /* -- Shadows ------------------------------------------------------------- */
   --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
   --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* ── System preference (auto) — applies shared overrides ──────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+
+    --color-bg:              #1a1611;
+    --color-surface:         #241e17;
+    --color-surface-raised:  #2d261e;
+
+    --color-border:          #3d3328;
+    --color-border-subtle:   #332a1f;
+
+    --color-text:            #f2ede3;
+    --color-text-muted:      #9a8a74;
+    --color-text-subtle:     #7d6e5a;
+
+    --color-primary:         #c4a265;
+    --color-primary-hover:   #d4b478;
+
+    --color-accent:          #6b8f6b;
+    --color-accent-hover:    #7da17d;
+
+    --color-focus-ring:      rgba(196, 162, 101, 0.5);
+
+    --color-panel-bg:          #1a1611;
+    --color-panel-text:        #f2ede3;
+    --color-panel-muted:       #9a8a74;
+    --color-panel-card:        rgba(255, 255, 255, 0.03);
+    --color-panel-card-border: rgba(255, 255, 255, 0.06);
+    --color-panel-title:       #c4a265;
+    --color-panel-section:     #9a8a74;
+    --color-panel-subtle:      rgba(255, 255, 255, 0.04);
+
+    --color-map-header-bg:     rgba(26, 22, 17, 0.95);
+    --color-map-header-text:   #f2ede3;
+    --color-map-header-muted:  #9a8a74;
+
+    --color-success:         #5a9e6f;
+    --color-success-muted:   rgba(90, 158, 111, 0.15);
+    --color-warning:         #c4a044;
+    --color-warning-muted:   rgba(196, 160, 68, 0.15);
+    --color-error:           #c45a4a;
+    --color-error-muted:     rgba(196, 90, 74, 0.15);
+    --color-info:            #5a94b8;
+    --color-info-muted:      rgba(90, 148, 184, 0.15);
+
+    --color-confidence-high:   #5a9e6f;
+    --color-confidence-medium: #c4a044;
+    --color-confidence-low:    #c45a4a;
+
+    --color-status-good:     #7a9a6a;
+    --color-status-moderate:  #c4a265;
+    --color-status-poor:     #c45a4a;
+
+    --color-primary-rgb:         196, 162, 101;
+    --color-accent-rgb:          107, 143, 107;
+    --color-success-rgb:         90, 158, 111;
+    --color-warning-rgb:         196, 160, 68;
+    --color-error-rgb:           196, 90, 74;
+    --color-info-rgb:            90, 148, 184;
+    --color-confidence-high-rgb: 90, 158, 111;
+    --color-confidence-med-rgb:  196, 160, 68;
+    --color-confidence-low-rgb:  196, 90, 74;
+    --color-gold-rgb:            196, 162, 101;
+    --color-sage-rgb:            107, 143, 107;
+
+    --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
+    --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
+  }
 }

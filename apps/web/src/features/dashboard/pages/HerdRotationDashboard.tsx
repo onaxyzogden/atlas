@@ -27,6 +27,7 @@ import {
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './HerdRotationDashboard.module.css';
+import { status as statusToken, group } from '../../../lib/tokens.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -54,10 +55,10 @@ interface Alert {
 const WATER_STRUCTURE_TYPES = ['water_pump_house', 'water_tank', 'well'] as const;
 
 const STATUS_COLORS: Record<RecoveryStatus['status'], string> = {
-  active: '#c4a265',
-  resting: '#7a8a9a',
-  ready: '#8a9a74',
-  overdue: '#9a6a5a',
+  active: statusToken.moderate,
+  resting: group.hydrology,
+  ready: statusToken.good,
+  overdue: statusToken.poor,
 };
 
 function speciesIcons(species: string[]): string {
@@ -70,20 +71,20 @@ function speciesIcons(species: string[]): string {
 
 function WarningSvg() {
   return (
-    <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="#c4a265" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke={statusToken.moderate} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1L15 14H1L8 1Z" />
       <line x1="8" y1="6" x2="8" y2="9" />
-      <circle cx="8" cy="11.5" r="0.5" fill="#c4a265" />
+      <circle cx="8" cy="11.5" r="0.5" fill={statusToken.moderate} />
     </svg>
   );
 }
 
 function InfoSvg() {
   return (
-    <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke={group.hydrology} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="8" cy="8" r="7" />
       <line x1="8" y1="7" x2="8" y2="11" />
-      <circle cx="8" cy="5" r="0.5" fill="#7a8a9a" />
+      <circle cx="8" cy="5" r="0.5" fill={group.hydrology} />
     </svg>
   );
 }

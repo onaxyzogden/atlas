@@ -8,6 +8,7 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS, type HydroMetrics } from '../../../lib/hydrologyMetrics.js';
 import css from './HydrologyDashboard.module.css';
+import { status as statusToken, group } from '../../../lib/tokens.js';
 
 interface HydrologyDashboardProps {
   project: LocalProject;
@@ -31,9 +32,9 @@ interface SoilsSummary     { hydrologic_group?: string; drainage_class?: string;
 
 // ─── Health badge colour ──────────────────────────────────────────────────────
 function healthColor(score: number) {
-  if (score >= 75) return '#8a9a74';
-  if (score >= 50) return '#c4a265';
-  return '#9a6a5a';
+  if (score >= 75) return statusToken.good;
+  if (score >= 50) return statusToken.moderate;
+  return statusToken.poor;
 }
 
 export default function HydrologyDashboard({ project, onSwitchToMap }: HydrologyDashboardProps) {
@@ -201,7 +202,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
           </div>
           <div className={css.flowStat}>
             <span className={css.flowStatLabel}>Net Gain</span>
-            <span className={css.flowStatValue} style={{ color: metrics.netGainGalMin >= 0 ? '#8a9a74' : '#9a6a5a' }}>
+            <span className={css.flowStatValue} style={{ color: metrics.netGainGalMin >= 0 ? statusToken.good : statusToken.poor }}>
               {metrics.netGainGalMin >= 0 ? '+' : ''}{metrics.netGainGalMin} gal/min
             </span>
           </div>
@@ -212,8 +213,8 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
       <div className={css.comparisonCard}>
         <h3 className={css.comparisonTitle}>Biomass vs. Water Consumption</h3>
         <div className={css.comparisonLegend}>
-          <span className={css.legendItem}><span className={css.legendDot} style={{ background: '#8a9a74' }} /> BIOMASS INDEX</span>
-          <span className={css.legendItem}><span className={css.legendDot} style={{ background: '#9a6a5a' }} /> CONSUMPTION</span>
+          <span className={css.legendItem}><span className={css.legendDot} style={{ background: statusToken.good }} /> BIOMASS INDEX</span>
+          <span className={css.legendItem}><span className={css.legendDot} style={{ background: statusToken.poor }} /> CONSUMPTION</span>
         </div>
         <div className={css.comparisonChart}>
           {(['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG'] as const).map((m, i) => {
@@ -222,8 +223,8 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
             return (
               <div key={m} className={css.barGroup}>
                 <div className={css.barPair}>
-                  <div className={css.bar} style={{ height: `${biomass}%`, background: '#8a9a74' }} />
-                  <div className={css.bar} style={{ height: `${consumption}%`, background: '#9a6a5a' }} />
+                  <div className={css.bar} style={{ height: `${biomass}%`, background: statusToken.good }} />
+                  <div className={css.bar} style={{ height: `${consumption}%`, background: statusToken.poor }} />
                 </div>
                 <span className={css.barLabel}>{m}</span>
               </div>
@@ -238,8 +239,8 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
         <h3 className={css.guidanceTitle}>Stewardship Guidance</h3>
         <div className={css.guidanceItem}>
           <span className={css.guidanceIcon}>
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="#c4a265" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="7" cy="7" r="5.5"/><line x1="7" y1="4" x2="7" y2="7.5"/><circle cx="7" cy="10" r="0.5" fill="#c4a265"/>
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke={statusToken.moderate} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="5.5"/><line x1="7" y1="4" x2="7" y2="7.5"/><circle cx="7" cy="10" r="0.5" fill={statusToken.moderate}/>
             </svg>
           </span>
           <div>
@@ -249,7 +250,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
         </div>
         <div className={css.guidanceItem}>
           <span className={css.guidanceIcon}>
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="#7a8a9a" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke={group.hydrology} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
               <circle cx="7" cy="7" r="5.5"/><polyline points="4.5 7 6.5 9.5 10 5"/>
             </svg>
           </span>
@@ -324,7 +325,7 @@ function FlowAnalysisTab() {
                 <div key={i} className={css.pumpBarWrap}>
                   <div
                     className={css.pumpBar}
-                    style={{ height: `${h}%`, background: i === 5 ? '#8a9a74' : 'rgba(138,154,116,0.35)' }}
+                    style={{ height: `${h}%`, background: i === 5 ? statusToken.good : 'rgba(138,154,116,0.35)' }}
                   />
                 </div>
               ))}
@@ -379,14 +380,14 @@ function FlowAnalysisTab() {
           <h3 className={css.fieldObsTitle}>Field Observations</h3>
           <div className={css.fieldObsList}>
             <div className={css.fieldObsItem}>
-              <span className={css.fieldObsDot} style={{ background: '#8a9a74' }} />
+              <span className={css.fieldObsDot} style={{ background: statusToken.good }} />
               <div>
                 <p className={css.fieldObsText}>Algae growth noted at Pond A spillway edge. Not yet at intervention threshold.</p>
                 <span className={css.fieldObsDate}>Oct 4, 2023 · Sector 4</span>
               </div>
             </div>
             <div className={css.fieldObsItem}>
-              <span className={css.fieldObsDot} style={{ background: '#c4a265' }} />
+              <span className={css.fieldObsDot} style={{ background: statusToken.moderate }} />
               <div>
                 <p className={css.fieldObsText}>Sediment accumulation in Basin 2 secondary channel. Manual clearance scheduled.</p>
                 <span className={css.fieldObsDate}>Sep 29, 2023 · Sector 3</span>
@@ -403,9 +404,9 @@ function FlowAnalysisTab() {
           <div className={css.maintenanceList}>
             {MAINTENANCE.map((item) => (
               <div key={item.label} className={css.maintenanceItem}>
-                <span className={css.maintenanceDot} style={{ background: item.urgent ? '#9a6a5a' : 'rgba(180,165,140,0.2)' }} />
+                <span className={css.maintenanceDot} style={{ background: item.urgent ? statusToken.poor : 'rgba(180,165,140,0.2)' }} />
                 <div>
-                  <span className={css.maintenanceDue} style={{ color: item.urgent ? '#9a6a5a' : 'rgba(180,165,140,0.35)' }}>{item.due}</span>
+                  <span className={css.maintenanceDue} style={{ color: item.urgent ? statusToken.poor : 'rgba(180,165,140,0.35)' }}>{item.due}</span>
                   <p className={css.maintenanceLabel}>{item.label}</p>
                   <p className={css.maintenanceNote}>{item.note}</p>
                 </div>

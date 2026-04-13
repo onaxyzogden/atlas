@@ -17,6 +17,7 @@ import ClimateScenarioOverlay from './ClimateScenarioOverlay.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
+import { semantic, chart } from '../../lib/tokens.js';
 import s from './SolarClimatePanel.module.css';
 
 interface SolarClimatePanelProps {
@@ -55,7 +56,7 @@ export default function SolarClimatePanel({ center, map, isMapReady, projectId }
   const windRoseData = useSiteDataStore((state) => {
     if (!projectId) return null;
     const siteData = state.dataByProject[projectId];
-    const climateLayer = siteData?.layers?.find((l: { layer_type: string }) => l.layer_type === 'climate');
+    const climateLayer = siteData?.layers?.find((l: { layerType: string }) => l.layerType === 'climate');
     return (climateLayer?.summary as Record<string, unknown> | undefined)?._wind_rose as WindRoseData | undefined ?? null;
   });
 
@@ -190,11 +191,11 @@ function SunArcDiagram({ sunPath }: { sunPath: SunPosition[] }) {
         y1={height - padding}
         x2={width - padding}
         y2={height - padding}
-        stroke="#3d3328"
+        stroke={chart.grid}
         strokeWidth={1}
       />
       {/* Sun arc */}
-      <path d={pathD} fill="none" stroke="#d4a843" strokeWidth={2} />
+      <path d={pathD} fill="none" stroke={chart.accent} strokeWidth={2} />
       {/* Sun position dots */}
       {visiblePath
         .filter((p) => p.elevation > 0 && p.hour % 3 === 0)
@@ -204,12 +205,12 @@ function SunArcDiagram({ sunPath }: { sunPath: SunPosition[] }) {
               cx={scaleX(p.azimuth)}
               cy={scaleY(p.elevation)}
               r={3}
-              fill="#d4a843"
+              fill={chart.accent}
             />
             <text
               x={scaleX(p.azimuth)}
               y={scaleY(p.elevation) - 6}
-              fill="#9a8a74"
+              fill={semantic.textSubtle}
               fontSize={8}
               textAnchor="middle"
             >
@@ -218,8 +219,8 @@ function SunArcDiagram({ sunPath }: { sunPath: SunPosition[] }) {
           </g>
         ))}
       {/* Direction labels */}
-      <text x={padding} y={height - 2} fill="#6b5b4a" fontSize={8}>E</text>
-      <text x={width - padding - 4} y={height - 2} fill="#6b5b4a" fontSize={8}>W</text>
+      <text x={padding} y={height - 2} fill={chart.muted} fontSize={8}>E</text>
+      <text x={width - padding - 4} y={height - 2} fill={chart.muted} fontSize={8}>W</text>
     </svg>
   );
 }
@@ -252,7 +253,7 @@ function WindRoseMini({ lat, windData }: { lat: number; windData: WindRoseData |
           cy={cy}
           r={maxR * r}
           fill="none"
-          stroke="#3d3328"
+          stroke={chart.grid}
           strokeWidth={0.5}
         />
       ))}
@@ -277,7 +278,7 @@ function WindRoseMini({ lat, windData }: { lat: number; windData: WindRoseData |
               y1={cy}
               x2={x}
               y2={y}
-              stroke="#d4a843"
+              stroke={chart.accent}
               strokeWidth={is16 ? 2 : 3}
               strokeLinecap="round"
               opacity={0.7}
@@ -286,7 +287,7 @@ function WindRoseMini({ lat, windData }: { lat: number; windData: WindRoseData |
               <text
                 x={lx}
                 y={ly + 3}
-                fill="#9a8a74"
+                fill={semantic.textSubtle}
                 fontSize={is16 ? 6 : 7}
                 textAnchor="middle"
               >
@@ -301,7 +302,7 @@ function WindRoseMini({ lat, windData }: { lat: number; windData: WindRoseData |
         <text
           x={cx}
           y={size - 1}
-          fill="#d4a843"
+          fill={chart.accent}
           fontSize={7}
           textAnchor="middle"
         >

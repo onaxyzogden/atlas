@@ -19,6 +19,7 @@ import { CROP_TYPES } from '../livestock/speciesData.js';
 import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
+import { map as mapTokens, zone as zoneTokens, structure as structureTokens, earth, group } from '../../lib/tokens.js';
 
 interface MapCanvasProps {
   projectId?: string;
@@ -70,7 +71,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         if (!map.getSource('project-boundary')) {
           map.addSource('project-boundary', { type: 'geojson', data: boundaryGeojson });
         }
-        const bColor = boundaryColor ?? '#7d6140';
+        const bColor = boundaryColor ?? mapTokens.boundary;
         if (!map.getLayer('project-boundary-fill')) {
           map.addLayer({
             id: 'project-boundary-fill',
@@ -113,7 +114,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addLayer({
           id: `zone-label-${zone.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
@@ -121,12 +122,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       for (const structure of structures) {
         const sourceId = `structure-${structure.id}`;
         const tmpl = STRUCTURE_TEMPLATES[structure.type];
-        const color = tmpl?.category === 'spiritual' ? '#6B5B8A'
-          : tmpl?.category === 'dwelling' ? '#8B6E4E'
-          : tmpl?.category === 'agricultural' ? '#4A7C3F'
-          : tmpl?.category === 'gathering' ? '#c4a265'
-          : tmpl?.category === 'utility' ? '#4A6B8A'
-          : '#6B6B6B';
+        const color = (tmpl?.category && structureTokens[tmpl.category as keyof typeof structureTokens]) ?? structureTokens.infrastructure;
         const structData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: structure.name }, geometry: structure.geometry }] };
         const existingStruct = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingStruct) { existingStruct.setData(structData); continue; }
@@ -136,14 +132,14 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addLayer({
           id: `structure-label-${structure.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': structure.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
       // ── Paddocks ──
       for (const paddock of paddocks) {
         const sourceId = `paddock-${paddock.id}`;
-        const pColor = paddock.color ?? '#7A6B3A';
+        const pColor = paddock.color ?? zoneTokens.livestock;
         const paddockData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: paddock.name }, geometry: paddock.geometry }] };
         const existingPaddock = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingPaddock) { existingPaddock.setData(paddockData); continue; }
@@ -153,7 +149,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addLayer({
           id: `paddock-label-${paddock.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': paddock.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
@@ -161,7 +157,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       for (const crop of cropAreas) {
         const sourceId = `crop-${crop.id}`;
         const ct = CROP_TYPES[crop.type];
-        const color = crop.color ?? ct?.color ?? '#4A7C3F';
+        const color = crop.color ?? ct?.color ?? zoneTokens.food_production;
         const cropData: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: crop.name }, geometry: crop.geometry }] };
         const existingCrop = map.getSource(sourceId) as maplibregl.GeoJSONSource | undefined;
         if (existingCrop) { existingCrop.setData(cropData); continue; }
@@ -171,7 +167,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addLayer({
           id: `crop-label-${crop.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': crop.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
@@ -189,7 +185,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addLayer({
           id: `path-label-${path.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': path.name, 'text-size': 10, 'symbol-placement': 'line', 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'] },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
@@ -203,12 +199,12 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addSource(sourceId, { type: 'geojson', data: utilData });
         map.addLayer({
           id: `utility-circle-${utility.id}`, type: 'circle', source: sourceId,
-          paint: { 'circle-radius': 6, 'circle-color': cfg?.color ?? '#c4a265', 'circle-stroke-width': 2, 'circle-stroke-color': '#f2ede3' },
+          paint: { 'circle-radius': 6, 'circle-color': cfg?.color ?? group.livestock, 'circle-stroke-width': 2, 'circle-stroke-color': mapTokens.label },
         });
         map.addLayer({
           id: `utility-label-${utility.id}`, type: 'symbol', source: sourceId,
           layout: { 'text-field': utility.name, 'text-size': 10, 'text-offset': [0, 1.5], 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'top' },
-          paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+          paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
         });
       }
 
@@ -222,7 +218,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
         map.addSource(sourceId, { type: 'geojson', data: commentData });
         map.addLayer({
           id: `comment-circle-${comment.id}`, type: 'circle', source: sourceId,
-          paint: { 'circle-radius': 8, 'circle-color': '#c4a265', 'circle-stroke-width': 2, 'circle-stroke-color': '#f2ede3', 'circle-opacity': 0.8 },
+          paint: { 'circle-radius': 8, 'circle-color': group.livestock, 'circle-stroke-width': 2, 'circle-stroke-color': mapTokens.label, 'circle-opacity': 0.8 },
         });
         map.addLayer({
           id: `comment-icon-${comment.id}`, type: 'symbol', source: sourceId,
@@ -597,7 +593,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
             alignItems: 'center',
             justifyContent: 'center',
             background: 'rgba(26, 22, 17, 0.7)',
-            color: '#f2ede3',
+            color: mapTokens.label,
             fontSize: '14px',
             letterSpacing: '0.05em',
           }}
@@ -648,8 +644,8 @@ function placeMarker(
   const el = document.createElement('div');
   el.style.cssText = `
     width: 28px; height: 28px;
-    background: #7d6140;
-    border: 3px solid #f2ede3;
+    background: ${mapTokens.boundary};
+    border: 3px solid ${mapTokens.label};
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     box-shadow: 0 2px 6px rgba(0,0,0,0.35);
@@ -659,7 +655,7 @@ function placeMarker(
     .setLngLat(coords)
     .setPopup(
       new maplibregl.Popup({ offset: 20, closeButton: false })
-        .setHTML(`<div style="font-size:12px;font-weight:500;color:#312617;max-width:200px;line-height:1.4">${label}</div>`),
+        .setHTML(`<div style="font-size:12px;font-weight:500;color:${earth[900]};max-width:200px;line-height:1.4">${label}</div>`),
     )
     .addTo(map);
 

@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { confidence, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
   url: string;
@@ -25,7 +26,7 @@ export default function EmbedCodeModal({ url, onClose }: Props) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
+      position: 'fixed', inset: 0, zIndex: zIndex.modal,
       background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
@@ -90,7 +91,7 @@ export default function EmbedCodeModal({ url, onClose }: Props) {
           <button onClick={handleCopy} style={{
             flex: 1, padding: '10px', fontSize: 12, fontWeight: 600, border: 'none', borderRadius: 6,
             background: copied ? 'rgba(45,122,79,0.15)' : 'rgba(196,162,101,0.15)',
-            color: copied ? '#2d7a4f' : '#c4a265', cursor: 'pointer',
+            color: copied ? confidence.high : semantic.sidebarActive, cursor: 'pointer',
           }}>
             {copied ? '\u2713 Copied!' : 'Copy Embed Code'}
           </button>

@@ -187,10 +187,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 1px solid rgba(196,162,101,0.35);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.35);
   border-radius: 6px;
-  background: rgba(196,162,101,0.08);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.08);
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -198,7 +198,7 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.mapBtn:hover { background: rgba(196,162,101,0.18); }
+.mapBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }
 
 .soilNote {
   font-size: 11px;

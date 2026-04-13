@@ -7,6 +7,7 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './TerrainDashboard.module.css';
+import { status as statusToken } from '../../../lib/tokens.js';
 
 interface TerrainDashboardProps {
   project: LocalProject;
@@ -44,11 +45,11 @@ function slopeClasses(meanSlopeDeg: number) {
   const total    = flat + gentle + moderate + steep + vsteep;
   const scale    = 100 / total;
   return [
-    { label: 'Flat (0–2%)',       value: Math.round(flat     * scale), color: '#8a9a74' },
-    { label: 'Gentle (2–8%)',     value: Math.round(gentle   * scale), color: '#8a9a74' },
-    { label: 'Moderate (8–15%)',  value: Math.round(moderate * scale), color: '#c4a265' },
-    { label: 'Steep (15–30%)',    value: Math.round(steep    * scale), color: '#9a6a5a' },
-    { label: 'Very Steep (>30%)', value: Math.round(vsteep   * scale), color: '#9a6a5a' },
+    { label: 'Flat (0–2%)',       value: Math.round(flat     * scale), color: statusToken.good },
+    { label: 'Gentle (2–8%)',     value: Math.round(gentle   * scale), color: statusToken.good },
+    { label: 'Moderate (8–15%)',  value: Math.round(moderate * scale), color: statusToken.moderate },
+    { label: 'Steep (15–30%)',    value: Math.round(steep    * scale), color: statusToken.poor },
+    { label: 'Very Steep (>30%)', value: Math.round(vsteep   * scale), color: statusToken.poor },
   ];
 }
 
@@ -75,9 +76,9 @@ function erosionRisk(slopeDeg: number, group: string): string {
 }
 
 function erosionColor(risk: string) {
-  if (risk === 'High') return '#9a6a5a';
-  if (risk.includes('Moderate')) return '#c4a265';
-  return '#8a9a74';
+  if (risk === 'High') return statusToken.poor;
+  if (risk.includes('Moderate')) return statusToken.moderate;
+  return statusToken.good;
 }
 
 export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDashboardProps) {

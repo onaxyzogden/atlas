@@ -9,6 +9,7 @@
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { earth, map as mapTokens, group, confidence, error, semantic } from '../../lib/tokens.js';
 
 interface EnvironmentOverlaysProps {
   map: maplibregl.Map | null;
@@ -65,7 +66,7 @@ export default function EnvironmentOverlays({ map, isMapReady }: EnvironmentOver
         borderRadius: 10,
         padding: collapsed ? '6px 10px' : 12,
         backdropFilter: 'blur(10px)',
-        color: '#f2ede3',
+        color: mapTokens.label,
         pointerEvents: 'auto',
         flexShrink: 0,
         maxWidth: 200,
@@ -76,7 +77,7 @@ export default function EnvironmentOverlays({ map, isMapReady }: EnvironmentOver
         style={{
           background: 'none',
           border: 'none',
-          color: '#8a9a74',
+          color: group.forestry,
           cursor: 'pointer',
           fontSize: 11,
           fontWeight: 600,
@@ -104,7 +105,7 @@ export default function EnvironmentOverlays({ map, isMapReady }: EnvironmentOver
                 padding: '5px 8px',
                 cursor: 'pointer',
                 textAlign: 'left',
-                color: '#f2ede3',
+                color: mapTokens.label,
                 width: '100%',
               }}
             >
@@ -113,13 +114,13 @@ export default function EnvironmentOverlays({ map, isMapReady }: EnvironmentOver
                   width: 7,
                   height: 7,
                   borderRadius: '50%',
-                  background: activeLayers.has(el.key) ? '#8a9a74' : '#3d3328',
+                  background: activeLayers.has(el.key) ? group.forestry : '#3d3328',
                   flexShrink: 0,
                 }}
               />
               <div>
                 <div style={{ fontSize: 11, fontWeight: activeLayers.has(el.key) ? 600 : 400 }}>{el.label}</div>
-                <div style={{ fontSize: 9, color: '#9a8a74' }}>{el.description}</div>
+                <div style={{ fontSize: 9, color: semantic.sidebarIcon }}>{el.description}</div>
               </div>
             </button>
           ))}
@@ -184,10 +185,10 @@ function addEnvLayer(map: maplibregl.Map, layer: EnvLayer, tracker: Set<string>)
               'line-color': [
                 'match',
                 ['get', 'class'],
-                ['motorway', 'trunk'], '#c44e3f',
-                ['primary', 'secondary'], '#8a6d1e',
-                ['tertiary', 'street'], '#7d6140',
-                '#4a3823',
+                ['motorway', 'trunk'], error.DEFAULT,
+                ['primary', 'secondary'], confidence.medium,
+                ['tertiary', 'street'], mapTokens.boundary,
+                earth[800],
               ],
               'line-width': [
                 'match',

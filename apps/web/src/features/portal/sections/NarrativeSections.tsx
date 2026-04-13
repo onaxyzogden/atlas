@@ -4,6 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { earth, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -14,7 +15,7 @@ export default function NarrativeSections({ config, project }: Props) {
       <div style={{ marginBottom: 60 }}>
         <h2 style={{
           fontSize: 11, fontWeight: 600, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: '#6B5B8A', marginBottom: 24, textAlign: 'center',
+          textTransform: 'uppercase', color: zone.spiritual, marginBottom: 24, textAlign: 'center',
         }}>
           How It Evolves
         </h2>
@@ -31,13 +32,13 @@ export default function NarrativeSections({ config, project }: Props) {
               background: 'rgba(196,162,101,0.04)',
               border: '1px solid rgba(196,162,101,0.1)',
             }}>
-              <div style={{ fontSize: 10, color: '#6B5B8A', fontWeight: 600, letterSpacing: '0.08em', marginBottom: 6 }}>
+              <div style={{ fontSize: 10, color: zone.spiritual, fontWeight: 600, letterSpacing: '0.08em', marginBottom: 6 }}>
                 {phase.label}
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 500, color: '#f2ede3', marginBottom: 8, marginTop: 0 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 500, color: earth[100], marginBottom: 8, marginTop: 0 }}>
                 {phase.title}
               </h3>
-              <p style={{ fontSize: 13, color: '#9a8a74', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: semantic.sidebarIcon, lineHeight: 1.6, margin: 0 }}>
                 {phase.desc}
               </p>
             </div>
@@ -49,7 +50,7 @@ export default function NarrativeSections({ config, project }: Props) {
       <div style={{ textAlign: 'center' }}>
         <h2 style={{
           fontSize: 11, fontWeight: 600, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: '#c4a265', marginBottom: 24,
+          textTransform: 'uppercase', color: semantic.sidebarActive, marginBottom: 24,
         }}>
           What You Can Support
         </h2>
@@ -72,8 +73,8 @@ export default function NarrativeSections({ config, project }: Props) {
               textAlign: 'center',
             }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: '#f2ede3', marginBottom: 4 }}>{item.label}</div>
-              <div style={{ fontSize: 11, color: '#9a8a74', lineHeight: 1.5 }}>{item.desc}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: earth[100], marginBottom: 4 }}>{item.label}</div>
+              <div style={{ fontSize: 11, color: semantic.sidebarIcon, lineHeight: 1.5 }}>{item.desc}</div>
             </div>
           ))}
         </div>

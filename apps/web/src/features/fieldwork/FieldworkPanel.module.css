@@ -13,7 +13,7 @@
   font-family: 'Fira Code', var(--font-display, 'Lora', Georgia, serif);
   font-size: 22px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   margin: 0;
 }
 
@@ -28,13 +28,13 @@
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: 4px;
-  background: rgba(21,128,61,0.12);
-  color: #15803D;
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: var(--color-group-reporting);
 }
 .offlineBadge {
   composes: onlineBadge;
-  background: rgba(202,138,4,0.12);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.12);
+  color: var(--color-warning);
 }
 .statusDot {
   width: 6px;
@@ -61,7 +61,7 @@
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 6px;
   background: rgba(255,255,255,0.02);
-  color: rgba(240,253,244,0.4);
+  color: rgba(var(--color-success-50-rgb),0.4);
   cursor: pointer;
   white-space: nowrap;
   transition: background 150ms, color 150ms;
@@ -69,9 +69,9 @@
 .tabBtn:hover { background: rgba(255,255,255,0.04); }
 .tabBtnActive {
   composes: tabBtn;
-  background: rgba(21,128,61,0.12);
-  color: #15803D;
-  border-color: rgba(21,128,61,0.25);
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: var(--color-group-reporting);
+  border-color: rgba(var(--color-group-reporting-rgb),0.25);
 }
 
 /* ── Sections ────────────────────────────────────────────────────── */
@@ -81,7 +81,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(21,128,61,0.55);
+  color: rgba(var(--color-group-reporting-rgb),0.55);
   margin: 0 0 10px;
   display: block;
 }
@@ -104,26 +104,26 @@
   font-family: 'Fira Sans', sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   line-height: 1.4;
   flex: 1;
 }
 .entryMeta {
   font-size: 10px;
-  color: rgba(240,253,244,0.35);
+  color: rgba(var(--color-success-50-rgb),0.35);
   margin-top: 4px;
 }
 .deleteBtn {
   background: none;
   border: none;
-  color: rgba(240,253,244,0.25);
+  color: rgba(var(--color-success-50-rgb),0.25);
   cursor: pointer;
   font-size: 16px;
   padding: 2px 6px;
   min-width: 28px;
   min-height: 28px;
 }
-.deleteBtn:hover { color: rgba(240,253,244,0.6); }
+.deleteBtn:hover { color: rgba(var(--color-success-50-rgb),0.6); }
 
 /* ── Type Badge ──────────────────────────────────────────────────── */
 .typeBadge {
@@ -134,19 +134,19 @@
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(21,128,61,0.12);
-  color: rgba(21,128,61,0.7);
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: rgba(var(--color-group-reporting-rgb),0.7);
   margin-right: 4px;
 }
 .typeBadgeWarn {
   composes: typeBadge;
-  background: rgba(202,138,4,0.12);
-  color: rgba(202,138,4,0.7);
+  background: rgba(var(--color-warning-rgb),0.12);
+  color: rgba(var(--color-warning-rgb),0.7);
 }
 .verifiedBadge {
   composes: typeBadge;
-  background: rgba(21,128,61,0.18);
-  color: #15803D;
+  background: rgba(var(--color-group-reporting-rgb),0.18);
+  color: var(--color-group-reporting);
 }
 
 /* ── Quick Capture ───────────────────────────────────────────────── */
@@ -164,22 +164,22 @@
   padding: 10px 16px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid rgba(21,128,61,0.2);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.2);
   border-radius: 8px;
-  background: rgba(21,128,61,0.06);
-  color: #15803D;
+  background: rgba(var(--color-group-reporting-rgb),0.06);
+  color: var(--color-group-reporting);
   cursor: pointer;
   transition: background 150ms;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.captureBtn:hover { background: rgba(21,128,61,0.12); }
+.captureBtn:hover { background: rgba(var(--color-group-reporting-rgb),0.12); }
 .captureBtnActive {
   composes: captureBtn;
-  border-color: rgba(202,138,4,0.3);
-  background: rgba(202,138,4,0.08);
-  color: #CA8A04;
+  border-color: rgba(var(--color-warning-rgb),0.3);
+  background: rgba(var(--color-warning-rgb),0.08);
+  color: var(--color-warning);
 }
 
 /* ── Text Input ──────────────────────────────────────────────────── */
@@ -190,7 +190,7 @@
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   outline: none;
   font-family: 'Fira Sans', sans-serif;
   resize: vertical;
@@ -216,14 +216,14 @@
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 6px;
   background: rgba(255,255,255,0.02);
-  color: rgba(240,253,244,0.4);
+  color: rgba(var(--color-success-50-rgb),0.4);
   cursor: pointer;
 }
 .noteTypeBtnActive {
   composes: noteTypeBtn;
-  background: rgba(21,128,61,0.12);
-  color: #15803D;
-  border-color: rgba(21,128,61,0.25);
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: var(--color-group-reporting);
+  border-color: rgba(var(--color-group-reporting-rgb),0.25);
 }
 
 /* ── Photo Preview ───────────────────────────────────────────────── */
@@ -267,15 +267,15 @@
   text-transform: uppercase;
   border: none;
   border-radius: 8px;
-  background: rgba(202,138,4,0.15);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.15);
+  color: var(--color-warning);
   cursor: pointer;
   transition: background 150ms;
 }
-.saveBtn:hover { background: rgba(202,138,4,0.25); }
+.saveBtn:hover { background: rgba(var(--color-warning-rgb),0.25); }
 .saveBtn:disabled {
   background: rgba(255,255,255,0.04);
-  color: rgba(240,253,244,0.25);
+  color: rgba(var(--color-success-50-rgb),0.25);
   cursor: not-allowed;
 }
 
@@ -293,26 +293,26 @@
 }
 .checklistItemDone {
   composes: checklistItem;
-  border-color: rgba(21,128,61,0.15);
-  background: rgba(21,128,61,0.04);
+  border-color: rgba(var(--color-group-reporting-rgb),0.15);
+  background: rgba(var(--color-group-reporting-rgb),0.04);
 }
 .checklistCheckbox {
   width: 20px;
   height: 20px;
   margin-top: 2px;
   flex-shrink: 0;
-  accent-color: #15803D;
+  accent-color: var(--color-group-reporting);
   cursor: pointer;
 }
 .checklistContent { flex: 1; }
 .checklistTitle {
   font-size: 13px;
   font-weight: 500;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .checklistDesc {
   font-size: 10px;
-  color: rgba(240,253,244,0.4);
+  color: rgba(var(--color-success-50-rgb),0.4);
   margin-top: 2px;
 }
 .checklistNote {
@@ -322,7 +322,7 @@
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 4px;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   outline: none;
   font-family: inherit;
   margin-top: 6px;
@@ -330,7 +330,7 @@
 }
 .checklistGps {
   font-size: 9px;
-  color: rgba(21,128,61,0.5);
+  color: rgba(var(--color-group-reporting-rgb),0.5);
   margin-top: 4px;
   font-family: 'Fira Code', monospace;
 }
@@ -350,10 +350,10 @@
   gap: 8px;
   min-height: 44px;
   padding: 10px 20px;
-  border: 1px solid rgba(202,138,4,0.35);
+  border: 1px solid rgba(var(--color-warning-rgb),0.35);
   border-radius: 6px;
-  background: rgba(202,138,4,0.08);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.08);
+  color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -361,7 +361,7 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.ctaBtn:hover { background: rgba(202,138,4,0.18); }
+.ctaBtn:hover { background: rgba(var(--color-warning-rgb),0.18); }
 
 /* ── Print Styles ────────────────────────────────────────────────── */
 @media print {

@@ -13,7 +13,7 @@
 
 .tooltip {
   position: absolute;
-  z-index: var(--z-tooltip, 1000);
+  z-index: var(--z-tooltip, 600);
   max-width: 240px;
   padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
   font-size: var(--text-xs, 0.75rem);

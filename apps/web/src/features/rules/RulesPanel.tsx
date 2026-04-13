@@ -13,6 +13,7 @@ import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { evaluateRules } from './RulesEngine.js';
 import type { RuleViolation, RuleSeverity } from './SitingRules.js';
+import { error as errorToken, group, water } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 interface RulesPanelProps {
@@ -20,9 +21,9 @@ interface RulesPanelProps {
 }
 
 const SEVERITY_CONFIG: Record<RuleSeverity, { icon: string; color: string; bg: string; border: string }> = {
-  error:   { icon: '\u274C', color: '#c44e3f', bg: 'rgba(196,78,63,0.06)', border: 'rgba(196,78,63,0.15)' },
-  warning: { icon: '\u26A0\uFE0F', color: '#c4a265', bg: 'rgba(196,162,101,0.06)', border: 'rgba(196,162,101,0.15)' },
-  info:    { icon: '\u{1F4A1}', color: '#5b9db8', bg: 'rgba(91,157,184,0.06)', border: 'rgba(91,157,184,0.15)' },
+  error:   { icon: '\u274C', color: errorToken.DEFAULT, bg: 'rgba(196,78,63,0.06)', border: 'rgba(196,78,63,0.15)' },
+  warning: { icon: '\u26A0\uFE0F', color: group.livestock, bg: 'rgba(196,162,101,0.06)', border: 'rgba(196,162,101,0.15)' },
+  info:    { icon: '\u{1F4A1}', color: water[400], bg: 'rgba(91,157,184,0.06)', border: 'rgba(91,157,184,0.15)' },
 };
 
 export default function RulesPanel({ project }: RulesPanelProps) {
@@ -107,7 +108,7 @@ function ViolationCard({ violation: v }: { violation: RuleViolation }) {
           <div className={`${p.text12} ${p.fontMedium} ${p.mb4}`} style={{ color: 'var(--color-panel-text)' }}>
             {v.title}
             {v.needsSiteVisit && (
-              <span className={p.badge} style={{ marginLeft: 6, fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.1)', color: '#c4a265' }}>
+              <span className={p.badge} style={{ marginLeft: 6, fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.1)', color: group.livestock }}>
                 Site Visit
               </span>
             )}

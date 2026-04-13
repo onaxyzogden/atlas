@@ -14,8 +14,8 @@
   background: var(--color-panel-card);
 }
 
-.statusPresent { border-left: 3px solid #2d7a4f; }
-.statusMissing { border-left: 3px solid #c44e3f; }
+.statusPresent { border-left: 3px solid var(--color-confidence-high); }
+.statusMissing { border-left: 3px solid var(--color-error); }
 
 .statusLabel {
   font-size: 10px;
@@ -53,13 +53,13 @@
 }
 
 .corridorConnected {
-  background: rgba(45, 122, 79, 0.15);
-  color: #2d7a4f;
+  background: rgba(var(--color-confidence-high-rgb), 0.15);
+  color: var(--color-confidence-high);
 }
 
 .corridorDisconnected {
-  background: rgba(196, 138, 4, 0.12);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb), 0.12);
+  color: var(--color-warning);
 }
 
 .conflictCard {
@@ -69,13 +69,13 @@
 }
 
 .conflictError {
-  background: rgba(196, 78, 63, 0.08);
-  border: 1px solid rgba(196, 78, 63, 0.25);
+  background: rgba(var(--color-error-rgb), 0.08);
+  border: 1px solid rgba(var(--color-error-rgb), 0.25);
 }
 
 .conflictWarning {
-  background: rgba(196, 162, 101, 0.08);
-  border: 1px solid rgba(196, 162, 101, 0.25);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.25);
 }
 
 .conflictType {
@@ -95,8 +95,8 @@
 .slopeCard {
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: rgba(196, 162, 101, 0.06);
-  border: 1px solid rgba(196, 162, 101, 0.2);
+  background: rgba(var(--color-gold-rgb), 0.06);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
   margin-bottom: 6px;
 }
 
@@ -129,8 +129,8 @@
   width: 20px;
   height: 20px;
   border-radius: var(--radius-full);
-  background: rgba(196, 162, 101, 0.15);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,9 +142,9 @@
 .successCard {
   padding: 12px;
   border-radius: var(--radius-md);
-  background: rgba(45, 122, 79, 0.08);
-  border: 1px solid rgba(45, 122, 79, 0.2);
+  background: rgba(var(--color-confidence-high-rgb), 0.08);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.2);
   font-size: var(--text-xs);
-  color: #2d7a4f;
+  color: var(--color-confidence-high);
   text-align: center;
 }

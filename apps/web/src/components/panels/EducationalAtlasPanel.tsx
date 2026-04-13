@@ -10,6 +10,7 @@ import { useSiteData, getLayer } from '../../store/siteDataStore.js';
 import { computeAssessmentScores } from '../../lib/computeScores.js';
 import type { ScoredResult } from '../../lib/computeScores.js';
 import AdvancedEducationPanel from '../../features/education/AdvancedEducationPanel.js';
+import { water, semantic, confidence } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './EducationalAtlasPanel.module.css';
 
@@ -34,7 +35,7 @@ interface HotspotCategory {
 const CATEGORIES: HotspotCategory[] = [
   {
     label: 'Water',
-    color: '#5b9db8',
+    color: water[400],
     hotspots: [
       {
         title: 'Keyline Water Design',
@@ -50,7 +51,7 @@ const CATEGORIES: HotspotCategory[] = [
   },
   {
     label: 'Livestock',
-    color: '#c4a265',
+    color: semantic.sidebarActive,
     hotspots: [
       {
         title: 'Rotational Grazing System',
@@ -61,7 +62,7 @@ const CATEGORIES: HotspotCategory[] = [
   },
   {
     label: 'Spiritual',
-    color: '#9a8a74',
+    color: semantic.textSubtle,
     hotspots: [
       {
         title: 'Prayer Pavilion \u2014 Signs of Creation',
@@ -72,7 +73,7 @@ const CATEGORIES: HotspotCategory[] = [
   },
   {
     label: 'Agroforestry',
-    color: '#2d7a4f',
+    color: confidence.high,
     hotspots: [
       {
         title: 'Food Forest Design',
@@ -88,7 +89,7 @@ const CATEGORIES: HotspotCategory[] = [
   },
   {
     label: 'Community',
-    color: '#7d6140',
+    color: semantic.primary,
     hotspots: [
       {
         title: 'Community Commons & Hospitality',
@@ -205,7 +206,7 @@ export default function EducationalAtlasPanel({ project }: EducationalAtlasPanel
       const layer = siteData ? getLayer(siteData, le.id) : undefined;
       return {
         ...le,
-        status: layer?.fetch_status ?? 'unavailable',
+        status: layer?.fetchStatus ?? 'unavailable',
         confidence: layer?.confidence,
       };
     });

@@ -10,6 +10,7 @@ import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useStructureStore, type Structure } from '../../store/structureStore.js';
 import TemplateMarketplace from './TemplateMarketplace.js';
 import p from '../../styles/panel.module.css';
+import { semantic } from '../../lib/tokens.js';
 
 interface TemplatePanelProps {
   project: LocalProject;
@@ -59,7 +60,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
                 <div className={`${p.text13} ${p.fontMedium} ${p.mb4}`}>
                   {tmpl.name}
                   {tmpl.category === 'moontrance' && (
-                    <span className={p.badge} style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.15)', color: '#c4a265', marginLeft: 6 }}>OGDEN</span>
+                    <span className={p.badge} style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(196,162,101,0.15)', color: semantic.sidebarActive, marginLeft: 6 }}>OGDEN</span>
                   )}
                 </div>
                 <div className={`${p.text10} ${p.muted} ${p.leading14}`}>{tmpl.description}</div>
@@ -95,7 +96,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
           {/* Cost estimate */}
           <div className={`${p.card} ${p.mb16}`} style={{ border: '1px solid rgba(196,162,101,0.2)' }}>
             <div className={`${p.text10} ${p.muted}`}>Estimated Investment</div>
-            <div className={`${p.textXl} ${p.fontBold}`} style={{ color: '#c4a265' }}>${selected.costEstimateRange[0]}K–${selected.costEstimateRange[1]}K</div>
+            <div className={`${p.textXl} ${p.fontBold}`} style={{ color: semantic.sidebarActive }}>${selected.costEstimateRange[0]}K–${selected.costEstimateRange[1]}K</div>
           </div>
 
           {/* Zones */}
@@ -117,7 +118,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
               <div key={i} className={p.card}>
                 <div className={`${p.rowBetween} ${p.mb4}`}>
                   <span className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>{phase.name}</span>
-                  <span className={p.text10} style={{ color: '#c4a265' }}>Year {phase.yearRange}</span>
+                  <span className={p.text10} style={{ color: semantic.sidebarActive }}>Year {phase.yearRange}</span>
                 </div>
                 <div className={`${p.text10} ${p.muted} ${p.mutedItalic} ${p.leading14} ${p.mb8}`}>
                   "{phase.description}"
@@ -125,7 +126,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
                 <div className={p.flexCol} style={{ gap: 2 }}>
                   {phase.features.map((f, fi) => (
                     <div key={fi} className={`${p.text10} ${p.muted}`} style={{ paddingLeft: 8 }}>
-                      <span style={{ color: '#c4a265', marginRight: 4 }}>{'\u25CF'}</span> {f}
+                      <span style={{ color: semantic.sidebarActive, marginRight: 4 }}>{'\u25CF'}</span> {f}
                     </div>
                   ))}
                 </div>
@@ -136,7 +137,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
           {/* Apply button */}
           <button
             className={`${p.drawBtn}`}
-            style={{ background: 'rgba(196,162,101,0.15)', color: '#c4a265' }}
+            style={{ background: 'rgba(196,162,101,0.15)', color: semantic.sidebarActive }}
             onClick={() => {
               const count = applyTemplate(selected, project);
               alert(`Template "${selected.name}" applied: ${count.zones} zones and ${count.structures} structures created.`);

@@ -4,6 +4,7 @@
  */
 
 import { useRef, useEffect } from 'react';
+import { earth, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
   url: string;
@@ -34,7 +35,7 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
       hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
     }
 
-    ctx.fillStyle = '#f2ede3';
+    ctx.fillStyle = earth[100];
 
     // Finder patterns (3 corners)
     const drawFinder = (x: number, y: number) => {
@@ -82,7 +83,7 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
+      position: 'fixed', inset: 0, zIndex: zIndex.modal,
       background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
@@ -109,7 +110,7 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
           <button onClick={handleDownload} style={{
             flex: 1, padding: '10px', fontSize: 12, fontWeight: 600, border: 'none', borderRadius: 6,
-            background: 'rgba(196,162,101,0.15)', color: '#c4a265', cursor: 'pointer',
+            background: 'rgba(196,162,101,0.15)', color: semantic.sidebarActive, cursor: 'pointer',
           }}>
             Download PNG
           </button>

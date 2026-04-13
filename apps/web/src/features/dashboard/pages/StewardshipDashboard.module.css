@@ -34,8 +34,8 @@
   gap: 24px;
   padding: 24px;
   border-radius: 14px;
-  border: 1px solid rgba(138,154,116,0.15);
-  background: rgba(138,154,116,0.03);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.15);
+  background: rgba(var(--color-status-good-rgb),0.03);
   margin-bottom: 28px;
 }
 .headlineScoreWrap {
@@ -128,13 +128,13 @@
 .priorityHigh {
   font-size: 10px;
   font-weight: 700;
-  color: #9a6a5a;
+  color: var(--color-status-poor);
   text-transform: uppercase;
 }
 .priorityMed {
   font-size: 10px;
   font-weight: 700;
-  color: #c4a265;
+  color: var(--color-primary);
   text-transform: uppercase;
 }
 .priorityLow {
@@ -162,8 +162,8 @@
 .certPlaceholder {
   padding: 20px;
   border-radius: 12px;
-  border: 1px dashed rgba(196,162,101,0.2);
-  background: rgba(196,162,101,0.03);
+  border: 1px dashed rgba(var(--color-gold-rgb), 0.2);
+  background: rgba(var(--color-gold-rgb), 0.03);
   font-size: 13px;
   line-height: 1.6;
   color: rgba(180,165,140,0.45);
@@ -174,8 +174,8 @@
 .quoteCard {
   padding: 28px;
   border-radius: 12px;
-  border: 1px solid rgba(196,162,101,0.12);
-  background: rgba(196,162,101,0.04);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.12);
+  background: rgba(var(--color-gold-rgb), 0.04);
   text-align: center;
 }
 .quote {

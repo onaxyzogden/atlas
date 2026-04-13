@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Milestone } from '../../../store/visionStore.js';
 import type { BuildPhase } from '../../../store/phaseStore.js';
 import p from '../../../styles/panel.module.css';
+import { error as errorToken } from '../../../lib/tokens.js';
 
 interface Props {
   milestones: Milestone[];
@@ -37,7 +38,7 @@ export default function MilestoneMarkers({ milestones, phases, onAdd, onUpdate, 
                 <input className={p.input} value={m.note} onChange={(e) => onUpdate(m.id, { note: e.target.value })} autoFocus />
                 <div className={p.row} style={{ marginTop: 4 }}>
                   <button className={p.btn} style={{ width: 'auto', padding: '4px 10px', fontSize: 11 }} onClick={() => setEditingId(null)}>Done</button>
-                  <button className={p.btn} style={{ width: 'auto', padding: '4px 10px', fontSize: 11, color: '#c44e3f' }} onClick={() => { onDelete(m.id); setEditingId(null); }}>Delete</button>
+                  <button className={p.btn} style={{ width: 'auto', padding: '4px 10px', fontSize: 11, color: errorToken.DEFAULT }} onClick={() => { onDelete(m.id); setEditingId(null); }}>Delete</button>
                 </div>
               </div>
             ) : (

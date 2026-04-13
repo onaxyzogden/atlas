@@ -4,6 +4,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import type { BeforeAfterPair } from '../../../store/portalStore.js';
+import { earth, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { pair: BeforeAfterPair }
 
@@ -31,7 +32,7 @@ export default function BeforeAfterSlider({ pair }: Props) {
   return (
     <section style={{ padding: '60px 24px', maxWidth: 900, margin: '0 auto' }}>
       {pair.caption && (
-        <h3 style={{ fontSize: 16, fontWeight: 400, color: '#c4b49a', textAlign: 'center', marginBottom: 20, fontStyle: 'italic' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 400, color: earth[400], textAlign: 'center', marginBottom: 20, fontStyle: 'italic' }}>
           {pair.caption}
         </h3>
       )}
@@ -67,14 +68,14 @@ export default function BeforeAfterSlider({ pair }: Props) {
         <div style={{
           position: 'absolute', top: 0, bottom: 0,
           left: `${position}%`, width: 3,
-          background: '#c4a265', transform: 'translateX(-50%)',
+          background: semantic.sidebarActive, transform: 'translateX(-50%)',
         }}>
           {/* Handle */}
           <div style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             width: 36, height: 36, borderRadius: '50%',
-            background: '#c4a265', border: '3px solid #f2ede3',
+            background: semantic.sidebarActive, border: `3px solid ${earth[100]}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 14, color: '#1a1611', fontWeight: 700,
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
@@ -84,10 +85,10 @@ export default function BeforeAfterSlider({ pair }: Props) {
         </div>
 
         {/* Labels */}
-        <div style={{ position: 'absolute', top: 12, left: 12, padding: '4px 10px', borderRadius: 4, background: 'rgba(26,22,17,0.7)', fontSize: 11, color: '#9a8a74', fontWeight: 600 }}>
+        <div style={{ position: 'absolute', top: 12, left: 12, padding: '4px 10px', borderRadius: 4, background: 'rgba(26,22,17,0.7)', fontSize: 11, color: semantic.sidebarIcon, fontWeight: 600 }}>
           BEFORE
         </div>
-        <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 10px', borderRadius: 4, background: 'rgba(26,22,17,0.7)', fontSize: 11, color: '#4A7C3F', fontWeight: 600 }}>
+        <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 10px', borderRadius: 4, background: 'rgba(26,22,17,0.7)', fontSize: 11, color: zone.food_production, fontWeight: 600 }}>
           AFTER
         </div>
       </div>

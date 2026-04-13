@@ -2,6 +2,7 @@
  * DashboardSidebar — domain-grouped navigation for the dashboard view.
  */
 
+import { group } from '../../lib/tokens.js';
 import css from './DashboardSidebar.module.css';
 
 export interface DashboardSection {
@@ -18,7 +19,7 @@ interface DashboardGroup {
 const DASHBOARD_GROUPS: DashboardGroup[] = [
   {
     group: 'Grazing & Livestock',
-    color: '#c4a265',
+    color: group.livestock,
     items: [
       { id: 'paddock-design', label: 'Paddock Design' },
       { id: 'herd-rotation', label: 'Herd Rotation' },
@@ -28,7 +29,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
   {
     group: 'Forestry',
-    color: '#8a9a74',
+    color: group.forestry,
     items: [
       { id: 'planting-tool', label: 'Planting Tool' },
       { id: 'forest-hub', label: 'Forest Hub' },
@@ -38,7 +39,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
   {
     group: 'Hydrology & Terrain',
-    color: '#7a8a9a',
+    color: group.hydrology,
     items: [
       { id: 'cartographic', label: 'Cartographic' },
       { id: 'hydrology-dashboard', label: 'Hydrology' },
@@ -50,7 +51,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
   {
     group: 'Finance',
-    color: '#7a9a8a',
+    color: group.finance,
     items: [
       { id: 'economics', label: 'Economics' },
       { id: 'scenarios', label: 'Scenarios' },
@@ -59,14 +60,14 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
   {
     group: 'Compliance',
-    color: '#8a8a6a',
+    color: group.compliance,
     items: [
       { id: 'regulatory', label: 'Regulatory' },
     ],
   },
   {
     group: 'Reporting & Portal',
-    color: '#15803D',
+    color: group.reporting,
     items: [
       { id: 'reporting', label: 'Reports & Export' },
       { id: 'portal', label: 'Public Portal' },
@@ -75,7 +76,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
   {
     group: 'General',
-    color: '#9a7a8a',
+    color: group.general,
     items: [
       { id: 'biomass', label: 'Biomass' },
       { id: 'siting-rules', label: 'Siting Rules' },

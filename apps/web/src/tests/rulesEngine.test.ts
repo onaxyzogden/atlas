@@ -146,11 +146,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
   return {
     layers: [
       {
-        layer_type: 'elevation',
-        fetch_status: 'complete',
+        layerType: 'elevation',
+        fetchStatus: 'complete',
         confidence: 'high',
-        data_date: '2026-01-01',
-        source_api: 'USGS 3DEP',
+        dataDate: '2026-01-01',
+        sourceApi: 'USGS 3DEP',
         attribution: 'USGS',
         summary: {
           mean_slope_deg: 5,
@@ -160,11 +160,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'soils',
-        fetch_status: 'complete',
+        layerType: 'soils',
+        fetchStatus: 'complete',
         confidence: 'high',
-        data_date: '2026-01-01',
-        source_api: 'SSURGO',
+        dataDate: '2026-01-01',
+        sourceApi: 'SSURGO',
         attribution: 'USDA',
         summary: {
           drainage_class: 'Well drained',
@@ -173,11 +173,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'wetlands_flood',
-        fetch_status: 'complete',
+        layerType: 'wetlands_flood',
+        fetchStatus: 'complete',
         confidence: 'medium',
-        data_date: '2026-01-01',
-        source_api: 'FEMA',
+        dataDate: '2026-01-01',
+        sourceApi: 'FEMA',
         attribution: 'FEMA',
         summary: {
           flood_zone: 'Zone X (minimal risk)',
@@ -186,11 +186,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'climate',
-        fetch_status: 'complete',
+        layerType: 'climate',
+        fetchStatus: 'complete',
         confidence: 'high',
-        data_date: '2026-01-01',
-        source_api: 'NOAA',
+        dataDate: '2026-01-01',
+        sourceApi: 'NOAA',
         attribution: 'NOAA',
         summary: {
           frost_free_days: 180,
@@ -201,11 +201,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'terrain_analysis',
-        fetch_status: 'complete',
+        layerType: 'terrain_analysis',
+        fetchStatus: 'complete',
         confidence: 'medium',
-        data_date: '2026-01-01',
-        source_api: 'Derived',
+        dataDate: '2026-01-01',
+        sourceApi: 'Derived',
         attribution: 'OGDEN',
         summary: {
           coldAirDrainage: { riskRating: 'low', poolingAreas: [] },
@@ -213,11 +213,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'microclimate',
-        fetch_status: 'complete',
+        layerType: 'microclimate',
+        fetchStatus: 'complete',
         confidence: 'medium',
-        data_date: '2026-01-01',
-        source_api: 'Derived',
+        dataDate: '2026-01-01',
+        sourceApi: 'Derived',
         attribution: 'OGDEN',
         summary: {
           windShelter: { shelteredAreaPct: 40 },
@@ -225,11 +225,11 @@ function baseSiteData(layerOverrides: Record<string, Record<string, unknown>> = 
         },
       },
       {
-        layer_type: 'watershed_derived',
-        fetch_status: 'complete',
+        layerType: 'watershed_derived',
+        fetchStatus: 'complete',
         confidence: 'medium',
-        data_date: '2026-01-01',
-        source_api: 'Derived',
+        dataDate: '2026-01-01',
+        sourceApi: 'Derived',
         attribution: 'OGDEN',
         summary: {
           runoff: { meanAccumulation: 25 },
@@ -915,7 +915,7 @@ describe('evaluateRules', () => {
       // Remove microclimate layer
       state.siteData = {
         ...baseSiteData(),
-        layers: baseSiteData().layers.filter((l: any) => l.layer_type !== 'microclimate'),
+        layers: baseSiteData().layers.filter((l: any) => l.layerType !== 'microclimate'),
       };
       state.structures = [makeStructure({ type: 'cabin' })];
       const violations = evaluateRules(state);
@@ -1010,7 +1010,7 @@ describe('evaluateRules', () => {
       const state = emptyState();
       state.siteData = {
         ...baseSiteData(),
-        layers: baseSiteData().layers.filter((l: any) => l.layer_type !== 'watershed_derived'),
+        layers: baseSiteData().layers.filter((l: any) => l.layerType !== 'watershed_derived'),
       };
       state.zones = [makeZone({ category: 'water_retention' })];
       const violations = evaluateRules(state);

@@ -17,16 +17,16 @@
   letter-spacing: 0.02em;
   white-space: nowrap;
   background: transparent;
-  border: 1px solid rgba(196, 162, 101, 0.15);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.15);
   color: var(--color-panel-muted);
   font-weight: 400;
 }
 
 .tabBtnActive {
   font-weight: var(--font-semibold);
-  background: rgba(196, 162, 101, 0.12);
-  border-color: rgba(196, 162, 101, 0.3);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border-color: rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
 }
 
 /* ── Zone type grid ───────────────────────────────────────────── */
@@ -83,8 +83,8 @@
   justify-content: center;
   gap: 8px;
   letter-spacing: 0.02em;
-  background: rgba(196, 162, 101, 0.15);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  color: var(--color-primary);
   cursor: pointer;
 }
 
@@ -155,9 +155,9 @@
 }
 
 .structBtnActive {
-  background: rgba(196, 162, 101, 0.12);
-  border-color: rgba(196, 162, 101, 0.3);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border-color: rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
 }
 
 .structCatLabel {
@@ -173,11 +173,11 @@
 .placementIndicator {
   padding: 10px 12px;
   margin-bottom: 14px;
-  background: rgba(196, 162, 101, 0.08);
-  border: 1px solid rgba(196, 162, 101, 0.2);
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
-  color: #c4a265;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -185,7 +185,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-modal, 400);
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
   display: flex;
@@ -197,7 +197,7 @@
   width: 460px;
   max-width: 90vw;
   background: var(--color-panel-bg);
-  border: 1px solid rgba(196, 162, 101, 0.15);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.15);
   border-radius: 14px;
   padding: 28px 32px;
   color: var(--color-panel-text);
@@ -314,8 +314,8 @@
   border-radius: var(--radius-md);
   letter-spacing: 0.02em;
   cursor: pointer;
-  background: rgba(196, 162, 101, 0.2);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.2);
+  color: var(--color-primary);
 }
 
 .modalSaveBtnDisabled {

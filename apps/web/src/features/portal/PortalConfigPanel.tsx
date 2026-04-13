@@ -7,6 +7,7 @@ import { usePortalStore, type PortalSection } from '../../store/portalStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
+import { confidence, error as errorToken, group, semantic } from '../../lib/tokens.js';
 
 interface Props { project: LocalProject }
 
@@ -81,7 +82,7 @@ export default function PortalConfigPanel({ project }: Props) {
             background: isOffline ? '#d1d5db'
               : portalConfig.isPublished ? 'rgba(196,78,63,0.15)' : 'rgba(45,122,79,0.15)',
             color: isOffline ? '#9ca3af'
-              : portalConfig.isPublished ? '#c44e3f' : '#2d7a4f',
+              : portalConfig.isPublished ? errorToken.DEFAULT : confidence.high,
             cursor: isOffline ? 'not-allowed' : 'pointer',
           }}
         >
@@ -95,7 +96,7 @@ export default function PortalConfigPanel({ project }: Props) {
           <div style={{
             padding: '8px 12px', borderRadius: 8, fontSize: 10,
             background: 'rgba(21,128,61,0.04)', border: '1px solid rgba(21,128,61,0.15)',
-            color: '#15803D', wordBreak: 'break-all', lineHeight: 1.5,
+            color: group.reporting, wordBreak: 'break-all', lineHeight: 1.5,
           }}>
             {shareUrl}
           </div>
@@ -103,7 +104,7 @@ export default function PortalConfigPanel({ project }: Props) {
             <button
               onClick={() => window.open(shareUrl, '_blank')}
               className={p.btn}
-              style={{ flex: 1, fontWeight: 600, borderColor: 'rgba(196,162,101,0.2)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' }}
+              style={{ flex: 1, fontWeight: 600, borderColor: 'rgba(196,162,101,0.2)', background: 'rgba(196,162,101,0.08)', color: semantic.sidebarActive }}
             >
               Open Portal Preview
             </button>
@@ -114,7 +115,7 @@ export default function PortalConfigPanel({ project }: Props) {
                 padding: '6px 14px', fontSize: 11, fontWeight: 600,
                 border: '1px solid rgba(21,128,61,0.2)',
                 background: copied ? 'rgba(21,128,61,0.1)' : 'transparent',
-                color: '#15803D', cursor: 'pointer',
+                color: group.reporting, cursor: 'pointer',
               }}
             >
               {copied ? 'Copied!' : 'Copy Link'}

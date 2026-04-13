@@ -10,12 +10,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('../lib/mockLayerData.js', () => ({
   generateMockLayers: vi.fn((country: string) => [
     {
-      layer_type: 'elevation',
-      source_api: 'Estimated',
-      fetch_status: 'complete',
+      layerType: 'elevation',
+      sourceApi: 'Estimated',
+      fetchStatus: 'complete',
       confidence: 'low',
       attribution: 'Estimated from latitude',
-      data_date: '2026-01-01',
+      dataDate: '2026-01-01',
       summary: {
         min_elevation_m: 200,
         max_elevation_m: 300,
@@ -25,12 +25,12 @@ vi.mock('../lib/mockLayerData.js', () => ({
       },
     },
     {
-      layer_type: 'soils',
-      source_api: 'Estimated',
-      fetch_status: 'complete',
+      layerType: 'soils',
+      sourceApi: 'Estimated',
+      fetchStatus: 'complete',
       confidence: 'low',
       attribution: 'Estimated from latitude',
-      data_date: '2026-01-01',
+      dataDate: '2026-01-01',
       summary: { texture: 'loam', drainage: 'well drained' },
     },
   ]),
@@ -68,7 +68,7 @@ describe('getCachedLayers', () => {
     const cacheKey = '40.000_-80.000_US';
     const cacheData = {
       [cacheKey]: {
-        layers: [{ layer_type: 'elevation', summary: { min_elevation_m: 200 } }],
+        layers: [{ layerType: 'elevation', summary: { min_elevation_m: 200 } }],
         fetchedAt: Date.now() - 1000, // 1 second ago
         isLive: false,
       },
@@ -85,7 +85,7 @@ describe('getCachedLayers', () => {
     const cacheKey = '40.000_-80.000_US';
     const cacheData = {
       [cacheKey]: {
-        layers: [{ layer_type: 'elevation' }],
+        layers: [{ layerType: 'elevation' }],
         fetchedAt: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
         isLive: false,
       },

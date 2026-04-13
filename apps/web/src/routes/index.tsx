@@ -17,6 +17,7 @@ import {
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
+import { semantic } from '../lib/tokens.js';
 import NewProjectPage from '../pages/NewProjectPage.js';
 import ProjectPage from '../pages/ProjectPage.js';
 import PortalPage from '../pages/PortalPage.js';
@@ -83,7 +84,7 @@ const notFoundRoute = createRoute({
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
       <h2 style={{ color: 'var(--color-text)', fontSize: 20, margin: 0 }}>Page not found</h2>
       <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>The page you're looking for doesn't exist.</p>
-      <a href="/" style={{ color: '#c4a265', textDecoration: 'underline' }}>Back to projects</a>
+      <a href="/" style={{ color: semantic.sidebarActive, textDecoration: 'underline' }}>Back to projects</a>
     </div>
   ),
 });

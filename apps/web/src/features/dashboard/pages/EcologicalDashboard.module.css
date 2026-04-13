@@ -59,8 +59,8 @@
 .miniScoreCard {
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(138,154,116,0.15);
-  background: rgba(138,154,116,0.03);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.15);
+  background: rgba(var(--color-status-good-rgb),0.03);
 }
 .miniScoreHeader {
   display: flex;
@@ -100,7 +100,7 @@
 .miniScoreRating {
   font-size: 12px;
   font-weight: 600;
-  color: #8a9a74;
+  color: var(--color-status-good);
   margin-bottom: 8px;
 }
 
@@ -110,7 +110,7 @@
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: #c4a265;
+  color: var(--color-primary);
   padding: 0;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -148,7 +148,7 @@
 .breakdownBarFill {
   height: 100%;
   border-radius: 2px;
-  background: #8a9a74;
+  background: var(--color-status-good);
 }
 .breakdownValue {
   font-size: 10px;
@@ -229,7 +229,7 @@
 .coverBarFill {
   height: 100%;
   border-radius: 3px;
-  background: #8a9a74;
+  background: var(--color-status-good);
   transition: width 500ms ease;
 }
 .coverPct {
@@ -251,8 +251,8 @@
 .wetlandCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(45,122,79,0.12);
-  background: rgba(45,122,79,0.03);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.12);
+  background: rgba(var(--color-confidence-high-rgb), 0.03);
 }
 .wetlandGrid {
   display: grid;
@@ -300,8 +300,8 @@
 .interventionCard {
   padding: 14px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(138,154,116,0.12);
-  background: rgba(138,154,116,0.03);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.12);
+  background: rgba(var(--color-status-good-rgb),0.03);
 }
 .interventionHeader {
   display: flex;
@@ -320,8 +320,8 @@
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(196,162,101,0.1);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.1);
+  color: var(--color-primary);
 }
 .interventionDesc {
   font-size: 12px;
@@ -339,8 +339,8 @@
 .carbonMetric {
   padding: 14px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(138,154,116,0.12);
-  background: rgba(138,154,116,0.03);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.12);
+  background: rgba(var(--color-status-good-rgb),0.03);
   text-align: center;
 }
 .carbonMetricLabel {
@@ -416,10 +416,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 1px solid rgba(196,162,101,0.35);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.35);
   border-radius: 6px;
-  background: rgba(196,162,101,0.08);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.08);
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -427,4 +427,4 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.surveyBtn:hover { background: rgba(196,162,101,0.18); }
+.surveyBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }

@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { useEffect } from 'react';
+import { zIndex } from '../lib/tokens.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -124,7 +125,7 @@ export function ToastContainer() {
           position: 'fixed',
           top: 64,
           right: 16,
-          zIndex: 9999,
+          zIndex: zIndex.toast,
           display: 'flex',
           flexDirection: 'column',
           gap: 8,

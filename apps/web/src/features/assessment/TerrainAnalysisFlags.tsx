@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { MockLayerResult } from '../../lib/mockLayerData.js';
+import { confidence, error as errorToken, semantic } from '../../lib/tokens.js';
 
 interface TerrainAnalysisFlagsProps {
   project: LocalProject;
@@ -123,9 +124,9 @@ function FlagGroup({ label, flags }: { label: string; flags: TerrainFlag[] }) {
 
 function FlagCard({ flag }: { flag: TerrainFlag }) {
   const severityConfig = {
-    high: { bg: 'rgba(196, 78, 63, 0.08)', border: 'rgba(196, 78, 63, 0.2)', dot: '#c44e3f' },
-    medium: { bg: 'rgba(138, 109, 30, 0.08)', border: 'rgba(138, 109, 30, 0.2)', dot: '#8a6d1e' },
-    low: { bg: 'rgba(45, 122, 79, 0.08)', border: 'rgba(45, 122, 79, 0.2)', dot: '#2d7a4f' },
+    high: { bg: 'rgba(196, 78, 63, 0.08)', border: 'rgba(196, 78, 63, 0.2)', dot: errorToken.DEFAULT },
+    medium: { bg: 'rgba(138, 109, 30, 0.08)', border: 'rgba(138, 109, 30, 0.2)', dot: confidence.medium },
+    low: { bg: 'rgba(45, 122, 79, 0.08)', border: 'rgba(45, 122, 79, 0.2)', dot: confidence.high },
   };
 
   const cfg = severityConfig[flag.severity];
@@ -143,7 +144,7 @@ function FlagCard({ flag }: { flag: TerrainFlag }) {
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>{flag.title}</span>
         {flag.needsSiteVisit && (
-          <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(138,109,30,0.15)', color: '#8a6d1e' }}>
+          <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(138,109,30,0.15)', color: confidence.medium }}>
             Site Visit
           </span>
         )}
@@ -151,7 +152,7 @@ function FlagCard({ flag }: { flag: TerrainFlag }) {
       <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 4 }}>
         {flag.description}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--color-earth-600, #7d6140)', fontStyle: 'italic' }}>
+      <div style={{ fontSize: 10, color: `var(--color-earth-600, ${semantic.primary})`, fontStyle: 'italic' }}>
         {flag.recommendation}
       </div>
     </div>
@@ -168,10 +169,10 @@ function computeTerrainFlags(
 
   if (!layerData) return flags;
 
-  const elevation = layerData.find((l) => l.layer_type === 'elevation');
-  const soils = layerData.find((l) => l.layer_type === 'soils');
-  const climate = layerData.find((l) => l.layer_type === 'climate');
-  const wetlands = layerData.find((l) => l.layer_type === 'wetlands_flood');
+  const elevation = layerData.find((l) => l.layerType === 'elevation');
+  const soils = layerData.find((l) => l.layerType === 'soils');
+  const climate = layerData.find((l) => l.layerType === 'climate');
+  const wetlands = layerData.find((l) => l.layerType === 'wetlands_flood');
 
   // Steep slope detection
   if (elevation) {

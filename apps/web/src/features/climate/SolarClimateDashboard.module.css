@@ -59,8 +59,8 @@
 .sunPathCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(212,168,67,0.12);
-  background: rgba(212,168,67,0.03);
+  border: 1px solid rgba(var(--color-gold-rgb),0.12);
+  background: rgba(var(--color-gold-rgb),0.03);
 }
 .seasonRow {
   display: flex;
@@ -80,11 +80,11 @@
   cursor: pointer;
   transition: background 150ms, color 150ms;
 }
-.seasonBtn:hover { background: rgba(212,168,67,0.06); }
+.seasonBtn:hover { background: rgba(var(--color-gold-rgb),0.06); }
 .seasonBtnActive {
-  background: rgba(212,168,67,0.1);
-  border-color: rgba(212,168,67,0.3);
-  color: #d4a843;
+  background: rgba(var(--color-gold-rgb),0.1);
+  border-color: rgba(var(--color-gold-rgb),0.3);
+  color: var(--color-primary);
 }
 .seasonLabel {
   font-size: 11px;
@@ -136,8 +136,8 @@
 .calendarCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(138,154,116,0.12);
-  background: rgba(138,154,116,0.03);
+  border: 1px solid rgba(var(--color-status-good-rgb),0.12);
+  background: rgba(var(--color-status-good-rgb),0.03);
   overflow-x: auto;
 }
 .pendingNote {
@@ -180,8 +180,8 @@
   grid-column: span 2;
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid rgba(196,162,101,0.12);
-  background: rgba(196,162,101,0.03);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.12);
+  background: rgba(var(--color-gold-rgb), 0.03);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -219,8 +219,8 @@
 .solarOppCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(212,168,67,0.12);
-  background: rgba(212,168,67,0.03);
+  border: 1px solid rgba(var(--color-gold-rgb),0.12);
+  background: rgba(var(--color-gold-rgb),0.03);
 }
 .solarOppText {
   font-size: 14px;

@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgba(196, 162, 101, 0.4);
+  border: 1.5px solid rgba(var(--color-gold-rgb), 0.4);
   flex-shrink: 0;
   cursor: default;
 }
@@ -36,8 +36,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4ade80;
-  border: 1.5px solid #0f1a12;
+  background: var(--color-success-400);
+  border: 1.5px solid var(--color-sidebar-bg);
   animation: pulse-glow 2s ease-in-out infinite;
 }
 

@@ -24,6 +24,7 @@ import LivestockPanel from '../../features/livestock/LivestockPanel.js';
 import CropPanel from '../../features/crops/CropPanel.js';
 import AccessPanel from '../../features/access/AccessPanel.js';
 import UtilityPanel from '../../features/utilities/UtilityPanel.js';
+import { earth, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './DesignToolsPanel.module.css';
 
@@ -569,12 +570,12 @@ function renderStructureOnMap(map: maplibregl.Map, structure: Structure) {
   if (map.getSource(sourceId)) return;
 
   const tmpl = STRUCTURE_TEMPLATES[structure.type];
-  const color = tmpl?.category === 'spiritual' ? '#6B5B8A'
-    : tmpl?.category === 'dwelling' ? '#8B6E4E'
-    : tmpl?.category === 'agricultural' ? '#4A7C3F'
-    : tmpl?.category === 'gathering' ? '#c4a265'
-    : tmpl?.category === 'utility' ? '#4A6B8A'
-    : '#6B6B6B';
+  const color = tmpl?.category === 'spiritual' ? structureTokens.spiritual
+    : tmpl?.category === 'dwelling' ? structureTokens.dwelling
+    : tmpl?.category === 'agricultural' ? structureTokens.agricultural
+    : tmpl?.category === 'gathering' ? structureTokens.gathering
+    : tmpl?.category === 'utility' ? structureTokens.utility
+    : structureTokens.infrastructure;
 
   map.addSource(sourceId, {
     type: 'geojson',
@@ -595,7 +596,7 @@ function renderStructureOnMap(map: maplibregl.Map, structure: Structure) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': structure.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }
 
@@ -622,6 +623,6 @@ function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

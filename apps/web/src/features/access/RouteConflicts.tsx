@@ -4,6 +4,7 @@ import type { LandZone } from '../../store/zoneStore.js';
 import { detectRouteConflicts, type RouteConflict } from './accessAnalysis.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
+import { error as errorToken, semantic } from '../../lib/tokens.js';
 
 interface Props {
   paths: DesignPath[];
@@ -27,7 +28,7 @@ export default function RouteConflicts({ paths, zones }: Props) {
       ) : (
         conflicts.map((c, i) => (
           <div key={i} className={`${s.conflictCard} ${c.severity === 'error' ? s.conflictError : s.conflictWarning}`}>
-            <div className={s.conflictType} style={{ color: c.severity === 'error' ? '#c44e3f' : '#c4a265' }}>
+            <div className={s.conflictType} style={{ color: c.severity === 'error' ? errorToken.DEFAULT : semantic.sidebarActive }}>
               {CONFLICT_LABELS[c.type]}
             </div>
             <div className={s.conflictDesc}>{c.description}</div>

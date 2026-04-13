@@ -128,9 +128,9 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(196, 162, 101, 0.15);
-  border: 1px solid rgba(196, 162, 101, 0.3);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -155,7 +155,7 @@
 }
 .timelineProgress {
   height: 100%;
-  background: #c4a265;
+  background: var(--color-primary);
   border-radius: 2px;
 }
 

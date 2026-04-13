@@ -12,6 +12,7 @@ import MembersTab from './MembersTab.js';
 import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
+import { semantic } from '../../lib/tokens.js';
 
 interface CollaborationPanelProps {
   project: LocalProject;
@@ -150,7 +151,7 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
             className={p.btn}
             style={{
               marginBottom: 16,
-              ...(isAddingComment ? { borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(196,162,101,0.08)', color: '#c4a265' } : {}),
+              ...(isAddingComment ? { borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(196,162,101,0.08)', color: semantic.sidebarActive } : {}),
             }}
           >
             {isAddingComment ? 'Click on map to place comment...' : '\u{1F4CD} Add Comment to Map'}

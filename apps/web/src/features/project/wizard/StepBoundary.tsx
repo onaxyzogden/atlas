@@ -12,6 +12,7 @@ import { parseGeoFile } from '../../../lib/geoParsers.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import { earth, semantic } from '../../../lib/tokens.js';
 
 type BoundaryMode = 'none' | 'draw' | 'import';
 
@@ -56,19 +57,19 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           id: 'gl-draw-polygon-fill',
           type: 'fill',
           filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
-          paint: { 'fill-color': '#7d6140', 'fill-outline-color': '#4a3823', 'fill-opacity': 0.3 },
+          paint: { 'fill-color': semantic.primary, 'fill-outline-color': earth[800], 'fill-opacity': 0.3 },
         },
         {
           id: 'gl-draw-polygon-stroke',
           type: 'line',
           filter: ['all', ['==', '$type', 'Polygon']],
-          paint: { 'line-color': '#4a3823', 'line-width': 2 },
+          paint: { 'line-color': earth[800], 'line-width': 2 },
         },
         {
           id: 'gl-draw-point',
           type: 'circle',
           filter: ['all', ['==', '$type', 'Point']],
-          paint: { 'circle-radius': 5, 'circle-color': '#7d6140', 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' },
+          paint: { 'circle-radius': 5, 'circle-color': semantic.primary, 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' },
         },
       ],
     });
@@ -354,7 +355,7 @@ function showBoundaryOnMap(map: maplibregl.Map, geojson: GeoJSON.FeatureCollecti
     type: 'fill',
     source: 'imported-boundary',
     paint: {
-      'fill-color': '#7d6140',
+      'fill-color': semantic.primary,
       'fill-opacity': 0.2,
     },
   });
@@ -364,7 +365,7 @@ function showBoundaryOnMap(map: maplibregl.Map, geojson: GeoJSON.FeatureCollecti
     type: 'line',
     source: 'imported-boundary',
     paint: {
-      'line-color': '#4a3823',
+      'line-color': earth[800],
       'line-width': 2.5,
     },
   });

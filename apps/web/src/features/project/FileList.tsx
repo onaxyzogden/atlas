@@ -10,6 +10,7 @@ import type { ProjectAttachment } from '../../store/projectStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { api } from '../../lib/apiClient.js';
 import ConfidenceIndicator from '../assessment/ConfidenceIndicator.js';
+import { confidence } from '../../lib/tokens.js';
 
 interface FileListProps {
   projectId: string;
@@ -92,7 +93,7 @@ export default function FileList({ projectId, serverId, localAttachments }: File
       )}
 
       {error && (
-        <div style={{ fontSize: 11, color: '#9b3a2a', padding: '4px 0' }}>
+        <div style={{ fontSize: 11, color: confidence.low, padding: '4px 0' }}>
           {error}
         </div>
       )}

@@ -22,7 +22,7 @@ export function mockLayersWithOverrides(
 ): MockLayerResult[] {
   const layers = generateMockLayers(country);
   return layers.map((layer) => {
-    const ov = overrides[layer.layer_type];
+    const ov = overrides[layer.layerType];
     if (!ov) return layer;
     return {
       ...layer,
@@ -35,9 +35,9 @@ export function mockLayersWithOverrides(
 /** Layers where some have failed status — tests graceful degradation */
 export function mockLayersIncomplete(): MockLayerResult[] {
   return mockLayersWithOverrides('US', {
-    soils: { fetch_status: 'failed', confidence: 'low', summary: {} },
-    watershed: { fetch_status: 'failed', confidence: 'low', summary: {} },
-    climate: { fetch_status: 'pending', confidence: 'low', summary: {} },
+    soils: { fetchStatus: 'failed', confidence: 'low', summary: {} },
+    watershed: { fetchStatus: 'failed', confidence: 'low', summary: {} },
+    climate: { fetchStatus: 'pending', confidence: 'low', summary: {} },
   });
 }
 
@@ -46,7 +46,7 @@ export function mockLayersEmpty(): MockLayerResult[] {
   const layers = generateMockLayers('US');
   return layers.map((l) => ({
     ...l,
-    fetch_status: 'pending' as const,
+    fetchStatus: 'pending' as const,
     confidence: 'low' as const,
     summary: {},
   }));

@@ -2,8 +2,8 @@
 
 /* ─── Qibla compass ────────────────────────────────────────────────────── */
 .qiblaCard {
-  background: rgba(125, 97, 64, 0.12);
-  border: 1px solid rgba(125, 97, 64, 0.25);
+  background: rgba(var(--color-earth-600-rgb), 0.12);
+  border: 1px solid rgba(var(--color-earth-600-rgb), 0.25);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
@@ -19,7 +19,7 @@
   width: 52px;
   height: 52px;
   border-radius: var(--radius-full);
-  border: 2px solid #7d6140;
+  border: 2px solid var(--color-earth-600);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,7 +30,7 @@
 .compassNeedle {
   width: 2px;
   height: 22px;
-  background: #7d6140;
+  background: var(--color-earth-600);
   border-radius: 1px;
   transform-origin: center bottom;
   position: absolute;
@@ -105,11 +105,11 @@
 }
 
 .alignmentAligned {
-  border-left: 3px solid #2d7a4f;
+  border-left: 3px solid var(--color-confidence-high);
 }
 
 .alignmentMisaligned {
-  border-left: 3px solid #c4a265;
+  border-left: 3px solid var(--color-primary);
 }
 
 .alignmentName {
@@ -154,7 +154,7 @@
 
 .solarToday {
   font-weight: var(--font-semibold);
-  color: #c4a265;
+  color: var(--color-primary);
 }
 
 /* ─── Quiet zones ──────────────────────────────────────────────────────── */
@@ -187,18 +187,18 @@
 }
 
 .riskLow {
-  background: rgba(45, 122, 79, 0.15);
-  color: #2d7a4f;
+  background: rgba(var(--color-confidence-high-rgb), 0.15);
+  color: var(--color-confidence-high);
 }
 
 .riskMedium {
-  background: rgba(196, 162, 101, 0.15);
-  color: #c4a265;
+  background: rgba(var(--color-gold-rgb), 0.15);
+  color: var(--color-primary);
 }
 
 .riskHigh {
-  background: rgba(196, 78, 63, 0.15);
-  color: #c44e3f;
+  background: rgba(var(--color-error-rgb), 0.15);
+  color: var(--color-error);
 }
 
 /* ─── Signs in creation ────────────────────────────────────────────────── */
@@ -211,7 +211,7 @@
 }
 
 .signPresent {
-  border-left: 3px solid rgba(45, 122, 79, 0.5);
+  border-left: 3px solid rgba(var(--color-confidence-high-rgb), 0.5);
 }
 
 .signAbsent {
@@ -235,15 +235,15 @@
 .signValue {
   font-size: 11px;
   font-family: var(--font-mono);
-  color: #2d7a4f;
+  color: var(--color-confidence-high);
 }
 
 /* ─── Moontrance section ───────────────────────────────────────────────── */
 .moonCard {
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: rgba(125, 97, 64, 0.08);
-  border: 1px solid rgba(125, 97, 64, 0.2);
+  background: rgba(var(--color-earth-600-rgb), 0.08);
+  border: 1px solid rgba(var(--color-earth-600-rgb), 0.2);
   margin-bottom: 8px;
 }
 

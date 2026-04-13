@@ -9,6 +9,7 @@ import { useFinancialStore } from '../../store/financialStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
+import { zone } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 
@@ -191,7 +192,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               {/* Cumulative costs line (brown) */}
               <polyline
                 fill="none"
-                stroke="#8B6E4E"
+                stroke={zone.habitation}
                 strokeWidth="1.5"
                 strokeDasharray="4 3"
                 points={cumulativeCosts.map((v, i) => `${xPos(i)},${yPos(-v)}`).join(' ')}
@@ -260,7 +261,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
           {/* Chart legend */}
           <div className={s.chartLegend}>
             <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'var(--color-confidence-medium)' }} /> Net Cashflow</span>
-            <span className={s.legendItem}><span className={s.legendDot} style={{ background: '#8B6E4E' }} /> Costs</span>
+            <span className={s.legendItem}><span className={s.legendDot} style={{ background: zone.habitation }} /> Costs</span>
             <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'var(--color-confidence-high)' }} /> Revenue</span>
             <span className={s.legendItem}><span className={s.legendDot} style={{ background: 'rgba(196, 162, 101, 0.3)', width: 12, height: 8, borderRadius: 2 }} /> Range</span>
           </div>

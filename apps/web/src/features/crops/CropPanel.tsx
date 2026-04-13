@@ -8,6 +8,7 @@ import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../livestock/speciesData.js';
+import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 interface CropPanelProps {
@@ -148,7 +149,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
             const ct = CROP_TYPES[c.type];
             return (
               <div key={c.id} className={p.itemRow}>
-                <span className={p.swatchSm} style={{ background: ct?.color ?? '#4A7C3F' }} />
+                <span className={p.swatchSm} style={{ background: ct?.color ?? zone.food_production }} />
                 <div className={p.itemContent}>
                   <div className={p.itemTitle}>{c.name}</div>
                   <div className={p.itemMeta}>
@@ -251,7 +252,7 @@ function renderCropOnMap(map: maplibregl.Map, crop: CropArea) {
   if (map.getSource(sourceId)) return;
 
   const ct = CROP_TYPES[crop.type];
-  const color = ct?.color ?? '#4A7C3F';
+  const color = ct?.color ?? zone.food_production;
 
   map.addSource(sourceId, {
     type: 'geojson',
@@ -262,6 +263,6 @@ function renderCropOnMap(map: maplibregl.Map, crop: CropArea) {
   map.addLayer({
     id: `crop-label-${crop.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': crop.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

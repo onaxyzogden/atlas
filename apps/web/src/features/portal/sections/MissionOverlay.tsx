@@ -4,6 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { earth, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -11,10 +12,10 @@ export default function MissionOverlay({ config }: Props) {
   if (!config.missionStatement) {
     return (
       <section style={{ padding: '80px 24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6B5B8A', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: zone.spiritual, marginBottom: 16 }}>
           Why This Place
         </h2>
-        <p style={{ fontSize: 16, color: '#9a8a74', fontStyle: 'italic', maxWidth: 500, margin: '0 auto' }}>
+        <p style={{ fontSize: 16, color: semantic.sidebarIcon, fontStyle: 'italic', maxWidth: 500, margin: '0 auto' }}>
           The mission statement has not been written yet. Configure it in the Portal settings.
         </p>
       </section>
@@ -29,12 +30,12 @@ export default function MissionOverlay({ config }: Props) {
       textAlign: 'center',
     }}>
       <div style={{
-        width: 40, height: 2, background: '#6B5B8A', margin: '0 auto 24px',
+        width: 40, height: 2, background: zone.spiritual, margin: '0 auto 24px',
       }} />
 
       <h2 style={{
         fontSize: 11, fontWeight: 600, letterSpacing: '0.15em',
-        textTransform: 'uppercase', color: '#6B5B8A', marginBottom: 24,
+        textTransform: 'uppercase', color: zone.spiritual, marginBottom: 24,
       }}>
         Why This Place
       </h2>
@@ -44,7 +45,7 @@ export default function MissionOverlay({ config }: Props) {
         fontWeight: 300,
         fontStyle: 'italic',
         lineHeight: 1.8,
-        color: '#e8dcc8',
+        color: earth[200],
         margin: 0,
         padding: '0 16px',
         borderLeft: 'none',
@@ -53,7 +54,7 @@ export default function MissionOverlay({ config }: Props) {
       </blockquote>
 
       <div style={{
-        width: 40, height: 2, background: '#6B5B8A', margin: '32px auto 0',
+        width: 40, height: 2, background: zone.spiritual, margin: '32px auto 0',
       }} />
     </section>
   );

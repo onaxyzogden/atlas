@@ -2,6 +2,7 @@
  * Portal store — public storytelling portal configuration per project.
  * Zustand persist (localStorage) + backend sync via api.portal.
  */
+import { group } from '../lib/tokens.js';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -113,7 +114,7 @@ export const usePortalStore = create<PortalState>()(
           inquiryEmail: null,
           dataMaskingLevel: 'curated',
           curatedHotspots: [],
-          brandColor: '#c4a265',
+          brandColor: group.livestock,
           beforeAfterPairs: [],
           storyScenes: [],
           createdAt: new Date().toISOString(),

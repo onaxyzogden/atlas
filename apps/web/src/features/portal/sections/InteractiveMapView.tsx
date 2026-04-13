@@ -6,6 +6,7 @@ import { useRef, useEffect } from 'react';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
+import { group, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -60,11 +61,11 @@ export default function InteractiveMapView({ config, project }: Props) {
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <h2 style={{
           fontSize: 11, fontWeight: 600, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: '#c4a265', marginBottom: 8,
+          textTransform: 'uppercase', color: group.livestock, marginBottom: 8,
         }}>
           Explore the Land
         </h2>
-        <p style={{ fontSize: 13, color: '#9a8a74' }}>
+        <p style={{ fontSize: 13, color: semantic.sidebarIcon }}>
           Interactive map view — zoom, pan, and explore the property.
         </p>
       </div>

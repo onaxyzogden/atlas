@@ -16,6 +16,7 @@
 import type { AssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from './mockLayerData.js';
 import { evaluateAssessmentRules } from './rules/index.js';
+import { semantic, confidence, water } from './tokens.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -28,7 +29,7 @@ export interface ScoreComponent {
   value: number;
   /** Maximum this component could contribute */
   maxPossible: number;
-  /** The layer_type that produced this data point */
+  /** The layerType that produced this data point */
   sourceLayer: string;
   /** Confidence of the source layer */
   confidence: 'high' | 'medium' | 'low';
@@ -40,7 +41,7 @@ export interface ScoredResult {
   rating: 'Exceptional' | 'Good' | 'Moderate' | 'Low' | 'Insufficient Data';
   /** Lowest confidence among all contributing source layers */
   confidence: 'high' | 'medium' | 'low';
-  /** Unique list of layer_type values that contributed */
+  /** Unique list of layerType values that contributed */
   dataSources: string[];
   /** ISO datetime of computation */
   computedAt: string;
@@ -88,7 +89,7 @@ function layerByType(
   layers: MockLayerResult[],
   type: string,
 ): MockLayerResult | undefined {
-  return layers.find((l) => l.layer_type === type);
+  return layers.find((l) => l.layerType === type);
 }
 
 function s(layer: MockLayerResult | undefined, key: string): unknown {
@@ -902,7 +903,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       label: 'Elevation',
       value: `${s(elevation, 'min_elevation_m')}\u2013${s(elevation, 'max_elevation_m')} m`,
       confidence: normalizeConfidence(elevation.confidence),
-      color: '#9a8a74',
+      color: semantic.textSubtle,
     });
   }
 
@@ -914,7 +915,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       value: `${s(climate, 'annual_precip_mm')} mm/yr \u00B7 ${s(climate, 'growing_season_days')} frost-free`,
       detail: `Hardiness zone ${s(climate, 'hardiness_zone')}`,
       confidence: normalizeConfidence(climate.confidence),
-      color: '#2d7a4f',
+      color: confidence.high,
     });
   }
 
@@ -926,7 +927,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       value: `${s(soilsLayer, 'predominant_texture')}, ${s(soilsLayer, 'drainage_class')}`,
       detail: `${s(soilsLayer, 'farmland_class')}`,
       confidence: normalizeConfidence(soilsLayer.confidence),
-      color: '#9a8a74',
+      color: semantic.textSubtle,
     });
   }
 
@@ -938,7 +939,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       label: 'Wetlands',
       value: wp > 0 ? `${wp}% of area` : 'None detected',
       confidence: normalizeConfidence(wetlands.confidence),
-      color: '#5b9db8',
+      color: water[400],
     });
   }
 
@@ -950,7 +951,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       label: 'Hydrology',
       value: stream > 0 ? `${stream}m to nearest stream` : 'No streams detected',
       confidence: normalizeConfidence(watershed.confidence),
-      color: '#5b9db8',
+      color: water[400],
     });
   }
 

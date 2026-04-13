@@ -25,6 +25,7 @@ import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './GrazingDashboard.module.css';
+import { status as statusToken } from '../../../lib/tokens.js';
 
 interface GrazingDashboardProps {
   project: LocalProject;
@@ -55,17 +56,17 @@ interface LandCoverSummary {
 
 function forageColor(quality: ForageQuality['quality']): string {
   switch (quality) {
-    case 'high': return '#8a9a74';
+    case 'high': return statusToken.good;
     case 'good': return 'rgba(138,154,116,0.7)';
-    case 'moderate': return '#c4a265';
-    case 'poor': return '#9a6a5a';
+    case 'moderate': return statusToken.moderate;
+    case 'poor': return statusToken.poor;
   }
 }
 
 function complianceColor(value: number): string {
-  if (value >= 80) return '#8a9a74';
-  if (value >= 50) return '#c4a265';
-  return '#9a6a5a';
+  if (value >= 80) return statusToken.good;
+  if (value >= 50) return statusToken.moderate;
+  return statusToken.poor;
 }
 
 /* ------------------------------------------------------------------ */
@@ -264,7 +265,7 @@ export default function GrazingDashboard({ project, onSwitchToMap }: GrazingDash
               marginTop: 16,
               padding: '10px 24px',
               background: 'rgba(138,154,116,0.15)',
-              color: '#8a9a74',
+              color: statusToken.good,
               border: '1px solid rgba(138,154,116,0.3)',
               borderRadius: 6,
               cursor: 'pointer',
@@ -388,7 +389,7 @@ export default function GrazingDashboard({ project, onSwitchToMap }: GrazingDash
               <div className={css.complianceList}>
                 <div style={{ padding: '8px 0' }}>
                   <strong>{alert.paddockName}</strong>
-                  <span style={{ marginLeft: 8, color: alert.risk.risk === 'high' ? '#9a6a5a' : '#c4a265' }}>
+                  <span style={{ marginLeft: 8, color: alert.risk.risk === 'high' ? statusToken.poor : statusToken.moderate }}>
                     {alert.risk.risk.toUpperCase()} RISK
                   </span>
                   <span style={{ marginLeft: 8, opacity: 0.7 }}>

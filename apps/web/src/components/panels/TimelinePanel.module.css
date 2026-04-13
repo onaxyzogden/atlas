@@ -32,9 +32,9 @@
 
 .filterChipActive {
   font-weight: var(--font-semibold);
-  border-color: #c4a265;
-  background: rgba(196, 162, 101, 0.12);
-  color: #c4a265;
+  border-color: var(--color-primary);
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: var(--color-primary);
 }
 
 /* ── Phase card header ────────────────────────────────────────── */
@@ -98,7 +98,7 @@
 
 .phaseInvestment {
   font-size: var(--text-xs);
-  color: #c4a265;
+  color: var(--color-primary);
   font-weight: var(--font-semibold);
   font-family: var(--font-mono);
   margin-bottom: 4px;
@@ -113,7 +113,7 @@
 /* ── Phase expanded detail ────────────────────────────────────── */
 .phaseDetail {
   padding: 16px;
-  background: rgba(196, 162, 101, 0.04);
+  background: rgba(var(--color-gold-rgb), 0.04);
   border: 1px solid var(--color-border);
   border-top: none;
   border-radius: 0 0 10px 10px;
@@ -171,9 +171,9 @@
 }
 
 .statusInProgress {
-  background: rgba(196, 162, 101, 0.12);
-  color: #c4a265;
-  border: 1px solid rgba(196, 162, 101, 0.3);
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: var(--color-primary);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.3);
 }
 
 .statusPlanned {
@@ -183,9 +183,9 @@
 }
 
 .statusComplete {
-  background: rgba(45, 122, 79, 0.12);
-  color: #2d7a4f;
-  border: 1px solid rgba(45, 122, 79, 0.3);
+  background: rgba(var(--color-confidence-high-rgb), 0.12);
+  color: var(--color-confidence-high);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.3);
 }
 
 /* ── Feature assignment (new) ─────────────────────────────────────────── */

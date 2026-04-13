@@ -5,6 +5,8 @@
  * Blaney-Criddle ET, and standard agro-hydrology reference tables.
  */
 
+import { status } from './tokens.js';
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface HydroInputs {
@@ -138,19 +140,19 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
 
   if (wellDrained && 'AB'.includes(group)) {
     seepageRisk = 'LOWEST';
-    seepageRiskColor = '#c4a265';
+    seepageRiskColor = status.moderate;
     seepageDesc = `Subsurface ${group === 'A' ? 'sandy' : 'loamy'} layers provide high natural permeability. Pond sealing likely achievable with minimal clay amendment.`;
   } else if ('AB'.includes(group) || (wellDrained && group === 'C')) {
     seepageRisk = 'LOW';
-    seepageRiskColor = '#8a9a74';
+    seepageRiskColor = status.good;
     seepageDesc = `Moderate permeability detected. Compacted base layer or 15cm clay liner recommended for permanent water storage.`;
   } else if (poorlyDrained || group === 'C') {
     seepageRisk = 'MODERATE';
-    seepageRiskColor = '#c4a265';
+    seepageRiskColor = status.moderate;
     seepageDesc = `Seasonal saturation likely. Perforated underdrain or overflow control structure recommended for pond longevity.`;
   } else {
     seepageRisk = 'HIGH';
-    seepageRiskColor = '#9a6a5a';
+    seepageRiskColor = status.poor;
     seepageDesc = `Very low permeability soils. Excellent natural pond sealing. Monitor for frost heave and lateral seep near embankments.`;
   }
 

@@ -7,6 +7,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
 import MetricCard from './components/MetricCard.js';
+import { semantic } from '../../lib/tokens.js';
 import css from './DashboardMetrics.module.css';
 
 // ─── Layer summary types ──────────────────────────────────────────────────────
@@ -232,7 +233,7 @@ export default function DashboardMetrics({ section, project }: DashboardMetricsP
       {/* Stewardship guidance card */}
       <div className={css.guidanceCard}>
         <div className={css.guidanceIcon}>
-          <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="#c4a265" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke={semantic.sidebarActive} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 1C5 4 3 6 3 9C3 11.8 5.2 14 8 14C10.8 14 13 11.8 13 9C13 6 11 4 8 1Z" />
           </svg>
         </div>

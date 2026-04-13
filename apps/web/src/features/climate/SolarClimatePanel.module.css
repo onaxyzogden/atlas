@@ -22,7 +22,7 @@
 .toggleBtn {
   background: none;
   border: none;
-  color: #d4a843;
+  color: var(--color-primary);
   cursor: pointer;
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
@@ -54,8 +54,8 @@
 
 .seasonBtnActive {
   font-weight: var(--font-semibold);
-  background: rgba(212, 168, 67, 0.3);
-  color: #d4a843;
+  background: rgba(var(--color-gold-rgb), 0.3);
+  color: var(--color-primary);
 }
 
 .seasonBtnInactive {
@@ -99,7 +99,7 @@
   font-size: 14px;
   font-weight: var(--font-semibold);
   font-family: var(--font-mono);
-  color: #d4a843;
+  color: var(--color-primary);
 }
 
 /* ─── Wind rose toggle ──────────────────────────────────────────────────── */
@@ -114,8 +114,8 @@
 }
 
 .windToggleActive {
-  border: 1px solid rgba(212, 168, 67, 0.5);
-  background: rgba(212, 168, 67, 0.15);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.5);
+  background: rgba(var(--color-gold-rgb), 0.15);
 }
 
 .windToggleInactive {
@@ -137,5 +137,5 @@
 .sourceBadge {
   margin-top: 10px;
   font-size: 10px;
-  color: #6b5b4a;
+  color: var(--color-text-muted);
 }

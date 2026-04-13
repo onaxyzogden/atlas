@@ -20,6 +20,7 @@ import {
 } from '../../forest/forestAnalysis.js';
 import { FOOD_FOREST_LAYERS } from '../../forest/canopyLayerData.js';
 import css from './ForestHubDashboard.module.css';
+import { group } from '../../../lib/tokens.js';
 
 interface ForestHubDashboardProps {
   project: LocalProject;
@@ -94,7 +95,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
         <div className={css.gaugeWrapper}>
           <svg viewBox="0 0 120 120" width={120} height={120}>
             <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#15803D" strokeWidth="8"
+            <circle cx="60" cy="60" r="50" fill="none" stroke={group.reporting} strokeWidth="8"
               strokeDasharray={`${treeHealth.healthIdx * 3.14} ${100 * 3.14}`}
               strokeLinecap="round"
               transform="rotate(-90 60 60)" />

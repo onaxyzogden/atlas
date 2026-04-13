@@ -211,8 +211,8 @@ function CategoryRow({ breakdown }: { breakdown: CompletenessBreakdown }) {
 
 function isLayerComplete(siteData: import('../../store/siteDataStore.js').SiteData | null, layerType: string): boolean {
   if (!siteData) return false;
-  const layer = siteData.layers.find((l) => l.layer_type === layerType);
-  return layer?.fetch_status === 'complete';
+  const layer = siteData.layers.find((l) => l.layerType === layerType);
+  return layer?.fetchStatus === 'complete';
 }
 
 function computeCompleteness(project: LocalProject, siteData: import('../../store/siteDataStore.js').SiteData | null): CompletenessBreakdown[] {

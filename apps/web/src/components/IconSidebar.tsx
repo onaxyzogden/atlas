@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
 import s from './IconSidebar.module.css';
+import { phase as phaseTokens } from '../lib/tokens.js';
 
 // The panel a sub-item maps to (existing SidebarView panel keys)
 export type SidebarView =
@@ -66,7 +67,7 @@ const PHASE_GROUPS: PhaseGroup[] = [
     phase: 'P1',
     name: 'Site Intelligence',
     desc: 'Terrain visualization, site data layers, automated site assessment',
-    color: '#c4a265',
+    color: phaseTokens[1],
     items: [
       { id: 'terrain-viz',     label: 'Terrain Visualization', panel: 'layers' },
       { id: 'site-data',       label: 'Site Data Layers',     panel: 'intelligence' },
@@ -80,7 +81,7 @@ const PHASE_GROUPS: PhaseGroup[] = [
     phase: 'P2',
     name: 'Design Atlas',
     desc: 'Full structure/zone planning, hydrology, livestock, crop design',
-    color: '#8a9a74',
+    color: phaseTokens[2],
     items: [
       { id: 'zones',       label: 'Zones & Land Use',      panel: 'design' },
       { id: 'structures',  label: 'Structures & Built',    panel: 'design' },
@@ -101,7 +102,7 @@ const PHASE_GROUPS: PhaseGroup[] = [
     phase: 'P3',
     name: 'Collaboration + AI',
     desc: 'Multi-user access, AI-assisted outputs, scenario modeling',
-    color: '#7a8a9a',
+    color: phaseTokens[3],
     items: [
       { id: 'ai',            label: 'AI Atlas',          panel: 'ai' },
       { id: 'scenarios',     label: 'Scenarios',         panel: 'scenarios' },
@@ -116,7 +117,7 @@ const PHASE_GROUPS: PhaseGroup[] = [
     phase: 'P4',
     name: 'Public + Portal',
     desc: 'Public storytelling, export suite, mobile fieldwork, templates',
-    color: '#9a7a8a',
+    color: phaseTokens[4],
     items: [
       { id: 'portal',   label: 'Public Portal',    panel: 'portal' },
       { id: 'fieldwork', label: 'Fieldwork',       panel: 'fieldnotes' },

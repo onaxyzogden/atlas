@@ -3,6 +3,7 @@ import type { DesignPath } from '../../store/pathStore.js';
 import { analyzeAccess } from './accessAnalysis.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
+import { confidence, error as errorToken } from '../../lib/tokens.js';
 
 interface Props { paths: DesignPath[]; }
 
@@ -25,7 +26,7 @@ export default function AccessAnalysisCard({ paths }: Props) {
         {items.map((item) => (
           <div key={item.label} className={`${s.statusCard} ${item.present ? s.statusPresent : s.statusMissing}`}>
             <div className={s.statusLabel}>{item.label}</div>
-            <div className={s.statusValue} style={{ color: item.present ? '#2d7a4f' : '#c44e3f' }}>
+            <div className={s.statusValue} style={{ color: item.present ? confidence.high : errorToken.DEFAULT }}>
               {item.present ? item.name : 'Not placed'}
             </div>
           </div>

@@ -3,15 +3,15 @@
 /* ─── Blocking / advisory sections ──────────────────────────────────────── */
 .blockingSection {
   padding: 8px;
-  background: rgba(155, 58, 42, 0.04);
-  border: 1px solid rgba(155, 58, 42, 0.12);
+  background: rgba(var(--color-confidence-low-rgb), 0.04);
+  border: 1px solid rgba(var(--color-confidence-low-rgb), 0.12);
   border-radius: var(--radius-md);
 }
 
 .advisorySection {
   padding: 8px;
-  background: rgba(138, 109, 30, 0.04);
-  border: 1px solid rgba(138, 109, 30, 0.12);
+  background: rgba(var(--color-confidence-med-rgb), 0.04);
+  border: 1px solid rgba(var(--color-confidence-med-rgb), 0.12);
   border-radius: var(--radius-md);
 }
 
@@ -93,17 +93,17 @@
 
 .fitResultGood {
   border-left-color: var(--color-confidence-high);
-  background: rgba(45, 122, 79, 0.05);
+  background: rgba(var(--color-confidence-high-rgb), 0.05);
 }
 
 .fitResultModerate {
   border-left-color: var(--color-confidence-medium);
-  background: rgba(138, 109, 30, 0.05);
+  background: rgba(var(--color-confidence-med-rgb), 0.05);
 }
 
 .fitResultBad {
   border-left-color: var(--color-confidence-low);
-  background: rgba(155, 58, 42, 0.05);
+  background: rgba(var(--color-confidence-low-rgb), 0.05);
 }
 
 .fitResultMain {

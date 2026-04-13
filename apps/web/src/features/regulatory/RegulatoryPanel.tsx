@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { SETBACK_RULES } from '../rules/SitingRules.js';
+import { confidence, utility } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './RegulatoryPanel.module.css';
 
@@ -329,8 +330,8 @@ function PermitRow({ permit }: { permit: PermitItem }) {
   const statusConfig = {
     needed: { color: 'var(--color-confidence-low)', label: 'Likely Needed' },
     not_needed: { color: 'var(--color-confidence-high)', label: 'Not Needed' },
-    unknown: { color: '#8a6d1e', label: 'Unknown' },
-    applied: { color: '#4a90d9', label: 'Applied' },
+    unknown: { color: confidence.medium, label: 'Unknown' },
+    applied: { color: utility.water_tank, label: 'Applied' },
     approved: { color: 'var(--color-confidence-high)', label: 'Approved' },
   };
 
@@ -510,7 +511,7 @@ function computeRegulatoryRisk(
     return { value: score, label: 'High', color: 'var(--color-confidence-low)', description: 'Multiple permits likely required. Engage a planner early.' };
   }
   if (score >= 40) {
-    return { value: score, label: 'Medium', color: '#8a6d1e', description: 'Standard permitting expected. Document regulatory research.' };
+    return { value: score, label: 'Medium', color: confidence.medium, description: 'Standard permitting expected. Document regulatory research.' };
   }
   return { value: score, label: 'Low', color: 'var(--color-confidence-high)', description: 'Relatively straightforward regulatory path.' };
 }

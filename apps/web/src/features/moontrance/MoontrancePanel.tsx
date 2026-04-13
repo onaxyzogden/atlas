@@ -9,6 +9,7 @@ import { useZoneStore } from '../../store/zoneStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { useMemo } from 'react';
 import p from '../../styles/panel.module.css';
+import { zone, confidence, semantic } from '../../lib/tokens.js';
 
 interface MoontancePanelProps {
   project: LocalProject;
@@ -31,7 +32,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
     {
       title: 'Prayer & Contemplation',
       icon: '\u{1F54C}',
-      color: '#6B5B8A',
+      color: zone.spiritual,
       items: [
         { label: 'Prayer Spaces', count: prayerSpaces.length, target: 1, note: 'At least one prayer pavilion sited for quiet reflection' },
         { label: 'Bathhouses (Wudu)', count: bathhouses.length, target: 1, note: 'Wudu facility accessible from prayer space' },
@@ -42,7 +43,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
     {
       title: 'Hospitality & Guest Experience',
       icon: '\u{1F3D5}',
-      color: '#8A6B5B',
+      color: zone.retreat,
       items: [
         { label: 'Retreat Zones', count: retreatZones.length, target: 1, note: 'Guest-facing hospitality areas' },
         { label: 'Fire Circles', count: fireCircles.length, target: 1, note: 'Gathering spaces for evening community' },
@@ -53,7 +54,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
     {
       title: 'Education & Formation',
       icon: '\u{1F4DA}',
-      color: '#4A6B8A',
+      color: zone.education,
       items: [
         { label: 'Education Zones', count: educationZones.length, target: 1, note: 'Learning and immersion areas' },
         { label: 'Classrooms', count: classrooms.length, target: 1, note: 'Indoor/outdoor teaching spaces' },
@@ -62,7 +63,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
     {
       title: 'Islamic Adab & Privacy',
       icon: '\u{1F54B}',
-      color: '#5B6B8A',
+      color: zone.education,
       items: [
         { label: 'Guest Privacy', count: retreatZones.length > 0 ? 1 : 0, target: 1, note: 'Visual and acoustic privacy for guest cabins' },
         { label: 'Gender-Conscious Zones', count: 0, target: 0, note: 'Plan separate circulation where relevant to program' },
@@ -109,7 +110,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
                     <div className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)' }}>
                       {item.label}
                       {item.target > 0 && (
-                        <span className={p.text10} style={{ marginLeft: 6, color: met ? '#2d7a4f' : '#c4a265' }}>
+                        <span className={p.text10} style={{ marginLeft: 6, color: met ? confidence.high : semantic.sidebarActive }}>
                           {item.count}/{item.target}
                         </span>
                       )}
@@ -132,7 +133,7 @@ export default function MoontrancePanel({ project }: MoontancePanelProps) {
         borderLeft: '3px solid rgba(107,91,138,0.3)',
         marginTop: 8,
       }}>
-        <div className={p.text11} style={{ fontWeight: 600, color: '#6B5B8A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+        <div className={p.text11} style={{ fontWeight: 600, color: zone.spiritual, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
           Design Principle
         </div>
         <div className={`${p.text12} ${p.muted} ${p.leading17} ${p.mutedItalic}`}>

@@ -5,21 +5,22 @@
  */
 
 import type { ConfidenceLevel } from '@ogden/shared';
+import { confidence, semantic } from '../../lib/tokens.js';
 
 const CONFIG: Record<ConfidenceLevel, { label: string; color: string; description: string }> = {
   high: {
     label: 'High confidence',
-    color: '#2d7a4f',
+    color: confidence.high,
     description: 'Well-sourced data with good resolution. Results are reliable.',
   },
   medium: {
     label: 'Medium confidence',
-    color: '#8a6d1e',
+    color: confidence.medium,
     description: 'Some data gaps. Consider supplementing with site observation.',
   },
   low: {
     label: 'Low confidence',
-    color: '#9b3a2a',
+    color: confidence.low,
     description: 'Inference-heavy. Verify on site before making design decisions.',
   },
 };
@@ -76,7 +77,7 @@ export default function ConfidenceIndicator({
       <p style={{ fontSize: 12, fontWeight: 600, color: cfg.color, marginBlockEnd: 2 }}>
         {cfg.label}
       </p>
-      <p style={{ fontSize: 11, color: '#9a8a74' }}>{cfg.description}</p>
+      <p style={{ fontSize: 11, color: semantic.sidebarIcon }}>{cfg.description}</p>
       {dataSources && dataSources.length > 0 && (
         <p style={{ fontSize: 10, color: '#7a6a5a', marginBlockStart: 4 }}>
           Sources: {dataSources.join(', ')}

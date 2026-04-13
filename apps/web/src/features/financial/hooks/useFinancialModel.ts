@@ -29,17 +29,17 @@ import { computeMissionScore } from '../engine/missionScoring.js';
 /**
  * Extract SiteContext from site data layers.
  */
-function extractSiteContext(layers: Array<{ layer_type: string; summary: Record<string, unknown> }>): SiteContext {
+function extractSiteContext(layers: Array<{ layerType: string; summary: Record<string, unknown> }>): SiteContext {
   const ctx = { ...DEFAULT_SITE_CONTEXT };
 
   for (const layer of layers) {
-    if (layer.layer_type === 'elevation') {
+    if (layer.layerType === 'elevation') {
       const s = layer.summary;
       if (typeof s.mean_slope_deg === 'number') ctx.meanSlopeDeg = s.mean_slope_deg;
       if (typeof s.max_slope_deg === 'number') ctx.maxSlopeDeg = s.max_slope_deg;
       if (typeof s.predominant_aspect === 'string') ctx.predominantAspect = s.predominant_aspect;
     }
-    if (layer.layer_type === 'climate') {
+    if (layer.layerType === 'climate') {
       const s = layer.summary;
       if (typeof s.growing_season_days === 'number') ctx.growingSeasonDays = s.growing_season_days;
       if (typeof s.hardiness_zone === 'string') ctx.hardinessZone = s.hardiness_zone;

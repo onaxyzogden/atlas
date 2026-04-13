@@ -28,6 +28,7 @@ import {
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './PaddockDesignDashboard.module.css';
+import { status as statusToken, group } from '../../../lib/tokens.js';
 
 /* ------------------------------------------------------------------ */
 /*  Props & local types                                                */
@@ -52,10 +53,10 @@ interface LandCoverSummary { tree_canopy_pct?: number; }
 /* ------------------------------------------------------------------ */
 
 const STATUS_COLORS: Record<RecoveryStatus['status'], string> = {
-  active: '#c4a265',
-  resting: '#7a8a9a',
-  ready: '#8a9a74',
-  overdue: '#9a6a5a',
+  active: statusToken.moderate,
+  resting: group.hydrology,
+  ready: statusToken.good,
+  overdue: statusToken.poor,
 };
 
 const ACTION_LABELS: Record<RotationEntry['suggestedAction'], string> = {
@@ -284,7 +285,7 @@ export default function PaddockDesignDashboard({ project, onSwitchToMap }: Paddo
                 <span
                   className={css.forageType}
                   style={{
-                    color: water.meetsRequirement ? '#8a9a74' : '#9a6a5a',
+                    color: water.meetsRequirement ? statusToken.good : statusToken.poor,
                   }}
                 >
                   {water.meetsRequirement ? '\u2713' : '\u26A0'}{' '}
@@ -342,16 +343,16 @@ export default function PaddockDesignDashboard({ project, onSwitchToMap }: Paddo
                 padding: '14px 16px',
                 borderRadius: 10,
                 border: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '3px solid #c4a265',
+                borderLeft: `3px solid ${statusToken.moderate}`,
                 background: 'rgba(196,162,101,0.06)',
                 fontSize: 13,
                 color: '#bbb',
               }}
             >
-              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="#c4a265" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke={statusToken.moderate} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M8 1L15 14H1L8 1Z" />
                 <line x1="8" y1="6" x2="8" y2="9" />
-                <circle cx="8" cy="11.5" r="0.5" fill="#c4a265" />
+                <circle cx="8" cy="11.5" r="0.5" fill={statusToken.moderate} />
               </svg>
               <span>
                 Guest path &quot;{c.pathName}&quot; within {c.distanceM}m of paddock &quot;{c.paddockName}&quot;
@@ -369,16 +370,16 @@ export default function PaddockDesignDashboard({ project, onSwitchToMap }: Paddo
                 padding: '14px 16px',
                 borderRadius: 10,
                 border: '1px solid rgba(255,255,255,0.06)',
-                borderLeft: '3px solid #9a6a5a',
+                borderLeft: `3px solid ${statusToken.poor}`,
                 background: 'rgba(154,106,90,0.06)',
                 fontSize: 13,
                 color: '#bbb',
               }}
             >
-              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="#9a6a5a" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke={statusToken.poor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="8" cy="8" r="6.5" />
                 <line x1="8" y1="5" x2="8" y2="8.5" />
-                <circle cx="8" cy="11" r="0.5" fill="#9a6a5a" />
+                <circle cx="8" cy="11" r="0.5" fill={statusToken.poor} />
               </svg>
               <span>
                 Incompatible species near paddocks &quot;{c.paddockA}&quot; and &quot;{c.paddockB}&quot;

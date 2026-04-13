@@ -85,13 +85,13 @@
 
 .toolBtnActive {
   composes: toolBtn;
-  background: rgba(125, 97, 64, 0.22);
-  border-color: rgba(196, 162, 101, 0.4);
-  color: #c4a265;
+  background: rgba(var(--color-earth-600-rgb), 0.22);
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+  color: var(--color-primary);
 }
 
 .toolBtnActive:hover {
-  background: rgba(125, 97, 64, 0.32);
+  background: rgba(var(--color-earth-600-rgb), 0.32);
 }
 
 .toolIcon {

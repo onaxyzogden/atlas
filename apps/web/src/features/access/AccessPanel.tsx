@@ -17,6 +17,7 @@ import RouteConflicts from './RouteConflicts.js';
 import SlopeWarnings from './SlopeWarnings.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
+import { earth, map as mapTokens } from '../../lib/tokens.js';
 
 interface AccessPanelProps {
   projectId: string;
@@ -243,6 +244,6 @@ function renderPathOnMap(map: maplibregl.Map, path: DesignPath) {
   map.addLayer({
     id: `path-label-${path.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': path.name, 'text-size': 10, 'symbol-placement': 'line', 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'] },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

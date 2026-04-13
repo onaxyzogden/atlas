@@ -166,7 +166,7 @@
   background-color: var(--color-primary, #7d6140);
   border-color: var(--color-primary, #7d6140);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(125, 97, 64, 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--color-gold-rgb), 0.25);
 }
 
 /* Upcoming */
@@ -186,7 +186,7 @@
 
 .clickable .circle:hover {
   opacity: 0.85;
-  box-shadow: 0 0 0 3px rgba(91, 138, 114, 0.25);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.25);
 }
 
 /* -------------------------------------------------------------------------- */

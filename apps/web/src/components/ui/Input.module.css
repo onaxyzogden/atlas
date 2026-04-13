@@ -81,7 +81,7 @@
 
 .error:focus-visible {
   border-color: var(--color-error-500, #c4493a);
-  box-shadow: 0 0 0 3px rgba(196, 73, 58, 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--color-confidence-low-rgb), 0.2);
 }
 
 /* -------------------------------------------------------------------------- */

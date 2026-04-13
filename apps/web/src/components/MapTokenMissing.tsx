@@ -3,6 +3,8 @@
  * Provides clear instructions for the developer.
  */
 
+import { earth, semantic } from '../lib/tokens.js';
+
 export default function MapTokenMissing() {
   return (
     <div
@@ -20,10 +22,10 @@ export default function MapTokenMissing() {
       }}
     >
       <div style={{ fontSize: 40, opacity: 0.3 }}>{'\u{1F5FA}'}</div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: '#c4a265', margin: 0 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 600, color: semantic.sidebarActive, margin: 0 }}>
         MapTiler Key Required
       </h2>
-      <p style={{ fontSize: 13, color: '#9a8a74', maxWidth: 400, lineHeight: 1.6, margin: 0 }}>
+      <p style={{ fontSize: 13, color: semantic.sidebarIcon, maxWidth: 400, lineHeight: 1.6, margin: 0 }}>
         The map requires a MapTiler API key to render.
         Create a <code style={{ background: 'rgba(255,255,255,0.05)', padding: '1px 4px', borderRadius: 3 }}>.env</code> file
         in <code style={{ background: 'rgba(255,255,255,0.05)', padding: '1px 4px', borderRadius: 3 }}>apps/web/</code> with:
@@ -35,19 +37,19 @@ export default function MapTokenMissing() {
           borderRadius: 8,
           fontFamily: 'monospace',
           fontSize: 12,
-          color: '#c4a265',
+          color: semantic.sidebarActive,
           border: '1px solid rgba(196,162,101,0.2)',
         }}
       >
         VITE_MAPTILER_KEY=your_key_here
       </div>
-      <p style={{ fontSize: 11, color: '#6b5b4a', maxWidth: 350, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 11, color: earth[800], maxWidth: 350, lineHeight: 1.5 }}>
         Get a free key at{' '}
         <a
           href="https://cloud.maptiler.com/account/keys/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#c4a265', textDecoration: 'underline' }}
+          style={{ color: semantic.sidebarActive, textDecoration: 'underline' }}
         >
           cloud.maptiler.com
         </a>

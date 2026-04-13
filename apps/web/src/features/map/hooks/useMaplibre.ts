@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import { useMapStore } from '../../../store/mapStore.js';
+import { map as mapTokens, group, earth } from '../../../lib/tokens.js';
 
 interface UseMapboxOptions {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -53,8 +54,8 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           type: 'fill',
           filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
           paint: {
-            'fill-color': '#7d6140',
-            'fill-outline-color': '#4a3823',
+            'fill-color': mapTokens.boundary,
+            'fill-outline-color': earth[800],
             'fill-opacity': 0.25,
           },
         },
@@ -63,7 +64,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           type: 'line',
           filter: ['all', ['==', '$type', 'Polygon']],
           paint: {
-            'line-color': '#4a3823',
+            'line-color': earth[800],
             'line-width': 2,
           },
         },
@@ -72,7 +73,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           type: 'line',
           filter: ['all', ['==', '$type', 'LineString'], ['!=', 'mode', 'static']],
           paint: {
-            'line-color': '#c4a265',
+            'line-color': group.livestock,
             'line-width': 3,
             'line-dasharray': [2, 1],
           },
@@ -82,7 +83,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           type: 'line',
           filter: ['all', ['==', '$type', 'LineString'], ['==', 'mode', 'static']],
           paint: {
-            'line-color': '#7d6140',
+            'line-color': mapTokens.boundary,
             'line-width': 2,
           },
         },
@@ -92,7 +93,7 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
           filter: ['all', ['==', '$type', 'Point']],
           paint: {
             'circle-radius': 5,
-            'circle-color': '#7d6140',
+            'circle-color': mapTokens.boundary,
             'circle-stroke-width': 2,
             'circle-stroke-color': '#fff',
           },

@@ -79,8 +79,8 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
   const wetlands = siteData ? getLayerSummary<WetlandsSummary>(siteData, 'wetlands_flood') : null;
   const soilRegen = siteData ? getLayerSummary<SoilRegenSummary>(siteData, 'soil_regeneration') : null;
 
-  const soilRegenStatus = siteData ? getLayer(siteData, 'soil_regeneration')?.fetch_status : undefined;
-  const landCoverStatus = siteData ? getLayer(siteData, 'land_cover')?.fetch_status : undefined;
+  const soilRegenStatus = siteData ? getLayer(siteData, 'soil_regeneration')?.fetchStatus : undefined;
+  const landCoverStatus = siteData ? getLayer(siteData, 'land_cover')?.fetchStatus : undefined;
 
   // Compute scores from scoring engine
   const scores = useMemo(() => {

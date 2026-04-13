@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { utility } from '../lib/tokens';
 
 export type UtilityType =
   | 'solar_panel'
@@ -36,21 +37,21 @@ export interface Utility {
 }
 
 export const UTILITY_TYPE_CONFIG: Record<UtilityType, { label: string; icon: string; color: string; category: string }> = {
-  solar_panel:     { label: 'Solar Panel',       icon: '\u2600',      color: '#c4a265', category: 'Energy' },
-  battery_room:    { label: 'Battery Room',      icon: '\u{1F50B}',   color: '#8A9A74', category: 'Energy' },
-  generator:       { label: 'Generator',         icon: '\u26A1',      color: '#c44e3f', category: 'Energy' },
-  water_tank:      { label: 'Water Tank',        icon: '\u{1F6B0}',   color: '#4A90D9', category: 'Water' },
-  well_pump:       { label: 'Well / Pump',       icon: '\u{1F4A7}',   color: '#3A7A9A', category: 'Water' },
-  greywater:       { label: 'Greywater System',  icon: '\u{1F4A7}',   color: '#6B8A9A', category: 'Water' },
-  septic:          { label: 'Septic System',     icon: '\u{1F6BD}',   color: '#6B6B6B', category: 'Water' },
-  rain_catchment:  { label: 'Rain Catchment',    icon: '\u{1F327}',   color: '#4A6B8A', category: 'Water' },
-  lighting:        { label: 'Lighting Zone',     icon: '\u{1F4A1}',   color: '#c4a265', category: 'Infrastructure' },
-  firewood_storage:{ label: 'Firewood Storage',  icon: '\u{1FAB5}',   color: '#8B6E4E', category: 'Infrastructure' },
-  waste_sorting:   { label: 'Waste Sorting',     icon: '\u{1F5D1}',   color: '#6B6B6B', category: 'Infrastructure' },
-  compost:         { label: 'Compost',           icon: '\u267B',      color: '#5B8A4A', category: 'Infrastructure' },
-  biochar:         { label: 'Biochar',           icon: '\u{1F525}',   color: '#4A3823', category: 'Infrastructure' },
-  tool_storage:    { label: 'Tool Storage',      icon: '\u{1F527}',   color: '#6B6B6B', category: 'Infrastructure' },
-  laundry_station: { label: 'Laundry Station',   icon: '\u{1F9FA}',   color: '#7A8A9A', category: 'Infrastructure' },
+  solar_panel:     { label: 'Solar Panel',       icon: '\u2600',      color: utility.solar_panel, category: 'Energy' },
+  battery_room:    { label: 'Battery Room',      icon: '\u{1F50B}',   color: utility.battery_room, category: 'Energy' },
+  generator:       { label: 'Generator',         icon: '\u26A1',      color: utility.generator, category: 'Energy' },
+  water_tank:      { label: 'Water Tank',        icon: '\u{1F6B0}',   color: utility.water_tank, category: 'Water' },
+  well_pump:       { label: 'Well / Pump',       icon: '\u{1F4A7}',   color: utility.well_pump, category: 'Water' },
+  greywater:       { label: 'Greywater System',  icon: '\u{1F4A7}',   color: utility.greywater, category: 'Water' },
+  septic:          { label: 'Septic System',     icon: '\u{1F6BD}',   color: utility.septic, category: 'Water' },
+  rain_catchment:  { label: 'Rain Catchment',    icon: '\u{1F327}',   color: utility.rain_catchment, category: 'Water' },
+  lighting:        { label: 'Lighting Zone',     icon: '\u{1F4A1}',   color: utility.lighting, category: 'Infrastructure' },
+  firewood_storage:{ label: 'Firewood Storage',  icon: '\u{1FAB5}',   color: utility.firewood_storage, category: 'Infrastructure' },
+  waste_sorting:   { label: 'Waste Sorting',     icon: '\u{1F5D1}',   color: utility.waste_sorting, category: 'Infrastructure' },
+  compost:         { label: 'Compost',           icon: '\u267B',      color: utility.compost, category: 'Infrastructure' },
+  biochar:         { label: 'Biochar',           icon: '\u{1F525}',   color: utility.biochar, category: 'Infrastructure' },
+  tool_storage:    { label: 'Tool Storage',      icon: '\u{1F527}',   color: utility.tool_storage, category: 'Infrastructure' },
+  laundry_station: { label: 'Laundry Station',   icon: '\u{1F9FA}',   color: utility.laundry_station, category: 'Infrastructure' },
 };
 
 interface UtilityState {

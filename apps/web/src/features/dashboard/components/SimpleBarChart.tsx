@@ -2,6 +2,8 @@
  * SimpleBarChart — pure SVG vertical bar chart with earth-tone colors.
  */
 
+import { status } from '../../../lib/tokens.js';
+
 interface BarData {
   label: string;
   value: number;
@@ -14,7 +16,7 @@ interface SimpleBarChartProps {
   barColor?: string;
 }
 
-export default function SimpleBarChart({ data, height = 180, barColor = '#8a9a74' }: SimpleBarChartProps) {
+export default function SimpleBarChart({ data, height = 180, barColor = status.good }: SimpleBarChartProps) {
   if (!data.length) return null;
 
   const maxVal = Math.max(...data.map((d) => d.value), 1);

@@ -7,12 +7,14 @@
  *   - Watershed delineation, catchment area identification
  *   - Drainage line extraction, flood accumulation simulation
  *
- * Uses Mapbox terrain DEM to derive flow direction and accumulation.
+ * Uses MapTiler terrain DEM to derive flow direction and accumulation.
  * When real API data is available (NHD/OHN), it renders actual hydrography.
  */
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { utility, water, error as errorToken, zone } from '../../lib/tokens.js';
+import { TERRAIN_DEM_URL, CONTOUR_TILES_URL } from '../../lib/maplibre.js';
 import s from './HydrologyPanel.module.css';
 
 interface HydrologyPanelProps {
@@ -24,10 +26,10 @@ interface HydrologyPanelProps {
 type HydroLayer = 'flowPaths' | 'watershed' | 'floodRisk' | 'wetlands';
 
 const HYDRO_LAYERS: { key: HydroLayer; label: string; description: string; color: string }[] = [
-  { key: 'flowPaths', label: 'Flow Paths', description: 'Surface water runoff direction', color: '#4a90d9' },
-  { key: 'watershed', label: 'Watershed', description: 'Catchment boundaries', color: '#2d6b9e' },
-  { key: 'floodRisk', label: 'Flood Risk', description: 'FEMA / CA flood zone overlay', color: '#c44e3f' },
-  { key: 'wetlands', label: 'Wetlands', description: 'NWI / Ontario wetland areas', color: '#3a8a6b' },
+  { key: 'flowPaths', label: 'Flow Paths', description: 'Surface water runoff direction', color: utility.water_tank },
+  { key: 'watershed', label: 'Watershed', description: 'Catchment boundaries', color: water[600] },
+  { key: 'floodRisk', label: 'Flood Risk', description: 'FEMA / CA flood zone overlay', color: errorToken.DEFAULT },
+  { key: 'wetlands', label: 'Wetlands', description: 'NWI / Ontario wetland areas', color: zone.conservation },
 ];
 
 export default function HydrologyPanel({ map, isMapReady, boundaryGeojson }: HydrologyPanelProps) {
@@ -143,7 +145,7 @@ function addHydroLayer(
       if (!map.getSource('hydro-flow-source')) {
         map.addSource('hydro-flow-source', {
           type: 'vector',
-          url: 'mapbox://mapbox.mapbox-terrain-v2',
+          url: CONTOUR_TILES_URL,
         });
       }
       if (!map.getLayer('hydro-flow-lines')) {
@@ -177,7 +179,7 @@ function addHydroLayer(
             source: 'hydro-watershed-source',
             paint: {
               'fill-color': 'rgba(45, 107, 158, 0.12)',
-              'fill-outline-color': '#2d6b9e',
+              'fill-outline-color': water[600],
             },
           },
           before,
@@ -187,7 +189,7 @@ function addHydroLayer(
           type: 'line',
           source: 'hydro-watershed-source',
           paint: {
-            'line-color': '#2d6b9e',
+            'line-color': water[600],
             'line-width': 2,
             'line-dasharray': [6, 3],
           },
@@ -202,7 +204,7 @@ function addHydroLayer(
       if (!map.getSource('hydro-flood-source')) {
         map.addSource('hydro-flood-source', {
           type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          url: TERRAIN_DEM_URL,
           tileSize: 512,
           maxzoom: 14,
         });
@@ -215,9 +217,9 @@ function addHydroLayer(
             source: 'hydro-flood-source',
             paint: {
               'hillshade-exaggeration': 0.3,
-              'hillshade-shadow-color': '#c44e3f',
+              'hillshade-shadow-color': errorToken.DEFAULT,
               'hillshade-highlight-color': 'transparent',
-              'hillshade-accent-color': '#c44e3f',
+              'hillshade-accent-color': errorToken.DEFAULT,
             },
           },
           before,
@@ -237,7 +239,7 @@ function addHydroLayer(
             source: 'hydro-wetland-source',
             paint: {
               'fill-color': 'rgba(58, 138, 107, 0.15)',
-              'fill-outline-color': '#3a8a6b',
+              'fill-outline-color': zone.conservation,
               'fill-pattern': undefined,
             },
           },

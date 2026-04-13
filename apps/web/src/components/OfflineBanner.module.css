@@ -22,7 +22,7 @@
 .banner {
   position: sticky;
   top: 0;
-  z-index: var(--z-toast, 9999);
+  z-index: var(--z-toast, 500);
   padding: var(--space-1\.5, 6px) var(--space-5, 20px);
   font-size: var(--text-xs, 12px);
   font-weight: 500;

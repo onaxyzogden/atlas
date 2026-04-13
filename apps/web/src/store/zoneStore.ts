@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { zone } from '../lib/tokens';
 
 export type ZoneCategory =
   | 'habitation'
@@ -24,19 +25,19 @@ export type ZoneCategory =
   | 'future_expansion';
 
 export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: string; icon: string }> = {
-  habitation:       { label: 'Habitation',        color: '#8B6E4E', icon: '🏠' },
-  food_production:  { label: 'Food Production',   color: '#4A7C3F', icon: '🌱' },
-  livestock:        { label: 'Livestock',          color: '#7A6B3A', icon: '🐑' },
-  commons:          { label: 'Commons',            color: '#5B8A72', icon: '🌳' },
-  spiritual:        { label: 'Spiritual',          color: '#6B5B8A', icon: '🕌' },
-  education:        { label: 'Education',          color: '#4A6B8A', icon: '📚' },
-  retreat:          { label: 'Retreat / Guest',    color: '#8A6B5B', icon: '🏕' },
-  conservation:     { label: 'Conservation',       color: '#2D6B4F', icon: '🌿' },
-  water_retention:  { label: 'Water Retention',    color: '#3A7A9A', icon: '💧' },
-  infrastructure:   { label: 'Infrastructure',     color: '#6B6B6B', icon: '⚡' },
-  access:           { label: 'Access / Circulation', color: '#8A7B4A', icon: '🛤' },
-  buffer:           { label: 'Buffer / Setback',   color: '#9B8A6A', icon: '◻' },
-  future_expansion: { label: 'Future Expansion',   color: '#7A8A9A', icon: '📐' },
+  habitation:       { label: 'Habitation',        color: zone.habitation, icon: '🏠' },
+  food_production:  { label: 'Food Production',   color: zone.food_production, icon: '🌱' },
+  livestock:        { label: 'Livestock',          color: zone.livestock, icon: '🐑' },
+  commons:          { label: 'Commons',            color: zone.commons, icon: '🌳' },
+  spiritual:        { label: 'Spiritual',          color: zone.spiritual, icon: '🕌' },
+  education:        { label: 'Education',          color: zone.education, icon: '📚' },
+  retreat:          { label: 'Retreat / Guest',    color: zone.retreat, icon: '🏕' },
+  conservation:     { label: 'Conservation',       color: zone.conservation, icon: '🌿' },
+  water_retention:  { label: 'Water Retention',    color: zone.water_retention, icon: '💧' },
+  infrastructure:   { label: 'Infrastructure',     color: zone.infrastructure, icon: '⚡' },
+  access:           { label: 'Access / Circulation', color: zone.access, icon: '🛤' },
+  buffer:           { label: 'Buffer / Setback',   color: zone.buffer, icon: '◻' },
+  future_expansion: { label: 'Future Expansion',   color: zone.future_expansion, icon: '📐' },
 };
 
 export interface LandZone {

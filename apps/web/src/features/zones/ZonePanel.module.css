@@ -60,11 +60,11 @@
 }
 
 .formCard {
-  border: 1px solid rgba(125, 97, 64, 0.4);
+  border: 1px solid rgba(var(--color-earth-600-rgb), 0.4);
   border-radius: var(--radius-md);
   padding: 10px;
   margin-bottom: 10px;
-  background: rgba(125, 97, 64, 0.1);
+  background: rgba(var(--color-earth-600-rgb), 0.1);
 }
 
 .formTitle {

@@ -3,6 +3,7 @@ import type { Utility } from '../../store/utilityStore.js';
 import { computeOffGridReadiness } from './utilityAnalysis.js';
 import p from '../../styles/panel.module.css';
 import s from './UtilityPanel.module.css';
+import { confidence, error as errorToken, semantic } from '../../lib/tokens.js';
 
 interface Props {
   utilities: Utility[];
@@ -17,7 +18,7 @@ export default function OffGridReadiness({ utilities, sunTrapAreaPct, detentionA
   );
 
   const scoreClass = readiness.score >= 60 ? p.scoreCircleHigh : readiness.score >= 40 ? p.scoreCircleMed : p.scoreCircleLow;
-  const fillColor = readiness.score >= 60 ? '#2d7a4f' : readiness.score >= 40 ? '#c4a265' : '#c44e3f';
+  const fillColor = readiness.score >= 60 ? confidence.high : readiness.score >= 40 ? semantic.sidebarActive : errorToken.DEFAULT;
 
   return (
     <div>

@@ -7,14 +7,14 @@
   font-family: 'Fira Code', var(--font-display, 'Lora', Georgia, serif);
   font-size: 26px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   margin: 0 0 6px;
 }
 .desc {
   font-family: 'Fira Sans', sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(240,253,244,0.5);
+  color: rgba(var(--color-success-50-rgb),0.5);
   margin: 0 0 24px;
 }
 
@@ -25,7 +25,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(21,128,61,0.55);
+  color: rgba(var(--color-group-reporting-rgb),0.55);
   margin: 0 0 12px;
   display: block;
 }
@@ -49,7 +49,7 @@
   font-family: 'Fira Code', monospace;
   font-size: 26px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -58,7 +58,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(21,128,61,0.45);
+  color: rgba(var(--color-group-reporting-rgb),0.45);
 }
 
 /* ── Stock Cards ──────────────────────────────────────────────────── */
@@ -79,7 +79,7 @@
   font-family: 'Fira Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
   margin: 0;
 }
 .stockStats {
@@ -91,11 +91,11 @@
   font-family: 'Fira Code', monospace;
   font-size: 22px;
   font-weight: 600;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .stockUnit {
   font-size: 10px;
-  color: rgba(21,128,61,0.45);
+  color: rgba(var(--color-group-reporting-rgb),0.45);
   margin-left: 4px;
 }
 .stageBadge {
@@ -106,14 +106,14 @@
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(21,128,61,0.12);
-  color: rgba(21,128,61,0.7);
+  background: rgba(var(--color-group-reporting-rgb),0.12);
+  color: rgba(var(--color-group-reporting-rgb),0.7);
   margin-right: 6px;
 }
 .methodBadge {
   composes: stageBadge;
-  background: rgba(202,138,4,0.12);
-  color: rgba(202,138,4,0.7);
+  background: rgba(var(--color-warning-rgb),0.12);
+  color: rgba(var(--color-warning-rgb),0.7);
 }
 
 /* ── Calendar ─────────────────────────────────────────────────────── */
@@ -134,7 +134,7 @@
   font-size: 9px;
   font-weight: 700;
   text-align: center;
-  color: rgba(240,253,244,0.35);
+  color: rgba(var(--color-success-50-rgb),0.35);
   padding: 4px 0;
 }
 .calRow {
@@ -145,7 +145,7 @@
 }
 .calSpeciesLabel {
   font-size: 10px;
-  color: rgba(240,253,244,0.5);
+  color: rgba(var(--color-success-50-rgb),0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -158,17 +158,17 @@
 }
 .calCellSow {
   composes: calCell;
-  background: rgba(21,128,61,0.45);
+  background: rgba(var(--color-group-reporting-rgb),0.45);
 }
 .calCellTransplant {
   composes: calCell;
-  background: rgba(202,138,4,0.45);
+  background: rgba(var(--color-warning-rgb),0.45);
 }
 .calLegend {
   display: flex;
   gap: 16px;
   font-size: 10px;
-  color: rgba(240,253,244,0.4);
+  color: rgba(var(--color-success-50-rgb),0.4);
   margin-top: 10px;
 }
 .calLegendDot {
@@ -193,30 +193,30 @@
 }
 .readinessOverdue {
   composes: readinessItem;
-  border-color: rgba(202,138,4,0.25);
-  background: rgba(202,138,4,0.04);
+  border-color: rgba(var(--color-warning-rgb),0.25);
+  background: rgba(var(--color-warning-rgb),0.04);
 }
 .readinessLeft { flex: 1; }
 .readinessSpecies {
   font-family: 'Fira Sans', sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .readinessDest {
   font-size: 10px;
-  color: rgba(240,253,244,0.35);
+  color: rgba(var(--color-success-50-rgb),0.35);
   margin-top: 2px;
 }
 .readinessDays {
   font-family: 'Fira Code', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: #15803D;
+  color: var(--color-group-reporting);
 }
 .readinessDaysOverdue {
   composes: readinessDays;
-  color: #CA8A04;
+  color: var(--color-warning);
 }
 
 /* ── Transfers ────────────────────────────────────────────────────── */
@@ -227,25 +227,25 @@
   background: rgba(255,255,255,0.02);
   margin-bottom: 6px;
   font-size: 12px;
-  color: rgba(240,253,244,0.6);
+  color: rgba(var(--color-success-50-rgb),0.6);
 }
 
 /* ── Seed Saving ──────────────────────────────────────────────────── */
 .seedSavingItem {
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(21,128,61,0.15);
-  background: rgba(21,128,61,0.04);
+  border: 1px solid rgba(var(--color-group-reporting-rgb),0.15);
+  background: rgba(var(--color-group-reporting-rgb),0.04);
   margin-bottom: 6px;
 }
 .seedSavingSpecies {
   font-size: 13px;
   font-weight: 500;
-  color: #F0FDF4;
+  color: var(--color-success-50);
 }
 .seedSavingWindow {
   font-size: 10px;
-  color: rgba(21,128,61,0.6);
+  color: rgba(var(--color-group-reporting-rgb),0.6);
   margin-top: 2px;
 }
 
@@ -255,10 +255,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 1px solid rgba(202,138,4,0.35);
+  border: 1px solid rgba(var(--color-warning-rgb),0.35);
   border-radius: 6px;
-  background: rgba(202,138,4,0.08);
-  color: #CA8A04;
+  background: rgba(var(--color-warning-rgb),0.08);
+  color: var(--color-warning);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -266,7 +266,7 @@
   cursor: pointer;
   transition: background 150ms;
 }
-.reportBtn:hover { background: rgba(202,138,4,0.18); }
+.reportBtn:hover { background: rgba(var(--color-warning-rgb),0.18); }
 
 .emptyState {
   text-align: center;

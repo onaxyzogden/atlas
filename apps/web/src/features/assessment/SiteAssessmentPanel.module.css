@@ -66,16 +66,16 @@
 
 /* Flag type colors */
 .flagRisk {
-  background: rgba(155, 58, 42, 0.08);
-  border: 1px solid rgba(155, 58, 42, 0.2);
+  background: rgba(var(--color-confidence-low-rgb), 0.08);
+  border: 1px solid rgba(var(--color-confidence-low-rgb), 0.2);
 }
 
 .flagOpportunity {
-  background: rgba(45, 122, 79, 0.08);
-  border: 1px solid rgba(45, 122, 79, 0.2);
+  background: rgba(var(--color-confidence-high-rgb), 0.08);
+  border: 1px solid rgba(var(--color-confidence-high-rgb), 0.2);
 }
 
 .flagLimitation {
-  background: rgba(138, 109, 30, 0.08);
-  border: 1px solid rgba(138, 109, 30, 0.2);
+  background: rgba(var(--color-confidence-med-rgb), 0.08);
+  border: 1px solid rgba(var(--color-confidence-med-rgb), 0.2);
 }

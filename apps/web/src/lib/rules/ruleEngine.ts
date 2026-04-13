@@ -31,7 +31,7 @@ function buildContext(
   layers: MockLayerResult[],
   country: 'US' | 'CA',
 ): RuleContext {
-  const byType = (type: string) => layers.find((l) => l.layer_type === type);
+  const byType = (type: string) => layers.find((l) => l.layerType === type);
 
   const numHelper = (layer: MockLayerResult | undefined, key: string): number => {
     const v = layer?.summary?.[key];

@@ -14,6 +14,7 @@ import {
   type FenceType,
 } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
+import { zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
 interface LivestockPanelProps {
@@ -93,7 +94,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
       id: crypto.randomUUID(),
       projectId,
       name: name.trim(),
-      color: '#7A6B3A',
+      color: zone.livestock,
       geometry: pendingGeometry,
       areaM2: pendingArea,
       grazingCellGroup: null,
@@ -163,7 +164,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         <div className={p.section}>
           {paddocks.map((pk) => (
             <div key={pk.id} className={p.itemRow}>
-              <span className={p.swatchSm} style={{ background: '#7A6B3A' }} />
+              <span className={p.swatchSm} style={{ background: zone.livestock }} />
               <div className={p.itemContent}>
                 <div className={p.itemTitle}>{pk.name}</div>
                 <div className={p.itemMeta}>
@@ -285,14 +286,14 @@ function renderPaddockOnMap(map: maplibregl.Map, paddock: Paddock) {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: paddock.name }, geometry: paddock.geometry }] },
   });
-  map.addLayer({ id: `paddock-fill-${paddock.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': '#7A6B3A', 'fill-opacity': 0.2 } });
+  map.addLayer({ id: `paddock-fill-${paddock.id}`, type: 'fill', source: sourceId, paint: { 'fill-color': zone.livestock, 'fill-opacity': 0.2 } });
   map.addLayer({
     id: `paddock-line-${paddock.id}`, type: 'line', source: sourceId,
-    paint: { 'line-color': '#7A6B3A', 'line-width': 2, 'line-dasharray': [4, 2] },
+    paint: { 'line-color': zone.livestock, 'line-width': 2, 'line-dasharray': [4, 2] },
   });
   map.addLayer({
     id: `paddock-label-${paddock.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': paddock.name, 'text-size': 10, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': '#f2ede3', 'text-halo-color': 'rgba(26,22,17,0.8)', 'text-halo-width': 1.5 },
+    paint: { 'text-color': mapTokens.label, 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

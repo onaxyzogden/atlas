@@ -12,6 +12,7 @@ import { useZoneStore, ZONE_CATEGORY_CONFIG } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../../features/livestock/speciesData.js';
+import { semantic, zone as zoneTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './MapLayersPanel.module.css';
 
@@ -141,7 +142,7 @@ export default function MapLayersPanel({ project, map: mapInstance, marker, onCe
                 <div className={p.cardDesc}>{ms.desc}</div>
               </div>
               {active && (
-                <span className={p.statusDot} style={{ background: '#c4a265' }} />
+                <span className={p.statusDot} style={{ background: semantic.sidebarActive }} />
               )}
             </button>
           );
@@ -267,7 +268,7 @@ function BoundaryColorsSection({ project, map, boundaryColor, onBoundaryColorCha
     <div className={p.mb24}>
       <h3 className={p.sectionLabel}>Boundary Colors</h3>
       <div className={`${p.section} ${p.sectionGapSm}`}>
-        {onBoundaryColorChange && colorRow('Property Boundary', boundaryColor ?? '#7d6140', onBoundaryColorChange)}
+        {onBoundaryColorChange && colorRow('Property Boundary', boundaryColor ?? semantic.primary, onBoundaryColorChange)}
 
         {zones.map((z) => colorRow(
           z.name,
@@ -285,7 +286,7 @@ function BoundaryColorsSection({ project, map, boundaryColor, onBoundaryColorCha
           const ct = CROP_TYPES[c.type];
           return colorRow(
             c.name,
-            c.color ?? ct?.color ?? '#4A7C3F',
+            c.color ?? ct?.color ?? zoneTokens.food_production,
             (newColor) => { updateCrop(c.id, { color: newColor }); updateMapColor('crop', c.id, newColor); },
           );
         })}
@@ -296,7 +297,7 @@ function BoundaryColorsSection({ project, map, boundaryColor, onBoundaryColorCha
 
 /** SVG icon for base map style selector */
 function BaseMapIcon({ type, active }: { type: MapStyle; active: boolean }) {
-  const color = active ? '#c4a265' : '#7a6b56';
+  const color = active ? semantic.sidebarActive : '#7a6b56';
   const size = 22;
   const sw = 1.5;
   const iconProps = { width: size, height: size, viewBox: '0 0 20 20', fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -334,7 +335,7 @@ function BaseMapIcon({ type, active }: { type: MapStyle; active: boolean }) {
 
 /** SVG eye icon for overlay visibility toggle */
 function EyeIcon({ active }: { active: boolean }) {
-  const color = active ? '#c4a265' : '#5a4f3e';
+  const color = active ? semantic.sidebarActive : '#5a4f3e';
   return (
     <svg
       width={20}

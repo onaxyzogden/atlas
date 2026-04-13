@@ -28,8 +28,8 @@
 .guidanceCard {
   margin-top: 24px;
   padding: 20px;
-  background: rgba(196, 162, 101, 0.04);
-  border: 1px solid rgba(196, 162, 101, 0.12);
+  background: rgba(var(--color-gold-rgb), 0.04);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.12);
   border-radius: 10px;
 }
 

@@ -6,6 +6,7 @@
  */
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { earth, semantic, error as errorToken } from '../lib/tokens.js';
 
 interface Props {
   children: ReactNode;
@@ -61,7 +62,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             style={{
               padding: '6px 16px', fontSize: 11, fontWeight: 500,
               border: '1px solid rgba(196,162,101,0.3)', borderRadius: 6,
-              background: 'rgba(196,162,101,0.08)', color: '#c4a265', cursor: 'pointer',
+              background: 'rgba(196,162,101,0.08)', color: semantic.sidebarActive, cursor: 'pointer',
             }}
           >
             Try Again
@@ -110,29 +111,29 @@ export class GlobalErrorBoundary extends Component<{ children: ReactNode }, Stat
       return (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          height: '100vh', background: '#1a1611', color: '#f2ede3',
+          height: '100vh', background: earth[900], color: earth[100],
           fontFamily: 'system-ui, -apple-system, sans-serif', gap: 16, padding: 40, textAlign: 'center',
         }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.12em', color: '#9a8a74', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 11, letterSpacing: '0.12em', color: semantic.sidebarIcon, textTransform: 'uppercase' }}>
             OGDEN Land Design Atlas
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0, color: '#c4a265' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0, color: semantic.sidebarActive }}>
             Something went wrong
           </h1>
-          <p style={{ fontSize: 13, color: '#9a8a74', maxWidth: 400, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: semantic.sidebarIcon, maxWidth: 400, lineHeight: 1.6 }}>
             The application encountered an unexpected error. Your project data is saved locally and should be safe.
           </p>
-          <div style={{ fontSize: 11, padding: '8px 16px', background: 'rgba(196,78,63,0.1)', borderRadius: 6, color: '#c44e3f', maxWidth: 500, wordBreak: 'break-word' }}>
+          <div style={{ fontSize: 11, padding: '8px 16px', background: 'rgba(196,78,63,0.1)', borderRadius: 6, color: errorToken.DEFAULT, maxWidth: 500, wordBreak: 'break-word' }}>
             {this.state.error?.message?.slice(0, 200)}
           </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-            <button onClick={this.handleReset} style={{ padding: '10px 24px', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, background: 'rgba(196,162,101,0.15)', color: '#c4a265', cursor: 'pointer' }}>
+            <button onClick={this.handleReset} style={{ padding: '10px 24px', fontSize: 13, fontWeight: 600, border: 'none', borderRadius: 8, background: 'rgba(196,162,101,0.15)', color: semantic.sidebarActive, cursor: 'pointer' }}>
               Try Again
             </button>
-            <button onClick={() => window.location.reload()} style={{ padding: '10px 24px', fontSize: 13, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, background: 'transparent', color: '#9a8a74', cursor: 'pointer' }}>
+            <button onClick={() => window.location.reload()} style={{ padding: '10px 24px', fontSize: 13, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, background: 'transparent', color: semantic.sidebarIcon, cursor: 'pointer' }}>
               Reload Page
             </button>
-            <button onClick={this.handleClearData} style={{ padding: '10px 24px', fontSize: 13, border: '1px solid rgba(196,78,63,0.2)', borderRadius: 8, background: 'transparent', color: '#c44e3f', cursor: 'pointer' }}>
+            <button onClick={this.handleClearData} style={{ padding: '10px 24px', fontSize: 13, border: '1px solid rgba(196,78,63,0.2)', borderRadius: 8, background: 'transparent', color: errorToken.DEFAULT, cursor: 'pointer' }}>
               Clear Data
             </button>
           </div>

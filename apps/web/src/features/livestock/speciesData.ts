@@ -4,6 +4,7 @@
 
 import type { LivestockSpecies } from '../../store/livestockStore.js';
 import type { CropAreaType } from '../../store/cropStore.js';
+import { crop } from '../../lib/tokens';
 
 export interface LivestockSpeciesInfo {
   label: string;
@@ -93,52 +94,52 @@ export interface CropTypeInfo {
 
 export const CROP_TYPES: Record<CropAreaType, CropTypeInfo> = {
   orchard: {
-    label: 'Orchard', icon: '\u{1F34E}', color: '#6B8E4E',
+    label: 'Orchard', icon: '\u{1F34E}', color: crop.orchard,
     defaultSpacingM: 5, waterDemand: 'medium',
     description: 'Fruit or nut trees in organized rows',
   },
   row_crop: {
-    label: 'Row Crop', icon: '\u{1F33E}', color: '#8B7D3F',
+    label: 'Row Crop', icon: '\u{1F33E}', color: crop.row_crop,
     defaultSpacingM: 0.75, waterDemand: 'medium',
     description: 'Annual vegetable or grain production',
   },
   garden_bed: {
-    label: 'Garden Bed', icon: '\u{1F33B}', color: '#5B8A4A',
+    label: 'Garden Bed', icon: '\u{1F33B}', color: crop.garden_bed,
     defaultSpacingM: null, waterDemand: 'high',
     description: 'Intensive raised or in-ground beds',
   },
   food_forest: {
-    label: 'Food Forest', icon: '\u{1F332}', color: '#3A6B3A',
+    label: 'Food Forest', icon: '\u{1F332}', color: crop.food_forest,
     defaultSpacingM: 4, waterDemand: 'low',
     description: 'Multi-layer perennial polyculture',
   },
   windbreak: {
-    label: 'Windbreak', icon: '\u{1F343}', color: '#4A7A5A',
+    label: 'Windbreak', icon: '\u{1F343}', color: crop.windbreak,
     defaultSpacingM: 3, waterDemand: 'low',
     description: 'Wind protection tree/shrub row',
   },
   shelterbelt: {
-    label: 'Shelterbelt', icon: '\u{1F333}', color: '#3A6A4A',
+    label: 'Shelterbelt', icon: '\u{1F333}', color: crop.shelterbelt,
     defaultSpacingM: 2.5, waterDemand: 'low',
     description: 'Multi-row wind and habitat corridor',
   },
   silvopasture: {
-    label: 'Silvopasture', icon: '\u{1F334}', color: '#5A7A3A',
+    label: 'Silvopasture', icon: '\u{1F334}', color: crop.silvopasture,
     defaultSpacingM: 8, waterDemand: 'medium',
     description: 'Trees integrated with livestock grazing',
   },
   nursery: {
-    label: 'Nursery', icon: '\u{1F331}', color: '#6A8A5A',
+    label: 'Nursery', icon: '\u{1F331}', color: crop.nursery,
     defaultSpacingM: 1, waterDemand: 'high',
     description: 'Plant propagation and growing area',
   },
   market_garden: {
-    label: 'Market Garden', icon: '\u{1F955}', color: '#7A6B3A',
+    label: 'Market Garden', icon: '\u{1F955}', color: crop.market_garden,
     defaultSpacingM: 0.45, waterDemand: 'high',
     description: 'Intensive vegetable production for sale',
   },
   pollinator_strip: {
-    label: 'Pollinator Strip', icon: '\u{1F33A}', color: '#8A6A7A',
+    label: 'Pollinator Strip', icon: '\u{1F33A}', color: crop.pollinator_strip,
     defaultSpacingM: null, waterDemand: 'low',
     description: 'Native wildflower and pollinator habitat',
   },

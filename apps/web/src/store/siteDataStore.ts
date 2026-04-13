@@ -280,7 +280,7 @@ export function useSiteData(projectId: string | undefined): SiteData | null {
 // ── Helper functions ──────────────────────────────────────────────────────
 
 export function getLayer(data: SiteData, type: string): MockLayerResult | undefined {
-  return data.layers.find((l) => l.layer_type === type);
+  return data.layers.find((l) => l.layerType === type);
 }
 
 export function getLayerSummary<T = Record<string, unknown>>(data: SiteData, type: string): T | null {

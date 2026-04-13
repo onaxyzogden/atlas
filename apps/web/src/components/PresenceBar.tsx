@@ -7,6 +7,7 @@
 
 import { FLAGS } from '@ogden/shared';
 import { usePresenceStore, type PresenceUser } from '../store/presenceStore.js';
+import { avatar } from '../lib/tokens';
 import css from './PresenceBar.module.css';
 
 function getInitials(name: string): string {
@@ -18,12 +19,12 @@ function getInitials(name: string): string {
 }
 
 const AVATAR_COLORS = [
-  '#5a7c5e', // sage
-  '#7c6a5a', // earth
-  '#5a6e7c', // slate
-  '#7c5a6e', // mauve
-  '#6e7c5a', // olive
-  '#5a7c72', // teal
+  avatar.sage,
+  avatar.earth,
+  avatar.slate,
+  avatar.mauve,
+  avatar.olive,
+  avatar.teal,
 ];
 
 function colorForUser(userId: string): string {

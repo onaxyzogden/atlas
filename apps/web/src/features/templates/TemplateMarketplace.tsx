@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { semantic } from '../../lib/tokens.js';
 
 interface MarketplaceTemplate {
   id: string;
@@ -101,7 +102,7 @@ export default function TemplateMarketplace() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-panel-text)' }}>{t.name}</div>
-              <div style={{ fontSize: 10, color: '#c4a265' }}>{'\u2605'} {t.rating}</div>
+              <div style={{ fontSize: 10, color: semantic.sidebarActive }}>{'\u2605'} {t.rating}</div>
             </div>
             <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', marginBottom: 6 }}>
               by {t.author} &middot; {t.downloads} downloads

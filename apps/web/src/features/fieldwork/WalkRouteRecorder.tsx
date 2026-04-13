@@ -5,6 +5,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useFieldworkStore, type WalkRoute } from '../../store/fieldworkStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import { error as errorToken, group } from '../../lib/tokens.js';
 
 interface Props {
   project: LocalProject;
@@ -122,7 +123,7 @@ export default function WalkRouteRecorder({ project, routes }: Props) {
           marginBottom: 16,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#c44e3f' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: errorToken.DEFAULT }}>
               {'\u25CF'} Recording...
             </span>
             <span style={{ fontSize: 12, color: 'var(--color-panel-text)', fontFamily: 'monospace' }}>
@@ -135,13 +136,13 @@ export default function WalkRouteRecorder({ project, routes }: Props) {
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={addAnnotation} style={{
               flex: 1, padding: '8px', fontSize: 11, border: '1px solid rgba(196,162,101,0.2)',
-              borderRadius: 6, background: 'transparent', color: '#c4a265', cursor: 'pointer',
+              borderRadius: 6, background: 'transparent', color: group.livestock, cursor: 'pointer',
             }}>
               + Annotation
             </button>
             <button onClick={stopRecording} style={{
               flex: 1, padding: '8px', fontSize: 11, fontWeight: 600, border: 'none',
-              borderRadius: 6, background: 'rgba(196,78,63,0.15)', color: '#c44e3f', cursor: 'pointer',
+              borderRadius: 6, background: 'rgba(196,78,63,0.15)', color: errorToken.DEFAULT, cursor: 'pointer',
             }}>
               Stop & Save
             </button>
@@ -164,7 +165,7 @@ export default function WalkRouteRecorder({ project, routes }: Props) {
           <button onClick={startRecording} style={{
             width: '100%', padding: '10px', fontSize: 12, fontWeight: 600,
             border: 'none', borderRadius: 8,
-            background: 'rgba(196,162,101,0.15)', color: '#c4a265', cursor: 'pointer',
+            background: 'rgba(196,162,101,0.15)', color: group.livestock, cursor: 'pointer',
           }}>
             {'\u{1F6B6}'} Start Walk Recording
           </button>

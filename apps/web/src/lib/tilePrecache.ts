@@ -129,13 +129,7 @@ export async function precacheProjectTiles(
 
   if (urls.length === 0) return { cached: 0, skipped: 0 };
 
-  console.info(`[TILE-PRECACHE] Pre-caching ${urls.length} tiles (zoom ${minZoom}-${maxZoom})...`);
-
   const result = await fetchWithConcurrency(urls, CONCURRENCY, options?.onProgress);
-
-  console.info(
-    `[TILE-PRECACHE] Done: ${result.cached} cached, ${result.skipped} skipped.`,
-  );
 
   return result;
 }

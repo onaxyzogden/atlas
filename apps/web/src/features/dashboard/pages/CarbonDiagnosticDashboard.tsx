@@ -7,6 +7,7 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import css from './CarbonDiagnosticDashboard.module.css';
+import { status as statusToken } from '../../../lib/tokens.js';
 
 interface CarbonDiagnosticDashboardProps {
   project: LocalProject;
@@ -99,9 +100,9 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
             { label: 'APR', value: 72, color: 'rgba(138,154,116,0.75)' },
             { label: 'MAY', value: 78, color: 'rgba(138,154,116,0.8)' },
             { label: 'JUN', value: 82, color: 'rgba(138,154,116,0.85)' },
-            { label: 'JUL', value: 88, color: '#8a9a74' },
-            { label: 'AUG', value: 90, color: '#8a9a74' },
-            { label: 'SEP', value: 95, color: '#8a9a74' },
+            { label: 'JUL', value: 88, color: statusToken.good },
+            { label: 'AUG', value: 90, color: statusToken.good },
+            { label: 'SEP', value: 95, color: statusToken.good },
           ]}
           height={200}
         />
@@ -110,7 +111,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
       {/* Stewardship Guidance */}
       <div className={css.guidanceCard}>
         <span className={css.guidanceLabel}>
-          <svg width={10} height={10} viewBox="0 0 10 10" fill="#8a9a74"><circle cx="5" cy="5" r="5" /></svg>
+          <svg width={10} height={10} viewBox="0 0 10 10" fill={statusToken.good}><circle cx="5" cy="5" r="5" /></svg>
           STEWARDSHIP GUIDANCE
         </span>
         <p className={css.guidanceQuote}>
@@ -157,7 +158,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
           </div>
         </div>
         <div className={css.envStat}>
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="#8a9a74" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">
+          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke={statusToken.good} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">
             <circle cx="7" cy="7" r="5" /><polyline points="4.5 7 6.5 9.5 10 5" />
           </svg>
           <div>

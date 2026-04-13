@@ -9,6 +9,7 @@ import type maplibregl from 'maplibre-gl';
 import { useState, useCallback } from 'react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
+import { map as mapTokens, semantic } from '../../lib/tokens.js';
 
 type MeasureMode = 'none' | 'distance' | 'area';
 
@@ -131,7 +132,7 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
             borderRadius: 8,
             padding: '8px 12px',
             backdropFilter: 'blur(8px)',
-            color: '#f2ede3',
+            color: mapTokens.label,
             fontSize: 14,
             fontWeight: 500,
             fontFamily: 'var(--font-mono)',
@@ -148,7 +149,7 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
             background: 'rgba(26, 22, 17, 0.75)',
             borderRadius: 8,
             padding: '6px 10px',
-            color: '#9a8a74',
+            color: semantic.sidebarIcon,
             fontSize: 11,
           }}
         >
@@ -181,7 +182,7 @@ function ToolButton({
         cursor: 'pointer',
         fontSize: 12,
         fontWeight: 500,
-        background: active ? '#7d6140' : 'transparent',
+        background: active ? semantic.primary : 'transparent',
         color: active ? '#fff' : '#c4b49a',
         transition: 'background 200ms ease',
         display: 'flex',
