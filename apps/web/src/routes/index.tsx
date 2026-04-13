@@ -31,11 +31,10 @@ const rootRoute = createRootRoute({
 const appShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
-  // Auth disabled for development
-  // beforeLoad: () => {
-  //   const token = localStorage.getItem('ogden-auth-token');
-  //   if (!token) throw redirect({ to: '/login' });
-  // },
+  beforeLoad: () => {
+    const token = localStorage.getItem('ogden-auth-token');
+    if (!token) throw redirect({ to: '/login' });
+  },
   component: () => (
     <AppShell>
       <Outlet />

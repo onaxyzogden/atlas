@@ -46,6 +46,12 @@ import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
 import wsRoutes from './routes/ws/index.js';
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    pipeline: DataPipelineOrchestrator;
+  }
+}
+
 export async function buildApp(opts: FastifyServerOptions = {}) {
   const app = Fastify(opts);
 
@@ -70,6 +76,9 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(authPlugin);
   await app.register(rbacPlugin);
   await app.register(websocketPlugin);
+
+  // ─── Pipeline orchestrator (populated in onReady once DB + Redis are available)
+  app.decorate('pipeline', null as unknown as DataPipelineOrchestrator);
 
   // ─── Routes ─────────────────────────────────────────────────────────────────
 
@@ -139,6 +148,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
       if (db && redis) {
         const orchestrator = new DataPipelineOrchestrator(db, redis);
+        app.pipeline = orchestrator;
         orchestrator.startWorker();
         orchestrator.startTerrainWorker();
         orchestrator.startWatershedWorker();

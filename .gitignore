@@ -9,3 +9,4 @@ dist
 infrastructure/certbot/
 .DS_Store
 Thumbs.db
+coverage/

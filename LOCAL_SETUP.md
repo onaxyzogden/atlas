@@ -19,7 +19,7 @@ corepack enable
 corepack prepare pnpm@10.32.1 --activate
 ```
 
-You will also need a **Mapbox access token** (free tier is fine) from https://account.mapbox.com/access-tokens/ — the map will not render without it.
+You will also need a **MapTiler API key** (free tier is fine) from https://www.maptiler.com/ — the map will not render without it.
 
 ---
 
@@ -76,10 +76,9 @@ Open `apps/web/.env` and set:
 
 | Variable | Required | What to Set |
 |----------|----------|-------------|
-| `VITE_MAPBOX_TOKEN` | YES | Your Mapbox public access token (starts with `pk.`) |
-| `VITE_API_URL` | no | `http://localhost:3001` (default - no change needed) |
+| `VITE_MAPTILER_KEY` | YES | Your MapTiler API key (get one free at maptiler.com) |
 
-Without `VITE_MAPBOX_TOKEN`, the app loads but the map shows a "Mapbox token missing" fallback instead of a map.
+Without `VITE_MAPTILER_KEY`, the app loads but the map shows a "Map token missing" fallback instead of a map.
 
 ---
 
@@ -305,9 +304,9 @@ cd apps/web
 PORT=5201 pnpm dev
 ```
 
-### Map shows "Mapbox token missing" fallback
+### Map shows "Map token missing" fallback
 
-**Cause:** `VITE_MAPBOX_TOKEN` not set in `apps/web/.env`. Get a token from https://account.mapbox.com/access-tokens/ and restart the dev server (env changes require restart).
+**Cause:** `VITE_MAPTILER_KEY` not set in `apps/web/.env`. Get a key from https://www.maptiler.com/ and restart the dev server (env changes require restart).
 
 ### `fetch failed` or `Network Error` on registration
 
@@ -350,7 +349,7 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 # Edit apps/api/.env  -> set JWT_SECRET (32+ chars)
-# Edit apps/web/.env  -> set VITE_MAPBOX_TOKEN
+# Edit apps/web/.env  -> set VITE_MAPTILER_KEY
 
 # 3. Database
 docker compose -f infrastructure/docker-compose.yml up -d

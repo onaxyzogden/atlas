@@ -95,10 +95,18 @@ export class PdfExportService {
         p.owner_id
       FROM projects p
       WHERE p.id = ${projectId}
+        AND (
+          p.owner_id = ${this.userId}
+          OR EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.project_id = p.id
+              AND pm.user_id = ${this.userId}
+              AND pm.role IN ('owner', 'designer')
+          )
+        )
     `;
 
     if (!row) throw new NotFoundError('Project', projectId);
-    if (row.owner_id !== this.userId) throw new ForbiddenError('You do not own this project');
 
     return row as unknown as ProjectRow;
   }

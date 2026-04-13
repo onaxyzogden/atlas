@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: ogden_atlas
-      POSTGRES_USER: ogden
+      POSTGRES_USER: ogden_app
       POSTGRES_PASSWORD: ogden_dev_password
     ports:
       - '5432:5432'
@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ../apps/api/src/db/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ogden -d ogden_atlas']
+      test: ['CMD-SHELL', 'pg_isready -U ogden_app -d ogden_atlas']
       interval: 5s
       timeout: 5s
       retries: 10

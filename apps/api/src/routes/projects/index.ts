@@ -49,6 +49,9 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       INSERT INTO data_pipeline_jobs (project_id, job_type, status)
       VALUES (${project!.id}, 'fetch_tier1', 'queued')
     `;
+    if (fastify.pipeline) {
+      await fastify.pipeline.enqueueTier1Fetch(project!.id);
+    }
 
     reply.code(201);
     return { data: ProjectSummary.parse(toCamelCase(project)), meta: undefined, error: null };
@@ -72,7 +75,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         WHERE p.id = ${req.projectId}
       `;
       if (!project) throw new NotFoundError('Project', req.projectId);
-      return { data: project, meta: undefined, error: null };
+      return { data: toCamelCase(project), meta: undefined, error: null };
     },
   );
 
@@ -129,8 +132,10 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       await db`
         INSERT INTO data_pipeline_jobs (project_id, job_type, status)
         VALUES (${req.projectId}, 'fetch_tier1', 'queued')
-        ON CONFLICT DO NOTHING
       `;
+      if (fastify.pipeline) {
+        await fastify.pipeline.enqueueTier1Fetch(req.projectId);
+      }
 
       return { data: updated, meta: undefined, error: null };
     },

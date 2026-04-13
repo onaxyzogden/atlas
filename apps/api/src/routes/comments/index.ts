@@ -168,10 +168,12 @@ export default async function commentRoutes(fastify: FastifyInstance) {
           text        = COALESCE(${body.text ?? null}, text),
           resolved    = COALESCE(${body.resolved ?? null}, resolved),
           resolved_by = ${body.resolved ? req.userId : null},
-          resolved_at = ${body.resolved ? db`now()` : db`resolved_at`},
+          resolved_at = ${body.resolved ? db`now()` : body.resolved === false ? null : db`resolved_at`},
           updated_at  = now()
         WHERE id = ${commentId}
-        RETURNING *
+        RETURNING *,
+          ST_X(location::geometry) AS lng,
+          ST_Y(location::geometry) AS lat
       `;
 
       const [user] = await db`SELECT display_name, email FROM users WHERE id = ${updated!.author_id}`;
@@ -200,7 +202,6 @@ export default async function commentRoutes(fastify: FastifyInstance) {
           ...updated,
           author_name: user?.display_name,
           author_email: user?.email,
-          lng: body.text !== undefined ? null : null, // location doesn't change
         }),
         meta: undefined,
         error: null,

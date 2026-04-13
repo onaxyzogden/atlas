@@ -3,7 +3,6 @@
  * S3 in production, local filesystem in development when S3_BUCKET is not set.
  */
 
-import { Readable } from 'node:stream';
 import { mkdir, writeFile, unlink } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import {

@@ -12,9 +12,8 @@ RUN pnpm install --frozen-lockfile --prod=false
 
 # ── Build (Vite injects env vars at build time via import.meta.env) ───────
 FROM deps AS build
-ARG VITE_MAPBOX_TOKEN
+ARG VITE_MAPTILER_KEY
 ARG VITE_CESIUM_ION_TOKEN
-ARG VITE_API_URL
 COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter @ogden/shared build 2>/dev/null || true

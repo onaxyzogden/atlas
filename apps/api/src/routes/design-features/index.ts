@@ -251,35 +251,49 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
         features: z.array(CreateDesignFeatureInput),
       }).parse(req.body);
 
-      const results: unknown[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- postgres.js TransactionSql type loses call signature via Omit
+      const results = await db.begin(async (sql: any) => {
+        const rows: unknown[] = [];
 
-      for (const feature of body.features) {
-        const geomStr = JSON.stringify(feature.geometry);
+        for (const feature of body.features) {
+          const geomStr = JSON.stringify(feature.geometry);
 
-        const [row] = await db`
-          INSERT INTO design_features (
-            project_id, feature_type, subtype, geometry, label,
-            properties, phase_tag, style, sort_order, created_by
-          ) VALUES (
-            ${projectId},
-            ${feature.featureType},
-            ${feature.subtype ?? null},
-            ST_GeomFromGeoJSON(${geomStr}),
-            ${feature.label ?? null},
-            ${JSON.stringify(feature.properties)},
-            ${feature.phaseTag ?? null},
-            ${feature.style ? JSON.stringify(feature.style) : null},
-            ${feature.sortOrder},
-            ${req.userId}
-          )
-          RETURNING
-            id, project_id, feature_type, subtype,
-            ST_AsGeoJSON(geometry)::jsonb AS geometry,
-            label, properties, phase_tag, style,
-            sort_order, created_by, created_at, updated_at
-        `;
-        results.push(parseRow(row!));
-      }
+          const [row] = await sql`
+            INSERT INTO design_features (
+              project_id, feature_type, subtype, geometry, label,
+              properties, phase_tag, style, sort_order, created_by
+            ) VALUES (
+              ${projectId},
+              ${feature.featureType},
+              ${feature.subtype ?? null},
+              ST_GeomFromGeoJSON(${geomStr}),
+              ${feature.label ?? null},
+              ${JSON.stringify(feature.properties)},
+              ${feature.phaseTag ?? null},
+              ${feature.style ? JSON.stringify(feature.style) : null},
+              ${feature.sortOrder},
+              ${req.userId}
+            )
+            RETURNING
+              id, project_id, feature_type, subtype,
+              ST_AsGeoJSON(geometry)::jsonb AS geometry,
+              label, properties, phase_tag, style,
+              sort_order, created_by, created_at, updated_at
+          `;
+          rows.push(parseRow(row!));
+        }
+
+        return rows;
+      });
+
+      // Broadcast bulk creation to other project members via WebSocket
+      fastify.wsBroadcast(projectId, {
+        type: 'features_bulk_created',
+        payload: { count: results.length, features: results } as unknown as Record<string, unknown>,
+        userId: req.userId,
+        userName: null,
+        timestamp: new Date().toISOString(),
+      }, req.userId);
 
       reply.code(201);
       return { data: results, meta: { total: results.length }, error: null };

@@ -1,0 +1,130 @@
+# Operation Log
+
+Chronological record of significant operations performed on the Atlas codebase.
+
+---
+
+## 2026-04-12 — Pre-Launch Hardening: MEDIUM/LOW Audit Sweep (Phases E+F)
+
+**Operator:** Claude Code (Opus 4.6)
+**Session scope:** Fix 12 remaining MEDIUM/LOW findings from pre-launch audit
+
+### Phase E — Quick Wins (7 items)
+
+| Fix | Description |
+|---|---|
+| E1 | Added `coverage/` to `.gitignore` (4 untracked dirs) |
+| E2 | Removed dead `MAPBOX_TOKEN` from API config.ts + .env.example |
+| E3 | Removed unused `Readable` import from StorageProvider.ts |
+| E4 | Removed redundant `@types/jszip` (jszip ships own types) |
+| E5 | Cleaned `pnpm-workspace.yaml` — removed spurious `allowBuilds` block |
+| E6 | Removed unused `VITE_API_URL` from .env.example, Dockerfile, docker-compose |
+| E7 | Added `pino-pretty` to API devDeps (was used but undeclared) |
+
+### Phase F — Moderate Fixes (5 items)
+
+| Fix | Description |
+|---|---|
+| F1 | Renamed `mapboxToken`→`maptilerKey`, `mapboxTransformRequest`→`maptilerTransformRequest`, `useMapbox`→`useMaplibre`. Deleted dead `mapbox.ts` shim. Updated 4 doc files. |
+| F2 | Added WS broadcast for bulk feature insert + `features_bulk_created` to WsEventType enum |
+| F3 | Added layer refresh deduplication (skip insert+enqueue if queued/running job exists) |
+| F4 | New migration 006: `idx_pc_author` index + `set_updated_at_portals` trigger |
+| F5 | Updated README roadmap table (phases 1–4 status) |
+
+### Additional Fixes
+
+- Fixed PWA `maximumFileSizeToCacheInBytes` for Cesium 4.1MB bundle (vite.config.ts)
+- Fixed postgres.js `TransactionSql` typing issue with `any` annotation + eslint comment
+- Reverted unnecessary `onlyBuiltDependencies` in root package.json (`.npmrc` is authoritative)
+
+### Verification
+
+- **Build:** 3/3 workspaces pass (shared + api + web)
+- **Tests:** 420 passing (64 API + 356 web) across 25 test files
+
+### Deferred (documented in plan)
+
+- Hardcoded hex colors (510 occ, 59 files) — design-token refactor session
+- Console statements (79 occ) — needs policy decision
+- Z-index standardization — stacking context audit
+- WS stale connection cleanup — heartbeat interval logic
+- TypeScript composite references — structural tsconfig change
+- Docker initdb race condition — needs Docker testing
+- Layers route snake_case → camelCase — 170 frontend refs, coordinated breaking change
+
+---
+
+## 2026-04-12 — MapTiler Migration Completion + Design Token Fixes + Coverage Verification
+
+**Operator:** Claude Code (Sonnet 4.6)
+**Session scope:** Complete MapTiler migration, fix tokens.css critical errors, verify branch coverage
+
+### Changes
+
+**Branch coverage verification:**
+- Ran `vitest --coverage` on `computeScores.test.ts` (138 tests written in prior session)
+- Result: all 138 pass, branch coverage = **84.61%** — target >80% met
+- Remaining uncovered: lines 437, 738–739 (unreachable defensive paths)
+
+**tokens.css — critical font fixes:**
+- Line 6: replaced `@import Lora` with Fira Code (400–700) + Fira Sans (300–700)
+- `--font-sans`: changed from `'Inter'` to `'Fira Sans'`
+- Added `--font-serif: 'Fira Code', monospace` (was referenced in components but never defined)
+- Group color tokens: added 7 `--color-group-*` tokens (livestock/forestry/hydrology/finance/compliance/reporting/general) matching values hardcoded in `DashboardSidebar.tsx`
+
+**MapTiler geocoding migration:**
+- `apps/web/src/features/map/MapCanvas.tsx` line 559: Mapbox geocoding → MapTiler
+- `apps/web/src/features/project/wizard/StepBoundary.tsx` line 88: Mapbox geocoding → MapTiler
+- Both use `https://api.maptiler.com/geocoding/${query}.json?key=${mapboxToken}`
+- Response parsing unchanged (`features[0].center` — identical structure)
+- HMR confirmed clean in browser preview
+
+### Design Audit Findings (no changes — documented only)
+- ~500 hardcoded hex instances across ~97 CSS module files
+- ~64 font fallback violations (Lora/Georgia/DM Mono in 5 key files)
+- Terrain DEM (`mapbox://` protocol) in TerrainControls.tsx + HydrologyPanel.tsx — deferred
+
+### Deferred
+- Replace wrong font fallbacks in HydrologyRightPanel.module.css, ProjectTabBar.module.css, Modal.module.css, StewardshipDashboard.tsx
+- Terrain DEM migration (TerrainControls.tsx + HydrologyPanel.tsx)
+- apps/api server-side MAPBOX_TOKEN in config.ts
+
+---
+
+## 2026-04-11 — Sprint 10 Start: Navigation Wiring + PDF Export Service
+
+**Operator:** Claude Code (Opus 4.6 + Sonnet 4.6)
+**Session scope:** DashboardSidebar navigation wiring + full PDF export service implementation
+
+### Changes
+
+**Navigation wiring (Sonnet 4.6):**
+- Added Finance group (Economics, Scenarios, Investor Summary) to DashboardSidebar
+- Added Compliance group (Regulatory) to DashboardSidebar
+- Added 4 SVG icons + 4 DashboardRouter lazy-import cases
+- Files: `DashboardSidebar.tsx`, `DashboardRouter.tsx`
+
+**PDF export service (Opus 4.6):**
+- Installed `puppeteer` dependency
+- Created Zod schemas: `packages/shared/src/schemas/export.schema.ts`
+- Created browser manager: `apps/api/src/services/pdf/browserManager.ts`
+- Created PdfExportService orchestrator
+- Created 7 HTML templates (site_assessment, design_brief, feature_schedule, field_notes, investor_summary, scenario_comparison, educational_booklet)
+- Created shared base layout with Atlas design system (Earth Green, Harvest Gold, Fira Code/Sans)
+- Created export routes: `POST/GET /api/v1/projects/:id/exports`
+- Registered routes + browser cleanup in `app.ts`
+- Total: 13 new files, 4 modified files
+
+**Wiki initialization:**
+- Created wiki structure: SCHEMA.md, entities/, concepts/, decisions/
+- 6 entity pages, 4 concept pages, 2 decision records
+
+### Verification
+- TypeScript compilation: clean (shared + API + web)
+- Web app Vite build: passes
+- Preview verified: Finance + Compliance groups visible in sidebar at desktop viewport
+
+### Deferred
+- Frontend integration (wire export buttons to API)
+- E2E test with live DB
+- Puppeteer Chromium download approval in CI

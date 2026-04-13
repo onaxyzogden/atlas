@@ -6,8 +6,8 @@
 
 import { useRef, useEffect, useMemo } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { useMapbox } from './hooks/useMapbox.js';
-import { maplibregl, hasMapToken, mapboxToken } from '../../lib/maplibre.js';
+import { useMaplibre } from './hooks/useMaplibre.js';
+import { maplibregl, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -34,7 +34,7 @@ interface MapCanvasProps {
 
 export default function MapCanvas({ projectId, initialCenter, initialZoom, boundaryGeojson, boundaryColor, address, canEdit = true, onMapReady, onMarkerCreated }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { map, draw, isLoaded, mapError } = useMapbox({ containerRef, initialCenter, initialZoom });
+  const { map, draw, isLoaded, mapError } = useMaplibre({ containerRef, initialCenter, initialZoom });
   const mapReadyFiredRef = useRef(false);
 
   // Notify parent when map is ready
@@ -552,11 +552,11 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
     // Skip if we already placed a marker for this address
     if (markerRef.current && markerAddressRef.current === address) return;
 
-    if (!mapboxToken) return;
+    if (!maptilerKey) return;
 
     let cancelled = false;
     const encoded = encodeURIComponent(address);
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${mapboxToken}&limit=1`)
+    fetch(`https://api.maptiler.com/geocoding/${encoded}.json?key=${maptilerKey}&limit=1`)
       .then((r) => r.json())
       .then((data: { features?: { center?: [number, number] }[] }) => {
         if (cancelled) return;

@@ -1,5 +1,5 @@
 /**
- * tilePrecache — pre-fetches Mapbox map tiles for a project's bounding box
+ * tilePrecache — pre-fetches MapTiler map tiles for a project's bounding box
  * so the map works when the user goes offline.
  *
  * The service worker's StaleWhileRevalidate handler automatically caches
@@ -25,10 +25,10 @@ function lat2tile(lat: number, zoom: number): number {
 
 // ─── Tile URL builder ───────────────────────────────────────────────────────
 
-const MAPBOX_TILE_BASE = 'https://api.mapbox.com/v4/mapbox.satellite';
+const MAPTILER_TILE_BASE = 'https://api.maptiler.com/tiles/satellite';
 
-function buildTileUrl(x: number, y: number, z: number, token: string): string {
-  return `${MAPBOX_TILE_BASE}/${z}/${x}/${y}@2x.png?access_token=${token}`;
+function buildTileUrl(x: number, y: number, z: number, key: string): string {
+  return `${MAPTILER_TILE_BASE}/${z}/${x}/${y}@2x.jpg?key=${key}`;
 }
 
 // ─── Concurrency limiter ────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ const DEFAULT_MAX_ZOOM = 16;
 const CONCURRENCY = 6;
 
 /**
- * Pre-fetch Mapbox tiles covering a bounding box at useful zoom levels.
+ * Pre-fetch MapTiler tiles covering a bounding box at useful zoom levels.
  * The service worker's cache handler stores the responses automatically.
  *
  * @param bbox [west, south, east, north] in decimal degrees
@@ -87,9 +87,9 @@ export async function precacheProjectTiles(
   bbox: [number, number, number, number],
   options?: PrecacheOptions,
 ): Promise<{ cached: number; skipped: number }> {
-  const token = (import.meta as any).env?.VITE_MAPBOX_TOKEN;
-  if (!token) {
-    console.warn('[TILE-PRECACHE] No VITE_MAPBOX_TOKEN — skipping tile precache');
+  const key = (import.meta as any).env?.VITE_MAPTILER_KEY;
+  if (!key) {
+    console.warn('[TILE-PRECACHE] No VITE_MAPTILER_KEY — skipping tile precache');
     return { cached: 0, skipped: 0 };
   }
 
@@ -108,7 +108,7 @@ export async function precacheProjectTiles(
 
     for (let x = xMin; x <= xMax; x++) {
       for (let y = yMin; y <= yMax; y++) {
-        urls.push(buildTileUrl(x, y, z, token));
+        urls.push(buildTileUrl(x, y, z, key));
       }
     }
 

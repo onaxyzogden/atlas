@@ -69,10 +69,10 @@ services:
       NODE_ENV: production
       PORT: '3001'
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGIN: https://${DOMAIN}
-      MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+      MAPTILER_KEY: ${MAPTILER_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       S3_BUCKET: ${S3_BUCKET}
       S3_REGION: ${S3_REGION}
@@ -100,9 +100,8 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile.web
       args:
-        VITE_MAPBOX_TOKEN: ${MAPBOX_TOKEN}
+        VITE_MAPTILER_KEY: ${MAPTILER_KEY}
         VITE_CESIUM_ION_TOKEN: ${CESIUM_ION_TOKEN}
-        VITE_API_URL: https://${DOMAIN}/api
     container_name: ogden-web
     restart: 'no'
     volumes:

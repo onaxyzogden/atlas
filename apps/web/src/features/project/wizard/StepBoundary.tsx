@@ -7,7 +7,7 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { maplibregl, MAP_STYLES, hasMapToken, mapboxToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, hasMapToken, maptilerKey, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import { parseGeoFile } from '../../../lib/geoParsers.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
@@ -31,7 +31,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
 
     // Check for token before attempting map init
     if (!hasMapToken) {
-      setMapError('No Mapbox token configured. Set VITE_MAPBOX_TOKEN in your .env file to enable the map. You can still import boundary files below.');
+      setMapError('No MapTiler key configured. Set VITE_MAPTILER_KEY in your .env file to enable the map. You can still import boundary files below.');
       return;
     }
 
@@ -43,7 +43,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
       center: [-79.8, 43.5],
       zoom: 12,
       attributionControl: false,
-      transformRequest: mapboxTransformRequest,
+      transformRequest: maptilerTransformRequest,
       pitchWithRotate: false,
       dragRotate: false,
     });
@@ -85,7 +85,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
       } else if (data.address && hasMapToken) {
         // Geocode the address from Step 2 to center the map
         fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxToken}&limit=1`
+          `https://api.maptiler.com/geocoding/${encodeURIComponent(data.address)}.json?key=${maptilerKey}&limit=1`
         )
           .then((r) => r.json())
           .then((result) => {

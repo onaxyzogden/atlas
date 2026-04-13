@@ -9,9 +9,12 @@ export const FileType = z.enum([
   'geojson',
   'shapefile',
   'geotiff',
+  'orthomosaic',
+  'lidar',
   'photo',
   'soil_test',
   'document',
+  'site_plan',
 ]);
 export type FileType = z.infer<typeof FileType>;
 
@@ -89,7 +92,10 @@ export const FILE_SIZE_LIMITS: Record<FileType, number> = {
   geojson: 50 * 1024 * 1024,
   shapefile: 50 * 1024 * 1024,
   geotiff: 200 * 1024 * 1024,  // 200 MB (rasters are large)
+  orthomosaic: 500 * 1024 * 1024, // 500 MB (high-res imagery)
+  lidar: 500 * 1024 * 1024,    // 500 MB (point cloud data)
   photo: 25 * 1024 * 1024,     // 25 MB
   soil_test: 10 * 1024 * 1024, // 10 MB
   document: 50 * 1024 * 1024,
+  site_plan: 100 * 1024 * 1024, // 100 MB
 };

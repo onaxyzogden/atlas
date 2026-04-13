@@ -2,10 +2,22 @@
  * DashboardRouter — maps section IDs to dashboard page components.
  */
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
+import ErrorBoundary from '../../components/ErrorBoundary.js';
 import DashboardPlaceholder from './pages/DashboardPlaceholder.js';
+
+/** Wraps lazy-loaded dashboard panels with Suspense + ErrorBoundary */
+function PanelShell({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <ErrorBoundary name={name}>
+      <Suspense fallback={<PanelLoader />}>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
 const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
@@ -42,112 +54,112 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
   switch (section) {
     case 'grazing-analysis':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Grazing Analysis">
           <GrazingDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'herd-rotation':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Herd Rotation">
           <HerdRotationDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'livestock-inventory':
     case 'health-ledger':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Livestock">
           <LivestockDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'paddock-design':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Paddock Design">
           <PaddockDesignDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'planting-tool':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Planting Tool">
           <PlantingToolDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'forest-hub':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Forest Hub">
           <ForestHubDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'carbon-diagnostic':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Carbon Diagnostic">
           <CarbonDiagnosticDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'nursery-ledger':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Nursery Ledger">
           <NurseryLedgerDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'hydrology-dashboard':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Hydrology">
           <HydrologyDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'cartographic':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Cartographic">
           <CartographicDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'ecological':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Ecological">
           <EcologicalDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'terrain-dashboard':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Terrain">
           <TerrainDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'stewardship':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Stewardship">
           <StewardshipDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'climate':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Climate">
           <SolarClimateDashboard project={project} onSwitchToMap={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'economics':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Economics">
           <EconomicsPanel project={project} />
-        </Suspense>
+        </PanelShell>
       );
     case 'scenarios':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Scenarios">
           <ScenarioPanel project={project} />
-        </Suspense>
+        </PanelShell>
       );
     case 'investor-summary':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Investor Summary">
           <InvestorSummaryExport project={project} onClose={onSwitchToMap} />
-        </Suspense>
+        </PanelShell>
       );
     case 'regulatory':
       return (
-        <Suspense fallback={<PanelLoader />}>
+        <PanelShell name="Regulatory">
           <RegulatoryPanel project={project} />
-        </Suspense>
+        </PanelShell>
       );
     default:
       return (

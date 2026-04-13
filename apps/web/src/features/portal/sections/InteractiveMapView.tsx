@@ -3,7 +3,7 @@
  */
 
 import { useRef, useEffect } from 'react';
-import { maplibregl, MAP_STYLES, hasMapToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
 
@@ -26,7 +26,7 @@ export default function InteractiveMapView({ config, project }: Props) {
       zoom,
       attributionControl: {},
       interactive: true,
-      transformRequest: mapboxTransformRequest,
+      transformRequest: maptilerTransformRequest,
       pitchWithRotate: false,
       dragRotate: false,
     });

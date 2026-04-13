@@ -18,6 +18,7 @@ export default defineConfig({
       strategies: 'generateSW',
       injectRegister: 'auto',
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — Cesium bundle is ~4.1 MB
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         runtimeCaching: [
           // Network-first for API calls — serve from cache when offline
@@ -30,9 +31,9 @@ export default defineConfig({
               networkTimeoutSeconds: 5,
             },
           },
-          // Stale-while-revalidate for Mapbox raster & vector tiles
+          // Stale-while-revalidate for MapTiler raster & vector tiles
           {
-            urlPattern: /^https:\/\/(api|tiles)\.mapbox\.com\/.*/,
+            urlPattern: /^https:\/\/api\.maptiler\.com\/(tiles|maps)\/.*/,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'ogden-map-tiles',
@@ -40,9 +41,9 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // Network-first for Mapbox style JSON (changes rarely)
+          // Network-first for MapTiler style JSON (changes rarely)
           {
-            urlPattern: /^https:\/\/api\.mapbox\.com\/styles\/.*/,
+            urlPattern: /^https:\/\/api\.maptiler\.com\/maps\/.*\/style\.json.*/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'ogden-map-styles',
@@ -50,9 +51,9 @@ export default defineConfig({
               networkTimeoutSeconds: 3,
             },
           },
-          // Cache-first for Mapbox fonts and sprites (static assets)
+          // Cache-first for MapTiler fonts, sprites, and static tiles
           {
-            urlPattern: /^https:\/\/api\.mapbox\.com\/(fonts|sprites)\/.*/,
+            urlPattern: /^https:\/\/api\.maptiler\.com\/(fonts|sprites|tiles)\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'ogden-map-assets',
@@ -85,10 +86,15 @@ export default defineConfig({
   ],
   define: {
     CESIUM_BASE_URL: JSON.stringify('/cesium'),
-    // Expose feature flags to client code (process.env doesn't work in Vite)
+    // Expose all feature flags to client code (process.env doesn't exist in browser)
+    'process.env.FEATURE_TERRAIN_3D': JSON.stringify(process.env.FEATURE_TERRAIN_3D ?? 'false'),
+    'process.env.FEATURE_HYDROLOGY': JSON.stringify(process.env.FEATURE_HYDROLOGY ?? 'false'),
+    'process.env.FEATURE_LIVESTOCK': JSON.stringify(process.env.FEATURE_LIVESTOCK ?? 'false'),
+    'process.env.FEATURE_AI': JSON.stringify(process.env.FEATURE_AI ?? 'false'),
     'process.env.FEATURE_OFFLINE': JSON.stringify(process.env.FEATURE_OFFLINE ?? 'true'),
     'process.env.FEATURE_MULTI_USER': JSON.stringify(process.env.FEATURE_MULTI_USER ?? 'true'),
     'process.env.FEATURE_SCENARIOS': JSON.stringify(process.env.FEATURE_SCENARIOS ?? 'true'),
+    'process.env.FEATURE_PUBLIC_PORTAL': JSON.stringify(process.env.FEATURE_PUBLIC_PORTAL ?? 'false'),
   },
   resolve: {
     alias: {

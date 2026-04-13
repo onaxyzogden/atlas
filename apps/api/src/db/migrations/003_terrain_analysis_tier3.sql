@@ -36,5 +36,6 @@ ALTER TABLE terrain_analysis
   ADD COLUMN source_api               text,            -- usgs_3dep | nrcan_hrdem
   ADD COLUMN confidence               text,            -- high | medium | low
   ADD COLUMN data_sources             text[];          -- provenance array for WithConfidence
+;
 
-CREATE INDEX idx_terrain_analysis_project ON terrain_analysis (project_id);
+CREATE INDEX IF NOT EXISTS idx_terrain_analysis_project ON terrain_analysis (project_id);

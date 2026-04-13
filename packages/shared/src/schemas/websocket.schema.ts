@@ -14,6 +14,7 @@ export const WsEventType = z.enum([
   'feature_created',
   'feature_updated',
   'feature_deleted',
+  'features_bulk_created',
   // Comment mutations
   'comment_added',
   'comment_resolved',
@@ -25,6 +26,7 @@ export const WsEventType = z.enum([
   'presence_join',
   'presence_leave',
   'presence_heartbeat',
+  'presence_sync',
   // Typing indicators
   'typing_start',
   'typing_stop',

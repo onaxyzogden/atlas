@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { maplibregl, MAP_STYLES, hasMapToken, mapboxTransformRequest } from '../../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import { useMapStore } from '../../../store/mapStore.js';
 
 interface UseMapboxOptions {
@@ -9,7 +9,7 @@ interface UseMapboxOptions {
   initialZoom?: number;
 }
 
-export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapboxOptions) {
+export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMapboxOptions) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -20,8 +20,8 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     if (!hasMapToken) {
-      console.warn('[OGDEN] No Mapbox token — map will not render. Set VITE_MAPBOX_TOKEN.');
-      setMapError('Map unavailable — Mapbox access token is not configured.');
+      console.warn('[OGDEN] No MapTiler key — map will not render. Set VITE_MAPTILER_KEY.');
+      setMapError('Map unavailable — MapTiler API key is not configured.');
       return;
     }
 
@@ -32,7 +32,7 @@ export function useMapbox({ containerRef, initialCenter, initialZoom }: UseMapbo
       zoom: initialZoom ?? 12,
       attributionControl: {},
       preserveDrawingBuffer: true, // Required for map screenshot export
-      transformRequest: mapboxTransformRequest,
+      transformRequest: maptilerTransformRequest,
       // Smooth, contemplative navigation — no jarring transitions
       pitchWithRotate: false,
       dragRotate: false,

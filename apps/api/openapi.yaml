@@ -3,8 +3,9 @@ info:
   title: OGDEN Atlas API
   description: |
     Geospatial land intelligence API for the OGDEN Land Design Atlas.
-    Manages projects, data layers, design features, PDF exports, public portals, and AI enrichment.
-  version: 0.1.0
+    Manages projects, data layers, design features, PDF exports, public portals,
+    real-time collaboration (WebSocket), and AI enrichment.
+  version: 0.2.0
   contact:
     name: OGDEN Atlas
     url: https://atlas.ogden.ag
@@ -20,7 +21,17 @@ tags:
   - name: Auth
     description: User registration, login, and session
   - name: Projects
-    description: Project CRUD, boundary, assessment, completeness
+    description: Project CRUD, boundary, assessment, completeness, role lookup
+  - name: Members
+    description: Project member invitation, role management, and removal
+  - name: Comments
+    description: Threaded comments with optional map coordinates
+  - name: Activity
+    description: Paginated project activity feed
+  - name: Suggestions
+    description: Reviewer-proposed edits with owner/designer approval flow
+  - name: Organizations
+    description: Organization CRUD and member management
   - name: Layers
     description: Environmental data layers (soil, climate, elevation, etc.)
   - name: Design Features
@@ -39,6 +50,8 @@ tags:
     description: AI chat and assessment enrichment
   - name: Elevation
     description: Elevation and terrain data
+  - name: WebSocket
+    description: Real-time collaboration channel (WebSocket upgrade)
   - name: Health
     description: Health check
 
@@ -124,11 +137,11 @@ paths:
         '401':
           description: Not authenticated
 
-  # ── Projects ────��───────────────────────────────���─────────────────────────
+  # ── Projects ───────────────────────────────────────────────────────────────
   /projects:
     get:
       tags: [Projects]
-      summary: List all projects for the authenticated user
+      summary: List all projects for the authenticated user (owned + shared)
       responses:
         '200':
           description: Project list
@@ -176,7 +189,7 @@ paths:
       - $ref: '#/components/parameters/ProjectId'
     get:
       tags: [Projects]
-      summary: Get project details
+      summary: Get project details (any project role)
       responses:
         '200':
           description: Full project details
@@ -189,7 +202,7 @@ paths:
 
     patch:
       tags: [Projects]
-      summary: Update project metadata
+      summary: Update project metadata (owner only)
       requestBody:
         required: true
         content:
@@ -206,7 +219,7 @@ paths:
 
     delete:
       tags: [Projects]
-      summary: Delete project permanently
+      summary: Delete project permanently (owner only, cascades)
       responses:
         '204':
           description: Project deleted
@@ -216,7 +229,7 @@ paths:
       - $ref: '#/components/parameters/ProjectId'
     post:
       tags: [Projects]
-      summary: Set or replace parcel boundary
+      summary: Set or replace parcel boundary (owner only)
       requestBody:
         required: true
         content:
@@ -230,7 +243,7 @@ paths:
                   description: GeoJSON MultiPolygon or Polygon
       responses:
         '200':
-          description: Boundary set
+          description: Boundary set; returns updated acreage and centroid
           content:
             application/json:
               schema:
@@ -246,16 +259,18 @@ paths:
                             format: uuid
                           acreage:
                             type: number
+                          hasParcelBoundary:
+                            type: boolean
 
   /projects/{id}/assessment:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     get:
       tags: [Projects]
-      summary: Get site assessment with terrain analysis
+      summary: Get site assessment with terrain analysis (any project role)
       responses:
         '200':
-          description: Assessment data
+          description: Assessment data (null if pipeline not yet complete)
           content:
             application/json:
               schema:
@@ -266,7 +281,7 @@ paths:
       - $ref: '#/components/parameters/ProjectId'
     get:
       tags: [Projects]
-      summary: Get data completeness score
+      summary: Get data completeness score (any project role)
       responses:
         '200':
           description: Completeness breakdown
@@ -282,12 +297,493 @@ paths:
                         properties:
                           score:
                             type: number
+                            nullable: true
                           layers:
                             type: array
                             items:
                               type: object
 
-  # ── Layers ────────────────────────────────────────────────────────────────
+  /projects/{id}/my-role:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projects]
+      summary: Get the current user's role on this project
+      responses:
+        '200':
+          description: Role string
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          role:
+                            $ref: '#/components/schemas/ProjectRole'
+
+  # ── Members ────────────────────────────────────────────────────────────────
+  /projects/{id}/members:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Members]
+      summary: List project members (any project role)
+      description: |
+        Returns all members including the project owner (always first).
+        The owner appears with role "owner"; other members show their assigned role.
+      responses:
+        '200':
+          description: Member list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectMemberRecord'
+
+    post:
+      tags: [Members]
+      summary: Invite a member by email (owner only)
+      description: |
+        Looks up the user by email and adds them to the project.
+        If already a member, updates their role instead.
+        Cannot invite the project owner or yourself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteMemberInput'
+      responses:
+        '201':
+          description: Member invited or role updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProjectMemberRecord'
+        '404':
+          description: User not found by that email
+
+  /projects/{id}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Members]
+      summary: Update a member's role (owner only)
+      description: Cannot change the project owner's role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleInput'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProjectMemberRecord'
+        '403':
+          description: Cannot change owner role or remove yourself
+        '404':
+          description: Member not found
+
+    delete:
+      tags: [Members]
+      summary: Remove a member from the project (owner only)
+      responses:
+        '204':
+          description: Member removed
+        '403':
+          description: Cannot remove yourself from the project
+        '404':
+          description: Member not found
+
+  # ── Comments ───────────────────────────────────────────────────────────────
+  /projects/{id}/comments:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Comments]
+      summary: List comments for a project (any project role)
+      parameters:
+        - name: resolved
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+          description: Filter by resolved status. Omit to return all.
+      responses:
+        '200':
+          description: Comment list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CommentRecord'
+
+    post:
+      tags: [Comments]
+      summary: Create a comment (owner, designer, reviewer)
+      description: Broadcasts a comment_added WebSocket event to other project members.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentInput'
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CommentRecord'
+
+  /projects/{id}/comments/{commentId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Comments]
+      summary: Edit text or resolve a comment (owner, designer, reviewer)
+      description: |
+        Text edits: only the comment author can edit text.
+        Resolve: owner and designer can resolve any comment; reviewers can only
+        resolve their own comments.
+        Broadcasts a comment_resolved WebSocket event when resolved.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentInput'
+      responses:
+        '200':
+          description: Comment updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CommentRecord'
+        '403':
+          description: Not allowed to edit or resolve this comment
+        '404':
+          description: Comment not found
+
+    delete:
+      tags: [Comments]
+      summary: Delete a comment (comment author or project owner)
+      description: Broadcasts a comment_deleted WebSocket event.
+      responses:
+        '204':
+          description: Comment deleted
+        '403':
+          description: Only the author or project owner can delete comments
+        '404':
+          description: Comment not found
+
+  # ── Activity ────────────────────────────────────────────────────────────────
+  /projects/{id}/activity:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Activity]
+      summary: Get paginated activity feed for a project (any project role)
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActivityRecord'
+                      meta:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+
+  # ── Suggestions ─────────────────────────────────────────────────────────────
+  /projects/{id}/suggestions:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Suggestions]
+      summary: List suggested edits for a project (any project role)
+      responses:
+        '200':
+          description: Suggestion list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SuggestedEditRecord'
+
+    post:
+      tags: [Suggestions]
+      summary: Create a suggested edit (reviewer role only)
+      description: |
+        Proposes a change to a specific design feature. Optionally creates a
+        linked comment. The diff payload describes before/after for properties
+        and/or geometry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSuggestedEditInput'
+      responses:
+        '201':
+          description: Suggestion created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SuggestedEditRecord'
+        '404':
+          description: Target design feature not found in this project
+
+  /projects/{id}/suggestions/{suggestionId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: suggestionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Suggestions]
+      summary: Approve or reject a suggestion (owner or designer)
+      description: |
+        When approved, automatically applies the diff to the target feature
+        (updates properties and/or geometry). Only pending suggestions can be
+        reviewed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewSuggestedEditInput'
+      responses:
+        '200':
+          description: Suggestion reviewed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SuggestedEditRecord'
+        '403':
+          description: Suggestion already reviewed
+        '404':
+          description: Suggestion not found
+
+  # ── Organizations ──────────────────────────────────────────────────────────
+  /organizations:
+    get:
+      tags: [Organizations]
+      summary: List organizations the current user belongs to
+      responses:
+        '200':
+          description: Organization list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrganizationRecord'
+
+    post:
+      tags: [Organizations]
+      summary: Create a new organization (creator becomes owner)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationInput'
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrganizationRecord'
+
+  /organizations/{id}/members:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Organizations]
+      summary: List members of an organization (must be a member)
+      responses:
+        '200':
+          description: Member list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrgMemberRecord'
+        '403':
+          description: Not a member of this organization
+
+    post:
+      tags: [Organizations]
+      summary: Invite a member by email (org owner only)
+      description: If the user is already a member, updates their role instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteOrgMemberInput'
+      responses:
+        '201':
+          description: Member invited or role updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrgMemberRecord'
+        '403':
+          description: Only org owners can invite members
+        '404':
+          description: User not found by that email
+
+  /organizations/{id}/members/{userId}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Organizations]
+      summary: Remove a member from the organization (org owner only)
+      description: Cannot remove yourself if you are the sole owner.
+      responses:
+        '204':
+          description: Member removed
+        '403':
+          description: Cannot remove the last owner
+
+  # ── Layers ─────────────────────────────────────────────────────────────────
   /layers/project/{projectId}:
     parameters:
       - name: projectId
@@ -298,7 +794,7 @@ paths:
           format: uuid
     get:
       tags: [Layers]
-      summary: List all data layers for a project
+      summary: List all data layers for a project (any project role)
       responses:
         '200':
           description: Layer list
@@ -322,7 +818,7 @@ paths:
           type: string
     get:
       tags: [Layers]
-      summary: Get a specific data layer
+      summary: Get a specific data layer (any project role)
       responses:
         '200':
           description: Layer data
@@ -330,6 +826,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Layer not found
 
   /layers/project/{projectId}/{layerType}/refresh:
     parameters:
@@ -346,7 +844,7 @@ paths:
           type: string
     post:
       tags: [Layers]
-      summary: Re-fetch layer from source API
+      summary: Re-fetch layer from source API (any project role)
       responses:
         '202':
           description: Refresh job queued
@@ -362,8 +860,9 @@ paths:
                         properties:
                           jobId:
                             type: string
+                            format: uuid
 
-  # ── Design Features ───────────────────────────────────────────────────────
+  # ── Design Features ────────────────────────────────────────────────────────
   /design-features/project/{projectId}:
     parameters:
       - name: projectId
@@ -374,7 +873,7 @@ paths:
           format: uuid
     get:
       tags: [Design Features]
-      summary: List all design features for a project
+      summary: List all design features for a project (any project role)
       responses:
         '200':
           description: Feature list
@@ -392,7 +891,8 @@ paths:
 
     post:
       tags: [Design Features]
-      summary: Create a design feature
+      summary: Create a design feature (owner or designer)
+      description: Broadcasts a feature_created WebSocket event.
       requestBody:
         required: true
         content:
@@ -428,7 +928,7 @@ paths:
           enum: [zone, structure, path, point, annotation]
     get:
       tags: [Design Features]
-      summary: List features filtered by type
+      summary: List features filtered by type (any project role)
       responses:
         '200':
           description: Filtered feature list
@@ -447,7 +947,7 @@ paths:
           format: uuid
     post:
       tags: [Design Features]
-      summary: Bulk upsert design features
+      summary: Bulk insert design features (owner or designer)
       requestBody:
         required: true
         content:
@@ -462,7 +962,7 @@ paths:
                     $ref: '#/components/schemas/CreateDesignFeatureInput'
       responses:
         '201':
-          description: Features upserted
+          description: Features inserted
           content:
             application/json:
               schema:
@@ -478,7 +978,8 @@ paths:
           format: uuid
     patch:
       tags: [Design Features]
-      summary: Update a design feature
+      summary: Update a design feature (owner or designer)
+      description: Broadcasts a feature_updated WebSocket event.
       requestBody:
         required: true
         content:
@@ -507,21 +1008,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Feature not found
 
     delete:
       tags: [Design Features]
-      summary: Delete a design feature
+      summary: Delete a design feature (owner only)
+      description: Broadcasts a feature_deleted WebSocket event.
       responses:
         '204':
           description: Feature deleted
+        '404':
+          description: Feature not found
 
-  # ── Exports ─────────────────��────────────────────��────────────────────────
+  # ── Exports ─────────────────────────────────────────────────────────────────
   /projects/{id}/exports:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     post:
       tags: [Exports]
-      summary: Generate a PDF export
+      summary: Generate a PDF export (owner or designer)
+      description: |
+        Supported export types: site_assessment, design_brief, feature_schedule,
+        field_notes, investor_summary, scenario_comparison, educational_booklet.
+        Broadcasts an export_ready WebSocket event on completion.
+        Body size limit: 50 MB (for embedded photos in field notes).
       requestBody:
         required: true
         content:
@@ -545,7 +1056,7 @@ paths:
 
     get:
       tags: [Exports]
-      summary: List export history for a project
+      summary: List export history for a project (any project role)
       responses:
         '200':
           description: Export history
@@ -561,13 +1072,13 @@ paths:
                         items:
                           $ref: '#/components/schemas/ExportRecord'
 
-  # ── Portal ──────────��──────────────────────────��──────────────────────────
+  # ── Portal ──────────────────────────────────────────────────────────────────
   /projects/{id}/portal:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     post:
       tags: [Portal]
-      summary: Create or update portal configuration
+      summary: Create or update portal configuration (owner only)
       requestBody:
         required: true
         content:
@@ -589,7 +1100,7 @@ paths:
 
     get:
       tags: [Portal]
-      summary: Get portal configuration for a project
+      summary: Get portal configuration for a project (any project role)
       responses:
         '200':
           description: Portal config
@@ -615,11 +1126,11 @@ paths:
           format: uuid
     get:
       tags: [Portal]
-      summary: Get published portal by share token (public)
+      summary: Get published portal by share token (public — no auth required)
       security: []
       responses:
         '200':
-          description: Public portal config
+          description: Public portal config with project name
           content:
             application/json:
               schema:
@@ -627,16 +1138,18 @@ paths:
         '404':
           description: Portal not found or not published
 
-  # ── Files ───────���─────────────────────────────────────────────────────────
+  # ── Files ───────────────────────────────────────────────────────────────────
   /projects/{id}/files:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     post:
       tags: [Files]
-      summary: Upload a file (multipart)
+      summary: Upload a file (owner or designer)
       description: |
         Accepts GeoJSON, Shapefile, KML, images, soil CSV, and documents.
-        Geo files are auto-parsed; images get EXIF extraction.
+        Geo files are auto-parsed synchronously up to 10 MB; larger files remain
+        pending for background processing. Images get EXIF extraction.
+        Photos and geo files are validated against per-type size limits.
       requestBody:
         required: true
         content:
@@ -659,10 +1172,12 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ProjectFile'
+        '422':
+          description: File too large or invalid type
 
     get:
       tags: [Files]
-      summary: List files for a project
+      summary: List files for a project (any project role)
       responses:
         '200':
           description: File list
@@ -689,12 +1204,15 @@ paths:
           format: uuid
     delete:
       tags: [Files]
-      summary: Delete a file
+      summary: Delete a file (owner only)
+      description: Removes file from storage and database.
       responses:
         '204':
           description: File deleted
+        '404':
+          description: File not found
 
-  # ── Spiritual ─────────────────────────────────────────────────────────────
+  # ── Spiritual ──────────────────────────────────────────────────────────────
   /spiritual/project/{projectId}:
     parameters:
       - name: projectId
@@ -705,7 +1223,7 @@ paths:
           format: uuid
     get:
       tags: [Spiritual]
-      summary: List spiritual zones for a project
+      summary: List spiritual zones for a project (any project role)
       responses:
         '200':
           description: Spiritual zone list
@@ -716,7 +1234,10 @@ paths:
 
     post:
       tags: [Spiritual]
-      summary: Create a spiritual zone
+      summary: Create a spiritual zone (owner or designer)
+      description: |
+        Automatically computes Qibla bearing for prayer_space and qibla_axis
+        zone types using the project centroid.
       requestBody:
         required: true
         content:
@@ -753,10 +1274,11 @@ paths:
           format: uuid
     get:
       tags: [Spiritual]
-      summary: Compute Qibla bearing for project centroid
+      summary: Compute Qibla bearing for project centroid (any project role)
+      description: Requires the project to have a parcel boundary set (centroid needed).
       responses:
         '200':
-          description: Qibla bearing and distance
+          description: Qibla bearing and distance to Mecca
           content:
             application/json:
               schema:
@@ -769,13 +1291,15 @@ paths:
                         properties:
                           bearing:
                             type: number
-                            description: Bearing in degrees from north
+                            description: Bearing in degrees clockwise from true north
                           distanceKm:
                             type: number
                           fromLat:
                             type: number
                           fromLng:
                             type: number
+        '404':
+          description: Project not found or centroid not set (boundary required)
 
   /spiritual/{zoneId}:
     parameters:
@@ -787,12 +1311,14 @@ paths:
           format: uuid
     delete:
       tags: [Spiritual]
-      summary: Delete a spiritual zone
+      summary: Delete a spiritual zone (owner only)
       responses:
         '204':
           description: Spiritual zone deleted
+        '404':
+          description: Spiritual zone not found
 
-  # ── Pipeline ─────��──────────────────────────────────���─────────────────────
+  # ── Pipeline ───────────────────────────────────────────────────────────────
   /pipeline/jobs/{projectId}:
     parameters:
       - name: projectId
@@ -803,10 +1329,10 @@ paths:
           format: uuid
     get:
       tags: [Pipeline]
-      summary: List pipeline jobs for a project
+      summary: List pipeline jobs for a project (owner only — verified via projects.owner_id)
       responses:
         '200':
-          description: Job list (last 50)
+          description: Job list (last 50, newest first)
           content:
             application/json:
               schema:
@@ -822,7 +1348,7 @@ paths:
           format: uuid
     get:
       tags: [Pipeline]
-      summary: Get pipeline job status (for polling)
+      summary: Get pipeline job status for polling (owner only)
       responses:
         '200':
           description: Job status
@@ -830,12 +1356,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Envelope'
+        '404':
+          description: Job not found or not owned by this user
 
-  # ── AI ────────────────────────────────────────────────────────────────────
+  # ── AI ─────────────────────────────────────────────────────────────────────
   /ai/chat:
     post:
       tags: [AI]
-      summary: AI chat (proxied to Anthropic)
+      summary: Proxy a chat request to the Anthropic Messages API
+      description: |
+        Keeps the Anthropic API key server-side. Requires ANTHROPIC_API_KEY
+        to be configured. Returns 503 if not configured.
       requestBody:
         required: true
         content:
@@ -855,8 +1386,10 @@ paths:
                         enum: [user, assistant]
                       content:
                         type: string
+                        maxLength: 32000
                 systemPrompt:
                   type: string
+                  maxLength: 64000
             example:
               messages:
                 - role: user
@@ -883,32 +1416,42 @@ paths:
                             type: integer
                           outputTokens:
                             type: integer
+        '502':
+          description: Anthropic API returned an error
         '503':
-          description: AI service not configured
+          description: AI service not configured (ANTHROPIC_API_KEY missing)
 
   /ai/enrich-assessment:
     post:
       tags: [AI]
-      summary: AI-enrich assessment flags
+      summary: AI-enrich assessment flags (stub — Phase 3 not yet implemented)
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              description: AIEnrichmentRequest — flags array
       responses:
         '200':
-          description: Enriched assessment
+          description: Enriched assessment (currently returns flags unchanged)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Envelope'
+        '503':
+          description: AI service not configured
 
-  # ─��� Elevation ───────────────────���─────────────────────────────────────────
+  # ── Elevation ──────────────────────────────────────────────────────────────
   /elevation/nrcan-hrdem:
     get:
       tags: [Elevation]
-      summary: Fetch NRCan HRDEM elevation raster
+      summary: Fetch NRCan HRDEM elevation raster for a bounding box
+      description: |
+        Public endpoint — no authentication required. Called by the frontend
+        layer fetcher. Reads Cloud Optimized GeoTIFF from NRCan STAC, computes
+        slope/aspect statistics, and returns processed tile data.
+        Bounding box must have positive extent and span no more than ~50 km.
       security: []
       parameters:
         - name: minLon
@@ -916,24 +1459,32 @@ paths:
           required: true
           schema:
             type: number
+            minimum: -180
+            maximum: 180
         - name: minLat
           in: query
           required: true
           schema:
             type: number
+            minimum: -90
+            maximum: 90
         - name: maxLon
           in: query
           required: true
           schema:
             type: number
+            minimum: -180
+            maximum: 180
         - name: maxLat
           in: query
           required: true
           schema:
             type: number
+            minimum: -90
+            maximum: 90
       responses:
         '200':
-          description: Elevation data with slope/aspect analysis
+          description: Elevation data with slope/aspect analysis and raw raster tile
           content:
             application/json:
               schema:
@@ -944,27 +1495,138 @@ paths:
                       data:
                         type: object
                         properties:
-                          fetchStatus:
+                          fetch_status:
                             type: string
+                            enum: [complete, unavailable, failed]
                           confidence:
+                            type: string
+                            enum: [high, medium, low]
+                          source_api:
+                            type: string
+                          attribution:
+                            type: string
+                          data_date:
+                            type: string
+                          datum:
+                            type: string
+                          datum_offset_applied:
+                            type: number
+                          original_datum:
                             type: string
                           summary:
                             type: object
+                            nullable: true
                             properties:
-                              minElevationM:
+                              min_elevation_m:
                                 type: number
-                              maxElevationM:
+                              max_elevation_m:
                                 type: number
-                              meanElevationM:
+                              mean_elevation_m:
                                 type: number
-                              meanSlopeDeg:
+                              mean_slope_deg:
                                 type: number
-                              maxSlopeDeg:
+                              max_slope_deg:
                                 type: number
-                              predominantAspect:
+                              predominant_aspect:
                                 type: string
+                          raster_tile:
+                            type: object
+                            nullable: true
+                            description: Raw raster data for client-side rendering
+                            properties:
+                              width:
+                                type: integer
+                              height:
+                                type: integer
+                              bbox:
+                                type: array
+                                items:
+                                  type: number
+                                minItems: 4
+                                maxItems: 4
+                              resolution_m:
+                                type: number
+                              noDataValue:
+                                type: number
+                              data:
+                                type: array
+                                items:
+                                  type: number
+        '422':
+          description: Invalid or oversized bounding box
 
-  # ── Health ──────���─────────────────────────────────────────────────────────
+  # ── WebSocket ──────────────────────────────────────────────────────────────
+  /ws/projects/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+        description: |
+          JWT token (same token from /auth/login or /auth/register).
+          Passed as query parameter because browser WebSocket API cannot send
+          custom Authorization headers on upgrade.
+    get:
+      tags: [WebSocket]
+      summary: Open a real-time collaboration WebSocket for a project
+      description: |
+        This endpoint upgrades to a WebSocket connection. Authentication is
+        performed using the JWT passed as the `token` query parameter. Only
+        project owners and members may connect.
+
+        **On connection:**
+        - Server broadcasts `presence_join` to other connected users
+        - Server sends `presence_sync` to the new connection with list of
+          currently connected users
+
+        **Client → Server messages:**
+        | type | payload |
+        |---|---|
+        | `presence_heartbeat` | (none) |
+        | `typing_start` | `{ action: string }` |
+        | `typing_stop` | (none) |
+
+        **Server → Client events:**
+        | type | description |
+        |---|---|
+        | `feature_created` | Design feature added |
+        | `feature_updated` | Design feature modified |
+        | `feature_deleted` | Design feature removed |
+        | `comment_added` | New comment |
+        | `comment_resolved` | Comment marked resolved |
+        | `comment_deleted` | Comment deleted |
+        | `layer_complete` | Data pipeline layer finished |
+        | `export_ready` | PDF export completed |
+        | `presence_join` | User connected |
+        | `presence_leave` | User disconnected |
+        | `presence_sync` | Full presence list (sent on connect only) |
+        | `typing_start` | User started editing |
+        | `typing_stop` | User stopped editing |
+
+        **Close codes:**
+        - `4001` Missing or invalid token
+        - `4003` Not a project member
+        - `4004` Project not found
+        - `4009` Replaced by new connection from same user
+        - `4500` Server error during auth
+      responses:
+        '101':
+          description: WebSocket upgrade successful
+        '401':
+          description: Missing or invalid token (upgrade rejected)
+        '403':
+          description: Not a member of this project (upgrade rejected)
+        '404':
+          description: Project not found (upgrade rejected)
+
+  # ── Health ─────────────────────────────────────────────────────────────────
   /health:
     servers:
       - url: /
@@ -1055,6 +1717,10 @@ components:
         error:
           type: 'null'
 
+    ProjectRole:
+      type: string
+      enum: [owner, designer, reviewer, viewer]
+
     ProjectSummary:
       type: object
       properties:
@@ -1066,6 +1732,9 @@ components:
         description:
           type: string
           nullable: true
+        status:
+          type: string
+          nullable: true
         projectType:
           type: string
           nullable: true
@@ -1074,12 +1743,21 @@ components:
         provinceState:
           type: string
           nullable: true
+        conservationAuthId:
+          type: string
+          nullable: true
         units:
           type: string
         address:
           type: string
           nullable: true
+        parcelId:
+          type: string
+          nullable: true
         acreage:
+          type: number
+          nullable: true
+        dataCompletenessScore:
           type: number
           nullable: true
         hasParcelBoundary:
@@ -1131,6 +1809,308 @@ components:
         waterRightsNotes:
           type: string
 
+    ProjectMemberRecord:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+        joinedAt:
+          type: string
+          format: date-time
+
+    InviteMemberInput:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [designer, reviewer, viewer]
+          description: Cannot invite as owner
+
+    UpdateMemberRoleInput:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [designer, reviewer, viewer]
+          description: Cannot set to owner
+
+    CommentRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        authorName:
+          type: string
+          nullable: true
+        authorEmail:
+          type: string
+        text:
+          type: string
+        location:
+          type: array
+          nullable: true
+          description: "[lng, lat] map pin"
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+        featureId:
+          type: string
+          format: uuid
+          nullable: true
+        featureType:
+          type: string
+          nullable: true
+        resolved:
+          type: boolean
+        resolvedBy:
+          type: string
+          format: uuid
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCommentInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        location:
+          type: array
+          description: "[lng, lat] optional map pin"
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+        featureId:
+          type: string
+          format: uuid
+        featureType:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+
+    UpdateCommentInput:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        resolved:
+          type: boolean
+
+    ActivityRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        userName:
+          type: string
+          nullable: true
+        action:
+          type: string
+          enum:
+            - comment_added
+            - comment_resolved
+            - comment_deleted
+            - feature_created
+            - feature_updated
+            - feature_deleted
+            - member_joined
+            - member_removed
+            - role_changed
+            - export_generated
+            - suggestion_created
+            - suggestion_approved
+            - suggestion_rejected
+        entityType:
+          type: string
+          nullable: true
+        entityId:
+          type: string
+          format: uuid
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    SuggestedEditRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        authorName:
+          type: string
+          nullable: true
+        featureId:
+          type: string
+          format: uuid
+        commentId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        diffPayload:
+          type: object
+          description: Before/after diff for properties and/or geometry
+        reviewedBy:
+          type: string
+          format: uuid
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateSuggestedEditInput:
+      type: object
+      required: [featureId, diffPayload]
+      properties:
+        featureId:
+          type: string
+          format: uuid
+        diffPayload:
+          type: object
+          properties:
+            properties:
+              type: object
+              properties:
+                before:
+                  type: object
+                after:
+                  type: object
+            geometry:
+              type: object
+              properties:
+                before:
+                  type: object
+                  description: GeoJSON geometry
+                after:
+                  type: object
+                  description: GeoJSON geometry
+        comment:
+          type: string
+          maxLength: 5000
+
+    ReviewSuggestedEditInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approved, rejected]
+
+    OrganizationRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        plan:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateOrganizationInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    OrgMemberRecord:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [owner, admin, editor, viewer]
+        joinedAt:
+          type: string
+          format: date-time
+
+    InviteOrgMemberInput:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+          description: Cannot invite as owner
+
     DesignFeature:
       type: object
       properties:
@@ -1162,6 +2142,10 @@ components:
           nullable: true
         sortOrder:
           type: integer
+        createdBy:
+          type: string
+          format: uuid
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -1222,7 +2206,7 @@ components:
               description: FinancialPayload for investor_summary export
             scenarios:
               type: array
-              description: ScenarioPayload for scenario_comparison export
+              description: ScenarioPayload array for scenario_comparison export
               items:
                 type: object
 

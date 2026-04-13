@@ -53,11 +53,29 @@ export default async function layerRoutes(fastify: FastifyInstance) {
           AND layer_type = ${req.params.layerType}
       `;
 
+      // Skip if a job is already queued or running for this project
+      const [existingJob] = await db`
+        SELECT id FROM data_pipeline_jobs
+        WHERE project_id = ${req.projectId}
+          AND job_type = 'fetch_tier1'
+          AND status IN ('queued', 'running')
+        LIMIT 1
+      `;
+
+      if (existingJob) {
+        reply.code(202);
+        return { data: { jobId: existingJob.id, deduplicated: true }, meta: undefined, error: null };
+      }
+
       const [job] = await db`
         INSERT INTO data_pipeline_jobs (project_id, job_type, status)
         VALUES (${req.projectId}, 'fetch_tier1', 'queued')
         RETURNING id
       `;
+
+      if (fastify.pipeline) {
+        await fastify.pipeline.enqueueTier1Fetch(req.projectId);
+      }
 
       reply.code(202);
       return { data: { jobId: job!.id }, meta: undefined, error: null };

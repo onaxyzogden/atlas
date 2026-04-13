@@ -1,33 +1,29 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 
-// Token injected from environment — never hardcode.
-// Still a Mapbox token (for Mapbox-hosted tiles), but the GL renderer is MapLibre.
-const token = import.meta.env['VITE_MAPBOX_TOKEN'] as string | undefined;
+// Key injected from environment — never hardcode.
+// MapLibre GL renderer with MapTiler-hosted tiles.
+const key = import.meta.env['VITE_MAPTILER_KEY'] as string | undefined;
 
 export const MAP_STYLES: Record<string, string> = {
-  satellite: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12?access_token=${token}`,
-  terrain:   `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12?access_token=${token}`,
-  street:    `https://api.mapbox.com/styles/v1/mapbox/light-v11?access_token=${token}`,
-  hybrid:    `https://api.mapbox.com/styles/v1/mapbox/satellite-v9?access_token=${token}`,
+  satellite: `https://api.maptiler.com/maps/satellite/style.json?key=${key}`,
+  terrain:   `https://api.maptiler.com/maps/topo/style.json?key=${key}`,
+  street:    `https://api.maptiler.com/maps/streets/style.json?key=${key}`,
+  hybrid:    `https://api.maptiler.com/maps/hybrid/style.json?key=${key}`,
 };
 
-/** Whether a Mapbox tile-access token is configured */
-export const hasMapToken = !!token;
+/** Whether a MapTiler API key is configured */
+export const hasMapToken = !!key;
 
-/** Raw token string for direct API calls (geocoding, etc.) */
-export const mapboxToken = token;
+/** Raw key string for direct API calls (geocoding, etc.) */
+export const maptilerKey = key;
 
 /**
- * Appends the Mapbox access token to requests targeting Mapbox APIs.
- * Pass as `transformRequest` when constructing a maplibregl.Map.
+ * Pass-through request transform — MapTiler embeds the key in all tile URLs
+ * within the style JSON, so no per-request token injection is needed.
+ * Kept exported for compatibility with existing map initialization code.
  */
-export const mapboxTransformRequest: maplibregl.RequestTransformFunction = (url: string) => {
-  if (token && (url.includes('api.mapbox.com') || url.includes('tiles.mapbox.com'))) {
-    return {
-      url: url.includes('?') ? `${url}&access_token=${token}` : `${url}?access_token=${token}`,
-    };
-  }
+export const maptilerTransformRequest: maplibregl.RequestTransformFunction = (url: string) => {
   return { url };
 };
 

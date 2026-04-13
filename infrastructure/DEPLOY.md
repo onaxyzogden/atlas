@@ -53,7 +53,7 @@ nano .env.prod
 | `POSTGRES_PASSWORD` | `openssl rand -base64 24` |
 | `REDIS_PASSWORD` | `openssl rand -base64 24` |
 | `JWT_SECRET` | `openssl rand -base64 48` |
-| `MAPBOX_TOKEN` | Create at [mapbox.com/account/access-tokens](https://account.mapbox.com/access-tokens/) |
+| `MAPTILER_KEY` | Create at [maptiler.com](https://www.maptiler.com/) |
 | `CESIUM_ION_TOKEN` | Create at [ion.cesium.com/tokens](https://ion.cesium.com/tokens) |
 | `DOMAIN` | Your domain (e.g., `atlas.ogden.ag`) |
 
@@ -191,7 +191,7 @@ Migrations in `apps/api/src/db/migrations/` run automatically on first Postgres 
 
 ```bash
 docker compose -f docker-compose.prod.yml exec api \
-  node dist/scripts/migrate.js
+  node dist/db/migrate.js
 ```
 
 ### Scale the API
