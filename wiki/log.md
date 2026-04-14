@@ -4,6 +4,23 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint E: Crop Suitability — FAO EcoCrop Integration
+- **Scope:** Integrated the full FAO EcoCrop database (2071 crops, sourced from OpenCLIM/ecocrop GitHub under OGL v3) with a 9-factor crop suitability matching engine. Replaces the hand-curated 60-crop subset with authoritative FAO data covering cereals, legumes, vegetables, fruits, forestry, forage, medicinals, ornamentals, and more.
+- **Files created:**
+  - `apps/web/src/data/EcoCrop_DB.csv` — raw FAO EcoCrop database (2568 species, 53 columns)
+  - `apps/web/src/data/ecocrop_parsed.json` — parsed/normalized JSON (2071 crops with valid temperature data, 965 KB)
+  - `scripts/parse_ecocrop.py` — CSV→JSON converter with English name extraction, categorical field encoding
+  - `apps/web/src/lib/cropMatching.ts` — 9-factor matching engine: temperature, precipitation, pH, drainage, texture, soil depth, salinity, growing season, cold hardiness. Uses optimal/absolute range interpolation (same as OpenCLIM). Overall score: 40% min factor + 60% mean (Liebig's law blend). Returns FAO-style S1/S2/S3/N1/N2 classes.
+- **Files modified:**
+  - `apps/web/src/data/ecocropSubset.ts` — replaced hand-curated CropEntry interface with FAO-aligned schema; JSON import of full database
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added "Crop Suitability" section with category filter pills, expandable per-crop factor breakdowns, ScoreCircle reuse
+  - `apps/web/src/components/panels/SiteIntelligencePanel.module.css` — crop filter pill styles, crop metadata layout
+  - `wiki/entities/gap-analysis.md` — Category 6 updated: 4/8 implemented
+- **Gaps closed:** 4 (EcoCrop matching, perennial crop matching, forage suitability, lifecycle filtering)
+- **Gaps remaining in Category 6:** 4 (irrigated distinction, agroforestry pairing, companion planting, invasive/native species)
+
+---
+
 ### 2026-04-14 — Sprint D: Formal Scoring — FAO S1-N2 + USDA LCC I-VIII
 - **Scope:** Implemented the two primary international land classification standards as new scoring dimensions in the scoring engine. Both use the soil, climate, and terrain data made available by Sprints A-C.
 - **Files modified:**

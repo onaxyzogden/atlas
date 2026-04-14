@@ -22,6 +22,8 @@ import {
   deriveSiteSummary,
   deriveLandWants,
 } from '../../lib/computeScores.js';
+import { matchCropsToSite, siteConditionsFromLayers, type CropMatch } from '../../lib/cropMatching.js';
+import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { confidence, error as errorToken, semantic } from '../../lib/tokens.js';
@@ -202,6 +204,26 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     () => deriveLandWants(layers),
     [layers],
   );
+
+  // Crop suitability matching
+  const [showAllCrops, setShowAllCrops] = useState(false);
+  const [cropCategoryFilter, setCropCategoryFilter] = useState<string | null>(null);
+  const [expandedCrop, setExpandedCrop] = useState<string | null>(null);
+
+  const cropMatches = useMemo((): CropMatch[] => {
+    const climateLayer = layers.find((l) => l.layerType === 'climate');
+    const soilLayer = layers.find((l) => l.layerType === 'soils');
+    if (!climateLayer && !soilLayer) return [];
+    const site = siteConditionsFromLayers(
+      (climateLayer?.summary as Record<string, unknown>) ?? null,
+      (soilLayer?.summary as Record<string, unknown>) ?? null,
+    );
+    return matchCropsToSite(site, {
+      categories: cropCategoryFilter ? [cropCategoryFilter] : undefined,
+      minSuitability: 30,
+      maxResults: 100,
+    });
+  }, [layers, cropCategoryFilter]);
 
   const lastFetched = useMemo(() => {
     if (!siteData?.fetchedAt) return null;
@@ -593,6 +615,105 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
           <span className={s.flagSource}>No constraints identified from current data</span>
         )}
       </div>
+
+      {/* ── Crop Suitability ─────────────────────────────────────── */}
+      {cropMatches.length > 0 && (
+        <>
+          <h3 className={p.sectionLabel}>
+            Crop Suitability
+            <span className={s.flagSource} style={{ marginLeft: 8, fontWeight: 400 }}>
+              {cropMatches.length} crops matched (FAO EcoCrop)
+            </span>
+          </h3>
+
+          {/* Category filter pills */}
+          <div className={s.cropFilterRow}>
+            <button
+              className={`${s.cropFilterPill} ${cropCategoryFilter === null ? s.cropFilterPillActive : ''}`}
+              onClick={() => setCropCategoryFilter(null)}
+            >
+              All
+            </button>
+            {['cereal', 'legume', 'vegetable', 'fruit_nut', 'forage', 'cover_crop', 'forestry'].map((cat) => (
+              <button
+                key={cat}
+                className={`${s.cropFilterPill} ${cropCategoryFilter === cat ? s.cropFilterPillActive : ''}`}
+                onClick={() => setCropCategoryFilter(cropCategoryFilter === cat ? null : cat)}
+              >
+                {CATEGORY_LABELS[cat] ?? cat}
+              </button>
+            ))}
+          </div>
+
+          <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
+            {(showAllCrops ? cropMatches : cropMatches.slice(0, 8)).map((match) => (
+              <div key={match.crop.id}>
+                <div
+                  className={`${s.scoreRow} ${s.scoreRowClickable}`}
+                  onClick={() => setExpandedCrop(expandedCrop === match.crop.id ? null : match.crop.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedCrop(expandedCrop === match.crop.id ? null : match.crop.id); }}
+                >
+                  <ScoreCircle score={match.suitability} size={36} />
+                  <div style={{ flex: 1 }}>
+                    <div className={s.scoreLabel}>{match.crop.name}</div>
+                    <div className={s.cropMeta}>
+                      <span className={s.flagSource}>{match.crop.scientificName}</span>
+                      {match.limitingFactors.length > 0 && (
+                        <span className={s.flagSource}> &middot; Limited by: {match.limitingFactors.join(', ')}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={s.scoreBadge}
+                    style={{ background: `${getScoreColor(match.suitability)}18`, color: getScoreColor(match.suitability) }}
+                  >
+                    {match.suitabilityClass}
+                  </span>
+                </div>
+                {expandedCrop === match.crop.id && (
+                  <div className={s.scoreBreakdown}>
+                    <div className={s.cropDetailHeader}>
+                      <span>{CATEGORY_LABELS[match.crop.category] ?? match.crop.category}</span>
+                      <span>&middot;</span>
+                      <span>{match.crop.lifecycle}</span>
+                      <span>&middot;</span>
+                      <span>{match.crop.lifeForm}</span>
+                      <span>&middot;</span>
+                      <span>{match.crop.family}</span>
+                    </div>
+                    {match.factors.map((f) => {
+                      const pct = Math.round(f.score * 100);
+                      return (
+                        <div key={f.factor} className={s.breakdownRow}>
+                          <span className={s.breakdownName}>
+                            {f.limiting ? '\u26A0 ' : ''}{f.factor}
+                          </span>
+                          <div className={s.breakdownBarTrack}>
+                            <div
+                              className={s.breakdownBarFill}
+                              style={{ width: `${pct}%`, background: getScoreColor(pct) }}
+                            />
+                          </div>
+                          <span className={s.breakdownValue} title={f.cropRange}>
+                            {f.siteValue}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+            {cropMatches.length > 8 && (
+              <button className={s.showAllToggle} onClick={() => setShowAllCrops((v) => !v)}>
+                {showAllCrops ? 'Show top 8' : `Show all ${cropMatches.length} crops`}
+              </button>
+            )}
+          </div>
+        </>
+      )}
 
       {/* ── Data Layers ────────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Data Layers</h3>
