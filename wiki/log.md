@@ -4,6 +4,19 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint B: Soil Extended Properties (Display Gap)
+- **Scope:** Extended frontend SSURGO SDA query from 4 to 15 chorizon fields with weighted multi-component averages. Added derived indices (fertility index, salinization risk, USDA texture class). Expanded EcologicalDashboard from 6 to 16 soil metrics with assessment flags. Integrated new soil properties into scoring engine (pH, CEC, AWC in agricultural suitability; fertility + salinity penalty in stewardship readiness).
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — rewrote US SSURGO query: removed TOP 1, added 9 chorizon fields (cec7_r, ec_r, dbthirdbar_r, ksat_r, awc_r, silttotal_r, caco3_r, sar_r) + resdepth_r, weighted average computation, deriveTextureClassFe, computeFertilityIndexFe, computeSalinizationRiskFe
+  - `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` — extended SoilsSummary interface (14 new fields), added Physical Properties / Particle Size / Chemical Properties / Derived Indices sub-sections, soil assessment flags (pH extreme, salinity, compaction, low CEC, low AWC, sodicity)
+  - `apps/web/src/features/dashboard/pages/EcologicalDashboard.module.css` — added subSectionLabel style
+  - `apps/web/src/lib/computeScores.ts` — added ph_suitability (max 10), cation_exchange (max 5), water_holding (max 5) to agricultural suitability; soil_fertility (max 10) + salinity_penalty (max -5) to stewardship readiness
+  - `wiki/entities/gap-analysis.md` — marked 10/16 soil gaps as implemented
+- **Gaps closed:** pH, OC, CEC, EC, SAR, CaCO3, Ksat, AWC, rooting depth, bulk density
+- **Gaps remaining (soil):** N-P-K, surface stoniness, soil degradation, boron toxicity, WRB classification, SoilGrids
+
+---
+
 ### 2026-04-14 — Sprint A (cont.): Cut/Fill + Erosion Hazard
 - **Scope:** Implemented the final 2 terrain gaps: cut/fill volume estimation and RUSLE erosion hazard mapping. Also added `kfact_r` (soil erodibility) to SSURGO adapter.
 - **Files created:**

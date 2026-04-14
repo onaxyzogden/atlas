@@ -12,7 +12,7 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 | # | Category | Gaps | Dominant Type | Priority | Rationale |
 |---|----------|------|---------------|----------|-----------|
 | 3 | [Terrain & Topography](#3-terrain--topography) | 0 remaining | Computation | **Complete** | All 8/8 implemented: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI bonus |
-| 2 | [Soil Assessment](#2-soil-assessment) | 16 | Data | **P0/P1** | SSURGO already connected — pH, CEC, bulk density, rooting depth available in extended queries; 20% scoring weight |
+| 2 | [Soil Assessment](#2-soil-assessment) | 6 remaining | Data | **Mostly Complete** | 10/16 implemented (Sprint B): pH, CEC, EC, SAR, bulk density, Ksat, AWC, CaCO3, rooting depth, OC + fertility index, salinization risk, scoring integration |
 | 5 | [Climate](#5-climate) | 10 | Data | **P1** | WorldClim/CHELSA/NASA POWER are free APIs; climate is prerequisite for crop suitability and formal scoring |
 | 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 7 | Computation | **P1** | International credibility; mostly algorithms over soil+climate+terrain; depends on P0/P1 data being filled |
 | 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 8 | Data + Computation | **P2** | Most significant strategic gap; FAO ECOCROP is free; but depends on climate + soil being complete first |
@@ -55,28 +55,29 @@ Recognized frameworks that give a land evaluation tool international credibility
 
 ## 2. Soil Assessment
 
-Atlas has SSURGO (US) and LIO (Ontario) giving soil type and basic properties. These parameters are missing:
+Atlas has SSURGO (US) and LIO (Ontario). Sprint B (2026-04-14) extended the frontend layerFetcher to query 15 chorizon fields with weighted multi-component averages, added derived indices, and wired into scoring engine.
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Soil pH | Data |
-| Organic carbon content (OC) | Data |
-| Cation Exchange Capacity (CEC) | Data |
-| Electrical conductivity / salinity (EC) | Data |
-| Sodicity (ESP / SAR) | Data |
-| Calcium carbonate content | Data |
-| N-P-K (baseline fertility) | Data |
-| Hydraulic conductivity | Data |
-| Effective rooting depth | Data |
-| Surface stoniness / coarse fragment % | Data |
-| Bulk density | Data |
-| Soil erosion susceptibility (USLE/RUSLE factors) | Computation |
-| Soil degradation status | Data |
-| Boron toxicity | Data |
-| WRB Soil Classification | Data |
-| SoilGrids (ISRIC) — global 250m | Data |
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Soil pH | Data | **Implemented** — weighted avg, pH scoring in ag suitability |
+| Organic carbon content (OC) | Data | **Implemented** — derived from OM% (OC = OM * 0.58) |
+| Cation Exchange Capacity (CEC) | Data | **Implemented** — weighted avg, CEC scoring component |
+| Electrical conductivity / salinity (EC) | Data | **Implemented** — weighted avg, salinity penalty in stewardship |
+| Sodicity (ESP / SAR) | Data | **Implemented** — SAR weighted avg, salinization risk |
+| Calcium carbonate content | Data | **Implemented** — CaCO3% weighted avg |
+| N-P-K (baseline fertility) | Data | Open — not in SSURGO chorizon |
+| Hydraulic conductivity | Data | **Implemented** — Ksat weighted avg |
+| Effective rooting depth | Data | **Implemented** — resdepth_r from component |
+| Surface stoniness / coarse fragment % | Data | Open — fragvol in chfrags (separate table) |
+| Bulk density | Data | **Implemented** — dbthirdbar weighted avg |
+| Soil erosion susceptibility (USLE/RUSLE factors) | Computation | **Implemented** — Sprint A RUSLE + kfact |
+| Soil degradation status | Data | Open |
+| Boron toxicity | Data | Open |
+| WRB Soil Classification | Data | Open — international classification |
+| SoilGrids (ISRIC) — global 250m | Data | Open — global coverage gap |
 
-> **Cross-ref:** [Data Pipeline](data-pipeline.md) — SSURGO and LIO adapters exist in frontend layerFetcher but are stubbed in backend. Many of these parameters are available within SSURGO's extended properties if the adapter queries them. SoilGrids fills the global gap.
+> **Status:** 10/16 implemented (Sprint A + B). Remaining 6 gaps: N-P-K, surface stoniness, soil degradation, boron toxicity, WRB classification, SoilGrids.
+> **Cross-ref:** [Data Pipeline](data-pipeline.md) — frontend layerFetcher now queries 15 chorizon fields. Backend SsurgoAdapter queries 20+ fields via BullMQ pipeline.
 
 ---
 

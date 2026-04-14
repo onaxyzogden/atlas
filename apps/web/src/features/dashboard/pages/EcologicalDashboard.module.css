@@ -170,6 +170,16 @@
   display: block;
 }
 
+.subSectionLabel {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.35);
+  margin: 14px 0 8px;
+  display: block;
+}
+
 .soilDataRow {
   display: flex;
   gap: 12px;

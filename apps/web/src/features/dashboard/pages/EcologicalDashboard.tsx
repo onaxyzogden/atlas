@@ -21,11 +21,28 @@ interface EcologicalDashboardProps {
 interface SoilsSummary {
   organic_matter_pct?: number | string;
   ph_range?: string;
+  ph_value?: number | null;
   drainage_class?: string;
   farmland_class?: string;
   depth_to_bedrock_m?: number | string;
   predominant_texture?: string;
   hydrologic_group?: string;
+  // Extended soil properties (Sprint B)
+  cec_meq_100g?: number | null;
+  ec_ds_m?: number | null;
+  bulk_density_g_cm3?: number | null;
+  ksat_um_s?: number | null;
+  awc_cm_cm?: number | null;
+  rooting_depth_cm?: number | null;
+  clay_pct?: number | null;
+  silt_pct?: number | null;
+  sand_pct?: number | null;
+  caco3_pct?: number | null;
+  sodium_adsorption_ratio?: number | null;
+  texture_class?: string | null;
+  fertility_index?: number | null;
+  salinization_risk?: string | null;
+  component_count?: number;
 }
 
 interface LandCoverSummary {
@@ -105,12 +122,42 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
   const omRaw = parseFloat(String(soils?.organic_matter_pct ?? ''));
   const om = isFinite(omRaw) ? omRaw : null;
   const ph = soils?.ph_range ?? null;
+  const phVal = soils?.ph_value ?? null;
   const drain = soils?.drainage_class ?? null;
   const texture = soils?.predominant_texture ?? null;
   const depthRaw = parseFloat(String(soils?.depth_to_bedrock_m ?? ''));
   const bedrock = isFinite(depthRaw) ? `${depthRaw}m` : null;
   const canopyRaw = parseFloat(String(landCover?.tree_canopy_pct ?? ''));
   const canopy = isFinite(canopyRaw) ? canopyRaw : null;
+
+  // Extended soil properties
+  const cec = soils?.cec_meq_100g ?? null;
+  const ec = soils?.ec_ds_m ?? null;
+  const bulkDensity = soils?.bulk_density_g_cm3 ?? null;
+  const ksat = soils?.ksat_um_s ?? null;
+  const awc = soils?.awc_cm_cm ?? null;
+  const rootingDepth = soils?.rooting_depth_cm ?? null;
+  const clayPct = soils?.clay_pct ?? null;
+  const siltPct = soils?.silt_pct ?? null;
+  const sandPct = soils?.sand_pct ?? null;
+  const caco3 = soils?.caco3_pct ?? null;
+  const sar = soils?.sodium_adsorption_ratio ?? null;
+  const fertilityIndex = soils?.fertility_index ?? null;
+  const salinizationRisk = soils?.salinization_risk ?? null;
+
+  // Soil assessment flags
+  const soilFlags = useMemo(() => {
+    const flags: Array<{ label: string; type: 'warning' | 'positive' | 'info' }> = [];
+    if (phVal !== null && (phVal < 5.0 || phVal > 8.5)) flags.push({ label: `pH extreme (${phVal.toFixed(1)})`, type: 'warning' });
+    if (ec !== null && ec > 2) flags.push({ label: `Elevated salinity (EC ${ec.toFixed(1)} dS/m)`, type: 'warning' });
+    if (bulkDensity !== null && bulkDensity > 1.6) flags.push({ label: `Compaction risk (${bulkDensity.toFixed(2)} g/cm\u00B3)`, type: 'warning' });
+    if (cec !== null && cec < 5) flags.push({ label: `Low CEC (${cec.toFixed(1)} meq/100g)`, type: 'warning' });
+    if (awc !== null && awc < 0.1) flags.push({ label: `Low water holding (AWC ${awc.toFixed(2)} cm/cm)`, type: 'warning' });
+    if (sar !== null && sar > 6) flags.push({ label: `Sodicity concern (SAR ${sar.toFixed(1)})`, type: 'warning' });
+    if (fertilityIndex !== null && fertilityIndex >= 70) flags.push({ label: `Good fertility (${fertilityIndex}/100)`, type: 'positive' });
+    if (salinizationRisk === 'Low') flags.push({ label: 'Low salinization risk', type: 'positive' });
+    return flags;
+  }, [phVal, ec, bulkDensity, cec, awc, sar, fertilityIndex, salinizationRisk]);
 
   // Land cover classes
   const coverClasses = useMemo(() => {
@@ -185,6 +232,8 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* Soil Health */}
       <div className={css.section}>
         <h3 className={css.sectionLabel}>SOIL HEALTH</h3>
+
+        {/* Core properties */}
         <div className={css.soilDataRow}>
           <SoilMetric label="ORGANIC MATTER" value={om !== null ? `${om.toFixed(1)}%` : null} />
           <SoilMetric label="pH RANGE" value={ph} />
@@ -193,6 +242,93 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           {bedrock && <SoilMetric label="BEDROCK DEPTH" value={bedrock} />}
           {canopy != null && <SoilMetric label="TREE CANOPY" value={`${canopy}%`} />}
         </div>
+
+        {/* Physical properties */}
+        {(bulkDensity !== null || rootingDepth !== null || awc !== null || ksat !== null) && (
+          <>
+            <h4 className={css.subSectionLabel}>PHYSICAL PROPERTIES</h4>
+            <div className={css.soilDataRow}>
+              <SoilMetric label="BULK DENSITY" value={bulkDensity !== null ? `${bulkDensity.toFixed(2)} g/cm\u00B3` : null} />
+              <SoilMetric label="ROOTING DEPTH" value={rootingDepth !== null ? `${rootingDepth.toFixed(0)} cm` : null} />
+              <SoilMetric label="AVAIL. WATER" value={awc !== null ? `${awc.toFixed(2)} cm/cm` : null} />
+              <SoilMetric label="HYDRAULIC COND." value={ksat !== null ? `${ksat.toFixed(1)} \u03BCm/s` : null} />
+            </div>
+          </>
+        )}
+
+        {/* Particle size */}
+        {(clayPct !== null || siltPct !== null || sandPct !== null) && (
+          <>
+            <h4 className={css.subSectionLabel}>PARTICLE SIZE</h4>
+            <div className={css.soilDataRow}>
+              <SoilMetric label="CLAY" value={clayPct !== null ? `${clayPct.toFixed(1)}%` : null} />
+              <SoilMetric label="SILT" value={siltPct !== null ? `${siltPct.toFixed(1)}%` : null} />
+              <SoilMetric label="SAND" value={sandPct !== null ? `${sandPct.toFixed(1)}%` : null} />
+            </div>
+          </>
+        )}
+
+        {/* Chemical properties */}
+        {(cec !== null || ec !== null || caco3 !== null || sar !== null) && (
+          <>
+            <h4 className={css.subSectionLabel}>CHEMICAL PROPERTIES</h4>
+            <div className={css.soilDataRow}>
+              <SoilMetric label="CEC" value={cec !== null ? `${cec.toFixed(1)} meq/100g` : null} />
+              <SoilMetric label="ELEC. COND." value={ec !== null ? `${ec.toFixed(2)} dS/m` : null} />
+              <SoilMetric label="CaCO\u2083" value={caco3 !== null ? `${caco3.toFixed(1)}%` : null} />
+              <SoilMetric label="SAR" value={sar !== null ? `${sar.toFixed(1)}` : null} />
+            </div>
+          </>
+        )}
+
+        {/* Derived indices */}
+        {(fertilityIndex !== null || salinizationRisk !== null) && (
+          <>
+            <h4 className={css.subSectionLabel}>DERIVED INDICES</h4>
+            <div className={css.soilDataRow}>
+              {fertilityIndex !== null && (
+                <div className={css.soilDataItem}>
+                  <span className={css.soilDataLabel}>FERTILITY INDEX</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '60px', height: '6px', background: 'rgba(180,165,140,0.15)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${fertilityIndex}%`, height: '100%', borderRadius: '3px',
+                        background: fertilityIndex >= 70 ? '#4a7c59' : fertilityIndex >= 40 ? '#b8860b' : '#8b4513',
+                      }} />
+                    </div>
+                    <span className={css.soilDataValue}>{fertilityIndex}/100</span>
+                  </div>
+                </div>
+              )}
+              {salinizationRisk !== null && (
+                <div className={css.soilDataItem}>
+                  <span className={css.soilDataLabel}>SALINIZATION RISK</span>
+                  <span className={css.soilDataValue} style={{
+                    color: salinizationRisk === 'Low' ? '#4a7c59'
+                      : salinizationRisk === 'Moderate' ? '#b8860b'
+                      : '#8b4513',
+                  }}>{salinizationRisk}</span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Soil assessment flags */}
+        {soilFlags.length > 0 && (
+          <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {soilFlags.map((flag) => (
+              <span key={flag.label} style={{
+                fontSize: '11px', padding: '3px 8px', borderRadius: '4px',
+                background: flag.type === 'warning' ? 'rgba(139,69,19,0.12)' : 'rgba(74,124,89,0.12)',
+                color: flag.type === 'warning' ? '#8b4513' : '#4a7c59',
+                border: `1px solid ${flag.type === 'warning' ? 'rgba(139,69,19,0.2)' : 'rgba(74,124,89,0.2)'}`,
+              }}>
+                {flag.type === 'warning' ? '\u26A0 ' : '\u2713 '}{flag.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Vegetation Communities — from land cover classes */}

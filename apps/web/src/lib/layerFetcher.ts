@@ -461,7 +461,8 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
   }
 
   try {
-    const query = `SELECT TOP 1 mu.muname, mu.musym, c.drainagecl, c.hydgrp, c.taxorder, c.nirrcapcl, c.comppct_r, ch.om_r, ch.ph1to1h2o_r, ch.sandtotal_r, ch.claytotal_r FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey LEFT JOIN chorizon ch ON c.cokey = ch.cokey AND ch.hzdept_r = 0 WHERE mu.mukey IN (SELECT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT(${lng} ${lat})')) ORDER BY c.comppct_r DESC`;
+    // Extended query: fetch all major chorizon properties with component weighting
+    const query = `SELECT mu.muname, mu.musym, c.drainagecl, c.hydgrp, c.taxorder, c.nirrcapcl, c.comppct_r, ch.om_r, ch.ph1to1h2o_r, ch.sandtotal_r, ch.claytotal_r, ch.silttotal_r, ch.cec7_r, ch.ec_r, ch.dbthirdbar_r, ch.ksat_r, ch.awc_r, ch.caco3_r, ch.sar_r, c.resdepth_r FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey LEFT JOIN chorizon ch ON c.cokey = ch.cokey AND ch.hzdept_r = 0 WHERE mu.mukey IN (SELECT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT(${lng} ${lat})')) AND c.majcompflag = 'Yes' ORDER BY c.comppct_r DESC`;
 
     const resp = await fetchWithRetry('https://SDMDataAccess.sc.egov.usda.gov/Tabular/SDMTabularService/post.rest', 10000, {
       method: 'POST',
@@ -475,29 +476,77 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
 
     // table[0] = column names, table[1] = metadata, table[2+] = data rows
     const columns: string[] = table[0] ?? [];
-    const row = table[2];
-    if (!row || columns.length === 0) return soilsFromLatitude(lat, country);
+    if (columns.length === 0) return soilsFromLatitude(lat, country);
 
     // Build name→index map for robust column access
-    const col = (name: string) => { const idx = columns.findIndex((c: string) => c.toLowerCase() === name.toLowerCase()); return idx >= 0 ? row[idx] : null; };
+    const colIdx = (name: string) => columns.findIndex((c: string) => c.toLowerCase() === name.toLowerCase());
 
-    const muname = col('muname') ?? 'Unknown';
-    const drainage = col('drainagecl') ?? 'Unknown';
-    const hydgrp = col('hydgrp') ?? 'Unknown';
-    const taxorder = col('taxorder') ?? '';
-    const capClass = col('nirrcapcl') ?? '';
-    const om = col('om_r') ? parseFloat(col('om_r')) : null;
-    const ph = col('ph1to1h2o_r') ? parseFloat(col('ph1to1h2o_r')) : null;
-    const sand = col('sandtotal_r') ? parseFloat(col('sandtotal_r')) : null;
-    const clay = col('claytotal_r') ? parseFloat(col('claytotal_r')) : null;
+    // Parse all data rows (multiple components)
+    const rows: Array<Record<string, string | null>> = [];
+    for (let i = 2; i < table.length; i++) {
+      const r = table[i];
+      if (!r) continue;
+      const obj: Record<string, string | null> = {};
+      for (const name of columns) {
+        const idx = colIdx(name);
+        obj[name.toLowerCase()] = idx >= 0 && r[idx] != null ? String(r[idx]) : null;
+      }
+      rows.push(obj);
+    }
 
-    // Derive texture from sand/clay percentages
-    let texture = 'Loam';
-    if (sand !== null && clay !== null) {
-      if (clay > 40) texture = 'Clay';
-      else if (sand > 70) texture = 'Sandy loam';
-      else if (clay > 25) texture = 'Clay loam';
-      else if (sand > 50) texture = 'Sandy loam';
+    if (rows.length === 0) return soilsFromLatitude(lat, country);
+
+    // Weighted average computation across components
+    const pf = (v: string | null | undefined) => v != null ? parseFloat(v) : null;
+    const numFields = ['om_r', 'ph1to1h2o_r', 'sandtotal_r', 'claytotal_r', 'silttotal_r', 'cec7_r', 'ec_r', 'dbthirdbar_r', 'ksat_r', 'awc_r', 'caco3_r', 'sar_r', 'resdepth_r'] as const;
+    const weighted: Record<string, number | null> = {};
+
+    for (const field of numFields) {
+      let sumWV = 0, sumW = 0;
+      for (const row of rows) {
+        const val = pf(row[field]);
+        const wt = pf(row['comppct_r']);
+        if (val !== null && isFinite(val) && wt !== null && wt > 0) {
+          sumWV += val * wt;
+          sumW += wt;
+        }
+      }
+      weighted[field] = sumW > 0 ? sumWV / sumW : null;
+    }
+
+    // Dominant component (highest comppct_r) for categorical fields
+    const dominant = rows[0]!; // already sorted by comppct_r DESC
+    const muname = dominant['muname'] ?? 'Unknown';
+    const drainage = dominant['drainagecl'] ?? 'Unknown';
+    const hydgrp = dominant['hydgrp'] ?? 'Unknown';
+    const taxorder = dominant['taxorder'] ?? '';
+    const capClass = dominant['nirrcapcl'] ?? '';
+
+    const om = weighted['om_r'] ?? null;
+    const ph = weighted['ph1to1h2o_r'] ?? null;
+    const sand = weighted['sandtotal_r'] ?? null;
+    const clay = weighted['claytotal_r'] ?? null;
+    const silt = weighted['silttotal_r'] ?? null;
+    const cec = weighted['cec7_r'] ?? null;
+    const ec = weighted['ec_r'] ?? null;
+    const bulkDensity = weighted['dbthirdbar_r'] ?? null;
+    const ksat = weighted['ksat_r'] ?? null;
+    const awc = weighted['awc_r'] ?? null;
+    const caco3 = weighted['caco3_r'] ?? null;
+    const sar = weighted['sar_r'] ?? null;
+    const rootingDepth = weighted['resdepth_r'] ?? null;
+
+    // Derive texture class (USDA texture triangle, simplified)
+    const textureClass = deriveTextureClassFe(clay, silt, sand);
+
+    // Derive display texture name
+    let texture = textureClass ? textureClass.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : 'Loam';
+    if (!textureClass) {
+      const s = sand ?? 0, c = clay ?? 0;
+      if (c > 40) texture = 'Clay';
+      else if (s > 70) texture = 'Sandy loam';
+      else if (c > 25) texture = 'Clay loam';
+      else if (s > 50) texture = 'Sandy loam';
       else texture = 'Loam';
     }
 
@@ -506,6 +555,15 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
       : capClass === '2' ? 'Farmland of statewide importance'
       : capClass <= '4' ? `Capability Class ${capClass}`
       : `Class ${capClass}`;
+
+    // Compute fertility index (0-100): pH + OC + CEC + drainage
+    const fertilityIndex = computeFertilityIndexFe(ph, om != null ? om * 0.58 : null, cec, drainage);
+
+    // Compute salinization risk from EC + SAR
+    const salinizationRisk = computeSalinizationRiskFe(ec, sar);
+
+    const round2 = (v: number | null) => v !== null && isFinite(v) ? +v.toFixed(2) : null;
+    const round1 = (v: number | null) => v !== null && isFinite(v) ? +v.toFixed(1) : null;
 
     return {
       layerType: 'soils',
@@ -520,15 +578,116 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
         drainage_class: drainage || 'Unknown',
         organic_matter_pct: om !== null ? +om.toFixed(1) : 'N/A',
         ph_range: ph !== null ? `${(ph - 0.3).toFixed(1)} - ${(ph + 0.3).toFixed(1)}` : 'N/A',
+        ph_value: round1(ph),
         hydrologic_group: hydgrp || 'Unknown',
         farmland_class: farmlandClass,
         depth_to_bedrock_m: 'N/A',
         taxonomic_order: taxorder,
+        // Extended soil properties (Sprint B)
+        cec_meq_100g: round1(cec),
+        ec_ds_m: round2(ec),
+        bulk_density_g_cm3: round2(bulkDensity),
+        ksat_um_s: round1(ksat),
+        awc_cm_cm: round2(awc),
+        rooting_depth_cm: round1(rootingDepth),
+        clay_pct: round1(clay),
+        silt_pct: round1(silt),
+        sand_pct: round1(sand),
+        caco3_pct: round2(caco3),
+        sodium_adsorption_ratio: round1(sar),
+        texture_class: textureClass,
+        fertility_index: fertilityIndex,
+        salinization_risk: salinizationRisk,
+        component_count: rows.length,
       },
     };
   } catch {
     return soilsFromLatitude(lat, country);
   }
+}
+
+// ── Soil derived computations (frontend, matching backend SsurgoAdapter logic) ──
+
+/** USDA texture triangle classification (simplified) */
+function deriveTextureClassFe(clay: number | null, silt: number | null, sand: number | null): string | null {
+  if (clay === null || silt === null || sand === null) return null;
+  if (clay >= 40) return 'clay';
+  if (silt >= 80) return 'silt';
+  if (silt >= 50 && clay < 27) return 'silt_loam';
+  if (clay >= 27 && clay < 40 && sand <= 20) return 'silty_clay_loam';
+  if (clay >= 27 && clay < 40 && sand > 20 && sand <= 45) return 'clay_loam';
+  if (sand >= 85) return 'sand';
+  if (sand >= 70 && clay < 15) return 'loamy_sand';
+  if (sand >= 50 && clay < 20) return 'sandy_loam';
+  if (clay >= 20 && clay < 35 && silt < 28 && sand >= 45) return 'sandy_clay_loam';
+  return 'loam';
+}
+
+/** Fertility index (0-100) from pH, OC%, CEC, drainage — matches backend computeFertilityIndex */
+function computeFertilityIndexFe(
+  ph: number | null, oc: number | null, cec: number | null, drainage: string | null,
+): number | null {
+  if (ph === null && oc === null && cec === null && drainage === null) return null;
+
+  // pH component (0-25)
+  let phScore = 0;
+  if (ph !== null) {
+    if (ph >= 6.0 && ph <= 7.5) phScore = 25;
+    else if (ph >= 5.5 && ph <= 8.0) phScore = 18;
+    else if (ph >= 5.0 && ph <= 8.5) phScore = 12;
+    else phScore = 8;
+  }
+
+  // OC component (0-25)
+  let ocScore = 0;
+  if (oc !== null) {
+    if (oc >= 3.0) ocScore = 25;
+    else if (oc >= 2.0) ocScore = 20;
+    else if (oc >= 1.0) ocScore = 12;
+    else if (oc >= 0.5) ocScore = 6;
+    else ocScore = 2;
+  }
+
+  // CEC component (0-25)
+  let cecScore = 0;
+  if (cec !== null) {
+    if (cec >= 20) cecScore = 25;
+    else if (cec >= 10) cecScore = 18;
+    else if (cec >= 5) cecScore = 10;
+    else cecScore = 3;
+  }
+
+  // Drainage component (0-25)
+  let drainScore = 0;
+  if (drainage) {
+    const dl = drainage.toLowerCase();
+    if (dl.includes('well') && !dl.includes('poorly') && !dl.includes('moderately')) drainScore = 25;
+    else if (dl.includes('moderately well')) drainScore = 20;
+    else if (dl.includes('somewhat poorly') || dl.includes('somewhat excessively')) drainScore = 12;
+    else if (dl.includes('poorly') && !dl.includes('very')) drainScore = 6;
+    else if (dl.includes('very poorly') || dl.includes('excessively')) drainScore = 2;
+    else drainScore = 15; // unknown — assume moderate
+  }
+
+  return phScore + ocScore + cecScore + drainScore;
+}
+
+/** Salinization risk from EC (dS/m) and SAR — matches backend computeSalinizationRisk */
+function computeSalinizationRiskFe(ec: number | null, sar: number | null): string {
+  const levels = ['Low', 'Moderate', 'High', 'Severe'];
+  let ecLevel = 0;
+  if (ec !== null) {
+    if (ec >= 8) ecLevel = 3;
+    else if (ec >= 4) ecLevel = 2;
+    else if (ec >= 2) ecLevel = 1;
+  }
+  let sarLevel = 0;
+  if (sar !== null) {
+    if (sar >= 15) sarLevel = 3;
+    else if (sar >= 10) sarLevel = 2;
+    else if (sar >= 6) sarLevel = 1;
+  }
+  return levels[Math.max(ecLevel, sarLevel)]!;
 }
 
 async function fetchLioSoils(lat: number, lng: number): Promise<MockLayerResult> {

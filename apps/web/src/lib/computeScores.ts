@@ -333,6 +333,24 @@ function computeAgriculturalSuitability(
     : farmland.includes('class 3') ? 8 : 0;
   components.push(comp('farmland_class', farmPts, 15, 'soils', sc));
 
+  // pH suitability (max 10)
+  const phVal = num(soils, 'ph_value');
+  const phPts = phVal === 0 ? 0
+    : (phVal >= 6.0 && phVal <= 7.5) ? 10
+    : (phVal >= 5.5 && phVal <= 8.0) ? 5
+    : 2;
+  components.push(comp('ph_suitability', phPts, 10, 'soils', sc));
+
+  // CEC (max 5)
+  const cecVal = num(soils, 'cec_meq_100g');
+  const cecPts = cecVal === 0 ? 0 : cecVal >= 15 ? 5 : cecVal >= 5 ? 3 : 1;
+  components.push(comp('cation_exchange', cecPts, 5, 'soils', sc));
+
+  // Available water capacity (max 5)
+  const awcVal = num(soils, 'awc_cm_cm');
+  const awcPts = awcVal === 0 ? 0 : awcVal >= 0.15 ? 5 : awcVal >= 0.10 ? 3 : 1;
+  components.push(comp('water_holding', awcPts, 5, 'soils', sc));
+
   // Growing season (max 10)
   const frostFree = num(climate, 'growing_season_days');
   const growPts = frostFree > 180 ? 10 : frostFree > 150 ? 8 : frostFree > 120 ? 5 : frostFree > 90 ? 2 : 0;
@@ -614,6 +632,19 @@ function computeStewardshipReadiness(
     : drainage.includes('moderate') ? 5
     : drainage.includes('poor') ? 2 : 0;
   components.push(comp('drainage_condition', drainPts, 10, 'soils', sc));
+
+  // Fertility index (max 10) — use directly if available from extended soil data
+  const fertilityIdx = num(soils, 'fertility_index');
+  const fertPts = fertilityIdx === 0 ? 0
+    : fertilityIdx >= 70 ? 10
+    : fertilityIdx >= 50 ? 7
+    : fertilityIdx >= 30 ? 4 : 2;
+  components.push(comp('soil_fertility', fertPts, 10, 'soils', sc));
+
+  // Salinity penalty (max -5) — penalize saline/sodic soils
+  const ecVal = num(soils, 'ec_ds_m');
+  const salPenalty = ecVal === 0 ? 0 : ecVal >= 4 ? -5 : ecVal >= 2 ? -3 : 0;
+  components.push(comp('salinity_penalty', salPenalty, 0, 'soils', sc));
 
   // Water resilience cross-reference (max 15)
   const precip = num(soils, 'annual_precip_mm') || num(layerByType([...(watershed ? [watershed] : []), ...(wetlands ? [wetlands] : [])], 'climate') ?? undefined, 'annual_precip_mm');
