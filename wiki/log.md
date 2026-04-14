@@ -4,6 +4,17 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint D: Formal Scoring — FAO S1-N2 + USDA LCC I-VIII
+- **Scope:** Implemented the two primary international land classification standards as new scoring dimensions in the scoring engine. Both use the soil, climate, and terrain data made available by Sprints A-C.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added `computeFAOSuitability()` (8-factor: pH, rooting depth, drainage, AWC, salinity, CEC, topography, thermal regime → S1/S2/S3/N1/N2) and `computeUSDALCC()` (8-limitation: slope, drainage, soil depth, texture, erosion hazard, salinity, climate, drought susceptibility → Class I-VIII with e/w/s/c subclass). Both wired into `computeAssessmentScores()` as weight-0 classification entries.
+  - `wiki/entities/gap-analysis.md` — marked FAO + USDA LCC as implemented, updated summary table
+- **Architecture:** Classifications are ScoredResult entries with custom `rating` strings (e.g., "S1 — Highly Suitable", "Class IIe — Suited to cultivation"). Weight 0 in `computeOverallScore()` means they appear in the dashboard breakdown but don't affect the overall site score.
+- **Gaps closed:** FAO S1-N2, USDA LCC I-VIII (+ hardiness zones already existed)
+- **Gaps remaining (formal scoring):** Canada Soil Capability, fuzzy logic, AHP, LGP
+
+---
+
 ### 2026-04-14 — Sprint C: Climate Foundation
 - **Scope:** Added Koppen-Geiger climate classification (computed from existing monthly normals), freeze-thaw cycle estimation, and NASA POWER solar radiation integration. Discovered 6/10 climate gaps were already implemented via NOAA ACIS + ECCC — gap analysis was outdated. Extended scoring with Koppen zone and GDD heat accumulation components.
 - **Key finding:** Atlas already had robust climate data from NOAA ACIS (US, 30-year normals) and ECCC OGC (CA). The gap analysis listed these as missing, but they were implemented in a prior session.

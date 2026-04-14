@@ -214,6 +214,9 @@ export function computeAssessmentScores(
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
+    // Formal classification systems (Sprint D) — weight 0 in overall score
+    computeFAOSuitability(soils, climate, elevation),
+    computeUSDALCC(soils, climate, elevation),
   ];
 }
 
@@ -807,6 +810,273 @@ function computeDesignComplexity(
   components.push(comp('utility_access_difficulty', Math.min(8, utilPts), 8, 'zoning', zc));
 
   return buildResult('Design Complexity', 20, components);
+}
+
+/* ------------------------------------------------------------------ */
+/*  1h. FAO Land Suitability (S1/S2/S3/N1/N2) — Sprint D              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * FAO Framework for Land Evaluation (1976, updated 2007).
+ * Classifies land into suitability orders and classes based on soil, climate,
+ * and terrain limitations for general agricultural use.
+ *
+ * Classes:
+ *   S1 (Highly Suitable)     — no significant limitations, score 85-100
+ *   S2 (Moderately Suitable) — moderate limitations, score 60-84
+ *   S3 (Marginally Suitable) — severe limitations, score 40-59
+ *   N1 (Currently Not Suitable) — limitations correctable, score 20-39
+ *   N2 (Permanently Not Suitable) — permanent limitations, score 0-19
+ *
+ * Each limiting factor is scored independently; the most limiting factor
+ * determines the final class (Liebig's law of the minimum).
+ */
+function computeFAOSuitability(
+  soils: MockLayerResult | undefined,
+  climate: MockLayerResult | undefined,
+  elevation: MockLayerResult | undefined,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const cc = layerConfidence(climate);
+  const ec = layerConfidence(elevation);
+
+  // Factor 1: Soil pH (max 15)
+  const ph = num(soils, 'ph_value');
+  const phPts = ph === 0 ? 8 // unknown — assume moderate
+    : (ph >= 5.5 && ph <= 7.8) ? 15
+    : (ph >= 5.0 && ph <= 8.5) ? 10
+    : (ph >= 4.5 && ph <= 9.0) ? 5
+    : 2;
+  components.push(comp('fao_soil_reaction', phPts, 15, 'soils', sc));
+
+  // Factor 2: Effective rooting depth (max 15)
+  const rootDepth = num(soils, 'rooting_depth_cm');
+  const rootPts = rootDepth === 0 ? 8
+    : rootDepth >= 100 ? 15
+    : rootDepth >= 75 ? 12
+    : rootDepth >= 50 ? 8
+    : rootDepth >= 25 ? 4 : 2;
+  components.push(comp('fao_rooting_depth', rootPts, 15, 'soils', sc));
+
+  // Factor 3: Drainage (max 12)
+  const drainage = str(soils, 'drainage_class').toLowerCase();
+  const drainPts = drainage.includes('well') && !drainage.includes('poorly') && !drainage.includes('moderately') ? 12
+    : drainage.includes('moderately well') ? 10
+    : drainage.includes('somewhat poorly') || drainage.includes('somewhat excessively') ? 6
+    : drainage.includes('poorly') ? 3
+    : drainage.includes('excessively') ? 4 : 6;
+  components.push(comp('fao_drainage', drainPts, 12, 'soils', sc));
+
+  // Factor 4: Soil texture / AWC (max 12)
+  const awc = num(soils, 'awc_cm_cm');
+  const awcPts = awc === 0 ? 6
+    : awc >= 0.18 ? 12
+    : awc >= 0.12 ? 9
+    : awc >= 0.08 ? 5 : 2;
+  components.push(comp('fao_water_retention', awcPts, 12, 'soils', sc));
+
+  // Factor 5: Salinity/sodicity (max 10)
+  const ecVal = num(soils, 'ec_ds_m');
+  const sar = num(soils, 'sodium_adsorption_ratio');
+  const salPts = (ecVal === 0 && sar === 0) ? 8
+    : (ecVal < 2 && sar < 6) ? 10
+    : (ecVal < 4 && sar < 10) ? 6
+    : (ecVal < 8 && sar < 15) ? 3 : 1;
+  components.push(comp('fao_salinity', salPts, 10, 'soils', sc));
+
+  // Factor 6: CEC / fertility (max 10)
+  const cec = num(soils, 'cec_meq_100g');
+  const cecPts = cec === 0 ? 5
+    : cec >= 15 ? 10
+    : cec >= 8 ? 7
+    : cec >= 4 ? 4 : 2;
+  components.push(comp('fao_nutrient_retention', cecPts, 10, 'soils', sc));
+
+  // Factor 7: Slope / topography (max 12)
+  const slope = num(elevation, 'mean_slope_deg');
+  const slopePts = slope < 3 ? 12
+    : slope < 8 ? 10
+    : slope < 15 ? 6
+    : slope < 25 ? 3 : 1;
+  components.push(comp('fao_topography', slopePts, 12, 'elevation', ec));
+
+  // Factor 8: Growing season / thermal regime (max 14)
+  const growDays = num(climate, 'growing_season_days');
+  const gdd = num(climate, 'growing_degree_days_base10c');
+  const thermPts = (growDays === 0 && gdd === 0) ? 7
+    : (growDays >= 180 && gdd >= 1500) ? 14
+    : (growDays >= 150 && gdd >= 1000) ? 11
+    : (growDays >= 120 && gdd >= 700) ? 7
+    : (growDays >= 90) ? 4 : 2;
+  components.push(comp('fao_thermal_regime', thermPts, 14, 'climate', cc));
+
+  // Use base 0 — score is purely additive from limiting factors
+  // Max possible = 100 (15+15+12+12+10+10+12+14)
+  const result = buildResult('FAO Land Suitability', 0, components);
+
+  // Override rating with FAO class names
+  const s = result.score;
+  result.rating = s >= 85 ? 'S1 \u2014 Highly Suitable' as ScoredResult['rating']
+    : s >= 60 ? 'S2 \u2014 Moderately Suitable' as ScoredResult['rating']
+    : s >= 40 ? 'S3 \u2014 Marginally Suitable' as ScoredResult['rating']
+    : s >= 20 ? 'N1 \u2014 Currently Not Suitable' as ScoredResult['rating']
+    : 'N2 \u2014 Permanently Not Suitable' as ScoredResult['rating'];
+
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/*  1i. USDA Land Capability Classification (LCC I-VIII) — Sprint D    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * USDA/NRCS Land Capability Classification System.
+ * Eight classes (I-VIII) based on permanent soil/terrain limitations.
+ * Classes I-IV: suited to cultivation
+ * Class V: wetland/flood limitations (not slope)
+ * Classes VI-VII: suited to grazing/forestry
+ * Class VIII: recreation/wildlife only
+ *
+ * The system uses the most limiting factor to assign class.
+ * Higher limitation → higher class number → lower score.
+ */
+function computeUSDALCC(
+  soils: MockLayerResult | undefined,
+  climate: MockLayerResult | undefined,
+  elevation: MockLayerResult | undefined,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const cc = layerConfidence(climate);
+  const ec = layerConfidence(elevation);
+
+  // Subclass suffixes: e=erosion, w=water, s=soil, c=climate
+  const limitations: string[] = [];
+
+  // Limitation 1: Slope (max 20) — primary differentiator for LCC
+  const slope = num(elevation, 'mean_slope_deg');
+  let slopePts: number;
+  if (slope < 2) { slopePts = 20; } // Class I range
+  else if (slope < 5) { slopePts = 17; } // Class II
+  else if (slope < 8) { slopePts = 14; } // Class III
+  else if (slope < 15) { slopePts = 10; } // Class IV
+  else if (slope < 25) { slopePts = 6; } // Class VI
+  else if (slope < 35) { slopePts = 3; } // Class VII
+  else { slopePts = 1; } // Class VIII
+  if (slope >= 8) limitations.push('e');
+  components.push(comp('lcc_slope', slopePts, 20, 'elevation', ec));
+
+  // Limitation 2: Drainage / wetness (max 15)
+  const drainage = str(soils, 'drainage_class').toLowerCase();
+  let drainPts: number;
+  if (drainage.includes('well') && !drainage.includes('poorly') && !drainage.includes('moderately')) {
+    drainPts = 15;
+  } else if (drainage.includes('moderately well')) {
+    drainPts = 12;
+  } else if (drainage.includes('somewhat poorly')) {
+    drainPts = 8; limitations.push('w');
+  } else if (drainage.includes('poorly') && !drainage.includes('very')) {
+    drainPts = 4; limitations.push('w');
+  } else if (drainage.includes('very poorly')) {
+    drainPts = 1; limitations.push('w');
+  } else {
+    drainPts = 10; // unknown
+  }
+  components.push(comp('lcc_drainage', drainPts, 15, 'soils', sc));
+
+  // Limitation 3: Effective soil depth (max 15)
+  const rootDepth = num(soils, 'rooting_depth_cm');
+  let depthPts: number;
+  if (rootDepth === 0) { depthPts = 8; }
+  else if (rootDepth >= 100) { depthPts = 15; }
+  else if (rootDepth >= 75) { depthPts = 12; }
+  else if (rootDepth >= 50) { depthPts = 9; }
+  else if (rootDepth >= 25) { depthPts = 5; limitations.push('s'); }
+  else { depthPts = 2; limitations.push('s'); }
+  components.push(comp('lcc_soil_depth', depthPts, 15, 'soils', sc));
+
+  // Limitation 4: Texture / permeability (max 12)
+  const clay = num(soils, 'clay_pct');
+  const sand = num(soils, 'sand_pct');
+  let texPts: number;
+  if (clay === 0 && sand === 0) { texPts = 7; }
+  else if (clay >= 40 || sand >= 85) { texPts = 5; limitations.push('s'); } // extreme texture
+  else if (clay >= 35 || sand >= 70) { texPts = 8; }
+  else { texPts = 12; } // loam range
+  components.push(comp('lcc_texture', texPts, 12, 'soils', sc));
+
+  // Limitation 5: Erosion hazard (max 12)
+  const kfact = num(soils, 'kfact');
+  // K-factor: 0.02 (low) to 0.69 (high erodibility)
+  // Combined with slope for erosion risk
+  const erosionRisk = kfact > 0 ? kfact * (1 + slope / 10) : slope / 10;
+  let erosPts: number;
+  if (erosionRisk < 0.1) { erosPts = 12; }
+  else if (erosionRisk < 0.3) { erosPts = 10; }
+  else if (erosionRisk < 0.5) { erosPts = 7; }
+  else if (erosionRisk < 1.0) { erosPts = 4; limitations.push('e'); }
+  else { erosPts = 2; limitations.push('e'); }
+  components.push(comp('lcc_erosion_hazard', erosPts, 12, 'elevation', ec));
+
+  // Limitation 6: Salinity (max 8)
+  const ecSoil = num(soils, 'ec_ds_m');
+  let salPts: number;
+  if (ecSoil === 0) { salPts = 6; }
+  else if (ecSoil < 2) { salPts = 8; }
+  else if (ecSoil < 4) { salPts = 5; limitations.push('s'); }
+  else if (ecSoil < 8) { salPts = 3; limitations.push('s'); }
+  else { salPts = 1; limitations.push('s'); }
+  components.push(comp('lcc_salinity', salPts, 8, 'soils', sc));
+
+  // Limitation 7: Climate severity (max 10)
+  const growDays = num(climate, 'growing_season_days');
+  let climPts: number;
+  if (growDays === 0) { climPts = 5; }
+  else if (growDays >= 180) { climPts = 10; }
+  else if (growDays >= 150) { climPts = 8; }
+  else if (growDays >= 120) { climPts = 6; }
+  else if (growDays >= 90) { climPts = 4; limitations.push('c'); }
+  else { climPts = 2; limitations.push('c'); }
+  components.push(comp('lcc_climate_severity', climPts, 10, 'climate', cc));
+
+  // Limitation 8: AWC / drought susceptibility (max 8)
+  const awc = num(soils, 'awc_cm_cm');
+  let awcPts: number;
+  if (awc === 0) { awcPts = 4; }
+  else if (awc >= 0.18) { awcPts = 8; }
+  else if (awc >= 0.12) { awcPts = 6; }
+  else if (awc >= 0.08) { awcPts = 3; limitations.push('s'); }
+  else { awcPts = 1; limitations.push('s'); }
+  components.push(comp('lcc_drought_susceptibility', awcPts, 8, 'soils', sc));
+
+  // Build result — max 100 (20+15+15+12+12+8+10+8)
+  const result = buildResult('USDA Land Capability', 0, components);
+
+  // Map score to LCC class + subclass
+  const s = result.score;
+  const uniqueLimitations = [...new Set(limitations)];
+  const subclass = uniqueLimitations.length > 0 ? uniqueLimitations[0] : '';
+
+  let lccClass: string;
+  if (s >= 90) lccClass = 'I';
+  else if (s >= 78) lccClass = 'II';
+  else if (s >= 66) lccClass = 'III';
+  else if (s >= 54) lccClass = 'IV';
+  else if (s >= 45 && uniqueLimitations.includes('w') && !uniqueLimitations.includes('e')) lccClass = 'V';
+  else if (s >= 42) lccClass = 'VI';
+  else if (s >= 28) lccClass = 'VII';
+  else lccClass = 'VIII';
+
+  const classLabel = lccClass + (subclass && lccClass !== 'I' ? subclass : '');
+  const useDesc = ['I', 'II', 'III', 'IV'].includes(lccClass) ? 'Suited to cultivation'
+    : lccClass === 'V' ? 'Wetland/flood limitations'
+    : ['VI', 'VII'].includes(lccClass) ? 'Grazing/forestry'
+    : 'Recreation/wildlife only';
+
+  result.rating = `Class ${classLabel} \u2014 ${useDesc}` as ScoredResult['rating'];
+
+  return result;
 }
 
 /* ------------------------------------------------------------------ */

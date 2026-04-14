@@ -14,7 +14,7 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 | 3 | [Terrain & Topography](#3-terrain--topography) | 0 remaining | Computation | **Complete** | All 8/8 implemented: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI bonus |
 | 2 | [Soil Assessment](#2-soil-assessment) | 6 remaining | Data | **Mostly Complete** | 10/16 implemented (Sprint B): pH, CEC, EC, SAR, bulk density, Ksat, AWC, CaCO3, rooting depth, OC + fertility index, salinization risk, scoring integration |
 | 5 | [Climate](#5-climate) | 2 remaining | Data | **Mostly Complete** | 8/10 implemented: NOAA ACIS + ECCC normals (temp, precip, frost, GDD, wind), NASA POWER solar, Koppen, freeze-thaw. Remaining: extreme events, climate projections |
-| 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 7 | Computation | **P1** | International credibility; mostly algorithms over soil+climate+terrain; depends on P0/P1 data being filled |
+| 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 4 remaining | Computation | **Mostly Complete** | 3/7 implemented (Sprint D): FAO S1-N2, USDA LCC I-VIII, USDA Hardiness Zones. Remaining: Canada Soil Cap, fuzzy logic, AHP, LGP |
 | 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 8 | Data + Computation | **P2** | Most significant strategic gap; FAO ECOCROP is free; but depends on climate + soil being complete first |
 | 11 | [Regulatory & Legal](#11-regulatory--legal) | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
 | 4 | [Hydrology](#4-hydrology) | 10 | Mixed | **P2/P3** | ET, aridity index, drainage density are computation; groundwater/aquifer are hard data gaps |
@@ -37,19 +37,20 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 
 ## 1. Formal Scoring & Classification
 
-Recognized frameworks that give a land evaluation tool international credibility.
+Recognized frameworks that give a land evaluation tool international credibility. Sprint D (2026-04-14) implemented the two primary standards.
 
-| Standard | Body | Gap Type |
-|----------|------|----------|
-| FAO S1/S2/S3/N1/N2 suitability classification | FAO (1976) | Computation |
-| USDA Land Capability Classification (LCC I-VIII) | USDA/NRCS | Computation |
-| Canada Soil Capability Classification (Classes 1-7) | AAFC | Computation |
-| Fuzzy logic membership functions | ALUES/FAO | Computation |
-| AHP multi-criteria weighting | MCDM standard | Computation |
-| Length of Growing Period (LGP) classification | FAO AEZ | Data + Computation |
-| USDA Plant Hardiness Zones | USDA | Data |
+| Standard | Body | Gap Type | Status |
+|----------|------|----------|--------|
+| FAO S1/S2/S3/N1/N2 suitability classification | FAO (1976) | Computation | **Implemented** — 8-factor scoring: pH, rooting depth, drainage, AWC, salinity, CEC, slope, thermal regime |
+| USDA Land Capability Classification (LCC I-VIII) | USDA/NRCS | Computation | **Implemented** — 8-limitation model with e/w/s/c subclass notation |
+| Canada Soil Capability Classification (Classes 1-7) | AAFC | Computation | Open — similar to USDA LCC but CA-specific thresholds |
+| Fuzzy logic membership functions | ALUES/FAO | Computation | Open — advanced; would enhance S1-N2 with gradual transitions |
+| AHP multi-criteria weighting | MCDM standard | Computation | Open — user-configurable priority weighting |
+| Length of Growing Period (LGP) classification | FAO AEZ | Data + Computation | Open — needs daily temperature/moisture balance model |
+| USDA Plant Hardiness Zones | USDA | Data | **Implemented** — computed from coldest monthly minimum in Sprint C (pre-existing) |
 
-> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas's current 5-dimension scoring would need to align with or wrap these standards.
+> **Status:** 3/7 implemented. FAO and USDA LCC are the two most critical frameworks; both now integrated into the scoring engine as additional ScoredResult entries (weight 0 — classification only, not affecting overall score).
+> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas now has 9 scored dimensions (7 weighted + 2 classification).
 
 ---
 
