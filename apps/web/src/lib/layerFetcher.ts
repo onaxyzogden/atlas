@@ -175,6 +175,12 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint M: Water quality (EPA WQP — US only)
   fetchers.push(fetchEPAWQP(lat, lng, options.country).then(trackLive));
 
+  // Sprint O: Superfund site proximity (EPA Envirofacts — US only)
+  fetchers.push(fetchEPASuperfund(lat, lng, options.country).then(trackLive));
+
+  // Sprint O: Critical habitat overlay (USFWS ArcGIS — US only)
+  fetchers.push(fetchCriticalHabitat(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
@@ -4012,6 +4018,175 @@ async function fetchEPAWQP(lat: number, lng: number, country: string): Promise<M
         station_count: Array.isArray(stations) ? stations.length : 0,
         orgname: nearestStation?.org ?? null,
         last_measured: lastMeasured,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Sprint O: EPA Envirofacts Superfund (SEMS) ─────────────────────────────
+
+async function fetchEPASuperfund(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    const delta = 0.3; // ~33 km search radius
+    const url =
+      `https://enviro.epa.gov/enviro/efservice/SEMS_ACTIVE_SITES` +
+      `/LATITUDE/BEGINNING/${(lat - delta).toFixed(4)}/ENDING/${(lat + delta).toFixed(4)}` +
+      `/LONGITUDE/BEGINNING/${(lng - delta).toFixed(4)}/ENDING/${(lng + delta).toFixed(4)}` +
+      `/JSON`;
+
+    const resp = await fetchWithRetry(url, 15000);
+    const sites = await resp.json() as Array<{
+      SITE_NAME?: string;
+      EPA_ID?: string;
+      LATITUDE?: number;
+      LONGITUDE?: number;
+      SITE_STATUS?: string;
+      CITY_NAME?: string;
+      STATE_CODE?: string;
+    }>;
+
+    if (!Array.isArray(sites) || sites.length === 0) return null;
+
+    interface SiteRecord { name: string; km: number; status: string; epaId: string; city: string }
+    const mapped: SiteRecord[] = sites
+      .filter((s) => s.LATITUDE != null && s.LONGITUDE != null)
+      .map((s) => ({
+        name: s.SITE_NAME ?? 'Unknown site',
+        km: Math.round(haversineKm(lat, lng, s.LATITUDE!, s.LONGITUDE!) * 10) / 10,
+        status: s.SITE_STATUS ?? 'Unknown',
+        epaId: s.EPA_ID ?? '',
+        city: s.CITY_NAME && s.STATE_CODE ? `${s.CITY_NAME}, ${s.STATE_CODE}` : '',
+      }));
+
+    mapped.sort((a, b) => a.km - b.km);
+    const nearest = mapped[0]!;
+
+    return {
+      layerType: 'superfund',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'EPA Envirofacts SEMS',
+      attribution: 'U.S. Environmental Protection Agency',
+      summary: {
+        nearest_site_km: nearest.km,
+        nearest_site_name: nearest.name,
+        nearest_site_status: nearest.status,
+        nearest_epa_id: nearest.epaId,
+        nearest_city: nearest.city,
+        sites_within_radius: mapped.length,
+        sites_within_5km: mapped.filter((s) => s.km <= 5).length,
+        sites_within_2km: mapped.filter((s) => s.km <= 2).length,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Sprint O: USFWS Critical Habitat ──────────────────────────────────────
+
+async function fetchCriticalHabitat(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    // Query USFWS Critical Habitat FeatureServer — point-in-polygon intersection
+    const url =
+      `https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services` +
+      `/USFWS_Critical_Habitat/FeatureServer/2/query` +
+      `?geometry=${lng},${lat}` +
+      `&geometryType=esriGeometryPoint` +
+      `&inSR=4326` +
+      `&spatialRel=esriSpatialRelIntersects` +
+      `&outFields=comname,sciname,status,listing_st,CH_Unit_ID` +
+      `&returnGeometry=false` +
+      `&f=json`;
+
+    const resp = await fetchWithRetry(url, 15000);
+    const data = await resp.json() as {
+      features?: Array<{
+        attributes?: {
+          comname?: string;
+          sciname?: string;
+          status?: string;
+          listing_st?: string;
+          CH_Unit_ID?: string;
+        };
+      }>;
+    };
+
+    const features = data?.features ?? [];
+
+    // Also query a small buffer (5km) to find nearby critical habitat
+    const bufferUrl =
+      `https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services` +
+      `/USFWS_Critical_Habitat/FeatureServer/2/query` +
+      `?geometry=${lng - 0.05},${lat - 0.05},${lng + 0.05},${lat + 0.05}` +
+      `&geometryType=esriGeometryEnvelope` +
+      `&inSR=4326` +
+      `&spatialRel=esriSpatialRelIntersects` +
+      `&outFields=comname,sciname,status,listing_st` +
+      `&returnGeometry=false` +
+      `&returnDistinctValues=true` +
+      `&f=json`;
+
+    const bufResp = await fetchWithRetry(bufferUrl, 15000);
+    const bufData = await bufResp.json() as typeof data;
+    const bufFeatures = bufData?.features ?? [];
+
+    // Deduplicate species by scientific name
+    const speciesMap = new Map<string, { common: string; scientific: string; status: string; listing: string }>();
+    for (const f of [...features, ...bufFeatures]) {
+      const sci = f.attributes?.sciname ?? '';
+      if (sci && !speciesMap.has(sci)) {
+        speciesMap.set(sci, {
+          common: f.attributes?.comname ?? '',
+          scientific: sci,
+          status: f.attributes?.status ?? '',
+          listing: f.attributes?.listing_st ?? '',
+        });
+      }
+    }
+
+    const onSite = features.length > 0;
+    const species = Array.from(speciesMap.values());
+
+    if (species.length === 0) {
+      // No critical habitat at all — return result indicating clear
+      return {
+        layerType: 'critical_habitat',
+        fetchStatus: 'complete',
+        confidence: 'high',
+        dataDate: new Date().toISOString().split('T')[0]!,
+        sourceApi: 'USFWS Critical Habitat',
+        attribution: 'U.S. Fish and Wildlife Service',
+        summary: {
+          on_site: false,
+          species_on_site: 0,
+          species_nearby: 0,
+          species_list: [],
+          primary_species: null,
+          primary_status: null,
+        },
+      };
+    }
+
+    return {
+      layerType: 'critical_habitat',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'USFWS Critical Habitat',
+      attribution: 'U.S. Fish and Wildlife Service',
+      summary: {
+        on_site: onSite,
+        species_on_site: new Set(features.map((f) => f.attributes?.sciname).filter(Boolean)).size,
+        species_nearby: species.length,
+        species_list: species.slice(0, 5).map((s) => `${s.common} (${s.scientific})`),
+        primary_species: species[0]?.common ?? null,
+        primary_status: species[0]?.listing ?? null,
       },
     };
   } catch {

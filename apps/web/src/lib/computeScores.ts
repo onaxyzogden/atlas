@@ -213,6 +213,10 @@ export function computeAssessmentScores(
   const groundwater = layerByType(layers, 'groundwater');
   const waterQuality = layerByType(layers, 'water_quality');
 
+  // Sprint O: environmental risk + ecological layers (US-only)
+  const superfund = layerByType(layers, 'superfund');
+  const criticalHabitat = layerByType(layers, 'critical_habitat');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -262,8 +266,8 @@ export function computeAssessmentScores(
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
-    computeBuildability(elevation, wetlands, soils, terrain, infrastructure),
-    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund),
+    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
@@ -681,6 +685,7 @@ function computeBuildability(
   soils: MockLayerResult | undefined,
   terrain: MockLayerResult | undefined,
   infrastructure?: MockLayerResult | undefined,
+  superfund?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
@@ -771,6 +776,15 @@ function computeBuildability(
   const waterPts = waterKm > 0 ? (waterKm <= 2 ? 3 : waterKm <= 5 ? 2 : waterKm <= 15 ? 1 : 0) : 0;
   components.push(comp('water_supply_proximity', waterPts, 3, 'infrastructure', ic));
 
+  // Sprint O: Superfund contamination proximity (penalty, max -10)
+  if (superfund) {
+    const sfKm = num(superfund, 'nearest_site_km');
+    const sfPen = sfKm === 0 ? 0 : sfKm <= 1 ? -10 : sfKm <= 2 ? -7 : sfKm <= 5 ? -3 : 0;
+    components.push(comp('superfund_proximity', sfPen, -10, 'superfund', layerConfidence(superfund)));
+  } else {
+    components.push(comp('superfund_proximity', 0, -10, 'superfund', 'low'));
+  }
+
   return buildResult('Buildability', 75, components);
 }
 
@@ -785,6 +799,7 @@ function computeHabitatSensitivity(
   soilRegen: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
   infrastructure?: MockLayerResult | undefined,
+  criticalHabitat?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const wfc = layerConfidence(wetlands);
@@ -844,6 +859,20 @@ function computeHabitatSensitivity(
     ? (paKm <= 1 ? 8 : paKm <= 5 ? 5 : paKm <= 15 ? 2 : 0)
     : 0;
   components.push(comp('protected_area_proximity', paPts, 8, 'infrastructure', ic));
+
+  // Sprint O: ESA critical habitat presence (max 12) — on-site = highest sensitivity
+  if (criticalHabitat) {
+    const chc = layerConfidence(criticalHabitat);
+    const onSite = s(criticalHabitat, 'on_site');
+    const speciesOnSite = num(criticalHabitat, 'species_on_site');
+    const speciesNearby = num(criticalHabitat, 'species_nearby');
+    const chPts = onSite ? Math.min(12, 8 + speciesOnSite * 2)
+      : speciesNearby > 0 ? Math.min(6, speciesNearby * 2)
+      : 0;
+    components.push(comp('critical_habitat_presence', chPts, 12, 'critical_habitat', chc));
+  } else {
+    components.push(comp('critical_habitat_presence', 0, 12, 'critical_habitat', 'low'));
+  }
 
   return buildResult('Habitat Sensitivity', 25, components);
 }

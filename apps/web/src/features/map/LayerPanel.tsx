@@ -28,6 +28,8 @@ const LAYER_LABELS: Record<LayerType, string> = {
   soil_regeneration:  'Soil Regeneration',
   groundwater:        'Groundwater Depth',
   water_quality:      'Water Quality',
+  superfund:          'Superfund Sites',
+  critical_habitat:   'Critical Habitat',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -44,6 +46,8 @@ const LAYER_ICONS: Record<LayerType, string> = {
   soil_regeneration:  '◇',
   groundwater:        '▽',
   water_quality:      '◌',
+  superfund:          '☢',
+  critical_habitat:   '🦅',
 };
 
 const CONFIDENCE_COLORS = {

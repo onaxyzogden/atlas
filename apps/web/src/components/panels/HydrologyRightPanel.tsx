@@ -64,6 +64,20 @@ interface WaterQualitySummary {
   station_name?: string | null;
   last_measured?: string | null;
 }
+interface SuperfundSummary {
+  nearest_site_km?: number | null;
+  nearest_site_name?: string | null;
+  nearest_site_status?: string | null;
+  sites_within_5km?: number | null;
+}
+interface CriticalHabitatSummary {
+  on_site?: boolean;
+  species_on_site?: number | null;
+  species_nearby?: number | null;
+  primary_species?: string | null;
+  primary_status?: string | null;
+  species_list?: string[];
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -146,8 +160,10 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const wetFlood     = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood'): null;
     const elevation    = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')         : null;
     const soils        = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
-    const groundwater  = siteData ? getLayerSummary<GroundwaterSummary>(siteData, 'groundwater')      : null;
-    const waterQuality = siteData ? getLayerSummary<WaterQualitySummary>(siteData, 'water_quality')   : null;
+    const groundwater  = siteData ? getLayerSummary<GroundwaterSummary>(siteData, 'groundwater')          : null;
+    const waterQuality = siteData ? getLayerSummary<WaterQualitySummary>(siteData, 'water_quality')     : null;
+    const superfund    = siteData ? getLayerSummary<SuperfundSummary>(siteData, 'superfund')             : null;
+    const critHabitat  = siteData ? getLayerSummary<CriticalHabitatSummary>(siteData, 'critical_habitat'): null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -195,6 +211,15 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         waterQualityDO:       waterQuality?.dissolved_oxygen_mg_l != null
           ? `${Number(waterQuality.dissolved_oxygen_mg_l).toFixed(1)} mg/L` : '—',
         waterQualityStation:  waterQuality?.station_name ?? null,
+        superfundNearest:     superfund?.nearest_site_km != null
+          ? `${Number(superfund.nearest_site_km).toFixed(1)} km` : '—',
+        superfundName:        superfund?.nearest_site_name ?? null,
+        superfundStatus:      superfund?.nearest_site_status ?? null,
+        superfundCount5km:    superfund?.sites_within_5km ?? 0,
+        critHabitatOnSite:    critHabitat?.on_site ?? false,
+        critHabitatSpecies:   critHabitat?.primary_species ?? null,
+        critHabitatStatus:    critHabitat?.primary_status ?? null,
+        critHabitatNearby:    critHabitat?.species_nearby ?? 0,
       },
       metrics: m,
     };
@@ -372,6 +397,30 @@ function RealtimePanel({ live, metrics, isLoading }: {
             note={metrics.lgpClass || undefined} />
         </div>
       </div>
+
+      {/* Sprint O: Environmental Risk & Ecological */}
+      <div className={s.panelSection} style={{ marginTop: 16 }}>
+        <span className={s.sectionTag}>ENVIRONMENTAL & ECOLOGICAL</span>
+        <div className={s.dataRows}>
+          <DataRow label="Superfund Nearest"
+            value={live?.superfundNearest ?? '—'}
+            note={live?.superfundName ?? undefined}
+            color={live?.superfundCount5km && live.superfundCount5km > 0 ? errorToken.DEFAULT : confidence.high} />
+          {live?.superfundCount5km != null && live.superfundCount5km > 0 && (
+            <DataRow label="Sites within 5km"
+              value={`${live.superfundCount5km} site${live.superfundCount5km > 1 ? 's' : ''}`}
+              color={errorToken.DEFAULT} />
+          )}
+          <DataRow label="Critical Habitat"
+            value={live?.critHabitatOnSite ? 'ON SITE' : live?.critHabitatNearby ? `${live.critHabitatNearby} species nearby` : 'None found'}
+            note={live?.critHabitatSpecies ?? undefined}
+            color={live?.critHabitatOnSite ? errorToken.DEFAULT : confidence.high} />
+          {live?.critHabitatStatus && (
+            <DataRow label="ESA Status"
+              value={live.critHabitatStatus} />
+          )}
+        </div>
+      </div>
     </>
   );
 }
@@ -493,6 +542,8 @@ function buildLive() { return null as unknown as {
   budget: { precip: string; retention: string; target: string; demand: string; surplus: string } | null;
   groundwaterDepth: string; groundwaterStation: string | null;
   waterQualityPH: string; waterQualityDO: string; waterQualityStation: string | null;
+  superfundNearest: string; superfundName: string | null; superfundStatus: string | null; superfundCount5km: number;
+  critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }
