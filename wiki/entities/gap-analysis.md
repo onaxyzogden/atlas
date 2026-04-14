@@ -9,22 +9,22 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 
 ## Summary
 
-| # | Category | Gaps | Dominant Type | Priority | Rationale |
-|---|----------|------|---------------|----------|-----------|
-| 3 | [Terrain & Topography](#3-terrain--topography) | 0 remaining | Computation | **Complete** | All 8/8 implemented: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI bonus |
-| 2 | [Soil Assessment](#2-soil-assessment) | 6 remaining | Data | **Mostly Complete** | 10/16 implemented (Sprint B): pH, CEC, EC, SAR, bulk density, Ksat, AWC, CaCO3, rooting depth, OC + fertility index, salinization risk, scoring integration |
-| 5 | [Climate](#5-climate) | 2 remaining | Data | **Mostly Complete** | 8/10 implemented: NOAA ACIS + ECCC normals (temp, precip, frost, GDD, wind), NASA POWER solar, Koppen, freeze-thaw. Remaining: extreme events, climate projections |
-| 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 4 remaining | Computation | **Mostly Complete** | 3/7 implemented (Sprint D): FAO S1-N2, USDA LCC I-VIII, USDA Hardiness Zones. Remaining: Canada Soil Cap, fuzzy logic, AHP, LGP |
-| 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 4 remaining | Data + Computation | **Mostly Complete** | 4/8 implemented (Sprint E): full FAO EcoCrop DB (2071 crops), 9-factor matching engine, category filtering, SiteIntelligencePanel integration |
-| 11 | [Regulatory & Legal](#11-regulatory--legal) | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
-| 4 | [Hydrology](#4-hydrology) | 10 | Mixed | **P2/P3** | ET, aridity index, drainage density are computation; groundwater/aquifer are hard data gaps |
-| 9 | [Renewable Energy](#9-renewable-energy) | 6 | Data | **P3** | NASA POWER + Global Wind Atlas have free APIs; high user value but not core land suitability |
-| 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 8 | Data + Computation | **P3** | Distance calcs are straightforward once POI datasets sourced; masjid proximity is OGDEN-differentiator |
-| 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 8 | Data | **P3** | WDPA is free; species-at-risk data varies by jurisdiction; important for stewardship framing |
-| 13 | [Design Intelligence](#13-design-intelligence) | 10 | Computation | **P3** | All computation — but every gap depends on upstream data (terrain + climate + soil) being rich enough |
-| 8 | [Environmental Risk & Site History](#8-environmental-risk--site-history) | 8 | Data | **P4** | Phase I ESA data is jurisdiction-specific and often not API-accessible; important for due diligence |
-| 12 | [Global Data Coverage](#12-global-data-coverage) | 10 | Data | **P4** | SoilGrids, WorldClim, ESA WorldCover expand beyond US+Ontario; strategic but not MVP-blocking |
-| | **Total** | **~120** | | |
+| # | Category | Implemented | Remaining | Dominant Type | Priority | Rationale |
+|---|----------|-------------|-----------|---------------|----------|-----------|
+| 3 | [Terrain & Topography](#3-terrain--topography) | 8/8 | 0 | Computation | **Complete** | Sprint A: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI |
+| 2 | [Soil Assessment](#2-soil-assessment) | 10/16 | 6 | Data | **Mostly Complete** | Sprint B fetched 10+ fields; Sprint G wired CaCO3/Ksat/bulk density into scoring + pH bug fix + Soil Intelligence panel |
+| 5 | [Climate](#5-climate) | 8/10 | 2 | Data | **Mostly Complete** | Sprint C: Koppen, freeze-thaw, NASA POWER solar. Remaining: extreme events, climate projections |
+| 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 4/7 | 3 | Computation | **Mostly Complete** | Sprint D: FAO S1-N2, USDA LCC I-VIII. Sprint G: Hardiness Zone scoring. Remaining: Canada Soil Cap, fuzzy logic, AHP/LGP |
+| 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 5/8 | 3 | Data + Computation | **Mostly Complete** | Sprint E: EcoCrop 2071 crops. Sprint G: rain-fed vs irrigated. Remaining: agroforestry, companion planting, invasive/native |
+| 4 | [Hydrology](#4-hydrology) | 5/10 | 5 | Mixed | **Partially Complete** | Sprint F: PET, aridity, irrigation demand, RWH, drainage density. Remaining: groundwater, aquifer, seasonal flood, water stress, water quality |
+| 11 | [Regulatory & Legal](#11-regulatory--legal) | 0/11 | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
+| 9 | [Renewable Energy](#9-renewable-energy) | 0/6 | 6 | Data | **P3** | NASA POWER + Global Wind Atlas have free APIs; high user value but not core land suitability |
+| 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 0/8 | 8 | Data + Computation | **P3** | Distance calcs are straightforward once POI datasets sourced; masjid proximity is OGDEN-differentiator |
+| 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 0/8 | 8 | Data | **P3** | WDPA is free; species-at-risk data varies by jurisdiction; important for stewardship framing |
+| 13 | [Design Intelligence](#13-design-intelligence) | 0/10 | 10 | Computation | **P3** | All computation — depends on upstream data (terrain + climate + soil) being rich enough |
+| 8 | [Environmental Risk & Site History](#8-environmental-risk--site-history) | 0/8 | 8 | Data | **P4** | Phase I ESA data is jurisdiction-specific and often not API-accessible |
+| 12 | [Global Data Coverage](#12-global-data-coverage) | 0/10 | 10 | Data | **P4** | SoilGrids, WorldClim, ESA WorldCover expand beyond US+Ontario; strategic but not MVP-blocking |
+| | **Total** | **~40/120** | **~80** | | |
 
 > **Priority key:**
 > - **P0 — Quick Win:** computation on data Atlas already has; can implement now
@@ -47,10 +47,10 @@ Recognized frameworks that give a land evaluation tool international credibility
 | Fuzzy logic membership functions | ALUES/FAO | Computation | Open — advanced; would enhance S1-N2 with gradual transitions |
 | AHP multi-criteria weighting | MCDM standard | Computation | Open — user-configurable priority weighting |
 | Length of Growing Period (LGP) classification | FAO AEZ | Data + Computation | Open — needs daily temperature/moisture balance model |
-| USDA Plant Hardiness Zones | USDA | Data | **Implemented** — computed from coldest monthly minimum in Sprint C (pre-existing) |
+| USDA Plant Hardiness Zones | USDA | Data | **Implemented** — computed from coldest monthly minimum (Sprint C); wired into Agricultural Suitability as `hardiness_zone` scoring component (Sprint G) |
 
-> **Status:** 3/7 implemented. FAO and USDA LCC are the two most critical frameworks; both now integrated into the scoring engine as additional ScoredResult entries (weight 0 — classification only, not affecting overall score).
-> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas now has 9 scored dimensions (7 weighted + 2 classification).
+> **Status:** 4/7 implemented. FAO and USDA LCC are the two most critical frameworks; both integrated into the scoring engine as ScoredResult entries (weight 0 — classification only). Hardiness Zones now scored as a 5-point component in Agricultural Suitability (Sprint G).
+> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas now has 9 scored dimensions (7 weighted + 2 classification), 109 scoring components.
 
 ---
 
@@ -78,6 +78,7 @@ Atlas has SSURGO (US) and LIO (Ontario). Sprint B (2026-04-14) extended the fron
 | SoilGrids (ISRIC) — global 250m | Data | Open — global coverage gap |
 
 > **Status:** 10/16 implemented (Sprint A + B). Remaining 6 gaps: N-P-K, surface stoniness, soil degradation, boron toxicity, WRB classification, SoilGrids.
+> **Sprint G additions (2026-04-14):** Wired 3 already-fetched SSURGO fields into Agricultural Suitability scoring: `calcium_carbonate` (CaCO3%, max 4 pts), `permeability` (Ksat, max 4 pts), `compaction_risk` (bulk density, max 3 pts). Fixed `ph_value` → `ph` field name mismatch that caused pH scoring to silently return 0 in both `computeAgriculturalSuitability` and `computeFAOSuitability`. Added collapsible "Soil Intelligence" panel section (8 rows: pH, organic matter, CEC, texture, bulk density, Ksat, CaCO3, rooting depth).
 > **Cross-ref:** [Data Pipeline](data-pipeline.md) — frontend layerFetcher now queries 15 chorizon fields. Backend SsurgoAdapter queries 20+ fields via BullMQ pipeline.
 
 ---
@@ -103,20 +104,23 @@ Atlas has elevation DEM (USGS 3DEP + NRCan HRDEM), 3D visualization, and a full 
 
 ## 4. Hydrology
 
-Atlas has watershed boundaries, wetlands (partial), and flood zones (partial). Missing:
+Atlas has watershed boundaries, wetlands (partial), and flood zones (partial). Sprint F (2026-04-14) closed 5 computation-based gaps via frontend metrics + backend WatershedRefinementProcessor.
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Groundwater depth / water table | Data |
-| Aquifer type and recharge zones | Data |
-| Evapotranspiration (PET / actual ET) | Computation |
-| Aridity index (P/PET ratio) | Computation |
-| Irrigation water requirement by crop | Computation |
-| Seasonal flooding duration | Data |
-| Drainage density | Computation |
-| Water stress index | Data |
-| Rainwater harvesting potential | Computation |
-| Surface water quality | Data |
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Groundwater depth / water table | Data | Open — needs USGS NWIS or state well log APIs |
+| Aquifer type and recharge zones | Data | Open — needs USGS aquifer data |
+| Evapotranspiration (PET / actual ET) | Computation | **Implemented** — Blaney-Criddle PET + water-limited actual ET (Sprint F); `petMm` and `annualEtMm` in `hydrologyMetrics.ts` |
+| Aridity index (P/PET ratio) | Computation | **Implemented** — UNEP 5-class classification: Hyperarid/Arid/Semi-arid/Dry sub-humid/Humid (Sprint F) |
+| Irrigation water requirement by crop | Computation | **Implemented** — `irrigationDeficitMm = max(0, PET - effectivePrecip)` (Sprint F); rain-fed vs irrigated badge per crop (Sprint G) |
+| Seasonal flooding duration | Data | Open — needs hydrograph / gauge data beyond FEMA binary zones |
+| Drainage density | Computation | **Implemented** — D8 flow accumulation channel proxy in WatershedRefinementProcessor; stored as `drainageDensity.drainageDensityKmPerKm2` in watershed_derived summary_data (Sprint F) |
+| Water stress index | Data | Open — needs CMIP6 climate projections for future water availability |
+| Rainwater harvesting potential | Computation | **Implemented** — `catchmentHa * 10000 * (precipMm/1000) * runoffCoeff * 264.172` gal/yr + 2-week storage sizing (Sprint F) |
+| Surface water quality | Data | Open — needs EPA WQP API |
+
+> **Status:** 5/10 implemented (Sprint F). All 5 were computation-on-existing-data. Remaining 5 require new external data sources (USGS NWIS, EPA WQP, CMIP6).
+> **UI:** Collapsible "Hydrology Intelligence" section in SiteIntelligencePanel (6 rows: aridity, water balance, PET, harvest potential, storage sizing, irrigation). 4 new Water Resilience scoring components: `water_balance_surplus`, `aridity_class`, `rwh_potential`, `irrigation_feasibility`.
 
 ---
 
@@ -149,7 +153,7 @@ Sprint E (2026-04-14) integrated the full FAO EcoCrop database (2071 crops) with
 | Capability | Gap Type | Status |
 |------------|----------|--------|
 | FAO ECOCROP / GAEZ crop matching (2,000+ species) | Data + Computation | **Implemented** — full 2071-crop DB from OpenCLIM/ecocrop, 9-factor engine (temp, precip, pH, drainage, texture, depth, salinity, growing season, cold hardiness) |
-| Rain-fed vs. irrigated suitability distinction | Computation | Open — EcoCrop data is rain-fed; irrigated scoring needs water availability layer |
+| Rain-fed vs. irrigated suitability distinction | Computation | **Implemented** — Sprint G: `irrigationNeeded` (boolean) + `irrigationGapMm` on CropMatch; compares `site.annualPrecipMm < crop.precipOpt[0]`; displayed as Rain-fed/Irrigation badges in crop list |
 | Perennial crop matching (orchard, food forest) | Computation | **Implemented** — lifecycle filter (annual/biennial/perennial) + lifeForm (tree/shrub/vine/herb/grass) |
 | Livestock forage suitability | Computation | **Implemented** — forage/pasture category filter covers 400+ forage species in DB |
 | Agroforestry species pairing | Computation | Open — requires companion/guild logic beyond single-species matching |
@@ -157,7 +161,7 @@ Sprint E (2026-04-14) integrated the full FAO EcoCrop database (2071 crops) with
 | Invasive species risk by region | Data | Open — needs USDA NRCS invasive species API |
 | Native species library by ecoregion | Data | Open — needs EPA/NatureServe ecoregion-species mapping |
 
-> **Status:** 4/8 implemented. The EcoCrop integration closes the most critical gap (crop matching) and covers forage + perennial matching as bonuses. Remaining gaps are data-dependent and lower priority.
+> **Status:** 5/8 implemented. Sprint E: EcoCrop crop matching (most critical gap), forage + perennial matching. Sprint G: rain-fed vs irrigated distinction using hydrology metrics. Remaining 3 gaps (agroforestry pairing, companion planting, invasive/native species) are data-dependent and lower priority.
 
 ---
 
@@ -321,33 +325,38 @@ SSURGO's Soil Data Access (SDA) web service already returns `mapunit` and `compo
 
 ## Implementation Roadmap
 
-### Sprint A — Terrain Intelligence (P0)
-- Extend `tier3-terrain` worker with aspect, curvature, TWI, TRI algorithms
-- Surface results in terrain dashboard panel
-- **Depends on:** nothing new — DEM data is live
+### Completed Sprints (A-G)
 
-### Sprint B — Soil Depth (P0/P1)
-- Extend SSURGO backend adapter to query `chorizon` extended properties
-- Extend LIO adapter equivalently for Ontario
-- Add soil properties to soil dashboard panel
-- **Depends on:** backend SSURGO adapter being implemented (currently stubbed)
+| Sprint | Date | Scope | Gaps Closed |
+|--------|------|-------|-------------|
+| **A** | 2026-04-14 | Terrain Intelligence | 8 — TWI, TRI, aspect, curvature, viewshed, cut/fill, erosion hazard, micro-topography |
+| **B** | 2026-04-14 | Soil Extended Properties | 10 — pH, CEC, EC, SAR, CaCO3, Ksat, bulk density, AWC, OC, rooting depth |
+| **C** | 2026-04-14 | Climate Foundation | 3 — Koppen classification, freeze-thaw estimation, NASA POWER solar |
+| **D** | 2026-04-14 | Formal Scoring | 2 — FAO S1-N2, USDA LCC I-VIII |
+| **E** | 2026-04-14 | Crop Suitability | 4 — EcoCrop 2071 crops, perennial matching, forage suitability, lifecycle filtering |
+| **F** | 2026-04-14 | Hydrology Intelligence | 5 — PET/ET, aridity index, irrigation demand, RWH, drainage density |
+| **G** | 2026-04-14 | Soil + Hardiness + Irrigation | 2 — Hardiness zone scoring, rain-fed vs irrigated. Also: pH bug fix, 3 soil scoring wires, Soil Intelligence panel |
+| **H** | 2026-04-14 | Gap Audit + Wiki Update | 0 (documentation sprint) |
 
-### Sprint C — Climate Foundation (P1)
-- Integrate WorldClim v2.1 or NASA POWER API
-- Compute GDD, frost dates, Koppen classification
-- **Depends on:** new API integration
+**Cumulative: ~40/120 gaps closed.** All sprints used frontend-only computation on existing fetched data — no new API adapters were added.
 
-### Sprint D — Formal Scoring (P1)
-- Implement FAO S1-N2 classification engine
-- Implement USDA LCC I-VIII classification
-- Wire into existing scoring engine
-- **Depends on:** Sprints B + C complete (soil + climate data)
+### Next Sprints
 
-### Sprint E — Crop Suitability (P2)
-- Integrate FAO ECOCROP database
-- Build crop-matching engine against site soil + climate profile
-- **Depends on:** Sprints B + C + D complete
+#### Sprint I — Remaining Frontend-Computable Gaps (P0)
+Gaps that can be closed with existing data + computation:
+- **Canada Soil Capability Classification** (Cat 1) — mirrors USDA LCC with CA-specific thresholds; computation-only
+- **Length of Growing Period (LGP)** (Cat 1) — PET + monthly precip → moisture-limited growing days; FAO AEZ framework
+- **Carbon stock estimation** (Cat 7) — `organicMatterPct * bulkDensity * rootingDepthCm * 0.58 * 10` tC/ha; data already fetched
 
-### Sprint F+ — Remaining categories (P3-P4)
-- Renewable energy, infrastructure, ecological, environmental risk, regulatory, global coverage, design intelligence
-- Each can be prioritized independently based on user demand
+#### Sprint J — New API Integrations (P1-P2)
+Gaps requiring new data sources with free APIs available:
+- **Global Wind Atlas API** → wind energy potential (Cat 9); free REST API
+- **WDPA REST API** → protected areas overlay (Cat 7); UNEP-WCMC
+- **OpenStreetMap Overpass** → distance-to-infrastructure: roads, hospitals, masjids (Cat 10)
+- **USGS NWIS** → groundwater depth / water table (Cat 4); US only
+
+#### Deferred (P3-P4)
+- Regulatory data (Cat 11) — jurisdiction-specific, fragmented; 11 gaps
+- Environmental risk / Phase I ESA (Cat 8) — not API-accessible; 8 gaps
+- Global data coverage (Cat 12) — SoilGrids, WorldClim; 10 gaps; strategic expansion
+- Design intelligence (Cat 13) — computation, but depends on upstream data richness; 10 gaps

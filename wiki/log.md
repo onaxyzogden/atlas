@@ -4,6 +4,42 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint H: Gap Audit + Wiki Update
+- **Scope:** Audited all gaps closed by Sprints A-G, updated gap analysis wiki page with per-gap status markers, rewrote scoring engine concept page to reflect current 9-dimension / 108-component architecture, and produced a prioritized "what's next" roadmap for Sprints I-J.
+- **Files modified:**
+  - `wiki/entities/gap-analysis.md` — updated Categories 1 (4/7), 2 (scoring wire-ups), 4 (5/10 hydrology), 6 (5/8 crop); rewrote summary table (~40/120); added completed sprint table (A-H) + next sprint candidates
+  - `wiki/concepts/scoring-engine.md` — rewrote from "5 assessment dimensions" to 7 weighted + 2 formal classifications, 108 components, sprint history table
+  - `wiki/log.md` — added Sprint F, G, H entries
+- **Key findings:** Gap analysis was significantly stale — Hydrology showed 0/10 when 5/10 were implemented (Sprint F), scoring engine page said 5 dimensions when there are 9.
+- **No code changes** — wiki-only sprint.
+
+---
+
+### 2026-04-14 — Sprint G: Soil Intelligence + Hardiness Zones + Rain-Fed vs Irrigated
+- **Scope:** Combined polish sprint wiring existing SSURGO data into scoring, adding Soil Intelligence panel section, USDA Hardiness Zone scoring, rain-fed vs irrigated crop distinction, and fixing a pH field name bug across 3 sites.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added 4 scoring components: calcium_carbonate (max 4), permeability/Ksat (max 4), compaction_risk/bulk density (max 3), hardiness_zone (max 5). Fixed `ph_value` → `ph` bug at 2 sites (computeAgriculturalSuitability, computeFAOSuitability).
+  - `apps/web/src/lib/cropMatching.ts` — added `irrigationNeeded` + `irrigationGapMm` to CropMatch interface, rain-fed vs irrigated computation in `scoreCrop()`. Fixed third `ph_value` → `ph` bug in `siteConditionsFromLayers()`.
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Soil Intelligence collapsible section (8 rows: pH, OM, CEC, texture, bulk density, Ksat, CaCO3, rooting depth), irrigation badges on crop list items ("+X mm" / "Rain-fed"), reordered useMemo hooks to fix dependency ordering.
+- **Bugs fixed:** `ph_value` → `ph` at 3 locations (SSURGO field is `ph`, not `ph_value`). pH scoring was silently returning 0 for all sites.
+- **Scoring components:** 97 → 108 (+4 soil + +1 hardiness + FAO/USDA retained)
+- **Gaps closed:** Rain-fed vs irrigated distinction (Cat 6), hardiness zone wired into scoring (Cat 1)
+
+---
+
+### 2026-04-14 — Sprint F: Hydrology Intelligence
+- **Scope:** Implemented 5 hydrology gaps as frontend-computed metrics from existing climate + watershed data. Created `hydrologyMetrics.ts` utility and added Hydrology Intelligence section to SiteIntelligencePanel.
+- **Files created:**
+  - `apps/web/src/lib/hydrologyMetrics.ts` — pure functions: Blaney-Criddle PET, aridity index (UNEP classification), irrigation water requirement, rainwater harvesting potential
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added 4 water resilience scoring components: pet_aridity (max 8), irrigation_requirement (max 6), rainwater_harvesting (max 5), drainage_density (max 4)
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Hydrology Intelligence collapsible section (PET, aridity, RWH potential, irrigation requirement, drainage density) between scores and crop suitability
+  - `apps/api/src/services/terrain/WatershedRefinementProcessor.ts` — added drainage density computation from D8 flow accumulation grid (channel threshold = 100 cells, km/km² classification)
+- **Gaps closed:** 5 hydrology gaps (PET/ET, aridity index, irrigation requirement, rainwater harvesting, drainage density)
+- **Gaps remaining (hydrology):** 5 (groundwater depth, aquifer type, seasonal flooding duration, water stress index, surface water quality)
+
+---
+
 ### 2026-04-14 — Sprint E: Crop Suitability — FAO EcoCrop Integration
 - **Scope:** Integrated the full FAO EcoCrop database (2071 crops, sourced from OpenCLIM/ecocrop GitHub under OGL v3) with a 9-factor crop suitability matching engine. Replaces the hand-curated 60-crop subset with authoritative FAO data covering cereals, legumes, vegetables, fruits, forestry, forage, medicinals, ornamentals, and more.
 - **Files created:**
