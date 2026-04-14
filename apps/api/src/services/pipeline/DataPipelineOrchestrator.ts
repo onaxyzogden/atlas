@@ -21,13 +21,14 @@ import type { Redis } from 'ioredis';
 import type postgres from 'postgres';
 import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden/shared';
 import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
+import { SsurgoAdapter } from './adapters/SsurgoAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
 import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
 
-interface ProjectContext {
+export interface ProjectContext {
   projectId: string;
   country: Country;
   provinceState: string | null;
@@ -93,7 +94,12 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   const config = ADAPTER_REGISTRY[layerType]?.[country];
   if (!config) return new ManualFlagAdapter(`unknown_${layerType}`, layerType);
 
-  // Stubs — Sprint 3 will import and instantiate the real adapter classes
+  // Real adapter implementations
+  if (config.adapter === 'SsurgoAdapter') {
+    return new SsurgoAdapter(config.source, layerType);
+  }
+
+  // Remaining adapters still stubbed
   return new ManualFlagAdapter(config.source, layerType);
 }
 

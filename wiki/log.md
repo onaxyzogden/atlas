@@ -4,6 +4,16 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — SSURGO Backend Adapter Implementation
+- **Scope:** Implemented `SsurgoAdapter` — the first real backend data adapter in the pipeline, replacing `ManualFlagAdapter` for soils/US.
+- **Files created:**
+  - `apps/api/src/services/pipeline/adapters/SsurgoAdapter.ts` (380 lines) — full SSURGO SDA adapter with two-phase queries (mukey spatial intersection → horizon data), weighted averages, USDA texture classification, fertility index (0-100), salinization risk, confidence determination, and Tier 3 processor compatibility aliases.
+  - `apps/api/src/tests/SsurgoAdapter.test.ts` (330 lines) — 27 tests across 8 suites, all passing.
+- **Files modified:** `DataPipelineOrchestrator.ts` — wired `SsurgoAdapter` into `resolveAdapter()`, exported `ProjectContext` interface.
+- **Adapter registry:** 1/14 live (was 0/14).
+- **Deferred:** DB upsert inside adapter (orchestrator handles), Tier 3 conditional trigger (orchestrator handles), UsgsElevationAdapter.
+- **Next:** Implement `UsgsElevationAdapter` (elevation/US) or CVE remediation (fast-jwt).
+
 ### 2026-04-14 — Gap Analysis Wiki Ingestion + Triage
 - **Scope:** Ingested `infrastructure/OGDEN Atlas — Global Completeness Gap Analysis.md` into wiki as a formal entity page, then triaged all 13 categories by priority.
 - **Output:** `wiki/entities/gap-analysis.md` — structured synthesis of ~120 gaps, each tagged with gap type (data / computation / display), priority-ordered summary table (P0-P4), quick wins section, and 6-sprint implementation roadmap.
