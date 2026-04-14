@@ -31,6 +31,19 @@ interface SoilsSummary {
   predominant_texture?: string;
   hydrologic_group?: string;
 }
+interface TerrainAnalysisSummary {
+  twi_mean?: number;
+  twi_classification?: Record<string, number>;
+  twi_dominant_class?: string;
+  tri_mean_m?: number;
+  tri_classification?: Record<string, number>;
+  tri_dominant_class?: string;
+  erosion_mean_t_ha_yr?: number;
+  erosion_max_t_ha_yr?: number;
+  erosion_classification?: Record<string, number>;
+  erosion_dominant_class?: string;
+  erosion_confidence?: string;
+}
 
 // Slope distribution pattern — relative, sums to 100.
 // Derived from mean slope: steeper mean shifts weight toward higher classes.
@@ -88,6 +101,7 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
     const elev     = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null;
     const watershed = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed') : null;
     const soils    = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')          : null;
+    const ta       = siteData ? getLayerSummary<TerrainAnalysisSummary>(siteData, 'terrain_analysis') : null;
 
     const minElev     = elev?.min_elevation_m   ?? 368;
     const maxElev     = elev?.max_elevation_m   ?? 412;
@@ -106,6 +120,36 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
     const risk = erosionRisk(meanSlope, hydroGroup);
     const permDesc = texture !== '—' ? `${drainageClass} (${texture})` : drainageClass;
 
+    // TWI classes
+    const twiClasses = ta?.twi_classification ? [
+      { label: 'Very Dry', value: ta.twi_classification.very_dry_pct ?? 0, color: statusToken.moderate },
+      { label: 'Dry',      value: ta.twi_classification.dry_pct ?? 0,      color: statusToken.moderate },
+      { label: 'Moist',    value: ta.twi_classification.moist_pct ?? 0,    color: statusToken.good },
+      { label: 'Wet',      value: ta.twi_classification.wet_pct ?? 0,      color: statusToken.poor },
+      { label: 'Very Wet', value: ta.twi_classification.very_wet_pct ?? 0, color: statusToken.poor },
+    ] : null;
+
+    // Erosion hazard classes
+    const erosionClasses = ta?.erosion_classification ? [
+      { label: 'Very Low (<2)',   value: ta.erosion_classification.very_low_pct ?? 0,  color: statusToken.good },
+      { label: 'Low (2-5)',       value: ta.erosion_classification.low_pct ?? 0,       color: statusToken.good },
+      { label: 'Moderate (5-10)', value: ta.erosion_classification.moderate_pct ?? 0,  color: statusToken.moderate },
+      { label: 'High (10-20)',    value: ta.erosion_classification.high_pct ?? 0,      color: statusToken.poor },
+      { label: 'Very High (20-50)', value: ta.erosion_classification.very_high_pct ?? 0, color: statusToken.poor },
+      { label: 'Severe (50+)',    value: ta.erosion_classification.severe_pct ?? 0,    color: statusToken.poor },
+    ] : null;
+
+    // TRI classes
+    const triClasses = ta?.tri_classification ? [
+      { label: 'Level',          value: ta.tri_classification.level_pct ?? 0,                  color: statusToken.good },
+      { label: 'Nearly Level',   value: ta.tri_classification.nearly_level_pct ?? 0,           color: statusToken.good },
+      { label: 'Slightly Rugged',value: ta.tri_classification.slightly_rugged_pct ?? 0,        color: statusToken.moderate },
+      { label: 'Intermediate',   value: ta.tri_classification.intermediately_rugged_pct ?? 0,  color: statusToken.moderate },
+      { label: 'Moderately Rugged', value: ta.tri_classification.moderately_rugged_pct ?? 0,   color: statusToken.poor },
+      { label: 'Highly Rugged',  value: ta.tri_classification.highly_rugged_pct ?? 0,          color: statusToken.poor },
+      { label: 'Extremely Rugged', value: ta.tri_classification.extremely_rugged_pct ?? 0,     color: statusToken.poor },
+    ] : null;
+
     return {
       maxElev: Math.round(maxElev),
       minElev: Math.round(minElev),
@@ -121,6 +165,17 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
       permDesc,
       slopeClasses: slopeClasses(meanSlope),
       aspectBars: aspectBars(aspect),
+      twiMean: ta?.twi_mean,
+      twiDominant: ta?.twi_dominant_class?.replace(/_/g, ' '),
+      twiClasses,
+      triMean: ta?.tri_mean_m,
+      triDominant: ta?.tri_dominant_class?.replace(/_/g, ' '),
+      triClasses,
+      erosionMean: ta?.erosion_mean_t_ha_yr,
+      erosionMax: ta?.erosion_max_t_ha_yr,
+      erosionDominant: ta?.erosion_dominant_class?.replace(/_/g, ' '),
+      erosionConfidence: ta?.erosion_confidence,
+      erosionClasses,
     };
   }, [siteData]);
 
@@ -212,6 +267,80 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
           </div>
         </div>
       </div>
+
+      {/* Topographic Wetness Index */}
+      {terrain.twiClasses && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>TOPOGRAPHIC WETNESS INDEX</h3>
+          <div className={css.drainageCard}>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Mean TWI</span>
+              <span className={css.drainageValue}>{terrain.twiMean?.toFixed(1) ?? '—'}</span>
+            </div>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Dominant Class</span>
+              <span className={css.drainageValue}>{terrain.twiDominant ?? '—'}</span>
+            </div>
+          </div>
+          <div className={css.slopeCard}>
+            {terrain.twiClasses.map((c) => (
+              <ProgressBar key={c.label} label={`${c.label} — ${c.value}% of area`} value={c.value} color={c.color} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Terrain Ruggedness Index */}
+      {terrain.triClasses && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>TERRAIN RUGGEDNESS INDEX</h3>
+          <div className={css.drainageCard}>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Mean TRI</span>
+              <span className={css.drainageValue}>{terrain.triMean?.toFixed(2) ?? '—'} m</span>
+            </div>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Dominant Class</span>
+              <span className={css.drainageValue}>{terrain.triDominant ?? '—'}</span>
+            </div>
+          </div>
+          <div className={css.slopeCard}>
+            {terrain.triClasses.map((c) => (
+              <ProgressBar key={c.label} label={`${c.label} — ${c.value}% of area`} value={c.value} color={c.color} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Erosion Hazard (RUSLE) */}
+      {terrain.erosionClasses && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>EROSION HAZARD (RUSLE)</h3>
+          <div className={css.drainageCard}>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Mean Soil Loss</span>
+              <span className={css.drainageValue}>{terrain.erosionMean?.toFixed(1) ?? '—'} t/ha/yr</span>
+            </div>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Peak Soil Loss</span>
+              <span className={css.drainageValue}>{terrain.erosionMax?.toFixed(1) ?? '—'} t/ha/yr</span>
+            </div>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Dominant Class</span>
+              <span className={css.drainageValue}>{terrain.erosionDominant ?? '—'}</span>
+            </div>
+            <div className={css.drainageRow}>
+              <span className={css.drainageLabel}>Confidence</span>
+              <span className={css.drainageValue}>{terrain.erosionConfidence ?? '—'}</span>
+            </div>
+          </div>
+          <div className={css.slopeCard}>
+            {terrain.erosionClasses.map((c) => (
+              <ProgressBar key={c.label} label={`${c.label} — ${c.value}% of area`} value={c.value} color={c.color} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <button className={css.mapBtn} onClick={onSwitchToMap}>
         VIEW TERRAIN ON MAP

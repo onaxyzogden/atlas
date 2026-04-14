@@ -12,6 +12,9 @@ import { computeViewshed } from './algorithms/viewshed.js';
 import { computeFrostPocketProbability } from './algorithms/frostPocket.js';
 import { computeColdAirDrainage } from './algorithms/coldAirDrainage.js';
 import { computeTPI } from './algorithms/tpi.js';
+import { computeTWI } from './algorithms/twi.js';
+import { computeTRI } from './algorithms/tri.js';
+import { computeErosionHazard } from './algorithms/erosionHazard.js';
 import {
   classifiedGridToGeoJSON,
   binaryMaskToGeoJSON,
@@ -42,12 +45,15 @@ export class TerrainAnalysisProcessor {
     const grid = await readElevationGrid(ctx.bbox, ctx.country);
 
     // Run all 5 analyses in parallel
-    const [curvature, viewshed, frostPocket, coldAir, tpi] = await Promise.all([
+    const [curvature, viewshed, frostPocket, coldAir, tpi, twi, tri, erosion] = await Promise.all([
       Promise.resolve(computeCurvature(grid)),
       Promise.resolve(computeViewshed(grid, [ctx.centroidLng, ctx.centroidLat])),
       Promise.resolve(computeFrostPocketProbability(grid)),
       Promise.resolve(computeColdAirDrainage(grid)),
       Promise.resolve(computeTPI(grid)),
+      Promise.resolve(computeTWI(grid)),
+      Promise.resolve(computeTRI(grid)),
+      Promise.resolve(computeErosionHazard(grid)),
     ]);
 
     // Convert grids to GeoJSON
@@ -84,6 +90,42 @@ export class TerrainAnalysisProcessor {
       ],
     );
 
+    const twiGeojson = classifiedGridToGeoJSON(
+      twi.classGrid, grid.width, grid.height, grid.bbox,
+      [
+        { value: 0, label: 'very_dry' },
+        { value: 1, label: 'dry' },
+        { value: 2, label: 'moist' },
+        { value: 3, label: 'wet' },
+        { value: 4, label: 'very_wet' },
+      ],
+    );
+
+    const triGeojson = classifiedGridToGeoJSON(
+      tri.classGrid, grid.width, grid.height, grid.bbox,
+      [
+        { value: 0, label: 'level' },
+        { value: 1, label: 'nearly_level' },
+        { value: 2, label: 'slightly_rugged' },
+        { value: 3, label: 'intermediately_rugged' },
+        { value: 4, label: 'moderately_rugged' },
+        { value: 5, label: 'highly_rugged' },
+        { value: 6, label: 'extremely_rugged' },
+      ],
+    );
+
+    const erosionGeojson = classifiedGridToGeoJSON(
+      erosion.classGrid, grid.width, grid.height, grid.bbox,
+      [
+        { value: 0, label: 'very_low' },
+        { value: 1, label: 'low' },
+        { value: 2, label: 'moderate' },
+        { value: 3, label: 'high' },
+        { value: 4, label: 'very_high' },
+        { value: 5, label: 'severe' },
+      ],
+    );
+
     // Compute basic elevation stats from the grid
     let minElev = Infinity, maxElev = -Infinity, sumElev = 0, validCount = 0;
     for (let i = 0; i < grid.data.length; i++) {
@@ -109,6 +151,10 @@ export class TerrainAnalysisProcessor {
         frost_pocket_area_pct, frost_pocket_severity, frost_pocket_geojson,
         cold_air_drainage_paths, cold_air_pooling_zones, cold_air_risk_rating,
         tpi_classification, tpi_dominant_class, tpi_geojson,
+        twi_mean, twi_classification, twi_dominant_class, twi_geojson,
+        tri_mean_m, tri_classification, tri_dominant_class, tri_geojson,
+        erosion_mean_t_ha_yr, erosion_max_t_ha_yr,
+        erosion_classification, erosion_dominant_class, erosion_geojson, erosion_confidence,
         source_api, confidence, data_sources,
         computed_at
       ) VALUES (
@@ -132,6 +178,20 @@ export class TerrainAnalysisProcessor {
         ${JSON.stringify(tpi.classification)},
         ${tpi.dominantClass},
         ${JSON.stringify(tpiGeojson)},
+        ${twi.meanTWI},
+        ${JSON.stringify(twi.classification)},
+        ${twi.dominantClass},
+        ${JSON.stringify(twiGeojson)},
+        ${tri.meanTRI_m},
+        ${JSON.stringify(tri.classification)},
+        ${tri.dominantClass},
+        ${JSON.stringify(triGeojson)},
+        ${erosion.meanErosionRate},
+        ${erosion.maxErosionRate},
+        ${JSON.stringify(erosion.classification)},
+        ${erosion.dominantClass},
+        ${JSON.stringify(erosionGeojson)},
+        ${erosion.confidence},
         ${grid.sourceApi},
         ${grid.confidence},
         ${dataSources},
@@ -157,6 +217,20 @@ export class TerrainAnalysisProcessor {
         tpi_classification = EXCLUDED.tpi_classification,
         tpi_dominant_class = EXCLUDED.tpi_dominant_class,
         tpi_geojson = EXCLUDED.tpi_geojson,
+        twi_mean = EXCLUDED.twi_mean,
+        twi_classification = EXCLUDED.twi_classification,
+        twi_dominant_class = EXCLUDED.twi_dominant_class,
+        twi_geojson = EXCLUDED.twi_geojson,
+        tri_mean_m = EXCLUDED.tri_mean_m,
+        tri_classification = EXCLUDED.tri_classification,
+        tri_dominant_class = EXCLUDED.tri_dominant_class,
+        tri_geojson = EXCLUDED.tri_geojson,
+        erosion_mean_t_ha_yr = EXCLUDED.erosion_mean_t_ha_yr,
+        erosion_max_t_ha_yr = EXCLUDED.erosion_max_t_ha_yr,
+        erosion_classification = EXCLUDED.erosion_classification,
+        erosion_dominant_class = EXCLUDED.erosion_dominant_class,
+        erosion_geojson = EXCLUDED.erosion_geojson,
+        erosion_confidence = EXCLUDED.erosion_confidence,
         source_api = EXCLUDED.source_api,
         confidence = EXCLUDED.confidence,
         data_sources = EXCLUDED.data_sources,
