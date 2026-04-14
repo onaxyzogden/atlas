@@ -116,6 +116,14 @@ interface EarthquakeHazardSummary {
   sds_g?: number | null;
   hazard_class?: string | null;
 }
+interface CensusDemographicsSummary {
+  population?: number | null;
+  pop_density_km2?: number | null;
+  median_income_usd?: number | null;
+  median_age?: number | null;
+  rural_class?: string | null;
+  county_name?: string | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -206,7 +214,8 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const stormEvents  = siteData ? getLayerSummary<StormEventsSummary>(siteData, 'storm_events')         : null;
     const cropValid    = siteData ? getLayerSummary<CropValidationSummary>(siteData, 'crop_validation')   : null;
     const airQuality   = siteData ? getLayerSummary<AirQualitySummary>(siteData, 'air_quality')           : null;
-    const quakeHazard  = siteData ? getLayerSummary<EarthquakeHazardSummary>(siteData, 'earthquake_hazard') : null;
+    const quakeHazard  = siteData ? getLayerSummary<EarthquakeHazardSummary>(siteData, 'earthquake_hazard')    : null;
+    const censusDemog  = siteData ? getLayerSummary<CensusDemographicsSummary>(siteData, 'census_demographics') : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -328,6 +337,11 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         quakePga:             quakeHazard?.pga_g ?? null,
         quakeSs:              quakeHazard?.ss_g ?? null,
         quakeClass:           quakeHazard?.hazard_class ?? null,
+        censusRuralClass:     censusDemog?.rural_class ?? null,
+        censusPopDensity:     censusDemog?.pop_density_km2 ?? null,
+        censusIncome:         censusDemog?.median_income_usd ?? null,
+        censusAge:            censusDemog?.median_age ?? null,
+        censusCounty:         censusDemog?.county_name ?? null,
         meanSlopeDeg:         elevation?.mean_slope_deg ?? null,
         minElevM:             elevation?.min_elevation_m ?? null,
         maxElevM:             elevation?.max_elevation_m ?? null,
@@ -675,6 +689,39 @@ function RealtimePanel({ live, metrics, isLoading }: {
           </div>
         </div>
       )}
+
+      {/* Sprint V: Community Context */}
+      {live.censusRuralClass && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>COMMUNITY CONTEXT</span>
+          <div className={s.dataRows}>
+            <DataRow label="Settlement Type"
+              value={live.censusRuralClass}
+              color={
+                live.censusRuralClass === 'Rural' ? confidence.high
+                  : live.censusRuralClass === 'Peri-Urban' ? confidence.medium
+                  : confidence.low
+              } />
+            {live.censusPopDensity !== null && (
+              <DataRow label="Pop. Density"
+                value={`${live.censusPopDensity.toLocaleString()} /km²`} />
+            )}
+            {live.censusIncome !== null && live.censusIncome > 0 && (
+              <DataRow label="Median Income"
+                value={`$${Math.round(live.censusIncome / 1000)}k`}
+                note="household (ACS 2022)" />
+            )}
+            {live.censusAge !== null && live.censusAge > 0 && (
+              <DataRow label="Median Age"
+                value={`${live.censusAge} yrs`} />
+            )}
+            {live.censusCounty && (
+              <DataRow label="County"
+                value={live.censusCounty} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -802,6 +849,7 @@ function buildLive() { return null as unknown as {
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
   aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
   quakePga: number | null; quakeSs: number | null; quakeClass: string | null;
+  censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;

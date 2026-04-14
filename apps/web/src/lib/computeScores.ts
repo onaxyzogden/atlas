@@ -227,6 +227,9 @@ export function computeAssessmentScores(
   // Sprint U: seismic hazard (USGS Design Maps — US-only)
   const earthquakeHazard = layerByType(layers, 'earthquake_hazard');
 
+  // Sprint V: census demographics (US Census Bureau ACS — US-only)
+  const censusDemographics = layerByType(layers, 'census_demographics');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -354,6 +357,7 @@ export function computeAssessmentScores(
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality, earthquakeHazard),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
+    computeCommunitySuitability(censusDemographics),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
@@ -1182,7 +1186,56 @@ function computeStewardshipReadiness(
 }
 
 /* ------------------------------------------------------------------ */
-/*  1g. Design Complexity (NEW)                                        */
+/*  1g. Community Suitability (Sprint V)                              */
+/* ------------------------------------------------------------------ */
+
+function computeCommunitySuitability(
+  census: MockLayerResult | undefined,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const cc = layerConfidence(census);
+
+  // Rural classification (max 10) — rural/peri-urban = ideal for CSRA
+  const ruralClass = str(census, 'rural_class').toLowerCase();
+  const ruralPts = ruralClass === 'rural' ? 10
+    : ruralClass === 'peri-urban' ? 8
+    : ruralClass === 'suburban' ? 3
+    : ruralClass === 'urban' ? 0
+    : 5; // unknown: neutral
+  components.push(comp('rural_classification', ruralPts, 10, 'census_demographics', cc));
+
+  // Median household income band (max 8) — $60k-$120k = CSRA participation sweet spot
+  const income = num(census, 'median_income_usd');
+  const incomePts = income <= 0 ? 4 // unknown: neutral
+    : income >= 60000 && income <= 120000 ? 8
+    : income > 120000 ? 5             // high income: can afford but may not prioritise
+    : income >= 40000 ? 5             // moderate income: some capacity
+    : 2;                              // low income: limited CSRA participation capacity
+  components.push(comp('income_band', incomePts, 8, 'census_demographics', cc));
+
+  // Community age profile (max 7) — median age 30-55 = homesteading / food security interest
+  const medAge = num(census, 'median_age');
+  const agePts = medAge <= 0 ? 4 // unknown: neutral
+    : medAge >= 30 && medAge <= 55 ? 7
+    : medAge >= 25 && medAge < 30  ? 4
+    : medAge > 55 && medAge <= 65  ? 4
+    : 2;
+  components.push(comp('community_age_profile', agePts, 7, 'census_demographics', cc));
+
+  // Tract population (max 5) — moderate-density tract (2000-8000) = active community
+  const pop = num(census, 'population');
+  const popPts = pop <= 0 ? 3
+    : pop >= 2000 && pop <= 8000 ? 5
+    : pop > 8000 && pop <= 15000 ? 3
+    : pop < 2000 && pop >= 500  ? 3
+    : 1;
+  components.push(comp('tract_population', popPts, 5, 'census_demographics', cc));
+
+  return buildResult('Community Suitability', 10, components);
+}
+
+/* ------------------------------------------------------------------ */
+/*  1h. Design Complexity (NEW)                                        */
 /* ------------------------------------------------------------------ */
 
 function computeDesignComplexity(
@@ -1704,6 +1757,7 @@ const WEIGHTS: Record<string, number> = {
   'Habitat Sensitivity': 0.10,
   'Stewardship Readiness': 0.18,
   'Design Complexity': 0.15,
+  'Community Suitability': 0.05,
 };
 
 export function computeOverallScore(scores: ScoredResult[]): number {

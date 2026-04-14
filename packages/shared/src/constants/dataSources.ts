@@ -19,10 +19,11 @@ export type LayerType =
   | 'storm_events'
   | 'crop_validation'
   | 'air_quality'
-  | 'earthquake_hazard';
+  | 'earthquake_hazard'
+  | 'census_demographics';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -111,4 +112,6 @@ export const DATA_COMPLETENESS_WEIGHTS: Partial<Record<LayerType, number>> = {
   air_quality: 0.03,
   // Sprint U: seismic hazard (USGS Design Maps)
   earthquake_hazard: 0.03,
+  // Sprint V: census demographics (US Census Bureau ACS)
+  census_demographics: 0.02,
 };

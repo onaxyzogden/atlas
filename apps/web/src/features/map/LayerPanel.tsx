@@ -34,6 +34,7 @@ const LAYER_LABELS: Record<LayerType, string> = {
   crop_validation:    'Crop Validation',
   air_quality:        'Air Quality',
   earthquake_hazard:  'Seismic Hazard',
+  census_demographics: 'Community Context',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -55,7 +56,8 @@ const LAYER_ICONS: Record<LayerType, string> = {
   storm_events:       '⚡',
   crop_validation:    '🌾',
   air_quality:        '💨',
-  earthquake_hazard:  '〰',
+  earthquake_hazard:   '〰',
+  census_demographics: '◎',
 };
 
 const CONFIDENCE_COLORS = {

@@ -193,12 +193,15 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint U: Seismic hazard (USGS Design Maps — US only)
   fetchers.push(fetchEarthquakeHazard(lat, lng, options.country).then(trackLive));
 
+  // Sprint V: Census demographics (US Census Bureau ACS — US only)
+  fetchers.push(fetchCensusDemographics(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
   setCache(cacheKey, results, isLive);
 
-  return { layers: results, isLive, liveCount, totalCount: 9 };
+  return { layers: results, isLive, liveCount, totalCount: 10 };
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
@@ -4542,6 +4545,105 @@ async function fetchEarthquakeHazard(lat: number, lng: number, country: string):
         hazard_class:   hazardClass,
         site_class:     'D',
         risk_category:  'II',
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Census Demographics (US Census Bureau ACS 5-year — US only) ───────────
+
+async function fetchCensusDemographics(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+
+  try {
+    // Step 1: Resolve state/county/tract FIPS from FCC block API
+    const fccUrl = `https://geo.fcc.gov/api/census/block/find?latitude=${lat}&longitude=${lng}&format=json&showall=false`;
+    const fccResp = await fetchWithRetry(fccUrl, 10000);
+    const fccData = await fccResp.json() as {
+      State?: { FIPS?: string };
+      County?: { FIPS?: string; name?: string };
+      Block?: { FIPS?: string };
+    };
+
+    const stateFips  = fccData?.State?.FIPS;
+    const countyFips = fccData?.County?.FIPS; // 5-digit (state+county)
+    const blockFips  = fccData?.Block?.FIPS;  // 15-digit full FIPS
+    const countyName = fccData?.County?.name ?? '';
+
+    if (!stateFips || !countyFips || !blockFips) return null;
+
+    // Extract 6-digit tract from block FIPS: positions 5-10 (0-indexed)
+    const tractCode = blockFips.slice(5, 11);
+    const countyCode = countyFips.slice(2); // 3-digit county within state
+
+    // Step 2: ACS 5-year estimates for this tract
+    // Variables: total population, median household income, median age
+    const acsVars = 'B01003_001E,B19013_001E,B01002_001E';
+    const acsUrl =
+      `https://api.census.gov/data/2022/acs/acs5` +
+      `?get=${acsVars}` +
+      `&for=tract:${tractCode}` +
+      `&in=state:${stateFips}+county:${countyCode}`;
+
+    const acsResp = await fetchWithRetry(acsUrl, 12000);
+    const acsData = await acsResp.json() as string[][];
+
+    // ACS returns [header_row, ...data_rows]
+    if (!Array.isArray(acsData) || acsData.length < 2) return null;
+    const header = acsData[0]!;
+    const row    = acsData[1]!;
+    const col    = (name: string) => row[header.indexOf(name)];
+
+    const population  = parseInt(col('B01003_001E') ?? '-1', 10);
+    const medIncome   = parseInt(col('B19013_001E') ?? '-1', 10); // -666666666 = N/A
+    const medAge      = parseFloat(col('B01002_001E') ?? '-1');
+
+    if (population < 0) return null;
+
+    // Step 3: TIGER tract area for population density
+    const tigerUrl =
+      `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/14/query` +
+      `?geometry=${lng},${lat}&geometryType=esriGeometryPoint` +
+      `&spatialRel=esriSpatialRelIntersects&outFields=ALAND&returnGeometry=false&f=json`;
+
+    let alandM2: number | null = null;
+    try {
+      const tigerResp = await fetchWithRetry(tigerUrl, 8000);
+      const tigerData = await tigerResp.json() as { features?: { attributes?: { ALAND?: number } }[] };
+      alandM2 = tigerData?.features?.[0]?.attributes?.ALAND ?? null;
+    } catch { /* density will be null */ }
+
+    const alandKm2 = alandM2 !== null ? alandM2 / 1_000_000 : null;
+    const popDensity = alandKm2 !== null && alandKm2 > 0
+      ? Math.round(population / alandKm2)
+      : null;
+
+    // Classify settlement type
+    const ruralClass = popDensity === null ? 'Unknown'
+      : popDensity < 50   ? 'Rural'
+      : popDensity < 300  ? 'Peri-Urban'
+      : popDensity < 1500 ? 'Suburban'
+      : 'Urban';
+
+    const incomeValid = medIncome > 0;
+
+    return {
+      layerType: 'census_demographics',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: '2022-01-01',
+      sourceApi: 'US Census Bureau ACS 5-Year (2022)',
+      attribution: 'U.S. Census Bureau — American Community Survey',
+      summary: {
+        population,
+        pop_density_km2:    popDensity,
+        median_income_usd:  incomeValid ? medIncome : null,
+        median_age:         medAge > 0 ? medAge : null,
+        rural_class:        ruralClass,
+        tract_fips:         `${stateFips}${countyCode}${tractCode}`,
+        county_name:        countyName,
       },
     };
   } catch {
