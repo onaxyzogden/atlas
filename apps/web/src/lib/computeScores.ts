@@ -411,7 +411,7 @@ function computeAgriculturalSuitability(
   components.push(comp('farmland_class', farmPts, 15, 'soils', sc));
 
   // pH suitability (max 10)
-  const phVal = num(soils, 'ph_value');
+  const phVal = num(soils, 'ph');
   const phPts = phVal === 0 ? 0
     : (phVal >= 6.0 && phVal <= 7.5) ? 10
     : (phVal >= 5.5 && phVal <= 8.0) ? 5
@@ -427,6 +427,33 @@ function computeAgriculturalSuitability(
   const awcVal = num(soils, 'awc_cm_cm');
   const awcPts = awcVal === 0 ? 0 : awcVal >= 0.15 ? 5 : awcVal >= 0.10 ? 3 : 1;
   components.push(comp('water_holding', awcPts, 5, 'soils', sc));
+
+  // Sprint G: Calcium carbonate / calcareous soil risk (max 4)
+  const caco3 = num(soils, 'caco3_pct');
+  const caco3Pts = caco3 === 0 ? 2 // unknown — neutral
+    : caco3 < 5 ? 4     // non-calcareous, ideal
+    : caco3 < 15 ? 2    // moderately calcareous
+    : caco3 < 25 ? 0    // highly calcareous — Fe/Zn lock-up
+    : -2;               // extremely calcareous — severe nutrient lock
+  components.push(comp('calcium_carbonate', caco3Pts, 4, 'soils', sc));
+
+  // Sprint G: Saturated hydraulic conductivity (max 4)
+  const ksat = num(soils, 'ksat_um_s');
+  const ksatPts = ksat === 0 ? 2 // unknown
+    : ksat >= 10 && ksat <= 100 ? 4   // moderate — ideal for agriculture
+    : ksat >= 1 && ksat <= 300 ? 2    // slow or fast — manageable
+    : ksat < 1 ? -1                   // very slow — waterlogging risk
+    : 0;                              // very fast — nutrient leaching
+  components.push(comp('permeability', ksatPts, 4, 'soils', sc));
+
+  // Sprint G: Bulk density / compaction risk (max 3)
+  const bd = num(soils, 'bulk_density_g_cm3');
+  const bdPts = bd === 0 ? 1 // unknown
+    : bd <= 1.3 ? 3     // ideal — good porosity
+    : bd <= 1.5 ? 2     // slightly compacted
+    : bd <= 1.7 ? 0     // moderately compacted — root restriction
+    : -2;               // severely compacted
+  components.push(comp('compaction_risk', bdPts, 3, 'soils', sc));
 
   // Growing season (max 10)
   const frostFree = num(climate, 'growing_season_days');
@@ -446,6 +473,15 @@ function computeAgriculturalSuitability(
   const gddVal = num(climate, 'growing_degree_days_base10c');
   const gddPts = gddVal >= 2000 ? 5 : gddVal >= 1500 ? 4 : gddVal >= 1000 ? 3 : gddVal > 0 ? 1 : 0;
   components.push(comp('heat_accumulation', gddPts, 5, 'climate', cc));
+
+  // Sprint G: USDA Hardiness Zone — cold tolerance indicator (max 5)
+  const hardinessStr = str(climate, 'hardiness_zone');
+  const hardinessNum = parseFloat(hardinessStr) || 0; // e.g. "6b" → 6
+  const hardPts = hardinessNum >= 7 ? 5
+    : hardinessNum >= 5 ? 3
+    : hardinessNum >= 3 ? 1
+    : hardinessNum > 0 ? 0 : 2; // unknown → neutral
+  components.push(comp('hardiness_zone', hardPts, 5, 'climate', cc));
 
   // Slope suitability (max 10)
   const meanSlope = num(elevation, 'mean_slope_deg');
@@ -916,7 +952,7 @@ function computeFAOSuitability(
   const ec = layerConfidence(elevation);
 
   // Factor 1: Soil pH (max 15)
-  const ph = num(soils, 'ph_value');
+  const ph = num(soils, 'ph');
   const phPts = ph === 0 ? 8 // unknown — assume moderate
     : (ph >= 5.5 && ph <= 7.8) ? 15
     : (ph >= 5.0 && ph <= 8.5) ? 10

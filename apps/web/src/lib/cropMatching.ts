@@ -40,6 +40,8 @@ export interface SiteConditions {
   frostFreeDays: number | null;
   /** Killing temperature — minimum winter temp in celsius */
   minWinterTempC: number | null;
+  /** Irrigation deficit in mm from hydrology analysis (0 = no deficit) */
+  irrigationDeficitMm: number | null;
 }
 
 export interface FactorScore {
@@ -64,6 +66,10 @@ export interface CropMatch {
   limitingFactors: string[];
   /** Number of factors that could be evaluated (had site data) */
   factorsEvaluated: number;
+  /** Whether the crop needs irrigation at this site (precip < crop optimal minimum) */
+  irrigationNeeded: boolean;
+  /** Precipitation gap in mm/yr (0 if rain-fed is sufficient) */
+  irrigationGapMm: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -301,6 +307,13 @@ function scoreCrop(crop: CropEntry, site: SiteConditions): CropMatch | null {
 
   const cls = suitabilityClass(clampedOverall);
 
+  // Sprint G: Rain-fed vs irrigated determination
+  const irrigationNeeded = site.annualPrecipMm != null
+    && site.annualPrecipMm < crop.precipOpt[0];
+  const irrigationGapMm = (site.annualPrecipMm != null && irrigationNeeded)
+    ? Math.round(crop.precipOpt[0] - site.annualPrecipMm)
+    : 0;
+
   return {
     crop,
     suitability: clampedOverall,
@@ -309,6 +322,8 @@ function scoreCrop(crop: CropEntry, site: SiteConditions): CropMatch | null {
     factors,
     limitingFactors: factors.filter((f) => f.score < 0.5).map((f) => f.factor),
     factorsEvaluated: factors.length,
+    irrigationNeeded,
+    irrigationGapMm,
   };
 }
 
@@ -441,7 +456,7 @@ export function siteConditionsFromLayers(
   return {
     annualTempC: num(climateSummary, 'annual_temp_mean_c'),
     annualPrecipMm: num(climateSummary, 'annual_precip_mm'),
-    ph: num(soilSummary, 'ph_value'),
+    ph: num(soilSummary, 'ph'),
     drainageClass: str(soilSummary, 'drainage_class'),
     textureClass: str(soilSummary, 'texture_class'),
     rootingDepthCm: num(soilSummary, 'rooting_depth_cm'),
@@ -450,5 +465,6 @@ export function siteConditionsFromLayers(
     sandPct: num(soilSummary, 'sand_pct'),
     frostFreeDays,
     minWinterTempC,
+    irrigationDeficitMm: null, // populated by caller when hydro metrics available
   };
 }

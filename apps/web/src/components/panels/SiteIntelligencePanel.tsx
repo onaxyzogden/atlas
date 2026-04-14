@@ -86,6 +86,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   const { isOffline } = useOfflineGate();
   const [liveDataOpen, setLiveDataOpen] = useState(true);
   const [hydroOpen, setHydroOpen] = useState(true);
+  const [soilOpen, setSoilOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
   const [showAllOpps, setShowAllOpps] = useState(false);
@@ -213,26 +214,6 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     [layers],
   );
 
-  // Crop suitability matching
-  const [showAllCrops, setShowAllCrops] = useState(false);
-  const [cropCategoryFilter, setCropCategoryFilter] = useState<string | null>(null);
-  const [expandedCrop, setExpandedCrop] = useState<string | null>(null);
-
-  const cropMatches = useMemo((): CropMatch[] => {
-    const climateLayer = layers.find((l) => l.layerType === 'climate');
-    const soilLayer = layers.find((l) => l.layerType === 'soils');
-    if (!climateLayer && !soilLayer) return [];
-    const site = siteConditionsFromLayers(
-      (climateLayer?.summary as Record<string, unknown>) ?? null,
-      (soilLayer?.summary as Record<string, unknown>) ?? null,
-    );
-    return matchCropsToSite(site, {
-      categories: cropCategoryFilter ? [cropCategoryFilter] : undefined,
-      minSuitability: 30,
-      maxResults: 100,
-    });
-  }, [layers, cropCategoryFilter]);
-
   // Sprint F: Hydrology Intelligence metrics
   const hydroMetrics = useMemo((): HydroMetrics | null => {
     const climateLayer   = layers.find((l) => l.layerType === 'climate');
@@ -263,6 +244,50 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       annualTempC:     typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : HYDRO_DEFAULTS.annualTempC,
     });
   }, [layers, project.acreage]);
+
+  // Crop suitability matching
+  const [showAllCrops, setShowAllCrops] = useState(false);
+  const [cropCategoryFilter, setCropCategoryFilter] = useState<string | null>(null);
+  const [expandedCrop, setExpandedCrop] = useState<string | null>(null);
+
+  const cropMatches = useMemo((): CropMatch[] => {
+    const climateLayer = layers.find((l) => l.layerType === 'climate');
+    const soilLayer = layers.find((l) => l.layerType === 'soils');
+    if (!climateLayer && !soilLayer) return [];
+    const site = siteConditionsFromLayers(
+      (climateLayer?.summary as Record<string, unknown>) ?? null,
+      (soilLayer?.summary as Record<string, unknown>) ?? null,
+    );
+    // Sprint G: inject irrigationDeficitMm from hydro metrics
+    if (hydroMetrics) {
+      site.irrigationDeficitMm = hydroMetrics.irrigationDeficitMm;
+    }
+    return matchCropsToSite(site, {
+      categories: cropCategoryFilter ? [cropCategoryFilter] : undefined,
+      minSuitability: 30,
+      maxResults: 100,
+    });
+  }, [layers, cropCategoryFilter, hydroMetrics]);
+
+  // Sprint G: Soil Intelligence metrics
+  const soilMetrics = useMemo(() => {
+    const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    if (!soilsLayer) return null;
+    const ss = soilsLayer.summary as Record<string, unknown> | undefined;
+    if (!ss) return null;
+    return {
+      ph: typeof ss.ph === 'number' ? ss.ph : null,
+      organicMatterPct: typeof ss.organic_matter_pct === 'number' ? ss.organic_matter_pct : null,
+      cecMeq: typeof ss.cec_meq_100g === 'number' ? ss.cec_meq_100g : null,
+      bulkDensity: typeof ss.bulk_density_g_cm3 === 'number' ? ss.bulk_density_g_cm3 : null,
+      ksatUmS: typeof ss.ksat_um_s === 'number' ? ss.ksat_um_s : null,
+      caco3Pct: typeof ss.caco3_pct === 'number' ? ss.caco3_pct : null,
+      awcCmCm: typeof ss.awc_cm_cm === 'number' ? ss.awc_cm_cm : null,
+      textureClass: typeof ss.texture_class === 'string' ? ss.texture_class : null,
+      drainageClass: typeof ss.drainage_class === 'string' ? ss.drainage_class : null,
+      rootingDepthCm: typeof ss.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : null,
+    };
+  }, [layers]);
 
   const lastFetched = useMemo(() => {
     if (!siteData?.fetchedAt) return null;
@@ -553,6 +578,133 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         </div>
       )}
 
+      {/* ── Soil Intelligence (Sprint G) ─────────────────────────── */}
+      {soilMetrics && (
+        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
+          <button
+            onClick={() => setSoilOpen((v) => !v)}
+            className={`${s.liveDataHeader} ${soilOpen ? s.liveDataHeaderOpen : ''}`}
+          >
+            <span style={{ color: semantic.sidebarActive }}>◉</span>
+            <span className={s.liveDataTitle}>Soil Intelligence</span>
+            <div style={{ flex: 1 }} />
+            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
+              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
+              className={`${s.chevron} ${!soilOpen ? s.chevronClosed : ''}`}>
+              <path d="M3 7l3-3 3 3" />
+            </svg>
+          </button>
+          {soilOpen && (
+            <div style={{ padding: '4px 0' }}>
+              {/* pH */}
+              {soilMetrics.ph != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>pH</span>
+                  <div style={{ flex: 1, textAlign: 'right' }}>
+                    <span className={s.scoreBadge}
+                      style={{ background: `${getSoilPhColor(soilMetrics.ph)}18`,
+                               color: getSoilPhColor(soilMetrics.ph) }}>
+                      {soilMetrics.ph.toFixed(1)}
+                    </span>
+                  </div>
+                  <span className={s.flagSource}>
+                    {soilMetrics.ph >= 6.0 && soilMetrics.ph <= 7.5 ? 'Ideal'
+                      : soilMetrics.ph >= 5.5 && soilMetrics.ph <= 8.0 ? 'Marginal' : 'Limiting'}
+                  </span>
+                </div>
+              )}
+              {/* Organic Matter */}
+              {soilMetrics.organicMatterPct != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>Organic Matter</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.organicMatterPct.toFixed(1)}%
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.organicMatterPct > 5 ? 'High' : soilMetrics.organicMatterPct > 3 ? 'Good' : soilMetrics.organicMatterPct > 2 ? 'Moderate' : 'Low'}
+                  </span>
+                </div>
+              )}
+              {/* CEC */}
+              {soilMetrics.cecMeq != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>CEC</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.cecMeq.toFixed(1)} meq/100g
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.cecMeq >= 15 ? 'High fertility' : soilMetrics.cecMeq >= 5 ? 'Moderate' : 'Low'}
+                  </span>
+                </div>
+              )}
+              {/* Texture */}
+              {soilMetrics.textureClass && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>Texture</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.textureClass}
+                  </span>
+                  <span className={s.flagSource}>SSURGO</span>
+                </div>
+              )}
+              {/* Bulk Density */}
+              {soilMetrics.bulkDensity != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>Bulk Density</span>
+                  <div style={{ flex: 1, textAlign: 'right' }}>
+                    <span className={s.scoreBadge}
+                      style={{ background: `${getCompactionColor(soilMetrics.bulkDensity)}18`,
+                               color: getCompactionColor(soilMetrics.bulkDensity) }}>
+                      {soilMetrics.bulkDensity.toFixed(2)} g/cm3
+                    </span>
+                  </div>
+                  <span className={s.flagSource}>
+                    {soilMetrics.bulkDensity <= 1.3 ? 'No risk' : soilMetrics.bulkDensity <= 1.5 ? 'Slight' : 'Compacted'}
+                  </span>
+                </div>
+              )}
+              {/* Ksat */}
+              {soilMetrics.ksatUmS != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>Permeability</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.ksatUmS.toFixed(1)} um/s
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.ksatUmS >= 10 && soilMetrics.ksatUmS <= 100 ? 'Moderate'
+                      : soilMetrics.ksatUmS < 1 ? 'Very slow' : soilMetrics.ksatUmS > 300 ? 'Rapid' : 'Variable'}
+                  </span>
+                </div>
+              )}
+              {/* CaCO3 */}
+              {soilMetrics.caco3Pct != null && (
+                <div className={s.liveDataRow}>
+                  <span className={s.liveDataLabel}>CaCO3</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.caco3Pct.toFixed(1)}%
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.caco3Pct < 5 ? 'Non-calcareous' : soilMetrics.caco3Pct < 15 ? 'Moderate' : 'Calcareous'}
+                  </span>
+                </div>
+              )}
+              {/* Rooting Depth */}
+              {soilMetrics.rootingDepthCm != null && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Rooting Depth</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.rootingDepthCm} cm
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.rootingDepthCm >= 100 ? 'Deep' : soilMetrics.rootingDepthCm >= 50 ? 'Moderate' : 'Shallow'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Site Summary ───────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Site Summary</h3>
       {enrichment?.aiNarrative ? (
@@ -791,6 +943,18 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                   >
                     {match.suitabilityClass}
                   </span>
+                  {/* Sprint G: Rain-fed vs irrigated badge */}
+                  <span
+                    className={s.scoreBadge}
+                    style={{
+                      background: match.irrigationNeeded ? `${confidence.medium}18` : `${confidence.high}18`,
+                      color: match.irrigationNeeded ? confidence.medium : confidence.high,
+                      fontSize: 10,
+                      marginLeft: 4,
+                    }}
+                  >
+                    {match.irrigationNeeded ? `+${match.irrigationGapMm} mm` : 'Rain-fed'}
+                  </span>
                 </div>
                 {expandedCrop === match.crop.id && (
                   <div className={s.scoreBreakdown}>
@@ -920,5 +1084,17 @@ function getScoreColor(score: number): string {
 function getHydroColor(cls: string): string {
   if (cls === 'Humid' || cls === 'Dry sub-humid') return confidence.high;
   if (cls === 'Semi-arid') return confidence.medium;
+  return confidence.low;
+}
+
+// Sprint G: Soil Intelligence helpers
+function getSoilPhColor(ph: number): string {
+  if (ph >= 6.0 && ph <= 7.5) return confidence.high;
+  if (ph >= 5.5 && ph <= 8.0) return confidence.medium;
+  return confidence.low;
+}
+function getCompactionColor(bd: number): string {
+  if (bd <= 1.3) return confidence.high;
+  if (bd <= 1.5) return confidence.medium;
   return confidence.low;
 }
