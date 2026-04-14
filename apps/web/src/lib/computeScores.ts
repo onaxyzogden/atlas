@@ -266,13 +266,63 @@ export function computeAssessmentScores(
   // Sprint K: Solar radiation for PV scoring (already fetched from NASA POWER)
   const solarRadiation = num(climate, 'solar_radiation_kwh_m2_day');
 
+  // Sprint Q: Biomass energy potential (GJ/ha/yr) from existing layers
+  let biomassGjHa = 0;
+  const cropName = str(cropValidation, 'cdl_crop_name').toLowerCase();
+  const isCropland = s(cropValidation, 'is_cropland');
+  const isAgricultural = s(cropValidation, 'is_agricultural');
+  const organicMatterPct = num(soils, 'organic_matter_pct');
+  if (isCropland) {
+    // Row crop residue: estimate 4-8 t/ha residue × ~15 MJ/kg
+    const residueTHa = cropName.includes('corn') ? 7 : cropName.includes('wheat') ? 5
+      : cropName.includes('soy') ? 3 : cropName.includes('rice') ? 6 : 4;
+    biomassGjHa = Math.round(residueTHa * 15); // MJ/kg → GJ/ha (1 t = 1000 kg, /1000 = GJ)
+  } else if (isAgricultural) {
+    // Pasture/hay: ~2-4 t/ha harvestable × 12 MJ/kg
+    biomassGjHa = Math.round(3 * 12);
+  } else {
+    // Forest/natural: estimate from organic matter (higher OM → more standing biomass)
+    const treeCanopy = num(landCover, 'tree_canopy_pct');
+    if (treeCanopy > 20) {
+      biomassGjHa = Math.round((treeCanopy / 100) * 120); // forested: up to ~120 GJ/ha
+    }
+  }
+  // Organic matter bonus: high OM indicates productive land with residue potential
+  if (organicMatterPct > 3 && biomassGjHa > 0) {
+    biomassGjHa = Math.round(biomassGjHa * (1 + (organicMatterPct - 3) * 0.05));
+  }
+
+  // Sprint Q: Micro-hydro potential (kW) from existing hydro + elevation data
+  let microhydroKw = 0;
+  if (precipMmForHydro > 0) {
+    const slopeDeg = num(elevation, 'mean_slope_deg');
+    const nearestStreamM = num(watershed, 'nearest_stream_m');
+    const catchRaw2 = parseFloat(String(s(watershed, 'catchment_area_ha') ?? ''));
+    const catchHa = isFinite(catchRaw2) ? catchRaw2 : 0;
+    // Estimate mean annual discharge from catchment: Q = P × A × Cr / seconds_per_year
+    // P in m/yr, A in m², Cr = runoff coefficient ~0.3
+    const precipM = precipMmForHydro / 1000;
+    const catchM2 = catchHa * 10000;
+    const annualRunoffM3 = precipM * catchM2 * 0.3;
+    const meanDischargeM3s = catchHa > 0 ? annualRunoffM3 / (365.25 * 86400) : 0;
+    // Estimate usable head from slope and stream proximity
+    const headM = slopeDeg > 0 && nearestStreamM > 0
+      ? Math.min(nearestStreamM * Math.tan(slopeDeg * Math.PI / 180), 50) // cap at 50m
+      : slopeDeg > 2 ? Math.min(slopeDeg * 3, 30) // rough estimate from slope alone
+      : 0;
+    // Power = Q × H × g × η (efficiency ~0.7 for small turbines)
+    if (meanDischargeM3s > 0.01 && headM > 1) {
+      microhydroKw = Math.round(meanDischargeM3s * headM * 9.81 * 0.7 * 10) / 10;
+    }
+  }
+
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
-    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation),
+    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
@@ -917,6 +967,8 @@ function computeStewardshipReadiness(
   windPowerDensityWm2?: number,
   infrastructure?: MockLayerResult | undefined,
   solarRadiationKwhM2Day?: number,
+  biomassGjHa?: number,
+  microhydroKw?: number,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -1052,6 +1104,16 @@ function computeStewardshipReadiness(
   const solarRad = solarRadiationKwhM2Day ?? 0;
   const solarPts = solarRad >= 5 ? 5 : solarRad >= 4 ? 3 : solarRad >= 3 ? 1 : 0;
   components.push(comp('solar_pv_potential', solarPts, 5, 'climate', solarRad > 0 ? 'medium' : 'low'));
+
+  // Sprint Q: Biomass energy potential (max 5)
+  const bm = biomassGjHa ?? 0;
+  const bmPts = bm >= 80 ? 5 : bm >= 40 ? 3 : bm >= 20 ? 1 : 0;
+  components.push(comp('biomass_energy_potential', bmPts, 5, 'crop_validation', bm > 0 ? 'medium' : 'low'));
+
+  // Sprint Q: Micro-hydro potential (max 4)
+  const mh = microhydroKw ?? 0;
+  const mhPts = mh >= 10 ? 4 : mh >= 5 ? 3 : mh >= 1 ? 1 : 0;
+  components.push(comp('microhydro_potential', mhPts, 4, 'watershed', mh > 0 ? 'medium' : 'low'));
 
   return buildResult('Stewardship Readiness', 25, components);
 }

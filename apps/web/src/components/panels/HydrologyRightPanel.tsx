@@ -47,6 +47,10 @@ interface ElevationSummary {
 interface SoilsSummary {
   hydrologic_group?: string;
   drainage_class?: string;
+  organic_matter_pct?: number;
+}
+interface LandCoverSummary {
+  tree_canopy_pct?: number;
 }
 interface GroundwaterSummary {
   groundwater_depth_m?: number | null;
@@ -173,6 +177,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const wetFlood     = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood'): null;
     const elevation    = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')         : null;
     const soils        = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
+    const landCover    = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover')       : null;
     const groundwater  = siteData ? getLayerSummary<GroundwaterSummary>(siteData, 'groundwater')          : null;
     const waterQuality = siteData ? getLayerSummary<WaterQualitySummary>(siteData, 'water_quality')     : null;
     const superfund    = siteData ? getLayerSummary<SuperfundSummary>(siteData, 'superfund')                : null;
@@ -206,6 +211,42 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
       demand:    `~${fmtGal(m.irrigationDemandGal)} gal/yr`,
       surplus:   `+${fmtGal(Math.max(m.surplusGal, 0))} gal`,
     };
+
+    // Sprint Q: Biomass energy potential (GJ/ha/yr)
+    let biomassGjHa = 0;
+    const cropName = (cropValid?.cdl_crop_name ?? '').toLowerCase();
+    if (cropValid?.is_cropland) {
+      const residueTHa = cropName.includes('corn') ? 7 : cropName.includes('wheat') ? 5
+        : cropName.includes('soy') ? 3 : cropName.includes('rice') ? 6 : 4;
+      biomassGjHa = Math.round(residueTHa * 15);
+    } else if (cropValid?.is_agricultural) {
+      biomassGjHa = Math.round(3 * 12);
+    } else {
+      const treeCanopy = landCover?.tree_canopy_pct ?? 0;
+      if (treeCanopy > 20) biomassGjHa = Math.round((treeCanopy / 100) * 120);
+    }
+    if ((soils?.organic_matter_pct ?? 0) > 3 && biomassGjHa > 0) {
+      biomassGjHa = Math.round(biomassGjHa * (1 + ((soils?.organic_matter_pct ?? 3) - 3) * 0.05));
+    }
+
+    // Sprint Q: Micro-hydro potential (kW)
+    let microhydroKw = 0;
+    if (precipMm > 0) {
+      const slopeDeg = elevation?.mean_slope_deg ?? 0;
+      const nearestStreamM = Number(watershed?.nearest_stream_m ?? 0);
+      const catchRaw = parseFloat(String(watershed?.catchment_area_ha ?? ''));
+      const catchHa = isFinite(catchRaw) ? catchRaw : 0;
+      const precipM = precipMm / 1000;
+      const catchM2 = catchHa * 10000;
+      const annualRunoffM3 = precipM * catchM2 * 0.3;
+      const meanDischargeM3s = catchHa > 0 ? annualRunoffM3 / (365.25 * 86400) : 0;
+      const headM = slopeDeg > 0 && nearestStreamM > 0
+        ? Math.min(nearestStreamM * Math.tan(slopeDeg * Math.PI / 180), 50)
+        : slopeDeg > 2 ? Math.min(slopeDeg * 3, 30) : 0;
+      if (meanDischargeM3s > 0.01 && headM > 1) {
+        microhydroKw = Math.round(meanDischargeM3s * headM * 9.81 * 0.7 * 10) / 10;
+      }
+    }
 
     return {
       live: {
@@ -243,6 +284,8 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         cdlLandUse:           cropValid?.land_use_class ?? null,
         cdlIsAgricultural:    cropValid?.is_agricultural ?? false,
         cdlYear:              cropValid?.cdl_year ?? null,
+        biomassGjHa,
+        microhydroKw,
       },
       metrics: m,
     };
@@ -468,6 +511,25 @@ function RealtimePanel({ live, metrics, isLoading }: {
           </div>
         </div>
       )}
+
+      {/* Sprint Q: Renewable Energy Potential */}
+      {(live.biomassGjHa > 0 || live.microhydroKw > 0) && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>RENEWABLE ENERGY</span>
+          <div className={s.dataRows}>
+            {live.biomassGjHa > 0 && (
+              <DataRow label="Biomass Energy"
+                value={`${live.biomassGjHa} GJ/ha/yr`}
+                color={live.biomassGjHa >= 80 ? confidence.high : live.biomassGjHa >= 40 ? confidence.medium : confidence.low} />
+            )}
+            {live.microhydroKw > 0 && (
+              <DataRow label="Micro-Hydro"
+                value={`${live.microhydroKw} kW`}
+                color={live.microhydroKw >= 10 ? confidence.high : live.microhydroKw >= 5 ? confidence.medium : confidence.low} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -593,6 +655,7 @@ function buildLive() { return null as unknown as {
   critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
+  biomassGjHa: number; microhydroKw: number;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }
