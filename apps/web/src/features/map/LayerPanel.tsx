@@ -32,6 +32,7 @@ const LAYER_LABELS: Record<LayerType, string> = {
   critical_habitat:   'Critical Habitat',
   storm_events:       'Storm Events',
   crop_validation:    'Crop Validation',
+  air_quality:        'Air Quality',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -52,6 +53,7 @@ const LAYER_ICONS: Record<LayerType, string> = {
   critical_habitat:   '🦅',
   storm_events:       '⚡',
   crop_validation:    '🌾',
+  air_quality:        '💨',
 };
 
 const CONFIDENCE_COLORS = {

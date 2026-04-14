@@ -102,6 +102,13 @@ interface CropValidationSummary {
   is_cropland?: boolean;
   cdl_year?: number | null;
 }
+interface AirQualitySummary {
+  pm25_ug_m3?: number | null;
+  ozone_ppb?: number | null;
+  diesel_pm_ug_m3?: number | null;
+  pm25_national_pct?: number | null;
+  aqi_class?: string | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -191,6 +198,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const critHabitat  = siteData ? getLayerSummary<CriticalHabitatSummary>(siteData, 'critical_habitat') : null;
     const stormEvents  = siteData ? getLayerSummary<StormEventsSummary>(siteData, 'storm_events')         : null;
     const cropValid    = siteData ? getLayerSummary<CropValidationSummary>(siteData, 'crop_validation')   : null;
+    const airQuality   = siteData ? getLayerSummary<AirQualitySummary>(siteData, 'air_quality')           : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -305,6 +313,10 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         cdlLandUse:           cropValid?.land_use_class ?? null,
         cdlIsAgricultural:    cropValid?.is_agricultural ?? false,
         cdlYear:              cropValid?.cdl_year ?? null,
+        aqPm25:               airQuality?.pm25_ug_m3 ?? null,
+        aqOzone:              airQuality?.ozone_ppb ?? null,
+        aqNatlPct:            airQuality?.pm25_national_pct ?? null,
+        aqClass:              airQuality?.aqi_class ?? null,
         meanSlopeDeg:         elevation?.mean_slope_deg ?? null,
         minElevM:             elevation?.min_elevation_m ?? null,
         maxElevM:             elevation?.max_elevation_m ?? null,
@@ -524,6 +536,34 @@ function RealtimePanel({ live, metrics, isLoading }: {
         </div>
       </div>
 
+      {/* Sprint T: Air Quality */}
+      {live.aqClass && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>AIR QUALITY</span>
+          <div className={s.dataRows}>
+            <DataRow label="Air Class"
+              value={live.aqClass}
+              color={live.aqClass === 'Clean' ? confidence.high : live.aqClass === 'Moderate' ? confidence.medium : errorToken.DEFAULT} />
+            {live.aqPm25 !== null && (
+              <DataRow label="PM2.5"
+                value={`${live.aqPm25} µg/m³`}
+                color={live.aqPm25 >= 12 ? errorToken.DEFAULT : live.aqPm25 >= 10 ? confidence.medium : confidence.high}
+                note="EPA annual std: 12 µg/m³" />
+            )}
+            {live.aqOzone !== null && (
+              <DataRow label="Ozone"
+                value={`${live.aqOzone} ppb`} />
+            )}
+            {live.aqNatlPct !== null && (
+              <DataRow label="Natl. Percentile"
+                value={`${live.aqNatlPct}th`}
+                note="higher = worse air quality"
+                color={live.aqNatlPct >= 80 ? errorToken.DEFAULT : live.aqNatlPct >= 50 ? confidence.medium : confidence.high} />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Sprint P: Crop Validation — Sprint S: show when either crop name or land use class is available */}
       {(live?.cdlCropName || live?.cdlLandUse) && (
         <div className={s.panelSection} style={{ marginTop: 16 }}>
@@ -721,6 +761,7 @@ function buildLive() { return null as unknown as {
   critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
+  aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;

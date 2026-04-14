@@ -187,12 +187,15 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint P: Crop validation (USDA NASS CDL CropScape — US only)
   fetchers.push(fetchCropValidation(lat, lng, options.country).then(trackLive));
 
+  // Sprint T: Air quality (EPA EJSCREEN — US only)
+  fetchers.push(fetchAirQuality(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
   setCache(cacheKey, results, isLive);
 
-  return { layers: results, isLive, liveCount, totalCount: 7 };
+  return { layers: results, isLive, liveCount, totalCount: 8 };
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
@@ -4417,6 +4420,74 @@ function classifyCDLCode(code: number, name: string): { class: string; isAgricul
     return { class: 'Pasture', isAgricultural: true, isCropland: false };
   }
   return { class: 'Other', isAgricultural: false, isCropland: false };
+}
+
+// ── Air Quality (EPA EJSCREEN — US only) ───────────────────────────────────
+
+async function fetchAirQuality(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+
+  try {
+    // EPA EJSCREEN MapServer — block group level environmental indicators
+    const url = new URL('https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx');
+    url.searchParams.set('namestr', '');
+    url.searchParams.set('geometry', `${lng},${lat}`);
+    url.searchParams.set('distance', '0');
+    url.searchParams.set('unit', 'miles');
+    url.searchParams.set('areatype', '');
+    url.searchParams.set('areaid', '');
+    url.searchParams.set('f', 'pjson');
+
+    const resp = await fetchWithRetry(url.toString(), 10000);
+    const data = await resp.json();
+
+    // EJSCREEN returns an array of result objects under data.results or data.data
+    const results = data?.results ?? data?.data ?? [];
+    const row = Array.isArray(results) && results.length > 0 ? results[0] : null;
+
+    if (!row) return null;
+
+    // Field keys vary slightly across EJSCREEN API versions — try both naming conventions
+    const pf = (keys: string[]) => {
+      for (const k of keys) {
+        const v = parseFloat(String(row[k] ?? ''));
+        if (isFinite(v) && v > 0) return v;
+      }
+      return null;
+    };
+
+    const pm25     = pf(['PM25', 'pm25', 'P_PM25_D2', 'DSLPM']);    // µg/m³ annual mean
+    const ozone    = pf(['OZONE', 'ozone', 'O3']);                   // ppb summer mean
+    const dieselPm = pf(['DSLPM', 'dslpm', 'DIESEL']);               // µg/m³
+    const traffic  = pf(['PTRAF', 'ptraf', 'TRAFFIC']);              // vehicle km/day proximity
+    const pm25Pct  = pf(['P_PM25', 'p_pm25', 'PCT_PM25']);           // national percentile
+
+    // If EJSCREEN returned no usable fields, fall back
+    if (pm25 === null && ozone === null) return null;
+
+    // Classify air quality by EPA NAAQS annual PM2.5 standard (12 µg/m³)
+    const pm25Val = pm25 ?? 8;
+    const aqiClass = pm25Val >= 12 ? 'Unhealthy' : pm25Val >= 10 ? 'Moderate' : 'Clean';
+
+    return {
+      layerType: 'air_quality',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'EPA EJSCREEN',
+      attribution: 'U.S. Environmental Protection Agency — EJSCREEN',
+      summary: {
+        pm25_ug_m3:           pm25 !== null ? Math.round(pm25 * 10) / 10 : null,
+        ozone_ppb:            ozone !== null ? Math.round(ozone * 10) / 10 : null,
+        diesel_pm_ug_m3:      dieselPm !== null ? Math.round(dieselPm * 1000) / 1000 : null,
+        traffic_proximity:    traffic !== null ? Math.round(traffic) : null,
+        pm25_national_pct:    pm25Pct !== null ? Math.round(pm25Pct) : null,
+        aqi_class:            aqiClass,
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

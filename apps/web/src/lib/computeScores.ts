@@ -221,6 +221,9 @@ export function computeAssessmentScores(
   const stormEvents = layerByType(layers, 'storm_events');
   const cropValidation = layerByType(layers, 'crop_validation');
 
+  // Sprint T: air quality (EPA EJSCREEN — US-only)
+  const airQuality = layerByType(layers, 'air_quality');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -345,7 +348,7 @@ export function computeAssessmentScores(
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
     computeRegenerativePotential(landCover, soils, soilRegen, carbonSeqTonsCO2HaYr),
-    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
@@ -787,6 +790,7 @@ function computeBuildability(
   infrastructure?: MockLayerResult | undefined,
   superfund?: MockLayerResult | undefined,
   stormEvents?: MockLayerResult | undefined,
+  airQuality?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
@@ -893,6 +897,16 @@ function computeBuildability(
     components.push(comp('disaster_frequency', disPen, -8, 'storm_events', layerConfidence(stormEvents)));
   } else {
     components.push(comp('disaster_frequency', 0, -8, 'storm_events', 'low'));
+  }
+
+  // Sprint T: Air quality — PM2.5 annual mean (penalty, max -8)
+  // EPA NAAQS annual standard: 12 µg/m³. Rural agricultural land typically 6-9.
+  if (airQuality) {
+    const pm25 = num(airQuality, 'pm25_ug_m3');
+    const aqPen = pm25 >= 12 ? -8 : pm25 >= 10 ? -5 : pm25 >= 8 ? -2 : 0;
+    components.push(comp('air_quality_pm25', aqPen, -8, 'air_quality', layerConfidence(airQuality)));
+  } else {
+    components.push(comp('air_quality_pm25', 0, -8, 'air_quality', 'low'));
   }
 
   return buildResult('Buildability', 75, components);
