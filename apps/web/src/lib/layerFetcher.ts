@@ -166,6 +166,9 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Zoning (US: County GIS via FIPS resolver — CA: LIO Municipal Zoning + AAFC CLI)
   fetchers.push(fetchZoning(lat, lng, options.country, options.bbox).then(trackLive));
 
+  // Infrastructure (OpenStreetMap Overpass API — universal, no auth)
+  fetchers.push(fetchInfrastructure(lat, lng).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
@@ -177,6 +180,7 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
   const idx = results.findIndex((r) => r.layerType === replacement.layerType);
   if (idx >= 0) results[idx] = replacement;
+  else results.push(replacement); // new layer type (e.g. infrastructure) — append
 }
 
 /** True when the result came from a real API with usable data. */
@@ -3642,6 +3646,155 @@ function zoningUnavailable(country: string, countyName?: string, stateCode?: str
       max_lot_coverage_pct: 'Unknown',
     },
   };
+}
+
+// ── Infrastructure (Overpass API — OpenStreetMap) ─────────────────────────
+
+/** Haversine distance between two WGS84 points, in km. */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth radius km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Fetch infrastructure POIs from OpenStreetMap Overpass API.
+ * Single batched query for 7 POI categories: hospital, masjid, market,
+ * power substation, drinking water, primary/secondary/tertiary roads.
+ * Search radius ~25km (0.25° bbox expansion).
+ * Returns nearest distance per category in the summary object.
+ */
+async function fetchInfrastructure(lat: number, lng: number): Promise<MockLayerResult | null> {
+  try {
+    // ~25km search radius (0.25° ≈ 28km at mid-latitudes)
+    const south = lat - 0.25;
+    const north = lat + 0.25;
+    const west = lng - 0.25;
+    const east = lng + 0.25;
+    const bbox = `${south},${west},${north},${east}`;
+
+    // Single batched OverpassQL query — all categories in one request
+    const query = `[out:json][timeout:15];
+(
+  nwr["amenity"="hospital"](${bbox});
+  nwr["amenity"="place_of_worship"]["religion"="muslim"](${bbox});
+  nwr["shop"="supermarket"](${bbox});
+  nwr["shop"="convenience"](${bbox});
+  nwr["power"="substation"](${bbox});
+  nwr["amenity"="drinking_water"](${bbox});
+  nwr["highway"~"primary|secondary|tertiary"](${bbox});
+);
+out center;`;
+
+    const resp = await fetchWithRetry(
+      'https://overpass-api.de/api/interpreter',
+      15000,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(query)}`,
+      },
+    );
+
+    const data = await resp.json() as {
+      elements: Array<{
+        type: string;
+        lat?: number;
+        lon?: number;
+        center?: { lat: number; lon: number };
+        tags?: Record<string, string>;
+      }>;
+    };
+
+    const elements = data.elements ?? [];
+
+    // Categorize elements into buckets
+    interface POI { lat: number; lng: number; name: string | null; subtype: string | null }
+    const buckets = {
+      hospital: [] as POI[],
+      masjid: [] as POI[],
+      market: [] as POI[],
+      power_substation: [] as POI[],
+      water_supply: [] as POI[],
+      road: [] as POI[],
+    };
+
+    for (const el of elements) {
+      const elLat = el.lat ?? el.center?.lat;
+      const elLng = el.lon ?? el.center?.lon;
+      if (elLat == null || elLng == null) continue;
+
+      const tags = el.tags ?? {};
+      const name = tags.name ?? null;
+
+      if (tags.amenity === 'hospital') {
+        buckets.hospital.push({ lat: elLat, lng: elLng, name, subtype: null });
+      } else if (tags.amenity === 'place_of_worship' && tags.religion === 'muslim') {
+        buckets.masjid.push({ lat: elLat, lng: elLng, name, subtype: null });
+      } else if (tags.shop === 'supermarket' || tags.shop === 'convenience') {
+        buckets.market.push({ lat: elLat, lng: elLng, name, subtype: tags.shop });
+      } else if (tags.power === 'substation') {
+        buckets.power_substation.push({ lat: elLat, lng: elLng, name, subtype: null });
+      } else if (tags.amenity === 'drinking_water') {
+        buckets.water_supply.push({ lat: elLat, lng: elLng, name, subtype: null });
+      } else if (tags.highway && /^(primary|secondary|tertiary)$/.test(tags.highway)) {
+        buckets.road.push({ lat: elLat, lng: elLng, name, subtype: tags.highway });
+      }
+    }
+
+    // Find nearest POI per category
+    function findNearest(pois: POI[]): { km: number; name: string | null; subtype: string | null } | null {
+      if (pois.length === 0) return null;
+      let best: POI = pois[0]!;
+      let bestDist = haversineKm(lat, lng, best.lat, best.lng);
+      for (let i = 1; i < pois.length; i++) {
+        const d = haversineKm(lat, lng, pois[i]!.lat, pois[i]!.lng);
+        if (d < bestDist) { bestDist = d; best = pois[i]!; }
+      }
+      return { km: Math.round(bestDist * 10) / 10, name: best.name, subtype: best.subtype };
+    }
+
+    const nearest = {
+      hospital: findNearest(buckets.hospital),
+      masjid: findNearest(buckets.masjid),
+      market: findNearest(buckets.market),
+      power_substation: findNearest(buckets.power_substation),
+      water_supply: findNearest(buckets.water_supply),
+      road: findNearest(buckets.road),
+    };
+
+    const totalPois = Object.values(buckets).reduce((s, b) => s + b.length, 0);
+
+    return {
+      layerType: 'infrastructure',
+      fetchStatus: 'complete',
+      confidence: 'medium', // OSM data quality varies
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'OpenStreetMap Overpass API',
+      attribution: '© OpenStreetMap contributors',
+      summary: {
+        hospital_nearest_km: nearest.hospital?.km ?? null,
+        hospital_name: nearest.hospital?.name ?? null,
+        masjid_nearest_km: nearest.masjid?.km ?? null,
+        masjid_name: nearest.masjid?.name ?? null,
+        market_nearest_km: nearest.market?.km ?? null,
+        market_name: nearest.market?.name ?? null,
+        power_substation_nearest_km: nearest.power_substation?.km ?? null,
+        water_supply_nearest_km: nearest.water_supply?.km ?? null,
+        road_nearest_km: nearest.road?.km ?? null,
+        road_type: nearest.road?.subtype ?? null,
+        poi_count: totalPois,
+      },
+    };
+  } catch {
+    // Graceful degradation — Overpass may be unreachable or rate-limited
+    return null;
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

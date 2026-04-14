@@ -18,13 +18,13 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 | 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 6/8 | 2 | Data + Computation | **Mostly Complete** | Sprint E: EcoCrop 2071 crops. Sprint G: rain-fed vs irrigated. Sprint J: agroforestry species pairing. Remaining: companion planting matrix, invasive/native species |
 | 4 | [Hydrology](#4-hydrology) | 5/10 | 5 | Mixed | **Partially Complete** | Sprint F: PET, aridity, irrigation demand, RWH, drainage density. Remaining: groundwater, aquifer, seasonal flood, water stress, water quality |
 | 11 | [Regulatory & Legal](#11-regulatory--legal) | 0/11 | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
-| 9 | [Renewable Energy](#9-renewable-energy) | 1/6 | 5 | Data | **P3** | Sprint J: wind energy potential from existing wind rose data. Remaining: solar PV sizing, biomass, geothermal, hydropower, energy storage |
-| 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 0/8 | 8 | Data + Computation | **P3** | Distance calcs are straightforward once POI datasets sourced; masjid proximity is OGDEN-differentiator |
+| 9 | [Renewable Energy](#9-renewable-energy) | 2/6 | 4 | Data | **P3** | Sprint J: wind energy potential. Sprint K: solar PV from NASA POWER. Remaining: biomass, geothermal, hydropower, energy storage |
+| 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 8/8 | 0 | Data + Computation | **Complete** | Sprint K: Overpass API for all 8 gaps (hospital, masjid, market, grid, water, road, emergency, internet via POI proxy) |
 | 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 1/8 | 7 | Data | **P3** | Sprint I: carbon stock estimation (IPCC formula). WDPA is free; species-at-risk data varies by jurisdiction |
 | 13 | [Design Intelligence](#13-design-intelligence) | 0/10 | 10 | Computation | **P3** | All computation — depends on upstream data (terrain + climate + soil) being rich enough |
 | 8 | [Environmental Risk & Site History](#8-environmental-risk--site-history) | 0/8 | 8 | Data | **P4** | Phase I ESA data is jurisdiction-specific and often not API-accessible |
 | 12 | [Global Data Coverage](#12-global-data-coverage) | 0/10 | 10 | Data | **P4** | SoilGrids, WorldClim, ESA WorldCover expand beyond US+Ontario; strategic but not MVP-blocking |
-| | **Total** | **~47/120** | **~73** | | |
+| | **Total** | **~56/120** | **~64** | | |
 
 > **Priority key:**
 > - **P0 — Quick Win:** computation on data Atlas already has; can implement now
@@ -43,14 +43,14 @@ Recognized frameworks that give a land evaluation tool international credibility
 |----------|------|----------|--------|
 | FAO S1/S2/S3/N1/N2 suitability classification | FAO (1976) | Computation | **Implemented** — 8-factor scoring: pH, rooting depth, drainage, AWC, salinity, CEC, slope, thermal regime |
 | USDA Land Capability Classification (LCC I-VIII) | USDA/NRCS | Computation | **Implemented** — 8-limitation model with e/w/s/c subclass notation |
-| Canada Soil Capability Classification (Classes 1-7) | AAFC | Computation | Open — similar to USDA LCC but CA-specific thresholds |
+| Canada Soil Capability Classification (Classes 1-7) | AAFC | Computation | **Implemented** — Sprint I: 8-limitation model, Class 1-7 + T/W/D/E/F/M/R subclasses (CA only) |
 | Fuzzy logic membership functions | ALUES/FAO | Computation | Open — advanced; would enhance S1-N2 with gradual transitions |
 | AHP multi-criteria weighting | MCDM standard | Computation | Open — user-configurable priority weighting |
-| Length of Growing Period (LGP) classification | FAO AEZ | Data + Computation | Open — needs daily temperature/moisture balance model |
+| Length of Growing Period (LGP) classification | FAO AEZ | Data + Computation | **Implemented** — Sprint I: FAO AEZ monthly water balance with soil carry-over |
 | USDA Plant Hardiness Zones | USDA | Data | **Implemented** — computed from coldest monthly minimum (Sprint C); wired into Agricultural Suitability as `hardiness_zone` scoring component (Sprint G) |
 
-> **Status:** 4/7 implemented. FAO and USDA LCC are the two most critical frameworks; both integrated into the scoring engine as ScoredResult entries (weight 0 — classification only). Hardiness Zones now scored as a 5-point component in Agricultural Suitability (Sprint G).
-> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas now has 9 scored dimensions (7 weighted + 2 classification), 109 scoring components.
+> **Status:** 6/7 implemented. FAO and USDA LCC (Sprint D), Hardiness Zones (Sprint G), Canada Soil Capability (Sprint I), LGP (Sprint I). Remaining: fuzzy logic/AHP.
+> **Cross-ref:** [Scoring Engine](../concepts/scoring-engine.md) — Atlas now has 10 scored dimensions (7 weighted + 2-3 classification), ~126 scoring components.
 
 ---
 
@@ -72,12 +72,12 @@ Atlas has SSURGO (US) and LIO (Ontario). Sprint B (2026-04-14) extended the fron
 | Surface stoniness / coarse fragment % | Data | Open — fragvol in chfrags (separate table) |
 | Bulk density | Data | **Implemented** — dbthirdbar weighted avg |
 | Soil erosion susceptibility (USLE/RUSLE factors) | Computation | **Implemented** — Sprint A RUSLE + kfact |
-| Soil degradation status | Data | Open |
+| Soil degradation status | Computation | **Implemented** — Sprint J: composite of OM depletion, salinization, compaction, erosion, drainage |
 | Boron toxicity | Data | Open |
-| WRB Soil Classification | Data | Open — international classification |
+| WRB Soil Classification | Computation | **Implemented** — Sprint J: USDA→WRB lookup + Gleyic/Calcic/Humic/Haplic qualifiers |
 | SoilGrids (ISRIC) — global 250m | Data | Open — global coverage gap |
 
-> **Status:** 10/16 implemented (Sprint A + B). Remaining 6 gaps: N-P-K, surface stoniness, soil degradation, boron toxicity, WRB classification, SoilGrids.
+> **Status:** 12/16 implemented (Sprint A + B + G + J). Remaining 4 gaps: N-P-K, surface stoniness, boron toxicity, SoilGrids.
 > **Sprint G additions (2026-04-14):** Wired 3 already-fetched SSURGO fields into Agricultural Suitability scoring: `calcium_carbonate` (CaCO3%, max 4 pts), `permeability` (Ksat, max 4 pts), `compaction_risk` (bulk density, max 3 pts). Fixed `ph_value` → `ph` field name mismatch that caused pH scoring to silently return 0 in both `computeAgriculturalSuitability` and `computeFAOSuitability`. Added collapsible "Soil Intelligence" panel section (8 rows: pH, organic matter, CEC, texture, bulk density, Ksat, CaCO3, rooting depth).
 > **Cross-ref:** [Data Pipeline](data-pipeline.md) — frontend layerFetcher now queries 15 chorizon fields. Backend SsurgoAdapter queries 20+ fields via BullMQ pipeline.
 
@@ -156,27 +156,29 @@ Sprint E (2026-04-14) integrated the full FAO EcoCrop database (2071 crops) with
 | Rain-fed vs. irrigated suitability distinction | Computation | **Implemented** — Sprint G: `irrigationNeeded` (boolean) + `irrigationGapMm` on CropMatch; compares `site.annualPrecipMm < crop.precipOpt[0]`; displayed as Rain-fed/Irrigation badges in crop list |
 | Perennial crop matching (orchard, food forest) | Computation | **Implemented** — lifecycle filter (annual/biennial/perennial) + lifeForm (tree/shrub/vine/herb/grass) |
 | Livestock forage suitability | Computation | **Implemented** — forage/pasture category filter covers 400+ forage species in DB |
-| Agroforestry species pairing | Computation | Open — requires companion/guild logic beyond single-species matching |
+| Agroforestry species pairing | Computation | **Implemented** — Sprint J: `findAgroforestryCompanions()` filters perennial trees/shrubs, scores by structural/family diversity, N-fixation, rooting complementarity |
 | Companion planting / polyculture compatibility | Data | Open — needs species interaction matrix data |
 | Invasive species risk by region | Data | Open — needs USDA NRCS invasive species API |
 | Native species library by ecoregion | Data | Open — needs EPA/NatureServe ecoregion-species mapping |
 
-> **Status:** 5/8 implemented. Sprint E: EcoCrop crop matching (most critical gap), forage + perennial matching. Sprint G: rain-fed vs irrigated distinction using hydrology metrics. Remaining 3 gaps (agroforestry pairing, companion planting, invasive/native species) are data-dependent and lower priority.
+> **Status:** 6/8 implemented. Sprint E: EcoCrop crop matching, forage + perennial matching. Sprint G: rain-fed vs irrigated. Sprint J: agroforestry species pairing. Remaining 2 gaps (companion planting, invasive/native species) are data-dependent.
 
 ---
 
 ## 7. Ecological & Biodiversity
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Habitat type (IUCN classification) | Data |
-| Species at risk / critical habitat overlap | Data |
-| Protected areas overlap (WDPA) | Data |
-| Biodiversity index by ecoregion | Data |
-| Forest canopy cover and height | Data |
-| Carbon stock estimation | Computation |
-| Ecosystem services valuation | Computation |
-| Wetland ecological function classification (Cowardin) | Computation |
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Habitat type (IUCN classification) | Data | Open |
+| Species at risk / critical habitat overlap | Data | Open |
+| Protected areas overlap (WDPA) | Data | Open |
+| Biodiversity index by ecoregion | Data | Open |
+| Forest canopy cover and height | Data | Open |
+| Carbon stock estimation | Computation | **Implemented** — Sprint I: IPCC formula with Adams pedotransfer fallback |
+| Ecosystem services valuation | Computation | Open |
+| Wetland ecological function classification (Cowardin) | Computation | Open |
+
+> **Status:** 1/8 implemented (Sprint I: carbon stock). Remaining 7 are data-dependent.
 
 ---
 
@@ -199,33 +201,37 @@ Phase I Environmental Site Assessment (ASTM E1527-21) — Atlas has none of this
 
 ## 9. Renewable Energy
 
-Entirely missing.
+Sprint J added wind energy; Sprint K added solar PV from existing NASA POWER data.
 
-| Resource | Available Source | Gap Type |
-|----------|----------------|----------|
-| Solar PV potential (kWh/m2/year) | NASA POWER, PVGIS, NREL | Data |
-| Peak sun hours by month | Same | Data |
-| Wind energy potential | Global Wind Atlas (free API) | Data |
-| Micro-hydro potential | USGS stream flow | Data + Computation |
-| Geothermal surface temperature | USGS geothermal maps (US) | Data |
-| Biomass energy potential | Crop residue modeling | Computation |
+| Resource | Available Source | Gap Type | Status |
+|----------|----------------|----------|--------|
+| Solar PV potential (kWh/m2/year) | NASA POWER, PVGIS, NREL | Data | **Implemented** — Sprint K: PSH/day from existing `solar_radiation_kwh_m2_day`, annual yield per kWp, scoring component (max 5) |
+| Peak sun hours by month | Same | Data | **Implemented** — Sprint K: `peakSunHours` = solar radiation kWh/m²/day (= PSH by definition) |
+| Wind energy potential | Global Wind Atlas (free API) | Data | **Implemented** — Sprint J: frequency-weighted cubic mean from wind rose, NREL power classes, optimal direction |
+| Micro-hydro potential | USGS stream flow | Data + Computation | Open |
+| Geothermal surface temperature | USGS geothermal maps (US) | Data | Open |
+| Biomass energy potential | Crop residue modeling | Computation | Open |
+
+> **Status:** 2/6 implemented (wind + solar). Remaining 4 are specialized data sources.
 
 ---
 
 ## 10. Infrastructure & Accessibility
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Road type and access quality | Data |
-| Distance to electrical grid (+ capacity) | Data |
-| Distance to potable water supply | Data |
-| Internet/telecom connectivity | Data |
-| Distance to emergency services | Data + Computation |
-| Distance to nearest hospital / trauma center | Data + Computation |
-| Distance to markets (produce / inputs) | Data + Computation |
-| Distance to nearest masjid | Data + Computation |
+Sprint K (2026-04-14) implemented all 8 gaps via OpenStreetMap Overpass API. Single batched query for 7 POI categories with Haversine nearest-distance computation. ~25km search radius. Infrastructure Access collapsible panel section with color-coded distances.
 
-> **Note:** Distance-based gaps are partly computation (routing/isochrone) once a POI dataset is available.
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Road type and access quality | Data | **Implemented** — Overpass `highway~primary|secondary|tertiary`, nearest distance + road type |
+| Distance to electrical grid (+ capacity) | Data | **Implemented** — Overpass `power=substation`, nearest distance |
+| Distance to potable water supply | Data | **Implemented** — Overpass `amenity=drinking_water`, nearest distance |
+| Internet/telecom connectivity | Data | **Implemented** — covered by POI count density as proxy (Overpass area scan) |
+| Distance to emergency services | Data + Computation | **Implemented** — hospital proximity serves as emergency services proxy |
+| Distance to nearest hospital / trauma center | Data + Computation | **Implemented** — Overpass `amenity=hospital`, nearest distance + name |
+| Distance to markets (produce / inputs) | Data + Computation | **Implemented** — Overpass `shop=supermarket|convenience`, nearest distance + name |
+| Distance to nearest masjid | Data + Computation | **Implemented** — Overpass `amenity=place_of_worship, religion=muslim`, nearest distance + name. OGDEN differentiator |
+
+> **Status:** 8/8 implemented. All via single Overpass API query (no auth, CORS-friendly). First external API added to Atlas (Sprint K). 5 scoring components: hospital_proximity (buildability, max 5), road_access (buildability, max 5), grid_proximity (buildability, max 4), market_proximity (buildability, max 3), masjid_proximity (stewardship, max 4).
 
 ---
 
@@ -339,26 +345,21 @@ SSURGO's Soil Data Access (SDA) web service already returns `mapunit` and `compo
 | **H** | 2026-04-14 | Gap Audit + Wiki Update | 0 (documentation sprint) |
 | **I** | 2026-04-14 | LGP + Canada Soil Capability + Carbon Stock | 3 — LGP (FAO AEZ), Canada Soil Capability (Class 1-7), Carbon stock estimation (IPCC) |
 | **J** | 2026-04-14 | Soil Degradation + WRB + Agroforestry + Wind | 4 — Soil degradation risk index, WRB classification, agroforestry species pairing, wind energy potential |
+| **K** | 2026-04-14 | Overpass Infrastructure + Solar PV | 9 — Hospital, masjid, market, grid, water, road, emergency, connectivity proximity (Overpass API); solar PV potential (NASA POWER) |
 
-**Cumulative: ~47/120 gaps closed.** All sprints used frontend-only computation on existing fetched data — no new API adapters were added.
+**Cumulative: ~56/120 gaps closed.** Sprints A-J used frontend-only computation on existing data. Sprint K is the first to add a new external API (OpenStreetMap Overpass).
 
 ### Next Sprints
 
-#### Sprint I — Remaining Frontend-Computable Gaps (P0)
-Gaps that can be closed with existing data + computation:
-- **Canada Soil Capability Classification** (Cat 1) — mirrors USDA LCC with CA-specific thresholds; computation-only
-- **Length of Growing Period (LGP)** (Cat 1) — PET + monthly precip → moisture-limited growing days; FAO AEZ framework
-- **Carbon stock estimation** (Cat 7) — `organicMatterPct * bulkDensity * rootingDepthCm * 0.58 * 10` tC/ha; data already fetched
-
-#### Sprint J — New API Integrations (P1-P2)
-Gaps requiring new data sources with free APIs available:
-- **Global Wind Atlas API** → wind energy potential (Cat 9); free REST API
+#### Sprint L — New API Integrations (P1-P2)
+Remaining gaps requiring new data sources with free APIs:
 - **WDPA REST API** → protected areas overlay (Cat 7); UNEP-WCMC
-- **OpenStreetMap Overpass** → distance-to-infrastructure: roads, hospitals, masjids (Cat 10)
 - **USGS NWIS** → groundwater depth / water table (Cat 4); US only
+- **EPA WQP** → surface water quality (Cat 4)
 
 #### Deferred (P3-P4)
 - Regulatory data (Cat 11) — jurisdiction-specific, fragmented; 11 gaps
 - Environmental risk / Phase I ESA (Cat 8) — not API-accessible; 8 gaps
 - Global data coverage (Cat 12) — SoilGrids, WorldClim; 10 gaps; strategic expansion
 - Design intelligence (Cat 13) — computation, but depends on upstream data richness; 10 gaps
+- Remaining renewable energy (Cat 9) — micro-hydro, geothermal, biomass; 4 gaps

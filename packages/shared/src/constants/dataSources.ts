@@ -8,12 +8,13 @@ export type LayerType =
   | 'land_cover'
   | 'climate'
   | 'zoning'
+  | 'infrastructure'
   | 'watershed_derived'
   | 'microclimate'
   | 'soil_regeneration';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'watershed_derived' | 'microclimate' | 'soil_regeneration'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration'>;
 
 export interface AdapterConfig {
   adapter: string;

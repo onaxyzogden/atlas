@@ -89,6 +89,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   const [liveDataOpen, setLiveDataOpen] = useState(true);
   const [hydroOpen, setHydroOpen] = useState(true);
   const [soilOpen, setSoilOpen] = useState(true);
+  const [infraOpen, setInfraOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
   const [showAllOpps, setShowAllOpps] = useState(false);
@@ -260,6 +261,41 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     const windRose = cs?.['_wind_rose'] as
       { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | undefined;
     return computeWindEnergy(windRose ?? null);
+  }, [layers]);
+
+  // Sprint K: Infrastructure distances from Overpass API
+  const infraMetrics = useMemo(() => {
+    const infraLayer = layers.find((l) => l.layerType === 'infrastructure');
+    if (!infraLayer || infraLayer.fetchStatus !== 'complete') return null;
+    const sm = infraLayer.summary as Record<string, unknown>;
+    return {
+      hospitalKm: sm.hospital_nearest_km as number | null,
+      hospitalName: sm.hospital_name as string | null,
+      masjidKm: sm.masjid_nearest_km as number | null,
+      masjidName: sm.masjid_name as string | null,
+      marketKm: sm.market_nearest_km as number | null,
+      marketName: sm.market_name as string | null,
+      gridKm: sm.power_substation_nearest_km as number | null,
+      waterKm: sm.water_supply_nearest_km as number | null,
+      roadKm: sm.road_nearest_km as number | null,
+      roadType: sm.road_type as string | null,
+      poiCount: sm.poi_count as number,
+    };
+  }, [layers]);
+
+  // Sprint K: Solar PV from existing NASA POWER data
+  const solarPV = useMemo(() => {
+    const climateLayer = layers.find((l) => l.layerType === 'climate');
+    if (!climateLayer) return null;
+    const cs = climateLayer.summary as Record<string, unknown> | undefined;
+    const solarRad = cs?.solar_radiation_kwh_m2_day as number | undefined;
+    if (!solarRad || solarRad <= 0) return null;
+    const annualYieldKwhPerKwp = solarRad * 365 * 0.80; // performance ratio 0.80
+    return {
+      peakSunHours: Math.round(solarRad * 100) / 100,
+      annualYieldKwhPerKwp: Math.round(annualYieldKwhPerKwp),
+      pvClass: solarRad >= 5 ? 'Excellent' : solarRad >= 4 ? 'Good' : solarRad >= 3 ? 'Moderate' : 'Poor',
+    };
   }, [layers]);
 
   // Crop suitability matching
@@ -649,7 +685,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
               </div>
               {/* Sprint J: Wind Energy Potential */}
               {windEnergy && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <div className={s.liveDataRow}>
                   <span className={s.liveDataLabel}>Wind Power</span>
                   <span className={s.liveDataValue} style={{
                     flex: 1, textAlign: 'right',
@@ -666,10 +702,36 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 </div>
               )}
               {!windEnergy && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <div className={s.liveDataRow}>
                   <span className={s.liveDataLabel}>Wind Power</span>
                   <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right', opacity: 0.5 }}>
                     No wind data
+                  </span>
+                </div>
+              )}
+              {/* Sprint K: Solar PV Potential */}
+              {solarPV && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Solar PV</span>
+                  <span className={s.liveDataValue} style={{
+                    flex: 1, textAlign: 'right',
+                    color: solarPV.pvClass === 'Excellent' || solarPV.pvClass === 'Good'
+                      ? confidence.high
+                      : solarPV.pvClass === 'Moderate' ? confidence.medium
+                      : confidence.low,
+                  }}>
+                    {solarPV.peakSunHours} PSH/day
+                  </span>
+                  <span className={s.flagSource}>
+                    {solarPV.pvClass} (~{solarPV.annualYieldKwhPerKwp} kWh/kWp/yr)
+                  </span>
+                </div>
+              )}
+              {!solarPV && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Solar PV</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right', opacity: 0.5 }}>
+                    No solar data
                   </span>
                 </div>
               )}
@@ -827,6 +889,115 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                   <span className={s.flagSource}>Intl. standard</span>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Infrastructure Access (Sprint K) ────────────────────────── */}
+      {infraMetrics && (
+        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
+          <button
+            onClick={() => setInfraOpen((v) => !v)}
+            className={`${s.liveDataHeader} ${infraOpen ? s.liveDataHeaderOpen : ''}`}
+          >
+            <span style={{ color: semantic.sidebarActive }}>&#9741;</span>
+            <span className={s.liveDataTitle}>Infrastructure Access</span>
+            <div style={{ flex: 1 }} />
+            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
+              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
+              className={`${s.chevron} ${!infraOpen ? s.chevronClosed : ''}`}>
+              <path d="M3 7l3-3 3 3" />
+            </svg>
+          </button>
+          {infraOpen && (
+            <div style={{ padding: '4px 0' }}>
+              {/* Hospital */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Hospital</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.hospitalKm != null
+                    ? (infraMetrics.hospitalKm <= 5 ? confidence.high : infraMetrics.hospitalKm <= 15 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.hospitalKm != null ? `${infraMetrics.hospitalKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>
+                  {infraMetrics.hospitalName ?? 'within 25km'}
+                </span>
+              </div>
+              {/* Masjid */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Masjid</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.masjidKm != null
+                    ? (infraMetrics.masjidKm <= 5 ? confidence.high : infraMetrics.masjidKm <= 15 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.masjidKm != null ? `${infraMetrics.masjidKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>
+                  {infraMetrics.masjidName ?? 'within 25km'}
+                </span>
+              </div>
+              {/* Market */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Market</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.marketKm != null
+                    ? (infraMetrics.marketKm <= 5 ? confidence.high : infraMetrics.marketKm <= 15 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.marketKm != null ? `${infraMetrics.marketKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>
+                  {infraMetrics.marketName ?? 'within 25km'}
+                </span>
+              </div>
+              {/* Power Grid */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Power Grid</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.gridKm != null
+                    ? (infraMetrics.gridKm <= 5 ? confidence.high : infraMetrics.gridKm <= 15 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.gridKm != null ? `${infraMetrics.gridKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>substation</span>
+              </div>
+              {/* Road Access */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Road Access</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.roadKm != null
+                    ? (infraMetrics.roadKm <= 2 ? confidence.high : infraMetrics.roadKm <= 10 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.roadKm != null ? `${infraMetrics.roadKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>
+                  {infraMetrics.roadType ?? 'nearest'} road
+                </span>
+              </div>
+              {/* Water Supply */}
+              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <span className={s.liveDataLabel}>Water Supply</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.waterKm != null
+                    ? (infraMetrics.waterKm <= 5 ? confidence.high : infraMetrics.waterKm <= 15 ? confidence.medium : confidence.low)
+                    : confidence.low,
+                }}>
+                  {infraMetrics.waterKm != null ? `${infraMetrics.waterKm} km` : 'Not found'}
+                </span>
+                <span className={s.flagSource}>drinking water</span>
+              </div>
             </div>
           )}
         </div>

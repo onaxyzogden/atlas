@@ -201,6 +201,7 @@ export function computeAssessmentScores(
   const elevation = layerByType(layers, 'elevation');
   const landCover = layerByType(layers, 'land_cover');
   const zoning = layerByType(layers, 'zoning');
+  const infrastructure = layerByType(layers, 'infrastructure');
 
   // Tier 3 derived layers (may be absent)
   const watershedDerived = layerByType(layers, 'watershed_derived');
@@ -250,13 +251,16 @@ export function computeAssessmentScores(
   const windEnergy = computeWindEnergy(windRoseRaw ?? null);
   const windPowerDensity = windEnergy?.powerDensityWm2 ?? 0;
 
+  // Sprint K: Solar radiation for PV scoring (already fetched from NASA POWER)
+  const solarRadiation = num(climate, 'solar_radiation_kwh_m2_day');
+
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
-    computeBuildability(elevation, wetlands, soils, terrain),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate),
-    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity),
+    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
@@ -648,12 +652,14 @@ function computeBuildability(
   wetlands: MockLayerResult | undefined,
   soils: MockLayerResult | undefined,
   terrain: MockLayerResult | undefined,
+  infrastructure?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
   const wfc = layerConfidence(wetlands);
   const sc = layerConfidence(soils);
   const tc = layerConfidence(terrain);
+  const ic = layerConfidence(infrastructure);
 
   // Slope grade (penalty, max -20)
   const meanSlope = num(elevation, 'mean_slope_deg');
@@ -707,6 +713,30 @@ function computeBuildability(
   } else {
     components.push(comp('viewshed_openness', 0, 5, 'terrain_analysis', 'low'));
   }
+
+  // Sprint K: Infrastructure proximity from Overpass API (4 components)
+  const hospKm = num(infrastructure, 'hospital_nearest_km');
+  const hospPts = hospKm > 0 ? (hospKm <= 5 ? 5 : hospKm <= 15 ? 3 : hospKm <= 30 ? 1 : 0) : 0;
+  components.push(comp('hospital_proximity', hospPts, 5, 'infrastructure', ic));
+
+  const roadKm = num(infrastructure, 'road_nearest_km');
+  const roadType = str(infrastructure, 'road_type');
+  const roadPts = roadKm > 0
+    ? (roadType === 'primary' && roadKm <= 2 ? 5
+      : roadType === 'secondary' && roadKm <= 5 ? 4
+      : roadKm <= 5 ? 3
+      : roadKm <= 10 ? 1
+      : 0)
+    : 0;
+  components.push(comp('road_access', roadPts, 5, 'infrastructure', ic));
+
+  const gridKm = num(infrastructure, 'power_substation_nearest_km');
+  const gridPts = gridKm > 0 ? (gridKm <= 5 ? 4 : gridKm <= 15 ? 2 : 0) : 0;
+  components.push(comp('grid_proximity', gridPts, 4, 'infrastructure', ic));
+
+  const mktKm = num(infrastructure, 'market_nearest_km');
+  const mktPts = mktKm > 0 ? (mktKm <= 5 ? 3 : mktKm <= 15 ? 1 : 0) : 0;
+  components.push(comp('market_proximity', mktPts, 3, 'infrastructure', ic));
 
   return buildResult('Buildability', 75, components);
 }
@@ -789,6 +819,8 @@ function computeStewardshipReadiness(
   microclimate: MockLayerResult | undefined,
   elevation?: MockLayerResult | undefined,
   windPowerDensityWm2?: number,
+  infrastructure?: MockLayerResult | undefined,
+  solarRadiationKwhM2Day?: number,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -910,6 +942,20 @@ function computeStewardshipReadiness(
     : wpd >= 100 ? 1
     : 0;
   components.push(comp('wind_energy_potential', windPts, 5, 'climate', wpd > 0 ? 'medium' : 'low'));
+
+  // Sprint K: Masjid proximity — Islamic community stewardship (OGDEN differentiator, max 4)
+  const ic = layerConfidence(infrastructure);
+  const masjidKm = num(infrastructure, 'masjid_nearest_km');
+  const masjidPts = masjidKm > 0
+    ? (masjidKm <= 3 ? 4 : masjidKm <= 8 ? 2 : masjidKm <= 15 ? 1 : 0)
+    : 0;
+  components.push(comp('masjid_proximity', masjidPts, 4, 'infrastructure', ic));
+
+  // Sprint K: Solar PV potential — from existing NASA POWER solar radiation (max 5)
+  // solar_radiation_kwh_m2_day already in climate layer = peak sun hours (PSH)
+  const solarRad = solarRadiationKwhM2Day ?? 0;
+  const solarPts = solarRad >= 5 ? 5 : solarRad >= 4 ? 3 : solarRad >= 3 ? 1 : 0;
+  components.push(comp('solar_pv_potential', solarPts, 5, 'climate', solarRad > 0 ? 'medium' : 'low'));
 
   return buildResult('Stewardship Readiness', 25, components);
 }

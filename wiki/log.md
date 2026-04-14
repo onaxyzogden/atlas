@@ -4,6 +4,20 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint K: Overpass Infrastructure Distances + Solar PV Potential
+- **Scope:** First sprint to add a new external API. Integrated OpenStreetMap Overpass API for distance-to-infrastructure (8 Category 10 gaps) plus solar PV potential from existing NASA POWER data (1 Category 9 gap). Added `infrastructure` layer type, Haversine distance computation, 6 new scoring components, Infrastructure Access panel section, and Solar PV row.
+- **Files modified:**
+  - `packages/shared/src/constants/dataSources.ts` — added `'infrastructure'` to LayerType union, excluded from Tier1LayerType
+  - `apps/web/src/lib/layerFetcher.ts` — added `haversineKm()` helper, `fetchInfrastructure()` (single batched Overpass query for 7 POI categories: hospital, masjid, market, power substation, drinking water, road), ~25km search bbox, wired into `fetchAllLayersInternal()`. Fixed `replaceLayer()` to push new layer types without mock entries
+  - `apps/web/src/lib/computeScores.ts` — added 4 infrastructure scoring components to Buildability (hospital_proximity max 5, road_access max 5, grid_proximity max 4, market_proximity max 3); added masjid_proximity (max 4) and solar_pv_potential (max 5) to Stewardship Readiness; threaded `infrastructure` layer and `solarRadiation` through scoring pipeline
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Infrastructure Access collapsible section (6 rows: hospital, masjid, market, grid, road, water with color-coded distances); added Solar PV row to Hydrology Intelligence section (PSH/day, annual yield, class label); added `infraOpen` state, `infraMetrics` + `solarPV` useMemo hooks
+  - `apps/web/src/features/map/LayerPanel.tsx` — added `infrastructure` to LAYER_LABELS and LAYER_ICONS
+- **Scoring components:** 120 → ~126 (+4 infrastructure buildability, +1 masjid stewardship, +1 solar PV stewardship)
+- **Gaps closed:** 9 (8 infrastructure + 1 solar PV) — cumulative ~56/120
+- **New API:** OpenStreetMap Overpass (free, no auth, CORS-friendly)
+
+---
+
 ### 2026-04-14 — Sprint J: Soil Degradation + WRB + Agroforestry + Wind Energy
 - **Scope:** Implemented 4 remaining frontend-computable gaps: soil degradation risk index, WRB soil classification, agroforestry species pairing, and wind energy potential — all from existing layer data, no new APIs. This exhausts all frontend-computable opportunities.
 - **Files modified:**

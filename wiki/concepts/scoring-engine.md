@@ -1,7 +1,7 @@
 # Scoring Engine
 
 ## Summary
-Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~120 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
+Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~126 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
 
 ## How It Works
 1. `computeAssessmentScores(layers, acreage)` receives cached layer data from `siteDataStore`
@@ -20,9 +20,9 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Water Resilience | 15% | Drainage class, flood zones, watershed position, PET, aridity index, rainwater harvesting, irrigation requirement | watershed, wetlands, soils, climate |
 | Agricultural Suitability | 15% | pH, CEC, AWC, CaCO3, Ksat, bulk density, organic matter, drainage, slope, texture, GDD, hardiness zone | soils, climate, elevation |
 | Regenerative Potential | 15% | Organic matter, biodiversity indicators, carbon sequestration capacity, soil health trends | soils, land_cover, climate |
-| Buildability | 12% | Slope, flood risk, soil bearing capacity, terrain ruggedness, access grade | elevation, wetlands, soils |
+| Buildability | 12% | Slope, flood risk, soil bearing capacity, terrain ruggedness, access grade, hospital/road/grid/market proximity | elevation, wetlands, soils, infrastructure |
 | Habitat Sensitivity | 10% | Wetland proximity, endangered species habitat, riparian buffers, land cover type | wetlands, land_cover, watershed |
-| Stewardship Readiness | 18% | Soil fertility, salinity penalty, erosion hazard, conservation practice potential | soils, elevation, climate |
+| Stewardship Readiness | 18% | Soil fertility, salinity penalty, erosion hazard, conservation practice potential, masjid proximity, solar PV, wind energy | soils, elevation, climate, infrastructure |
 | Design Complexity | 15% | Slope variability, terrain complexity, access constraints, zoning conflicts (inverted — high complexity reduces overall score) | elevation, soils, land_cover |
 
 ### 2-3 Formal Classification Systems (weight 0)
@@ -43,6 +43,7 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Sprint G | CaCO3, Ksat, bulk density, hardiness zone + pH bug fix (3 sites) | ~108 |
 | Sprint I | LGP (agri suitability), carbon stock (regenerative potential), Canada Soil Capability (8 limitations, CA only) | ~118 |
 | Sprint J | Soil degradation risk (stewardship), wind energy potential (stewardship) | ~120 |
+| Sprint K | Hospital/road/grid/market proximity (buildability), masjid proximity (stewardship), solar PV potential (stewardship) | ~126 |
 
 ## Where It's Used
 - `apps/web/src/lib/computeScores.ts` — main engine (all 9 scoring functions)
