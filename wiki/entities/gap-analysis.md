@@ -11,7 +11,7 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 
 | # | Category | Gaps | Dominant Type | Priority | Rationale |
 |---|----------|------|---------------|----------|-----------|
-| 3 | [Terrain & Topography](#3-terrain--topography) | 8 | Computation | **P0 — Quick Win** | DEM data live via USGS 3DEP; `tier3-terrain` worker exists; 7/8 gaps are pure math on existing elevation |
+| 3 | [Terrain & Topography](#3-terrain--topography) | 0 remaining | Computation | **Complete** | All 8/8 implemented: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI bonus |
 | 2 | [Soil Assessment](#2-soil-assessment) | 16 | Data | **P0/P1** | SSURGO already connected — pH, CEC, bulk density, rooting depth available in extended queries; 20% scoring weight |
 | 5 | [Climate](#5-climate) | 10 | Data | **P1** | WorldClim/CHELSA/NASA POWER are free APIs; climate is prerequisite for crop suitability and formal scoring |
 | 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 7 | Computation | **P1** | International credibility; mostly algorithms over soil+climate+terrain; depends on P0/P1 data being filled |
@@ -82,20 +82,20 @@ Atlas has SSURGO (US) and LIO (Ontario) giving soil type and basic properties. T
 
 ## 3. Terrain & Topography
 
-Atlas has basic elevation and 3D terrain visualization. Missing:
+Atlas has elevation DEM (USGS 3DEP + NRCan HRDEM), 3D visualization, and a full terrain analysis pipeline (4,663 lines). Most original gaps are now implemented:
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Slope aspect (N/S/E/W facing) | Computation |
-| Slope curvature (concave/convex) | Computation |
-| Topographic Wetness Index (TWI) | Computation |
-| Terrain Ruggedness Index (TRI) | Computation |
-| LiDAR-derived micro-topography | Data |
-| Viewshed analysis | Computation |
-| Cut/fill volume estimation | Computation |
-| Erosion hazard mapping | Computation |
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Slope aspect (N/S/E/W facing) | Computation | **Implemented** — elevation route + layerFetcher |
+| Slope curvature (concave/convex) | Computation | **Implemented** — `algorithms/curvature.ts` (Zevenbergen-Thorne) |
+| Topographic Wetness Index (TWI) | Computation | **Implemented** — `algorithms/twi.ts` (Sprint A, 2026-04-14) |
+| Terrain Ruggedness Index (TRI) | Computation | **Implemented** — `algorithms/tri.ts` (Sprint A, 2026-04-14) |
+| LiDAR-derived micro-topography | Data | **Partial** — NRCan HRDEM is LiDAR-derived (1m CA); US is 3DEP (10-30m) |
+| Viewshed analysis | Computation | **Implemented** — `algorithms/viewshed.ts` (720-ray radial LOS) |
+| Cut/fill volume estimation | Computation | **Implemented** — `algorithms/cutFill.ts` (Sprint A, 2026-04-14); on-demand utility |
+| Erosion hazard mapping | Computation | **Implemented** — `algorithms/erosionHazard.ts` (Sprint A, 2026-04-14); RUSLE with tiered confidence |
 
-> **Note:** Most terrain gaps are computation — the elevation DEM data is already available via USGS 3DEP. The `tier3-terrain` worker exists but needs real analysis logic.
+> **Note:** All 8/8 gaps now implemented. Additionally implemented but not in original gap list: frost pocket probability, cold air drainage, TPI (6-class landscape position). RUSLE erosion uses defaults (low confidence) when soil K-factor and climate data unavailable; upgrades to high confidence when SSURGO kfact + precipitation data are present.
 
 ---
 

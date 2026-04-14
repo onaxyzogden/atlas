@@ -12,7 +12,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 - `src/lib/config.ts` — Zod-validated env vars (DATABASE_URL, JWT_SECRET, S3_*, etc.)
 - `src/lib/errors.ts` — AppError, NotFoundError, ForbiddenError, ValidationError
 - `src/plugins/database.ts` — PostgreSQL connection pool (`postgres` library)
-- `src/plugins/redis.ts` — Redis/ioredis connection
+- `src/plugins/redis.ts` — Redis/ioredis connection (fault-tolerant: API starts without Redis)
 - `src/plugins/auth.ts` — JWT verification, `authenticate` preHandler, `req.userId`
 - `src/db/migrations/001_initial.sql` — Full schema (12 tables)
 

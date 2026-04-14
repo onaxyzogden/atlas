@@ -48,6 +48,7 @@ interface HorizonRow {
   ec_ds_m: number | null;
   bulk_density_g_cm3: number | null;
   ksat_um_s: number | null;
+  kfact: number | null;
   awc_cm_cm: number | null;
   rooting_depth_cm: number | null;
   claytotal_r: number | null;
@@ -79,6 +80,7 @@ interface SoilSummary {
   ec_ds_m: number | null;
   bulk_density_g_cm3: number | null;
   ksat_um_s: number | null;
+  kfact: number | null;
   awc_cm_cm: number | null;
   rooting_depth_cm: number | null;
   clay_pct: number | null;
@@ -179,6 +181,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   ec_ds_m: number | null;
   bulk_density_g_cm3: number | null;
   ksat_um_s: number | null;
+  kfact: number | null;
   awc_cm_cm: number | null;
   rooting_depth_cm: number | null;
   clay_pct: number | null;
@@ -197,7 +200,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   if (rows.length === 0) {
     return {
       ph: null, organic_matter_pct: null, cec_meq_100g: null, ec_ds_m: null,
-      bulk_density_g_cm3: null, ksat_um_s: null, awc_cm_cm: null,
+      bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
@@ -209,7 +212,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   if (totalWeight === 0) {
     return {
       ph: null, organic_matter_pct: null, cec_meq_100g: null, ec_ds_m: null,
-      bulk_density_g_cm3: null, ksat_um_s: null, awc_cm_cm: null,
+      bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
@@ -243,6 +246,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
     ec_ds_m: weightedAvg('ec_ds_m'),
     bulk_density_g_cm3: weightedAvg('bulk_density_g_cm3'),
     ksat_um_s: weightedAvg('ksat_um_s'),
+    kfact: weightedAvg('kfact'),
     awc_cm_cm: weightedAvg('awc_cm_cm'),
     rooting_depth_cm: weightedAvg('rooting_depth_cm'),
     clay_pct: weightedAvg('claytotal_r'),
@@ -534,6 +538,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
              h.ec_r AS ec_ds_m,
              h.dbthirdbar_r AS bulk_density_g_cm3,
              h.ksat_r AS ksat_um_s,
+             h.kfact_r AS kfact,
              h.awc_r AS awc_cm_cm,
              h.restrdepdh_r AS rooting_depth_cm,
              h.claytotal_r, h.silttotal_r, h.sandtotal_r,
@@ -557,7 +562,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
     const horizonRows = parseSdaRows<HorizonRow>(horizonResponse, [
       'mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph',
       'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3',
-      'ksat_um_s', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r',
+      'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r',
       'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct',
       'sodium_adsorption_ratio', 'drainage_class', 'taxonomy_class',
       'component_name', 'component_pct',
@@ -615,6 +620,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
       ec_ds_m: weighted.ec_ds_m,
       bulk_density_g_cm3: weighted.bulk_density_g_cm3,
       ksat_um_s: weighted.ksat_um_s,
+      kfact: weighted.kfact,
       awc_cm_cm: weighted.awc_cm_cm,
       rooting_depth_cm: weighted.rooting_depth_cm,
       clay_pct: weighted.clay_pct,
@@ -684,6 +690,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
         ec_ds_m: null,
         bulk_density_g_cm3: null,
         ksat_um_s: null,
+        kfact: null,
         awc_cm_cm: null,
         rooting_depth_cm: null,
         clay_pct: null,

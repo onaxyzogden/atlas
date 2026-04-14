@@ -4,6 +4,32 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint A (cont.): Cut/Fill + Erosion Hazard
+- **Scope:** Implemented the final 2 terrain gaps: cut/fill volume estimation and RUSLE erosion hazard mapping. Also added `kfact_r` (soil erodibility) to SSURGO adapter.
+- **Files created:**
+  - `algorithms/cutFill.ts` (~110 lines) — on-demand utility comparing existing DEM to target elevation within a polygon. Point-in-polygon rasterization, cut/fill/unchanged classification, volume + area output.
+  - `algorithms/erosionHazard.ts` (~160 lines) — RUSLE (R×K×LS×C×P) with tiered confidence: LS computed from DEM, K/R/C default when unavailable, upgrades when soil + climate data present. 6-class output (very_low through severe, t/ha/yr).
+  - `migrations/008_erosion_cutfill.sql` — 6 erosion columns on `terrain_analysis`.
+- **Files modified:**
+  - `TerrainAnalysisProcessor.ts` — erosion wired as 8th parallel analysis, GeoJSON + UPSERT extended.
+  - `SsurgoAdapter.ts` — added `h.kfact_r` to horizon SQL, HorizonRow, SoilSummary, weighted averages, and null fallback.
+  - `TerrainDashboard.tsx` — erosion hazard section with mean/max soil loss, confidence, 6-class progress bars.
+- **Gap analysis:** Terrain & Topography now **8/8 complete** (plus 3 bonus: frost pocket, cold air drainage, TPI).
+- **Next:** Sprint B (soil extended properties) or Sprint C (climate data).
+
+### 2026-04-14 — Sprint A: TWI + TRI Terrain Algorithms
+- **Scope:** Implemented Topographic Wetness Index (TWI) and Terrain Ruggedness Index (TRI) — the two remaining computation gaps in the terrain pipeline.
+- **Key discovery:** 5/8 terrain gaps from the gap analysis were already implemented (aspect, curvature, viewshed, frost pocket, TPI). Sprint A scope reduced to TWI + TRI only.
+- **Files created:**
+  - `apps/api/src/services/terrain/algorithms/twi.ts` (~105 lines) — `ln(catchment_area / tan(slope))`, 5-class classification (very_dry through very_wet), reuses `hydro.ts` components.
+  - `apps/api/src/services/terrain/algorithms/tri.ts` (~130 lines) — mean absolute elevation difference of 8 neighbours, Riley et al. 1999 7-class system with resolution scaling for high-res DEMs.
+  - `apps/api/src/db/migrations/007_twi_tri.sql` — 8 new columns on `terrain_analysis` table.
+- **Files modified:**
+  - `TerrainAnalysisProcessor.ts` — imports, Promise.all (5→7), GeoJSON conversion, UPSERT extended with 8 columns.
+  - `TerrainDashboard.tsx` — TWI wetness + TRI ruggedness sections with progress bars, reading from `terrain_analysis` layer.
+- **Gap analysis updated:** terrain section now shows 6/8 implemented, 2 remaining (cut/fill, erosion hazard).
+- **Next:** Build verification, then Sprint B (soil extended properties) or Sprint C (climate data).
+
 ### 2026-04-14 — SSURGO Backend Adapter Implementation
 - **Scope:** Implemented `SsurgoAdapter` — the first real backend data adapter in the pipeline, replacing `ManualFlagAdapter` for soils/US.
 - **Files created:**

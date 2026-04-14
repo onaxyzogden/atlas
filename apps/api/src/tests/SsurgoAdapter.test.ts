@@ -101,7 +101,7 @@ describe('Weighted average computation', () => {
       {
         mukey: '658812', comppct_r: 60, hzdept_r: 0, hzdepb_r: 30,
         ph: 6.2, organic_matter_pct: 2.5, cec_meq_100g: 12.0, ec_ds_m: 0.5,
-        bulk_density_g_cm3: 1.35, ksat_um_s: 14.0, awc_cm_cm: 0.18,
+        bulk_density_g_cm3: 1.35, ksat_um_s: 14.0, kfact: 0.32, awc_cm_cm: 0.18,
         rooting_depth_cm: 100, claytotal_r: 18, silttotal_r: 42, sandtotal_r: 40,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 1.0,
         surface_stoniness: null, texture_description: 'Silt loam',
@@ -111,7 +111,7 @@ describe('Weighted average computation', () => {
       {
         mukey: '658813', comppct_r: 40, hzdept_r: 0, hzdepb_r: 25,
         ph: 5.8, organic_matter_pct: 3.2, cec_meq_100g: 18.5, ec_ds_m: 0.3,
-        bulk_density_g_cm3: 1.28, ksat_um_s: 8.5, awc_cm_cm: 0.22,
+        bulk_density_g_cm3: 1.28, ksat_um_s: 8.5, kfact: 0.28, awc_cm_cm: 0.22,
         rooting_depth_cm: 120, claytotal_r: 35, silttotal_r: 45, sandtotal_r: 20,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 0.5,
         surface_stoniness: null, texture_description: 'Silty clay loam',
