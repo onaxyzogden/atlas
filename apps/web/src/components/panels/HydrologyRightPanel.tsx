@@ -78,6 +78,19 @@ interface CriticalHabitatSummary {
   primary_status?: string | null;
   species_list?: string[];
 }
+interface StormEventsSummary {
+  disaster_count_10yr?: number | null;
+  latest_disaster_title?: string | null;
+  latest_disaster_date?: string | null;
+  most_common_type?: string | null;
+}
+interface CropValidationSummary {
+  cdl_crop_name?: string | null;
+  land_use_class?: string | null;
+  is_agricultural?: boolean;
+  is_cropland?: boolean;
+  cdl_year?: number | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -162,8 +175,10 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const soils        = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
     const groundwater  = siteData ? getLayerSummary<GroundwaterSummary>(siteData, 'groundwater')          : null;
     const waterQuality = siteData ? getLayerSummary<WaterQualitySummary>(siteData, 'water_quality')     : null;
-    const superfund    = siteData ? getLayerSummary<SuperfundSummary>(siteData, 'superfund')             : null;
-    const critHabitat  = siteData ? getLayerSummary<CriticalHabitatSummary>(siteData, 'critical_habitat'): null;
+    const superfund    = siteData ? getLayerSummary<SuperfundSummary>(siteData, 'superfund')                : null;
+    const critHabitat  = siteData ? getLayerSummary<CriticalHabitatSummary>(siteData, 'critical_habitat') : null;
+    const stormEvents  = siteData ? getLayerSummary<StormEventsSummary>(siteData, 'storm_events')         : null;
+    const cropValid    = siteData ? getLayerSummary<CropValidationSummary>(siteData, 'crop_validation')   : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -220,6 +235,14 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         critHabitatSpecies:   critHabitat?.primary_species ?? null,
         critHabitatStatus:    critHabitat?.primary_status ?? null,
         critHabitatNearby:    critHabitat?.species_nearby ?? 0,
+        disasterCount10yr:    stormEvents?.disaster_count_10yr ?? null,
+        latestDisaster:       stormEvents?.latest_disaster_title ?? null,
+        latestDisasterDate:   stormEvents?.latest_disaster_date ?? null,
+        mostCommonDisaster:   stormEvents?.most_common_type ?? null,
+        cdlCropName:          cropValid?.cdl_crop_name ?? null,
+        cdlLandUse:           cropValid?.land_use_class ?? null,
+        cdlIsAgricultural:    cropValid?.is_agricultural ?? false,
+        cdlYear:              cropValid?.cdl_year ?? null,
       },
       metrics: m,
     };
@@ -419,8 +442,32 @@ function RealtimePanel({ live, metrics, isLoading }: {
             <DataRow label="ESA Status"
               value={live.critHabitatStatus} />
           )}
+          <DataRow label="Disasters (10yr)"
+            value={live?.disasterCount10yr != null ? `${live.disasterCount10yr} declarations` : '—'}
+            note={live?.mostCommonDisaster ?? undefined}
+            color={live?.disasterCount10yr != null && live.disasterCount10yr >= 4 ? errorToken.DEFAULT : confidence.high} />
+          {live?.latestDisaster && (
+            <DataRow label="Latest Event"
+              value={live.latestDisaster}
+              note={live?.latestDisasterDate ?? undefined} />
+          )}
         </div>
       </div>
+
+      {/* Sprint P: Crop Validation */}
+      {live?.cdlCropName && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>CROP VALIDATION</span>
+          <div className={s.dataRows}>
+            <DataRow label="Observed Crop"
+              value={live.cdlCropName}
+              note={live.cdlYear ? `USDA CDL ${live.cdlYear}` : undefined} />
+            <DataRow label="Land Use Class"
+              value={live.cdlLandUse ?? '—'}
+              color={live.cdlIsAgricultural ? confidence.high : confidence.medium} />
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -544,6 +591,8 @@ function buildLive() { return null as unknown as {
   waterQualityPH: string; waterQualityDO: string; waterQualityStation: string | null;
   superfundNearest: string; superfundName: string | null; superfundStatus: string | null; superfundCount5km: number;
   critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
+  disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
+  cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }

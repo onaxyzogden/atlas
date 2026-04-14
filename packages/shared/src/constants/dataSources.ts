@@ -15,10 +15,12 @@ export type LayerType =
   | 'groundwater'
   | 'water_quality'
   | 'superfund'
-  | 'critical_habitat';
+  | 'critical_habitat'
+  | 'storm_events'
+  | 'crop_validation';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -100,4 +102,7 @@ export const DATA_COMPLETENESS_WEIGHTS: Partial<Record<LayerType, number>> = {
   // Sprint O: environmental risk + ecological layers
   superfund: 0.03,
   critical_habitat: 0.03,
+  // Sprint P: climate resilience + crop validation
+  storm_events: 0.03,
+  crop_validation: 0.03,
 };

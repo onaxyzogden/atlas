@@ -217,6 +217,10 @@ export function computeAssessmentScores(
   const superfund = layerByType(layers, 'superfund');
   const criticalHabitat = layerByType(layers, 'critical_habitat');
 
+  // Sprint P: climate resilience + crop validation (US-only)
+  const stormEvents = layerByType(layers, 'storm_events');
+  const cropValidation = layerByType(layers, 'crop_validation');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -264,9 +268,9 @@ export function computeAssessmentScores(
 
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
-    computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
+    computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
     computeRegenerativePotential(landCover, soils, soilRegen),
-    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
@@ -439,6 +443,7 @@ function computeAgriculturalSuitability(
   elevation: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
   lgpDays?: number,
+  cropValidation?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -583,6 +588,16 @@ function computeAgriculturalSuitability(
     components.push(comp('wind_shelter', 0, 5, 'microclimate', 'low'));
   }
 
+  // Sprint P: CDL crop validation — confirms site is agricultural use (max 5)
+  if (cropValidation) {
+    const isCropland = s(cropValidation, 'is_cropland');
+    const isAgricultural = s(cropValidation, 'is_agricultural');
+    const cdlPts = isCropland ? 5 : isAgricultural ? 3 : 0;
+    components.push(comp('cdl_crop_validation', cdlPts, 5, 'crop_validation', layerConfidence(cropValidation)));
+  } else {
+    components.push(comp('cdl_crop_validation', 0, 5, 'crop_validation', 'low'));
+  }
+
   return buildResult('Agricultural Suitability', 30, components);
 }
 
@@ -686,6 +701,7 @@ function computeBuildability(
   terrain: MockLayerResult | undefined,
   infrastructure?: MockLayerResult | undefined,
   superfund?: MockLayerResult | undefined,
+  stormEvents?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
@@ -783,6 +799,15 @@ function computeBuildability(
     components.push(comp('superfund_proximity', sfPen, -10, 'superfund', layerConfidence(superfund)));
   } else {
     components.push(comp('superfund_proximity', 0, -10, 'superfund', 'low'));
+  }
+
+  // Sprint P: Disaster declaration frequency (penalty, max -8)
+  if (stormEvents) {
+    const count = num(stormEvents, 'disaster_count_10yr');
+    const disPen = count >= 7 ? -8 : count >= 4 ? -5 : count >= 2 ? -2 : 0;
+    components.push(comp('disaster_frequency', disPen, -8, 'storm_events', layerConfidence(stormEvents)));
+  } else {
+    components.push(comp('disaster_frequency', 0, -8, 'storm_events', 'low'));
   }
 
   return buildResult('Buildability', 75, components);

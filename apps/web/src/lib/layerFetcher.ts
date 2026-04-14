@@ -181,6 +181,12 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint O: Critical habitat overlay (USFWS ArcGIS — US only)
   fetchers.push(fetchCriticalHabitat(lat, lng, options.country).then(trackLive));
 
+  // Sprint P: Storm events / disaster declarations (FEMA — US only)
+  fetchers.push(fetchStormEvents(lat, lng, options.country).then(trackLive));
+
+  // Sprint P: Crop validation (USDA NASS CDL CropScape — US only)
+  fetchers.push(fetchCropValidation(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
@@ -4192,6 +4198,216 @@ async function fetchCriticalHabitat(lat: number, lng: number, country: string): 
   } catch {
     return null;
   }
+}
+
+// ── Sprint P: FEMA Disaster Declarations (Storm Events) ────────────────────
+
+async function fetchStormEvents(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    // Step 1: Resolve state + county FIPS from lat/lng via FCC Census Block API
+    const fccUrl =
+      `https://geo.fcc.gov/api/census/block/find` +
+      `?latitude=${lat}&longitude=${lng}&format=json&showall=false`;
+
+    const fccResp = await fetchWithRetry(fccUrl, 10000);
+    const fccData = await fccResp.json() as {
+      State?: { FIPS?: string; code?: string; name?: string };
+      County?: { FIPS?: string; name?: string };
+    };
+
+    const stateCode = fccData?.State?.code;
+    const stateName = fccData?.State?.name ?? '';
+    const countyFips = fccData?.County?.FIPS;
+    if (!stateCode) return null;
+
+    // Step 2: Query FEMA for disaster declarations in this state (last 10 years)
+    const tenYearsAgo = new Date();
+    tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
+    const sinceDate = tenYearsAgo.toISOString().split('T')[0]!;
+
+    const filter = encodeURIComponent(
+      `state eq '${stateCode}' and declarationDate ge '${sinceDate}T00:00:00.000z'`,
+    );
+    const femaUrl =
+      `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries` +
+      `?$filter=${filter}&$orderby=declarationDate desc&$top=200&$select=disasterNumber,declarationType,incidentType,declarationDate,incidentBeginDate,title,state`;
+
+    const femaResp = await fetchWithRetry(femaUrl, 15000);
+    const femaData = await femaResp.json() as {
+      DisasterDeclarationsSummaries?: Array<{
+        disasterNumber?: number;
+        declarationType?: string;
+        incidentType?: string;
+        declarationDate?: string;
+        incidentBeginDate?: string;
+        title?: string;
+        state?: string;
+      }>;
+    };
+
+    const declarations = femaData?.DisasterDeclarationsSummaries ?? [];
+
+    // Deduplicate by disaster number (same disaster can have multiple county entries)
+    const uniqueDisasters = new Map<number, (typeof declarations)[number]>();
+    for (const d of declarations) {
+      if (d.disasterNumber && !uniqueDisasters.has(d.disasterNumber)) {
+        uniqueDisasters.set(d.disasterNumber, d);
+      }
+    }
+
+    const disasters = Array.from(uniqueDisasters.values());
+
+    // Compute type breakdown
+    const typeCounts: Record<string, number> = {};
+    for (const d of disasters) {
+      const t = d.incidentType ?? 'Other';
+      typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+    }
+
+    // Sort types by frequency
+    const topTypes = Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([type, count]) => `${type} (${count})`);
+
+    const latest = disasters[0];
+
+    return {
+      layerType: 'storm_events',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'FEMA Disaster Declarations',
+      attribution: 'Federal Emergency Management Agency',
+      summary: {
+        state_code: stateCode,
+        state_name: stateName,
+        county_fips: countyFips ?? null,
+        disaster_count_10yr: disasters.length,
+        major_disaster_count: disasters.filter((d) => d.declarationType === 'DR').length,
+        latest_disaster_date: latest?.declarationDate?.split('T')[0] ?? null,
+        latest_disaster_title: latest?.title ?? null,
+        latest_disaster_type: latest?.incidentType ?? null,
+        type_breakdown: topTypes,
+        most_common_type: topTypes[0]?.replace(/\s*\(\d+\)$/, '') ?? null,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Sprint P: USDA NASS Cropland Data Layer (CropScape) ───────────────────
+
+async function fetchCropValidation(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    // Use most recent full year (current year may not be published yet)
+    const year = new Date().getFullYear() - 1;
+    const url =
+      `https://nassgeodata.gmu.edu/axis2/services/CDLService/GetCDLValue` +
+      `?year=${year}&x=${lng}&y=${lat}`;
+
+    const resp = await fetchWithRetry(url, 15000);
+    const text = await resp.text();
+
+    // CropScape returns XML; parse with DOMParser
+    let cropCode = -1;
+    let cropName = '';
+    let category = '';
+
+    // Try XML parse
+    if (text.includes('<')) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/xml');
+
+      // Response shape: <GetCDLValueResponse><Result><value>1</value><category>Crop</category></Result></GetCDLValueResponse>
+      // Or newer: returnedValue attribute
+      const resultNode = doc.querySelector('Result');
+      if (resultNode) {
+        cropCode = parseInt(resultNode.querySelector('value')?.textContent ?? '-1', 10);
+        category = resultNode.querySelector('category')?.textContent ?? '';
+        cropName = category; // category IS the crop name in CDL
+      }
+      // Alternative format: result attribute on root
+      const returnedValue = doc.documentElement?.getAttribute('returnedValue');
+      if (returnedValue && cropCode < 0) {
+        cropCode = parseInt(returnedValue, 10);
+      }
+    }
+
+    // Try JSON parse fallback
+    if (cropCode < 0) {
+      try {
+        const json = JSON.parse(text) as { value?: number | string; category?: string; cropname?: string };
+        cropCode = Number(json.value ?? -1);
+        cropName = json.cropname ?? json.category ?? '';
+        category = json.category ?? '';
+      } catch {
+        // Not JSON either
+      }
+    }
+
+    if (cropCode < 0 || !isFinite(cropCode)) return null;
+
+    // Classify the CDL code into broad land use category
+    const landUse = classifyCDLCode(cropCode, cropName);
+
+    return {
+      layerType: 'crop_validation',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: `${year}-01-01`,
+      sourceApi: 'USDA NASS CropScape CDL',
+      attribution: 'USDA National Agricultural Statistics Service',
+      summary: {
+        cdl_crop_code: cropCode,
+        cdl_crop_name: cropName || `Code ${cropCode}`,
+        cdl_year: year,
+        land_use_class: landUse.class,
+        is_agricultural: landUse.isAgricultural,
+        is_cropland: landUse.isCropland,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Classify CDL crop code into broad land use categories */
+function classifyCDLCode(code: number, name: string): { class: string; isAgricultural: boolean; isCropland: boolean } {
+  const n = name.toLowerCase();
+  // Row crops (codes 1-60 are mostly row crops)
+  if (code >= 1 && code <= 60) return { class: 'Row Crop', isAgricultural: true, isCropland: true };
+  // Orchards, vineyards, berries (66-77)
+  if (code >= 66 && code <= 77) return { class: 'Orchard/Vineyard', isAgricultural: true, isCropland: true };
+  // Other crops (200-254)
+  if (code >= 200 && code <= 254) return { class: 'Specialty Crop', isAgricultural: true, isCropland: true };
+  // Pasture/hay (36-37, 62)
+  if (code === 36 || code === 37 || code === 62) return { class: 'Pasture/Hay', isAgricultural: true, isCropland: false };
+  // Fallow/idle (61)
+  if (code === 61) return { class: 'Fallow/Idle', isAgricultural: true, isCropland: false };
+  // Forest (141-143)
+  if (code >= 141 && code <= 143) return { class: 'Forest', isAgricultural: false, isCropland: false };
+  // Shrubland (152)
+  if (code === 152) return { class: 'Shrubland', isAgricultural: false, isCropland: false };
+  // Grassland (171, 176)
+  if (code === 171 || code === 176) return { class: 'Grassland', isAgricultural: false, isCropland: false };
+  // Wetland (190, 195)
+  if (code === 190 || code === 195) return { class: 'Wetland', isAgricultural: false, isCropland: false };
+  // Developed (121-124)
+  if (code >= 121 && code <= 124) return { class: 'Developed', isAgricultural: false, isCropland: false };
+  // Water (111, 83)
+  if (code === 111 || code === 83) return { class: 'Water', isAgricultural: false, isCropland: false };
+  // Fallback by name
+  if (n.includes('crop') || n.includes('corn') || n.includes('wheat') || n.includes('soy')) {
+    return { class: 'Cropland', isAgricultural: true, isCropland: true };
+  }
+  if (n.includes('pasture') || n.includes('hay') || n.includes('grass')) {
+    return { class: 'Pasture', isAgricultural: true, isCropland: false };
+  }
+  return { class: 'Other', isAgricultural: false, isCropland: false };
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

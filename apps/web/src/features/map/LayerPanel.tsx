@@ -30,6 +30,8 @@ const LAYER_LABELS: Record<LayerType, string> = {
   water_quality:      'Water Quality',
   superfund:          'Superfund Sites',
   critical_habitat:   'Critical Habitat',
+  storm_events:       'Storm Events',
+  crop_validation:    'Crop Validation',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -48,6 +50,8 @@ const LAYER_ICONS: Record<LayerType, string> = {
   water_quality:      '◌',
   superfund:          '☢',
   critical_habitat:   '🦅',
+  storm_events:       '⚡',
+  crop_validation:    '🌾',
 };
 
 const CONFIDENCE_COLORS = {
