@@ -169,6 +169,12 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Infrastructure (OpenStreetMap Overpass API — universal, no auth)
   fetchers.push(fetchInfrastructure(lat, lng).then(trackLive));
 
+  // Sprint M: Groundwater depth (USGS NWIS — US only)
+  fetchers.push(fetchUSGSNWIS(lat, lng, options.country).then(trackLive));
+
+  // Sprint M: Water quality (EPA WQP — US only)
+  fetchers.push(fetchEPAWQP(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
@@ -3803,6 +3809,212 @@ out center;`;
     };
   } catch {
     // Graceful degradation — Overpass may be unreachable or rate-limited
+    return null;
+  }
+}
+
+// ── Sprint M: USGS NWIS Groundwater ────────────────────────────────────────
+
+async function fetchUSGSNWIS(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    const today = new Date();
+    const endDT = today.toISOString().split('T')[0]!;
+    const startDate = new Date(today);
+    startDate.setFullYear(startDate.getFullYear() - 1);
+    const startDT = startDate.toISOString().split('T')[0]!;
+
+    const bBox = `${(lng - 0.5).toFixed(4)},${(lat - 0.5).toFixed(4)},${(lng + 0.5).toFixed(4)},${(lat + 0.5).toFixed(4)}`;
+    const url =
+      `https://waterservices.usgs.gov/nwis/gwlevels/?format=json` +
+      `&bBox=${bBox}&siteType=GW&parameterCd=72019` +
+      `&startDT=${startDT}&endDT=${endDT}`;
+
+    const resp = await fetchWithRetry(url, 15000);
+    const data = await resp.json() as {
+      value?: {
+        timeSeries?: Array<{
+          sourceInfo?: {
+            siteName?: string;
+            geoLocation?: { geogLocation?: { latitude?: number; longitude?: number } };
+          };
+          values?: Array<{ value?: Array<{ value?: string; dateTime?: string }> }>;
+        }>;
+      };
+    };
+
+    const timeSeries = data?.value?.timeSeries ?? [];
+    if (timeSeries.length === 0) return null;
+
+    interface WellRecord {
+      depthFt: number;
+      depthM: number;
+      km: number;
+      name: string;
+      date: string;
+    }
+
+    const wells: WellRecord[] = [];
+    for (const ts of timeSeries) {
+      const siteName = ts.sourceInfo?.siteName ?? 'Unknown well';
+      const siteLat = ts.sourceInfo?.geoLocation?.geogLocation?.latitude;
+      const siteLng = ts.sourceInfo?.geoLocation?.geogLocation?.longitude;
+      if (siteLat == null || siteLng == null) continue;
+
+      const values = ts.values?.[0]?.value ?? [];
+      const lastValid = [...values].reverse().find((v) => v.value != null && v.value !== '' && !isNaN(Number(v.value)));
+      if (!lastValid) continue;
+
+      const depthFt = Number(lastValid.value);
+      if (!isFinite(depthFt) || depthFt < 0) continue;
+
+      wells.push({
+        depthFt,
+        depthM: Math.round((depthFt / 3.28084) * 10) / 10,
+        km: Math.round(haversineKm(lat, lng, siteLat, siteLng) * 10) / 10,
+        name: siteName,
+        date: lastValid.dateTime?.split('T')[0] ?? endDT,
+      });
+    }
+
+    if (wells.length === 0) return null;
+
+    wells.sort((a, b) => a.km - b.km);
+    const nearest = wells[0]!;
+
+    return {
+      layerType: 'groundwater',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: nearest.date,
+      sourceApi: 'USGS NWIS',
+      attribution: 'U.S. Geological Survey National Water Information System',
+      summary: {
+        groundwater_depth_m: nearest.depthM,
+        groundwater_depth_ft: Math.round(nearest.depthFt * 10) / 10,
+        station_nearest_km: nearest.km,
+        station_name: nearest.name,
+        station_count: wells.length,
+        measurement_date: nearest.date,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Sprint M: EPA Water Quality Portal ─────────────────────────────────────
+
+async function fetchEPAWQP(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+  try {
+    // Step A: find nearest monitoring station
+    const stationUrl =
+      `https://www.waterqualitydata.us/data/Station/search` +
+      `?lat=${lat}&long=${lng}&within=25&mimeType=json`;
+
+    const stationResp = await fetchWithRetry(stationUrl, 15000);
+    const stations = await stationResp.json() as Array<{
+      MonitoringLocationIdentifier?: string;
+      MonitoringLocationName?: string;
+      LatitudeMeasure?: string;
+      LongitudeMeasure?: string;
+      OrganizationFormalName?: string;
+    }>;
+
+    interface StationInfo { id: string; name: string; km: number; org: string }
+    let nearestStation: StationInfo | null = null;
+    if (Array.isArray(stations) && stations.length > 0) {
+      const mapped: StationInfo[] = stations
+        .filter((s) => s.LatitudeMeasure != null && s.LongitudeMeasure != null)
+        .map((s) => ({
+          id: s.MonitoringLocationIdentifier ?? '',
+          name: s.MonitoringLocationName ?? 'Unknown station',
+          km: Math.round(haversineKm(lat, lng, Number(s.LatitudeMeasure), Number(s.LongitudeMeasure)) * 10) / 10,
+          org: s.OrganizationFormalName ?? '',
+        }));
+      mapped.sort((a, b) => a.km - b.km);
+      nearestStation = mapped[0] ?? null;
+    }
+
+    // Step B: fetch results for key parameters
+    const today = new Date();
+    const endDT = today.toISOString().split('T')[0]!;
+    const startDate = new Date(today);
+    startDate.setFullYear(startDate.getFullYear() - 1);
+    const startDT = startDate.toISOString().split('T')[0]!;
+
+    const chars = encodeURIComponent('pH,Dissolved oxygen (DO),Nitrate,Turbidity');
+    const resultUrl =
+      `https://www.waterqualitydata.us/data/Result/search` +
+      `?lat=${lat}&long=${lng}&within=25` +
+      `&characteristicName=${chars}` +
+      `&startDateLo=${startDT}&mimeType=json`;
+
+    const resultResp = await fetchWithRetry(resultUrl, 20000);
+    const results = await resultResp.json() as Array<{
+      CharacteristicName?: string;
+      ResultMeasureValue?: string;
+      ResultMeasure?: { MeasureUnitCode?: string };
+      ActivityStartDate?: string;
+    }>;
+
+    // Pick latest value per characteristic
+    type CharMap = Record<string, { value: number; date: string; unit: string }>;
+    const charLatest: CharMap = {};
+
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        const name = r.CharacteristicName ?? '';
+        const raw = r.ResultMeasureValue ?? '';
+        const val = Number(raw);
+        if (!isFinite(val)) continue;
+        const date = r.ActivityStartDate ?? endDT;
+        const unit = r.ResultMeasure?.MeasureUnitCode ?? '';
+        const existing = charLatest[name];
+        if (!existing || date > existing.date) {
+          charLatest[name] = { value: val, date, unit };
+        }
+      }
+    }
+
+    const ph = charLatest['pH'];
+    const doVal = charLatest['Dissolved oxygen (DO)'];
+    const nitrate = charLatest['Nitrate'];
+    const turbidity = charLatest['Turbidity'];
+
+    const lastMeasured = [ph, doVal, nitrate, turbidity]
+      .filter(Boolean)
+      .map((v) => v!.date)
+      .sort()
+      .reverse()[0] ?? null;
+
+    if (!ph && !doVal && !nitrate && !turbidity && !nearestStation) return null;
+
+    return {
+      layerType: 'water_quality',
+      fetchStatus: 'complete',
+      confidence: 'medium',
+      dataDate: lastMeasured ?? endDT,
+      sourceApi: 'EPA Water Quality Portal',
+      attribution: 'EPA National Water Quality Monitoring Council',
+      summary: {
+        ph_value: ph?.value ?? null,
+        ph_date: ph?.date ?? null,
+        dissolved_oxygen_mg_l: doVal?.value ?? null,
+        do_date: doVal?.date ?? null,
+        nitrate_mg_l: nitrate?.value ?? null,
+        nitrate_date: nitrate?.date ?? null,
+        turbidity_ntu: turbidity?.value ?? null,
+        turbidity_date: turbidity?.date ?? null,
+        station_nearest_km: nearestStation?.km ?? null,
+        station_name: nearestStation?.name ?? null,
+        station_count: Array.isArray(stations) ? stations.length : 0,
+        orgname: nearestStation?.org ?? null,
+        last_measured: lastMeasured,
+      },
+    };
+  } catch {
     return null;
   }
 }

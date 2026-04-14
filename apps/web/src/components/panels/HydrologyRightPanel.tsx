@@ -48,6 +48,22 @@ interface SoilsSummary {
   hydrologic_group?: string;
   drainage_class?: string;
 }
+interface GroundwaterSummary {
+  groundwater_depth_m?: number | null;
+  station_nearest_km?: number | null;
+  station_name?: string | null;
+  measurement_date?: string | null;
+}
+interface WaterQualitySummary {
+  ph_value?: number | null;
+  ph_date?: string | null;
+  dissolved_oxygen_mg_l?: number | null;
+  do_date?: string | null;
+  nitrate_mg_l?: number | null;
+  station_nearest_km?: number | null;
+  station_name?: string | null;
+  last_measured?: string | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -125,11 +141,13 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
   const { live, metrics } = useMemo(() => {
     const loading = !siteData || siteData.status !== 'complete';
 
-    const climate   = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate')             : null;
-    const watershed = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed')         : null;
-    const wetFlood  = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood'): null;
-    const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')         : null;
-    const soils     = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
+    const climate      = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate')             : null;
+    const watershed    = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed')         : null;
+    const wetFlood     = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood'): null;
+    const elevation    = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')         : null;
+    const soils        = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')                 : null;
+    const groundwater  = siteData ? getLayerSummary<GroundwaterSummary>(siteData, 'groundwater')      : null;
+    const waterQuality = siteData ? getLayerSummary<WaterQualitySummary>(siteData, 'water_quality')   : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -160,15 +178,23 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
 
     return {
       live: {
-        rainfall:      `${precipMm} mm/yr`,
-        rainfallNote:  isLive ? 'NOAA/ECCC 30-yr avg' : 'Estimated',
-        watershed:     watershed?.watershed_name ?? '—',
-        nearestStream: watershed?.nearest_stream_m != null ? `${watershed.nearest_stream_m}m` : '—',
-        flowDirection: watershed?.flow_direction ?? '—',
-        floodZone:     wetFlood?.flood_zone ?? '—',
-        wetlandPct:    wetFlood?.wetland_pct != null ? `${wetFlood.wetland_pct}%` : '—',
-        retScore:      m.retentionScore,
-        budget: loading ? null : budget,
+        rainfall:             `${precipMm} mm/yr`,
+        rainfallNote:         isLive ? 'NOAA/ECCC 30-yr avg' : 'Estimated',
+        watershed:            watershed?.watershed_name ?? '—',
+        nearestStream:        watershed?.nearest_stream_m != null ? `${watershed.nearest_stream_m}m` : '—',
+        flowDirection:        watershed?.flow_direction ?? '—',
+        floodZone:            wetFlood?.flood_zone ?? '—',
+        wetlandPct:           wetFlood?.wetland_pct != null ? `${wetFlood.wetland_pct}%` : '—',
+        retScore:             m.retentionScore,
+        budget:               loading ? null : budget,
+        groundwaterDepth:     groundwater?.groundwater_depth_m != null
+          ? `${Number(groundwater.groundwater_depth_m).toFixed(1)}m below surface` : '—',
+        groundwaterStation:   groundwater?.station_name ?? null,
+        waterQualityPH:       waterQuality?.ph_value != null
+          ? `pH ${Number(waterQuality.ph_value).toFixed(1)}` : '—',
+        waterQualityDO:       waterQuality?.dissolved_oxygen_mg_l != null
+          ? `${Number(waterQuality.dissolved_oxygen_mg_l).toFixed(1)} mg/L` : '—',
+        waterQualityStation:  waterQuality?.station_name ?? null,
       },
       metrics: m,
     };
@@ -309,6 +335,14 @@ function RealtimePanel({ live, metrics, isLoading }: {
             color={/Zone X|minimal|not regulated/i.test(live?.floodZone ?? '') ? confidence.high : errorToken.DEFAULT} />
           <DataRow label="Wetland Coverage" value={live?.wetlandPct ?? '—'} />
           <DataRow label="Retention Score"  value={live?.retScore ? `${live.retScore}/100` : '—'} color={semantic.sidebarActive} />
+          <DataRow label="Groundwater Depth"
+            value={live?.groundwaterDepth ?? '—'}
+            note={live?.groundwaterStation ?? undefined} />
+          <DataRow label="Water Quality pH"
+            value={live?.waterQualityPH ?? '—'}
+            note={live?.waterQualityStation ?? undefined} />
+          <DataRow label="Dissolved Oxygen"
+            value={live?.waterQualityDO ?? '—'} />
         </div>
       </div>
     </>
@@ -411,6 +445,8 @@ function buildLive() { return null as unknown as {
   nearestStream: string; flowDirection: string; floodZone: string;
   wetlandPct: string; retScore: number;
   budget: { precip: string; retention: string; target: string; demand: string; surplus: string } | null;
+  groundwaterDepth: string; groundwaterStation: string | null;
+  waterQualityPH: string; waterQualityDO: string; waterQualityStation: string | null;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }

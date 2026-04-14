@@ -209,6 +209,10 @@ export function computeAssessmentScores(
   const soilRegen = layerByType(layers, 'soil_regeneration');
   const terrain = layerByType(layers, 'terrain_analysis');
 
+  // Sprint M: direct-fetch federal data (US-only, may be absent)
+  const groundwater = layerByType(layers, 'groundwater');
+  const waterQuality = layerByType(layers, 'water_quality');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -255,7 +259,7 @@ export function computeAssessmentScores(
   const solarRadiation = num(climate, 'solar_radiation_kwh_m2_day');
 
   return [
-    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring),
+    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure),
@@ -287,6 +291,8 @@ function computeWaterResilience(
     irrigationDeficitMm: number;
     propertyM2: number;
   },
+  groundwater?: MockLayerResult | undefined,
+  waterQuality?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const cc = layerConfidence(climate);
@@ -392,6 +398,28 @@ function computeWaterResilience(
     components.push(comp('irrigation_feasibility', defPts, 5, 'climate', cc));
   } else {
     components.push(comp('irrigation_feasibility', 0, 5, 'climate', 'low'));
+  }
+
+  // Sprint M: Groundwater depth (max 10) — optimal 3–10m; shallow = waterlogging risk; deep = well cost
+  if (groundwater) {
+    const depthM = num(groundwater, 'groundwater_depth_m');
+    const gwPts = depthM === 0 ? 0
+      : depthM <= 3 ? 5
+      : depthM <= 10 ? 10
+      : depthM <= 30 ? 6
+      : 2;
+    components.push(comp('groundwater_depth', gwPts, 10, 'groundwater', layerConfidence(groundwater)));
+  } else {
+    components.push(comp('groundwater_depth', 0, 10, 'groundwater', 'low'));
+  }
+
+  // Sprint M: Water quality pH (max 5) — ideal 6.5–8.5 for irrigation and aquatic health
+  if (waterQuality) {
+    const ph = num(waterQuality, 'ph_value');
+    const phPts = ph === 0 ? 0 : ph >= 6.5 && ph <= 8.5 ? 5 : ph >= 6.0 && ph <= 9.0 ? 3 : 1;
+    components.push(comp('water_quality_ph', phPts, 5, 'water_quality', layerConfidence(waterQuality)));
+  } else {
+    components.push(comp('water_quality_ph', 0, 5, 'water_quality', 'low'));
   }
 
   return buildResult('Water Resilience', 40, components);

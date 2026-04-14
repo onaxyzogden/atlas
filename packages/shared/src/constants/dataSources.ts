@@ -11,10 +11,12 @@ export type LayerType =
   | 'infrastructure'
   | 'watershed_derived'
   | 'microclimate'
-  | 'soil_regeneration';
+  | 'soil_regeneration'
+  | 'groundwater'
+  | 'water_quality';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -90,4 +92,7 @@ export const DATA_COMPLETENESS_WEIGHTS: Partial<Record<LayerType, number>> = {
   land_cover: 0.10,
   climate: 0.10,
   // Derived layers do not contribute to Tier 1 completeness
+  // Sprint M: direct-fetch layers (US-only federal APIs)
+  groundwater: 0.04,
+  water_quality: 0.04,
 };

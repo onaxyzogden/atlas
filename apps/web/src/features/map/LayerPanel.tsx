@@ -26,6 +26,8 @@ const LAYER_LABELS: Record<LayerType, string> = {
   watershed_derived:  'Watershed Analysis',
   microclimate:       'Microclimate',
   soil_regeneration:  'Soil Regeneration',
+  groundwater:        'Groundwater Depth',
+  water_quality:      'Water Quality',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -40,6 +42,8 @@ const LAYER_ICONS: Record<LayerType, string> = {
   watershed_derived:  '◈',
   microclimate:       '❂',
   soil_regeneration:  '◇',
+  groundwater:        '▽',
+  water_quality:      '◌',
 };
 
 const CONFIDENCE_COLORS = {
