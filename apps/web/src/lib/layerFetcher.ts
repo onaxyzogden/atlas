@@ -484,7 +484,7 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
 
   try {
     // Extended query: fetch all major chorizon properties with component weighting
-    const query = `SELECT mu.muname, mu.musym, c.drainagecl, c.hydgrp, c.taxorder, c.nirrcapcl, c.comppct_r, ch.om_r, ch.ph1to1h2o_r, ch.sandtotal_r, ch.claytotal_r, ch.silttotal_r, ch.cec7_r, ch.ec_r, ch.dbthirdbar_r, ch.ksat_r, ch.awc_r, ch.caco3_r, ch.sar_r, c.resdepth_r FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey LEFT JOIN chorizon ch ON c.cokey = ch.cokey AND ch.hzdept_r = 0 WHERE mu.mukey IN (SELECT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT(${lng} ${lat})')) AND c.majcompflag = 'Yes' ORDER BY c.comppct_r DESC`;
+    const query = `SELECT mu.muname, mu.musym, c.drainagecl, c.hydgrp, c.taxorder, c.nirrcapcl, c.comppct_r, ch.om_r, ch.ph1to1h2o_r, ch.sandtotal_r, ch.claytotal_r, ch.silttotal_r, ch.cec7_r, ch.ec_r, ch.dbthirdbar_r, ch.ksat_r, ch.awc_r, ch.caco3_r, ch.sar_r, ch.kffact, c.resdepth_r FROM mapunit mu INNER JOIN component c ON mu.mukey = c.mukey LEFT JOIN chorizon ch ON c.cokey = ch.cokey AND ch.hzdept_r = 0 WHERE mu.mukey IN (SELECT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('POINT(${lng} ${lat})')) AND c.majcompflag = 'Yes' ORDER BY c.comppct_r DESC`;
 
     const resp = await fetchWithRetry('https://SDMDataAccess.sc.egov.usda.gov/Tabular/SDMTabularService/post.rest', 10000, {
       method: 'POST',
@@ -520,7 +520,7 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
 
     // Weighted average computation across components
     const pf = (v: string | null | undefined) => v != null ? parseFloat(v) : null;
-    const numFields = ['om_r', 'ph1to1h2o_r', 'sandtotal_r', 'claytotal_r', 'silttotal_r', 'cec7_r', 'ec_r', 'dbthirdbar_r', 'ksat_r', 'awc_r', 'caco3_r', 'sar_r', 'resdepth_r'] as const;
+    const numFields = ['om_r', 'ph1to1h2o_r', 'sandtotal_r', 'claytotal_r', 'silttotal_r', 'cec7_r', 'ec_r', 'dbthirdbar_r', 'ksat_r', 'awc_r', 'caco3_r', 'sar_r', 'kffact', 'resdepth_r'] as const;
     const weighted: Record<string, number | null> = {};
 
     for (const field of numFields) {
@@ -556,6 +556,7 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
     const awc = weighted['awc_r'] ?? null;
     const caco3 = weighted['caco3_r'] ?? null;
     const sar = weighted['sar_r'] ?? null;
+    const kfact = weighted['kffact'] ?? null;
     const rootingDepth = weighted['resdepth_r'] ?? null;
 
     // Derive texture class (USDA texture triangle, simplified)
@@ -617,6 +618,7 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
         sand_pct: round1(sand),
         caco3_pct: round2(caco3),
         sodium_adsorption_ratio: round1(sar),
+        kfact: round2(kfact),
         texture_class: textureClass,
         fertility_index: fertilityIndex,
         salinization_risk: salinizationRisk,
@@ -826,6 +828,13 @@ function soilsFromLatitude(lat: number, country: string): MockLayerResult {
       hydrologic_group: 'C',
       farmland_class: country === 'CA' ? 'Class 2 (CSCS)' : 'Estimated',
       depth_to_bedrock_m: 'N/A',
+      // Sprint S: realistic defaults so scorers don't silently return 0
+      bulk_density_g_cm3: lat > 44 ? 1.45 : 1.35,  // sandy soils are denser
+      ec_ds_m: 0.3,                                  // non-saline baseline
+      sodium_adsorption_ratio: 2.0,                  // low sodicity baseline
+      rooting_depth_cm: 100,                         // typical agricultural depth
+      fertility_index: 55,                           // moderate fertility
+      kfact: 0.28,                                   // medium erodibility (RUSLE K-factor)
     },
   };
 }

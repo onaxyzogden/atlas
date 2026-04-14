@@ -48,6 +48,13 @@ interface SoilsSummary {
   hydrologic_group?: string;
   drainage_class?: string;
   organic_matter_pct?: number;
+  // Sprint S: extended SSURGO fields
+  bulk_density_g_cm3?: number | null;
+  ec_ds_m?: number | null;
+  sodium_adsorption_ratio?: number | null;
+  rooting_depth_cm?: number | null;
+  fertility_index?: number | null;
+  kfact?: number | null;
 }
 interface LandCoverSummary {
   tree_canopy_pct?: number;
@@ -298,6 +305,9 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         cdlLandUse:           cropValid?.land_use_class ?? null,
         cdlIsAgricultural:    cropValid?.is_agricultural ?? false,
         cdlYear:              cropValid?.cdl_year ?? null,
+        meanSlopeDeg:         elevation?.mean_slope_deg ?? null,
+        minElevM:             elevation?.min_elevation_m ?? null,
+        maxElevM:             elevation?.max_elevation_m ?? null,
         biomassGjHa,
         microhydroKw,
         carbonSeqHaYr,
@@ -514,14 +524,16 @@ function RealtimePanel({ live, metrics, isLoading }: {
         </div>
       </div>
 
-      {/* Sprint P: Crop Validation */}
-      {live?.cdlCropName && (
+      {/* Sprint P: Crop Validation — Sprint S: show when either crop name or land use class is available */}
+      {(live?.cdlCropName || live?.cdlLandUse) && (
         <div className={s.panelSection} style={{ marginTop: 16 }}>
           <span className={s.sectionTag}>CROP VALIDATION</span>
           <div className={s.dataRows}>
-            <DataRow label="Observed Crop"
-              value={live.cdlCropName}
-              note={live.cdlYear ? `USDA CDL ${live.cdlYear}` : undefined} />
+            {live.cdlCropName && (
+              <DataRow label="Observed Crop"
+                value={live.cdlCropName}
+                note={live.cdlYear ? `USDA CDL ${live.cdlYear}` : undefined} />
+            )}
             <DataRow label="Land Use Class"
               value={live.cdlLandUse ?? '—'}
               color={live.cdlIsAgricultural ? confidence.high : confidence.medium} />
@@ -565,6 +577,25 @@ function RealtimePanel({ live, metrics, isLoading }: {
           )}
         </div>
       </div>
+
+      {/* Sprint S: Terrain */}
+      {(live.meanSlopeDeg !== null || live.minElevM !== null) && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>TERRAIN</span>
+          <div className={s.dataRows}>
+            {live.meanSlopeDeg !== null && (
+              <DataRow label="Mean Slope"
+                value={`${live.meanSlopeDeg.toFixed(1)}°`}
+                color={live.meanSlopeDeg > 15 ? errorToken.DEFAULT : live.meanSlopeDeg > 8 ? confidence.medium : confidence.high} />
+            )}
+            {live.minElevM !== null && live.maxElevM !== null && (
+              <DataRow label="Elevation Range"
+                value={`${live.minElevM}–${live.maxElevM} m`}
+                note={`Δ${live.maxElevM - live.minElevM} m relief`} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -690,6 +721,7 @@ function buildLive() { return null as unknown as {
   critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
+  meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;
 }; }
