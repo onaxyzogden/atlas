@@ -345,6 +345,33 @@ function RealtimePanel({ live, metrics, isLoading }: {
             value={live?.waterQualityDO ?? '—'} />
         </div>
       </div>
+
+      {/* Sprint N: Hydrology Intelligence — computed metrics surfacing */}
+      <div className={s.panelSection} style={{ marginTop: 16 }}>
+        <span className={s.sectionTag}>HYDROLOGY INTELLIGENCE</span>
+        <div className={s.dataRows}>
+          <DataRow label="Evapotranspiration"
+            value={`${Math.round(metrics.annualEtMm)} mm/yr`}
+            note="Blaney-Criddle estimate" />
+          <DataRow label="Potential ET (PET)"
+            value={`${Math.round(metrics.petMm)} mm/yr`} />
+          <DataRow label="Aridity Index"
+            value={`${metrics.aridityIndex.toFixed(2)} (${metrics.aridityClass})`}
+            color={metrics.aridityClass === 'Humid' || metrics.aridityClass === 'Dry sub-humid' ? confidence.high
+              : metrics.aridityClass === 'Semi-arid' ? confidence.medium : errorToken.DEFAULT} />
+          <DataRow label="Water Balance"
+            value={`${metrics.waterBalanceMm >= 0 ? '+' : ''}${Math.round(metrics.waterBalanceMm)} mm/yr`}
+            color={metrics.waterBalanceMm >= 0 ? confidence.high : errorToken.DEFAULT} />
+          <DataRow label="Irrigation Deficit"
+            value={metrics.irrigationDeficitMm > 0 ? `${Math.round(metrics.irrigationDeficitMm)} mm/yr` : 'None'}
+            color={metrics.irrigationDeficitMm === 0 ? confidence.high : confidence.medium} />
+          <DataRow label="GW Recharge Est."
+            value={`${Math.round(metrics.groundwaterRechargeMm)} mm/yr`} />
+          <DataRow label="Growing Period"
+            value={metrics.lgpDays > 0 ? `${metrics.lgpDays} days` : '—'}
+            note={metrics.lgpClass || undefined} />
+        </div>
+      </div>
     </>
   );
 }
@@ -433,6 +460,25 @@ function DesignPanel({ live, metrics }: {
           </div>
         </div>
       )}
+
+      {/* Sprint N: Storage & Resilience Metrics */}
+      <div className={s.panelSection} style={{ marginTop: 16 }}>
+        <span className={s.sectionTag}>STORAGE & RESILIENCE</span>
+        <div className={s.dataRows}>
+          <DataRow label="RWH Potential"
+            value={`~${fmtGal(metrics.rwhPotentialGal)} gal/yr`} />
+          <DataRow label="RWH Buffer (2-wk)"
+            value={`~${fmtGal(metrics.rwhStorageGal)} gal`} />
+          <DataRow label="Total Site Storage"
+            value={`~${fmtGal(metrics.totalStorageGal)} gal`} />
+          <DataRow label="Catchment Potential"
+            value={`~${fmtGal(metrics.catchmentPotentialGal)} gal`} />
+          <DataRow label="Drought Buffer"
+            value={`${metrics.droughtBufferDays} days`}
+            color={metrics.droughtBufferDays >= 14 ? confidence.high
+              : metrics.droughtBufferDays >= 7 ? confidence.medium : errorToken.DEFAULT} />
+        </div>
+      </div>
     </>
   );
 }
