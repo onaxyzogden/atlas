@@ -109,6 +109,13 @@ interface AirQualitySummary {
   pm25_national_pct?: number | null;
   aqi_class?: string | null;
 }
+interface EarthquakeHazardSummary {
+  pga_g?: number | null;
+  ss_g?: number | null;
+  s1_g?: number | null;
+  sds_g?: number | null;
+  hazard_class?: string | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -199,6 +206,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const stormEvents  = siteData ? getLayerSummary<StormEventsSummary>(siteData, 'storm_events')         : null;
     const cropValid    = siteData ? getLayerSummary<CropValidationSummary>(siteData, 'crop_validation')   : null;
     const airQuality   = siteData ? getLayerSummary<AirQualitySummary>(siteData, 'air_quality')           : null;
+    const quakeHazard  = siteData ? getLayerSummary<EarthquakeHazardSummary>(siteData, 'earthquake_hazard') : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -317,6 +325,9 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         aqOzone:              airQuality?.ozone_ppb ?? null,
         aqNatlPct:            airQuality?.pm25_national_pct ?? null,
         aqClass:              airQuality?.aqi_class ?? null,
+        quakePga:             quakeHazard?.pga_g ?? null,
+        quakeSs:              quakeHazard?.ss_g ?? null,
+        quakeClass:           quakeHazard?.hazard_class ?? null,
         meanSlopeDeg:         elevation?.mean_slope_deg ?? null,
         minElevM:             elevation?.min_elevation_m ?? null,
         maxElevM:             elevation?.max_elevation_m ?? null,
@@ -564,6 +575,34 @@ function RealtimePanel({ live, metrics, isLoading }: {
         </div>
       )}
 
+      {/* Sprint U: Seismic Hazard */}
+      {live.quakeClass && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>SEISMIC HAZARD</span>
+          <div className={s.dataRows}>
+            <DataRow label="Hazard Class"
+              value={live.quakeClass}
+              color={
+                live.quakeClass === 'Very High' || live.quakeClass === 'High'
+                  ? errorToken.DEFAULT
+                  : live.quakeClass === 'Moderate'
+                  ? confidence.medium
+                  : confidence.high
+              } />
+            {live.quakePga !== null && (
+              <DataRow label="PGA"
+                value={`${live.quakePga}g`}
+                note="peak ground acceleration" />
+            )}
+            {live.quakeSs !== null && (
+              <DataRow label="Ss (0.2s)"
+                value={`${live.quakeSs}g`}
+                note="ASCE 7-22 Site Class D" />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Sprint P: Crop Validation — Sprint S: show when either crop name or land use class is available */}
       {(live?.cdlCropName || live?.cdlLandUse) && (
         <div className={s.panelSection} style={{ marginTop: 16 }}>
@@ -762,6 +801,7 @@ function buildLive() { return null as unknown as {
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
   aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
+  quakePga: number | null; quakeSs: number | null; quakeClass: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;

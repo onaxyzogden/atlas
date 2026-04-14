@@ -190,12 +190,15 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint T: Air quality (EPA EJSCREEN — US only)
   fetchers.push(fetchAirQuality(lat, lng, options.country).then(trackLive));
 
+  // Sprint U: Seismic hazard (USGS Design Maps — US only)
+  fetchers.push(fetchEarthquakeHazard(lat, lng, options.country).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
   setCache(cacheKey, results, isLive);
 
-  return { layers: results, isLive, liveCount, totalCount: 8 };
+  return { layers: results, isLive, liveCount, totalCount: 9 };
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
@@ -4483,6 +4486,62 @@ async function fetchAirQuality(lat: number, lng: number, country: string): Promi
         traffic_proximity:    traffic !== null ? Math.round(traffic) : null,
         pm25_national_pct:    pm25Pct !== null ? Math.round(pm25Pct) : null,
         aqi_class:            aqiClass,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Seismic Hazard (USGS Design Maps — US only) ────────────────────────────
+
+async function fetchEarthquakeHazard(lat: number, lng: number, country: string): Promise<MockLayerResult | null> {
+  if (country !== 'US') return null;
+
+  try {
+    // USGS ASCE 7-22 Design Maps — Risk Category II (standard occupancy), Site Class D (stiff soil)
+    const url = `https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude=${lat}&longitude=${lng}&riskCategory=II&siteClass=D&title=Atlas`;
+    const resp = await fetchWithRetry(url, 12000);
+    const data = await resp.json();
+
+    // Response shape: { response: { data: { pga, ss, s1, sms, sm1, sds, sd1, ... } } }
+    const d = data?.response?.data ?? data?.data ?? null;
+    if (!d) return null;
+
+    const pf = (v: unknown) => { const n = parseFloat(String(v ?? '')); return isFinite(n) ? n : null; };
+
+    const pga  = pf(d.pga);   // Peak Ground Acceleration (%g)
+    const ss   = pf(d.ss);    // 0.2s spectral response (%g)
+    const s1   = pf(d.s1);    // 1.0s spectral response (%g)
+    const sds  = pf(d.sds);   // Design spectral response 0.2s (%g)
+    const sd1  = pf(d.sd1);   // Design spectral response 1.0s (%g)
+
+    if (pga === null && ss === null) return null;
+
+    // Classify PGA into USGS hazard levels
+    const pgaVal = pga ?? 0;
+    const hazardClass = pgaVal >= 0.6  ? 'Very High'
+      : pgaVal >= 0.3  ? 'High'
+      : pgaVal >= 0.15 ? 'Moderate'
+      : pgaVal >= 0.05 ? 'Low'
+      : 'Very Low';
+
+    return {
+      layerType: 'earthquake_hazard',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'USGS Design Maps (ASCE 7-22)',
+      attribution: 'U.S. Geological Survey — National Seismic Hazard Model',
+      summary: {
+        pga_g:          pga !== null ? Math.round(pga * 1000) / 1000 : null,
+        ss_g:           ss  !== null ? Math.round(ss  * 1000) / 1000 : null,
+        s1_g:           s1  !== null ? Math.round(s1  * 1000) / 1000 : null,
+        sds_g:          sds !== null ? Math.round(sds * 1000) / 1000 : null,
+        sd1_g:          sd1 !== null ? Math.round(sd1 * 1000) / 1000 : null,
+        hazard_class:   hazardClass,
+        site_class:     'D',
+        risk_category:  'II',
       },
     };
   } catch {

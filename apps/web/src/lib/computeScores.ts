@@ -224,6 +224,9 @@ export function computeAssessmentScores(
   // Sprint T: air quality (EPA EJSCREEN — US-only)
   const airQuality = layerByType(layers, 'air_quality');
 
+  // Sprint U: seismic hazard (USGS Design Maps — US-only)
+  const earthquakeHazard = layerByType(layers, 'earthquake_hazard');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -348,7 +351,7 @@ export function computeAssessmentScores(
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
     computeRegenerativePotential(landCover, soils, soilRegen, carbonSeqTonsCO2HaYr),
-    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality, earthquakeHazard),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
@@ -791,6 +794,7 @@ function computeBuildability(
   superfund?: MockLayerResult | undefined,
   stormEvents?: MockLayerResult | undefined,
   airQuality?: MockLayerResult | undefined,
+  earthquakeHazard?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
@@ -907,6 +911,16 @@ function computeBuildability(
     components.push(comp('air_quality_pm25', aqPen, -8, 'air_quality', layerConfidence(airQuality)));
   } else {
     components.push(comp('air_quality_pm25', 0, -8, 'air_quality', 'low'));
+  }
+
+  // Sprint U: Seismic hazard — PGA (penalty, max -10)
+  // USGS ASCE 7-22 Site Class D. Rural land in CONUS averages 0.05-0.15g.
+  if (earthquakeHazard) {
+    const pga = num(earthquakeHazard, 'pga_g');
+    const seismicPen = pga >= 0.6 ? -10 : pga >= 0.3 ? -7 : pga >= 0.15 ? -3 : 0;
+    components.push(comp('seismic_hazard_pga', seismicPen, -10, 'earthquake_hazard', layerConfidence(earthquakeHazard)));
+  } else {
+    components.push(comp('seismic_hazard_pga', 0, -10, 'earthquake_hazard', 'low'));
   }
 
   return buildResult('Buildability', 75, components);
