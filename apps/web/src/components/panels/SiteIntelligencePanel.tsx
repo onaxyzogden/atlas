@@ -141,8 +141,8 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   );
 
   const assessmentScores = useMemo(
-    () => computeAssessmentScores(layers, project.acreage ?? null),
-    [layers, project.acreage],
+    () => computeAssessmentScores(layers, project.acreage ?? null, project.country),
+    [layers, project.acreage, project.country],
   );
 
   const overallScore = useMemo(
@@ -242,6 +242,11 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       floodZone:       typeof wfs?.flood_zone === 'string'      ? wfs.flood_zone      : HYDRO_DEFAULTS.floodZone,
       wetlandPct:      typeof wfs?.wetland_pct === 'number'     ? wfs.wetland_pct     : HYDRO_DEFAULTS.wetlandPct,
       annualTempC:     typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : HYDRO_DEFAULTS.annualTempC,
+      // Sprint I: monthly normals for LGP computation
+      monthlyNormals:  Array.isArray(cs?.['_monthly_normals']) ? cs['_monthly_normals'] as
+        { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] : null,
+      awcCmCm:         typeof ss?.awc_cm_cm === 'number' ? ss.awc_cm_cm : 0,
+      rootingDepthCm:  typeof ss?.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : 0,
     });
   }, [layers, project.acreage]);
 
@@ -275,17 +280,28 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     if (!soilsLayer) return null;
     const ss = soilsLayer.summary as Record<string, unknown> | undefined;
     if (!ss) return null;
+    const omPct = typeof ss.organic_matter_pct === 'number' ? ss.organic_matter_pct : null;
+    const bdRaw = typeof ss.bulk_density_g_cm3 === 'number' ? ss.bulk_density_g_cm3 : null;
+    const rdCm = typeof ss.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : null;
+    // Sprint I: carbon stock (IPCC formula + pedotransfer fallback for bulk density)
+    let carbonStockTCHa: number | null = null;
+    if (omPct != null && omPct > 0) {
+      const bd = bdRaw != null && bdRaw > 0 ? bdRaw : Math.max(0.8, 1.66 - 0.318 * Math.sqrt(omPct));
+      const depth = rdCm != null && rdCm > 0 ? rdCm : 30;
+      carbonStockTCHa = Math.round((omPct / 100) * 0.58 * bd * depth * 100 * 10) / 10;
+    }
     return {
       ph: typeof ss.ph === 'number' ? ss.ph : null,
-      organicMatterPct: typeof ss.organic_matter_pct === 'number' ? ss.organic_matter_pct : null,
+      organicMatterPct: omPct,
       cecMeq: typeof ss.cec_meq_100g === 'number' ? ss.cec_meq_100g : null,
-      bulkDensity: typeof ss.bulk_density_g_cm3 === 'number' ? ss.bulk_density_g_cm3 : null,
+      bulkDensity: bdRaw,
       ksatUmS: typeof ss.ksat_um_s === 'number' ? ss.ksat_um_s : null,
       caco3Pct: typeof ss.caco3_pct === 'number' ? ss.caco3_pct : null,
       awcCmCm: typeof ss.awc_cm_cm === 'number' ? ss.awc_cm_cm : null,
       textureClass: typeof ss.texture_class === 'string' ? ss.texture_class : null,
       drainageClass: typeof ss.drainage_class === 'string' ? ss.drainage_class : null,
-      rootingDepthCm: typeof ss.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : null,
+      rootingDepthCm: rdCm,
+      carbonStockTCHa,
     };
   }, [layers]);
 
@@ -562,7 +578,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 <span className={s.flagSource}>2-week buffer</span>
               </div>
               {/* Irrigation */}
-              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+              <div className={s.liveDataRow}>
                 <span className={s.liveDataLabel}>Irrigation</span>
                 <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
                   {hydroMetrics.irrigationDeficitMm === 0
@@ -572,6 +588,14 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 <span className={s.flagSource}>
                   {hydroMetrics.irrigationDeficitMm === 0 ? 'surplus' : 'vs PET'}
                 </span>
+              </div>
+              {/* Sprint I: Length of Growing Period */}
+              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <span className={s.liveDataLabel}>Growing Period</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  {hydroMetrics.lgpDays} days
+                </span>
+                <span className={s.flagSource}>{hydroMetrics.lgpClass}</span>
               </div>
             </div>
           )}
@@ -690,13 +714,30 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
               )}
               {/* Rooting Depth */}
               {soilMetrics.rootingDepthCm != null && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <div className={s.liveDataRow}>
                   <span className={s.liveDataLabel}>Rooting Depth</span>
                   <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
                     {soilMetrics.rootingDepthCm} cm
                   </span>
                   <span className={s.flagSource}>
                     {soilMetrics.rootingDepthCm >= 100 ? 'Deep' : soilMetrics.rootingDepthCm >= 50 ? 'Moderate' : 'Shallow'}
+                  </span>
+                </div>
+              )}
+              {/* Sprint I: Carbon Stock */}
+              {soilMetrics.carbonStockTCHa != null && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Carbon Stock</span>
+                  <span className={s.liveDataValue} style={{
+                    flex: 1, textAlign: 'right',
+                    color: soilMetrics.carbonStockTCHa >= 80 ? confidence.high
+                      : soilMetrics.carbonStockTCHa >= 40 ? confidence.medium
+                      : confidence.low,
+                  }}>
+                    {soilMetrics.carbonStockTCHa} tC/ha
+                  </span>
+                  <span className={s.flagSource}>
+                    {soilMetrics.carbonStockTCHa >= 80 ? 'High' : soilMetrics.carbonStockTCHa >= 40 ? 'Moderate' : 'Low'}
                   </span>
                 </div>
               )}

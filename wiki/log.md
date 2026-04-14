@@ -4,6 +4,18 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint I: LGP + Canada Soil Capability + Carbon Stock Estimation
+- **Scope:** Implemented three remaining frontend-computable gaps: Length of Growing Period (LGP), Canada Soil Capability Classification (CSCS), and carbon stock estimation — all from existing fetched layer data, no new APIs.
+- **Files modified:**
+  - `apps/web/src/lib/hydrologyMetrics.ts` — added `computeLGPDays()` using FAO AEZ monthly water balance (precip vs 0.5×PET with soil water carry-over); extended `HydroInputs` (monthlyNormals, awcCmCm, rootingDepthCm) and `HydroMetrics` (lgpDays, lgpClass)
+  - `apps/web/src/lib/computeScores.ts` — added `computeCanadaSoilCapability()` (8-limitation model mirroring USDA LCC with AAFC thresholds, Class 1-7 + T/W/D/E/F/M/R subclasses, CA sites only); added `length_of_growing_period` component (max 6) to Agricultural Suitability; added `carbon_stock` component (max 6) to Regenerative Potential using IPCC formula with Adams pedotransfer fallback for bulk density; threaded `country` parameter through `computeAssessmentScores()`
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added "Growing Period" row to Hydrology Intelligence section, "Carbon Stock" row (tC/ha + color coding) to Soil Intelligence section; passed monthly normals + soil params to hydro metrics; threaded `project.country` to scoring
+- **Scoring components:** 108 → 118 (+1 LGP, +8 CSCS, +1 carbon stock)
+- **Scoring functions:** 9 → 10 (for CA sites; 9 for US sites)
+- **Gaps closed:** 3 (LGP, Canada Soil Capability, carbon stock estimation)
+
+---
+
 ### 2026-04-14 — Sprint H: Gap Audit + Wiki Update
 - **Scope:** Audited all gaps closed by Sprints A-G, updated gap analysis wiki page with per-gap status markers, rewrote scoring engine concept page to reflect current 9-dimension / 108-component architecture, and produced a prioritized "what's next" roadmap for Sprints I-J.
 - **Files modified:**

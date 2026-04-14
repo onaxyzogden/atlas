@@ -28,6 +28,14 @@ export interface HydroInputs {
   wetlandPct: number;
   /** Mean annual temperature °C (from climate layer) */
   annualTempC: number;
+
+  // Sprint I: LGP inputs (optional — gracefully skipped when absent)
+  /** Monthly climate normals array (from _monthly_normals, stripped from cache) */
+  monthlyNormals?: { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] | null;
+  /** Available water capacity cm/cm (from soils layer) */
+  awcCmCm?: number;
+  /** Effective rooting depth cm (from soils layer) */
+  rootingDepthCm?: number;
 }
 
 export interface HydroMetrics {
@@ -74,6 +82,10 @@ export interface HydroMetrics {
   rwhPotentialGal: number;     // rainwater harvesting potential gal/yr from catchment
   rwhStorageGal: number;       // recommended 2-week buffer storage gal
   irrigationDeficitMm: number; // max(0, PET - effectivePrecip) — irrigation gap mm/yr
+
+  // Sprint I: Length of Growing Period
+  lgpDays: number;             // moisture-limited growing days (FAO AEZ water balance)
+  lgpClass: string;            // FAO AEZ class label
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -248,6 +260,15 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
   const effectivePrecipMm = precipMm * (1 - C);
   const irrigationDeficitMm = Math.max(0, Math.round(petMm - effectivePrecipMm));
 
+  // ── Sprint I: Length of Growing Period (FAO AEZ water balance) ────────────
+  const { lgpDays, lgpClass } = computeLGPDays(
+    inputs.monthlyNormals ?? null,
+    inputs.awcCmCm ?? 0,
+    inputs.rootingDepthCm ?? 0,
+    annualTempC,
+    precipMm,
+  );
+
   // ── Alert text ─────────────────────────────────────────────────────────────
   let alertText: string;
   const floodIsHigh = /Zone A\b|Zone AE|Zone V/i.test(floodZone);
@@ -281,7 +302,95 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
     annualEtMm, groundwaterRechargeMm, floodRiskLevel, retentionScore,
     petMm, aridityIndex, aridityClass, waterBalanceMm,
     rwhPotentialGal, rwhStorageGal, irrigationDeficitMm,
+    lgpDays, lgpClass,
   };
+}
+
+// ── Sprint I: Length of Growing Period (FAO AEZ) ──────────────────────────────
+
+/** Days in each month (non-leap year) */
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/**
+ * Compute Length of Growing Period using FAO AEZ monthly water balance.
+ *
+ * A month contributes to LGP if precipitation ≥ 0.5 × PET (i.e. enough moisture
+ * to sustain growth). Soil water storage carry-over is modelled when AWC data is
+ * available: surplus from wet months carries into subsequent months up to the
+ * soil's available water capacity (AWC × rootingDepth).
+ *
+ * When monthly normals are unavailable, falls back to an estimate based on
+ * the annual aridity index (P/PET).
+ */
+function computeLGPDays(
+  monthlyNormals: { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] | null,
+  awcCmCm: number,
+  rootingDepthCm: number,
+  annualTempC: number,
+  annualPrecipMm: number,
+): { lgpDays: number; lgpClass: string } {
+
+  // Fallback when monthly normals are not available — estimate from annual aridity
+  if (!monthlyNormals || monthlyNormals.length !== 12) {
+    const annualPet = (0.46 * Math.max(annualTempC, 0) + 8.13) * 365;
+    const ratio = annualPet > 0 ? annualPrecipMm / annualPet : 1;
+    // Rough linear estimate: LGP ≈ ratio × 365, capped at 365
+    const est = Math.round(Math.min(ratio * 365, 365));
+    return { lgpDays: Math.max(est, 0), lgpClass: classifyLGP(Math.max(est, 0)) };
+  }
+
+  // Soil water storage capacity (mm). Default 50mm when data unavailable.
+  const maxStorageMm = (awcCmCm > 0 && rootingDepthCm > 0)
+    ? awcCmCm * rootingDepthCm * 10   // cm/cm × cm × 10 = mm
+    : 50;                              // conservative default
+
+  let storageMm = maxStorageMm * 0.5;  // start half-full (mid-year assumption)
+  let lgpDays = 0;
+
+  for (let m = 0; m < 12; m++) {
+    const norm = monthlyNormals[m]!;
+    const days = DAYS_IN_MONTH[m]!;
+
+    // Monthly mean temp °C
+    const meanC = (norm.mean_max_c != null && norm.mean_min_c != null)
+      ? (norm.mean_max_c + norm.mean_min_c) / 2
+      : annualTempC; // fallback to annual mean
+
+    // Monthly PET (Blaney-Criddle): p × (0.46T + 8.13), p = fraction of annual daylight hours
+    // Simplified: p ≈ days / 365 (latitude-independent approximation)
+    const p = days / 365;
+    const monthPetMm = p * (0.46 * Math.max(meanC, 0) + 8.13) * 365;
+
+    const precipMm = norm.precip_mm ?? 0;
+
+    // Water balance for this month
+    const waterIn = precipMm + storageMm;
+    const demand = monthPetMm * 0.5; // FAO AEZ threshold: P ≥ 0.5 × PET
+
+    if (waterIn >= demand) {
+      lgpDays += days;
+      // Carry surplus into storage (capped at max)
+      storageMm = Math.min(waterIn - monthPetMm, maxStorageMm);
+      if (storageMm < 0) storageMm = 0;
+    } else {
+      // Partial month: fraction of days where remaining water suffices
+      const fraction = demand > 0 ? waterIn / demand : 0;
+      lgpDays += Math.round(days * Math.min(fraction, 1));
+      storageMm = 0;
+    }
+  }
+
+  lgpDays = Math.min(lgpDays, 365);
+  return { lgpDays, lgpClass: classifyLGP(lgpDays) };
+}
+
+/** FAO AEZ Length of Growing Period classification */
+function classifyLGP(days: number): string {
+  if (days >= 270) return 'Year-round humid';
+  if (days >= 180) return 'Long growing season';
+  if (days >= 120) return 'Intermediate';
+  if (days >= 60) return 'Short growing season';
+  return 'Very short / arid';
 }
 
 // ── Formatting helpers ─────────────────────────────────────────────────────────

@@ -192,6 +192,7 @@ function nestedNum(layer: MockLayerResult | undefined, path: string): number {
 export function computeAssessmentScores(
   layers: MockLayerResult[],
   acreage: number | null,
+  country?: string,
 ): ScoredResult[] {
   const climate = layerByType(layers, 'climate');
   const watershed = layerByType(layers, 'watershed');
@@ -208,11 +209,16 @@ export function computeAssessmentScores(
   const terrain = layerByType(layers, 'terrain_analysis');
 
   // Sprint F: hydro metrics for Water Resilience scoring
+  // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
+  let lgpDaysForScoring: number | undefined;
   const precipMmForHydro = num(climate, 'annual_precip_mm');
   if (precipMmForHydro > 0) {
     const catchRaw = parseFloat(String(s(watershed, 'catchment_area_ha') ?? ''));
     const propAcres = acreage ?? 10;
+    const climSummary = climate?.summary as Record<string, unknown> | undefined;
+    const monthlyNormals = climSummary?.['_monthly_normals'] as
+      { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] | undefined;
     const hm = computeHydrologyMetrics({
       precipMm: precipMmForHydro,
       catchmentHa: isFinite(catchRaw) ? catchRaw : null,
@@ -223,6 +229,9 @@ export function computeAssessmentScores(
       floodZone: str(wetlands, 'flood_zone') || 'Zone X',
       wetlandPct: num(wetlands, 'wetland_pct'),
       annualTempC: num(climate, 'annual_temp_mean_c') || 9,
+      monthlyNormals: monthlyNormals ?? null,
+      awcCmCm: num(soils, 'awc_cm_cm'),
+      rootingDepthCm: num(soils, 'rooting_depth_cm'),
     });
     hydroForScoring = {
       waterBalanceMm: hm.waterBalanceMm,
@@ -231,11 +240,12 @@ export function computeAssessmentScores(
       irrigationDeficitMm: hm.irrigationDeficitMm,
       propertyM2: propAcres * 4046.86,
     };
+    lgpDaysForScoring = hm.lgpDays;
   }
 
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring),
-    computeAgriculturalSuitability(soils, climate, elevation, microclimate),
+    computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate),
@@ -244,6 +254,8 @@ export function computeAssessmentScores(
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
     computeUSDALCC(soils, climate, elevation),
+    // Sprint I: Canada Soil Capability Classification (weight 0, CA only)
+    ...(country === 'CA' ? [computeCanadaSoilCapability(soils, climate, elevation)] : []),
   ];
 }
 
@@ -383,6 +395,7 @@ function computeAgriculturalSuitability(
   climate: MockLayerResult | undefined,
   elevation: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
+  lgpDays?: number,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -482,6 +495,15 @@ function computeAgriculturalSuitability(
     : hardinessNum >= 3 ? 1
     : hardinessNum > 0 ? 0 : 2; // unknown → neutral
   components.push(comp('hardiness_zone', hardPts, 5, 'climate', cc));
+
+  // Sprint I: Length of Growing Period — moisture-limited growing days (max 6)
+  const lgp = lgpDays ?? 0;
+  const lgpPts = lgp >= 270 ? 6
+    : lgp >= 180 ? 5
+    : lgp >= 120 ? 3
+    : lgp >= 60 ? 1
+    : 0;
+  components.push(comp('length_of_growing_period', lgpPts, 6, 'climate', cc));
 
   // Slope suitability (max 10)
   const meanSlope = num(elevation, 'mean_slope_deg');
@@ -586,6 +608,26 @@ function computeRegenerativePotential(
   } else {
     components.push(comp('intervention_suitability', 0, 8, 'soil_regeneration', 'low'));
   }
+
+  // Sprint I: Carbon stock estimation — IPCC/FAO formula (max 6)
+  // Carbon (tC/ha) = OM% × 0.58 × bulk_density × rooting_depth × 100
+  const omForCarbon = num(soils, 'organic_matter_pct');
+  let bdForCarbon = num(soils, 'bulk_density_g_cm3');
+  const depthForCarbon = num(soils, 'rooting_depth_cm');
+  // Pedotransfer fallback for bulk density: Adams (1973) bd = 1.66 - 0.318 × sqrt(OM%)
+  if (bdForCarbon === 0 && omForCarbon > 0) {
+    bdForCarbon = Math.max(0.8, 1.66 - 0.318 * Math.sqrt(omForCarbon));
+  }
+  const effectiveDepth = depthForCarbon > 0 ? depthForCarbon : 30; // default 30cm topsoil
+  const carbonStockTCHa = omForCarbon > 0 && bdForCarbon > 0
+    ? Math.round((omForCarbon / 100) * 0.58 * bdForCarbon * effectiveDepth * 100 * 10) / 10
+    : 0;
+  const carbonPts = carbonStockTCHa >= 80 ? 6
+    : carbonStockTCHa >= 40 ? 4
+    : carbonStockTCHa >= 20 ? 2
+    : carbonStockTCHa > 0 ? 1
+    : 0;
+  components.push(comp('carbon_stock', carbonPts, 6, 'soils', sc));
 
   return buildResult('Regenerative Potential', 35, components);
 }
@@ -1183,6 +1225,166 @@ function computeUSDALCC(
     : lccClass === 'V' ? 'Wetland/flood limitations'
     : ['VI', 'VII'].includes(lccClass) ? 'Grazing/forestry'
     : 'Recreation/wildlife only';
+
+  result.rating = `Class ${classLabel} \u2014 ${useDesc}` as ScoredResult['rating'];
+
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/*  1j. Canada Soil Capability Classification (Sprint I)               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Canada Soil Capability for Agriculture (AAFC CLI framework).
+ * Class 1 (no significant limitations) through Class 7 (no capability).
+ * Subclass notation: T=topography, W=wetness, I=inundation, D=soil depth,
+ * F=low fertility, M=moisture deficit, P=stoniness, R=bedrock, E=erosion.
+ *
+ * Same 8-limitation model as USDA LCC but with Canadian-specific thresholds
+ * per the AAFC "Soil Capability for Agriculture" handbook.
+ */
+function computeCanadaSoilCapability(
+  soils: MockLayerResult | undefined,
+  climate: MockLayerResult | undefined,
+  elevation: MockLayerResult | undefined,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const cc = layerConfidence(climate);
+  const ec = layerConfidence(elevation);
+  const limitations: string[] = [];
+
+  // Limitation 1: Slope / topography (max 20) — AAFC slope classes
+  // CA uses % slope; convert from degrees: tan(deg) × 100
+  const slopeDeg = num(elevation, 'mean_slope_deg');
+  const slopePct = Math.tan(slopeDeg * Math.PI / 180) * 100;
+  let slopePts: number;
+  if (slopePct < 2) { slopePts = 20; }       // Class 1
+  else if (slopePct < 5) { slopePts = 17; }  // Class 2
+  else if (slopePct < 9) { slopePts = 14; }  // Class 3
+  else if (slopePct < 15) { slopePts = 10; } // Class 4
+  else if (slopePct < 30) { slopePts = 6; }  // Class 5
+  else if (slopePct < 60) { slopePts = 3; }  // Class 6
+  else { slopePts = 1; }                     // Class 7
+  if (slopePct >= 9) limitations.push('T');
+  components.push(comp('cscs_slope', slopePts, 20, 'elevation', ec));
+
+  // Limitation 2: Drainage / wetness (max 15)
+  const drainage = str(soils, 'drainage_class').toLowerCase();
+  let drainPts: number;
+  if (drainage.includes('well') && !drainage.includes('poorly') && !drainage.includes('moderately') && !drainage.includes('imperfect')) {
+    drainPts = 15;          // Class 1
+  } else if (drainage.includes('moderately well')) {
+    drainPts = 12;          // Class 2
+  } else if (drainage.includes('imperfect')) {
+    drainPts = 9;           // Class 3
+    limitations.push('W');
+  } else if (drainage.includes('poorly') && !drainage.includes('very')) {
+    drainPts = 5;           // Class 4-5
+    limitations.push('W');
+  } else if (drainage.includes('very poorly')) {
+    drainPts = 2;           // Class 6-7
+    limitations.push('W');
+  } else {
+    drainPts = 10;          // unknown
+  }
+  components.push(comp('cscs_drainage', drainPts, 15, 'soils', sc));
+
+  // Limitation 3: Effective soil depth (max 15) — AAFC rooting depth classes
+  const rootDepth = num(soils, 'rooting_depth_cm');
+  let depthPts: number;
+  if (rootDepth === 0) { depthPts = 8; }         // unknown
+  else if (rootDepth >= 100) { depthPts = 15; }  // Class 1
+  else if (rootDepth >= 75) { depthPts = 12; }   // Class 2
+  else if (rootDepth >= 50) { depthPts = 9; }    // Class 3
+  else if (rootDepth >= 25) { depthPts = 5; limitations.push('D'); }  // Class 4-5
+  else { depthPts = 2; limitations.push('D'); }  // Class 6-7
+  components.push(comp('cscs_soil_depth', depthPts, 15, 'soils', sc));
+
+  // Limitation 4: Texture / permeability (max 12) — coarse or heavy → limitation
+  const clay = num(soils, 'clay_pct');
+  const sand = num(soils, 'sand_pct');
+  let texPts: number;
+  if (clay === 0 && sand === 0) { texPts = 7; }
+  else if (clay >= 60) { texPts = 3; limitations.push('D'); }    // very heavy clay
+  else if (clay >= 40 || sand >= 85) { texPts = 5; }             // heavy clay or sand
+  else if (clay >= 35 || sand >= 70) { texPts = 8; }             // moderately limiting
+  else { texPts = 12; }                                          // loam range (ideal)
+  components.push(comp('cscs_texture', texPts, 12, 'soils', sc));
+
+  // Limitation 5: Erosion hazard (max 12) — same model as USDA, Canadian context
+  const kfact = num(soils, 'kfact');
+  const erosionRisk = kfact > 0 ? kfact * (1 + slopeDeg / 10) : slopeDeg / 10;
+  let erosPts: number;
+  if (erosionRisk < 0.1) { erosPts = 12; }
+  else if (erosionRisk < 0.3) { erosPts = 10; }
+  else if (erosionRisk < 0.5) { erosPts = 7; }
+  else if (erosionRisk < 1.0) { erosPts = 4; limitations.push('E'); }
+  else { erosPts = 2; limitations.push('E'); }
+  components.push(comp('cscs_erosion_hazard', erosPts, 12, 'elevation', ec));
+
+  // Limitation 6: Salinity (max 8)
+  const ecSoil = num(soils, 'ec_ds_m');
+  let salPts: number;
+  if (ecSoil === 0) { salPts = 6; }        // unknown
+  else if (ecSoil < 2) { salPts = 8; }     // non-saline
+  else if (ecSoil < 4) { salPts = 5; }     // slightly saline
+  else if (ecSoil < 8) { salPts = 3; limitations.push('F'); }  // moderately saline
+  else { salPts = 1; limitations.push('F'); }                   // severely saline
+  components.push(comp('cscs_salinity', salPts, 8, 'soils', sc));
+
+  // Limitation 7: Climate severity (max 10) — Canadian frost-free period thresholds
+  // Canada's shorter growing seasons make climate a bigger factor
+  const growDays = num(climate, 'growing_season_days');
+  let climPts: number;
+  if (growDays === 0) { climPts = 5; }          // unknown
+  else if (growDays >= 200) { climPts = 10; }   // Class 1 (southern Ontario, BC coast)
+  else if (growDays >= 160) { climPts = 8; }    // Class 2
+  else if (growDays >= 120) { climPts = 6; }    // Class 3
+  else if (growDays >= 90) { climPts = 4; limitations.push('M'); }  // Class 4
+  else if (growDays >= 60) { climPts = 2; limitations.push('M'); }  // Class 5-6
+  else { climPts = 1; limitations.push('M'); }  // Class 7
+  components.push(comp('cscs_climate_severity', climPts, 10, 'climate', cc));
+
+  // Limitation 8: AWC / moisture deficit (max 8)
+  const awc = num(soils, 'awc_cm_cm');
+  let awcPts: number;
+  if (awc === 0) { awcPts = 4; }         // unknown
+  else if (awc >= 0.18) { awcPts = 8; }  // excellent
+  else if (awc >= 0.12) { awcPts = 6; }  // good
+  else if (awc >= 0.08) { awcPts = 3; limitations.push('M'); }
+  else { awcPts = 1; limitations.push('M'); }
+  components.push(comp('cscs_moisture', awcPts, 8, 'soils', sc));
+
+  // Build result — max 100 (20+15+15+12+12+8+10+8)
+  const result = buildResult('Canada Soil Capability', 0, components);
+
+  // Map score to CSCS Class 1-7
+  const score = result.score;
+  const uniqueLimitations = [...new Set(limitations)];
+  // Primary subclass: most severe limitation
+  const subclass = uniqueLimitations.length >= 2 ? 'X'
+    : uniqueLimitations.length === 1 ? uniqueLimitations[0]!
+    : '';
+
+  let cscsClass: number;
+  if (score >= 90) cscsClass = 1;
+  else if (score >= 78) cscsClass = 2;
+  else if (score >= 66) cscsClass = 3;
+  else if (score >= 54) cscsClass = 4;
+  else if (score >= 42) cscsClass = 5;
+  else if (score >= 28) cscsClass = 6;
+  else cscsClass = 7;
+
+  const classLabel = `${cscsClass}${subclass && cscsClass > 1 ? subclass : ''}`;
+  const useDesc = cscsClass === 1 ? 'No significant limitations'
+    : cscsClass === 2 ? 'Minor limitations'
+    : cscsClass === 3 ? 'Moderately severe limitations'
+    : cscsClass === 4 ? 'Severe limitations'
+    : cscsClass === 5 ? 'Forage crops only'
+    : cscsClass === 6 ? 'Natural pasture only'
+    : 'No capability for agriculture';
 
   result.rating = `Class ${classLabel} \u2014 ${useDesc}` as ScoredResult['rating'];
 
