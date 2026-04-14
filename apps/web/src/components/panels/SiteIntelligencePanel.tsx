@@ -23,6 +23,13 @@ import {
   deriveLandWants,
 } from '../../lib/computeScores.js';
 import { matchCropsToSite, siteConditionsFromLayers, type CropMatch } from '../../lib/cropMatching.js';
+import {
+  computeHydrologyMetrics,
+  fmtGal,
+  parseHydrologicGroup,
+  HYDRO_DEFAULTS,
+  type HydroMetrics,
+} from '../../lib/hydrologyMetrics.js';
 import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
@@ -78,6 +85,7 @@ function capConf(c: 'high' | 'medium' | 'low'): 'High' | 'Medium' | 'Low' {
 export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
   const { isOffline } = useOfflineGate();
   const [liveDataOpen, setLiveDataOpen] = useState(true);
+  const [hydroOpen, setHydroOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
   const [showAllOpps, setShowAllOpps] = useState(false);
@@ -224,6 +232,37 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       maxResults: 100,
     });
   }, [layers, cropCategoryFilter]);
+
+  // Sprint F: Hydrology Intelligence metrics
+  const hydroMetrics = useMemo((): HydroMetrics | null => {
+    const climateLayer   = layers.find((l) => l.layerType === 'climate');
+    const watershedLayer = layers.find((l) => l.layerType === 'watershed');
+    const wetlandsLayer  = layers.find((l) => l.layerType === 'wetlands_flood');
+    const elevationLayer = layers.find((l) => l.layerType === 'elevation');
+    const soilsLayer     = layers.find((l) => l.layerType === 'soils');
+    if (!climateLayer) return null;
+    const cs  = climateLayer.summary  as Record<string, unknown> | undefined;
+    const ws  = watershedLayer?.summary as Record<string, unknown> | undefined;
+    const wfs = wetlandsLayer?.summary  as Record<string, unknown> | undefined;
+    const es  = elevationLayer?.summary as Record<string, unknown> | undefined;
+    const ss  = soilsLayer?.summary     as Record<string, unknown> | undefined;
+    const precipMm = typeof cs?.annual_precip_mm === 'number'
+      ? cs.annual_precip_mm : HYDRO_DEFAULTS.precipMm;
+    return computeHydrologyMetrics({
+      precipMm,
+      catchmentHa: (() => {
+        const v = parseFloat(String(ws?.catchment_area_ha ?? ''));
+        return isFinite(v) ? v : null;
+      })(),
+      propertyAcres:   project.acreage  ?? HYDRO_DEFAULTS.propertyAcres,
+      slopeDeg:        typeof es?.mean_slope_deg === 'number'   ? es.mean_slope_deg   : HYDRO_DEFAULTS.slopeDeg,
+      hydrologicGroup: parseHydrologicGroup(typeof ss?.hydrologic_group === 'string' ? ss.hydrologic_group : undefined),
+      drainageClass:   typeof ss?.drainage_class === 'string'   ? ss.drainage_class   : HYDRO_DEFAULTS.drainageClass,
+      floodZone:       typeof wfs?.flood_zone === 'string'      ? wfs.flood_zone      : HYDRO_DEFAULTS.floodZone,
+      wetlandPct:      typeof wfs?.wetland_pct === 'number'     ? wfs.wetland_pct     : HYDRO_DEFAULTS.wetlandPct,
+      annualTempC:     typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : HYDRO_DEFAULTS.annualTempC,
+    });
+  }, [layers, project.acreage]);
 
   const lastFetched = useMemo(() => {
     if (!siteData?.fetchedAt) return null;
@@ -432,6 +471,87 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         )}
         </>)}
       </div>
+
+      {/* ── Hydrology Intelligence (Sprint F) ────────────────────── */}
+      {hydroMetrics && (
+        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
+          <button
+            onClick={() => setHydroOpen((v) => !v)}
+            className={`${s.liveDataHeader} ${hydroOpen ? s.liveDataHeaderOpen : ''}`}
+          >
+            <span style={{ color: semantic.sidebarActive }}>&#9679;</span>
+            <span className={s.liveDataTitle}>Hydrology Intelligence</span>
+            <div style={{ flex: 1 }} />
+            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
+              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
+              className={`${s.chevron} ${!hydroOpen ? s.chevronClosed : ''}`}>
+              <path d="M3 7l3-3 3 3" />
+            </svg>
+          </button>
+          {hydroOpen && (
+            <div style={{ padding: '4px 0' }}>
+              {/* Aridity */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Aridity</span>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  <span className={s.scoreBadge}
+                    style={{ background: `${getHydroColor(hydroMetrics.aridityClass)}18`,
+                             color: getHydroColor(hydroMetrics.aridityClass) }}>
+                    {hydroMetrics.aridityClass}
+                  </span>
+                </div>
+                <span className={s.flagSource}>P/PET {hydroMetrics.aridityIndex.toFixed(2)}</span>
+              </div>
+              {/* Water Balance */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Water Balance</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  {hydroMetrics.waterBalanceMm >= 0 ? '+' : ''}{hydroMetrics.waterBalanceMm} mm/yr
+                </span>
+                <span className={s.flagSource}>
+                  {hydroMetrics.waterBalanceMm >= 0 ? 'surplus' : 'deficit'}
+                </span>
+              </div>
+              {/* PET */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>PET</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  {hydroMetrics.petMm} mm/yr
+                </span>
+                <span className={s.flagSource}>Blaney-Criddle</span>
+              </div>
+              {/* RWH Potential */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Harvest Potential</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  ~{fmtGal(hydroMetrics.rwhPotentialGal)} gal/yr
+                </span>
+                <span className={s.flagSource}>catchment RWH</span>
+              </div>
+              {/* Storage Sizing */}
+              <div className={s.liveDataRow}>
+                <span className={s.liveDataLabel}>Storage Sizing</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  ~{fmtGal(hydroMetrics.rwhStorageGal)} gal
+                </span>
+                <span className={s.flagSource}>2-week buffer</span>
+              </div>
+              {/* Irrigation */}
+              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <span className={s.liveDataLabel}>Irrigation</span>
+                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                  {hydroMetrics.irrigationDeficitMm === 0
+                    ? 'No gap projected'
+                    : `${hydroMetrics.irrigationDeficitMm} mm deficit`}
+                </span>
+                <span className={s.flagSource}>
+                  {hydroMetrics.irrigationDeficitMm === 0 ? 'surplus' : 'vs PET'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Site Summary ───────────────────────────────────────────── */}
       <h3 className={p.sectionLabel}>Site Summary</h3>
@@ -794,5 +914,11 @@ function ScoreCircle({ score, size }: { score: number; size: number }) {
 function getScoreColor(score: number): string {
   if (score >= 80) return confidence.high;
   if (score >= 60) return semantic.sidebarActive;
+  return confidence.low;
+}
+
+function getHydroColor(cls: string): string {
+  if (cls === 'Humid' || cls === 'Dry sub-humid') return confidence.high;
+  if (cls === 'Semi-arid') return confidence.medium;
   return confidence.low;
 }

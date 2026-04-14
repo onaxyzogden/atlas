@@ -17,6 +17,7 @@ import type { AssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from './mockLayerData.js';
 import { evaluateAssessmentRules } from './rules/index.js';
 import { semantic, confidence, water } from './tokens.js';
+import { computeHydrologyMetrics } from './hydrologyMetrics.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -206,8 +207,34 @@ export function computeAssessmentScores(
   const soilRegen = layerByType(layers, 'soil_regeneration');
   const terrain = layerByType(layers, 'terrain_analysis');
 
+  // Sprint F: hydro metrics for Water Resilience scoring
+  let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
+  const precipMmForHydro = num(climate, 'annual_precip_mm');
+  if (precipMmForHydro > 0) {
+    const catchRaw = parseFloat(String(s(watershed, 'catchment_area_ha') ?? ''));
+    const propAcres = acreage ?? 10;
+    const hm = computeHydrologyMetrics({
+      precipMm: precipMmForHydro,
+      catchmentHa: isFinite(catchRaw) ? catchRaw : null,
+      propertyAcres: propAcres,
+      slopeDeg: num(elevation, 'mean_slope_deg') || 3,
+      hydrologicGroup: str(soils, 'hydrologic_group') || 'B',
+      drainageClass: str(soils, 'drainage_class') || 'well drained',
+      floodZone: str(wetlands, 'flood_zone') || 'Zone X',
+      wetlandPct: num(wetlands, 'wetland_pct'),
+      annualTempC: num(climate, 'annual_temp_mean_c') || 9,
+    });
+    hydroForScoring = {
+      waterBalanceMm: hm.waterBalanceMm,
+      aridityClass: hm.aridityClass,
+      rwhPotentialGal: hm.rwhPotentialGal,
+      irrigationDeficitMm: hm.irrigationDeficitMm,
+      propertyM2: propAcres * 4046.86,
+    };
+  }
+
   return [
-    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate),
+    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain),
@@ -230,6 +257,13 @@ function computeWaterResilience(
   wetlands: MockLayerResult | undefined,
   watershedDerived: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
+  hydro?: {
+    waterBalanceMm: number;
+    aridityClass: 'Hyperarid' | 'Arid' | 'Semi-arid' | 'Dry sub-humid' | 'Humid';
+    rwhPotentialGal: number;
+    irrigationDeficitMm: number;
+    propertyM2: number;
+  },
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const cc = layerConfidence(climate);
@@ -295,6 +329,46 @@ function computeWaterResilience(
     components.push(comp('moisture_zone_distribution', moistPts, 10, 'microclimate', mc));
   } else {
     components.push(comp('moisture_zone_distribution', 0, 10, 'microclimate', 'low'));
+  }
+
+  // Sprint F: Water balance surplus/deficit (max +10 / min -10)
+  if (hydro) {
+    const wb = hydro.waterBalanceMm;
+    const wbPts = wb > 200 ? 10 : wb > 0 ? 6 : wb > -100 ? 2 : wb > -300 ? -5 : -10;
+    components.push(comp('water_balance_surplus', wbPts, 10, 'climate', cc));
+  } else {
+    components.push(comp('water_balance_surplus', 0, 10, 'climate', 'low'));
+  }
+
+  // Sprint F: Aridity class (max 8, min -5)
+  if (hydro) {
+    const arPts: Record<string, number> = {
+      'Humid': 8, 'Dry sub-humid': 8, 'Semi-arid': 4, 'Arid': 0, 'Hyperarid': -5,
+    };
+    components.push(comp('aridity_class', arPts[hydro.aridityClass] ?? 0, 8, 'climate', cc));
+  } else {
+    components.push(comp('aridity_class', 0, 8, 'climate', 'low'));
+  }
+
+  // Sprint F: RWH potential per acre (max 7)
+  if (hydro) {
+    const galPerAcre = hydro.propertyM2 > 0
+      ? hydro.rwhPotentialGal / (hydro.propertyM2 / 4046.86) : 0;
+    const rwhPts = galPerAcre > 50_000 ? 7 : galPerAcre > 30_000 ? 5
+      : galPerAcre > 15_000 ? 3 : galPerAcre > 5_000 ? 1 : 0;
+    components.push(comp('rwh_potential', rwhPts, 7, 'climate', cc));
+  } else {
+    components.push(comp('rwh_potential', 0, 7, 'climate', 'low'));
+  }
+
+  // Sprint F: Irrigation feasibility (max 5)
+  if (hydro) {
+    const defPts = hydro.irrigationDeficitMm === 0 ? 5
+      : hydro.irrigationDeficitMm < 100 ? 3
+      : hydro.irrigationDeficitMm < 300 ? 1 : 0;
+    components.push(comp('irrigation_feasibility', defPts, 5, 'climate', cc));
+  } else {
+    components.push(comp('irrigation_feasibility', 0, 5, 'climate', 'low'));
   }
 
   return buildResult('Water Resilience', 40, components);

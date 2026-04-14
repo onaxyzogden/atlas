@@ -50,6 +50,26 @@ export class WatershedRefinementProcessor {
     const ponds = computePondCandidates(grid, sharedGrids);
     const swales = computeSwaleCandidates(grid, sharedGrids);
 
+    // Sprint F: Drainage density from flow accumulation grid
+    const CHANNEL_THRESHOLD = 100; // flow accumulation cells — empirical channel proxy
+    const { flowAcc } = sharedGrids;
+    const totalCells = grid.width * grid.height;
+    let channelCells = 0;
+    for (let i = 0; i < flowAcc.length; i++) {
+      if (flowAcc[i]! >= CHANNEL_THRESHOLD) channelCells++;
+    }
+    const resMKm = grid.resolution_m / 1000;
+    const channelLengthKm = channelCells * resMKm;
+    const catchmentAreaKm2 = totalCells * resMKm * resMKm;
+    const drainageDensityKmPerKm2 = catchmentAreaKm2 > 0
+      ? Math.round((channelLengthKm / catchmentAreaKm2) * 100) / 100
+      : 0;
+    const drainageDensityClass: 'Low' | 'Moderate' | 'High' | 'Very High' =
+      drainageDensityKmPerKm2 < 1 ? 'Low'
+      : drainageDensityKmPerKm2 < 2 ? 'Moderate'
+      : drainageDensityKmPerKm2 < 5 ? 'High'
+      : 'Very High';
+
     // Convert masks to GeoJSON for map rendering
     const floodGeojson = binaryMaskToGeoJSON(
       flood.detentionMask, grid.width, grid.height, grid.bbox, 'detention_zone',
@@ -145,6 +165,10 @@ export class WatershedRefinementProcessor {
           elevation: c.elevation,
           suitabilityScore: c.suitabilityScore,
         })),
+      },
+      drainageDensity: {
+        drainageDensityKmPerKm2,
+        drainageDensityClass,
       },
       confidence,
       dataSources,

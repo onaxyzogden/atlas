@@ -65,6 +65,15 @@ export interface HydroMetrics {
   groundwaterRechargeMm: number;
   floodRiskLevel: string;
   retentionScore: number;
+
+  // Sprint F: Hydrology Intelligence
+  petMm: number;               // potential ET mm/yr (Blaney-Criddle, uncapped)
+  aridityIndex: number;        // P/PET ratio (UNEP aridity metric)
+  aridityClass: 'Hyperarid' | 'Arid' | 'Semi-arid' | 'Dry sub-humid' | 'Humid';
+  waterBalanceMm: number;      // annual surplus/deficit mm/yr (precip - PET)
+  rwhPotentialGal: number;     // rainwater harvesting potential gal/yr from catchment
+  rwhStorageGal: number;       // recommended 2-week buffer storage gal
+  irrigationDeficitMm: number; // max(0, PET - effectivePrecip) — irrigation gap mm/yr
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -83,6 +92,16 @@ const HYDRAULIC_R = 0.14;
 
 /** Fraction of deep percolation reaching groundwater (empirical, humid climates) */
 const GW_RECHARGE_FACTOR = 0.38;
+
+// ── Aridity classification (UNEP P/PET thresholds) ────────────────────────────
+
+function classifyAridity(ratio: number): HydroMetrics['aridityClass'] {
+  if (ratio < 0.05) return 'Hyperarid';
+  if (ratio < 0.20) return 'Arid';
+  if (ratio < 0.50) return 'Semi-arid';
+  if (ratio < 0.65) return 'Dry sub-humid';
+  return 'Humid';
+}
 
 // ── Core calculation ───────────────────────────────────────────────────────────
 
@@ -204,9 +223,30 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
   const droughtBufferDays = Math.round(totalStorageGal / peakDailyEtGal);
 
   // ── Evapotranspiration (Blaney-Criddle simplified) ─────────────────────────
-  const annualEtMm = Math.round(Math.min((0.46 * annualTempC + 8.13) * 365, precipMm * 0.75));
+  // Raw PET is unconstrained by precipitation (true atmospheric demand)
+  const rawPetMm = (0.46 * Math.max(annualTempC, 0) + 8.13) * 365;
+  const petMm = Math.round(rawPetMm);
+  // Actual ET capped at 75% of precip (water-limited environments)
+  const annualEtMm = Math.round(Math.min(rawPetMm, precipMm * 0.75));
   const deepPercolationMm = Math.max(precipMm - annualEtMm - precipMm * C, 0);
   const groundwaterRechargeMm = Math.round(deepPercolationMm * GW_RECHARGE_FACTOR);
+
+  // ── Sprint F: Aridity, water balance, RWH, irrigation gap ─────────────────
+  const aridityIndex = petMm > 0
+    ? Math.round((precipMm / petMm) * 1000) / 1000
+    : 9.999; // hyper-humid fallback when PET is zero
+  const aridityClass = classifyAridity(aridityIndex);
+  const waterBalanceMm = Math.round(precipMm - petMm);
+
+  // Rainwater harvesting potential from catchment area (effCatchmentHa computed above)
+  const rwhPotentialGal = Math.round(
+    effCatchmentHa * 10_000 * (precipMm / 1000) * C * 264.172,
+  );
+  const rwhStorageGal = Math.round((rwhPotentialGal / 365) * 14); // 2-week buffer
+
+  // Irrigation gap: how much PET exceeds what stays in soil after runoff
+  const effectivePrecipMm = precipMm * (1 - C);
+  const irrigationDeficitMm = Math.max(0, Math.round(petMm - effectivePrecipMm));
 
   // ── Alert text ─────────────────────────────────────────────────────────────
   let alertText: string;
@@ -239,6 +279,8 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
     inletGalMin, outletGalMin, netGainGalMin,
     annualRainfallGal, currentRetentionGal, targetRetentionGal, irrigationDemandGal, surplusGal,
     annualEtMm, groundwaterRechargeMm, floodRiskLevel, retentionScore,
+    petMm, aridityIndex, aridityClass, waterBalanceMm,
+    rwhPotentialGal, rwhStorageGal, irrigationDeficitMm,
   };
 }
 
