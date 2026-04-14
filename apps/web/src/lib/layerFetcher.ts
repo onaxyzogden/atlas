@@ -204,7 +204,7 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   const isLive = liveCount > 0;
   setCache(cacheKey, results, isLive);
 
-  return { layers: results, isLive, liveCount, totalCount: 11 };
+  return { layers: results, isLive, liveCount, totalCount: 12 };
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {

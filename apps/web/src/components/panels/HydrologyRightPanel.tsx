@@ -132,6 +132,19 @@ interface CensusDemographicsSummary {
   rural_class?: string | null;
   county_name?: string | null;
 }
+interface InfrastructureSummary {
+  road_nearest_km?: number | null;
+  road_type?: string | null;
+  power_substation_nearest_km?: number | null;
+  hospital_nearest_km?: number | null;
+  hospital_name?: string | null;
+  water_supply_nearest_km?: number | null;
+  market_nearest_km?: number | null;
+  market_name?: string | null;
+  protected_area_nearest_km?: number | null;
+  protected_area_name?: string | null;
+  protected_area_count?: number | null;
+}
 
 type PanelMode = 'realtime' | 'design';
 
@@ -225,6 +238,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const quakeHazard  = siteData ? getLayerSummary<EarthquakeHazardSummary>(siteData, 'earthquake_hazard')    : null;
     const censusDemog  = siteData ? getLayerSummary<CensusDemographicsSummary>(siteData, 'census_demographics') : null;
     const proximity    = siteData ? getLayerSummary<ProximityDataSummary>(siteData, 'proximity_data')           : null;
+    const infra        = siteData ? getLayerSummary<InfrastructureSummary>(siteData, 'infrastructure')          : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -365,6 +379,16 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         carbonSeqHaYr,
         carbonSeqTotalYr,
         carbonClass,
+        // Sprint Y: Infrastructure Access
+        infraRoadKm:            infra?.road_nearest_km ?? null,
+        infraRoadType:          infra?.road_type ?? null,
+        infraPowerKm:           infra?.power_substation_nearest_km ?? null,
+        infraHospitalKm:        infra?.hospital_nearest_km ?? null,
+        infraHospitalName:      infra?.hospital_name ?? null,
+        infraWaterKm:           infra?.water_supply_nearest_km ?? null,
+        infraProtAreaCount:     infra?.protected_area_count ?? 0,
+        infraProtAreaKm:        infra?.protected_area_nearest_km ?? null,
+        infraProtAreaName:      infra?.protected_area_name ?? null,
       },
       metrics: m,
     };
@@ -764,6 +788,42 @@ function RealtimePanel({ live, metrics, isLoading }: {
           </div>
         </div>
       )}
+
+      {/* Sprint Y: Infrastructure Access */}
+      {(live.infraRoadKm !== null || live.infraPowerKm !== null || live.infraHospitalKm !== null) && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>INFRASTRUCTURE ACCESS</span>
+          <div className={s.dataRows}>
+            {live.infraRoadKm !== null && (
+              <DataRow label="Nearest Road"
+                value={`${live.infraRoadKm} km`}
+                note={live.infraRoadType ?? undefined}
+                color={live.infraRoadKm <= 1 ? confidence.high : live.infraRoadKm <= 5 ? confidence.medium : confidence.low} />
+            )}
+            {live.infraPowerKm !== null && (
+              <DataRow label="Grid / Substation"
+                value={`${live.infraPowerKm} km`}
+                color={live.infraPowerKm <= 5 ? confidence.high : live.infraPowerKm <= 20 ? confidence.medium : confidence.low} />
+            )}
+            {live.infraHospitalKm !== null && (
+              <DataRow label="Hospital"
+                value={`${live.infraHospitalKm} km`}
+                note={live.infraHospitalName ?? undefined}
+                color={live.infraHospitalKm <= 20 ? confidence.high : live.infraHospitalKm <= 50 ? confidence.medium : confidence.low} />
+            )}
+            {live.infraWaterKm !== null && (
+              <DataRow label="Water Supply"
+                value={`${live.infraWaterKm} km`} />
+            )}
+            {live.infraProtAreaCount > 0 && (
+              <DataRow label="Protected Areas"
+                value={`${live.infraProtAreaCount} within 25km`}
+                note={live.infraProtAreaName ?? undefined}
+                color={confidence.medium} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -896,6 +956,9 @@ function buildLive() { return null as unknown as {
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;
+  infraRoadKm: number | null; infraRoadType: string | null; infraPowerKm: number | null;
+  infraHospitalKm: number | null; infraHospitalName: string | null; infraWaterKm: number | null;
+  infraProtAreaCount: number; infraProtAreaKm: number | null; infraProtAreaName: string | null;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }

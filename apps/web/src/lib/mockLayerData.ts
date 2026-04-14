@@ -170,6 +170,30 @@ export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
       },
     },
 
+    // ── Sprint Y: OSM Infrastructure Access ──────────────────────────────
+    {
+      layerType: 'infrastructure',
+      fetchStatus: 'complete',
+      confidence: 'medium',
+      dataDate: now,
+      sourceApi: 'OpenStreetMap Overpass API',
+      attribution: '© OpenStreetMap contributors',
+      summary: {
+        road_nearest_km: 1.2,
+        road_type: 'secondary',
+        power_substation_nearest_km: 7.4,
+        hospital_nearest_km: 22.6,
+        hospital_name: country === 'US' ? 'Highland District Hospital' : 'Milton District Hospital',
+        water_supply_nearest_km: 4.1,
+        market_nearest_km: 8.7,
+        market_name: country === 'US' ? 'Hillsboro Farmers Market' : 'Milton Farmers Market',
+        protected_area_nearest_km: 9.3,
+        protected_area_name: country === 'US' ? 'Paint Creek State Park' : 'Rattlesnake Point Conservation Area',
+        protected_area_count: 2,
+        poi_count: 18,
+      },
+    },
+
     // ── Sprint M: USGS NWIS Groundwater ───────────────────────────────────
     {
       layerType: 'groundwater',
@@ -505,8 +529,16 @@ export function getLayerSummaryText(result: MockLayerResult): string[] {
       lines.push(`Town: ${s['nearest_town_name']} (${s['nearest_town_km']}km)`);
       break;
 
-    // ── Derived layers (no mock data source) ─────────────────────────────
+    // ── Sprint Y ──────────────────────────────────────────────────────────
     case 'infrastructure':
+      lines.push(`Road: ${s['road_nearest_km']}km (${s['road_type']})`);
+      lines.push(`Grid: ${s['power_substation_nearest_km']}km, Hospital: ${s['hospital_nearest_km']}km`);
+      if ((s['protected_area_count'] as number) > 0) {
+        lines.push(`Protected areas: ${s['protected_area_count']} within 25km`);
+      }
+      break;
+
+    // ── Derived layers (no mock data source) ─────────────────────────────
     case 'watershed_derived':
     case 'microclimate':
     case 'soil_regeneration':
