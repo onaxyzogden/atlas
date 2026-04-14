@@ -15,6 +15,7 @@ Read this first at the start of every session.
 - [Database](entities/database.md) — PostgreSQL/PostGIS schema (12 tables), connection pattern
 - [Data Pipeline](entities/data-pipeline.md) — BullMQ orchestration, layer adapters, workers
 - [PDF Export Service](entities/pdf-export-service.md) — Puppeteer templates, S3 storage, 7 export types
+- [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens

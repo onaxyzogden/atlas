@@ -27,13 +27,19 @@ design-system/
 ```
 
 ## Overall Completion
-~65% Done, ~25% Partial, ~10% Stub (as of 2026-04-10 audit).
+~55% Done, ~25% Partial, ~20% Stub/Not Started (revised 2026-04-14 deep audit).
+
+Revision rationale: The ~65% estimate counted frontend-only layer fetchers as
+"connected". The deep audit revealed ALL 14 backend adapters are stubbed
+(ManualFlagAdapter). Frontend has 10 live API connections, but backend pipeline
+— the intended production path — is 0% connected. See `ATLAS_DEEP_AUDIT.md`.
 
 ## Key Metrics
-- 193 source files, 440 code nodes
-- 18 Zustand stores (all localStorage-persisted, no backend sync yet)
-- 12 database tables (full PostGIS schema)
-- 7 data layer types x 2 countries (US + CA)
+- 498 source files across monorepo
+- 26 Zustand stores (all localStorage-persisted, no backend sync yet)
+- 16 database tables across 6 migrations (full PostGIS schema)
+- 7 data layer types x 2 countries (US + CA), 28 data sources mapped
+- 14 security vulnerabilities (2 critical CVEs in fast-jwt via @fastify/jwt)
 
 ## Current State
 - Project CRUD, map drawing, zone/structure/paddock/crop/path placement: **production-ready**
@@ -44,6 +50,9 @@ design-system/
 - Dashboard: 14 pages, mixed data status (live vs. demo)
 - Backend sync for stores: **not started** (Sprint 3+ item)
 - CI/CD, tests, production deployment: **not started**
+
+## Strategic Gaps
+See [Gap Analysis](gap-analysis.md) for the full ~120-gap inventory against global frameworks (FAO, USDA, ASTM, IUCN, WRB). Covers soil, terrain, hydrology, climate, crop suitability, ecology, energy, infrastructure, regulatory, global coverage, and design intelligence.
 
 ## Launch Blockers
 1. No backend sync (data is localStorage-only)

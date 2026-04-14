@@ -4,6 +4,43 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Gap Analysis Wiki Ingestion + Triage
+- **Scope:** Ingested `infrastructure/OGDEN Atlas — Global Completeness Gap Analysis.md` into wiki as a formal entity page, then triaged all 13 categories by priority.
+- **Output:** `wiki/entities/gap-analysis.md` — structured synthesis of ~120 gaps, each tagged with gap type (data / computation / display), priority-ordered summary table (P0-P4), quick wins section, and 6-sprint implementation roadmap.
+- **Priority assignments:**
+  - **P0 (Quick Win):** Terrain computation (7 gaps, DEM live, `tier3-terrain` exists), Soil extended properties (5-8 gaps, SSURGO `chorizon` columns already available)
+  - **P1:** Climate data (free APIs: WorldClim/NASA POWER), Formal Scoring algorithms (FAO/USDA classification)
+  - **P2:** Crop Suitability (most significant strategic gap, depends on P1), Regulatory/Legal (fragmented sources)
+  - **P3:** Renewable Energy, Infrastructure, Ecological, Design Intelligence
+  - **P4:** Environmental Risk, Global Coverage
+- **Cross-references added:** atlas-platform.md, data-pipeline.md.
+- **Next:** Sprint A — implement terrain computation algorithms in `tier3-terrain` worker (aspect, curvature, TWI, TRI).
+
+### 2026-04-14 — Deep Technical Audit (ATLAS_DEEP_AUDIT.md)
+- **Scope:** Comprehensive 8-phase audit covering structural inventory, database schema, API layer, frontend features, data integration matrix, feature completeness matrix, technical debt, and synthesis report.
+- **Output:** `ATLAS_DEEP_AUDIT.md` (1,026 lines) saved to project root.
+- **Key findings:**
+  - Overall completion revised from ~65% to **~55%** — backend adapter registry is 100% stubbed (ManualFlagAdapter for all 14 adapters), which was previously obscured by frontend layerFetcher having 10 live API connections.
+  - 498 source files, 16 DB tables across 6 migrations, 50+ API endpoints, 26 Zustand stores, 14 dashboard pages.
+  - 28 data sources mapped (10 LIVE via frontend, 18 PLANNED). Backend pipeline has 0% real adapters.
+  - 14 security vulnerabilities (2 critical CVEs in fast-jwt via @fastify/jwt).
+  - TypeScript compiles clean (0 errors). Only 1 TODO remaining in codebase.
+  - Top recommendation: implement backend adapters starting with SSURGO (soils, 20% weight) and USGS 3DEP (elevation, 15% weight) to close the frontend/backend split.
+- **Wiki updates:** atlas-platform.md completion revised, data-pipeline.md current state expanded.
+- **Deferred:** UI browser verification, adapter implementation, CVE remediation.
+
+### 2026-04-13 — Local Stack Verification & Hardening
+- **Full LOCAL_VERIFICATION.md checklist run:** 22/24 API endpoint tests passed. Exports (Puppeteer) and terrain data skipped.
+- **Redis fault-tolerance:** `apps/api/src/plugins/redis.ts` — try/catch, connectTimeout, `family: 4` for WSL2 IPv4, retryStrategy. API now starts gracefully without Redis.
+- **BullMQ connection fix:** `apps/api/src/services/pipeline/DataPipelineOrchestrator.ts` — replaced `this.redis as never` casts with dedicated `ConnectionOptions` (host/port/password/family + `maxRetriesPerRequest: null`). All 5 queues + 5 workers now get their own connections.
+- **Pipeline startup guard:** `apps/api/src/app.ts` — added `redis.status === 'ready'` check before initializing orchestrator.
+- **Date serialization fix:** `packages/shared/src/lib/caseTransform.ts` — `instanceof Date` guard prevents object destructuring of timestamps in `toCamelCase`/`toSnakeCase`.
+- **jsonb double-stringification fix:** `apps/api/src/routes/design-features/index.ts` — `db.json()` / `sql.json()` for properties/style columns instead of `JSON.stringify()`.
+- **LOCAL_VERIFICATION.md doc fixes:** export type corrected, portal required fields added, migration env var instructions, full Redis WSL2 connectivity guide.
+- **New infrastructure files:** `db-setup.sql`, `run-migrations.sh`, `wsl-redis-url.sh`, `WINDOWS_DEV_NOTES.md`
+- **Commit:** `c6f7e1e` pushed to main.
+- **Deferred:** UI browser verification, Puppeteer PDF export test, terrain pipeline data test, WebSocket two-tab presence test.
+
 ### 2026-04-13 — Pre-Launch Hardening: Remaining Deferred Items
 - **WS stale connection cleanup:** Added server-side stale connection timeout to `apps/api/src/plugins/websocket.ts`. Connections without heartbeat for 90s (3× client interval) are now auto-closed. `lastSeen` tracking was already in place but unused — now enforced via `setInterval` cleanup loop.
 - **Layers route snake_case → camelCase:** Applied `toCamelCase()` transform to layers API route (`apps/api/src/routes/layers/index.ts`), aligning with existing pattern in projects/design-features/files routes. Updated 222 snake_case field references across 18 frontend files + 4 test files. `MockLayerResult` interface updated to camelCase.
