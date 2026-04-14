@@ -230,6 +230,9 @@ export function computeAssessmentScores(
   // Sprint V: census demographics (US Census Bureau ACS — US-only)
   const censusDemographics = layerByType(layers, 'census_demographics');
 
+  // Sprint W: proximity data (OSM Overpass — global)
+  const proximityData = layerByType(layers, 'proximity_data');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -356,7 +359,7 @@ export function computeAssessmentScores(
     computeRegenerativePotential(landCover, soils, soilRegen, carbonSeqTonsCO2HaYr),
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality, earthquakeHazard),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
-    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
+    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw, proximityData),
     computeCommunitySuitability(censusDemographics),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
@@ -1036,6 +1039,7 @@ function computeStewardshipReadiness(
   solarRadiationKwhM2Day?: number,
   biomassGjHa?: number,
   microhydroKw?: number,
+  proximityData?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -1158,13 +1162,30 @@ function computeStewardshipReadiness(
     : 0;
   components.push(comp('wind_energy_potential', windPts, 5, 'climate', wpd > 0 ? 'medium' : 'low'));
 
-  // Sprint K: Masjid proximity — Islamic community stewardship (OGDEN differentiator, max 4)
+  // Sprint K/W: Masjid proximity — Islamic community stewardship (OGDEN differentiator, max 4)
+  // Sprint W: prefer real OSM proximity data; fall back to infrastructure layer
   const ic = layerConfidence(infrastructure);
-  const masjidKm = num(infrastructure, 'masjid_nearest_km');
+  const pc = layerConfidence(proximityData);
+  const masjidKm = num(proximityData, 'masjid_nearest_km') || num(infrastructure, 'masjid_nearest_km');
   const masjidPts = masjidKm > 0
     ? (masjidKm <= 3 ? 4 : masjidKm <= 8 ? 2 : masjidKm <= 15 ? 1 : 0)
     : 0;
-  components.push(comp('masjid_proximity', masjidPts, 4, 'infrastructure', ic));
+  components.push(comp('masjid_proximity', masjidPts, 4, 'proximity_data', pc || ic));
+
+  // Sprint W: Farmers market proximity — food system connectivity (max 3)
+  const marketKm = num(proximityData, 'farmers_market_km');
+  const marketPts = marketKm > 0
+    ? (marketKm <= 10 ? 3 : marketKm <= 25 ? 2 : marketKm <= 50 ? 1 : 0)
+    : 0;
+  components.push(comp('farmers_market_proximity', marketPts, 3, 'proximity_data', pc));
+
+  // Sprint W: Town proximity — rural accessibility sweet spot (max 3)
+  // Best score: rural but within 30km of a town (not isolated, not suburban)
+  const townKm = num(proximityData, 'nearest_town_km');
+  const townPts = townKm > 0
+    ? (townKm <= 30 && townKm >= 5 ? 3 : townKm < 5 ? 1 : townKm <= 60 ? 2 : 0)
+    : 0;
+  components.push(comp('rural_town_proximity', townPts, 3, 'proximity_data', pc));
 
   // Sprint K: Solar PV potential — from existing NASA POWER solar radiation (max 5)
   // solar_radiation_kwh_m2_day already in climate layer = peak sun hours (PSH)

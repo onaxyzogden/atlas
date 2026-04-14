@@ -116,6 +116,14 @@ interface EarthquakeHazardSummary {
   sds_g?: number | null;
   hazard_class?: string | null;
 }
+interface ProximityDataSummary {
+  masjid_nearest_km?: number | null;
+  masjid_name?: string | null;
+  farmers_market_km?: number | null;
+  farmers_market_name?: string | null;
+  nearest_town_km?: number | null;
+  nearest_town_name?: string | null;
+}
 interface CensusDemographicsSummary {
   population?: number | null;
   pop_density_km2?: number | null;
@@ -216,6 +224,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const airQuality   = siteData ? getLayerSummary<AirQualitySummary>(siteData, 'air_quality')           : null;
     const quakeHazard  = siteData ? getLayerSummary<EarthquakeHazardSummary>(siteData, 'earthquake_hazard')    : null;
     const censusDemog  = siteData ? getLayerSummary<CensusDemographicsSummary>(siteData, 'census_demographics') : null;
+    const proximity    = siteData ? getLayerSummary<ProximityDataSummary>(siteData, 'proximity_data')           : null;
 
     const precipMm   = climate?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
@@ -342,6 +351,12 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         censusIncome:         censusDemog?.median_income_usd ?? null,
         censusAge:            censusDemog?.median_age ?? null,
         censusCounty:         censusDemog?.county_name ?? null,
+        proxMasjidKm:         proximity?.masjid_nearest_km ?? null,
+        proxMasjidName:       proximity?.masjid_name ?? null,
+        proxMarketKm:         proximity?.farmers_market_km ?? null,
+        proxMarketName:       proximity?.farmers_market_name ?? null,
+        proxTownKm:           proximity?.nearest_town_km ?? null,
+        proxTownName:         proximity?.nearest_town_name ?? null,
         meanSlopeDeg:         elevation?.mean_slope_deg ?? null,
         minElevM:             elevation?.min_elevation_m ?? null,
         maxElevM:             elevation?.max_elevation_m ?? null,
@@ -722,6 +737,33 @@ function RealtimePanel({ live, metrics, isLoading }: {
           </div>
         </div>
       )}
+
+      {/* Sprint W: Proximity & Access */}
+      {(live.proxMasjidKm !== null || live.proxMarketKm !== null || live.proxTownKm !== null) && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>PROXIMITY & ACCESS</span>
+          <div className={s.dataRows}>
+            {live.proxMasjidKm !== null && (
+              <DataRow label="Nearest Masjid"
+                value={`${live.proxMasjidKm} km`}
+                note={live.proxMasjidName ?? undefined}
+                color={live.proxMasjidKm <= 8 ? confidence.high : live.proxMasjidKm <= 20 ? confidence.medium : confidence.low} />
+            )}
+            {live.proxMarketKm !== null && (
+              <DataRow label="Farmers Market"
+                value={`${live.proxMarketKm} km`}
+                note={live.proxMarketName ?? undefined}
+                color={live.proxMarketKm <= 15 ? confidence.high : live.proxMarketKm <= 40 ? confidence.medium : confidence.low} />
+            )}
+            {live.proxTownKm !== null && (
+              <DataRow label="Nearest Town"
+                value={`${live.proxTownKm} km`}
+                note={live.proxTownName ?? undefined}
+                color={live.proxTownKm >= 5 && live.proxTownKm <= 40 ? confidence.high : confidence.medium} />
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -850,6 +892,7 @@ function buildLive() { return null as unknown as {
   aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
   quakePga: number | null; quakeSs: number | null; quakeClass: string | null;
   censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null;
+  proxMasjidKm: number | null; proxMasjidName: string | null; proxMarketKm: number | null; proxMarketName: string | null; proxTownKm: number | null; proxTownName: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;
   carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;

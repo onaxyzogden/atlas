@@ -196,12 +196,15 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   // Sprint V: Census demographics (US Census Bureau ACS — US only)
   fetchers.push(fetchCensusDemographics(lat, lng, options.country).then(trackLive));
 
+  // Sprint W: Proximity data (OSM Overpass — global)
+  fetchers.push(fetchProximityData(lat, lng).then(trackLive));
+
   await Promise.allSettled(fetchers);
 
   const isLive = liveCount > 0;
   setCache(cacheKey, results, isLive);
 
-  return { layers: results, isLive, liveCount, totalCount: 10 };
+  return { layers: results, isLive, liveCount, totalCount: 11 };
 }
 
 function replaceLayer(results: MockLayerResult[], replacement: MockLayerResult) {
@@ -4644,6 +4647,99 @@ async function fetchCensusDemographics(lat: number, lng: number, country: string
         rural_class:        ruralClass,
         tract_fips:         `${stateFips}${countyCode}${tractCode}`,
         county_name:        countyName,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Proximity Data (OpenStreetMap Overpass API — global) ──────────────────
+
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+
+/** Run a single Overpass query and return elements array, or [] on failure. */
+async function overpassQuery(query: string): Promise<Array<{ lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }>> {
+  try {
+    const resp = await fetchWithRetry(OVERPASS_URL, 14000, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    const data = await resp.json() as { elements?: unknown[] };
+    return (data?.elements ?? []) as Array<{ lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }>;
+  } catch {
+    return [];
+  }
+}
+
+/** Find nearest element from Overpass results and return [distanceKm, name]. */
+function nearestOverpass(
+  lat: number, lng: number,
+  elements: Array<{ lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }>,
+): { km: number; name: string } | null {
+  let best: { km: number; name: string } | null = null;
+  for (const el of elements) {
+    const elLat = el.lat ?? el.center?.lat;
+    const elLon = el.lon ?? el.center?.lon;
+    if (elLat == null || elLon == null) continue;
+    const km = haversineKm(lat, lng, elLat, elLon);
+    if (best === null || km < best.km) {
+      const name = el.tags?.name ?? el.tags?.['name:en'] ?? '';
+      best = { km: Math.round(km * 10) / 10, name };
+    }
+  }
+  return best;
+}
+
+async function fetchProximityData(lat: number, lng: number): Promise<MockLayerResult | null> {
+  try {
+    // Run three Overpass queries in parallel with generous radii
+    const [masjidEls, marketEls, townEls] = await Promise.all([
+      // Nearest masjid / Islamic centre (50 km radius)
+      overpassQuery(
+        `[out:json][timeout:20];
+(node["amenity"="place_of_worship"]["religion"="muslim"](around:50000,${lat},${lng});
+ way["amenity"="place_of_worship"]["religion"="muslim"](around:50000,${lat},${lng});
+);out center 20;`,
+      ),
+      // Nearest farmers market / farm shop (80 km radius)
+      overpassQuery(
+        `[out:json][timeout:20];
+(node["amenity"="marketplace"](around:80000,${lat},${lng});
+ node["shop"="farm"](around:80000,${lat},${lng});
+ node["shop"="farmers_market"](around:80000,${lat},${lng});
+);out center 20;`,
+      ),
+      // Nearest town / city centre (150 km radius)
+      overpassQuery(
+        `[out:json][timeout:20];
+node["place"~"^(city|town|village)$"](around:150000,${lat},${lng});
+out 30;`,
+      ),
+    ]);
+
+    const masjid  = nearestOverpass(lat, lng, masjidEls);
+    const market  = nearestOverpass(lat, lng, marketEls);
+    const town    = nearestOverpass(lat, lng, townEls);
+
+    // Require at least one result to return a layer
+    if (!masjid && !market && !town) return null;
+
+    return {
+      layerType: 'proximity_data',
+      fetchStatus: 'complete',
+      confidence: 'high',
+      dataDate: new Date().toISOString().split('T')[0]!,
+      sourceApi: 'OpenStreetMap (Overpass API)',
+      attribution: '© OpenStreetMap contributors, ODbL',
+      summary: {
+        masjid_nearest_km:       masjid?.km ?? null,
+        masjid_name:             masjid?.name || null,
+        farmers_market_km:       market?.km ?? null,
+        farmers_market_name:     market?.name || null,
+        nearest_town_km:         town?.km ?? null,
+        nearest_town_name:       town?.name || null,
       },
     };
   } catch {

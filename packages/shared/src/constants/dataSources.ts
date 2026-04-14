@@ -20,10 +20,11 @@ export type LayerType =
   | 'crop_validation'
   | 'air_quality'
   | 'earthquake_hazard'
-  | 'census_demographics';
+  | 'census_demographics'
+  | 'proximity_data';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -114,4 +115,6 @@ export const DATA_COMPLETENESS_WEIGHTS: Partial<Record<LayerType, number>> = {
   earthquake_hazard: 0.03,
   // Sprint V: census demographics (US Census Bureau ACS)
   census_demographics: 0.02,
+  // Sprint W: proximity data (OSM Overpass)
+  proximity_data: 0.02,
 };
