@@ -259,7 +259,7 @@ export function computeAssessmentScores(
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure),
-    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate),
+    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
@@ -738,6 +738,11 @@ function computeBuildability(
   const mktPts = mktKm > 0 ? (mktKm <= 5 ? 3 : mktKm <= 15 ? 1 : 0) : 0;
   components.push(comp('market_proximity', mktPts, 3, 'infrastructure', ic));
 
+  // Sprint L: Water supply proximity (max 3)
+  const waterKm = num(infrastructure, 'water_supply_nearest_km');
+  const waterPts = waterKm > 0 ? (waterKm <= 2 ? 3 : waterKm <= 5 ? 2 : waterKm <= 15 ? 1 : 0) : 0;
+  components.push(comp('water_supply_proximity', waterPts, 3, 'infrastructure', ic));
+
   return buildResult('Buildability', 75, components);
 }
 
@@ -751,6 +756,7 @@ function computeHabitatSensitivity(
   terrain: MockLayerResult | undefined,
   soilRegen: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
+  infrastructure?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const wfc = layerConfidence(wetlands);
@@ -758,6 +764,7 @@ function computeHabitatSensitivity(
   const tc = layerConfidence(terrain);
   const src = layerConfidence(soilRegen);
   const mc = layerConfidence(microclimate);
+  const ic = layerConfidence(infrastructure);
 
   // Wetland coverage (max 25)
   const wetlandPct = num(wetlands, 'wetland_pct');
@@ -802,6 +809,13 @@ function computeHabitatSensitivity(
   } else {
     components.push(comp('moisture_zone_wet_areas', 0, 7, 'microclimate', 'low'));
   }
+
+  // Sprint L: Protected area proximity (max 8, inverted — closer = higher sensitivity)
+  const paKm = num(infrastructure, 'protected_area_nearest_km');
+  const paPts = paKm > 0
+    ? (paKm <= 1 ? 8 : paKm <= 5 ? 5 : paKm <= 15 ? 2 : 0)
+    : 0;
+  components.push(comp('protected_area_proximity', paPts, 8, 'infrastructure', ic));
 
   return buildResult('Habitat Sensitivity', 25, components);
 }

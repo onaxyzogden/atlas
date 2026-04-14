@@ -21,6 +21,7 @@ export interface RuleContext {
   climate: MockLayerResult | undefined;
   zoning: MockLayerResult | undefined;
   watershed: MockLayerResult | undefined;
+  infrastructure: MockLayerResult | undefined;
   /** Number of distinct land cover classes */
   landClassCount: number;
   num: (layer: MockLayerResult | undefined, key: string) => number;
@@ -58,6 +59,7 @@ function buildContext(
     climate: byType('climate'),
     zoning: byType('zoning'),
     watershed: byType('watershed'),
+    infrastructure: byType('infrastructure'),
     landClassCount,
     num: numHelper,
     str: strHelper,

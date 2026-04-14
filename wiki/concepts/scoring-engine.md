@@ -1,7 +1,7 @@
 # Scoring Engine
 
 ## Summary
-Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~126 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
+Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~129 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
 
 ## How It Works
 1. `computeAssessmentScores(layers, acreage)` receives cached layer data from `siteDataStore`
@@ -21,7 +21,7 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Agricultural Suitability | 15% | pH, CEC, AWC, CaCO3, Ksat, bulk density, organic matter, drainage, slope, texture, GDD, hardiness zone | soils, climate, elevation |
 | Regenerative Potential | 15% | Organic matter, biodiversity indicators, carbon sequestration capacity, soil health trends | soils, land_cover, climate |
 | Buildability | 12% | Slope, flood risk, soil bearing capacity, terrain ruggedness, access grade, hospital/road/grid/market proximity | elevation, wetlands, soils, infrastructure |
-| Habitat Sensitivity | 10% | Wetland proximity, endangered species habitat, riparian buffers, land cover type | wetlands, land_cover, watershed |
+| Habitat Sensitivity | 10% | Wetland proximity, endangered species habitat, riparian buffers, land cover type, protected area proximity | wetlands, land_cover, watershed, infrastructure |
 | Stewardship Readiness | 18% | Soil fertility, salinity penalty, erosion hazard, conservation practice potential, masjid proximity, solar PV, wind energy | soils, elevation, climate, infrastructure |
 | Design Complexity | 15% | Slope variability, terrain complexity, access constraints, zoning conflicts (inverted — high complexity reduces overall score) | elevation, soils, land_cover |
 
@@ -44,6 +44,7 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Sprint I | LGP (agri suitability), carbon stock (regenerative potential), Canada Soil Capability (8 limitations, CA only) | ~118 |
 | Sprint J | Soil degradation risk (stewardship), wind energy potential (stewardship) | ~120 |
 | Sprint K | Hospital/road/grid/market proximity (buildability), masjid proximity (stewardship), solar PV potential (stewardship) | ~126 |
+| Sprint L | Protected area proximity (habitat), water supply proximity (buildability) + 8 infrastructure assessment rules | ~129 |
 
 ## Where It's Used
 - `apps/web/src/lib/computeScores.ts` — main engine (all 9 scoring functions)

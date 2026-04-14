@@ -279,6 +279,10 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       waterKm: sm.water_supply_nearest_km as number | null,
       roadKm: sm.road_nearest_km as number | null,
       roadType: sm.road_type as string | null,
+      protectedAreaKm: sm.protected_area_nearest_km as number | null,
+      protectedAreaName: sm.protected_area_name as string | null,
+      protectedAreaClass: sm.protected_area_class as string | null,
+      protectedAreaCount: sm.protected_area_count as number,
       poiCount: sm.poi_count as number,
     };
   }, [layers]);
@@ -986,7 +990,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 </span>
               </div>
               {/* Water Supply */}
-              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+              <div className={s.liveDataRow}>
                 <span className={s.liveDataLabel}>Water Supply</span>
                 <span className={s.liveDataValue} style={{
                   flex: 1, textAlign: 'right',
@@ -997,6 +1001,23 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                   {infraMetrics.waterKm != null ? `${infraMetrics.waterKm} km` : 'Not found'}
                 </span>
                 <span className={s.flagSource}>drinking water</span>
+              </div>
+              {/* Sprint L: Protected Area */}
+              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <span className={s.liveDataLabel}>Protected Area</span>
+                <span className={s.liveDataValue} style={{
+                  flex: 1, textAlign: 'right',
+                  color: infraMetrics.protectedAreaKm != null
+                    ? (infraMetrics.protectedAreaKm <= 1 ? confidence.low : infraMetrics.protectedAreaKm <= 5 ? confidence.medium : confidence.high)
+                    : confidence.high, // no protected area = no constraint
+                }}>
+                  {infraMetrics.protectedAreaKm != null
+                    ? (infraMetrics.protectedAreaKm <= 0.5 ? 'Inside protected area' : `${infraMetrics.protectedAreaKm} km`)
+                    : 'None within 25km'}
+                </span>
+                <span className={s.flagSource}>
+                  {infraMetrics.protectedAreaName ?? (infraMetrics.protectedAreaCount > 0 ? `${infraMetrics.protectedAreaCount} nearby` : 'OSM')}
+                </span>
               </div>
             </div>
           )}

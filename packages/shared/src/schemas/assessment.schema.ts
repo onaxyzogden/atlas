@@ -7,6 +7,7 @@ export const AssessmentFlagCategory = z.enum([
   'development',
   'regulatory',
   'climate',
+  'infrastructure',
 ]);
 export type AssessmentFlagCategory = z.infer<typeof AssessmentFlagCategory>;
 

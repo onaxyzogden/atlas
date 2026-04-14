@@ -3664,8 +3664,8 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 /**
  * Fetch infrastructure POIs from OpenStreetMap Overpass API.
- * Single batched query for 7 POI categories: hospital, masjid, market,
- * power substation, drinking water, primary/secondary/tertiary roads.
+ * Single batched query for 9 categories: hospital, masjid, market,
+ * power substation, drinking water, roads, protected areas, nature reserves.
  * Search radius ~25km (0.25° bbox expansion).
  * Returns nearest distance per category in the summary object.
  */
@@ -3688,6 +3688,8 @@ async function fetchInfrastructure(lat: number, lng: number): Promise<MockLayerR
   nwr["power"="substation"](${bbox});
   nwr["amenity"="drinking_water"](${bbox});
   nwr["highway"~"primary|secondary|tertiary"](${bbox});
+  nwr["boundary"="protected_area"](${bbox});
+  nwr["leisure"="nature_reserve"](${bbox});
 );
 out center;`;
 
@@ -3722,6 +3724,7 @@ out center;`;
       power_substation: [] as POI[],
       water_supply: [] as POI[],
       road: [] as POI[],
+      protected_area: [] as POI[],
     };
 
     for (const el of elements) {
@@ -3744,6 +3747,8 @@ out center;`;
         buckets.water_supply.push({ lat: elLat, lng: elLng, name, subtype: null });
       } else if (tags.highway && /^(primary|secondary|tertiary)$/.test(tags.highway)) {
         buckets.road.push({ lat: elLat, lng: elLng, name, subtype: tags.highway });
+      } else if (tags.boundary === 'protected_area' || tags.leisure === 'nature_reserve') {
+        buckets.protected_area.push({ lat: elLat, lng: elLng, name, subtype: tags.protect_class ?? tags.protection_title ?? null });
       }
     }
 
@@ -3766,6 +3771,7 @@ out center;`;
       power_substation: findNearest(buckets.power_substation),
       water_supply: findNearest(buckets.water_supply),
       road: findNearest(buckets.road),
+      protected_area: findNearest(buckets.protected_area),
     };
 
     const totalPois = Object.values(buckets).reduce((s, b) => s + b.length, 0);
@@ -3788,6 +3794,10 @@ out center;`;
         water_supply_nearest_km: nearest.water_supply?.km ?? null,
         road_nearest_km: nearest.road?.km ?? null,
         road_type: nearest.road?.subtype ?? null,
+        protected_area_nearest_km: nearest.protected_area?.km ?? null,
+        protected_area_name: nearest.protected_area?.name ?? null,
+        protected_area_class: nearest.protected_area?.subtype ?? null,
+        protected_area_count: buckets.protected_area.length,
         poi_count: totalPois,
       },
     };

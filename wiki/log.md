@@ -4,6 +4,21 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint L: Protected Areas + Infrastructure Rules + Scoring Polish
+- **Scope:** Extended Overpass query for protected areas (1 new Cat 7 gap), added 8 infrastructure assessment rules (first infrastructure-aware rules), wired untapped water supply scoring, and audited Cat 11 regulatory status (3 gaps reclassified as implemented via existing zoning fetcher).
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — extended Overpass query with `boundary=protected_area` + `leisure=nature_reserve` tags; added `protected_area` bucket, distance, name, class, and count to infrastructure layer summary
+  - `apps/web/src/lib/computeScores.ts` — added `protected_area_proximity` (max 8) to Habitat Sensitivity (inverted — closer = higher sensitivity); added `water_supply_proximity` (max 3) to Buildability; threaded infrastructure to `computeHabitatSensitivity()`
+  - `apps/web/src/lib/rules/ruleEngine.ts` — added `infrastructure` to `RuleContext` interface and `buildContext()` layer extraction
+  - `apps/web/src/lib/rules/assessmentRules.ts` — added `infrastructure` category to `AssessmentRule` type; added 4 opportunity rules (good-road-access, grid-connected, market-accessible, masjid-nearby) + 4 risk rules (remote-from-hospital, no-road-access, no-grid-access, protected-area-constraint)
+  - `packages/shared/src/schemas/assessment.schema.ts` — added `'infrastructure'` to `AssessmentFlagCategory` enum
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Protected Area row to Infrastructure Access section (distance + name + color coding); added protected area fields to `infraMetrics` useMemo
+- **Scoring components:** ~126 → ~129 (+1 protected area habitat, +1 water supply buildability, +1 infrastructure category)
+- **Assessment rules:** 28 → 36 (+4 opportunity, +4 risk — all infrastructure-based)
+- **Gaps closed:** 1 new (protected areas Cat 7) + 3 reclassified (Cat 11 zoning, overlay, floodplain already live)
+
+---
+
 ### 2026-04-14 — Sprint K: Overpass Infrastructure Distances + Solar PV Potential
 - **Scope:** First sprint to add a new external API. Integrated OpenStreetMap Overpass API for distance-to-infrastructure (8 Category 10 gaps) plus solar PV potential from existing NASA POWER data (1 Category 9 gap). Added `infrastructure` layer type, Haversine distance computation, 6 new scoring components, Infrastructure Access panel section, and Solar PV row.
 - **Files modified:**

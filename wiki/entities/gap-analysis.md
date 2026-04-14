@@ -17,14 +17,14 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 | 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 6/7 | 1 | Computation | **Nearly Complete** | Sprint D: FAO S1-N2, USDA LCC I-VIII. Sprint G: Hardiness Zone scoring. Sprint I: Canada Soil Capability (Class 1-7), LGP (FAO AEZ). Remaining: fuzzy logic/AHP |
 | 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 6/8 | 2 | Data + Computation | **Mostly Complete** | Sprint E: EcoCrop 2071 crops. Sprint G: rain-fed vs irrigated. Sprint J: agroforestry species pairing. Remaining: companion planting matrix, invasive/native species |
 | 4 | [Hydrology](#4-hydrology) | 5/10 | 5 | Mixed | **Partially Complete** | Sprint F: PET, aridity, irrigation demand, RWH, drainage density. Remaining: groundwater, aquifer, seasonal flood, water stress, water quality |
-| 11 | [Regulatory & Legal](#11-regulatory--legal) | 0/11 | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
+| 11 | [Regulatory & Legal](#11-regulatory--legal) | 3/11 | 8 | Data | **P2** | Sprint L audit: zoning classification, permitted uses, overlay districts already live via fetchZoning(). Remaining: setbacks, lot coverage, ALR, easements, water rights, etc. |
 | 9 | [Renewable Energy](#9-renewable-energy) | 2/6 | 4 | Data | **P3** | Sprint J: wind energy potential. Sprint K: solar PV from NASA POWER. Remaining: biomass, geothermal, hydropower, energy storage |
 | 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 8/8 | 0 | Data + Computation | **Complete** | Sprint K: Overpass API for all 8 gaps (hospital, masjid, market, grid, water, road, emergency, internet via POI proxy) |
-| 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 1/8 | 7 | Data | **P3** | Sprint I: carbon stock estimation (IPCC formula). WDPA is free; species-at-risk data varies by jurisdiction |
+| 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 2/8 | 6 | Data | **P3** | Sprint I: carbon stock. Sprint L: protected areas via Overpass. WDPA/PAD-US available for deeper coverage |
 | 13 | [Design Intelligence](#13-design-intelligence) | 0/10 | 10 | Computation | **P3** | All computation — depends on upstream data (terrain + climate + soil) being rich enough |
 | 8 | [Environmental Risk & Site History](#8-environmental-risk--site-history) | 0/8 | 8 | Data | **P4** | Phase I ESA data is jurisdiction-specific and often not API-accessible |
 | 12 | [Global Data Coverage](#12-global-data-coverage) | 0/10 | 10 | Data | **P4** | SoilGrids, WorldClim, ESA WorldCover expand beyond US+Ontario; strategic but not MVP-blocking |
-| | **Total** | **~56/120** | **~64** | | |
+| | **Total** | **~60/120** | **~60** | | |
 
 > **Priority key:**
 > - **P0 — Quick Win:** computation on data Atlas already has; can implement now
@@ -171,14 +171,14 @@ Sprint E (2026-04-14) integrated the full FAO EcoCrop database (2071 crops) with
 |-----------|----------|--------|
 | Habitat type (IUCN classification) | Data | Open |
 | Species at risk / critical habitat overlap | Data | Open |
-| Protected areas overlap (WDPA) | Data | Open |
+| Protected areas overlap (WDPA) | Data | **Implemented** — Sprint L: Overpass `boundary=protected_area` + `leisure=nature_reserve`, nearest distance + count |
 | Biodiversity index by ecoregion | Data | Open |
 | Forest canopy cover and height | Data | Open |
 | Carbon stock estimation | Computation | **Implemented** — Sprint I: IPCC formula with Adams pedotransfer fallback |
 | Ecosystem services valuation | Computation | Open |
 | Wetland ecological function classification (Cowardin) | Computation | Open |
 
-> **Status:** 1/8 implemented (Sprint I: carbon stock). Remaining 7 are data-dependent.
+> **Status:** 2/8 implemented (Sprint I: carbon stock, Sprint L: protected areas). Remaining 6 are data-dependent.
 
 ---
 
@@ -237,23 +237,23 @@ Sprint K (2026-04-14) implemented all 8 gaps via OpenStreetMap Overpass API. Sin
 
 ## 11. Regulatory & Legal
 
-Atlas has no connected zoning data for US or Canada — a critical gap.
+Sprint L audit: `fetchZoning()` in layerFetcher.ts IS live — US via FIPS-resolved county GIS registries, CA via LIO Municipal Zoning + AAFC CLI. Returns zone codes, descriptions, permitted uses, conditional uses, overlay districts. Setbacks/heights/coverage remain "Unknown".
 
-| Regulatory Layer | Gap Type |
-|------------------|----------|
-| Zoning classification | Data |
-| Agricultural Land Reserve (ALR) status (BC) | Data |
-| Greenbelt / conservation overlay | Data |
-| Conservation easement status | Data |
-| Mineral / subsurface rights separation | Data |
-| Water rights / riparian rights | Data |
-| Floodplain development restrictions | Data |
-| Setback requirements | Data |
-| Heritage / archaeological site designation | Data |
-| Environmental impact assessment triggers | Data |
-| Agricultural use-value assessment eligibility | Data |
+| Regulatory Layer | Gap Type | Status |
+|------------------|----------|--------|
+| Zoning classification | Data | **Implemented** — `fetchZoning()` returns zone code + description for US (county GIS) and CA (LIO + AAFC) |
+| Agricultural Land Reserve (ALR) status (BC) | Data | Open — BC-specific |
+| Greenbelt / conservation overlay | Data | **Implemented** — US: overlay_districts from county GIS; CA: zoning overlay from LIO |
+| Conservation easement status | Data | Open — fragmented, no single API |
+| Mineral / subsurface rights separation | Data | Open |
+| Water rights / riparian rights | Data | Open |
+| Floodplain development restrictions | Data | **Implemented** — FEMA flood zones already live in wetlands_flood layer |
+| Setback requirements | Data | Open — returns "Unknown", requires detailed bylaw parsing |
+| Heritage / archaeological site designation | Data | Open |
+| Environmental impact assessment triggers | Data | Open |
+| Agricultural use-value assessment eligibility | Data | Open |
 
-> **Cross-ref:** [Data Pipeline](data-pipeline.md) — zoning is listed as Layer 7 but both US and CA adapters are stubbed.
+> **Status:** 3/11 implemented (Sprint L audit: zoning classification, overlay districts, floodplain restrictions already live). Remaining 8 require jurisdiction-specific data sources or detailed bylaw parsing.
 
 ---
 
@@ -346,8 +346,9 @@ SSURGO's Soil Data Access (SDA) web service already returns `mapunit` and `compo
 | **I** | 2026-04-14 | LGP + Canada Soil Capability + Carbon Stock | 3 — LGP (FAO AEZ), Canada Soil Capability (Class 1-7), Carbon stock estimation (IPCC) |
 | **J** | 2026-04-14 | Soil Degradation + WRB + Agroforestry + Wind | 4 — Soil degradation risk index, WRB classification, agroforestry species pairing, wind energy potential |
 | **K** | 2026-04-14 | Overpass Infrastructure + Solar PV | 9 — Hospital, masjid, market, grid, water, road, emergency, connectivity proximity (Overpass API); solar PV potential (NASA POWER) |
+| **L** | 2026-04-14 | Protected Areas + Infrastructure Rules + Scoring Polish | 4 — Protected areas (Overpass extension, Cat 7), + 3 reclassified Cat 11 gaps (zoning, overlay, floodplain already live). 8 infrastructure assessment rules, 3 new scoring components |
 
-**Cumulative: ~56/120 gaps closed.** Sprints A-J used frontend-only computation on existing data. Sprint K is the first to add a new external API (OpenStreetMap Overpass).
+**Cumulative: ~60/120 gaps closed.** Sprint K added Overpass API; Sprint L extended it for protected areas, added 8 infrastructure assessment rules, and audited Cat 11 regulatory status.
 
 ### Next Sprints
 

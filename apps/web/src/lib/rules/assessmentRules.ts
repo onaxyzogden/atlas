@@ -12,7 +12,7 @@ import type { RuleContext } from './ruleEngine.js';
 export interface AssessmentRule {
   id: string;
   type: 'risk' | 'opportunity';
-  category: 'agriculture' | 'conservation' | 'development' | 'regulatory' | 'climate';
+  category: 'agriculture' | 'conservation' | 'development' | 'regulatory' | 'climate' | 'infrastructure';
   severity: 'info' | 'warning' | 'critical';
   priority: number;
   country: 'US' | 'CA' | 'all';
@@ -449,10 +449,175 @@ const riskRules: AssessmentRule[] = [
 ];
 
 /* ================================================================== */
+/*  INFRASTRUCTURE OPPORTUNITY RULES (Sprint L)                        */
+/* ================================================================== */
+
+const infrastructureOpportunityRules: AssessmentRule[] = [
+  {
+    id: 'good-road-access',
+    type: 'opportunity',
+    category: 'infrastructure',
+    severity: 'info',
+    priority: 20,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'road_nearest_km');
+      const type = ctx.str(ctx.infrastructure, 'road_type');
+      return km > 0 && km <= 2 && (type === 'primary' || type === 'secondary');
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'road_nearest_km');
+      const type = ctx.str(ctx.infrastructure, 'road_type');
+      return `Well-connected — ${type} road within ${km} km enables equipment and market access`;
+    },
+  },
+  {
+    id: 'grid-connected',
+    type: 'opportunity',
+    category: 'infrastructure',
+    severity: 'info',
+    priority: 25,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'power_substation_nearest_km');
+      return km > 0 && km <= 5;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'power_substation_nearest_km');
+      return `Grid-connected — power substation within ${km} km reduces off-grid infrastructure costs`;
+    },
+  },
+  {
+    id: 'market-accessible',
+    type: 'opportunity',
+    category: 'infrastructure',
+    severity: 'info',
+    priority: 30,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'market_nearest_km');
+      return km > 0 && km <= 5;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'market_nearest_km');
+      const name = ctx.str(ctx.infrastructure, 'market_name');
+      return `Market-accessible — ${name || 'grocery/market'} within ${km} km supports community viability`;
+    },
+  },
+  {
+    id: 'masjid-nearby',
+    type: 'opportunity',
+    category: 'infrastructure',
+    severity: 'info',
+    priority: 15,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'masjid_nearest_km');
+      return km > 0 && km <= 5;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'masjid_nearest_km');
+      const name = ctx.str(ctx.infrastructure, 'masjid_name');
+      return `Islamic community access — ${name || 'masjid'} within ${km} km`;
+    },
+  },
+];
+
+/* ================================================================== */
+/*  INFRASTRUCTURE RISK RULES (Sprint L)                               */
+/* ================================================================== */
+
+const infrastructureRiskRules: AssessmentRule[] = [
+  {
+    id: 'remote-from-hospital',
+    type: 'risk',
+    category: 'infrastructure',
+    severity: 'warning',
+    priority: 15,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'hospital_nearest_km');
+      return km === 0 || km > 30; // 0 = no data (not found within 25km search)
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'hospital_nearest_km');
+      return km > 0
+        ? `Remote from emergency services — nearest hospital ${km} km away`
+        : 'No hospital found within 25 km search radius — verify emergency service access';
+    },
+    needsSiteVisit: true,
+  },
+  {
+    id: 'no-road-access',
+    type: 'risk',
+    category: 'infrastructure',
+    severity: 'warning',
+    priority: 20,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'road_nearest_km');
+      return km === 0 || km > 15;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'road_nearest_km');
+      return km > 0
+        ? `Poor road access — nearest classified road ${km} km away`
+        : 'No primary/secondary/tertiary road found within 25 km — access may be limited';
+    },
+  },
+  {
+    id: 'no-grid-access',
+    type: 'risk',
+    category: 'infrastructure',
+    severity: 'info',
+    priority: 30,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'power_substation_nearest_km');
+      return km === 0 || km > 20;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'power_substation_nearest_km');
+      return km > 0
+        ? `Off-grid location — nearest power substation ${km} km away, solar/wind recommended`
+        : 'No power substation found within 25 km — plan for off-grid energy systems';
+    },
+  },
+  {
+    id: 'protected-area-constraint',
+    type: 'risk',
+    category: 'conservation',
+    severity: 'warning',
+    priority: 10,
+    country: 'all',
+    layerSource: 'Infrastructure',
+    needsSiteVisit: true,
+    condition: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'protected_area_nearest_km');
+      return km > 0 && km <= 1;
+    },
+    message: (ctx) => {
+      const km = ctx.num(ctx.infrastructure, 'protected_area_nearest_km');
+      const name = ctx.str(ctx.infrastructure, 'protected_area_name');
+      return `Adjacent to protected area${name ? ` (${name})` : ''} at ${km} km — development constraints likely, verify with local authority`;
+    },
+  },
+];
+
+/* ================================================================== */
 /*  EXPORT                                                             */
 /* ================================================================== */
 
 export const ASSESSMENT_RULES: AssessmentRule[] = [
   ...opportunityRules,
   ...riskRules,
+  ...infrastructureOpportunityRules,
+  ...infrastructureRiskRules,
 ];
