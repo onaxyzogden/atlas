@@ -248,6 +248,20 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
       }
     }
 
+    // Sprint R: Carbon sequestration flux (tCO₂/ha/yr)
+    const cTreeCanopy   = landCover?.tree_canopy_pct ?? 0;
+    const cWetlandPct   = Number(wetFlood?.wetland_pct ?? 0);
+    const cOmPct        = soils?.organic_matter_pct ?? 0;
+    const forestSeqRate  = (cTreeCanopy / 100) * 4.5;
+    const wetlandSeqRate = (isFinite(cWetlandPct) ? cWetlandPct : 0) / 100 * 6.0;
+    const soilSeqRate    = cOmPct > 3 ? 1.5 : cOmPct > 2 ? 0.8 : cOmPct > 1 ? 0.3 : 0;
+    const cropPenalty    = cropValid?.is_cropland ? -0.5 : 0;
+    const carbonSeqHaYr  = Math.round(Math.max(0, forestSeqRate + wetlandSeqRate + soilSeqRate + cropPenalty) * 100) / 100;
+    // Total site: convert acres → ha (1 acre = 0.404686 ha)
+    const siteHa         = (project.acreage ?? 0) * 0.404686;
+    const carbonSeqTotalYr = siteHa > 0 ? Math.round(carbonSeqHaYr * siteHa * 10) / 10 : null;
+    const carbonClass    = carbonSeqHaYr >= 2 ? 'Sink' : carbonSeqHaYr >= 0.5 ? 'Weak Sink' : carbonSeqHaYr > 0 ? 'Near-Neutral' : 'Source';
+
     return {
       live: {
         rainfall:             `${precipMm} mm/yr`,
@@ -286,6 +300,9 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         cdlYear:              cropValid?.cdl_year ?? null,
         biomassGjHa,
         microhydroKw,
+        carbonSeqHaYr,
+        carbonSeqTotalYr,
+        carbonClass,
       },
       metrics: m,
     };
@@ -530,6 +547,24 @@ function RealtimePanel({ live, metrics, isLoading }: {
           </div>
         </div>
       )}
+
+      {/* Sprint R: Carbon Sequestration */}
+      <div className={s.panelSection} style={{ marginTop: 16 }}>
+        <span className={s.sectionTag}>CARBON SEQUESTRATION</span>
+        <div className={s.dataRows}>
+          <DataRow label="Seq. Rate"
+            value={`${live.carbonSeqHaYr.toFixed(2)} tCO₂/ha/yr`}
+            color={live.carbonSeqHaYr >= 2 ? confidence.high : live.carbonSeqHaYr >= 0.5 ? confidence.medium : confidence.low} />
+          <DataRow label="Carbon Class"
+            value={live.carbonClass}
+            color={live.carbonClass === 'Sink' ? confidence.high : live.carbonClass === 'Weak Sink' ? confidence.medium : confidence.low} />
+          {live.carbonSeqTotalYr !== null && (
+            <DataRow label="Total Site"
+              value={`${live.carbonSeqTotalYr} tCO₂/yr`}
+              note="based on parcel area" />
+          )}
+        </div>
+      </div>
     </>
   );
 }
@@ -656,6 +691,7 @@ function buildLive() { return null as unknown as {
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
   biomassGjHa: number; microhydroKw: number;
+  carbonSeqHaYr: number; carbonSeqTotalYr: number | null; carbonClass: string;
 }; }
 
 function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }

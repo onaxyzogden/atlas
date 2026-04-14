@@ -316,10 +316,35 @@ export function computeAssessmentScores(
     }
   }
 
+  // Sprint R: Carbon sequestration rate (tCO₂/ha/yr) — IPCC Tier 1 flux estimation
+  // Three pools: forest canopy (NPP), wetland (peat accretion), soil organic C flux
+  const cTreeCanopy   = num(landCover, 'tree_canopy_pct');
+  const cWetlandPct   = num(wetlands,  'wetland_pct');
+  const cOmPct        = num(soils,     'organic_matter_pct');
+  const cIsCropland   = s(cropValidation, 'is_cropland') as boolean | undefined;
+
+  // Forest pool: temperate deciduous/mixed ~4.5 tCO₂/ha/yr at full canopy
+  const forestSeqRate = (cTreeCanopy / 100) * 4.5;
+
+  // Wetland pool: freshwater wetlands (peat accretion) ~6 tCO₂/ha/yr
+  const wetlandPct = typeof cWetlandPct === 'number' && isFinite(cWetlandPct) ? cWetlandPct : 0;
+  const wetlandSeqRate = (wetlandPct / 100) * 6.0;
+
+  // Soil pool: flux estimated from OM level — higher OM = more active C cycling
+  // Well-stocked (>3%) soils under perennial vegetation: ~1.5 tCO₂/ha/yr
+  const soilSeqRate = cOmPct > 3 ? 1.5 : cOmPct > 2 ? 0.8 : cOmPct > 1 ? 0.3 : 0;
+
+  // Cropland penalty: annual tillage releases ~0.5 tCO₂/ha/yr net
+  const cropPenalty  = cIsCropland ? -0.5 : 0;
+
+  const carbonSeqTonsCO2HaYr = Math.round(
+    Math.max(0, forestSeqRate + wetlandSeqRate + soilSeqRate + cropPenalty) * 100,
+  ) / 100;
+
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
-    computeRegenerativePotential(landCover, soils, soilRegen),
+    computeRegenerativePotential(landCover, soils, soilRegen, carbonSeqTonsCO2HaYr),
     computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw),
@@ -659,6 +684,7 @@ function computeRegenerativePotential(
   landCover: MockLayerResult | undefined,
   soils: MockLayerResult | undefined,
   soilRegen: MockLayerResult | undefined,
+  carbonSeqTonsCO2HaYr?: number,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const lc = layerConfidence(landCover);
@@ -736,6 +762,15 @@ function computeRegenerativePotential(
     : carbonStockTCHa > 0 ? 1
     : 0;
   components.push(comp('carbon_stock', carbonPts, 6, 'soils', sc));
+
+  // Sprint R: Annual carbon sequestration flux (tCO₂/ha/yr) — max 8
+  // Computed upstream from forest + wetland + soil pools minus cropland penalty
+  const cSeq = carbonSeqTonsCO2HaYr ?? 0;
+  const cSeqPts = cSeq >= 5 ? 8 : cSeq >= 2 ? 5 : cSeq >= 0.5 ? 2 : 0;
+  const cSeqConf = cSeq > 0
+    ? (cSeq >= 2 ? 'medium' : 'low')
+    : 'low';
+  components.push(comp('carbon_sequestration_flux', cSeqPts, 8, 'land_cover', cSeqConf as 'high' | 'medium' | 'low'));
 
   return buildResult('Regenerative Potential', 35, components);
 }
