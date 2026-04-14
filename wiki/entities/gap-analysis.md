@@ -12,19 +12,19 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 | # | Category | Implemented | Remaining | Dominant Type | Priority | Rationale |
 |---|----------|-------------|-----------|---------------|----------|-----------|
 | 3 | [Terrain & Topography](#3-terrain--topography) | 8/8 | 0 | Computation | **Complete** | Sprint A: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI |
-| 2 | [Soil Assessment](#2-soil-assessment) | 10/16 | 6 | Data | **Mostly Complete** | Sprint B fetched 10+ fields; Sprint G wired CaCO3/Ksat/bulk density into scoring + pH bug fix + Soil Intelligence panel |
+| 2 | [Soil Assessment](#2-soil-assessment) | 12/16 | 4 | Data | **Mostly Complete** | Sprint B fetched 10+ fields; Sprint G wired CaCO3/Ksat/bulk density into scoring. Sprint J: soil degradation risk index, WRB classification. Remaining: N-P-K, stoniness, boron, SoilGrids |
 | 5 | [Climate](#5-climate) | 8/10 | 2 | Data | **Mostly Complete** | Sprint C: Koppen, freeze-thaw, NASA POWER solar. Remaining: extreme events, climate projections |
 | 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 6/7 | 1 | Computation | **Nearly Complete** | Sprint D: FAO S1-N2, USDA LCC I-VIII. Sprint G: Hardiness Zone scoring. Sprint I: Canada Soil Capability (Class 1-7), LGP (FAO AEZ). Remaining: fuzzy logic/AHP |
-| 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 5/8 | 3 | Data + Computation | **Mostly Complete** | Sprint E: EcoCrop 2071 crops. Sprint G: rain-fed vs irrigated. Remaining: agroforestry, companion planting, invasive/native |
+| 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 6/8 | 2 | Data + Computation | **Mostly Complete** | Sprint E: EcoCrop 2071 crops. Sprint G: rain-fed vs irrigated. Sprint J: agroforestry species pairing. Remaining: companion planting matrix, invasive/native species |
 | 4 | [Hydrology](#4-hydrology) | 5/10 | 5 | Mixed | **Partially Complete** | Sprint F: PET, aridity, irrigation demand, RWH, drainage density. Remaining: groundwater, aquifer, seasonal flood, water stress, water quality |
 | 11 | [Regulatory & Legal](#11-regulatory--legal) | 0/11 | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
-| 9 | [Renewable Energy](#9-renewable-energy) | 0/6 | 6 | Data | **P3** | NASA POWER + Global Wind Atlas have free APIs; high user value but not core land suitability |
+| 9 | [Renewable Energy](#9-renewable-energy) | 1/6 | 5 | Data | **P3** | Sprint J: wind energy potential from existing wind rose data. Remaining: solar PV sizing, biomass, geothermal, hydropower, energy storage |
 | 10 | [Infrastructure & Accessibility](#10-infrastructure--accessibility) | 0/8 | 8 | Data + Computation | **P3** | Distance calcs are straightforward once POI datasets sourced; masjid proximity is OGDEN-differentiator |
 | 7 | [Ecological & Biodiversity](#7-ecological--biodiversity) | 1/8 | 7 | Data | **P3** | Sprint I: carbon stock estimation (IPCC formula). WDPA is free; species-at-risk data varies by jurisdiction |
 | 13 | [Design Intelligence](#13-design-intelligence) | 0/10 | 10 | Computation | **P3** | All computation — depends on upstream data (terrain + climate + soil) being rich enough |
 | 8 | [Environmental Risk & Site History](#8-environmental-risk--site-history) | 0/8 | 8 | Data | **P4** | Phase I ESA data is jurisdiction-specific and often not API-accessible |
 | 12 | [Global Data Coverage](#12-global-data-coverage) | 0/10 | 10 | Data | **P4** | SoilGrids, WorldClim, ESA WorldCover expand beyond US+Ontario; strategic but not MVP-blocking |
-| | **Total** | **~43/120** | **~77** | | |
+| | **Total** | **~47/120** | **~73** | | |
 
 > **Priority key:**
 > - **P0 — Quick Win:** computation on data Atlas already has; can implement now
@@ -338,8 +338,9 @@ SSURGO's Soil Data Access (SDA) web service already returns `mapunit` and `compo
 | **G** | 2026-04-14 | Soil + Hardiness + Irrigation | 2 — Hardiness zone scoring, rain-fed vs irrigated. Also: pH bug fix, 3 soil scoring wires, Soil Intelligence panel |
 | **H** | 2026-04-14 | Gap Audit + Wiki Update | 0 (documentation sprint) |
 | **I** | 2026-04-14 | LGP + Canada Soil Capability + Carbon Stock | 3 — LGP (FAO AEZ), Canada Soil Capability (Class 1-7), Carbon stock estimation (IPCC) |
+| **J** | 2026-04-14 | Soil Degradation + WRB + Agroforestry + Wind | 4 — Soil degradation risk index, WRB classification, agroforestry species pairing, wind energy potential |
 
-**Cumulative: ~43/120 gaps closed.** All sprints used frontend-only computation on existing fetched data — no new API adapters were added.
+**Cumulative: ~47/120 gaps closed.** All sprints used frontend-only computation on existing fetched data — no new API adapters were added.
 
 ### Next Sprints
 

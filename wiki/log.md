@@ -4,6 +4,18 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint J: Soil Degradation + WRB + Agroforestry + Wind Energy
+- **Scope:** Implemented 4 remaining frontend-computable gaps: soil degradation risk index, WRB soil classification, agroforestry species pairing, and wind energy potential — all from existing layer data, no new APIs. This exhausts all frontend-computable opportunities.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added soil degradation risk component (composite of OM depletion, salinization, compaction, erosion, drainage — max 8) to Stewardship Readiness; added wind energy potential component (max 5) from wind rose power density; threaded elevation + windPowerDensity through Stewardship Readiness
+  - `apps/web/src/lib/cropMatching.ts` — added `findAgroforestryCompanions()` function: filters EcoCrop DB for perennial trees/shrubs, scores by structural diversity, family diversity, N-fixation, rooting depth complementarity. Returns top companions with compatibility scores. Added `CompanionMatch` interface + `rangesOverlap()` helper
+  - `apps/web/src/lib/hydrologyMetrics.ts` — added `computeWindEnergy()`: frequency-weighted cubic mean (Betz law), NREL power class, optimal direction, capacity factor. Added `WindEnergyResult` interface
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added WRB classification row to Soil Intelligence (USDA→WRB lookup + Gleyic/Calcic/Humic/Haplic qualifiers); Wind Power row to Hydrology Intelligence (W/m² + class + direction); agroforestry companions sub-list under expanded crop matches; wind energy useMemo + companion cache useMemo
+- **Scoring components:** 118 → 120 (+1 soil degradation, +1 wind energy)
+- **Gaps closed:** 4 (soil degradation risk, WRB classification, agroforestry pairing, wind energy potential)
+
+---
+
 ### 2026-04-14 — Sprint I: LGP + Canada Soil Capability + Carbon Stock Estimation
 - **Scope:** Implemented three remaining frontend-computable gaps: Length of Growing Period (LGP), Canada Soil Capability Classification (CSCS), and carbon stock estimation — all from existing fetched layer data, no new APIs.
 - **Files modified:**

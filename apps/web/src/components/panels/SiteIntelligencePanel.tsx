@@ -22,13 +22,15 @@ import {
   deriveSiteSummary,
   deriveLandWants,
 } from '../../lib/computeScores.js';
-import { matchCropsToSite, siteConditionsFromLayers, type CropMatch } from '../../lib/cropMatching.js';
+import { matchCropsToSite, siteConditionsFromLayers, findAgroforestryCompanions, type CropMatch, type CompanionMatch } from '../../lib/cropMatching.js';
 import {
   computeHydrologyMetrics,
+  computeWindEnergy,
   fmtGal,
   parseHydrologicGroup,
   HYDRO_DEFAULTS,
   type HydroMetrics,
+  type WindEnergyResult,
 } from '../../lib/hydrologyMetrics.js';
 import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
@@ -250,6 +252,16 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     });
   }, [layers, project.acreage]);
 
+  // Sprint J: Wind energy potential from wind_rose data
+  const windEnergy = useMemo((): WindEnergyResult | null => {
+    const climateLayer = layers.find((l) => l.layerType === 'climate');
+    if (!climateLayer) return null;
+    const cs = climateLayer.summary as Record<string, unknown> | undefined;
+    const windRose = cs?.['_wind_rose'] as
+      { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | undefined;
+    return computeWindEnergy(windRose ?? null);
+  }, [layers]);
+
   // Crop suitability matching
   const [showAllCrops, setShowAllCrops] = useState(false);
   const [cropCategoryFilter, setCropCategoryFilter] = useState<string | null>(null);
@@ -274,6 +286,22 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     });
   }, [layers, cropCategoryFilter, hydroMetrics]);
 
+  // Sprint J: Agroforestry companion cache — compute per expanded crop
+  const companionCache = useMemo((): Map<string, CompanionMatch[]> => {
+    const map = new Map<string, CompanionMatch[]>();
+    if (!expandedCrop) return map;
+    const match = cropMatches.find((m) => m.crop.id === expandedCrop);
+    if (!match) return map;
+    const climateLayer = layers.find((l) => l.layerType === 'climate');
+    const soilLayer = layers.find((l) => l.layerType === 'soils');
+    const site = siteConditionsFromLayers(
+      (climateLayer?.summary as Record<string, unknown>) ?? null,
+      (soilLayer?.summary as Record<string, unknown>) ?? null,
+    );
+    map.set(match.crop.id, findAgroforestryCompanions(match.crop, site, 3));
+    return map;
+  }, [expandedCrop, cropMatches, layers]);
+
   // Sprint G: Soil Intelligence metrics
   const soilMetrics = useMemo(() => {
     const soilsLayer = layers.find((l) => l.layerType === 'soils');
@@ -290,6 +318,27 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       const depth = rdCm != null && rdCm > 0 ? rdCm : 30;
       carbonStockTCHa = Math.round((omPct / 100) * 0.58 * bd * depth * 100 * 10) / 10;
     }
+    // Sprint J: WRB classification from USDA taxonomy + soil properties
+    const taxOrder = typeof ss.taxonomic_order === 'string' ? ss.taxonomic_order : null;
+    const drainStr = typeof ss.drainage_class === 'string' ? ss.drainage_class.toLowerCase() : '';
+    const caco3 = typeof ss.caco3_pct === 'number' ? ss.caco3_pct : 0;
+    let wrbClass: string | null = null;
+    if (taxOrder) {
+      const USDA_TO_WRB: Record<string, string> = {
+        entisols: 'Regosols', inceptisols: 'Cambisols', alfisols: 'Luvisols',
+        mollisols: 'Chernozems', spodosols: 'Podzols', ultisols: 'Acrisols',
+        oxisols: 'Ferralsols', vertisols: 'Vertisols', aridisols: 'Calcisols',
+        histosols: 'Histosols', andisols: 'Andosols', gelisols: 'Cryosols',
+      };
+      const base = USDA_TO_WRB[taxOrder.toLowerCase()] ?? null;
+      if (base) {
+        const qualifier = drainStr.includes('poorly') ? 'Gleyic'
+          : caco3 > 5 ? 'Calcic'
+          : (omPct != null && omPct > 6) ? 'Humic'
+          : 'Haplic';
+        wrbClass = `${qualifier} ${base}`;
+      }
+    }
     return {
       ph: typeof ss.ph === 'number' ? ss.ph : null,
       organicMatterPct: omPct,
@@ -302,6 +351,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       drainageClass: typeof ss.drainage_class === 'string' ? ss.drainage_class : null,
       rootingDepthCm: rdCm,
       carbonStockTCHa,
+      wrbClass,
     };
   }, [layers]);
 
@@ -590,13 +640,39 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 </span>
               </div>
               {/* Sprint I: Length of Growing Period */}
-              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+              <div className={s.liveDataRow}>
                 <span className={s.liveDataLabel}>Growing Period</span>
                 <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
                   {hydroMetrics.lgpDays} days
                 </span>
                 <span className={s.flagSource}>{hydroMetrics.lgpClass}</span>
               </div>
+              {/* Sprint J: Wind Energy Potential */}
+              {windEnergy && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Wind Power</span>
+                  <span className={s.liveDataValue} style={{
+                    flex: 1, textAlign: 'right',
+                    color: windEnergy.windPowerClass === 'Excellent' || windEnergy.windPowerClass === 'Good'
+                      ? confidence.high
+                      : windEnergy.windPowerClass === 'Moderate' ? confidence.medium
+                      : confidence.low,
+                  }}>
+                    {windEnergy.powerDensityWm2} W/m²
+                  </span>
+                  <span className={s.flagSource}>
+                    {windEnergy.windPowerClass} ({windEnergy.optimalDirection})
+                  </span>
+                </div>
+              )}
+              {!windEnergy && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>Wind Power</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right', opacity: 0.5 }}>
+                    No wind data
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -726,7 +802,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
               )}
               {/* Sprint I: Carbon Stock */}
               {soilMetrics.carbonStockTCHa != null && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                <div className={s.liveDataRow}>
                   <span className={s.liveDataLabel}>Carbon Stock</span>
                   <span className={s.liveDataValue} style={{
                     flex: 1, textAlign: 'right',
@@ -739,6 +815,16 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                   <span className={s.flagSource}>
                     {soilMetrics.carbonStockTCHa >= 80 ? 'High' : soilMetrics.carbonStockTCHa >= 40 ? 'Moderate' : 'Low'}
                   </span>
+                </div>
+              )}
+              {/* Sprint J: WRB Classification */}
+              {soilMetrics.wrbClass && (
+                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
+                  <span className={s.liveDataLabel}>WRB Class</span>
+                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
+                    {soilMetrics.wrbClass}
+                  </span>
+                  <span className={s.flagSource}>Intl. standard</span>
                 </div>
               )}
             </div>
@@ -1027,6 +1113,31 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                         </div>
                       );
                     })}
+                    {/* Sprint J: Agroforestry Companions */}
+                    {(() => {
+                      const companions = companionCache.get(match.crop.id);
+                      if (!companions || companions.length === 0) return null;
+                      return (
+                        <div style={{ marginTop: 8, borderTop: '1px solid var(--border-subtle, #e0e0e0)', paddingTop: 6 }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: semantic.sidebarActive, marginBottom: 4 }}>
+                            Agroforestry Companions
+                          </div>
+                          {companions.map((c) => (
+                            <div key={c.crop.id} className={s.breakdownRow} style={{ gap: 4 }}>
+                              <span className={s.breakdownName} style={{ fontSize: 10 }}>
+                                {c.crop.name}
+                              </span>
+                              <span style={{ fontSize: 9, color: confidence.medium, flexShrink: 0 }}>
+                                {c.reasons[0]}
+                              </span>
+                              <span className={s.breakdownValue} style={{ fontSize: 10 }}>
+                                {c.compatibilityScore}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

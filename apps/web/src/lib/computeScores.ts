@@ -17,7 +17,7 @@ import type { AssessmentFlag } from '@ogden/shared';
 import type { MockLayerResult } from './mockLayerData.js';
 import { evaluateAssessmentRules } from './rules/index.js';
 import { semantic, confidence, water } from './tokens.js';
-import { computeHydrologyMetrics } from './hydrologyMetrics.js';
+import { computeHydrologyMetrics, computeWindEnergy } from './hydrologyMetrics.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -243,13 +243,20 @@ export function computeAssessmentScores(
     lgpDaysForScoring = hm.lgpDays;
   }
 
+  // Sprint J: Wind energy from wind_rose data in climate layer
+  const climSummaryWind = climate?.summary as Record<string, unknown> | undefined;
+  const windRoseRaw = climSummaryWind?.['_wind_rose'] as
+    { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | undefined;
+  const windEnergy = computeWindEnergy(windRoseRaw ?? null);
+  const windPowerDensity = windEnergy?.powerDensityWm2 ?? 0;
+
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring),
     computeRegenerativePotential(landCover, soils, soilRegen),
     computeBuildability(elevation, wetlands, soils, terrain),
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate),
-    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate),
+    computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity),
     computeDesignComplexity(elevation, wetlands, zoning, terrain),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
@@ -780,6 +787,8 @@ function computeStewardshipReadiness(
   landCover: MockLayerResult | undefined,
   soilRegen: MockLayerResult | undefined,
   microclimate: MockLayerResult | undefined,
+  elevation?: MockLayerResult | undefined,
+  windPowerDensityWm2?: number,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const sc = layerConfidence(soils);
@@ -876,6 +885,31 @@ function computeStewardshipReadiness(
   } else {
     components.push(comp('outdoor_comfort_fieldwork', 0, 5, 'microclimate', 'low'));
   }
+
+  // Sprint J: Soil degradation risk — composite of 5 indicators (max 8)
+  // Higher score = lower degradation (healthy soil)
+  let degradPts = 0;
+  const omDeg = num(soils, 'organic_matter_pct');
+  degradPts += omDeg >= 3 ? 2 : omDeg >= 2 ? 1.5 : omDeg >= 1 ? 0.5 : 0;       // OM depletion
+  const ecDeg = num(soils, 'ec_ds_m');
+  const sarDeg = num(soils, 'sodium_adsorption_ratio');
+  degradPts += ecDeg === 0 ? 1.5 : ecDeg < 2 ? 2 : ecDeg < 4 ? 1 : 0;          // salinization
+  degradPts += sarDeg === 0 ? 0.5 : sarDeg < 6 ? 1 : 0;                         // sodicity bonus
+  const bdDeg = num(soils, 'bulk_density_g_cm3');
+  degradPts += bdDeg === 0 ? 0.5 : bdDeg <= 1.3 ? 1.5 : bdDeg <= 1.5 ? 1 : 0;  // compaction
+  const slopeDeg = num(elevation, 'mean_slope_deg');
+  const kfactDeg = num(soils, 'kfact');
+  const erosionIdx = kfactDeg > 0 ? kfactDeg * (1 + slopeDeg / 10) : slopeDeg / 10;
+  degradPts += erosionIdx < 0.3 ? 1.5 : erosionIdx < 0.5 ? 1 : erosionIdx < 1 ? 0.5 : 0; // erosion
+  components.push(comp('soil_degradation_risk', Math.round(Math.min(degradPts, 8) * 10) / 10, 8, 'soils', sc));
+
+  // Sprint J: Wind energy potential (max 5) — renewable energy is part of land stewardship
+  const wpd = windPowerDensityWm2 ?? 0;
+  const windPts = wpd >= 400 ? 5
+    : wpd >= 200 ? 3
+    : wpd >= 100 ? 1
+    : 0;
+  components.push(comp('wind_energy_potential', windPts, 5, 'climate', wpd > 0 ? 'medium' : 'low'));
 
   return buildResult('Stewardship Readiness', 25, components);
 }

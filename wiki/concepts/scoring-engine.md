@@ -1,7 +1,7 @@
 # Scoring Engine
 
 ## Summary
-Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~118 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
+Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~120 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
 
 ## How It Works
 1. `computeAssessmentScores(layers, acreage)` receives cached layer data from `siteDataStore`
@@ -42,6 +42,7 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Sprint F | PET/aridity, irrigation requirement, rainwater harvesting, drainage density | ~97 |
 | Sprint G | CaCO3, Ksat, bulk density, hardiness zone + pH bug fix (3 sites) | ~108 |
 | Sprint I | LGP (agri suitability), carbon stock (regenerative potential), Canada Soil Capability (8 limitations, CA only) | ~118 |
+| Sprint J | Soil degradation risk (stewardship), wind energy potential (stewardship) | ~120 |
 
 ## Where It's Used
 - `apps/web/src/lib/computeScores.ts` — main engine (all 9 scoring functions)

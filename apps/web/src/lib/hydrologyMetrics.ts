@@ -393,6 +393,96 @@ function classifyLGP(days: number): string {
   return 'Very short / arid';
 }
 
+// ── Sprint J: Wind Energy Potential ────────────────────────────────────────────
+
+/** 16-point compass labels for direction reporting */
+const COMPASS_16 = [
+  'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+  'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+];
+
+export interface WindEnergyResult {
+  /** Frequency-weighted mean wind speed m/s */
+  meanWindSpeedMs: number;
+  /** Wind power density at hub height W/m² (Betz-limited) */
+  powerDensityWm2: number;
+  /** NREL wind power class label */
+  windPowerClass: 'Poor' | 'Marginal' | 'Moderate' | 'Good' | 'Excellent';
+  /** Compass direction with highest power contribution */
+  optimalDirection: string;
+  /** Estimated capacity factor (fraction of rated power achievable) */
+  capacityFactor: number;
+}
+
+/**
+ * Estimate wind energy potential from wind rose data.
+ *
+ * Uses frequency-weighted cubic mean (Betz law: P ∝ v³) for power density.
+ * Air density: 1.225 kg/m³ at sea level (standard atmosphere).
+ * Returns null if wind rose data is unavailable.
+ */
+export function computeWindEnergy(
+  windRose: { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | null,
+): WindEnergyResult | null {
+  if (!windRose || !windRose.frequencies_16 || !windRose.speeds_avg_ms) return null;
+  if (windRose.frequencies_16.length !== 16 || windRose.speeds_avg_ms.length !== 16) return null;
+
+  const AIR_DENSITY = 1.225; // kg/m³
+
+  // Frequency-weighted mean speed
+  let weightedSpeed = 0;
+  let totalFreq = 0;
+  // Frequency-weighted cubic mean for power density
+  let weightedCubic = 0;
+  // Track max power direction
+  let maxPower = 0;
+  let maxPowerIdx = 0;
+
+  for (let i = 0; i < 16; i++) {
+    const freq = windRose.frequencies_16[i] ?? 0;
+    const speed = windRose.speeds_avg_ms[i] ?? 0;
+    weightedSpeed += freq * speed;
+    weightedCubic += freq * speed * speed * speed;
+    totalFreq += freq;
+
+    const dirPower = freq * speed * speed * speed;
+    if (dirPower > maxPower) {
+      maxPower = dirPower;
+      maxPowerIdx = i;
+    }
+  }
+
+  // Account for calm percentage
+  const calmFraction = (windRose.calm_pct ?? 0) / 100;
+  const effectiveFreq = Math.max(totalFreq * (1 - calmFraction), 0.01);
+
+  const meanWindSpeedMs = Math.round((weightedSpeed / Math.max(totalFreq, 0.01)) * 100) / 100;
+  // Power density: 0.5 × ρ × v³ (using frequency-weighted cubic mean)
+  const powerDensityWm2 = Math.round(0.5 * AIR_DENSITY * (weightedCubic / effectiveFreq));
+
+  // NREL wind power class thresholds (at 50m hub height)
+  const windPowerClass: WindEnergyResult['windPowerClass'] =
+    powerDensityWm2 >= 400 ? 'Excellent'
+    : powerDensityWm2 >= 200 ? 'Good'
+    : powerDensityWm2 >= 100 ? 'Moderate'
+    : powerDensityWm2 >= 50 ? 'Marginal'
+    : 'Poor';
+
+  // Simple capacity factor estimate based on mean wind speed
+  // Typical turbine cut-in ~3 m/s, rated ~12 m/s
+  const capacityFactor = Math.round(
+    Math.min(Math.max((meanWindSpeedMs - 3) / 9, 0), 0.55) * 100,
+  ) / 100;
+
+  return {
+    meanWindSpeedMs,
+    powerDensityWm2,
+    windPowerClass,
+    optimalDirection: COMPASS_16[maxPowerIdx] ?? 'N',
+    capacityFactor,
+  };
+}
+
 // ── Formatting helpers ─────────────────────────────────────────────────────────
 
 export function fmtGal(gal: number): string {

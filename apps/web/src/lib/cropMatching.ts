@@ -468,3 +468,117 @@ export function siteConditionsFromLayers(
     irrigationDeficitMm: null, // populated by caller when hydro metrics available
   };
 }
+
+/* ------------------------------------------------------------------ */
+/*  Sprint J: Agroforestry Companion Matching                          */
+/* ------------------------------------------------------------------ */
+
+export interface CompanionMatch {
+  crop: CropEntry;
+  /** Compatibility score 0-100 (how well this companion pairs with the main crop) */
+  compatibilityScore: number;
+  /** Site suitability of the companion 0-100 */
+  siteSuitability: number;
+  /** Human-readable reasons for this pairing */
+  reasons: string[];
+  /** FAO suitability class for this companion at this site */
+  suitabilityClass: 'S1' | 'S2' | 'S3' | 'N1' | 'N2';
+}
+
+/**
+ * Find agroforestry companions for a given main crop at a given site.
+ *
+ * Filters EcoCrop DB for perennial trees/shrubs, scores each for:
+ * 1. Site suitability (must be S1-S3 at this site)
+ * 2. Climate overlap with main crop
+ * 3. Structural diversity (different lifeForm than main crop)
+ * 4. Family diversity (different botanical family — pest/disease reduction)
+ * 5. Nitrogen fixation bonus (Leguminosae/Fabaceae)
+ * 6. Rooting depth complementarity (different depths reduce competition)
+ */
+export function findAgroforestryCompanions(
+  mainCrop: CropEntry,
+  site: SiteConditions,
+  maxResults = 5,
+): CompanionMatch[] {
+  const results: CompanionMatch[] = [];
+
+  for (const candidate of ECOCROP_DB) {
+    // Must be perennial tree or shrub (the agroforestry component)
+    if (candidate.lifecycle !== 'perennial') continue;
+    if (candidate.lifeForm !== 'tree' && candidate.lifeForm !== 'shrub') continue;
+    // Skip the main crop itself
+    if (candidate.id === mainCrop.id) continue;
+
+    // Must be at least marginally suitable at this site (N1 or better)
+    const match = scoreCrop(candidate, site);
+    if (!match || match.suitability < 20) continue;
+
+    let compatibility = 0;
+    const reasons: string[] = [];
+
+    // 1. Site suitability base (0-40): higher suitability = better companion
+    compatibility += Math.round(match.suitability * 0.4);
+
+    // 2. Structural diversity (0-15): different lifeForm from main crop preferred
+    if (candidate.lifeForm !== mainCrop.lifeForm) {
+      compatibility += 15;
+      reasons.push(`Structural diversity (${candidate.lifeForm} + ${mainCrop.lifeForm})`);
+    }
+
+    // 3. Family diversity (0-15): different family reduces pest/disease overlap
+    if (candidate.family !== mainCrop.family && candidate.family && mainCrop.family) {
+      compatibility += 15;
+      reasons.push('Different botanical family');
+    }
+
+    // 4. Nitrogen fixation bonus (0-15): legumes fix atmospheric N
+    const isLegume = candidate.family === 'Leguminosae' || candidate.family === 'Fabaceae';
+    if (isLegume) {
+      compatibility += 15;
+      reasons.push('N-fixing legume');
+    }
+
+    // 5. Rooting depth complementarity (0-10): different depths reduce competition
+    if (candidate.soilDepth != null && mainCrop.soilDepth != null) {
+      const depthDiff = Math.abs(candidate.soilDepth - mainCrop.soilDepth);
+      if (depthDiff >= 30) {
+        compatibility += 10;
+        reasons.push('Complementary rooting depth');
+      } else if (depthDiff >= 15) {
+        compatibility += 5;
+      }
+    }
+
+    // 6. Climate overlap bonus (0-5): similar climate preferences
+    const tempOverlap = rangesOverlap(candidate.tempOpt, mainCrop.tempOpt);
+    const precipOverlap = rangesOverlap(candidate.precipOpt, mainCrop.precipOpt);
+    if (tempOverlap > 0.5 && precipOverlap > 0.5) {
+      compatibility += 5;
+    }
+
+    if (reasons.length === 0) reasons.push('Compatible climate and soil');
+
+    results.push({
+      crop: candidate,
+      compatibilityScore: Math.min(compatibility, 100),
+      siteSuitability: match.suitability,
+      reasons,
+      suitabilityClass: match.suitabilityClass,
+    });
+  }
+
+  // Sort by compatibility descending
+  results.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+  return results.slice(0, maxResults);
+}
+
+/** Compute overlap fraction between two [min, max] ranges. Returns 0-1. */
+function rangesOverlap(a: [number, number], b: [number, number]): number {
+  const overlapMin = Math.max(a[0], b[0]);
+  const overlapMax = Math.min(a[1], b[1]);
+  if (overlapMax <= overlapMin) return 0;
+  const overlapLen = overlapMax - overlapMin;
+  const minLen = Math.min(a[1] - a[0], b[1] - b[0]);
+  return minLen > 0 ? overlapLen / minLen : 0;
+}
