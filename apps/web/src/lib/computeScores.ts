@@ -356,6 +356,20 @@ function computeAgriculturalSuitability(
   const growPts = frostFree > 180 ? 10 : frostFree > 150 ? 8 : frostFree > 120 ? 5 : frostFree > 90 ? 2 : 0;
   components.push(comp('growing_season', growPts, 10, 'climate', cc));
 
+  // Koppen climate zone (max 8)
+  const koppenCode = str(climate, 'koppen_classification');
+  const koppenGroup = koppenCode.charAt(0);
+  const koppenPts = koppenGroup === 'A' || koppenGroup === 'C' ? 8
+    : koppenGroup === 'D' ? 5
+    : koppenGroup === 'B' ? 3
+    : koppenGroup === 'E' ? 1 : 0;
+  components.push(comp('koppen_zone', koppenPts, 8, 'climate', cc));
+
+  // GDD accumulation (max 5)
+  const gddVal = num(climate, 'growing_degree_days_base10c');
+  const gddPts = gddVal >= 2000 ? 5 : gddVal >= 1500 ? 4 : gddVal >= 1000 ? 3 : gddVal > 0 ? 1 : 0;
+  components.push(comp('heat_accumulation', gddPts, 5, 'climate', cc));
+
   // Slope suitability (max 10)
   const meanSlope = num(elevation, 'mean_slope_deg');
   const slopePts = meanSlope < 3 ? 10 : meanSlope < 5 ? 8 : meanSlope < 10 ? 5

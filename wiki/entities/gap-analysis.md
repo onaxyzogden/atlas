@@ -13,7 +13,7 @@ Comprehensive inventory of ~120 gaps between Atlas's current capabilities and wh
 |---|----------|------|---------------|----------|-----------|
 | 3 | [Terrain & Topography](#3-terrain--topography) | 0 remaining | Computation | **Complete** | All 8/8 implemented: aspect, curvature, TWI, TRI, viewshed, cut/fill, erosion hazard + frost pocket, cold air drainage, TPI bonus |
 | 2 | [Soil Assessment](#2-soil-assessment) | 6 remaining | Data | **Mostly Complete** | 10/16 implemented (Sprint B): pH, CEC, EC, SAR, bulk density, Ksat, AWC, CaCO3, rooting depth, OC + fertility index, salinization risk, scoring integration |
-| 5 | [Climate](#5-climate) | 10 | Data | **P1** | WorldClim/CHELSA/NASA POWER are free APIs; climate is prerequisite for crop suitability and formal scoring |
+| 5 | [Climate](#5-climate) | 2 remaining | Data | **Mostly Complete** | 8/10 implemented: NOAA ACIS + ECCC normals (temp, precip, frost, GDD, wind), NASA POWER solar, Koppen, freeze-thaw. Remaining: extreme events, climate projections |
 | 1 | [Formal Scoring & Classification](#1-formal-scoring--classification) | 7 | Computation | **P1** | International credibility; mostly algorithms over soil+climate+terrain; depends on P0/P1 data being filled |
 | 6 | [Crop & Vegetation Suitability](#6-crop--vegetation-suitability) | 8 | Data + Computation | **P2** | Most significant strategic gap; FAO ECOCROP is free; but depends on climate + soil being complete first |
 | 11 | [Regulatory & Legal](#11-regulatory--legal) | 11 | Data | **P2** | Critical for real transactions; zoning data is fragmented and hard to source programmatically |
@@ -121,22 +121,23 @@ Atlas has watershed boundaries, wetlands (partial), and flood zones (partial). M
 
 ## 5. Climate
 
-Largely missing. Atlas has partial climate via latitude model and ECCC.
+Atlas has robust station-based climate from NOAA ACIS (US, 30-year normals) and ECCC OGC (CA). Sprint C (2026-04-14) added Koppen classification, freeze-thaw estimation, and NASA POWER solar radiation.
 
-| Parameter | Gap Type |
-|-----------|----------|
-| Mean annual temperature (min/max/mean) | Data |
-| Growing Degree Days (GDD) | Computation |
-| First and last frost dates | Data |
-| Sunshine hours / solar radiation (kWh/m2/day) | Data |
-| Prevailing wind speed and direction | Data |
-| Annual rainfall (mean + monthly distribution) | Data |
-| Koppen climate classification | Computation |
-| Snow load / freeze-thaw cycles | Data |
-| Extreme event frequency (drought, hail, frost) | Data |
-| Climate change projections (RCP 4.5 / 8.5) | Data |
+| Parameter | Gap Type | Status |
+|-----------|----------|--------|
+| Mean annual temperature (min/max/mean) | Data | **Implemented** — NOAA ACIS monthly normals (pre-Sprint C) |
+| Growing Degree Days (GDD) | Computation | **Implemented** — base 10°C from monthly means (pre-Sprint C) |
+| First and last frost dates | Data | **Implemented** — interpolated from monthly minimums (pre-Sprint C) |
+| Sunshine hours / solar radiation (kWh/m2/day) | Data | **Implemented** — NASA POWER GHI (Sprint C) |
+| Prevailing wind speed and direction | Data | **Implemented** — NOAA ISD + ECCC wind rose (pre-Sprint C) |
+| Annual rainfall (mean + monthly distribution) | Data | **Implemented** — NOAA ACIS + ECCC normals (pre-Sprint C) |
+| Koppen climate classification | Computation | **Implemented** — full Koppen-Geiger from monthly normals (Sprint C) |
+| Snow load / freeze-thaw cycles | Data | **Implemented** — estimated from monthly temp transitions (Sprint C) |
+| Extreme event frequency (drought, hail, frost) | Data | Open — needs specialized historical event data |
+| Climate change projections (RCP 4.5 / 8.5) | Data | Open — needs RCP scenario datasets |
 
-> **Data sources available:** WorldClim v2.1, CHELSA (1km), NASA POWER, NOAA LCD (already partially connected in frontend).
+> **Status:** 8/10 implemented. Pre-Sprint C: 6 already existed via NOAA ACIS + ECCC. Sprint C added: Koppen, freeze-thaw, NASA POWER solar. Remaining 2 gaps are P3+ (specialized data).
+> **Data sources connected:** NOAA ACIS (US station normals), ECCC OGC API (CA normals), NASA POWER (global solar radiation), NOAA ISD/ECCC (wind rose).
 
 ---
 

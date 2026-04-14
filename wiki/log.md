@@ -4,6 +4,20 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-14 — Sprint C: Climate Foundation
+- **Scope:** Added Koppen-Geiger climate classification (computed from existing monthly normals), freeze-thaw cycle estimation, and NASA POWER solar radiation integration. Discovered 6/10 climate gaps were already implemented via NOAA ACIS + ECCC — gap analysis was outdated. Extended scoring with Koppen zone and GDD heat accumulation components.
+- **Key finding:** Atlas already had robust climate data from NOAA ACIS (US, 30-year normals) and ECCC OGC (CA). The gap analysis listed these as missing, but they were implemented in a prior session.
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — added `computeKoppen()` (Koppen-Geiger classification from monthly temp/precip), `koppenLabel()` (human-readable labels), `computeFreezeThaw()` (transition month estimation), `fetchNasaPowerSolar()` (NASA POWER GHI API); extended all 3 climate return paths (NOAA, ECCC, fallback) with new fields
+  - `apps/web/src/features/climate/SolarClimateDashboard.tsx` — extended ClimateSummary interface, added Koppen, solar radiation, freeze-thaw, snow months display
+  - `apps/web/src/lib/computeScores.ts` — added koppen_zone (max 8 pts) and heat_accumulation/GDD (max 5 pts) to agricultural suitability
+  - `wiki/entities/gap-analysis.md` — corrected climate section: 8/10 implemented, updated summary table
+- **APIs connected:** NASA POWER (`power.larc.nasa.gov`) — global solar radiation, free, no key
+- **Gaps closed:** Koppen classification, freeze-thaw/snow load, solar radiation (kWh/m²/day)
+- **Gaps remaining (climate):** Extreme event frequency, climate change projections (RCP 4.5/8.5)
+
+---
+
 ### 2026-04-14 — Sprint B: Soil Extended Properties (Display Gap)
 - **Scope:** Extended frontend SSURGO SDA query from 4 to 15 chorizon fields with weighted multi-component averages. Added derived indices (fertility index, salinization risk, USDA texture class). Expanded EcologicalDashboard from 6 to 16 soil metrics with assessment flags. Integrated new soil properties into scoring engine (pH, CEC, AWC in agricultural suitability; fertility + salinity penalty in stewardship readiness).
 - **Files modified:**

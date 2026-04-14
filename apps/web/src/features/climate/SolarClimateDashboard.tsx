@@ -37,6 +37,13 @@ interface ClimateSummary {
   annual_sunshine_hours?: number;
   growing_degree_days_base10c?: number;
   _wind_rose?: WindRoseData;
+  // Sprint C additions
+  koppen_classification?: string | null;
+  koppen_label?: string | null;
+  freeze_thaw_cycles_per_year?: number | null;
+  snow_months?: number | null;
+  solar_radiation_kwh_m2_day?: number | null;
+  solar_radiation_monthly?: number[] | null;
 }
 
 interface MicroclimateSummary {
@@ -120,6 +127,18 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
             <ClimateMetric label="Hardiness Zone" value={climate.hardiness_zone ?? null} />
             <ClimateMetric label="GDD (base 10\u00B0C)" value={climate.growing_degree_days_base10c != null ? `${climate.growing_degree_days_base10c}` : null} />
             <ClimateMetric label="Annual Sunshine" value={climate.annual_sunshine_hours != null ? `${climate.annual_sunshine_hours} hrs` : null} />
+            {climate.koppen_classification && (
+              <ClimateMetric label="K\u00F6ppen Classification" value={`${climate.koppen_classification} \u2014 ${climate.koppen_label ?? ''}`} />
+            )}
+            {climate.solar_radiation_kwh_m2_day != null && (
+              <ClimateMetric label="Solar Radiation" value={`${climate.solar_radiation_kwh_m2_day} kWh/m\u00B2/day`} />
+            )}
+            {climate.freeze_thaw_cycles_per_year != null && climate.freeze_thaw_cycles_per_year > 0 && (
+              <ClimateMetric label="Freeze-Thaw Cycles" value={`~${climate.freeze_thaw_cycles_per_year}/yr`} />
+            )}
+            {climate.snow_months != null && climate.snow_months > 0 && (
+              <ClimateMetric label="Snow Months" value={`${climate.snow_months}`} />
+            )}
           </div>
         </div>
       )}

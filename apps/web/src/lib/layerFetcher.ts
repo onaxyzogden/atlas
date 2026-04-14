@@ -1016,11 +1016,23 @@ async function fetchNoaaClimate(
     precip_mm: +monthlyPrecipMm[m]!.toFixed(1),
   }));
 
-  // Fetch real wind rose data (non-blocking — failure just omits _wind_rose)
-  let windRose: WindRoseData | null = null;
-  try {
-    windRose = await fetchWindRose(lat, lng, 'US', bbox);
-  } catch { /* wind data failure doesn't fail the climate layer */ }
+  // Koppen classification from monthly normals (Sprint C)
+  const koppenCode = computeKoppen(monthlyMeanC, monthlyPrecipMm);
+
+  // Freeze-thaw cycles from monthly temperatures (Sprint C)
+  const freezeThaw = computeFreezeThaw(monthlyMeanC, monthlyMinC);
+
+  // Parallel non-blocking fetches: wind rose + NASA POWER solar radiation
+  const [windRose, solarData] = await Promise.all([
+    fetchWindRose(lat, lng, 'US', bbox).catch(() => null as WindRoseData | null),
+    fetchNasaPowerSolar(lat, lng),
+  ]);
+
+  // Solar radiation: use NASA POWER if available, else latitude estimate
+  const sunshineFallback = Math.round(1800 + (35 - Math.abs(lat - 38)) * 30);
+  const annualSunshine = solarData
+    ? Math.round(solarData.solar_radiation_kwh_m2_day * 365 / 1.0 * 0.45) // GHI → approx sunshine hours
+    : sunshineFallback;
 
   return {
     layerType: 'climate',
@@ -1038,9 +1050,16 @@ async function fetchNoaaClimate(
       hardiness_zone: hardinessZone,
       growing_degree_days_base10c: gdd,
       prevailing_wind: windRose?.prevailing ?? (lat > 42 ? 'W-SW' : 'SW'),
-      annual_sunshine_hours: Math.round(1800 + (35 - Math.abs(lat - 38)) * 30),
+      annual_sunshine_hours: annualSunshine,
       noaa_station: bestStation.name,
       noaa_station_distance_km: Math.round(stationDistKm),
+      // Sprint C additions
+      koppen_classification: koppenCode,
+      koppen_label: koppenCode ? koppenLabel(koppenCode) : null,
+      freeze_thaw_cycles_per_year: freezeThaw.freeze_thaw_cycles_per_year,
+      snow_months: freezeThaw.snow_months,
+      solar_radiation_kwh_m2_day: solarData?.solar_radiation_kwh_m2_day ?? null,
+      solar_radiation_monthly: solarData?.solar_radiation_monthly ?? null,
       _monthly_normals: monthlyNormals,
       ...(windRose ? { _wind_rose: windRose } : {}),
     },
@@ -1123,6 +1142,161 @@ function acisHardinessZone(coldestMonthlyMinC: number): string {
   return `${zoneNum}${subZone}`;
 }
 
+// ── Climate derived computations (Sprint C) ─────────────────────────────────
+
+/**
+ * Koppen-Geiger climate classification from monthly temperature and precipitation.
+ * Returns code like "Cfa", "Dfb", "BSk" etc.
+ */
+function computeKoppen(
+  monthlyMeanC: (number | null)[],
+  monthlyPrecipMm: number[],
+): string | null {
+  const temps = monthlyMeanC.filter((v): v is number => v !== null);
+  if (temps.length < 12 || monthlyPrecipMm.length < 12) return null;
+
+  const t = monthlyMeanC as number[];
+  const p = monthlyPrecipMm;
+  const tWarm = Math.max(...t);
+  const tCold = Math.min(...t);
+  const tMean = t.reduce((a, b) => a + b, 0) / 12;
+  const pAnnual = p.reduce((a, b) => a + b, 0);
+
+  // Summer/winter halves (NH: Apr-Sep = summer; SH would flip but Atlas is NA-focused)
+  const pSummer = p.slice(3, 9).reduce((a, b) => a + b, 0);
+  const pWinter = pAnnual - pSummer;
+  const pDriestSummer = Math.min(...p.slice(3, 9));
+  const pWettestWinter = Math.max(...p.slice(0, 3), ...p.slice(9, 12));
+  const pDriestWinter = Math.min(...p.slice(0, 3), ...p.slice(9, 12));
+  const pWettestSummer = Math.max(...p.slice(3, 9));
+
+  // Arid threshold (Koppen B)
+  const pThreshold = pSummer >= 0.7 * pAnnual ? 2 * tMean + 28
+    : pWinter >= 0.7 * pAnnual ? 2 * tMean
+    : 2 * tMean + 14;
+
+  // Group E — Polar
+  if (tWarm < 10) {
+    return tWarm > 0 ? 'ET' : 'EF';
+  }
+
+  // Group B — Arid
+  if (pAnnual < pThreshold) {
+    const subtype = pAnnual < pThreshold * 0.5 ? 'W' : 'S'; // desert vs steppe
+    const temp = tMean >= 18 ? 'h' : 'k'; // hot vs cold
+    return `B${subtype}${temp}`;
+  }
+
+  // Group A — Tropical (coldest month >= 18°C)
+  if (tCold >= 18) {
+    const pDriest = Math.min(...p);
+    if (pDriest >= 60) return 'Af';
+    if (pDriest >= 100 - pAnnual / 25) return 'Am';
+    return 'Aw';
+  }
+
+  // Group C — Temperate (coldest month > -3°C and < 18°C)
+  // Group D — Continental (coldest month <= -3°C)
+  const group = tCold > -3 ? 'C' : 'D';
+
+  // Second letter — precipitation pattern
+  let second: string;
+  if (pDriestSummer < 40 && pDriestSummer < pWettestWinter / 3) second = 's';
+  else if (pDriestWinter < pWettestSummer / 10) second = 'w';
+  else second = 'f';
+
+  // Third letter — temperature
+  let third: string;
+  if (tWarm >= 22) third = 'a';
+  else if (t.filter((v) => v >= 10).length >= 4) third = 'b';
+  else if (group === 'D' && tCold < -38) third = 'd';
+  else third = 'c';
+
+  return `${group}${second}${third}`;
+}
+
+/** Human-readable Koppen label */
+function koppenLabel(code: string): string {
+  const labels: Record<string, string> = {
+    Af: 'Tropical rainforest', Am: 'Tropical monsoon', Aw: 'Tropical savanna',
+    BWh: 'Hot desert', BWk: 'Cold desert', BSh: 'Hot semi-arid', BSk: 'Cold semi-arid',
+    Cfa: 'Humid subtropical', Cfb: 'Oceanic', Cfc: 'Subpolar oceanic',
+    Csa: 'Hot-summer Mediterranean', Csb: 'Warm-summer Mediterranean',
+    Cwa: 'Subtropical monsoon', Cwb: 'Subtropical highland',
+    Dfa: 'Hot-summer humid continental', Dfb: 'Warm-summer humid continental',
+    Dfc: 'Subarctic', Dfd: 'Extremely cold subarctic',
+    Dwa: 'Monsoon humid continental', Dwb: 'Monsoon subarctic',
+    ET: 'Tundra', EF: 'Ice cap',
+  };
+  return labels[code] ?? code;
+}
+
+/**
+ * Estimate freeze-thaw cycles per year and snow months from monthly temperatures.
+ */
+function computeFreezeThaw(monthlyMeanC: (number | null)[], monthlyMinC: (number | null)[]): {
+  freeze_thaw_cycles_per_year: number;
+  snow_months: number;
+} {
+  let transitionMonths = 0;
+  let snowMonths = 0;
+
+  for (let m = 0; m < 12; m++) {
+    const meanT = monthlyMeanC[m] ?? null;
+    const minT = monthlyMinC[m] ?? null;
+    if (meanT === null) continue;
+
+    // Snow month: mean temp below 0°C
+    if (meanT < 0) snowMonths++;
+
+    // Transition month: mean near freezing (min < 0 and mean < 5°C)
+    // Daily cycling between freeze and thaw
+    if (minT !== null && minT < 0 && meanT > -5 && meanT < 5) {
+      transitionMonths++;
+    }
+  }
+
+  // Each transition month averages ~15 freeze-thaw cycles (daily cycling)
+  return {
+    freeze_thaw_cycles_per_year: transitionMonths * 15,
+    snow_months: snowMonths,
+  };
+}
+
+/**
+ * Fetch solar radiation data from NASA POWER API (global, free, no key).
+ * Returns annual + monthly GHI (Global Horizontal Irradiance) in kWh/m2/day.
+ */
+async function fetchNasaPowerSolar(lat: number, lng: number): Promise<{
+  solar_radiation_kwh_m2_day: number;
+  solar_radiation_monthly: number[];
+} | null> {
+  try {
+    const url = `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=${lng.toFixed(4)}&latitude=${lat.toFixed(4)}&format=JSON`;
+    const resp = await fetchWithRetry(url, 12000);
+    const data = await resp.json() as {
+      properties?: { parameter?: { ALLSKY_SFC_SW_DWN?: Record<string, number> } };
+    };
+
+    const ghi = data?.properties?.parameter?.ALLSKY_SFC_SW_DWN;
+    if (!ghi) return null;
+
+    const monthly: number[] = [];
+    for (let m = 1; m <= 12; m++) {
+      const key = String(m).padStart(2, '0');
+      monthly.push(+(ghi[key] ?? 0).toFixed(2));
+    }
+    const annual = ghi['ANN'] ?? +(monthly.reduce((a, b) => a + b, 0) / 12).toFixed(2);
+
+    return {
+      solar_radiation_kwh_m2_day: +annual.toFixed(2),
+      solar_radiation_monthly: monthly,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Latitude-based climate fallback (low confidence) ──────────────────────
 
 function climateFromLatitude(lat: number, lng: number, country: string): MockLayerResult {
@@ -1155,6 +1329,13 @@ function climateFromLatitude(lat: number, lng: number, country: string): MockLay
       hardiness_zone: `${zoneNum}${zoneSub}`,
       prevailing_wind: windRose.prevailing,
       annual_sunshine_hours: Math.round(1800 + (35 - Math.abs(lat - 38)) * 30),
+      // Sprint C — null in fallback mode (no monthly data available)
+      koppen_classification: null,
+      koppen_label: null,
+      freeze_thaw_cycles_per_year: null,
+      snow_months: null,
+      solar_radiation_kwh_m2_day: null,
+      solar_radiation_monthly: null,
       _wind_rose: windRose,
     },
   };
@@ -1192,14 +1373,20 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
     throw new Error('ECCC: missing core climate fields');
   }
 
-  // annual_sunshine_hours not in ECCC normals — use latitude estimate
-  const sunshineFallback = Math.round(1800 + (35 - Math.abs(lat - 38)) * 30);
+  // Parallel non-blocking fetches: wind rose + NASA POWER solar radiation
+  const [windRose, solarData] = await Promise.all([
+    fetchWindRose(lat, lng, 'CA').catch(() => null as WindRoseData | null),
+    fetchNasaPowerSolar(lat, lng),
+  ]);
 
-  // Fetch real wind rose data (non-blocking — failure just omits _wind_rose)
-  let windRose: WindRoseData | null = null;
-  try {
-    windRose = await fetchWindRose(lat, lng, 'CA');
-  } catch { /* wind data failure doesn't fail the climate layer */ }
+  // Solar radiation: use NASA POWER if available, else latitude estimate
+  const sunshineFallback = Math.round(1800 + (35 - Math.abs(lat - 38)) * 30);
+  const annualSunshine = solarData
+    ? Math.round(solarData.solar_radiation_kwh_m2_day * 365 / 1.0 * 0.45)
+    : sunshineFallback;
+
+  // Estimate freeze-thaw from mean temp (rough — no monthly breakdown from ECCC)
+  const snowMonthsEst = meanTemp != null && meanTemp < 5 ? Math.round(Math.max(0, 6 - meanTemp)) : 0;
 
   return {
     layerType: 'climate',
@@ -1216,7 +1403,14 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
       first_frost_date: firstFrost ?? 'N/A',
       hardiness_zone: hardinessZone ?? 'N/A',
       prevailing_wind: windRose?.prevailing ?? (lat > 42 ? 'W-SW' : 'SW'),
-      annual_sunshine_hours: sunshineFallback,
+      annual_sunshine_hours: annualSunshine,
+      // Sprint C additions
+      koppen_classification: null, // ECCC doesn't provide monthly breakdown for Koppen
+      koppen_label: null,
+      freeze_thaw_cycles_per_year: snowMonthsEst > 0 ? snowMonthsEst * 15 : 0,
+      snow_months: snowMonthsEst,
+      solar_radiation_kwh_m2_day: solarData?.solar_radiation_kwh_m2_day ?? null,
+      solar_radiation_monthly: solarData?.solar_radiation_monthly ?? null,
       ...(windRose ? { _wind_rose: windRose } : {}),
     },
   };
