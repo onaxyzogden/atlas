@@ -146,7 +146,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
       const db = (app as unknown as { db: import('postgres').Sql }).db;
       const redis = (app as unknown as { redis: import('ioredis').Redis }).redis;
 
-      if (db && redis) {
+      if (db && redis && redis.status === 'ready') {
         const orchestrator = new DataPipelineOrchestrator(db, redis);
         app.pipeline = orchestrator;
         orchestrator.startWorker();
@@ -169,7 +169,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
         app.log.info('WebSocket Redis broadcast subscriber active');
       }
     } catch (err) {
-      app.log.warn('Data pipeline workers not started (Redis/DB not available)');
+      app.log.warn(`Data pipeline workers not started (Redis/DB not available): ${err}`);
     }
   });
 

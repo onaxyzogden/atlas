@@ -18,6 +18,7 @@ function camelToSnake(s: string): string {
 /** Recursively transform all keys of an object from snake_case to camelCase */
 export function toCamelCase<T = unknown>(obj: unknown): T {
   if (obj === null || obj === undefined) return obj as T;
+  if (obj instanceof Date) return obj.toISOString() as T;
   if (Array.isArray(obj)) return obj.map((item) => toCamelCase(item)) as T;
   if (typeof obj !== 'object') return obj as T;
 
@@ -31,6 +32,7 @@ export function toCamelCase<T = unknown>(obj: unknown): T {
 /** Recursively transform all keys of an object from camelCase to snake_case */
 export function toSnakeCase<T = unknown>(obj: unknown): T {
   if (obj === null || obj === undefined) return obj as T;
+  if (obj instanceof Date) return obj.toISOString() as T;
   if (Array.isArray(obj)) return obj.map((item) => toSnakeCase(item)) as T;
   if (typeof obj !== 'object') return obj as T;
 

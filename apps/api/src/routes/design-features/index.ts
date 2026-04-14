@@ -97,9 +97,9 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
           ${body.subtype ?? null},
           ST_GeomFromGeoJSON(${geomStr}),
           ${body.label ?? null},
-          ${JSON.stringify(body.properties)},
+          ${db.json(body.properties)},
           ${body.phaseTag ?? null},
-          ${body.style ? JSON.stringify(body.style) : null},
+          ${body.style ? db.json(body.style) : null},
           ${body.sortOrder},
           ${req.userId}
         )
@@ -268,9 +268,9 @@ export default async function designFeatureRoutes(fastify: FastifyInstance) {
               ${feature.subtype ?? null},
               ST_GeomFromGeoJSON(${geomStr}),
               ${feature.label ?? null},
-              ${JSON.stringify(feature.properties)},
+              ${sql.json(feature.properties)},
               ${feature.phaseTag ?? null},
-              ${feature.style ? JSON.stringify(feature.style) : null},
+              ${feature.style ? sql.json(feature.style) : null},
               ${feature.sortOrder},
               ${req.userId}
             )

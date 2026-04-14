@@ -105,6 +105,17 @@ Option A -- using the pnpm script (recommended):
 pnpm migrate
 ```
 
+**Note:** The migration script reads environment variables from `process.env`,
+not from `.env` files. If `pnpm migrate` fails with `DATABASE_URL: Required`,
+pass the variables inline:
+
+```bash
+DATABASE_URL="postgresql://ogden_app:your_password@localhost:5432/ogden_atlas" \
+JWT_SECRET="your-jwt-secret-at-least-32-chars" \
+REDIS_URL="redis://127.0.0.1:6379" \
+pnpm migrate
+```
+
 Option B -- using the bash script (requires bash via Git Bash or WSL2):
 
 ```bash
@@ -416,7 +427,7 @@ Requires `PUPPETEER_EXECUTABLE_PATH` (or auto-detected Chrome) and optionally
    curl -X POST http://localhost:3001/api/v1/projects/PROJECT_ID/exports \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer TOKEN" \
-     -d '{"exportType": "site_assessment_pdf"}'
+     -d '{"exportType": "site_assessment"}'
 
    curl http://localhost:3001/api/v1/projects/PROJECT_ID/exports \
      -H "Authorization: Bearer TOKEN"
@@ -485,7 +496,21 @@ Requires `PUPPETEER_EXECUTABLE_PATH` (or auto-detected Chrome) and optionally
    curl -X POST http://localhost:3001/api/v1/projects/PROJECT_ID/portal \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer TOKEN" \
-     -d '{"isPublished": true, "dataMaskingLevel": "curated"}'
+     -d '{
+       "isPublished": true,
+       "dataMaskingLevel": "curated",
+       "slug": "my-farm",
+       "heroTitle": "My Farm Project",
+       "heroSubtitle": "A regenerative farming project",
+       "missionStatement": "Testing portal creation",
+       "sections": [],
+       "donationUrl": "",
+       "inquiryEmail": "test@example.com",
+       "curatedHotspots": [],
+       "brandColor": "#2d5016",
+       "beforeAfterPairs": [],
+       "storyScenes": []
+     }'
    ```
 3. Note the `shareToken` UUID in the response.
 4. Access the public portal URL (no auth required):
@@ -527,20 +552,66 @@ may not be fully implemented.
 3. Verify: `psql -U postgres -d ogden_atlas -c "SELECT PostGIS_Version();"` should return a version string.
 4. Re-run `psql -U postgres -f infrastructure/db-setup.sql` and then `pnpm migrate`.
 
-### Redis IP stale (connection refused)
+### Redis not reachable from Windows (WSL2 networking)
 
-**Symptom:** API crashes or logs `ECONNREFUSED` errors for Redis. BullMQ workers do not start.
+**Symptom:** API logs `ECONNREFUSED` for Redis, or the Redis plugin times out
+on startup. BullMQ workers do not start. The API may still serve requests
+(Redis is optional for core endpoints) but pipeline jobs remain queued.
 
-**Cause:** WSL2 IP changed after a Windows reboot. The `REDIS_URL` in `.env` or the environment variable points to an old IP.
+**Cause:** WSL2 on Windows 10 uses a NAT-based virtual network. Redis inside
+WSL2 binds to `127.0.0.1` (protected mode) and Windows cannot reach the WSL2
+VM IP without explicit configuration.
+
+**Fix (one-time, requires admin):**
+
+1. Configure Redis in WSL2 to accept external connections:
+   ```bash
+   wsl redis-cli CONFIG SET protected-mode no
+   wsl redis-cli CONFIG SET bind "0.0.0.0"
+   ```
+
+2. Open an **elevated PowerShell** and create a firewall rule + port proxy:
+   ```powershell
+   New-NetFirewallRule -DisplayName "WSL2 Redis" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 6379
+   ```
+   Then, each time the WSL2 IP changes (on reboot):
+   ```powershell
+   # Remove old proxy if it exists
+   netsh interface portproxy delete v4tov4 listenport=6379 listenaddress=127.0.0.1
+   # Add new proxy with current WSL2 IP
+   $wslIp = (wsl hostname -I).Trim()
+   netsh interface portproxy add v4tov4 listenport=6379 listenaddress=127.0.0.1 connectaddress=$wslIp connectport=6379
+   ```
+
+3. Set `REDIS_URL=redis://127.0.0.1:6379` in `apps/api/.env`.
+
+**Note:** The ioredis client may attempt IPv6 (`::1`) before IPv4, causing
+timeouts even when the port proxy is active. The Redis plugin uses `family: 4`
+to force IPv4 connections.
+
+**Alternative — install Redis natively on Windows:**
+If the WSL2 approach is too fragile, install Redis directly:
+```powershell
+winget install Redis.Redis
+```
+Then use `REDIS_URL=redis://127.0.0.1:6379` with no port proxy needed.
+
+### Redis IP stale (after reboot)
+
+**Symptom:** Redis was working but stops after a Windows reboot.
+
+**Cause:** WSL2 assigns a new IP on each boot. The port proxy points to the
+old IP.
 
 **Fix:**
 1. Confirm Redis is running in WSL2: `wsl redis-cli ping` (should return `PONG`).
-2. Get the new IP: `bash infrastructure/wsl-redis-url.sh`
-3. Either update `apps/api/.env` with the new URL, or re-export in your shell:
-   ```bash
-   export REDIS_URL=$(bash infrastructure/wsl-redis-url.sh)
+2. Update the port proxy in an elevated PowerShell:
+   ```powershell
+   netsh interface portproxy delete v4tov4 listenport=6379 listenaddress=127.0.0.1
+   $wslIp = (wsl hostname -I).Trim()
+   netsh interface portproxy add v4tov4 listenport=6379 listenaddress=127.0.0.1 connectaddress=$wslIp connectport=6379
    ```
-4. Restart the API: `pnpm --filter @ogden/api dev`
+3. Restart the API: `pnpm --filter @ogden/api dev`
 
 ### S3 credentials absent
 

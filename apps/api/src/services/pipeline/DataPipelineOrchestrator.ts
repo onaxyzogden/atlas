@@ -16,7 +16,7 @@
  * This file establishes the architectural skeleton.
  */
 
-import { Queue, Worker, type Job } from 'bullmq';
+import { Queue, Worker, type Job, type ConnectionOptions } from 'bullmq';
 import type { Redis } from 'ioredis';
 import type postgres from 'postgres';
 import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden/shared';
@@ -109,16 +109,25 @@ export class DataPipelineOrchestrator {
   private watershedProcessor: WatershedRefinementProcessor;
   private microclimateProcessor: MicroclimateProcessor;
   private soilRegenerationProcessor: SoilRegenerationProcessor;
+  private readonly connOpts: ConnectionOptions;
 
   constructor(
     private readonly db: postgres.Sql,
     private readonly redis: Redis,
   ) {
-    this.queue = new Queue('tier1-data', { connection: redis as never });
-    this.terrainQueue = new Queue('tier3-terrain', { connection: redis as never });
-    this.watershedQueue = new Queue('tier3-watershed', { connection: redis as never });
-    this.microclimateQueue = new Queue('tier3-microclimate', { connection: redis as never });
-    this.soilRegenerationQueue = new Queue('tier3-soil-regeneration', { connection: redis as never });
+    // BullMQ needs its own connections — pass config, not the shared instance
+    this.connOpts = {
+      host: redis.options.host ?? '127.0.0.1',
+      port: redis.options.port ?? 6379,
+      password: redis.options.password,
+      family: redis.options.family as 4 | 6 | undefined,
+      maxRetriesPerRequest: null,        // required by BullMQ workers
+    };
+    this.queue = new Queue('tier1-data', { connection: this.connOpts });
+    this.terrainQueue = new Queue('tier3-terrain', { connection: this.connOpts });
+    this.watershedQueue = new Queue('tier3-watershed', { connection: this.connOpts });
+    this.microclimateQueue = new Queue('tier3-microclimate', { connection: this.connOpts });
+    this.soilRegenerationQueue = new Queue('tier3-soil-regeneration', { connection: this.connOpts });
     this.terrainProcessor = new TerrainAnalysisProcessor(db);
     this.watershedProcessor = new WatershedRefinementProcessor(db);
     this.microclimateProcessor = new MicroclimateProcessor(db);
@@ -144,7 +153,7 @@ export class DataPipelineOrchestrator {
         const { projectId } = job.data as { projectId: string };
         await this.processTier1Job(projectId, job);
       },
-      { connection: this.redis as never, concurrency: 5 },
+      { connection: this.connOpts, concurrency: 5 },
     );
   }
 
@@ -193,7 +202,7 @@ export class DataPipelineOrchestrator {
 
         await job.updateProgress(100);
       },
-      { connection: this.redis as never, concurrency: 2 },
+      { connection: this.connOpts, concurrency: 2 },
     );
   }
 
@@ -230,7 +239,7 @@ export class DataPipelineOrchestrator {
 
         await job.updateProgress(100);
       },
-      { connection: this.redis as never, concurrency: 2 },
+      { connection: this.connOpts, concurrency: 2 },
     );
   }
 
@@ -267,7 +276,7 @@ export class DataPipelineOrchestrator {
 
         await job.updateProgress(100);
       },
-      { connection: this.redis as never, concurrency: 2 },
+      { connection: this.connOpts, concurrency: 2 },
     );
   }
 
@@ -304,7 +313,7 @@ export class DataPipelineOrchestrator {
 
         await job.updateProgress(100);
       },
-      { connection: this.redis as never, concurrency: 2 },
+      { connection: this.connOpts, concurrency: 2 },
     );
   }
 
