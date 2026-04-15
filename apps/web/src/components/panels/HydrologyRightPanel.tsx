@@ -71,6 +71,7 @@ interface WaterQualitySummary {
   dissolved_oxygen_mg_l?: number | null;
   do_date?: string | null;
   nitrate_mg_l?: number | null;
+  turbidity_ntu?: number | null;
   station_nearest_km?: number | null;
   station_name?: string | null;
   last_measured?: string | null;
@@ -335,6 +336,10 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
           ? `pH ${Number(waterQuality.ph_value).toFixed(1)}` : '—',
         waterQualityDO:       waterQuality?.dissolved_oxygen_mg_l != null
           ? `${Number(waterQuality.dissolved_oxygen_mg_l).toFixed(1)} mg/L` : '—',
+        waterQualityNitrate:  waterQuality?.nitrate_mg_l != null
+          ? `${Number(waterQuality.nitrate_mg_l).toFixed(2)} mg/L` : null,
+        waterQualityTurbidity: waterQuality?.turbidity_ntu != null
+          ? `${Number(waterQuality.turbidity_ntu).toFixed(1)} NTU` : null,
         waterQualityStation:  waterQuality?.station_name ?? null,
         superfundNearest:     superfund?.nearest_site_km != null
           ? `${Number(superfund.nearest_site_km).toFixed(1)} km` : '—',
@@ -533,10 +538,23 @@ function RealtimePanel({ live, metrics, isLoading }: {
             value={live?.groundwaterDepth ?? '—'}
             note={live?.groundwaterStation ?? undefined} />
           <DataRow label="Water Quality pH"
-            value={live?.waterQualityPH ?? '—'}
-            note={live?.waterQualityStation ?? undefined} />
+            value={live?.waterQualityPH ?? '—'} />
           <DataRow label="Dissolved Oxygen"
             value={live?.waterQualityDO ?? '—'} />
+          {live?.waterQualityNitrate != null && (
+            <DataRow label="Nitrate"
+              value={live.waterQualityNitrate}
+              note={live?.waterQualityStation ?? undefined}
+              color={
+                parseFloat(live.waterQualityNitrate) < 2 ? confidence.high
+                : parseFloat(live.waterQualityNitrate) < 10 ? errorToken.DEFAULT
+                : '#e05c5c'
+              } />
+          )}
+          {live?.waterQualityTurbidity != null && (
+            <DataRow label="Turbidity"
+              value={live.waterQualityTurbidity} />
+          )}
         </div>
       </div>
 
@@ -944,7 +962,7 @@ function buildLive() { return null as unknown as {
   wetlandPct: string; retScore: number;
   budget: { precip: string; retention: string; target: string; demand: string; surplus: string } | null;
   groundwaterDepth: string; groundwaterStation: string | null;
-  waterQualityPH: string; waterQualityDO: string; waterQualityStation: string | null;
+  waterQualityPH: string; waterQualityDO: string; waterQualityNitrate: string | null; waterQualityTurbidity: string | null; waterQualityStation: string | null;
   superfundNearest: string; superfundName: string | null; superfundStatus: string | null; superfundCount5km: number;
   critHabitatOnSite: boolean; critHabitatSpecies: string | null; critHabitatStatus: string | null; critHabitatNearby: number;
   disasterCount10yr: number | null; latestDisaster: string | null; latestDisasterDate: string | null; mostCommonDisaster: string | null;

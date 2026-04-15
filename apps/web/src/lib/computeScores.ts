@@ -518,6 +518,24 @@ function computeWaterResilience(
     components.push(comp('water_quality_ph', 0, 5, 'water_quality', 'low'));
   }
 
+  // Sprint Z: Dissolved oxygen (max 3) — ≥ 8 mg/L ideal; < 6 hypoxic
+  if (waterQuality) {
+    const doVal = num(waterQuality, 'dissolved_oxygen_mg_l');
+    const doPts = doVal >= 8 ? 3 : doVal >= 6 ? 1 : 0;
+    components.push(comp('wq_dissolved_oxygen', doPts, 3, 'water_quality', layerConfidence(waterQuality)));
+  } else {
+    components.push(comp('wq_dissolved_oxygen', 0, 3, 'water_quality', 'low'));
+  }
+
+  // Sprint Z: Nitrate risk (max 2, penalty -3) — EPA MCL 10 mg/L
+  if (waterQuality) {
+    const nitrateRaw = s(waterQuality, 'nitrate_mg_l');
+    const nitPts = typeof nitrateRaw !== 'number' ? 0 : nitrateRaw < 2 ? 2 : nitrateRaw < 5 ? 1 : nitrateRaw < 10 ? 0 : -3;
+    components.push(comp('wq_nitrate_risk', nitPts, 2, 'water_quality', layerConfidence(waterQuality)));
+  } else {
+    components.push(comp('wq_nitrate_risk', 0, 2, 'water_quality', 'low'));
+  }
+
   return buildResult('Water Resilience', 40, components);
 }
 
@@ -892,19 +910,21 @@ function computeBuildability(
   const waterPts = waterKm > 0 ? (waterKm <= 2 ? 3 : waterKm <= 5 ? 2 : waterKm <= 15 ? 1 : 0) : 0;
   components.push(comp('water_supply_proximity', waterPts, 3, 'infrastructure', ic));
 
-  // Sprint O: Superfund contamination proximity (penalty, max -10)
+  // Sprint Z: Superfund contamination risk — count within radius + proximity (penalty, max -10)
   if (superfund) {
+    const sfWithin2 = num(superfund, 'sites_within_2km');
+    const sfWithin5 = num(superfund, 'sites_within_5km');
     const sfKm = num(superfund, 'nearest_site_km');
-    const sfPen = sfKm === 0 ? 0 : sfKm <= 1 ? -10 : sfKm <= 2 ? -7 : sfKm <= 5 ? -3 : 0;
-    components.push(comp('superfund_proximity', sfPen, -10, 'superfund', layerConfidence(superfund)));
+    const sfPen = sfWithin2 > 0 ? -10 : sfWithin5 > 0 ? -6 : (sfKm > 0 && sfKm < 10) ? -3 : (sfKm >= 10 && sfKm <= 20) ? -1 : 0;
+    components.push(comp('contamination_risk', sfPen, -10, 'superfund', layerConfidence(superfund)));
   } else {
-    components.push(comp('superfund_proximity', 0, -10, 'superfund', 'low'));
+    components.push(comp('contamination_risk', 0, -10, 'superfund', 'low'));
   }
 
-  // Sprint P: Disaster declaration frequency (penalty, max -8)
+  // Sprint Z: Disaster frequency — major federal declarations only (DR-type) (penalty, max -8)
   if (stormEvents) {
-    const count = num(stormEvents, 'disaster_count_10yr');
-    const disPen = count >= 7 ? -8 : count >= 4 ? -5 : count >= 2 ? -2 : 0;
+    const count = num(stormEvents, 'major_disaster_count');
+    const disPen = count > 8 ? -8 : count > 5 ? -6 : count > 3 ? -4 : count > 0 ? -2 : 0;
     components.push(comp('disaster_frequency', disPen, -8, 'storm_events', layerConfidence(stormEvents)));
   } else {
     components.push(comp('disaster_frequency', 0, -8, 'storm_events', 'low'));
