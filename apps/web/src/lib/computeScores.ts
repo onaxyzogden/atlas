@@ -361,7 +361,7 @@ export function computeAssessmentScores(
     computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw, proximityData),
     computeCommunitySuitability(censusDemographics),
-    computeDesignComplexity(elevation, wetlands, zoning, terrain),
+    computeDesignComplexity(elevation, wetlands, zoning, terrain, infrastructure),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     computeFAOSuitability(soils, climate, elevation),
     computeUSDALCC(soils, climate, elevation),
@@ -1284,12 +1284,14 @@ function computeDesignComplexity(
   wetlands: MockLayerResult | undefined,
   zoning: MockLayerResult | undefined,
   terrain: MockLayerResult | undefined,
+  infrastructure: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
   const wfc = layerConfidence(wetlands);
   const zc = layerConfidence(zoning);
   const tc = layerConfidence(terrain);
+  const ic = layerConfidence(infrastructure);
 
   // Slope variance (max 15)
   const meanSlope = num(elevation, 'mean_slope_deg');
@@ -1308,9 +1310,9 @@ function computeDesignComplexity(
   }
   components.push(comp('flood_zone_constraints', floodPts, 15, 'wetlands_flood', wfc));
 
-  // Zoning restrictions (max 12)
-  const zoningClass = str(zoning, 'zoning_class').toLowerCase();
-  const setbacks = num(zoning, 'setback_m');
+  // Zoning restrictions (max 12) — reads zoning_code (actual fetcher field)
+  const zoningClass = str(zoning, 'zoning_code').toLowerCase();
+  const setbacks = num(zoning, 'front_setback_m');
   const zonePts = (zoningClass.includes('conservation') || zoningClass.includes('protected') ? 8
     : zoningClass.includes('agricultural') ? 4 : 0) +
     (setbacks > 30 ? 4 : setbacks > 15 ? 2 : 0);
@@ -1348,13 +1350,13 @@ function computeDesignComplexity(
     components.push(comp('curvature_complexity', 0, 10, 'terrain_analysis', 'low'));
   }
 
-  // Utility access indicators (max 8)
-  const utilityAccess = str(zoning, 'utility_access').toLowerCase();
-  const roadDist = num(zoning, 'road_distance_m');
-  const utilPts = (utilityAccess.includes('none') || utilityAccess.includes('off-grid') ? 8
-    : utilityAccess.includes('partial') ? 4 : 0) +
-    (roadDist > 500 ? 4 : roadDist > 200 ? 2 : 0);
-  components.push(comp('utility_access_difficulty', Math.min(8, utilPts), 8, 'zoning', zc));
+  // Utility access indicators (max 8) — derived from infrastructure layer
+  // Power substation distance proxies grid access; road distance proxies site accessibility
+  const powerKm = num(infrastructure, 'power_substation_nearest_km');
+  const roadKm = num(infrastructure, 'road_nearest_km');
+  const gridAccessPts = powerKm > 20 ? 8 : powerKm > 10 ? 4 : 0;
+  const roadAccessPts = roadKm > 0.5 ? 4 : roadKm > 0.2 ? 2 : 0;
+  components.push(comp('utility_access_difficulty', Math.min(8, gridAccessPts + roadAccessPts), 8, 'infrastructure', ic));
 
   return buildResult('Design Complexity', 20, components);
 }
