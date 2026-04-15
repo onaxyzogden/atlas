@@ -2092,11 +2092,9 @@ async function fetchLioFloodWetlands(
  * development under Ontario Regulation 97/04 (and successors).
  */
 async function fetchLioRegulation(envelope: string): Promise<LioRegulationResult | null> {
-  // LIO_Open14 contains planning/regulatory layers
-  // Try multiple known layer indices — CA Regulation Limits moves between versions
+  // LIO_Open03/11 = Conservation Authority Admin Area (best proxy for regulation limits)
   const layerUrls = [
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/0/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/1/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open03/MapServer/11/query`,
   ];
 
   for (const baseUrl of layerUrls) {
@@ -3404,17 +3402,13 @@ async function fetchLioZoning(
   const effectiveBbox = bbox ?? [lng - 0.005, lat - 0.005, lng + 0.005, lat + 0.005];
   const envelope = `${effectiveBbox[0]},${effectiveBbox[1]},${effectiveBbox[2]},${effectiveBbox[3]}`;
 
-  // LIO_Open14 contains planning/regulatory layers including municipal zoning
-  // Try multiple known layer indices — zoning layers move between LIO service versions
+  // LIO_Open06 contains provincial land use planning layers (best proxy for municipal zoning)
+  // 4=CLUPA Overlay, 5=CLUPA Provincial, 15=Greenbelt Designation, 26=Niagara Escarpment Plan
   const layerUrls = [
-    // Municipal zoning — common indices in LIO_Open14
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/2/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/3/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/4/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/5/query`,
-    // Official Plan layers
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/6/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/7/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open06/MapServer/4/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open06/MapServer/5/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open06/MapServer/15/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open06/MapServer/26/query`,
   ];
 
   for (const baseUrl of layerUrls) {
@@ -3858,11 +3852,10 @@ async function fetchPgmnGroundwater(lat: number, lng: number): Promise<MockLayer
     spatialReference: { wkid: 4326 },
   }));
 
-  // Try multiple LIO service groups — PGMN layer index varies
+  // LIO_Open08 contains environmental monitoring layers including PGMN wells
   const layerUrls = [
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/8/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/9/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/10/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open08/MapServer/30/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open08/MapServer/22/query`,
     `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open05/MapServer/0/query`,
   ];
 
@@ -4059,11 +4052,11 @@ async function fetchEcccWaterQuality(lat: number, lng: number): Promise<MockLaye
       xmax: lng + buf, ymax: lat + buf,
       spatialReference: { wkid: 4326 },
     }));
-    // Try multiple LIO layer indices for PWQMN
-    for (const layerIdx of [6, 7, 8, 11, 12]) {
+    // LIO_Open08/30 = Monitoring Station Point (includes PWQMN water quality stations)
+    for (const layerIdx of [30, 31]) {
       try {
         const url =
-          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/${layerIdx}/query` +
+          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open08/MapServer/${layerIdx}/query` +
           `?geometry=${envelope}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects` +
           `&outFields=*&returnGeometry=true&f=json`;
         const resp = await fetchWithRetry(url, 10000);
@@ -4296,7 +4289,7 @@ async function fetchCaContaminatedSites(lat: number, lng: number): Promise<MockL
     } catch { continue; }
   }
 
-  // Also try Ontario ESR via LIO
+  // Also try Ontario Waste Management Sites via LIO_Open08 (layers 9=Waste Mgmt Site, 10=Attenuation Zone)
   if (records.length === 0) {
     const buf = 0.3;
     const envelope = encodeURIComponent(JSON.stringify({
@@ -4304,10 +4297,10 @@ async function fetchCaContaminatedSites(lat: number, lng: number): Promise<MockL
       xmax: lng + buf, ymax: lat + buf,
       spatialReference: { wkid: 4326 },
     }));
-    for (const layerIdx of [0, 1, 2, 3]) {
+    for (const layerIdx of [9, 10]) {
       try {
         const url =
-          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/${layerIdx}/query` +
+          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open08/MapServer/${layerIdx}/query` +
           `?geometry=${envelope}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects` +
           `&outFields=*&returnGeometry=true&f=json`;
         const resp = await fetchWithRetry(url, 10000);
@@ -4496,7 +4489,7 @@ async function fetchSaraCriticalHabitat(lat: number, lng: number): Promise<MockL
     } catch { continue; }
   }
 
-  // Also try LIO Species at Risk layers
+  // LIO_Open07/25 = Provincially Tracked Species 1km Grid (species at risk observations)
   if (onSiteFeatures.length === 0 && nearbyFeatures.length === 0) {
     const buf = 0.1;
     const envelope = encodeURIComponent(JSON.stringify({
@@ -4504,10 +4497,10 @@ async function fetchSaraCriticalHabitat(lat: number, lng: number): Promise<MockL
       xmax: lng + buf, ymax: lat + buf,
       spatialReference: { wkid: 4326 },
     }));
-    for (const layerIdx of [0, 1, 2, 14, 15]) {
+    for (const layerIdx of [25]) {
       try {
         const url =
-          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open14/MapServer/${layerIdx}/query` +
+          `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open07/MapServer/${layerIdx}/query` +
           `?geometry=${envelope}&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects` +
           `&outFields=*&returnGeometry=false&f=json`;
         const resp = await fetchWithRetry(url, 10000);
@@ -5419,12 +5412,10 @@ async function fetchStatcanCensus(lat: number, lng: number): Promise<MockLayerRe
     spatialReference: { wkid: 4326 },
   }));
 
-  // Try multiple LIO layers for municipal boundaries
+  // LIO_Open03 contains administrative boundaries: 14=Municipal Bnd Lower And Single, 13=Upper And Dist
   const municipalLayers = [
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open02/MapServer/26/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open02/MapServer/27/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open02/MapServer/28/query`,
-    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open02/MapServer/25/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open03/MapServer/14/query`,
+    `https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/rest/services/LIO_OPEN_DATA/LIO_Open03/MapServer/13/query`,
   ];
 
   let csdUid: string | null = null;
