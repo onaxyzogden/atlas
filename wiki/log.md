@@ -4,6 +4,32 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-16 — Sprint M: Tier 3 Integration + Scoring Calibration + UI Surfacing + Pipeline Fixes
+- **Scope:** Full Tier 3 scoring integration (terrain_analysis, watershed_derived, microclimate, soil_regeneration components wired into all 7 weighted scores), scoring calibration audit (3 bugs + 3 calibration fixes), SiteIntelligencePanel UI surfacing of WithConfidence data, and pipeline bug fixes.
+- **Scoring engine changes (`apps/web/src/lib/computeScores.ts`):**
+  - Integrated Tier 3 layer components across all 7 existing weighted scores (graceful degradation when absent)
+  - Added 8th weighted dimension: **Community Suitability** (6 census components: population density, median income, educational attainment, homeownership rate, poverty rate penalty, vacancy rate)
+  - **Bug fix:** `salinity_penalty` maxPossible corrected from 0 to -5
+  - **Bug fix:** WEIGHTS sum corrected from 1.05 to 1.00 (Design Complexity 0.15 → 0.10)
+  - **Calibration:** Buildability base lowered from 75 to 60
+  - **Calibration:** Community Suitability base raised from 10 to 25, added 4 new components (edu, homeownership, poverty, vacancy) — effective range improved from 10-40 to ~17-91
+  - All outputs now produce `ScoredResult` with `score_breakdown`, `confidence`, `dataSources`, `computedAt`
+- **UI changes (`SiteIntelligencePanel.tsx` + `.module.css`):**
+  - Added overall confidence badge next to "Overall Suitability" title
+  - Added per-score `dataSources` tags below each score bar
+  - Added `sourceLayer` attribution in breakdown rows
+  - Added `computedAt` timestamp per score breakdown
+  - Guards for empty `dataSources` and empty `score_breakdown` arrays
+- **Pipeline fixes (`DataPipelineOrchestrator.ts`):**
+  - Removed orphan `compute_assessment` job INSERT (no queue/worker existed)
+  - Fixed BullMQ retry status tracking: `status = 'queued'` → `status IN ('queued', 'failed')` across all 4 Tier 3 workers
+- **API fix (`routes/design-features/index.ts`):**
+  - Fixed TS2345 by casting `body.properties` and `body.style` to `Record<string, string>` for `db.json()` calls
+- **Scoring components:** ~129 → ~140+ (Tier 3 integration + Community Suitability)
+- **Weighted dimensions:** 7 → 8 (Community Suitability added at 5%)
+
+---
+
 ### 2026-04-14 — Sprint L: Protected Areas + Infrastructure Rules + Scoring Polish
 - **Scope:** Extended Overpass query for protected areas (1 new Cat 7 gap), added 8 infrastructure assessment rules (first infrastructure-aware rules), wired untapped water supply scoring, and audited Cat 11 regulatory status (3 gaps reclassified as implemented via existing zoning fetcher).
 - **Files modified:**

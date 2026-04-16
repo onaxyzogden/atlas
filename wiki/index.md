@@ -19,7 +19,7 @@ Read this first at the start of every session.
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens
-- [Scoring Engine](concepts/scoring-engine.md) — 5 assessment dimensions, confidence tagging, flags
+- [Scoring Engine](concepts/scoring-engine.md) — 8 weighted dimensions + 2-3 classifications, ~140+ components, WithConfidence, Tier 3 integration
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
 

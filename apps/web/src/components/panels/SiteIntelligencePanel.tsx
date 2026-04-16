@@ -153,6 +153,15 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     [assessmentScores],
   );
 
+  // Overall confidence = lowest confidence across all scores
+  const overallConfidence = useMemo((): 'high' | 'medium' | 'low' => {
+    if (assessmentScores.length === 0) return 'low';
+    const levels = assessmentScores.map((sc) => sc.confidence);
+    if (levels.includes('low')) return 'low';
+    if (levels.includes('medium')) return 'medium';
+    return 'high';
+  }, [assessmentScores]);
+
   const opportunities = useMemo(
     () => deriveOpportunities(layers, project.country),
     [layers, project.country],
@@ -495,9 +504,17 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
       {/* ── Overall Suitability ────────────────────────────────────── */}
       <div className={s.suitabilityCard}>
         <ScoreCircle score={overallScore} size={68} />
-        <div>
-          <div className={s.suitabilityTitle}>Overall Suitability</div>
-          <div className={s.completenessLabel}>Data layers: {layerCompleteCount}/7</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className={s.suitabilityTitle}>Overall Suitability</div>
+            <ConfBadge level={capConf(overallConfidence)} />
+          </div>
+          <div className={s.completenessLabel}>
+            Data layers: {layerCompleteCount}/7
+            {tier3Status.filter((t) => t.status === 'complete').length > 0 && (
+              <span> &middot; {tier3Status.filter((t) => t.status === 'complete').length} derived</span>
+            )}
+          </div>
           <div className={s.layerDotsRow} title={layerCompleteness.map((l) => `${l.label}: ${l.status}`).join(', ')}>
             {layerCompleteness.map((l) => (
               <div
@@ -1095,6 +1112,14 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                 <div className={s.scoreBar}>
                   <div className={s.scoreBarFill} style={{ width: `${item.score}%`, background: getScoreColor(item.score) }} />
                 </div>
+                {/* Data source tags */}
+                {item.dataSources.length > 0 && (
+                  <div className={s.scoreSourceTags}>
+                    {item.dataSources.map((src) => (
+                      <span key={src} className={s.sourceTag}>{src.replace(/_/g, ' ')}</span>
+                    ))}
+                  </div>
+                )}
               </div>
               <ConfBadge level={capConf(item.confidence)} />
               <span
@@ -1120,10 +1145,17 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
                       <span className={s.breakdownValue}>
                         {comp.value}/{comp.maxPossible}
                       </span>
+                      <span className={s.breakdownSource}>{comp.sourceLayer.replace(/_/g, ' ')}</span>
                       <ConfBadge level={capConf(comp.confidence)} />
                     </div>
                   );
                 })}
+                {/* Computed timestamp */}
+                {item.score_breakdown.length > 0 && (
+                  <div className={s.breakdownTimestamp}>
+                    Computed {new Date(item.computedAt).toLocaleString()}
+                  </div>
+                )}
               </div>
             )}
           </div>

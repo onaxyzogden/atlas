@@ -33,13 +33,18 @@ All workers start automatically on app ready (if `redis.status === 'ready'`).
 ## Connection Pattern
 BullMQ requires dedicated connections — it cannot share the Fastify ioredis instance. The orchestrator extracts `ConnectionOptions` (host, port, password, family, `maxRetriesPerRequest: null`) from `redis.options` and passes them to each Queue/Worker constructor.
 
-## Current State (as of 2026-04-14 deep audit)
+## Current State (as of 2026-04-16)
 - Orchestration: **working** (BullMQ + Redis, dedicated connections)
 - Fan-out pattern: **working**
 - Adapter registry: **1/14 live** — `SsurgoAdapter` (soils/US) is the first real adapter (2026-04-14). Remaining 13 adapters resolve to `ManualFlagAdapter`
 - Job tracking: **working** (queued/running/complete/failed/retrying states)
 - Frontend layerFetcher: has 10 **live** external API connections (USGS 3DEP, SSURGO SDA, NOAA LCD, FEMA NFHL, NWI, MRLC NLCD, ECCC, LIO ArcGIS, AAFC, NRCan HRDEM) with mock fallback — this is NOT equivalent to the backend pipeline being connected
 - Next priority: `UsgsElevationAdapter` (elevation/US, 15% weight)
+
+## Pipeline Fixes (Sprint M, 2026-04-16)
+- **Orphan `compute_assessment` job removed:** An INSERT into `data_pipeline_jobs` with layer_type `compute_assessment` had no corresponding BullMQ queue or worker — dead code. Removed from orchestrator.
+- **BullMQ retry status-tracking fix:** All 4 Tier 3 workers had `AND status = 'queued'` in their UPDATE query to mark jobs `running`. After a BullMQ retry (job already `failed`), the UPDATE matched 0 rows. Fixed to `AND status IN ('queued', 'failed')` across all 4 workers.
+- **design-features type fix:** Cast `body.properties` and `body.style` to `Record<string, string>` to satisfy `db.json()` TS2345 in `routes/design-features/index.ts`.
 
 ## Strategic Gaps
 The current 7-layer model covers elevation, soils, watershed, wetlands/flood, land cover, climate, and zoning. The [Gap Analysis](gap-analysis.md) identifies ~120 additional parameters across 13 categories that global frameworks require — including crop suitability (entirely missing), renewable energy, environmental risk, and regulatory/legal layers. Future adapter work should reference that inventory.

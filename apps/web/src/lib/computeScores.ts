@@ -950,7 +950,7 @@ function computeBuildability(
     components.push(comp('seismic_hazard_pga', 0, -10, 'earthquake_hazard', 'low'));
   }
 
-  return buildResult('Buildability', 75, components);
+  return buildResult('Buildability', 60, components);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1093,7 +1093,7 @@ function computeStewardshipReadiness(
   // Salinity penalty (max -5) — penalize saline/sodic soils
   const ecVal = num(soils, 'ec_ds_m');
   const salPenalty = ecVal === 0 ? 0 : ecVal >= 4 ? -5 : ecVal >= 2 ? -3 : 0;
-  components.push(comp('salinity_penalty', salPenalty, 0, 'soils', sc));
+  components.push(comp('salinity_penalty', salPenalty, -5, 'soils', sc));
 
   // Water resilience cross-reference (max 15)
   const precip = num(soils, 'annual_precip_mm') || num(layerByType([...(watershed ? [watershed] : []), ...(wetlands ? [wetlands] : [])], 'climate') ?? undefined, 'annual_precip_mm');
@@ -1272,7 +1272,43 @@ function computeCommunitySuitability(
     : 1;
   components.push(comp('tract_population', popPts, 5, 'census_demographics', cc));
 
-  return buildResult('Community Suitability', 10, components);
+  // Educational attainment (max 10) — % with bachelor's or higher
+  const bachelorsRate = num(census, 'bachelors_pct');
+  const eduPts = bachelorsRate <= 0 ? 5 // unknown: neutral
+    : bachelorsRate >= 30 ? 10
+    : bachelorsRate >= 20 ? 7
+    : bachelorsRate >= 10 ? 4
+    : 2;
+  components.push(comp('educational_attainment', eduPts, 10, 'census_demographics', cc));
+
+  // Homeownership rate (max 8) — higher ownership = community stability
+  const homeownerPct = num(census, 'homeowner_pct');
+  const homePts = homeownerPct <= 0 ? 4 // unknown: neutral
+    : homeownerPct >= 70 ? 8
+    : homeownerPct >= 50 ? 5
+    : homeownerPct >= 30 ? 3
+    : 1;
+  components.push(comp('homeownership_rate', homePts, 8, 'census_demographics', cc));
+
+  // Poverty rate (penalty, max -8) — high poverty = limited CSRA capacity
+  const povertyRate = num(census, 'poverty_pct');
+  const povPen = povertyRate <= 0 ? 0 // unknown: no penalty
+    : povertyRate >= 25 ? -8
+    : povertyRate >= 15 ? -4
+    : povertyRate >= 10 ? -2
+    : 0;
+  components.push(comp('poverty_rate', povPen, -8, 'census_demographics', cc));
+
+  // Vacancy rate — low vacancy = active community (max 5)
+  const vacancyRate = num(census, 'vacancy_pct');
+  const vacPts = vacancyRate <= 0 ? 3 // unknown: neutral
+    : vacancyRate <= 5 ? 5
+    : vacancyRate <= 10 ? 3
+    : vacancyRate <= 20 ? 1
+    : 0;
+  components.push(comp('vacancy_rate', vacPts, 5, 'census_demographics', cc));
+
+  return buildResult('Community Suitability', 25, components);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1799,7 +1835,7 @@ const WEIGHTS: Record<string, number> = {
   'Buildability': 0.12,
   'Habitat Sensitivity': 0.10,
   'Stewardship Readiness': 0.18,
-  'Design Complexity': 0.15,
+  'Design Complexity': 0.10,
   'Community Suitability': 0.05,
 };
 

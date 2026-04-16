@@ -173,7 +173,7 @@ export class DataPipelineOrchestrator {
         await this.db`
           UPDATE data_pipeline_jobs
           SET status = 'running', started_at = now()
-          WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'queued'
+          WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status IN ('queued', 'failed')
         `;
 
         try {
@@ -222,7 +222,7 @@ export class DataPipelineOrchestrator {
         await this.db`
           UPDATE data_pipeline_jobs
           SET status = 'running', started_at = now()
-          WHERE project_id = ${projectId} AND job_type = 'compute_microclimate' AND status = 'queued'
+          WHERE project_id = ${projectId} AND job_type = 'compute_microclimate' AND status IN ('queued', 'failed')
         `;
 
         try {
@@ -259,7 +259,7 @@ export class DataPipelineOrchestrator {
         await this.db`
           UPDATE data_pipeline_jobs
           SET status = 'running', started_at = now()
-          WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status = 'queued'
+          WHERE project_id = ${projectId} AND job_type = 'compute_watershed' AND status IN ('queued', 'failed')
         `;
 
         try {
@@ -296,7 +296,7 @@ export class DataPipelineOrchestrator {
         await this.db`
           UPDATE data_pipeline_jobs
           SET status = 'running', started_at = now()
-          WHERE project_id = ${projectId} AND job_type = 'compute_soil_regeneration' AND status = 'queued'
+          WHERE project_id = ${projectId} AND job_type = 'compute_soil_regeneration' AND status IN ('queued', 'failed')
         `;
 
         try {
@@ -363,12 +363,6 @@ export class DataPipelineOrchestrator {
 
     // Recompute data completeness score
     await this.updateCompletenessScore(projectId);
-
-    // Trigger assessment computation
-    await this.db`
-      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-      VALUES (${projectId}, 'compute_assessment', 'queued')
-    `;
 
     // Trigger Tier 3 terrain analysis
     await this.db`

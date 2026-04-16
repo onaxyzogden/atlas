@@ -1,7 +1,7 @@
 # Scoring Engine
 
 ## Summary
-Client-side scoring engine that computes **7 weighted assessment dimensions + 2-3 formal classification systems** (9-10 total scoring functions, ~129 scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score.
+Client-side scoring engine that computes **8 weighted assessment dimensions + 2-3 formal classification systems** (10-11 total scoring functions, ~140+ scoring components) from geospatial layer data. Each score is 0-100 with a confidence level (high/medium/low) based on data source quality. The two classification systems (FAO S1-N2, USDA LCC I-VIII) carry weight 0 — they appear in dashboards but don't affect the overall site score. All scored outputs use the `ScoredResult` type with full `score_breakdown` arrays and `WithConfidence` fields (`confidence`, `dataSources`, `computedAt`).
 
 ## How It Works
 1. `computeAssessmentScores(layers, acreage)` receives cached layer data from `siteDataStore`
@@ -14,16 +14,19 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 
 ## Dimensions
 
-### 7 Weighted Assessment Dimensions
+### 8 Weighted Assessment Dimensions
 | Dimension | Weight | Key Factors | Layer Sources |
 |-----------|--------|-------------|---------------|
-| Water Resilience | 15% | Drainage class, flood zones, watershed position, PET, aridity index, rainwater harvesting, irrigation requirement | watershed, wetlands, soils, climate |
-| Agricultural Suitability | 15% | pH, CEC, AWC, CaCO3, Ksat, bulk density, organic matter, drainage, slope, texture, GDD, hardiness zone | soils, climate, elevation |
-| Regenerative Potential | 15% | Organic matter, biodiversity indicators, carbon sequestration capacity, soil health trends | soils, land_cover, climate |
-| Buildability | 12% | Slope, flood risk, soil bearing capacity, terrain ruggedness, access grade, hospital/road/grid/market proximity | elevation, wetlands, soils, infrastructure |
-| Habitat Sensitivity | 10% | Wetland proximity, endangered species habitat, riparian buffers, land cover type, protected area proximity | wetlands, land_cover, watershed, infrastructure |
-| Stewardship Readiness | 18% | Soil fertility, salinity penalty, erosion hazard, conservation practice potential, masjid proximity, solar PV, wind energy | soils, elevation, climate, infrastructure |
-| Design Complexity | 15% | Slope variability, terrain complexity, access constraints, zoning conflicts (inverted — high complexity reduces overall score) | elevation, soils, land_cover |
+| Water Resilience | 15% | Drainage class, flood zones, watershed position, PET, aridity index, rainwater harvesting, irrigation requirement, watershed flow accumulation, detention zones, moisture zones | watershed, wetlands, soils, climate, watershed_derived (T3), microclimate (T3) |
+| Agricultural Suitability | 15% | pH, CEC, AWC, CaCO3, Ksat, bulk density, organic matter, drainage, slope, texture, GDD, hardiness zone, sun traps, frost risk, wind shelter | soils, climate, elevation, microclimate (T3) |
+| Regenerative Potential | 15% | Organic matter, biodiversity indicators, carbon sequestration capacity, soil health trends, restoration priority, intervention suitability | soils, land_cover, climate, soil_regeneration (T3) |
+| Buildability | 12% | Slope, flood risk, soil bearing capacity, terrain ruggedness, access grade, hospital/road/grid/market proximity, terrain curvature, TPI flat areas, viewshed openness | elevation, wetlands, soils, infrastructure, terrain_analysis (T3) |
+| Habitat Sensitivity | 10% | Wetland proximity, endangered species habitat, riparian buffers, land cover type, protected area proximity, cold air drainage, disturbed land, moisture zones | wetlands, land_cover, watershed, infrastructure, terrain_analysis (T3), soil_regeneration (T3), microclimate (T3) |
+| Stewardship Readiness | 18% | Soil fertility, salinity penalty, erosion hazard, conservation practice potential, masjid proximity, solar PV, wind energy, soil regeneration readiness, regeneration sequence, outdoor comfort | soils, elevation, climate, infrastructure, soil_regeneration (T3), microclimate (T3) |
+| Community Suitability | 5% | Population density, median income, educational attainment, homeownership rate, poverty rate, vacancy rate | census_demographics |
+| Design Complexity | 10% | Slope variability, terrain complexity, access constraints, zoning conflicts, TPI heterogeneity, curvature complexity (inverted — high complexity reduces overall score) | elevation, soils, land_cover, terrain_analysis (T3) |
+
+> **Weight corrections (Sprint M):** Design Complexity reduced from 15% to 10%, Community Suitability added at 5%. Total weights sum to exactly 1.00.
 
 ### 2-3 Formal Classification Systems (weight 0)
 | Classification | Standard | Output | Key Factors | Availability |
@@ -45,6 +48,7 @@ Client-side scoring engine that computes **7 weighted assessment dimensions + 2-
 | Sprint J | Soil degradation risk (stewardship), wind energy potential (stewardship) | ~120 |
 | Sprint K | Hospital/road/grid/market proximity (buildability), masjid proximity (stewardship), solar PV potential (stewardship) | ~126 |
 | Sprint L | Protected area proximity (habitat), water supply proximity (buildability) + 8 infrastructure assessment rules | ~129 |
+| Sprint M | Tier 3 integration (terrain_analysis, watershed_derived, microclimate, soil_regeneration components across all 7 scores), Community Suitability new dimension (6 census components), calibration fixes (WEIGHTS sum→1.00, Buildability base 75→60, salinity maxPossible fix), WithConfidence on all outputs | ~140+ |
 
 ## Where It's Used
 - `apps/web/src/lib/computeScores.ts` — main engine (all 9 scoring functions)
