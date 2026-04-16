@@ -14,17 +14,21 @@ export default fp(async (fastify: FastifyInstance) => {
     maxRetriesPerRequest: 3,
     lazyConnect: true,
     family: 4,
-    connectTimeout: 5000,
+    connectTimeout: 3000,
     retryStrategy(times: number) {
-      if (times > 3) return null;       // stop retrying after 3 attempts
-      return Math.min(times * 200, 2000);
+      if (times > 2) return null;       // stop retrying after 2 attempts
+      return Math.min(times * 200, 1000);
     },
   });
 
+  // Attempt connection but never block server startup
   try {
-    await redis.connect();
+    await Promise.race([
+      redis.connect(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Redis connect timeout')), 3500)),
+    ]);
     fastify.log.info('Redis connected');
-  } catch (err) {
+  } catch {
     fastify.log.warn('Redis not available — pipeline workers and pub/sub will be disabled');
   }
 
