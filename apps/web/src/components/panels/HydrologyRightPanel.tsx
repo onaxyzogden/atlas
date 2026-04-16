@@ -370,6 +370,20 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         censusIncome:         censusDemog?.median_income_usd ?? null,
         censusAge:            censusDemog?.median_age ?? null,
         censusCounty:         censusDemog?.county_name ?? null,
+        // CSRA suitability rating derived from census fields
+        csraSuitability:      (() => {
+          const rc = (censusDemog?.rural_class ?? '').toString().toLowerCase();
+          const inc = Number(censusDemog?.median_income_usd ?? 0);
+          const age = Number(censusDemog?.median_age ?? 0);
+          if (!rc) return null;
+          const rural = rc === 'rural' ? 3 : rc === 'peri-urban' ? 2 : rc === 'suburban' ? 1 : 0;
+          const incBand = inc >= 60000 && inc <= 120000 ? 2 : inc >= 40000 ? 1 : 0;
+          const ageBand = age >= 30 && age <= 55 ? 2 : age >= 25 ? 1 : 0;
+          const total = rural + incBand + ageBand; // 0–7
+          return total >= 6 ? 'Excellent' : total >= 4 ? 'Good' : total >= 2 ? 'Fair' : 'Poor';
+        })(),
+        // Soil kfact (erodibility)
+        soilKfact:            soils?.kfact ?? null,
         proxMasjidKm:         proximity?.masjid_nearest_km ?? null,
         proxMasjidName:       proximity?.masjid_name ?? null,
         proxMarketKm:         proximity?.farmers_market_km ?? null,
@@ -776,6 +790,29 @@ function RealtimePanel({ live, metrics, isLoading }: {
               <DataRow label="County"
                 value={live.censusCounty} />
             )}
+            {live.csraSuitability && (
+              <DataRow label="CSRA Suitability"
+                value={live.csraSuitability}
+                note="Community-Supported Regenerative Agriculture"
+                color={
+                  live.csraSuitability === 'Excellent' ? confidence.high
+                    : live.csraSuitability === 'Good' ? confidence.medium
+                    : confidence.low
+                } />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Soil Erodibility (K-Factor) */}
+      {live.soilKfact !== null && live.soilKfact > 0 && (
+        <div className={s.panelSection} style={{ marginTop: 16 }}>
+          <span className={s.sectionTag}>SOIL PROPERTIES</span>
+          <div className={s.dataRows}>
+            <DataRow label="K-Factor (Erodibility)"
+              value={live.soilKfact.toFixed(2)}
+              note={live.soilKfact < 0.2 ? 'Low erosion risk' : live.soilKfact < 0.4 ? 'Moderate erosion risk' : 'High erosion risk'}
+              color={live.soilKfact < 0.2 ? confidence.high : live.soilKfact < 0.4 ? confidence.medium : errorToken.DEFAULT} />
           </div>
         </div>
       )}
@@ -969,7 +1006,7 @@ function buildLive() { return null as unknown as {
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
   aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
   quakePga: number | null; quakeSs: number | null; quakeClass: string | null;
-  censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null;
+  censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null; csraSuitability: string | null; soilKfact: number | null;
   proxMasjidKm: number | null; proxMasjidName: string | null; proxMarketKm: number | null; proxMarketName: string | null; proxTownKm: number | null; proxTownName: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;

@@ -9,11 +9,11 @@ const EnvSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:5200'), // Must be set explicitly in production
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_SERVICE_KEY: z.string().optional(),
-  S3_BUCKET: z.string().optional(),
+  SUPABASE_URL: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
+  SUPABASE_SERVICE_KEY: z.string().optional().transform((v) => v || undefined),
+  S3_BUCKET: z.string().optional().transform((v) => v || undefined),
   S3_REGION: z.string().default('us-east-1'),
-  S3_ENDPOINT: z.string().url().optional(),
+  S3_ENDPOINT: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
   ANTHROPIC_API_KEY: z.string().optional(),
   PUPPETEER_EXECUTABLE_PATH: z.string().optional(),
 });
