@@ -36,12 +36,12 @@ BullMQ requires dedicated connections — it cannot share the Fastify ioredis in
 ## Current State (as of 2026-04-19)
 - Orchestration: **working** (BullMQ + Redis, dedicated connections)
 - Fan-out pattern: **working**
-- Adapter registry: **6/14 live** — soils (SsurgoAdapter US + OmafraCanSisAdapter CA), elevation (UsgsElevationAdapter US + NrcanHrdemAdapter CA), watershed (NhdAdapter US + OhnAdapter CA). Remaining 8 adapters resolve to `ManualFlagAdapter`.
-- Combined completeness coverage from live adapters: soils 20% + elevation 15% + watershed 15% = **50% of total completeness weight**
+- Adapter registry: **8/14 live** — soils (SsurgoAdapter + OmafraCanSisAdapter), elevation (UsgsElevationAdapter + NrcanHrdemAdapter), watershed (NhdAdapter + OhnAdapter), wetlands/flood (NwiFemaAdapter + ConservationAuthorityAdapter). Remaining 6 adapters resolve to `ManualFlagAdapter`.
+- Combined completeness coverage from live adapters: soils 20% + elevation 15% + watershed 15% + wetlands_flood 15% = **65% of total completeness weight**
 - Job tracking: **working** (queued/running/complete/failed/retrying states)
 - Frontend layerFetcher: has 10 **live** external API connections (USGS 3DEP, SSURGO SDA, NOAA LCD, FEMA NFHL, NWI, MRLC NLCD, ECCC, LIO ArcGIS, AAFC, NRCan HRDEM) with mock fallback — this is NOT equivalent to the backend pipeline being connected
-- Test coverage: 98/98 adapter tests pass (6 test files, ~16 tests per adapter average)
-- Next priority: wetlands/flood adapters (FEMA NFHL US + Ontario MNRF CA, 15% weight)
+- Test coverage: 126/126 adapter tests pass (8 test files)
+- Next priority: climate adapters (NOAA Normals US + ECCC Normals CA, 10% weight)
 
 ## Pipeline Fixes (Sprint M, 2026-04-16)
 - **Orphan `compute_assessment` job removed:** An INSERT into `data_pipeline_jobs` with layer_type `compute_assessment` had no corresponding BullMQ queue or worker — dead code. Removed from orchestrator.
