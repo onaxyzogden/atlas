@@ -17,7 +17,7 @@ BullMQ-based job queue that fetches geospatial data layers for a project. Fan-ou
 | Soils | SsurgoAdapter (LIVE) | OmafraCanSisAdapter (LIVE) | **Live** |
 | Watershed | NhdAdapter (LIVE) | OhnAdapter (LIVE) | **Live** |
 | Wetlands/Flood | NwiFemaAdapter (LIVE) | ConservationAuthorityAdapter (LIVE) | **Live** |
-| Land Cover | MRLC NLCD WMS | AAFC Crop Inventory | Stub |
+| Land Cover | **NlcdAdapter (LIVE)** | **AafcLandCoverAdapter (LIVE)** | **Live** |
 | Climate | **NoaaClimateAdapter (LIVE)** | **EcccClimateAdapter (LIVE)** | **Live** |
 | Zoning | Not connected | Not connected | Stub |
 
@@ -36,12 +36,12 @@ BullMQ requires dedicated connections — it cannot share the Fastify ioredis in
 ## Current State (as of 2026-04-19)
 - Orchestration: **working** (BullMQ + Redis, dedicated connections)
 - Fan-out pattern: **working**
-- Adapter registry: **10/14 live** — soils (SsurgoAdapter + OmafraCanSisAdapter), elevation (UsgsElevationAdapter + NrcanHrdemAdapter), watershed (NhdAdapter + OhnAdapter), wetlands/flood (NwiFemaAdapter + ConservationAuthorityAdapter), climate (NoaaClimateAdapter + EcccClimateAdapter). Remaining 4 adapters resolve to `ManualFlagAdapter` (land_cover US/CA, zoning US/CA).
-- Combined completeness coverage from live adapters: soils 20% + elevation 15% + watershed 15% + wetlands_flood 15% + climate 10% = **75% of total completeness weight**
+- Adapter registry: **12/14 live** — soils (SsurgoAdapter + OmafraCanSisAdapter), elevation (UsgsElevationAdapter + NrcanHrdemAdapter), watershed (NhdAdapter + OhnAdapter), wetlands/flood (NwiFemaAdapter + ConservationAuthorityAdapter), climate (NoaaClimateAdapter + EcccClimateAdapter), land_cover (NlcdAdapter + AafcLandCoverAdapter). Remaining 2 adapters resolve to `ManualFlagAdapter` (zoning US/CA).
+- Combined completeness coverage from live adapters: soils 20% + elevation 15% + watershed 15% + wetlands_flood 15% + climate 10% + land_cover 10% = **85% of total completeness weight**
 - Job tracking: **working** (queued/running/complete/failed/retrying states)
 - Frontend layerFetcher: has 10 **live** external API connections (USGS 3DEP, SSURGO SDA, NOAA LCD, FEMA NFHL, NWI, MRLC NLCD, ECCC, LIO ArcGIS, AAFC, NRCan HRDEM) with mock fallback — this is NOT equivalent to the backend pipeline being connected
-- Test coverage: 225/225 tests pass (10 adapter test files + integration tests)
-- Next priority: land_cover adapters (MRLC NLCD US + AAFC CA, 10% weight) → would reach 85% completeness
+- Test coverage: 262/262 tests pass (12 adapter test files + integration tests)
+- Next priority: zoning adapters (US + CA, 15% weight) — would bring Tier 1 coverage to 100%
 
 ## Pipeline Fixes (Sprint M, 2026-04-16)
 - **Orphan `compute_assessment` job removed:** An INSERT into `data_pipeline_jobs` with layer_type `compute_assessment` had no corresponding BullMQ queue or worker — dead code. Removed from orchestrator.

@@ -4,6 +4,26 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-19 — Land Cover Adapters: NlcdAdapter + AafcLandCoverAdapter (12/14 live)
+- **Scope:** Implemented land_cover layer backend adapters (US + CA) — 6th of 7 Tier 1 layers complete.
+- **NlcdAdapter (US — `apps/api/src/services/pipeline/adapters/NlcdAdapter.ts`):**
+  - MRLC NLCD 2021 WMS GetFeatureInfo endpoint, 5-point sampling (centroid + 4 cardinal offsets at ±400 m)
+  - Builds real class distribution from sample pixel values rather than heuristic lookup
+  - Weighted-average tree_canopy_pct and impervious_pct across all valid samples
+  - Confidence: high (centroid returned value), medium (only offsets), low (latitude fallback)
+  - Handles GRAY_INDEX and value property names from WMS response
+- **AafcLandCoverAdapter (CA — `apps/api/src/services/pipeline/adapters/AafcLandCoverAdapter.ts`):**
+  - AAFC Annual Crop Inventory 2024 ImageServer Identify (single centroid point)
+  - 50+ AAFC class codes → primary_class, dominant_system, tree_canopy_pct, impervious_pct, is_agricultural, is_natural
+  - Handles NoData, cloud (code 1), and cloud-shadow (code 136) as fallback triggers
+  - Accepts code as number or string (AAFC may return either)
+- **Orchestrator:** Both wired into `resolveAdapter()` (2 new imports + 2 new `if` blocks)
+- **Tests:** 18 NlcdAdapter + 17 AafcLandCoverAdapter = 35 new tests; suite at 262/262 passing
+- **Completeness:** 12/14 adapters live; 85% of total completeness weight covered
+- **Remaining:** zoning US/CA (15% weight) — the final Tier 1 stub
+
+---
+
 ### 2026-04-19 — Climate Adapters: NoaaClimateAdapter + EcccClimateAdapter (10/14 live)
 - **Scope:** Implemented climate layer backend adapters (US + CA) completing the 5th of 7 Tier 1 layers.
 - **NoaaClimateAdapter (US — `apps/api/src/services/pipeline/adapters/NoaaClimateAdapter.ts`):**
