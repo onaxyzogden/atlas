@@ -4,6 +4,28 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-19 — Climate Adapters: NoaaClimateAdapter + EcccClimateAdapter (10/14 live)
+- **Scope:** Implemented climate layer backend adapters (US + CA) completing the 5th of 7 Tier 1 layers.
+- **NoaaClimateAdapter (US — `apps/api/src/services/pipeline/adapters/NoaaClimateAdapter.ts`):**
+  - Two-step NOAA ACIS POST API: StnMeta (nearest GHCN station with 1991-2020 coverage) → StnData (30-year monthly maxt/mint/pcpn in °F/inches)
+  - Station selection: prefers stations with valid 1991→2020 daterange, falls back to nearest
+  - Metric conversion + 12-month normal aggregation from up to 360 monthly rows
+  - Derives: `annual_precip_mm`, `annual_temp_mean_c`, `growing_season_days`, `last_frost_date`, `first_frost_date`, `hardiness_zone`, `growing_degree_days_base10c`, `koppen_classification`, `freeze_thaw_cycles_per_year`, `snow_months`, `monthly_normals[]`
+  - Confidence: high (<30 km station), medium (<60 km), low (>60 km or fallback)
+  - Fallback: latitude-based estimate when ACIS unavailable
+- **EcccClimateAdapter (CA — `apps/api/src/services/pipeline/adapters/EcccClimateAdapter.ts`):**
+  - ECCC OGC API Features GET with ±0.5° bbox, cosine-corrected nearest station selection
+  - Dual field fallback chains: ANNUAL_PRECIP / TOTAL_PRECIP, MEAN_TEMP / ANNUAL_MEAN_TEMP, FROST_FREE_PERIOD / FROST_FREE_DAYS, etc.
+  - Returns: `annual_precip_mm`, `annual_temp_mean_c`, `growing_season_days`, frost dates, hardiness zone, station name/distance, data period from NORMAL_CODE
+  - Confidence: based on distance + field completeness
+  - Fallback: latitude-based estimate when ECCC unavailable
+- **Orchestrator:** Wired both adapters into `DataPipelineOrchestrator.resolveAdapter()` (2 new `if` blocks + 2 new imports)
+- **Tests:** 14 NoaaClimateAdapter + 13 EcccClimateAdapter = 27 new tests; suite at 225/225 passing
+- **Completeness:** 10/14 adapters live; 75% of total completeness weight covered (soils 20% + elevation 15% + watershed 15% + wetlands 15% + climate 10%)
+- **Next priority:** land_cover adapters (MRLC NLCD US + AAFC CA, 10% weight) → would bring coverage to 85%
+
+---
+
 ### 2026-04-16 — Sprint M: Tier 3 Integration + Scoring Calibration + UI Surfacing + Pipeline Fixes
 - **Scope:** Full Tier 3 scoring integration (terrain_analysis, watershed_derived, microclimate, soil_regeneration components wired into all 7 weighted scores), scoring calibration audit (3 bugs + 3 calibration fixes), SiteIntelligencePanel UI surfacing of WithConfidence data, and pipeline bug fixes.
 - **Scoring engine changes (`apps/web/src/lib/computeScores.ts`):**
