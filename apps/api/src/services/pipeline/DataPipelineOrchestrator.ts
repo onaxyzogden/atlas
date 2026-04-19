@@ -31,6 +31,8 @@ import { NwiFemaAdapter } from './adapters/NwiFemaAdapter.js';
 import { ConservationAuthorityAdapter } from './adapters/ConservationAuthorityAdapter.js';
 import { NoaaClimateAdapter } from './adapters/NoaaClimateAdapter.js';
 import { EcccClimateAdapter } from './adapters/EcccClimateAdapter.js';
+import { NlcdAdapter } from './adapters/NlcdAdapter.js';
+import { AafcLandCoverAdapter } from './adapters/AafcLandCoverAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
@@ -133,6 +135,12 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   }
   if (config.adapter === 'EcccClimateAdapter') {
     return new EcccClimateAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'NlcdAdapter') {
+    return new NlcdAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'AafcLandCoverAdapter') {
+    return new AafcLandCoverAdapter(config.source, layerType);
   }
 
   // Remaining adapters still stubbed
