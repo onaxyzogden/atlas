@@ -23,6 +23,8 @@ import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden
 import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
 import { SsurgoAdapter } from './adapters/SsurgoAdapter.js';
 import { UsgsElevationAdapter } from './adapters/UsgsElevationAdapter.js';
+import { NrcanHrdemAdapter } from './adapters/NrcanHrdemAdapter.js';
+import { OmafraCanSisAdapter } from './adapters/OmafraCanSisAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
@@ -101,6 +103,12 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   }
   if (config.adapter === 'UsgsElevationAdapter') {
     return new UsgsElevationAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'NrcanHrdemAdapter') {
+    return new NrcanHrdemAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'OmafraCanSisAdapter') {
+    return new OmafraCanSisAdapter(config.source, layerType);
   }
 
   // Remaining adapters still stubbed
