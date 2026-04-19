@@ -25,6 +25,8 @@ import { SsurgoAdapter } from './adapters/SsurgoAdapter.js';
 import { UsgsElevationAdapter } from './adapters/UsgsElevationAdapter.js';
 import { NrcanHrdemAdapter } from './adapters/NrcanHrdemAdapter.js';
 import { OmafraCanSisAdapter } from './adapters/OmafraCanSisAdapter.js';
+import { NhdAdapter } from './adapters/NhdAdapter.js';
+import { OhnAdapter } from './adapters/OhnAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
@@ -109,6 +111,12 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   }
   if (config.adapter === 'OmafraCanSisAdapter') {
     return new OmafraCanSisAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'NhdAdapter') {
+    return new NhdAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'OhnAdapter') {
+    return new OhnAdapter(config.source, layerType);
   }
 
   // Remaining adapters still stubbed
