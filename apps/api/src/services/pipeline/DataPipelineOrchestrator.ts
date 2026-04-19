@@ -22,6 +22,7 @@ import type postgres from 'postgres';
 import { ADAPTER_REGISTRY, LAYER_TYPES, DATA_COMPLETENESS_WEIGHTS } from '@ogden/shared';
 import type { LayerType, Tier1LayerType, Country } from '@ogden/shared';
 import { SsurgoAdapter } from './adapters/SsurgoAdapter.js';
+import { UsgsElevationAdapter } from './adapters/UsgsElevationAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
@@ -97,6 +98,9 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   // Real adapter implementations
   if (config.adapter === 'SsurgoAdapter') {
     return new SsurgoAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'UsgsElevationAdapter') {
+    return new UsgsElevationAdapter(config.source, layerType);
   }
 
   // Remaining adapters still stubbed
