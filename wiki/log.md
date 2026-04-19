@@ -4,6 +4,28 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+### 2026-04-19 — Zoning Adapters: UsCountyGisAdapter + OntarioMunicipalAdapter (14/14 live — 100% Tier 1 complete)
+- **Scope:** Implemented zoning layer backend adapters (US + CA) — **all 7 Tier 1 layers now fully covered.**
+- **UsCountyGisAdapter (US — `apps/api/src/services/pipeline/adapters/UsCountyGisAdapter.ts`):**
+  - Step 1: FCC Census Block API (no auth) resolves lat/lng → 5-digit county FIPS + county name + state
+  - Step 2: `COUNTY_ZONING_REGISTRY` (9 curated counties) maps FIPS → ArcGIS REST endpoint + field map
+  - Supports both MapServer and FeatureServer URLs; multi-field fallback chains for zone/description/overlay fields
+  - `inferZoningDetails()`: regex + keyword pattern matching → permitted_uses, conditional_uses, is_agricultural
+  - Unregistered counties return structured "unavailable" result (intentional non-error, low confidence) with guidance text including county name + state
+  - Registry counties: Lancaster PA, Loudoun VA, Buncombe NC, Hamilton OH, Dane WI, Washington OR, Sonoma CA, Boulder CO, Whatcom WA
+- **OntarioMunicipalAdapter (CA — `apps/api/src/services/pipeline/adapters/OntarioMunicipalAdapter.ts`):**
+  - Parallel `Promise.allSettled`: LIO_Open06 planning layers + AAFC CLI
+  - LIO: tries layers 4, 5, 15, 26 sequentially (first match wins); 12-field fallback chains per field (ZONE_CODE, DESIGNATION, LAND_USE_CATEGORY, etc.)
+  - AAFC CLI: tries 2 service URLs (AAFC reorganizes periodically); CLI class 1-7 + subclass → human-readable capability + limitation descriptions
+  - Ontario-specific `inferZoningDetails()`: recognizes Greenbelt, Natural Heritage System, CLUPA, Niagara Escarpment designations
+  - Test note: concurrent execution of LIO + AAFC in `Promise.allSettled` required URL-routing `mockImplementation` for "CLI only" test scenario
+- **Orchestrator:** 2 new imports + 2 new `if` blocks in `resolveAdapter()`. Comment updated: "All Tier 1 adapters implemented — fallthrough should not occur in practice"
+- **Tests:** 15 US + 18 CA = 33 new tests; suite at 298/298 passing
+- **Completeness:** 14/14 adapters live; **100% of total Tier 1 completeness weight** (soils 20% + elevation 15% + watershed 15% + wetlands 15% + zoning 15% + climate 10% + land_cover 10%)
+- **Next:** Scoring engine refactor (plan file `clever-enchanting-moler.md`) or US county zoning registry expansion
+
+---
+
 ### 2026-04-19 — Land Cover Adapters: NlcdAdapter + AafcLandCoverAdapter (12/14 live)
 - **Scope:** Implemented land_cover layer backend adapters (US + CA) — 6th of 7 Tier 1 layers complete.
 - **NlcdAdapter (US — `apps/api/src/services/pipeline/adapters/NlcdAdapter.ts`):**
