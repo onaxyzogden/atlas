@@ -103,6 +103,25 @@ Valid values:
 
 ---
 
+## 2b. Preflight (recommended)
+
+Before committing to the full 96-file download, run the preflight to catch
+bad filenames, missing directories, or a missing GDAL install:
+
+```powershell
+pwsh apps/api/scripts/gaez-ingest-preflight.ps1 -CreateDirs
+```
+
+Use `-PrintChecklist` to list all 96 expected filenames so you can tick them
+off against the FAO portal download queue. The preflight is safe to re-run
+anytime; it only creates directories and reads.
+
+For a zero-infrastructure real-data validation (1 raster instead of 96), see
+[`gaez-smoke-test.md`](./gaez-smoke-test.md) — drops the downloads to one
+file and validates the full ingest + query round-trip.
+
+---
+
 ## 3. Convert to COG
 
 Once `apps/api/data/gaez/raw/` contains the renamed rasters, run:

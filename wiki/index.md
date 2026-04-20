@@ -28,3 +28,4 @@ Read this first at the start of every session.
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
 - [2026-04-11 Dashboard Sidebar Groups](decisions/2026-04-11-dashboard-sidebar-groups.md) — Finance + Compliance groups added
 - [2026-04-20 GAEZ v4 Self-Hosting](decisions/2026-04-20-gaez-self-hosting.md) — Self-host FAO GAEZ v4 Theme 4 COGs behind Fastify point-query; geotiff.js byte-range reads; CC BY-NC-SA 3.0 IGO flagged for legal review
+- [2026-04-20 Atlas Staging Provisioning](decisions/2026-04-20-atlas-staging-provisioning.md) — Proposed Fly.io + S3/CloudFront + Cloudflare Pages staging env for real-data GAEZ validation; deferred pending operator commit to ~$25/mo + ~4-6 hours setup
