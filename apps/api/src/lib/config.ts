@@ -16,6 +16,13 @@ const EnvSchema = z.object({
   S3_ENDPOINT: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),
   ANTHROPIC_API_KEY: z.string().optional(),
   PUPPETEER_EXECUTABLE_PATH: z.string().optional(),
+  // ── GAEZ v4 (self-hosted rasters) ────────────────────────────────────────
+  // GAEZ_DATA_DIR — local filesystem path to the converted COG directory.
+  //   Defaults to `./data/gaez/cog` relative to CWD (typically apps/api).
+  // GAEZ_S3_PREFIX — optional HTTPS/S3 base URL (e.g. https://bucket.s3.region.amazonaws.com/gaez/v4/).
+  //   When set, overrides local FS reads with byte-range reads via geotiff.js fromUrl.
+  GAEZ_DATA_DIR: z.string().default('./data/gaez/cog'),
+  GAEZ_S3_PREFIX: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
 });
 
 function loadConfig() {

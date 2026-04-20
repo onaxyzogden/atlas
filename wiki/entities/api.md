@@ -28,6 +28,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 | `/api/v1/spiritual` | `routes/spiritual/` | Qibla computation |
 | `/api/v1/ai` | `routes/ai/` | Anthropic chat proxy |
 | `/api/v1/elevation` | `routes/elevation/` | Terrain queries |
+| `/api/v1/gaez` | `routes/gaez/` | FAO GAEZ v4 agro-climatic point queries (self-hosted COGs) |
 | `/api/v1/pipeline` | `routes/pipeline/` | Data pipeline job management |
 
 ## Patterns
@@ -39,6 +40,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 - **Geometry:** PostGIS functions — `ST_AsGeoJSON()`, `ST_GeomFromGeoJSON()`, `ST_Transform()`
 
 ## Services
+- `services/gaez/GaezRasterService.ts` — Self-hosted FAO GAEZ v4 COG point-query (geotiff.js byte-range reads, local FS or S3 HTTPS). Manifest-driven; disabled cleanly if no manifest present. See `scripts/ingest-gaez.md`.
 - `services/pdf/` — Puppeteer browser manager + PdfExportService + 7 HTML templates
 - `services/storage/StorageProvider.ts` — S3 or local filesystem abstraction
 - `services/pipeline/DataPipelineOrchestrator.ts` — BullMQ job queue (tier1, tier3 workers)

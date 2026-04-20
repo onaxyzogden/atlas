@@ -6,6 +6,7 @@ Read this first at the start of every session.
 ## Orientation
 - [SCHEMA.md](SCHEMA.md) — Wiki conventions and page templates
 - [log.md](log.md) — Chronological operation log
+- [LAUNCH-CHECKLIST.md](LAUNCH-CHECKLIST.md) — Pre-commercial blockers (legal, ops, compliance)
 
 ## Entities
 - [Atlas Platform](entities/atlas-platform.md) — Project overview, stack, completion status, launch blockers
@@ -26,3 +27,4 @@ Read this first at the start of every session.
 ## Decisions
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
 - [2026-04-11 Dashboard Sidebar Groups](decisions/2026-04-11-dashboard-sidebar-groups.md) — Finance + Compliance groups added
+- [2026-04-20 GAEZ v4 Self-Hosting](decisions/2026-04-20-gaez-self-hosting.md) — Self-host FAO GAEZ v4 Theme 4 COGs behind Fastify point-query; geotiff.js byte-range reads; CC BY-NC-SA 3.0 IGO flagged for legal review

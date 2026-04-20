@@ -10,3 +10,8 @@ infrastructure/certbot/
 .DS_Store
 Thumbs.db
 coverage/
+
+# GAEZ v4 raster data — large binaries kept out of git; use S3 in prod.
+apps/api/data/gaez/raw/
+apps/api/data/gaez/cog/*.tif
+apps/api/data/gaez/cog/*.tiff

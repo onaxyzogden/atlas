@@ -31,6 +31,8 @@ import spiritualRoutes from './routes/spiritual/index.js';
 import pipelineRoutes from './routes/pipeline/index.js';
 import aiRoutes from './routes/ai/index.js';
 import elevationRoutes from './routes/elevation/index.js';
+import gaezRoutes from './routes/gaez/index.js';
+import { initGaezService } from './services/gaez/GaezRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
 import fileRoutes from './routes/files/index.js';
 import exportRoutes from './routes/exports/index.js';
@@ -89,6 +91,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(pipelineRoutes, { prefix: '/api/v1/pipeline' });
   await app.register(aiRoutes,       { prefix: '/api/v1/ai' });
   await app.register(elevationRoutes,{ prefix: '/api/v1/elevation' });
+  await app.register(gaezRoutes,     { prefix: '/api/v1/gaez' });
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
@@ -100,6 +103,17 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
+
+  // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
+
+  {
+    const gaez = initGaezService(config.GAEZ_DATA_DIR, config.GAEZ_S3_PREFIX ?? null);
+    if (gaez.isEnabled()) {
+      app.log.info('GAEZ v4 raster service enabled');
+    } else {
+      app.log.info('GAEZ v4 raster service disabled (no manifest — run ingest:gaez to enable)');
+    }
+  }
 
   // ─── Migration check (warn only, does not block startup) ─────────────────────
 
