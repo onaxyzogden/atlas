@@ -426,14 +426,14 @@ export class UsCountyGisAdapter implements DataSourceAdapter {
     return {
       layerType: this.layerType,
       sourceApi: summary.source_api,
-      attributionText: this.getAttributionText(summary),
+      attributionText: this.buildAttributionText(summary),
       confidence: summary.confidence,
       dataDate: new Date().toISOString().split('T')[0]!,
       summaryData: summary,
     };
   }
 
-  private getAttributionText(summary: ZoningSummary): string {
+  private buildAttributionText(summary: ZoningSummary): string {
     if (summary.registry_coverage && summary.county_name) {
       return `${summary.county_name} Planning Department — Zoning via county ArcGIS GIS portal`;
     }

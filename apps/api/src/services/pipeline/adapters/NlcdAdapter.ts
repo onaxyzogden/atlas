@@ -162,7 +162,7 @@ async function queryNlcdPoint(lat: number, lng: number): Promise<number | null> 
       return null; // Best-effort — don't throw on individual sample failures
     }
 
-    const json = await response.json().catch(() => null);
+    const json = (await response.json().catch(() => null)) as { features?: Array<{ properties?: Record<string, unknown> }> } | null;
     if (!json) return null;
 
     const features = json?.features;
