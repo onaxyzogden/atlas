@@ -233,6 +233,22 @@ export function computeAssessmentScores(
   // Sprint W: proximity data (OSM Overpass — global)
   const proximityData = layerByType(layers, 'proximity_data');
 
+  // Sprint BB: biodiversity (GBIF + IUCN) — global
+  const biodiversity = layerByType(layers, 'biodiversity');
+
+  // Sprint BC: Cat 8 environmental risk extensions (US-focused)
+  const ustLust = layerByType(layers, 'ust_lust');
+  const brownfields = layerByType(layers, 'brownfields');
+  const landfills = layerByType(layers, 'landfills');
+  const mineHazards = layerByType(layers, 'mine_hazards');
+  const fuds = layerByType(layers, 'fuds');
+  // Sprint BD: Cat 4 hydrology extensions
+  const aquifer = layerByType(layers, 'aquifer');
+  const waterStress = layerByType(layers, 'water_stress');
+  const seasonalFlooding = layerByType(layers, 'seasonal_flooding');
+  // Sprint BF: Cat 8 prior land-use history (NLCD multi-epoch)
+  const landUseHistory = layerByType(layers, 'land_use_history');
+
   // Sprint F: hydro metrics for Water Resilience scoring
   // Sprint I: pass monthly normals + soil params for LGP computation
   let hydroForScoring: Parameters<typeof computeWaterResilience>[5];
@@ -354,11 +370,11 @@ export function computeAssessmentScores(
   ) / 100;
 
   return [
-    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality),
+    computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality, waterStress, aquifer, seasonalFlooding),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
     computeRegenerativePotential(landCover, soils, soilRegen, carbonSeqTonsCO2HaYr),
-    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality, earthquakeHazard),
-    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat),
+    computeBuildability(elevation, wetlands, soils, terrain, infrastructure, superfund, stormEvents, airQuality, earthquakeHazard, ustLust, brownfields, landfills, mineHazards, fuds, landUseHistory),
+    computeHabitatSensitivity(wetlands, landCover, terrain, soilRegen, microclimate, infrastructure, criticalHabitat, biodiversity),
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw, proximityData),
     computeCommunitySuitability(censusDemographics),
     computeDesignComplexity(elevation, wetlands, zoning, terrain, infrastructure),
@@ -389,6 +405,9 @@ function computeWaterResilience(
   },
   groundwater?: MockLayerResult | undefined,
   waterQuality?: MockLayerResult | undefined,
+  waterStress?: MockLayerResult | undefined,
+  aquifer?: MockLayerResult | undefined,
+  seasonalFlooding?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const cc = layerConfidence(climate);
@@ -536,6 +555,38 @@ function computeWaterResilience(
     components.push(comp('wq_nitrate_risk', 0, 2, 'water_quality', 'low'));
   }
 
+  // Sprint BD: Cat 4 — WRI Aqueduct baseline water stress (penalty max -10)
+  if (waterStress) {
+    const stressClass = str(waterStress, 'water_stress_class');
+    const wsPts = stressClass === 'Low' ? 0
+      : stressClass === 'Low-Medium' ? -2
+      : stressClass === 'Medium-High' ? -5
+      : stressClass === 'High' ? -8
+      : stressClass === 'Extremely High' ? -10
+      : 0;
+    components.push(comp('baseline_water_stress', wsPts, -10, 'water_stress', layerConfidence(waterStress)));
+  } else {
+    components.push(comp('baseline_water_stress', 0, -10, 'water_stress', 'low'));
+  }
+
+  // Sprint BD: Cat 4 — USGS Principal Aquifer productivity (max 5)
+  if (aquifer) {
+    const prod = str(aquifer, 'aquifer_productivity');
+    const aqPts = prod === 'High' ? 5 : prod === 'Moderate' ? 3 : prod === 'Low' ? 1 : 0;
+    components.push(comp('aquifer_productivity', aqPts, 5, 'aquifer', layerConfidence(aquifer)));
+  } else {
+    components.push(comp('aquifer_productivity', 0, 5, 'aquifer', 'low'));
+  }
+
+  // Sprint BD: Cat 4 — Stream flow seasonality (penalty max -5)
+  if (seasonalFlooding) {
+    const sc2 = str(seasonalFlooding, 'seasonality_class');
+    const sfPts = sc2 === 'Extreme' ? -5 : sc2 === 'High' ? -3 : sc2 === 'Moderate' ? -1 : 0;
+    components.push(comp('stream_seasonality', sfPts, -5, 'seasonal_flooding', layerConfidence(seasonalFlooding)));
+  } else {
+    components.push(comp('stream_seasonality', 0, -5, 'seasonal_flooding', 'low'));
+  }
+
   return buildResult('Water Resilience', 40, components);
 }
 
@@ -612,6 +663,16 @@ function computeAgriculturalSuitability(
     : ksat < 1 ? -1                   // very slow — waterlogging risk
     : 0;                              // very fast — nutrient leaching
   components.push(comp('permeability', ksatPts, 4, 'soils', sc));
+
+  // Sprint BB: Coarse fragment % (surface stoniness) — FAO S1–N2 analog (max 3)
+  // SSURGO frag3to10_r + fraggt10_r summed → coarse_fragment_pct
+  const coarseFrag = num(soils, 'coarse_fragment_pct');
+  const coarseFragPts = coarseFrag === 0 ? 1     // unknown or absent — neutral
+    : coarseFrag < 15 ? 3                         // optimal (<15%)
+    : coarseFrag < 35 ? 1                         // moderate (15–35%)
+    : coarseFrag < 55 ? -1                        // severe (35–55%)
+    : -3;                                         // not suited (>55%)
+  components.push(comp('coarse_fragment_penalty', coarseFragPts, 3, 'soils', sc));
 
   // Sprint G: Bulk density / compaction risk (max 3)
   const bd = num(soils, 'bulk_density_g_cm3');
@@ -820,6 +881,12 @@ function computeBuildability(
   stormEvents?: MockLayerResult | undefined,
   airQuality?: MockLayerResult | undefined,
   earthquakeHazard?: MockLayerResult | undefined,
+  ustLust?: MockLayerResult | undefined,
+  brownfields?: MockLayerResult | undefined,
+  landfills?: MockLayerResult | undefined,
+  mineHazards?: MockLayerResult | undefined,
+  fuds?: MockLayerResult | undefined,
+  landUseHistory?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const ec = layerConfidence(elevation);
@@ -950,6 +1017,57 @@ function computeBuildability(
     components.push(comp('seismic_hazard_pga', 0, -10, 'earthquake_hazard', 'low'));
   }
 
+  // Sprint BC: UST/LUST proximity (penalty, max -3) — focus on leaking sites
+  if (ustLust) {
+    const lustKm = num(ustLust, 'nearest_lust_km');
+    const lustW1 = num(ustLust, 'lust_sites_within_1km');
+    const ustPen = lustW1 > 0 || (lustKm > 0 && lustKm < 0.5) ? -3
+      : lustKm > 0 && lustKm < 2 ? -2
+      : lustKm > 0 && lustKm < 5 ? -1 : 0;
+    components.push(comp('ust_proximity', ustPen, -3, 'ust_lust', layerConfidence(ustLust)));
+  } else {
+    components.push(comp('ust_proximity', 0, -3, 'ust_lust', 'low'));
+  }
+
+  // Sprint BC: Brownfield proximity (penalty, max -3)
+  if (brownfields) {
+    const bfKm = num(brownfields, 'nearest_brownfield_km');
+    const bfW2 = num(brownfields, 'sites_within_2km');
+    const bfPen = bfW2 > 0 || (bfKm > 0 && bfKm < 0.5) ? -3
+      : bfKm > 0 && bfKm < 2 ? -2
+      : bfKm > 0 && bfKm < 5 ? -1 : 0;
+    components.push(comp('brownfield_proximity', bfPen, -3, 'brownfields', layerConfidence(brownfields)));
+  } else {
+    components.push(comp('brownfield_proximity', 0, -3, 'brownfields', 'low'));
+  }
+
+  // Sprint BC: Landfill proximity (penalty, max -3)
+  if (landfills) {
+    const lfKm = num(landfills, 'nearest_landfill_km');
+    const lfW2 = num(landfills, 'sites_within_2km');
+    const lfPen = lfW2 > 0 || (lfKm > 0 && lfKm < 0.5) ? -3
+      : lfKm > 0 && lfKm < 2 ? -2
+      : lfKm > 0 && lfKm < 5 ? -1 : 0;
+    components.push(comp('landfill_proximity', lfPen, -3, 'landfills', layerConfidence(landfills)));
+  } else {
+    components.push(comp('landfill_proximity', 0, -3, 'landfills', 'low'));
+  }
+
+  // Sprint BC: Legacy contamination (mines + FUDS combined, penalty max -3)
+  const mineKm = mineHazards ? num(mineHazards, 'nearest_mine_km') : 0;
+  const fudsKm = fuds ? num(fuds, 'nearest_fuds_km') : 0;
+  const legacyNear = (mineKm > 0 && mineKm < 2) || (fudsKm > 0 && fudsKm < 2);
+  const legacyMid = (mineKm > 0 && mineKm < 5) || (fudsKm > 0 && fudsKm < 5);
+  const legacyPen = legacyNear ? -3 : legacyMid ? -1 : 0;
+  const legacyConf = layerConfidence(mineHazards ?? fuds);
+  components.push(comp('legacy_contamination', legacyPen, -3, 'mine_hazards', legacyConf));
+
+  // Sprint BF: Prior disturbance flag (NLCD multi-epoch). Penalty max -2.
+  // Triggered by any wetland-to-any or natural-to-developed transition in 2001-2021.
+  const disturbanceFlags = landUseHistory?.summary?.['disturbance_flags'] as string[] | undefined;
+  const disturbancePen = (disturbanceFlags && disturbanceFlags.length > 0) ? -2 : 0;
+  components.push(comp('prior_disturbance_flag', disturbancePen, -2, 'land_use_history', layerConfidence(landUseHistory)));
+
   return buildResult('Buildability', 60, components);
 }
 
@@ -965,6 +1083,7 @@ function computeHabitatSensitivity(
   microclimate: MockLayerResult | undefined,
   infrastructure?: MockLayerResult | undefined,
   criticalHabitat?: MockLayerResult | undefined,
+  biodiversity?: MockLayerResult | undefined,
 ): ScoredResult {
   const components: ScoreComponent[] = [];
   const wfc = layerConfidence(wetlands);
@@ -1037,6 +1156,20 @@ function computeHabitatSensitivity(
     components.push(comp('critical_habitat_presence', chPts, 12, 'critical_habitat', chc));
   } else {
     components.push(comp('critical_habitat_presence', 0, 12, 'critical_habitat', 'low'));
+  }
+
+  // Sprint BB: Biodiversity index (GBIF species richness in 5 km radius) — max 5
+  if (biodiversity) {
+    const bc = layerConfidence(biodiversity);
+    const richness = num(biodiversity, 'species_richness');
+    const bioPts = richness >= 400 ? 5
+      : richness >= 150 ? 4
+      : richness >= 50 ? 2
+      : richness > 0 ? 1
+      : 0;
+    components.push(comp('biodiversity_index', bioPts, 5, 'biodiversity', bc));
+  } else {
+    components.push(comp('biodiversity_index', 0, 5, 'biodiversity', 'low'));
   }
 
   return buildResult('Habitat Sensitivity', 25, components);
@@ -1839,11 +1972,13 @@ const WEIGHTS: Record<string, number> = {
   'Community Suitability': 0.05,
 };
 
-export function computeOverallScore(scores: ScoredResult[]): number {
+export function computeOverallScore(scores: ScoredResult[], weights?: number[]): number {
   let total = 0;
   let weightSum = 0;
-  for (const sc of scores) {
-    const w = WEIGHTS[sc.label] ?? 0;
+  for (let i = 0; i < scores.length; i++) {
+    const sc = scores[i]!;
+    // Sprint BF: optional AHP-derived positional weight override (same order as computeAssessmentScores output)
+    const w = weights && weights[i] != null ? weights[i]! : (WEIGHTS[sc.label] ?? 0);
     // Design Complexity is inverted — high complexity reduces overall score
     const effectiveScore = sc.label === 'Design Complexity' ? (100 - sc.score) : sc.score;
     total += effectiveScore * w;
@@ -2025,7 +2160,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
 
 export function deriveOpportunities(
   layers: MockLayerResult[],
-  country: 'US' | 'CA',
+  country: string,
 ): AssessmentFlag[] {
   return evaluateAssessmentRules(layers, country).opportunities;
 }
@@ -2036,7 +2171,7 @@ export function deriveOpportunities(
 
 export function deriveRisks(
   layers: MockLayerResult[],
-  country: 'US' | 'CA',
+  country: string,
 ): AssessmentFlag[] {
   return evaluateAssessmentRules(layers, country).risks;
 }

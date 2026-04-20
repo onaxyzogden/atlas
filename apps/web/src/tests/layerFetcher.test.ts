@@ -115,7 +115,7 @@ describe('fetchAllLayers', () => {
     expect(result.layers).toBeDefined();
     expect(result.layers.length).toBeGreaterThan(0);
     expect(result.totalCount).toBeGreaterThan(0);
-  });
+  }, 15_000); // Sprint BT: 30+ fetchers all rejecting takes >5 s on slow CI
 
   it('caches results to localStorage', async () => {
     await fetchAllLayers({
@@ -126,7 +126,7 @@ describe('fetchAllLayers', () => {
     const cache = JSON.parse(localStorage.getItem('ogden-layer-cache') || '{}');
     const keys = Object.keys(cache);
     expect(keys.length).toBeGreaterThan(0);
-  });
+  }, 15_000);
 
   it('returns cached results on second call', async () => {
     // First call — fetches and caches
@@ -142,7 +142,7 @@ describe('fetchAllLayers', () => {
     });
 
     expect(result2.layers.length).toBe(result1.layers.length);
-  });
+  }, 20_000); // Sprint BT: two sequential full fetches (cache miss + hit)
 
   it('handles US country correctly', async () => {
     const result = await fetchAllLayers({
@@ -152,7 +152,7 @@ describe('fetchAllLayers', () => {
 
     expect(result.layers).toBeDefined();
     expect(result.totalCount).toBeGreaterThan(0);
-  });
+  }, 15_000);
 
   it('handles CA country correctly', async () => {
     const result = await fetchAllLayers({

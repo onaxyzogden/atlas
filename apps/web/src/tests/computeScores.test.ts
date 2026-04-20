@@ -24,8 +24,9 @@ describe('computeAssessmentScores', () => {
   describe('with US layers', () => {
     const scores = computeAssessmentScores(mockLayersUS(), null);
 
-    it('returns exactly 7 assessment scores', () => {
-      expect(scores).toHaveLength(7);
+    it('returns 10 assessment scores (8 weighted + FAO + USDA)', () => {
+      // Sprint BT: US returns 8 weighted (incl. Community Suitability) + FAO + USDA
+      expect(scores).toHaveLength(10);
     });
 
     it('includes all expected score labels', () => {
@@ -36,7 +37,10 @@ describe('computeAssessmentScores', () => {
       expect(labels).toContain('Buildability');
       expect(labels).toContain('Habitat Sensitivity');
       expect(labels).toContain('Stewardship Readiness');
+      expect(labels).toContain('Community Suitability');
       expect(labels).toContain('Design Complexity');
+      expect(labels).toContain('FAO Land Suitability');
+      expect(labels).toContain('USDA Land Capability');
     });
 
     it('clamps all scores between 0 and 100', () => {
@@ -46,9 +50,12 @@ describe('computeAssessmentScores', () => {
       }
     });
 
-    it('assigns a valid rating to each score', () => {
+    it('assigns a valid rating to each weighted score', () => {
+      // Sprint BT: formal-classification scores (FAO, USDA, Canada) emit
+      // domain-specific rating strings like "S1 — Highly Suitable" or
+      // "Class 2 — …". Rating enum applies to the 8 weighted scores only.
       const validRatings = ['Exceptional', 'Good', 'Moderate', 'Low', 'Insufficient Data'];
-      for (const score of scores) {
+      for (const score of scores.slice(0, 8)) {
         expect(validRatings).toContain(score.rating);
       }
     });
@@ -79,10 +86,11 @@ describe('computeAssessmentScores', () => {
   });
 
   describe('with CA layers', () => {
-    const scores = computeAssessmentScores(mockLayersCA(), null);
+    // Sprint BT: pass country='CA' to trigger the Canada Soil Capability branch
+    const scores = computeAssessmentScores(mockLayersCA(), null, 'CA');
 
-    it('returns exactly 7 scores for Canadian data', () => {
-      expect(scores).toHaveLength(7);
+    it('returns 11 scores for Canadian data (8 weighted + FAO + USDA + Canada Soil Capability)', () => {
+      expect(scores).toHaveLength(11);
     });
 
     it('has valid scores between 0 and 100', () => {
@@ -96,7 +104,7 @@ describe('computeAssessmentScores', () => {
   describe('graceful degradation', () => {
     it('handles incomplete layers without crashing', () => {
       const scores = computeAssessmentScores(mockLayersIncomplete(), null);
-      expect(scores).toHaveLength(7);
+      expect(scores).toHaveLength(10);
       for (const score of scores) {
         expect(score.score).toBeGreaterThanOrEqual(0);
         expect(score.score).toBeLessThanOrEqual(100);
@@ -105,7 +113,7 @@ describe('computeAssessmentScores', () => {
 
     it('handles empty/pending layers', () => {
       const scores = computeAssessmentScores(mockLayersEmpty(), null);
-      expect(scores).toHaveLength(7);
+      expect(scores).toHaveLength(10);
       // With no real data, scores should be low or rated insufficient
       for (const score of scores) {
         expect(score.score).toBeGreaterThanOrEqual(0);
@@ -114,14 +122,15 @@ describe('computeAssessmentScores', () => {
 
     it('handles empty array input', () => {
       const scores = computeAssessmentScores([], null);
-      expect(scores).toHaveLength(7);
+      // Sprint BT: empty array returns 10 (no CA branch since country default unknown)
+      expect(scores).toHaveLength(10);
     });
   });
 
   describe('with acreage', () => {
     it('accepts numeric acreage without error', () => {
       const scores = computeAssessmentScores(mockLayersUS(), 50);
-      expect(scores).toHaveLength(7);
+      expect(scores).toHaveLength(10);
     });
   });
 });
@@ -359,8 +368,8 @@ function getComp(
 describe('computeAssessmentScores — Tier 3 layers present (if-true branches)', () => {
   const scores = computeAssessmentScores(withTier3(), null);
 
-  it('returns 7 scores with all Tier 3 layers present', () => {
-    expect(scores).toHaveLength(7);
+  it('returns 10 scores with all Tier 3 layers present', () => {
+    expect(scores).toHaveLength(10);
   });
 
   it('all scores are valid and clamped 0–100', () => {
