@@ -49,17 +49,65 @@ Write-Host ""
 
 # --- 1. GDAL ---------------------------------------------------------------
 Write-Host "[1/4] GDAL install"
+
+# 1a. Fast path: gdal_translate already on PATH
 $gdal = Get-Command gdal_translate -ErrorAction SilentlyContinue
 if ($gdal) {
     $verOut = & gdal_translate --version 2>&1
-    Write-OK "gdal_translate found: $verOut"
+    Write-OK "gdal_translate found on PATH: $verOut"
 } else {
-    Write-Fail "gdal_translate not on PATH"
-    Write-Info "Install options (Windows):"
-    Write-Info "  - OSGeo4W:  https://trac.osgeo.org/osgeo4w/  (recommended; installer ships gdal_translate)"
-    Write-Info "  - QGIS:     https://qgis.org/en/site/forusers/download.html  (use the OSGeo4W Shell shortcut)"
-    Write-Info "  - Conda:    conda install -c conda-forge gdal   (then activate the env before ingest)"
-    Write-Info "After install, open a new shell and confirm: gdal_translate --version"
+    # 1b. Slow path: scan standard OSGeo4W / QGIS install locations. OSGeo4W's
+    # per-user installer drops into %LOCALAPPDATA%\Programs\OSGeo4W without
+    # touching PATH, so "installed" + "discoverable" are not the same thing.
+    $candidates = @(
+        'C:\OSGeo4W\bin\gdal_translate.exe',
+        'C:\OSGeo4W64\bin\gdal_translate.exe',
+        'C:\Program Files\OSGeo4W\bin\gdal_translate.exe',
+        'C:\Program Files (x86)\OSGeo4W\bin\gdal_translate.exe',
+        (Join-Path $env:LOCALAPPDATA 'Programs\OSGeo4W\bin\gdal_translate.exe'),
+        (Join-Path $env:LOCALAPPDATA 'Programs\OSGeo4W64\bin\gdal_translate.exe')
+    )
+    # Also check the registry for OSGeo4W install locations (catches custom paths)
+    $regKeys = @(
+        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
+        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall',
+        'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
+    )
+    foreach ($key in $regKeys) {
+        if (-not (Test-Path $key)) { continue }
+        Get-ChildItem $key -ErrorAction SilentlyContinue | ForEach-Object {
+            $props = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue
+            if ($props.DisplayName -match 'osgeo|gdal' -and $props.InstallLocation) {
+                $candidates += (Join-Path $props.InstallLocation 'bin\gdal_translate.exe')
+            }
+        }
+    }
+    $found = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if ($found) {
+        $verOut = & $found --version 2>&1
+        Write-Warn "gdal_translate NOT on PATH, but a GDAL install exists:"
+        Write-Info "  $found"
+        Write-Info "  $verOut"
+        Write-Info "The Node ingest script uses spawnSync('gdal_translate', ...) which needs it"
+        Write-Info "on PATH. Fix in either of these ways:"
+        Write-Info ""
+        $binDir = Split-Path $found -Parent
+        Write-Info "  (a) Persist to user PATH (restart shells after):"
+        Write-Info ('      $u = [Environment]::GetEnvironmentVariable("PATH","User"); ' +
+                    '[Environment]::SetEnvironmentVariable("PATH", "$u;' + $binDir + '", "User")')
+        Write-Info ""
+        Write-Info "  (b) Set GDAL_BIN env var so convert-gaez-to-cog.ts can find it:"
+        Write-Info ('      $env:GDAL_BIN = "' + $binDir + '"')
+        # Don't Fail -- operator can set GDAL_BIN and proceed.
+    } else {
+        Write-Fail "gdal_translate not on PATH and no OSGeo4W/GDAL install detected"
+        Write-Info "Install options (Windows):"
+        Write-Info "  - OSGeo4W:  https://trac.osgeo.org/osgeo4w/  (recommended)"
+        Write-Info "  - QGIS:     https://qgis.org/en/site/forusers/download.html (OSGeo4W Shell)"
+        Write-Info "  - Conda:    conda install -c conda-forge gdal"
+        Write-Info "After install, open a new shell and confirm: gdal_translate --version"
+    }
 }
 
 # --- 2. Directories --------------------------------------------------------

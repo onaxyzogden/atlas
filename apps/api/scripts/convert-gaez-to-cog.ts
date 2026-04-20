@@ -101,6 +101,23 @@ function needsConversion(rawPath: string, cogPath: string): boolean {
   return statSync(rawPath).mtimeMs > statSync(cogPath).mtimeMs;
 }
 
+/**
+ * Resolve the gdal_translate executable. OSGeo4W's per-user installer drops
+ * into %LOCALAPPDATA%\Programs\OSGeo4W without modifying PATH, so "installed"
+ * and "on PATH" are not the same thing. Operators can set GDAL_BIN to the
+ * bin directory to short-circuit discovery.
+ */
+function resolveGdalTranslate(): string {
+  if (process.env.GDAL_BIN) {
+    const explicit = join(process.env.GDAL_BIN, process.platform === 'win32' ? 'gdal_translate.exe' : 'gdal_translate');
+    if (existsSync(explicit)) return explicit;
+    console.warn(`GDAL_BIN=${process.env.GDAL_BIN} set but gdal_translate not found there; falling back to PATH.`);
+  }
+  return process.platform === 'win32' ? 'gdal_translate.exe' : 'gdal_translate';
+}
+
+const GDAL_TRANSLATE = resolveGdalTranslate();
+
 function convertToCog(rawPath: string, cogPath: string): void {
   const args = [
     '-of', 'COG',
@@ -112,9 +129,9 @@ function convertToCog(rawPath: string, cogPath: string): void {
     rawPath,
     cogPath,
   ];
-  const result = spawnSync('gdal_translate', args, { stdio: 'inherit' });
+  const result = spawnSync(GDAL_TRANSLATE, args, { stdio: 'inherit' });
   if (result.status !== 0) {
-    throw new Error(`gdal_translate failed for ${basename(rawPath)} (exit ${result.status}). Is GDAL installed and on PATH?`);
+    throw new Error(`gdal_translate failed for ${basename(rawPath)} (exit ${result.status}). Is GDAL on PATH, or set GDAL_BIN=<path-to-osgeo4w>/bin?`);
   }
 }
 
