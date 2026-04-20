@@ -13,7 +13,7 @@ import { ASSESSMENT_RULES, type AssessmentRule } from './assessmentRules.js';
 
 export interface RuleContext {
   layers: MockLayerResult[];
-  country: 'US' | 'CA';
+  country: string;
   elevation: MockLayerResult | undefined;
   soils: MockLayerResult | undefined;
   wetlands: MockLayerResult | undefined;
@@ -30,7 +30,7 @@ export interface RuleContext {
 
 function buildContext(
   layers: MockLayerResult[],
-  country: 'US' | 'CA',
+  country: string,
 ): RuleContext {
   const byType = (type: string) => layers.find((l) => l.layerType === type);
 
@@ -124,7 +124,7 @@ export interface RuleEngineResult {
 
 export function evaluateAssessmentRules(
   layers: MockLayerResult[],
-  country: 'US' | 'CA',
+  country: string,
 ): RuleEngineResult {
   const ctx = buildContext(layers, country);
 

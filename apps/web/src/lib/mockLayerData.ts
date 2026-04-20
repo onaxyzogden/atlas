@@ -27,7 +27,7 @@ export interface MockLayerResult {
  * Federal-API layers (Sprints M–W) are US-only in production; mocks
  * provide fallback estimates for both countries in offline mode.
  */
-export function generateMockLayers(country: 'US' | 'CA'): MockLayerResult[] {
+export function generateMockLayers(country: string): MockLayerResult[] {
   const now = new Date().toISOString().split('T')[0]!;
 
   return [

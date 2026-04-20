@@ -105,15 +105,31 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // MapLibre GL is the heaviest dependency (~600KB)
-          maplibre: ['maplibre-gl', '@mapbox/mapbox-gl-draw'],
-          // Turf.js geospatial utilities
-          turf: ['@turf/turf'],
-          // State management + routing
-          framework: ['zustand', '@tanstack/react-router', '@tanstack/react-query'],
-          // CesiumJS 3D engine — lazy-loaded, separate chunk
-          cesium: ['cesium'],
+        manualChunks(id: string) {
+          // Vendor splits
+          if (id.includes('node_modules')) {
+            if (id.includes('maplibre-gl') || id.includes('@mapbox/mapbox-gl-draw')) return 'maplibre';
+            if (id.includes('@turf/turf')) return 'turf';
+            if (
+              id.includes('zustand') ||
+              id.includes('@tanstack/react-router') ||
+              id.includes('@tanstack/react-query')
+            ) return 'framework';
+            if (id.includes('cesium')) return 'cesium';
+            return undefined;
+          }
+          // Sprint BS: split the lazy-loaded SiteIntelligencePanel (~1.14 MB)
+          // into shell + sections + compute-libs so sections load in parallel
+          // and changing one section/lib doesn't invalidate the whole panel chunk.
+          const norm = id.replace(/\\/g, '/');
+          // FAO EcoCrop dataset (~968 kB parsed JSON) — isolate so panel-compute stays lean
+          if (norm.includes('/data/ecocrop_parsed.json') || norm.includes('/data/ecocropSubset')) return 'ecocrop-db';
+          if (norm.includes('/components/panels/sections/')) return 'panel-sections';
+          if (
+            /\/lib\/(designIntelligence|regulatoryIntelligence|energyIntelligence|climateProjections|ecosystemValuation|cropMatching|companionPlanting|fuzzyMCDM|hydrologyMetrics|canopyHeight|waterRightsRegistry|computeScores)\.ts/.test(norm) ||
+            /\/hooks\/useSiteIntelligenceMetrics\.ts/.test(norm)
+          ) return 'panel-compute';
+          return undefined;
         },
       },
     },

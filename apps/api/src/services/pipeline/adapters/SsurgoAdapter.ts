@@ -57,6 +57,8 @@ interface HorizonRow {
   caco3_pct: number | null;
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
+  frag3to10_pct: number | null;
+  fraggt10_pct: number | null;
   surface_stoniness: string | null;
   texture_description: string | null;
   drainage_class: string | null;
@@ -89,6 +91,7 @@ interface SoilSummary {
   caco3_pct: number | null;
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
+  coarse_fragment_pct: number | null;
   surface_stoniness: string | null;
 
   // Derived
@@ -190,6 +193,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   caco3_pct: number | null;
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
+  coarse_fragment_pct: number | null;
   // Categorical (dominant)
   drainage_class: string | null;
   texture_description: string | null;
@@ -203,6 +207,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
+      coarse_fragment_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -215,6 +220,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
+      coarse_fragment_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -255,6 +261,12 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
     caco3_pct: weightedAvg('caco3_pct'),
     gypsum_pct: weightedAvg('gypsum_pct'),
     sodium_adsorption_ratio: weightedAvg('sodium_adsorption_ratio'),
+    coarse_fragment_pct: (() => {
+      const a = weightedAvg('frag3to10_pct');
+      const b = weightedAvg('fraggt10_pct');
+      if (a === null && b === null) return null;
+      return Math.round(((a ?? 0) + (b ?? 0)) * 10) / 10;
+    })(),
     drainage_class: dominant.drainage_class ?? null,
     texture_description: dominant.texture_description ?? null,
     taxonomy_class: dominant.taxonomy_class ?? null,
@@ -545,6 +557,8 @@ export class SsurgoAdapter implements DataSourceAdapter {
              h.caco3_r AS caco3_pct,
              h.gypsum_r AS gypsum_pct,
              h.sar_r AS sodium_adsorption_ratio,
+             h.frag3to10_r AS frag3to10_pct,
+             h.fraggt10_r AS fraggt10_pct,
              c.drainagecl AS drainage_class,
              c.taxclname AS taxonomy_class,
              c.compname AS component_name,
@@ -564,7 +578,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
       'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3',
       'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r',
       'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct',
-      'sodium_adsorption_ratio', 'drainage_class', 'taxonomy_class',
+      'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'drainage_class', 'taxonomy_class',
       'component_name', 'component_pct',
     ]);
 
@@ -629,6 +643,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
       caco3_pct: weighted.caco3_pct,
       gypsum_pct: weighted.gypsum_pct,
       sodium_adsorption_ratio: weighted.sodium_adsorption_ratio,
+      coarse_fragment_pct: weighted.coarse_fragment_pct,
       surface_stoniness: weighted.surface_stoniness,
       texture_class: textureClass,
       fertility_index: fertilityIndex,
@@ -699,6 +714,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
         caco3_pct: null,
         gypsum_pct: null,
         sodium_adsorption_ratio: null,
+        coarse_fragment_pct: null,
         surface_stoniness: null,
         texture_class: null,
         fertility_index: null,

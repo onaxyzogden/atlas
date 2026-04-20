@@ -8,10 +8,17 @@
  * and transformed via computeScores pure functions.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, useSiteDataStore } from '../../store/siteDataStore.js';
+import type { MockLayerResult } from '../../lib/mockLayerData.js';
+import { SectionProfiler } from '../../lib/perfProfiler.js';
+
+// Sprint BJ: module-level stable empty array so the fallback identity does
+// not change between renders (previously `siteData?.layers ?? []` minted a
+// new array every render, cascading through every useMemo keyed on layers).
+const EMPTY_LAYERS: MockLayerResult[] = [];
 import {
   computeAssessmentScores,
   computeOverallScore,
@@ -23,33 +30,60 @@ import {
   deriveLandWants,
 } from '../../lib/computeScores.js';
 import { matchCropsToSite, siteConditionsFromLayers, findAgroforestryCompanions, type CropMatch, type CompanionMatch } from '../../lib/cropMatching.js';
-import {
-  computeHydrologyMetrics,
-  computeWindEnergy,
-  fmtGal,
-  parseHydrologicGroup,
-  HYDRO_DEFAULTS,
-  type HydroMetrics,
-  type WindEnergyResult,
-} from '../../lib/hydrologyMetrics.js';
+import { computeDesignIntelligence } from '../../lib/designIntelligence.js';
+import { computeEIATriggers, estimateTypicalSetbacks } from '../../lib/regulatoryIntelligence.js';
+import { computeGeothermalPotential, computeEnergyStorage } from '../../lib/energyIntelligence.js';
+import { computeClimateProjections } from '../../lib/climateProjections.js';
+import { computeEcosystemValuation, classifyWetlandFunction } from '../../lib/ecosystemValuation.js';
+import { computeAhpWeights, DEFAULT_ATLAS_AHP_MATRIX } from '../../lib/fuzzyMCDM.js';
+import { useSiteIntelligenceMetrics } from '../../hooks/useSiteIntelligenceMetrics.js';
 import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
-import { confidence, error as errorToken, semantic } from '../../lib/tokens.js';
+import { confidence, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
+// Sprint BK: shared memoized leaves + helpers relocated to sections/
+import { AILabel, RefreshIcon, ConfBadge, ScoreCircle } from './sections/_shared.js';
+import {
+  severityColor,
+  formatComponentName,
+  capConf,
+  getScoreColor,
+  getHydroColor,
+  getSoilPhColor,
+  getCompactionColor,
+} from './sections/_helpers.js';
+import { ScoresAndFlagsSection } from './sections/ScoresAndFlagsSection.js';
+import { CropMatchingSection } from './sections/CropMatchingSection.js';
+import { RegulatoryHeritageSection } from './sections/RegulatoryHeritageSection.js';
+import { HydrologyIntelligenceSection } from './sections/HydrologyIntelligenceSection.js';
+import { GroundwaterSection } from './sections/GroundwaterSection.js';
+import { WaterQualitySection } from './sections/WaterQualitySection.js';
+import { SoilIntelligenceSection } from './sections/SoilIntelligenceSection.js';
+import { DesignIntelligenceSection } from './sections/DesignIntelligenceSection.js';
+import { InfrastructureAccessSection } from './sections/InfrastructureAccessSection.js';
+import { EnvironmentalRiskSection } from './sections/EnvironmentalRiskSection.js';
+import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js';
+import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
+import { HydrologyExtensionsSection } from './sections/HydrologyExtensionsSection.js';
+import { EnergyIntelligenceSection } from './sections/EnergyIntelligenceSection.js';
+import { SiteSummaryNarrativeSection } from './sections/SiteSummaryNarrativeSection.js';
+import { AssessmentScoresSection } from './sections/AssessmentScoresSection.js';
+import { FuzzyFaoSection } from './sections/FuzzyFaoSection.js';
+import { AhpWeightsSection } from './sections/AhpWeightsSection.js';
+import { RegionalSpeciesSection } from './sections/RegionalSpeciesSection.js';
+import { CanopyStructureSection } from './sections/CanopyStructureSection.js';
+import { LandUseHistorySection } from './sections/LandUseHistorySection.js';
+import { OpportunitiesSection } from './sections/OpportunitiesSection.js';
+import { ConstraintsSection } from './sections/ConstraintsSection.js';
+import { DataLayersSection } from './sections/DataLayersSection.js';
+import { SiteContextSection } from './sections/SiteContextSection.js';
+import { CommunitySection } from './sections/CommunitySection.js';
+import { GaezSection } from './sections/GaezSection.js';
 
 interface SiteIntelligencePanelProps {
   project: LocalProject;
-}
-
-function severityColor(severity: string, fallback: string): string {
-  switch (severity) {
-    case 'critical': return errorToken.DEFAULT;
-    case 'warning': return confidence.medium;
-    case 'info': return fallback;
-    default: return fallback;
-  }
 }
 
 function getConservationAuth(project: LocalProject) {
@@ -76,20 +110,18 @@ const TIER3_TYPES = [
   { type: 'soil_regeneration', label: 'Soil Regeneration' },
 ] as const;
 
-function formatComponentName(name: string): string {
-  return name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function capConf(c: 'high' | 'medium' | 'low'): 'High' | 'Medium' | 'Low' {
-  return (c.charAt(0).toUpperCase() + c.slice(1)) as 'High' | 'Medium' | 'Low';
-}
-
-export default function SiteIntelligencePanel({ project }: SiteIntelligencePanelProps) {
+function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   const { isOffline } = useOfflineGate();
   const [liveDataOpen, setLiveDataOpen] = useState(true);
   const [hydroOpen, setHydroOpen] = useState(true);
+  const [groundwaterOpen, setGroundwaterOpen] = useState(true);
+  const [wqOpen, setWqOpen] = useState(true);
   const [soilOpen, setSoilOpen] = useState(true);
   const [infraOpen, setInfraOpen] = useState(true);
+  const [envRiskOpen, setEnvRiskOpen] = useState(true);
+  const [siteContextOpen, setSiteContextOpen] = useState(true);
+  const [demogOpen, setDemogOpen] = useState(true);
+  const [diOpen, setDiOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
   const [showAllOpps, setShowAllOpps] = useState(false);
@@ -103,7 +135,7 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
   const consAuth = useMemo(() => getConservationAuth(project), [project]);
 
   // Derive all computed values from layer data
-  const layers = siteData?.layers ?? [];
+  const layers = siteData?.layers ?? EMPTY_LAYERS;
 
   // Layer-based completeness (Tier 1)
   const layerCompleteness = useMemo(() => {
@@ -226,90 +258,22 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     [layers],
   );
 
-  // Sprint F: Hydrology Intelligence metrics
-  const hydroMetrics = useMemo((): HydroMetrics | null => {
-    const climateLayer   = layers.find((l) => l.layerType === 'climate');
-    const watershedLayer = layers.find((l) => l.layerType === 'watershed');
-    const wetlandsLayer  = layers.find((l) => l.layerType === 'wetlands_flood');
-    const elevationLayer = layers.find((l) => l.layerType === 'elevation');
-    const soilsLayer     = layers.find((l) => l.layerType === 'soils');
-    if (!climateLayer) return null;
-    const cs  = climateLayer.summary  as Record<string, unknown> | undefined;
-    const ws  = watershedLayer?.summary as Record<string, unknown> | undefined;
-    const wfs = wetlandsLayer?.summary  as Record<string, unknown> | undefined;
-    const es  = elevationLayer?.summary as Record<string, unknown> | undefined;
-    const ss  = soilsLayer?.summary     as Record<string, unknown> | undefined;
-    const precipMm = typeof cs?.annual_precip_mm === 'number'
-      ? cs.annual_precip_mm : HYDRO_DEFAULTS.precipMm;
-    return computeHydrologyMetrics({
-      precipMm,
-      catchmentHa: (() => {
-        const v = parseFloat(String(ws?.catchment_area_ha ?? ''));
-        return isFinite(v) ? v : null;
-      })(),
-      propertyAcres:   project.acreage  ?? HYDRO_DEFAULTS.propertyAcres,
-      slopeDeg:        typeof es?.mean_slope_deg === 'number'   ? es.mean_slope_deg   : HYDRO_DEFAULTS.slopeDeg,
-      hydrologicGroup: parseHydrologicGroup(typeof ss?.hydrologic_group === 'string' ? ss.hydrologic_group : undefined),
-      drainageClass:   typeof ss?.drainage_class === 'string'   ? ss.drainage_class   : HYDRO_DEFAULTS.drainageClass,
-      floodZone:       typeof wfs?.flood_zone === 'string'      ? wfs.flood_zone      : HYDRO_DEFAULTS.floodZone,
-      wetlandPct:      typeof wfs?.wetland_pct === 'number'     ? wfs.wetland_pct     : HYDRO_DEFAULTS.wetlandPct,
-      annualTempC:     typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : HYDRO_DEFAULTS.annualTempC,
-      // Sprint I: monthly normals for LGP computation
-      monthlyNormals:  Array.isArray(cs?.['_monthly_normals']) ? cs['_monthly_normals'] as
-        { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] : null,
-      awcCmCm:         typeof ss?.awc_cm_cm === 'number' ? ss.awc_cm_cm : 0,
-      rootingDepthCm:  typeof ss?.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : 0,
-    });
-  }, [layers, project.acreage]);
-
-  // Sprint J: Wind energy potential from wind_rose data
-  const windEnergy = useMemo((): WindEnergyResult | null => {
-    const climateLayer = layers.find((l) => l.layerType === 'climate');
-    if (!climateLayer) return null;
-    const cs = climateLayer.summary as Record<string, unknown> | undefined;
-    const windRose = cs?.['_wind_rose'] as
-      { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | undefined;
-    return computeWindEnergy(windRose ?? null);
-  }, [layers]);
-
-  // Sprint K: Infrastructure distances from Overpass API
-  const infraMetrics = useMemo(() => {
-    const infraLayer = layers.find((l) => l.layerType === 'infrastructure');
-    if (!infraLayer || infraLayer.fetchStatus !== 'complete') return null;
-    const sm = infraLayer.summary as Record<string, unknown>;
-    return {
-      hospitalKm: sm.hospital_nearest_km as number | null,
-      hospitalName: sm.hospital_name as string | null,
-      masjidKm: sm.masjid_nearest_km as number | null,
-      masjidName: sm.masjid_name as string | null,
-      marketKm: sm.market_nearest_km as number | null,
-      marketName: sm.market_name as string | null,
-      gridKm: sm.power_substation_nearest_km as number | null,
-      waterKm: sm.water_supply_nearest_km as number | null,
-      roadKm: sm.road_nearest_km as number | null,
-      roadType: sm.road_type as string | null,
-      protectedAreaKm: sm.protected_area_nearest_km as number | null,
-      protectedAreaName: sm.protected_area_name as string | null,
-      protectedAreaClass: sm.protected_area_class as string | null,
-      protectedAreaCount: sm.protected_area_count as number,
-      poiCount: sm.poi_count as number,
-    };
-  }, [layers]);
-
-  // Sprint K: Solar PV from existing NASA POWER data
-  const solarPV = useMemo(() => {
-    const climateLayer = layers.find((l) => l.layerType === 'climate');
-    if (!climateLayer) return null;
-    const cs = climateLayer.summary as Record<string, unknown> | undefined;
-    const solarRad = cs?.solar_radiation_kwh_m2_day as number | undefined;
-    if (!solarRad || solarRad <= 0) return null;
-    const annualYieldKwhPerKwp = solarRad * 365 * 0.80; // performance ratio 0.80
-    return {
-      peakSunHours: Math.round(solarRad * 100) / 100,
-      annualYieldKwhPerKwp: Math.round(annualYieldKwhPerKwp),
-      pvClass: solarRad >= 5 ? 'Excellent' : solarRad >= 4 ? 'Good' : solarRad >= 3 ? 'Moderate' : 'Poor',
-    };
-  }, [layers]);
+  // Sprint BQ: 37 layer-metric useMemos consolidated into one hook.
+  // Destructured here so the remaining panel code + section JSX continues to
+  // reference each metric by its original identifier. See
+  // hooks/useSiteIntelligenceMetrics.ts for the metric bodies.
+  const {
+    hydroMetrics, windEnergy, infraMetrics, solarPV, soilMetrics,
+    groundwaterMetrics, waterQualityMetrics, superfundMetrics,
+    criticalHabitatMetrics, biodiversityMetrics, soilGridsMetrics,
+    ustLustMetrics, brownfieldMetrics, landfillMetrics, mineHazardMetrics,
+    fudsMetrics, easementMetrics, heritageMetrics, alrMetrics,
+    aquiferMetrics, waterStressMetrics, seasonalFloodingMetrics,
+    stormMetrics, cropValidationMetrics, airQualityMetrics, earthquakeMetrics,
+    demographicsMetrics, proximityMetrics, fuzzyFao, speciesIntelligence,
+    canopyHeight, landUseHistoryMetrics, mineralRightsMetrics,
+    waterRightsMetrics, agUseValueMetrics, ecoGiftsMetrics, gaezMetrics,
+  } = useSiteIntelligenceMetrics(layers, project);
 
   // Crop suitability matching
   const [showAllCrops, setShowAllCrops] = useState(false);
@@ -351,58 +315,237 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
     return map;
   }, [expandedCrop, cropMatches, layers]);
 
-  // Sprint G: Soil Intelligence metrics
-  const soilMetrics = useMemo(() => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Design Intelligence — passive solar + windbreak + water harvesting + septic + shadow + RWH + pond volume + fire risk
+  const designIntelligence = useMemo(() => {
+    const elevLayer = layers.find((l) => l.layerType === 'elevation');
+    const climLayer = layers.find((l) => l.layerType === 'climate');
+    const wdLayer = layers.find((l) => l.layerType === 'watershed_derived');
     const soilsLayer = layers.find((l) => l.layerType === 'soils');
-    if (!soilsLayer) return null;
-    const ss = soilsLayer.summary as Record<string, unknown> | undefined;
-    if (!ss) return null;
-    const omPct = typeof ss.organic_matter_pct === 'number' ? ss.organic_matter_pct : null;
-    const bdRaw = typeof ss.bulk_density_g_cm3 === 'number' ? ss.bulk_density_g_cm3 : null;
-    const rdCm = typeof ss.rooting_depth_cm === 'number' ? ss.rooting_depth_cm : null;
-    // Sprint I: carbon stock (IPCC formula + pedotransfer fallback for bulk density)
-    let carbonStockTCHa: number | null = null;
-    if (omPct != null && omPct > 0) {
-      const bd = bdRaw != null && bdRaw > 0 ? bdRaw : Math.max(0.8, 1.66 - 0.318 * Math.sqrt(omPct));
-      const depth = rdCm != null && rdCm > 0 ? rdCm : 30;
-      carbonStockTCHa = Math.round((omPct / 100) * 0.58 * bd * depth * 100 * 10) / 10;
-    }
-    // Sprint J: WRB classification from USDA taxonomy + soil properties
-    const taxOrder = typeof ss.taxonomic_order === 'string' ? ss.taxonomic_order : null;
-    const drainStr = typeof ss.drainage_class === 'string' ? ss.drainage_class.toLowerCase() : '';
-    const caco3 = typeof ss.caco3_pct === 'number' ? ss.caco3_pct : 0;
-    let wrbClass: string | null = null;
-    if (taxOrder) {
-      const USDA_TO_WRB: Record<string, string> = {
-        entisols: 'Regosols', inceptisols: 'Cambisols', alfisols: 'Luvisols',
-        mollisols: 'Chernozems', spodosols: 'Podzols', ultisols: 'Acrisols',
-        oxisols: 'Ferralsols', vertisols: 'Vertisols', aridisols: 'Calcisols',
-        histosols: 'Histosols', andisols: 'Andosols', gelisols: 'Cryosols',
-      };
-      const base = USDA_TO_WRB[taxOrder.toLowerCase()] ?? null;
-      if (base) {
-        const qualifier = drainStr.includes('poorly') ? 'Gleyic'
-          : caco3 > 5 ? 'Calcic'
-          : (omPct != null && omPct > 6) ? 'Humic'
-          : 'Haplic';
-        wrbClass = `${qualifier} ${base}`;
+    const gwLayer = layers.find((l) => l.layerType === 'groundwater');
+    const lcLayer = layers.find((l) => l.layerType === 'land_cover');
+    const wfLayer = layers.find((l) => l.layerType === 'wetlands_flood');
+    if (!elevLayer && !climLayer && !wdLayer && !soilsLayer && !gwLayer && !lcLayer && !wfLayer) return null;
+    const es = elevLayer?.summary as Record<string, unknown> | undefined;
+    const cs = (climLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const wds = (wdLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const ss = (soilsLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const gws = (gwLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const lcs = (lcLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const wfs = (wfLayer?.summary as Record<string, unknown> | undefined) ?? null;
+    const aspect = typeof es?.predominant_aspect === 'string' ? es.predominant_aspect : null;
+    const slope = typeof es?.mean_slope_deg === 'number' ? es.mean_slope_deg : 0;
+    const windRose = cs?.['_wind_rose'] as
+      { frequencies_16: number[]; speeds_avg_ms: number[]; calm_pct: number } | undefined ?? null;
+    // Use project centroid lat — compute from parcel boundary if available
+    let lat: number | null = null;
+    try {
+      if (project.parcelBoundaryGeojson) {
+        const c = turf.centroid(project.parcelBoundaryGeojson);
+        lat = c.geometry.coordinates[1] ?? null;
       }
-    }
-    return {
-      ph: typeof ss.ph === 'number' ? ss.ph : null,
-      organicMatterPct: omPct,
-      cecMeq: typeof ss.cec_meq_100g === 'number' ? ss.cec_meq_100g : null,
-      bulkDensity: bdRaw,
-      ksatUmS: typeof ss.ksat_um_s === 'number' ? ss.ksat_um_s : null,
-      caco3Pct: typeof ss.caco3_pct === 'number' ? ss.caco3_pct : null,
-      awcCmCm: typeof ss.awc_cm_cm === 'number' ? ss.awc_cm_cm : null,
-      textureClass: typeof ss.texture_class === 'string' ? ss.texture_class : null,
-      drainageClass: typeof ss.drainage_class === 'string' ? ss.drainage_class : null,
-      rootingDepthCm: rdCm,
-      carbonStockTCHa,
-      wrbClass,
-    };
+    } catch { /* boundary invalid */ }
+    if (!aspect && !windRose && !wds && !ss && !gws && !cs && !lcs && !wfs && lat === null) return null;
+    return computeDesignIntelligence(aspect, lat, slope, windRose, wds, ss, gws, cs, lcs, project.country ?? 'US', wfs);
+  }, [layers, project.parcelBoundaryGeojson, project.country]);
+
+  // Sprint BD: Cat 9 — Geothermal + Energy Storage intelligence
+  const energyIntelligence = useMemo(() => {
+    const climLayer = layers.find((l) => l.layerType === 'climate');
+    const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    const gwLayer = layers.find((l) => l.layerType === 'groundwater');
+    if (!climLayer && !soilsLayer) return null;
+    const cs = climLayer?.summary as Record<string, unknown> | undefined;
+    const ss = soilsLayer?.summary as Record<string, unknown> | undefined;
+    const gws = gwLayer?.summary as Record<string, unknown> | undefined;
+    const meanAnnualTempC = typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : null;
+    const texture = typeof ss?.texture_class === 'string' ? ss.texture_class : null;
+    const bedrock = typeof ss?.depth_to_bedrock_m === 'number' ? ss.depth_to_bedrock_m : null;
+    const waterTable = typeof gws?.groundwater_depth_m === 'number' ? gws.groundwater_depth_m : null;
+    const drainage = typeof ss?.drainage_class === 'string' ? ss.drainage_class : null;
+    const solar = typeof cs?.solar_radiation_kwh_m2_day === 'number' ? cs.solar_radiation_kwh_m2_day : null;
+    const geothermal = (meanAnnualTempC !== null || texture !== null)
+      ? computeGeothermalPotential({
+          meanAnnualTempC,
+          soilTextureClass: texture,
+          depthToBedrockM: bedrock,
+          waterTableDepthM: waterTable,
+          drainageClass: drainage,
+        })
+      : null;
+    const storage = solar !== null
+      ? computeEnergyStorage({ solarRadiationKwhM2Day: solar })
+      : null;
+    if (!geothermal && !storage) return null;
+    return { geothermal, storage };
   }, [layers]);
+
+  // Sprint BE: Cat 5 — Climate projections (IPCC AR6 regional deltas)
+  const climateProjections = useMemo(() => {
+    const climLayer = layers.find((l) => l.layerType === 'climate');
+    if (!climLayer) return null;
+    const cs = climLayer.summary as Record<string, unknown> | undefined;
+    const tempC = typeof cs?.annual_temp_mean_c === 'number' ? cs.annual_temp_mean_c : null;
+    const precipMm = typeof cs?.annual_precip_mm === 'number' ? cs.annual_precip_mm : null;
+    let lat: number | null = null;
+    let lng: number | null = null;
+    try {
+      if (project.parcelBoundaryGeojson) {
+        const c = turf.centroid(project.parcelBoundaryGeojson);
+        lng = c.geometry.coordinates[0] ?? null;
+        lat = c.geometry.coordinates[1] ?? null;
+      }
+    } catch { /* */ }
+    if (lat == null || lng == null) return null;
+    if (tempC == null && precipMm == null) return null;
+    return computeClimateProjections({ lat, lng, annualTempC: tempC, annualPrecipMm: precipMm });
+  }, [layers, project.parcelBoundaryGeojson]);
+
+  // Sprint BE: Cat 7 — Ecosystem services valuation + wetland function
+  const ecosystemIntelligence = useMemo(() => {
+    const lcLayer = layers.find((l) => l.layerType === 'land_cover');
+    const wfLayer = layers.find((l) => l.layerType === 'wetlands_flood');
+    const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    const cvLayer = layers.find((l) => l.layerType === 'crop_validation');
+    const wsLayer = layers.find((l) => l.layerType === 'watershed');
+    if (!lcLayer && !wfLayer && !soilsLayer) return null;
+    const lcs = lcLayer?.summary as Record<string, unknown> | undefined;
+    const wfs = wfLayer?.summary as Record<string, unknown> | undefined;
+    const ss = soilsLayer?.summary as Record<string, unknown> | undefined;
+    const cvs = cvLayer?.summary as Record<string, unknown> | undefined;
+    const wss = wsLayer?.summary as Record<string, unknown> | undefined;
+
+    const canopy = typeof lcs?.tree_canopy_pct === 'number' ? lcs.tree_canopy_pct : null;
+    const wetland = typeof wfs?.wetland_pct === 'number' ? wfs.wetland_pct : null;
+    const riparian = typeof wfs?.riparian_buffer_m === 'number' ? wfs.riparian_buffer_m : null;
+    const om = typeof ss?.organic_matter_pct === 'number' ? ss.organic_matter_pct : null;
+    const drainage = typeof ss?.drainage_class === 'string' ? ss.drainage_class : null;
+    const isCropland = cvs?.is_cropland === true;
+    const streamM = typeof wss?.nearest_stream_m === 'number' ? wss.nearest_stream_m : null;
+
+    // Inline recompute of carbon seq rate (matches computeScores.ts Sprint R formula)
+    const cCanopy = canopy ?? 0;
+    const cWetland = wetland ?? 0;
+    const cOm = om ?? 0;
+    const forestSeq = (cCanopy / 100) * 4.5;
+    const wetSeq = (cWetland / 100) * 6.0;
+    const soilSeq = cOm > 3 ? 1.5 : cOm > 2 ? 0.8 : cOm > 1 ? 0.3 : 0;
+    const cropPenalty = isCropland ? -0.5 : 0;
+    const carbonSeq = Math.round(Math.max(0, forestSeq + wetSeq + soilSeq + cropPenalty) * 100) / 100;
+
+    let acreage: number | null = null;
+    try {
+      if (project.parcelBoundaryGeojson) {
+        acreage = turf.area(project.parcelBoundaryGeojson) / 4046.86;
+      }
+    } catch { /* */ }
+
+    const valuation = computeEcosystemValuation({
+      treeCanopyPct: canopy,
+      wetlandPct: wetland,
+      riparianBufferM: riparian,
+      organicMatterPct: om,
+      isCropland,
+      carbonSeqTonsCO2HaYr: carbonSeq,
+      propertyAcres: acreage,
+    });
+    const wetlandFunction = classifyWetlandFunction({
+      wetlandPct: wetland,
+      nearestStreamM: streamM,
+      drainageClass: drainage,
+      treeCanopyPct: canopy,
+      organicMatterPct: om,
+      riparianBufferM: riparian,
+    });
+    return { valuation, wetlandFunction };
+  }, [layers, project.parcelBoundaryGeojson]);
+
+  // Sprint BC: EIA / permit trigger flags (pure computation on layer summaries)
+  const eiaTriggers = useMemo(() => {
+    const wfLayer = layers.find((l) => l.layerType === 'wetlands_flood');
+    const lcLayer = layers.find((l) => l.layerType === 'land_cover');
+    const elevLayer = layers.find((l) => l.layerType === 'elevation');
+    const chLayer = layers.find((l) => l.layerType === 'critical_habitat');
+    const infraLayer = layers.find((l) => l.layerType === 'infrastructure');
+    const wfs = wfLayer?.summary as Record<string, unknown> | undefined;
+    const lcs = lcLayer?.summary as Record<string, unknown> | undefined;
+    const es = elevLayer?.summary as Record<string, unknown> | undefined;
+    const chs = chLayer?.summary as Record<string, unknown> | undefined;
+    const infras = infraLayer?.summary as Record<string, unknown> | undefined;
+    let areaHa: number | null = null;
+    try {
+      if (project.parcelBoundaryGeojson) {
+        areaHa = turf.area(project.parcelBoundaryGeojson) / 10000;
+      }
+    } catch { /* */ }
+    return computeEIATriggers({
+      areaHa,
+      wetlandsPresent: typeof wfs?.wetland_area_pct === 'number' ? wfs.wetland_area_pct > 0 : null,
+      regulatedAreaPct: typeof wfs?.regulated_area_pct === 'number' ? wfs.regulated_area_pct : null,
+      floodZone: typeof wfs?.flood_zone === 'string' ? wfs.flood_zone : null,
+      criticalHabitatPresent: chs?.on_site === true,
+      slopeDeg: typeof es?.mean_slope_deg === 'number' ? es.mean_slope_deg : null,
+      landCoverPrimaryClass: typeof lcs?.primary_class === 'string' ? lcs.primary_class : null,
+      protectedAreasNearbyKm: typeof infras?.protected_area_nearest_km === 'number' ? infras.protected_area_nearest_km : null,
+      heritageSitePresent: heritageMetrics?.present === true,
+      conservationEasementPresent: easementMetrics?.present === true,
+    });
+  }, [layers, project.parcelBoundaryGeojson, heritageMetrics, easementMetrics]);
+
+
+  // Sprint BF: Cat 1b — AHP default Atlas weights (deterministic, runs once)
+  const ahpResult = useMemo(() => computeAhpWeights(DEFAULT_ATLAS_AHP_MATRIX), []);
+
+
+
+
+  // Sprint BF: Cat 11a — Typical setbacks by broad zoning class
+  const typicalSetbacks = useMemo(() => {
+    const zoningL = layers.find((l) => l.layerType === 'zoning');
+    const wfL = layers.find((l) => l.layerType === 'wetlands_flood');
+    const wsL = layers.find((l) => l.layerType === 'watershed');
+    const zs = zoningL?.summary as Record<string, unknown> | undefined;
+    const wfs = wfL?.summary as Record<string, unknown> | undefined;
+    const wss = wsL?.summary as Record<string, unknown> | undefined;
+    if (!zs && !wfs && !wss) return null;
+    return estimateTypicalSetbacks({
+      zoningClass: typeof zs?.['zone_code'] === 'string' ? zs['zone_code'] as string
+        : typeof zs?.['zoning_class'] === 'string' ? zs['zoning_class'] as string
+        : typeof zs?.['zone'] === 'string' ? zs['zone'] as string : null,
+      ruralClass: typeof zs?.['rural_class'] === 'string' ? zs['rural_class'] as string : null,
+      nearestStreamM: typeof wss?.['nearest_stream_m'] === 'number' ? wss['nearest_stream_m'] as number : null,
+      wetlandsPresent: typeof wfs?.['wetland_pct'] === 'number' ? (wfs['wetland_pct'] as number) > 0 : false,
+      country: project.country ?? 'US',
+    });
+  }, [layers, project.country]);
+
+
+
+
+
 
   const lastFetched = useMemo(() => {
     if (!siteData?.fetchedAt) return null;
@@ -425,6 +568,26 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         .finally(() => setIsRefreshing(false));
     } catch { /* boundary may be invalid */ }
   }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject, isRefreshing]);
+
+  const onToggleLiveData = useCallback(() => setLiveDataOpen((v) => !v), []);
+  const onToggleExpandedCrop = useCallback((id: string) => {
+    setExpandedCrop((prev) => (prev === id ? null : id));
+  }, []);
+  const onToggleShowAllCrops = useCallback(() => setShowAllCrops((v) => !v), []);
+  const onToggleHydro = useCallback(() => setHydroOpen((v) => !v), []);
+  const onToggleGroundwater = useCallback(() => setGroundwaterOpen((v) => !v), []);
+  const onToggleWq = useCallback(() => setWqOpen((v) => !v), []);
+  const onToggleSoil = useCallback(() => setSoilOpen((v) => !v), []);
+  const onToggleDi = useCallback(() => setDiOpen((v) => !v), []);
+  const onToggleInfra = useCallback(() => setInfraOpen((v) => !v), []);
+  const onToggleEnvRisk = useCallback(() => setEnvRiskOpen((v) => !v), []);
+  const onToggleExpandedScore = useCallback((label: string) => {
+    setExpandedScore((prev) => (prev === label ? null : label));
+  }, []);
+  const onToggleShowAllOpps = useCallback(() => setShowAllOpps((v) => !v), []);
+  const onToggleShowAllRisks = useCallback(() => setShowAllRisks((v) => !v), []);
+  const onToggleSiteContext = useCallback(() => setSiteContextOpen((v) => !v), []);
+  const onToggleCommunity = useCallback(() => setDemogOpen((v) => !v), []);
 
   // ── First load — show spinner when no data exists yet ──────────────────
   if (siteData?.status === 'loading' && layers.length === 0) {
@@ -481,996 +644,184 @@ export default function SiteIntelligencePanel({ project }: SiteIntelligencePanel
         </div>
       )}
 
-      {/* ── Blocking Flags ───────────────────────────────────────── */}
-      {blockingFlags.length > 0 && (
-        <div className={s.blockingAlertWrap}>
-          {blockingFlags.map((flag) => (
-            <div key={flag.id} className={s.blockingAlert}>
-              <span className={s.blockingAlertIcon}>{'\u26D4'}</span>
-              <div style={{ flex: 1 }}>
-                <span>{flag.message}</span>
-                <div style={{ marginTop: 2 }}>
-                  <span className={`${s.severityBadge} ${s.severity_critical}`}>Critical</span>
-                  {flag.layerSource && (
-                    <span className={s.flagSource} style={{ marginLeft: 6 }}>{flag.layerSource}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <ScoresAndFlagsSection
+        blockingFlags={blockingFlags}
+        overallScore={overallScore}
+        overallConfidence={overallConfidence}
+        layerCompleteCount={layerCompleteCount}
+        layerCompleteness={layerCompleteness}
+        tier3Status={tier3Status}
+        liveDataOpen={liveDataOpen}
+        onToggleLiveData={onToggleLiveData}
+        isLive={siteData.isLive}
+        liveData={liveData}
+        consAuth={consAuth}
+        lastFetched={lastFetched}
+        country={project.country}
+      />
 
-      {/* ── Overall Suitability ────────────────────────────────────── */}
-      <div className={s.suitabilityCard}>
-        <ScoreCircle score={overallScore} size={68} />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div className={s.suitabilityTitle}>Overall Suitability</div>
-            <ConfBadge level={capConf(overallConfidence)} />
-          </div>
-          <div className={s.completenessLabel}>
-            Data layers: {layerCompleteCount}/7
-            {tier3Status.filter((t) => t.status === 'complete').length > 0 && (
-              <span> &middot; {tier3Status.filter((t) => t.status === 'complete').length} derived</span>
-            )}
-          </div>
-          <div className={s.layerDotsRow} title={layerCompleteness.map((l) => `${l.label}: ${l.status}`).join(', ')}>
-            {layerCompleteness.map((l) => (
-              <div
-                key={l.type}
-                className={`${s.layerDot} ${l.status === 'pending' ? s.layerDotPending : ''}`}
-                title={`${l.label}: ${l.status}`}
-                style={{
-                  background: l.status === 'complete' ? confidence.high
-                    : l.status === 'pending' ? semantic.sidebarActive
-                    : 'var(--color-panel-muted, #666)',
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* ── Hydrology Intelligence (Sprint BK: extracted) ─────────── */}
+      <HydrologyIntelligenceSection
+        hydroMetrics={hydroMetrics}
+        windEnergy={windEnergy}
+        solarPV={solarPV}
+        hydroOpen={hydroOpen}
+        onToggleHydro={onToggleHydro}
+      />
 
-      {/* ── Tier 3 Status ─────────────────────────────────────────── */}
-      {layerCompleteCount > 0 && (
-        <div className={s.tier3Card}>
-          <h3 className={p.sectionLabel} style={{ marginBottom: 4 }}>Derived Analyses</h3>
-          {tier3Status.map((t3) => (
-            <div key={t3.label} className={s.tier3Row}>
-              <span>{t3.label}</span>
-              <span className={`${s.tier3Status} ${
-                t3.status === 'complete' ? s.tier3Complete
-                  : t3.status === 'computing' ? s.tier3Computing
-                  : s.tier3Waiting
-              }`}>
-                {t3.status === 'complete' ? '\u2713 Complete'
-                  : t3.status === 'computing' ? '\u25CB Computing'
-                  : '\u2014 Waiting'}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+      <GroundwaterSection
+        groundwaterMetrics={groundwaterMetrics}
+        groundwaterOpen={groundwaterOpen}
+        onToggleGroundwater={onToggleGroundwater}
+      />
 
-      {/* ── LIVE DATA ──────────────────────────────────────────────── */}
-      <div className={s.liveDataWrap}>
-        {/* Header bar — clickable to collapse */}
-        <button
-          onClick={() => setLiveDataOpen((v) => !v)}
-          className={`${s.liveDataHeader} ${liveDataOpen ? s.liveDataHeaderOpen : ''}`}
-        >
-          <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke={semantic.sidebarActive} strokeWidth={1.5}>
-            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" strokeLinecap="round" />
-          </svg>
-          <span className={s.liveDataTitle}>
-            Live {project.country === 'CA' ? 'Ontario' : 'US'} Data
-          </span>
-          {siteData.isLive && (
-            <span className={`${p.badgeConfidence} ${p.badgeHigh}`}>
-              Live
-            </span>
-          )}
-          <div style={{ flex: 1 }} />
-          <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round" className={`${s.chevron} ${!liveDataOpen ? s.chevronClosed : ''}`}>
-            <path d="M3 7l3-3 3 3" />
-          </svg>
-        </button>
+      <WaterQualitySection
+        waterQualityMetrics={waterQualityMetrics}
+        wqOpen={wqOpen}
+        onToggleWq={onToggleWq}
+      />
 
-        {/* Data rows — collapsible */}
-        {liveDataOpen && (<>
-        <div style={{ padding: '4px 0' }}>
-          {liveData.map((row) => (
-            <div key={row.label} className={s.liveDataRow}>
-              <span className={s.liveDataIcon} style={{ color: row.color }}>
-                {row.icon}
-              </span>
-              <span className={s.liveDataLabel}>{row.label}</span>
-              <div style={{ flex: 1, textAlign: 'right' }}>
-                <span className={s.liveDataValue}>{row.value}</span>
-              </div>
-              {row.detail && (
-                <span className={s.liveDataDetail}>
-                  {row.detail}
-                </span>
-              )}
-              <ConfBadge level={row.confidence} />
-            </div>
-          ))}
-        </div>
+      <SoilIntelligenceSection
+        soilMetrics={soilMetrics}
+        soilOpen={soilOpen}
+        onToggleSoil={onToggleSoil}
+      />
 
-        {/* Conservation Authority card */}
-        {consAuth && (
-          <div className={s.consCard}>
-            <div className={s.consName}>{consAuth.name}</div>
-            <div className={s.consDetail}>
-              {consAuth.watershed}
-              <br />
-              {consAuth.buffer}
-            </div>
-          </div>
-        )}
 
-        {/* Last fetched */}
-        {lastFetched && (
-          <div className={s.lastFetched}>
-            Last fetched: {lastFetched}
-          </div>
-        )}
-        </>)}
-      </div>
+      <InfrastructureAccessSection
+        infraMetrics={infraMetrics}
+        proximityMetrics={proximityMetrics}
+        infraOpen={infraOpen}
+        onToggleInfra={onToggleInfra}
+      />
 
-      {/* ── Hydrology Intelligence (Sprint F) ────────────────────── */}
-      {hydroMetrics && (
-        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
-          <button
-            onClick={() => setHydroOpen((v) => !v)}
-            className={`${s.liveDataHeader} ${hydroOpen ? s.liveDataHeaderOpen : ''}`}
-          >
-            <span style={{ color: semantic.sidebarActive }}>&#9679;</span>
-            <span className={s.liveDataTitle}>Hydrology Intelligence</span>
-            <div style={{ flex: 1 }} />
-            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
-              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
-              className={`${s.chevron} ${!hydroOpen ? s.chevronClosed : ''}`}>
-              <path d="M3 7l3-3 3 3" />
-            </svg>
-          </button>
-          {hydroOpen && (
-            <div style={{ padding: '4px 0' }}>
-              {/* Aridity */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Aridity</span>
-                <div style={{ flex: 1, textAlign: 'right' }}>
-                  <span className={s.scoreBadge}
-                    style={{ background: `${getHydroColor(hydroMetrics.aridityClass)}18`,
-                             color: getHydroColor(hydroMetrics.aridityClass) }}>
-                    {hydroMetrics.aridityClass}
-                  </span>
-                </div>
-                <span className={s.flagSource}>P/PET {hydroMetrics.aridityIndex.toFixed(2)}</span>
-              </div>
-              {/* Water Balance */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Water Balance</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  {hydroMetrics.waterBalanceMm >= 0 ? '+' : ''}{hydroMetrics.waterBalanceMm} mm/yr
-                </span>
-                <span className={s.flagSource}>
-                  {hydroMetrics.waterBalanceMm >= 0 ? 'surplus' : 'deficit'}
-                </span>
-              </div>
-              {/* PET */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>PET</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  {hydroMetrics.petMm} mm/yr
-                </span>
-                <span className={s.flagSource}>Blaney-Criddle</span>
-              </div>
-              {/* RWH Potential */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Harvest Potential</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  ~{fmtGal(hydroMetrics.rwhPotentialGal)} gal/yr
-                </span>
-                <span className={s.flagSource}>catchment RWH</span>
-              </div>
-              {/* Storage Sizing */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Storage Sizing</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  ~{fmtGal(hydroMetrics.rwhStorageGal)} gal
-                </span>
-                <span className={s.flagSource}>2-week buffer</span>
-              </div>
-              {/* Irrigation */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Irrigation</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  {hydroMetrics.irrigationDeficitMm === 0
-                    ? 'No gap projected'
-                    : `${hydroMetrics.irrigationDeficitMm} mm deficit`}
-                </span>
-                <span className={s.flagSource}>
-                  {hydroMetrics.irrigationDeficitMm === 0 ? 'surplus' : 'vs PET'}
-                </span>
-              </div>
-              {/* Sprint I: Length of Growing Period */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Growing Period</span>
-                <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                  {hydroMetrics.lgpDays} days
-                </span>
-                <span className={s.flagSource}>{hydroMetrics.lgpClass}</span>
-              </div>
-              {/* Sprint J: Wind Energy Potential */}
-              {windEnergy && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Wind Power</span>
-                  <span className={s.liveDataValue} style={{
-                    flex: 1, textAlign: 'right',
-                    color: windEnergy.windPowerClass === 'Excellent' || windEnergy.windPowerClass === 'Good'
-                      ? confidence.high
-                      : windEnergy.windPowerClass === 'Moderate' ? confidence.medium
-                      : confidence.low,
-                  }}>
-                    {windEnergy.powerDensityWm2} W/m²
-                  </span>
-                  <span className={s.flagSource}>
-                    {windEnergy.windPowerClass} ({windEnergy.optimalDirection})
-                  </span>
-                </div>
-              )}
-              {!windEnergy && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Wind Power</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right', opacity: 0.5 }}>
-                    No wind data
-                  </span>
-                </div>
-              )}
-              {/* Sprint K: Solar PV Potential */}
-              {solarPV && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
-                  <span className={s.liveDataLabel}>Solar PV</span>
-                  <span className={s.liveDataValue} style={{
-                    flex: 1, textAlign: 'right',
-                    color: solarPV.pvClass === 'Excellent' || solarPV.pvClass === 'Good'
-                      ? confidence.high
-                      : solarPV.pvClass === 'Moderate' ? confidence.medium
-                      : confidence.low,
-                  }}>
-                    {solarPV.peakSunHours} PSH/day
-                  </span>
-                  <span className={s.flagSource}>
-                    {solarPV.pvClass} (~{solarPV.annualYieldKwhPerKwp} kWh/kWp/yr)
-                  </span>
-                </div>
-              )}
-              {!solarPV && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
-                  <span className={s.liveDataLabel}>Solar PV</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right', opacity: 0.5 }}>
-                    No solar data
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <EnvironmentalRiskSection
+        airQualityMetrics={airQualityMetrics}
+        earthquakeMetrics={earthquakeMetrics}
+        superfundMetrics={superfundMetrics}
+        ustLustMetrics={ustLustMetrics}
+        brownfieldMetrics={brownfieldMetrics}
+        landfillMetrics={landfillMetrics}
+        mineHazardMetrics={mineHazardMetrics}
+        fudsMetrics={fudsMetrics}
+        envRiskOpen={envRiskOpen}
+        onToggleEnvRisk={onToggleEnvRisk}
+      />
 
-      {/* ── Soil Intelligence (Sprint G) ─────────────────────────── */}
-      {soilMetrics && (
-        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
-          <button
-            onClick={() => setSoilOpen((v) => !v)}
-            className={`${s.liveDataHeader} ${soilOpen ? s.liveDataHeaderOpen : ''}`}
-          >
-            <span style={{ color: semantic.sidebarActive }}>◉</span>
-            <span className={s.liveDataTitle}>Soil Intelligence</span>
-            <div style={{ flex: 1 }} />
-            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
-              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
-              className={`${s.chevron} ${!soilOpen ? s.chevronClosed : ''}`}>
-              <path d="M3 7l3-3 3 3" />
-            </svg>
-          </button>
-          {soilOpen && (
-            <div style={{ padding: '4px 0' }}>
-              {/* pH */}
-              {soilMetrics.ph != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>pH</span>
-                  <div style={{ flex: 1, textAlign: 'right' }}>
-                    <span className={s.scoreBadge}
-                      style={{ background: `${getSoilPhColor(soilMetrics.ph)}18`,
-                               color: getSoilPhColor(soilMetrics.ph) }}>
-                      {soilMetrics.ph.toFixed(1)}
-                    </span>
-                  </div>
-                  <span className={s.flagSource}>
-                    {soilMetrics.ph >= 6.0 && soilMetrics.ph <= 7.5 ? 'Ideal'
-                      : soilMetrics.ph >= 5.5 && soilMetrics.ph <= 8.0 ? 'Marginal' : 'Limiting'}
-                  </span>
-                </div>
-              )}
-              {/* Organic Matter */}
-              {soilMetrics.organicMatterPct != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Organic Matter</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.organicMatterPct.toFixed(1)}%
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.organicMatterPct > 5 ? 'High' : soilMetrics.organicMatterPct > 3 ? 'Good' : soilMetrics.organicMatterPct > 2 ? 'Moderate' : 'Low'}
-                  </span>
-                </div>
-              )}
-              {/* CEC */}
-              {soilMetrics.cecMeq != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>CEC</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.cecMeq.toFixed(1)} meq/100g
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.cecMeq >= 15 ? 'High fertility' : soilMetrics.cecMeq >= 5 ? 'Moderate' : 'Low'}
-                  </span>
-                </div>
-              )}
-              {/* Texture */}
-              {soilMetrics.textureClass && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Texture</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.textureClass}
-                  </span>
-                  <span className={s.flagSource}>SSURGO</span>
-                </div>
-              )}
-              {/* Bulk Density */}
-              {soilMetrics.bulkDensity != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Bulk Density</span>
-                  <div style={{ flex: 1, textAlign: 'right' }}>
-                    <span className={s.scoreBadge}
-                      style={{ background: `${getCompactionColor(soilMetrics.bulkDensity)}18`,
-                               color: getCompactionColor(soilMetrics.bulkDensity) }}>
-                      {soilMetrics.bulkDensity.toFixed(2)} g/cm3
-                    </span>
-                  </div>
-                  <span className={s.flagSource}>
-                    {soilMetrics.bulkDensity <= 1.3 ? 'No risk' : soilMetrics.bulkDensity <= 1.5 ? 'Slight' : 'Compacted'}
-                  </span>
-                </div>
-              )}
-              {/* Ksat */}
-              {soilMetrics.ksatUmS != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Permeability</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.ksatUmS.toFixed(1)} um/s
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.ksatUmS >= 10 && soilMetrics.ksatUmS <= 100 ? 'Moderate'
-                      : soilMetrics.ksatUmS < 1 ? 'Very slow' : soilMetrics.ksatUmS > 300 ? 'Rapid' : 'Variable'}
-                  </span>
-                </div>
-              )}
-              {/* CaCO3 */}
-              {soilMetrics.caco3Pct != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>CaCO3</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.caco3Pct.toFixed(1)}%
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.caco3Pct < 5 ? 'Non-calcareous' : soilMetrics.caco3Pct < 15 ? 'Moderate' : 'Calcareous'}
-                  </span>
-                </div>
-              )}
-              {/* Rooting Depth */}
-              {soilMetrics.rootingDepthCm != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Rooting Depth</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.rootingDepthCm} cm
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.rootingDepthCm >= 100 ? 'Deep' : soilMetrics.rootingDepthCm >= 50 ? 'Moderate' : 'Shallow'}
-                  </span>
-                </div>
-              )}
-              {/* Sprint I: Carbon Stock */}
-              {soilMetrics.carbonStockTCHa != null && (
-                <div className={s.liveDataRow}>
-                  <span className={s.liveDataLabel}>Carbon Stock</span>
-                  <span className={s.liveDataValue} style={{
-                    flex: 1, textAlign: 'right',
-                    color: soilMetrics.carbonStockTCHa >= 80 ? confidence.high
-                      : soilMetrics.carbonStockTCHa >= 40 ? confidence.medium
-                      : confidence.low,
-                  }}>
-                    {soilMetrics.carbonStockTCHa} tC/ha
-                  </span>
-                  <span className={s.flagSource}>
-                    {soilMetrics.carbonStockTCHa >= 80 ? 'High' : soilMetrics.carbonStockTCHa >= 40 ? 'Moderate' : 'Low'}
-                  </span>
-                </div>
-              )}
-              {/* Sprint J: WRB Classification */}
-              {soilMetrics.wrbClass && (
-                <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
-                  <span className={s.liveDataLabel}>WRB Class</span>
-                  <span className={s.liveDataValue} style={{ flex: 1, textAlign: 'right' }}>
-                    {soilMetrics.wrbClass}
-                  </span>
-                  <span className={s.flagSource}>Intl. standard</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {/* ── Regulatory & Heritage (Sprint BK: extracted) ─────────────── */}
+      <RegulatoryHeritageSection
+        easementMetrics={easementMetrics}
+        heritageMetrics={heritageMetrics}
+        alrMetrics={alrMetrics}
+        eiaTriggers={eiaTriggers}
+        typicalSetbacks={typicalSetbacks}
+        mineralRightsMetrics={mineralRightsMetrics}
+        waterRightsMetrics={waterRightsMetrics}
+        agUseValueMetrics={agUseValueMetrics}
+        ecoGiftsMetrics={ecoGiftsMetrics}
+      />
 
-      {/* ── Infrastructure Access (Sprint K) ────────────────────────── */}
-      {infraMetrics && (
-        <div className={s.liveDataWrap} style={{ marginBottom: 'var(--space-5)' }}>
-          <button
-            onClick={() => setInfraOpen((v) => !v)}
-            className={`${s.liveDataHeader} ${infraOpen ? s.liveDataHeaderOpen : ''}`}
-          >
-            <span style={{ color: semantic.sidebarActive }}>&#9741;</span>
-            <span className={s.liveDataTitle}>Infrastructure Access</span>
-            <div style={{ flex: 1 }} />
-            <svg width={12} height={12} viewBox="0 0 12 12" fill="none"
-              stroke={semantic.sidebarIcon} strokeWidth={1.5} strokeLinecap="round"
-              className={`${s.chevron} ${!infraOpen ? s.chevronClosed : ''}`}>
-              <path d="M3 7l3-3 3 3" />
-            </svg>
-          </button>
-          {infraOpen && (
-            <div style={{ padding: '4px 0' }}>
-              {/* Hospital */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Hospital</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.hospitalKm != null
-                    ? (infraMetrics.hospitalKm <= 5 ? confidence.high : infraMetrics.hospitalKm <= 15 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.hospitalKm != null ? `${infraMetrics.hospitalKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>
-                  {infraMetrics.hospitalName ?? 'within 25km'}
-                </span>
-              </div>
-              {/* Masjid */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Masjid</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.masjidKm != null
-                    ? (infraMetrics.masjidKm <= 5 ? confidence.high : infraMetrics.masjidKm <= 15 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.masjidKm != null ? `${infraMetrics.masjidKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>
-                  {infraMetrics.masjidName ?? 'within 25km'}
-                </span>
-              </div>
-              {/* Market */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Market</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.marketKm != null
-                    ? (infraMetrics.marketKm <= 5 ? confidence.high : infraMetrics.marketKm <= 15 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.marketKm != null ? `${infraMetrics.marketKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>
-                  {infraMetrics.marketName ?? 'within 25km'}
-                </span>
-              </div>
-              {/* Power Grid */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Power Grid</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.gridKm != null
-                    ? (infraMetrics.gridKm <= 5 ? confidence.high : infraMetrics.gridKm <= 15 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.gridKm != null ? `${infraMetrics.gridKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>substation</span>
-              </div>
-              {/* Road Access */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Road Access</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.roadKm != null
-                    ? (infraMetrics.roadKm <= 2 ? confidence.high : infraMetrics.roadKm <= 10 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.roadKm != null ? `${infraMetrics.roadKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>
-                  {infraMetrics.roadType ?? 'nearest'} road
-                </span>
-              </div>
-              {/* Water Supply */}
-              <div className={s.liveDataRow}>
-                <span className={s.liveDataLabel}>Water Supply</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.waterKm != null
-                    ? (infraMetrics.waterKm <= 5 ? confidence.high : infraMetrics.waterKm <= 15 ? confidence.medium : confidence.low)
-                    : confidence.low,
-                }}>
-                  {infraMetrics.waterKm != null ? `${infraMetrics.waterKm} km` : 'Not found'}
-                </span>
-                <span className={s.flagSource}>drinking water</span>
-              </div>
-              {/* Sprint L: Protected Area */}
-              <div className={s.liveDataRow} style={{ borderBottom: 'none' }}>
-                <span className={s.liveDataLabel}>Protected Area</span>
-                <span className={s.liveDataValue} style={{
-                  flex: 1, textAlign: 'right',
-                  color: infraMetrics.protectedAreaKm != null
-                    ? (infraMetrics.protectedAreaKm <= 1 ? confidence.low : infraMetrics.protectedAreaKm <= 5 ? confidence.medium : confidence.high)
-                    : confidence.high, // no protected area = no constraint
-                }}>
-                  {infraMetrics.protectedAreaKm != null
-                    ? (infraMetrics.protectedAreaKm <= 0.5 ? 'Inside protected area' : `${infraMetrics.protectedAreaKm} km`)
-                    : 'None within 25km'}
-                </span>
-                <span className={s.flagSource}>
-                  {infraMetrics.protectedAreaName ?? (infraMetrics.protectedAreaCount > 0 ? `${infraMetrics.protectedAreaCount} nearby` : 'OSM')}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <HydrologyExtensionsSection
+        aquiferMetrics={aquiferMetrics}
+        waterStressMetrics={waterStressMetrics}
+        seasonalFloodingMetrics={seasonalFloodingMetrics}
+      />
 
-      {/* ── Site Summary ───────────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Site Summary</h3>
-      {enrichment?.aiNarrative ? (
-        <div className={s.aiNarrative}>
-          <AILabel confidence={enrichment.aiNarrative.confidence} />
-          <p className={s.summaryText}>{enrichment.aiNarrative.content}</p>
-          {enrichment.aiNarrative.caveat && (
-            <p className={s.aiCaveat}>{enrichment.aiNarrative.caveat}</p>
-          )}
-        </div>
-      ) : (
-        <p className={s.summaryText}>{siteSummary}</p>
-      )}
+      <EnergyIntelligenceSection energyIntelligence={energyIntelligence} />
 
-      {/* ── What This Land Wants ───────────────────────────────────── */}
-      <div className={s.landWantsCard}>
-        <h3 className={p.sectionLabel}>What This Land Wants</h3>
-        {enrichment?.aiNarrative && enrichment.siteSynthesis ? (
-          <div className={s.aiNarrative}>
-            <AILabel confidence={enrichment.aiNarrative.confidence} />
-            <p className={s.landWantsText}>{enrichment.siteSynthesis}</p>
-          </div>
-        ) : (
-          <p className={s.landWantsText}>{landWants}</p>
-        )}
-      </div>
+      <ClimateProjectionsSection climateProjections={climateProjections} />
 
-      {/* ── Design Recommendations (AI) ────────────────────────────── */}
-      {enrichment?.designRecommendation && (
-        <div className={s.designRecSection}>
-          <h3 className={p.sectionLabel}>Design Recommendations</h3>
-          <AILabel confidence={enrichment.designRecommendation.confidence} />
-          <div className={s.designRecContent}>
-            {enrichment.designRecommendation.content.split(/\n(?=\d+\.)/).map((block, i) => (
-              <div key={i} className={s.designRecCard}>
-                <p>{block.trim()}</p>
-              </div>
-            ))}
-          </div>
-          {enrichment.designRecommendation.caveat && (
-            <p className={s.aiCaveat}>{enrichment.designRecommendation.caveat}</p>
-          )}
-        </div>
-      )}
+      <EcosystemServicesSection ecosystemIntelligence={ecosystemIntelligence} />
 
-      {/* ── AI Loading Indicator ───────────────────────────────────── */}
-      {enrichment?.status === 'loading' && (
-        <div className={s.aiLoadingHint}>
-          <Spinner size="sm" color={semantic.sidebarActive} />
-          <span>Generating AI insights...</span>
-        </div>
-      )}
+      <FuzzyFaoSection fuzzyFao={fuzzyFao} />
 
-      {/* ── Assessment Scores ──────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Assessment Scores</h3>
-      <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {assessmentScores.map((item) => (
-          <div key={item.label}>
-            <div
-              className={`${s.scoreRow} ${s.scoreRowClickable}`}
-              onClick={() => setExpandedScore(expandedScore === item.label ? null : item.label)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedScore(expandedScore === item.label ? null : item.label); }}
-            >
-              <ScoreCircle score={item.score} size={36} />
-              <div style={{ flex: 1 }}>
-                <div className={s.scoreLabel}>{item.label}</div>
-                <div className={s.scoreBar}>
-                  <div className={s.scoreBarFill} style={{ width: `${item.score}%`, background: getScoreColor(item.score) }} />
-                </div>
-                {/* Data source tags */}
-                {item.dataSources.length > 0 && (
-                  <div className={s.scoreSourceTags}>
-                    {item.dataSources.map((src) => (
-                      <span key={src} className={s.sourceTag}>{src.replace(/_/g, ' ')}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <ConfBadge level={capConf(item.confidence)} />
-              <span
-                className={s.scoreBadge}
-                style={{ background: `${getScoreColor(item.score)}18`, color: getScoreColor(item.score) }}
-              >
-                {item.rating}
-              </span>
-            </div>
-            {expandedScore === item.label && (
-              <div className={s.scoreBreakdown}>
-                {item.score_breakdown.map((comp) => {
-                  const pct = comp.maxPossible > 0 ? Math.max(0, Math.min(100, (comp.value / comp.maxPossible) * 100)) : 0;
-                  return (
-                    <div key={comp.name} className={s.breakdownRow}>
-                      <span className={s.breakdownName}>{formatComponentName(comp.name)}</span>
-                      <div className={s.breakdownBarTrack}>
-                        <div
-                          className={s.breakdownBarFill}
-                          style={{ width: `${pct}%`, background: getScoreColor(pct) }}
-                        />
-                      </div>
-                      <span className={s.breakdownValue}>
-                        {comp.value}/{comp.maxPossible}
-                      </span>
-                      <span className={s.breakdownSource}>{comp.sourceLayer.replace(/_/g, ' ')}</span>
-                      <ConfBadge level={capConf(comp.confidence)} />
-                    </div>
-                  );
-                })}
-                {/* Computed timestamp */}
-                {item.score_breakdown.length > 0 && (
-                  <div className={s.breakdownTimestamp}>
-                    Computed {new Date(item.computedAt).toLocaleString()}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <AhpWeightsSection ahpResult={ahpResult} />
 
-      {/* ── Opportunities ──────────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Main Opportunities</h3>
-      <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {(showAllOpps ? topOpportunities : topOpportunities.slice(0, 3)).map((flag) => {
-          const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
-          return (
-            <div key={flag.id} className={s.oppRiskRow}>
-              <span
-                className={s.oppIcon}
-                style={{ color: severityColor(flag.severity, confidence.high) }}
-              >
-                {'\u2197'}
-              </span>
-              <div className={s.flagContent}>
-                <span>{flag.message}</span>
-                {flag.layerSource && (
-                  <span className={s.flagSource}>{flag.layerSource}</span>
-                )}
-                {enriched?.aiNarrative && (
-                  <p className={s.enrichedFlagNote}>{enriched.aiNarrative}</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {topOpportunities.length > 3 && (
-          <button className={s.showAllToggle} onClick={() => setShowAllOpps((v) => !v)}>
-            {showAllOpps ? 'Show fewer' : `Show all ${topOpportunities.length}`}
-          </button>
-        )}
-        {topOpportunities.length === 0 && (
-          <span className={s.flagSource}>No opportunities identified from current data</span>
-        )}
-      </div>
+      <RegionalSpeciesSection speciesIntelligence={speciesIntelligence} />
 
-      {/* ── Key Constraints ──────────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Key Constraints</h3>
-      <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-        {(showAllRisks ? topConstraints : topConstraints.slice(0, 3)).map((flag) => {
-          const enriched = enrichment?.enrichedFlags?.find((ef) => ef.id === flag.id);
-          return (
-            <div key={flag.id} className={s.oppRiskRow}>
-              <span
-                className={s.riskIcon}
-                style={{ color: severityColor(flag.severity, confidence.low) }}
-              >
-                {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
-              </span>
-              <div className={s.flagContent}>
-                <span>{flag.message}</span>
-                <div className={s.flagMeta}>
-                  {flag.severity !== 'info' && (
-                    <span className={`${s.severityBadge} ${s[`severity_${flag.severity}`]}`}>
-                      {flag.severity}
-                    </span>
-                  )}
-                  {flag.layerSource && (
-                    <span className={s.flagSource}>{flag.layerSource}</span>
-                  )}
-                </div>
-                {enriched?.aiNarrative && (
-                  <p className={s.enrichedFlagNote}>{enriched.aiNarrative}</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {topConstraints.length > 3 && (
-          <button className={s.showAllToggle} onClick={() => setShowAllRisks((v) => !v)}>
-            {showAllRisks ? 'Show fewer' : `Show all ${topConstraints.length}`}
-          </button>
-        )}
-        {topConstraints.length === 0 && (
-          <span className={s.flagSource}>No constraints identified from current data</span>
-        )}
-      </div>
+      <CanopyStructureSection canopyHeight={canopyHeight} />
 
-      {/* ── Crop Suitability ─────────────────────────────────────── */}
-      {cropMatches.length > 0 && (
-        <>
-          <h3 className={p.sectionLabel}>
-            Crop Suitability
-            <span className={s.flagSource} style={{ marginLeft: 8, fontWeight: 400 }}>
-              {cropMatches.length} crops matched (FAO EcoCrop)
-            </span>
-          </h3>
+      <LandUseHistorySection landUseHistoryMetrics={landUseHistoryMetrics} />
 
-          {/* Category filter pills */}
-          <div className={s.cropFilterRow}>
-            <button
-              className={`${s.cropFilterPill} ${cropCategoryFilter === null ? s.cropFilterPillActive : ''}`}
-              onClick={() => setCropCategoryFilter(null)}
-            >
-              All
-            </button>
-            {['cereal', 'legume', 'vegetable', 'fruit_nut', 'forage', 'cover_crop', 'forestry'].map((cat) => (
-              <button
-                key={cat}
-                className={`${s.cropFilterPill} ${cropCategoryFilter === cat ? s.cropFilterPillActive : ''}`}
-                onClick={() => setCropCategoryFilter(cropCategoryFilter === cat ? null : cat)}
-              >
-                {CATEGORY_LABELS[cat] ?? cat}
-              </button>
-            ))}
-          </div>
+      <SiteContextSection
+        cropValidationMetrics={cropValidationMetrics}
+        biodiversityMetrics={biodiversityMetrics}
+        soilGridsMetrics={soilGridsMetrics}
+        criticalHabitatMetrics={criticalHabitatMetrics}
+        stormMetrics={stormMetrics}
+        siteContextOpen={siteContextOpen}
+        onToggleSiteContext={onToggleSiteContext}
+      />
 
-          <div className={`${p.section} ${p.sectionGapLg} ${p.mb20}`}>
-            {(showAllCrops ? cropMatches : cropMatches.slice(0, 8)).map((match) => (
-              <div key={match.crop.id}>
-                <div
-                  className={`${s.scoreRow} ${s.scoreRowClickable}`}
-                  onClick={() => setExpandedCrop(expandedCrop === match.crop.id ? null : match.crop.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpandedCrop(expandedCrop === match.crop.id ? null : match.crop.id); }}
-                >
-                  <ScoreCircle score={match.suitability} size={36} />
-                  <div style={{ flex: 1 }}>
-                    <div className={s.scoreLabel}>{match.crop.name}</div>
-                    <div className={s.cropMeta}>
-                      <span className={s.flagSource}>{match.crop.scientificName}</span>
-                      {match.limitingFactors.length > 0 && (
-                        <span className={s.flagSource}> &middot; Limited by: {match.limitingFactors.join(', ')}</span>
-                      )}
-                    </div>
-                  </div>
-                  <span
-                    className={s.scoreBadge}
-                    style={{ background: `${getScoreColor(match.suitability)}18`, color: getScoreColor(match.suitability) }}
-                  >
-                    {match.suitabilityClass}
-                  </span>
-                  {/* Sprint G: Rain-fed vs irrigated badge */}
-                  <span
-                    className={s.scoreBadge}
-                    style={{
-                      background: match.irrigationNeeded ? `${confidence.medium}18` : `${confidence.high}18`,
-                      color: match.irrigationNeeded ? confidence.medium : confidence.high,
-                      fontSize: 10,
-                      marginLeft: 4,
-                    }}
-                  >
-                    {match.irrigationNeeded ? `+${match.irrigationGapMm} mm` : 'Rain-fed'}
-                  </span>
-                </div>
-                {expandedCrop === match.crop.id && (
-                  <div className={s.scoreBreakdown}>
-                    <div className={s.cropDetailHeader}>
-                      <span>{CATEGORY_LABELS[match.crop.category] ?? match.crop.category}</span>
-                      <span>&middot;</span>
-                      <span>{match.crop.lifecycle}</span>
-                      <span>&middot;</span>
-                      <span>{match.crop.lifeForm}</span>
-                      <span>&middot;</span>
-                      <span>{match.crop.family}</span>
-                    </div>
-                    {match.factors.map((f) => {
-                      const pct = Math.round(f.score * 100);
-                      return (
-                        <div key={f.factor} className={s.breakdownRow}>
-                          <span className={s.breakdownName}>
-                            {f.limiting ? '\u26A0 ' : ''}{f.factor}
-                          </span>
-                          <div className={s.breakdownBarTrack}>
-                            <div
-                              className={s.breakdownBarFill}
-                              style={{ width: `${pct}%`, background: getScoreColor(pct) }}
-                            />
-                          </div>
-                          <span className={s.breakdownValue} title={f.cropRange}>
-                            {f.siteValue}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {/* Sprint J: Agroforestry Companions */}
-                    {(() => {
-                      const companions = companionCache.get(match.crop.id);
-                      if (!companions || companions.length === 0) return null;
-                      return (
-                        <div style={{ marginTop: 8, borderTop: '1px solid var(--border-subtle, #e0e0e0)', paddingTop: 6 }}>
-                          <div style={{ fontSize: 10, fontWeight: 600, color: semantic.sidebarActive, marginBottom: 4 }}>
-                            Agroforestry Companions
-                          </div>
-                          {companions.map((c) => (
-                            <div key={c.crop.id} className={s.breakdownRow} style={{ gap: 4 }}>
-                              <span className={s.breakdownName} style={{ fontSize: 10 }}>
-                                {c.crop.name}
-                              </span>
-                              <span style={{ fontSize: 9, color: confidence.medium, flexShrink: 0 }}>
-                                {c.reasons[0]}
-                              </span>
-                              <span className={s.breakdownValue} style={{ fontSize: 10 }}>
-                                {c.compatibilityScore}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-            ))}
-            {cropMatches.length > 8 && (
-              <button className={s.showAllToggle} onClick={() => setShowAllCrops((v) => !v)}>
-                {showAllCrops ? 'Show top 8' : `Show all ${cropMatches.length} crops`}
-              </button>
-            )}
-          </div>
-        </>
-      )}
+      <CommunitySection
+        demographicsMetrics={demographicsMetrics}
+        communityOpen={demogOpen}
+        onToggleCommunity={onToggleCommunity}
+      />
 
-      {/* ── Data Layers ────────────────────────────────────────────── */}
-      <h3 className={p.sectionLabel}>Data Layers</h3>
-      <div>
-        {dataLayerRows.map((row) => (
-          <div key={row.label} className={s.dataLayerRow}>
-            <span className={p.valueSmall}>{row.label}</span>
-            <div className={p.row}>
-              <span className={`${p.valueSmall} ${p.value}`} style={{ fontWeight: 600 }}>{row.value}</span>
-              <ConfBadge level={row.confidence} />
-            </div>
-          </div>
-        ))}
-      </div>
+      <DesignIntelligenceSection
+        designIntelligence={designIntelligence}
+        diOpen={diOpen}
+        onToggleDi={onToggleDi}
+      />
+
+
+      <SiteSummaryNarrativeSection
+        enrichment={enrichment}
+        siteSummary={siteSummary}
+        landWants={landWants}
+      />
+
+      <AssessmentScoresSection
+        assessmentScores={assessmentScores}
+        expandedScore={expandedScore}
+        onToggleExpandedScore={onToggleExpandedScore}
+      />
+
+      <OpportunitiesSection
+        topOpportunities={topOpportunities}
+        enrichment={enrichment}
+        showAll={showAllOpps}
+        onToggleShowAll={onToggleShowAllOpps}
+      />
+
+      <ConstraintsSection
+        topConstraints={topConstraints}
+        enrichment={enrichment}
+        showAll={showAllRisks}
+        onToggleShowAll={onToggleShowAllRisks}
+      />
+
+      <GaezSection gaezMetrics={gaezMetrics} />
+
+      {/* ── Crop Suitability (Sprint BK: extracted) ─────────────── */}
+      <CropMatchingSection
+        cropMatches={cropMatches}
+        cropCategoryFilter={cropCategoryFilter}
+        onCropCategoryFilter={setCropCategoryFilter}
+        expandedCrop={expandedCrop}
+        onToggleExpanded={onToggleExpandedCrop}
+        showAllCrops={showAllCrops}
+        onToggleShowAll={onToggleShowAllCrops}
+        companionCache={companionCache}
+      />
+
+      <DataLayersSection dataLayerRows={dataLayerRows} />
     </div>
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────
+// ─── Sprint BJ: memoized export + dev render profiler ────────────────────
+// `SiteIntelligencePanelImpl` is memoized so parent re-renders that don't
+// change the `project` prop reference skip the entire 4000-line reconciliation.
+// `SectionProfiler` logs renders over 16 ms in dev; tree-shaken in prod.
 
-function AILabel({ confidence }: { confidence?: string }) {
+const MemoSiteIntelligencePanel = memo(SiteIntelligencePanelImpl);
+
+export default function SiteIntelligencePanel(props: SiteIntelligencePanelProps) {
   return (
-    <span className={s.aiLabel}>
-      <svg width={10} height={10} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M8 1l1.5 4.5H14l-3.5 2.5L12 13 8 10l-4 3 1.5-5L2 5.5h4.5z" strokeLinejoin="round" />
-      </svg>
-      AI-generated{confidence && confidence !== 'high' ? ` (${confidence} confidence)` : ''} &middot; verify on-site
-    </span>
+    <SectionProfiler id="site-intelligence-panel">
+      <MemoSiteIntelligencePanel {...props} />
+    </SectionProfiler>
   );
-}
-
-function RefreshIcon({ spinning }: { spinning?: boolean }) {
-  return (
-    <svg
-      width={14}
-      height={14}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke={spinning ? semantic.sidebarActive : semantic.sidebarIcon}
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      className={spinning ? s.refreshIconSpin : undefined}
-    >
-      <path d="M1 1v5h5M15 15v-5h-5" />
-      <path d="M2.5 10A6 6 0 0113.5 6M13.5 6A6 6 0 012.5 10" />
-    </svg>
-  );
-}
-
-function ConfBadge({ level }: { level: 'High' | 'Medium' | 'Low' }) {
-  const colorMap = { High: p.badgeHigh, Medium: p.badgeMedium, Low: p.badgeLow };
-  return (
-    <span className={`${p.badgeConfidence} ${colorMap[level]}`}>
-      {level}
-    </span>
-  );
-}
-
-function ScoreCircle({ score, size }: { score: number; size: number }) {
-  const sw = size > 50 ? 4 : 3;
-  const r = (size - sw) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (score / 100) * circ;
-  return (
-    <div className={s.scoreCircle} style={{ width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-panel-card-border)" strokeWidth={sw} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={getScoreColor(score)} strokeWidth={sw} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
-      </svg>
-      <div className={s.scoreCircleInner}>
-        <span className={s.scoreCircleNum} style={{ fontSize: size > 50 ? 20 : 12 }}>{score}</span>
-        {size > 50 && <span className={s.scoreCircleDenom}>/100</span>}
-      </div>
-    </div>
-  );
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 80) return confidence.high;
-  if (score >= 60) return semantic.sidebarActive;
-  return confidence.low;
-}
-
-function getHydroColor(cls: string): string {
-  if (cls === 'Humid' || cls === 'Dry sub-humid') return confidence.high;
-  if (cls === 'Semi-arid') return confidence.medium;
-  return confidence.low;
-}
-
-// Sprint G: Soil Intelligence helpers
-function getSoilPhColor(ph: number): string {
-  if (ph >= 6.0 && ph <= 7.5) return confidence.high;
-  if (ph >= 5.5 && ph <= 8.0) return confidence.medium;
-  return confidence.low;
-}
-function getCompactionColor(bd: number): string {
-  if (bd <= 1.3) return confidence.high;
-  if (bd <= 1.5) return confidence.medium;
-  return confidence.low;
 }

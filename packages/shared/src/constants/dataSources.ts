@@ -21,10 +21,29 @@ export type LayerType =
   | 'air_quality'
   | 'earthquake_hazard'
   | 'census_demographics'
-  | 'proximity_data';
+  | 'proximity_data'
+  | 'soilgrids_global'
+  | 'biodiversity'
+  | 'ust_lust'
+  | 'brownfields'
+  | 'landfills'
+  | 'mine_hazards'
+  | 'fuds'
+  | 'conservation_easement'
+  | 'heritage'
+  | 'alr_status'
+  | 'aquifer'
+  | 'water_stress'
+  | 'seasonal_flooding'
+  | 'invasive_species'
+  | 'native_species'
+  | 'land_use_history'
+  | 'mineral_rights'
+  | 'water_rights'
+  | 'gaez_suitability';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data' | 'soilgrids_global' | 'biodiversity' | 'ust_lust' | 'brownfields' | 'landfills' | 'mine_hazards' | 'fuds' | 'conservation_easement' | 'heritage' | 'alr_status' | 'aquifer' | 'water_stress' | 'seasonal_flooding' | 'invasive_species' | 'native_species' | 'land_use_history' | 'mineral_rights' | 'water_rights' | 'gaez_suitability'>;
 
 export interface AdapterConfig {
   adapter: string;

@@ -7,7 +7,8 @@ import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import { useStructureStore } from '../store/structureStore.js';
-import { useSiteDataStore } from '../store/siteDataStore.js';
+import { useSiteDataStore, abortFetchForProject } from '../store/siteDataStore.js';
+import { debounce } from '../lib/debounce.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useIsMobile } from '../hooks/useMediaQuery.js';
 import { useProjectRole } from '../hooks/useProjectRole.js';
@@ -68,8 +69,14 @@ export default function ProjectPage() {
     return () => setActiveProject(null);
   }, [projectId, setActiveProject]);
 
-  // Auto-fetch environmental data when project has a boundary
+  // Auto-fetch environmental data when project has a boundary.
+  // Sprint BJ: debounced so rapid boundary edits coalesce into a single fetch
+  // (400 ms window). Unmount aborts any in-flight fetch for the project.
   const fetchSiteData = useSiteDataStore((s) => s.fetchForProject);
+  const debouncedFetchSiteData = useMemo(
+    () => debounce(fetchSiteData, 400),
+    [fetchSiteData],
+  );
   useEffect(() => {
     if (!project?.parcelBoundaryGeojson) return;
     try {
@@ -79,9 +86,18 @@ export default function ProjectPage() {
       const lat = coords[1] ?? 0;
       const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
       const bbox: [number, number, number, number] = [turfBbox[0], turfBbox[1], turfBbox[2], turfBbox[3]];
-      fetchSiteData(project.id, [lng, lat], project.country, bbox);
+      debouncedFetchSiteData(project.id, [lng, lat], project.country, bbox);
     } catch { /* boundary may be invalid */ }
-  }, [project?.id, project?.parcelBoundaryGeojson, project?.country, fetchSiteData]);
+    return () => debouncedFetchSiteData.cancel();
+  }, [project?.id, project?.parcelBoundaryGeojson, project?.country, debouncedFetchSiteData]);
+
+  // Sprint BJ: abort any in-flight fetch when the user navigates away from
+  // the project (prevents wasted network work on project switches).
+  useEffect(() => {
+    if (!project?.id) return;
+    const id = project.id;
+    return () => { abortFetchForProject(id); };
+  }, [project?.id]);
 
   if (!ready) return null;
 

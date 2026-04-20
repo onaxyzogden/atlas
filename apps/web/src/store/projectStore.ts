@@ -17,7 +17,7 @@ export interface LocalProject {
   description: string | null;
   status: 'active' | 'archived' | 'shared';
   projectType: string | null;
-  country: 'US' | 'CA';
+  country: string; // ISO country code — 'US' and 'CA' are the fully-wired jurisdictions; others use Sprint BG global fallbacks (Copernicus DEM, OpenMeteo/WorldClim, ESA WorldCover, WDPA, SoilGrids)
   provinceState: string | null;
   conservationAuthId: string | null;
   address: string | null;

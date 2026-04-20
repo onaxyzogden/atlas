@@ -33,8 +33,8 @@ export interface SiteDataState {
   dataByProject: Record<string, SiteData>;
 
   // Actions
-  fetchForProject: (projectId: string, center: [number, number], country: 'US' | 'CA', bbox?: [number, number, number, number]) => Promise<void>;
-  refreshProject: (projectId: string, center: [number, number], country: 'US' | 'CA', bbox?: [number, number, number, number]) => Promise<void>;
+  fetchForProject: (projectId: string, center: [number, number], country: string, bbox?: [number, number, number, number]) => Promise<void>;
+  refreshProject: (projectId: string, center: [number, number], country: string, bbox?: [number, number, number, number]) => Promise<void>;
   enrichProject: (projectId: string) => Promise<void>;
   clearProject: (projectId: string) => void;
 }
@@ -53,6 +53,39 @@ function isStale(projectId: string, gen: number): boolean {
   return (fetchGeneration.get(projectId) ?? 0) !== gen;
 }
 
+// ── Sprint BJ: per-project AbortController registry ──────────────────────────
+// When a new fetch starts for a project that still has an in-flight fetch,
+// abort the previous one so the store's outer race can resolve immediately.
+// (Individual HTTP requests continue in the background — see layerFetcher.ts
+// FetchLayerOptions.signal docstring.)
+
+const activeControllers = new Map<string, AbortController>();
+
+function takeController(projectId: string): AbortController {
+  const prev = activeControllers.get(projectId);
+  if (prev) prev.abort();
+  const next = new AbortController();
+  activeControllers.set(projectId, next);
+  return next;
+}
+
+function releaseController(projectId: string, controller: AbortController) {
+  if (activeControllers.get(projectId) === controller) {
+    activeControllers.delete(projectId);
+  }
+}
+
+/** Sprint BJ: abort any in-flight fetch for a project (called from
+ * ProjectPage unmount/cleanup to avoid wasted background work when the user
+ * navigates away before fetch completion). */
+export function abortFetchForProject(projectId: string): void {
+  const ctrl = activeControllers.get(projectId);
+  if (ctrl) {
+    ctrl.abort();
+    activeControllers.delete(projectId);
+  }
+}
+
 // ── Store ─────────────────────────────────────────────────────────────────
 
 export const useSiteDataStore = create<SiteDataState>((set, get) => ({
@@ -60,11 +93,15 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
 
   async fetchForProject(projectId, center, country, bbox?) {
     const existing = get().dataByProject[projectId];
-    if (existing && (existing.status === 'loading' || existing.status === 'complete')) {
+    // Sprint BJ: only short-circuit on 'complete' — if a fetch is already
+    // loading, we now REPLACE it (abort old + start new) so rapid boundary
+    // edits land the latest result rather than being dropped on the floor.
+    if (existing && existing.status === 'complete') {
       return;
     }
 
     const gen = nextGen(projectId);
+    const controller = takeController(projectId);
 
     set((s) => ({
       dataByProject: {
@@ -80,7 +117,10 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, signal: controller.signal });
+
+      // Sprint BJ: outer race saw an abort — bail without touching state.
+      if (result.aborted) return;
 
       // Discard if a newer request was started while this one was in-flight
       if (isStale(projectId, gen)) return;
@@ -118,6 +158,8 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
           },
         };
       });
+    } finally {
+      releaseController(projectId, controller);
     }
   },
 
@@ -128,6 +170,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     } catch { /* SSR safety */ }
 
     const gen = nextGen(projectId);
+    const controller = takeController(projectId);
 
     // Mark as loading but keep existing layers visible during refresh
     const existing = get().dataByProject[projectId];
@@ -145,8 +188,9 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, signal: controller.signal });
 
+      if (result.aborted) return;
       if (isStale(projectId, gen)) return;
 
       set((s) => ({
@@ -192,6 +236,8 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
           },
         };
       });
+    } finally {
+      releaseController(projectId, controller);
     }
   },
 

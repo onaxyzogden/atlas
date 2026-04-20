@@ -1049,3 +1049,31 @@
 
 /* ─── Monospace ───────────────────────────────────────────────────── */
 .mono { font-family: monospace; }
+
+/* ─── Sprint BQ: additional utilities for section inline-style migration ── */
+.rightAlign       { flex: 1; text-align: right; }
+.flexBetween      { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.itemLabel        { font-size: 11px; color: var(--color-panel-icon); margin-top: 2px; }
+.detailText       { padding: 4px 8px 6px; font-size: 11px; color: var(--color-panel-muted, #888); font-style: italic; border-bottom: none; }
+.borderBottomNone { border-bottom: none; }
+.fs11             { font-size: 11px; }
+.innerPad         { padding: 4px 0; }
+.cursorDefault    { cursor: default; }
+.colStretchPad    { flex-direction: column; align-items: stretch; padding: 8px 12px; }
+.separatorThin    { border-top: 1px solid var(--color-panel-border, #333); margin: 4px 0; }
+
+/* ─── Sprint BR: Semantic sidebar token bridge (TS semantic.* → CSS vars) ── */
+.tokenActive            { color: var(--color-sidebar-active); }
+.tokenIcon              { color: var(--color-sidebar-icon); }
+.tokenIconFs11Mt2       { font-size: 11px; color: var(--color-sidebar-icon); margin-top: 2px; }
+.tokenIconFs10Italic    { font-size: 10px; color: var(--color-sidebar-icon); font-style: italic; }
+.tokenIconFs12Leading   { font-size: 12px; color: var(--color-sidebar-icon); line-height: 1.5; }
+.tokenIconFs11Leading   { font-size: 11px; color: var(--color-sidebar-icon); line-height: 1.5; }
+.tokenActiveFs10Bold    { font-size: 10px; font-weight: 600; color: var(--color-sidebar-active); margin-bottom: 4px; }
+
+/* Sprint BR Phase 3: small atoms for composite patterns */
+.fs9                    { font-size: 9px; }
+.fs10                   { font-size: 10px; }
+.mt2                    { margin-top: 2px; }
+.mr2                    { margin-right: 2px; }
+.tokenIconGrid2         { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; color: var(--color-sidebar-icon); }

@@ -39,9 +39,10 @@ BullMQ requires dedicated connections — it cannot share the Fastify ioredis in
 - Adapter registry: **14/14 live** — ALL Tier 1 layers covered: soils (SsurgoAdapter + OmafraCanSisAdapter), elevation (UsgsElevationAdapter + NrcanHrdemAdapter), watershed (NhdAdapter + OhnAdapter), wetlands/flood (NwiFemaAdapter + ConservationAuthorityAdapter), climate (NoaaClimateAdapter + EcccClimateAdapter), land_cover (NlcdAdapter + AafcLandCoverAdapter), zoning (UsCountyGisAdapter + OntarioMunicipalAdapter)
 - Combined completeness coverage from live adapters: soils 20% + elevation 15% + watershed 15% + wetlands_flood 15% + zoning 15% + climate 10% + land_cover 10% = **100% of total completeness weight**
 - Job tracking: **working** (queued/running/complete/failed/retrying states)
-- Frontend layerFetcher: has 10 **live** external API connections (USGS 3DEP, SSURGO SDA, NOAA LCD, FEMA NFHL, NWI, MRLC NLCD, ECCC, LIO ArcGIS, AAFC, NRCan HRDEM) with mock fallback — this is NOT equivalent to the backend pipeline being connected
+- Frontend layerFetcher: **19 live layer types** — 7 Tier 1 + infrastructure (Sprint K) + 11 extended layers added Sprints M–W: groundwater (USGS NWIS + Ontario PGMN), water_quality (EPA WQP + ECCC/PWQMN), superfund (EPA Envirofacts), critical_habitat (USFWS ArcGIS), storm_events (FEMA), crop_validation (USDA NASS CDL), air_quality (EPA EJSCREEN), earthquake_hazard (USGS Design Maps), census_demographics (US Census ACS), proximity_data (OSM Overpass)
 - Test coverage: 298/298 tests pass (14 adapter test files + integration tests)
-- **Tier 1 pipeline complete.** Next focus: scoring engine refactor to consume real Tier 1 + Tier 3 data (see plan file clever-enchanting-moler.md), or zoning registry expansion (US counties).
+- **Scoring engine: complete** (Sprint M, 2026-04-16) — 8 weighted dimensions + 2-3 formal classifications, ~140+ components, all outputs use `ScoredResult` with `score_breakdown` + `WithConfidence` fields. Plan file `clever-enchanting-moler.md` is fully implemented.
+- **Next focus:** Groundwater + water quality UI surfacing in SiteIntelligencePanel (data already fetched + scored, no display section yet), or US county zoning registry expansion.
 
 ## Pipeline Fixes (Sprint M, 2026-04-16)
 - **Orphan `compute_assessment` job removed:** An INSERT into `data_pipeline_jobs` with layer_type `compute_assessment` had no corresponding BullMQ queue or worker — dead code. Removed from orchestrator.

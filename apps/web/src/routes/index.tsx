@@ -12,7 +12,6 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
   Outlet,
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
@@ -28,14 +27,10 @@ const rootRoute = createRootRoute({
   component: Outlet,
 });
 
-// App shell wrapper for main routes — requires auth token
+// App shell wrapper for main routes
 const appShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
-  beforeLoad: () => {
-    const token = localStorage.getItem('ogden-auth-token');
-    if (!token) throw redirect({ to: '/login' });
-  },
   component: () => (
     <AppShell>
       <Outlet />
