@@ -16,6 +16,12 @@ oversights — they are tracked to prevent quiet violation at launch.
   (c) isolate GAEZ inside a non-commercial subsystem / free tier,
   or (d) swap GAEZ suitability for an equivalent non-NC data source.
   Source: [wiki/decisions/2026-04-20-gaez-self-hosting.md](decisions/2026-04-20-gaez-self-hosting.md).
+  **Sprint CC (2026-04-21) update:** `/api/v1/gaez/raster/*` is now auth-gated
+  behind `fastify.authenticate` as defense-in-depth — the raster COG bytes are
+  no longer served to anonymous clients. This does **not** resolve the NC
+  clause (any logged-in user can still retrieve the bytes; the gate only
+  removes the passive-scrape surface). The license decision above remains
+  the launch blocker.
 
 ## Operational
 
