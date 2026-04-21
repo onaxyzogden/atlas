@@ -10,6 +10,7 @@ import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { api } from '../../lib/apiClient.js';
+import { formatKRange } from '../../lib/formatRange.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -27,13 +28,13 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const totalInvestmentStr = model
-    ? `$${Math.round(model.totalInvestment.low / 1000)}K\u2013$${Math.round(model.totalInvestment.high / 1000)}K`
+    ? formatKRange(model.totalInvestment.low, model.totalInvestment.high)
     : 'N/A';
   const breakEvenStr = model?.breakEven.breakEvenYear.mid != null
     ? `Year ${model.breakEven.breakEvenYear.mid}`
     : '10+';
   const roiStr = model
-    ? `${model.breakEven.tenYearROI.low}\u2013${model.breakEven.tenYearROI.high}%`
+    ? `${model.breakEven.tenYearROI.low}–${model.breakEven.tenYearROI.high}%`
     : 'N/A';
 
   const handleGenerate = async () => {
@@ -249,7 +250,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.phaseName}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.category}</td>
                       <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
-                        ${Math.round(item.cost.low / 1000)}K–${Math.round(item.cost.high / 1000)}K
+                        {formatKRange(item.cost.low, item.cost.high)}
                       </td>
                     </tr>
                   ))}
@@ -278,7 +279,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
                       <td style={{ padding: '4px 8px', fontWeight: 500 }}>{stream.name}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>Year {stream.startYear}</td>
                       <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
-                        ${Math.round(stream.annualRevenue.low / 1000)}K–${Math.round(stream.annualRevenue.high / 1000)}K
+                        {formatKRange(stream.annualRevenue.low, stream.annualRevenue.high)}
                       </td>
                     </tr>
                   ))}

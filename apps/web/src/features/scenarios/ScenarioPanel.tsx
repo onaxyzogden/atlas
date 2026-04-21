@@ -30,6 +30,7 @@ import type { AllFeaturesInput, MissionWeights, MissionScore } from '../financia
 import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
 import { computeAssessmentScores } from '../../lib/computeScores.js';
 import { computeVisionFit } from '../../lib/visionFit.js';
+import { fmtK, formatKRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './ScenarioPanel.module.css';
 
@@ -60,8 +61,6 @@ const PROJECT_TYPE_OPTIONS = [
 
 const humanize = (str: string) =>
   str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-const fmtK = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(Math.round(n / 1000))}K`;
 
 export default function ScenarioPanel({ project }: ScenarioPanelProps) {
   const allScenarios = useScenarioStore((st) => st.scenarios);
@@ -336,7 +335,7 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
         <div className={s.statGrid} style={{ marginTop: 8 }}>
           <StatCard
             label="Capital (est.)"
-            value={`${fmtK(model.totalInvestment.low)}\u2013${fmtK(model.totalInvestment.high)}`}
+            value={formatKRange(model.totalInvestment.low, model.totalInvestment.high)}
             isText
           />
           <StatCard

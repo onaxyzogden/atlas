@@ -10,6 +10,7 @@ import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
 import { zone } from '../../lib/tokens.js';
+import { formatKRange, formatUsdRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 
@@ -143,7 +144,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
         <div className={s.summaryCard}>
           <div className={s.summaryLabel}>Total Investment (est.)</div>
           <div className={`${s.summaryValue} ${s.summaryValueAccent}`}>
-            ${Math.round(totalInvestment.low / 1000)}K–${Math.round(totalInvestment.high / 1000)}K
+            {formatKRange(totalInvestment.low, totalInvestment.high)}
           </div>
         </div>
         <div className={s.summaryCard}>
@@ -347,7 +348,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                   </div>
                   <div className={s.carbonMetric}>
                     <span className={s.carbonMetricLabel}>Credit Revenue</span>
-                    <span className={s.carbonMetricValue}>${carbonData.revenueLow.toLocaleString()}–${carbonData.revenueHigh.toLocaleString()}/yr</span>
+                    <span className={s.carbonMetricValue}>{formatUsdRange(carbonData.revenueLow, carbonData.revenueHigh, '/yr')}</span>
                   </div>
                 </div>
                 <div className={s.carbonNote}>
@@ -413,7 +414,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               <div className={s.itemHeader}>
                 <span className={s.itemName}>{item.name}</span>
                 <span className={s.itemCostRange}>
-                  ${Math.round(item.cost.low / 1000)}K–${Math.round(item.cost.high / 1000)}K
+                  {formatKRange(item.cost.low, item.cost.high)}
                 </span>
               </div>
               <div className={s.itemTags}>
@@ -450,7 +451,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                 <div className={s.itemHeader}>
                   <span className={s.itemName}>{stream.name}</span>
                   <span className={s.itemRevenueRange}>
-                    ${Math.round(stream.annualRevenue.low / 1000)}K–${Math.round(stream.annualRevenue.high / 1000)}K/yr
+                    {formatKRange(stream.annualRevenue.low, stream.annualRevenue.high, '/yr')}
                   </span>
                 </div>
                 <div className={`${s.itemTags} ${p.mb4}`}>
@@ -475,7 +476,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                   Revenue projections are estimates based on comparable operations and regional benchmarks.
                   Local market conditions, permitting, and management skill will significantly impact actual results.
                   {annualRevenueAtMaturity.mid > 0 && (
-                    <> Combined annual revenue at maturity: ${Math.round(annualRevenueAtMaturity.low / 1000)}K–${Math.round(annualRevenueAtMaturity.high / 1000)}K.</>
+                    <> Combined annual revenue at maturity: {formatKRange(annualRevenueAtMaturity.low, annualRevenueAtMaturity.high)}.</>
                   )}
                 </span>
               </div>
@@ -628,7 +629,7 @@ function computeCarbonRevenue(
     annualTonnes,
     revenueLow: Math.round(annualTonnes * priceLow),
     revenueHigh: Math.round(annualTonnes * priceHigh),
-    priceRange: `$${priceLow}\u2013$${priceHigh}/tonne`,
+    priceRange: formatUsdRange(priceLow, priceHigh, '/tonne'),
   };
 }
 
