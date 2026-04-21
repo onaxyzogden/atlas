@@ -1,5 +1,5 @@
 /**
- * Thin re-export shim — moved to `@ogden/shared/scoring/hydrologyMetrics.ts`.
+ * Thin re-export shim — moved to `@ogden/shared/scoring/petModel.ts`.
  * See apps/web/src/lib/computeScores.ts header for rationale.
  */
 

@@ -8,6 +8,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./scoring": {
+      "types": "./src/scoring/index.ts",
+      "default": "./src/scoring/index.ts"
     }
   },
   "scripts": {
