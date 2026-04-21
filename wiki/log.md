@@ -4,6 +4,28 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-21 — Sprint BZ: GAEZ WATER/desert classifier fix + 47-crop ranking UI
+
+Two follow-ups deferred from Sprint BY landed together in one sprint:
+
+**(a) Classifier fix — WATER vs off-extent NoData (commit `6ba8efb`).** During Sprint BY's full-ingest smoke queries, the Sahara point (24 N, 12 E) returned `primary_suitability_class: 'WATER'` for all 47 crops — obviously wrong for the world's largest hot desert. Root cause: `GaezRasterService.mapSuitabilityCode(code)` mapped raw raster code `9` unconditionally to `'WATER'`. But FAO reuses code 9 for BOTH open water AND off-cropland-extent NoData. The function had no access to the paired yield raster even though `query()` was already sampling both in parallel.
+
+Live-data probe against the running API confirmed the disambiguation hypothesis with a twist — Sahara yield came back as `-1` (sentinel leak through a missing GDAL NoData tag on the COG conversion), not null as originally hypothesized. Fix broadened: treat `yield < 0 OR null OR non-finite` as off-extent (`UNKNOWN`), `yield >= 0` as real water (`WATER`). Also sanitized yield output to null for any negative sentinel, and fixed a second bug in the fallback branch that was hardcoding `primary_suitability_class: 'WATER'` even when all 47 entries came back UNKNOWN (Bering Sea was reporting WATER for the right reason by accident; Sahara was WATER for the wrong reason). Fallback now picks WATER only when at least one entry classifies as WATER, otherwise UNKNOWN with a "no cropland extent" message.
+
+TDD: 2 new tests (`code 9 + yield=-1 → UNKNOWN`, `code 9 + yield=null → UNKNOWN`) + 2 existing tightenings. 357/357 backend vitest green. Real-data re-probe: Iowa unchanged S1 potato 12,719 kg/ha; Sahara now `UNKNOWN` with yield=null; Bering Sea now `UNKNOWN` (more honest than the accidental-WATER it returned before).
+
+**(b) Full 47-crop ranking UI (commit `915c0b0`).** Post Sprint BY, the API returns 47 entries in `crop_suitabilities[]` (12 crops × up-to-4 water/input combos, minus the cassava_irrigated_low FAO gap). `layerFetcher` was already plumbing the full array into `gaezMetrics`, but `GaezSection.tsx` rendered only `best_crop` + `top_3_crops`. Users couldn't see rye-at-S2 or soybean-at-S3 without hitting the API directly.
+
+Added a collapsed-by-default disclosure below the top-3 row: `Full crop ranking (47)` header with a chevron, expanding to 47 rows of `[crop label] [class badge] [yield kg/ha] [water/input subtitle]`. Sort matches the API's existing yield-desc + suitability-rank order. Implementation: extended `GaezMetrics` with `fullRanking?: GaezCropRow[]`, populated it in `useSiteIntelligenceMetrics.ts` from `sm['crop_suitabilities']`, and added a `useState`-gated block in `GaezSection` reusing `s.liveDataHeader` / `s.chevron` / `s.chevronClosed` / `p.innerPad` — same token vocabulary as the Soil section's existing disclosures. Suitability badges reuse the existing `confidence.high/medium/low` palette via a module-local `suitabilityColor` helper (no new CSS). Zero typecheck errors.
+
+**Skipped intentionally** (deferred unless operator asks): grouping the 47 rows by suitability class, a crop-label lookup for prettier names than `replace(/_/g, ' ')`, a tabs-based rewrite of `GaezSection`, frontend component tests (no harness yet). **Remaining GAEZ follow-ups:** the missing GDAL NoData tag on COG conversion (which caused the `-1` sentinel leak) — harmless given the yield-aware classifier, but worth fixing in `convert-gaez-to-cog.ts` to clean up the raw data; RCP-scenario ingest for future time periods; map-side raster visualization.
+
+**Files touched (5):** `apps/api/src/services/gaez/GaezRasterService.ts`, `apps/api/src/tests/GaezRasterService.test.ts`, `apps/web/src/components/panels/sections/GaezSection.tsx`, `apps/web/src/hooks/useSiteIntelligenceMetrics.ts`, `wiki/entities/api.md`.
+
+**Verification:** 357/357 backend tests green. `pnpm --filter @ogden/web exec tsc --noEmit` → 0 errors. Iowa / Sahara / Bering live-probe classifications all correct per hypothesis. Manual browser verification of the disclosure deferred to operator (identical data plumbing as top_3 which already works → high confidence).
+
+---
+
 ## 2026-04-21 — Staging provisioning decision parked
 
 Considered executing `wiki/decisions/2026-04-20-atlas-staging-provisioning.md`

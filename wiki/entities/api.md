@@ -40,7 +40,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 - **Geometry:** PostGIS functions — `ST_AsGeoJSON()`, `ST_GeomFromGeoJSON()`, `ST_Transform()`
 
 ## Services
-- `services/gaez/GaezRasterService.ts` — Self-hosted FAO GAEZ v4 COG point-query (geotiff.js byte-range reads, local FS or S3 HTTPS). Manifest-driven; disabled cleanly if no manifest present. See `scripts/ingest-gaez.md`.
+- `services/gaez/GaezRasterService.ts` — Self-hosted FAO GAEZ v4 COG point-query (geotiff.js byte-range reads, local FS or S3 HTTPS). Manifest-driven; disabled cleanly if no manifest present. See `scripts/ingest-gaez.md`. **Sprint BZ:** classifier disambiguates suitability code 9 (which FAO reuses for both open water and off-cropland NoData) by cross-referencing the paired yield raster — `yield >= 0` → `WATER`, `yield null/<0` → `UNKNOWN`. Fixes Sahara/polar points previously mislabelled as water.
 - `scripts/download-gaez.ts` (Sprint BY) — Automated raster acquisition via FAO's `res05` ArcGIS Image Service. Resolves 94/96 target rasters through `/query` calls, streams direct S3 `.tif`s into `data/gaez/raw/`. Replaces 96 manual Data Viewer clicks. Idempotent; supports `--filter`, `--dry-run`, `--concurrency`. `npm run download:gaez`.
 - `services/pdf/` — Puppeteer browser manager + PdfExportService + 7 HTML templates
 - `services/storage/StorageProvider.ts` — S3 or local filesystem abstraction
