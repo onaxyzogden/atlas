@@ -67,6 +67,32 @@ interface HorizonRow {
   component_pct: number | null;
 }
 
+/**
+ * Per-horizon soil profile row. Added in the field-backfill sprint to expose
+ * sub-surface Ksat, texture, OM, and coarse-fragment values that the flat
+ * 0–30 cm topsoil average cannot capture.
+ */
+export interface SoilHorizon {
+  depth_top_cm: number;
+  depth_bottom_cm: number;
+  component_pct: number;
+  component_name: string | null;
+  ksat_um_s: number | null;
+  organic_matter_pct: number | null;
+  clay_pct: number | null;
+  silt_pct: number | null;
+  sand_pct: number | null;
+  cec_meq_100g: number | null;
+  coarse_fragment_pct: number | null;
+}
+
+export interface RestrictiveLayer {
+  kind: string;            // e.g. 'Fragipan', 'Lithic bedrock', 'Duripan'
+  depth_cm: number;        // top depth of the restriction
+  component_name: string | null;
+  component_pct: number;
+}
+
 interface SoilSummary {
   // Identity
   dominant_component_name: string | null;
@@ -111,6 +137,10 @@ interface SoilSummary {
   drainageClass: string | null;
   organicMatterPct: number | null;
   textureClass: string | null;
+
+  // Field-backfill additions (sprint: SSURGO backfill)
+  horizons?: SoilHorizon[];
+  restrictive_layer?: RestrictiveLayer | null;
 }
 
 // ─── GeoJSON helpers ──────────────────────────────────────────────────────────
@@ -599,6 +629,99 @@ export class SsurgoAdapter implements DataSourceAdapter {
       logger.warn({ mukeyCount: mukeys.length }, 'SSURGO mukeys found but no horizon data');
     }
 
+    // Step 3b: Field-backfill query — all-horizon profiles + restrictive layers.
+    // Non-critical: on failure we still return the topsoil-only summary.
+    let horizonProfile: SoilHorizon[] = [];
+    let restrictiveLayer: RestrictiveLayer | null = null;
+    try {
+      const profileQuery = `
+        SELECT c.mukey, c.comppct_r, c.compname,
+               h.hzdept_r, h.hzdepb_r,
+               h.ksat_r AS ksat_um_s,
+               h.om_r AS organic_matter_pct,
+               h.cec7_r AS cec_meq_100g,
+               h.claytotal_r, h.silttotal_r, h.sandtotal_r,
+               h.frag3to10_r, h.fraggt10_r,
+               cr.reskind AS restriction_kind,
+               cr.resdept_r AS restriction_depth_cm
+        FROM component c
+        INNER JOIN chorizon h ON h.cokey = c.cokey
+        LEFT JOIN corestrictions cr ON cr.cokey = c.cokey
+        WHERE c.mukey IN (${mukeyList})
+          AND c.majcompflag = 'Yes'
+        ORDER BY c.comppct_r DESC, h.hzdept_r ASC
+      `;
+
+      const profileResponse = await postToSda(profileQuery);
+      const profileRows = parseSdaRows<Record<string, unknown>>(profileResponse, [
+        'mukey', 'comppct_r', 'compname', 'hzdept_r', 'hzdepb_r',
+        'ksat_um_s', 'organic_matter_pct', 'cec_meq_100g',
+        'claytotal_r', 'silttotal_r', 'sandtotal_r',
+        'frag3to10_r', 'fraggt10_r',
+        'restriction_kind', 'restriction_depth_cm',
+      ]);
+
+      const toNum = (v: unknown): number | null => {
+        if (typeof v === 'number') return isNaN(v) ? null : v;
+        if (typeof v === 'string') { const n = parseFloat(v); return isNaN(n) ? null : n; }
+        return null;
+      };
+
+      // Build horizons[] + locate shallowest restriction across all components,
+      // weighting the choice by comppct_r so the dominant component wins ties.
+      let bestRestriction: RestrictiveLayer | null = null;
+      for (const row of profileRows) {
+        const dt = toNum(row.hzdept_r);
+        const db = toNum(row.hzdepb_r);
+        const cpct = toNum(row.comppct_r) ?? 0;
+        if (dt === null || db === null) continue;
+
+        const coarse = (() => {
+          const a = toNum(row.frag3to10_r);
+          const b = toNum(row.fraggt10_r);
+          if (a === null && b === null) return null;
+          return Math.round(((a ?? 0) + (b ?? 0)) * 10) / 10;
+        })();
+
+        horizonProfile.push({
+          depth_top_cm: dt,
+          depth_bottom_cm: db,
+          component_pct: cpct,
+          component_name: typeof row.compname === 'string' ? row.compname : null,
+          ksat_um_s: toNum(row.ksat_um_s),
+          organic_matter_pct: toNum(row.organic_matter_pct),
+          clay_pct: toNum(row.claytotal_r),
+          silt_pct: toNum(row.silttotal_r),
+          sand_pct: toNum(row.sandtotal_r),
+          cec_meq_100g: toNum(row.cec_meq_100g),
+          coarse_fragment_pct: coarse,
+        });
+
+        const rKind = typeof row.restriction_kind === 'string' ? row.restriction_kind : null;
+        const rDepth = toNum(row.restriction_depth_cm);
+        if (rKind && rDepth !== null) {
+          // Prefer dominant-component restriction; within that, the shallowest.
+          if (
+            !bestRestriction
+            || cpct > bestRestriction.component_pct
+            || (cpct === bestRestriction.component_pct && rDepth < bestRestriction.depth_cm)
+          ) {
+            bestRestriction = {
+              kind: rKind,
+              depth_cm: rDepth,
+              component_name: typeof row.compname === 'string' ? row.compname : null,
+              component_pct: cpct,
+            };
+          }
+        }
+      }
+      restrictiveLayer = bestRestriction;
+    } catch (err) {
+      logger.warn({ err: (err as Error).message }, 'SSURGO profile/restriction query failed — continuing without backfill');
+      horizonProfile = [];
+      restrictiveLayer = null;
+    }
+
     // Step 4: Compute weighted averages
     const weighted = computeWeightedAverages(horizonRows);
 
@@ -657,6 +780,9 @@ export class SsurgoAdapter implements DataSourceAdapter {
       drainageClass: mapDrainageToTier3(weighted.drainage_class),
       organicMatterPct: weighted.organic_matter_pct,
       textureClass: textureClass?.replace(/ /g, '_') ?? null,
+      // Field-backfill: multi-horizon profile + restrictive layer
+      horizons: horizonProfile,
+      restrictive_layer: restrictiveLayer,
     };
 
     const summaryData: SoilSummary = {

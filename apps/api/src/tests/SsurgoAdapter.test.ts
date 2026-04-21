@@ -31,9 +31,25 @@ const MUKEY_RESPONSE = {
 
 const HORIZON_RESPONSE = {
   Table: [
-    ['mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph', 'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3', 'ksat_um_s', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct', 'sodium_adsorption_ratio', 'drainage_class', 'taxonomy_class', 'component_name', 'component_pct'],
-    ['658812', '60', '0', '30', '6.2', '2.5', '12.0', '0.5', '1.35', '14.0', '0.18', '100', '18', '42', '40', '0', '0', '1.0', 'Well drained', 'Udorthents', 'Urban land', '60'],
-    ['658813', '40', '0', '25', '5.8', '3.2', '18.5', '0.3', '1.28', '8.5', '0.22', '120', '35', '45', '20', '0', '0', '0.5', 'Well drained', 'Fine, kaolinitic, mesic Typic Paleudults', 'Christiana', '40'],
+    ['mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph', 'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3', 'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct', 'sodium_adsorption_ratio', 'drainage_class', 'taxonomy_class', 'component_name', 'component_pct'],
+    ['658812', '60', '0', '30', '6.2', '2.5', '12.0', '0.5', '1.35', '14.0', '0.32', '0.18', '100', '18', '42', '40', '0', '0', '1.0', 'Well drained', 'Udorthents', 'Urban land', '60'],
+    ['658813', '40', '0', '25', '5.8', '3.2', '18.5', '0.3', '1.28', '8.5', '0.28', '0.22', '120', '35', '45', '20', '0', '0', '0.5', 'Well drained', 'Fine, kaolinitic, mesic Typic Paleudults', 'Christiana', '40'],
+  ],
+};
+
+// Field-backfill: multi-horizon profile + corestrictions.
+// Columns: mukey, comppct_r, compname, hzdept_r, hzdepb_r, ksat_um_s,
+// organic_matter_pct, cec_meq_100g, claytotal_r, silttotal_r, sandtotal_r,
+// frag3to10_r, fraggt10_r, restriction_kind, restriction_depth_cm
+const PROFILE_RESPONSE = {
+  Table: [
+    ['mukey', 'comppct_r', 'compname', 'hzdept_r', 'hzdepb_r', 'ksat_um_s', 'organic_matter_pct', 'cec_meq_100g', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'frag3to10_r', 'fraggt10_r', 'restriction_kind', 'restriction_depth_cm'],
+    // Urban land: two horizons, no restriction
+    ['658812', '60', 'Urban land', '0', '30', '14.0', '2.5', '12.0', '18', '42', '40', '2', '0', null, null],
+    ['658812', '60', 'Urban land', '30', '90', '8.0', '0.8', '10.0', '25', '38', '37', '5', '1', null, null],
+    // Christiana: two horizons + a fragipan at 60 cm
+    ['658813', '40', 'Christiana', '0', '25', '8.5', '3.2', '18.5', '35', '45', '20', '0', '0', 'Fragipan', '60'],
+    ['658813', '40', 'Christiana', '25', '60', '3.2', '1.1', '22.0', '42', '40', '18', '0', '0', 'Fragipan', '60'],
   ],
 };
 
@@ -257,7 +273,7 @@ describe('Zero-mukey response (outside SSURGO coverage)', () => {
 
 describe('Full adapter fetch (mocked SDA)', () => {
   it('fetches and processes SSURGO data correctly', async () => {
-    // Mock two sequential SDA calls
+    // Mock three sequential SDA calls: mukey → horizon → profile+restrictions
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -266,6 +282,10 @@ describe('Full adapter fetch (mocked SDA)', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => HORIZON_RESPONSE,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => PROFILE_RESPONSE,
       });
 
     const adapter = new SsurgoAdapter('ssurgo', 'soils');
@@ -299,8 +319,22 @@ describe('Full adapter fetch (mocked SDA)', () => {
     expect(summary.organicMatterPct).toBeDefined();
     expect(summary.textureClass).toBeDefined();
 
-    // Verify two SDA calls were made
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    // Field-backfill: horizons array + restrictive layer populated
+    const horizons = summary.horizons as Array<Record<string, unknown>>;
+    expect(Array.isArray(horizons)).toBe(true);
+    expect(horizons.length).toBe(4); // two components × two horizons each
+    expect(horizons[0]).toMatchObject({
+      depth_top_cm: 0,
+      depth_bottom_cm: 30,
+      component_name: 'Urban land',
+    });
+    const restrictive = summary.restrictive_layer as Record<string, unknown> | null;
+    expect(restrictive).not.toBeNull();
+    expect(restrictive?.kind).toBe('Fragipan');
+    expect(restrictive?.depth_cm).toBe(60);
+
+    // Verify three SDA calls were made (mukey, horizon, profile+restrictions)
+    expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 });
 
