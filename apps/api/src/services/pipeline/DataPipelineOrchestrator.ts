@@ -40,6 +40,7 @@ import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
 import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
+import { maybeWriteAssessmentIfTier3Complete } from '../assessments/SiteAssessmentWriter.js';
 
 export interface ProjectContext {
   projectId: string;
@@ -259,6 +260,20 @@ export class DataPipelineOrchestrator {
         });
 
         await job.updateProgress(100);
+
+        // Fires once when all 4 Tier-3 jobs for this project are complete.
+        // The writer is idempotent + debounced, so concurrent invocations
+        // from parallel workers are safe.
+        try {
+          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+        } catch (err) {
+          // Writer failure must never fail the worker — log and continue.
+          const message = err instanceof Error ? err.message : String(err);
+          this.db`
+            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+          `.catch(() => { /* best-effort */ });
+        }
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -296,6 +311,20 @@ export class DataPipelineOrchestrator {
         }
 
         await job.updateProgress(100);
+
+        // Fires once when all 4 Tier-3 jobs for this project are complete.
+        // The writer is idempotent + debounced, so concurrent invocations
+        // from parallel workers are safe.
+        try {
+          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+        } catch (err) {
+          // Writer failure must never fail the worker — log and continue.
+          const message = err instanceof Error ? err.message : String(err);
+          this.db`
+            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+          `.catch(() => { /* best-effort */ });
+        }
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -333,6 +362,20 @@ export class DataPipelineOrchestrator {
         }
 
         await job.updateProgress(100);
+
+        // Fires once when all 4 Tier-3 jobs for this project are complete.
+        // The writer is idempotent + debounced, so concurrent invocations
+        // from parallel workers are safe.
+        try {
+          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+        } catch (err) {
+          // Writer failure must never fail the worker — log and continue.
+          const message = err instanceof Error ? err.message : String(err);
+          this.db`
+            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+          `.catch(() => { /* best-effort */ });
+        }
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -370,6 +413,20 @@ export class DataPipelineOrchestrator {
         }
 
         await job.updateProgress(100);
+
+        // Fires once when all 4 Tier-3 jobs for this project are complete.
+        // The writer is idempotent + debounced, so concurrent invocations
+        // from parallel workers are safe.
+        try {
+          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+        } catch (err) {
+          // Writer failure must never fail the worker — log and continue.
+          const message = err instanceof Error ? err.message : String(err);
+          this.db`
+            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+          `.catch(() => { /* best-effort */ });
+        }
       },
       { connection: this.connOpts, concurrency: 2 },
     );
