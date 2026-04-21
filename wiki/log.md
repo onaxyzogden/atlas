@@ -4,6 +4,20 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-21 — Staging provisioning decision parked
+
+Considered executing `wiki/decisions/2026-04-20-atlas-staging-provisioning.md`
+immediately after Sprint BY. Declined on three grounds: no concrete audience
+for a staging URL (dev loop is fine on localhost), CC BY-NC-SA NC clause means
+any public URL needs auth/robots gating anyway, and $25/mo recurring is
+premature without a trigger. Decision doc updated to `Status: Parked`;
+revisit criteria documented inline (external viewer needs URL, feature requires
+non-local validation, or production launch within 4 weeks). Preserves Sprint BY
+gains — GAEZ pipeline runs fully against localhost — without drifting config
+files that would bitrot before deploy.
+
+---
+
 ### 2026-04-21 — GAEZ Automated Downloader (Sprint BY) — Option C Landed and Executed End-to-End
 - **Context:** Sprint BX shipped the operator preflight + smoke-test runbook but left the acquisition step manual (96 Data Viewer clicks against FAO's ArcGIS Hub SPA — Theme 4 has no bulk download; the v4 DATA ACCESS page literally says "Use Data Viewer" in its download column). BY implements the third and most ambitious option from the BX handback: a fully programmatic downloader that bypasses the portal entirely by talking to FAO's ArcGIS Image Service (`res05`) directly.
 - **Discovery (schema probe):** `https://gaez-services.fao.org/server/rest/services/res05/ImageServer` is a single-service catalog containing ALL GAEZ v4 themes (122,708 rows), with fields `crop`, `water_supply`, `input_level`, `sub_theme_name`, `variable`, `model`, `year`, and — critically — `download_url` pointing at a direct `s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/res05/…/*.tif` path (no auth, no license-page redirect). Theme 4 narrows via `sub_theme_name IN ('Suitability Class', 'Agro-ecological Attainable Yield ')` + `variable LIKE '…current cropland…'` + `year='1981-2010'` + `model='CRUTS32'`. Observed quirk: the yield sub-theme is stored with a trailing space in FAO's DB — filter matches both with/without for future-proofing.

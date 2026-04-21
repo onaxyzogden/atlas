@@ -1,6 +1,19 @@
 # 2026-04-20 -- Atlas Staging Environment Provisioning Plan
 
-**Status:** Proposed (no infrastructure provisioned yet)
+**Status:** Parked 2026-04-21 — no external trigger, revisit when one emerges
+**Original status:** Proposed (no infrastructure provisioned yet)
+
+> **Parked 2026-04-21.** Considered execution after Sprint BY landed. Declined
+> on three grounds: (1) no concrete audience for a staging URL yet — dev loop
+> is fine on localhost; (2) CC BY-NC-SA 3.0 IGO NC clause means any public URL
+> needs auth/robots gating, so "staging-for-me" is just an expensive localhost;
+> (3) $25/mo recurring commitment without a trigger is premature. **Revisit
+> when:** (a) an external viewer (investor, CSRA prospect, collaborator) needs
+> to click a URL, (b) a feature lands that requires non-local validation (CORS
+> against real web domain, shared state across devices, multi-user auth), or
+> (c) `atlas.ogden.ag` production launch is within 4 weeks and staging becomes
+> a launch-rehearsal dependency. Until then, keep shipping against localhost
+> and let the GAEZ manifest live in `apps/api/data/gaez/cog/` only.
 **Context:** Sprint BV landed the GAEZ v4 self-hosting code. Shipping it
 "to staging" is blocked because Atlas has no staging environment today --
 no deploy target, no S3 bucket for COGs, no DNS entry, no CI deploy job.
