@@ -72,6 +72,17 @@ interface SoilRegenSummary {
   restorationPriority?: string;
 }
 
+/**
+ * Format a possibly-numeric percentage that may arrive as a string
+ * ('Unknown', '4.2', etc.) or number from layer fetchers.
+ */
+function formatPct(value: unknown, fallback: string): string {
+  if (value == null) return fallback;
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return `${n.toFixed(1)}%`;
+}
+
 function scoreQuality(score: number): string {
   if (score >= 80) return 'Excellent';
   if (score >= 65) return 'Good';
@@ -362,9 +373,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {wetlands ? (
           <div className={css.wetlandCard}>
             <div className={css.wetlandGrid}>
-              <WetlandMetric label="Wetland Coverage" value={wetlands.wetland_pct != null ? `${wetlands.wetland_pct.toFixed(1)}%` : 'None mapped'} />
-              <WetlandMetric label="Riparian Buffer" value={wetlands.riparian_buffer_m != null ? `${wetlands.riparian_buffer_m}m` : 'Not detected'} />
-              <WetlandMetric label="Regulated Area" value={wetlands.regulated_area_pct != null ? `${wetlands.regulated_area_pct.toFixed(1)}%` : 'N/A'} />
+              <WetlandMetric label="Wetland Coverage" value={formatPct(wetlands.wetland_pct, 'None mapped')} />
+              <WetlandMetric label="Riparian Buffer" value={wetlands.riparian_buffer_m != null && Number.isFinite(Number(wetlands.riparian_buffer_m)) ? `${Number(wetlands.riparian_buffer_m)}m` : 'Not detected'} />
+              <WetlandMetric label="Regulated Area" value={formatPct(wetlands.regulated_area_pct, 'N/A')} />
               <WetlandMetric label="Flood Zone" value={wetlands.flood_zone ?? 'Not classified'} />
             </div>
             {wetlands.wetland_types && wetlands.wetland_types.length > 0 && (

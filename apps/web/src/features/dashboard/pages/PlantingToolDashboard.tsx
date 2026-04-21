@@ -145,7 +145,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
             {suitability.excluded.map((ex) => (
               <div key={ex.species.id} className={css.excludedItem}>
                 {ex.species.commonName}
-                <span className={css.excludedReason}>\u2014 {ex.reason}</span>
+                <span className={css.excludedReason}>— {ex.reason}</span>
               </div>
             ))}
           </div>
@@ -180,11 +180,11 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
         <h3 className={css.sectionLabel}>FROST-SAFE PLANTING WINDOWS</h3>
         <div className={css.windowCard}>
           <div className={css.windowTitle}>Spring Window</div>
-          <div className={css.windowDates}>{windows.springStart} \u2014 {windows.springEnd}</div>
+          <div className={css.windowDates}>{windows.springStart} — {windows.springEnd}</div>
         </div>
         <div className={css.windowCard}>
           <div className={css.windowTitle}>Fall Window</div>
-          <div className={css.windowDates}>{windows.fallStart} \u2014 {windows.fallEnd}</div>
+          <div className={css.windowDates}>{windows.fallStart} — {windows.fallEnd}</div>
         </div>
         <div className={css.spacingRow} style={{ marginTop: 8 }}>
           <span className={css.spacingLabel}>LAST FROST</span>
@@ -271,7 +271,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {yields.length > 0 && (
         <div className={css.section}>
           <h3 className={css.sectionLabel}>YIELD ESTIMATES</h3>
-          <span className={css.yieldBadge}>Estimate \u2014 not a projection</span>
+          <span className={css.yieldBadge}>Estimate — not a projection</span>
           {yields.map((y, i) => (
             <div key={i} className={css.yieldRow}>
               <span className={css.yieldSpecies}>

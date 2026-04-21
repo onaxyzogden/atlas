@@ -18,6 +18,14 @@ interface DashboardGroup {
 
 const DASHBOARD_GROUPS: DashboardGroup[] = [
   {
+    group: 'Site Overview',
+    color: group.hydrology,
+    items: [
+      { id: 'site-intelligence', label: 'Site Intelligence' },
+      { id: 'map-layers', label: 'Map Layers' },
+    ],
+  },
+  {
     group: 'Grazing & Livestock',
     color: group.livestock,
     items: [
@@ -132,6 +140,10 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
   };
 
   switch (id) {
+    case 'site-intelligence':
+      return <svg {...p}><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="3"/><circle cx="7" cy="7" r="1" fill={stroke}/><line x1="7" y1="0.5" x2="7" y2="2"/><line x1="7" y1="12" x2="7" y2="13.5"/><line x1="0.5" y1="7" x2="2" y2="7"/><line x1="12" y1="7" x2="13.5" y2="7"/></svg>;
+    case 'map-layers':
+      return <svg {...p}><polygon points="7 1.5 12.5 4.25 7 7 1.5 4.25 7 1.5"/><polyline points="1.5 7 7 9.75 12.5 7"/><polyline points="1.5 9.75 7 12.5 12.5 9.75"/></svg>;
     case 'paddock-design':
       return <svg {...p}><rect x="1" y="1" width="12" height="12" rx="1"/><line x1="1" y1="6" x2="7" y2="6"/><line x1="7" y1="1" x2="7" y2="13"/></svg>;
     case 'herd-rotation':

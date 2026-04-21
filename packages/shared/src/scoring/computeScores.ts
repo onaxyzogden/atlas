@@ -60,8 +60,19 @@ export interface DataLayerRow {
   confidence: 'High' | 'Medium' | 'Low';
 }
 
+export type LiveDataIconKey =
+  | 'elevation'
+  | 'climate'
+  | 'soil'
+  | 'wetlands'
+  | 'hydrology';
+
 export interface LiveDataRow {
-  icon: string;
+  /**
+   * Semantic icon key — renderer decides which glyph to show.
+   * Web maps to a Lucide icon component; keeps this module renderer-agnostic.
+   */
+  icon: LiveDataIconKey;
   label: string;
   value: string;
   detail?: string;
@@ -2112,7 +2123,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
   // Elevation
   if (elevation) {
     rows.push({
-      icon: '\u25B2',
+      icon: 'elevation',
       label: 'Elevation',
       value: `${s(elevation, 'min_elevation_m')}\u2013${s(elevation, 'max_elevation_m')} m`,
       confidence: normalizeConfidence(elevation.confidence),
@@ -2123,7 +2134,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
   // Climate
   if (climate) {
     rows.push({
-      icon: '\u25CF',
+      icon: 'climate',
       label: 'Climate',
       value: `${s(climate, 'annual_precip_mm')} mm/yr \u00B7 ${s(climate, 'growing_season_days')} frost-free`,
       detail: `Hardiness zone ${s(climate, 'hardiness_zone')}`,
@@ -2135,7 +2146,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
   // Soil
   if (soilsLayer) {
     rows.push({
-      icon: '\u25C9',
+      icon: 'soil',
       label: 'Soil',
       value: `${s(soilsLayer, 'predominant_texture')}, ${s(soilsLayer, 'drainage_class')}`,
       detail: `${s(soilsLayer, 'farmland_class')}`,
@@ -2148,7 +2159,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
   if (wetlands) {
     const wp = num(wetlands, 'wetland_pct');
     rows.push({
-      icon: '\u224B',
+      icon: 'wetlands',
       label: 'Wetlands',
       value: wp > 0 ? `${wp}% of area` : 'None detected',
       confidence: normalizeConfidence(wetlands.confidence),
@@ -2160,7 +2171,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
   if (watershed) {
     const stream = num(watershed, 'nearest_stream_m');
     rows.push({
-      icon: '\u223F',
+      icon: 'hydrology',
       label: 'Hydrology',
       value: stream > 0 ? `${stream}m to nearest stream` : 'No streams detected',
       confidence: normalizeConfidence(watershed.confidence),

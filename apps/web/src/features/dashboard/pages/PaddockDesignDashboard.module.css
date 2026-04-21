@@ -1,6 +1,10 @@
 /* PaddockDesignDashboard */
 
-.page { max-width: 860px; }
+.page {
+  max-width: 860px;
+  container-type: inline-size;
+  container-name: paddockPage;
+}
 
 .title {
   font-family: var(--font-display, 'Lora', Georgia, serif);
@@ -26,6 +30,13 @@
   margin-bottom: 24px;
 }
 @media (max-width: 768px) { .summaryRow { grid-template-columns: repeat(2, 1fr); } }
+@container paddockPage (max-width: 520px) {
+  .summaryRow { grid-template-columns: repeat(2, 1fr); }
+}
+@container paddockPage (max-width: 360px) {
+  .summaryValue { font-size: 20px; }
+  .summaryCard { padding: 12px 10px; }
+}
 
 .summaryCard {
   padding: 16px;
@@ -58,6 +69,11 @@
   margin-bottom: 28px;
 }
 @media (max-width: 768px) { .paddockGrid { grid-template-columns: 1fr; } }
+@container paddockPage (max-width: 520px) {
+  .paddockGrid { grid-template-columns: 1fr; }
+  .paddockCard { padding: 14px; }
+  .paddockName { font-size: 15px; }
+}
 
 .paddockCard {
   padding: 18px;
@@ -169,6 +185,22 @@
   transition: background 100ms;
 }
 .scheduleRow:hover { background: rgba(255,255,255,0.02); }
+
+@container paddockPage (max-width: 520px) {
+  .scheduleSection { padding: 14px; }
+  .scheduleHeaderRow,
+  .scheduleRow {
+    grid-template-columns: 1.4fr 1fr 0.8fr;
+    gap: 6px;
+    padding: 8px 6px;
+  }
+  /* Hide the 4th (notes) column in narrow containers */
+  .scheduleHeaderRow > :nth-child(4),
+  .scheduleRow > :nth-child(4) { display: none; }
+  .scheduleCell { font-size: 12px; }
+  .title { font-size: 22px; }
+  .desc { font-size: 12px; margin-bottom: 16px; }
+}
 
 .scheduleCell {
   font-size: 13px;

@@ -78,7 +78,7 @@ export const useUIStore = create<UIState>()(
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
       // Navigation context
-      activeDashboardSection: 'grazing-analysis',
+      activeDashboardSection: 'site-intelligence',
       setActiveDashboardSection: (section) => set({ activeDashboardSection: section }),
       pendingMapContext: false,
       setPendingMapContext: (v) => set({ pendingMapContext: v }),

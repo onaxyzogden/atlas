@@ -35,6 +35,21 @@ export type SidebarView =
   | 'zoning'
   | 'siting'
   | 'settings'
+  // Dashboard-page-backed panels (mount the same dashboard component in the map rail)
+  | 'terrain'
+  | 'cartographic'
+  | 'ecological'
+  | 'stewardship'
+  | 'climate'
+  | 'planting'
+  | 'forest'
+  | 'carbon'
+  | 'nursery'
+  // Livestock sub-section panels (each routes to its own dashboard page)
+  | 'paddockDesign'
+  | 'herdRotation'
+  | 'grazingAnalysis'
+  | 'livestockInventory'
   | null;
 
 // Granular navigation item id (what appears highlighted in the sidebar)

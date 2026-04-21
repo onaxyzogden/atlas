@@ -24,7 +24,7 @@ import {
   computeForageQuality,
   type RecoveryStatus,
 } from '../../livestock/livestockAnalysis.js';
-import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
+import { LIVESTOCK_SPECIES, computeAnimalUnits } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './HerdRotationDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
@@ -153,10 +153,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
     [paddocks],
   );
 
-  const totalHead = useMemo(
-    () => inventory.reduce((sum, e) => sum + e.totalHead, 0),
-    [inventory],
-  );
+  const totalAU = useMemo(() => computeAnimalUnits(inventory), [inventory]);
 
   /* ---------- Hero: dominant group & species ---------- */
   const heroInfo = useMemo(() => {
@@ -410,8 +407,13 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
         <div className={css.quickStats}>
           <div className={css.quickStat}>
-            <span className={css.quickStatLabel}>Herd Size</span>
-            <span className={css.quickStatValue}>{totalHead} head</span>
+            <span
+              className={css.quickStatLabel}
+              title="1 AU = livestock excreting 73 kg N per year (Manitoba Schedule A)"
+            >
+              Animal Units
+            </span>
+            <span className={css.quickStatValue}>{totalAU.toFixed(1)} AU</span>
           </div>
           <div className={css.quickStat}>
             <span className={css.quickStatLabel}>Water Points</span>
@@ -436,14 +438,6 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
           />
         ))}
       </div>
-
-      {/* CTA */}
-      <button className={css.ctaButton} onClick={onSwitchToMap}>
-        INITIATE HERD ROTATION
-        <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 8H13M10 5L13 8L10 11" />
-        </svg>
-      </button>
 
       {/* Site environment bar */}
       <div className={css.coordsBar}>

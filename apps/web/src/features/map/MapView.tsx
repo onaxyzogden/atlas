@@ -29,6 +29,7 @@ import { useMapStore } from '../../store/mapStore.js';
 import { getDomainContext, type DomainKey } from './domainMapping.js';
 import { map as mapTokens, group } from '../../lib/tokens.js';
 import css from './MapView.module.css';
+import './mapRailDashboard.css';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
@@ -52,7 +53,21 @@ const ScenarioPanel = lazy(() => import('../scenarios/ScenarioPanel.js'));
 const TemplatePanel = lazy(() => import('../templates/TemplatePanel.js'));
 const ReportingPanel = lazy(() => import('../reporting/ReportingPanel.js'));
 const FieldworkPanel = lazy(() => import('../fieldwork/FieldworkPanel.js'));
-const LivestockPanel = lazy(() => import('../livestock/LivestockPanel.js'));
+const PaddockDesignDashboard = lazy(() => import('../dashboard/pages/PaddockDesignDashboard.js'));
+const HerdRotationDashboard = lazy(() => import('../dashboard/pages/HerdRotationDashboard.js'));
+const GrazingDashboard = lazy(() => import('../dashboard/pages/GrazingDashboard.js'));
+const LivestockDashboard = lazy(() => import('../dashboard/pages/LivestockDashboard.js'));
+const PaddockListFloating = lazy(() => import('../livestock/PaddockListFloating.js'));
+// Dashboard-page-backed rail panels (parity with dashboard view)
+const TerrainDashboard = lazy(() => import('../dashboard/pages/TerrainDashboard.js'));
+const CartographicDashboard = lazy(() => import('../dashboard/pages/CartographicDashboard.js'));
+const EcologicalDashboard = lazy(() => import('../dashboard/pages/EcologicalDashboard.js'));
+const StewardshipDashboard = lazy(() => import('../dashboard/pages/StewardshipDashboard.js'));
+const SolarClimateDashboard = lazy(() => import('../climate/SolarClimateDashboard.js'));
+const PlantingToolDashboard = lazy(() => import('../dashboard/pages/PlantingToolDashboard.js'));
+const ForestHubDashboard = lazy(() => import('../dashboard/pages/ForestHubDashboard.js'));
+const CarbonDiagnosticDashboard = lazy(() => import('../dashboard/pages/CarbonDiagnosticDashboard.js'));
+const NurseryLedgerDashboard = lazy(() => import('../dashboard/pages/NurseryLedgerDashboard.js'));
 const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
 const ZonePanel = lazy(() => import('../zones/ZonePanel.js'));
 const SitingPanel = lazy(() => import('../rules/SitingPanel.js'));
@@ -368,6 +383,17 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             />
           </Suspense>
         )}
+
+        {!isMobile && (
+          activeView === 'paddockDesign' ||
+          activeView === 'herdRotation' ||
+          activeView === 'grazingAnalysis' ||
+          activeView === 'livestockInventory'
+        ) && (
+          <Suspense fallback={null}>
+            <PaddockListFloating projectId={project.id} draw={drawRef} map={mapRef} />
+          </Suspense>
+        )}
       </div>
 
       {/* Right panel content */}
@@ -431,7 +457,71 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} />
               )}
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
-              {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'paddockDesign' && (
+                <div className="map-rail-dashboard">
+                  <PaddockDesignDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'herdRotation' && (
+                <div className="map-rail-dashboard">
+                  <HerdRotationDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'grazingAnalysis' && (
+                <div className="map-rail-dashboard">
+                  <GrazingDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'livestockInventory' && (
+                <div className="map-rail-dashboard">
+                  <LivestockDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'terrain' && (
+                <div className="map-rail-dashboard">
+                  <TerrainDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'cartographic' && (
+                <div className="map-rail-dashboard">
+                  <CartographicDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'ecological' && (
+                <div className="map-rail-dashboard">
+                  <EcologicalDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'stewardship' && (
+                <div className="map-rail-dashboard">
+                  <StewardshipDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'climate' && (
+                <div className="map-rail-dashboard">
+                  <SolarClimateDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'planting' && (
+                <div className="map-rail-dashboard">
+                  <PlantingToolDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'forest' && (
+                <div className="map-rail-dashboard">
+                  <ForestHubDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'carbon' && (
+                <div className="map-rail-dashboard">
+                  <CarbonDiagnosticDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'nursery' && (
+                <div className="map-rail-dashboard">
+                  <NurseryLedgerDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
               {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
               {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} canEdit={effectiveCanEdit} />}
               {activeView === 'siting' && <SitingPanel project={project} />}

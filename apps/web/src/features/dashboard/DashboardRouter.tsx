@@ -19,6 +19,8 @@ function PanelShell({ name, children }: { name: string; children: ReactNode }) {
   );
 }
 
+const SiteIntelligenceDashboard = lazy(() => import('./pages/SiteIntelligenceDashboard.js'));
+const MapLayersDashboard = lazy(() => import('./pages/MapLayersDashboard.js'));
 const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
 const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
 const LivestockDashboard = lazy(() => import('./pages/LivestockDashboard.js'));
@@ -52,6 +54,18 @@ const SECTION_LABELS: Record<string, string> = {
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
   switch (section) {
+    case 'site-intelligence':
+      return (
+        <PanelShell name="Site Intelligence">
+          <SiteIntelligenceDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'map-layers':
+      return (
+        <PanelShell name="Map Layers">
+          <MapLayersDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
     case 'grazing-analysis':
       return (
         <PanelShell name="Grazing Analysis">

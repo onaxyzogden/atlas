@@ -730,6 +730,20 @@
   box-sizing: border-box;
 }
 
+/* Native <select> option rendering ignores most CSS, but background and color
+   do apply cross-browser. Force a dark panel + readable text so the dropdown
+   doesn't fall back to the OS default (white bg / faint grey text) and become
+   unreadable on our dark theme. */
+.formInput option {
+  background: var(--color-panel-bg, #1a1a1a);
+  color: var(--color-panel-text);
+}
+.formInput option:checked,
+.formInput option:hover {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-text);
+}
+
 .formTextarea {
   resize: vertical;
   margin-bottom: 16px;

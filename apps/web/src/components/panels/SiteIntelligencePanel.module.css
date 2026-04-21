@@ -146,9 +146,10 @@
 }
 
 .liveDataIcon {
-  font-size: var(--text-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  text-align: center;
   flex-shrink: 0;
 }
 
@@ -289,8 +290,11 @@
 }
 
 .riskIcon {
+  display: inline-flex;
+  align-items: flex-start;
   color: var(--color-confidence-low);
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .flagContent {
@@ -477,9 +481,10 @@
 }
 
 .blockingAlertIcon {
+  display: inline-flex;
+  align-items: flex-start;
   color: var(--color-error);
   flex-shrink: 0;
-  font-size: 14px;
   margin-top: 1px;
 }
 

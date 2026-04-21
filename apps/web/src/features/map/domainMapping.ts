@@ -15,8 +15,14 @@ export type DomainKey =
   | 'hydrology'
   | 'terrain'
   | 'ecology'
-  | 'livestock'
-  | 'forestry'
+  | 'paddockDesign'
+  | 'herdRotation'
+  | 'grazingAnalysis'
+  | 'livestockInventory'
+  | 'plantingTool'
+  | 'forestHub'
+  | 'carbonDiagnostic'
+  | 'nurseryLedger'
   | 'cartographic'
   | 'default';
 
@@ -30,6 +36,18 @@ export interface DomainContext {
 
 // Dashboard section → map context
 export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
+  'site-intelligence': {
+    subItem: 'site-assessment',
+    panel: 'intelligence',
+    layers: [],
+    domain: 'default',
+  },
+  'map-layers': {
+    subItem: 'terrain-viz',
+    panel: 'layers',
+    layers: [],
+    domain: 'default',
+  },
   'hydrology-dashboard': {
     subItem: 'hydrology-basic',
     panel: 'hydrology',
@@ -38,25 +56,25 @@ export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
   },
   'terrain-dashboard': {
     subItem: 'terrain-viz',
-    panel: 'layers',
+    panel: 'terrain',
     layers: ['elevation'],
     domain: 'terrain',
   },
   'cartographic': {
     subItem: 'site-data',
-    panel: 'intelligence',
+    panel: 'cartographic',
     layers: ['land_cover', 'zoning'],
     domain: 'cartographic',
   },
   'ecological': {
     subItem: 'site-assessment',
-    panel: 'intelligence',
+    panel: 'ecological',
     layers: ['land_cover', 'soils'],
     domain: 'ecology',
   },
   'stewardship': {
     subItem: 'soil-ecology',
-    panel: 'intelligence',
+    panel: 'stewardship',
     layers: ['land_cover', 'soils'],
     domain: 'ecology',
   },
@@ -68,51 +86,81 @@ export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
   },
   'grazing-analysis': {
     subItem: 'livestock',
-    panel: 'livestock',
+    panel: 'grazingAnalysis',
     layers: ['land_cover', 'soils'],
-    domain: 'livestock',
+    domain: 'grazingAnalysis',
   },
   'herd-rotation': {
     subItem: 'livestock',
-    panel: 'livestock',
+    panel: 'herdRotation',
     layers: ['land_cover', 'soils'],
-    domain: 'livestock',
+    domain: 'herdRotation',
   },
   'paddock-design': {
     subItem: 'livestock',
-    panel: 'livestock',
+    panel: 'paddockDesign',
     layers: ['land_cover', 'soils'],
-    domain: 'livestock',
+    domain: 'paddockDesign',
   },
   'livestock-inventory': {
     subItem: 'livestock',
-    panel: 'livestock',
+    panel: 'livestockInventory',
     layers: ['land_cover', 'soils'],
-    domain: 'livestock',
+    domain: 'livestockInventory',
   },
   'planting-tool': {
     subItem: 'crops',
-    panel: 'intelligence',
+    panel: 'planting',
     layers: ['soils', 'land_cover'],
-    domain: 'forestry',
+    domain: 'plantingTool',
   },
   'forest-hub': {
     subItem: 'crops',
-    panel: 'intelligence',
+    panel: 'forest',
     layers: ['soils', 'land_cover'],
-    domain: 'forestry',
+    domain: 'forestHub',
   },
   'carbon-diagnostic': {
     subItem: 'crops',
-    panel: 'intelligence',
+    panel: 'carbon',
     layers: ['soils', 'land_cover'],
-    domain: 'forestry',
+    domain: 'carbonDiagnostic',
   },
   'nursery-ledger': {
     subItem: 'crops',
-    panel: 'intelligence',
+    panel: 'nursery',
     layers: ['soils', 'land_cover'],
-    domain: 'forestry',
+    domain: 'nurseryLedger',
+  },
+  'climate': {
+    subItem: 'solar-climate',
+    panel: 'climate',
+    layers: ['climate'],
+    domain: 'default',
+  },
+  'economics': {
+    subItem: 'economics',
+    panel: 'economic',
+    layers: [],
+    domain: 'default',
+  },
+  'scenarios': {
+    subItem: 'scenarios',
+    panel: 'scenarios',
+    layers: [],
+    domain: 'default',
+  },
+  'investor-summary': {
+    subItem: 'economics',
+    panel: 'economic',
+    layers: [],
+    domain: 'default',
+  },
+  'regulatory': {
+    subItem: 'regulatory',
+    panel: 'regulatory',
+    layers: [],
+    domain: 'default',
   },
   'siting-rules': {
     subItem: 'siting-rules',

@@ -83,6 +83,58 @@ export const LIVESTOCK_SPECIES: Record<LivestockSpecies, LivestockSpeciesInfo> =
   },
 };
 
+/**
+ * Animal Unit (AU) conversion factors per head of livestock.
+ *
+ * An Animal Unit is defined as the number of livestock required to excrete
+ * 73 kg (160 lbs) of nitrogen in a 12-month period — the canonical metric
+ * used in regulatory stocking-density and manure-management calculations.
+ *
+ * Source: Manitoba Agriculture, Food and Rural Development —
+ *   "Schedule A — Animal Unit (A.U.) Worksheet".
+ *
+ * Because this app's species taxonomy is coarser than Schedule A (which
+ * distinguishes e.g. beef cow vs feedlot, sows farrow-to-finish vs
+ * grower/finisher), each species below uses a single representative factor
+ * chosen for the most common pasture / rotational-grazing interpretation:
+ *   - cattle      = Beef Cows, inc. associated livestock (Schedule A)
+ *   - sheep       = Ewes, inc. associated livestock       (Schedule A)
+ *   - horses      = Mares (PMU), inc. associated          (Schedule A)
+ *   - pigs        = Grower/finishers                      (Schedule A)
+ *   - poultry     = Broilers                              (Schedule A)
+ *   - goats       ≈ Ewes (not in Schedule A; similar N output)
+ *   - ducks_geese ≈ Turkey Broilers (not in Schedule A)
+ *   - rabbits     ≈ Turkey Broilers (not in Schedule A)
+ *   - bees        = 0 (no mammalian/avian N excretion basis)
+ *
+ * Future work may let projects pick Schedule A subcategories per inventory
+ * row for stricter regulatory fidelity.
+ */
+export const AU_FACTORS: Record<LivestockSpecies, number> = {
+  cattle: 1.250,
+  sheep: 0.200,
+  goats: 0.200,        // approximation — not in Schedule A
+  horses: 1.333,
+  pigs: 0.143,
+  poultry: 0.0050,
+  ducks_geese: 0.010,  // approximation — not in Schedule A
+  rabbits: 0.010,      // approximation — not in Schedule A
+  bees: 0,
+};
+
+/**
+ * Sum Animal Units across a livestock inventory.
+ * Safe to call with an empty array or unknown species (defaults to 0).
+ */
+export function computeAnimalUnits(
+  inventory: Array<{ species: LivestockSpecies; totalHead: number }>,
+): number {
+  return inventory.reduce(
+    (sum, e) => sum + e.totalHead * (AU_FACTORS[e.species] ?? 0),
+    0,
+  );
+}
+
 export interface CropTypeInfo {
   label: string;
   icon: string;

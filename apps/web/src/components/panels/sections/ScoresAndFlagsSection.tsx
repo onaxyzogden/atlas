@@ -11,12 +11,26 @@
  */
 
 import { memo } from 'react';
+import type { ComponentType, SVGProps } from 'react';
+import { OctagonX, Mountain, Thermometer, Layers, Waves, Droplets } from 'lucide-react';
 import { SectionProfiler } from '../../../lib/perfProfiler.js';
 import { confidence, semantic } from '../../../lib/tokens.js';
 import { ConfBadge, ScoreCircle } from './_shared.js';
 import { capConf } from './_helpers.js';
 import s from '../SiteIntelligencePanel.module.css';
 import p from '../../../styles/panel.module.css';
+
+// Map LiveDataRow icon keys (renderer-agnostic, declared in shared scoring)
+// to Lucide icon components. Keeping the lookup here means the shared scoring
+// module stays free of React/Lucide imports.
+type IconComp = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
+const LIVE_DATA_ICONS: Record<string, IconComp> = {
+  elevation: Mountain,
+  climate: Thermometer,
+  soil: Layers,
+  wetlands: Waves,
+  hydrology: Droplets,
+};
 
 export interface BlockingFlag {
   id: string;
@@ -38,7 +52,8 @@ export interface LayerCompletenessRow {
 export interface LiveDataRow {
   label: string;
   value: string;
-  icon: string;
+  /** Icon key — resolved to a Lucide component via LIVE_DATA_ICONS. */
+  icon: 'elevation' | 'climate' | 'soil' | 'wetlands' | 'hydrology';
   color: string;
   confidence: 'High' | 'Medium' | 'Low';
   detail?: string;
@@ -88,7 +103,9 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
         <div className={s.blockingAlertWrap}>
           {blockingFlags.map((flag) => (
             <div key={flag.id} className={s.blockingAlert}>
-              <span className={s.blockingAlertIcon}>{'\u26D4'}</span>
+              <span className={s.blockingAlertIcon} aria-hidden="true">
+                <OctagonX size={20} strokeWidth={1.75} />
+              </span>
               <div style={{ flex: 1 }}>
                 <span>{flag.message}</span>
                 <div style={{ marginTop: 2 }}>
@@ -180,10 +197,12 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
 
         {liveDataOpen && (<>
           <div className={p.innerPad}>
-            {liveData.map((row) => (
+            {liveData.map((row) => {
+              const Icon = LIVE_DATA_ICONS[row.icon];
+              return (
               <div key={row.label} className={s.liveDataRow}>
-                <span className={s.liveDataIcon} style={{ color: row.color }}>
-                  {row.icon}
+                <span className={s.liveDataIcon} style={{ color: row.color }} aria-hidden="true">
+                  {Icon ? <Icon size={14} strokeWidth={1.75} /> : null}
                 </span>
                 <span className={s.liveDataLabel}>{row.label}</span>
                 <div className={p.rightAlign}>
@@ -196,7 +215,8 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
                 )}
                 <ConfBadge level={row.confidence} />
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {consAuth && (

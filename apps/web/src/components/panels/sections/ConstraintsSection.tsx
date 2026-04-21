@@ -8,6 +8,7 @@
  */
 
 import { memo } from 'react';
+import { OctagonX, TriangleAlert } from 'lucide-react';
 import type { AssessmentFlag } from '@ogden/shared';
 import type { AIEnrichmentState } from '../../../store/siteDataStore.js';
 import { SectionProfiler } from '../../../lib/perfProfiler.js';
@@ -40,8 +41,11 @@ export const ConstraintsSection = memo(function ConstraintsSection({
               <span
                 className={s.riskIcon}
                 style={{ color: severityColor(flag.severity, confidence.low) }}
+                aria-hidden="true"
               >
-                {flag.severity === 'critical' ? '\u26D4' : '\u26A0'}
+                {flag.severity === 'critical'
+                  ? <OctagonX size={16} strokeWidth={1.75} />
+                  : <TriangleAlert size={16} strokeWidth={1.75} />}
               </span>
               <div className={s.flagContent}>
                 <span>{flag.message}</span>
