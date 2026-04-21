@@ -31,6 +31,13 @@ interface ManifestEntry {
   suitabilityFile: string | null;
   yieldFile: string | null;
   units: { suitability: string; yield: string };
+  /**
+   * Climate scenario this entry describes (e.g. 'baseline_1981_2010',
+   * 'rcp85_2041_2070'). Optional for backward compatibility with manifests
+   * written before Sprint CD — when absent, callers fall back to the
+   * top-level `climate_scenario` on the manifest. See `getEntryScenario`.
+   */
+  scenario?: string;
 }
 
 interface Manifest {
@@ -152,30 +159,51 @@ export class GaezRasterService {
   }
 
   /**
+   * Sprint CD — resolve the effective scenario string for a manifest entry.
+   * Per-entry `scenario` wins; then the manifest-level `climate_scenario`;
+   * then the historical default `baseline_1981_2010` for manifests written
+   * before Sprint CD introduced the scenario dimension.
+   */
+  private getEntryScenario(entry: ManifestEntry): string {
+    return entry.scenario
+      ?? this.manifest?.climate_scenario
+      ?? 'baseline_1981_2010';
+  }
+
+  /**
    * Sprint CB — public read accessor for the manifest, used by the
    * `/api/v1/gaez/catalog` route to populate the map-side crop picker.
    *
-   * Returns one entry per (crop, waterSupply, inputLevel) tuple with the set
-   * of variables ("suitability" and/or "yield") that have rasters on disk.
+   * Returns one entry per (crop, waterSupply, inputLevel, scenario) tuple
+   * with the set of variables ("suitability" and/or "yield") that have
+   * rasters on disk.
+   *
+   * Sprint CD — optional `scenario` filter restricts the result set to
+   * entries that resolve (via `getEntryScenario`) to that scenario string.
+   * Omit the argument to return every entry.
    */
-  getManifestEntries(): Array<{
+  getManifestEntries(scenario?: string): Array<{
     crop: string;
     waterSupply: string;
     inputLevel: string;
+    scenario: string;
     variables: ('suitability' | 'yield')[];
   }> {
     if (!this.manifest) return [];
-    return Object.values(this.manifest.entries).map((entry) => {
-      const variables: ('suitability' | 'yield')[] = [];
-      if (entry.suitabilityFile) variables.push('suitability');
-      if (entry.yieldFile) variables.push('yield');
-      return {
-        crop: entry.crop,
-        waterSupply: entry.waterSupply,
-        inputLevel: entry.inputLevel,
-        variables,
-      };
-    });
+    return Object.values(this.manifest.entries)
+      .filter((e) => scenario === undefined || this.getEntryScenario(e) === scenario)
+      .map((entry) => {
+        const variables: ('suitability' | 'yield')[] = [];
+        if (entry.suitabilityFile) variables.push('suitability');
+        if (entry.yieldFile) variables.push('yield');
+        return {
+          crop: entry.crop,
+          waterSupply: entry.waterSupply,
+          inputLevel: entry.inputLevel,
+          scenario: this.getEntryScenario(entry),
+          variables,
+        };
+      });
   }
 
   /**
@@ -189,6 +217,7 @@ export class GaezRasterService {
    * route layer should 404 or redirect; we don't proxy S3 bytes.
    */
   resolveLocalFilePath(
+    scenario: string,
     crop: string,
     waterSupply: string,
     inputLevel: string,
@@ -197,7 +226,10 @@ export class GaezRasterService {
     if (this.s3Prefix) return null;
     if (!this.manifest) return null;
     const match = Object.values(this.manifest.entries).find(
-      (e) => e.crop === crop && e.waterSupply === waterSupply && e.inputLevel === inputLevel,
+      (e) => this.getEntryScenario(e) === scenario
+          && e.crop === crop
+          && e.waterSupply === waterSupply
+          && e.inputLevel === inputLevel,
     );
     if (!match) return null;
     const filename = variable === 'suitability' ? match.suitabilityFile : match.yieldFile;
@@ -209,9 +241,13 @@ export class GaezRasterService {
    * Query all manifest entries at (lat, lng); returns per-crop suitability +
    * attainable yield plus a derived summary (best crop, top-3).
    *
+   * Sprint CD — optional `scenario` filter restricts the sampled entries to
+   * those whose effective scenario (per `getEntryScenario`) matches. Omit to
+   * sample every manifest entry (historical behavior).
+   *
    * Returns `{ summary: null, fetch_status: 'unavailable' }` if manifest is empty.
    */
-  async query(lat: number, lng: number): Promise<GaezQueryResult> {
+  async query(lat: number, lng: number, scenario?: string): Promise<GaezQueryResult> {
     if (!this.manifest || !this.isEnabled()) {
       return {
         fetch_status: 'unavailable',
@@ -223,7 +259,8 @@ export class GaezRasterService {
       };
     }
 
-    const entries = Object.values(this.manifest.entries);
+    const entries = Object.values(this.manifest.entries)
+      .filter((e) => scenario === undefined || this.getEntryScenario(e) === scenario);
     const results: CropSuitabilityResult[] = [];
 
     await Promise.all(

@@ -38,9 +38,9 @@ vi.mock('../plugins/redis.js', async () => {
 const gaezFake = {
   isEnabled: vi.fn<() => boolean>(),
   query:     vi.fn(),
-  getManifestEntries: vi.fn<() => Array<{ crop: string; waterSupply: string; inputLevel: string; variables: string[] }>>(),
+  getManifestEntries: vi.fn<(scenario?: string) => Array<{ crop: string; waterSupply: string; inputLevel: string; scenario?: string; variables: string[] }>>(),
   getAttribution:     vi.fn<() => string>(),
-  resolveLocalFilePath: vi.fn<(c: string, w: string, i: string, v: string) => string | null>(),
+  resolveLocalFilePath: vi.fn<(s: string, c: string, w: string, i: string, v: string) => string | null>(),
 };
 
 vi.mock('../services/gaez/GaezRasterService.js', () => ({
@@ -171,7 +171,7 @@ describe('GET /api/v1/gaez/query â€” service interaction', () => {
     expect(body.error).toBeNull();
     expect(body.data.fetch_status).toBe('complete');
     expect(body.data.summary.best_crop).toBe('maize');
-    expect(gaezFake.query).toHaveBeenCalledWith(40, -80);
+    expect(gaezFake.query).toHaveBeenCalledWith(40, -80, undefined);
   });
 
   it('returns 200 + failed when service.query throws', async () => {
@@ -269,7 +269,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: authHeader(),
     });
     expect(res.statusCode).toBe(200);
@@ -286,7 +286,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { ...authHeader(), range: 'bytes=0-1023' },
     });
     expect(res.statusCode).toBe(206);
@@ -302,7 +302,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { ...authHeader(), range: 'bytes=4000-' },
     });
     expect(res.statusCode).toBe(206);
@@ -315,7 +315,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { ...authHeader(), range: 'pages=0-10' },
     });
     expect(res.statusCode).toBe(416);
@@ -326,7 +326,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { ...authHeader(), range: `bytes=${TOTAL}-${TOTAL + 100}` },
     });
     expect(res.statusCode).toBe(416);
@@ -336,7 +336,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.isEnabled.mockReturnValue(true);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/malware',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/malware',
       headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
@@ -348,7 +348,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(null);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/nope/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/nope/rainfed/high/suitability',
       headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
@@ -358,7 +358,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.isEnabled.mockReturnValue(false);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
@@ -369,7 +369,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(pjoin(tmpdir(), 'does-not-exist-xyz.tif'));
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { authorization: `Bearer ${app.jwt.sign({ sub: 'test-user', email: 't@t' })}` },
     });
     expect(res.statusCode).toBe(404);
@@ -388,7 +388,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
     });
     expect(res.statusCode).toBe(401);
     // Should short-circuit before touching the service.
@@ -400,7 +400,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { authorization: 'Bearer garbage.not.a.jwt' },
     });
     expect(res.statusCode).toBe(401);
@@ -413,12 +413,63 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const token = app.jwt.sign({ sub: 'test-user', email: 'test@test' });
     const res = await app.inject({
       method: 'GET',
-      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      url:    '/api/v1/gaez/raster/baseline_1981_2010/maize/rainfed/high/suitability',
       headers: { authorization: `Bearer ${token}` },
     });
     expect(res.statusCode).toBe(200);
     expect(res.headers['accept-ranges']).toBe('bytes');
     expect(res.rawPayload.length).toBe(TOTAL);
+  });
+
+  // ─── Sprint CD: scenario dimension ────────────────────────────────────────
+
+  it('returns 400 when scenario path segment is malformed (contains slash or uppercase)', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/gaez/raster/Baseline_1981_2010/maize/rainfed/high/suitability',
+      headers: authHeader(),
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 404 when scenario is well-formed but not in manifest', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(null);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/gaez/raster/rcp85_2041_2070/maize/rainfed/high/suitability',
+      headers: authHeader(),
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+// ─── Sprint CD: scenario query-param plumbing on /catalog and /query ────────
+
+describe('Sprint CD — scenario query param', () => {
+  it('/catalog filters by scenario query param when supplied', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.getManifestEntries.mockReturnValue([
+      { crop: 'maize', waterSupply: 'rainfed', inputLevel: 'high', scenario: 'baseline_1981_2010', variables: ['suitability', 'yield'] },
+    ]);
+    const res = await app.inject({ method: 'GET', url: '/api/v1/gaez/catalog?scenario=baseline_1981_2010' });
+    expect(res.statusCode).toBe(200);
+    expect(gaezFake.getManifestEntries).toHaveBeenCalledWith('baseline_1981_2010');
+  });
+
+  it('/query passes scenario to service when supplied', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.query.mockResolvedValue({ fetch_status: 'complete' } as unknown as ReturnType<typeof gaezFake.query> extends Promise<infer R> ? R : never);
+    await app.inject({ method: 'GET', url: '/api/v1/gaez/query?lat=40&lng=-80&scenario=rcp85_2041_2070' });
+    expect(gaezFake.query).toHaveBeenCalledWith(40, -80, 'rcp85_2041_2070');
+  });
+
+  it('/query calls service without scenario when param omitted', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.query.mockResolvedValue({ fetch_status: 'complete' } as unknown as ReturnType<typeof gaezFake.query> extends Promise<infer R> ? R : never);
+    await app.inject({ method: 'GET', url: '/api/v1/gaez/query?lat=40&lng=-80' });
+    expect(gaezFake.query).toHaveBeenCalledWith(40, -80, undefined);
   });
 });
 

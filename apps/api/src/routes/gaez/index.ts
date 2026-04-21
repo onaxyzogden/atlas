@@ -4,13 +4,16 @@
  * Public endpoints (no auth) — match the elevation proxy pattern.
  * Attribution: FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO.
  *
- *   GET /api/v1/gaez/query?lat=&lng=
- *     Point-query across all manifest entries.
+ *   GET /api/v1/gaez/query?lat=&lng=[&scenario=]
+ *     Point-query across manifest entries. Sprint CD adds optional scenario
+ *     filter (lowercase alphanumeric + underscore); omitting it preserves the
+ *     pre-CD behavior of sampling every entry.
  *
- *   GET /api/v1/gaez/catalog                      (Sprint CB)
+ *   GET /api/v1/gaez/catalog[?scenario=]           (Sprint CB; Sprint CD filter)
  *     Manifest summary for the frontend crop picker.
  *
- *   GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable   (Sprint CB)
+ *   GET /api/v1/gaez/raster/:scenario/:crop/:waterSupply/:inputLevel/:variable
+ *     (Sprint CB; Sprint CD added :scenario as first path segment.)
  *     Stream the COG bytes for map-side visualization. Accept-Ranges: bytes,
  *     so geotiff.js can byte-range the header + relevant strips. Manifest
  *     lookup is the only trust boundary — no user input reaches the path.
@@ -22,9 +25,19 @@ import { z } from 'zod';
 import { ValidationError } from '../../lib/errors.js';
 import { getGaezService } from '../../services/gaez/GaezRasterService.js';
 
+// Sprint CD — scenario identifiers are user-supplied path segments; constrain
+// to lowercase alphanumerics + underscore so nothing traversal-shaped (/, .., \)
+// can reach the manifest lookup. Length cap keeps log / URL growth bounded.
+const SCENARIO_RE = /^[a-z0-9_]{1,64}$/;
+
 const QuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
+  scenario: z.string().regex(SCENARIO_RE).optional(),
+});
+
+const CatalogSchema = z.object({
+  scenario: z.string().regex(SCENARIO_RE).optional(),
 });
 
 const VARIABLES = ['suitability', 'yield'] as const;
@@ -40,7 +53,7 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
         throw new ValidationError('Invalid lat/lng query parameters', parsed.error.issues);
       }
 
-      const { lat, lng } = parsed.data;
+      const { lat, lng, scenario } = parsed.data;
 
       const service = getGaezService();
       if (!service || !service.isEnabled()) {
@@ -58,10 +71,10 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const result = await service.query(lat, lng);
+        const result = await service.query(lat, lng, scenario);
         return reply.send({ data: result, error: null });
       } catch (err) {
-        fastify.log.error({ err, lat, lng }, 'GAEZ query failed');
+        fastify.log.error({ err, lat, lng, scenario }, 'GAEZ query failed');
         return reply.send({
           data: {
             fetch_status: 'failed' as const,
@@ -79,31 +92,55 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
 
   // ─── Sprint CB: catalog — manifest summary for the map-side crop picker ───
 
-  fastify.get('/catalog', async (_req, reply) => {
-    const service = getGaezService();
-    const entries = service ? service.getManifestEntries() : [];
-    return reply.send({
-      data: {
-        entries,
-        count: entries.length,
-        attribution: service?.getAttribution() ?? 'FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO',
-      },
-      error: null,
-    });
-  });
+  fastify.get<{ Querystring: z.infer<typeof CatalogSchema> }>(
+    '/catalog',
+    async (req, reply) => {
+      const parsed = CatalogSchema.safeParse(req.query);
+      if (!parsed.success) {
+        throw new ValidationError('Invalid catalog query parameters', parsed.error.issues);
+      }
+      const { scenario } = parsed.data;
+      const service = getGaezService();
+      const entries = service ? service.getManifestEntries(scenario) : [];
+      return reply.send({
+        data: {
+          entries,
+          count: entries.length,
+          attribution: service?.getAttribution() ?? 'FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO',
+        },
+        error: null,
+      });
+    },
+  );
 
   // ─── Sprint CB: raster bytes with HTTP Range support ──────────────────────
 
   fastify.get<{
-    Params: { crop: string; waterSupply: string; inputLevel: string; variable: string };
-  }>('/raster/:crop/:waterSupply/:inputLevel/:variable', {
+    Params: {
+      scenario: string;
+      crop: string;
+      waterSupply: string;
+      inputLevel: string;
+      variable: string;
+    };
+  }>('/raster/:scenario/:crop/:waterSupply/:inputLevel/:variable', {
     // Sprint CC: FAO GAEZ v4 is CC BY-NC-SA 3.0 IGO. Gate raster streaming behind
     // JWT as defense-in-depth; the NC-license decision itself is tracked on
     // wiki/LAUNCH-CHECKLIST.md. /catalog (manifest digest) and /query
     // (single-pixel readings) remain public.
     preHandler: [fastify.authenticate],
   }, async (req, reply) => {
-    const { crop, waterSupply, inputLevel, variable } = req.params;
+    const { scenario, crop, waterSupply, inputLevel, variable } = req.params;
+
+    // Sprint CD — scenario is a user-supplied path segment; validate before it
+    // reaches the manifest lookup. Rejects uppercase, dots, slashes, anything
+    // that could escape the data dir or shape up as traversal.
+    if (!SCENARIO_RE.test(scenario)) {
+      return reply.code(400).send({
+        data: null,
+        error: { code: 'BAD_REQUEST', message: 'Invalid scenario identifier' },
+      });
+    }
 
     if (!VARIABLES.includes(variable as Variable)) {
       return reply.code(404).send({
@@ -121,6 +158,7 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
     }
 
     const filePath = service.resolveLocalFilePath(
+      scenario,
       crop,
       waterSupply,
       inputLevel,

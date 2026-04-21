@@ -438,7 +438,11 @@ function suitabilityClassLabel(code: number): string {
 function rasterUrl(sel: GaezSelection): string {
   // API proxy is served same-origin via the Vite dev proxy.
   // Sprint CC: variable is now selection-driven (not hardcoded 'suitability').
-  return `/api/v1/gaez/raster/${encodeURIComponent(sel.crop)}/${encodeURIComponent(sel.waterSupply)}/${encodeURIComponent(sel.inputLevel)}/${encodeURIComponent(sel.variable)}`;
+  // TODO(sprint-cd+2): make scenario dynamic once picker lands.
+  // Backend accepts scenario as a required path segment per Sprint CD;
+  // hardcoded to baseline until GaezSelection grows a scenario field.
+  const { crop, waterSupply, inputLevel, variable } = sel;
+  return `/api/v1/gaez/raster/baseline_1981_2010/${encodeURIComponent(crop)}/${encodeURIComponent(waterSupply)}/${encodeURIComponent(inputLevel)}/${encodeURIComponent(variable)}`;
 }
 
 function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
