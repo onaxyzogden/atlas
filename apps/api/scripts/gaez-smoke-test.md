@@ -26,8 +26,14 @@ known positive yield at a known-productive point. `maize_rainfed_high` is the
 standard choice -- Iowa cropland (lat 42, lng -93.5) hits 8-10k kg/ha there
 in GAEZ v4, so a real nonzero value is easy to eyeball.
 
-1. Go to https://gaez.fao.org/Gaez4/download
-2. Accept the **CC BY-NC-SA 3.0 IGO** license terms
+> **Portal URL note (2026-04-20):** FAO restructured the site. The old
+> `/Gaez4/download` path is gone. Current entry point is the root
+> [gaez.fao.org](https://gaez.fao.org/) plus its "Data Viewer" tool, or the
+> Theme 4 dataset page directly:
+> [gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield](https://gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield/about).
+
+1. Go to https://gaez.fao.org/ and open the **Data Viewer** (top nav).
+2. Accept the **CC BY-NC-SA 3.0 IGO** license terms on first use.
 3. Filter:
    - Theme: `Theme 4: Suitability and Attainable Yield`
    - Time period: `Historical (1981-2010)`

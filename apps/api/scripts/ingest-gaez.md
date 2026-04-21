@@ -57,8 +57,18 @@ Total files: **12 crops × 4 mgmt × 2 variables (suitability-class + attainable
 
 ### Portal Navigation
 
-1. Go to [gaez.fao.org/Gaez4/download](https://gaez.fao.org/Gaez4/download)
-2. Accept the license terms
+> **Note (2026-04-20):** FAO restructured the portal. The legacy
+> `gaez.fao.org/Gaez4/download` path no longer works. Use the new URLs below.
+
+The portal is an ArcGIS Hub SPA. Two equivalent entry points:
+
+- **Data Access landing page:** [gaez.fao.org/pages/data-access-download](https://gaez.fao.org/pages/data-access-download) — overview of all access methods (Image Services, OGC WCS/WMS, Data Viewer, FAO Map Catalog).
+- **Theme 4 dataset page:** [gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield](https://gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield/about) — direct link to the Suitability and Attainable Yield dataset.
+
+Download flow (via the **Data Viewer**):
+
+1. Go to [gaez.fao.org](https://gaez.fao.org/) and open the **Data Viewer** tool (top-nav link, or accessible from any dataset page).
+2. Accept the **CC BY-NC-SA 3.0 IGO** license terms on first use.
 3. Filter:
    - **Theme** → `Theme 4: Suitability and Attainable Yield`
    - **Time period** → `Historical (1981-2010)`
@@ -66,9 +76,16 @@ Total files: **12 crops × 4 mgmt × 2 variables (suitability-class + attainable
    - **Crop** → (one of the 12 above)
    - **Water supply** → `Rain-fed` or `Irrigation`
    - **Input level** → `Low` or `High`
-4. Download both variables for the selected filters:
+4. For each filtered layer, click the layer info / download icon. A popup presents a direct URL to the raw `.tif` on `s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/...`.
+5. Download both variables for the selected filters:
    - `Suitability class` (categorical, 1–9 scale)
    - `Average attainable yield of current cropland` (kg/ha/yr)
+
+> **Advanced (programmatic):** GAEZ v4 publishes ArcGIS Image Services that
+> support the `ExportImage` REST endpoint. This allows AOI-bounded subset
+> download without clicking through the UI. The service URLs are listed on
+> the Data Access page. Not required for the standard ingest — the Data
+> Viewer is faster for whole-globe rasters.
 
 ### Naming Convention
 
