@@ -28,7 +28,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 | `/api/v1/spiritual` | `routes/spiritual/` | Qibla computation |
 | `/api/v1/ai` | `routes/ai/` | Anthropic chat proxy |
 | `/api/v1/elevation` | `routes/elevation/` | Terrain queries |
-| `/api/v1/gaez` | `routes/gaez/` | FAO GAEZ v4 agro-climatic point queries (self-hosted COGs) |
+| `/api/v1/gaez` | `routes/gaez/` | FAO GAEZ v4 agro-climatic point queries (self-hosted COGs); **Sprint CB** added `/catalog` (manifest summary for the map-side crop picker) and `/raster/:crop/:waterSupply/:inputLevel/:variable` (COG byte-streaming with HTTP `Range` + 206 Partial Content; manifest-lookup-only path resolution as path-traversal guard) |
 | `/api/v1/pipeline` | `routes/pipeline/` | Data pipeline job management |
 
 ## Patterns
