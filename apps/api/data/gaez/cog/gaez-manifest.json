@@ -1,0 +1,620 @@
+{
+  "generated_at": "2026-04-21T07:42:29.325Z",
+  "source": "FAO GAEZ v4",
+  "license": "CC BY-NC-SA 3.0 IGO",
+  "attribution": "FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO",
+  "climate_scenario": "baseline_1981_2010",
+  "entries": {
+    "barley_irrigated_high": {
+      "filename": "barley_irrigated_high_suitability.tif",
+      "crop": "barley",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "barley_irrigated_high_suitability.tif",
+      "yieldFile": "barley_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "barley_irrigated_low": {
+      "filename": "barley_irrigated_low_suitability.tif",
+      "crop": "barley",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "barley_irrigated_low_suitability.tif",
+      "yieldFile": "barley_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "barley_rainfed_high": {
+      "filename": "barley_rainfed_high_suitability.tif",
+      "crop": "barley",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "barley_rainfed_high_suitability.tif",
+      "yieldFile": "barley_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "barley_rainfed_low": {
+      "filename": "barley_rainfed_low_suitability.tif",
+      "crop": "barley",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "barley_rainfed_low_suitability.tif",
+      "yieldFile": "barley_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "cassava_irrigated_high": {
+      "filename": "cassava_irrigated_high_suitability.tif",
+      "crop": "cassava",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "cassava_irrigated_high_suitability.tif",
+      "yieldFile": "cassava_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "cassava_rainfed_high": {
+      "filename": "cassava_rainfed_high_suitability.tif",
+      "crop": "cassava",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "cassava_rainfed_high_suitability.tif",
+      "yieldFile": "cassava_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "cassava_rainfed_low": {
+      "filename": "cassava_rainfed_low_suitability.tif",
+      "crop": "cassava",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "cassava_rainfed_low_suitability.tif",
+      "yieldFile": "cassava_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "maize_irrigated_high": {
+      "filename": "maize_irrigated_high_suitability.tif",
+      "crop": "maize",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "maize_irrigated_high_suitability.tif",
+      "yieldFile": "maize_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "maize_irrigated_low": {
+      "filename": "maize_irrigated_low_suitability.tif",
+      "crop": "maize",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "maize_irrigated_low_suitability.tif",
+      "yieldFile": "maize_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "maize_rainfed_high": {
+      "filename": "maize_rainfed_high_suitability.tif",
+      "crop": "maize",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "maize_rainfed_high_suitability.tif",
+      "yieldFile": "maize_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "maize_rainfed_low": {
+      "filename": "maize_rainfed_low_suitability.tif",
+      "crop": "maize",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "maize_rainfed_low_suitability.tif",
+      "yieldFile": "maize_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "millet_irrigated_high": {
+      "filename": "millet_irrigated_high_suitability.tif",
+      "crop": "millet",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "millet_irrigated_high_suitability.tif",
+      "yieldFile": "millet_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "millet_irrigated_low": {
+      "filename": "millet_irrigated_low_suitability.tif",
+      "crop": "millet",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "millet_irrigated_low_suitability.tif",
+      "yieldFile": "millet_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "millet_rainfed_high": {
+      "filename": "millet_rainfed_high_suitability.tif",
+      "crop": "millet",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "millet_rainfed_high_suitability.tif",
+      "yieldFile": "millet_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "millet_rainfed_low": {
+      "filename": "millet_rainfed_low_suitability.tif",
+      "crop": "millet",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "millet_rainfed_low_suitability.tif",
+      "yieldFile": "millet_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "oat_irrigated_high": {
+      "filename": "oat_irrigated_high_suitability.tif",
+      "crop": "oat",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "oat_irrigated_high_suitability.tif",
+      "yieldFile": "oat_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "oat_irrigated_low": {
+      "filename": "oat_irrigated_low_suitability.tif",
+      "crop": "oat",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "oat_irrigated_low_suitability.tif",
+      "yieldFile": "oat_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "oat_rainfed_high": {
+      "filename": "oat_rainfed_high_suitability.tif",
+      "crop": "oat",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "oat_rainfed_high_suitability.tif",
+      "yieldFile": "oat_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "oat_rainfed_low": {
+      "filename": "oat_rainfed_low_suitability.tif",
+      "crop": "oat",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "oat_rainfed_low_suitability.tif",
+      "yieldFile": "oat_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "potato_irrigated_high": {
+      "filename": "potato_irrigated_high_suitability.tif",
+      "crop": "potato",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "potato_irrigated_high_suitability.tif",
+      "yieldFile": "potato_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "potato_irrigated_low": {
+      "filename": "potato_irrigated_low_suitability.tif",
+      "crop": "potato",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "potato_irrigated_low_suitability.tif",
+      "yieldFile": "potato_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "potato_rainfed_high": {
+      "filename": "potato_rainfed_high_suitability.tif",
+      "crop": "potato",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "potato_rainfed_high_suitability.tif",
+      "yieldFile": "potato_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "potato_rainfed_low": {
+      "filename": "potato_rainfed_low_suitability.tif",
+      "crop": "potato",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "potato_rainfed_low_suitability.tif",
+      "yieldFile": "potato_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rice_irrigated_high": {
+      "filename": "rice_irrigated_high_suitability.tif",
+      "crop": "rice",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rice_irrigated_high_suitability.tif",
+      "yieldFile": "rice_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rice_irrigated_low": {
+      "filename": "rice_irrigated_low_suitability.tif",
+      "crop": "rice",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rice_irrigated_low_suitability.tif",
+      "yieldFile": "rice_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rice_rainfed_high": {
+      "filename": "rice_rainfed_high_suitability.tif",
+      "crop": "rice",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rice_rainfed_high_suitability.tif",
+      "yieldFile": "rice_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rice_rainfed_low": {
+      "filename": "rice_rainfed_low_suitability.tif",
+      "crop": "rice",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rice_rainfed_low_suitability.tif",
+      "yieldFile": "rice_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rye_irrigated_high": {
+      "filename": "rye_irrigated_high_suitability.tif",
+      "crop": "rye",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rye_irrigated_high_suitability.tif",
+      "yieldFile": "rye_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rye_irrigated_low": {
+      "filename": "rye_irrigated_low_suitability.tif",
+      "crop": "rye",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rye_irrigated_low_suitability.tif",
+      "yieldFile": "rye_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rye_rainfed_high": {
+      "filename": "rye_rainfed_high_suitability.tif",
+      "crop": "rye",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rye_rainfed_high_suitability.tif",
+      "yieldFile": "rye_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "rye_rainfed_low": {
+      "filename": "rye_rainfed_low_suitability.tif",
+      "crop": "rye",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "rye_rainfed_low_suitability.tif",
+      "yieldFile": "rye_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sorghum_irrigated_high": {
+      "filename": "sorghum_irrigated_high_suitability.tif",
+      "crop": "sorghum",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sorghum_irrigated_high_suitability.tif",
+      "yieldFile": "sorghum_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sorghum_irrigated_low": {
+      "filename": "sorghum_irrigated_low_suitability.tif",
+      "crop": "sorghum",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sorghum_irrigated_low_suitability.tif",
+      "yieldFile": "sorghum_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sorghum_rainfed_high": {
+      "filename": "sorghum_rainfed_high_suitability.tif",
+      "crop": "sorghum",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sorghum_rainfed_high_suitability.tif",
+      "yieldFile": "sorghum_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sorghum_rainfed_low": {
+      "filename": "sorghum_rainfed_low_suitability.tif",
+      "crop": "sorghum",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sorghum_rainfed_low_suitability.tif",
+      "yieldFile": "sorghum_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "soybean_irrigated_high": {
+      "filename": "soybean_irrigated_high_suitability.tif",
+      "crop": "soybean",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "soybean_irrigated_high_suitability.tif",
+      "yieldFile": "soybean_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "soybean_irrigated_low": {
+      "filename": "soybean_irrigated_low_suitability.tif",
+      "crop": "soybean",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "soybean_irrigated_low_suitability.tif",
+      "yieldFile": "soybean_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "soybean_rainfed_high": {
+      "filename": "soybean_rainfed_high_suitability.tif",
+      "crop": "soybean",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "soybean_rainfed_high_suitability.tif",
+      "yieldFile": "soybean_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "soybean_rainfed_low": {
+      "filename": "soybean_rainfed_low_suitability.tif",
+      "crop": "soybean",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "soybean_rainfed_low_suitability.tif",
+      "yieldFile": "soybean_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sweet_potato_irrigated_high": {
+      "filename": "sweet_potato_irrigated_high_suitability.tif",
+      "crop": "sweet_potato",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sweet_potato_irrigated_high_suitability.tif",
+      "yieldFile": "sweet_potato_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sweet_potato_irrigated_low": {
+      "filename": "sweet_potato_irrigated_low_suitability.tif",
+      "crop": "sweet_potato",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sweet_potato_irrigated_low_suitability.tif",
+      "yieldFile": "sweet_potato_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sweet_potato_rainfed_high": {
+      "filename": "sweet_potato_rainfed_high_suitability.tif",
+      "crop": "sweet_potato",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sweet_potato_rainfed_high_suitability.tif",
+      "yieldFile": "sweet_potato_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "sweet_potato_rainfed_low": {
+      "filename": "sweet_potato_rainfed_low_suitability.tif",
+      "crop": "sweet_potato",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "sweet_potato_rainfed_low_suitability.tif",
+      "yieldFile": "sweet_potato_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "wheat_irrigated_high": {
+      "filename": "wheat_irrigated_high_suitability.tif",
+      "crop": "wheat",
+      "waterSupply": "irrigated",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "wheat_irrigated_high_suitability.tif",
+      "yieldFile": "wheat_irrigated_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "wheat_irrigated_low": {
+      "filename": "wheat_irrigated_low_suitability.tif",
+      "crop": "wheat",
+      "waterSupply": "irrigated",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "wheat_irrigated_low_suitability.tif",
+      "yieldFile": "wheat_irrigated_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "wheat_rainfed_high": {
+      "filename": "wheat_rainfed_high_suitability.tif",
+      "crop": "wheat",
+      "waterSupply": "rainfed",
+      "inputLevel": "high",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "wheat_rainfed_high_suitability.tif",
+      "yieldFile": "wheat_rainfed_high_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    },
+    "wheat_rainfed_low": {
+      "filename": "wheat_rainfed_low_suitability.tif",
+      "crop": "wheat",
+      "waterSupply": "rainfed",
+      "inputLevel": "low",
+      "scenario": "baseline_1981_2010",
+      "suitabilityFile": "wheat_rainfed_low_suitability.tif",
+      "yieldFile": "wheat_rainfed_low_yield.tif",
+      "units": {
+        "suitability": "class (1=S1 … 5=NS, 9=water)",
+        "yield": "kg/ha/yr"
+      }
+    }
+  }
+}

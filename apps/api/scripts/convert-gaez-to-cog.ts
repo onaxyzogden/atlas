@@ -9,6 +9,12 @@
  *
  * Usage:
  *   pnpm tsx apps/api/scripts/convert-gaez-to-cog.ts
+ *   pnpm tsx apps/api/scripts/convert-gaez-to-cog.ts --scenario rcp85_2041_2070
+ *
+ * Sprint CD Phase D — `--scenario <id>` tags every emitted manifest entry
+ * with a scenario identifier. Defaults to `baseline_1981_2010`. Future RCP
+ * ingest runs will re-invoke this script with the relevant scenario id so
+ * the service can distinguish baseline vs. future rasters at query time.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -23,6 +29,44 @@ const API_ROOT = resolve(__dirname, '..');
 const RAW_DIR = join(API_ROOT, 'data', 'gaez', 'raw');
 const COG_DIR = join(API_ROOT, 'data', 'gaez', 'cog');
 const MANIFEST_PATH = join(COG_DIR, 'gaez-manifest.json');
+
+// ── CLI parsing ─────────────────────────────────────────────────────────────
+
+export interface CliOptions {
+  /**
+   * Climate scenario identifier to tag every emitted manifest entry with.
+   * Defaults to `baseline_1981_2010`; future RCP runs pass ids like
+   * `rcp85_2041_2070`. Validated against /^[a-z0-9_]{1,64}$/ so it stays
+   * in lockstep with the route-level regex in src/routes/gaez/index.ts.
+   */
+  scenario: string;
+}
+
+const SCENARIO_RE = /^[a-z0-9_]{1,64}$/;
+const DEFAULT_SCENARIO = 'baseline_1981_2010';
+
+export function parseArgs(argv: readonly string[]): CliOptions {
+  const opts: CliOptions = { scenario: DEFAULT_SCENARIO };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--scenario') {
+      const value = argv[i + 1];
+      if (value === undefined) {
+        throw new Error('--scenario requires a value (e.g. --scenario rcp85_2041_2070)');
+      }
+      if (!SCENARIO_RE.test(value)) {
+        throw new Error(
+          `Invalid --scenario "${value}": must match /^[a-z0-9_]{1,64}$/ (lowercase letters, digits, underscores; 1-64 chars).`
+        );
+      }
+      opts.scenario = value;
+      i++;
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+  return opts;
+}
 
 // ── Naming scheme validation ────────────────────────────────────────────────
 
@@ -80,6 +124,12 @@ interface ManifestEntry {
   crop: Crop;
   waterSupply: WaterSupply;
   inputLevel: InputLevel;
+  /**
+   * Sprint CD Phase D — explicit scenario stamp on every entry. Mirrors the
+   * top-level `climate_scenario` for baseline runs; distinguishes entries
+   * once multiple scenarios are merged into a single manifest.
+   */
+  scenario: string;
   suitabilityFile: string | null;
   yieldFile: string | null;
   units: { suitability: string; yield: string };
@@ -90,7 +140,7 @@ interface Manifest {
   source: 'FAO GAEZ v4';
   license: 'CC BY-NC-SA 3.0 IGO';
   attribution: 'FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO';
-  climate_scenario: 'baseline_1981_2010';
+  climate_scenario: string;
   entries: Record<string, ManifestEntry>;
 }
 
@@ -138,6 +188,8 @@ function convertToCog(rawPath: string, cogPath: string): void {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 function main(): void {
+  const opts = parseArgs(process.argv.slice(2));
+
   if (!existsSync(RAW_DIR)) {
     console.error(`Raw directory not found: ${RAW_DIR}`);
     console.error('Create it and drop GAEZ GeoTIFFs there per the naming scheme in ingest-gaez.md §2.');
@@ -156,6 +208,7 @@ function main(): void {
   }
 
   console.log(`Found ${rawFiles.length} raw raster(s) in ${RAW_DIR}`);
+  console.log(`Scenario:   ${opts.scenario}`);
   const entries: Record<string, ManifestEntry> = {};
   const skipped: string[] = [];
   let converted = 0;
@@ -178,13 +231,20 @@ function main(): void {
       reused++;
     }
 
-    const key = parsed.key;
+    // Sprint CD Phase D — baseline keeps the legacy
+    // `${crop}_${waterSupply}_${inputLevel}` shape for backward compat with
+    // manifests already on disk. Non-baseline scenarios append `:${scenario}`
+    // so a multi-scenario manifest can merge without key collisions.
+    const key = opts.scenario === DEFAULT_SCENARIO
+      ? parsed.key
+      : `${parsed.key}:${opts.scenario}`;
     if (!entries[key]) {
       entries[key] = {
         filename: '', // informational top-level, filled after both variables known
         crop: parsed.crop,
         waterSupply: parsed.waterSupply,
         inputLevel: parsed.inputLevel,
+        scenario: opts.scenario,
         suitabilityFile: null,
         yieldFile: null,
         units: { suitability: 'class (1=S1 … 5=NS, 9=water)', yield: 'kg/ha/yr' },
@@ -200,7 +260,7 @@ function main(): void {
     source: 'FAO GAEZ v4',
     license: 'CC BY-NC-SA 3.0 IGO',
     attribution: 'FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO',
-    climate_scenario: 'baseline_1981_2010',
+    climate_scenario: opts.scenario,
     entries,
   };
 
@@ -215,8 +275,14 @@ function main(): void {
     for (const s of skipped) console.log(`    - ${s}`);
   }
   console.log(`  Manifest:   ${MANIFEST_PATH}`);
+  console.log(`  Scenario:   ${opts.scenario}`);
   console.log(`  Crop keys:  ${Object.keys(entries).length}`);
   console.log('');
 }
 
-main();
+// Only run when invoked as a script (not when imported by vitest).
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : '';
+const thisPath = fileURLToPath(import.meta.url);
+if (invokedPath === thisPath) {
+  main();
+}
