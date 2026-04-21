@@ -61,6 +61,11 @@ const OVERLAY_LAYER_IDS: Record<string, string[]> = {
 
 export default function MapLayersPanel({ project, map: mapInstance, marker, onCenterProperty, boundaryColor, onBoundaryColorChange }: MapLayersPanelProps) {
   const { style, setStyle } = useMapStore();
+  // Soil-properties overlay is self-managed via the map store's visibleLayers set
+  // (the SoilOverlay component observes it and paints the raster). Mirror that
+  // state here so the eye icon reflects reality.
+  const soilVisible = useMapStore((st) => st.visibleLayers.has('soil_properties'));
+  const setLayerVisible = useMapStore((st) => st.setLayerVisible);
   const [overlayStates, setOverlayStates] = useState<Record<string, boolean>>({
     boundary: true,
     zones: true,
@@ -72,6 +77,15 @@ export default function MapLayersPanel({ project, map: mapInstance, marker, onCe
   const envData = project.country === 'CA' ? ENV_DATA_CA : ENV_DATA_US;
 
   const toggleOverlay = (key: string) => {
+    // Soil-properties overlay lives in the map store (SoilOverlay reads
+    // visibleLayers). Route its toggle through setLayerVisible instead of
+    // MapLibre setLayoutProperty; no MapLibre layer exists until the overlay
+    // mounts its own canvas source.
+    if (key === 'soil_properties') {
+      setLayerVisible('soil_properties', !soilVisible);
+      return;
+    }
+
     const currentlyOn = overlayStates[key] ?? true;
     const newVal = !currentlyOn;
     setOverlayStates((prev) => ({ ...prev, [key]: newVal }));
@@ -157,20 +171,26 @@ export default function MapLayersPanel({ project, map: mapInstance, marker, onCe
           { key: 'zones',      label: 'Land Use Zones',      desc: 'Zone polygons with colors' },
           { key: 'structures', label: 'Structures',          desc: 'Building and feature markers' },
           { key: 'hotspots',   label: 'Educational Hotspots', desc: 'Learning annotations' },
-          { key: 'marker',     label: 'Property Marker',      desc: 'Address pin on map' },
-        ]).map((overlay) => (
-          <div
-            key={overlay.key}
-            className={s.overlayCard}
-            onClick={() => toggleOverlay(overlay.key)}
-          >
-            <div style={{ flex: 1 }}>
-              <div className={s.overlayLabel}>{overlay.label}</div>
-              <div className={p.cardDesc}>{overlay.desc}</div>
+          { key: 'marker',         label: 'Property Marker',  desc: 'Address pin on map' },
+          { key: 'soil_properties', label: 'Soil Properties',  desc: 'SoilGrids depth, pH, organic carbon, texture' },
+        ]).map((overlay) => {
+          const active = overlay.key === 'soil_properties'
+            ? soilVisible
+            : (overlayStates[overlay.key] ?? false);
+          return (
+            <div
+              key={overlay.key}
+              className={s.overlayCard}
+              onClick={() => toggleOverlay(overlay.key)}
+            >
+              <div style={{ flex: 1 }}>
+                <div className={s.overlayLabel}>{overlay.label}</div>
+                <div className={p.cardDesc}>{overlay.desc}</div>
+              </div>
+              <EyeIcon active={active} />
             </div>
-            <EyeIcon active={overlayStates[overlay.key] ?? false} />
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── Boundary Colors ──────────────────────────────────────── */}

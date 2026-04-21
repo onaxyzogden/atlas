@@ -11,6 +11,7 @@ import type { Structure } from '../../store/structureStore.js';
 import type { SidebarView } from '../../components/IconSidebar.js';
 import MapCanvas from './MapCanvas.js';
 import { GaezOverlay, GaezMapControls } from './GaezOverlay.js';
+import { SoilOverlay, SoilMapControls } from './SoilOverlay.js';
 import { useCommentStore, type Comment } from '../../store/commentStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { useProjectRole } from '../../hooks/useProjectRole.js';
@@ -224,6 +225,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         <ErrorBoundary>
           <GaezOverlay map={mapRef} />
           <GaezMapControls />
+        </ErrorBoundary>
+
+        {/* Sprint CD — map-side SoilGrids v2.0 property overlay + picker. */}
+        <ErrorBoundary>
+          <SoilOverlay map={mapRef} />
+          <SoilMapControls />
         </ErrorBoundary>
 
         {/* Typing indicator for real-time collaboration */}

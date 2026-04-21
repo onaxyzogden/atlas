@@ -20,6 +20,13 @@ export interface GaezSelection {
   variable: GaezVariable;
 }
 
+// Soil-properties overlay selection — one of the properties exposed by the
+// SoilGrids catalog (bedrock_depth, ph, organic_carbon, clay, sand). Null until
+// the user first enables the layer; SoilMapControls seeds the default.
+export interface SoilSelection {
+  property: string;
+}
+
 interface MapState {
   // Viewport
   style: MapStyle;
@@ -56,6 +63,11 @@ interface MapState {
   // variable === 'suitability'.
   gaezMaxYield: number;
   setGaezMaxYield: (v: number) => void;
+
+  // Soil-properties overlay selection — null until the user enables the layer
+  // and SoilMapControls fetches the catalog + seeds the default.
+  soilSelection: SoilSelection | null;
+  setSoilSelection: (sel: SoilSelection | null) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -95,4 +107,7 @@ export const useMapStore = create<MapState>((set) => ({
 
   gaezMaxYield: 0,
   setGaezMaxYield: (gaezMaxYield) => set({ gaezMaxYield }),
+
+  soilSelection: null,
+  setSoilSelection: (soilSelection) => set({ soilSelection }),
 }));

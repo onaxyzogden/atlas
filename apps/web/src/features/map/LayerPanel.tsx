@@ -55,6 +55,7 @@ const LAYER_LABELS: Record<LayerType, string> = {
   mineral_rights:      'Mineral Rights',
   water_rights:        'Water Rights',
   gaez_suitability:    'Agro-Climatic Suitability (GAEZ)',
+  soil_properties:     'Soil Properties (SoilGrids)',
 };
 
 const LAYER_ICONS: Record<LayerType, string> = {
@@ -98,6 +99,7 @@ const LAYER_ICONS: Record<LayerType, string> = {
   mineral_rights:      '◇',
   water_rights:        '⚖',
   gaez_suitability:    '🌾',
+  soil_properties:     '◆',
 };
 
 const CONFIDENCE_COLORS = {
