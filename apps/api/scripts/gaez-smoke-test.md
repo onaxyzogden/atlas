@@ -19,39 +19,43 @@ GDAL install that isn't yet on your machine.
 
 ---
 
-## Step 1 -- Download one raster
+## Step 1 -- Download the 2 smoke-test rasters
 
-Pick a **yield raster** (not suitability) because the smoke test asserts a
-known positive yield at a known-productive point. `maize_rainfed_high` is the
-standard choice -- Iowa cropland (lat 42, lng -93.5) hits 8-10k kg/ha there
-in GAEZ v4, so a real nonzero value is easy to eyeball.
+Pick the **maize_rainfed_high** pair (suitability + yield) because the smoke
+test asserts a known positive yield at a known-productive point. Iowa
+cropland (lat 42, lng -93.5) hits 8-12k kg/ha there in GAEZ v4, so a real
+nonzero value is easy to eyeball.
 
-> **Portal URL note (2026-04-20):** FAO restructured the site. The old
-> `/Gaez4/download` path is gone. Current entry point is the root
-> [gaez.fao.org](https://gaez.fao.org/) plus its "Data Viewer" tool, or the
-> Theme 4 dataset page directly:
-> [gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield](https://gaez.fao.org/datasets/hqfao::gaez-suitability-and-attainable-yield/about).
+**Primary path (Sprint BY):** the `download-gaez.ts` script resolves both
+files via FAO's `res05` ArcGIS Image Service and streams direct S3 `.tif`s
+into `data/gaez/raw/`:
+
+```powershell
+pnpm --filter @ogden/api run download:gaez -- --filter maize_rainfed_high
+```
+
+Expected output:
+
+```
+Planned: 2 raster(s) (filter: maize_rainfed_high)
+Querying ImageServer for 2 (crop, variable) pair(s)...
+Resolved: 2/2 files
+[1/2] maize_rainfed_high_suitability.tif OK (0.6 MB in 1.2s)
+[2/2] maize_rainfed_high_yield.tif OK (2.6 MB in 1.6s)
+```
+
+**Fallback (Data Viewer)** — only if the ImageServer is down:
 
 1. Go to https://gaez.fao.org/ and open the **Data Viewer** (top nav).
 2. Accept the **CC BY-NC-SA 3.0 IGO** license terms on first use.
-3. Filter:
-   - Theme: `Theme 4: Suitability and Attainable Yield`
-   - Time period: `Historical (1981-2010)`
-   - Climate: `Baseline`
-   - Crop: `Maize`
-   - Water supply: `Rain-fed`
-   - Input level: `High`
-   - Variable: `Average attainable yield of current cropland`
-4. Download the GeoTIFF
-5. Rename it to exactly: `maize_rainfed_high_yield.tif`
-6. Drop it into `apps/api/data/gaez/raw/`
-
-Also grab the matching suitability raster so `query()` has both variables to
-report (the service treats missing variables as `UNKNOWN` class + `null`
-yield -- still works, just a less rich summary):
-
-7. Repeat Step 3 with Variable: `Suitability class`
-8. Rename to `maize_rainfed_high_suitability.tif` and drop in `raw/`
+3. Filter: Theme 4 / Historical (1981-2010) / Baseline / Maize / Rain-fed /
+   High / `Average attainable yield of current cropland`.
+4. Open the **Attribute Table** at the bottom of the map. Each row has a
+   `download_url`. Click to download the `.tif`.
+5. Rename to exactly `maize_rainfed_high_yield.tif` and drop into
+   `apps/api/data/gaez/raw/`.
+6. Repeat with Variable: `Suitability class` → save as
+   `maize_rainfed_high_suitability.tif`.
 
 ---
 

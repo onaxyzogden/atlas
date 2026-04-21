@@ -41,6 +41,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 
 ## Services
 - `services/gaez/GaezRasterService.ts` — Self-hosted FAO GAEZ v4 COG point-query (geotiff.js byte-range reads, local FS or S3 HTTPS). Manifest-driven; disabled cleanly if no manifest present. See `scripts/ingest-gaez.md`.
+- `scripts/download-gaez.ts` (Sprint BY) — Automated raster acquisition via FAO's `res05` ArcGIS Image Service. Resolves 94/96 target rasters through `/query` calls, streams direct S3 `.tif`s into `data/gaez/raw/`. Replaces 96 manual Data Viewer clicks. Idempotent; supports `--filter`, `--dry-run`, `--concurrency`. `npm run download:gaez`.
 - `services/pdf/` — Puppeteer browser manager + PdfExportService + 7 HTML templates
 - `services/storage/StorageProvider.ts` — S3 or local filesystem abstraction
 - `services/pipeline/DataPipelineOrchestrator.ts` — BullMQ job queue (tier1, tier3 workers)

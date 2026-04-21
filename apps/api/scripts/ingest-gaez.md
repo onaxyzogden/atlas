@@ -31,6 +31,27 @@ gdal_translate --version
 Atlas ingests **Theme 4 — Suitability and Attainable Yield**,
 current-climate baseline (1981–2010), at **5 arc-minute (~9 km)** resolution.
 
+> **Primary path — automated (Sprint BY):** FAO publishes Theme 4 as an
+> ArcGIS Image Service at `res05`, and every raster has a `download_url`
+> attribute pointing at a direct S3 `.tif`. The `download-gaez.ts` script
+> resolves all 94 available files via `/query` calls and streams them into
+> `data/gaez/raw/`. No portal clicks. Run:
+>
+> ```powershell
+> pnpm --filter @ogden/api run download:gaez
+> # or, for the smoke-test subset:
+> pnpm --filter @ogden/api run download:gaez -- --filter maize_rainfed_high
+> ```
+>
+> Full pull completes in 3–10 min at concurrency 4 over a decent connection.
+> Expected coverage: **94/96** (FAO doesn't publish `cassava_irrigated_low` —
+> cassava's only irrigated variant is High-input). The service treats missing
+> variables as `UNKNOWN` class + `null` yield gracefully.
+>
+> **Fallback path (Data Viewer) retained below** for use only when FAO breaks
+> or rotates the `res05` ImageServer. If automation fails, the manual steps
+> in the rest of §2 still work.
+
 For each of the 12 priority crops below, download **4 variants**:
 
 - `rainfed_low` — Rain-fed, low input / subsistence
