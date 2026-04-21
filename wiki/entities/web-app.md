@@ -22,7 +22,7 @@ src/
     export/         — InvestorSummaryExport, ProjectSummaryExport, EducationalBookletExport
     fieldwork/      — FieldworkPanel, FieldNoteExport
     map/            — Map view, drawing tools, layer controls
-  store/            — 18 Zustand stores
+  store/            — 26 Zustand stores
   lib/              — layerFetcher, geoParsers, scoring engine, tokens.ts (TS token bridge)
   pages/            — Top-level route pages
 ```

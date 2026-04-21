@@ -9,7 +9,7 @@
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
-## God Nodes (most connected - your core abstractions)
+## Keystone Nodes (most connected - your core abstractions)
 1. `OGDEN Land Design Atlas` - 13 edges
 2. `fetchWithRetry()` - 11 edges
 3. `fetchAllLayersInternal()` - 9 edges

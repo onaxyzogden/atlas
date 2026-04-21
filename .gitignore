@@ -20,3 +20,9 @@ apps/api/data/gaez/cog/*.tiff
 # time so the Vite dev server serves them (viteStaticCopy only fires at build).
 # Regenerate with: cp -r node_modules/cesium/Build/Cesium/{Assets,Workers,ThirdParty,Widgets} apps/web/public/cesium/
 apps/web/public/cesium/
+
+# Local Claude Code per-project settings (allow-list, MCP creds, etc.)
+.claude/settings.local.json
+
+# Scratch/scaffolding directories used while validating data-ingest scripts
+apps/api/tmp-*/
