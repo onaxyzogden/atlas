@@ -9,17 +9,11 @@
  * Sprint X: Extended to cover all 17 LayerTypes (Sprints M–W).
  */
 
-import type { LayerType } from '@ogden/shared';
-
-export interface MockLayerResult {
-  layerType: LayerType;
-  fetchStatus: 'complete' | 'pending' | 'failed' | 'unavailable';
-  confidence: 'high' | 'medium' | 'low';
-  dataDate: string;
-  sourceApi: string;
-  attribution: string;
-  summary: Record<string, unknown>;
-}
+// MockLayerResult type lifted to `@ogden/shared/scoring` (2026-04-21). The
+// fixture DATA below stays in web because it's only consumed by the dev-mode
+// mock layer service; re-export the type so existing import paths still work.
+export type { MockLayerResult } from '@ogden/shared/scoring';
+import type { MockLayerResult } from '@ogden/shared/scoring';
 
 /**
  * Generate mock layer results for all 17 LayerTypes.

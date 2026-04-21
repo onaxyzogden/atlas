@@ -98,6 +98,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // More-specific subpath alias MUST come first — Vite prefix-matches in order.
+      '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
       'mapbox-gl': 'maplibre-gl',
     },

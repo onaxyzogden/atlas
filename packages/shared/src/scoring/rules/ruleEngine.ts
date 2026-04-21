@@ -3,8 +3,10 @@
  * and returns sorted, typed AssessmentFlag arrays.
  */
 
-import type { AssessmentFlag, AssessmentFlagCategory } from '@ogden/shared';
-import type { MockLayerResult } from '../mockLayerData.js';
+// NOTE: import from the specific schema file (not the '@ogden/shared' barrel)
+// to avoid a cycle if scoring ever gets re-exported from the main index.
+import type { AssessmentFlag, AssessmentFlagCategory } from '../../schemas/assessment.schema.js';
+import type { MockLayerResult } from '../types.js';
 import { ASSESSMENT_RULES, type AssessmentRule } from './assessmentRules.js';
 
 /* ------------------------------------------------------------------ */
