@@ -105,7 +105,7 @@ const BASELINE_MODEL = 'CRUTS32';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export interface FeatureAttributes {
+interface FeatureAttributes {
   objectid?: number;
   name?: string;
   crop?: string;
