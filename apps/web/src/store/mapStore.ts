@@ -9,10 +9,15 @@ export type DrawMode = 'none' | 'polygon' | 'line' | 'point';
 // the matching COG and re-paints the full-world canvas.
 export type GaezWaterSupply = 'rainfed' | 'irrigated';
 export type GaezInputLevel = 'low' | 'high';
+// Sprint CC — map-side variable toggle. 'suitability' paints the 5-class choropleth
+// (S1-N, unchanged from CB). 'yield' paints a continuous viridis ramp clamped to
+// the per-tile 99th-percentile attainable yield.
+export type GaezVariable = 'suitability' | 'yield';
 export interface GaezSelection {
   crop: string;
   waterSupply: GaezWaterSupply;
   inputLevel: GaezInputLevel;
+  variable: GaezVariable;
 }
 
 interface MapState {
@@ -45,6 +50,12 @@ interface MapState {
   // and catalog loads; GaezMapControls seeds a default from the catalog).
   gaezSelection: GaezSelection | null;
   setGaezSelection: (sel: GaezSelection | null) => void;
+
+  // Sprint CC — per-tile 99th-percentile yield max, published by the GaezOverlay
+  // decode effect so the Legend can show "~N kg/ha" in yield mode. 0 when
+  // variable === 'suitability'.
+  gaezMaxYield: number;
+  setGaezMaxYield: (v: number) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -81,4 +92,7 @@ export const useMapStore = create<MapState>((set) => ({
 
   gaezSelection: null,
   setGaezSelection: (gaezSelection) => set({ gaezSelection }),
+
+  gaezMaxYield: 0,
+  setGaezMaxYield: (gaezMaxYield) => set({ gaezMaxYield }),
 }));

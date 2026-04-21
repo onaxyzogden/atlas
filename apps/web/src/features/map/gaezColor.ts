@@ -43,3 +43,51 @@ export const SUITABILITY_SWATCHES = [
 export function rgbaToCss([r, g, b, a]: readonly [number, number, number, number]): string {
   return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
 }
+
+// ── Sprint CC: continuous yield-gradient colormap ──────────────────────────
+//
+// Viridis-ish 5-stop ramp; linear interp between stops. Used by the map-side
+// GAEZ overlay when `gaezSelection.variable === 'yield'`. Matches the paired
+// `/raster/.../yield` COG scale (kg/ha), clamped to a per-tile 99th-percentile
+// max derived at decode time (avoids hard-coded per-crop calibration).
+
+const YIELD_STOPS: Array<[number, [number, number, number]]> = [
+  [0.00, [ 68,   1,  84]],  // deep purple
+  [0.25, [ 59,  82, 139]],  // blue
+  [0.50, [ 33, 144, 141]],  // teal
+  [0.75, [ 94, 201,  98]],  // green
+  [1.00, [253, 231,  37]],  // yellow
+];
+
+/**
+ * Continuous yield → RGBA. Values outside [0, maxYield] are clamped; negative
+ * values or NaN return transparent (off-raster / FAO in-band sentinel `-1`).
+ * Alpha matches the suitability colormap (~0.55) so mode-flipping keeps the
+ * same overall transparency feel.
+ */
+export function yieldToRgba(
+  value: number,
+  maxYield: number,
+): [number, number, number, number] {
+  if (!Number.isFinite(value) || value < 0 || maxYield <= 0) return [0, 0, 0, 0];
+  const t = Math.max(0, Math.min(1, value / maxYield));
+  for (let i = 1; i < YIELD_STOPS.length; i++) {
+    const [t1, c1] = YIELD_STOPS[i]!;
+    if (t <= t1) {
+      const [t0, c0] = YIELD_STOPS[i - 1]!;
+      const u = t1 === t0 ? 0 : (t - t0) / (t1 - t0);
+      return [
+        Math.round(c0[0] + (c1[0] - c0[0]) * u),
+        Math.round(c0[1] + (c1[1] - c0[1]) * u),
+        Math.round(c0[2] + (c1[2] - c0[2]) * u),
+        140,
+      ];
+    }
+  }
+  const last = YIELD_STOPS[YIELD_STOPS.length - 1]![1];
+  return [last[0], last[1], last[2], 140];
+}
+
+/** CSS gradient string matching YIELD_STOPS — for the legend strip. */
+export const YIELD_GRADIENT_CSS =
+  'linear-gradient(to right, rgb(68,1,84), rgb(59,82,139), rgb(33,144,141), rgb(94,201,98), rgb(253,231,37))';
