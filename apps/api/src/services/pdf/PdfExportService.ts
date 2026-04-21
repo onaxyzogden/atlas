@@ -112,10 +112,12 @@ export class PdfExportService {
   }
 
   private async fetchAssessment(projectId: string): Promise<AssessmentRow | null> {
+    // Post migration 009: the 4 legacy score columns are gone.
+    // score_breakdown (ScoredResult[] jsonb) is the canonical source for
+    // every per-label score; overall_score stays for cheap sorts/indexes.
     const [row] = await this.db`
       SELECT
-        sa.id, sa.suitability_score, sa.buildability_score,
-        sa.water_resilience_score, sa.ag_potential_score, sa.overall_score,
+        sa.id, sa.overall_score,
         sa.score_breakdown, sa.flags, sa.data_sources_used,
         sa.confidence, sa.needs_site_visit
       FROM site_assessments sa

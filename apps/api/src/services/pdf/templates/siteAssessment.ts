@@ -42,38 +42,46 @@ export function renderSiteAssessment(data: ExportDataBag): string {
     </div>`;
 
   // ─── Assessment Scores ────────────────────────────────────────
+  // Shape note (post migration 009): `a.score_breakdown` is the canonical
+  // ScoredResult[] from @ogden/shared/scoring. Each ScoredResult has
+  // `{label, score, confidence, score_breakdown: ScoreComponent[], …}`.
+  // Every per-label score comes from the array; `overall_score` is the
+  // denormalised weighted mean.
   let scoresSection: string;
   if (!a) {
     scoresSection = notAvailable('Site Assessment Scores');
   } else {
-    const scores = [
-      { score: a.overall_score, label: 'Overall' },
-      { score: a.suitability_score, label: 'Suitability' },
-      { score: a.buildability_score, label: 'Buildability' },
-      { score: a.water_resilience_score, label: 'Water Resilience' },
-      { score: a.ag_potential_score, label: 'Ag. Potential' },
-    ];
+    const breakdownArr = Array.isArray(a.score_breakdown) ? a.score_breakdown : [];
 
-    const gauges = scores
-      .filter((s) => s.score != null)
-      .map((s) => scoreGauge(s.score!, s.label))
+    // Top gauges: Overall first, then every per-label score in the order
+    // the shared scorer emitted them.
+    const overallGauge = a.overall_score != null
+      ? scoreGauge(a.overall_score, 'Overall')
+      : '';
+    const labelGauges = breakdownArr
+      .map((r) => scoreGauge(r.score, r.label))
       .join('');
+    const gauges = overallGauge + labelGauges;
 
-    // Breakdown tables
-    let breakdownHtml = '';
-    if (a.score_breakdown) {
-      for (const [category, breakdown] of Object.entries(a.score_breakdown)) {
-        const rows = Object.entries(breakdown)
-          .map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, ' '))}</td><td>${fmtNumber(v as number, 1)}</td></tr>`)
+    // Per-label breakdown cards: iterate ScoredResult[], render a card per
+    // label with its ScoreComponent[] factor table. Each ScoreComponent has
+    // `{name, value, maxPossible, sourceLayer, confidence}` — we surface
+    // name + value (points contributed) for readability.
+    const breakdownHtml = breakdownArr
+      .map((r) => {
+        const components = Array.isArray(r.score_breakdown) ? r.score_breakdown : [];
+        if (components.length === 0) return '';
+        const rows = components
+          .map((c) => `<tr><td>${esc(c.name.replace(/_/g, ' '))}</td><td>${fmtNumber(c.value, 1)}</td></tr>`)
           .join('');
-        breakdownHtml += `
+        return `
           <div class="card" style="break-inside:avoid">
-            <h4>${esc(category.replace(/_/g, ' '))}</h4>
-            <table><thead><tr><th>Factor</th><th>Score</th></tr></thead>
+            <h4>${esc(r.label)}</h4>
+            <table><thead><tr><th>Factor</th><th>Points</th></tr></thead>
             <tbody>${rows}</tbody></table>
           </div>`;
-      }
-    }
+      })
+      .join('');
 
     scoresSection = `
       <div class="section">

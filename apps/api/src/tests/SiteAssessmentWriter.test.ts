@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  layerRowsToMockLayers,
-  SCORE_LABEL_TO_COLUMN,
-} from '../services/assessments/SiteAssessmentWriter.js';
+import { layerRowsToMockLayers } from '../services/assessments/SiteAssessmentWriter.js';
 import { computeAssessmentScores } from '@ogden/shared/scoring';
 
 // ─── Fixture helpers ──────────────────────────────────────────────────────────
@@ -77,19 +74,14 @@ describe('layerRowsToMockLayers', () => {
   });
 });
 
-// ─── Label → DB column mapping ───────────────────────────────────────────────
+// ─── Canonical ScoredResult[] shape emitted by the scorer ────────────────────
+//
+// Post migration 009 the DB stores the full ScoredResult[] in
+// `score_breakdown` (no 4-column projection). Lock in the shape the writer
+// depends on: every element has the 4 fields the PDF + route consumers read.
 
-describe('SCORE_LABEL_TO_COLUMN', () => {
-  it('declares all 4 DB score columns', () => {
-    expect(Object.keys(SCORE_LABEL_TO_COLUMN).sort()).toEqual([
-      'ag_potential_score',
-      'buildability_score',
-      'suitability_score',
-      'water_resilience_score',
-    ]);
-  });
-
-  it('each label is still emitted by the shared scorer for a realistic layer set', () => {
+describe('computeAssessmentScores — canonical shape', () => {
+  it('emits ScoredResult[] with label/score/confidence/score_breakdown on every element', () => {
     const mocks = layerRowsToMockLayers([
       row('climate', { annual_precip_mm: 900, annual_temp_mean_c: 9 }),
       row('soils', {
@@ -107,10 +99,38 @@ describe('SCORE_LABEL_TO_COLUMN', () => {
     ]);
 
     const scores = computeAssessmentScores(mocks, 40, 'US', '2026-04-21T00:00:00.000Z');
-    const labels = scores.map((s) => s.label);
 
-    for (const expectedLabel of Object.values(SCORE_LABEL_TO_COLUMN)) {
-      expect(labels).toContain(expectedLabel);
+    // The shared scorer currently emits 10 canonical labels; lock in that
+    // none is silently dropped on a realistic layer set.
+    expect(scores.length).toBeGreaterThanOrEqual(10);
+
+    for (const s of scores) {
+      expect(typeof s.label).toBe('string');
+      expect(s.label.length).toBeGreaterThan(0);
+      expect(typeof s.score).toBe('number');
+      expect(s.score).toBeGreaterThanOrEqual(0);
+      expect(s.score).toBeLessThanOrEqual(100);
+      expect(['high', 'medium', 'low']).toContain(s.confidence);
+      expect(Array.isArray(s.score_breakdown)).toBe(true);
+    }
+  });
+
+  it('retains the 4 labels the educational-booklet PDF has explanations for', () => {
+    // Graceful-coverage guard: the booklet template keys SCORE_EXPLANATIONS
+    // on these exact strings. If the shared scorer renames one, the 4
+    // rich cards silently drop to graceful-degradation mode with no type
+    // error. This test catches the rename.
+    const mocks = layerRowsToMockLayers([
+      row('climate', { annual_precip_mm: 900 }),
+      row('soils', { drainage_class: 'well drained' }),
+      row('elevation', { mean_slope_deg: 3 }),
+      row('wetlands_flood', { flood_zone: 'Zone X' }),
+      row('land_cover', { tree_canopy_pct: 35 }),
+    ]);
+    const scores = computeAssessmentScores(mocks, 40, 'US', '2026-04-21T00:00:00.000Z');
+    const labels = scores.map((s) => s.label);
+    for (const expected of ['Water Resilience', 'Buildability', 'Agricultural Suitability', 'Regenerative Potential']) {
+      expect(labels).toContain(expected);
     }
   });
 });
