@@ -10,6 +10,7 @@ import type { LandZone } from '../../store/zoneStore.js';
 import type { Structure } from '../../store/structureStore.js';
 import type { SidebarView } from '../../components/IconSidebar.js';
 import MapCanvas from './MapCanvas.js';
+import { GaezOverlay, GaezMapControls } from './GaezOverlay.js';
 import { useCommentStore, type Comment } from '../../store/commentStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { useProjectRole } from '../../hooks/useProjectRole.js';
@@ -217,6 +218,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             onMapReady={(map, draw) => { setMapRef(map); setDrawRef(draw); }}
             onMarkerCreated={(m) => setMarkerRef(m)}
           />
+        </ErrorBoundary>
+
+        {/* Sprint CB — map-side GAEZ v4 suitability overlay + picker. */}
+        <ErrorBoundary>
+          <GaezOverlay map={mapRef} />
+          <GaezMapControls />
         </ErrorBoundary>
 
         {/* Typing indicator for real-time collaboration */}

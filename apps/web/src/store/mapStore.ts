@@ -4,6 +4,17 @@ import type { LayerType } from '@ogden/shared';
 export type MapStyle = 'satellite' | 'terrain' | 'street' | 'hybrid';
 export type DrawMode = 'none' | 'polygon' | 'line' | 'point';
 
+// Sprint CB — map-side FAO GAEZ v4 suitability overlay selection.
+// Drives GaezOverlay: picking a (crop, waterSupply, inputLevel) tuple re-fetches
+// the matching COG and re-paints the full-world canvas.
+export type GaezWaterSupply = 'rainfed' | 'irrigated';
+export type GaezInputLevel = 'low' | 'high';
+export interface GaezSelection {
+  crop: string;
+  waterSupply: GaezWaterSupply;
+  inputLevel: GaezInputLevel;
+}
+
 interface MapState {
   // Viewport
   style: MapStyle;
@@ -29,6 +40,11 @@ interface MapState {
   // UI state
   isMeasuring: boolean;
   setMeasuring: (v: boolean) => void;
+
+  // Sprint CB — GAEZ suitability overlay selection (null until layer is enabled
+  // and catalog loads; GaezMapControls seeds a default from the catalog).
+  gaezSelection: GaezSelection | null;
+  setGaezSelection: (sel: GaezSelection | null) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -62,4 +78,7 @@ export const useMapStore = create<MapState>((set) => ({
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),
+
+  gaezSelection: null,
+  setGaezSelection: (gaezSelection) => set({ gaezSelection }),
 }));
