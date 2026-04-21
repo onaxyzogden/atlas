@@ -38,6 +38,9 @@ vi.mock('../plugins/redis.js', async () => {
 const gaezFake = {
   isEnabled: vi.fn<() => boolean>(),
   query:     vi.fn(),
+  getManifestEntries: vi.fn<() => Array<{ crop: string; waterSupply: string; inputLevel: string; variables: string[] }>>(),
+  getAttribution:     vi.fn<() => string>(),
+  resolveLocalFilePath: vi.fn<(c: string, w: string, i: string, v: string) => string | null>(),
 };
 
 vi.mock('../services/gaez/GaezRasterService.js', () => ({
@@ -65,6 +68,10 @@ afterAll(async () => {
 beforeEach(() => {
   gaezFake.isEnabled.mockReset();
   gaezFake.query.mockReset();
+  gaezFake.getManifestEntries.mockReset();
+  gaezFake.getAttribution.mockReset();
+  gaezFake.resolveLocalFilePath.mockReset();
+  gaezFake.getAttribution.mockReturnValue('FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO');
 });
 
 // â”€â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -194,4 +201,167 @@ describe('GET /api/v1/gaez/query â€” service interaction', () => {
   });
 });
 
+// ─── Sprint CB: catalog ─────────────────────────────────────────────────────
+
+describe('GET /api/v1/gaez/catalog', () => {
+  it('returns manifest entries with crop/waterSupply/inputLevel/variables', async () => {
+    gaezFake.getManifestEntries.mockReturnValue([
+      { crop: 'maize', waterSupply: 'rainfed',   inputLevel: 'high', variables: ['suitability', 'yield'] },
+      { crop: 'maize', waterSupply: 'irrigated', inputLevel: 'high', variables: ['suitability', 'yield'] },
+      { crop: 'wheat', waterSupply: 'rainfed',   inputLevel: 'low',  variables: ['suitability'] },
+    ]);
+
+    const res = await app.inject({ method: 'GET', url: '/api/v1/gaez/catalog' });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.error).toBeNull();
+    expect(body.data.count).toBe(3);
+    expect(body.data.entries).toHaveLength(3);
+    expect(body.data.entries[0]).toMatchObject({
+      crop: 'maize',
+      waterSupply: 'rainfed',
+      inputLevel: 'high',
+      variables: ['suitability', 'yield'],
+    });
+    expect(body.data.attribution).toMatch(/FAO GAEZ v4/);
+  });
+
+  it('returns empty list with 200 when service is disabled (manifest absent)', async () => {
+    gaezFake.getManifestEntries.mockReturnValue([]);
+    const res = await app.inject({ method: 'GET', url: '/api/v1/gaez/catalog' });
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.count).toBe(0);
+    expect(body.data.entries).toEqual([]);
+  });
+});
+
+// ─── Sprint CB: raster streaming with Range support ─────────────────────────
+
+import { promises as fsp } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join as pjoin } from 'node:path';
+
+describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () => {
+  let tmpFile: string;
+  const TOTAL = 4096;
+
+  beforeAll(async () => {
+    tmpFile = pjoin(tmpdir(), `gaez-test-${Date.now()}.tif`);
+    // Fixture: 4096 bytes, each byte = index % 256 so we can verify slices.
+    const buf = Buffer.alloc(TOTAL);
+    for (let i = 0; i < TOTAL; i++) buf[i] = i & 0xff;
+    await fsp.writeFile(tmpFile, buf);
+  });
+
+  afterAll(async () => {
+    try { await fsp.unlink(tmpFile); } catch { /* ignore */ }
+  });
+
+  it('streams full file with Accept-Ranges: bytes when no Range header', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['accept-ranges']).toBe('bytes');
+    expect(res.headers['content-type']).toMatch(/image\/tiff/);
+    expect(Number(res.headers['content-length'])).toBe(TOTAL);
+    expect(res.rawPayload.length).toBe(TOTAL);
+    expect(res.rawPayload[0]).toBe(0);
+    expect(res.rawPayload[255]).toBe(255);
+  });
+
+  it('returns 206 + correct Content-Range for a byte range', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { range: 'bytes=0-1023' },
+    });
+    expect(res.statusCode).toBe(206);
+    expect(res.headers['content-range']).toBe(`bytes 0-1023/${TOTAL}`);
+    expect(Number(res.headers['content-length'])).toBe(1024);
+    expect(res.rawPayload.length).toBe(1024);
+    expect(res.rawPayload[0]).toBe(0);
+    expect(res.rawPayload[1023]).toBe(1023 & 0xff);
+  });
+
+  it('supports open-ended range (bytes=START-)', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { range: 'bytes=4000-' },
+    });
+    expect(res.statusCode).toBe(206);
+    expect(res.headers['content-range']).toBe(`bytes 4000-${TOTAL - 1}/${TOTAL}`);
+    expect(res.rawPayload.length).toBe(TOTAL - 4000);
+  });
+
+  it('returns 416 for malformed Range', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { range: 'pages=0-10' },
+    });
+    expect(res.statusCode).toBe(416);
+  });
+
+  it('returns 416 when range is past EOF', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { range: `bytes=${TOTAL}-${TOTAL + 100}` },
+    });
+    expect(res.statusCode).toBe(416);
+  });
+
+  it('returns 404 for unknown variable (rejects path-traversal before service lookup)', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/malware',
+    });
+    expect(res.statusCode).toBe(404);
+    expect(gaezFake.resolveLocalFilePath).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when manifest lookup fails (unknown crop)', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(null);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/nope/rainfed/high/suitability',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('returns 404 when service is disabled', async () => {
+    gaezFake.isEnabled.mockReturnValue(false);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('returns 404 when the manifest-resolved file is missing on disk', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(pjoin(tmpdir(), 'does-not-exist-xyz.tif'));
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
 

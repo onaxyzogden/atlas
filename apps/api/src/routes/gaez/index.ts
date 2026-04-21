@@ -1,14 +1,22 @@
 /**
- * GAEZ v4 point-query route — self-hosted FAO GAEZ v4 Theme 4 COGs.
+ * GAEZ v4 routes — self-hosted FAO GAEZ v4 Theme 4 COGs.
  *
- * GET /api/v1/gaez/query?lat=&lng=
- *
- * Public endpoint (no auth) — matches the elevation proxy pattern.
- * Returns per-crop suitability class + attainable yield + derived summary.
- *
+ * Public endpoints (no auth) — match the elevation proxy pattern.
  * Attribution: FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO.
+ *
+ *   GET /api/v1/gaez/query?lat=&lng=
+ *     Point-query across all manifest entries.
+ *
+ *   GET /api/v1/gaez/catalog                      (Sprint CB)
+ *     Manifest summary for the frontend crop picker.
+ *
+ *   GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable   (Sprint CB)
+ *     Stream the COG bytes for map-side visualization. Accept-Ranges: bytes,
+ *     so geotiff.js can byte-range the header + relevant strips. Manifest
+ *     lookup is the only trust boundary — no user input reaches the path.
  */
 
+import { promises as fsp, createReadStream } from 'node:fs';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ValidationError } from '../../lib/errors.js';
@@ -18,6 +26,9 @@ const QuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
 });
+
+const VARIABLES = ['suitability', 'yield'] as const;
+type Variable = (typeof VARIABLES)[number];
 
 export default async function gaezRoutes(fastify: FastifyInstance) {
 
@@ -65,4 +76,94 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
       }
     },
   );
+
+  // ─── Sprint CB: catalog — manifest summary for the map-side crop picker ───
+
+  fastify.get('/catalog', async (_req, reply) => {
+    const service = getGaezService();
+    const entries = service ? service.getManifestEntries() : [];
+    return reply.send({
+      data: {
+        entries,
+        count: entries.length,
+        attribution: service?.getAttribution() ?? 'FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO',
+      },
+      error: null,
+    });
+  });
+
+  // ─── Sprint CB: raster bytes with HTTP Range support ──────────────────────
+
+  fastify.get<{
+    Params: { crop: string; waterSupply: string; inputLevel: string; variable: string };
+  }>('/raster/:crop/:waterSupply/:inputLevel/:variable', async (req, reply) => {
+    const { crop, waterSupply, inputLevel, variable } = req.params;
+
+    if (!VARIABLES.includes(variable as Variable)) {
+      return reply.code(404).send({
+        data: null,
+        error: { code: 'NOT_FOUND', message: 'Unknown variable (expected suitability|yield)' },
+      });
+    }
+
+    const service = getGaezService();
+    if (!service || !service.isEnabled()) {
+      return reply.code(404).send({
+        data: null,
+        error: { code: 'NOT_FOUND', message: 'GAEZ service disabled on this deployment' },
+      });
+    }
+
+    const filePath = service.resolveLocalFilePath(
+      crop,
+      waterSupply,
+      inputLevel,
+      variable as Variable,
+    );
+    if (!filePath) {
+      return reply.code(404).send({
+        data: null,
+        error: { code: 'NOT_FOUND', message: 'Raster not found for (crop, water, input, variable)' },
+      });
+    }
+
+    let stat;
+    try {
+      stat = await fsp.stat(filePath);
+    } catch {
+      return reply.code(404).send({
+        data: null,
+        error: { code: 'NOT_FOUND', message: 'Raster file missing on disk' },
+      });
+    }
+
+    const total = stat.size;
+    const range = req.headers.range;
+
+    reply.header('Accept-Ranges', 'bytes');
+    reply.header('Content-Type', 'image/tiff');
+    reply.header('Cache-Control', 'public, max-age=3600');
+
+    if (!range) {
+      reply.header('Content-Length', String(total));
+      return reply.send(createReadStream(filePath));
+    }
+
+    const match = /^bytes=(\d+)-(\d*)$/.exec(range);
+    if (!match) {
+      reply.header('Content-Range', `bytes */${total}`);
+      return reply.code(416).send();
+    }
+    const start = Number(match[1]);
+    const end = match[2] ? Number(match[2]) : total - 1;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= total || end >= total) {
+      reply.header('Content-Range', `bytes */${total}`);
+      return reply.code(416).send();
+    }
+
+    reply.code(206);
+    reply.header('Content-Range', `bytes ${start}-${end}/${total}`);
+    reply.header('Content-Length', String(end - start + 1));
+    return reply.send(createReadStream(filePath, { start, end }));
+  });
 }

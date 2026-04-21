@@ -152,6 +152,60 @@ export class GaezRasterService {
   }
 
   /**
+   * Sprint CB — public read accessor for the manifest, used by the
+   * `/api/v1/gaez/catalog` route to populate the map-side crop picker.
+   *
+   * Returns one entry per (crop, waterSupply, inputLevel) tuple with the set
+   * of variables ("suitability" and/or "yield") that have rasters on disk.
+   */
+  getManifestEntries(): Array<{
+    crop: string;
+    waterSupply: string;
+    inputLevel: string;
+    variables: ('suitability' | 'yield')[];
+  }> {
+    if (!this.manifest) return [];
+    return Object.values(this.manifest.entries).map((entry) => {
+      const variables: ('suitability' | 'yield')[] = [];
+      if (entry.suitabilityFile) variables.push('suitability');
+      if (entry.yieldFile) variables.push('yield');
+      return {
+        crop: entry.crop,
+        waterSupply: entry.waterSupply,
+        inputLevel: entry.inputLevel,
+        variables,
+      };
+    });
+  }
+
+  /**
+   * Sprint CB — resolve a (crop, waterSupply, inputLevel, variable) tuple to
+   * an absolute on-disk COG path for the raster-serving route. Returns null
+   * for any unknown tuple, which callers MUST propagate as 404. The manifest
+   * is the only trust boundary — user-provided path components are never
+   * concatenated into a path, so this is also the path-traversal guard.
+   *
+   * Only returns a path when `s3Prefix` is null (local mode). In S3 mode the
+   * route layer should 404 or redirect; we don't proxy S3 bytes.
+   */
+  resolveLocalFilePath(
+    crop: string,
+    waterSupply: string,
+    inputLevel: string,
+    variable: 'suitability' | 'yield',
+  ): string | null {
+    if (this.s3Prefix) return null;
+    if (!this.manifest) return null;
+    const match = Object.values(this.manifest.entries).find(
+      (e) => e.crop === crop && e.waterSupply === waterSupply && e.inputLevel === inputLevel,
+    );
+    if (!match) return null;
+    const filename = variable === 'suitability' ? match.suitabilityFile : match.yieldFile;
+    if (!filename) return null;
+    return join(this.dataDir, filename);
+  }
+
+  /**
    * Query all manifest entries at (lat, lng); returns per-crop suitability +
    * attainable yield plus a derived summary (best crop, top-3).
    *
