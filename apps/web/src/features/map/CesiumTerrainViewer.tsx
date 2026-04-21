@@ -10,9 +10,8 @@ import {
   Cartesian3,
   Math as CesiumMath,
   createWorldTerrainAsync,
-  Ion,
+  UrlTemplateImageryProvider,
   ImageryLayer,
-  IonImageryProvider,
 } from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { initCesiumIon, hasCesiumToken } from '../../lib/cesium.js';
@@ -66,8 +65,25 @@ export default function CesiumTerrainViewer({
       // Hide Cesium credits in a detached div
       const creditContainer = document.createElement('div');
 
+      // Esri World Imagery — HTTPS + CORS, no token required. Replaces Bing
+      // (Ion asset 2), which delivers tiles over HTTP without CORS and fails
+      // to decode in the browser ("InvalidStateError: source image ..."). We
+      // pass this as Viewer's baseLayer so Cesium never tries to load its
+      // Ion-asset-2 default.
+      const baseLayer = ImageryLayer.fromProviderAsync(
+        Promise.resolve(
+          new UrlTemplateImageryProvider({
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            maximumLevel: 19,
+            credit: 'Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+          }),
+        ),
+        {},
+      );
+
       const viewer = new Viewer(containerRef.current, {
         terrainProvider,
+        baseLayer,
         baseLayerPicker: false,
         geocoder: false,
         homeButton: false,
@@ -84,16 +100,6 @@ export default function CesiumTerrainViewer({
       if (destroyed) {
         viewer.destroy();
         return;
-      }
-
-      // Add Bing Maps aerial imagery for terrain context
-      try {
-        const imageryProvider = await IonImageryProvider.fromAssetId(2);
-        if (!destroyed) {
-          viewer.imageryLayers.addImageryProvider(imageryProvider);
-        }
-      } catch {
-        // Fall back to default imagery if Ion asset 2 fails
       }
 
       // Enable depth testing against terrain so entities sit on the ground

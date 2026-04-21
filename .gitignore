@@ -15,3 +15,8 @@ coverage/
 apps/api/data/gaez/raw/
 apps/api/data/gaez/cog/*.tif
 apps/api/data/gaez/cog/*.tiff
+
+# Cesium runtime assets — copied from node_modules/cesium/Build/Cesium at dev
+# time so the Vite dev server serves them (viteStaticCopy only fires at build).
+# Regenerate with: cp -r node_modules/cesium/Build/Cesium/{Assets,Workers,ThirdParty,Widgets} apps/web/public/cesium/
+apps/web/public/cesium/
