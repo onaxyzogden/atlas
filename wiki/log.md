@@ -4,6 +4,102 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-19 — Deep Technical Audit v2 (supersedes 04-14)
+
+Produced `ATLAS_DEEP_AUDIT_2026-04-19.md` (392 lines, repo root) via 5 parallel Explore agents across structure/secrets/flags, DB schema+tsc-api, API routes+services+jobs+adapters, frontend components+stores+layerFetcher+tsc-web, data-integration + feature-completeness matrices; synthesized Phase H (revised %, critical path, data-pipeline gap map, user-journey, top-10 leverage tasks).
+
+### Documentation corrections required (findings)
+- **Adapter count was stale**: 2026-04-19 log entry stated "Adapters live: 8/14, remaining: wetlands/flood, climate, land_cover, zoning". Direct inspection of `apps/api/src/services/pipeline/adapters/` confirmed **all 14 adapters are LIVE** (Ssurgo, OmafraCanSis, UsgsElevation, NrcanHrdem, Nhd, Ohn, NwiFema, ConservationAuthority, NoaaClimate, EcccClimate, Nlcd, AafcLandCover, UsCountyGis, OntarioMunicipal). Zoning adapters are LIVE but PARTIAL (county/municipal-level only; parcel setbacks + overlays missing).
+- **Store count was stale**: global CLAUDE.md references "18 stores"; actual `apps/web/src/stores/` count is **26**.
+
+### Revised completion (vs 04-14 ~65% DONE headline)
+Broken down: core infra ~95%, Tier-1 pipeline ~85% (full roadmap ~15%), scoring ~55%, frontend real-data ~75%, exports ~80%, AI ~5%. Aggregate: **~55% DONE · 25% PARTIAL · 20% STUB** when roadmap width is honoured (NWIS, StreamStats, EPA suite, GWA, PVWatts, Regrid, PAD-US, WDPA, WorldClim, WorldCover, SRTM still absent).
+
+### Top-3 leverage for next session
+1. Correct documentation drift (this entry + CLAUDE.md store count).
+2. NasaPowerAdapter (solar radiation) — unblocks PET, LGP, PVWatts wiring, solar-PV score.
+3. Wire Anthropic SDK into `ClaudeClient.ts` — activates the AtlasAI panel end-to-end.
+
+### Other findings worth tracking
+- `site_assessments` table is read by routes but **never written** from TypeScript. Either populate from Tier-3 completion callback or remove.
+- `@scalar/fastify-api-reference` is a declared dep but no OpenAPI spec is registered — wire or drop.
+- 3 layer types (zoning/infrastructure/mine_hazards) fall through to `mockLayerData.ts` silently; UI should badge them "demo" or gate.
+- TypeScript strict passes cleanly on both api and web (0 errors each). Secrets scan clean.
+
+Commit pending: audit file only; no code changes.
+
+---
+
+## 2026-04-21 — Sprint CD (GAEZ RCP track): futures reconnaissance + scenario as first-class dimension
+
+Parallel Sprint CD work stream (distinct from the same-day SoilGrids Sprint CD entry below). Closes the two RCP-ingest prerequisites Sprint CC deferred: (1) enumerate FAO's RCP tuple space so we know what to ingest, (2) promote scenario to a first-class dimension in manifest/service/routes/convert-script so a later RCP run is pure ops — no code. **No RCP bytes ingested; no UI changes.** Sprint CD+1 will ingest a selected tuple subset against the new schema; Sprint CD+2 will add the picker UI + baseline-vs-future delta.
+
+**Phase A — reconnaissance (`5a145c9`).** `apps/api/scripts/enumerate-gaez-futures.ts` (437 LOC, Node built-ins + unit-tested pure helpers) talks to FAO's `res05` ArcGIS ImageServer — `/query?returnDistinctValues=true` for the coarse (rcp, model, year) tuple space, then per-scenario paginated `/query` calls (page size 1000, FAO cap) for raster counts + per-scenario completeness against our 96-cell priority grid. Output: `apps/api/data/gaez/futures-inventory.{json,md}`. **74 non-baseline scenarios enumerated** — 72 RCP futures (4 RCPs × 6 GCMs × 3 periods) + 2 historical CRUTS32 baselines (1961-1990, 1971-2000). Every future scenario shows 12 crop gaps vs our 96-cell target because FAO only publishes the High input-level raster series for futures (no Low). 8 new tests in `enumerate-gaez-futures.test.ts` cover `extractEmissions` / `computeScenarioId` / `computeCompleteness`. Tiny `download-gaez.ts` touch (+14/-7) to share a helper.
+
+**Phase M1 — chore (`840f26a`).** Dropped an unused `FeatureAttributes` export from `download-gaez.ts` surfaced during Phase A review. Pure cleanup.
+
+**Phase B+C — scenario dimension (`be40cde`).** `GaezRasterService` gains: (1) optional `ManifestEntry.scenario?: string`, (2) lookup cascade `entry.scenario ?? manifest.climate_scenario ?? 'baseline_1981_2010'` (so pre-Sprint-CD manifests keep working unchanged), (3) `resolveLocalFilePath(scenario, crop, waterSupply, inputLevel, variable)` — scenario promoted to the first arg, (4) `query(lat, lng, scenario?)` and `getManifestEntries(scenario?)` — optional filters. Routes (`routes/gaez/index.ts`): `/raster/:crop/...` became `/raster/:scenario/:crop/:waterSupply/:inputLevel/:variable` (breaking — exactly one caller, `GaezOverlay.rasterUrl`, retrofitted to hardcode `baseline_1981_2010` with `TODO(sprint-cd+2)`); `/query` + `/catalog` accept optional `?scenario=<id>`. `SCENARIO_RE = /^[a-z0-9_]{1,64}$/` enforced at the route boundary as the path-traversal guard. 5 new service tests + 5 new route tests (baseline-compat cascade, scenario-filtered query + catalog, invalid-scenario 400, route-shape happy path).
+
+**Phase D — convert script (`afc36c1`).** `convert-gaez-to-cog.ts` gains `--scenario <id>` (default `baseline_1981_2010`, validated against `SCENARIO_RE`). Every emitted manifest entry carries its `scenario` field. Composite manifest key `${crop}_${ws}_${il}:${scenario}` used only when non-baseline — baseline keeps the legacy `${crop}_${ws}_${il}` shape for backward compatibility. 8 new tests covering CLI flag parsing, scenario validation, key-shape selection, and per-entry emission. Regenerated baseline manifest has every entry carrying `"scenario": "baseline_1981_2010"` explicitly (idempotent under the cascade — service behaviour unchanged).
+
+**Verification.** `cd apps/api && npx vitest run` → **415/415 green** (baseline 402 → 415, +13 net across the sprint's four phases; individual phases wrote 26 new tests, delta accounts for some reorganization inside `gaezRoutes.test.ts`). `npx tsc --noEmit` clean. No frontend bundle changes — the one-line `GaezOverlay.rasterUrl` edit is a pure path-segment addition.
+
+**Files touched (this sprint, across all four code commits).** `apps/api/scripts/enumerate-gaez-futures.ts` (new), `apps/api/scripts/enumerate-gaez-futures.test.ts` (new), `apps/api/data/gaez/futures-inventory.{json,md}` (new), `apps/api/scripts/download-gaez.ts`, `apps/api/scripts/convert-gaez-to-cog.ts`, `apps/api/src/services/gaez/GaezRasterService.ts`, `apps/api/src/routes/gaez/index.ts`, `apps/api/src/tests/gaezRoutes.test.ts`, `apps/api/src/tests/GaezRasterService.test.ts`, `apps/api/package.json`, `apps/web/src/features/map/GaezOverlay.tsx` (one-line rasterUrl path-segment addition).
+
+**Deferred.**
+- **Sprint CD+1 — RCP ingest.** Operator reviews `apps/api/data/gaez/futures-inventory.md` and selects a tuple subset. Reasonable default pending confirmation: RCP8.5 + RCP4.5 × 2041-2070 × ENSEMBLE GCM × 12 priority crops × rainfed + irrigated × High input (≈96 rasters, ~1 GB pre-COG). `download-gaez.ts` needs a trivial extension to filter on scenario (the service-side plumbing is already in place).
+- **Sprint CD+2 — picker UI.** Scenario dropdown in `<GaezMapControls>`, scenario line in the hover tooltip, baseline-vs-future delta card in `GaezSection`. Retires the `TODO(sprint-cd+2)` marker in `GaezOverlay.tsx`.
+
+**ADR.** [`wiki/decisions/2026-04-21-gaez-rcp-reconnaissance.md`](decisions/2026-04-21-gaez-rcp-reconnaissance.md) records the naming convention, enumeration method, backward-compat posture, and recommended tuple subset.
+
+**Commits:** `5a145c9`, `840f26a`, `be40cde`, `afc36c1` + a Phase E wiki commit landing alongside this log entry.
+
+---
+
+## 2026-04-21 — Sprint CD: map-side SoilGrids v2.0 property overlay (code landed; ingest deferred)
+
+Second raster overlay, mirroring Sprint CB/CC's GAEZ architecture for ISRIC SoilGrids v2.0. Operator can toggle "Soil Properties" in `MapLayersPanel`, pick from five properties (bedrock depth, pH, organic carbon, clay, sand) in a floating panel, and see the selected property painted across the world at 250 m. Differs from GAEZ in three intentional ways: (1) manifest is keyed on a single `property` string, not a 4-tuple; (2) the raster endpoint is **not** JWT-gated because SoilGrids is CC BY 4.0 (permissive) — unlike FAO's CC BY-NC-SA 3.0 IGO; (3) per-property color ramps (5 distinct hues) instead of a single mode-switched pair.
+
+**Backend (`apps/api`).**
+- `services/soilgrids/SoilGridsRasterService.ts` — clone of `GaezRasterService` with the lookup key simplified to `property`. Manifest at `data/soilgrids/cog/soilgrids-manifest.json`; `fromFile` for local, `fromUrl` for S3 (`SOILGRIDS_S3_PREFIX`). `query(lat, lng)` samples all manifest entries in parallel, applying each entry's optional `scale` factor before returning `{ readings: [{property, value, unit}, ...] }`. GDAL no-data sentinel recognized via `image.getGDALNoData()`.
+- `routes/soilgrids/index.ts` — `/query?lat=&lng=`, `/catalog`, `/raster/:property`. Zod validates lat/lng. Range-request logic is identical to GAEZ (206 Partial Content, 416 for malformed/past-EOF, `Accept-Ranges: bytes`). Manifest lookup is the single trust boundary — user-supplied `property` never concatenates into a filesystem path.
+- `lib/config.ts` — `SOILGRIDS_DATA_DIR` (default `./data/soilgrids/cog`), `SOILGRIDS_S3_PREFIX` (optional, empty string → undefined).
+- `app.ts` — plugin registration at `/api/v1/soilgrids` and a `initSoilGridsService()` init block that logs enabled/disabled based on manifest presence.
+- `tests/soilgridsRoutes.test.ts` — 18 new tests mirroring `gaezRoutes.test.ts`: 3 validation + 4 service-interaction + 2 catalog + 9 raster (happy + range + 416 + 404 paths + "no auth gate" assertion). All 18 green. Full API suite 389/389 (was 371/371).
+- `data/soilgrids/README.md` + `data/soilgrids/cog/soilgrids-manifest.example.json` — ingest recipe (`gdal_translate -projwin -168 72 -52 24 -co COMPRESS=DEFLATE -co TILED=YES -co COPY_SRC_OVERVIEWS=YES /vsicurl/https://files.isric.org/...`) and manifest shape. Real manifest is gitignored.
+
+**Frontend (`apps/web`).**
+- `packages/shared/src/constants/dataSources.ts` — `'soil_properties'` added to `LayerType` union and excluded from `Tier1LayerType`.
+- `store/mapStore.ts` — `SoilSelection { property: string }` + `soilSelection` / `setSoilSelection`. Mirrors `gaezSelection` shape; null until the overlay first becomes visible, then seeded from `/catalog`.
+- `features/map/soilColor.ts` — `SOIL_RAMPS` record keyed by `SoilRampId` (`sequential_earth` / `diverging_ph` / `sequential_carbon` / `sequential_clay` / `sequential_sand`). Each ramp is a `(range: [min, max]) => { valueToRgba, swatches }` factory so legend labels come out unit-aware. `rampGradientCss(ramp)` builds the CSS gradient for the legend strip. α = 140/255 to match GAEZ.
+- `features/map/SoilOverlay.tsx` — `<SoilOverlay>` and `<SoilMapControls>`. Canvas-source + raster layer IDs `soil-properties-source` / `soil-properties-layer`, inserted before the first `symbol` layer so labels stay above the overlay. Decode effect fetches `/api/v1/soilgrids/raster/:property` via `geotiff.js` `fromUrl` with Range requests, paints a 4320×2160 offscreen canvas using the selected ramp, then `src.play(); src.pause()` to force MapLibre to re-read. `raster-opacity: 0.60` (slightly below GAEZ 0.65 so hillshade reads). Hover tooltip rAF-throttles pixel reads and shows `{label} · {formatted value}` with per-property `scale` applied. Controls panel positions at `right: 260` to sit left of the GAEZ picker at `right: 12`.
+- `features/map/LayerPanel.tsx` — `LAYER_LABELS` + `LAYER_ICONS` gained entries for `soil_properties` (required by the `Record<LayerType, string>` exhaustiveness, caught by tsc).
+- `components/panels/MapLayersPanel.tsx` — new overlay row `{ key: 'soil_properties', label: 'Soil Properties', desc: 'SoilGrids depth, pH, organic carbon, texture' }`. Unlike the existing overlay rows (which toggle MapLibre layers via `setLayoutProperty`), this one flips `visibleLayers` on the store via `setLayerVisible('soil_properties', …)` — the overlay component self-manages its MapLibre layer lifecycle, so the panel is just a store switch. Eye icon reads its state from `visibleLayers.has('soil_properties')` rather than local `overlayStates`.
+- `features/map/MapView.tsx` — `<SoilOverlay map={mapRef} />` + `<SoilMapControls />` mounted inside a dedicated `<ErrorBoundary>` after the GAEZ pair (both source/layer IDs distinct, no MapLibre-source collision when both are on).
+
+**Verification (no-manifest mode).** GDAL is not installed on this workstation, so the ingest step is deferred to a machine that has it. Verified end-to-end that the code path survives the "no raster data" case gracefully:
+- `curl /api/v1/soilgrids/catalog` → `{entries:[], count:0, attribution:"…CC BY 4.0"}`
+- `curl /api/v1/soilgrids/query?lat=43.55&lng=-79.66` → `{fetch_status:"unavailable", message:"SoilGrids rasters not loaded — see apps/api/data/soilgrids/README.md"}`
+- `curl /api/v1/soilgrids/raster/bedrock_depth` → 404 JSON
+- Toggled `visibleLayers` to include `soil_properties` via the zustand store; `<SoilMapControls>` rendered the empty-manifest state cleanly: "SoilGrids rasters not ingested on this deployment." + "ISRIC SoilGrids v2.0 · CC BY 4.0". No console errors. Network shows the expected harmless 404 on the raster fetch (the overlay still attempts the default `bedrock_depth` fetch even when the catalog is empty — a small polish item, not a crash).
+- `tsc --noEmit` clean for `@ogden/api`, `@ogden/web`, `@ogden/shared`.
+- `apps/web` Vite production build succeeds (sw.js + 107 precache entries).
+- `apps/api` `tsc` build succeeds.
+- API vitest: 31 files / 389 tests all green.
+
+**Deferred (does not block code landing).**
+- **SoilGrids COG ingest.** Runs on a machine with GDAL installed. Plan: `gdal_translate -projwin -168 72 -52 24 -co COMPRESS=DEFLATE -co TILED=YES -co COPY_SRC_OVERVIEWS=YES /vsicurl/https://files.isric.org/soilgrids/latest/data/<layer>/<layer>.vrt <out>.tif` for BDRICM, phh2o 0-30cm, soc 0-30cm, clay 0-30cm, sand 0-30cm. Populate `apps/api/data/soilgrids/cog/soilgrids-manifest.json` with min/max from `gdalinfo -stats`. Total disk footprint estimated <1 GB across the 5 clipped rasters.
+- **Empty-catalog polish.** `SoilOverlay` should skip the `bedrock_depth` default fetch when `catalog.entries` is empty, to avoid the cosmetic 404 in the network tab.
+- **Preview-mode screenshot.** The Claude Preview screenshot tool was unresponsive during this session; verification used DOM snapshots + network inspection instead. Visual parity with GAEZ picker hasn't been eyeballed yet; once rasters land, do a side-by-side screenshot run.
+- **Point-query cross-check.** Click a parcel, confirm the Site Intelligence panel's bedrock depth (from `lioFetchSoils` / `fetchSoilGrids`) falls within the same color class as the overlay at that pixel. Requires ingest first.
+
+**Commits (pending user approval to commit).**
+- `feat(api): add /soilgrids/{catalog,query,raster} routes + SoilGridsRasterService`
+- `feat(web): map-side SoilGrids property overlay with per-property ramps + picker`
+- `docs(wiki): log Sprint CD — SoilGrids overlay code landed, ingest deferred`
+
+---
+
 ## 2026-04-21 — Sprint CC: GAEZ overlay hardening (hover readout + yield mode + raster auth)
 
 Three polish/hardening items on top of the Sprint CB foundation — all landing in the same files CB touched, committed as three focused commits. None of them are Sprint CD (RCP ingest), which remains deferred to its own planning pass.
