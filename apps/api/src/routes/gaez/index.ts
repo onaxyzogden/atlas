@@ -96,7 +96,13 @@ export default async function gaezRoutes(fastify: FastifyInstance) {
 
   fastify.get<{
     Params: { crop: string; waterSupply: string; inputLevel: string; variable: string };
-  }>('/raster/:crop/:waterSupply/:inputLevel/:variable', async (req, reply) => {
+  }>('/raster/:crop/:waterSupply/:inputLevel/:variable', {
+    // Sprint CC: FAO GAEZ v4 is CC BY-NC-SA 3.0 IGO. Gate raster streaming behind
+    // JWT as defense-in-depth; the NC-license decision itself is tracked on
+    // wiki/LAUNCH-CHECKLIST.md. /catalog (manifest digest) and /query
+    // (single-pixel readings) remain public.
+    preHandler: [fastify.authenticate],
+  }, async (req, reply) => {
     const { crop, waterSupply, inputLevel, variable } = req.params;
 
     if (!VARIABLES.includes(variable as Variable)) {

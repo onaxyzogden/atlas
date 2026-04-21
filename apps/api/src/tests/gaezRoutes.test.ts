@@ -245,6 +245,12 @@ import { join as pjoin } from 'node:path';
 describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () => {
   let tmpFile: string;
   const TOTAL = 4096;
+  // Sprint CC: route is auth-gated; every request past the auth middleware
+  // carries this header. Minted inside `it` bodies (buildApp-registered
+  // fastify-jwt is only available after app.ready()).
+  const authHeader = () => ({
+    authorization: `Bearer ${app.jwt.sign({ sub: 'test-user', email: 't@t' })}`,
+  });
 
   beforeAll(async () => {
     tmpFile = pjoin(tmpdir(), `gaez-test-${Date.now()}.tif`);
@@ -264,6 +270,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: authHeader(),
     });
     expect(res.statusCode).toBe(200);
     expect(res.headers['accept-ranges']).toBe('bytes');
@@ -280,7 +287,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
-      headers: { range: 'bytes=0-1023' },
+      headers: { ...authHeader(), range: 'bytes=0-1023' },
     });
     expect(res.statusCode).toBe(206);
     expect(res.headers['content-range']).toBe(`bytes 0-1023/${TOTAL}`);
@@ -296,7 +303,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
-      headers: { range: 'bytes=4000-' },
+      headers: { ...authHeader(), range: 'bytes=4000-' },
     });
     expect(res.statusCode).toBe(206);
     expect(res.headers['content-range']).toBe(`bytes 4000-${TOTAL - 1}/${TOTAL}`);
@@ -309,7 +316,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
-      headers: { range: 'pages=0-10' },
+      headers: { ...authHeader(), range: 'pages=0-10' },
     });
     expect(res.statusCode).toBe(416);
   });
@@ -320,7 +327,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
-      headers: { range: `bytes=${TOTAL}-${TOTAL + 100}` },
+      headers: { ...authHeader(), range: `bytes=${TOTAL}-${TOTAL + 100}` },
     });
     expect(res.statusCode).toBe(416);
   });
@@ -330,6 +337,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/malware',
+      headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
     expect(gaezFake.resolveLocalFilePath).not.toHaveBeenCalled();
@@ -341,6 +349,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/nope/rainfed/high/suitability',
+      headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
   });
@@ -350,6 +359,7 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: authHeader(),
     });
     expect(res.statusCode).toBe(404);
   });
@@ -360,8 +370,55 @@ describe('GET /api/v1/gaez/raster/:crop/:waterSupply/:inputLevel/:variable', () 
     const res = await app.inject({
       method: 'GET',
       url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { authorization: `Bearer ${app.jwt.sign({ sub: 'test-user', email: 't@t' })}` },
     });
     expect(res.statusCode).toBe(404);
+  });
+
+  // ─── Sprint CC: /raster/* auth gate ───────────────────────────────────────
+  //
+  // FAO GAEZ v4 is CC BY-NC-SA 3.0 IGO. The raster endpoint streams FAO bytes,
+  // so we gate it behind JWT as defense-in-depth (the NC-license decision
+  // itself is tracked on wiki/LAUNCH-CHECKLIST.md). /catalog and /query stay
+  // public — the former serves a manifest digest, the latter single-pixel
+  // readings used by the Site Intelligence panel across the app.
+
+  it('returns 401 when no Authorization header is supplied', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+    });
+    expect(res.statusCode).toBe(401);
+    // Should short-circuit before touching the service.
+    expect(gaezFake.resolveLocalFilePath).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 when Authorization header is malformed', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { authorization: 'Bearer garbage.not.a.jwt' },
+    });
+    expect(res.statusCode).toBe(401);
+    expect(gaezFake.resolveLocalFilePath).not.toHaveBeenCalled();
+  });
+
+  it('returns 200 when a valid JWT is supplied', async () => {
+    gaezFake.isEnabled.mockReturnValue(true);
+    gaezFake.resolveLocalFilePath.mockReturnValue(tmpFile);
+    const token = app.jwt.sign({ sub: 'test-user', email: 'test@test' });
+    const res = await app.inject({
+      method: 'GET',
+      url:    '/api/v1/gaez/raster/maize/rainfed/high/suitability',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['accept-ranges']).toBe('bytes');
+    expect(res.rawPayload.length).toBe(TOTAL);
   });
 });
 
