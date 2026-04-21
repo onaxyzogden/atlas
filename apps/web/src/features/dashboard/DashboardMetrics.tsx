@@ -3,6 +3,7 @@
  */
 
 import { useMemo } from 'react';
+import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
@@ -11,7 +12,7 @@ import { semantic } from '../../lib/tokens.js';
 import css from './DashboardMetrics.module.css';
 
 // ─── Layer summary types ──────────────────────────────────────────────────────
-interface ClimateSummary   { annual_precip_mm?: number; annual_temp_mean_c?: number; growing_season_days?: number; hardiness_zone?: string; first_frost_date?: string; last_frost_date?: string; }
+interface ClimateSummary   { annual_precip_mm?: number; annual_temp_mean_c?: number; growing_season_days?: number; hardiness_zone?: string; first_frost_date?: string; last_frost_date?: string; solar_radiation_kwh_m2_day?: number; wind_speed_ms?: number; relative_humidity_pct?: number; }
 interface WatershedSummary { catchment_area_ha?: number | string; }
 interface WetlandsFlood    { flood_zone?: string; wetland_pct?: number | string; }
 interface ElevationSummary {
@@ -44,6 +45,14 @@ export default function DashboardMetrics({ section, project }: DashboardMetricsP
     const wetFlood  = siteData ? getLayerSummary<WetlandsFlood>(siteData, 'wetlands_flood')   : null;
     const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation')     : null;
     const soils     = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils')             : null;
+    let latitudeDeg: number | undefined;
+    if (project.parcelBoundaryGeojson) {
+      try { latitudeDeg = turf.centroid(project.parcelBoundaryGeojson).geometry.coordinates[1]; }
+      catch { /* invalid boundary */ }
+    }
+    const elevationM = elevation?.min_elevation_m != null && elevation.max_elevation_m != null
+      ? (elevation.min_elevation_m + elevation.max_elevation_m) / 2
+      : undefined;
     const m = computeHydrologyMetrics({
       precipMm:        climate?.annual_precip_mm      ?? HYDRO_DEFAULTS.precipMm,
       catchmentHa:     (() => { const v = parseFloat(String(watershed?.catchment_area_ha ?? '')); return isFinite(v) ? v : null; })(),
@@ -54,6 +63,11 @@ export default function DashboardMetrics({ section, project }: DashboardMetricsP
       floodZone:       wetFlood?.flood_zone           ?? HYDRO_DEFAULTS.floodZone,
       wetlandPct:      Number(wetFlood?.wetland_pct   ?? HYDRO_DEFAULTS.wetlandPct),
       annualTempC:     climate?.annual_temp_mean_c    ?? HYDRO_DEFAULTS.annualTempC,
+      solarRadKwhM2Day: climate?.solar_radiation_kwh_m2_day,
+      windMs:           climate?.wind_speed_ms,
+      rhPct:            climate?.relative_humidity_pct,
+      latitudeDeg,
+      elevationM,
     });
     return [
       { label: 'Water Resilience Score', value: String(m.resilienceScore),       unit: '/100',   trendPositive: m.resilienceScore >= 70 },
@@ -61,7 +75,7 @@ export default function DashboardMetrics({ section, project }: DashboardMetricsP
       { label: 'Catchment Potential',    value: fmtGal(m.catchmentPotentialGal), unit: 'Gal/Yr'  },
       { label: 'Drought Buffer',         value: String(m.droughtBufferDays),     unit: 'Days',   trend: `${m.droughtBufferDays} days estimated`, trendPositive: m.droughtBufferDays > 100 },
     ];
-  }, [section, siteData, project.acreage]);
+  }, [section, siteData, project.acreage, project.parcelBoundaryGeojson]);
 
   const terrainCards = useMemo(() => {
     if (section !== 'terrain-dashboard') return null;

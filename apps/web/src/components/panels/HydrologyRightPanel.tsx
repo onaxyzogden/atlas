@@ -12,6 +12,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
@@ -27,6 +28,10 @@ interface HydrologyRightPanelProps {
 interface ClimateSummary {
   annual_precip_mm?: number;
   annual_temp_mean_c?: number;
+  // NASA POWER enrichment — activates FAO-56 Penman-Monteith PET
+  solar_radiation_kwh_m2_day?: number;
+  wind_speed_ms?: number;
+  relative_humidity_pct?: number;
 }
 interface WatershedSummary {
   watershed_name?: string;
@@ -245,6 +250,19 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
     const tempC      = climate?.annual_temp_mean_c ?? HYDRO_DEFAULTS.annualTempC;
     const isLive     = siteData?.isLive ?? false;
 
+    // Derive latitude from parcel centroid — required for Penman-Monteith dispatch
+    let latitudeDeg: number | undefined;
+    let elevationM: number | undefined;
+    if (project.parcelBoundaryGeojson) {
+      try {
+        const c = turf.centroid(project.parcelBoundaryGeojson);
+        latitudeDeg = c.geometry.coordinates[1];
+      } catch { /* invalid boundary — leave undefined, falls back to Blaney-Criddle */ }
+    }
+    if (elevation?.min_elevation_m != null && elevation.max_elevation_m != null) {
+      elevationM = (elevation.min_elevation_m + elevation.max_elevation_m) / 2;
+    }
+
     const inputs = {
       precipMm,
       catchmentHa:    (() => { const v = parseFloat(String(watershed?.catchment_area_ha ?? '')); return isFinite(v) ? v : null; })(),
@@ -255,6 +273,12 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
       floodZone:      wetFlood?.flood_zone ?? HYDRO_DEFAULTS.floodZone,
       wetlandPct:     Number(wetFlood?.wetland_pct ?? HYDRO_DEFAULTS.wetlandPct),
       annualTempC:    tempC,
+      // NASA POWER enrichment → Penman-Monteith when all four present
+      solarRadKwhM2Day: climate?.solar_radiation_kwh_m2_day,
+      windMs:           climate?.wind_speed_ms,
+      rhPct:            climate?.relative_humidity_pct,
+      latitudeDeg,
+      elevationM,
     };
 
     const m = computeHydrologyMetrics(inputs);
@@ -411,7 +435,7 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
       },
       metrics: m,
     };
-  }, [siteData, project.acreage]);
+  }, [siteData, project.acreage, project.parcelBoundaryGeojson]);
 
   const isLoading = siteData?.status === 'loading';
 
