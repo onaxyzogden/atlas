@@ -33,6 +33,8 @@ import aiRoutes from './routes/ai/index.js';
 import elevationRoutes from './routes/elevation/index.js';
 import gaezRoutes from './routes/gaez/index.js';
 import { initGaezService } from './services/gaez/GaezRasterService.js';
+import soilgridsRoutes from './routes/soilgrids/index.js';
+import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
 import fileRoutes from './routes/files/index.js';
 import exportRoutes from './routes/exports/index.js';
@@ -92,6 +94,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(aiRoutes,       { prefix: '/api/v1/ai' });
   await app.register(elevationRoutes,{ prefix: '/api/v1/elevation' });
   await app.register(gaezRoutes,     { prefix: '/api/v1/gaez' });
+  await app.register(soilgridsRoutes,{ prefix: '/api/v1/soilgrids' });
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
@@ -112,6 +115,17 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
       app.log.info('GAEZ v4 raster service enabled');
     } else {
       app.log.info('GAEZ v4 raster service disabled (no manifest — run ingest:gaez to enable)');
+    }
+  }
+
+  // ─── SoilGrids raster service (manifest optional; absent = disabled) ────────
+
+  {
+    const sg = initSoilGridsService(config.SOILGRIDS_DATA_DIR, config.SOILGRIDS_S3_PREFIX ?? null);
+    if (sg.isEnabled()) {
+      app.log.info('SoilGrids v2.0 raster service enabled');
+    } else {
+      app.log.info('SoilGrids v2.0 raster service disabled (no manifest at data/soilgrids)');
     }
   }
 

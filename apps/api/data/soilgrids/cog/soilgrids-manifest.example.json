@@ -1,0 +1,56 @@
+{
+  "_comment": "Rename to soilgrids-manifest.json after running the ingest steps in ../README.md. Checked-in example so the shape is obvious; the actual manifest is gitignored.",
+  "generated_at": "2026-04-21",
+  "source": "ISRIC SoilGrids v2.0 (https://soilgrids.org)",
+  "license": "CC BY 4.0",
+  "attribution": "ISRIC SoilGrids v2.0 — CC BY 4.0",
+  "entries": {
+    "bedrock_depth": {
+      "property": "bedrock_depth",
+      "label": "Depth to bedrock",
+      "unit": "cm",
+      "range": [0, 200],
+      "rampId": "sequential_earth",
+      "filename": "bedrock_depth.tif"
+    },
+    "ph": {
+      "property": "ph",
+      "label": "Soil pH (H₂O)",
+      "unit": "pH",
+      "range": [4.0, 9.0],
+      "rampId": "diverging_ph",
+      "filename": "ph_0_30cm.tif",
+      "scale": 10,
+      "depthSlice": "0-30cm"
+    },
+    "organic_carbon": {
+      "property": "organic_carbon",
+      "label": "Organic carbon",
+      "unit": "g/kg",
+      "range": [0, 80],
+      "rampId": "sequential_carbon",
+      "filename": "organic_carbon_0_30cm.tif",
+      "depthSlice": "0-30cm"
+    },
+    "clay": {
+      "property": "clay",
+      "label": "Clay content",
+      "unit": "%",
+      "range": [0, 60],
+      "rampId": "sequential_clay",
+      "filename": "clay_0_30cm.tif",
+      "scale": 10,
+      "depthSlice": "0-30cm"
+    },
+    "sand": {
+      "property": "sand",
+      "label": "Sand content",
+      "unit": "%",
+      "range": [0, 90],
+      "rampId": "sequential_sand",
+      "filename": "sand_0_30cm.tif",
+      "scale": 10,
+      "depthSlice": "0-30cm"
+    }
+  }
+}

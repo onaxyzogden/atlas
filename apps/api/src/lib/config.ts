@@ -23,6 +23,12 @@ const EnvSchema = z.object({
   //   When set, overrides local FS reads with byte-range reads via geotiff.js fromUrl.
   GAEZ_DATA_DIR: z.string().default('./data/gaez/cog'),
   GAEZ_S3_PREFIX: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
+  // ── SoilGrids v2.0 (self-hosted rasters) ─────────────────────────────────
+  // SOILGRIDS_DATA_DIR — local filesystem path to the clipped COG directory.
+  //   Defaults to `./data/soilgrids/cog` relative to CWD (typically apps/api).
+  // SOILGRIDS_S3_PREFIX — optional HTTPS/S3 base URL; overrides local FS when set.
+  SOILGRIDS_DATA_DIR: z.string().default('./data/soilgrids/cog'),
+  SOILGRIDS_S3_PREFIX: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
 });
 
 function loadConfig() {
