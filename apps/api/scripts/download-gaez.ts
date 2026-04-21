@@ -51,10 +51,10 @@ export type Variable = (typeof VALID_VARIABLE)[number];
 
 // ── ImageServer schema mapping ──────────────────────────────────────────────
 
-const IMAGE_SERVER = 'https://gaez-services.fao.org/server/rest/services/res05/ImageServer';
+export const IMAGE_SERVER = 'https://gaez-services.fao.org/server/rest/services/res05/ImageServer';
 
 /** FAO `crop` attribute value for each of our priority crops. */
-const CROP_MAP: Record<Crop, string> = {
+export const CROP_MAP: Record<Crop, string> = {
   wheat: 'Wheat',
   maize: 'Maize',
   rice: 'Wetland rice',
@@ -70,7 +70,7 @@ const CROP_MAP: Record<Crop, string> = {
 };
 
 /** FAO `water_supply` preference order per bucket. First match wins. */
-const WATER_SUPPLY_MAP: Record<WaterSupply, string[]> = {
+export const WATER_SUPPLY_MAP: Record<WaterSupply, string[]> = {
   rainfed: ['Rainfed'],
   // Most crops use "Gravity Irrigation" (both Low+High); a few (e.g. Cassava)
   // expose only "Irrigation" for their one irrigated variant. Try each in
@@ -78,7 +78,7 @@ const WATER_SUPPLY_MAP: Record<WaterSupply, string[]> = {
   irrigated: ['Gravity Irrigation', 'Irrigation', 'Sprinkler Irrigation', 'Drip Irrigation'],
 };
 
-const INPUT_LEVEL_MAP: Record<InputLevel, string> = { low: 'Low', high: 'High' };
+export const INPUT_LEVEL_MAP: Record<InputLevel, string> = { low: 'Low', high: 'High' };
 
 /**
  * FAO `sub_theme_name` + `variable` tuple per output variable. Both filters
@@ -105,7 +105,7 @@ const BASELINE_MODEL = 'CRUTS32';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-interface FeatureAttributes {
+export interface FeatureAttributes {
   objectid?: number;
   name?: string;
   crop?: string;
@@ -118,7 +118,7 @@ interface FeatureAttributes {
   download_url?: string;
 }
 
-interface QueryResponse {
+export interface QueryResponse {
   features?: Array<{ attributes: FeatureAttributes }>;
   error?: { code: number; message: string };
 }
@@ -231,7 +231,7 @@ export function shouldInclude(filename: string, filterSubstring?: string): boole
 // ── HTTP helpers ────────────────────────────────────────────────────────────
 
 /** Promise-based HTTPS GET returning a JSON response body. */
-async function fetchJson<T>(url: string, maxRedirects = 5): Promise<T> {
+export async function fetchJson<T>(url: string, maxRedirects = 5): Promise<T> {
   return new Promise((resolvePromise, rejectPromise) => {
     const tryOnce = (u: string, redirects: number) => {
       const req = httpsGet(u, { headers: { 'User-Agent': 'atlas-gaez-ingest/1.0' } }, (res) => {
