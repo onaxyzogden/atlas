@@ -249,7 +249,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.phaseName}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>{item.category}</td>
                       <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
-                        ${Math.round(item.cost.low / 1000)}K\u2013${Math.round(item.cost.high / 1000)}K
+                        ${Math.round(item.cost.low / 1000)}K–${Math.round(item.cost.high / 1000)}K
                       </td>
                     </tr>
                   ))}
@@ -278,7 +278,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
                       <td style={{ padding: '4px 8px', fontWeight: 500 }}>{stream.name}</td>
                       <td style={{ padding: '4px 8px', color: '#6b7280' }}>Year {stream.startYear}</td>
                       <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: "'Fira Code', monospace" }}>
-                        ${Math.round(stream.annualRevenue.low / 1000)}K\u2013${Math.round(stream.annualRevenue.high / 1000)}K
+                        ${Math.round(stream.annualRevenue.low / 1000)}K–${Math.round(stream.annualRevenue.high / 1000)}K
                       </td>
                     </tr>
                   ))}

@@ -143,7 +143,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
         <div className={s.summaryCard}>
           <div className={s.summaryLabel}>Total Investment (est.)</div>
           <div className={`${s.summaryValue} ${s.summaryValueAccent}`}>
-            ${Math.round(totalInvestment.low / 1000)}K\u2013${Math.round(totalInvestment.high / 1000)}K
+            ${Math.round(totalInvestment.low / 1000)}K–${Math.round(totalInvestment.high / 1000)}K
           </div>
         </div>
         <div className={s.summaryCard}>
@@ -347,7 +347,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                   </div>
                   <div className={s.carbonMetric}>
                     <span className={s.carbonMetricLabel}>Credit Revenue</span>
-                    <span className={s.carbonMetricValue}>${carbonData.revenueLow.toLocaleString()}\u2013${carbonData.revenueHigh.toLocaleString()}/yr</span>
+                    <span className={s.carbonMetricValue}>${carbonData.revenueLow.toLocaleString()}–${carbonData.revenueHigh.toLocaleString()}/yr</span>
                   </div>
                 </div>
                 <div className={s.carbonNote}>
@@ -413,7 +413,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               <div className={s.itemHeader}>
                 <span className={s.itemName}>{item.name}</span>
                 <span className={s.itemCostRange}>
-                  ${Math.round(item.cost.low / 1000)}K\u2013${Math.round(item.cost.high / 1000)}K
+                  ${Math.round(item.cost.low / 1000)}K–${Math.round(item.cost.high / 1000)}K
                 </span>
               </div>
               <div className={s.itemTags}>
@@ -450,7 +450,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                 <div className={s.itemHeader}>
                   <span className={s.itemName}>{stream.name}</span>
                   <span className={s.itemRevenueRange}>
-                    ${Math.round(stream.annualRevenue.low / 1000)}K\u2013${Math.round(stream.annualRevenue.high / 1000)}K/yr
+                    ${Math.round(stream.annualRevenue.low / 1000)}K–${Math.round(stream.annualRevenue.high / 1000)}K/yr
                   </span>
                 </div>
                 <div className={`${s.itemTags} ${p.mb4}`}>
@@ -475,7 +475,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
                   Revenue projections are estimates based on comparable operations and regional benchmarks.
                   Local market conditions, permitting, and management skill will significantly impact actual results.
                   {annualRevenueAtMaturity.mid > 0 && (
-                    <> Combined annual revenue at maturity: ${Math.round(annualRevenueAtMaturity.low / 1000)}K\u2013${Math.round(annualRevenueAtMaturity.high / 1000)}K.</>
+                    <> Combined annual revenue at maturity: ${Math.round(annualRevenueAtMaturity.low / 1000)}K–${Math.round(annualRevenueAtMaturity.high / 1000)}K.</>
                   )}
                 </span>
               </div>
