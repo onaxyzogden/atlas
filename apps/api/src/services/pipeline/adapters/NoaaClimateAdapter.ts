@@ -24,6 +24,7 @@ import pino from 'pino';
 import type { LayerType } from '@ogden/shared';
 import type { DataSourceAdapter, AdapterResult, ProjectContext } from '../DataPipelineOrchestrator.js';
 import { AppError } from '../../../lib/errors.js';
+import { fetchNasaPowerSummary } from './nasaPowerFetch.js';
 
 const logger = pino({ name: 'NoaaClimateAdapter' });
 
@@ -70,6 +71,12 @@ interface ClimateNormals {
   data_period: '1991-2020';
   source_api: 'NOAA ACIS (1991–2020 Normals)';
   confidence: 'high' | 'medium' | 'low';
+
+  // Optional NASA POWER enrichment (global climatology supplement)
+  solar_radiation_kwh_m2_day?: number;
+  wind_speed_ms?: number;
+  relative_humidity_pct?: number;
+  nasa_power_source?: 'NASA POWER (Climatology)';
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -366,6 +373,19 @@ export class NoaaClimateAdapter implements DataSourceAdapter {
         logger.warn({ lat, lng, err: (err as Error).message }, 'ACIS error — falling back to latitude estimate');
       }
       normals = buildLatitudeFallback(lat);
+    }
+
+    // ── NASA POWER enrichment (best-effort, silent-skip on failure) ───────
+    try {
+      const nasa = await fetchNasaPowerSummary(lat, lng);
+      if (nasa) {
+        normals.solar_radiation_kwh_m2_day = nasa.solar_radiation_kwh_m2_day;
+        normals.wind_speed_ms = nasa.wind_speed_ms;
+        normals.relative_humidity_pct = nasa.relative_humidity_pct;
+        normals.nasa_power_source = nasa.source_api;
+      }
+    } catch (err) {
+      logger.warn({ lat, lng, err: (err as Error).message }, 'NASA POWER enrichment threw — continuing without it');
     }
 
     logger.info(
