@@ -728,6 +728,24 @@ export function useSiteIntelligenceMetrics(
           suitability: typeof r['suitability'] === 'string' ? r['suitability'] as string : 'UNKNOWN',
         }))
         .filter((r) => r.crop);
+      // Sprint BZ: flatten the full 47-entry ranking (crop × water × input) so
+      // the UI can surface a deep dive beyond top_3. Service already sorts by
+      // yield desc + suitability rank — preserve that order.
+      const fullRankingRaw = Array.isArray(sm['crop_suitabilities']) ? sm['crop_suitabilities'] as unknown[] : [];
+      const fullRanking = fullRankingRaw
+        .filter((r): r is Record<string, unknown> => typeof r === 'object' && r !== null)
+        .map((r) => {
+          const crop = typeof r['crop'] === 'string' ? r['crop'] as string : '';
+          return {
+            crop,
+            label: crop.replace(/_/g, ' '),
+            waterSupply: typeof r['waterSupply'] === 'string' ? r['waterSupply'] as string : '',
+            inputLevel: typeof r['inputLevel'] === 'string' ? r['inputLevel'] as string : '',
+            suitabilityClass: typeof r['suitability_class'] === 'string' ? r['suitability_class'] as string : 'UNKNOWN',
+            attainableYield: typeof r['attainable_yield_kg_ha'] === 'number' ? r['attainable_yield_kg_ha'] as number : null,
+          };
+        })
+        .filter((r) => r.crop);
       return {
         enabled: true as const,
         bestCrop: typeof sm['best_crop'] === 'string' ? sm['best_crop'] as string : null,
@@ -735,6 +753,7 @@ export function useSiteIntelligenceMetrics(
         primaryClass: typeof sm['primary_suitability_class'] === 'string' ? sm['primary_suitability_class'] as string : 'UNKNOWN',
         attainableYield: typeof sm['attainable_yield_kg_ha_best'] === 'number' ? sm['attainable_yield_kg_ha_best'] as number : null,
         top3,
+        fullRanking,
         resolutionNote: typeof sm['resolution_note'] === 'string' ? sm['resolution_note'] as string : null,
         licenseNote: typeof sm['license_note'] === 'string' ? sm['license_note'] as string : null,
         source: l.sourceApi,
