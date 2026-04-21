@@ -57,11 +57,21 @@ export type SuitabilityClass = 'S1' | 'S2' | 'S3' | 'N' | 'NS' | 'WATER' | 'UNKN
  *   7 = Not suitable (N)
  *   8 = Not suitable (N)
  *   9 = Water
+ *
+ * Disambiguation note: FAO uses code 9 for both open water AND for pixels
+ * outside the cropland extent (desert, ice, tundra). When the paired yield
+ * raster returns NoData (null) or a negative sentinel (the -1 value leaks
+ * through for off-cropland pixels whose COGs lack a proper GDAL NoData tag),
+ * we treat the point as off-extent UNKNOWN rather than WATER. Only code 9
+ * with a non-negative yield is classified as WATER.
  */
-function mapSuitabilityCode(code: number | null): SuitabilityClass {
+function mapSuitabilityCode(code: number | null, yieldVal: number | null): SuitabilityClass {
   if (code === null || !Number.isFinite(code)) return 'UNKNOWN';
   if (code <= 0) return 'UNKNOWN';
-  if (code === 9) return 'WATER';
+  if (code === 9) {
+    if (yieldVal === null || !Number.isFinite(yieldVal) || yieldVal < 0) return 'UNKNOWN';
+    return 'WATER';
+  }
   if (code >= 1 && code <= 2) return 'S1';
   if (code >= 3 && code <= 4) return 'S2';
   if (code >= 5 && code <= 6) return 'S3';
@@ -174,9 +184,14 @@ export class GaezRasterService {
             crop: entry.crop,
             waterSupply: entry.waterSupply,
             inputLevel: entry.inputLevel,
-            suitability_class: mapSuitabilityCode(suitCode),
+            suitability_class: mapSuitabilityCode(suitCode, yieldVal),
             suitability_code: suitCode,
-            attainable_yield_kg_ha: yieldVal !== null && Number.isFinite(yieldVal) ? Math.round(yieldVal) : null,
+            // Negative yields are NoData sentinels leaking through when the
+            // COG lacks a GDAL NoData tag — sanitize to null on output.
+            attainable_yield_kg_ha:
+              yieldVal !== null && Number.isFinite(yieldVal) && yieldVal >= 0
+                ? Math.round(yieldVal)
+                : null,
           });
         } catch {
           // Per-raster failure shouldn't kill the whole response — skip.
@@ -195,12 +210,16 @@ export class GaezRasterService {
       };
     }
 
-    // If every result is WATER or UNKNOWN, point is outside raster extent (ocean).
+    // If every result is WATER or UNKNOWN, point is outside cropland extent
+    // (ocean, inland water, desert, ice, or NoData). Prefer WATER only when at
+    // least one entry is genuinely WATER — otherwise UNKNOWN is more honest,
+    // since we cannot distinguish ocean from desert from raster signal alone.
     const allOceanOrUnknown = results.every(
       (r) => r.suitability_class === 'WATER' || r.suitability_class === 'UNKNOWN',
     );
 
     if (allOceanOrUnknown) {
+      const anyWater = results.some((r) => r.suitability_class === 'WATER');
       return {
         fetch_status: 'complete',
         confidence: 'low',
@@ -209,12 +228,14 @@ export class GaezRasterService {
         summary: {
           best_crop: null,
           best_management: null,
-          primary_suitability_class: 'WATER',
+          primary_suitability_class: anyWater ? 'WATER' : 'UNKNOWN',
           attainable_yield_kg_ha_best: null,
           top_3_crops: [],
           crop_suitabilities: results,
         },
-        message: 'Point appears to be outside GAEZ terrestrial raster extent (water or nodata)',
+        message: anyWater
+          ? 'Point appears to be inland water or outside GAEZ terrestrial raster extent'
+          : 'Point appears to be outside GAEZ terrestrial raster extent (ocean, desert, ice, or NoData)',
       };
     }
 

@@ -239,6 +239,57 @@ describe('GaezRasterService.query', () => {
     expect(result.summary!.best_crop).toBeNull();
     expect(result.summary!.top_3_crops).toEqual([]);
     expect(result.message).toContain('outside GAEZ terrestrial');
+    // Per-entry classification: genuine water (code=9, yield=0) stays WATER.
+    const classes = new Set(result.summary!.crop_suitabilities.map((r) => r.suitability_class));
+    expect(classes).toEqual(new Set<SuitabilityClass>(['WATER']));
+  });
+
+  it('returns UNKNOWN (not WATER) when suit_code=9 but yield raster returns a negative sentinel (Sahara / off-cropland NoData)', async () => {
+    buildFullManifest(tmpDir);
+    // FAO GAEZ v4 off-cropland pixels often leak the NoData sentinel -1
+    // through geotiff.js when the COG's NoData tag isn't wired to -1. Suit
+    // raster codes it as 9 (the same code used for water), and the classifier
+    // must NOT call these pixels WATER.
+    mockFromFile.mockImplementation(async (path: string) => {
+      const p = String(path);
+      const value = p.endsWith('_yield.tif') ? -1 : 9;
+      return makeFakeTiff(value) as unknown as Awaited<ReturnType<typeof fromFile>>;
+    });
+
+    const s = new GaezRasterService(tmpDir, null);
+    s.loadManifest();
+    const result = await s.query(23.5, 13.0); // Sahara
+
+    expect(result.fetch_status).toBe('complete');
+    // Every entry must be UNKNOWN (off-extent), not WATER.
+    const classes = new Set(result.summary!.crop_suitabilities.map((r) => r.suitability_class));
+    expect(classes).toEqual(new Set<SuitabilityClass>(['UNKNOWN']));
+    // Negative yield is a sentinel — must be sanitized to null on output.
+    const yields = new Set(result.summary!.crop_suitabilities.map((r) => r.attainable_yield_kg_ha));
+    expect(yields).toEqual(new Set([null]));
+    // Summary primary is UNKNOWN (no WATER entries → no reason to claim water).
+    expect(result.summary!.primary_suitability_class).toBe('UNKNOWN');
+    expect(result.message).toContain('outside GAEZ terrestrial');
+  });
+
+  it('returns UNKNOWN when suit_code=9 but yield raster is NoData (null)', async () => {
+    buildFullManifest(tmpDir);
+    // True NoData on yield — GDAL tag matches, so samplePoint returns null.
+    mockFromFile.mockImplementation(async (path: string) => {
+      const p = String(path);
+      if (p.endsWith('_yield.tif')) {
+        return makeFakeTiff(-9999, { nodata: -9999 }) as unknown as Awaited<ReturnType<typeof fromFile>>;
+      }
+      return makeFakeTiff(9) as unknown as Awaited<ReturnType<typeof fromFile>>;
+    });
+
+    const s = new GaezRasterService(tmpDir, null);
+    s.loadManifest();
+    const result = await s.query(23.5, 13.0);
+
+    const classes = new Set(result.summary!.crop_suitabilities.map((r) => r.suitability_class));
+    expect(classes).toEqual(new Set<SuitabilityClass>(['UNKNOWN']));
+    expect(result.summary!.primary_suitability_class).toBe('UNKNOWN');
   });
 
   it('returns fetch_status="failed" when every raster read throws', async () => {
@@ -343,13 +394,14 @@ describe('GaezRasterService.query', () => {
     s.loadManifest();
     const result = await s.query(40, -80);
 
-    // Only one manifest entry, returning WATER/UNKNOWN-only → the "allOceanOrUnknown"
-    // path fires with primary_suitability_class="WATER" and empty top_3.
+    // Only one manifest entry, all UNKNOWN (no WATER) → the "allOceanOrUnknown"
+    // path fires with primary_suitability_class="UNKNOWN" (post-classifier-fix).
     expect(result.fetch_status).toBe('complete');
     expect(result.confidence).toBe('low');
     expect(result.summary!.crop_suitabilities).toHaveLength(1);
     expect(result.summary!.crop_suitabilities[0]!.suitability_class).toBe('UNKNOWN');
     expect(result.summary!.crop_suitabilities[0]!.attainable_yield_kg_ha).toBeNull();
+    expect(result.summary!.primary_suitability_class).toBe('UNKNOWN');
   });
 });
 
