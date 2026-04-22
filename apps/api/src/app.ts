@@ -84,6 +84,12 @@ import collaborationReviewRoutes from './routes/collaboration-review/index.js';
 import reportingExportRoutes from './routes/reporting-export/index.js';
 import reusableFrameworksRoutes from './routes/reusable-frameworks/index.js';
 
+// ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+import mobileFieldworkRoutes from './routes/mobile-fieldwork/index.js';
+import publicPortalSectionRoutes from './routes/public-portal/index.js';
+import futureGeospatialRoutes from './routes/future-geospatial/index.js';
+import moontranceIdentityRoutes from './routes/moontrance-identity/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -183,6 +189,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(collaborationReviewRoutes,   { prefix: '/api/v1/collaboration-review' });
   await app.register(reportingExportRoutes,       { prefix: '/api/v1/reporting-export' });
   await app.register(reusableFrameworksRoutes,    { prefix: '/api/v1/reusable-frameworks' });
+
+  // ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+  await app.register(mobileFieldworkRoutes,       { prefix: '/api/v1/mobile-fieldwork' });
+  await app.register(publicPortalSectionRoutes,   { prefix: '/api/v1/public-portal' });
+  await app.register(futureGeospatialRoutes,      { prefix: '/api/v1/future-geospatial' });
+  await app.register(moontranceIdentityRoutes,    { prefix: '/api/v1/moontrance-identity' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
