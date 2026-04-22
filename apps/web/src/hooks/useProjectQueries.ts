@@ -10,7 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/apiClient.js';
 import { toast } from '../components/Toast.js';
-import type { AssessmentResponse, CreateProjectInput, UpdateProjectInput } from '@ogden/shared';
+import type { AssessmentResponse, CreateProjectInput, HydrologyWaterResponse, UpdateProjectInput } from '@ogden/shared';
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
@@ -20,6 +20,7 @@ export const projectKeys = {
   detail: (id: string) => [...projectKeys.all, 'detail', id] as const,
   completeness: (id: string) => [...projectKeys.all, 'completeness', id] as const,
   assessment: (id: string) => [...projectKeys.all, 'assessment', id] as const,
+  hydrologyWater: (id: string) => [...projectKeys.all, 'hydrologyWater', id] as const,
 };
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -92,6 +93,27 @@ export function useAssessment(projectId: string) {
     ...query,
     isNotReady: query.data === null && !query.isLoading && !query.isError,
   };
+}
+
+/**
+ * Section 5 — hydrology & water systems summary for a project.
+ *
+ * Returns a typed `HydrologyWaterResponse` discriminated union:
+ *  - `status: 'ready'`     — Tier-3 pipeline's `watershed_derived` layer
+ *                            is persisted; caller renders summary + geojson
+ *  - `status: 'not_ready'` — boundary missing or pipeline pending/failed;
+ *                            caller shows an explanatory banner
+ */
+export function useHydrologyWater(projectId: string) {
+  return useQuery<HydrologyWaterResponse, Error>({
+    queryKey: projectKeys.hydrologyWater(projectId),
+    queryFn: async () => {
+      const { data } = await api.hydrologyWater.get(projectId);
+      return data;
+    },
+    enabled: !!projectId,
+    staleTime: 60_000,
+  });
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────────────

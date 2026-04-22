@@ -12,6 +12,7 @@ export * from './schemas/export.schema.js';
 export * from './schemas/portal.schema.js';
 export * from './schemas/collaboration.schema.js';
 export * from './schemas/websocket.schema.js';
+export * from './schemas/section5.schema.js';
 
 // Utilities
 export * from './lib/caseTransform.js';

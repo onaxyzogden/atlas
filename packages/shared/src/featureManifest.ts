@@ -164,9 +164,9 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P1', 'P2'],
     status: 'partial',
     features: [
-      { key: 'water-flow-runoff-visualization', label: 'Water flow visualization, surface runoff paths', phase: 'P1', status: 'partial' },
-      { key: 'watershed-delineation', label: 'Watershed delineation, catchment area identification', phase: 'P1', status: 'partial' },
-      { key: 'drainage-line-flood-accumulation', label: 'Drainage line extraction, flood accumulation simulation', phase: 'P1', status: 'partial' },
+      { key: 'water-flow-runoff-visualization', label: 'Water flow visualization, surface runoff paths', phase: 'P1', status: 'done' },
+      { key: 'watershed-delineation', label: 'Watershed delineation, catchment area identification', phase: 'P1', status: 'done' },
+      { key: 'drainage-line-flood-accumulation', label: 'Drainage line extraction, flood accumulation simulation', phase: 'P1', status: 'done' },
       { key: 'pond-swale-berm-check-dam-suggestions', label: 'Pond, swale, berm, check dam placement suggestions', phase: 'P2', status: 'partial' },
       { key: 'overflow-spillway-planning', label: 'Overflow route visualization, spillway planning', phase: 'P2', status: 'planned' },
       { key: 'roof-catchment-rainwater-storage', label: 'Roof catchment calculation, rainwater storage sizing', phase: 'P2', status: 'planned' },

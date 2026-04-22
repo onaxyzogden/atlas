@@ -30,6 +30,7 @@ import type {
   ReviewSuggestedEditInput,
   ProjectRole,
   AssessmentResponse,
+  HydrologyWaterResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -398,5 +399,10 @@ export const api = {
         `/api/v1/projects/${projectId}/suggestions/${suggestionId}`,
         input,
       ),
+  },
+
+  hydrologyWater: {
+    get: (projectId: string) =>
+      request<HydrologyWaterResponse>('GET', `/api/v1/hydrology-water/${projectId}`),
   },
 };
