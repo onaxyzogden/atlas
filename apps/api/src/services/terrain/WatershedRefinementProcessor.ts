@@ -202,9 +202,9 @@ export class WatershedRefinementProcessor {
         ${confidence},
         ${dataDate},
         ${'Derived from elevation raster (' + grid.sourceApi + ') and watershed geometry'},
-        ${JSON.stringify(geojsonData)},
-        ${JSON.stringify(summaryData)},
-        ${JSON.stringify({ resolution_m: grid.resolution_m, gridWidth: grid.width, gridHeight: grid.height })},
+        ${this.db.json(geojsonData as never) as unknown as string},
+        ${this.db.json(summaryData as never) as unknown as string},
+        ${this.db.json({ resolution_m: grid.resolution_m, gridWidth: grid.width, gridHeight: grid.height } as never) as unknown as string},
         now()
       )
       ON CONFLICT (project_id, layer_type) DO UPDATE SET

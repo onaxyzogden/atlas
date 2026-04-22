@@ -23,6 +23,8 @@ import { wsService } from '../../lib/wsService.js';
 import GPSTracker from '../mobile/GPSTracker.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
+import { EmptyState } from '../../components/ui/EmptyState.js';
+import { RailPanelShell } from '../../components/ui/RailPanelShell.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -44,6 +46,7 @@ const TimelinePanel = lazy(() => import('../../components/panels/TimelinePanel.j
 const PortalConfigPanel = lazy(() => import('../portal/PortalConfigPanel.js'));
 const VisionPanel = lazy(() => import('../vision/VisionPanel.js'));
 const DecisionSupportPanel = lazy(() => import('../decision/DecisionSupportPanel.js'));
+const RegulatoryPanel = lazy(() => import('../regulatory/RegulatoryPanel.js'));
 const MoontrancePanel = lazy(() => import('../moontrance/MoontrancePanel.js'));
 const SpiritualPanel = lazy(() => import('../spiritual/SpiritualPanel.js'));
 const VersionHistory = lazy(() => import('../project/VersionHistory.js'));
@@ -68,6 +71,7 @@ const PlantingToolDashboard = lazy(() => import('../dashboard/pages/PlantingTool
 const ForestHubDashboard = lazy(() => import('../dashboard/pages/ForestHubDashboard.js'));
 const CarbonDiagnosticDashboard = lazy(() => import('../dashboard/pages/CarbonDiagnosticDashboard.js'));
 const NurseryLedgerDashboard = lazy(() => import('../dashboard/pages/NurseryLedgerDashboard.js'));
+const EnergyDashboard = lazy(() => import('../dashboard/pages/EnergyDashboard.js'));
 const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
 const ZonePanel = lazy(() => import('../zones/ZonePanel.js'));
 const SitingPanel = lazy(() => import('../rules/SitingPanel.js'));
@@ -90,9 +94,22 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const setLayerVisible = useMapStore((s) => s.setLayerVisible);
   const is3DTerrain = useMapStore((s) => s.is3DTerrain);
 
-  const [activeView, setActiveView] = useState<SidebarView>(
-    () => getDomainContext(useUIStore.getState().activeDashboardSection).panel,
-  );
+  // Lifted into uiStore so the IconSidebar rendered in ProjectPage (when the
+  // Map tab is active) can drive the same panel state. The store holds the
+  // nullable value directly so "close panel" (setActiveView(null)) still
+  // collapses the rail — we only seed from the domain context on first mount,
+  // not on every render.
+  const activeView = useUIStore((s) => s.activeMapView);
+  const setActiveView = useUIStore((s) => s.setActiveMapView);
+  const hasSeededViewRef = useRef(false);
+  useEffect(() => {
+    if (hasSeededViewRef.current) return;
+    hasSeededViewRef.current = true;
+    if (useUIStore.getState().activeMapView == null) {
+      setActiveView(getDomainContext(useUIStore.getState().activeDashboardSection).panel);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [isDrawingBoundary, setIsDrawingBoundary] = useState(false);
 
   const [mapRef, setMapRef] = useState<maplibregl.Map | null>(null);
@@ -411,7 +428,8 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'hydrology' && <HydrologyRightPanel project={project} />}
               {activeView === 'ai' && <AtlasAIPanel project={project} />}
               {activeView === 'economic' && <EconomicsPanel project={project} />}
-              {activeView === 'regulatory' && <DecisionSupportPanel project={project} />}
+              {activeView === 'regulatory' && <RegulatoryPanel project={project} />}
+              {activeView === 'feasibility' && <DecisionSupportPanel project={project} />}
               {activeView === 'timeline' && <TimelinePanel project={project} />}
               {activeView === 'history' && (
                 <div className={css.historyWrapper}>
@@ -522,9 +540,30 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                   <NurseryLedgerDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
                 </div>
               )}
+              {activeView === 'energy' && (
+                <div className="map-rail-dashboard">
+                  <EnergyDashboard project={project} onSwitchToMap={() => setActiveView(null)} focus="energy" />
+                </div>
+              )}
+              {activeView === 'infrastructure' && (
+                <div className="map-rail-dashboard">
+                  <EnergyDashboard project={project} onSwitchToMap={() => setActiveView(null)} focus="infrastructure" />
+                </div>
+              )}
               {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
               {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} canEdit={effectiveCanEdit} />}
               {activeView === 'siting' && <SitingPanel project={project} />}
+              {activeView === 'unmapped' && (
+                <EmptyState
+                  icon={<span aria-hidden="true" style={{ fontSize: 28 }}>{'\u{1F6A7}'}</span>}
+                  title="No panel wired for this view yet"
+                  description={
+                    activeDashboardSection
+                      ? `"${activeDashboardSection}" does not map to a map-rail panel. Open the Dashboard for a full view, or pick a different domain from the rail.`
+                      : 'This domain has no dedicated map-rail panel yet. Open the Dashboard for a full view, or pick a different domain from the rail.'
+                  }
+                />
+              )}
             </Suspense>
           </ErrorBoundary>
         );
@@ -537,7 +576,13 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           );
         }
 
-        return <div className={css.rightPanel}>{panelContent}</div>;
+        return (
+          <div className={css.rightPanel}>
+            <RailPanelShell view={activeView} onClose={() => setActiveView(null)}>
+              {panelContent}
+            </RailPanelShell>
+          </div>
+        );
       })()}
 
       {/* Mobile bottom bar */}

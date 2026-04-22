@@ -192,13 +192,13 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
             {floodWetland.wetland_pct != null && (
               <div className={s.infoRow}>
                 <span className={s.infoLabel}>Wetland Coverage</span>
-                <span className={s.infoValue}>{floodWetland.wetland_pct.toFixed(1)}%</span>
+                <span className={s.infoValue}>{Number(floodWetland.wetland_pct).toFixed(1)}%</span>
               </div>
             )}
             {floodWetland.regulated_area_pct != null && (
               <div className={s.infoRow}>
                 <span className={s.infoLabel}>Regulated Area</span>
-                <span className={s.infoValue}>{floodWetland.regulated_area_pct.toFixed(1)}%</span>
+                <span className={s.infoValue}>{Number(floodWetland.regulated_area_pct).toFixed(1)}%</span>
               </div>
             )}
           </div>

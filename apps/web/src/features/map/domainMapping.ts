@@ -2,6 +2,11 @@
  * Domain mapping — bidirectional lookup between dashboard sections
  * and map view context (sub-item, panel, layer activations).
  *
+ * As of the #1 taxonomy sync, `DASHBOARD_TO_MAP` is derived from the canonical
+ * NAV_ITEMS list in `features/navigation/taxonomy.ts` rather than hand-authored
+ * here. Adding a new dashboard section now means adding one NavItem —
+ * both sidebars and the map-context lookup update automatically.
+ *
  * Used by:
  *   - MapView: to initialize map state when switching from Dashboard
  *   - MapView: to derive activeDomain for DomainFloatingToolbar
@@ -24,6 +29,8 @@ export type DomainKey =
   | 'carbonDiagnostic'
   | 'nurseryLedger'
   | 'cartographic'
+  | 'energy'
+  | 'infrastructure'
   | 'default';
 
 export interface DomainContext {
@@ -34,177 +41,55 @@ export interface DomainContext {
   domain: DomainKey;
 }
 
-// Dashboard section → map context
-export const DASHBOARD_TO_MAP: Record<string, DomainContext> = {
-  'site-intelligence': {
-    subItem: 'site-assessment',
-    panel: 'intelligence',
-    layers: [],
-    domain: 'default',
-  },
-  'map-layers': {
-    subItem: 'terrain-viz',
-    panel: 'layers',
-    layers: [],
-    domain: 'default',
-  },
-  'hydrology-dashboard': {
-    subItem: 'hydrology-basic',
-    panel: 'hydrology',
-    layers: ['watershed', 'wetlands_flood'],
-    domain: 'hydrology',
-  },
-  'terrain-dashboard': {
-    subItem: 'terrain-viz',
-    panel: 'terrain',
-    layers: ['elevation'],
-    domain: 'terrain',
-  },
-  'cartographic': {
-    subItem: 'site-data',
-    panel: 'cartographic',
-    layers: ['land_cover', 'zoning'],
-    domain: 'cartographic',
-  },
-  'ecological': {
-    subItem: 'site-assessment',
-    panel: 'ecological',
-    layers: ['land_cover', 'soils'],
-    domain: 'ecology',
-  },
-  'stewardship': {
-    subItem: 'soil-ecology',
-    panel: 'stewardship',
-    layers: ['land_cover', 'soils'],
-    domain: 'ecology',
-  },
-  'biomass': {
-    subItem: 'soil-ecology',
-    panel: 'intelligence',
-    layers: ['land_cover', 'soils'],
-    domain: 'ecology',
-  },
-  'grazing-analysis': {
-    subItem: 'livestock',
-    panel: 'grazingAnalysis',
-    layers: ['land_cover', 'soils'],
-    domain: 'grazingAnalysis',
-  },
-  'herd-rotation': {
-    subItem: 'livestock',
-    panel: 'herdRotation',
-    layers: ['land_cover', 'soils'],
-    domain: 'herdRotation',
-  },
-  'paddock-design': {
-    subItem: 'livestock',
-    panel: 'paddockDesign',
-    layers: ['land_cover', 'soils'],
-    domain: 'paddockDesign',
-  },
-  'livestock-inventory': {
-    subItem: 'livestock',
-    panel: 'livestockInventory',
-    layers: ['land_cover', 'soils'],
-    domain: 'livestockInventory',
-  },
-  'planting-tool': {
-    subItem: 'crops',
-    panel: 'planting',
-    layers: ['soils', 'land_cover'],
-    domain: 'plantingTool',
-  },
-  'forest-hub': {
-    subItem: 'crops',
-    panel: 'forest',
-    layers: ['soils', 'land_cover'],
-    domain: 'forestHub',
-  },
-  'carbon-diagnostic': {
-    subItem: 'crops',
-    panel: 'carbon',
-    layers: ['soils', 'land_cover'],
-    domain: 'carbonDiagnostic',
-  },
-  'nursery-ledger': {
-    subItem: 'crops',
-    panel: 'nursery',
-    layers: ['soils', 'land_cover'],
-    domain: 'nurseryLedger',
-  },
-  'climate': {
-    subItem: 'solar-climate',
-    panel: 'climate',
-    layers: ['climate'],
-    domain: 'default',
-  },
-  'economics': {
-    subItem: 'economics',
-    panel: 'economic',
-    layers: [],
-    domain: 'default',
-  },
-  'scenarios': {
-    subItem: 'scenarios',
-    panel: 'scenarios',
-    layers: [],
-    domain: 'default',
-  },
-  'investor-summary': {
-    subItem: 'economics',
-    panel: 'economic',
-    layers: [],
-    domain: 'default',
-  },
-  'regulatory': {
-    subItem: 'regulatory',
-    panel: 'regulatory',
-    layers: [],
-    domain: 'default',
-  },
-  'siting-rules': {
-    subItem: 'siting-rules',
-    panel: 'siting',
-    layers: ['elevation', 'soils', 'watershed', 'wetlands_flood'],
-    domain: 'default',
-  },
-  'reporting': {
-    subItem: 'reporting',
-    panel: 'reporting',
-    layers: [],
-    domain: 'default',
-  },
-  'portal': {
-    subItem: 'portal',
-    panel: 'portal',
-    layers: [],
-    domain: 'default',
-  },
-  'educational': {
-    subItem: 'educational',
-    panel: 'educational',
-    layers: [],
-    domain: 'default',
-  },
+// Derive the map from the single-source taxonomy. Imported lazily at module
+// load — see features/navigation/taxonomy.ts for the NAV_ITEMS schema.
+import { NAV_ITEMS } from '../navigation/taxonomy.js';
+
+const DEFAULT_CONTEXT: DomainContext = {
+  subItem: 'terrain-viz',
+  panel: 'layers',
+  layers: [],
+  domain: 'default',
 };
 
-// Map sub-item → dashboard section (reverse lookup)
-// Used for DashboardMetrics mirror and reverse sync
-export const MAP_TO_DASHBOARD: Partial<Record<SubItemId, string>> = {
-  'terrain-viz':     'terrain-dashboard',
-  'site-data':       'cartographic',
-  'site-assessment': 'ecological',
-  'hydrology-basic': 'hydrology-dashboard',
-  'soil-ecology':    'ecological',
-  'livestock':       'livestock-inventory',
-  'crops':           'planting-tool',
-};
+export const DASHBOARD_TO_MAP: Record<string, DomainContext> = (() => {
+  const out: Record<string, DomainContext> = {};
+  for (const item of NAV_ITEMS) {
+    if (item.mapOnly) continue;            // map-only items don't enter from Dashboard
+    if (!item.panel) continue;             // no panel ⇒ no map context
+    const key = item.dashboardRoute ?? item.id;
+    out[key] = {
+      subItem: (item.mapSubItem ?? 'terrain-viz') as SubItemId,
+      panel: item.panel as SidebarView,
+      layers: item.layers ?? [],
+      domain: item.domain ?? 'default',
+    };
+  }
+  return out;
+})();
+
+// Map sub-item → dashboard section (reverse lookup).
+// Used for DashboardMetrics mirror and reverse sync.
+export const MAP_TO_DASHBOARD: Partial<Record<SubItemId, string>> = (() => {
+  const out: Partial<Record<SubItemId, string>> = {};
+  for (const item of NAV_ITEMS) {
+    if (!item.mapSubItem) continue;
+    if (item.mapOnly) continue;
+    // First writer wins — mirrors the hand-authored priority where a
+    // SubItemId maps to a single representative dashboard section.
+    if (!out[item.mapSubItem]) {
+      out[item.mapSubItem] = item.dashboardRoute ?? item.id;
+    }
+  }
+  return out;
+})();
 
 export function getDomainContext(dashboardSection: string): DomainContext {
+  // Explicit sentinel for unmapped sections — lets the map rail render an
+  // EmptyState instead of silently falling back to Map Layers (which is
+  // semantically wrong and confuses users — see UI/UX critique #4).
   return DASHBOARD_TO_MAP[dashboardSection] ?? {
-    subItem: 'terrain-viz',
-    panel: 'layers',
-    layers: [],
-    domain: 'default',
+    ...DEFAULT_CONTEXT,
+    panel: 'unmapped',
   };
 }

@@ -29,6 +29,7 @@ import type {
   CreateSuggestedEditInput,
   ReviewSuggestedEditInput,
   ProjectRole,
+  AssessmentResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -137,7 +138,21 @@ export const api = {
       request<{ id: string; acreage: number }>('POST', `/api/v1/projects/${id}/boundary`, { geojson }),
 
     assessment: (id: string) =>
-      request<unknown>('GET', `/api/v1/projects/${id}/assessment`),
+      request<AssessmentResponse>('GET', `/api/v1/projects/${id}/assessment`),
+
+    aiOutputs: (id: string) =>
+      request<Record<string, {
+        id: string;
+        projectId: string;
+        outputType: string;
+        content: string;
+        confidence: 'high' | 'medium' | 'low';
+        dataSources: string[];
+        caveat: string | null;
+        needsSiteVisit: boolean;
+        modelId: string;
+        generatedAt: string;
+      }>>('GET', `/api/v1/projects/${id}/ai-outputs`),
 
     completeness: (id: string) =>
       request<{ score: number; layers: unknown[] }>('GET', `/api/v1/projects/${id}/completeness`),

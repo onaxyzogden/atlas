@@ -20,6 +20,8 @@ import ProjectTabBar from '../components/ProjectTabBar.js';
 import MapView from '../features/map/MapView.js';
 import DashboardView from '../features/dashboard/DashboardView.js';
 import DashboardSidebar from '../features/dashboard/DashboardSidebar.js';
+import IconSidebar from '../components/IconSidebar.js';
+import { resolveDashboardSectionFromRail } from '../features/navigation/taxonomy.js';
 import css from './ProjectPage.module.css';
 
 export default function ProjectPage() {
@@ -39,6 +41,10 @@ export default function ProjectPage() {
   const isMobile = useIsMobile();
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
+  const activeMapView = useUIStore((s) => s.activeMapView);
+  const setActiveMapView = useUIStore((s) => s.setActiveMapView);
+  const activeMapSubItem = useUIStore((s) => s.activeMapSubItem);
+  const setActiveMapSubItem = useUIStore((s) => s.setActiveMapSubItem);
   const [isEditing, setIsEditing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -125,11 +131,33 @@ export default function ProjectPage() {
       />
 
       <div className={css.mainRow}>
-        {/* Shared left sidebar — always visible on desktop */}
-        {!isMobile && (
+        {/* Left sidebar — swap based on active tab.
+            Dashboard tab: domain-grouped dashboard rail (clickable sections).
+            Map tab: icon rail (phase/domain grouped, drives map panels).
+            Both read the same `sidebarGrouping` preference, so toggling
+            Phase ⇄ Domain in one view applies everywhere. */}
+        {!isMobile && activeTab === 'dashboard' && (
           <DashboardSidebar
             activeSection={activeDashboardSection}
             onSectionChange={setActiveDashboardSection}
+          />
+        )}
+        {!isMobile && activeTab === 'map' && (
+          <IconSidebar
+            activeView={activeMapView}
+            onViewChange={setActiveMapView}
+            activeSubItem={activeMapSubItem}
+            onSubItemChange={(id, panel) => {
+              setActiveMapSubItem(id);
+              setActiveMapView(panel);
+              // Keep the dashboard-section context in sync so downstream
+              // consumers (DomainFloatingToolbar domain tint, mirror metrics)
+              // reflect what the rail is showing.
+              if (panel) {
+                const section = resolveDashboardSectionFromRail(id, panel);
+                if (section) setActiveDashboardSection(section);
+              }
+            }}
           />
         )}
 

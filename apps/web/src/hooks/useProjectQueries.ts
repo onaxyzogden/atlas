@@ -10,7 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/apiClient.js';
 import { toast } from '../components/Toast.js';
-import type { CreateProjectInput, UpdateProjectInput } from '@ogden/shared';
+import type { AssessmentResponse, CreateProjectInput, UpdateProjectInput } from '@ogden/shared';
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
@@ -19,6 +19,7 @@ export const projectKeys = {
   list: () => [...projectKeys.all, 'list'] as const,
   detail: (id: string) => [...projectKeys.all, 'detail', id] as const,
   completeness: (id: string) => [...projectKeys.all, 'completeness', id] as const,
+  assessment: (id: string) => [...projectKeys.all, 'assessment', id] as const,
 };
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -53,6 +54,44 @@ export function useCompleteness(projectId: string) {
     },
     enabled: !!projectId,
   });
+}
+
+/**
+ * Fetches the persisted `site_assessments` row for a project.
+ *
+ * Surfaces three states the UI needs to distinguish:
+ *  - `isLoading`             — request in flight
+ *  - `isNotReady`            — Tier-3 writer hasn't fired yet (server returns
+ *                              `{ error: { code: 'NOT_READY' } }`)
+ *  - `data`                  — current assessment row, includes `overall_score`,
+ *                              `computed_at`, `score_breakdown`, terrain block
+ *
+ * `NOT_READY` is an expected non-error state — caller shows local preview.
+ * Any other failure propagates as a React Query error.
+ */
+export function useAssessment(projectId: string) {
+  const query = useQuery<AssessmentResponse | null, Error>({
+    queryKey: projectKeys.assessment(projectId),
+    queryFn: async () => {
+      try {
+        const { data } = await api.projects.assessment(projectId);
+        return data;
+      } catch (err) {
+        if (err instanceof Error && 'code' in err && (err as { code: string }).code === 'NOT_READY') {
+          return null;
+        }
+        throw err;
+      }
+    },
+    enabled: !!projectId,
+    // Tier-3 writes are infrequent but fresh reads matter when they happen;
+    // 60s stale window keeps the dashboard responsive without thrashing.
+    staleTime: 60_000,
+  });
+  return {
+    ...query,
+    isNotReady: query.data === null && !query.isLoading && !query.isError,
+  };
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────────────

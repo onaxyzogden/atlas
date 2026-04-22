@@ -137,12 +137,12 @@ export class SoilRegenerationProcessor {
         ${ctx.confidence},
         ${dataDate},
         ${'Derived from soil survey data and land cover classification'},
-        ${JSON.stringify(geojsonData)},
-        ${JSON.stringify(summaryData)},
-        ${JSON.stringify({
+        ${this.db.json(geojsonData as never) as unknown as string},
+        ${this.db.json(summaryData as never) as unknown as string},
+        ${this.db.json({
           zoneCount: ctx.zones.length,
           sourceLayerCount: ctx.dataSources.length,
-        })},
+        } as never) as unknown as string},
         now()
       )
       ON CONFLICT (project_id, layer_type) DO UPDATE SET

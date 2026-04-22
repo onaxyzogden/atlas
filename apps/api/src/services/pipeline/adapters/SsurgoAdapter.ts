@@ -479,9 +479,13 @@ async function postToSda(query: string): Promise<SdaResponse> {
   const timeout = setTimeout(() => controller.abort(), SDA_TIMEOUT_MS);
 
   try {
+    // SDA's `format=JSON` returns ONLY data rows — no column-name header.
+    // `JSON+COLUMNNAME` prepends a header row, which parseSdaRows relies on
+    // (it treats table[0] as column names). Without the header every
+    // colIndexes lookup returns -1 and every parsed field is null.
     const body = new URLSearchParams({
       query,
-      format: 'JSON',
+      format: 'JSON+COLUMNNAME',
     });
 
     const response = await fetch(SDA_ENDPOINT, {

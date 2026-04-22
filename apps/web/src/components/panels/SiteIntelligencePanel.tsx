@@ -39,6 +39,7 @@ import { computeAhpWeights, DEFAULT_ATLAS_AHP_MATRIX } from '../../lib/fuzzyMCDM
 import { useSiteIntelligenceMetrics } from '../../hooks/useSiteIntelligenceMetrics.js';
 import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
+import { DashboardSectionSkeleton } from '../ui/DashboardSectionSkeleton.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { confidence, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
@@ -589,17 +590,22 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   const onToggleSiteContext = useCallback(() => setSiteContextOpen((v) => !v), []);
   const onToggleCommunity = useCallback(() => setDemogOpen((v) => !v), []);
 
-  // ── First load — show spinner when no data exists yet ──────────────────
+  // ── First load — show section skeleton when no data exists yet ───────
+  // Skeleton over spinner: a card-shaped shimmer sets expectations about the
+  // layout that is about to appear, so the transition to real data doesn't
+  // feel like a reflow. Reduced-motion users fall back to a static block via
+  // the skeleton's own CSS.
   if (siteData?.status === 'loading' && layers.length === 0) {
     return (
       <div className={p.container}>
         <div className={s.headerRow}>
           <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 0' }}>
-          <Spinner size="lg" />
-          <span style={{ fontSize: 13, color: 'var(--color-panel-muted)' }}>Fetching environmental data...</span>
-        </div>
+        <DashboardSectionSkeleton
+          cards={3}
+          rowsPerCard={4}
+          label="Fetching environmental data"
+        />
       </div>
     );
   }

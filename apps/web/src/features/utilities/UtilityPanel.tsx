@@ -95,7 +95,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
     <>
       <div className={p.tabBar}>
         <button className={`${p.tabBtn} ${activeTab === 'place' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('place')}>Place</button>
-        <button className={`${p.tabBtn} ${activeTab === 'systems' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('systems')}>Systems</button>
+        <button className={`${p.tabBtn} ${activeTab === 'systems' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('systems')}>Energy & Water</button>
         <button className={`${p.tabBtn} ${activeTab === 'phasing' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('phasing')}>Phasing</button>
       </div>
 
@@ -176,9 +176,9 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
 
       {activeTab === 'systems' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
           <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
-          <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
         </div>
       )}
 

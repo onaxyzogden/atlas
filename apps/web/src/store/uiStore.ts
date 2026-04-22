@@ -11,8 +11,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
+export type SidebarGrouping = 'phase' | 'domain';
 
 interface UndoEntry {
   timestamp: number;
@@ -37,11 +39,26 @@ interface UIState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
 
+  // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
+  // 'phase'  = workflow-oriented (P1–P4), onboarding-friendly (default)
+  // 'domain' = subject-oriented (hydrology, grazing, forestry…), matches GIS conventions
+  sidebarGrouping: SidebarGrouping;
+  setSidebarGrouping: (g: SidebarGrouping) => void;
+
   // Navigation context — session only, not persisted
   activeDashboardSection: string;
   setActiveDashboardSection: (section: string) => void;
   pendingMapContext: boolean;
   setPendingMapContext: (v: boolean) => void;
+
+  // Map-rail navigation — lifted out of MapView so the IconSidebar (rendered
+  // in ProjectPage when the Map tab is active) and MapView stay in sync. Not
+  // persisted: the initial panel is derived from activeDashboardSection on
+  // mount via getDomainContext().
+  activeMapView: SidebarView | null;
+  setActiveMapView: (v: SidebarView | null) => void;
+  activeMapSubItem: SubItemId | null;
+  setActiveMapSubItem: (id: SubItemId | null) => void;
 
   // Undo/redo
   undoStack: UndoEntry[];
@@ -77,11 +94,20 @@ export const useUIStore = create<UIState>()(
       sidebarOpen: true,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
+      // Sidebar grouping — default to phase (preserves onboarding narrative)
+      sidebarGrouping: 'phase' as SidebarGrouping,
+      setSidebarGrouping: (g) => set({ sidebarGrouping: g }),
+
       // Navigation context
       activeDashboardSection: 'site-intelligence',
       setActiveDashboardSection: (section) => set({ activeDashboardSection: section }),
       pendingMapContext: false,
       setPendingMapContext: (v) => set({ pendingMapContext: v }),
+
+      activeMapView: null,
+      setActiveMapView: (v) => set({ activeMapView: v }),
+      activeMapSubItem: null,
+      setActiveMapSubItem: (id) => set({ activeMapSubItem: id }),
 
       // Undo/redo
       undoStack: [],
@@ -127,6 +153,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
+        sidebarGrouping: state.sidebarGrouping,
       }),
     },
   ),

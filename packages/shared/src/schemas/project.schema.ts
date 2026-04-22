@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-export const Country = z.enum(['US', 'CA']);
+// 'INTL' is the catch-all bucket for projects outside US/CA coverage.
+// Adapter registry routes INTL → NasaPowerAdapter for climate; other Tier-1
+// layers fall through to ManualFlagAdapter until a global source is wired.
+// DB CHECK constraint (migration 011) enforces this enum at the storage layer.
+export const Country = z.enum(['US', 'CA', 'INTL']);
 export type Country = z.infer<typeof Country>;
 
 export const ProjectStatus = z.enum(['active', 'archived', 'shared']);

@@ -215,8 +215,30 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 **13. Call `generateSiteNarrative` + `generateDesignRecommendation` from somewhere.** The methods exist; nothing invokes them. Wire into a narrative BullMQ job post-assessment-write, or into the AtlasAI panel via a server-side route. *~½ day.*
 
 **14. Delete or wire `useAssessment`.** Zombie hook — decide. *~1 h either way.*
+  - **DONE 2026-04-22 (latest+2).** Direct read confirmed the hook had
+    already been removed from `useProjectQueries.ts`; the audit's "line 48"
+    reference was stale. Rather than leave the dead endpoint and the dead
+    api-client method, a fresh `useAssessment(projectId)` was added and
+    wired into `SiteAssessmentPanel` as the primary score source with
+    a three-state display (server row · `NOT_READY` preview · error
+    fallback). `AssessmentResponse` schema added to `@ogden/shared`.
+    Bundle #12 parity (|Δ|=0.000) means no dual-display needed.
+    3 new web tests, 381/381 green. ADR:
+    `wiki/decisions/2026-04-22-site-assessment-panel-server-wiring.md`.
 
 **15. Extend `Country` type + register NasaPowerAdapter** in `ADAPTER_REGISTRY`. Unblocks international expansion. Touches many files (type cascade). *~1 day.*
+  - **DONE 2026-04-22 (latest+2).** `Country` enum widened to
+    `['US', 'CA', 'INTL']`. `ADAPTER_REGISTRY` type relaxed to
+    `Partial<Record<Country, AdapterConfig>>`. `climate.INTL` registered
+    to `NasaPowerAdapter`; other Tier-1 layers leave `INTL` undefined
+    (documented gap → `ManualFlagAdapter` fallback per orchestrator).
+    DB migration 011 adds `CHECK (country IN ('US','CA','INTL'))` — no
+    data rewrite needed. `AssessmentFlag.country` local enum deduped to
+    reuse shared `Country`. `NewProjectPage` gains "International" wizard
+    option. Financial engine + two dashboards widened. 4 new INTL routing
+    tests + 1 shared enum test; 490/490 api green, 381/381 web green,
+    all three packages tsc clean. ADR:
+    `wiki/decisions/2026-04-22-country-intl-and-nasapower-registration.md`.
 
 ### New critical-path order
 

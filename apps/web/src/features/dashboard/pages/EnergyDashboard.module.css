@@ -1,0 +1,281 @@
+/* EnergyDashboard — P1 entry point for §13 Utilities, Energy & Support Systems */
+
+.page {
+  padding: 32px 40px 48px;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin: 0 0 8px;
+}
+
+.desc {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.7);
+  max-width: 560px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.placeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.28);
+  border-radius: 4px;
+  color: rgba(var(--color-gold-rgb), 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.placeBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border-color: rgba(var(--color-gold-rgb), 0.42);
+}
+
+/* ── Score hero ─────────────────────────────────────────────────── */
+
+.scoreHero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 28px;
+  background: rgba(20, 22, 20, 0.5);
+  border: 1px solid rgba(180, 165, 140, 0.12);
+  border-radius: 6px;
+}
+
+.scoreCircle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 36px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.scoreBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scoreRating {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.scoreCaption {
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.04em;
+}
+
+/* ── Breakdown ──────────────────────────────────────────────────── */
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  background: rgba(20, 22, 20, 0.4);
+  border: 1px solid rgba(180, 165, 140, 0.1);
+  border-radius: 6px;
+}
+
+.breakdownRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.breakdownHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.breakdownLabel {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 500;
+}
+
+.breakdownScore {
+  color: rgba(180, 165, 140, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdownTrack {
+  height: 6px;
+  background: rgba(60, 55, 45, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.breakdownFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 250ms ease;
+}
+
+.breakdownDetail {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+/* ── Cards ──────────────────────────────────────────────────────── */
+
+.card {
+  padding: 20px 24px;
+  background: rgba(20, 22, 20, 0.4);
+  border: 1px solid rgba(180, 165, 140, 0.1);
+  border-radius: 6px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+  margin: 0;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  letter-spacing: 0.04em;
+}
+
+.empty {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.empty p {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.6);
+  margin: 0 0 12px;
+}
+
+.emptyBtn {
+  background: none;
+  border: none;
+  color: rgba(var(--color-gold-rgb), 0.75);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.emptyBtn:hover {
+  color: rgba(var(--color-gold-rgb), 0.95);
+}
+
+.utilList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.utilItem,
+.warnItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(180, 165, 140, 0.08);
+}
+
+.utilItem:last-child,
+.warnItem:last-child {
+  border-bottom: none;
+}
+
+.utilIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.warnDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.utilBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.utilName {
+  font-size: 13px;
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 500;
+}
+
+.utilMeta {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+/* ── Footnote ───────────────────────────────────────────────────── */
+
+.footnote {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.4);
+  padding-top: 8px;
+  line-height: 1.6;
+}

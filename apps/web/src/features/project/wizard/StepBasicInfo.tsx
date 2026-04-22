@@ -125,11 +125,12 @@ export default function StepBasicInfo({ data, updateData, onNext, onBack, isFirs
             <label style={labelStyle}>Country</label>
             <select
               value={data.country}
-              onChange={(e) => updateData({ country: e.target.value as 'US' | 'CA' })}
+              onChange={(e) => updateData({ country: e.target.value as 'US' | 'CA' | 'INTL' })}
               style={{ ...inputStyle, cursor: 'pointer' }}
             >
               <option value="US">United States</option>
               <option value="CA">Canada</option>
+              <option value="INTL">International</option>
             </select>
           </div>
           <div>

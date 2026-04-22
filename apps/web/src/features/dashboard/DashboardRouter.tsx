@@ -39,6 +39,9 @@ const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPane
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
 const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
+const DecisionSupportPanel = lazy(() => import('../../features/decision/DecisionSupportPanel.js'));
+const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
+const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -173,6 +176,30 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Regulatory">
           <RegulatoryPanel project={project} />
+        </PanelShell>
+      );
+    case 'energy-offgrid':
+      return (
+        <PanelShell name="Energy & Off-Grid">
+          <EnergyDashboard project={project} onSwitchToMap={onSwitchToMap} focus="energy" />
+        </PanelShell>
+      );
+    case 'infrastructure-utilities':
+      return (
+        <PanelShell name="Utilities & Infrastructure">
+          <EnergyDashboard project={project} onSwitchToMap={onSwitchToMap} focus="infrastructure" />
+        </PanelShell>
+      );
+    case 'educational':
+      return (
+        <PanelShell name="Educational Atlas">
+          <EducationalAtlasDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'feasibility':
+      return (
+        <PanelShell name="Feasibility">
+          <DecisionSupportPanel project={project} />
         </PanelShell>
       );
     default:

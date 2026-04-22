@@ -1,8 +1,21 @@
 /**
- * DashboardSidebar — domain-grouped navigation for the dashboard view.
+ * DashboardSidebar — dashboard navigation. Now driven by the canonical
+ * taxonomy (`features/navigation/taxonomy.ts`) and respects the shared
+ * `sidebarGrouping` preference (phase vs. domain).
  */
 
-import { group } from '../../lib/tokens.js';
+import { useUIStore } from '../../store/uiStore.js';
+import { GroupingToggle } from '../../components/ui/GroupingToggle.js';
+import {
+  DASHBOARD_ITEMS,
+  PHASE_META,
+  PHASE_ORDER,
+  DOMAIN_META,
+  DOMAIN_ORDER,
+  groupByPhase,
+  groupByDomain,
+  type NavItem,
+} from '../navigation/taxonomy.js';
 import css from './DashboardSidebar.module.css';
 
 export interface DashboardSection {
@@ -10,116 +23,61 @@ export interface DashboardSection {
   label: string;
 }
 
-interface DashboardGroup {
-  group: string;
-  color: string;
-  items: DashboardSection[];
-}
-
-const DASHBOARD_GROUPS: DashboardGroup[] = [
-  {
-    group: 'Site Overview',
-    color: group.hydrology,
-    items: [
-      { id: 'site-intelligence', label: 'Site Intelligence' },
-      { id: 'map-layers', label: 'Map Layers' },
-    ],
-  },
-  {
-    group: 'Grazing & Livestock',
-    color: group.livestock,
-    items: [
-      { id: 'paddock-design', label: 'Paddock Design' },
-      { id: 'herd-rotation', label: 'Herd Rotation' },
-      { id: 'grazing-analysis', label: 'Grazing Analysis' },
-      { id: 'livestock-inventory', label: 'Inventory & Health Ledger' },
-    ],
-  },
-  {
-    group: 'Forestry',
-    color: group.forestry,
-    items: [
-      { id: 'planting-tool', label: 'Planting Tool' },
-      { id: 'forest-hub', label: 'Forest Hub' },
-      { id: 'carbon-diagnostic', label: 'Carbon Diagnostic' },
-      { id: 'nursery-ledger', label: 'Nursery Ledger' },
-    ],
-  },
-  {
-    group: 'Hydrology & Terrain',
-    color: group.hydrology,
-    items: [
-      { id: 'cartographic', label: 'Cartographic' },
-      { id: 'hydrology-dashboard', label: 'Hydrology' },
-      { id: 'ecological', label: 'Ecological' },
-      { id: 'terrain-dashboard', label: 'Terrain' },
-      { id: 'stewardship', label: 'Stewardship' },
-      { id: 'climate', label: 'Solar & Climate' },
-    ],
-  },
-  {
-    group: 'Finance',
-    color: group.finance,
-    items: [
-      { id: 'economics', label: 'Economics' },
-      { id: 'scenarios', label: 'Scenarios' },
-      { id: 'investor-summary', label: 'Investor Summary' },
-    ],
-  },
-  {
-    group: 'Compliance',
-    color: group.compliance,
-    items: [
-      { id: 'regulatory', label: 'Regulatory' },
-    ],
-  },
-  {
-    group: 'Reporting & Portal',
-    color: group.reporting,
-    items: [
-      { id: 'reporting', label: 'Reports & Export' },
-      { id: 'portal', label: 'Public Portal' },
-      { id: 'educational', label: 'Educational Atlas' },
-    ],
-  },
-  {
-    group: 'General',
-    color: group.general,
-    items: [
-      { id: 'biomass', label: 'Biomass' },
-      { id: 'siting-rules', label: 'Siting Rules' },
-      { id: 'dashboard-settings', label: 'Settings' },
-      { id: 'archive', label: 'Archive' },
-    ],
-  },
-];
-
 interface DashboardSidebarProps {
   activeSection: string;
   onSectionChange: (id: string) => void;
 }
 
 export default function DashboardSidebar({ activeSection, onSectionChange }: DashboardSidebarProps) {
+  const grouping = useUIStore((s) => s.sidebarGrouping);
+
+  // Group into ordered [header, items] tuples according to preference.
+  const sections: Array<{ key: string; name: string; color: string; items: NavItem[] }> =
+    grouping === 'phase'
+      ? (() => {
+          const byPhase = groupByPhase(DASHBOARD_ITEMS);
+          return PHASE_ORDER.map((p) => ({
+            key: p,
+            name: `${p} — ${PHASE_META[p].name}`,
+            color: PHASE_META[p].color,
+            items: byPhase[p],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : (() => {
+          const byDomain = groupByDomain(DASHBOARD_ITEMS);
+          return DOMAIN_ORDER.map((d) => ({
+            key: d,
+            name: DOMAIN_META[d].name,
+            color: DOMAIN_META[d].color,
+            items: byDomain[d],
+          })).filter((g) => g.items.length > 0);
+        })();
+
   return (
     <nav className={css.sidebar}>
+      <div className={css.toggleWrap}>
+        <GroupingToggle />
+      </div>
       <div className={css.scrollArea}>
-        {DASHBOARD_GROUPS.map((group) => (
-          <div key={group.group} className={css.group}>
+        {sections.map((section) => (
+          <div key={section.key} className={css.group}>
             <div className={css.groupHeader}>
-              <span className={css.groupDot} style={{ backgroundColor: group.color }} />
-              {group.group}
+              <span className={css.groupDot} style={{ backgroundColor: section.color }} />
+              {section.name}
             </div>
-            {group.items.map((item) => {
-              const isActive = activeSection === item.id;
+            {section.items.map((item) => {
+              // Use dashboardRoute for the legacy ids (`terrain-dashboard`, `hydrology-dashboard`)
+              const sectionId = item.dashboardRoute ?? item.id;
+              const isActive = activeSection === sectionId;
               return (
                 <button
                   key={item.id}
                   className={`${css.item} ${isActive ? css.itemActive : ''}`}
-                  style={isActive ? { borderLeftColor: group.color } : undefined}
-                  onClick={() => onSectionChange(item.id)}
+                  style={isActive ? { borderLeftColor: section.color } : undefined}
+                  onClick={() => onSectionChange(sectionId)}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <DashboardIcon id={item.id} active={isActive} color={group.color} />
+                  <DashboardIcon id={sectionId} active={isActive} color={section.color} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -172,6 +130,10 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/></svg>;
     case 'climate':
       return <svg {...p}><circle cx="7" cy="4" r="2.5"/><path d="M3 8C3 8 5 6 7 6C9 6 11 8 11 8"/><path d="M2 11C2 11 5 9 7 9C9 9 12 11 12 11"/></svg>;
+    case 'energy-offgrid':
+      return <svg {...p}><polyline points="7 1 4 7 7 7 6 13 10 6 7 6 8 1 7 1"/></svg>;
+    case 'infrastructure-utilities':
+      return <svg {...p}><polyline points="2 11 5 8 8 10 12 4"/><circle cx="2" cy="11" r="1" fill={stroke}/><circle cx="12" cy="4" r="1" fill={stroke}/></svg>;
     case 'biomass':
       return <svg {...p}><rect x="1" y="8" width="3" height="5" rx="0.3"/><rect x="5.5" y="5" width="3" height="8" rx="0.3"/><rect x="10" y="2" width="3" height="11" rx="0.3"/></svg>;
     case 'dashboard-settings':
@@ -188,6 +150,8 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="7.5" x2="10" y2="7.5"/><path d="M4 10L5.5 11.5L8.5 9"/></svg>;
     case 'regulatory':
       return <svg {...p}><path d="M7 1L12 3V7C12 10 10 12 7 13C4 12 2 10 2 7V3L7 1Z"/><line x1="7" y1="5" x2="7" y2="8"/><circle cx="7" cy="9.5" r="0.7" fill={stroke}/></svg>;
+    case 'feasibility':
+      return <svg {...p}><rect x="2" y="1.5" width="10" height="11" rx="1"/><polyline points="4.5 5 5.5 6 7 4.5"/><polyline points="4.5 8 5.5 9 7 7.5"/><line x1="8.5" y1="5" x2="11" y2="5"/><line x1="8.5" y1="8" x2="11" y2="8"/></svg>;
     case 'reporting':
       return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="4" x2="10" y2="4"/><line x1="4" y1="6.5" x2="10" y2="6.5"/><line x1="4" y1="9" x2="8" y2="9"/></svg>;
     case 'portal':

@@ -37,6 +37,7 @@ import { UsCountyGisAdapter } from './adapters/UsCountyGisAdapter.js';
 import { OntarioMunicipalAdapter } from './adapters/OntarioMunicipalAdapter.js';
 import { NwisGroundwaterAdapter } from './adapters/NwisGroundwaterAdapter.js';
 import { PgmnGroundwaterAdapter } from './adapters/PgmnGroundwaterAdapter.js';
+import { NasaPowerAdapter } from './adapters/NasaPowerAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
@@ -161,6 +162,10 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   }
   if (config.adapter === 'PgmnGroundwaterAdapter') {
     return new PgmnGroundwaterAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'NasaPowerAdapter') {
+    // INTL bucket for climate. Globally valid, grid-interpolated.
+    return new NasaPowerAdapter(config.source, layerType);
   }
 
   // All Tier 1 adapters implemented — fallthrough should not occur in practice

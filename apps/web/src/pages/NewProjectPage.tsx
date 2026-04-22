@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react';
+import type { Country } from '@ogden/shared';
 import { StepIndicator } from '../components/ui/index.js';
 import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
 import StepLocation from '../features/project/wizard/StepLocation.js';
@@ -20,7 +21,7 @@ export interface WizardData {
   // Step 1
   name: string;
   projectType: string;
-  country: 'US' | 'CA';
+  country: Country;
   units: 'metric' | 'imperial';
   description: string;
   // Step 2

@@ -135,18 +135,6 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
       note: `${zones.length} zones defined`,
     });
 
-    items.push({
-      label: 'Zoning notes recorded',
-      status: project.zoningNotes ? 'pass' : 'unknown',
-      note: project.zoningNotes ? 'Zoning notes present' : 'Add zoning research notes',
-    });
-
-    items.push({
-      label: 'Water rights noted',
-      status: project.waterRightsNotes ? 'pass' : 'unknown',
-      note: project.waterRightsNotes ? 'Water rights documented' : 'Research water rights for this property',
-    });
-
     // Score-based items (only when scores are available)
     const getScore = (name: string) => scores.find((sc) => sc.label === name);
 

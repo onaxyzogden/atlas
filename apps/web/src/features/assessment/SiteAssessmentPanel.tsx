@@ -12,6 +12,7 @@
 
 import type { ConfidenceLevel } from '@ogden/shared';
 import ConfidenceIndicator from './ConfidenceIndicator.js';
+import { useAssessment } from '../../hooks/useProjectQueries.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteAssessmentPanel.module.css';
@@ -42,15 +43,50 @@ const FLAG_TYPE_CONFIG: Record<string, { className: string; icon: string }> = {
 };
 
 export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProps) {
-  // Compute scores based on what data we have locally
-  const scores = computeLocalScores(project);
-  const flags = computeLocalFlags(project);
+  // Server-side persisted assessment (primary source when Tier-3 has run).
+  const { data: serverAssessment, isLoading, isNotReady, isError } = useAssessment(project.id);
+
+  // Local preview — used when the writer hasn't fired yet or the fetch failed.
+  const localScores = computeLocalScores(project);
+  const localFlags = computeLocalFlags(project);
+
+  // Prefer the server row when available. Parity with the scorer was proven at
+  // |Δ|=0.000 in bundle #12 (see wiki/log 2026-04-22), so no dual-display needed.
+  const scores = serverAssessment ? buildServerScores(serverAssessment) : localScores;
+  const computedAt = serverAssessment?.computed_at ?? null;
+  const overall = serverAssessment?.overall_score ?? null;
 
   return (
     <div className={p.container}>
       <h3 className={p.sectionLabel}>
         Site Assessment
       </h3>
+
+      {/* Headline — persisted overall score when available */}
+      {serverAssessment && overall !== null && (
+        <div className={s.notice} style={{ marginBottom: 12 }}>
+          <strong>Overall {Number(overall).toFixed(1)}</strong>
+          {computedAt && ` · computed ${formatTimestamp(computedAt)}`}
+        </div>
+      )}
+
+      {isLoading && !serverAssessment && (
+        <div className={s.notice} style={{ marginBottom: 12 }}>
+          Loading latest assessment…
+        </div>
+      )}
+
+      {isNotReady && (
+        <div className={s.notice} style={{ marginBottom: 12 }}>
+          Assessment pending Tier-3 completion. Showing preview based on project metadata.
+        </div>
+      )}
+
+      {isError && (
+        <div className={s.notice} style={{ marginBottom: 12 }}>
+          Could not load server-side assessment — showing local preview.
+        </div>
+      )}
 
       {/* Score cards */}
       <div className={`${p.section} ${p.sectionGapLg}`}>
@@ -60,13 +96,13 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
       </div>
 
       {/* Flags */}
-      {flags.length > 0 && (
+      {localFlags.length > 0 && (
         <div className={p.mb24}>
           <h4 className={p.sectionLabel}>
             Site Flags
           </h4>
           <div className={`${p.section} ${p.sectionGapLg}`}>
-            {flags.map((flag, i) => (
+            {localFlags.map((flag, i) => (
               <FlagCard key={i} flag={flag} />
             ))}
           </div>
@@ -74,13 +110,70 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
       )}
 
       {/* Data sources notice */}
-      <div className={s.notice}>
-        <strong>Note:</strong> These preliminary scores are based on available project metadata.
-        Full assessment requires Tier 1 data layers (elevation, soils, watershed, climate) which
-        will auto-populate when the data pipeline is connected.
-      </div>
+      {!serverAssessment && (
+        <div className={s.notice}>
+          <strong>Note:</strong> These preliminary scores are based on available project metadata.
+          Full assessment requires Tier 1 data layers (elevation, soils, watershed, climate) which
+          will auto-populate when the data pipeline is connected.
+        </div>
+      )}
     </div>
   );
+}
+
+function formatTimestamp(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return iso;
+  }
+}
+
+// Shape the persisted `site_assessments` row into the UI's ScoreEntry list.
+// Null-safe: each score card falls back to "—" if that axis is unavailable.
+function buildServerScores(row: {
+  suitability_score: number | null;
+  buildability_score: number | null;
+  water_resilience_score: number | null;
+  ag_potential_score: number | null;
+  confidence: 'high' | 'medium' | 'low';
+  data_sources_used: string[] | null;
+}): ScoreEntry[] {
+  const sources = row.data_sources_used ?? ['Tier-3 pipeline'];
+  const toNum = (v: number | null): number | null =>
+    v === null || v === undefined ? null : Number(v);
+
+  return [
+    {
+      label: 'Property Suitability',
+      value: toNum(row.suitability_score),
+      confidence: row.confidence,
+      sources,
+      description: 'Overall suitability for regenerative land use',
+    },
+    {
+      label: 'Buildability',
+      value: toNum(row.buildability_score),
+      confidence: row.confidence,
+      sources,
+      description: 'Feasibility for structures, access, and utilities',
+    },
+    {
+      label: 'Water Resilience',
+      value: toNum(row.water_resilience_score),
+      confidence: row.confidence,
+      sources,
+      description: 'Watershed capacity and climate resilience',
+    },
+    {
+      label: 'Agricultural Potential',
+      value: toNum(row.ag_potential_score),
+      confidence: row.confidence,
+      sources,
+      description: 'Soils + climate fit for regenerative agriculture',
+    },
+  ];
 }
 
 function ScoreCard({ score }: { score: ScoreEntry }) {

@@ -11,6 +11,7 @@ import { computeAssessmentScores, deriveOpportunities } from '../../../lib/compu
 import type { ScoredResult, ScoreComponent } from '../../../lib/computeScores.js';
 import type { AssessmentFlag } from '@ogden/shared';
 import ProgressBar from '../components/ProgressBar.js';
+import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -114,7 +115,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
   // Derive ecological opportunities from rules engine
   const ecoOpportunities = useMemo(() => {
     if (!siteData?.layers?.length) return [];
-    const all = deriveOpportunities(siteData.layers, (project.country as 'US' | 'CA') || 'US');
+    const all = deriveOpportunities(siteData.layers, project.country || 'US');
     return all.filter((f) => f.layerSource && ECOLOGY_LAYER_SOURCES.has(f.layerSource));
   }, [siteData, project.country]);
 
@@ -175,6 +176,24 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
     : headlineQuality === 'Good'
       ? 'Ecological health is good. Targeted interventions could strengthen habitat corridors and soil biology.'
       : `Ecological health is ${headlineQuality.toLowerCase()}. Site assessment identifies opportunities for regenerative improvement.`;
+
+  // First-load state — before siteData arrives, render a card-shaped
+  // skeleton instead of the empty null-coalesced layout. This closes the
+  // visible gap between route mount and first data frame so the user sees
+  // movement immediately (UX scholar #5).
+  if (!siteData || (siteData.status === 'loading' && (!siteData.layers || siteData.layers.length === 0))) {
+    return (
+      <div className={css.page}>
+        <div className={css.headerRow}>
+          <div>
+            <span className={css.statusTag}>ECOLOGICAL ASSESSMENT</span>
+            <h1 className={css.title}>Regenerative Potential</h1>
+          </div>
+        </div>
+        <DashboardSectionSkeleton cards={3} rowsPerCard={4} label="Loading ecological data" />
+      </div>
+    );
+  }
 
   return (
     <div className={css.page}>

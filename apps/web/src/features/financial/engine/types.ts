@@ -136,7 +136,11 @@ export interface SiteContext {
   meanSlopeDeg: number;
   maxSlopeDeg: number;
   predominantAspect: string;
-  country: 'US' | 'CA';
+  // INTL projects currently reuse US-Midwest defaults for regional cost lookups
+  // (safest cheap choice — documented in wiki/decisions/2026-04-22-country-intl).
+  // Downstream CostSource emits confidence:'low' for INTL to make the fallback
+  // explicit in the UI.
+  country: 'US' | 'CA' | 'INTL';
 }
 
 export const DEFAULT_SITE_CONTEXT: SiteContext = {

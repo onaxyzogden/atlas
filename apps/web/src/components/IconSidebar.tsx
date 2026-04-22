@@ -1,16 +1,35 @@
 /**
- * IconSidebar — full-height left navigation panel for the project view.
- * Organized by development phase (P1–P4) with accordion behavior.
- * Includes logo, phase groups, and bottom nav (new project, settings, user).
+ * IconSidebar — full-height left navigation panel for the project (map) view.
+ *
+ * Now driven by the canonical taxonomy (`features/navigation/taxonomy.ts`)
+ * and respects the shared `sidebarGrouping` preference (phase vs. domain).
+ * The accordion behavior (one group open at a time, collapsed-icon mode)
+ * is unchanged. The localStorage key generalizes from
+ * `ogden-sidebar-open-phase` → `ogden-sidebar-open-group` to hold either a
+ * PhaseKey or DomainGroupKey depending on the active preference.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
+import { useUIStore } from '../store/uiStore.js';
+import { GroupingToggle } from './ui/GroupingToggle.js';
+import {
+  MAP_ITEMS,
+  PHASE_META,
+  PHASE_ORDER,
+  DOMAIN_META,
+  DOMAIN_ORDER,
+  groupByPhase,
+  groupByDomain,
+  type NavItem,
+  type PhaseKey,
+  type DomainGroupKey,
+} from '../features/navigation/taxonomy.js';
 import s from './IconSidebar.module.css';
-import { phase as phaseTokens } from '../lib/tokens.js';
 
-// The panel a sub-item maps to (existing SidebarView panel keys)
+// ── Re-exports (kept stable for downstream consumers) ───────────────────────
+
 export type SidebarView =
   | 'layers'
   | 'intelligence'
@@ -18,6 +37,9 @@ export type SidebarView =
   | 'design'
   | 'ai'
   | 'regulatory'
+  | 'feasibility'
+  | 'energy'
+  | 'infrastructure'
   | 'economic'
   | 'timeline'
   | 'vision'
@@ -35,7 +57,7 @@ export type SidebarView =
   | 'zoning'
   | 'siting'
   | 'settings'
-  // Dashboard-page-backed panels (mount the same dashboard component in the map rail)
+  | 'unmapped'
   | 'terrain'
   | 'cartographic'
   | 'ecological'
@@ -45,101 +67,21 @@ export type SidebarView =
   | 'forest'
   | 'carbon'
   | 'nursery'
-  // Livestock sub-section panels (each routes to its own dashboard page)
   | 'paddockDesign'
   | 'herdRotation'
   | 'grazingAnalysis'
   | 'livestockInventory'
   | null;
 
-// Granular navigation item id (what appears highlighted in the sidebar)
 export type SubItemId =
   | 'terrain-viz' | 'site-data'
   | 'site-assessment' | 'hydrology-basic' | 'solar-climate' | 'soil-ecology'
   | 'zones' | 'structures' | 'access' | 'livestock' | 'crops' | 'utilities'
-  | 'timeline' | 'vision' | 'economics' | 'regulatory'
+  | 'timeline' | 'vision' | 'economics' | 'regulatory' | 'feasibility'
   | 'ai' | 'scenarios' | 'collaboration' | 'moontrance' | 'educational' | 'spiritual' | 'zoning' | 'siting-rules'
   | 'templates' | 'reporting'
   | 'portal' | 'fieldwork' | 'history'
   | 'settings';
-
-interface SubItem {
-  id: SubItemId;
-  label: string;
-  panel: SidebarView;
-}
-
-interface PhaseGroup {
-  phase: 'P1' | 'P2' | 'P3' | 'P4';
-  name: string;
-  desc: string;
-  color: string;
-  items: SubItem[];
-}
-
-const PHASE_GROUPS: PhaseGroup[] = [
-  {
-    phase: 'P1',
-    name: 'Site Intelligence',
-    desc: 'Terrain visualization, site data layers, automated site assessment',
-    color: phaseTokens[1],
-    items: [
-      { id: 'terrain-viz',     label: 'Terrain Visualization', panel: 'layers' },
-      { id: 'site-data',       label: 'Site Data Layers',     panel: 'intelligence' },
-      { id: 'site-assessment', label: 'Site Assessment',      panel: 'intelligence' },
-      { id: 'hydrology-basic', label: 'Hydrology (Basic)',    panel: 'hydrology' },
-      { id: 'solar-climate',   label: 'Solar & Climate',      panel: 'intelligence' },
-      { id: 'soil-ecology',    label: 'Soil & Ecology',       panel: 'intelligence' },
-    ],
-  },
-  {
-    phase: 'P2',
-    name: 'Design Atlas',
-    desc: 'Full structure/zone planning, hydrology, livestock, crop design',
-    color: phaseTokens[2],
-    items: [
-      { id: 'zones',       label: 'Zones & Land Use',      panel: 'design' },
-      { id: 'structures',  label: 'Structures & Built',    panel: 'design' },
-      { id: 'access',      label: 'Access & Circulation',  panel: 'design' },
-      { id: 'livestock',   label: 'Livestock Systems',     panel: 'design' },
-      { id: 'crops',       label: 'Crops & Agroforestry',  panel: 'design' },
-      { id: 'utilities',   label: 'Utilities & Energy',    panel: 'design' },
-      { id: 'timeline',    label: 'Timeline & Phasing',    panel: 'timeline' },
-      { id: 'vision',      label: 'Vision Layer',          panel: 'vision' },
-      { id: 'spiritual',   label: 'Spiritual',             panel: 'spiritual' },
-      { id: 'zoning',        label: 'Zoning',                panel: 'zoning' },
-      { id: 'siting-rules', label: 'Siting Rules',          panel: 'siting' },
-      { id: 'economics',    label: 'Economics',             panel: 'economic' },
-      { id: 'regulatory',  label: 'Regulatory',            panel: 'regulatory' },
-    ],
-  },
-  {
-    phase: 'P3',
-    name: 'Collaboration + AI',
-    desc: 'Multi-user access, AI-assisted outputs, scenario modeling',
-    color: phaseTokens[3],
-    items: [
-      { id: 'ai',            label: 'AI Atlas',          panel: 'ai' },
-      { id: 'scenarios',     label: 'Scenarios',         panel: 'scenarios' },
-      { id: 'collaboration', label: 'Collaboration',     panel: 'collaboration' },
-      { id: 'moontrance',    label: 'OGDEN Identity',    panel: 'moontrance' },
-      { id: 'educational',   label: 'Educational Atlas', panel: 'educational' },
-      { id: 'templates',     label: 'Templates',         panel: 'templates' },
-      { id: 'reporting',     label: 'Reports & Export',  panel: 'reporting' },
-    ],
-  },
-  {
-    phase: 'P4',
-    name: 'Public + Portal',
-    desc: 'Public storytelling, export suite, mobile fieldwork, templates',
-    color: phaseTokens[4],
-    items: [
-      { id: 'portal',   label: 'Public Portal',    panel: 'portal' },
-      { id: 'fieldwork', label: 'Fieldwork',       panel: 'fieldnotes' },
-      { id: 'history',  label: 'Version History',  panel: 'history' },
-    ],
-  },
-];
 
 interface IconSidebarProps {
   activeView: SidebarView;
@@ -148,7 +90,10 @@ interface IconSidebarProps {
   onSubItemChange: (id: SubItemId, panel: SidebarView) => void;
 }
 
-type PhaseKey = 'P1' | 'P2' | 'P3' | 'P4';
+type GroupKey = PhaseKey | DomainGroupKey;
+
+const LS_OPEN_GROUP = 'ogden-sidebar-open-group';
+const LS_LEGACY_OPEN_PHASE = 'ogden-sidebar-open-phase';
 
 export default function IconSidebar({
   activeView,
@@ -158,18 +103,20 @@ export default function IconSidebar({
 }: IconSidebarProps) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const grouping = useUIStore((st) => st.sidebarGrouping);
 
-  // Collapsed sidebar state
+  // Collapsed sidebar state (unchanged)
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem('ogden-sidebar-collapsed') === 'true'; } catch { return false; }
   });
 
-  // Accordion: which phase is open (only one at a time)
-  const [openPhase, setOpenPhase] = useState<PhaseKey>(() => {
+  // Which group is currently open. Stored once; applies to whichever grouping
+  // is active. We migrate the legacy `ogden-sidebar-open-phase` key once.
+  const [openGroup, setOpenGroup] = useState<GroupKey>(() => {
     try {
-      const stored = localStorage.getItem('ogden-sidebar-open-phase');
-      if (stored === 'P1' || stored === 'P2' || stored === 'P3' || stored === 'P4') return stored;
-    } catch { /* */ }
+      const stored = localStorage.getItem(LS_OPEN_GROUP) ?? localStorage.getItem(LS_LEGACY_OPEN_PHASE);
+      if (stored) return stored as GroupKey;
+    } catch { /* noop */ }
     return 'P1';
   });
 
@@ -179,13 +126,52 @@ export default function IconSidebar({
     try { localStorage.setItem('ogden-sidebar-collapsed', String(next)); } catch { /* */ }
   };
 
-  const togglePhase = (phase: PhaseKey) => {
-    const next = openPhase === phase ? phase : phase; // always opens clicked phase
-    setOpenPhase(next);
-    try { localStorage.setItem('ogden-sidebar-open-phase', next); } catch { /* */ }
+  const setOpen = (key: GroupKey) => {
+    setOpenGroup(key);
+    try { localStorage.setItem(LS_OPEN_GROUP, key); } catch { /* */ }
   };
 
-  // When sidebar collapses, open phase stays but items are hidden
+  // Build display groups from taxonomy based on current preference.
+  interface DisplayGroup {
+    key: GroupKey;
+    badge: string;     // short label for the left badge (e.g. "P1" or a 2-letter abbr)
+    name: string;
+    desc: string;
+    color: string;
+    items: NavItem[];
+  }
+
+  const groups: DisplayGroup[] =
+    grouping === 'phase'
+      ? (() => {
+          const byPhase = groupByPhase(MAP_ITEMS);
+          return PHASE_ORDER.map((p) => ({
+            key: p,
+            badge: p,
+            name: PHASE_META[p].name,
+            desc: PHASE_META[p].desc,
+            color: PHASE_META[p].color,
+            items: byPhase[p],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : (() => {
+          const byDomain = groupByDomain(MAP_ITEMS);
+          return DOMAIN_ORDER.map((d) => ({
+            key: d,
+            badge: domainBadge(d),
+            name: DOMAIN_META[d].name,
+            desc: '',
+            color: DOMAIN_META[d].color,
+            items: byDomain[d],
+          })).filter((g) => g.items.length > 0);
+        })();
+
+  // If the persisted openGroup doesn't exist in the current grouping, fall back
+  // to the first available group. This handles the phase↔domain toggle cleanly.
+  const resolvedOpenGroup: GroupKey = groups.some((g) => g.key === openGroup)
+    ? openGroup
+    : (groups[0]?.key ?? 'P1');
+
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'User Account';
   const displayInitial = (displayName[0] ?? 'U').toUpperCase();
 
@@ -216,32 +202,37 @@ export default function IconSidebar({
         </button>
       </div>
 
-      {/* ── Phase Accordion ───────────────────────────── */}
+      {/* ── Grouping toggle (hidden when collapsed) ───── */}
+      {!collapsed && (
+        <div className={s.toggleWrap}>
+          <GroupingToggle size="compact" />
+        </div>
+      )}
+
+      {/* ── Group accordion ───────────────────────────── */}
       <div className={s.phaseList}>
-        {PHASE_GROUPS.map((group) => {
-          const isOpen = openPhase === group.phase && !collapsed;
+        {groups.map((group) => {
+          const isOpen = resolvedOpenGroup === group.key && !collapsed;
 
           return (
-            <div key={group.phase} className={s.phaseGroup}>
-              {/* Phase header button */}
+            <div key={group.key} className={s.phaseGroup}>
               <button
-                className={`${s.phaseHeader} ${openPhase === group.phase ? s.phaseHeaderActive : ''}`}
-                onClick={() => togglePhase(group.phase)}
+                className={`${s.phaseHeader} ${resolvedOpenGroup === group.key ? s.phaseHeaderActive : ''}`}
+                onClick={() => setOpen(group.key)}
                 aria-expanded={isOpen}
-                title={collapsed ? `${group.phase} — ${group.name}` : undefined}
+                title={collapsed ? `${group.badge} — ${group.name}` : undefined}
               >
-                {/* Phase badge */}
                 <span
                   className={s.phaseBadge}
                   style={{ backgroundColor: group.color + '33', color: group.color, borderColor: group.color + '55' }}
                 >
-                  {group.phase}
+                  {group.badge}
                 </span>
 
                 {!collapsed && (
                   <div className={s.phaseHeaderText}>
                     <span className={s.phaseName}>{group.name}</span>
-                    <span className={s.phaseDesc}>{group.desc}</span>
+                    {group.desc && <span className={s.phaseDesc}>{group.desc}</span>}
                   </div>
                 )}
 
@@ -254,20 +245,21 @@ export default function IconSidebar({
                 )}
               </button>
 
-              {/* Sub-items (only when expanded and not collapsed sidebar) */}
               {isOpen && (
                 <div className={s.phaseItems}>
                   {group.items.map((item) => {
-                    const isActive = activeSubItem === item.id;
+                    const subId = (item.mapSubItem ?? item.id) as SubItemId;
+                    const panel = item.panel as SidebarView;
+                    const isActive = activeSubItem === subId;
                     return (
                       <button
                         key={item.id}
                         className={`${s.subItem} ${isActive ? s.subItemActive : ''}`}
                         style={isActive ? { borderLeftColor: group.color } : undefined}
-                        onClick={() => onSubItemChange(item.id, item.panel)}
+                        onClick={() => onSubItemChange(subId, panel)}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                        <SubItemIcon id={item.id} active={isActive} phaseColor={group.color} />
+                        <SubItemIcon id={subId} active={isActive} phaseColor={group.color} />
                         <span className={s.subItemLabel}>{item.label}</span>
                       </button>
                     );
@@ -275,7 +267,6 @@ export default function IconSidebar({
                 </div>
               )}
 
-              {/* Collapsed: show a thin color bar as phase divider */}
               {collapsed && (
                 <div className={s.collapsedPhaseDivider} style={{ backgroundColor: group.color + '40' }} />
               )}
@@ -325,7 +316,23 @@ export default function IconSidebar({
   );
 }
 
-// ── Sub-item icons ─────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function domainBadge(d: DomainGroupKey): string {
+  switch (d) {
+    case 'site-overview':         return 'SO';
+    case 'grazing-livestock':     return 'GL';
+    case 'forestry':              return 'FR';
+    case 'hydrology-terrain':     return 'HT';
+    case 'finance':               return 'FN';
+    case 'energy-infrastructure': return 'EI';
+    case 'compliance':            return 'CP';
+    case 'reporting-portal':      return 'RP';
+    case 'general':               return 'GN';
+  }
+}
+
+// ── Sub-item icons (unchanged) ──────────────────────────────────────────────
 
 function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolean; phaseColor: string }) {
   const color = active ? phaseColor : 'var(--color-sidebar-icon, #6b7b6b)';
@@ -373,6 +380,8 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
       return <svg {...props}><rect x="1" y="8" width="3" height="5" rx="0.3"/><rect x="5.5" y="5" width="3" height="8" rx="0.3"/><rect x="10" y="2" width="3" height="11" rx="0.3"/></svg>;
     case 'regulatory':
       return <svg {...props}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/><polyline points="4.5 7 6.5 9.5 10 5"/></svg>;
+    case 'feasibility':
+      return <svg {...props}><rect x="2" y="1.5" width="10" height="11" rx="1"/><polyline points="4.5 5 5.5 6 7 4.5"/><polyline points="4.5 8 5.5 9 7 7.5"/><line x1="8.5" y1="5" x2="11" y2="5"/><line x1="8.5" y1="8" x2="11" y2="8"/></svg>;
     case 'ai':
       return <svg {...props}><path d="M7 1L8.3 5H13L9.5 7.5L11 12L7 9L3 12L4.5 7.5L1 5H5.7L7 1Z" fill={color} fillOpacity="0.2"/></svg>;
     case 'scenarios':

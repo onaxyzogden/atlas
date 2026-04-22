@@ -104,7 +104,7 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
   // Derive action items from opportunity analysis
   const actionItems = useMemo(() => {
     if (!siteData?.layers?.length) return [];
-    const opps = deriveOpportunities(siteData.layers, (project.country as 'US' | 'CA') || 'US');
+    const opps = deriveOpportunities(siteData.layers, project.country || 'US');
     return opps.slice(0, 4).map((opp) => ({
       priority: opp.severity === 'critical' ? 'High' : opp.severity === 'warning' ? 'Medium' : 'Standard',
       task: opp.message,

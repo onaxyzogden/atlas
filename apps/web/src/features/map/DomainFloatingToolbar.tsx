@@ -13,6 +13,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
+import type React from 'react';
 import { useState } from 'react';
 import {
   Waves,
@@ -29,6 +30,8 @@ import {
   RotateCw,
   Download,
   Ruler,
+  Zap,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 import type { DomainKey } from './domainMapping.js';
@@ -60,6 +63,28 @@ interface DomainFloatingToolbarProps {
   onExport: () => void;
 }
 
+// Tint color per domain. Gives the floating toolbar a visible anchor that
+// matches the sidebar selection, so users reading the map never lose track
+// of which domain lens they are in (UX scholar critique #3: "the toolbar
+// feels generic — nothing about it changes when the user switches domains").
+const DOMAIN_TINTS: Record<DomainKey, string> = {
+  hydrology:          '#4A90D9', // water blue
+  terrain:            '#c4a265', // amber (earth)
+  ecology:            '#5A7A3A', // deep green
+  paddockDesign:      '#8A7B4A', // livestock tan
+  herdRotation:       '#8A7B4A',
+  grazingAnalysis:    '#8A7B4A',
+  livestockInventory: '#8A7B4A',
+  plantingTool:       '#4A7C3F', // forest green
+  forestHub:          '#4A7C3F',
+  carbonDiagnostic:   '#4A7C3F',
+  nurseryLedger:      '#4A7C3F',
+  cartographic:       '#7a8a9a', // neutral slate
+  energy:             '#E8A94A', // solar gold
+  infrastructure:     '#6B6B6B', // utility gray
+  default:            '#c4a265',
+};
+
 const DOMAIN_LABELS: Record<DomainKey, string> = {
   hydrology:          'Hydrology Tools',
   terrain:            'Terrain Tools',
@@ -73,6 +98,8 @@ const DOMAIN_LABELS: Record<DomainKey, string> = {
   carbonDiagnostic:   'Carbon Tools',
   nurseryLedger:      'Nursery Tools',
   cartographic:       'Map Tools',
+  energy:             'Energy Tools',
+  infrastructure:     'Infrastructure Tools',
   default:            '',
 };
 
@@ -291,6 +318,56 @@ const DOMAIN_TOOLS: Record<Exclude<DomainKey, 'default'>, ToolDef[]> = {
       },
     },
   ],
+
+  // Energy — solar / battery / generator siting. Elevation + Hillshade frame
+  // sun exposure and panel-orientation decisions; Land Cover flags canopy
+  // shading; Measure sketches cable/conduit runs.
+  energy: [
+    ELEVATION_TOOL,
+    {
+      id: 'energy-hillshade',
+      label: 'Sun Exposure',
+      icon: Sun,
+      type: 'action',
+      onAction: ({ map }) => {
+        if (!map) return;
+        if (!map.getLayer('ogden-hillshade')) return;
+        const vis = map.getLayoutProperty('ogden-hillshade', 'visibility');
+        map.setLayoutProperty('ogden-hillshade', 'visibility', vis === 'visible' ? 'none' : 'visible');
+      },
+    },
+    { id: 'energy-land-cover', label: 'Canopy', icon: Trees, type: 'toggle', layerKey: 'land_cover' },
+    MEASURE_TOOL,
+    {
+      id: 'energy-legend',
+      label: 'Energy',
+      icon: Zap,
+      type: 'action',
+      onAction: ({ map }) => {
+        // Breadcrumb — no wired panel to open yet; signal to any future listener.
+        map?.fire('ogden:energy:focus' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+  ],
+
+  // Infrastructure — water / septic / tank siting. Soils drives septic
+  // suitability; Watershed + Flood/Wetlands enforce separation distances;
+  // Measure checks well-septic and boundary setbacks.
+  infrastructure: [
+    SOILS_TOOL,
+    { id: 'infra-watershed', label: 'Watershed', icon: Droplets, type: 'toggle', layerKey: 'watershed' },
+    { id: 'infra-flood',     label: 'Flood/Wetlands', icon: Waves, type: 'toggle', layerKey: 'wetlands_flood' },
+    MEASURE_TOOL,
+    {
+      id: 'infra-legend',
+      label: 'Utilities',
+      icon: Wrench,
+      type: 'action',
+      onAction: ({ map }) => {
+        map?.fire('ogden:infrastructure:focus' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+  ],
 };
 
 export default function DomainFloatingToolbar({
@@ -308,9 +385,13 @@ export default function DomainFloatingToolbar({
 
   const tools = DOMAIN_TOOLS[domain as Exclude<DomainKey, 'default'>] ?? [];
   const ctx: ToolContext = { map, draw, onExport };
+  const tint = DOMAIN_TINTS[domain];
 
   return (
-    <div className={css.toolbar}>
+    <div
+      className={css.toolbar}
+      style={{ '--domain-tint': tint } as React.CSSProperties}
+    >
       <button
         className={css.header}
         onClick={() => setCollapsed((v) => !v)}

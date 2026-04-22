@@ -51,38 +51,53 @@ export interface AdapterConfig {
   source: string;
 }
 
-export const ADAPTER_REGISTRY: Record<Tier1LayerType, Record<Country, AdapterConfig>> = {
+// NOTE: `Partial<Record<Country, AdapterConfig>>` intentionally — not every
+// layer has an INTL adapter yet. `resolveAdapter()` in the orchestrator uses
+// optional chaining and falls back to `ManualFlagAdapter` for missing combos,
+// so leaving an INTL slot undefined is a supported state, not a gap.
+export const ADAPTER_REGISTRY: Record<Tier1LayerType, Partial<Record<Country, AdapterConfig>>> = {
   elevation: {
     US: { adapter: 'UsgsElevationAdapter', source: 'usgs_3dep' },
     CA: { adapter: 'NrcanHrdemAdapter', source: 'nrcan_hrdem' },
+    // INTL: pending SRTM/ALOS adapter
   },
   soils: {
     US: { adapter: 'SsurgoAdapter', source: 'ssurgo' },
     CA: { adapter: 'OmafraCanSisAdapter', source: 'omafra_cansis' },
+    // INTL: pending SoilGrids 250m global adapter
   },
   watershed: {
     US: { adapter: 'NhdAdapter', source: 'nhd' },
     CA: { adapter: 'OhnAdapter', source: 'ontario_hydro_network' },
+    // INTL: pending HydroSHEDS / HydroRIVERS adapter
   },
   wetlands_flood: {
     US: { adapter: 'NwiFemaAdapter', source: 'nwi_fema_nfhl' },
     CA: { adapter: 'ConservationAuthorityAdapter', source: 'conservation_authority' },
+    // INTL: pending GloRiC / GIEMS adapter
   },
   land_cover: {
     US: { adapter: 'NlcdAdapter', source: 'nlcd' },
     CA: { adapter: 'AafcLandCoverAdapter', source: 'aafc_annual_crop' },
+    // INTL: pending ESA WorldCover 10m adapter
   },
   climate: {
     US: { adapter: 'NoaaClimateAdapter', source: 'noaa_normals' },
     CA: { adapter: 'EcccClimateAdapter', source: 'eccc_normals' },
+    // NasaPower is globally valid (grid-interpolated). Registered 2026-04-22
+    // to unlock non-US/non-CA projects. US/CA still prefer station-based
+    // NOAA/ECCC primaries and only use fetchNasaPowerSummary as enrichment.
+    INTL: { adapter: 'NasaPowerAdapter', source: 'nasa_power' },
   },
   zoning: {
     US: { adapter: 'UsCountyGisAdapter', source: 'county_gis' },
     CA: { adapter: 'OntarioMunicipalAdapter', source: 'ontario_municipal_gis' },
+    // INTL: no global zoning source — ManualFlagAdapter fallback documented.
   },
   groundwater: {
     US: { adapter: 'NwisGroundwaterAdapter', source: 'usgs_nwis' },
     CA: { adapter: 'PgmnGroundwaterAdapter', source: 'ontario_pgmn' },
+    // INTL: pending WHYMAP / IGRAC adapter
   },
 };
 
