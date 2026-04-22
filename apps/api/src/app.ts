@@ -66,6 +66,12 @@ import structuresBuildingsRoutes from './routes/structures-buildings/index.js';
 import accessCirculationRoutes from './routes/access-circulation/index.js';
 import cropsAgroforestryRoutes from './routes/crops-agroforestry/index.js';
 
+// ── Scaffolded sections (Batch 4: §§11, 14, 15, 16) ──
+import livestockSystemsRoutes from './routes/livestock-systems/index.js';
+import moontranceVisionRoutes from './routes/moontrance-vision/index.js';
+import timelinePhasingRoutes from './routes/timeline-phasing/index.js';
+import simulationScenariosRoutes from './routes/simulation-scenarios/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -147,6 +153,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(structuresBuildingsRoutes, { prefix: '/api/v1/structures-buildings' });
   await app.register(accessCirculationRoutes,   { prefix: '/api/v1/access-circulation' });
   await app.register(cropsAgroforestryRoutes,   { prefix: '/api/v1/crops-agroforestry' });
+
+  // ── Scaffolded sections (Batch 4: §§11, 14, 15, 16) ──
+  await app.register(livestockSystemsRoutes,     { prefix: '/api/v1/livestock-systems' });
+  await app.register(moontranceVisionRoutes,     { prefix: '/api/v1/moontrance-vision' });
+  await app.register(timelinePhasingRoutes,      { prefix: '/api/v1/timeline-phasing' });
+  await app.register(simulationScenariosRoutes,  { prefix: '/api/v1/simulation-scenarios' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
