@@ -60,6 +60,12 @@ import climateAnalysisRoutes from './routes/climate-analysis/index.js';
 import soilEcologyRoutes from './routes/soil-ecology/index.js';
 import utilitiesEnergyRoutes from './routes/utilities-energy/index.js';
 
+// ── Scaffolded sections (Batch 3: §§8, 9, 10, 12) ──
+import zoningAllocationRoutes from './routes/zoning-allocation/index.js';
+import structuresBuildingsRoutes from './routes/structures-buildings/index.js';
+import accessCirculationRoutes from './routes/access-circulation/index.js';
+import cropsAgroforestryRoutes from './routes/crops-agroforestry/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -135,6 +141,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(climateAnalysisRoutes, { prefix: '/api/v1/climate-analysis' });
   await app.register(soilEcologyRoutes,     { prefix: '/api/v1/soil-ecology' });
   await app.register(utilitiesEnergyRoutes, { prefix: '/api/v1/utilities-energy' });
+
+  // ── Scaffolded sections (Batch 3: §§8, 9, 10, 12) ──
+  await app.register(zoningAllocationRoutes,    { prefix: '/api/v1/zoning-allocation' });
+  await app.register(structuresBuildingsRoutes, { prefix: '/api/v1/structures-buildings' });
+  await app.register(accessCirculationRoutes,   { prefix: '/api/v1/access-circulation' });
+  await app.register(cropsAgroforestryRoutes,   { prefix: '/api/v1/crops-agroforestry' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
