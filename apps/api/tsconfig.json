@@ -8,7 +8,8 @@
     "moduleResolution": "NodeNext",
     "types": ["node"],
     "paths": {
-      "@ogden/shared": ["../../packages/shared/src/index.ts"]
+      "@ogden/shared": ["../../packages/shared/src/index.ts"],
+      "@ogden/shared/scoring": ["../../packages/shared/src/scoring/index.ts"]
     }
   },
   "include": ["src", "../../packages/shared/src"]

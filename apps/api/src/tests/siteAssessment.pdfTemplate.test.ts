@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeAssessmentScores } from '@ogden/shared/scoring';
+import { computeAssessmentScores, type MockLayerResult } from '@ogden/shared/scoring';
 import { renderSiteAssessment } from '../services/pdf/templates/siteAssessment.js';
 import type {
   ExportDataBag,
@@ -51,8 +51,11 @@ function makeProject(): ProjectRow {
 }
 
 function makeAssessment(): AssessmentRow {
-  const scores = computeAssessmentScores(
-    [
+  // Fixtures use partial summaries intentionally — scorer tolerates nulls
+  // for missing optional fields. Cast via `unknown` to bypass the
+  // discriminated-union exhaustiveness check without losing type safety
+  // at the scorer boundary itself.
+  const layers = [
       {
         layerType: 'climate',
         fetchStatus: 'complete',
@@ -114,7 +117,9 @@ function makeAssessment(): AssessmentRow {
         attribution: 'USGS NHD',
         summary: { catchment_area_ha: 85, nearest_stream_m: 120 },
       },
-    ],
+    ] as unknown as MockLayerResult[];
+  const scores = computeAssessmentScores(
+    layers,
     40,
     'US',
     '2026-04-21T00:00:00.000Z',

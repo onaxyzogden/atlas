@@ -1,6 +1,16 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      // More-specific subpath MUST come first — Vite prefix-matches in order.
+      // Mirrors apps/web/vite.config.ts so the monorepo's @ogden/shared/scoring
+      // subpath resolves identically in API tests and in the web bundle.
+      '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
+      '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',

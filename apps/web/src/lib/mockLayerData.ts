@@ -56,7 +56,7 @@ export function generateMockLayers(country: string): MockLayerResult[] {
         ph_range: '6.1 - 6.8',
         hydrologic_group: country === 'CA' ? 'C' : 'B',
         farmland_class: country === 'US' ? 'Prime farmland' : 'Class 2 (CSCS)',
-        depth_to_bedrock_m: country === 'CA' ? 'N/A' : 1.8,
+        depth_to_bedrock_m: country === 'CA' ? null : 1.8,
         // Sprint S extended SSURGO fields
         bulk_density_g_cm3: 1.35,
         ec_ds_m: 0.28,
@@ -91,10 +91,11 @@ export function generateMockLayers(country: string): MockLayerResult[] {
       attribution: country === 'US' ? 'USFWS / FEMA' : 'Conservation Halton',
       summary: {
         flood_zone: country === 'US' ? 'Zone X (minimal risk)' : 'Not regulated',
+        flood_risk: 'low',
         wetland_pct: 4.2,
         wetland_types: ['PEM1 (Emergent)', 'PFO1 (Forested)'],
         riparian_buffer_m: 30,
-        regulated_area_pct: 12.5,
+        regulated_area_pct: '12.5% of parcel',
       },
     },
     {
@@ -142,6 +143,12 @@ export function generateMockLayers(country: string): MockLayerResult[] {
         hardiness_zone: country === 'US' ? '6b' : '5b',
         prevailing_wind: 'W-SW',
         annual_sunshine_hours: 2050,
+        koppen_classification: country === 'CA' ? 'Dfb' : 'Cfa',
+        koppen_label: country === 'CA' ? 'Warm-summer humid continental' : 'Humid subtropical',
+        freeze_thaw_cycles_per_year: country === 'CA' ? 70 : 40,
+        snow_months: country === 'CA' ? 4 : 2,
+        solar_radiation_kwh_m2_day: 4.2,
+        solar_radiation_monthly: null,
       },
     },
     {

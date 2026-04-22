@@ -295,7 +295,7 @@ function tier3Layer(type: string, summary: Record<string, unknown>): MockLayerRe
     sourceApi: 'derived',
     attribution: 'OGDEN derived',
     summary,
-  };
+  } as unknown as MockLayerResult;
 }
 
 /**

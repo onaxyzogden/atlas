@@ -24,11 +24,12 @@ export function mockLayersWithOverrides(
   return layers.map((layer) => {
     const ov = overrides[layer.layerType];
     if (!ov) return layer;
+    // Spreads collapse the discriminated union; cast back.
     return {
       ...layer,
       ...ov,
       summary: { ...layer.summary, ...(ov.summary ?? {}) },
-    };
+    } as MockLayerResult;
   });
 }
 
@@ -49,5 +50,5 @@ export function mockLayersEmpty(): MockLayerResult[] {
     fetchStatus: 'pending' as const,
     confidence: 'low' as const,
     summary: {},
-  }));
+  } as unknown as MockLayerResult));
 }

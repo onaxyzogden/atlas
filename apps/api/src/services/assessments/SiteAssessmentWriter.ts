@@ -100,6 +100,9 @@ export function layerRowsToMockLayers(
         'Stale layer summary — coerced invalid fields to null',
       );
     }
+    // Cast through `unknown`: the runtime validator has already shaped
+    // `summary` to match the discriminated-union variant for this layerType,
+    // but TS can't narrow across the `as LayerType` widening at line ~90.
     return {
       layerType,
       fetchStatus: 'complete' as const,
@@ -108,7 +111,7 @@ export function layerRowsToMockLayers(
       sourceApi: r.source_api ?? '',
       attribution: r.attribution ?? '',
       summary,
-    };
+    } as unknown as MockLayerResult;
   });
 }
 

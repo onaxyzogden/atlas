@@ -300,11 +300,13 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
     const existingIdx = results.findIndex((r) => r.layerType === 'conservation_easement');
     if (existingIdx >= 0) {
       const existing = results[existingIdx]!;
+      // findIndex narrows at runtime to conservation_easement but TS can't
+      // propagate that — cast the merged literal back to the union.
       results[existingIdx] = {
         ...existing,
         summary: { ...existing.summary, ...eg.summary },
         sourceApi: `${existing.sourceApi} + ${eg.sourceApi}`,
-      };
+      } as MockLayerResult;
     } else {
       replaceLayer(results, eg);
     }
@@ -322,7 +324,7 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
         ...existing,
         summary: { ...existing.summary, ...wdpa.summary },
         sourceApi: `${existing.sourceApi} + ${wdpa.sourceApi}`,
-      };
+      } as MockLayerResult;
     } else {
       replaceLayer(results, wdpa);
     }

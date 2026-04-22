@@ -52,11 +52,22 @@ describe('layerRowsToMockLayers', () => {
     expect(mock?.confidence).toBe('low');
   });
 
-  it('tolerates null summary_data by substituting an empty object', () => {
+  it('tolerates null summary_data (unmigrated layer types pass through as empty object)', () => {
+    const [mock] = layerRowsToMockLayers([
+      { ...row('watershed', {}), summary_data: null },
+    ]);
+    expect(mock?.summary).toEqual({});
+  });
+
+  it('null summary_data on a typed layer yields a schema-shaped object of nulls', () => {
     const [mock] = layerRowsToMockLayers([
       { ...row('climate', {}), summary_data: null },
     ]);
-    expect(mock?.summary).toEqual({});
+    // Validator fills every known key with null when input is empty.
+    const summary = mock?.summary as Record<string, unknown>;
+    expect(summary.annual_precip_mm).toBeNull();
+    expect(summary.annual_temp_mean_c).toBeNull();
+    expect(summary.hardiness_zone).toBeNull();
   });
 
   it('coerces stale sentinel strings in typed summaries to null (DB-boundary guard)', () => {
