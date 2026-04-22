@@ -381,9 +381,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {wetlands ? (
           <div className={css.wetlandCard}>
             <div className={css.wetlandGrid}>
-              <WetlandMetric label="Wetland Coverage" value={wetlands.wetland_pct != null ? `${wetlands.wetland_pct.toFixed(1)}%` : 'None mapped'} />
+              <WetlandMetric label="Wetland Coverage" value={(() => { const n = Number(wetlands.wetland_pct); return Number.isFinite(n) ? `${n.toFixed(1)}%` : 'None mapped'; })()} />
               <WetlandMetric label="Riparian Buffer" value={typeof wetlands.riparian_buffer_m === 'number' ? `${wetlands.riparian_buffer_m}m` : 'Not detected'} />
-              <WetlandMetric label="Regulated Area" value={typeof wetlands.regulated_area_pct === 'number' ? `${wetlands.regulated_area_pct.toFixed(1)}%` : (wetlands.regulated_area_pct ?? 'N/A')} />
+              <WetlandMetric label="Regulated Area" value={(() => { const n = Number(wetlands.regulated_area_pct); return Number.isFinite(n) ? `${n.toFixed(1)}%` : 'N/A'; })()} />
               <WetlandMetric label="Flood Zone" value={wetlands.flood_zone ?? 'Not classified'} />
             </div>
             {wetlands.wetland_types && wetlands.wetland_types.length > 0 && (
