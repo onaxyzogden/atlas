@@ -22,7 +22,9 @@ import type { LayerType } from '../constants/dataSources.js';
 import type {
   ClimateSummary,
   ElevationSummary,
+  LandCoverSummary,
   SoilsSummary,
+  WatershedSummary,
   WetlandsFloodSummary,
 } from './types.js';
 
@@ -124,6 +126,35 @@ export const wetlandsFloodSummarySchema = z
   })
   .passthrough();
 
+export const watershedSummarySchema = z
+  .object({
+    huc_code: strOrNull,
+    watershed_name: strOrNull,
+    nearest_stream_m: numOrNull,
+    nearest_stream_note: strOrNull.optional(),
+    stream_order: numOrNull,
+    catchment_area_ha: numOrNull,
+    flow_direction: strOrNull,
+  })
+  .passthrough();
+
+export const landCoverSummarySchema = z
+  .object({
+    primary_class: strOrNull,
+    classes: z.record(z.number()).nullable().catch(null),
+    tree_canopy_pct: numOrNull,
+    impervious_pct: numOrNull,
+    cropland_pct: numOrNull.optional(),
+    urban_pct: numOrNull.optional(),
+    wetland_pct: numOrNull.optional(),
+    water_pct: numOrNull.optional(),
+    sample_count: numOrNull.optional(),
+    nlcd_code: numOrNull.optional(),
+    aafc_code: numOrNull.optional(),
+    worldcover_code: numOrNull.optional(),
+  })
+  .passthrough();
+
 export type ValidationIssue = {
   path: (string | number)[];
   message: string;
@@ -157,6 +188,10 @@ export function validateLayerSummary(
       return runSchema<ClimateSummary>(climateSummarySchema, input);
     case 'wetlands_flood':
       return runSchema<WetlandsFloodSummary>(wetlandsFloodSummarySchema, input);
+    case 'watershed':
+      return runSchema<WatershedSummary>(watershedSummarySchema, input);
+    case 'land_cover':
+      return runSchema<LandCoverSummary>(landCoverSummarySchema, input);
     default:
       return { ok: true, summary: input, coercions: [] };
   }

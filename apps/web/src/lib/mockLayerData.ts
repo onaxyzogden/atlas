@@ -74,11 +74,11 @@ export function generateMockLayers(country: string): MockLayerResult[] {
       sourceApi: country === 'US' ? 'NHD Plus' : 'Ontario Hydro Network (LIO)',
       attribution: country === 'US' ? 'USGS' : 'Ontario Ministry of Natural Resources and Forestry',
       summary: {
-        huc_code: country === 'US' ? '041001020304' : 'N/A',
+        huc_code: country === 'US' ? '041001020304' : null,
         watershed_name: country === 'US' ? 'Upper Susquehanna' : 'Sixteen Mile Creek',
         nearest_stream_m: country === 'CA' ? 380 : 420,
         stream_order: 2,
-        catchment_area_ha: country === 'CA' ? 'N/A' : 845,
+        catchment_area_ha: country === 'CA' ? null : 845,
         flow_direction: 'SE to NW',
       },
     },
@@ -106,7 +106,8 @@ export function generateMockLayers(country: string): MockLayerResult[] {
       sourceApi: country === 'US' ? 'NLCD 2021' : 'AAFC Annual Crop Inventory 2024',
       attribution: country === 'US' ? 'USGS EROS' : 'Agriculture and Agri-Food Canada',
       summary: {
-        ...(country === 'CA' ? { primary_class: 'Soybeans', aafc_code: 3 } : {}),
+        primary_class: country === 'CA' ? 'Soybeans' : 'Deciduous Forest',
+        ...(country === 'CA' ? { aafc_code: 3 } : {}),
         classes: country === 'CA' ? {
           'Soybeans': 50,
           'Seeded Forage': 20,

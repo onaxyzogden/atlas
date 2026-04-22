@@ -54,7 +54,23 @@ Unknown/extra keys pass through (`.passthrough()`) because the rule engine reads
 
 ## Deferred
 
-- 36 remaining `LayerType` variants still carry `'N/A'` / `'Unknown'` strings in their fetchers. Low risk because consumers for those layers already guard with `parseFloat(String(...))` or don't render numerics.
+- 34 remaining `LayerType` variants still carry `'N/A'` / `'Unknown'` strings in their fetchers (was 36 before the watershed + land_cover follow-on, 2026-04-21 pm). Low risk because consumers for those layers already guard with `parseFloat(String(...))` or don't render numerics.
+- Consumer-side cleanup: 15+ files carry local duplicate `WatershedSummary` / `LandCoverSummary` interfaces. They keep compiling via the unsafe cast in `getLayerSummary<T>`. Mechanical delete-and-import pass deferred.
+
+## Extension — 2026-04-21 (pm): watershed + land_cover tightened
+
+The same pattern extended to `watershed` and `land_cover` in a follow-on commit.
+`TypedLayerSummary` now covers 6 of 40 variants. `validateLayerSummary`
+dispatcher picks up `watershedSummarySchema` + `landCoverSummarySchema`.
+Fetcher normalization: 3 watershed call sites in `apps/web/src/lib/layerFetcher.ts`
+(USGS WBD / OHN watercourse / latitude-fallback) lost their `'N/A'` /
+`'Estimated'` / `'Query available'` numeric sentinels; narrative overrides
+split into a new optional `nearest_stream_note`. OHN `stream_order` coerced
+`String → Number | null` at the adapter instead of leaking a union-typed value.
+Fixture drift corrected in `apps/web/src/lib/mockLayerData.ts` (watershed CA
+branch, land_cover `primary_class` always-present). Tests: shared 67/67
+(+4 new), api 465/465 (+2 new adapter coercion tests), web 374/374. tsc
+clean across the three packages.
 
 ## Followup (closed same day)
 

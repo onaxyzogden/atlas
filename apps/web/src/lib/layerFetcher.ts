@@ -1951,9 +1951,10 @@ async function fetchWatershed(lat: number, lng: number, country: string): Promis
       summary: {
         huc_code: huc12,
         watershed_name: name,
-        nearest_stream_m: 'Query available',
-        stream_order: 'N/A',
-        catchment_area_ha: 'N/A',
+        nearest_stream_m: null,
+        nearest_stream_note: 'Query available',
+        stream_order: null,
+        catchment_area_ha: null,
         flow_direction: lng < -90 ? 'S' : lng < -80 ? 'SE' : 'E',
       },
     };
@@ -2026,11 +2027,11 @@ async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerR
     sourceApi: 'Ontario Hydro Network (LIO)',
     attribution: 'Ontario Ministry of Natural Resources and Forestry',
     summary: {
-      huc_code: 'N/A',
+      huc_code: null,
       watershed_name: String(watercourseNameRaw),
       nearest_stream_m: nearestM,
-      stream_order: streamOrderRaw,
-      catchment_area_ha: 'N/A',
+      stream_order: typeof streamOrderRaw === 'number' ? streamOrderRaw : Number(streamOrderRaw) || null,
+      catchment_area_ha: null,
       flow_direction: lng < -79 ? 'E to S' : 'SE to NW',
     },
   };
@@ -2055,11 +2056,12 @@ function watershedFromLatitude(lat: number, lng: number, country: string): MockL
     sourceApi: country === 'CA' ? 'Estimated (Ontario Hydro Network)' : 'Estimated (NHD Plus)',
     attribution: 'Regional estimate',
     summary: {
-      huc_code: 'N/A',
+      huc_code: null,
       watershed_name: name,
-      nearest_stream_m: 'Estimated',
+      nearest_stream_m: null,
+      nearest_stream_note: 'Estimated',
       stream_order: 2,
-      catchment_area_ha: 'N/A',
+      catchment_area_ha: null,
       flow_direction: lng < -79 ? 'E to S' : 'SE to NW',
     },
   };
@@ -3094,6 +3096,7 @@ function landCoverFromLatitude(lat: number, country: string): MockLayerResult {
     sourceApi: country === 'CA' ? 'Estimated (AAFC model)' : 'Estimated (NLCD unavailable)',
     attribution: 'Latitude-based regional estimate',
     summary: {
+      primary_class: forestPct > cropPct ? 'Deciduous Forest' : 'Cultivated Cropland',
       classes: {
         'Deciduous Forest': Math.max(0, forestPct),
         'Cultivated Cropland': Math.max(0, cropPct),

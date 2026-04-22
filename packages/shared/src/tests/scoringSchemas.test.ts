@@ -55,12 +55,84 @@ describe('validateLayerSummary — soils', () => {
   });
 });
 
-describe('validateLayerSummary — unmigrated layer types', () => {
-  it('passes land_cover through untouched (no schema yet)', () => {
-    const res = validateLayerSummary('land_cover', { tree_canopy_pct: 'N/A', extra: 1 });
+describe('validateLayerSummary — watershed', () => {
+  it('coerces sentinel strings to null', () => {
+    const res = validateLayerSummary('watershed', {
+      huc_code: '041001020304',
+      watershed_name: 'Upper Susquehanna',
+      nearest_stream_m: 'Estimated',
+      stream_order: 'N/A',
+      catchment_area_ha: 'N/A',
+      flow_direction: 'SE',
+      nearest_stream_note: 'Estimated',
+    });
     expect(res.ok).toBe(true);
     if (!res.ok) return;
-    expect(res.summary.tree_canopy_pct).toBe('N/A');
+    expect(res.summary.nearest_stream_m).toBeNull();
+    expect(res.summary.stream_order).toBeNull();
+    expect(res.summary.catchment_area_ha).toBeNull();
+    expect(res.summary.huc_code).toBe('041001020304');
+    expect(res.summary.nearest_stream_note).toBe('Estimated');
+    const keys = res.coercions.map((c) => c.path[0]);
+    expect(keys).toContain('nearest_stream_m');
+    expect(keys).toContain('stream_order');
+  });
+
+  it('passes valid numeric values through with no coercions', () => {
+    const res = validateLayerSummary('watershed', {
+      huc_code: '041001020304',
+      watershed_name: 'Upper Susquehanna',
+      nearest_stream_m: 420,
+      stream_order: 2,
+      catchment_area_ha: 845,
+      flow_direction: 'SE',
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.summary.nearest_stream_m).toBe(420);
+    expect(res.coercions).toEqual([]);
+  });
+});
+
+describe('validateLayerSummary — land_cover', () => {
+  it('coerces sentinel strings in numeric slots to null', () => {
+    const res = validateLayerSummary('land_cover', {
+      primary_class: 'Deciduous Forest',
+      tree_canopy_pct: 'N/A',
+      impervious_pct: 'Unknown',
+      cropland_pct: 'N/A',
+      classes: { Forest: 60, Cropland: 40 },
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.summary.tree_canopy_pct).toBeNull();
+    expect(res.summary.impervious_pct).toBeNull();
+    expect(res.summary.cropland_pct).toBeNull();
+    expect(res.summary.primary_class).toBe('Deciduous Forest');
+    expect(res.summary.classes).toEqual({ Forest: 60, Cropland: 40 });
+  });
+
+  it('passes valid numeric values through with no coercions', () => {
+    const res = validateLayerSummary('land_cover', {
+      primary_class: 'Deciduous Forest',
+      tree_canopy_pct: 35,
+      impervious_pct: 5,
+      classes: { Forest: 60, Cropland: 40 },
+      worldcover_code: 10,
+    });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.summary.tree_canopy_pct).toBe(35);
+    expect(res.coercions).toEqual([]);
+  });
+});
+
+describe('validateLayerSummary — unmigrated layer types', () => {
+  it('passes zoning through untouched (no schema yet)', () => {
+    const res = validateLayerSummary('zoning', { min_lot_size_ac: 'Unknown', extra: 1 });
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.summary.min_lot_size_ac).toBe('Unknown');
     expect(res.summary.extra).toBe(1);
     expect(res.coercions).toEqual([]);
   });

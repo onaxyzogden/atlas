@@ -54,7 +54,7 @@ describe('layerRowsToMockLayers', () => {
 
   it('tolerates null summary_data (unmigrated layer types pass through as empty object)', () => {
     const [mock] = layerRowsToMockLayers([
-      { ...row('watershed', {}), summary_data: null },
+      { ...row('zoning', {}), summary_data: null },
     ]);
     expect(mock?.summary).toEqual({});
   });
@@ -108,13 +108,42 @@ describe('layerRowsToMockLayers', () => {
   });
 
   it('passes unmigrated layer types through untouched', () => {
+    const [z] = layerRowsToMockLayers([
+      row('zoning', { min_lot_size_ac: 'Unknown', whatever: 123 }),
+    ]);
+    const summary = z?.summary as Record<string, unknown>;
+    expect(summary.min_lot_size_ac).toBe('Unknown');
+    expect(summary.whatever).toBe(123);
+  });
+
+  it('coerces sentinel strings in watershed numeric slots to null', () => {
+    const [ws] = layerRowsToMockLayers([
+      row('watershed', {
+        huc_code: '041001020304',
+        nearest_stream_m: 'Estimated',
+        stream_order: 'N/A',
+        catchment_area_ha: 'N/A',
+      }),
+    ]);
+    const summary = ws?.summary as Record<string, unknown>;
+    expect(summary.nearest_stream_m).toBeNull();
+    expect(summary.stream_order).toBeNull();
+    expect(summary.catchment_area_ha).toBeNull();
+    expect(summary.huc_code).toBe('041001020304');
+  });
+
+  it('coerces sentinel strings in land_cover numeric slots to null', () => {
     const [lc] = layerRowsToMockLayers([
-      row('land_cover', { tree_canopy_pct: 'N/A', whatever: 123 }),
+      row('land_cover', {
+        primary_class: 'Deciduous Forest',
+        tree_canopy_pct: 'N/A',
+        impervious_pct: 'Unknown',
+      }),
     ]);
     const summary = lc?.summary as Record<string, unknown>;
-    // No schema for land_cover yet — raw passthrough.
-    expect(summary.tree_canopy_pct).toBe('N/A');
-    expect(summary.whatever).toBe(123);
+    expect(summary.tree_canopy_pct).toBeNull();
+    expect(summary.impervious_pct).toBeNull();
+    expect(summary.primary_class).toBe('Deciduous Forest');
   });
 
   it('propagates optional metadata fields when present', () => {

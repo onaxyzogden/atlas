@@ -134,12 +134,44 @@ export interface WetlandsFloodSummary {
   conservation_authority?: string | null;
 }
 
+export interface WatershedSummary {
+  [key: string]: unknown;
+  huc_code: string | null;
+  watershed_name: string | null;
+  /** Numeric metres to nearest stream. Narrative overrides (e.g. "Estimated") live in `nearest_stream_note`. */
+  nearest_stream_m: number | null;
+  nearest_stream_note?: string | null;
+  stream_order: number | null;
+  catchment_area_ha: number | null;
+  flow_direction: string | null;
+}
+
+export interface LandCoverSummary {
+  [key: string]: unknown;
+  primary_class: string | null;
+  /** Per-label percentage distribution summing to ~100. */
+  classes: Record<string, number> | null;
+  tree_canopy_pct: number | null;
+  impervious_pct: number | null;
+  // Optional per-adapter extras (WorldCover derives all five; NLCD/AAFC a subset).
+  cropland_pct?: number | null;
+  urban_pct?: number | null;
+  wetland_pct?: number | null;
+  water_pct?: number | null;
+  sample_count?: number | null;
+  nlcd_code?: number | null;
+  aafc_code?: number | null;
+  worldcover_code?: number | null;
+}
+
 /** Map of layer types with a fully-typed summary shape. */
 export interface TypedLayerSummary {
   elevation: ElevationSummary;
   soils: SoilsSummary;
   climate: ClimateSummary;
   wetlands_flood: WetlandsFloodSummary;
+  watershed: WatershedSummary;
+  land_cover: LandCoverSummary;
 }
 
 /** Summary shape for an arbitrary LayerType — typed where we know it, `Record<string, unknown>` otherwise. */

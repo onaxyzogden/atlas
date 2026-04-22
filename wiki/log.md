@@ -4,6 +4,37 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-21 — Scoring type contract extended to watershed + land_cover (6/40 typed)
+
+Followup tightening of the discriminated-union + zod-validator pattern
+(decisions/2026-04-21-scoring-type-contract.md). `WatershedSummary` and
+`LandCoverSummary` interfaces promoted from `Record<string, unknown>` to
+fully-typed members of `TypedLayerSummary`; matching `watershedSummarySchema` /
+`landCoverSummarySchema` zod validators wired into `validateLayerSummary`.
+
+Fetcher normalization touched 3 watershed call sites in
+`apps/web/src/lib/layerFetcher.ts` (USGS WBD / OHN watercourse /
+latitude-fallback): `'N/A'` / `'Estimated'` / `'Query available'` numeric
+sentinels replaced with `null`, narratives split into new optional
+`nearest_stream_note`. OHN `stream_order` coerced `String → Number | null`
+at the adapter boundary instead of leaking a union-typed value.
+
+Fixture drift corrected in `apps/web/src/lib/mockLayerData.ts` (watershed CA
+branch: `huc_code: 'N/A'` + `catchment_area_ha: 'N/A'` → null; land_cover
+`primary_class` hoisted from conditional CA-only to always-present) and in the
+`landCoverFromLatitude` estimate (primary_class now derived from the dominant
+class). Tests updated across all three packages: shared vitest 67/67 (+4 new
+schema tests for watershed + land_cover), api vitest 465/465 (+2 new adapter
+coercion tests), web vitest 374/374. tsc clean on shared, api, web.
+
+The discriminated union now covers 6 of 40 LayerType variants; the remaining 34
+continue to fall back to `Record<string, unknown>` without loss of compile-time
+safety for the typed set. Consumer-side cleanup (15+ files with local duplicate
+`WatershedSummary` / `LandCoverSummary` interfaces, held compiling today via
+`getLayerSummary<T>`'s unsafe cast) is deferred as a mechanical follow-up.
+
+---
+
 ## 2026-04-21 — Educational booklet copy completed for all 10 labels + Design Complexity orientation fix
 
 Follow-up to the schema-lift sprint, clearing the top deferred item from that
