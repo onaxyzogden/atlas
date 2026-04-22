@@ -54,6 +54,12 @@ import siteDataLayersRoutes from './routes/site-data-layers/index.js';
 import siteAssessmentRoutes from './routes/site-assessment/index.js';
 import adminGovernanceRoutes from './routes/admin-governance/index.js';
 
+// ── Scaffolded sections (Batch 2: §§5, 6, 7, 13) ──
+import hydrologyWaterRoutes from './routes/hydrology-water/index.js';
+import climateAnalysisRoutes from './routes/climate-analysis/index.js';
+import soilEcologyRoutes from './routes/soil-ecology/index.js';
+import utilitiesEnergyRoutes from './routes/utilities-energy/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -123,6 +129,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(siteDataLayersRoutes, { prefix: '/api/v1/site-data-layers' });
   await app.register(siteAssessmentRoutes, { prefix: '/api/v1/site-assessment' });
   await app.register(adminGovernanceRoutes,{ prefix: '/api/v1/admin-governance' });
+
+  // ── Scaffolded sections (Batch 2: §§5, 6, 7, 13) ──
+  await app.register(hydrologyWaterRoutes,  { prefix: '/api/v1/hydrology-water' });
+  await app.register(climateAnalysisRoutes, { prefix: '/api/v1/climate-analysis' });
+  await app.register(soilEcologyRoutes,     { prefix: '/api/v1/soil-ecology' });
+  await app.register(utilitiesEnergyRoutes, { prefix: '/api/v1/utilities-energy' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
