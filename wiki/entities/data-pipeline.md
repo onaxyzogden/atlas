@@ -44,6 +44,12 @@ BullMQ requires dedicated connections — it cannot share the Fastify ioredis in
 - **Scoring engine: complete** (Sprint M, 2026-04-16) — 8 weighted dimensions + 2-3 formal classifications, ~140+ components, all outputs use `ScoredResult` with `score_breakdown` + `WithConfidence` fields. Plan file `clever-enchanting-moler.md` is fully implemented.
 - **Next focus:** Groundwater + water quality UI surfacing in SiteIntelligencePanel (data already fetched + scored, no display section yet), or US county zoning registry expansion.
 
+## Pipeline Fixes (Tier-3 cleanup, 2026-04-21)
+- **Microclimate race eliminated:** microclimate enqueue moved from `processTier1Job` into `startTerrainWorker`'s `finally` clause. Fires on both terrain success and failure (preserving the "terrain failure must not silently suppress microclimate" invariant). First-attempt microclimate failures no longer occur; noise in worker logs reduced by ~1 `failed` row per pipeline run.
+- **Watershed retry headroom:** `WatershedRefinementProcessor` queue `attempts: 2 → 3` to absorb transient USGS 3DEP WCS XML responses. Exponential backoff (10/20/40s) gives the WCS ~70s to recover.
+- **10-label expectation:** US projects emit 10 `ScoredResult` labels; the 11-label path activates only for `country='CA'` (adds `Canada Soil Capability`). Verification scripts assert `jsonb_array_length(score_breakdown) = 10` for US projects.
+- See [decisions/2026-04-21-tier3-pipeline-cleanup.md](../decisions/2026-04-21-tier3-pipeline-cleanup.md).
+
 ## Pipeline Fixes (Sprint M, 2026-04-16)
 - **Orphan `compute_assessment` job removed:** An INSERT into `data_pipeline_jobs` with layer_type `compute_assessment` had no corresponding BullMQ queue or worker — dead code. Removed from orchestrator.
 - **BullMQ retry status-tracking fix:** All 4 Tier 3 workers had `AND status = 'queued'` in their UPDATE query to mark jobs `running`. After a BullMQ retry (job already `failed`), the UPDATE matched 0 rows. Fixed to `AND status IN ('queued', 'failed')` across all 4 workers.
