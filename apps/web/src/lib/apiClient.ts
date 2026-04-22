@@ -136,9 +136,6 @@ export const api = {
     setBoundary: (id: string, geojson: unknown) =>
       request<{ id: string; acreage: number }>('POST', `/api/v1/projects/${id}/boundary`, { geojson }),
 
-    assessment: (id: string) =>
-      request<unknown>('GET', `/api/v1/projects/${id}/assessment`),
-
     completeness: (id: string) =>
       request<{ score: number; layers: unknown[] }>('GET', `/api/v1/projects/${id}/completeness`),
 
