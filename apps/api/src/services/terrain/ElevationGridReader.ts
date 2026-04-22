@@ -59,7 +59,7 @@ async function read3dep(bbox: [number, number, number, number]): Promise<Elevati
     SERVICE: 'WCS',
     VERSION: '1.0.0',
     REQUEST: 'GetCoverage',
-    COVERAGE: 'DEP3Elevation_1',
+    COVERAGE: 'DEP3Elevation',
     CRS: 'EPSG:4326',
     BBOX: `${minLon},${minLat},${maxLon},${maxLat}`,
     WIDTH: String(width),

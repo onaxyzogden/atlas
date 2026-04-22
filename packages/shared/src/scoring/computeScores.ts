@@ -693,8 +693,11 @@ function computeAgriculturalSuitability(
   components.push(comp('permeability', ksatPts, 4, 'soils', sc));
 
   // Sprint BB: Coarse fragment % (surface stoniness) — FAO S1–N2 analog (max 3)
-  // SSURGO frag3to10_r + fraggt10_r summed → coarse_fragment_pct
-  const coarseFrag = num(soils, 'coarse_fragment_pct');
+  // Prefer SSURGO `chfrags.fragvol_r` (canonical horizon total; see audit H5 #4).
+  // Fall back to legacy `frag3to10_r + fraggt10_r` aggregate when chfrags is
+  // unavailable or not exposed by the adapter (CA path).
+  const coarseFragChfrags = num(soils, 'coarse_fragment_pct_chfrags');
+  const coarseFrag = coarseFragChfrags !== 0 ? coarseFragChfrags : num(soils, 'coarse_fragment_pct');
   const coarseFragPts = coarseFrag === 0 ? 1     // unknown or absent — neutral
     : coarseFrag < 15 ? 3                         // optimal (<15%)
     : coarseFrag < 35 ? 1                         // moderate (15–35%)

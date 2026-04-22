@@ -44,7 +44,7 @@ export type LayerType =
   | 'soil_properties';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'groundwater' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data' | 'soilgrids_global' | 'biodiversity' | 'ust_lust' | 'brownfields' | 'landfills' | 'mine_hazards' | 'fuds' | 'conservation_easement' | 'heritage' | 'alr_status' | 'aquifer' | 'water_stress' | 'seasonal_flooding' | 'invasive_species' | 'native_species' | 'land_use_history' | 'mineral_rights' | 'water_rights' | 'gaez_suitability' | 'soil_properties'>;
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data' | 'soilgrids_global' | 'biodiversity' | 'ust_lust' | 'brownfields' | 'landfills' | 'mine_hazards' | 'fuds' | 'conservation_easement' | 'heritage' | 'alr_status' | 'aquifer' | 'water_stress' | 'seasonal_flooding' | 'invasive_species' | 'native_species' | 'land_use_history' | 'mineral_rights' | 'water_rights' | 'gaez_suitability' | 'soil_properties'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -79,6 +79,10 @@ export const ADAPTER_REGISTRY: Record<Tier1LayerType, Record<Country, AdapterCon
   zoning: {
     US: { adapter: 'UsCountyGisAdapter', source: 'county_gis' },
     CA: { adapter: 'OntarioMunicipalAdapter', source: 'ontario_municipal_gis' },
+  },
+  groundwater: {
+    US: { adapter: 'NwisGroundwaterAdapter', source: 'usgs_nwis' },
+    CA: { adapter: 'PgmnGroundwaterAdapter', source: 'ontario_pgmn' },
   },
 };
 

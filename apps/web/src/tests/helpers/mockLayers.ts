@@ -28,7 +28,7 @@ export function mockLayersWithOverrides(
       ...layer,
       ...ov,
       summary: { ...layer.summary, ...(ov.summary ?? {}) },
-    };
+    } as MockLayerResult;
   });
 }
 
@@ -49,5 +49,5 @@ export function mockLayersEmpty(): MockLayerResult[] {
     fetchStatus: 'pending' as const,
     confidence: 'low' as const,
     summary: {},
-  }));
+  } as MockLayerResult));
 }

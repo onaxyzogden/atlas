@@ -288,14 +288,14 @@ describe('deriveLandWants', () => {
 /** Build a minimal Tier 3 MockLayerResult for injection into test layer arrays. */
 function tier3Layer(type: string, summary: Record<string, unknown>): MockLayerResult {
   return {
-    layerType: type as MockLayerResult['layerType'],
+    layerType: type,
     fetchStatus: 'complete',
     confidence: 'high',
     dataDate: '2026-01-01',
     sourceApi: 'derived',
     attribution: 'OGDEN derived',
     summary,
-  };
+  } as MockLayerResult;
 }
 
 /**

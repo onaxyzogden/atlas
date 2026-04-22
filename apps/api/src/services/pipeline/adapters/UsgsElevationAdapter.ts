@@ -232,9 +232,18 @@ export function computeElevationSummary(grid: ElevationGrid): ElevationSummary {
     };
   }
 
-  const minElev = Math.min(...validValues);
-  const maxElev = Math.max(...validValues);
-  const meanElev = validValues.reduce((s, v) => s + v, 0) / validValues.length;
+  // Iterative min/max/sum — `Math.min(...arr)` / `Math.max(...arr)` blow V8's
+  // argument-stack limit on rasters >~65k cells (a single 256x256 grid).
+  let minElev = validValues[0]!;
+  let maxElev = validValues[0]!;
+  let sumElev = 0;
+  for (let i = 0; i < validValues.length; i++) {
+    const v = validValues[i]!;
+    if (v < minElev) minElev = v;
+    if (v > maxElev) maxElev = v;
+    sumElev += v;
+  }
+  const meanElev = sumElev / validValues.length;
   const rangeElev = maxElev - minElev;
 
   // Median
@@ -257,10 +266,14 @@ export function computeElevationSummary(grid: ElevationGrid): ElevationSummary {
     }
   }
 
-  const meanSlope = slopes.length > 0
-    ? slopes.reduce((s, v) => s + v, 0) / slopes.length
-    : 0;
-  const maxSlope = slopes.length > 0 ? Math.max(...slopes) : 0;
+  let maxSlope = 0;
+  let sumSlope = 0;
+  for (let i = 0; i < slopes.length; i++) {
+    const s = slopes[i]!;
+    if (s > maxSlope) maxSlope = s;
+    sumSlope += s;
+  }
+  const meanSlope = slopes.length > 0 ? sumSlope / slopes.length : 0;
 
   // ── Aspect stats (predominant direction) ──
   const aspectCounts = new Map<string, number>();

@@ -404,7 +404,9 @@ export class NoaaClimateAdapter implements DataSourceAdapter {
       sourceApi: normals.source_api,
       attributionText: this.getAttributionText(),
       confidence: normals.confidence,
-      dataDate: normals.data_period,
+      // `data_date` is a DATE column — pass the period-end date. The
+      // human-readable "1991-2020" range stays in summary_data.data_period.
+      dataDate: '2020-12-31',
       summaryData: normals,
     };
   }

@@ -171,25 +171,66 @@ async function main(): Promise<void> {
   }
   const sql = postgres(url);
   try {
-    const rows = await sql<{ overall_score: string | null; score_breakdown: unknown }[]>`
-      SELECT overall_score::text, score_breakdown
+    // Load the same inputs the writer used: project acreage/country + all
+    // complete project_layers. Run them through the shared scorer exactly as
+    // SiteAssessmentWriter does, then compare to the DB's stored overall_score.
+    // Any non-zero delta here is a real writer-vs-scorer divergence.
+    const [project] = await sql<{ acreage: string | null; country: string }[]>`
+      SELECT acreage::text, country FROM projects WHERE id = ${projectId}
+    `;
+    if (!project) {
+      console.log(`  Project ${projectId} not found`);
+      return;
+    }
+    const layerRows = await sql<{
+      layer_type: string;
+      summary_data: Record<string, unknown> | null;
+      confidence: string | null;
+      data_date: string | null;
+      source_api: string | null;
+      attribution: string | null;
+    }[]>`
+      SELECT layer_type, summary_data, confidence, data_date::text,
+             source_api, attribution_text AS attribution
+      FROM project_layers
+      WHERE project_id = ${projectId} AND fetch_status = 'complete'
+    `;
+    const [assessment] = await sql<{ overall_score: string | null; computed_at: string }[]>`
+      SELECT overall_score::text, computed_at::text
       FROM site_assessments
       WHERE project_id = ${projectId} AND is_current = true
     `;
-    if (rows.length === 0) {
+    if (!assessment) {
       console.log(`  No is_current row for project ${projectId}`);
+      return;
+    }
+
+    const normalizeConfidence = (c: string | null): 'high' | 'medium' | 'low' =>
+      c === 'high' || c === 'medium' || c === 'low' ? c : 'low';
+    const realLayers: MockLayerResult[] = layerRows.map((r) => ({
+      layerType: r.layer_type as MockLayerResult['layerType'],
+      fetchStatus: 'complete',
+      confidence: normalizeConfidence(r.confidence),
+      dataDate: r.data_date ?? '',
+      sourceApi: r.source_api ?? '',
+      attribution: r.attribution ?? '',
+      summary: r.summary_data ?? {},
+    } as MockLayerResult));
+    const realAcreage = project.acreage !== null ? parseFloat(project.acreage) : null;
+    const realScores = computeAssessmentScores(
+      realLayers, realAcreage, project.country, assessment.computed_at,
+    );
+    const realOverall = computeOverallScore(realScores);
+    const dbOverall = parseFloat(assessment.overall_score ?? '0');
+    const delta = Math.abs(dbOverall - realOverall);
+    console.log(`  Real-layer rescore: ${realOverall.toFixed(1)} (${layerRows.length} layers)`);
+    console.log(`  DB overall_score : ${dbOverall.toFixed(1)}`);
+    console.log(`  |delta|          : ${delta.toFixed(3)}`);
+    if (delta <= 0.1) {
+      console.log('  ✓ Writer/scorer parity within numeric(4,1) rounding threshold');
     } else {
-      const row = rows[0]!;
-      const dbOverall = parseFloat(row.overall_score ?? '0');
-      const delta = Math.abs(dbOverall - overall);
-      console.log(`  DB overall_score: ${dbOverall.toFixed(1)}`);
-      console.log(`  Script overall  : ${overall.toFixed(1)}`);
-      console.log(`  |delta|         : ${delta.toFixed(3)}`);
-      console.log(
-        delta <= 0.1
-          ? '  ✓ Match within numeric(4,1) rounding threshold'
-          : '  ✗ MISMATCH — investigate (different inputs, not function bug)',
-      );
+      console.error('  ✗ Parity FAILED — writer and scorer disagree on same inputs');
+      process.exitCode = 5;
     }
   } finally {
     await sql.end();

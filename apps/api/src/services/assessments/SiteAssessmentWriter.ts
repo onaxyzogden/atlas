@@ -82,7 +82,7 @@ export function layerRowsToMockLayers(rows: LayerRow[]): MockLayerResult[] {
     sourceApi: r.source_api ?? '',
     attribution: r.attribution ?? '',
     summary: r.summary_data ?? {},
-  }));
+  } as MockLayerResult));
 }
 
 // ─── Rollup helpers ───────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ export async function writeCanonicalAssessment(
 
   // 3. Load all project layer summaries.
   const layerRows = await db<LayerRow[]>`
-    SELECT layer_type, summary_data, confidence, data_date::text, source_api, attribution
+    SELECT layer_type, summary_data, confidence, data_date::text, source_api, attribution_text AS attribution
     FROM project_layers
     WHERE project_id = ${projectId}
       AND fetch_status = 'complete'

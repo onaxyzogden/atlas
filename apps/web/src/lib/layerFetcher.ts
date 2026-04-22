@@ -21,6 +21,7 @@
  */
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
+import { toNum } from '@ogden/shared/scoring';
 import {
   US_WATER_DOCTRINE,
   US_WATER_RIGHTS_ENDPOINTS,
@@ -936,12 +937,12 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
         predominant_texture: texture,
         soil_name: muname,
         drainage_class: drainage || 'Unknown',
-        organic_matter_pct: om !== null ? +om.toFixed(1) : 'N/A',
+        organic_matter_pct: om !== null ? +om.toFixed(1) : null,
         ph_range: ph !== null ? `${(ph - 0.3).toFixed(1)} - ${(ph + 0.3).toFixed(1)}` : 'N/A',
         ph_value: round1(ph),
         hydrologic_group: hydgrp || 'Unknown',
         farmland_class: farmlandClass,
-        depth_to_bedrock_m: 'N/A',
+        depth_to_bedrock_m: null,
         taxonomic_order: taxorder,
         // Extended soil properties (Sprint B)
         cec_meq_100g: round1(cec),
@@ -1098,7 +1099,7 @@ async function fetchLioSoils(lat: number, lng: number): Promise<MockLayerResult>
   const farmlandClass = farmlandRaw ? lioFormatCscsClass(String(farmlandRaw)) : 'Class 2 (CSCS)';
   const phVal = phRaw != null ? parseFloat(String(phRaw)) : 6.5;
   const phRange = `${(phVal - 0.3).toFixed(1)} - ${(phVal + 0.3).toFixed(1)}`;
-  const depth = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : 'N/A';
+  const depth: number | null = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : null;
 
   return {
     layerType: 'soils',
@@ -1165,7 +1166,7 @@ function soilsFromLatitude(lat: number, country: string): MockLayerResult {
       ph_range: '6.0 - 7.0',
       hydrologic_group: 'C',
       farmland_class: country === 'CA' ? 'Class 2 (CSCS)' : 'Estimated',
-      depth_to_bedrock_m: 'N/A',
+      depth_to_bedrock_m: null,
       // Sprint S: realistic defaults so scorers don't silently return 0
       bulk_density_g_cm3: lat > 44 ? 1.45 : 1.35,  // sandy soils are denser
       ec_ds_m: 0.3,                                  // non-saline baseline
@@ -1857,9 +1858,9 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
   const annualPrecip = p['ANNUAL_PRECIP'] != null ? parseFloat(String(p['ANNUAL_PRECIP'])) : null;
   const meanTemp = p['MEAN_TEMP'] != null ? parseFloat(String(p['MEAN_TEMP'])) : null;
   const frostFreeDays = p['FROST_FREE_PERIOD'] != null ? parseInt(String(p['FROST_FREE_PERIOD']), 10) : null;
-  const lastFrost = p['LAST_SPRING_FROST_DATE'] ?? p['LAST_FROST_DATE'] ?? null;
-  const firstFrost = p['FIRST_FALL_FROST_DATE'] ?? p['FIRST_FROST_DATE'] ?? null;
-  const hardinessZone = p['HARDINESS_ZONE'] ?? p['CLIMATE_ZONE'] ?? null;
+  const lastFrost = (p['LAST_SPRING_FROST_DATE'] ?? p['LAST_FROST_DATE'] ?? null) as string | null;
+  const firstFrost = (p['FIRST_FALL_FROST_DATE'] ?? p['FIRST_FROST_DATE'] ?? null) as string | null;
+  const hardinessZone = (p['HARDINESS_ZONE'] ?? p['CLIMATE_ZONE'] ?? null) as string | null;
 
   if (annualPrecip === null && meanTemp === null) {
     throw new Error('ECCC: missing core climate fields');
@@ -1888,12 +1889,12 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
     sourceApi: 'ECCC Climate Normals (OGC API)',
     attribution: 'Environment and Climate Change Canada',
     summary: {
-      annual_precip_mm: annualPrecip ?? 'N/A',
-      annual_temp_mean_c: meanTemp != null ? +meanTemp.toFixed(1) : 'N/A',
-      growing_season_days: !isNaN(frostFreeDays!) ? frostFreeDays : 'N/A',
-      last_frost_date: lastFrost ?? 'N/A',
-      first_frost_date: firstFrost ?? 'N/A',
-      hardiness_zone: hardinessZone ?? 'N/A',
+      annual_precip_mm: annualPrecip ?? null,
+      annual_temp_mean_c: meanTemp != null ? +meanTemp.toFixed(1) : null,
+      growing_season_days: !isNaN(frostFreeDays!) ? frostFreeDays : null,
+      last_frost_date: lastFrost ?? null,
+      first_frost_date: firstFrost ?? null,
+      hardiness_zone: hardinessZone ?? null,
       prevailing_wind: windRose?.prevailing ?? (lat > 42 ? 'W-SW' : 'SW'),
       annual_sunshine_hours: annualSunshine,
       // Sprint C additions
@@ -1949,9 +1950,9 @@ async function fetchWatershed(lat: number, lng: number, country: string): Promis
       summary: {
         huc_code: huc12,
         watershed_name: name,
-        nearest_stream_m: 'Query available',
-        stream_order: 'N/A',
-        catchment_area_ha: 'N/A',
+        nearest_stream_m: null,
+        stream_order: null,
+        catchment_area_ha: null,
         flow_direction: lng < -90 ? 'S' : lng < -80 ? 'SE' : 'E',
       },
     };
@@ -2024,11 +2025,11 @@ async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerR
     sourceApi: 'Ontario Hydro Network (LIO)',
     attribution: 'Ontario Ministry of Natural Resources and Forestry',
     summary: {
-      huc_code: 'N/A',
+      huc_code: null,
       watershed_name: String(watercourseNameRaw),
       nearest_stream_m: nearestM,
-      stream_order: streamOrderRaw,
-      catchment_area_ha: 'N/A',
+      stream_order: toNum(streamOrderRaw),
+      catchment_area_ha: null,
       flow_direction: lng < -79 ? 'E to S' : 'SE to NW',
     },
   };
@@ -2053,11 +2054,11 @@ function watershedFromLatitude(lat: number, lng: number, country: string): MockL
     sourceApi: country === 'CA' ? 'Estimated (Ontario Hydro Network)' : 'Estimated (NHD Plus)',
     attribution: 'Regional estimate',
     summary: {
-      huc_code: 'N/A',
+      huc_code: null,
       watershed_name: name,
-      nearest_stream_m: 'Estimated',
+      nearest_stream_m: null,
       stream_order: 2,
-      catchment_area_ha: 'N/A',
+      catchment_area_ha: null,
       flow_direction: lng < -79 ? 'E to S' : 'SE to NW',
     },
   };
@@ -2138,9 +2139,9 @@ async function fetchWetlandsFlood(
     summary: {
       flood_zone: floodLabel,
       flood_risk: floodRisk,
-      base_flood_elevation_ft: flood?.bfe ?? 'N/A',
-      static_bfe_ft: flood?.staticBfe ?? 'N/A',
-      fema_panel: flood?.panel ?? 'N/A',
+      base_flood_elevation_ft: flood?.bfe ?? null,
+      static_bfe_ft: flood?.staticBfe ?? null,
+      fema_panel: flood?.panel ?? null,
       wetland_pct: wetlandPct,
       wetland_types: nwi?.types ?? [],
       wetland_count: nwi?.count ?? 0,
@@ -2727,10 +2728,10 @@ function wetlandsUnavailable(country: string): MockLayerResult {
     summary: {
       flood_zone: 'Data not available for this area',
       flood_risk: explanation,
-      wetland_pct: 'Unknown',
+      wetland_pct: null,
       wetland_types: [],
       riparian_buffer_m: country === 'CA' ? 'Contact local Conservation Authority' : 'Check local FEMA maps',
-      regulated_area_pct: 'Unknown',
+      regulated_area_pct: null,
     },
   };
 }
@@ -3933,12 +3934,12 @@ async function fetchUsZoning(
       zoning_description: descriptionText,
       permitted_uses: details.permitted_uses,
       conditional_uses: details.conditional_uses,
-      min_lot_size_ac: 'Unknown',
-      front_setback_m: 'Unknown',
-      side_setback_m: 'Unknown',
-      rear_setback_m: 'Unknown',
-      max_building_height_m: 'Unknown',
-      max_lot_coverage_pct: 'Unknown',
+      min_lot_size_ac: null,
+      front_setback_m: null,
+      side_setback_m: null,
+      rear_setback_m: null,
+      max_building_height_m: null,
+      max_lot_coverage_pct: null,
       county_name: county.countyName,
       overlay_districts: result.overlay ? [result.overlay] : [],
       is_agricultural: details.isAgricultural,
@@ -4174,12 +4175,12 @@ async function fetchCaZoning(
       zoning_description: zoningDesc,
       permitted_uses: details.permitted_uses,
       conditional_uses: details.conditional_uses,
-      min_lot_size_ac: 'Unknown',
-      front_setback_m: 'Unknown',
-      side_setback_m: 'Unknown',
-      rear_setback_m: 'Unknown',
-      max_building_height_m: 'Unknown',
-      max_lot_coverage_pct: 'Unknown',
+      min_lot_size_ac: null,
+      front_setback_m: null,
+      side_setback_m: null,
+      rear_setback_m: null,
+      max_building_height_m: null,
+      max_lot_coverage_pct: null,
       official_plan_designation: lio?.officialPlan ?? undefined,
       municipality: lio?.municipality ?? undefined,
       cli_class: cli?.cliClass ?? undefined,
@@ -4233,12 +4234,12 @@ function zoningUnavailable(country: string, countyName?: string, stateCode?: str
       zoning_description: explanation,
       permitted_uses: [],
       conditional_uses: [],
-      min_lot_size_ac: 'Unknown',
-      front_setback_m: 'Unknown',
-      side_setback_m: 'Unknown',
-      rear_setback_m: 'Unknown',
-      max_building_height_m: 'Unknown',
-      max_lot_coverage_pct: 'Unknown',
+      min_lot_size_ac: null,
+      front_setback_m: null,
+      side_setback_m: null,
+      rear_setback_m: null,
+      max_building_height_m: null,
+      max_lot_coverage_pct: null,
     },
   };
 }
@@ -4403,6 +4404,10 @@ out center;`;
 }
 
 // ── Sprint M: USGS NWIS Groundwater (US) / Ontario PGMN (CA) ──────────────
+// Note: canonical source is now the server-side `NwisGroundwaterAdapter` +
+// `PgmnGroundwaterAdapter` in `apps/api/src/services/pipeline/adapters/`
+// (audit H5 #7, 2026-04-21 late). These client-side fetchers remain as a
+// fallback for client-only previews where the Tier-1 pipeline hasn't run.
 
 /** CA: Ontario Provincial Groundwater Monitoring Network via LIO / GeoHub */
 async function fetchPgmnGroundwater(lat: number, lng: number): Promise<MockLayerResult> {

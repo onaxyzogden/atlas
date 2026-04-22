@@ -23,6 +23,8 @@ export interface SoilMetrics {
   ksatUmS: number | null;
   caco3Pct: number | null;
   coarseFragmentPct: number | null;
+  baseSaturationPct: number | null;
+  baseSaturationMethod: 'sum_of_cations' | 'nh4oac_ph7' | null;
   awcCmCm: number | null;
   textureClass: string | null;
   drainageClass: string | null;

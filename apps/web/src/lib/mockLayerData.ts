@@ -56,7 +56,7 @@ export function generateMockLayers(country: string): MockLayerResult[] {
         ph_range: '6.1 - 6.8',
         hydrologic_group: country === 'CA' ? 'C' : 'B',
         farmland_class: country === 'US' ? 'Prime farmland' : 'Class 2 (CSCS)',
-        depth_to_bedrock_m: country === 'CA' ? 'N/A' : 1.8,
+        depth_to_bedrock_m: country === 'CA' ? null : 1.8,
         // Sprint S extended SSURGO fields
         bulk_density_g_cm3: 1.35,
         ec_ds_m: 0.28,
@@ -74,11 +74,11 @@ export function generateMockLayers(country: string): MockLayerResult[] {
       sourceApi: country === 'US' ? 'NHD Plus' : 'Ontario Hydro Network (LIO)',
       attribution: country === 'US' ? 'USGS' : 'Ontario Ministry of Natural Resources and Forestry',
       summary: {
-        huc_code: country === 'US' ? '041001020304' : 'N/A',
+        huc_code: country === 'US' ? '041001020304' : null,
         watershed_name: country === 'US' ? 'Upper Susquehanna' : 'Sixteen Mile Creek',
         nearest_stream_m: country === 'CA' ? 380 : 420,
         stream_order: 2,
-        catchment_area_ha: country === 'CA' ? 'N/A' : 845,
+        catchment_area_ha: country === 'CA' ? null : 845,
         flow_direction: 'SE to NW',
       },
     },
