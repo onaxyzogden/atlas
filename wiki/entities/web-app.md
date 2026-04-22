@@ -13,6 +13,7 @@ src/
     ui/             — 16 reusable components (Button, Card, Modal, etc.)
     IconSidebar.tsx  — Main navigation sidebar
   features/
+    _templates/     — SECTION_CONTEXT.md.tmpl (scaffold generator template)
     dashboard/      — DashboardView, DashboardSidebar, DashboardRouter, 14 dashboard pages
     climate/        — SolarClimateDashboard
     economics/      — EconomicsPanel
@@ -22,6 +23,8 @@ src/
     export/         — InvestorSummaryExport, ProjectSummaryExport, EducationalBookletExport
     fieldwork/      — FieldworkPanel, FieldNoteExport
     map/            — Map view, drawing tools, layer controls
+    <slug>/         — 28 scaffolded §§2-29 feature folders (CONTEXT.md + Page.tsx + index.ts)
+                      driven by [[feature-manifest]]. §1 uses legacy project/ folder.
   store/            — 26 Zustand stores
   lib/              — layerFetcher, geoParsers, scoring engine, tokens.ts (TS token bridge)
   pages/            — Top-level route pages

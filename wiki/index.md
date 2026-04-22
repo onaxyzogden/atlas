@@ -23,6 +23,7 @@ Read this first at the start of every session.
 - [Scoring Engine](concepts/scoring-engine.md) — 8 weighted dimensions + 2-3 classifications, ~140+ components, WithConfidence, Tier 3 integration
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
+- [Feature Manifest](concepts/feature-manifest.md) — 30-section source-of-truth for features, phase gating, scaffolding generator
 
 ## Decisions
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
@@ -41,3 +42,4 @@ Read this first at the start of every session.
 - [2026-04-22 Southern-Ontario Municipal Zoning Registry](decisions/2026-04-22-ontario-municipal-zoning-registry.md) — `MUNICIPAL_ZONING_REGISTRY` of 5 verified ArcGIS REST endpoints (Toronto / Ottawa / Mississauga / Burlington / Barrie) with bbox pre-filter; `OntarioMunicipalAdapter.fetchForBoundary` rewired as three-source parallel merge (municipal + LIO + CLI); new confidence ladder (`high` = municipal bylaw + AAFC CLI); `ZoningSummary` extended with 5 optional municipal fields; closes audit §6 #6 (Ontario portion)
 - [2026-04-22 Country 'INTL' bucket + NasaPowerAdapter registration](decisions/2026-04-22-country-intl-and-nasapower-registration.md) — `Country` widened to `['US','CA','INTL']`; `ADAPTER_REGISTRY` relaxed to `Partial<Record<Country,…>>`; `climate.INTL` → `NasaPowerAdapter`; DB migration 011 adds `CHECK` constraint; `AssessmentFlag.country` deduped to shared enum; non-US/non-CA projects unblocked for climate layer; closes audit §6 #15
 - [2026-04-22 Site Assessment Panel server-wiring](decisions/2026-04-22-site-assessment-panel-server-wiring.md) — `useAssessment(projectId)` hook added + `AssessmentResponse` schema; `SiteAssessmentPanel` three-state display (server row · NOT_READY preview · error fallback) surfaces persisted Tier-3 scores; closes audit §6 #14
+- [2026-04-22 Feature Manifest Scaffolding Pass §§1-30](decisions/2026-04-22-feature-manifest-scaffolding-pass.md) — Framework (manifest, phase-gate plugin, generator, FUTURE tag) + 28 scaffolded section stubs across 8 commits `87d1a56` → `c02f75e` on `feat/shared-scoring`; downstream sessions land on mountable surfaces driven by `packages/shared/src/featureManifest.ts`
