@@ -157,14 +157,19 @@ function main() {
     `    status: 'stub',\n` +
     `    features: [],\n` +
     `  },\n`;
-  const insertMarker = '  // Sections 2-30 are appended here';
-  if (!manifest.includes(insertMarker)) {
-    die(`manifest insert marker not found in ${manifestPath}`);
+  // Flexible marker: matches any `// Sections ... appended here` comment line,
+  // regardless of which specific sections are still pending. This survives the
+  // parent-session merge pass that periodically rewrites the remaining-range.
+  const insertMarkerRegex = /^ {2}\/\/ Sections [^\n]*appended here[^\n]*$/m;
+  const markerMatch = manifest.match(insertMarkerRegex);
+  if (!markerMatch) {
+    die(`manifest insert marker not found in ${manifestPath} (expected a line like "  // Sections ... appended here")`);
   }
   if (manifest.includes(`id: ${id},\n    slug: '${slug}'`)) {
     process.stdout.write(`  (manifest already has section ${id}; skipping)\n`);
   } else {
-    const updated = manifest.replace(insertMarker, stubEntry + insertMarker);
+    const markerLine = markerMatch[0];
+    const updated = manifest.replace(markerLine, stubEntry + markerLine);
     writeFileSync(manifestPath, updated, 'utf-8');
     process.stdout.write(`  ~ ${manifestPath}\n`);
   }
