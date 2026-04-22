@@ -194,6 +194,15 @@ export interface ZoningSummary {
   cli_capability?: string | null;
   cli_limitations?: string | null;
   is_agricultural?: boolean;
+  // --- Municipal bylaw fields (southern-Ontario municipal registry) ---
+  // Populated when the point falls inside a registry-covered municipality
+  // (Toronto, Ottawa, Mississauga, Burlington, Barrie as of 2026-04-22).
+  // Independent of LIO/CLI provincial fields above.
+  municipal_zoning_code?: string | null;
+  municipal_zoning_description?: string | null;
+  municipal_zone_category?: string | null;
+  municipal_bylaw_source?: string | null;
+  registry_coverage?: boolean;
 }
 
 export interface InfrastructureSummary {

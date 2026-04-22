@@ -192,7 +192,7 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 3. ~~Wire Anthropic SDK + unstub ClaudeClient.~~ **DONE** 2026-04-20 (fetch-based, not SDK-based).
 4. ~~SSURGO coarse fragments + `basesat_r` / `basesatall_r` disambiguation.~~ **DONE** 2026-04-21 (late). `chfrags.fragvol_r` canonical horizon-total query added to `SsurgoAdapter.ts` (soft-fail, component-weighted); new `coarse_fragment_pct_chfrags` summary field preferred by Sprint BB scoring hook in `computeScores.ts:697`. `basesat_r` / `basesatall_r` both surfaced with `basesatall_r` preferred (sum-of-cations) and `base_saturation_method` discriminant (`'sum_of_cations' | 'nh4oac_ph7'`). 3 new tests; 29/29 green.
 5. ~~FAO56 Penman-Monteith PET.~~ **DONE** 2026-04-20, threaded through 2026-04-21.
-6. **Real zoning for US parcels** (`UsCountyGisAdapter` extension). Still pending. *~1 day.*
+6. **Real zoning — Ontario portion DONE 2026-04-22; US portion still pending.** Operator re-scoped mid-session to prioritize Ontario. `OntarioMunicipalAdapter` extended with `MUNICIPAL_ZONING_REGISTRY` — 5 verified southern-Ontario endpoints (Toronto, Ottawa, Mississauga, Burlington, Barrie) with bbox pre-filter; rewired `fetchForBoundary` as three-source parallel merge (municipal + LIO + CLI) with a `high`/`medium`/`low` confidence ladder (`high` = municipal bylaw + CLI). `ZoningSummary` gains 5 optional municipal fields; existing consumers untouched. 9 new tests, 25/25 green on the adapter spec, api suite 484/484. ADR: `wiki/decisions/2026-04-22-ontario-municipal-zoning-registry.md`. Halton Hills / Milton / Oakville / Hamilton / Waterloo Region / other GTA-flank municipalities deferred to follow-up bundle — adding each is a ~15-minute registry append. US portion (`UsCountyGisAdapter` extension) remains pending.
 7. ~~NwisGroundwaterAdapter.~~ **DONE** 2026-04-21 (late-late). Server-side `NwisGroundwaterAdapter` (US, USGS NWIS gwlevels) + `PgmnGroundwaterAdapter` (CA, Ontario PGMN via LIO) both implement `DataSourceAdapter`; `groundwater` promoted out of the `Tier1LayerType` Exclude list and registered in `ADAPTER_REGISTRY` (`{US: usgs_nwis, CA: ontario_pgmn}`); orchestrator wired. Web-side `fetchUSGSNWIS` / `fetchPgmnGroundwater` retained as client-only fallback. 13 new tests; 474/474 api green.
 8. ~~Canonical `site_assessments` writer.~~ **DONE** 2026-04-21.
 9. **Integrate fuzzyMCDM into main pipeline.** Still pending. The shared scorer now lives in one place — this is the ideal moment to add fuzzy defuzzification inside `computeAssessmentScores` rather than as a web-only isolated module. *~1 day.*
@@ -200,9 +200,17 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 
 ### New items to add to the revised list
 
-**11. Execute `site-assessments-schema-lift.md`.** Filed plan, awaiting approval. Drops the 4 lossy score columns, canonicalises `score_breakdown: ScoredResult[]`, fixes the latent PDF template bug. *~½ day.*
+**11. ~~Execute `site-assessments-schema-lift.md`.~~** **DONE** 2026-04-21 (late). Migration `009_drop_legacy_score_columns.sql` applied to dev DB; the four lossy columns (`suitability_score`, `buildability_score`, `water_resilience_score`, `ag_potential_score`) removed; canonical per-label data now lives in `score_breakdown` jsonb as `ScoredResult[]`. `apps/api/src/services/pdf/templates/siteAssessment.ts` rewritten to iterate the array (lines 45-72) — latent dict-of-dicts bug eliminated. `SiteAssessmentWriter.ts::SCORE_LABEL_TO_COLUMN` and the `scoreByLabel()` guard deleted. ADR filed at `wiki/decisions/2026-04-21-site-assessments-schema-lift.md`. API 459/459 green at landing; currently 477/477 after subsequent narrative-wiring + fuzzy + cost-dataset work.
 
-**12. Trigger a real Tier-3 run + close the parity loop.** We have zero `site_assessments` rows; the writer has never fired. Create a US test project, run boundary upload, wait for Tier-3 completion, then re-run `verify-scoring-parity.ts <projectId>` to confirm DB parity against the shared scorer. *~2 h.*
+**12. ~~Trigger a real Tier-3 run + close the parity loop.~~** **DONE** 2026-04-22 (latest). DB state at verification time: 7 `site_assessments` rows across 2 `is_current` US-Rodale projects (subsequent sessions fired the pipeline end-to-end). `verify-scoring-parity.ts` executed in both modes:
+
+   - **Smoke (no projectId):** module loads, 10 US labels emitted, overall 66.0, determinism check ✓.
+   - **DB parity — project `26b43c47…d2d60221a591` (Rodale 1, 10 complete layers):**
+     `Real-layer rescore: 78.0 · DB overall_score: 78.0 · |Δ| = 0.000` ✓
+   - **DB parity — project `966fb6a3…71aae3f938be` (Rodale 2, 10 complete layers):**
+     `Real-layer rescore: 50.0 · DB overall_score: 50.0 · |Δ| = 0.000` ✓
+
+   Both runs pass the numeric(4,1) rounding threshold with zero delta, confirming `SiteAssessmentWriter` and `@ogden/shared/scoring::computeAssessmentScores` produce byte-identical results on real Postgres-materialized `project_layers` inputs. The writer path, `score_breakdown` jsonb round-trip, and the schema-lift (#11) all hold end-to-end. No code changes required — verification only.
 
 **13. Call `generateSiteNarrative` + `generateDesignRecommendation` from somewhere.** The methods exist; nothing invokes them. Wire into a narrative BullMQ job post-assessment-write, or into the AtlasAI panel via a server-side route. *~½ day.*
 
@@ -227,7 +235,7 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 - **TypeScript strict:** `apps/api` + `apps/web` + `packages/shared` all `tsc --noEmit` clean at session close.
 - **Test counts** (rough): `apps/api` 455+ tests (415 baseline + 13 ClaudeClient + 13 NasaPower + 8 SiteAssessmentWriter + 6 integration ≈ 455). `apps/web` 374 tests (no change — lift was transparent, 138 computeScores tests passed unchanged).
 - **Circular dependencies:** none. The shared-scoring lift pre-emptively avoided cycles by having `rules/ruleEngine.ts` import from specific schema files, not the `@ogden/shared` barrel. `scoring/index.ts` has a header comment warning against re-exporting scoring from the main barrel.
-- **Deferred items from this session:** real-DB integration-test harness in `apps/api/src/tests/helpers/` (currently mock-DB only); live parity check against a real `site_assessments` row (requires item #12 above).
+- **Deferred items from this session:** real-DB integration-test harness in `apps/api/src/tests/helpers/` (currently mock-DB only). ~~Live parity check against a real `site_assessments` row~~ — **done 2026-04-22 via item #12**; both `is_current` Rodale projects yielded |Δ|=0.000 against the shared scorer.
 
 ---
 

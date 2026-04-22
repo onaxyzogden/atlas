@@ -4,6 +4,121 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-22 (latest+1) — Tier-3 parity loop closed end-to-end (audit §6 #12 DONE)
+
+Bundle #12 of the 04-21 deep audit — "trigger a real Tier-3 run + re-run
+verify-scoring-parity". Verification-only bundle (no code changes).
+
+**DB state at run-time** (stale audit claim of "zero rows" superseded):
+- 7 `projects`, 7 `site_assessments` rows, 2 `is_current` Rodale US projects
+  with 10/11 complete `project_layers` each.
+
+**Results:**
+- **Smoke (no arg):** `npx tsx apps/api/scripts/verify-scoring-parity.ts`
+  → module loads clean, 10 US-label `ScoredResult[]` emitted
+  (Water Resilience / Agricultural Suitability / Regenerative Potential /
+  Buildability / Habitat Sensitivity / Stewardship Readiness / Community
+  Suitability / Design Complexity / FAO Land Suitability / USDA Land
+  Capability), overall 66.0, determinism check ✓, DB-column mapping ✓ for
+  all four tracked labels.
+- **DB parity — `26b43c47-e7a2-406f-a6cb-d2d60221a591`** (Rodale 1):
+  `Real-layer rescore: 78.0 · DB overall_score: 78.0 · |Δ| = 0.000` ✓
+- **DB parity — `966fb6a3-6280-4041-9e74-71aae3f938be`** (Rodale 2):
+  `Real-layer rescore: 50.0 · DB overall_score: 50.0 · |Δ| = 0.000` ✓
+
+Both parity checks pass the `numeric(4,1)` rounding threshold with zero
+delta, proving `SiteAssessmentWriter` and `@ogden/shared/scoring::
+computeAssessmentScores` produce byte-identical results when fed the same
+Postgres-materialized `project_layers` rows. The 04-21 schema-lift (#11),
+the shared-scoring unification, and the canonical writer all hold end-to-
+end against real DB evidence.
+
+- `ATLAS_DEEP_AUDIT_2026-04-21.md` — #12 marked DONE with run output; audit
+  hygiene note updated (live parity check no longer a deferred item).
+
+With #12 closed, the 04-21 audit's "new critical-path order" items 1 + 2 are
+both green (schema-lift + real Tier-3 run), unblocking the 477 → 484 → 486
+test-delta as production-proven.
+
+---
+
+## 2026-04-22 (latest) — Halton-region registry append (Oakville + Milton × 2)
+
+Direct probe session targeting the Halton Region follow-ups flagged in the
+earlier bundle. `MUNICIPAL_ZONING_REGISTRY` grew 5 → 8 entries:
+
+- `oakville` — By-law 2014-014 layer 10 at `maps.oakville.ca/oakgis/...`.
+  Fields: `ZONE`, `ZONE_DESC`, `CLASS`, `SP_DESC`.
+- `milton-urban` — Urban By-law 016-2014 at
+  `api.milton.ca/.../UrbanZoning_202512171429/MapServer/8`. Fields:
+  `ZONECODE`, `ZONING`, `LABEL`.
+- `milton-rural` — Rural By-law 144-2003 at
+  `api.milton.ca/.../RuralZoning/MapServer/9`. Same field shape.
+- **Halton Hills** documented as unavailable — no public ArcGIS REST
+  endpoint after 5 distinct probe patterns; town publishes By-law 2010-0050
+  only as static PDFs. Rural points there fall through to LIO + CLI (no
+  regression). ADR follow-up section records the probe attempts.
+
+Attribution string in `getAttributionText()` updated to list Oakville + Milton
+urban + Milton rural alongside the prior 5 bylaws. 3 new tests landed in
+`OntarioMunicipalAdapter.test.ts` covering: Oakville bbox resolution,
+Milton-urban vs Milton-rural bbox partitioning, registry-key uniqueness, and
+attribution coverage of the new municipalities. Full api suite 484 → 486
+green. `tsc --noEmit` clean.
+
+- `apps/api/src/services/pipeline/adapters/OntarioMunicipalAdapter.ts` —
+  +3 registry entries, attribution extended.
+- `apps/api/src/tests/OntarioMunicipalAdapter.test.ts` — bbox-count bumped
+  `>=5` → `>=8`; 3 new invariant/coverage tests added.
+- `wiki/decisions/2026-04-22-ontario-municipal-zoning-registry.md` — new
+  "2026-04-22 addendum — Halton-region append" section with probe log.
+
+---
+
+## 2026-04-22 (late) — Southern-Ontario municipal zoning registry (audit §6 #6 Ontario-portion DONE)
+
+Operator re-scoped audit #6 mid-session from "US parcels" to "Ontario first,
+focus on Halton + GTA." `OntarioMunicipalAdapter` extended with a curated
+`MUNICIPAL_ZONING_REGISTRY` of 5 verified southern-Ontario open-data ArcGIS
+REST endpoints (Toronto, Ottawa, Mississauga, Burlington, Barrie). Bbox
+pre-filter scopes candidate endpoints so 0 or 1 municipal queries fire per
+point in practice.
+
+- `apps/api/src/services/pipeline/adapters/OntarioMunicipalAdapter.ts` —
+  added `MUNICIPAL_ZONING_REGISTRY`, `candidateMunicipalities`,
+  `queryMunicipalEndpoint`, `fetchMunicipalZoning`; rewired
+  `fetchForBoundary` as three-source parallel merge (municipal + LIO + CLI)
+  with a new `high`/`medium`/`low` confidence ladder (`high` requires
+  municipal-bylaw hit AND AAFC CLI hit). `OntarioZoningSummary` extended
+  with 5 optional municipal-* fields.
+- `packages/shared/src/scoring/layerSummary.ts` — `ZoningSummary` variant
+  extended with the same 5 optional fields (`municipal_zoning_code`,
+  `municipal_zoning_description`, `municipal_zone_category`,
+  `municipal_bylaw_source`, `registry_coverage`).
+- `apps/api/src/tests/OntarioMunicipalAdapter.test.ts` — existing 16 tests
+  moved onto a rural Grey County centroid (outside all 5 registry bboxes)
+  so the LIO+CLI focus is preserved. 9 new tests cover: municipal hit +
+  CLI → `high`; municipal alone → `medium`; municipal empty fallback to
+  LIO; municipal 503 does not throw; rural bypass; registry structural
+  invariants; `candidateMunicipalities` bbox-filter correctness.
+
+**Coverage.** 5 municipalities (Toronto / Ottawa / Mississauga / Burlington
+/ Barrie) ship in this bundle. Halton Hills, Milton, Oakville, Hamilton,
+Waterloo Region, Guelph, London, Kingston, Peel (Brampton / Caledon), York,
+and Durham deferred to follow-up — adding each is a ~15-minute registry
+append (probe root service, read layer schema, append entry with bbox and
+attribution).
+
+**Tests.** 25/25 green on the adapter spec (was 16). Full api suite
+484/484 green (was 477). `tsc --noEmit` clean across api + shared.
+
+ADR: [wiki/decisions/2026-04-22-ontario-municipal-zoning-registry.md](decisions/2026-04-22-ontario-municipal-zoning-registry.md).
+
+Audit `ATLAS_DEEP_AUDIT_2026-04-21.md` §6 #6 marked as "Ontario portion
+DONE; US portion still pending."
+
+---
+
 ## 2026-04-21 (late-late²) — NwisGroundwaterAdapter + PgmnGroundwaterAdapter (audit H5 #7 DONE)
 
 Server-side lift of the previously client-only groundwater fetch. Two new
