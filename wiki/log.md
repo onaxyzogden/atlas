@@ -1579,3 +1579,35 @@ Closed audit item 5.6 from `ATLAS_DEEP_AUDIT_2026-04-21.md` — the `MockLayerRe
 - `ATLAS_DEEP_AUDIT_2026-04-21.md` (issue 5.6 marked RESOLVED scope B)
 - `wiki/decisions/2026-04-21-scoring-type-contract.md` (new decision record)
 - `wiki/entities/{shared-package,api}.md`, `wiki/index.md` (updated)
+
+---
+
+## 2026-04-21 — Monorepo `@ogden/shared/scoring` subpath resolution fix
+
+Followup to the scoring type-contract session. The previous commit (`233ad01`) left 122 pre-existing errors in `apps/web` tsc and ~5 in `apps/api` tsc, plus a vitest import failure on `SiteAssessmentWriter.test.ts` + `siteAssessment.pdfTemplate.test.ts`. All traced to one root cause: tsconfig `paths` + vitest `resolve.alias` didn't cover the `@ogden/shared/scoring` subpath, so the package.json exports map was bypassed.
+
+### Completed
+- `apps/api/tsconfig.json`, `apps/web/tsconfig.json` — added `"@ogden/shared/scoring"` entry to `compilerOptions.paths` alongside the bare `"@ogden/shared"` one.
+- `apps/api/vitest.config.ts` — added `resolve.alias` mirroring `apps/web/vite.config.ts` (subpath-first ordering so Vite prefix-matches correctly).
+- With resolution fixed, the now-working discriminated union surfaced genuine fixture drift previously masked as resolution errors:
+  - `apps/web/src/lib/mockLayerData.ts` — normalized `depth_to_bedrock_m: 'N/A'` → `null`; added missing required fields to wetlands (`flood_risk`) and climate (`koppen_classification`, `koppen_label`, `freeze_thaw_cycles_per_year`, `snow_months`, `solar_radiation_kwh_m2_day`, `solar_radiation_monthly`); converted `regulated_area_pct` number → narrative string.
+  - `apps/web/src/lib/layerFetcher.ts` — 2 `conservation_easement`-merge spreads cast back to `MockLayerResult` (TS can't narrow across a `findIndex` predicate).
+  - Test helpers (`mockLayers.ts`, `computeScores.test.ts`, `siteAssessment.pdfTemplate.test.ts`) — partial-summary fixtures cast via `unknown as MockLayerResult` at the scorer boundary.
+  - `SiteAssessmentWriter.layerRowsToMockLayers` — final return cast to `MockLayerResult` (validator shapes `summary` at runtime; TS can't propagate across the `as LayerType` widen).
+  - `SiteAssessmentWriter.test.ts` — split the old "null summary_data → `{}`" case into unmigrated-layer pass-through + typed-layer schema-shaped-nulls, matching the new validator behavior.
+
+### Verification
+- `apps/api` — `tsc --noEmit` clean (was ~5); `vitest` 463/463 (was 441; +3 previously-blocked adapter-side tests now execute + 1 new schema-shaped null case).
+- `apps/web` — `tsc --noEmit` clean (was 122); `vitest` 374/374 (unchanged).
+- `packages/shared` — 58/58 (unchanged).
+
+### Files Changed
+- `apps/api/tsconfig.json`, `apps/api/vitest.config.ts`
+- `apps/api/src/services/assessments/SiteAssessmentWriter.ts` (return cast)
+- `apps/api/src/tests/SiteAssessmentWriter.test.ts` (null-case split)
+- `apps/api/src/tests/siteAssessment.pdfTemplate.test.ts` (fixture cast)
+- `apps/web/tsconfig.json`
+- `apps/web/src/lib/layerFetcher.ts` (2 merge-spread casts)
+- `apps/web/src/lib/mockLayerData.ts` (fixture normalization)
+- `apps/web/src/tests/computeScores.test.ts` (tier3Layer helper cast)
+- `apps/web/src/tests/helpers/mockLayers.ts` (map + empty helpers cast)

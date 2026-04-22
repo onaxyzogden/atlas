@@ -55,5 +55,7 @@ Unknown/extra keys pass through (`.passthrough()`) because the rule engine reads
 ## Deferred
 
 - 36 remaining `LayerType` variants still carry `'N/A'` / `'Unknown'` strings in their fetchers. Low risk because consumers for those layers already guard with `parseFloat(String(...))` or don't render numerics.
-- Pre-existing monorepo TS project-reference + vitest subpath-exports quirks cause `@ogden/shared/scoring` to fail resolution in `apps/api` tsc + vitest. Baseline on main has identical failures; this session did not regress the count. Separate followup.
-- Adapter-side test in `apps/api/src/tests/SiteAssessmentWriter.test.ts` was added (3 new cases) but currently can't execute until the vitest resolution fix lands. Validator itself is covered by 5 green tests in `packages/shared/src/tests/scoringSchemas.test.ts`.
+
+## Followup (closed same day)
+
+The monorepo `@ogden/shared/scoring` subpath resolution failure — previously documented as deferred — was fixed in commit `e164e8f`. Root cause was a one-line gap in both `apps/{api,web}/tsconfig.json` `paths` + missing `resolve.alias` in `apps/api/vitest.config.ts`. With resolution restored, `apps/api` tsc went from ~5 pre-existing subpath errors to clean; `apps/web` tsc went from 122 errors to clean; the 3 previously-blocked adapter-side tests in `SiteAssessmentWriter.test.ts` now execute (`apps/api` vitest 463/463). See log entry for the same date.
