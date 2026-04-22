@@ -78,6 +78,12 @@ import aiDesignSupportRoutes from './routes/ai-design-support/index.js';
 import decisionFeasibilityRoutes from './routes/decision-feasibility/index.js';
 import economicModelingRoutes from './routes/economic-modeling/index.js';
 
+// ── Scaffolded sections (Batch 6: §§19, 20, 23, 25) ──
+import educationInterpretiveRoutes from './routes/education-interpretive/index.js';
+import collaborationReviewRoutes from './routes/collaboration-review/index.js';
+import reportingExportRoutes from './routes/reporting-export/index.js';
+import reusableFrameworksRoutes from './routes/reusable-frameworks/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -171,6 +177,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(aiDesignSupportRoutes,      { prefix: '/api/v1/ai-design-support' });
   await app.register(decisionFeasibilityRoutes,  { prefix: '/api/v1/decision-feasibility' });
   await app.register(economicModelingRoutes,     { prefix: '/api/v1/economic-modeling' });
+
+  // ── Scaffolded sections (Batch 6: §§19, 20, 23, 25) ──
+  await app.register(educationInterpretiveRoutes, { prefix: '/api/v1/education-interpretive' });
+  await app.register(collaborationReviewRoutes,   { prefix: '/api/v1/collaboration-review' });
+  await app.register(reportingExportRoutes,       { prefix: '/api/v1/reporting-export' });
+  await app.register(reusableFrameworksRoutes,    { prefix: '/api/v1/reusable-frameworks' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
