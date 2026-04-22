@@ -1,9 +1,9 @@
 # OGDEN Atlas — Deep Technical Audit (Update)
 
-**Date:** 2026-04-21
+**Date:** 2026-04-21 (revised — late-evening UX pass appended)
 **Auditor:** Claude Code (Sonnet)
 **Supersedes:** `ATLAS_DEEP_AUDIT_2026-04-19.md` (2026-04-19)
-**Scope:** Delta update — the 04-19 audit's Phase A/B/C/D structural + inventory claims remain accurate except where this document overrides them. The H5 top-10 leverage list was largely executed over 2026-04-20/21; item-by-item status is re-scored below.
+**Scope:** Delta update — the 04-19 audit's Phase A/B/C/D structural + inventory claims remain accurate except where this document overrides them. The H5 top-10 leverage list was largely executed over 2026-04-20/21; item-by-item status is re-scored below. The late-evening UX session adds SECTION 0 item 10 and SECTION 4 row "Map UX / dashboards" without disturbing prior deltas.
 
 **Method:** No re-run of the 5 parallel Explore-agent sweeps. This update is a diff against the 04-19 baseline, grounded in:
 - 20 `wiki/log.md` entries appended between 2026-04-19 and 2026-04-21
@@ -29,7 +29,16 @@ In priority order (high-leverage first). Items 1–5 close audit H5 leverage ite
    - **CB:** map-side GAEZ v4 suitability overlay (new overlay control in MapLayers panel).
    - **CC:** GAEZ overlay hardening (hover readout + yield mode + raster auth).
    - **CD split into two parallel streams:** (a) map-side SoilGrids v2.0 property overlay (code landed; ingest deferred — `ingest-soilgrids` docs written, rasters not pulled yet), (b) FAO GAEZ RCP futures reconnaissance — 74 non-baseline scenarios enumerated, `scenario` promoted to first-class dimension in `GaezRasterService` / routes / manifest. Next ingest (CD+1) + UI picker (CD+2) are pure-ops follow-ups against the new schema.
-9. **Zombie endpoint + latent PDF bug (2026-04-21, this session's recon).** Two findings new to this audit:
+10. **Map UX — per-submodule toolbars, livestock/forestry domain split, right-rail dashboards (2026-04-21 evening).** Frontend-only session, orthogonal to the scoring/API thread:
+    - `DomainFloatingToolbar.tsx` rewrite: collapsed the single `livestock` and `forestry` `DomainKey` values into eight sub-domains (`paddockDesign | herdRotation | grazingAnalysis | livestockInventory | plantingTool | forestHub | carbonDiagnostic | nurseryLedger`) in `domainMapping.ts`, so each dashboard section renders its own tool roster instead of sharing one. Migrated all tool icons from emoji strings to `lucide-react`. Trimmed 14 dead buttons (Fence Line, Water Point, Measure, Mark Feature, Add Pin, Plant Tree, Crown Area, Forest Zone, Draw Swale, Draw Pond, Grade Area, Corridor, All Layers, the cartographic duplicates) — kept only tools that toggle a real layer or fire a wired intent. Renamed `Grazing` → `Pasture` to eliminate the three-label collision with the Grazing Analysis dashboard and the Pasture/`land_cover` layer. Gated action tools on `isMapReady || canEdit` with distinct tooltips.
+    - Wired `ogden:herd:rotate` via `PaddockListFloating.tsx` (extracted as a headless controller — fires after the toolbar's Rotate Herd tool; runs `computeRotationSchedule(paddocks)` and bumps the first `suggestedAction === 'move_in'` paddock's `updatedAt`, with graceful no-ops and `console.info` feedback when no paddocks are eligible). Paddock-intent + paddock-draw flow migrated out of `LivestockPanel.tsx` into the same controller for mount-anywhere reuse.
+    - Herd Rotation dashboard quick-stat: replaced raw "Herd Size — N head" with "Animal Units — N.N AU" using a new `AU_FACTORS` constant + `computeAnimalUnits()` helper in `apps/web/src/features/livestock/speciesData.ts`. Factors sourced from Manitoba Agriculture *Schedule A — Animal Unit Worksheet* (1 AU = 73 kg N/yr): `cattle: 1.250`, `sheep: 0.200`, `goats: 0.200`, `horses: 1.333`, `pigs: 0.143`, `poultry: 0.0050`, `ducks_geese: 0.010`, `rabbits: 0.010`, `bees: 0`. Species not in Schedule A documented as approximations in the JSDoc.
+    - New right-rail dashboards: `MapLayersDashboard.tsx` (+ module CSS) and `SiteIntelligenceDashboard.tsx`. Broadened `MapView.tsx`'s right-rail mount guard so all four livestock sub-views (not just Paddock Design) get the paddock draw controller.
+    - `apps/web/src/features/map/mapRailDashboard.css` (new): global CSS Modules `[class*="..."]` substring selectors + container queries (`container-type: inline-size; @container mapRailDash (max-width: 520px|360px)`) to narrow-adapt every dashboard page mounted in the 340px rail — collapses multi-column grids to 1-col, unclips timeline/scheduleRow overflow, reflows absolute-positioned badges, wraps long button labels (COMPARE DATES), and forces `overflow-wrap: break-word` (not `anywhere`) so prose breaks at word boundaries rather than mid-character (fixed the PRE/CIPI/TAT/ION envBar bug).
+    - `EcologicalDashboard.tsx` runtime fix: added a `formatPct(v)` helper tolerant of string/`'Unknown'`/null values coming back from `layerFetcher`. Symptom was `wetlands.wetland_pct.toFixed is not a function` — the layer adapter intermittently returns string-coerced percentages. Helper now checks `typeof v === 'number' && isFinite(v)` before `.toFixed()`.
+    - No API / data-pipeline / scoring changes in this session. `tsc --noEmit` clean for `apps/web` after each step.
+
+11. **Zombie endpoint + latent PDF bug (2026-04-21, this session's recon).** Two findings new to this audit:
    - `useAssessment()` in `apps/web/src/hooks/useProjectQueries.ts:48` has **zero call sites**. The `GET /projects/:id/assessment` endpoint is defined on both ends but no UI consumer. Web UI computes all scores fresh client-side via the shared scorer; DB-persisted assessments are only consumed by PDF export server-side.
    - PDF site-assessment template (`apps/api/src/services/pdf/templates/siteAssessment.ts:64-75`) treats `score_breakdown` as `Record<string, Record<string, number>>` (the legacy dict-of-dicts DDL-comment shape) but the v2 writer stores `ScoredResult[]`. Runtime behaviour for any row the writer produces: section headers render as "0", "1", "2"… with gibberish per-factor tables. **Currently invisible** because `SELECT count(*) FROM site_assessments → 0` — the writer has never fired in dev (no project has reached Tier-3 completion). Migration plan filed at `C:\Users\MY OWN AXIS\.claude\plans\site-assessments-schema-lift.md` addresses it.
 
@@ -124,8 +133,9 @@ Roll-up (54+ tracked features — now up slightly). Deltas vs 04-19:
 | Renewable | solar PV + wind STUB | NASA POWER provides the solar radiation feed; `solar_pv_potential` score now populates (score-surface lift on next pipeline run for any site). GWA + PVWatts still STUB. |
 | Export / Reporting | PDF engine DONE; investor financials placeholder | **Latent bug:** `siteAssessment.ts` PDF template renders garbage breakdown sections for any row the v2 writer produces. Currently invisible (zero rows). Migration plan proposes fixing in the same PR as the schema lift. |
 | AI | Claude STUB; FEATURE_AI off | **ClaudeClient LIVE + /ai/enrich-assessment live.** Two other methods callable but uncalled. AtlasAI panel functional when `FEATURE_AI=true`. |
+| Map UX / dashboards | 1 livestock + 1 forestry domain sharing 1 toolbar each; many dead buttons; emoji icons; PaddockDesign dashboard rendered for all 4 livestock sub-views | **8 domain sub-keys, 8 distinct toolbars**; dead buttons trimmed; Lucide icons across the board; Grazing → Pasture rename; `isMapReady` gating; Initiate Rotation wired via `ogden:herd:rotate` → `PaddockListFloating`. Per-section dashboards mount correctly (Herd Rotation shows Animal Units quick-stat, MapLayers/SiteIntelligence dashboards added). `mapRailDashboard.css` unclips all content inside the 340px rail via container queries. **~85% DONE** for the livestock/forestry map surface (was ~40%). |
 
-Aggregate revised: **~62% DONE · ~22% PARTIAL · ~16% STUB** (up from 55/25/20 at 04-19). The biggest driver is scoring-layer maturity: what was previously "web-only scoring, not persisted, not in API" is now "canonical server-side writer over the same function web uses, in one jsonb column with 10 labels."
+Aggregate revised: **~64% DONE · ~22% PARTIAL · ~14% STUB** (up from 55/25/20 at 04-19). The biggest driver is scoring-layer maturity: what was previously "web-only scoring, not persisted, not in API" is now "canonical server-side writer over the same function web uses, in one jsonb column with 10 labels." Late-evening UX pass adds ~2pp to DONE — livestock + forestry map toolbars now match the richness of hydrology / terrain / ecology, and the four livestock sub-dashboards each render in the right rail without content clipping.
 
 ---
 
@@ -154,6 +164,16 @@ Three items that are technical debt but not urgent (none are blocking live users
 - **Severity:** Low (the enrichment path works via helper merge; registry absence only matters if we want to fetch NASA POWER as a standalone fallback layer for unmapped countries).
 - **Blocker:** `Country = 'US' | 'CA'` type doesn't have a fallback slot. Extension cascades into every adapter's registry + Zod project schemas + DB enums.
 - **Fix path:** deferred until international country expansion is prioritised.
+
+### 5.6 `layerFetcher` return-type contract is loose
+- **Severity:** Medium — caused a real runtime crash in `EcologicalDashboard` (`wetlands.wetland_pct.toFixed is not a function`). Patched locally with a `formatPct` guard, but the underlying issue is that `layerFetcher`-sourced percentages are typed as `number` in downstream interfaces while the adapter occasionally returns string coercions (or `'Unknown'`) depending on upstream source availability.
+- **Files:** `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` (patched); root cause in the ecological-layer fetcher / adapter chain (not yet traced to a single file in this session).
+- **Fix path:** lock the adapter to `number | null` at the boundary — coerce strings / `'Unknown'` to `null` once at fetch time, so every consumer can trust `typeof === 'number'` without per-site `formatPct`-style guards. Keep the defensive helper for now as belt-and-braces.
+- **Risk class:** this is the same family of bug the schema-lift (§5.1) addresses on the server side — loose DB/jsonb typing leaking into TS. Worth a dedicated audit pass on all `layerFetcher` return shapes.
+
+### 5.7 Forestry toolset is layer-only
+- **Severity:** Low — a design choice, not a bug. The four new forestry toolbars (Planting Tool, Forest Hub, Carbon Diagnostic, Nursery Ledger) are built from layer toggles + one Measure action, because the underlying forestry data model (crop persistence via `CropPanel.tsx` / `cropStore.ts`) isn't wired to a toolbar-fired intent the way paddock drawing is. Dead draw buttons were trimmed rather than left as stubs.
+- **Fix path:** wire `ogden:crop:start` (symmetric to `ogden:paddock:start`) + hoist a forestry equivalent of `PaddockListFloating` when Planting Tool / Nursery Ledger start needing in-map authoring. Deferred until product demand.
 
 ### 5.5 AI methods uncalled
 - **Severity:** Low (doesn't break anything; just unused capability).
@@ -224,7 +244,7 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 
 ## Session Debrief
 
-**Completed.** Delta update of the 04-19 deep audit. Closed H5 items #1, #2, #3, #5, #8. Partial progress on #4 (SSURGO). Revised completion: **~62% DONE · 22% PARTIAL · 16% STUB** (up from 55/25/20). Net-new sections: shared-scoring package, canonical writer, schema-lift plan (filed, not executed), latent PDF bug, zombie endpoint.
+**Completed.** Delta update of the 04-19 deep audit. Closed H5 items #1, #2, #3, #5, #8. Partial progress on #4 (SSURGO). Late-evening UX pass: eight-way split of livestock/forestry domain keys, Lucide-migrated per-submodule toolbars, `ogden:herd:rotate` wired, Animal Units quick-stat, new MapLayers + SiteIntelligence dashboards, `mapRailDashboard.css` container-query sweep, `EcologicalDashboard` `formatPct` guard for loose `layerFetcher` typing. Revised completion: **~64% DONE · 22% PARTIAL · 14% STUB** (up from 55/25/20). Net-new sections: shared-scoring package, canonical writer, schema-lift plan (filed, not executed), latent PDF bug, zombie endpoint, and latent issues 5.6 (`layerFetcher` typing) + 5.7 (forestry in-map authoring deferred).
 
 **Deferred.** Full Explore-agent re-sweep (user opted for delta update, not re-run). Live parity check against a real `site_assessments` row (no rows exist yet). Cross-package test-count reconciliation (numbers above are approximate; precise counts would need running each suite).
 
