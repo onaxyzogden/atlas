@@ -935,13 +935,13 @@ async function fetchSoils(lat: number, lng: number, country: string): Promise<Mo
       summary: {
         predominant_texture: texture,
         soil_name: muname,
-        drainage_class: drainage || 'Unknown',
-        organic_matter_pct: om !== null ? +om.toFixed(1) : 'N/A',
-        ph_range: ph !== null ? `${(ph - 0.3).toFixed(1)} - ${(ph + 0.3).toFixed(1)}` : 'N/A',
+        drainage_class: drainage || null,
+        organic_matter_pct: om !== null ? +om.toFixed(1) : null,
+        ph_range: ph !== null ? `${(ph - 0.3).toFixed(1)} - ${(ph + 0.3).toFixed(1)}` : null,
         ph_value: round1(ph),
-        hydrologic_group: hydgrp || 'Unknown',
+        hydrologic_group: hydgrp || null,
         farmland_class: farmlandClass,
-        depth_to_bedrock_m: 'N/A',
+        depth_to_bedrock_m: null,
         taxonomic_order: taxorder,
         // Extended soil properties (Sprint B)
         cec_meq_100g: round1(cec),
@@ -1098,7 +1098,7 @@ async function fetchLioSoils(lat: number, lng: number): Promise<MockLayerResult>
   const farmlandClass = farmlandRaw ? lioFormatCscsClass(String(farmlandRaw)) : 'Class 2 (CSCS)';
   const phVal = phRaw != null ? parseFloat(String(phRaw)) : 6.5;
   const phRange = `${(phVal - 0.3).toFixed(1)} - ${(phVal + 0.3).toFixed(1)}`;
-  const depth = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : 'N/A';
+  const depth: number | null = bedrockRaw != null ? +parseFloat(String(bedrockRaw)).toFixed(1) : null;
 
   return {
     layerType: 'soils',
@@ -1165,7 +1165,7 @@ function soilsFromLatitude(lat: number, country: string): MockLayerResult {
       ph_range: '6.0 - 7.0',
       hydrologic_group: 'C',
       farmland_class: country === 'CA' ? 'Class 2 (CSCS)' : 'Estimated',
-      depth_to_bedrock_m: 'N/A',
+      depth_to_bedrock_m: null,
       // Sprint S: realistic defaults so scorers don't silently return 0
       bulk_density_g_cm3: lat > 44 ? 1.45 : 1.35,  // sandy soils are denser
       ec_ds_m: 0.3,                                  // non-saline baseline
@@ -1888,12 +1888,12 @@ async function fetchEcccClimate(lat: number, lng: number): Promise<MockLayerResu
     sourceApi: 'ECCC Climate Normals (OGC API)',
     attribution: 'Environment and Climate Change Canada',
     summary: {
-      annual_precip_mm: annualPrecip ?? 'N/A',
-      annual_temp_mean_c: meanTemp != null ? +meanTemp.toFixed(1) : 'N/A',
-      growing_season_days: !isNaN(frostFreeDays!) ? frostFreeDays : 'N/A',
-      last_frost_date: lastFrost ?? 'N/A',
-      first_frost_date: firstFrost ?? 'N/A',
-      hardiness_zone: hardinessZone ?? 'N/A',
+      annual_precip_mm: annualPrecip,
+      annual_temp_mean_c: meanTemp != null ? +meanTemp.toFixed(1) : null,
+      growing_season_days: frostFreeDays != null && !isNaN(frostFreeDays) ? frostFreeDays : null,
+      last_frost_date: lastFrost != null ? String(lastFrost) : null,
+      first_frost_date: firstFrost != null ? String(firstFrost) : null,
+      hardiness_zone: hardinessZone != null ? String(hardinessZone) : null,
       prevailing_wind: windRose?.prevailing ?? (lat > 42 ? 'W-SW' : 'SW'),
       annual_sunshine_hours: annualSunshine,
       // Sprint C additions
@@ -2138,9 +2138,9 @@ async function fetchWetlandsFlood(
     summary: {
       flood_zone: floodLabel,
       flood_risk: floodRisk,
-      base_flood_elevation_ft: flood?.bfe ?? 'N/A',
-      static_bfe_ft: flood?.staticBfe ?? 'N/A',
-      fema_panel: flood?.panel ?? 'N/A',
+      base_flood_elevation_ft: flood?.bfe ?? null,
+      static_bfe_ft: flood?.staticBfe ?? null,
+      fema_panel: flood?.panel ?? null,
       wetland_pct: wetlandPct,
       wetland_types: nwi?.types ?? [],
       wetland_count: nwi?.count ?? 0,
@@ -2498,10 +2498,13 @@ async function fetchLioFloodWetlands(
   const wetlandAreaHa = wet?.totalAreaHa ?? 0;
   const wetlandPct = bboxAreaHa > 0 ? +(wetlandAreaHa / bboxAreaHa * 100).toFixed(1) : 0;
 
-  // Riparian buffer depends on CA — most Ontario CAs enforce 15-30m
+  // Riparian buffer depends on CA — most Ontario CAs enforce 15-30m.
+  // When within a regulated area, the CA-specific narrative is returned via
+  // `riparian_buffer_note`; the numeric field falls back to 30m.
+  const bufferM = 30;
   const bufferNote = isRegulated
     ? 'Per CA regulation (typically 15\u201330m from watercourse, 120m from PSW)'
-    : 30;
+    : null;
 
   // Build source/attribution from which sub-fetchers succeeded
   const sources: string[] = [];
@@ -2526,7 +2529,8 @@ async function fetchLioFloodWetlands(
       wetland_count: wet?.count ?? 0,
       wetland_area_ha: wetlandAreaHa,
       has_significant_wetland: wet?.hasSignificant ?? false,
-      riparian_buffer_m: bufferNote,
+      riparian_buffer_m: bufferM,
+      riparian_buffer_note: bufferNote,
       regulated_area_pct: isRegulated
         ? `Yes \u2014 ${reg?.caName ?? 'Conservation Authority'} regulation area`
         : 'Not within identified regulated area',
@@ -2727,10 +2731,13 @@ function wetlandsUnavailable(country: string): MockLayerResult {
     summary: {
       flood_zone: 'Data not available for this area',
       flood_risk: explanation,
-      wetland_pct: 'Unknown',
+      wetland_pct: null,
       wetland_types: [],
-      riparian_buffer_m: country === 'CA' ? 'Contact local Conservation Authority' : 'Check local FEMA maps',
-      regulated_area_pct: 'Unknown',
+      riparian_buffer_m: null,
+      riparian_buffer_note: country === 'CA'
+        ? 'Contact local Conservation Authority'
+        : 'Check local FEMA maps',
+      regulated_area_pct: null,
     },
   };
 }

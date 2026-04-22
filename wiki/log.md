@@ -1536,3 +1536,46 @@ Audit item #3 called for "wire the Anthropic SDK + unstub ClaudeClient." I did N
 - `apps/web/src/lib/petModel.ts` (new, ~165 lines)
 - `apps/web/src/lib/hydrologyMetrics.ts` (HydroInputs +5 fields, HydroMetrics +1 field, PET branch swap, +1 import)
 - `apps/web/src/tests/petModel.test.ts` (new, 13 tests)
+
+---
+
+## 2026-04-21 — Scoring type contract: discriminated union + DB-boundary validator (audit 5.6)
+
+Closed audit item 5.6 from `ATLAS_DEEP_AUDIT_2026-04-21.md` — the `MockLayerResult.summary: Record<string, unknown>` permissive contract that allowed fetchers to write `'N/A'` / `'Unknown'` strings into slots consumers read as `number`, surfacing as `wetland_pct.toFixed is not a function` in the ecological dashboard.
+
+### Completed
+
+**Part A — Compile-time discriminated union (scope B, 4 Tier-1 layers).**
+- `packages/shared/src/scoring/types.ts` — `MockLayerResult` is now a mapped type over `LayerType`. `ElevationSummary`, `SoilsSummary`, `ClimateSummary`, `WetlandsFloodSummary` fully typed (numeric slots `number | null`, narrative slots `string | null`). Index signature `[key: string]: unknown` on each keeps rule-engine dynamic reads compilable. Remaining 36 `LayerType` variants fall back to `Record<string, unknown>` — incremental tightening path.
+- `apps/web/src/lib/layerFetcher.ts` — 7 call sites normalized (SSURGO, LIO soils, fallback soils, ECCC climate, FEMA+NWI wetlands, LIO wetlands, wetlands-unavailable). All `'N/A'` / `'Unknown'` sentinel writes in numeric slots → `null`. Split `bufferNote` into `riparian_buffer_m` (number) + `riparian_buffer_note` (string).
+- `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` — imported shared types, deleted duplicate local interfaces, deleted buggy `formatPct` helper (was coercing narrative `regulated_area_pct` to `'N/A'`), replaced `parseFloat(String(...))` gymnastics with direct null checks.
+
+**Part B — Runtime validator at API DB boundary.**
+- `packages/shared/src/scoring/schemas.ts` (new) — zod schemas mirroring the 4 typed summaries. `validateLayerSummary(layerType, raw)` dispatcher. Per-field `.catch(null)` coerces invalid jsonb values to null; `.passthrough()` preserves unknown keys; unmigrated layer types pass through untouched. Returns `{ ok, summary, coercions }` so the caller can emit telemetry.
+- `apps/api/src/services/assessments/SiteAssessmentWriter.ts:layerRowsToMockLayers` — every DB row's `summary_data` now passes through the validator before reaching `computeAssessmentScores`. Coercions logged via pino: `{ projectId, layerType, coercions: [{ path, message, received }] }`. Layer never dropped — partial data still scores.
+
+### Tests
+- `packages/shared/src/tests/scoringSchemas.test.ts` (new) — 5/5 green: wetlands sentinel coercion, valid-numeric passthrough, soil sentinel coercion, unmigrated-layer passthrough, unknown-key passthrough.
+- `apps/api/src/tests/SiteAssessmentWriter.test.ts` — 3 new adapter-side cases added (wetlands coercion, soils coercion, unmigrated passthrough). Currently un-executable pending pre-existing monorepo vitest resolution fix; validator logic is already covered by the shared-package tests.
+
+### Verification
+- `packages/shared` — `tsc --noEmit` clean; vitest 5/5 green on new file.
+- `apps/api` — `tsc --noEmit` shows 5 pre-existing `@ogden/shared/scoring` subpath-resolution errors (baseline on main has the same count; zero regressions introduced).
+- `apps/web` — baseline unchanged at 122 pre-existing errors from the same monorepo subpath issue.
+
+### Deferred
+- 36 non-Tier-1 `LayerType` variants still carry `'N/A'` / `'Unknown'` string sentinels in their fetchers. Low runtime risk (consumers already guard). Tighten incrementally.
+- Monorepo TS project-reference + vitest subpath-exports resolution for `@ogden/shared/scoring`. Pre-existing on main. Separate followup.
+
+### Files Changed
+- `packages/shared/src/scoring/types.ts` (rewrote; discriminated union + 4 typed interfaces)
+- `packages/shared/src/scoring/schemas.ts` (new, ~170 lines)
+- `packages/shared/src/scoring/index.ts` (+1 re-export)
+- `packages/shared/src/tests/scoringSchemas.test.ts` (new, 5 tests)
+- `apps/api/src/services/assessments/SiteAssessmentWriter.ts` (adapter: +validateLayerSummary + coercion logging + `{ projectId }` param)
+- `apps/api/src/tests/SiteAssessmentWriter.test.ts` (+3 cases)
+- `apps/web/src/lib/layerFetcher.ts` (7 fetcher call sites normalized)
+- `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` (shared types imported; formatPct deleted; null-check rendering)
+- `ATLAS_DEEP_AUDIT_2026-04-21.md` (issue 5.6 marked RESOLVED scope B)
+- `wiki/decisions/2026-04-21-scoring-type-contract.md` (new decision record)
+- `wiki/entities/{shared-package,api}.md`, `wiki/index.md` (updated)

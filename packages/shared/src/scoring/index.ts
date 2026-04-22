@@ -13,4 +13,5 @@ export * from './computeScores.js';
 export * from './hydrologyMetrics.js';
 export * from './petModel.js';
 export * from './types.js';
+export * from './schemas.js';
 export * from './rules/index.js';

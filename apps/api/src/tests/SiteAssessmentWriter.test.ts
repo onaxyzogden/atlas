@@ -59,6 +59,53 @@ describe('layerRowsToMockLayers', () => {
     expect(mock?.summary).toEqual({});
   });
 
+  it('coerces stale sentinel strings in typed summaries to null (DB-boundary guard)', () => {
+    // A pre-2026-04-21 persisted row may still contain 'N/A' / 'Unknown' in
+    // slots the scoring types declare as `number | null`. The adapter must
+    // coerce those to null rather than let them reach the scorer.
+    const [wetlands] = layerRowsToMockLayers([
+      row('wetlands_flood', {
+        flood_zone: 'Zone X',
+        wetland_pct: 'Unknown',
+        riparian_buffer_m: 'N/A',
+        wetland_types: ['Palustrine'],
+        regulated_area_pct: 'Yes',
+      }),
+    ]);
+    const summary = wetlands?.summary as Record<string, unknown>;
+    expect(summary.wetland_pct).toBeNull();
+    expect(summary.riparian_buffer_m).toBeNull();
+    expect(summary.flood_zone).toBe('Zone X');
+    expect(summary.regulated_area_pct).toBe('Yes');
+    expect(summary.wetland_types).toEqual(['Palustrine']);
+  });
+
+  it('coerces non-numeric soil numeric fields to null', () => {
+    const [soils] = layerRowsToMockLayers([
+      row('soils', {
+        drainage_class: 'well drained',
+        organic_matter_pct: 'N/A',
+        depth_to_bedrock_m: 'Unknown',
+        hydrologic_group: 'B',
+      }),
+    ]);
+    const summary = soils?.summary as Record<string, unknown>;
+    expect(summary.organic_matter_pct).toBeNull();
+    expect(summary.depth_to_bedrock_m).toBeNull();
+    expect(summary.drainage_class).toBe('well drained');
+    expect(summary.hydrologic_group).toBe('B');
+  });
+
+  it('passes unmigrated layer types through untouched', () => {
+    const [lc] = layerRowsToMockLayers([
+      row('land_cover', { tree_canopy_pct: 'N/A', whatever: 123 }),
+    ]);
+    const summary = lc?.summary as Record<string, unknown>;
+    // No schema for land_cover yet — raw passthrough.
+    expect(summary.tree_canopy_pct).toBe('N/A');
+    expect(summary.whatever).toBe(123);
+  });
+
   it('propagates optional metadata fields when present', () => {
     const [mock] = layerRowsToMockLayers([
       {

@@ -28,6 +28,7 @@ import type postgres from 'postgres';
 import {
   computeAssessmentScores,
   computeOverallScore,
+  validateLayerSummary,
   type MockLayerResult,
   type ScoredResult,
 } from '@ogden/shared/scoring';
@@ -72,17 +73,43 @@ function normalizeConfidence(c: string | null): Confidence {
  * shared scorer. Missing optional metadata (dataDate/sourceApi/attribution)
  * falls back to sentinel strings; the scorer only reads `layerType`,
  * `summary`, and `confidence`, so the sentinels never affect scoring.
+ *
+ * Runtime validation: every row's `summary_data` passes through
+ * `validateLayerSummary` so stale jsonb (e.g. rows persisted before the
+ * 2026-04-21 null-over-sentinel normalization) can't inject strings like
+ * `'N/A'` into slots the compile-time type claims are `number | null`.
+ * Invalid fields are coerced to `null` (scorer already tolerates nulls)
+ * and logged for telemetry. The layer itself is never dropped — partial
+ * data still scores better than no data.
  */
-export function layerRowsToMockLayers(rows: LayerRow[]): MockLayerResult[] {
-  return rows.map((r) => ({
-    layerType: r.layer_type as LayerType,
-    fetchStatus: 'complete' as const,
-    confidence: normalizeConfidence(r.confidence),
-    dataDate: r.data_date ?? '',
-    sourceApi: r.source_api ?? '',
-    attribution: r.attribution ?? '',
-    summary: r.summary_data ?? {},
-  }));
+export function layerRowsToMockLayers(
+  rows: LayerRow[],
+  opts: { projectId?: string } = {},
+): MockLayerResult[] {
+  return rows.map((r) => {
+    const layerType = r.layer_type as LayerType;
+    const result = validateLayerSummary(layerType, r.summary_data);
+    const summary = result.ok ? result.summary : (r.summary_data ?? {});
+    if (result.ok && result.coercions.length > 0) {
+      logger.warn(
+        {
+          projectId: opts.projectId,
+          layerType,
+          coercions: result.coercions,
+        },
+        'Stale layer summary — coerced invalid fields to null',
+      );
+    }
+    return {
+      layerType,
+      fetchStatus: 'complete' as const,
+      confidence: normalizeConfidence(r.confidence),
+      dataDate: r.data_date ?? '',
+      sourceApi: r.source_api ?? '',
+      attribution: r.attribution ?? '',
+      summary,
+    };
+  });
 }
 
 // ─── Rollup helpers ───────────────────────────────────────────────────────────
@@ -170,7 +197,7 @@ export async function writeCanonicalAssessment(
   }
 
   // 4. Adapt to scorer input + compute.
-  const mockLayers = layerRowsToMockLayers(layerRows);
+  const mockLayers = layerRowsToMockLayers(layerRows, { projectId });
   const computedAt = new Date().toISOString();
   const scores = computeAssessmentScores(mockLayers, acreage, country, computedAt);
 

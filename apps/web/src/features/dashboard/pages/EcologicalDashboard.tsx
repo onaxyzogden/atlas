@@ -10,6 +10,7 @@ import { useSiteData, getLayerSummary, getLayer } from '../../../store/siteDataS
 import { computeAssessmentScores, deriveOpportunities } from '../../../lib/computeScores.js';
 import type { ScoredResult, ScoreComponent } from '../../../lib/computeScores.js';
 import type { AssessmentFlag } from '@ogden/shared';
+import type { SoilsSummary, WetlandsFloodSummary } from '@ogden/shared/scoring';
 import ProgressBar from '../components/ProgressBar.js';
 import css from './EcologicalDashboard.module.css';
 
@@ -18,46 +19,16 @@ interface EcologicalDashboardProps {
   onSwitchToMap: () => void;
 }
 
-interface SoilsSummary {
-  organic_matter_pct?: number | string;
-  ph_range?: string;
-  ph_value?: number | null;
-  drainage_class?: string;
-  farmland_class?: string;
-  depth_to_bedrock_m?: number | string;
-  predominant_texture?: string;
-  hydrologic_group?: string;
-  // Extended soil properties (Sprint B)
-  cec_meq_100g?: number | null;
-  ec_ds_m?: number | null;
-  bulk_density_g_cm3?: number | null;
-  ksat_um_s?: number | null;
-  awc_cm_cm?: number | null;
-  rooting_depth_cm?: number | null;
-  clay_pct?: number | null;
-  silt_pct?: number | null;
-  sand_pct?: number | null;
-  caco3_pct?: number | null;
-  sodium_adsorption_ratio?: number | null;
-  texture_class?: string | null;
-  fertility_index?: number | null;
-  salinization_risk?: string | null;
-  component_count?: number;
-}
-
+/**
+ * Land cover is not yet on the typed-summary track (scope B shipped only the
+ * four Tier-1 ecological layers). Keep a local duck type — `tree_canopy_pct`
+ * still arrives as number|string from the NLCD fallback path.
+ */
 interface LandCoverSummary {
   classes?: Record<string, number>;
   tree_canopy_pct?: number | string;
   impervious_pct?: number | string;
   primary_class?: string;
-}
-
-interface WetlandsSummary {
-  wetland_pct?: number;
-  wetland_types?: string[];
-  riparian_buffer_m?: number;
-  regulated_area_pct?: number;
-  flood_zone?: string;
 }
 
 interface SoilRegenSummary {
@@ -70,17 +41,6 @@ interface SoilRegenSummary {
   interventions?: Array<{ name: string; description: string; priority?: string }>;
   regenerationSequence?: string[];
   restorationPriority?: string;
-}
-
-/**
- * Format a possibly-numeric percentage that may arrive as a string
- * ('Unknown', '4.2', etc.) or number from layer fetchers.
- */
-function formatPct(value: unknown, fallback: string): string {
-  if (value == null) return fallback;
-  const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(n)) return fallback;
-  return `${n.toFixed(1)}%`;
 }
 
 function scoreQuality(score: number): string {
@@ -104,7 +64,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
   const soils = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
   const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
-  const wetlands = siteData ? getLayerSummary<WetlandsSummary>(siteData, 'wetlands_flood') : null;
+  const wetlands = siteData ? getLayerSummary<WetlandsFloodSummary>(siteData, 'wetlands_flood') : null;
   const soilRegen = siteData ? getLayerSummary<SoilRegenSummary>(siteData, 'soil_regeneration') : null;
 
   const soilRegenStatus = siteData ? getLayer(siteData, 'soil_regeneration')?.fetchStatus : undefined;
@@ -129,15 +89,14 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
     return all.filter((f) => f.layerSource && ECOLOGY_LAYER_SOURCES.has(f.layerSource));
   }, [siteData, project.country]);
 
-  // Parse soil data
-  const omRaw = parseFloat(String(soils?.organic_matter_pct ?? ''));
-  const om = isFinite(omRaw) ? omRaw : null;
+  // Soil data — typed as `number | null` at source, no parseFloat gymnastics.
+  const om = soils?.organic_matter_pct ?? null;
   const ph = soils?.ph_range ?? null;
   const phVal = soils?.ph_value ?? null;
   const drain = soils?.drainage_class ?? null;
   const texture = soils?.predominant_texture ?? null;
-  const depthRaw = parseFloat(String(soils?.depth_to_bedrock_m ?? ''));
-  const bedrock = isFinite(depthRaw) ? `${depthRaw}m` : null;
+  const bedrock = soils?.depth_to_bedrock_m != null ? `${soils.depth_to_bedrock_m}m` : null;
+  // Land cover still untyped (scope B) — keep the parseFloat guard here.
   const canopyRaw = parseFloat(String(landCover?.tree_canopy_pct ?? ''));
   const canopy = isFinite(canopyRaw) ? canopyRaw : null;
 
@@ -373,9 +332,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {wetlands ? (
           <div className={css.wetlandCard}>
             <div className={css.wetlandGrid}>
-              <WetlandMetric label="Wetland Coverage" value={formatPct(wetlands.wetland_pct, 'None mapped')} />
-              <WetlandMetric label="Riparian Buffer" value={wetlands.riparian_buffer_m != null && Number.isFinite(Number(wetlands.riparian_buffer_m)) ? `${Number(wetlands.riparian_buffer_m)}m` : 'Not detected'} />
-              <WetlandMetric label="Regulated Area" value={formatPct(wetlands.regulated_area_pct, 'N/A')} />
+              <WetlandMetric label="Wetland Coverage" value={wetlands.wetland_pct != null ? `${wetlands.wetland_pct.toFixed(1)}%` : 'None mapped'} />
+              <WetlandMetric label="Riparian Buffer" value={wetlands.riparian_buffer_m != null ? `${wetlands.riparian_buffer_m}m` : (wetlands.riparian_buffer_note ?? 'Not detected')} />
+              <WetlandMetric label="Regulated Area" value={wetlands.regulated_area_pct ?? 'N/A'} />
               <WetlandMetric label="Flood Zone" value={wetlands.flood_zone ?? 'Not classified'} />
             </div>
             {wetlands.wetland_types && wetlands.wetland_types.length > 0 && (

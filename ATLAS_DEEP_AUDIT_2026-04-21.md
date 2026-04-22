@@ -165,11 +165,19 @@ Three items that are technical debt but not urgent (none are blocking live users
 - **Blocker:** `Country = 'US' | 'CA'` type doesn't have a fallback slot. Extension cascades into every adapter's registry + Zod project schemas + DB enums.
 - **Fix path:** deferred until international country expansion is prioritised.
 
-### 5.6 `layerFetcher` return-type contract is loose
+### 5.6 `layerFetcher` return-type contract is loose — RESOLVED (scope B, 2026-04-21)
 - **Severity:** Medium — caused a real runtime crash in `EcologicalDashboard` (`wetlands.wetland_pct.toFixed is not a function`). Patched locally with a `formatPct` guard, but the underlying issue is that `layerFetcher`-sourced percentages are typed as `number` in downstream interfaces while the adapter occasionally returns string coercions (or `'Unknown'`) depending on upstream source availability.
 - **Files:** `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` (patched); root cause in the ecological-layer fetcher / adapter chain (not yet traced to a single file in this session).
 - **Fix path:** lock the adapter to `number | null` at the boundary — coerce strings / `'Unknown'` to `null` once at fetch time, so every consumer can trust `typeof === 'number'` without per-site `formatPct`-style guards. Keep the defensive helper for now as belt-and-braces.
 - **Risk class:** this is the same family of bug the schema-lift (§5.1) addresses on the server side — loose DB/jsonb typing leaking into TS. Worth a dedicated audit pass on all `layerFetcher` return shapes.
+
+**Resolution (scope B):**
+- `MockLayerResult.summary` is now a discriminated union keyed on `layerType`. Four Tier-1 ecological variants are fully typed in `packages/shared/src/scoring/types.ts` — `ElevationSummary`, `SoilsSummary`, `ClimateSummary`, `WetlandsFloodSummary` — using `number | null` (not `number | 'Unknown'`). Remaining 36 layer types retain `Record<string, unknown>` and can be tightened incrementally.
+- Fetchers in `apps/web/src/lib/layerFetcher.ts` normalized: SSURGO soils, LIO soils, fallback soils, ECCC climate, FEMA/NWI wetlands, LIO wetlands, and the wetlands-unavailable path no longer emit `'N/A'` / `'Unknown'` into numeric slots. `riparian_buffer_m` split into `number | null` + optional `riparian_buffer_note` string for narrative overrides.
+- `EcologicalDashboard.tsx`: `formatPct` guard removed; local `SoilsSummary` / `WetlandsSummary` duck-types deleted in favour of the shared types; `parseFloat(String(...))` gymnastics around soils gone. `regulated_area_pct` now renders its actual narrative string (was previously always falling through to `'N/A'` because `formatPct` was wrongly coercing the narrative to a percent).
+- Discriminated union carries an explicit `[key: string]: unknown` index signature on each typed summary so the rule engine's dynamic key access (`summary[rule.key]`) continues to compile while still catching wrong-typed writes on named keys.
+- Verification: `tsc --noEmit` on `@ogden/shared` clean; `apps/web` error count unchanged vs. pre-change baseline (122 pre-existing monorepo TS-ref issues, zero new from this change).
+- **Out of scope (tracked for a follow-up):** 36 other LayerType variants (watershed, zoning, species, superfund, etc.) still carry `'N/A'` / `'Unknown'` strings; the API-side adapter `layerRowsToMockLayers` still trusts persisted jsonb without a zod runtime validator at the DB boundary.
 
 ### 5.7 Forestry toolset is layer-only
 - **Severity:** Low — a design choice, not a bug. The four new forestry toolbars (Planting Tool, Forest Hub, Carbon Diagnostic, Nursery Ledger) are built from layer toggles + one Measure action, because the underlying forestry data model (crop persistence via `CropPanel.tsx` / `cropStore.ts`) isn't wired to a toolbar-fired intent the way paddock drawing is. Dead draw buttons were trimmed rather than left as stubs.

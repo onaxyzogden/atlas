@@ -48,6 +48,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 - `services/storage/StorageProvider.ts` — S3 or local filesystem abstraction
 - `services/pipeline/DataPipelineOrchestrator.ts` — BullMQ job queue (tier1, tier3 workers)
 - `services/ai/ClaudeClient.ts` — Anthropic API wrapper (mostly stubbed)
+- `services/assessments/SiteAssessmentWriter.ts` — canonical `site_assessments` writer. `layerRowsToMockLayers` adapter now runs every DB `summary_data` jsonb blob through `validateLayerSummary` from `@ogden/shared/scoring` (DB-boundary validator, 2026-04-21). Invalid values coerce to `null`; coercions log via pino with `{ projectId, layerType, coercions }` for telemetry. The layer is never dropped. See [decisions/2026-04-21-scoring-type-contract.md](../decisions/2026-04-21-scoring-type-contract.md).
 - `services/terrain/` — Terrain analysis service
 - `services/files/` — File processing (KML, GeoJSON, photos, soil tests)
 
