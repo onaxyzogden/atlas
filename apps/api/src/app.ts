@@ -47,6 +47,13 @@ import memberRoutes from './routes/members/index.js';
 import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
+
+// ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
+import basemapTerrainRoutes from './routes/basemap-terrain/index.js';
+import siteDataLayersRoutes from './routes/site-data-layers/index.js';
+import siteAssessmentRoutes from './routes/site-assessment/index.js';
+import adminGovernanceRoutes from './routes/admin-governance/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -110,6 +117,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
+
+  // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
+  await app.register(basemapTerrainRoutes, { prefix: '/api/v1/basemap-terrain' });
+  await app.register(siteDataLayersRoutes, { prefix: '/api/v1/site-data-layers' });
+  await app.register(siteAssessmentRoutes, { prefix: '/api/v1/site-assessment' });
+  await app.register(adminGovernanceRoutes,{ prefix: '/api/v1/admin-governance' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
