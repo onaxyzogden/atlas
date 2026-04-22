@@ -96,11 +96,13 @@ Counter-proposed: keep them denormalised for indexed sorts like
 
 ## Out of scope (deferred follow-ups)
 
-- **Copy-writing for the 6 labels without `SCORE_EXPLANATIONS` entries**
-  (Habitat Sensitivity, Stewardship Readiness, Community Suitability,
-  Design Complexity, FAO Land Suitability, USDA Land Capability). Falls
-  back to generic verdict today; separate sprint adds the plain-language
-  copy without touching the schema.
+- ~~**Copy-writing for the 6 labels without `SCORE_EXPLANATIONS` entries**~~
+  **CLOSED in the same commit (`83cd429`, 2026-04-21).** All 11 labels
+  (10 US + CA-only `Canada Soil Capability` + denormalised `Overall`) now
+  carry `plain`/`good`/`poor` copy in `educationalBooklet.ts:67-128`.
+  `Design Complexity` gets `inverted: true` so the good/poor verdicts fire
+  against the flipped threshold. No graceful-degradation fallback needed
+  at runtime.
 - **External back-compat view.** Deferred until (or if) a public-portal
   consumer activates.
 - **Typed response schema for `GET /projects/:id/assessment`.** Currently
