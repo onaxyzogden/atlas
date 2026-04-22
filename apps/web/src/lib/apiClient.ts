@@ -161,6 +161,29 @@ export const api = {
       request<void>('DELETE', `/api/v1/projects/${id}`),
   },
 
+  templates: {
+    list: () =>
+      request<Array<{
+        id: string;
+        ownerId: string;
+        name: string;
+        sourceProjectId: string | null;
+        createdAt: string;
+      }>>('GET', '/api/v1/templates'),
+
+    create: (input: { name: string; sourceProjectId: string }) =>
+      request<{
+        id: string;
+        ownerId: string;
+        name: string;
+        sourceProjectId: string | null;
+        createdAt: string;
+      }>('POST', '/api/v1/templates', input),
+
+    instantiate: (id: string, input: { name: string }) =>
+      request<ProjectSummary>('POST', `/api/v1/templates/${id}/instantiate`, input),
+  },
+
   designFeatures: {
     list: (projectId: string, featureType?: string) =>
       request<DesignFeatureSummary[]>(

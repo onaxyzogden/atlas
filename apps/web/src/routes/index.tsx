@@ -19,6 +19,7 @@ import HomePage from '../pages/HomePage.js';
 import { semantic } from '../lib/tokens.js';
 import NewProjectPage from '../pages/NewProjectPage.js';
 import ProjectPage from '../pages/ProjectPage.js';
+import CompareCandidatesPage from '../features/project/compare/CompareCandidatesPage.js';
 import PortalPage from '../pages/PortalPage.js';
 import LoginPage from '../pages/LoginPage.js';
 
@@ -57,6 +58,15 @@ const projectRoute = createRoute({
   component: ProjectPage,
 });
 
+const compareCandidatesRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/projects/compare',
+  component: CompareCandidatesPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    ids: typeof search.ids === 'string' ? search.ids : '',
+  }),
+});
+
 // ─── Login page (outside AppShell — own centered layout) ─────────────────
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -90,6 +100,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     newProjectRoute,
     projectRoute,
+    compareCandidatesRoute,
     notFoundRoute,
   ]),
   loginRoute,

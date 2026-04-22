@@ -33,16 +33,16 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     const [project] = await db`
       INSERT INTO projects (
         owner_id, name, description, project_type,
-        country, province_state, units
+        country, province_state, units, metadata
       ) VALUES (
         ${req.userId}, ${body.name}, ${body.description ?? null},
         ${body.projectType ?? null}, ${body.country}, ${body.provinceState ?? null},
-        ${body.units}
+        ${body.units}, ${db.json((body.metadata ?? {}) as never)}
       )
       RETURNING id, name, description, status, project_type, country, province_state,
                 conservation_auth_id, address, parcel_id, acreage,
                 data_completeness_score, parcel_boundary IS NOT NULL AS has_parcel_boundary,
-                created_at, updated_at
+                metadata, created_at, updated_at
     `;
 
     // Enqueue Tier 1 data pipeline job (will run once boundary is set)
@@ -71,6 +71,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           p.data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
+          p.metadata,
           p.created_at, p.updated_at
         FROM projects p
         WHERE p.id = ${req.projectId}
@@ -97,7 +98,11 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           owner_notes           = COALESCE(${body.ownerNotes ?? null}, owner_notes),
           zoning_notes          = COALESCE(${body.zoningNotes ?? null}, zoning_notes),
           access_notes          = COALESCE(${body.accessNotes ?? null}, access_notes),
-          water_rights_notes    = COALESCE(${body.waterRightsNotes ?? null}, water_rights_notes)
+          water_rights_notes    = COALESCE(${body.waterRightsNotes ?? null}, water_rights_notes),
+          metadata              = metadata || COALESCE(
+                                    ${body.metadata ? db.json(body.metadata as never) : null}::jsonb,
+                                    '{}'::jsonb
+                                  )
         WHERE id = ${req.projectId}
         RETURNING id, name, description, status, project_type, country, province_state,
                   conservation_auth_id, address, parcel_id, acreage,

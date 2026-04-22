@@ -12,6 +12,10 @@
     "./scoring": {
       "types": "./src/scoring/index.ts",
       "default": "./src/scoring/index.ts"
+    },
+    "./manifest": {
+      "types": "./src/featureManifest.ts",
+      "default": "./src/featureManifest.ts"
     }
   },
   "scripts": {

@@ -22,10 +22,12 @@ import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import authPlugin from './plugins/auth.js';
 import rbacPlugin from './plugins/rbac.js';
+import featureGatePlugin from './plugins/featureGate.js';
 import websocketPlugin from './plugins/websocket.js';
 
 import authRoutes from './routes/auth/index.js';
 import projectRoutes from './routes/projects/index.js';
+import templateRoutes from './routes/templates/index.js';
 import layerRoutes from './routes/layers/index.js';
 import spiritualRoutes from './routes/spiritual/index.js';
 import pipelineRoutes from './routes/pipeline/index.js';
@@ -79,6 +81,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(redisPlugin);
   await app.register(authPlugin);
   await app.register(rbacPlugin);
+  await app.register(featureGatePlugin);
   await app.register(websocketPlugin);
 
   // ─── Pipeline orchestrator (populated in onReady once DB + Redis are available)
@@ -88,6 +91,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   await app.register(authRoutes,     { prefix: '/api/v1/auth' });
   await app.register(projectRoutes,  { prefix: '/api/v1/projects' });
+  await app.register(templateRoutes, { prefix: '/api/v1/templates' });
   await app.register(layerRoutes,    { prefix: '/api/v1/layers' });
   await app.register(spiritualRoutes,{ prefix: '/api/v1/spiritual' });
   await app.register(pipelineRoutes, { prefix: '/api/v1/pipeline' });

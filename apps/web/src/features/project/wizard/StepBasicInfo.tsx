@@ -3,9 +3,19 @@
  * Validates against CreateProjectInput schema constraints.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { api } from '../../../lib/apiClient.js';
+import { useAuthStore } from '../../../store/authStore.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
+
+interface TemplateSummary {
+  id: string;
+  name: string;
+  sourceProjectId: string | null;
+  createdAt: string;
+}
 
 const PROJECT_TYPES = [
   { value: 'regenerative_farm', label: 'Regenerative Farm' },
@@ -57,6 +67,37 @@ const charCountStyle: React.CSSProperties = {
 
 export default function StepBasicInfo({ data, updateData, onNext, onBack, isFirst, isLast }: WizardStepProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
+  const { token } = useAuthStore();
+  const [templates, setTemplates] = useState<TemplateSummary[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [instantiating, setInstantiating] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    api.templates.list().then(({ data }) => {
+      setTemplates(data);
+    }).catch(() => {
+      // P2-gated route may 404 when ATLAS_PHASE_MAX < P2 — silently drop.
+    });
+  }, [token]);
+
+  const handleInstantiate = async () => {
+    if (!selectedTemplateId) return;
+    setInstantiating(true);
+    setTemplateError(null);
+    try {
+      const { data: newProject } = await api.templates.instantiate(
+        selectedTemplateId,
+        { name: data.name || 'Untitled from template' },
+      );
+      navigate({ to: '/project/$projectId', params: { projectId: newProject.id } });
+    } catch (err) {
+      setTemplateError(err instanceof Error ? err.message : 'Failed to instantiate template');
+      setInstantiating(false);
+    }
+  };
 
   const nameError = touched.name && !data.name.trim()
     ? 'Project name is required'
@@ -78,6 +119,50 @@ export default function StepBasicInfo({ data, updateData, onNext, onBack, isFirs
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 32, lineHeight: 1.6 }}>
         Start with the basics. You can always change these later.
       </p>
+
+      {templates.length > 0 && (
+        <div
+          style={{
+            marginBottom: 24,
+            padding: 16,
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--color-surface)',
+          }}
+        >
+          <label style={labelStyle}>Start from a template</label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => setSelectedTemplateId(e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer', flex: 1 }}
+            >
+              <option value="">No template</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={!selectedTemplateId || instantiating}
+              onClick={handleInstantiate}
+              style={{
+                padding: '10px 16px',
+                fontSize: 13,
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                background: selectedTemplateId ? 'var(--color-earth-600)' : 'var(--color-surface)',
+                color: selectedTemplateId ? '#fff' : 'var(--color-text-muted)',
+                cursor: selectedTemplateId && !instantiating ? 'pointer' : 'not-allowed',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {instantiating ? 'Creating…' : 'Use template'}
+            </button>
+          </div>
+          {templateError && <div style={errorStyle}>{templateError}</div>}
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Project Name */}

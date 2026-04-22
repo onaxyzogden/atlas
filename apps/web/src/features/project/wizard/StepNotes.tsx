@@ -45,7 +45,23 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
   const [attachments, setAttachments] = useState<{ file: File; type: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Pack the wizard's flat metadata fields into the shared ProjectMetadata
+  // shape. Empty strings are dropped so jsonb stays minimal.
+  const buildMetadata = () => {
+    const md: Record<string, string> = {};
+    if (data.climateRegion) md.climateRegion = data.climateRegion;
+    if (data.bioregion) md.bioregion = data.bioregion;
+    if (data.county) md.county = data.county;
+    if (data.legalDescription) md.legalDescription = data.legalDescription;
+    if (data.fieldObservations) md.fieldObservations = data.fieldObservations;
+    if (data.restrictionsCovenants) md.restrictionsCovenants = data.restrictionsCovenants;
+    if (data.mapProjection) md.mapProjection = data.mapProjection;
+    return Object.keys(md).length > 0 ? md : undefined;
+  };
+
   const handleCreate = () => {
+    const metadata = buildMetadata();
+
     // Create the project
     const project = createProject({
       name: data.name,
@@ -56,6 +72,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       country: data.country,
       provinceState: data.provinceState || undefined,
       units: data.units,
+      metadata,
     });
 
     // Calculate acreage from boundary if available
@@ -110,6 +127,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         country: data.country,
         provinceState: data.provinceState || undefined,
         units: data.units,
+        metadata,
       }).then(async ({ data: serverProject }) => {
         // Store the backend-assigned UUID so future syncs can reference it
         updateProjectFn(project.id, { serverId: serverProject.id });
@@ -190,6 +208,83 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             value={data.waterRightsNotes}
             onChange={(e) => updateData({ waterRightsNotes: e.target.value })}
             placeholder="Existing water rights, wells, irrigation…"
+            rows={2}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Long-tail metadata — persisted to projects.metadata jsonb. */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Climate Region</label>
+            <input
+              type="text"
+              value={data.climateRegion}
+              onChange={(e) => updateData({ climateRegion: e.target.value })}
+              placeholder="e.g. USDA 6a, Mediterranean"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Bioregion</label>
+            <input
+              type="text"
+              value={data.bioregion}
+              onChange={(e) => updateData({ bioregion: e.target.value })}
+              placeholder="e.g. Great Basin, Cascadia"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>County</label>
+            <input
+              type="text"
+              value={data.county}
+              onChange={(e) => updateData({ county: e.target.value })}
+              placeholder="e.g. Sonoma County"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Map Projection</label>
+            <input
+              type="text"
+              value={data.mapProjection}
+              onChange={(e) => updateData({ mapProjection: e.target.value })}
+              placeholder="e.g. EPSG:4326, EPSG:26917"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Legal Description</label>
+          <textarea
+            value={data.legalDescription}
+            onChange={(e) => updateData({ legalDescription: e.target.value })}
+            placeholder="Metes and bounds, lot/block, section-township-range…"
+            rows={2}
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Field Observations</label>
+          <textarea
+            value={data.fieldObservations}
+            onChange={(e) => updateData({ fieldObservations: e.target.value })}
+            placeholder="Walk-through notes, visible features, seasonal signs…"
+            rows={3}
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Restrictions & Covenants</label>
+          <textarea
+            value={data.restrictionsCovenants}
+            onChange={(e) => updateData({ restrictionsCovenants: e.target.value })}
+            placeholder="HOA rules, conservation easements, deed restrictions…"
             rows={2}
             style={inputStyle}
           />

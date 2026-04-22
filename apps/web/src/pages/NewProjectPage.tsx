@@ -35,6 +35,14 @@ export interface WizardData {
   zoningNotes: string;
   accessNotes: string;
   waterRightsNotes: string;
+  // Step 4 — long-tail metadata (persisted to projects.metadata jsonb)
+  climateRegion: string;
+  bioregion: string;
+  county: string;
+  legalDescription: string;
+  fieldObservations: string;
+  restrictionsCovenants: string;
+  mapProjection: string;
 }
 
 const INITIAL_DATA: WizardData = {
@@ -51,6 +59,13 @@ const INITIAL_DATA: WizardData = {
   zoningNotes: '',
   accessNotes: '',
   waterRightsNotes: '',
+  climateRegion: '',
+  bioregion: '',
+  county: '',
+  legalDescription: '',
+  fieldObservations: '',
+  restrictionsCovenants: '',
+  mapProjection: '',
 };
 
 const STEPS = [

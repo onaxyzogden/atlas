@@ -3,6 +3,7 @@ export * from './schemas/confidence.schema.js';
 export * from './schemas/layer.schema.js';
 export * from './schemas/assessment.schema.js';
 export * from './schemas/project.schema.js';
+export * from './schemas/template.schema.js';
 export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
 export * from './schemas/designFeature.schema.js';
