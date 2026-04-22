@@ -14,4 +14,5 @@ export * from './hydrologyMetrics.js';
 export * from './petModel.js';
 export * from './types.js';
 export * from './layerSummary.js';
+export * from './fuzzyMCDM.js';
 export * from './rules/index.js';

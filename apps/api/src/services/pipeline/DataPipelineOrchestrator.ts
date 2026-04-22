@@ -43,6 +43,9 @@ import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProc
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
 import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
 import { maybeWriteAssessmentIfTier3Complete } from '../assessments/SiteAssessmentWriter.js';
+import { claudeClient } from '../ai/ClaudeClient.js';
+import { writeAiOutput } from '../ai/AiOutputWriter.js';
+import { buildNarrativeContext } from '../ai/NarrativeContextBuilder.js';
 
 export interface ProjectContext {
   projectId: string;
@@ -172,6 +175,7 @@ export class DataPipelineOrchestrator {
   private watershedQueue: Queue;
   private microclimateQueue: Queue;
   private soilRegenerationQueue: Queue;
+  private narrativeQueue: Queue;
   private terrainProcessor: TerrainAnalysisProcessor;
   private watershedProcessor: WatershedRefinementProcessor;
   private microclimateProcessor: MicroclimateProcessor;
@@ -195,6 +199,7 @@ export class DataPipelineOrchestrator {
     this.watershedQueue = new Queue('tier3-watershed', { connection: this.connOpts });
     this.microclimateQueue = new Queue('tier3-microclimate', { connection: this.connOpts });
     this.soilRegenerationQueue = new Queue('tier3-soil-regeneration', { connection: this.connOpts });
+    this.narrativeQueue = new Queue('narrative-generation', { connection: this.connOpts });
     this.terrainProcessor = new TerrainAnalysisProcessor(db);
     this.watershedProcessor = new WatershedRefinementProcessor(db);
     this.microclimateProcessor = new MicroclimateProcessor(db);
@@ -276,17 +281,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -327,17 +324,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -378,17 +367,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -429,17 +410,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -596,7 +569,7 @@ export class DataPipelineOrchestrator {
         await this.db`
           UPDATE project_layers SET
             fetch_status = 'failed',
-            metadata     = ${JSON.stringify({ error: message })},
+            metadata     = ${this.db.json({ error: message } as never) as unknown as string},
             fetched_at   = now()
           WHERE project_id = ${ctx.projectId} AND layer_type = ${layerType}
         `;
@@ -633,12 +606,12 @@ export class DataPipelineOrchestrator {
         confidence       = ${result.confidence},
         data_date        = ${result.dataDate},
         attribution_text = ${result.attributionText},
-        geojson_data     = ${result.geojsonData ? JSON.stringify(result.geojsonData) : null},
-        summary_data     = ${result.summaryData ? JSON.stringify(result.summaryData) : null},
+        geojson_data     = ${result.geojsonData ? this.db.json(result.geojsonData as never) as unknown as string : null},
+        summary_data     = ${result.summaryData ? this.db.json(result.summaryData as never) as unknown as string : null},
         raster_url       = ${result.rasterUrl ?? null},
         wms_url          = ${result.wmsUrl ?? null},
         wms_layers       = ${result.wmsLayers ?? null},
-        metadata         = ${result.metadata ? JSON.stringify(result.metadata) : null},
+        metadata         = ${result.metadata ? this.db.json(result.metadata as never) as unknown as string : null},
         fetched_at       = now()
       WHERE project_id = ${ctx.projectId} AND layer_type = ${result.layerType}
     `;
@@ -678,5 +651,91 @@ export class DataPipelineOrchestrator {
       UPDATE projects SET data_completeness_score = ${Math.round(score * 10) / 10}
       WHERE id = ${projectId}
     `;
+  }
+
+  /**
+   * Post-Tier-3 hook — runs the canonical assessment writer, and when it
+   * actually writes (not debounced/skipped) enqueues narrative generation.
+   * Writer + narrative failures never fail the calling Tier-3 worker.
+   */
+  private async handleTier3Completion(projectId: string): Promise<void> {
+    let wroteAssessment = false;
+    try {
+      const result = await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+      wroteAssessment = !!result && !result.skipped;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+        VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+      `.catch(() => { /* best-effort */ });
+    }
+
+    if (!wroteAssessment) return;
+    if (!claudeClient.isConfigured()) return;
+
+    try {
+      await this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+        VALUES (${projectId}, 'generate_narrative', 'queued')
+      `;
+      await this.narrativeQueue.add('generate_narrative', { projectId }, {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 15000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[narrative] enqueue failed for project ${projectId}: ${message}`);
+    }
+  }
+
+  /** Start the BullMQ worker that generates site narrative + design recommendation. */
+  startNarrativeWorker(): Worker {
+    return new Worker(
+      'narrative-generation',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status IN ('queued', 'failed')
+        `;
+
+        try {
+          const contextText = await buildNarrativeContext(this.db, projectId);
+          if (!contextText) {
+            throw new Error(`narrative context unavailable — project ${projectId} not found or has no layers`);
+          }
+
+          const [narrative, recommendation] = await Promise.all([
+            claudeClient.generateSiteNarrative({ projectId, contextText }),
+            claudeClient.generateDesignRecommendation({ projectId, contextText }),
+          ]);
+
+          await writeAiOutput(this.db, narrative);
+          await writeAiOutput(this.db, recommendation);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status = 'running'
+          `;
+          throw err;
+        }
+
+        await job.updateProgress(100);
+      },
+      { connection: this.connOpts, concurrency: 1 },
+    );
   }
 }

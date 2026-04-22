@@ -1768,3 +1768,63 @@ Audit item #3 called for "wire the Anthropic SDK + unstub ClaudeClient." I did N
 
 ### Recommended next session
 - Copy-writing for the 6 labels missing `SCORE_EXPLANATIONS` entries in `educationalBooklet.ts` (Habitat Sensitivity, Stewardship Readiness, Community Suitability, Design Complexity, FAO Land Suitability, USDA Land Capability) — surfaced in the earlier schema-lift decision as a deferred follow-up.
+
+## 2026-04-22 — Audit H-tier bundle: #14 / #12 / #13 / #9 / #10
+
+**Objective:** Close 5 H-tier audit items in one coherent bundle following the
+approved ordering 14 → 12 → 13 → 9 → 10.
+
+### Completed
+
+- **#14 Delete `useAssessment`** — confirmed zero callers; hook + `projectKeys.assessment` removed from `apps/web/src/hooks/useProjectQueries.ts`; `api.projects.assessment` client method retained.
+- **#12 Real Tier-3 parity** — audit claim of "zero `site_assessments` rows" was stale; DB probe found 2 projects. `scripts/verify-scoring-parity.ts 26b43c47-…` exits 0 with Δ=0.000 — writer/scorer parity confirmed on real layer data.
+- **#13 Narrative wiring** — migration 010 (`ai_outputs` table), `AiOutputWriter`, `NarrativeContextBuilder` (server-side equivalent of `features/ai/ContextBuilder.ts`), `narrativeQueue` + `startNarrativeWorker()` on `DataPipelineOrchestrator`, `handleTier3Completion` (consolidates 4 duplicated writer-invocation blocks across terrain/watershed/microclimate/soil-regen workers), `GET /projects/:id/ai-outputs`. Enqueue gated on `!result.skipped` + `claudeClient.isConfigured()` — dev-without-key safe.
+- **#9 fuzzyMCDM shared lift** — `packages/shared/src/scoring/fuzzyMCDM.ts` (identity lift from web); web-side file → shim; `ScoredResult.fuzzyFAO?` optional; `computeAssessmentScores(..., opts?: { scoringMode: 'crisp'|'fuzzy' })` with default `'crisp'` (zero-risk). 10 new tests.
+- **#10 Regional cost dataset** — `CostSource { citation, year, confidence, note? }` on every benchmark; split into `regionalCosts/US_MIDWEST.ts` + `regionalCosts/CA_ONTARIO.ts`; 19 rows with primary public citations (NRCS EQIP FY2024 CP327/CP380/CP382/CP512/CP614/CP638/CP643, USDA NASS 2022, Iowa State Ag Decision Maker 2024, USDA SARE, UVM Ext, NREL Q1 2024, USGS Groundwater, Fortier 2022, OMAFRA Pub 827, OSCIA 2024, Ontario Apple Growers 2023, Trees Ontario 2023, NRCan RETScreen 2024, Credit Valley CA). Remainder flagged `citation: null` + `confidence: 'low'` + explicit `note`. Derived regions inherit + decorate with multiplier note. 7 new tests audit the "cite or declare placeholder" contract.
+
+### Verification
+
+- `cd apps/api && npx tsc --noEmit` — clean.
+- `cd apps/web && npx tsc --noEmit` — clean.
+- `cd packages/shared && npx vitest run` — 68/68 (+10 fuzzy).
+- `cd apps/api && npx vitest run` — 477/477.
+- `cd apps/web && npx vitest run` — 381/381 (+7 cost-db).
+
+### Linter drive-by
+
+Resolved 3 pre-existing TS2345 errors at `DataPipelineOrchestrator.ts` lines 609/610/614 where a prior linter had auto-rewritten `JSON.stringify(...)` → `this.db.json(...) as unknown as string`. Reverted to HEAD's clean `JSON.stringify`.
+
+### Files changed
+
+- `apps/web/src/hooks/useProjectQueries.ts` — `useAssessment` + `projectKeys.assessment` removed.
+- `apps/api/src/db/migrations/010_ai_outputs.sql` — new.
+- `apps/api/src/services/ai/AiOutputWriter.ts` — new.
+- `apps/api/src/services/ai/NarrativeContextBuilder.ts` — new.
+- `apps/api/src/services/pipeline/DataPipelineOrchestrator.ts` — narrative queue + worker + `handleTier3Completion` + `JSON.stringify` revert.
+- `apps/api/src/app.ts` — `startNarrativeWorker()` wired.
+- `apps/api/src/routes/projects/index.ts` — `/ai-outputs` route.
+- `packages/shared/src/scoring/fuzzyMCDM.ts` — new.
+- `packages/shared/src/scoring/index.ts` — export fuzzyMCDM.
+- `packages/shared/src/scoring/computeScores.ts` — `FuzzyFAOResult` field on `ScoredResult`, `ComputeAssessmentScoresOptions`, opt-in branch.
+- `packages/shared/src/tests/fuzzyMCDM.test.ts` — new (10 tests).
+- `apps/web/src/lib/fuzzyMCDM.ts` — shim re-export from `@ogden/shared/scoring`.
+- `apps/web/src/features/financial/engine/types.ts` — `CostSource` interface + optional `source` field on 5 benchmark interfaces.
+- `apps/web/src/features/financial/engine/regionalCosts/US_MIDWEST.ts` — new.
+- `apps/web/src/features/financial/engine/regionalCosts/CA_ONTARIO.ts` — new.
+- `apps/web/src/features/financial/engine/costDatabase.ts` — rewritten as thin facade; derived regions auto-decorate sources.
+- `apps/web/src/tests/financial/costDatabase.test.ts` — new (7 tests).
+
+### Wiki updates
+
+- 3 new ADRs: `2026-04-22-ai-outputs-persistence.md`, `2026-04-22-fuzzymcdm-shared-integration.md`, `2026-04-22-regional-cost-dataset.md`.
+- `wiki/index.md` — decision links appended.
+
+### Deferred / follow-up
+
+- Web-side `AtlasAIPanel` not yet flipped to read `GET /ai-outputs` endpoint — left with existing client-side Claude path as fallback. Follow-up session should make the panel prefer the persisted outputs when present.
+- Apply migration `010_ai_outputs.sql` against local + staging DBs (additive, safe to run idempotently).
+- Replace placeholder "US × 1.20" Ontario cost rows with primary sources over time; tracked via the `citation: null` + `confidence: 'low'` marker.
+
+### Recommended next session
+
+- Audit item #11 (next H5 in the backlog), or the follow-up `AtlasAIPanel` wiring referenced above.

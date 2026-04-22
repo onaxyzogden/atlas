@@ -18,7 +18,6 @@ export const projectKeys = {
   all: ['projects'] as const,
   list: () => [...projectKeys.all, 'list'] as const,
   detail: (id: string) => [...projectKeys.all, 'detail', id] as const,
-  assessment: (id: string) => [...projectKeys.all, 'assessment', id] as const,
   completeness: (id: string) => [...projectKeys.all, 'completeness', id] as const,
 };
 
@@ -42,17 +41,6 @@ export function useProject(id: string) {
       return data;
     },
     enabled: !!id,
-  });
-}
-
-export function useAssessment(projectId: string) {
-  return useQuery({
-    queryKey: projectKeys.assessment(projectId),
-    queryFn: async () => {
-      const { data } = await api.projects.assessment(projectId);
-      return data;
-    },
-    enabled: !!projectId,
   });
 }
 

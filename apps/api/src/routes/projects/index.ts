@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CreateProjectInput, UpdateProjectInput, ProjectSummary, toCamelCase } from '@ogden/shared';
 import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.js';
 
 export default async function projectRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
@@ -221,6 +222,16 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         meta: undefined,
         error: null,
       };
+    },
+  );
+
+  // GET /projects/:id/ai-outputs — latest server-generated AI outputs (any role)
+  fastify.get<{ Params: { id: string } }>(
+    '/:id/ai-outputs',
+    { preHandler: [authenticate, resolveProjectRole] },
+    async (req) => {
+      const outputs = await getLatestAiOutputsForProject(db, req.projectId);
+      return { data: outputs, meta: undefined, error: null };
     },
   );
 

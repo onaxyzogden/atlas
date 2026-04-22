@@ -182,7 +182,8 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
         orchestrator.startWatershedWorker();
         orchestrator.startMicroclimateWorker();
         orchestrator.startSoilRegenerationWorker();
-        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed + tier3-microclimate + tier3-soil-regeneration)');
+        orchestrator.startNarrativeWorker();
+        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed + tier3-microclimate + tier3-soil-regeneration + narrative-generation)');
 
         // Relay Redis pub/sub broadcasts to local WebSocket connections
         const redisSub = subscribeBroadcast(redis, (projectId, event) => {

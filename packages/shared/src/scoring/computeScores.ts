@@ -19,6 +19,7 @@ import type { MockLayerResult } from './types.js';
 import { evaluateAssessmentRules } from './rules/index.js';
 import { semantic, confidence, water } from './tokens.js';
 import { computeHydrologyMetrics, computeWindEnergy } from './hydrologyMetrics.js';
+import { computeFuzzyFAOMembership, type FuzzyFAOResult } from './fuzzyMCDM.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -49,6 +50,22 @@ export interface ScoredResult {
   computedAt: string;
   /** Per-component breakdown showing contribution and source */
   score_breakdown: ScoreComponent[];
+  /**
+   * Fuzzy FAO S1–N2 membership vector. Populated only when
+   * `computeAssessmentScores` is called with `scoringMode: 'fuzzy'`, and only
+   * on the FAO Suitability entry. Consumers use this to draw membership bars
+   * beside the crisp class label; absent = crisp-mode output.
+   */
+  fuzzyFAO?: FuzzyFAOResult;
+}
+
+export interface ComputeAssessmentScoresOptions {
+  /**
+   * 'crisp' (default) — unchanged legacy behavior.
+   * 'fuzzy' — additionally computes `FuzzyFAOResult` and attaches it to the
+   * FAO Suitability entry. Crisp scores are untouched; this is purely additive.
+   */
+  scoringMode?: 'crisp' | 'fuzzy';
 }
 
 /** Backwards-compatible alias — SiteIntelligencePanel uses this type name */
@@ -215,6 +232,7 @@ export function computeAssessmentScores(
   acreage: number | null,
   country?: string,
   computedAt?: string,
+  opts?: ComputeAssessmentScoresOptions,
 ): ScoredResult[] {
   const _prevOverride = _computedAtOverride;
   if (computedAt !== undefined) _computedAtOverride = computedAt;
@@ -394,6 +412,20 @@ export function computeAssessmentScores(
     Math.max(0, forestSeqRate + wetlandSeqRate + soilSeqRate + cropPenalty) * 100,
   ) / 100;
 
+  const faoResult = computeFAOSuitability(soils, climate, elevation);
+  if (opts?.scoringMode === 'fuzzy') {
+    faoResult.fuzzyFAO = computeFuzzyFAOMembership({
+      pH: typeof soils?.summary?.ph === 'number' ? soils.summary.ph : null,
+      rootingDepthCm: typeof soils?.summary?.rooting_depth_cm === 'number' ? soils.summary.rooting_depth_cm : null,
+      slopeDeg: typeof elevation?.summary?.mean_slope_deg === 'number' ? elevation.summary.mean_slope_deg : null,
+      awcCmCm: typeof soils?.summary?.awc_cm_cm === 'number' ? soils.summary.awc_cm_cm : null,
+      ecDsM: typeof soils?.summary?.ec_ds_m === 'number' ? soils.summary.ec_ds_m : null,
+      cecCmolKg: typeof soils?.summary?.cec_cmol_kg === 'number' ? soils.summary.cec_cmol_kg : null,
+      gdd: typeof climate?.summary?.gdd === 'number' ? climate.summary.gdd : null,
+      drainageClass: typeof soils?.summary?.drainage_class === 'string' ? soils.summary.drainage_class : null,
+    });
+  }
+
   return [
     computeWaterResilience(climate, watershed, wetlands, watershedDerived, microclimate, hydroForScoring, groundwater, waterQuality, waterStress, aquifer, seasonalFlooding),
     computeAgriculturalSuitability(soils, climate, elevation, microclimate, lgpDaysForScoring, cropValidation),
@@ -404,7 +436,7 @@ export function computeAssessmentScores(
     computeCommunitySuitability(censusDemographics),
     computeDesignComplexity(elevation, wetlands, zoning, terrain, infrastructure),
     // Formal classification systems (Sprint D) — weight 0 in overall score
-    computeFAOSuitability(soils, climate, elevation),
+    faoResult,
     computeUSDALCC(soils, climate, elevation),
     // Sprint I: Canada Soil Capability Classification (weight 0, CA only)
     ...(country === 'CA' ? [computeCanadaSoilCapability(soils, climate, elevation)] : []),

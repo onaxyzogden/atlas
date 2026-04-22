@@ -1,100 +1,34 @@
 /**
- * Regional cost benchmarks — placeholder database.
+ * Regional cost database facade.
  *
- * All values are ESTIMATES based on publicly available construction
- * and agricultural cost indices. Not financial advice.
+ * Two base regions carry real (or explicitly-placeholder) data:
+ *   • US Midwest   → regionalCosts/US_MIDWEST.ts
+ *   • Ontario, CA  → regionalCosts/CA_ONTARIO.ts
  *
- * Two base regions populated: US Midwest and Ontario, Canada.
- * Other regions derive from US Midwest with regional multipliers.
+ * Every cost row carries a `source` block with either a public citation
+ * (NRCS EQIP, USDA NASS, OMAFRA, OSCIA, NREL, NRCan, UVM Ext, etc.) or an
+ * explicit `citation: null` + `confidence: 'low'` + `note` declaring it a
+ * placeholder. This is audit §6.10's "cite or leave null" contract.
+ *
+ * Other regions derive from US Midwest via REGION_MULTIPLIERS. Citations
+ * are inherited from US Midwest with an added "adjusted ×N for region" note
+ * at call time (see applyMultiplier).
  */
 
-import type { CostRegion, RegionalCostBenchmarks } from './types.js';
-import { costRange } from './types.js';
-
-// ── US Midwest (base region) ──
-
-const US_MIDWEST: RegionalCostBenchmarks = {
-  zones: {
-    habitation:      { costPerAcre: costRange(8000, 15000), description: 'Clearing, grading, drainage for building sites' },
-    food_production: { costPerAcre: costRange(3000, 8000), description: 'Soil amendment, irrigation prep, bed establishment' },
-    livestock:       { costPerAcre: costRange(2000, 5000), description: 'Pasture improvement, water points, shade structures' },
-    commons:         { costPerAcre: costRange(1500, 4000), description: 'Landscaping, seating areas, pathway prep' },
-    spiritual:       { costPerAcre: costRange(3000, 8000), description: 'Grading, contemplation garden, water features' },
-    education:       { costPerAcre: costRange(4000, 10000), description: 'Outdoor classroom, demonstration plots' },
-    retreat:         { costPerAcre: costRange(5000, 12000), description: 'Site prep for guest accommodation, landscaping' },
-    conservation:    { costPerAcre: costRange(500, 2000), description: 'Native planting, erosion control, minimal intervention' },
-    water_retention: { costPerAcre: costRange(4000, 12000), description: 'Pond excavation, swale construction, keyline work' },
-    infrastructure:  { costPerAcre: costRange(6000, 15000), description: 'Utility corridors, grading for roads/parking' },
-  },
-  fencing: {
-    electric:    { costPerMetre: costRange(3, 8) },
-    post_wire:   { costPerMetre: costRange(12, 22) },
-    post_rail:   { costPerMetre: costRange(25, 50) },
-    woven_wire:  { costPerMetre: costRange(15, 28) },
-    temporary:   { costPerMetre: costRange(1, 3) },
-    none:        { costPerMetre: costRange(0, 0) },
-  },
-  paths: {
-    main_road:        { costPerMetre: costRange(80, 160) },
-    secondary_road:   { costPerMetre: costRange(50, 100) },
-    emergency_access: { costPerMetre: costRange(60, 120) },
-    service_road:     { costPerMetre: costRange(40, 80) },
-    pedestrian_path:  { costPerMetre: costRange(15, 35) },
-    trail:            { costPerMetre: costRange(5, 15) },
-    farm_lane:        { costPerMetre: costRange(30, 60) },
-    animal_corridor:  { costPerMetre: costRange(8, 20) },
-    grazing_route:    { costPerMetre: costRange(3, 10) },
-    arrival_sequence: { costPerMetre: costRange(60, 140) },
-    quiet_route:      { costPerMetre: costRange(10, 25) },
-  },
-  utilities: {
-    solar_panel:     { systemCost: costRange(15000, 45000) },
-    battery_room:    { systemCost: costRange(8000, 25000) },
-    generator:       { systemCost: costRange(3000, 12000) },
-    water_tank:      { systemCost: costRange(3000, 15000) },
-    well_pump:       { systemCost: costRange(8000, 30000) },
-    greywater:       { systemCost: costRange(5000, 15000) },
-    septic:          { systemCost: costRange(12000, 30000) },
-    rain_catchment:  { systemCost: costRange(2000, 8000) },
-    lighting:        { systemCost: costRange(1500, 5000) },
-    firewood_storage:{ systemCost: costRange(500, 2000) },
-    waste_sorting:   { systemCost: costRange(1000, 3000) },
-    compost:         { systemCost: costRange(1500, 5000) },
-    biochar:         { systemCost: costRange(3000, 10000) },
-    tool_storage:    { systemCost: costRange(2000, 6000) },
-    laundry_station: { systemCost: costRange(2000, 8000) },
-  },
-  crops: {
-    orchard:          { establishmentPerAcre: costRange(8000, 18000) },
-    row_crop:         { establishmentPerAcre: costRange(2000, 5000) },
-    garden_bed:       { establishmentPerAcre: costRange(5000, 12000) },
-    food_forest:      { establishmentPerAcre: costRange(6000, 15000) },
-    windbreak:        { establishmentPerAcre: costRange(2000, 5000) },
-    shelterbelt:      { establishmentPerAcre: costRange(2500, 6000) },
-    silvopasture:     { establishmentPerAcre: costRange(3000, 8000) },
-    nursery:          { establishmentPerAcre: costRange(10000, 25000) },
-    market_garden:    { establishmentPerAcre: costRange(8000, 20000) },
-    pollinator_strip: { establishmentPerAcre: costRange(1500, 4000) },
-  },
-  structureMultiplier: 1.0,
-};
-
-// ── Ontario, Canada ──
-// Generally 10-30% higher than US Midwest due to CAD exchange,
-// building code differences, and shorter construction season.
-
-const CA_ONTARIO: RegionalCostBenchmarks = applyMultiplier(US_MIDWEST, 1.2);
+import type { CostRegion, RegionalCostBenchmarks, CostSource } from './types.js';
+import { US_MIDWEST } from './regionalCosts/US_MIDWEST.js';
+import { CA_ONTARIO } from './regionalCosts/CA_ONTARIO.js';
 
 // ── Regional Multipliers (relative to US Midwest) ──
 
 const REGION_MULTIPLIERS: Record<CostRegion, number> = {
-  'us-midwest': 1.0,
+  'us-midwest':   1.00,
   'us-northeast': 1.15,
   'us-southeast': 0.90,
-  'us-west': 1.25,
-  'ca-ontario': 1.20,
-  'ca-bc': 1.30,
-  'ca-prairies': 1.10,
+  'us-west':      1.25,
+  'ca-ontario':   1.20,
+  'ca-bc':        1.30,
+  'ca-prairies':  1.10,
 };
 
 // ── Public API ──
@@ -107,7 +41,7 @@ export function getCostBenchmarks(region: CostRegion): RegionalCostBenchmarks {
 
   let cached = BENCHMARKS_CACHE.get(region);
   if (!cached) {
-    cached = applyMultiplier(US_MIDWEST, REGION_MULTIPLIERS[region]);
+    cached = applyMultiplier(US_MIDWEST, REGION_MULTIPLIERS[region], region);
     BENCHMARKS_CACHE.set(region, cached);
   }
   return cached;
@@ -117,18 +51,39 @@ export function getCostBenchmarks(region: CostRegion): RegionalCostBenchmarks {
 
 function applyCostRangeMultiplier(cr: { low: number; mid: number; high: number }, mult: number) {
   return {
-    low: Math.round(cr.low * mult),
-    mid: Math.round(cr.mid * mult),
+    low:  Math.round(cr.low  * mult),
+    mid:  Math.round(cr.mid  * mult),
     high: Math.round(cr.high * mult),
   };
 }
 
-function applyMultiplier(base: RegionalCostBenchmarks, mult: number): RegionalCostBenchmarks {
+/**
+ * Decorate an inherited source with the multiplier note so downstream callers
+ * know the value was derived rather than primary-sourced for the region.
+ */
+function adjustSource(src: CostSource | undefined, mult: number, region: CostRegion): CostSource {
+  const suffix = ` (adjusted ×${mult.toFixed(2)} for ${region})`;
+  if (!src) return { citation: null, year: null, confidence: 'low', note: `placeholder — derived from US Midwest × ${mult.toFixed(2)}` };
+  return {
+    citation: src.citation ? `${src.citation}${suffix}` : null,
+    year: src.year,
+    // Derived regions are at most 'medium' confidence — multiplier is coarse.
+    confidence: src.confidence === 'high' ? 'medium' : src.confidence,
+    note: src.note ? `${src.note}; derived ×${mult.toFixed(2)} for ${region}` : `derived ×${mult.toFixed(2)} from US Midwest`,
+  };
+}
+
+function applyMultiplier(
+  base: RegionalCostBenchmarks,
+  mult: number,
+  region: CostRegion,
+): RegionalCostBenchmarks {
   const zones: RegionalCostBenchmarks['zones'] = {};
   for (const [k, v] of Object.entries(base.zones)) {
     zones[k as keyof typeof base.zones] = {
       costPerAcre: applyCostRangeMultiplier(v!.costPerAcre, mult),
       description: v!.description,
+      source: adjustSource(v!.source, mult, region),
     };
   }
 
@@ -136,6 +91,7 @@ function applyMultiplier(base: RegionalCostBenchmarks, mult: number): RegionalCo
   for (const [k, v] of Object.entries(base.fencing)) {
     fencing[k as keyof typeof base.fencing] = {
       costPerMetre: applyCostRangeMultiplier(v.costPerMetre, mult),
+      source: adjustSource(v.source, mult, region),
     };
   }
 
@@ -143,6 +99,7 @@ function applyMultiplier(base: RegionalCostBenchmarks, mult: number): RegionalCo
   for (const [k, v] of Object.entries(base.paths)) {
     paths[k as keyof typeof base.paths] = {
       costPerMetre: applyCostRangeMultiplier(v.costPerMetre, mult),
+      source: adjustSource(v.source, mult, region),
     };
   }
 
@@ -150,6 +107,7 @@ function applyMultiplier(base: RegionalCostBenchmarks, mult: number): RegionalCo
   for (const [k, v] of Object.entries(base.utilities)) {
     utilities[k as keyof typeof base.utilities] = {
       systemCost: applyCostRangeMultiplier(v.systemCost, mult),
+      source: adjustSource(v.source, mult, region),
     };
   }
 
@@ -157,8 +115,12 @@ function applyMultiplier(base: RegionalCostBenchmarks, mult: number): RegionalCo
   for (const [k, v] of Object.entries(base.crops)) {
     crops[k as keyof typeof base.crops] = {
       establishmentPerAcre: applyCostRangeMultiplier(v.establishmentPerAcre, mult),
+      source: adjustSource(v.source, mult, region),
     };
   }
 
   return { zones, fencing, paths, utilities, crops, structureMultiplier: mult };
 }
+
+// Re-exports for direct access to base regions (used by tests + audit reports).
+export { US_MIDWEST, CA_ONTARIO };
