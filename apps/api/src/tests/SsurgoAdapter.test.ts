@@ -120,7 +120,7 @@ describe('Weighted average computation', () => {
         bulk_density_g_cm3: 1.35, ksat_um_s: 14.0, kfact: 0.32, awc_cm_cm: 0.18,
         rooting_depth_cm: 100, claytotal_r: 18, silttotal_r: 42, sandtotal_r: 40,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 1.0,
-        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, texture_description: 'Silt loam',
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, base_saturation_pct: null, texture_description: 'Silt loam',
         drainage_class: 'Well drained', taxonomy_class: 'Udorthents',
         component_name: 'Urban land', component_pct: 60,
       },
@@ -130,7 +130,7 @@ describe('Weighted average computation', () => {
         bulk_density_g_cm3: 1.28, ksat_um_s: 8.5, kfact: 0.28, awc_cm_cm: 0.22,
         rooting_depth_cm: 120, claytotal_r: 35, silttotal_r: 45, sandtotal_r: 20,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 0.5,
-        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, texture_description: 'Silty clay loam',
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, base_saturation_pct: null, texture_description: 'Silty clay loam',
         drainage_class: 'Well drained', taxonomy_class: 'Paleudults',
         component_name: 'Christiana', component_pct: 40,
       },
@@ -157,6 +157,57 @@ describe('Weighted average computation', () => {
     expect(result.ph).toBeNull();
     expect(result.organic_matter_pct).toBeNull();
     expect(result.drainage_class).toBeNull();
+    expect(result.base_saturation_pct).toBeNull();
+  });
+
+  it('weights base_saturation_pct by comppct_r (NH4OAc pH 7 method pairs with cec7_r)', () => {
+    // Two-component 70/30 split with base sat 55% and 80%.
+    // Expected: (55*70 + 80*30) / 100 = 62.5
+    const rows = [
+      {
+        mukey: 'A', comppct_r: 70, hzdept_r: 0, hzdepb_r: 25,
+        ph: 6.5, organic_matter_pct: 3, cec_meq_100g: 15, ec_ds_m: 0.2,
+        bulk_density_g_cm3: 1.3, ksat_um_s: 10, kfact: 0.3, awc_cm_cm: 0.2,
+        rooting_depth_cm: 120, claytotal_r: 22, silttotal_r: 48, sandtotal_r: 30,
+        caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 0.5,
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0,
+        base_saturation_pct: 55, texture_description: 'Loam',
+        drainage_class: 'Well drained', taxonomy_class: 'Hapludalf',
+        component_name: 'Miami', component_pct: 70,
+      },
+      {
+        mukey: 'B', comppct_r: 30, hzdept_r: 0, hzdepb_r: 25,
+        ph: 7.1, organic_matter_pct: 2, cec_meq_100g: 20, ec_ds_m: 0.3,
+        bulk_density_g_cm3: 1.4, ksat_um_s: 8, kfact: 0.28, awc_cm_cm: 0.19,
+        rooting_depth_cm: 110, claytotal_r: 30, silttotal_r: 40, sandtotal_r: 30,
+        caco3_pct: 2, gypsum_pct: 0, sodium_adsorption_ratio: 0.8,
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0,
+        base_saturation_pct: 80, texture_description: 'Clay loam',
+        drainage_class: 'Moderately well drained', taxonomy_class: 'Hapludoll',
+        component_name: 'Crosby', component_pct: 30,
+      },
+    ];
+
+    const result = computeWeightedAverages(rows);
+    expect(result.base_saturation_pct).toBeCloseTo(62.5, 1);
+  });
+
+  it('returns null base_saturation_pct when all rows are null (legacy pre-basesat jsonb)', () => {
+    const rows = [
+      {
+        mukey: 'A', comppct_r: 100, hzdept_r: 0, hzdepb_r: 25,
+        ph: 6.5, organic_matter_pct: 3, cec_meq_100g: 15, ec_ds_m: 0.2,
+        bulk_density_g_cm3: 1.3, ksat_um_s: 10, kfact: 0.3, awc_cm_cm: 0.2,
+        rooting_depth_cm: 120, claytotal_r: 22, silttotal_r: 48, sandtotal_r: 30,
+        caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 0.5,
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0,
+        base_saturation_pct: null, texture_description: 'Loam',
+        drainage_class: 'Well drained', taxonomy_class: 'Hapludalf',
+        component_name: 'Miami', component_pct: 100,
+      },
+    ];
+    const result = computeWeightedAverages(rows);
+    expect(result.base_saturation_pct).toBeNull();
   });
 });
 

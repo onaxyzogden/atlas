@@ -76,6 +76,7 @@ export const soilsSummarySchema = z
     sodium_adsorption_ratio: numOrNull.optional(),
     kfact: numOrNull.optional(),
     coarse_fragment_pct: numOrNull.optional(),
+    base_saturation_pct: numOrNull.optional(),
     texture_class: strOrNull.optional(),
     fertility_index: numOrNull.optional(),
     salinization_risk: strOrNull.optional(),

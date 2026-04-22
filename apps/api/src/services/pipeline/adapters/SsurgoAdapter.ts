@@ -59,6 +59,7 @@ interface HorizonRow {
   sodium_adsorption_ratio: number | null;
   frag3to10_pct: number | null;
   fraggt10_pct: number | null;
+  base_saturation_pct: number | null;
   surface_stoniness: string | null;
   texture_description: string | null;
   drainage_class: string | null;
@@ -118,6 +119,8 @@ interface SoilSummary {
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
   coarse_fragment_pct: number | null;
+  /** Base saturation by NH4OAc pH 7.0 method — pairs with `cec_meq_100g` (cec7_r). */
+  base_saturation_pct: number | null;
   surface_stoniness: string | null;
 
   // Derived
@@ -224,6 +227,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
   coarse_fragment_pct: number | null;
+  base_saturation_pct: number | null;
   // Categorical (dominant)
   drainage_class: string | null;
   texture_description: string | null;
@@ -237,7 +241,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
-      coarse_fragment_pct: null,
+      coarse_fragment_pct: null, base_saturation_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -250,7 +254,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       bulk_density_g_cm3: null, ksat_um_s: null, kfact: null, awc_cm_cm: null,
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
-      coarse_fragment_pct: null,
+      coarse_fragment_pct: null, base_saturation_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -297,6 +301,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       if (a === null && b === null) return null;
       return Math.round(((a ?? 0) + (b ?? 0)) * 10) / 10;
     })(),
+    base_saturation_pct: weightedAvg('base_saturation_pct'),
     drainage_class: dominant.drainage_class ?? null,
     texture_description: dominant.texture_description ?? null,
     taxonomy_class: dominant.taxonomy_class ?? null,
@@ -589,6 +594,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
              h.sar_r AS sodium_adsorption_ratio,
              h.frag3to10_r AS frag3to10_pct,
              h.fraggt10_r AS fraggt10_pct,
+             h.basesat_r AS base_saturation_pct,
              c.drainagecl AS drainage_class,
              c.taxclname AS taxonomy_class,
              c.compname AS component_name,
@@ -608,7 +614,8 @@ export class SsurgoAdapter implements DataSourceAdapter {
       'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3',
       'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r',
       'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct',
-      'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'drainage_class', 'taxonomy_class',
+      'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'base_saturation_pct',
+      'drainage_class', 'taxonomy_class',
       'component_name', 'component_pct',
     ]);
 
@@ -767,6 +774,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
       gypsum_pct: weighted.gypsum_pct,
       sodium_adsorption_ratio: weighted.sodium_adsorption_ratio,
       coarse_fragment_pct: weighted.coarse_fragment_pct,
+      base_saturation_pct: weighted.base_saturation_pct,
       surface_stoniness: weighted.surface_stoniness,
       texture_class: textureClass,
       fertility_index: fertilityIndex,
@@ -841,6 +849,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
         gypsum_pct: null,
         sodium_adsorption_ratio: null,
         coarse_fragment_pct: null,
+        base_saturation_pct: null,
         surface_stoniness: null,
         texture_class: null,
         fertility_index: null,

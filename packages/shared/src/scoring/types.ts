@@ -75,6 +75,8 @@ export interface SoilsSummary {
   sodium_adsorption_ratio?: number | null;
   kfact?: number | null;
   coarse_fragment_pct?: number | null;
+  /** Base saturation % by NH4OAc pH 7.0 method (SSURGO `basesat_r`). Pairs with `cec_meq_100g` which uses the same pH 7 extraction. */
+  base_saturation_pct?: number | null;
   texture_class?: string | null;
   fertility_index?: number | null;
   salinization_risk?: string | null;

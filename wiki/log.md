@@ -4,6 +4,32 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-21 — SSURGO `basesat_r` base-saturation field wired (audit H5 #4 partial)
+
+Closes the base-saturation half of audit H5 item #4 (`chfrags` still deferred —
+the existing `frag3to10_r + fraggt10_r` sum is a reasonable proxy without real
+site validation to justify a rework). `SsurgoAdapter.ts` horizon query now pulls
+`h.basesat_r AS base_saturation_pct`; field carried through `HorizonRow`,
+`computeWeightedAverages`, adapter-internal `SoilSummary`, and the final
+`AdapterResult.summaryData`. Shared `SoilsSummary` + zod `soilsSummarySchema`
+gained an optional `base_saturation_pct?: number | null`.
+
+Disambiguation choice: **`basesat_r`**, not `basesatall_r`. Reason: the adapter
+already uses `cec7_r` (CEC by NH4OAc pH 7.0 extraction), and base saturation
+needs to use the same method's extractant to be comparable — `basesat_r` is
+the NH4OAc pH 7 match; `basesatall_r` is the sum-of-cations alternative which
+pairs with `cec_r` (ECEC) instead. Mixing methods gives meaningless ratios.
+
+Also close: zombie `useAssessment` hook in `apps/web/src/hooks/useProjectQueries.ts`
+deleted alongside its `api.projects.assessment()` client method (audit §5.2 /
+item #14) — the server route stays (tested, real). Web consumer to be re-added
+when the first real Tier-3 run produces rows to read back.
+
+Tests: api 467/467 (+2 SSURGO weighted-avg tests — 70/30 split, all-null
+fallback), shared 67/67, web 374/374. tsc clean across all three.
+
+---
+
 ## 2026-04-21 — Scoring type contract extended to watershed + land_cover (6/40 typed)
 
 Followup tightening of the discriminated-union + zod-validator pattern
