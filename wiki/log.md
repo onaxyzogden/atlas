@@ -4,6 +4,40 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-21 pm — Session debrief (scoring type contract tighten + audit sweep)
+
+**Completed (three commits on claude/crazy-hopper-3b6f92):**
+- `ef83324` — Scoring type contract extended from 4 → 6 typed `LayerType`
+  variants (`watershed`, `land_cover`). Zod schemas + dispatcher cases + 3
+  watershed fetcher normalizations (sentinels → null, `nearest_stream_note`
+  split) + CA mock fixture + 6 new tests (shared +4, api +2).
+- `d9c5fd3` — Deleted zombie `useAssessment` hook + `api.projects.assessment()`
+  client method. Closes audit §5.2 / item #14. Server route stays (tested).
+- `381d83a` — SSURGO `basesat_r` base-saturation field wired end-to-end.
+  Closes the base-saturation half of audit H5 #4. Disambiguation rationale
+  documented: paired with existing `cec7_r` (NH4OAc pH 7.0) for method
+  consistency. 2 new weighted-avg tests.
+
+**Verified across all three commits:** packages/shared 67/67, apps/api
+467/467 (was 465 start-of-session), apps/web 374/374. tsc clean.
+
+**Deferred:**
+- 34 `LayerType` variants still untyped (candidates: `zoning`, `infrastructure`,
+  `groundwater`, `water_quality`, `aquifer`). Same pattern as 6-typed set.
+- 15+ consumer files carry local duplicate Watershed/LandCover interfaces —
+  compiling via `getLayerSummary<T>` unsafe cast. Mechanical delete-and-import.
+- `chfrags` coarse-fragment rework (second half of H5 #4) — current
+  `frag3to10 + fraggt10` sum is a reasonable proxy without site-level validation.
+- Validator-coercion telemetry: `coerced to null` pino logs aren't aggregated.
+
+**Recommended next session:** Audit top-10 still-open: #7 NwisGroundwaterAdapter
+(~6h, self-contained new adapter), #6 Real zoning for US parcels (~1d), #9
+fuzzyMCDM integration into shared scorer (~1d), #12 real Tier-3 run + parity
+close-loop (~2h, needs live DB/worker). #12 is smallest and proves the
+SiteAssessmentWriter path end-to-end — prime candidate.
+
+---
+
 ## 2026-04-21 — SSURGO `basesat_r` base-saturation field wired (audit H5 #4 partial)
 
 Closes the base-saturation half of audit H5 item #4 (`chfrags` still deferred —

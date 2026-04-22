@@ -150,11 +150,9 @@ Three items that are technical debt but not urgent (none are blocking live users
 - **Invisible because:** zero `site_assessments` rows currently exist.
 - **Fix path:** in the filed schema-lift plan — iterate `a.score_breakdown: ScoredResult[]` and render per-component breakdowns correctly.
 
-### 5.2 Zombie fetch hook
+### 5.2 Zombie fetch hook — RESOLVED (delete path, 2026-04-21 pm)
 - **Severity:** Low (dead code, not broken code).
-- **File:** `apps/web/src/hooks/useProjectQueries.ts:48` (`useAssessment`).
-- **Symptom:** hook defined, never called anywhere.
-- **Fix path:** either wire into `SiteIntelligencePanel` as a history-persistence readback (so users see which assessment version they're looking at) or delete the hook + `api.projects.assessment(…)` method from `apiClient.ts` (line 140).
+- **Resolution:** Deleted `useAssessment` + `api.projects.assessment()` in commit `d9c5fd3`. The server route `GET /projects/:id/assessment` stays (tested, real). Re-add a web consumer when item #12 (first real Tier-3 run) produces rows worth reading back.
 
 ### 5.3 Shared scorer → DB column mapping is stringly-typed
 - **Severity:** Guarded — renaming a label in `packages/shared/src/scoring/computeScores.ts` will throw loudly at INSERT time thanks to `scoreByLabel` runtime assertion.
@@ -197,7 +195,7 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 1. ~~Fix wiki/log accuracy + CLAUDE.md store count.~~ **DONE** 2026-04-20.
 2. ~~NasaPowerAdapter (solar + wind + RH).~~ **DONE** 2026-04-20.
 3. ~~Wire Anthropic SDK + unstub ClaudeClient.~~ **DONE** 2026-04-20 (fetch-based, not SDK-based).
-4. **SSURGO coarse fragments + `basesat_r` / `basesatall_r` disambiguation.** Still pending. Horizons + restrictive layer landed 2026-04-21; `chfrags` and `basesat` disambiguation deferred. *~4 h.*
+4. **SSURGO coarse fragments + `basesat_r` / `basesatall_r` disambiguation.** Base-saturation half CLOSED 2026-04-21 pm (commit `381d83a`): `basesat_r` chosen to match `cec7_r`'s NH4OAc pH 7.0 extraction. `chfrags` coarse-fragment rework still deferred — current `frag3to10 + fraggt10` sum is a reasonable proxy without site-level validation. *~2 h remaining.*
 5. ~~FAO56 Penman-Monteith PET.~~ **DONE** 2026-04-20, threaded through 2026-04-21.
 6. **Real zoning for US parcels** (`UsCountyGisAdapter` extension). Still pending. *~1 day.*
 7. **NwisGroundwaterAdapter.** Still pending. *~6 h.*
@@ -213,7 +211,7 @@ Updating the 04-19 priority list with execution results. Strikethrough = done.
 
 **13. Call `generateSiteNarrative` + `generateDesignRecommendation` from somewhere.** The methods exist; nothing invokes them. Wire into a narrative BullMQ job post-assessment-write, or into the AtlasAI panel via a server-side route. *~½ day.*
 
-**14. Delete or wire `useAssessment`.** Zombie hook — decide. *~1 h either way.*
+**14. ~~Delete or wire `useAssessment`.~~** DONE 2026-04-21 pm — deleted (commit `d9c5fd3`).
 
 **15. Extend `Country` type + register NasaPowerAdapter** in `ADAPTER_REGISTRY`. Unblocks international expansion. Touches many files (type cascade). *~1 day.*
 
