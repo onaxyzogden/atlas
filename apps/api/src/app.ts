@@ -72,6 +72,12 @@ import moontranceVisionRoutes from './routes/moontrance-vision/index.js';
 import timelinePhasingRoutes from './routes/timeline-phasing/index.js';
 import simulationScenariosRoutes from './routes/simulation-scenarios/index.js';
 
+// ── Scaffolded sections (Batch 5: §§17, 18, 21, 22) ──
+import designRulesRoutes from './routes/design-rules/index.js';
+import aiDesignSupportRoutes from './routes/ai-design-support/index.js';
+import decisionFeasibilityRoutes from './routes/decision-feasibility/index.js';
+import economicModelingRoutes from './routes/economic-modeling/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -159,6 +165,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(moontranceVisionRoutes,     { prefix: '/api/v1/moontrance-vision' });
   await app.register(timelinePhasingRoutes,      { prefix: '/api/v1/timeline-phasing' });
   await app.register(simulationScenariosRoutes,  { prefix: '/api/v1/simulation-scenarios' });
+
+  // ── Scaffolded sections (Batch 5: §§17, 18, 21, 22) ──
+  await app.register(designRulesRoutes,          { prefix: '/api/v1/design-rules' });
+  await app.register(aiDesignSupportRoutes,      { prefix: '/api/v1/ai-design-support' });
+  await app.register(decisionFeasibilityRoutes,  { prefix: '/api/v1/decision-feasibility' });
+  await app.register(economicModelingRoutes,     { prefix: '/api/v1/economic-modeling' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
