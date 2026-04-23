@@ -32,6 +32,8 @@ import type {
   AssessmentResponse,
   HydrologyWaterResponse,
   BasemapTerrainResponse,
+  ElevationProfileRequest,
+  ElevationProfileResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -410,5 +412,15 @@ export const api = {
   basemapTerrain: {
     get: (projectId: string) =>
       request<BasemapTerrainResponse>('GET', `/api/v1/basemap-terrain/${projectId}`),
+    viewshed: (projectId: string) =>
+      request<{ status: 'ready'; geojson: GeoJSON.FeatureCollection } | { status: 'not_ready' }>(
+        'GET',
+        `/api/v1/basemap-terrain/${projectId}/viewshed`,
+      ),
+  },
+
+  elevation: {
+    profile: (input: ElevationProfileRequest) =>
+      request<ElevationProfileResponse>('POST', '/api/v1/elevation/profile', input),
   },
 };

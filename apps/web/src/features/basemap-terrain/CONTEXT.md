@@ -55,6 +55,25 @@ See the "Cross-section dependencies" row below.
 - Sections 3 (Data Layers), 5 (Hydrology), 7 (Soil/Ecology), 9 (Structures),
   10 (Access), 12 (Crops) compose overlays onto this canvas
 
+## Phase 3 additions (2026-04-23)
+- `features/map/ViewModeSwitcher.tsx` — 2D/2.5D/3D control. Wired into MapView
+  top-left stack. 2.5D calls `map.easeTo({ pitch: 45 })`; 3D flips
+  `is3DTerrain` → mounts CesiumTerrainViewer.
+- `features/map/CrossSectionTool.tsx` — activates MapboxDraw line mode, POSTs
+  the drawn LineString to `POST /api/v1/elevation/profile`, renders the
+  returned samples as an inline SVG chart in a floating bottom panel.
+- `features/map/ViewshedOverlay.tsx` (+ `ViewshedToggle`) — fetches
+  `GET /api/v1/basemap-terrain/:projectId/viewshed` and renders the stored
+  viewshed GeoJSON as a translucent fill layer on MapCanvas.
+- API additions: `POST /api/v1/elevation/profile` (bilinear line sampling
+  against the country-appropriate DEM) and
+  `GET /api/v1/basemap-terrain/:projectId/viewshed` (raw GeoJSON read-out).
+- Shared: `ElevationProfileRequest` / `ElevationProfileResponse` zod schemas
+  (`packages/shared/src/schemas/elevation.schema.ts`).
+- Honest gap: the observer-point for the viewshed is still owned by the Tier-3
+  pipeline — there is no click-to-place UX yet, so users see the
+  pre-computed viewshed only. Observer editing is a follow-up.
+
 ## Orphaned components
 The following components exist under `features/map/` but are not yet mounted
 anywhere. Picking them up is a prerequisite for flipping the related manifest

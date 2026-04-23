@@ -13,6 +13,7 @@ export * from './schemas/portal.schema.js';
 export * from './schemas/collaboration.schema.js';
 export * from './schemas/websocket.schema.js';
 export * from './schemas/section2.schema.js';
+export * from './schemas/elevation.schema.js';
 export * from './schemas/section5.schema.js';
 
 // Utilities

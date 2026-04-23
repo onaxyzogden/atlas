@@ -35,6 +35,10 @@ import './mapRailDashboard.css';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
+const ViewModeSwitcher = lazy(() => import('./ViewModeSwitcher.js'));
+const CrossSectionTool = lazy(() => import('./CrossSectionTool.js'));
+const ViewshedOverlay = lazy(() => import('./ViewshedOverlay.js'));
+const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ default: m.ViewshedToggle })));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -252,6 +256,34 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             onMarkerCreated={(m) => setMarkerRef(m)}
           />
         </ErrorBoundary>
+
+        {/* §2 — view-mode (2D / 2.5D / 3D), cross-section, and viewshed tools
+            stacked top-left beneath the project card. */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 70,
+            left: 12,
+            zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            pointerEvents: 'none',
+          }}
+        >
+          <Suspense fallback={null}>
+            <ViewModeSwitcher onPitch={(deg) => mapRef?.easeTo({ pitch: deg, duration: 400 })} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <CrossSectionTool projectId={project.id} map={mapRef} draw={drawRef} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <ViewshedToggle />
+          </Suspense>
+        </div>
+        <Suspense fallback={null}>
+          <ViewshedOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
 
         {/* Sprint CB — map-side GAEZ v4 suitability overlay + picker. */}
         <ErrorBoundary>

@@ -3,6 +3,7 @@ import type { LayerType } from '@ogden/shared';
 
 export type MapStyle = 'satellite' | 'terrain' | 'topographic' | 'street' | 'hybrid';
 export type DrawMode = 'none' | 'polygon' | 'line' | 'point';
+export type ViewMode = '2d' | '2.5d' | '3d';
 
 // Sprint CB — map-side FAO GAEZ v4 suitability overlay selection.
 // Drives GaezOverlay: picking a (crop, waterSupply, inputLevel) tuple re-fetches
@@ -48,6 +49,16 @@ interface MapState {
   // 3D terrain (Cesium)
   is3DTerrain: boolean;
   set3DTerrain: (v: boolean) => void;
+
+  // §2 view-mode control. '2d' = top-down MapLibre (pitch 0). '2.5d' = MapLibre
+  // pitched to 45°. '3d' = Cesium globe overlay (flips is3DTerrain on).
+  viewMode: ViewMode;
+  setViewMode: (m: ViewMode) => void;
+
+  // §2 viewshed overlay toggle — when on, MapCanvas fetches the stored
+  // viewshed_geojson from the basemap-terrain route and renders it.
+  viewshedVisible: boolean;
+  setViewshedVisible: (v: boolean) => void;
 
   // UI state
   isMeasuring: boolean;
@@ -98,6 +109,13 @@ export const useMapStore = create<MapState>((set) => ({
 
   is3DTerrain: false,
   set3DTerrain: (is3DTerrain) => set({ is3DTerrain }),
+
+  viewMode: '2d',
+  setViewMode: (viewMode) =>
+    set({ viewMode, is3DTerrain: viewMode === '3d' }),
+
+  viewshedVisible: false,
+  setViewshedVisible: (viewshedVisible) => set({ viewshedVisible }),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),

@@ -158,6 +158,34 @@ export default async function basemap_terrainRoutes(fastify: FastifyInstance) {
       };
     },
   );
+
+  /**
+   * GET /:projectId/viewshed
+   *
+   * Returns the raw viewshed GeoJSON written by the Tier-3 TerrainAnalysis
+   * processor so the UI can render it as a fill layer on the map. Separate
+   * endpoint to keep the payload out of the summary response — viewsheds can
+   * be several hundred kB.
+   */
+  fastify.get<{ Params: { projectId: string } }>(
+    '/:projectId/viewshed',
+    { preHandler: [authenticate, fastify.requirePhase('P2'), resolveProjectRole] },
+    async (req, reply) => {
+      const [row] = await db<{ viewshed_geojson: unknown | null }[]>`
+        SELECT viewshed_geojson
+        FROM terrain_analysis
+        WHERE project_id = ${req.projectId}
+      `;
+      if (!row?.viewshed_geojson) {
+        return reply.send({ data: { status: 'not_ready' as const }, meta: undefined, error: null });
+      }
+      return reply.send({
+        data: { status: 'ready' as const, geojson: row.viewshed_geojson as GeoJSON.FeatureCollection },
+        meta: undefined,
+        error: null,
+      });
+    },
+  );
 }
 
 const BASEMAP_STYLES = [
