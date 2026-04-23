@@ -43,6 +43,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
   const [open, setOpen] = useState(false);
   const [releases, setReleases] = useState<Release[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [tileStatus, setTileStatus] = useState<'idle' | 'loading' | 'ok' | 'empty'>('idle');
 
   useEffect(() => {
     if (releases || err) return;
@@ -62,6 +63,25 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
       })
       .catch((e: Error) => setErr(e.message));
   }, [releases, err]);
+
+  // Track tile success/empty once per release selection.
+  useEffect(() => {
+    if (!map || !release) { setTileStatus('idle'); return; }
+    setTileStatus('loading');
+    let gotTiles = false;
+    const onData = (e: maplibregl.MapSourceDataEvent) => {
+      if (e.sourceId === SOURCE_ID && e.isSourceLoaded && e.sourceDataType !== 'metadata') {
+        gotTiles = true;
+        setTileStatus('ok');
+      }
+    };
+    map.on('sourcedata', onData);
+    const timer = setTimeout(() => { if (!gotTiles) setTileStatus('empty'); }, 5000);
+    return () => {
+      map.off('sourcedata', onData);
+      clearTimeout(timer);
+    };
+  }, [map, release]);
 
   // Sync raster + boundary overlay to the map.
   useEffect(() => {
@@ -136,7 +156,13 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen((v) => !v)} style={btnStyle} aria-pressed={!!release}>
-        {release ? `Historical · ${release.date}` : 'Historical'}
+        {release
+          ? tileStatus === 'loading'
+            ? `Historical · ${release.date} · …`
+            : tileStatus === 'empty'
+            ? `Historical · ${release.date} · no coverage`
+            : `Historical · ${release.date}`
+          : 'Historical'}
       </button>
       {open && (
         <div

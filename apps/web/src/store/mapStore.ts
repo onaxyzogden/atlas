@@ -81,6 +81,9 @@ interface MapState {
   // from Overpass within the parcel bbox. Each key is independent.
   osmLayersVisible: { roads: boolean; water: boolean; buildings: boolean };
   setOsmLayerVisible: (k: 'roads' | 'water' | 'buildings', v: boolean) => void;
+  osmOverlayStatus: 'idle' | 'loading' | 'ready' | 'error';
+  osmOverlayError: string | null;
+  setOsmOverlayStatus: (s: 'idle' | 'loading' | 'ready' | 'error', err?: string | null) => void;
 
   // UI state
   isMeasuring: boolean;
@@ -153,6 +156,10 @@ export const useMapStore = create<MapState>((set) => ({
   osmLayersVisible: { roads: false, water: false, buildings: false },
   setOsmLayerVisible: (k, v) =>
     set((state) => ({ osmLayersVisible: { ...state.osmLayersVisible, [k]: v } })),
+  osmOverlayStatus: 'idle',
+  osmOverlayError: null,
+  setOsmOverlayStatus: (osmOverlayStatus, err = null) =>
+    set({ osmOverlayStatus, osmOverlayError: err }),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),

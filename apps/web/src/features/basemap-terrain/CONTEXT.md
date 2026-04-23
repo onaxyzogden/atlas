@@ -89,14 +89,16 @@ See the "Cross-section dependencies" row below.
 - `store/mapStore.ts` adds `historicalRelease`, `splitScreenActive`,
   `splitScreenStyle` + setters.
 - Honest gaps:
-  - Wayback coverage is global but *not* every date has imagery for every
-    parcel — the tile server returns blanks in those cases. No empty-state
-    UI yet.
   - Split-screen right pane has no measurement or draw tools — it's a
     visual diff only. `mirrorFeatures` reflects what the user drew on the
-    primary map, but they cannot interact with it.
-  - Move sync is jump-based (not interpolated) — during fast pans the
-    compare pane can look choppy.
+    primary map, but they cannot interact with it. (Intentional scope.)
+- Gap closures (2026-04-23):
+  - **Wayback empty coverage**: the control now tracks `sourcedata` events
+    and flips the button label to `no coverage` if no tiles arrive within
+    5 s of selecting a release. (Was: silent blanks.)
+  - **Move sync smoothness**: sync is now throttled via
+    `requestAnimationFrame` so fast pans coalesce into one jumpTo per
+    frame. (Was: one jumpTo per `move` tick.)
 
 ## Phase 5 additions (2026-04-23)
 §2 fully closed out — remaining partials flipped to done.
@@ -115,28 +117,28 @@ See the "Cross-section dependencies" row below.
   against the country-appropriate DEM, behind the same P2 gate as profile.
 - Shared: `ElevationPointRequest` / `ElevationPointResponse` in
   `packages/shared/src/schemas/elevation.schema.ts`.
-- Honest gaps:
-  - Overpass rate-limits aggressively; the fetch is best-effort with no retry
-    or local cache. Large parcels may hit the 25-second timeout.
+- Honest gaps (remaining, intentionally deferred):
   - Layer **ordering** UI is implicit — OSM layers render above basemap and
     below draw/measurement in add-order; there's no drag-to-reorder panel.
-    The spec said "ordering, opacity controls" — ordering is de facto, opacity
-    is explicit.
-  - `EnvironmentOverlays` and `LayerPanel` remain orphaned. They targeted a
-    Mapbox `composite` source that our MapTiler styles don't expose. OSM via
-    Overpass replaces them functionally.
-  - Elevation point tool reuses the `simple_select` draw mode but does not
-    drop a persistent pin. Result is ephemeral text.
+    The spec said "ordering, opacity controls" — ordering is de facto,
+    opacity is explicit.
+- Gap closures (2026-04-23):
+  - **Overpass caching**: results are cached to `localStorage` under
+    `osm-overlay:<bbox>` with a 24-hour TTL. Fetches abort after 30 s and
+    surface loading/error state in the overlay panel. (Was: no cache, no
+    feedback.)
+  - **Elevation pin persistence**: click-to-sample now drops a persistent
+    `maplibregl.Marker` with a popup showing the elevation. Pin is cleared
+    when the mode toggles or the Clear button is hit. (Was: ephemeral text.)
+  - **Dead orphans removed**: `LayerPanel.tsx` and `EnvironmentOverlays.tsx`
+    deleted — both targeted a Mapbox `composite` source our MapTiler styles
+    don't expose. Their functionality is subsumed by `OsmVectorOverlay`.
 
 ## Orphaned components
-The following components exist under `features/map/` but are not yet mounted
-anywhere. Picking them up is a prerequisite for flipping the related manifest
-items to `done`:
-- `LayerPanel` — would back `layer-visibility-order-opacity` (P1).
-- `EnvironmentOverlays` — would back overlay toggles used by §3 + §5.
-- `MapStyleSwitcher` — mounted on `MapCanvas` top-right (2026-04-23), backs
-  `basemap-style-switcher` (P1, done). The 5th `topographic` style is wired
-  through `MapStyle` (`store/mapStore.ts`) and `MAP_STYLES` (`lib/maplibre.ts`).
+None. `LayerPanel.tsx` and `EnvironmentOverlays.tsx` were removed in Phase 5
+gap closure (2026-04-23) — both targeted a Mapbox `composite` source that
+our MapTiler styles don't expose. `MapStyleSwitcher` is mounted on
+`MapCanvas` top-right.
 
 ## Known gotchas
 - Cesium and MapLibre run in the same page. Swap between them via the

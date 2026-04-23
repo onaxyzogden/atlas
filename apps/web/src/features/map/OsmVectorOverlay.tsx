@@ -96,15 +96,37 @@ function elementsToFc(elements: OverpassElement[]): OsmFc {
 export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOverlayProps) {
   const osmVisible = useMapStore((s) => s.osmLayersVisible);
   const opacity = useMapStore((s) => s.overlayOpacity);
+  const setOsmOverlayStatus = useMapStore((s) => s.setOsmOverlayStatus);
   const [data, setData] = useState<OsmFc | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  const [loading, setLoading] = useState(false);
   const bbox = useMemo(() => bboxOf(boundaryGeojson), [boundaryGeojson]);
   const anyVisible = osmVisible.roads || osmVisible.water || osmVisible.buildings;
+  const cacheKey = bbox
+    ? `osm-overlay:${bbox.map((n) => n.toFixed(4)).join(',')}`
+    : null;
 
-  // Fetch once when first enabled and we have a bbox.
+  // Fetch once when first enabled and we have a bbox. Cached in localStorage
+  // for 24h to avoid re-hitting Overpass on repeat panel toggles.
   useEffect(() => {
-    if (!anyVisible || !bbox || data || err) return;
+    if (!anyVisible || !bbox || !cacheKey || data || err || loading) return;
+
+    // Cache hit?
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) {
+        const cached = JSON.parse(raw) as { ts: number; data: OsmFc };
+        if (Date.now() - cached.ts < 24 * 60 * 60 * 1000) {
+          setData(cached.data);
+          setOsmOverlayStatus('ready');
+          return;
+        }
+      }
+    } catch { /* fall through to fetch */ }
+
+    setLoading(true);
+    setOsmOverlayStatus('loading');
     const [minLng, minLat, maxLng, maxLat] = bbox;
     // Overpass bbox order: south,west,north,east
     const q = `[out:json][timeout:25];(
@@ -113,15 +135,35 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
   way["waterway"](${minLat},${minLng},${maxLat},${maxLng});
   way["building"](${minLat},${minLng},${maxLat},${maxLng});
 );out geom;`;
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30_000);
+
     fetch(OVERPASS, {
       method: 'POST',
       body: 'data=' + encodeURIComponent(q),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      signal: ctrl.signal,
     })
-      .then((r) => r.json() as Promise<{ elements: OverpassElement[] }>)
-      .then((json) => setData(elementsToFc(json.elements ?? [])))
-      .catch((e: Error) => setErr(e.message));
-  }, [anyVisible, bbox, data, err]);
+      .then((r) => {
+        if (!r.ok) throw new Error(`Overpass returned ${r.status}`);
+        return r.json() as Promise<{ elements: OverpassElement[] }>;
+      })
+      .then((json) => {
+        const fc = elementsToFc(json.elements ?? []);
+        setData(fc);
+        setOsmOverlayStatus('ready');
+        try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: fc })); } catch { /* quota */ }
+      })
+      .catch((e: Error) => {
+        const msg = e.name === 'AbortError' ? 'Overpass request timed out' : e.message;
+        setErr(msg);
+        setOsmOverlayStatus('error', msg);
+      })
+      .finally(() => { clearTimeout(timer); setLoading(false); });
+
+    return () => { clearTimeout(timer); ctrl.abort(); };
+  }, [anyVisible, bbox, cacheKey, data, err, loading, setOsmOverlayStatus]);
 
   // Sync layers to the map when data or visibility changes.
   useEffect(() => {
@@ -224,6 +266,8 @@ export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
   const setOsmLayerVisible = useMapStore((s) => s.setOsmLayerVisible);
   const opacity = useMapStore((s) => s.overlayOpacity);
   const setOverlayOpacity = useMapStore((s) => s.setOverlayOpacity);
+  const status = useMapStore((s) => s.osmOverlayStatus);
+  const error = useMapStore((s) => s.osmOverlayError);
   const [open, setOpen] = useState(false);
   const anyOn = roads || water || buildings;
 
@@ -283,6 +327,14 @@ export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
           <div style={{ fontSize: 9, color: '#6b5b4a', marginTop: 6 }}>
             Source: OpenStreetMap via Overpass API
           </div>
+          {status === 'loading' && (
+            <div style={{ fontSize: 10, color: '#c4b49a', marginTop: 4 }}>Fetching OSM features…</div>
+          )}
+          {status === 'error' && error && (
+            <div style={{ fontSize: 10, color: '#d07b7b', marginTop: 4 }}>
+              OSM fetch failed: {error}
+            </div>
+          )}
         </div>
       )}
     </div>

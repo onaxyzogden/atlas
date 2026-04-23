@@ -6,7 +6,8 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useEffect } from 'react';
+import { maplibregl as maplibreDefault } from '../../lib/maplibre.js';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
 import { api } from '../../lib/apiClient.js';
@@ -24,6 +25,12 @@ export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps
   const [mode, setMode] = useState<MeasureMode>('none');
   const [result, setResult] = useState<string | null>(null);
   const { isMeasuring, setMeasuring } = useMapStore();
+  const elevMarkerRef = useRef<maplibregl.Marker | null>(null);
+
+  const clearElevMarker = useCallback(() => {
+    elevMarkerRef.current?.remove();
+    elevMarkerRef.current = null;
+  }, []);
 
   const startMeasure = useCallback(
     (m: MeasureMode) => {
@@ -39,8 +46,11 @@ export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps
         setMeasuring(false);
         draw.changeMode('simple_select');
         map.getCanvas().style.cursor = '';
+        clearElevMarker();
         return;
       }
+      // Entering a different mode — clear any stale elevation pin.
+      clearElevMarker();
 
       setMode(m);
       setMeasuring(true);
@@ -81,7 +91,7 @@ export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps
       map.off('draw.create', handleCreate);
       map.on('draw.create', handleCreate);
     },
-    [draw, map, mode, setMeasuring],
+    [draw, map, mode, setMeasuring, clearElevMarker],
   );
 
   // Elevation click handler — when mode is 'elevation', single click on the
@@ -90,13 +100,23 @@ export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps
     if (!map || mode !== 'elevation') return;
     const onClick = async (e: maplibregl.MapMouseEvent) => {
       setResult('Sampling…');
+      // Drop a persistent marker at the click so the user can see what was
+      // sampled; replaces any previous elevation pin.
+      clearElevMarker();
+      const marker = new maplibreDefault.Marker({ color: semantic.primary })
+        .setLngLat(e.lngLat)
+        .addTo(map);
+      elevMarkerRef.current = marker;
       try {
         const { data } = await api.elevation.point({ projectId, lng: e.lngLat.lng, lat: e.lngLat.lat });
         if (data.elevationM === null) {
           setResult('No elevation data at this point');
+          marker.setPopup(new maplibreDefault.Popup({ offset: 18 }).setText('No data')).togglePopup();
         } else {
           const ft = data.elevationM * 3.28084;
-          setResult(`${data.elevationM.toFixed(1)} m  (${ft.toFixed(0)} ft)`);
+          const text = `${data.elevationM.toFixed(1)} m  (${ft.toFixed(0)} ft)`;
+          setResult(text);
+          marker.setPopup(new maplibreDefault.Popup({ offset: 18 }).setText(text)).togglePopup();
         }
       } catch (err) {
         setResult(`Elevation lookup failed: ${(err as Error).message}`);
@@ -104,15 +124,20 @@ export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps
     };
     map.on('click', onClick);
     return () => { map.off('click', onClick); };
-  }, [map, mode, projectId]);
+  }, [map, mode, projectId, clearElevMarker]);
+
+  // Clean up the pin if the component unmounts.
+  useEffect(() => clearElevMarker, [clearElevMarker]);
 
   const clearMeasure = useCallback(() => {
     draw?.deleteAll();
     draw?.changeMode('simple_select');
+    clearElevMarker();
+    if (map) map.getCanvas().style.cursor = '';
     setMode('none');
     setResult(null);
     setMeasuring(false);
-  }, [draw, setMeasuring]);
+  }, [draw, map, setMeasuring, clearElevMarker]);
 
   return (
     <div

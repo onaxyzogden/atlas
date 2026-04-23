@@ -61,22 +61,26 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
 
     right.once('load', () => setReady(true));
 
-    // ── Move sync — primary → right only. Right pane is read-only.
-    let syncing = false;
+    // ── Move sync — primary → right only, rAF-throttled so fast pans stay
+    // smooth instead of firing a jumpTo per 'move' tick. Right pane is
+    // read-only.
+    let pending = 0;
     const onPrimaryMove = () => {
-      if (syncing) return;
-      syncing = true;
-      right.jumpTo({
-        center: primaryMap.getCenter(),
-        zoom: primaryMap.getZoom(),
-        pitch: primaryMap.getPitch(),
-        bearing: primaryMap.getBearing(),
+      if (pending) return;
+      pending = requestAnimationFrame(() => {
+        pending = 0;
+        right.jumpTo({
+          center: primaryMap.getCenter(),
+          zoom: primaryMap.getZoom(),
+          pitch: primaryMap.getPitch(),
+          bearing: primaryMap.getBearing(),
+        });
       });
-      syncing = false;
     };
     primaryMap.on('move', onPrimaryMove);
 
     return () => {
+      if (pending) cancelAnimationFrame(pending);
       primaryMap.off('move', onPrimaryMove);
       right.remove();
       rightMapRef.current = null;
