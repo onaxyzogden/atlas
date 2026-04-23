@@ -13,8 +13,11 @@ import {
   summarizeSunPath,
   solarExposureScore,
   SEASON_DATES,
+  buildComfortSummary,
   type Season,
   type SunPosition,
+  type ComfortBand,
+  type MonthlyNormal,
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
@@ -49,6 +52,7 @@ interface ClimateSummary {
   snow_months?: number | null;
   solar_radiation_kwh_m2_day?: number | null;
   solar_radiation_monthly?: number[] | null;
+  monthly_normals?: MonthlyNormal[] | null;
 }
 
 interface MicroclimateSummary {
@@ -134,6 +138,8 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
     if (lastFrostMonth === null || firstFrostMonth === null) return null;
     return { lastFrost: lastFrostMonth, firstFrost: firstFrostMonth };
   }, [climate]);
+
+  const comfort = useMemo(() => buildComfortSummary(climate?.monthly_normals ?? null), [climate]);
 
   return (
     <div className={css.page}>
@@ -224,6 +230,20 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           ) : (
             <div className={css.pendingNote}>
               Growing season calendar requires frost date data from climate layer.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Seasonal Comfort Calendar — derived from monthly temp normals */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>SEASONAL COMFORT CALENDAR</h3>
+        <div className={css.calendarCard}>
+          {comfort ? (
+            <ComfortCalendar comfort={comfort} />
+          ) : (
+            <div className={css.pendingNote}>
+              Comfort calendar requires monthly temperature normals (NOAA / ECCC / NASA POWER).
             </div>
           )}
         </div>
@@ -601,6 +621,89 @@ function GrowingSeasonCalendar({ lastFrost, firstFrost }: { lastFrost: number; f
         );
       })}
     </svg>
+  );
+}
+
+const COMFORT_BAND_COLOR: Record<ComfortBand, string> = {
+  freezing: 'rgba(122,154,200,0.35)',
+  cold: 'rgba(138,174,210,0.28)',
+  cool: 'rgba(138,184,154,0.28)',
+  comfortable: 'rgba(168,192,120,0.45)',
+  hot: 'rgba(222,138,96,0.38)',
+};
+
+const COMFORT_BAND_STROKE: Record<ComfortBand, string> = {
+  freezing: 'rgba(122,154,200,0.55)',
+  cold: 'rgba(138,174,210,0.45)',
+  cool: 'rgba(138,184,154,0.45)',
+  comfortable: 'rgba(168,192,120,0.6)',
+  hot: 'rgba(222,138,96,0.55)',
+};
+
+const COMFORT_BAND_LABEL: Record<ComfortBand, string> = {
+  freezing: 'Freezing',
+  cold: 'Cold',
+  cool: 'Cool',
+  comfortable: 'Comfortable',
+  hot: 'Hot',
+};
+
+function ComfortCalendar({
+  comfort,
+}: {
+  comfort: ReturnType<typeof buildComfortSummary>;
+}) {
+  if (!comfort) return null;
+  const barWidth = 36;
+  const barHeight = 24;
+  const gap = 3;
+  const totalWidth = 12 * barWidth + 11 * gap;
+  const bandsPresent = Array.from(new Set(comfort.months.map((m) => m.band)));
+
+  return (
+    <>
+      <svg width={totalWidth} height={78} style={{ display: 'block', margin: '0 auto', maxWidth: '100%' }} viewBox={`0 0 ${totalWidth} 78`}>
+        {Array.from({ length: 12 }, (_, i) => {
+          const monthNum = i + 1;
+          const cm = comfort.months.find((m) => m.month === monthNum);
+          const fill = cm ? COMFORT_BAND_COLOR[cm.band] : 'rgba(122,138,154,0.1)';
+          const stroke = cm ? COMFORT_BAND_STROKE[cm.band] : 'rgba(122,138,154,0.2)';
+          const x = i * (barWidth + gap);
+          return (
+            <g key={monthNum}>
+              <rect x={x} y={8} width={barWidth} height={barHeight} rx={4} fill={fill} stroke={stroke} strokeWidth={1} />
+              {cm?.wet && (
+                <rect x={x + 4} y={36} width={barWidth - 8} height={3} rx={1.5} fill="rgba(138,174,210,0.55)" />
+              )}
+              <text x={x + barWidth / 2} y={56} textAnchor="middle" fill="rgba(180,165,140,0.5)" fontSize={9}>{MONTHS[i]}</text>
+              {cm?.meanMaxC != null && (
+                <text x={x + barWidth / 2} y={70} textAnchor="middle" fill="rgba(180,165,140,0.4)" fontSize={8}>
+                  {Math.round(cm.meanMaxC)}&deg;
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', marginTop: 10, fontSize: 10, color: 'rgba(180,165,140,0.7)' }}>
+        {bandsPresent.map((band) => (
+          <span key={band} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ display: 'inline-block', width: 12, height: 10, borderRadius: 2, background: COMFORT_BAND_COLOR[band], border: `1px solid ${COMFORT_BAND_STROKE[band]}` }} />
+            {COMFORT_BAND_LABEL[band]}
+          </span>
+        ))}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ display: 'inline-block', width: 12, height: 3, borderRadius: 1.5, background: 'rgba(138,174,210,0.55)' }} />
+          Wet (&ge;120 mm)
+        </span>
+      </div>
+      <div style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: 'rgba(180,165,140,0.65)' }}>
+        {comfort.comfortableMonths} comfortable month{comfort.comfortableMonths === 1 ? '' : 's'}
+        {comfort.outdoorSeasonStart != null && comfort.outdoorSeasonEnd != null && (
+          <> &middot; outdoor season {MONTHS[comfort.outdoorSeasonStart - 1]}&ndash;{MONTHS[comfort.outdoorSeasonEnd - 1]}</>
+        )}
+      </div>
+    </>
   );
 }
 

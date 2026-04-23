@@ -138,6 +138,13 @@ export interface ClimateSummary {
   solar_radiation_monthly?: Record<string, number> | number[] | null;
   wind_speed_ms?: number | null;
   relative_humidity_pct?: number | null;
+  /** Monthly normals as emitted by NOAA/ECCC/NASA POWER adapters. */
+  monthly_normals?: Array<{
+    month: number; // 1-12
+    precip_mm?: number | null;
+    mean_max_c?: number | null;
+    mean_min_c?: number | null;
+  }> | null;
   _monthly_normals?: unknown;
   _wind_rose?: unknown;
 }
