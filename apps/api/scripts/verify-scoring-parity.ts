@@ -10,7 +10,8 @@
  *   parity is structural: the function cannot produce different numbers on
  *   either side for the same inputs. This script proves the module is
  *   importable + callable in a real Node process (not just in vitest), and
- *   produces the 11 expected ScoredResult labels for a realistic layer set.
+ *   produces the 14 expected ScoredResult labels for a realistic layer set
+ *   (8 weighted scores + 3 §5 water-resilience sub-scores + FAO + USDA LCC).
  *
  * Usage:
  *   pnpm --filter @ogden/api exec tsx apps/api/scripts/verify-scoring-parity.ts
@@ -93,6 +94,27 @@ const FIXTURE: MockLayerResult[] = [
     attribution: 'USGS NHD',
     summary: { catchment_area_ha: 85, nearest_stream_m: 120 },
   },
+  {
+    // §5 sub-scores consume watershed_derived (pond/swale counts, runoff,
+    // detention area, drainage-density class); fixture exercises each
+    // Water-Retention / Drought-Resilience / Storm-Resilience component.
+    layerType: 'watershed_derived',
+    fetchStatus: 'complete',
+    confidence: 'medium',
+    dataDate: '2026-04-01',
+    sourceApi: 'Tier3Pipeline',
+    attribution: 'ogden-atlas tier3',
+    summary: {
+      runoff: { maxAccumulation: 180, meanAccumulation: 22, highConcentrationPct: 3.2 },
+      flood: { detentionZoneCount: 2, detentionAreaPct: 3.1 },
+      drainageDivides: { divideCount: 4, divideCellPct: 5.5 },
+      drainageDensity: { drainageDensityKmPerKm2: 0.9, drainageDensityClass: 'Moderate' },
+      pondCandidates: { candidateCount: 3 },
+      swaleCandidates: { candidateCount: 6 },
+      confidence: 'medium',
+      dataSources: ['tier3-pipeline'],
+    },
+  },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -112,10 +134,19 @@ async function main(): Promise<void> {
   const scores = computeAssessmentScores(FIXTURE, 40, 'US', computedAt);
   const overall = computeOverallScore(scores);
 
-  banner('ALL 11 SCORES');
+  banner(`ALL ${scores.length} SCORES`);
   for (const s of scores) {
     const score = typeof s.score === 'number' ? s.score.toFixed(1) : 'n/a';
     console.log(`  ${s.label.padEnd(30)} ${score.padStart(6)}   [${s.confidence}]`);
+  }
+
+  // Sanity: assert the three §5 sub-scores are present (non-trivially exercised
+  // by the watershed_derived fixture above — a missing one means regression).
+  const requiredSub = ['Water Retention', 'Drought Resilience', 'Storm Resilience'];
+  const missing = requiredSub.filter((l) => !scores.some((s) => s.label === l));
+  if (missing.length) {
+    console.error(`  MISSING §5 sub-scores: ${missing.join(', ')}`);
+    process.exitCode = 2;
   }
 
   banner('OVERALL');

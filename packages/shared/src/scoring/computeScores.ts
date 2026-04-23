@@ -95,6 +95,13 @@ export interface LiveDataRow {
   detail?: string;
   confidence: 'High' | 'Medium' | 'Low';
   color: string;
+  /** Provenance (Phase 3 UX): surfaced via delayed tooltip on the
+   *  confidence pill so the confidence rating doesn't sit in isolation. */
+  source?: string;
+  dataDate?: string;
+  /** Why the confidence is what it is. Renderer maps this to a reason
+   *  glyph (clock = freshness, crosshair = resolution, shield = authority). */
+  reason?: 'freshness' | 'resolution' | 'authority';
 }
 
 /* ------------------------------------------------------------------ */
@@ -435,6 +442,10 @@ export function computeAssessmentScores(
     computeStewardshipReadiness(soils, watershed, wetlands, landCover, soilRegen, microclimate, elevation, windPowerDensity, infrastructure, solarRadiation, biomassGjHa, microhydroKw, proximityData),
     computeCommunitySuitability(censusDemographics),
     computeDesignComplexity(elevation, wetlands, zoning, terrain, infrastructure),
+    // §5 water-resilience sub-scores — weight 0 in overall (diagnostic facets)
+    computeWaterRetention(soils, wetlands, watershedDerived, microclimate, acreage),
+    computeDroughtResilience(soils, climate, wetlands, watershedDerived, hydroForScoring, groundwater, waterStress, acreage),
+    computeStormResilience(soils, wetlands, watershedDerived, landCover, acreage),
     // Formal classification systems (Sprint D) — weight 0 in overall score
     faoResult,
     computeUSDALCC(soils, climate, elevation),
@@ -1594,7 +1605,297 @@ function computeDesignComplexity(
 }
 
 /* ------------------------------------------------------------------ */
-/*  1h. FAO Land Suitability (S1/S2/S3/N1/N2) — Sprint D              */
+/*  1h-j. §5 Water-resilience sub-scores                              */
+/*                                                                    */
+/*  Three diagnostic water scores that deepen the Water Resilience    */
+/*  aggregate with facet-specific views. Weight 0 in overall (same    */
+/*  pattern as FAO/USDA LCC) so they do not shift existing projects'  */
+/*  overall_score; they render in score_breakdown and the Section 4   */
+/*  label list for actionable water-systems planning.                 */
+/* ------------------------------------------------------------------ */
+
+function computeWaterRetention(
+  soils: MockLayerResult | undefined,
+  wetlands: MockLayerResult | undefined,
+  watershedDerived: MockLayerResult | undefined,
+  microclimate: MockLayerResult | undefined,
+  acreage: number | null,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const wfc = layerConfidence(wetlands);
+  const wdc = layerConfidence(watershedDerived);
+  const mc = layerConfidence(microclimate);
+
+  // Soil water storage: AWC × rooting depth (max 20)
+  const awc = num(soils, 'awc_cm_cm');
+  const rootCm = num(soils, 'rooting_depth_cm');
+  const storageCm = awc * rootCm;
+  const storagePts = storageCm >= 18 ? 20 : storageCm >= 12 ? 15
+    : storageCm >= 6 ? 10 : storageCm > 0 ? 5 : 0;
+  components.push(comp('soil_water_storage', storagePts, 20, 'soils', sc));
+
+  // Organic matter (max 15)
+  const om = num(soils, 'organic_matter_pct');
+  const omPts = om > 5 ? 15 : om > 3 ? 12 : om > 2 ? 8 : om > 1 ? 4 : 0;
+  components.push(comp('organic_matter_retention', omPts, 15, 'soils', sc));
+
+  // Pond candidate density per acre (max 20)
+  if (watershedDerived && acreage && acreage > 0) {
+    const pondCount = nestedNum(watershedDerived, 'pondCandidates.candidateCount');
+    const perAcre = pondCount / acreage;
+    const pondPts = perAcre >= 0.1 ? 20 : perAcre >= 0.05 ? 14
+      : perAcre >= 0.02 ? 8 : perAcre > 0 ? 3 : 0;
+    components.push(comp('pond_candidate_density', pondPts, 20, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('pond_candidate_density', 0, 20, 'watershed_derived', 'low'));
+  }
+
+  // Swale candidate density per acre (max 15)
+  if (watershedDerived && acreage && acreage > 0) {
+    const swaleCount = nestedNum(watershedDerived, 'swaleCandidates.candidateCount');
+    const perAcre = swaleCount / acreage;
+    const swalePts = perAcre >= 0.2 ? 15 : perAcre >= 0.1 ? 10
+      : perAcre >= 0.05 ? 5 : perAcre > 0 ? 2 : 0;
+    components.push(comp('swale_candidate_density', swalePts, 15, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('swale_candidate_density', 0, 15, 'watershed_derived', 'low'));
+  }
+
+  // Detention area presence (max 15)
+  if (watershedDerived) {
+    const detPct = nestedNum(watershedDerived, 'flood.detentionAreaPct');
+    const detPts = detPct > 5 ? 15 : detPct > 2 ? 10 : detPct > 0 ? 5 : 0;
+    components.push(comp('detention_area_presence', detPts, 15, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('detention_area_presence', 0, 15, 'watershed_derived', 'low'));
+  }
+
+  // Drainage density (max 10) — lower density = slower runoff = better retention
+  if (watershedDerived) {
+    const ddClass = nested(watershedDerived, 'drainageDensity.drainageDensityClass') as string | undefined;
+    const ddPts = ddClass === 'Low' ? 10 : ddClass === 'Moderate' ? 6
+      : ddClass === 'High' ? 2 : 0;
+    components.push(comp('drainage_density_class', ddPts, 10, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('drainage_density_class', 0, 10, 'watershed_derived', 'low'));
+  }
+
+  // Wetland coverage (max 10)
+  const wetlandPct = num(wetlands, 'wetland_pct');
+  const wetPts = wetlandPct > 10 ? 10 : wetlandPct > 5 ? 7 : wetlandPct > 2 ? 3 : 0;
+  components.push(comp('wetland_coverage', wetPts, 10, 'wetlands_flood', wfc));
+
+  // Microclimate moist-zone dominance (max 5)
+  if (microclimate) {
+    const dom = nested(microclimate, 'moistureZones.dominantClass') as string | undefined;
+    const moistPts = dom === 'moist' ? 5 : dom === 'moderate' ? 3 : dom === 'wet' ? 2 : 0;
+    components.push(comp('microclimate_moisture', moistPts, 5, 'microclimate', mc));
+  } else {
+    components.push(comp('microclimate_moisture', 0, 5, 'microclimate', 'low'));
+  }
+
+  return buildResult('Water Retention', 0, components);
+}
+
+function computeDroughtResilience(
+  soils: MockLayerResult | undefined,
+  climate: MockLayerResult | undefined,
+  wetlands: MockLayerResult | undefined,
+  watershedDerived: MockLayerResult | undefined,
+  hydro: {
+    waterBalanceMm: number;
+    aridityClass: 'Hyperarid' | 'Arid' | 'Semi-arid' | 'Dry sub-humid' | 'Humid';
+    rwhPotentialGal: number;
+    irrigationDeficitMm: number;
+    propertyM2: number;
+  } | undefined,
+  groundwater: MockLayerResult | undefined,
+  waterStress: MockLayerResult | undefined,
+  acreage: number | null,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const cc = layerConfidence(climate);
+  const wfc = layerConfidence(wetlands);
+  const wdc = layerConfidence(watershedDerived);
+
+  // Aridity buffer (max 20)
+  if (hydro) {
+    const arPts: Record<string, number> = {
+      'Humid': 20, 'Dry sub-humid': 16, 'Semi-arid': 10, 'Arid': 4, 'Hyperarid': 0,
+    };
+    components.push(comp('aridity_buffer', arPts[hydro.aridityClass] ?? 0, 20, 'climate', cc));
+  } else {
+    components.push(comp('aridity_buffer', 0, 20, 'climate', 'low'));
+  }
+
+  // Water balance surplus (max 15)
+  if (hydro) {
+    const wb = hydro.waterBalanceMm;
+    const wbPts = wb > 200 ? 15 : wb > 0 ? 10 : wb > -100 ? 5 : wb > -300 ? 2 : 0;
+    components.push(comp('water_balance_surplus', wbPts, 15, 'climate', cc));
+  } else {
+    components.push(comp('water_balance_surplus', 0, 15, 'climate', 'low'));
+  }
+
+  // Rainwater harvest potential (max 15)
+  if (hydro && hydro.propertyM2 > 0) {
+    const galPerAcre = hydro.rwhPotentialGal / (hydro.propertyM2 / 4046.86);
+    const rwhPts = galPerAcre > 50_000 ? 15 : galPerAcre > 30_000 ? 11
+      : galPerAcre > 15_000 ? 7 : galPerAcre > 5_000 ? 3 : 0;
+    components.push(comp('rwh_potential', rwhPts, 15, 'climate', cc));
+  } else {
+    components.push(comp('rwh_potential', 0, 15, 'climate', 'low'));
+  }
+
+  // Soil plant-available water (max 15)
+  const awc = num(soils, 'awc_cm_cm');
+  const rootCm = num(soils, 'rooting_depth_cm');
+  const paw = awc * rootCm;
+  const pawPts = paw >= 18 ? 15 : paw >= 12 ? 11 : paw >= 6 ? 6 : paw > 0 ? 2 : 0;
+  components.push(comp('plant_available_water', pawPts, 15, 'soils', sc));
+
+  // Pond storage capacity (max 10) — on-site storage buffers dry spells
+  if (watershedDerived && acreage && acreage > 0) {
+    const pondCount = nestedNum(watershedDerived, 'pondCandidates.candidateCount');
+    const perAcre = pondCount / acreage;
+    const ppts = perAcre >= 0.1 ? 10 : perAcre >= 0.05 ? 7 : perAcre > 0 ? 3 : 0;
+    components.push(comp('pond_storage_potential', ppts, 10, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('pond_storage_potential', 0, 10, 'watershed_derived', 'low'));
+  }
+
+  // Groundwater access (max 10) — 3-30m optimal; very shallow or very deep = worse buffer
+  if (groundwater) {
+    const depthM = num(groundwater, 'groundwater_depth_m');
+    const gwPts = depthM === 0 ? 0
+      : depthM <= 3 ? 4
+      : depthM <= 10 ? 10
+      : depthM <= 30 ? 7
+      : 3;
+    components.push(comp('groundwater_access', gwPts, 10, 'groundwater', layerConfidence(groundwater)));
+  } else {
+    components.push(comp('groundwater_access', 0, 10, 'groundwater', 'low'));
+  }
+
+  // Irrigation-deficit buffer (max 5)
+  if (hydro) {
+    const defPts = hydro.irrigationDeficitMm === 0 ? 5
+      : hydro.irrigationDeficitMm < 100 ? 3
+      : hydro.irrigationDeficitMm < 300 ? 1 : 0;
+    components.push(comp('irrigation_deficit_buffer', defPts, 5, 'climate', cc));
+  } else {
+    components.push(comp('irrigation_deficit_buffer', 0, 5, 'climate', 'low'));
+  }
+
+  // Wetland refugia (max 5)
+  const wetlandPct = num(wetlands, 'wetland_pct');
+  const refPts = wetlandPct > 5 ? 5 : wetlandPct > 2 ? 3 : wetlandPct > 0 ? 1 : 0;
+  components.push(comp('wetland_refugia', refPts, 5, 'wetlands_flood', wfc));
+
+  // Baseline water stress (penalty max -10)
+  if (waterStress) {
+    const cls = str(waterStress, 'water_stress_class');
+    const wsPts = cls === 'Low' ? 0
+      : cls === 'Low-Medium' ? -2
+      : cls === 'Medium-High' ? -5
+      : cls === 'High' ? -8
+      : cls === 'Extremely High' ? -10
+      : 0;
+    components.push(comp('baseline_water_stress', wsPts, -10, 'water_stress', layerConfidence(waterStress)));
+  } else {
+    components.push(comp('baseline_water_stress', 0, -10, 'water_stress', 'low'));
+  }
+
+  return buildResult('Drought Resilience', 0, components);
+}
+
+function computeStormResilience(
+  soils: MockLayerResult | undefined,
+  wetlands: MockLayerResult | undefined,
+  watershedDerived: MockLayerResult | undefined,
+  landCover: MockLayerResult | undefined,
+  acreage: number | null,
+): ScoredResult {
+  const components: ScoreComponent[] = [];
+  const sc = layerConfidence(soils);
+  const wfc = layerConfidence(wetlands);
+  const wdc = layerConfidence(watershedDerived);
+  const lcc = layerConfidence(landCover);
+
+  // Inverse runoff concentration (max 20) — low concentrated-runoff area = more storm resilient
+  if (watershedDerived) {
+    const highPct = nestedNum(watershedDerived, 'runoff.highConcentrationPct');
+    const rPts = highPct < 2 ? 20 : highPct < 5 ? 15 : highPct < 10 ? 10 : highPct < 20 ? 5 : 0;
+    components.push(comp('inverse_runoff_concentration', rPts, 20, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('inverse_runoff_concentration', 0, 20, 'watershed_derived', 'low'));
+  }
+
+  // Swale candidates per acre (max 15) — distributed slow/spread/sink infrastructure
+  if (watershedDerived && acreage && acreage > 0) {
+    const swaleCount = nestedNum(watershedDerived, 'swaleCandidates.candidateCount');
+    const perAcre = swaleCount / acreage;
+    const sPts = perAcre >= 0.2 ? 15 : perAcre >= 0.1 ? 10
+      : perAcre >= 0.05 ? 6 : perAcre > 0 ? 2 : 0;
+    components.push(comp('swale_candidate_density', sPts, 15, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('swale_candidate_density', 0, 15, 'watershed_derived', 'low'));
+  }
+
+  // Detention zones (max 15)
+  if (watershedDerived) {
+    const zoneCount = nestedNum(watershedDerived, 'flood.detentionZoneCount');
+    const areaPct = nestedNum(watershedDerived, 'flood.detentionAreaPct');
+    const dPts = zoneCount >= 3 && areaPct >= 3 ? 15
+      : zoneCount >= 2 || areaPct >= 2 ? 10
+      : zoneCount >= 1 ? 5 : 0;
+    components.push(comp('detention_zones', dPts, 15, 'watershed_derived', wdc));
+  } else {
+    components.push(comp('detention_zones', 0, 15, 'watershed_derived', 'low'));
+  }
+
+  // Flood zone penalty (max -20)
+  const floodZone = str(wetlands, 'flood_zone').toLowerCase();
+  let floodPenalty = 0;
+  if (floodZone.includes('ae') || (floodZone.includes('zone a') && !floodZone.includes('minimal'))) {
+    floodPenalty = -20;
+  } else if (floodZone.includes('x') && floodZone.includes('shaded')) {
+    floodPenalty = -8;
+  } else if (!floodZone.includes('minimal risk') && !floodZone.includes('not regulated') && floodZone.length > 0 && !floodZone.includes('zone x')) {
+    floodPenalty = -10;
+  }
+  components.push(comp('flood_zone_penalty', floodPenalty, -20, 'wetlands_flood', wfc));
+
+  // Hydrologic group infiltration (max 15) — A=sandy/fast, D=clay/slow
+  const hg = str(soils, 'hydrologic_group').toUpperCase();
+  const hgPts = hg === 'A' ? 15 : hg === 'B' ? 11 : hg === 'C' ? 6 : hg === 'D' ? 2 : 0;
+  components.push(comp('hydrologic_group', hgPts, 15, 'soils', sc));
+
+  // Tree canopy buffer (max 10) — canopy intercepts rainfall intensity
+  const canopy = num(landCover, 'tree_canopy_pct');
+  const canopyPts = canopy > 40 ? 10 : canopy > 20 ? 7 : canopy > 10 ? 4 : canopy > 0 ? 2 : 0;
+  components.push(comp('tree_canopy_buffer', canopyPts, 10, 'land_cover', lcc));
+
+  // Riparian buffer width (max 15)
+  const riparian = num(wetlands, 'riparian_buffer_m');
+  const ripPts = riparian >= 30 ? 15 : riparian >= 15 ? 10 : riparian >= 5 ? 5 : 0;
+  components.push(comp('riparian_buffer', ripPts, 15, 'wetlands_flood', wfc));
+
+  // Drainage class (max 10) — well-drained soils shed storm surcharge
+  const drainage = str(soils, 'drainage_class').toLowerCase();
+  const drainPts = drainage === 'well drained' ? 10
+    : drainage.includes('moderately well') ? 7
+    : drainage.includes('somewhat poorly') ? 4
+    : drainage.includes('poorly') ? 1 : 5;
+  components.push(comp('drainage_class', drainPts, 10, 'soils', sc));
+
+  return buildResult('Storm Resilience', 0, components);
+}
+
+/* ------------------------------------------------------------------ */
+/*  1k. FAO Land Suitability (S1/S2/S3/N1/N2) — Sprint D              */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -2155,6 +2456,12 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
 
   const rows: LiveDataRow[] = [];
 
+  // Phase 3 UX: dominant reason the confidence is what it is — chosen
+  // to match what the user most wants to know about the layer.
+  // - freshness  → temporally-sensitive layers (climate)
+  // - resolution → geometrically-sensitive layers (elevation, wetlands, hydro)
+  // - authority  → catalog/survey layers (soils)
+
   // Elevation
   if (elevation) {
     rows.push({
@@ -2163,6 +2470,9 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       value: `${s(elevation, 'min_elevation_m')}\u2013${s(elevation, 'max_elevation_m')} m`,
       confidence: normalizeConfidence(elevation.confidence),
       color: semantic.textSubtle,
+      source: elevation.sourceApi,
+      dataDate: elevation.dataDate,
+      reason: 'resolution',
     });
   }
 
@@ -2175,6 +2485,9 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       detail: `Hardiness zone ${s(climate, 'hardiness_zone')}`,
       confidence: normalizeConfidence(climate.confidence),
       color: confidence.high,
+      source: climate.sourceApi,
+      dataDate: climate.dataDate,
+      reason: 'freshness',
     });
   }
 
@@ -2187,6 +2500,9 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       detail: `${s(soilsLayer, 'farmland_class')}`,
       confidence: normalizeConfidence(soilsLayer.confidence),
       color: semantic.textSubtle,
+      source: soilsLayer.sourceApi,
+      dataDate: soilsLayer.dataDate,
+      reason: 'authority',
     });
   }
 
@@ -2199,6 +2515,9 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       value: wp > 0 ? `${wp}% of area` : 'None detected',
       confidence: normalizeConfidence(wetlands.confidence),
       color: water[400],
+      source: wetlands.sourceApi,
+      dataDate: wetlands.dataDate,
+      reason: 'resolution',
     });
   }
 
@@ -2211,6 +2530,9 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       value: stream > 0 ? `${stream}m to nearest stream` : 'No streams detected',
       confidence: normalizeConfidence(watershed.confidence),
       color: water[400],
+      source: watershed.sourceApi,
+      dataDate: watershed.dataDate,
+      reason: 'resolution',
     });
   }
 

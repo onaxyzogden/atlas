@@ -114,11 +114,13 @@ crops, livestock, and access routes.
   suggestion" flow (pick a candidate → propose a structure) is not
   shipped. Do not flip those items to `done` until the design surface
   exists.
-- `water-retention-drought-storm-scores` is `planned`, not `partial` —
-  the shared scoring engine currently ships the 10 Section-4 labels,
-  and the three water-resilience scores in this section have not been
-  added to `computeScores` yet. Adding them is a cross-cut change
-  (engine + parity test + UI) and belongs to a dedicated session.
+- `water-retention-drought-storm-scores` is `done`. The three labels
+  (`Water Retention`, `Drought Resilience`, `Storm Resilience`) are
+  emitted by `computeScores` alongside the existing 8 weighted scores,
+  weighted **0** in `computeOverallScore` (same pattern as FAO / USDA
+  LCC) so they render as diagnostic facets without shifting overall
+  scores on existing rows. They are exercised by the parity-test
+  fixture's `watershed_derived` layer; do NOT remove that fixture entry.
 - Country-specific drainage networks: US = NHD, CA = OHN. Consumers of
   drainage data must go through the Country INTL routing layer, not
   hardcode NHD. See the `IntlCountryAdapter` pattern introduced in
