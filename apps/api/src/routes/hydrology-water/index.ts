@@ -78,8 +78,8 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
 
       // Water budget — derive on the fly from climate/soils/elevation/wetlands
       // layers. Block is optional; omitted if any supporting layer is absent.
-      const [project] = await db<{ acreage: string | null }[]>`
-        SELECT acreage::text FROM projects WHERE id = ${req.projectId}
+      const [project] = await db<{ acreage: string | null; country: string | null }[]>`
+        SELECT acreage::text, country FROM projects WHERE id = ${req.projectId}
       `;
       const supportingRows = await db<{
         layer_type: string;
@@ -135,9 +135,72 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
         };
       }
 
+      // Wetland & riparian planning — rule-based block from wetlands_flood layer.
+      let wetlandPlanning: HydrologyWaterSummaryT['wetlandPlanning'] | undefined;
+      if (byType['wetlands_flood']) {
+        const featureCount = numField(wetS, 'wetland_feature_count');
+        const hasForested = Boolean(wetS['has_forested_wetland']);
+        const hasEmergent = Boolean(wetS['has_emergent_wetland']);
+        const dominantSystem = strField(wetS, 'dominant_wetland_system') || 'Unknown';
+        const nwiCodes = Array.isArray(wetS['nwi_codes'])
+          ? (wetS['nwi_codes'] as unknown[]).filter((c): c is string => typeof c === 'string')
+          : [];
+        const sfha = Boolean(wetS['sfha']);
+        const regulated = Boolean(wetS['regulated']);
+        const requiresPermits = Boolean(wetS['requires_permits']);
+
+        // Coverage % — estimated from feature count until polygon-area intersection.
+        // Rule of thumb: each NWI polygon averages ~2 ha at parcel scale; cap at 80%.
+        const acresProp = acreage ?? 10;
+        const estimatedHa = featureCount * 2;
+        const coveragePct = Math.min(80, Math.round((estimatedHa / (acresProp * 0.4047)) * 100 * 10) / 10);
+
+        // Setback recommendation by wetland class
+        const recommendedSetbackM = hasForested ? 30 : hasEmergent ? 15 : sfha ? 10 : 0;
+
+        // Buffer recommendation by dominant system + mean slope
+        const slopeDeg = numField(elevS, 'mean_slope_deg');
+        const slopeFactor = slopeDeg > 15 ? 1.5 : slopeDeg > 8 ? 1.2 : 1.0;
+        const baseBuffer = dominantSystem === 'Riverine' ? 60
+          : dominantSystem === 'Lacustrine' ? 50
+          : hasForested ? 45
+          : hasEmergent ? 30
+          : 15;
+        const recommendedBufferM = Math.round(baseBuffer * slopeFactor);
+
+        // Restoration opportunity: forested/emergent wetland present outside active SFHA
+        const restorationOpportunity = (hasForested || hasEmergent) && !sfha;
+
+        // Regulatory notes by country
+        const country = project?.country ?? 'US';
+        const regulatoryNotes = country === 'CA'
+          ? 'Ontario: Provincially Significant Wetlands protected under ESA 2007; Conservation Authority permits required within regulated areas.'
+          : sfha
+          ? 'US: FEMA SFHA — development requires floodplain development permit + possible LOMA. Wetlands may trigger CWA §404 Section 10 review.'
+          : regulated
+          ? 'US: Wetlands present — CWA §404 permit (Army Corps) may be required for fill or disturbance. Consult state/local regulations.'
+          : 'US: No SFHA or wetland triggers identified. Confirm local zoning setbacks before disturbing riparian margins.';
+
+        wetlandPlanning = {
+          coveragePct,
+          dominantSystem,
+          hasForested,
+          hasEmergent,
+          nwiCodes,
+          sfha,
+          regulated,
+          requiresPermits,
+          recommendedSetbackM,
+          recommendedBufferM,
+          restorationOpportunity,
+          regulatoryNotes,
+        };
+      }
+
       const summary = HydrologyWaterSummary.parse({
         ...(row.summary_data as Record<string, unknown>),
         ...(waterBudget ? { waterBudget } : {}),
+        ...(wetlandPlanning ? { wetlandPlanning } : {}),
       });
       return {
         data: HydrologyWaterResponse.parse({

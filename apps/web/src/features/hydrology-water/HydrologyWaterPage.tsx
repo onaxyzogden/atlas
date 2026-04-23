@@ -90,6 +90,46 @@ function ReadyView({
         <Row label="Data sources" value={summary.dataSources.join(', ')} />
       </dl>
 
+      {summary.wetlandPlanning && (
+        <>
+          <h4 className={p.sectionLabel}>Wetland &amp; Riparian Planning</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            <Row label="Dominant system" value={summary.wetlandPlanning.dominantSystem} />
+            <Row label="Wetland coverage (est.)" value={`${summary.wetlandPlanning.coveragePct.toFixed(1)}%`} />
+            <Row
+              label="Wetland types"
+              value={[
+                summary.wetlandPlanning.hasForested && 'Forested',
+                summary.wetlandPlanning.hasEmergent && 'Emergent',
+              ].filter(Boolean).join(', ') || 'None identified'}
+            />
+            {summary.wetlandPlanning.nwiCodes.length > 0 && (
+              <Row label="NWI codes" value={summary.wetlandPlanning.nwiCodes.join(', ')} />
+            )}
+            <Row label="FEMA SFHA" value={summary.wetlandPlanning.sfha ? 'Yes' : 'No'} />
+            <Row label="Regulated" value={summary.wetlandPlanning.regulated ? 'Yes' : 'No'} />
+            <Row label="Permits likely required" value={summary.wetlandPlanning.requiresPermits ? 'Yes' : 'No'} />
+            <Row
+              label="Recommended setback"
+              value={summary.wetlandPlanning.recommendedSetbackM > 0
+                ? `${summary.wetlandPlanning.recommendedSetbackM} m`
+                : 'No wetland setback required'}
+            />
+            <Row
+              label="Recommended riparian buffer"
+              value={`${summary.wetlandPlanning.recommendedBufferM} m`}
+            />
+            <Row
+              label="Restoration opportunity"
+              value={summary.wetlandPlanning.restorationOpportunity ? 'Yes' : 'No'}
+            />
+          </dl>
+          <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            {summary.wetlandPlanning.regulatoryNotes}
+          </div>
+        </>
+      )}
+
       {summary.waterBudget && (
         <>
           <h4 className={p.sectionLabel}>Water budget</h4>

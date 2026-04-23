@@ -171,7 +171,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'overflow-spillway-planning', label: 'Overflow route visualization, spillway planning', phase: 'P2', status: 'planned' },
       { key: 'roof-catchment-rainwater-storage', label: 'Roof catchment calculation, rainwater storage sizing', phase: 'P2', status: 'planned' },
       { key: 'gravity-irrigation-trough-livestock-water', label: 'Gravity-fed irrigation, trough location, livestock water access planning', phase: 'P2', status: 'planned' },
-      { key: 'wetland-riparian-planning', label: 'Wetland restoration and riparian buffer planning', phase: 'P2', status: 'planned' },
+      { key: 'wetland-riparian-planning', label: 'Wetland restoration and riparian buffer planning', phase: 'P2', status: 'done' },
       { key: 'water-budget-seasonal-storage', label: 'Water budget calculator, seasonal storage estimates', phase: 'P2', status: 'done' },
       { key: 'water-retention-drought-storm-scores', label: 'Water retention score, drought and storm resilience scores', phase: 'P2', status: 'done' },
       { key: 'water-phasing-dependency-mapping', label: 'Water system phasing and dependency mapping', phase: 'P2', status: 'planned' },

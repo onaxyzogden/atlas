@@ -62,6 +62,27 @@ export const HydrologyWaterSummary = z.object({
     drainageDensityKmPerKm2: z.number(),
     drainageDensityClass: z.string(),
   }),
+  // Wetland & riparian planning — optional block. Derived from the
+  // `wetlands_flood` layer (NWI + FEMA NFHL); omitted when that layer
+  // is absent or incomplete. Buffer/setback recommendations are rule-based
+  // lookups (wetland system type + slope); coverage % is estimated from
+  // feature count until polygon-area intersection is available.
+  wetlandPlanning: z
+    .object({
+      coveragePct: z.number().min(0).max(100),
+      dominantSystem: z.string(),
+      hasForested: z.boolean(),
+      hasEmergent: z.boolean(),
+      nwiCodes: z.array(z.string()),
+      sfha: z.boolean(),
+      regulated: z.boolean(),
+      requiresPermits: z.boolean(),
+      recommendedSetbackM: z.number().nonnegative(),
+      recommendedBufferM: z.number().nonnegative(),
+      restorationOpportunity: z.boolean(),
+      regulatoryNotes: z.string(),
+    })
+    .optional(),
   // Water budget — optional block. Derived on-demand from climate/soils/
   // elevation/wetlands via `computeHydrologyMetrics`; omitted when any of
   // those inputs are missing or incomplete.
