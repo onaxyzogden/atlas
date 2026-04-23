@@ -108,12 +108,13 @@ crops, livestock, and access routes.
   renders the same data in a different shell. Do not duplicate the
   overlay component — import `HydrologyPanel` from
   `@/features/hydrology-water` if you need it elsewhere.
-- Pond/swale/berm/check-dam items are `partial`: the candidate zones
-  are computed by `WatershedRefinementProcessor` and persisted (and the
-  counts render in `HydrologyWaterPage`), but the UI "placement
-  suggestion" flow (pick a candidate → propose a structure) is not
-  shipped. Do not flip those items to `done` until the design surface
-  exists.
+- Pond/swale placement UX is a button list in `HydrologyWaterPage`
+  (`CandidatePlacement`) that POSTs to `api.designFeatures.create` — pond
+  goes in as a `point` feature, swale as a `path` LineString. Berm/check-dam
+  candidates reuse the swale surface once the watershed processor emits
+  them; the list truncates to 10 per type to keep the surface readable.
+  Placed state is client-only (not persisted) — reload clears it. That's
+  fine because the design-feature write is the source of truth.
 - `water-retention-drought-storm-scores` is `done`. The three labels
   (`Water Retention`, `Drought Resilience`, `Storm Resilience`) are
   emitted by `computeScores` alongside the existing 8 weighted scores,

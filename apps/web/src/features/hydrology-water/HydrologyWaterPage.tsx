@@ -13,8 +13,10 @@
  * `index.ts`) — use that for on-map rendering.
  */
 
+import { useState } from 'react';
 import type { HydrologyWaterResponse } from '@ogden/shared';
 import { useHydrologyWater } from '../../hooks/useProjectQueries.js';
+import { api } from '../../lib/apiClient.js';
 import p from '../../styles/panel.module.css';
 
 interface HydrologyWaterPageProps {
@@ -33,7 +35,7 @@ export default function HydrologyWaterPage({ projectId }: HydrologyWaterPageProp
         <div className={p.mb24}>Could not load hydrology data for this project.</div>
       )}
       {data?.status === 'not_ready' && <NotReadyBanner reason={data.reason} />}
-      {data?.status === 'ready' && <ReadyView data={data} />}
+      {data?.status === 'ready' && <ReadyView data={data} projectId={projectId} />}
     </div>
   );
 }
@@ -53,8 +55,10 @@ function NotReadyBanner({
 
 function ReadyView({
   data,
+  projectId,
 }: {
   data: Extract<HydrologyWaterResponse, { status: 'ready' }>;
+  projectId: string;
 }) {
   const { summary, attribution, dataDate, fetchedAt } = data;
   return (
@@ -87,6 +91,11 @@ function ReadyView({
           value={`${summary.swaleCandidates.candidateCount}`}
         />
         <Row label="Confidence" value={summary.confidence} />
+      </dl>
+
+      <CandidatePlacement projectId={projectId} summary={summary} />
+
+      <dl className={`${p.section} ${p.sectionGapLg}`}>
         <Row label="Data sources" value={summary.dataSources.join(', ')} />
       </dl>
 
@@ -270,6 +279,160 @@ function ReadyView({
         {dataDate && <div>Source date: {dataDate}</div>}
         {fetchedAt && <div>Computed: {new Date(fetchedAt).toLocaleString()}</div>}
       </div>
+    </>
+  );
+}
+
+type ReadySummary = Extract<HydrologyWaterResponse, { status: 'ready' }>['summary'];
+
+function CandidatePlacement({
+  projectId,
+  summary,
+}: {
+  projectId: string;
+  summary: ReadySummary;
+}) {
+  const [placed, setPlaced] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const ponds = summary.pondCandidates.candidates;
+  const swales = summary.swaleCandidates.candidates;
+  if (ponds.length === 0 && swales.length === 0) return null;
+
+  async function place(
+    key: string,
+    subtype: 'pond' | 'swale',
+    geometry: GeoJSON.Geometry,
+    label: string,
+    properties: Record<string, unknown>,
+  ) {
+    setPending(key);
+    setError(null);
+    try {
+      await api.designFeatures.create(projectId, {
+        featureType: subtype === 'pond' ? 'point' : 'path',
+        subtype,
+        geometry,
+        label,
+        properties,
+        sortOrder: 0,
+      });
+      setPlaced((prev) => new Set(prev).add(key));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to place candidate');
+    } finally {
+      setPending(null);
+    }
+  }
+
+  return (
+    <>
+      <h4 className={p.sectionLabel}>Place candidates</h4>
+      <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+        Promote a generated candidate into a design feature. Place once, then refine geometry on the map.
+      </div>
+      {error && (
+        <div className={p.mb24} style={{ color: 'var(--color-danger, #b91c1c)', fontSize: 'var(--text-xs)' }}>
+          {error}
+        </div>
+      )}
+      {ponds.length > 0 && (
+        <dl className={`${p.section} ${p.sectionGapLg}`}>
+          {ponds.slice(0, 10).map((c, i) => {
+            const key = `pond-${i}`;
+            const isPlaced = placed.has(key);
+            const isPending = pending === key;
+            return (
+              <div
+                key={key}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '4px 0',
+                  borderBottom: '1px solid var(--color-border)',
+                }}
+              >
+                <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
+                  Pond #{i + 1} · slope {c.meanSlope.toFixed(1)}° · suitability {c.suitabilityScore.toFixed(2)}
+                </div>
+                <button
+                  type="button"
+                  disabled={isPlaced || isPending}
+                  onClick={() =>
+                    place(
+                      key,
+                      'pond',
+                      { type: 'Point', coordinates: c.location },
+                      `Pond candidate #${i + 1}`,
+                      {
+                        cellCount: c.cellCount,
+                        meanSlope: c.meanSlope,
+                        meanAccumulation: c.meanAccumulation,
+                        suitabilityScore: c.suitabilityScore,
+                        source: 'hydrology-water-candidate',
+                      },
+                    )
+                  }
+                  style={{ fontSize: 'var(--text-xs)', padding: '2px 8px' }}
+                >
+                  {isPlaced ? 'Placed ✓' : isPending ? 'Placing…' : 'Place as feature'}
+                </button>
+              </div>
+            );
+          })}
+        </dl>
+      )}
+      {swales.length > 0 && (
+        <dl className={`${p.section} ${p.sectionGapLg}`}>
+          {swales.slice(0, 10).map((c, i) => {
+            const key = `swale-${i}`;
+            const isPlaced = placed.has(key);
+            const isPending = pending === key;
+            return (
+              <div
+                key={key}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '4px 0',
+                  borderBottom: '1px solid var(--color-border)',
+                }}
+              >
+                <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
+                  Swale #{i + 1} · {c.lengthCells} cells · slope {c.meanSlope.toFixed(1)}°
+                </div>
+                <button
+                  type="button"
+                  disabled={isPlaced || isPending}
+                  onClick={() =>
+                    place(
+                      key,
+                      'swale',
+                      { type: 'LineString', coordinates: [c.start, c.end] },
+                      `Swale candidate #${i + 1}`,
+                      {
+                        lengthCells: c.lengthCells,
+                        meanSlope: c.meanSlope,
+                        elevation: c.elevation,
+                        suitabilityScore: c.suitabilityScore,
+                        source: 'hydrology-water-candidate',
+                      },
+                    )
+                  }
+                  style={{ fontSize: 'var(--text-xs)', padding: '2px 8px' }}
+                >
+                  {isPlaced ? 'Placed ✓' : isPending ? 'Placing…' : 'Place as feature'}
+                </button>
+              </div>
+            );
+          })}
+        </dl>
+      )}
     </>
   );
 }
