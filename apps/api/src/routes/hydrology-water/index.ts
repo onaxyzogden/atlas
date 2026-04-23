@@ -1,5 +1,20 @@
 import type { FastifyInstance } from 'fastify';
-import { HydrologyWaterResponse, HydrologyWaterSummary } from '@ogden/shared';
+import { HydrologyWaterResponse, HydrologyWaterSummary, type HydrologyWaterSummary as HydrologyWaterSummaryT } from '@ogden/shared';
+import { computeHydrologyMetrics } from '@ogden/shared/scoring';
+
+type SummaryRecord = Record<string, unknown>;
+function summaryOf(row: { summary_data: unknown } | undefined): SummaryRecord {
+  const raw = row?.summary_data;
+  return raw && typeof raw === 'object' ? (raw as SummaryRecord) : {};
+}
+function numField(s: SummaryRecord, k: string): number {
+  const v = s[k];
+  return typeof v === 'number' && isFinite(v) ? v : 0;
+}
+function strField(s: SummaryRecord, k: string): string {
+  const v = s[k];
+  return typeof v === 'string' ? v : '';
+}
 
 /**
  * Section 5 — Hydrology & Water Systems Planning ([P1])
@@ -61,7 +76,69 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
         };
       }
 
-      const summary = HydrologyWaterSummary.parse(row.summary_data);
+      // Water budget — derive on the fly from climate/soils/elevation/wetlands
+      // layers. Block is optional; omitted if any supporting layer is absent.
+      const [project] = await db<{ acreage: string | null }[]>`
+        SELECT acreage::text FROM projects WHERE id = ${req.projectId}
+      `;
+      const supportingRows = await db<{
+        layer_type: string;
+        summary_data: unknown;
+      }[]>`
+        SELECT layer_type, summary_data
+        FROM project_layers
+        WHERE project_id = ${req.projectId}
+          AND fetch_status = 'complete'
+          AND layer_type IN ('climate', 'soils', 'elevation', 'wetlands_flood', 'watershed')
+      `;
+      const byType = Object.fromEntries(
+        supportingRows.map((r) => [r.layer_type, r]),
+      );
+      const climateS = summaryOf(byType['climate']);
+      const soilsS = summaryOf(byType['soils']);
+      const elevS = summaryOf(byType['elevation']);
+      const wetS = summaryOf(byType['wetlands_flood']);
+      const watershedS = summaryOf(byType['watershed']);
+
+      const precipMm = numField(climateS, 'annual_precip_mm');
+      const acreage = project?.acreage !== null && project?.acreage !== undefined
+        ? parseFloat(project.acreage) : null;
+
+      let waterBudget: HydrologyWaterSummaryT['waterBudget'] | undefined;
+      if (precipMm > 0 && acreage && acreage > 0) {
+        const monthlyNormals = (climateS['_monthly_normals'] as
+          { month: number; mean_max_c: number | null; mean_min_c: number | null; precip_mm: number }[] | undefined) ?? null;
+        const catchRaw = parseFloat(String(watershedS['catchment_area_ha'] ?? ''));
+        const hm = computeHydrologyMetrics({
+          precipMm,
+          catchmentHa: isFinite(catchRaw) ? catchRaw : null,
+          propertyAcres: acreage,
+          slopeDeg: numField(elevS, 'mean_slope_deg') || 3,
+          hydrologicGroup: strField(soilsS, 'hydrologic_group') || 'B',
+          drainageClass: strField(soilsS, 'drainage_class') || 'well drained',
+          floodZone: strField(wetS, 'flood_zone') || 'Zone X',
+          wetlandPct: numField(wetS, 'wetland_pct'),
+          annualTempC: numField(climateS, 'annual_temp_mean_c') || 9,
+          monthlyNormals,
+          awcCmCm: numField(soilsS, 'awc_cm_cm'),
+          rootingDepthCm: numField(soilsS, 'rooting_depth_cm'),
+        });
+        waterBudget = {
+          annualRainfallGal: hm.annualRainfallGal,
+          rwhPotentialGal: hm.rwhPotentialGal,
+          recommendedStorageGal: hm.rwhStorageGal,
+          irrigationDemandGal: hm.irrigationDemandGal,
+          surplusGal: hm.surplusGal,
+          droughtBufferDays: hm.droughtBufferDays,
+          waterBalanceMm: hm.waterBalanceMm,
+          aridityClass: hm.aridityClass,
+        };
+      }
+
+      const summary = HydrologyWaterSummary.parse({
+        ...(row.summary_data as Record<string, unknown>),
+        ...(waterBudget ? { waterBudget } : {}),
+      });
       return {
         data: HydrologyWaterResponse.parse({
           status: 'ready',

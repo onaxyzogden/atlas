@@ -133,6 +133,12 @@ crops, livestock, and access routes.
   (`no_boundary`, `pipeline_pending`, `pipeline_failed`) each have
   distinct UI copy in `HydrologyWaterPage`; do not collapse them into a
   generic "loading" banner.
+- `summary.waterBudget` is an **optional** block on the ready response.
+  The route derives it on demand via `computeHydrologyMetrics` from the
+  climate/soils/elevation/wetlands/watershed layers; it is omitted when
+  annual precip or project acreage is missing. The UI conditionally
+  renders a "Water budget" section — do not assume the block is always
+  present.
 
 ## Test surface
 - `apps/api/src/services/terrain/__tests__/` — WatershedRefinementProcessor

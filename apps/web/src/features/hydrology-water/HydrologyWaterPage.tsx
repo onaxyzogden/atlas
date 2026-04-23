@@ -90,6 +90,43 @@ function ReadyView({
         <Row label="Data sources" value={summary.dataSources.join(', ')} />
       </dl>
 
+      {summary.waterBudget && (
+        <>
+          <h4 className={p.sectionLabel}>Water budget</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            <Row
+              label="Annual rainfall"
+              value={`${fmtGal(summary.waterBudget.annualRainfallGal)} gal`}
+            />
+            <Row
+              label="Rainwater harvest potential"
+              value={`${fmtGal(summary.waterBudget.rwhPotentialGal)} gal/yr`}
+            />
+            <Row
+              label="Recommended storage (2-wk buffer)"
+              value={`${fmtGal(summary.waterBudget.recommendedStorageGal)} gal`}
+            />
+            <Row
+              label="Irrigation demand"
+              value={`${fmtGal(summary.waterBudget.irrigationDemandGal)} gal/yr`}
+            />
+            <Row
+              label="Surplus / deficit"
+              value={`${summary.waterBudget.surplusGal >= 0 ? '+' : ''}${fmtGal(summary.waterBudget.surplusGal)} gal/yr`}
+            />
+            <Row
+              label="Drought buffer"
+              value={`${summary.waterBudget.droughtBufferDays.toFixed(0)} days`}
+            />
+            <Row
+              label="Annual water balance"
+              value={`${summary.waterBudget.waterBalanceMm >= 0 ? '+' : ''}${summary.waterBudget.waterBalanceMm.toFixed(0)} mm`}
+            />
+            <Row label="Aridity class" value={summary.waterBudget.aridityClass} />
+          </dl>
+        </>
+      )}
+
       <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
         {attribution && <div>{attribution}</div>}
         {dataDate && <div>Source date: {dataDate}</div>}
@@ -97,6 +134,12 @@ function ReadyView({
       </div>
     </>
   );
+}
+
+function fmtGal(n: number): string {
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return n.toFixed(0);
 }
 
 function Row({ label, value }: { label: string; value: string }) {

@@ -62,6 +62,21 @@ export const HydrologyWaterSummary = z.object({
     drainageDensityKmPerKm2: z.number(),
     drainageDensityClass: z.string(),
   }),
+  // Water budget — optional block. Derived on-demand from climate/soils/
+  // elevation/wetlands via `computeHydrologyMetrics`; omitted when any of
+  // those inputs are missing or incomplete.
+  waterBudget: z
+    .object({
+      annualRainfallGal: z.number().nonnegative(),
+      rwhPotentialGal: z.number().nonnegative(),
+      recommendedStorageGal: z.number().nonnegative(),
+      irrigationDemandGal: z.number().nonnegative(),
+      surplusGal: z.number(),
+      droughtBufferDays: z.number().nonnegative(),
+      waterBalanceMm: z.number(),
+      aridityClass: z.enum(['Hyperarid', 'Arid', 'Semi-arid', 'Dry sub-humid', 'Humid']),
+    })
+    .optional(),
   confidence: ConfidenceLevel,
   dataSources: z.array(z.string()),
   computedAt: z.string(),
