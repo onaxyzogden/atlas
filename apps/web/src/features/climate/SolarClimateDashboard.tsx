@@ -18,6 +18,7 @@ import {
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
+import { api, type SolarExposureResponse } from '../../lib/apiClient.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 
@@ -73,6 +74,22 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarClimateDashboardProps) {
   const siteData = useSiteData(project.id);
   const [activeSeason, setActiveSeason] = useState<Season>('summer');
+  const [terrainExposure, setTerrainExposure] = useState<SolarExposureResponse | null>(null);
+  const [terrainExposureStatus, setTerrainExposureStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [terrainExposureError, setTerrainExposureError] = useState<string | null>(null);
+
+  const handleComputeTerrainExposure = async () => {
+    setTerrainExposureStatus('loading');
+    setTerrainExposureError(null);
+    try {
+      const res = await api.climateAnalysis.computeSolarExposure(project.id);
+      setTerrainExposure(res.data);
+      setTerrainExposureStatus('idle');
+    } catch (err) {
+      setTerrainExposureError(err instanceof Error ? err.message : String(err));
+      setTerrainExposureStatus('error');
+    }
+  };
 
   const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
   const microclimate = siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null;
@@ -277,12 +294,170 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
               : ''}
           </p>
           <p className={css.solarOppNote}>
-            Exposure score derived from sun path at {lat.toFixed(2)}\u00B0N — weights altitude and
+            Exposure score derived from sun path at {lat.toFixed(2)}&deg;N &mdash; weights altitude and
             south-bias per hour. Source: astronomical calculations + NASA POWER irradiance.
           </p>
         </div>
       </div>
+
+      {/* Terrain-aware solar exposure — runs DEM-driven computation on demand */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>TERRAIN EXPOSURE MAP</h3>
+        <div className={css.solarOppCard}>
+          {!terrainExposure && terrainExposureStatus !== 'loading' && (
+            <>
+              <p className={css.solarOppText}>
+                Compute a grid-cell exposure map from the project DEM: slope &times; aspect &times;
+                annual sun path. Identifies placement zones for panels, greenhouses, and sun-loving
+                crops. Horizon shading from surrounding terrain is not modelled.
+              </p>
+              <button
+                type="button"
+                onClick={handleComputeTerrainExposure}
+                style={{
+                  marginTop: 12,
+                  padding: '8px 16px',
+                  background: group.livestock,
+                  color: '#1a1611',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: 12,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Analyze Terrain Exposure
+              </button>
+              {terrainExposureError && (
+                <p className={css.solarOppNote} style={{ color: statusToken.poor, marginTop: 8 }}>
+                  {terrainExposureError}
+                </p>
+              )}
+            </>
+          )}
+          {terrainExposureStatus === 'loading' && (
+            <p className={css.solarOppText}>Reading DEM and computing exposure grid&hellip;</p>
+          )}
+          {terrainExposure && (
+            <>
+              <div className={css.metricGrid}>
+                <ClimateMetric
+                  label="Mean Exposure"
+                  value={`${Math.round(terrainExposure.summary.mean_exposure * 100)}%`}
+                />
+                <ClimateMetric
+                  label="Excellent (>75%)"
+                  value={`${terrainExposure.summary.excellent_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="High (55-75%)"
+                  value={`${terrainExposure.summary.high_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Medium (35-55%)"
+                  value={`${terrainExposure.summary.medium_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Low (<35%)"
+                  value={`${terrainExposure.summary.low_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Cell Resolution"
+                  value={`~${Math.round(terrainExposure.summary.resolution_m)} m`}
+                />
+              </div>
+              <ExposureMiniMap
+                geojson={terrainExposure.geojson}
+                boundary={project.parcelBoundaryGeojson ?? null}
+              />
+              <p className={css.solarOppNote}>
+                Source: {terrainExposure.summary.source_api} &middot; {terrainExposure.summary.sample_grid_size} cells sampled.
+                Green = best placement zones (excellent/high). Dim = poor exposure (steep N-facing or deep shadow-prone aspects).
+              </p>
+            </>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+function ExposureMiniMap({
+  geojson,
+  boundary,
+}: {
+  geojson: GeoJSON.FeatureCollection;
+  boundary: GeoJSON.FeatureCollection | null;
+}) {
+  const width = 340;
+  const height = 240;
+
+  // Compute bbox from geojson features.
+  let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  for (const f of geojson.features) {
+    if (f.geometry?.type !== 'Polygon') continue;
+    for (const ring of (f.geometry as GeoJSON.Polygon).coordinates) {
+      for (const coord of ring) {
+        const lng = coord[0];
+        const lat = coord[1];
+        if (lng === undefined || lat === undefined) continue;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }
+    }
+  }
+  if (!isFinite(minLng)) return null;
+
+  const pad = 10;
+  const sx = (lng: number) =>
+    pad + ((lng - minLng) / (maxLng - minLng || 1)) * (width - 2 * pad);
+  const sy = (lat: number) =>
+    pad + ((maxLat - lat) / (maxLat - minLat || 1)) * (height - 2 * pad);
+
+  const bandFill: Record<string, string> = {
+    low: 'rgba(100, 100, 110, 0.35)',
+    medium: 'rgba(220, 190, 100, 0.5)',
+    high: 'rgba(230, 160, 80, 0.75)',
+    excellent: 'rgba(240, 210, 90, 0.95)',
+  };
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      style={{ display: 'block', margin: '12px auto 0', background: 'rgba(0,0,0,0.25)', borderRadius: 6 }}
+    >
+      {geojson.features.map((f, i) => {
+        if (f.geometry?.type !== 'Polygon') return null;
+        const ring = (f.geometry as GeoJSON.Polygon).coordinates[0];
+        if (!ring) return null;
+        const pts = ring
+          .map((c) => `${sx(c[0] ?? 0).toFixed(1)},${sy(c[1] ?? 0).toFixed(1)}`)
+          .join(' ');
+        const band = String(f.properties?.band ?? f.properties?.class ?? 'low');
+        return (
+          <polygon
+            key={i}
+            points={pts}
+            fill={bandFill[band] ?? bandFill.low}
+            stroke="none"
+          />
+        );
+      })}
+      {boundary?.features?.map((f, i) => {
+        if (f.geometry?.type !== 'Polygon') return null;
+        const ring = (f.geometry as GeoJSON.Polygon).coordinates[0];
+        if (!ring) return null;
+        const pts = ring
+          .map((c) => `${sx(c[0] ?? 0).toFixed(1)},${sy(c[1] ?? 0).toFixed(1)}`)
+          .join(' ');
+        return <polygon key={`b${i}`} points={pts} fill="none" stroke={group.livestock} strokeWidth={2} />;
+      })}
+    </svg>
   );
 }
 

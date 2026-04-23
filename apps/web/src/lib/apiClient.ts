@@ -427,4 +427,28 @@ export const api = {
     point: (input: ElevationPointRequest) =>
       request<ElevationPointResponse>('POST', '/api/v1/elevation/point', input),
   },
+
+  climateAnalysis: {
+    computeSolarExposure: (projectId: string) =>
+      request<SolarExposureResponse>(
+        'POST',
+        `/api/v1/climate-analysis/${projectId}/solar-exposure/compute`,
+      ),
+  },
 };
+
+export interface SolarExposureResponse {
+  geojson: GeoJSON.FeatureCollection;
+  summary: {
+    mean_exposure: number;
+    min_exposure: number;
+    max_exposure: number;
+    excellent_pct: number;
+    high_pct: number;
+    medium_pct: number;
+    low_pct: number;
+    sample_grid_size: number;
+    resolution_m: number;
+    source_api: string;
+  };
+}
