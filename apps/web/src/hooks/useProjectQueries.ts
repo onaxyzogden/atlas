@@ -10,7 +10,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/apiClient.js';
 import { toast } from '../components/Toast.js';
-import type { AssessmentResponse, BasemapTerrainResponse, CreateProjectInput, HydrologyWaterResponse, UpdateProjectInput } from '@ogden/shared';
+import type { AssessmentResponse, BasemapTerrainResponse, CreateProjectInput, HydrologyWaterResponse, LayerType, UpdateProjectInput } from '@ogden/shared';
+
+export interface ProjectLayerRow {
+  id: string;
+  projectId: string;
+  layerType: LayerType;
+  sourceApi: string | null;
+  fetchStatus: 'pending' | 'fetching' | 'complete' | 'failed' | 'unavailable';
+  confidence: 'high' | 'medium' | 'low' | null;
+  dataDate: string | null;
+  attributionText: string | null;
+  geojsonData: unknown | null;
+  summaryData: Record<string, unknown> | null;
+  rasterUrl: string | null;
+  wmsUrl: string | null;
+  wmsLayers: string | null;
+  metadata: Record<string, unknown> | null;
+  fetchedAt: string | null;
+}
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
@@ -22,6 +40,7 @@ export const projectKeys = {
   assessment: (id: string) => [...projectKeys.all, 'assessment', id] as const,
   hydrologyWater: (id: string) => [...projectKeys.all, 'hydrologyWater', id] as const,
   basemapTerrain: (id: string) => [...projectKeys.all, 'basemapTerrain', id] as const,
+  layers: (id: string) => [...projectKeys.all, 'layers', id] as const,
 };
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -131,6 +150,38 @@ export function useBasemapTerrain(projectId: string) {
     },
     enabled: !!projectId,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * Section 3 — Site Data Layers catalog.
+ * Reads `GET /api/v1/layers/project/:projectId`, returns every `project_layers`
+ * row hydrated by the Tier-1 pipeline (plus Tier-2/3 derived rows when present).
+ */
+export function useProjectLayers(projectId: string) {
+  return useQuery<ProjectLayerRow[], Error>({
+    queryKey: projectKeys.layers(projectId),
+    queryFn: async () => {
+      const { data } = await api.layers.list(projectId);
+      return data as ProjectLayerRow[];
+    },
+    enabled: !!projectId,
+    staleTime: 60_000,
+  });
+}
+
+export function useRefreshLayer(projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (layerType: string) => api.layers.refresh(projectId, layerType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.layers(projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.completeness(projectId) });
+      toast.success('Layer refresh queued');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
   });
 }
 
