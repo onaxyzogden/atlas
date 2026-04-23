@@ -8,22 +8,26 @@
  */
 
 import { useState, useMemo } from 'react';
+import {
+  computeSunPathForSeason,
+  summarizeSunPath,
+  solarExposureScore,
+  SEASON_DATES,
+  type Season,
+  type SunPosition,
+} from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 
 interface SolarClimateDashboardProps {
-  project: { id: string; acreage?: number | null };
+  project: {
+    id: string;
+    acreage?: number | null;
+    parcelBoundaryGeojson?: GeoJSON.FeatureCollection | null;
+  };
   onSwitchToMap: () => void;
-}
-
-type Season = 'spring' | 'summer' | 'fall' | 'winter';
-
-interface SunPosition {
-  hour: number;
-  azimuth: number;
-  elevation: number;
 }
 
 interface ClimateSummary {
@@ -61,13 +65,6 @@ interface ElevationSummary {
   max_elevation_m?: number;
 }
 
-const SEASON_DATES: Record<Season, { month: number; day: number; label: string }> = {
-  spring: { month: 3, day: 20, label: 'Spring Equinox' },
-  summer: { month: 6, day: 21, label: 'Summer Solstice' },
-  fall: { month: 9, day: 22, label: 'Fall Equinox' },
-  winter: { month: 12, day: 21, label: 'Winter Solstice' },
-};
-
 const WIND_DIRECTIONS_8 = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 const WIND_DIRECTIONS_16 = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'] as const;
 
@@ -83,11 +80,24 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   const microclimateStatus = siteData ? getLayer(siteData, 'microclimate')?.fetchStatus : undefined;
 
   const windRoseData = climate?._wind_rose ?? null;
-  const lat = 43.5; // Default latitude — would be derived from project center
+  const center = useMemo(
+    () => computeCenterFromBoundary(project.parcelBoundaryGeojson ?? null),
+    [project.parcelBoundaryGeojson],
+  );
+  const lat = center?.[1] ?? 43.5;
 
-  const sunPath = useMemo(() => computeSunPath(lat, activeSeason), [lat, activeSeason]);
-  const daylightHours = useMemo(() => sunPath.filter((p) => p.elevation > 0).length, [sunPath]);
-  const solarNoon = useMemo(() => sunPath.reduce((max, p) => (p.elevation > max.elevation ? p : max), sunPath[0]!), [sunPath]);
+  const sunPath = useMemo(() => computeSunPathForSeason(lat, activeSeason), [lat, activeSeason]);
+  const sunSummary = useMemo(() => summarizeSunPath(sunPath), [sunPath]);
+  const daylightHours = sunSummary.daylightHours;
+  const solarNoon = sunSummary.solarNoon;
+
+  // Seasonal solar exposure scores — drives the new "Solar Exposure" card.
+  const exposureBySeason = useMemo(() => ({
+    spring: solarExposureScore(computeSunPathForSeason(lat, 'spring')),
+    summer: solarExposureScore(computeSunPathForSeason(lat, 'summer')),
+    fall: solarExposureScore(computeSunPathForSeason(lat, 'fall')),
+    winter: solarExposureScore(computeSunPathForSeason(lat, 'winter')),
+  }), [lat]);
 
   // Growing season frost dates
   const frostWindow = useMemo(() => {
@@ -236,10 +246,25 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
         )}
       </div>
 
-      {/* Solar Opportunity Zones */}
+      {/* Solar Exposure Summary — seasonal exposure scores from sun path */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>SOLAR OPPORTUNITY</h3>
+        <h3 className={css.sectionLabel}>SOLAR EXPOSURE</h3>
         <div className={css.solarOppCard}>
+          <div className={css.metricGrid}>
+            {(Object.keys(exposureBySeason) as Season[]).map((season) => (
+              <ClimateMetric
+                key={season}
+                label={SEASON_DATES[season].label.replace(' Equinox', '').replace(' Solstice', '')}
+                value={`${Math.round(exposureBySeason[season] * 100)}%`}
+              />
+            ))}
+            {climate?.solar_radiation_kwh_m2_day != null && (
+              <ClimateMetric
+                label="Avg Irradiance"
+                value={`${climate.solar_radiation_kwh_m2_day} kWh/m\u00B2/day`}
+              />
+            )}
+          </div>
           <p className={css.solarOppText}>
             {elevation?.aspect_dominant
               ? `Dominant aspect: ${elevation.aspect_dominant}. `
@@ -252,7 +277,8 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
               : ''}
           </p>
           <p className={css.solarOppNote}>
-            Source: Astronomical calculations + terrain analysis
+            Exposure score derived from sun path at {lat.toFixed(2)}\u00B0N — weights altitude and
+            south-bias per hour. Source: astronomical calculations + NASA POWER irradiance.
           </p>
         </div>
       </div>
@@ -394,30 +420,23 @@ function GrowingSeasonCalendar({ lastFrost, firstFrost }: { lastFrost: number; f
   );
 }
 
-// ── Astronomical calculations ─────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
 
-function computeSunPath(lat: number, season: Season): SunPosition[] {
-  const { month, day } = SEASON_DATES[season];
-  const doy = Math.floor((month - 1) * 30.44 + day);
-  const B = ((doy - 1) * 360) / 365;
-  const Br = (B * Math.PI) / 180;
-  const declination = 0.006918 - 0.399912 * Math.cos(Br) + 0.070257 * Math.sin(Br) - 0.006758 * Math.cos(2 * Br) + 0.000907 * Math.sin(2 * Br);
-  const decDeg = (declination * 180) / Math.PI;
-  const latRad = (lat * Math.PI) / 180;
-  const decRad = (decDeg * Math.PI) / 180;
-  const positions: SunPosition[] = [];
-
-  for (let hour = 4; hour <= 21; hour++) {
-    const hourAngle = (hour - 12) * 15;
-    const haRad = (hourAngle * Math.PI) / 180;
-    const sinEl = Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad);
-    const elevation = (Math.asin(Math.max(-1, Math.min(1, sinEl))) * 180) / Math.PI;
-    const cosAz = (Math.sin(decRad) - Math.sin(latRad) * sinEl) / (Math.cos(latRad) * Math.cos((elevation * Math.PI) / 180));
-    let azimuth = (Math.acos(Math.max(-1, Math.min(1, cosAz))) * 180) / Math.PI;
-    if (hourAngle > 0) azimuth = 360 - azimuth;
-    positions.push({ hour, azimuth, elevation });
+function computeCenterFromBoundary(
+  geojson: GeoJSON.FeatureCollection | null,
+): [number, number] | null {
+  if (!geojson?.features?.length) return null;
+  let sumLng = 0, sumLat = 0, count = 0;
+  for (const f of geojson.features) {
+    if (f.geometry?.type === 'Polygon') {
+      for (const coord of (f.geometry as GeoJSON.Polygon).coordinates[0] ?? []) {
+        sumLng += coord[0]!;
+        sumLat += coord[1]!;
+        count++;
+      }
+    }
   }
-  return positions;
+  return count > 0 ? [sumLng / count, sumLat / count] : null;
 }
 
 function getApproxWindFrequencies(lat: number): number[] {

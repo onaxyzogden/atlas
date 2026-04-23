@@ -18,6 +18,7 @@ export * from './schemas/section5.schema.js';
 
 // Utilities
 export * from './lib/caseTransform.js';
+export * from './astronomy/sunPath.js';
 
 // Constants
 export * from './constants/dataSources.js';
