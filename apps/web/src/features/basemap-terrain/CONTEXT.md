@@ -55,6 +55,16 @@ See the "Cross-section dependencies" row below.
 - Sections 3 (Data Layers), 5 (Hydrology), 7 (Soil/Ecology), 9 (Structures),
   10 (Access), 12 (Crops) compose overlays onto this canvas
 
+## Orphaned components
+The following components exist under `features/map/` but are not yet mounted
+anywhere. Picking them up is a prerequisite for flipping the related manifest
+items to `done`:
+- `LayerPanel` — would back `layer-visibility-order-opacity` (P1).
+- `EnvironmentOverlays` — would back overlay toggles used by §3 + §5.
+- `MapStyleSwitcher` — mounted on `MapCanvas` top-right (2026-04-23), backs
+  `basemap-style-switcher` (P1, done). The 5th `topographic` style is wired
+  through `MapStyle` (`store/mapStore.ts`) and `MAP_STYLES` (`lib/maplibre.ts`).
+
 ## Known gotchas
 - Cesium and MapLibre run in the same page. Swap between them via the
   mode toggle — do not mount both simultaneously (WebGL context pressure).

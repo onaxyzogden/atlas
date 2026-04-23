@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { LayerType } from '@ogden/shared';
 
-export type MapStyle = 'satellite' | 'terrain' | 'street' | 'hybrid';
+export type MapStyle = 'satellite' | 'terrain' | 'topographic' | 'street' | 'hybrid';
 export type DrawMode = 'none' | 'polygon' | 'line' | 'point';
 
 // Sprint CB — map-side FAO GAEZ v4 suitability overlay selection.

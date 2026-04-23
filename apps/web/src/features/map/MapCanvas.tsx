@@ -10,6 +10,7 @@ import { useMaplibre } from './hooks/useMaplibre.js';
 import { maplibregl, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import MapLoadingIndicator from './MapLoadingIndicator.js';
+import MapStyleSwitcher from './MapStyleSwitcher.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -599,6 +600,11 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       {/* Post-load, in-flight tile chip — only surfaces after the initial
           style-load finishes (suppressed while the overlay above is showing). */}
       <MapLoadingIndicator map={map} suppressed={!isLoaded} />
+
+      {/* Basemap style switcher — satellite / terrain / topographic / street / hybrid */}
+      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, pointerEvents: 'none' }}>
+        <MapStyleSwitcher />
+      </div>
 
       {/* Map scale bar is added natively by Mapbox — no floating panels needed */}
     </div>
