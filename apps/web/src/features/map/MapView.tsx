@@ -39,6 +39,9 @@ const ViewModeSwitcher = lazy(() => import('./ViewModeSwitcher.js'));
 const CrossSectionTool = lazy(() => import('./CrossSectionTool.js'));
 const ViewshedOverlay = lazy(() => import('./ViewshedOverlay.js'));
 const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ default: m.ViewshedToggle })));
+const HistoricalImageryControl = lazy(() => import('./HistoricalImageryControl.js'));
+const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
+const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -120,6 +123,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const [drawRef, setDrawRef] = useState<MapboxDraw | null>(null);
   const [markerRef, setMarkerRef] = useState<maplibregl.Marker | null>(null);
   const [boundaryColor, setBoundaryColor] = useState<string>(mapTokens.boundary);
+  const [mirrorFeatures, setMirrorFeatures] = useState<GeoJSON.FeatureCollection | null>(null);
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [pendingCommentLngLat, setPendingCommentLngLat] = useState<[number, number] | null>(null);
   const [pendingCommentText, setPendingCommentText] = useState('');
@@ -134,6 +138,28 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   // Unauthenticated users retain full local editing capability
   const effectiveCanEdit = !isAuthenticated || canEdit;
   const layoutRef = useRef<HTMLDivElement>(null);
+
+  // §2 Phase 4 — mirror drawn features to the compare pane. Subscribe to draw
+  // events once we have both the map + draw instance, then snapshot the full
+  // feature collection whenever anything changes.
+  useEffect(() => {
+    if (!mapRef || !drawRef) return;
+    const snapshot = () => {
+      try {
+        const fc = drawRef.getAll() as GeoJSON.FeatureCollection;
+        setMirrorFeatures(fc.features.length ? fc : null);
+      } catch { /* draw not ready */ }
+    };
+    snapshot();
+    mapRef.on('draw.create', snapshot);
+    mapRef.on('draw.update', snapshot);
+    mapRef.on('draw.delete', snapshot);
+    return () => {
+      mapRef.off('draw.create', snapshot);
+      mapRef.off('draw.update', snapshot);
+      mapRef.off('draw.delete', snapshot);
+    };
+  }, [mapRef, drawRef]);
 
   // Resize map when container becomes visible (after tab switch from display:none)
   useEffect(() => {
@@ -280,9 +306,22 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           <Suspense fallback={null}>
             <ViewshedToggle />
           </Suspense>
+          <Suspense fallback={null}>
+            <HistoricalImageryControl map={mapRef} boundaryGeojson={project.parcelBoundaryGeojson} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <SplitScreenToggle />
+          </Suspense>
         </div>
         <Suspense fallback={null}>
           <ViewshedOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SplitScreenCompare
+            primaryMap={mapRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+            mirrorFeatures={mirrorFeatures}
+          />
         </Suspense>
 
         {/* Sprint CB — map-side GAEZ v4 suitability overlay + picker. */}

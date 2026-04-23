@@ -109,8 +109,8 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cross-section-profile', label: 'Cross-section profile tool', phase: 'P2', status: 'done' },
       { key: 'line-of-sight-viewshed', label: 'Line-of-sight and viewshed analysis tools', phase: 'P2', status: 'done' },
       { key: 'layer-visibility-order-opacity', label: 'Layer visibility toggles, ordering, opacity controls', phase: 'P1', status: 'partial' },
-      { key: 'historical-imagery', label: 'Historical imagery layers', phase: 'P2', status: 'planned' },
-      { key: 'split-screen-compare', label: 'Split screen and before/after compare modes', phase: 'P2', status: 'planned' },
+      { key: 'historical-imagery', label: 'Historical imagery layers', phase: 'P2', status: 'done' },
+      { key: 'split-screen-compare', label: 'Split screen and before/after compare modes', phase: 'P2', status: 'done' },
     ],
   },
   {

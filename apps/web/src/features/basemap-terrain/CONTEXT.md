@@ -74,6 +74,30 @@ See the "Cross-section dependencies" row below.
   pipeline — there is no click-to-place UX yet, so users see the
   pre-computed viewshed only. Observer editing is a follow-up.
 
+## Phase 4 additions (2026-04-23)
+- `features/map/HistoricalImageryControl.tsx` — Esri Wayback release picker.
+  Fetches `s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json`
+  once, parses release dates, and on selection adds a raster tile layer
+  (`wayback-imagery`) on top of the basemap. Mirrors the parcel boundary as a
+  dashed gold overlay so the parcel stays orientable.
+- `features/map/SplitScreenCompare.tsx` (+ `SplitScreenToggle`) — mounts a
+  second maplibre instance in a resizable right pane. Camera sync is one-way
+  (`primaryMap.on('move')` → `right.jumpTo(...)`) with a reentry guard. The
+  right pane is read-only: no draw, no edit. It mirrors the parcel boundary
+  and a read-only snapshot of the primary map's MapboxDraw features (lines,
+  polygons, points) via the `mirrorFeatures` prop fed by MapView.
+- `store/mapStore.ts` adds `historicalRelease`, `splitScreenActive`,
+  `splitScreenStyle` + setters.
+- Honest gaps:
+  - Wayback coverage is global but *not* every date has imagery for every
+    parcel — the tile server returns blanks in those cases. No empty-state
+    UI yet.
+  - Split-screen right pane has no measurement or draw tools — it's a
+    visual diff only. `mirrorFeatures` reflects what the user drew on the
+    primary map, but they cannot interact with it.
+  - Move sync is jump-based (not interpolated) — during fast pans the
+    compare pane can look choppy.
+
 ## Orphaned components
 The following components exist under `features/map/` but are not yet mounted
 anywhere. Picking them up is a prerequisite for flipping the related manifest

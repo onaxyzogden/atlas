@@ -60,6 +60,17 @@ interface MapState {
   viewshedVisible: boolean;
   setViewshedVisible: (v: boolean) => void;
 
+  // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
+  // is added to MapCanvas when a release is selected.
+  historicalRelease: { id: number; date: string } | null;
+  setHistoricalRelease: (r: { id: number; date: string } | null) => void;
+
+  // §2 split-screen compare — renders a second maplibre map side-by-side.
+  splitScreenActive: boolean;
+  setSplitScreenActive: (v: boolean) => void;
+  splitScreenStyle: MapStyle;
+  setSplitScreenStyle: (s: MapStyle) => void;
+
   // UI state
   isMeasuring: boolean;
   setMeasuring: (v: boolean) => void;
@@ -116,6 +127,14 @@ export const useMapStore = create<MapState>((set) => ({
 
   viewshedVisible: false,
   setViewshedVisible: (viewshedVisible) => set({ viewshedVisible }),
+
+  historicalRelease: null,
+  setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),
+
+  splitScreenActive: false,
+  setSplitScreenActive: (splitScreenActive) => set({ splitScreenActive }),
+  splitScreenStyle: 'satellite',
+  setSplitScreenStyle: (splitScreenStyle) => set({ splitScreenStyle }),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),
