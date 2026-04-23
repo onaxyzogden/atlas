@@ -15,10 +15,18 @@ NLCD, NOAA) with Tier 2 user-supplied inputs (drone imagery, manual soil /
 water tests, field notes) into a single layer catalog per project.
 
 ## File inventory
-- `SiteDataLayersPage.tsx` — route-level entry (stub; coming-soon surface)
-- `components/` — section-private layer cards, completeness meter, upload controls (not yet created)
-- `hooks/` — section-private hooks for layer list / fetch state (not yet created)
-- `siteDataLayersStore.ts` — Zustand slice (if section owns client state; not yet created)
+- `SiteDataLayersPage.tsx` — route-level entry. Real catalog surface as of
+  2026-04-23 Phase 1–3: groups `project_layers` rows by category, renders
+  coverage disclosure per card, mounts the Data Completeness meter, and
+  lists Tier-2 placeholders as locked cards.
+- `index.ts` — barrel export
+- `components/` — (deferred) would host cards if the page is split further.
+  Current implementation keeps `LayerCard`, `CoverageStrip`,
+  `CompletenessMeter`, `Tier2Placeholders` inlined in `SiteDataLayersPage`.
+- Hooks live in `apps/web/src/hooks/useProjectQueries.ts`:
+  `useProjectLayers`, `useRefreshLayer`, `useCompleteness`, `useProject`.
+- No Zustand slice — React Query is the single source of truth for layer
+  catalog state.
 
 ## Stores touched
 - `useProjectStore` — read active project id for scoped layer queries
@@ -62,6 +70,49 @@ water tests, field notes) into a single layer catalog per project.
   should render as locked placeholders when `ATLAS_PHASE_MAX=P1`.
 - `project_layers` stores both raster COG references and vector GeoJSON
   blobs; do not assume a single geometry shape in list views.
+
+## Phase 1–3 additions (2026-04-23)
+All six Tier-1 partials flipped to `done` in the manifest:
+- `watershed-drainage-network`, `soil-survey-ssurgo`, `wetland-floodplain-overlays`,
+  `landcover-vegetation-nlcd`, `climate-normals-noaa`, `legal-setback-easement-zoning`.
+
+Section status stays `partial` — Tier-2 items (drone, manual tests,
+geological notes, solar/wind/fire, habitat, adjacent land use) are still
+`planned`; they render as locked placeholder cards so the scope is visible.
+
+### Phase 1 — Layer catalog
+- `SiteDataLayersPage` now reads `GET /layers/project/:projectId` and groups
+  rows into seven categories (elevation, hydrology, wetlands, soils,
+  landcover, climate, zoning).
+- Each card shows source API, confidence tier, fetch status pill, data date,
+  fetched-at timestamp, attribution, and a refresh button that POSTs to
+  `/layers/project/:projectId/:layerType/refresh`.
+- React Query hooks added: `useProjectLayers`, `useRefreshLayer`.
+
+### Phase 2 — Coverage disclosure
+- `CoverageStrip` looks up `ADAPTER_REGISTRY[layerType][country]` for the
+  project's country and surfaces one of five states: `matched` (primary
+  adapter fired), `mismatched` (likely manual-flag fallback), `not_fetched`,
+  `no_primary_adapter` (falls back to ManualFlagAdapter), or `unregistered`
+  (derived / Tier-2/3 layer not in the Tier-1 registry).
+- Alternate country lanes are listed as pills (e.g. `CA: Ohn`, `INTL:
+  NasaPower`) so cross-jurisdictional coverage gaps are explicit.
+
+### Phase 3 — Completeness meter + Tier-2 placeholders
+- `CompletenessMeter` mirrors `projects.data_completeness_score` at the top
+  of the page with a progress bar and per-category complete/total counts.
+- `Tier2Placeholders` renders the six P2 items as locked dashed-border
+  cards with "P2 · locked" pills.
+
+### Honest gaps (intentionally deferred)
+- The page is not yet mounted on a route. Neither is `BasemapTerrainPage`.
+  Both are stubs awaiting the section-router wiring — a cross-cutting
+  navigation concern that will land with the broader section-mount pass.
+- Coverage heuristic matches `actual.sourceApi` against the adapter's
+  `source` slug via substring — good enough for the current adapter set
+  but brittle if an adapter renames its `source_api` display string. A
+  stricter source-slug field on `project_layers` would tighten this.
+- Manual upload/entry UX for Tier-2 inputs is placeholder only.
 
 ## Test surface
 - `apps/api/src/services/pipeline/__tests__/*` — adapter unit tests
