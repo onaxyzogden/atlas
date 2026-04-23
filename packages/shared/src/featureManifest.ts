@@ -100,8 +100,8 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'basemap-style-switcher', label: 'Satellite, aerial, topographic, street, hybrid map views', phase: 'P1', status: 'partial' },
-      { key: 'terrain-contour-hillshade', label: 'Terrain mesh, contour line, elevation shading, hillshade rendering', phase: 'P1', status: 'partial' },
-      { key: 'slope-aspect-heatmaps', label: 'Slope and aspect heatmaps', phase: 'P1', status: 'planned' },
+      { key: 'terrain-contour-hillshade', label: 'Terrain mesh, contour line, elevation shading, hillshade rendering', phase: 'P1', status: 'done' },
+      { key: 'slope-aspect-heatmaps', label: 'Slope and aspect heatmaps', phase: 'P1', status: 'done' },
       { key: 'map-mode-2d', label: '2D map mode', phase: 'P1', status: 'partial' },
       { key: 'map-mode-2-5d-3d', label: '2.5D tilted and full 3D terrain modes', phase: 'P2', status: 'partial' },
       { key: 'vector-overlays-parcel-road-water-building', label: 'Parcel boundary, road, waterbody, building footprint overlays', phase: 'P1', status: 'planned' },

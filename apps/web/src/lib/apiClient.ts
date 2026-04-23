@@ -31,6 +31,7 @@ import type {
   ProjectRole,
   AssessmentResponse,
   HydrologyWaterResponse,
+  BasemapTerrainResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -404,5 +405,10 @@ export const api = {
   hydrologyWater: {
     get: (projectId: string) =>
       request<HydrologyWaterResponse>('GET', `/api/v1/hydrology-water/${projectId}`),
+  },
+
+  basemapTerrain: {
+    get: (projectId: string) =>
+      request<BasemapTerrainResponse>('GET', `/api/v1/basemap-terrain/${projectId}`),
   },
 };

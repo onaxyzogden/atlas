@@ -10,7 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/apiClient.js';
 import { toast } from '../components/Toast.js';
-import type { AssessmentResponse, CreateProjectInput, HydrologyWaterResponse, UpdateProjectInput } from '@ogden/shared';
+import type { AssessmentResponse, BasemapTerrainResponse, CreateProjectInput, HydrologyWaterResponse, UpdateProjectInput } from '@ogden/shared';
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
@@ -21,6 +21,7 @@ export const projectKeys = {
   completeness: (id: string) => [...projectKeys.all, 'completeness', id] as const,
   assessment: (id: string) => [...projectKeys.all, 'assessment', id] as const,
   hydrologyWater: (id: string) => [...projectKeys.all, 'hydrologyWater', id] as const,
+  basemapTerrain: (id: string) => [...projectKeys.all, 'basemapTerrain', id] as const,
 };
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -109,6 +110,23 @@ export function useHydrologyWater(projectId: string) {
     queryKey: projectKeys.hydrologyWater(projectId),
     queryFn: async () => {
       const { data } = await api.hydrologyWater.get(projectId);
+      return data;
+    },
+    enabled: !!projectId,
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Section 2 — Basemap & Terrain.
+ * Reads `GET /api/v1/basemap-terrain/:projectId`, returns a typed
+ * `BasemapTerrainResponse` discriminated union.
+ */
+export function useBasemapTerrain(projectId: string) {
+  return useQuery<BasemapTerrainResponse, Error>({
+    queryKey: projectKeys.basemapTerrain(projectId),
+    queryFn: async () => {
+      const { data } = await api.basemapTerrain.get(projectId);
       return data;
     },
     enabled: !!projectId,
