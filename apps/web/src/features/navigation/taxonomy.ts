@@ -129,6 +129,14 @@ export const DOMAIN_ORDER: DomainGroupKey[] = [
 
 export const NAV_ITEMS: NavItem[] = [
   // ── Site Overview ──────────────────────────────────────────────────────────
+  // Regulatory lives at the top of Site Overview — regulatory posture is
+  // part of "what is this site" more than a separate compliance workflow.
+  // Collapsing it here lets the one-item Compliance group disappear.
+  {
+    id: 'regulatory', label: 'Regulatory',
+    phase: 'P2', domainGroup: 'site-overview',
+    panel: 'regulatory', mapSubItem: 'regulatory',
+  },
   {
     id: 'site-intelligence', label: 'Site Intelligence',
     phase: 'P1', domainGroup: 'site-overview',
@@ -139,35 +147,47 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 'P1', domainGroup: 'site-overview',
     panel: 'layers', mapSubItem: 'terrain-viz',
   },
+  // §3 Site Data Layers catalog — server-authoritative view of every
+  // project_layers row with coverage disclosure and completeness meter.
+  // Dashboard-only: the catalog has no map-rail surface; layer *visibility*
+  // is already handled by `map-layers`.
+  {
+    id: 'data-catalog', label: 'Data Catalog',
+    phase: 'P1', domainGroup: 'site-overview',
+    dashboardOnly: true,
+  },
   {
     id: 'feasibility', label: 'Feasibility',
     phase: 'P2', domainGroup: 'site-overview',
     panel: 'feasibility', mapSubItem: 'feasibility',
   },
+  // Biomass is a site-characterization readout (standing carbon / vegetation
+  // load), so it belongs with Site Overview rather than the General catch-all.
+  { id: 'biomass', label: 'Biomass', phase: 'P1', domainGroup: 'site-overview', dashboardOnly: true },
 
   // ── Grazing & Livestock ────────────────────────────────────────────────────
   {
     id: 'paddock-design', label: 'Paddock Design',
     phase: 'P2', domainGroup: 'grazing-livestock',
-    panel: 'paddockDesign', mapSubItem: 'livestock',
+    panel: 'paddockDesign', mapSubItem: 'paddock',
     layers: ['land_cover', 'soils'], domain: 'paddockDesign',
   },
   {
     id: 'herd-rotation', label: 'Herd Rotation',
     phase: 'P2', domainGroup: 'grazing-livestock',
-    panel: 'herdRotation', mapSubItem: 'livestock',
+    panel: 'herdRotation', mapSubItem: 'rotation',
     layers: ['land_cover', 'soils'], domain: 'herdRotation',
   },
   {
     id: 'grazing-analysis', label: 'Grazing Analysis',
     phase: 'P2', domainGroup: 'grazing-livestock',
-    panel: 'grazingAnalysis', mapSubItem: 'livestock',
+    panel: 'grazingAnalysis', mapSubItem: 'grazing',
     layers: ['land_cover', 'soils'], domain: 'grazingAnalysis',
   },
   {
     id: 'livestock-inventory', label: 'Inventory & Health Ledger',
     phase: 'P2', domainGroup: 'grazing-livestock',
-    panel: 'livestockInventory', mapSubItem: 'livestock',
+    panel: 'livestockInventory', mapSubItem: 'herd',
     layers: ['land_cover', 'soils'], domain: 'livestockInventory',
   },
 
@@ -175,25 +195,25 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: 'planting-tool', label: 'Planting Tool',
     phase: 'P2', domainGroup: 'forestry',
-    panel: 'planting', mapSubItem: 'crops',
+    panel: 'planting', mapSubItem: 'planting',
     layers: ['soils', 'land_cover'], domain: 'plantingTool',
   },
   {
     id: 'forest-hub', label: 'Forest Hub',
     phase: 'P2', domainGroup: 'forestry',
-    panel: 'forest', mapSubItem: 'crops',
+    panel: 'forest', mapSubItem: 'forest',
     layers: ['soils', 'land_cover'], domain: 'forestHub',
   },
   {
     id: 'carbon-diagnostic', label: 'Carbon Diagnostic',
     phase: 'P2', domainGroup: 'forestry',
-    panel: 'carbon', mapSubItem: 'crops',
+    panel: 'carbon', mapSubItem: 'carbon',
     layers: ['soils', 'land_cover'], domain: 'carbonDiagnostic',
   },
   {
     id: 'nursery-ledger', label: 'Nursery Ledger',
     phase: 'P2', domainGroup: 'forestry',
-    panel: 'nursery', mapSubItem: 'crops',
+    panel: 'nursery', mapSubItem: 'nursery',
     layers: ['soils', 'land_cover'], domain: 'nurseryLedger',
   },
 
@@ -241,6 +261,11 @@ export const NAV_ITEMS: NavItem[] = [
 
   // ── Finance ────────────────────────────────────────────────────────────────
   {
+    id: 'timeline-phasing', label: 'Timeline & Phasing',
+    phase: 'P2', domainGroup: 'finance',
+    panel: 'timeline', mapSubItem: 'timeline',
+  },
+  {
     id: 'economics', label: 'Economics',
     phase: 'P2', domainGroup: 'finance',
     panel: 'economic', mapSubItem: 'economics',
@@ -260,22 +285,19 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: 'energy-offgrid', label: 'Energy & Off-Grid',
     phase: 'P2', domainGroup: 'energy-infrastructure',
-    panel: 'energy', mapSubItem: 'utilities',
+    panel: 'energy', mapSubItem: 'energy',
     layers: ['elevation'], domain: 'energy',
   },
   {
     id: 'infrastructure-utilities', label: 'Utilities & Infrastructure',
     phase: 'P2', domainGroup: 'energy-infrastructure',
-    panel: 'infrastructure', mapSubItem: 'utilities',
+    panel: 'infrastructure', mapSubItem: 'infrastructure',
     layers: ['soils', 'watershed'], domain: 'infrastructure',
   },
 
   // ── Compliance ─────────────────────────────────────────────────────────────
-  {
-    id: 'regulatory', label: 'Regulatory',
-    phase: 'P2', domainGroup: 'compliance',
-    panel: 'regulatory', mapSubItem: 'regulatory',
-  },
+  // (Regulatory was relocated to Site Overview; the Compliance group now
+  // has no items and drops out of the sidebars automatically.)
 
   // ── Reporting & Portal ─────────────────────────────────────────────────────
   {
@@ -303,7 +325,6 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   // Dashboard-only (no map-rail panel yet)
-  { id: 'biomass',             label: 'Biomass',  phase: 'P1', domainGroup: 'general', dashboardOnly: true },
   { id: 'dashboard-settings',  label: 'Settings', phase: 'P4', domainGroup: 'general', dashboardOnly: true },
   { id: 'archive',             label: 'Archive',  phase: 'P4', domainGroup: 'general', dashboardOnly: true },
 
@@ -338,11 +359,8 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 'P2', domainGroup: 'energy-infrastructure',
     panel: 'design', mapSubItem: 'utilities', mapOnly: true,
   },
-  {
-    id: 'timeline', label: 'Timeline & Phasing',
-    phase: 'P2', domainGroup: 'general',
-    panel: 'timeline', mapSubItem: 'timeline', mapOnly: true,
-  },
+  // (Removed duplicate mapOnly `timeline` entry — `timeline-phasing` under
+  // Finance already covers the map rail via panel: 'timeline'.)
   {
     id: 'vision', label: 'Vision Layer',
     phase: 'P2', domainGroup: 'general',

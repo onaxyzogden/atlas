@@ -42,6 +42,8 @@ const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryP
 const DecisionSupportPanel = lazy(() => import('../../features/decision/DecisionSupportPanel.js'));
 const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
 const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
+const PhasingDashboard = lazy(() => import('./pages/PhasingDashboard.js'));
+const SiteDataLayersPage = lazy(() => import('../../features/site-data-layers/SiteDataLayersPage.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -67,6 +69,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Map Layers">
           <MapLayersDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'data-catalog':
+      return (
+        <PanelShell name="Data Catalog">
+          <SiteDataLayersPage projectId={project.serverId ?? project.id} />
         </PanelShell>
       );
     case 'grazing-analysis':
@@ -188,6 +196,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Utilities & Infrastructure">
           <EnergyDashboard project={project} onSwitchToMap={onSwitchToMap} focus="infrastructure" />
+        </PanelShell>
+      );
+    case 'timeline-phasing':
+      return (
+        <PanelShell name="Timeline & Phasing">
+          <PhasingDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'educational':
