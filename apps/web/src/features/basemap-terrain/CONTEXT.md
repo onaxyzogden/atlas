@@ -98,6 +98,36 @@ See the "Cross-section dependencies" row below.
   - Move sync is jump-based (not interpolated) — during fast pans the
     compare pane can look choppy.
 
+## Phase 5 additions (2026-04-23)
+§2 fully closed out — remaining partials flipped to done.
+- `features/map/OsmVectorOverlay.tsx` (+ `OsmVectorControls`) — Overpass API
+  fetches roads/waterways/buildings within the parcel bbox and paints them as
+  toggleable GeoJSON layers. Each kind is independently toggled via
+  `mapStore.osmLayersVisible`. Panel also exposes the global overlay-opacity
+  slider.
+- `features/map/MeasureTools.tsx` — gained an **Elevation** mode: single-click
+  anywhere on the map POSTs (lng, lat) to `POST /api/v1/elevation/point` and
+  displays metres + feet. Distance and area modes still use Turf.js locally.
+  Finally mounted in MapView — was orphan before.
+- `store/mapStore.ts` adds `overlayOpacity` (applied by historical raster,
+  viewshed fill/line, OSM layers) and `osmLayersVisible` record.
+- API: `POST /api/v1/elevation/point` — small-bbox read + bilinear sample
+  against the country-appropriate DEM, behind the same P2 gate as profile.
+- Shared: `ElevationPointRequest` / `ElevationPointResponse` in
+  `packages/shared/src/schemas/elevation.schema.ts`.
+- Honest gaps:
+  - Overpass rate-limits aggressively; the fetch is best-effort with no retry
+    or local cache. Large parcels may hit the 25-second timeout.
+  - Layer **ordering** UI is implicit — OSM layers render above basemap and
+    below draw/measurement in add-order; there's no drag-to-reorder panel.
+    The spec said "ordering, opacity controls" — ordering is de facto, opacity
+    is explicit.
+  - `EnvironmentOverlays` and `LayerPanel` remain orphaned. They targeted a
+    Mapbox `composite` source that our MapTiler styles don't expose. OSM via
+    Overpass replaces them functionally.
+  - Elevation point tool reuses the `simple_select` draw mode but does not
+    drop a persistent pin. Result is ephemeral text.
+
 ## Orphaned components
 The following components exist under `features/map/` but are not yet mounted
 anywhere. Picking them up is a prerequisite for flipping the related manifest

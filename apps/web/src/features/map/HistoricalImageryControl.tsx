@@ -39,6 +39,7 @@ interface HistoricalImageryControlProps {
 export default function HistoricalImageryControl({ map, boundaryGeojson }: HistoricalImageryControlProps) {
   const release = useMapStore((s) => s.historicalRelease);
   const setRelease = useMapStore((s) => s.setHistoricalRelease);
+  const overlayOpacity = useMapStore((s) => s.overlayOpacity);
   const [open, setOpen] = useState(false);
   const [releases, setReleases] = useState<Release[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -84,8 +85,10 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
             id: LAYER_ID,
             type: 'raster',
             source: SOURCE_ID,
-            paint: { 'raster-opacity': 0.95 },
+            paint: { 'raster-opacity': overlayOpacity },
           });
+        } else if (map.getLayer(LAYER_ID)) {
+          map.setPaintProperty(LAYER_ID, 'raster-opacity', overlayOpacity);
         }
         // Boundary mirror — re-add above the raster so the parcel stays visible.
         if (boundaryGeojson) {
@@ -115,7 +118,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
     return () => {
       map.off('style.load', sync);
     };
-  }, [map, release, boundaryGeojson]);
+  }, [map, release, boundaryGeojson, overlayOpacity]);
 
   const btnStyle: React.CSSProperties = {
     padding: '6px 10px',

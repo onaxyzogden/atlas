@@ -40,3 +40,21 @@ export const ElevationProfileResponse = z.object({
   confidence: z.enum(['high', 'medium', 'low']),
 });
 export type ElevationProfileResponse = z.infer<typeof ElevationProfileResponse>;
+
+// Point-elevation — single (lng, lat) readout for the Measure > Elevation tool.
+export const ElevationPointRequest = z.object({
+  projectId: z.string(),
+  lng: z.number().min(-180).max(180),
+  lat: z.number().min(-90).max(90),
+});
+export type ElevationPointRequest = z.infer<typeof ElevationPointRequest>;
+
+export const ElevationPointResponse = z.object({
+  projectId: z.string(),
+  lng: z.number(),
+  lat: z.number(),
+  elevationM: z.number().nullable(),
+  sourceApi: z.string(),
+  confidence: z.enum(['high', 'medium', 'low']),
+});
+export type ElevationPointResponse = z.infer<typeof ElevationPointResponse>;

@@ -20,6 +20,7 @@ const LINE_LAYER_ID = 'terrain-viewshed-line';
  */
 export default function ViewshedOverlay({ projectId, map }: ViewshedOverlayProps) {
   const visible = useMapStore((s) => s.viewshedVisible);
+  const overlayOpacity = useMapStore((s) => s.overlayOpacity);
   const [geojson, setGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
   const [fetched, setFetched] = useState(false);
 
@@ -44,19 +45,25 @@ export default function ViewshedOverlay({ projectId, map }: ViewshedOverlayProps
         const src = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
         if (src) {
           src.setData(geojson);
+          if (map.getLayer(FILL_LAYER_ID)) {
+            map.setPaintProperty(FILL_LAYER_ID, 'fill-opacity', overlayOpacity * 0.3);
+          }
+          if (map.getLayer(LINE_LAYER_ID)) {
+            map.setPaintProperty(LINE_LAYER_ID, 'line-opacity', overlayOpacity);
+          }
         } else {
           map.addSource(SOURCE_ID, { type: 'geojson', data: geojson });
           map.addLayer({
             id: FILL_LAYER_ID,
             type: 'fill',
             source: SOURCE_ID,
-            paint: { 'fill-color': semantic.primary, 'fill-opacity': 0.25 },
+            paint: { 'fill-color': semantic.primary, 'fill-opacity': overlayOpacity * 0.3 },
           });
           map.addLayer({
             id: LINE_LAYER_ID,
             type: 'line',
             source: SOURCE_ID,
-            paint: { 'line-color': semantic.primary, 'line-width': 1.2 },
+            paint: { 'line-color': semantic.primary, 'line-width': 1.2, 'line-opacity': overlayOpacity },
           });
         }
       } else {
@@ -72,7 +79,7 @@ export default function ViewshedOverlay({ projectId, map }: ViewshedOverlayProps
     return () => {
       map.off('style.load', sync);
     };
-  }, [map, visible, geojson]);
+  }, [map, visible, geojson, overlayOpacity]);
 
   return null;
 }

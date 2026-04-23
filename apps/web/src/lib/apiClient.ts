@@ -34,6 +34,8 @@ import type {
   BasemapTerrainResponse,
   ElevationProfileRequest,
   ElevationProfileResponse,
+  ElevationPointRequest,
+  ElevationPointResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -422,5 +424,7 @@ export const api = {
   elevation: {
     profile: (input: ElevationProfileRequest) =>
       request<ElevationProfileResponse>('POST', '/api/v1/elevation/profile', input),
+    point: (input: ElevationPointRequest) =>
+      request<ElevationPointResponse>('POST', '/api/v1/elevation/point', input),
   },
 };

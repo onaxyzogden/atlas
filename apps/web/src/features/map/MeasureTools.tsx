@@ -6,19 +6,21 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
+import { api } from '../../lib/apiClient.js';
 import { map as mapTokens, semantic } from '../../lib/tokens.js';
 
-type MeasureMode = 'none' | 'distance' | 'area';
+type MeasureMode = 'none' | 'distance' | 'area' | 'elevation';
 
 interface MeasureToolsProps {
   draw: MapboxDraw | null;
   map: maplibregl.Map | null;
+  projectId: string;
 }
 
-export default function MeasureTools({ draw, map }: MeasureToolsProps) {
+export default function MeasureTools({ draw, map, projectId }: MeasureToolsProps) {
   const [mode, setMode] = useState<MeasureMode>('none');
   const [result, setResult] = useState<string | null>(null);
   const { isMeasuring, setMeasuring } = useMapStore();
@@ -36,6 +38,7 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
         setMode('none');
         setMeasuring(false);
         draw.changeMode('simple_select');
+        map.getCanvas().style.cursor = '';
         return;
       }
 
@@ -46,6 +49,9 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
         draw.changeMode('draw_line_string');
       } else if (m === 'area') {
         draw.changeMode('draw_polygon');
+      } else if (m === 'elevation') {
+        draw.changeMode('simple_select');
+        map.getCanvas().style.cursor = 'crosshair';
       }
 
       // Listen for draw completion
@@ -77,6 +83,28 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
     },
     [draw, map, mode, setMeasuring],
   );
+
+  // Elevation click handler — when mode is 'elevation', single click on the
+  // map samples the point and displays the elevation.
+  useEffect(() => {
+    if (!map || mode !== 'elevation') return;
+    const onClick = async (e: maplibregl.MapMouseEvent) => {
+      setResult('Sampling…');
+      try {
+        const { data } = await api.elevation.point({ projectId, lng: e.lngLat.lng, lat: e.lngLat.lat });
+        if (data.elevationM === null) {
+          setResult('No elevation data at this point');
+        } else {
+          const ft = data.elevationM * 3.28084;
+          setResult(`${data.elevationM.toFixed(1)} m  (${ft.toFixed(0)} ft)`);
+        }
+      } catch (err) {
+        setResult(`Elevation lookup failed: ${(err as Error).message}`);
+      }
+    };
+    map.on('click', onClick);
+    return () => { map.off('click', onClick); };
+  }, [map, mode, projectId]);
 
   const clearMeasure = useCallback(() => {
     draw?.deleteAll();
@@ -119,6 +147,12 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
           icon="⬡"
           onClick={() => startMeasure('area')}
         />
+        <ToolButton
+          active={mode === 'elevation'}
+          label="Elevation"
+          icon="▲"
+          onClick={() => startMeasure('elevation')}
+        />
         {mode !== 'none' && (
           <ToolButton active={false} label="Clear" icon="✕" onClick={clearMeasure} />
         )}
@@ -153,7 +187,11 @@ export default function MeasureTools({ draw, map }: MeasureToolsProps) {
             fontSize: 11,
           }}
         >
-          {mode === 'distance' ? 'Click points to measure distance. Double-click to finish.' : 'Click points to draw area. Double-click to finish.'}
+          {mode === 'distance'
+            ? 'Click points to measure distance. Double-click to finish.'
+            : mode === 'area'
+            ? 'Click points to draw area. Double-click to finish.'
+            : 'Click anywhere on the map to sample elevation.'}
         </div>
       )}
     </div>

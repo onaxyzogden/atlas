@@ -71,6 +71,17 @@ interface MapState {
   splitScreenStyle: MapStyle;
   setSplitScreenStyle: (s: MapStyle) => void;
 
+  // §2 Phase 5 — global overlay opacity (0..1). Applied by HistoricalImagery,
+  // ViewshedOverlay, and OsmVectorOverlay raster/fill paints so the user can
+  // dim overlays without individually toggling them.
+  overlayOpacity: number;
+  setOverlayOpacity: (v: number) => void;
+
+  // §2 Phase 5 — OSM vector overlays (roads, waterbodies, buildings) fetched
+  // from Overpass within the parcel bbox. Each key is independent.
+  osmLayersVisible: { roads: boolean; water: boolean; buildings: boolean };
+  setOsmLayerVisible: (k: 'roads' | 'water' | 'buildings', v: boolean) => void;
+
   // UI state
   isMeasuring: boolean;
   setMeasuring: (v: boolean) => void;
@@ -135,6 +146,13 @@ export const useMapStore = create<MapState>((set) => ({
   setSplitScreenActive: (splitScreenActive) => set({ splitScreenActive }),
   splitScreenStyle: 'satellite',
   setSplitScreenStyle: (splitScreenStyle) => set({ splitScreenStyle }),
+
+  overlayOpacity: 0.85,
+  setOverlayOpacity: (overlayOpacity) => set({ overlayOpacity }),
+
+  osmLayersVisible: { roads: false, water: false, buildings: false },
+  setOsmLayerVisible: (k, v) =>
+    set((state) => ({ osmLayersVisible: { ...state.osmLayersVisible, [k]: v } })),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),

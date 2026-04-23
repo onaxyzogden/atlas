@@ -42,6 +42,9 @@ const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ 
 const HistoricalImageryControl = lazy(() => import('./HistoricalImageryControl.js'));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
+const MeasureTools = lazy(() => import('./MeasureTools.js'));
+const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
+const OsmVectorControls = lazy(() => import('./OsmVectorOverlay.js').then((m) => ({ default: m.OsmVectorControls })));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -312,6 +315,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           <Suspense fallback={null}>
             <SplitScreenToggle />
           </Suspense>
+          <Suspense fallback={null}>
+            <OsmVectorControls disabled={!project.parcelBoundaryGeojson} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <MeasureTools projectId={project.id} map={mapRef} draw={drawRef} />
+          </Suspense>
         </div>
         <Suspense fallback={null}>
           <ViewshedOverlay projectId={project.id} map={mapRef} />
@@ -322,6 +331,9 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             boundaryGeojson={project.parcelBoundaryGeojson}
             mirrorFeatures={mirrorFeatures}
           />
+        </Suspense>
+        <Suspense fallback={null}>
+          <OsmVectorOverlay map={mapRef} boundaryGeojson={project.parcelBoundaryGeojson} />
         </Suspense>
 
         {/* Sprint CB — map-side GAEZ v4 suitability overlay + picker. */}

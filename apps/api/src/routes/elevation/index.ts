@@ -7,7 +7,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { ElevationProfileRequest, type ElevationProfileResponse } from '@ogden/shared';
+import { ElevationProfileRequest, ElevationPointRequest, type ElevationProfileResponse, type ElevationPointResponse } from '@ogden/shared';
 import { ValidationError } from '../../lib/errors.js';
 import { readElevationGrid } from '../../services/terrain/ElevationGridReader.js';
 
@@ -140,6 +140,53 @@ export default async function elevationRoutes(fastify: FastifyInstance) {
   );
 
 
+
+  /**
+   * POST /elevation/point
+   *
+   * Single-point elevation readout for the Measure > Elevation tool.
+   * Reads a ~4-cell window around (lng, lat) and bilinearly interpolates.
+   */
+  fastify.post(
+    '/point',
+    { preHandler: [authenticate, fastify.requirePhase('P2'), resolveProjectRole] },
+    async (req): Promise<{ data: ElevationPointResponse; meta: undefined; error: null }> => {
+      const parsed = ElevationPointRequest.safeParse(req.body);
+      if (!parsed.success) {
+        throw new ValidationError('Invalid elevation point request', parsed.error.issues);
+      }
+      const { projectId, lng, lat } = parsed.data;
+
+      const [project] = await db<{ country: string | null }[]>`
+        SELECT country FROM projects WHERE id = ${projectId}
+      `;
+      const country = (project?.country === 'CA' ? 'CA' : 'US') as 'US' | 'CA';
+
+      // Tiny bbox around the point — enough for the reader to return a stable
+      // grid without pulling a large COG window.
+      const pad = 2e-4;
+      const bbox: [number, number, number, number] = [lng - pad, lat - pad, lng + pad, lat + pad];
+      const grid = await readElevationGrid(bbox, country);
+
+      const [bLon0, bLat0, bLon1, bLat1] = grid.bbox;
+      const colF = ((lng - bLon0) / (bLon1 - bLon0)) * (grid.width - 1);
+      const rowF = ((bLat1 - lat) / (bLat1 - bLat0)) * (grid.height - 1);
+      const elevationM = bilinear(grid.data, grid.width, grid.height, colF, rowF, grid.noDataValue);
+
+      return {
+        data: {
+          projectId,
+          lng,
+          lat,
+          elevationM,
+          sourceApi: grid.sourceApi,
+          confidence: grid.confidence,
+        },
+        meta: undefined,
+        error: null,
+      };
+    },
+  );
 
   /**
    * GET /elevation/nrcan-hrdem?minLon=&minLat=&maxLon=&maxLat=
