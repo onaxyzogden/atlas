@@ -52,6 +52,7 @@ interface ClimateSummary {
   snow_months?: number | null;
   solar_radiation_kwh_m2_day?: number | null;
   solar_radiation_monthly?: number[] | null;
+  wind_speed_ms?: number | null;
   monthly_normals?: MonthlyNormal[] | null;
 }
 
@@ -140,6 +141,11 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   }, [climate]);
 
   const comfort = useMemo(() => buildComfortSummary(climate?.monthly_normals ?? null), [climate]);
+
+  const adaptations = useMemo(
+    () => buildAdaptations({ climate, microclimate, elevation, comfort, exposureBySeason }),
+    [climate, microclimate, elevation, comfort, exposureBySeason],
+  );
 
   return (
     <div className={css.page}>
@@ -248,6 +254,14 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           )}
         </div>
       </div>
+
+      {/* Climate adaptation recommendations — rule-based on available signals */}
+      {adaptations.length > 0 && (
+        <div className={css.section}>
+          <h3 className={css.sectionLabel}>ADAPTATION RECOMMENDATIONS</h3>
+          <AdaptationCards items={adaptations} />
+        </div>
+      )}
 
       {/* Microclimate Zones */}
       <div className={css.section}>
@@ -704,6 +718,173 @@ function ComfortCalendar({
         )}
       </div>
     </>
+  );
+}
+
+interface AdaptationItem {
+  id: string;
+  title: string;
+  severity: 'info' | 'advisory' | 'priority';
+  icon: string;
+  body: string;
+  evidence: string;
+}
+
+interface AdaptationInputs {
+  climate: ClimateSummary | null;
+  microclimate: MicroclimateSummary | null;
+  elevation: ElevationSummary | null;
+  comfort: ReturnType<typeof buildComfortSummary>;
+  exposureBySeason: Record<Season, number>;
+}
+
+function buildAdaptations({ climate, microclimate, elevation, comfort, exposureBySeason }: AdaptationInputs): AdaptationItem[] {
+  const items: AdaptationItem[] = [];
+
+  const frostCount = microclimate?.frostRisk?.length ?? 0;
+  if (frostCount > 0) {
+    items.push({
+      id: 'frost-pocket',
+      severity: 'priority',
+      icon: '\u2744',
+      title: 'Frost-sensitive plantings at risk',
+      body: `${frostCount} frost-pocket zone${frostCount === 1 ? '' : 's'} detected. Avoid siting early-flowering orchard crops (apricot, peach, almond) in these zones. Favor cold-hardy cultivars or reserve these pockets for dormant-season uses.`,
+      evidence: 'Microclimate processor (cold-air drainage + terrain sinks)',
+    });
+  }
+
+  const freezeThaw = climate?.freeze_thaw_cycles_per_year ?? 0;
+  if (freezeThaw >= 40) {
+    items.push({
+      id: 'freeze-thaw',
+      severity: 'advisory',
+      icon: '\u2744',
+      title: 'High freeze-thaw stress on infrastructure',
+      body: `~${freezeThaw} freeze-thaw cycles per year. Specify frost-resistant pipe materials, bury water lines below local frost depth, and avoid unreinforced masonry on exposed north/east elevations.`,
+      evidence: 'Climate normals — freeze-thaw cycle count',
+    });
+  }
+
+  const precip = climate?.annual_precip_mm ?? null;
+  if (precip != null && precip < 500) {
+    items.push({
+      id: 'aridity',
+      severity: 'priority',
+      icon: '\u2600',
+      title: 'Arid-site irrigation design required',
+      body: `Annual precipitation ${precip} mm is below temperate rain-fed thresholds. Prioritize water harvesting (swales, cisterns), drought-tolerant species, and mulched plantings. Size irrigation for the driest 90-day window.`,
+      evidence: 'Climate normals — annual precipitation',
+    });
+  } else if (precip != null && precip > 1400) {
+    items.push({
+      id: 'humid',
+      severity: 'advisory',
+      icon: '\u2602',
+      title: 'High-rainfall site — favour drainage-first design',
+      body: `Annual precipitation ${precip} mm is at the upper end of temperate ranges. Expect elevated disease pressure on stone fruit and brassicas; prefer airflow-prioritising bed orientation and fungal-resistant cultivars.`,
+      evidence: 'Climate normals — annual precipitation',
+    });
+  }
+
+  const winterExposure = exposureBySeason.winter;
+  if (winterExposure > 0 && winterExposure < 0.35) {
+    items.push({
+      id: 'low-winter-sun',
+      severity: 'advisory',
+      icon: '\u263C',
+      title: 'Low winter solar exposure',
+      body: `Winter exposure score ${Math.round(winterExposure * 100)}%. Passive-solar buildings should maximize south glazing and minimize north fenestration. Locate cold-season greenhouses on unshaded south slopes, not valley bottoms.`,
+      evidence: 'Sun-path × site latitude (winter solstice)',
+    });
+  }
+
+  const summerExposure = exposureBySeason.summer;
+  const slope = elevation?.mean_slope_deg ?? 0;
+  const aspect = (elevation?.aspect_dominant ?? '').toUpperCase();
+  const westSouthwest = aspect === 'SW' || aspect === 'W' || aspect === 'WSW' || aspect === 'SSW';
+  if (summerExposure > 0.7 && slope >= 8 && westSouthwest) {
+    items.push({
+      id: 'heat-stress-slope',
+      severity: 'advisory',
+      icon: '\u2668',
+      title: 'West/southwest slope heat stress',
+      body: `Dominant aspect ${aspect} with ${slope.toFixed(1)}\u00B0 slope receives peak afternoon sun. Expect high evapotranspiration and leaf scorch on sensitive crops. Shade strips or windbreak-with-shade multi-purpose plantings recommended.`,
+      evidence: 'DEM aspect + summer exposure score',
+    });
+  }
+
+  const shelterDeficit = (microclimate?.windShelter?.length ?? 0) === 0;
+  const hasWindData = climate?._wind_rose != null || climate?.wind_speed_ms != null;
+  if (shelterDeficit && hasWindData) {
+    const dir = climate?.prevailing_wind ?? 'prevailing';
+    items.push({
+      id: 'windbreak-opportunity',
+      severity: 'info',
+      icon: '\u27F7',
+      title: 'Windbreak opportunity',
+      body: `No wind-sheltered zones detected on site. Plant a multi-row windbreak perpendicular to ${dir} wind to reduce evaporative losses on pasture and orchards by 10\u201330%.`,
+      evidence: 'Microclimate shelter pass + climate prevailing wind',
+    });
+  }
+
+  if (comfort && comfort.comfortableMonths <= 3) {
+    items.push({
+      id: 'short-comfort-season',
+      severity: 'info',
+      icon: '\u2600',
+      title: 'Short outdoor-use season',
+      body: `Only ${comfort.comfortableMonths} comfortable month${comfort.comfortableMonths === 1 ? '' : 's'} per year. Plan outdoor gathering, market, or CSA-pickup infrastructure to be covered or rapidly convertible. Indoor/shoulder-season programming is disproportionately valuable here.`,
+      evidence: 'Monthly normals — thermal comfort band classification',
+    });
+  } else if (comfort && comfort.comfortableMonths >= 8) {
+    items.push({
+      id: 'long-comfort-season',
+      severity: 'info',
+      icon: '\u2600',
+      title: 'Long outdoor-use season — program accordingly',
+      body: `${comfort.comfortableMonths} comfortable months open up year-round outdoor programming (markets, workshops, retreat use). Prioritize shade infrastructure and seasonal water access points.`,
+      evidence: 'Monthly normals — thermal comfort band classification',
+    });
+  }
+
+  return items;
+}
+
+const SEVERITY_ACCENT: Record<AdaptationItem['severity'], string> = {
+  info: 'rgba(138,184,154,0.55)',
+  advisory: 'rgba(222,190,96,0.6)',
+  priority: 'rgba(222,138,96,0.65)',
+};
+
+function AdaptationCards({ items }: { items: AdaptationItem[] }) {
+  return (
+    <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+      {items.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            position: 'relative',
+            padding: '12px 14px 12px 16px',
+            borderLeft: `3px solid ${SEVERITY_ACCENT[item.severity]}`,
+            background: 'rgba(26,22,17,0.4)',
+            borderRadius: 6,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 14 }}>{item.icon}</span>
+            <h4 style={{ margin: 0, fontSize: 12, letterSpacing: '0.03em', color: earth[100], fontWeight: 600 }}>
+              {item.title}
+            </h4>
+          </div>
+          <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5, color: 'rgba(180,165,140,0.85)' }}>
+            {item.body}
+          </p>
+          <p style={{ margin: '6px 0 0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(180,165,140,0.45)' }}>
+            {item.evidence}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
