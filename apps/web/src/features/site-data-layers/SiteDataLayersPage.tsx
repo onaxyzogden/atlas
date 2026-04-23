@@ -4,13 +4,19 @@
  * Catalog view of every `project_layers` row provisioned for this project by
  * the Tier-1 DataPipelineOrchestrator. Groups layers by category, surfaces
  * source adapter / confidence / fetch status, and offers a refresh action.
- * Coverage disclosure (which adapter fired for the project's country) lands
- * in Phase 2; this phase delivers the catalog chrome itself.
+ * Each card also shows coverage disclosure: the primary adapter expected for
+ * the project's country and the alternate country lanes available, so the
+ * partial-ness of cross-country coverage is explicit instead of implicit.
  */
 
 import { useMemo } from 'react';
-import type { LayerType } from '@ogden/shared';
 import {
+  ADAPTER_REGISTRY,
+  type Country,
+  type LayerType,
+} from '@ogden/shared';
+import {
+  useProject,
   useProjectLayers,
   useRefreshLayer,
   type ProjectLayerRow,
@@ -74,7 +80,9 @@ const CATEGORIES: ReadonlyArray<{
 
 export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProps) {
   const { data, isLoading, isError } = useProjectLayers(projectId);
+  const { data: project } = useProject(projectId);
   const refresh = useRefreshLayer(projectId);
+  const country = (project as { country?: Country } | undefined)?.country ?? 'US';
 
   const byType = useMemo(() => {
     const map = new Map<LayerType, ProjectLayerRow>();
@@ -138,6 +146,7 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
               <LayerCard
                 key={row.id}
                 row={row}
+                country={country}
                 onRefresh={() => refresh.mutate(row.layerType)}
                 refreshing={refresh.isPending && refresh.variables === row.layerType}
               />
@@ -153,6 +162,7 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
             <LayerCard
               key={row.id}
               row={row}
+              country={country}
               onRefresh={() => refresh.mutate(row.layerType)}
               refreshing={refresh.isPending && refresh.variables === row.layerType}
             />
@@ -165,14 +175,17 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
 
 function LayerCard({
   row,
+  country,
   onRefresh,
   refreshing,
 }: {
   row: ProjectLayerRow;
+  country: Country;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
   const statusTone = fetchStatusTone(row.fetchStatus);
+  const coverage = describeCoverage(row.layerType, country, row.sourceApi, row.fetchStatus);
   return (
     <div
       style={{
@@ -248,6 +261,7 @@ function LayerCard({
             </>
           )}
         </div>
+        {coverage && <CoverageStrip coverage={coverage} />}
       </div>
       <div style={{ alignSelf: 'start' }}>
         <button
@@ -269,6 +283,156 @@ function LayerCard({
       </div>
     </div>
   );
+}
+
+interface CoverageDescription {
+  primaryCountry: Country;
+  primaryAdapter: string | null;
+  primarySource: string | null;
+  matched: 'matched' | 'mismatched' | 'not_fetched' | 'no_primary_adapter' | 'unregistered';
+  alternates: Array<{ country: Country; adapter: string; source: string }>;
+  actualSourceApi: string | null;
+}
+
+function describeCoverage(
+  layerType: LayerType,
+  country: Country,
+  actualSourceApi: string | null,
+  fetchStatus: ProjectLayerRow['fetchStatus'],
+): CoverageDescription | null {
+  const reg = (ADAPTER_REGISTRY as Partial<Record<LayerType, Partial<Record<Country, { adapter: string; source: string }>>>>)[layerType];
+  if (!reg) {
+    return {
+      primaryCountry: country,
+      primaryAdapter: null,
+      primarySource: null,
+      matched: 'unregistered',
+      alternates: [],
+      actualSourceApi,
+    };
+  }
+  const primary = reg[country];
+  const alternates = (Object.entries(reg) as Array<[Country, { adapter: string; source: string }]>)
+    .filter(([c]) => c !== country)
+    .map(([c, info]) => ({ country: c, adapter: info.adapter, source: info.source }));
+
+  let matched: CoverageDescription['matched'];
+  if (!primary) {
+    matched = 'no_primary_adapter';
+  } else if (fetchStatus !== 'complete' || !actualSourceApi) {
+    matched = 'not_fetched';
+  } else {
+    const adapterSlug = primary.source.toLowerCase();
+    const adapterName = primary.adapter.toLowerCase();
+    const actual = actualSourceApi.toLowerCase();
+    matched =
+      actual.includes(adapterSlug) ||
+      actual.includes(adapterName.replace(/adapter$/, '')) ||
+      actual.includes(primary.source.split('_')[0]?.toLowerCase() ?? '')
+        ? 'matched'
+        : 'mismatched';
+  }
+  return {
+    primaryCountry: country,
+    primaryAdapter: primary?.adapter ?? null,
+    primarySource: primary?.source ?? null,
+    matched,
+    alternates,
+    actualSourceApi,
+  };
+}
+
+function CoverageStrip({ coverage }: { coverage: CoverageDescription }) {
+  const { primaryCountry, primaryAdapter, matched, alternates, actualSourceApi } = coverage;
+  const tone = coverageTone(matched);
+  const label = coverageLabel(matched, primaryCountry, primaryAdapter, actualSourceApi);
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        padding: '6px 8px',
+        borderRadius: 4,
+        background: tone.bg,
+        fontSize: 11,
+        color: 'var(--color-text)',
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr',
+        gap: '4px 8px',
+        alignItems: 'center',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-mono)',
+          color: tone.fg,
+          fontWeight: 'var(--font-semibold)',
+        }}
+      >
+        {tone.symbol}
+      </span>
+      <span style={{ color: 'var(--color-text-muted)' }}>{label}</span>
+      {alternates.length > 0 && (
+        <>
+          <span />
+          <span style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {alternates.map((a) => (
+              <span
+                key={a.country}
+                title={`${a.adapter} (${a.source})`}
+                style={{
+                  fontSize: 10,
+                  padding: '1px 6px',
+                  borderRadius: 999,
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'var(--color-text-muted)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {a.country}: {a.adapter.replace(/Adapter$/, '')}
+              </span>
+            ))}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function coverageLabel(
+  m: CoverageDescription['matched'],
+  country: Country,
+  adapter: string | null,
+  actual: string | null,
+): string {
+  switch (m) {
+    case 'matched':
+      return `${country} primary lane fired via ${adapter ?? '—'}.`;
+    case 'mismatched':
+      return `Expected ${adapter ?? 'primary adapter'} for ${country}, but row reports "${actual ?? '—'}". Likely a manual-flag fallback.`;
+    case 'not_fetched':
+      return `${country} primary: ${adapter ?? 'none'}. Not yet fetched for this project.`;
+    case 'no_primary_adapter':
+      return `No ${country} adapter registered for this layer. Falls back to ManualFlagAdapter or a global source.`;
+    case 'unregistered':
+    default:
+      return 'Layer is not in the Tier-1 adapter registry (derived or Tier-2/3 layer).';
+  }
+}
+
+function coverageTone(m: CoverageDescription['matched']): { bg: string; fg: string; symbol: string } {
+  switch (m) {
+    case 'matched':
+      return { bg: 'rgba(80, 180, 120, 0.10)', fg: '#5cc88a', symbol: '✓' };
+    case 'mismatched':
+      return { bg: 'rgba(200, 170, 90, 0.10)', fg: '#d9b36a', symbol: '≈' };
+    case 'not_fetched':
+      return { bg: 'rgba(255, 255, 255, 0.04)', fg: 'var(--color-text-muted)', symbol: '·' };
+    case 'no_primary_adapter':
+      return { bg: 'rgba(200, 170, 90, 0.08)', fg: '#d9b36a', symbol: '!' };
+    case 'unregistered':
+    default:
+      return { bg: 'rgba(255, 255, 255, 0.04)', fg: 'var(--color-text-muted)', symbol: 'ℹ' };
+  }
 }
 
 function formatLayerType(lt: LayerType): string {
