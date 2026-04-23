@@ -126,7 +126,24 @@ assembled by the NOAA / NASA POWER / ECCC / OpenMeteo adapter stack.
   visualizer ships yet — status is `partial`, not `done`.
 - Microclimate opportunity map is `partial`: the backend classifies sun
   trap / cold-air drainage / wind shelter zones, but the dedicated map
-  overlay rendering those classes is still on the UI backlog.
+  overlay rendering those classes is still on the UI backlog. Phase-3
+  shipped the `ADAPTATION RECOMMENDATIONS` card section that synthesises
+  these signals into plain-language priority notes (frost, arid
+  irrigation, freeze-thaw, heat-stress slopes, windbreak opportunity,
+  short/long comfort seasons) — the overlay that plots the underlying
+  zones on the map is still pending.
+- Seasonal comfort is `partial`: phase 3 ships a 12-month comfort
+  calendar strip on the dashboard (classifying each month into
+  freezing / cold / cool / comfortable / hot bands using
+  `monthly_normals` from NOAA / ECCC / NASA POWER, with an outdoor-use
+  season summary), but the spatial comfort MAP overlay across the
+  parcel is not yet wired.
+- Windbreak opportunity zones are `partial`: phase 3 ships candidate
+  windbreak LineStrings derived from the parcel bbox + prevailing wind
+  (rendered as dashed lines on the TERRAIN EXPOSURE minimap). This is
+  a geometric heuristic only — cold-wind-exposure and ventilation-
+  corridor mapping still need an obstacle model from §9 Structures
+  before they can ship.
 - Passive-solar building siting, windbreak opportunity zones, ventilation
   corridors, and structure/tree shadow casting are P2 and require an
   obstacle model (trees + structures) that is not yet captured in the
