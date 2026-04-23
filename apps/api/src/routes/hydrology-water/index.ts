@@ -218,11 +218,88 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
         hasWetland: Boolean(wetlandPlanning?.restorationOpportunity),
       });
 
+      // Overflow / spillway routing — derived from pond candidates' meanSlope.
+      const pondCandidatesArr =
+        (summaryData?.pondCandidates as { candidates?: { meanSlope: number }[] } | undefined)?.candidates ?? [];
+      let overflowRouting: HydrologyWaterSummaryT['overflowRouting'] | undefined;
+      if (pondCandidatesArr.length > 0) {
+        const slopes = pondCandidatesArr.map((p) => p.meanSlope).filter((s) => isFinite(s));
+        const meanOverflowSlopeDeg = slopes.length > 0 ? slopes.reduce((a, b) => a + b, 0) / slopes.length : 0;
+        const criticalCount = slopes.filter((s) => s > 8).length;
+        const spillwayNotes = criticalCount > 0
+          ? `${criticalCount} candidate(s) on steep terrain (>8°) — engineered spillway with armored overflow required. Design for 100-yr storm event.`
+          : 'Overflow slopes are gentle — vegetated spillway with rock armoring at outlet is typically sufficient.';
+        overflowRouting = {
+          pondCount: pondCandidatesArr.length,
+          meanOverflowSlopeDeg: Math.round(meanOverflowSlopeDeg * 10) / 10,
+          criticalCount,
+          spillwayNotes,
+        };
+      }
+
+      // Roof catchment & rainwater storage — sum roof area across placed structures.
+      const structureRows = await db<{ properties: unknown }[]>`
+        SELECT properties
+        FROM design_features
+        WHERE project_id = ${req.projectId}
+          AND feature_type = 'structure'
+      `;
+      let roofCatchment: HydrologyWaterSummaryT['roofCatchment'] | undefined;
+      if (structureRows.length > 0 && precipMm > 0) {
+        let totalRoofAreaM2 = 0;
+        for (const s of structureRows) {
+          const props = (s.properties ?? {}) as Record<string, unknown>;
+          const roofRaw = props['roof_area_m2'] ?? props['roofAreaM2'] ?? props['area_m2'] ?? props['areaM2'];
+          const roof = typeof roofRaw === 'number' ? roofRaw : parseFloat(String(roofRaw ?? ''));
+          totalRoofAreaM2 += isFinite(roof) && roof > 0 ? roof : 120; // assumed 120 m² default
+        }
+        // RWH: area(m²) × precip(m) × 0.85 efficiency = m³; × 264.172 = gal
+        const annualHarvestGal = totalRoofAreaM2 * (precipMm / 1000) * 0.85 * 264.172;
+        const recommendedStorageGal = (annualHarvestGal / 12) * 1.5; // ~6wk buffer
+        const totalRoofSqFt = totalRoofAreaM2 * 10.7639;
+        const harvestPerSqFtGal = totalRoofSqFt > 0 ? annualHarvestGal / totalRoofSqFt : 0;
+        const notes = structureRows.length === 1
+          ? 'Single structure — route downspouts to a first-flush diverter before cistern inlet.'
+          : 'Multiple structures — consider a shared cistern at lowest elevation to simplify plumbing.';
+        roofCatchment = {
+          structureCount: structureRows.length,
+          totalRoofAreaM2: Math.round(totalRoofAreaM2),
+          annualHarvestGal: Math.round(annualHarvestGal),
+          recommendedStorageGal: Math.round(recommendedStorageGal),
+          harvestPerSqFtGal: Math.round(harvestPerSqFtGal * 100) / 100,
+          notes,
+        };
+      }
+
+      // Gravity-fed irrigation & livestock water — count pond candidates in
+      // the gravity-friendly slope band (1°–10°).
+      let gravityIrrigation: HydrologyWaterSummaryT['gravityIrrigation'] | undefined;
+      if (pondCandidatesArr.length > 0) {
+        const gravityPondCount = pondCandidatesArr.filter((p) => p.meanSlope >= 1 && p.meanSlope <= 10).length;
+        if (gravityPondCount > 0) {
+          // Each gravity pond can typically serve ~2 ha downslope at parcel scale.
+          const estimatedIrrigableHa = gravityPondCount * 2;
+          const recommendedTroughCount = Math.max(1, Math.ceil(gravityPondCount / 2));
+          const livestockAccessScore: 'low' | 'moderate' | 'high' =
+            gravityPondCount >= 4 ? 'high' : gravityPondCount >= 2 ? 'moderate' : 'low';
+          gravityIrrigation = {
+            gravityPondCount,
+            estimatedIrrigableHa,
+            recommendedTroughCount,
+            livestockAccessScore,
+            notes: `${gravityPondCount} pond candidate(s) in the gravity-irrigation slope band — route pressure-compensated lines downslope; place troughs within 400 m of grazing cells.`,
+          };
+        }
+      }
+
       const summary = HydrologyWaterSummary.parse({
         ...(row.summary_data as Record<string, unknown>),
         ...(waterBudget ? { waterBudget } : {}),
         ...(wetlandPlanning ? { wetlandPlanning } : {}),
         ...(waterPhasing ? { waterPhasing } : {}),
+        ...(overflowRouting ? { overflowRouting } : {}),
+        ...(roofCatchment ? { roofCatchment } : {}),
+        ...(gravityIrrigation ? { gravityIrrigation } : {}),
       });
       return {
         data: HydrologyWaterResponse.parse({

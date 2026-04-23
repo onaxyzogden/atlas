@@ -167,6 +167,75 @@ function ReadyView({
         </>
       )}
 
+      {summary.overflowRouting && (
+        <>
+          <h4 className={p.sectionLabel}>Overflow &amp; spillway</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            <Row label="Pond candidates" value={`${summary.overflowRouting.pondCount}`} />
+            <Row label="Mean overflow slope" value={`${summary.overflowRouting.meanOverflowSlopeDeg}°`} />
+            <Row
+              label="Critical (steep overflow)"
+              value={`${summary.overflowRouting.criticalCount}`}
+            />
+          </dl>
+          <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            {summary.overflowRouting.spillwayNotes}
+          </div>
+        </>
+      )}
+
+      {summary.roofCatchment && (
+        <>
+          <h4 className={p.sectionLabel}>Roof catchment &amp; storage</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            <Row label="Structures" value={`${summary.roofCatchment.structureCount}`} />
+            <Row label="Total roof area" value={`${summary.roofCatchment.totalRoofAreaM2} m²`} />
+            <Row
+              label="Annual harvest"
+              value={`${fmtGal(summary.roofCatchment.annualHarvestGal)} gal`}
+            />
+            <Row
+              label="Recommended cistern"
+              value={`${fmtGal(summary.roofCatchment.recommendedStorageGal)} gal`}
+            />
+            <Row
+              label="Harvest per ft²"
+              value={`${summary.roofCatchment.harvestPerSqFtGal.toFixed(2)} gal/yr`}
+            />
+          </dl>
+          <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            {summary.roofCatchment.notes}
+          </div>
+        </>
+      )}
+
+      {summary.gravityIrrigation && (
+        <>
+          <h4 className={p.sectionLabel}>Gravity irrigation &amp; livestock water</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            <Row
+              label="Gravity-friendly ponds"
+              value={`${summary.gravityIrrigation.gravityPondCount}`}
+            />
+            <Row
+              label="Estimated irrigable area"
+              value={`${summary.gravityIrrigation.estimatedIrrigableHa} ha`}
+            />
+            <Row
+              label="Recommended troughs"
+              value={`${summary.gravityIrrigation.recommendedTroughCount}`}
+            />
+            <Row
+              label="Livestock water access"
+              value={summary.gravityIrrigation.livestockAccessScore}
+            />
+          </dl>
+          <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            {summary.gravityIrrigation.notes}
+          </div>
+        </>
+      )}
+
       {summary.waterPhasing && summary.waterPhasing.components.length > 0 && (
         <>
           <h4 className={p.sectionLabel}>Phasing &amp; dependencies</h4>

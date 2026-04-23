@@ -98,6 +98,46 @@ export const HydrologyWaterSummary = z.object({
       aridityClass: z.enum(['Hyperarid', 'Arid', 'Semi-arid', 'Dry sub-humid', 'Humid']),
     })
     .optional(),
+  // Overflow / spillway planning — optional block. For each pond candidate
+  // derived by the watershed processor, estimates overflow routing direction
+  // and flags candidates that need engineered spillways (steep overflow
+  // side or downstream SFHA proximity).
+  overflowRouting: z
+    .object({
+      pondCount: z.number().int().nonnegative(),
+      meanOverflowSlopeDeg: z.number(),
+      criticalCount: z.number().int().nonnegative(),
+      spillwayNotes: z.string(),
+    })
+    .optional(),
+  // Roof catchment & rainwater storage — optional block. Aggregates roof
+  // area across placed structures (design_features where feature_type =
+  // 'structure') and sizes a storage cistern using the same monthly-precip
+  // RWH rule the waterBudget block uses. Per-structure estimates use a
+  // pooled average; this is sizing guidance, not building-level design.
+  roofCatchment: z
+    .object({
+      structureCount: z.number().int().nonnegative(),
+      totalRoofAreaM2: z.number().nonnegative(),
+      annualHarvestGal: z.number().nonnegative(),
+      recommendedStorageGal: z.number().nonnegative(),
+      harvestPerSqFtGal: z.number().nonnegative(),
+      notes: z.string(),
+    })
+    .optional(),
+  // Gravity-fed irrigation & livestock water — optional block. Flags pond
+  // candidates with slope in the gravity-friendly band (1°–10°) and scales
+  // trough / field-turnout recommendations from candidate count. This is
+  // a planning heuristic; precise layout lives in §12 Crops / §11 Livestock.
+  gravityIrrigation: z
+    .object({
+      gravityPondCount: z.number().int().nonnegative(),
+      estimatedIrrigableHa: z.number().nonnegative(),
+      recommendedTroughCount: z.number().int().nonnegative(),
+      livestockAccessScore: z.enum(['low', 'moderate', 'high']),
+      notes: z.string(),
+    })
+    .optional(),
   // Water phasing & dependency mapping — optional block. Recommends a build
   // order for on-site water components (pond → swale → check-dam → RWH →
   // irrigation → wetland restoration) based on hydrologic dependencies, and
