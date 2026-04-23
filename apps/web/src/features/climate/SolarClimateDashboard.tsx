@@ -304,39 +304,48 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
       <div className={css.section}>
         <h3 className={css.sectionLabel}>TERRAIN EXPOSURE MAP</h3>
         <div className={css.solarOppCard}>
-          {!terrainExposure && terrainExposureStatus !== 'loading' && (
-            <>
-              <p className={css.solarOppText}>
-                Compute a grid-cell exposure map from the project DEM: slope &times; aspect &times;
-                annual sun path. Identifies placement zones for panels, greenhouses, and sun-loving
-                crops. Horizon shading from surrounding terrain is not modelled.
-              </p>
-              <button
-                type="button"
-                onClick={handleComputeTerrainExposure}
-                style={{
-                  marginTop: 12,
-                  padding: '8px 16px',
-                  background: group.livestock,
-                  color: '#1a1611',
-                  border: 'none',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: 12,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Analyze Terrain Exposure
-              </button>
-              {terrainExposureError && (
-                <p className={css.solarOppNote} style={{ color: statusToken.poor, marginTop: 8 }}>
-                  {terrainExposureError}
+          {!terrainExposure && terrainExposureStatus !== 'loading' && (() => {
+            const hasBoundary = project.parcelBoundaryGeojson != null;
+            return (
+              <>
+                <p className={css.solarOppText}>
+                  Compute a grid-cell exposure map from the project DEM: slope &times; aspect &times;
+                  annual sun path. Identifies placement zones for panels, greenhouses, and sun-loving
+                  crops. Horizon shading from surrounding terrain is not modelled.
                 </p>
-              )}
-            </>
-          )}
+                <button
+                  type="button"
+                  onClick={handleComputeTerrainExposure}
+                  disabled={!hasBoundary}
+                  style={{
+                    marginTop: 12,
+                    padding: '8px 16px',
+                    background: hasBoundary ? group.livestock : 'rgba(255,255,255,0.08)',
+                    color: hasBoundary ? '#1a1611' : 'rgba(255,255,255,0.4)',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: hasBoundary ? 'pointer' : 'not-allowed',
+                    fontWeight: 600,
+                    fontSize: 12,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Analyze Terrain Exposure
+                </button>
+                {!hasBoundary && (
+                  <p className={css.solarOppNote} style={{ marginTop: 8 }}>
+                    Draw a parcel boundary on the map first &mdash; DEM sampling requires a bounded area.
+                  </p>
+                )}
+                {terrainExposureError && (
+                  <p className={css.solarOppNote} style={{ color: statusToken.poor, marginTop: 8 }}>
+                    {terrainExposureError}
+                  </p>
+                )}
+              </>
+            );
+          })()}
           {terrainExposureStatus === 'loading' && (
             <p className={css.solarOppText}>Reading DEM and computing exposure grid&hellip;</p>
           )}

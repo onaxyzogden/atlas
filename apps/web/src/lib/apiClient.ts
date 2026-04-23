@@ -70,9 +70,10 @@ async function request<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<ApiEnvelope<T>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = {};
+  if (body != null) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
