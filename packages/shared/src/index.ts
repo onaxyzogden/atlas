@@ -21,6 +21,7 @@ export * from './lib/caseTransform.js';
 export * from './astronomy/sunPath.js';
 export * from './astronomy/solarExposure.js';
 export * from './climate/comfortCalendar.js';
+export * from './climate/windbreakLines.js';
 
 // Constants
 export * from './constants/dataSources.js';

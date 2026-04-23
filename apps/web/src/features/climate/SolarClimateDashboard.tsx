@@ -14,10 +14,12 @@ import {
   solarExposureScore,
   SEASON_DATES,
   buildComfortSummary,
+  buildWindbreakLines,
   type Season,
   type SunPosition,
   type ComfortBand,
   type MonthlyNormal,
+  type WindbreakCandidates,
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
@@ -146,6 +148,12 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
     () => buildAdaptations({ climate, microclimate, elevation, comfort, exposureBySeason }),
     [climate, microclimate, elevation, comfort, exposureBySeason],
   );
+
+  const windbreaks = useMemo(() => {
+    const bbox = computeBboxFromBoundary(project.parcelBoundaryGeojson ?? null);
+    if (!bbox) return null;
+    return buildWindbreakLines(bbox, climate?.prevailing_wind ?? null, 3);
+  }, [project.parcelBoundaryGeojson, climate?.prevailing_wind]);
 
   return (
     <div className={css.page}>
@@ -414,7 +422,14 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
               <ExposureMiniMap
                 geojson={terrainExposure.geojson}
                 boundary={project.parcelBoundaryGeojson ?? null}
+                windbreaks={windbreaks}
               />
+              {windbreaks && windbreaks.lines.length > 0 && (
+                <p className={css.solarOppNote} style={{ marginTop: 6 }}>
+                  <span style={{ display: 'inline-block', width: 18, height: 3, background: 'rgba(138,200,172,0.95)', borderRadius: 1.5, marginRight: 6, verticalAlign: 'middle' }} />
+                  {windbreaks.lines.length} windbreak candidate{windbreaks.lines.length === 1 ? '' : 's'} on {windbreaks.windwardEdge}, facing {Math.round(windbreaks.faceAzimuth)}&deg;. Lines perpendicular to prevailing wind ({climate?.prevailing_wind ?? '—'}).
+                </p>
+              )}
               <p className={css.solarOppNote}>
                 Source: {terrainExposure.summary.source_api} &middot; {terrainExposure.summary.sample_grid_size} cells sampled.
                 Green = best placement zones (excellent/high). Dim = poor exposure (steep N-facing or deep shadow-prone aspects).
@@ -430,9 +445,11 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
 function ExposureMiniMap({
   geojson,
   boundary,
+  windbreaks,
 }: {
   geojson: GeoJSON.FeatureCollection;
   boundary: GeoJSON.FeatureCollection | null;
+  windbreaks?: WindbreakCandidates | null;
 }) {
   const width = 340;
   const height = 240;
@@ -499,6 +516,23 @@ function ExposureMiniMap({
           .map((c) => `${sx(c[0] ?? 0).toFixed(1)},${sy(c[1] ?? 0).toFixed(1)}`)
           .join(' ');
         return <polygon key={`b${i}`} points={pts} fill="none" stroke={group.livestock} strokeWidth={2} />;
+      })}
+      {windbreaks?.lines.map((wb, i) => {
+        const [a, b] = wb.coords;
+        if (!a || !b) return null;
+        return (
+          <line
+            key={`w${i}`}
+            x1={sx(a[0])}
+            y1={sy(a[1])}
+            x2={sx(b[0])}
+            y2={sy(b[1])}
+            stroke="rgba(138,200,172,0.95)"
+            strokeWidth={3}
+            strokeDasharray="6 4"
+            strokeLinecap="round"
+          />
+        );
       })}
     </svg>
   );
@@ -905,6 +939,36 @@ function computeCenterFromBoundary(
     }
   }
   return count > 0 ? [sumLng / count, sumLat / count] : null;
+}
+
+function computeBboxFromBoundary(
+  geojson: GeoJSON.FeatureCollection | null,
+): [number, number, number, number] | null {
+  if (!geojson?.features?.length) return null;
+  let minLon = Infinity, minLat = Infinity;
+  let maxLon = -Infinity, maxLat = -Infinity;
+  const visit = (ring: GeoJSON.Position[]) => {
+    for (const coord of ring) {
+      const lng = coord[0];
+      const lat = coord[1];
+      if (lng === undefined || lat === undefined) continue;
+      if (lng < minLon) minLon = lng;
+      if (lng > maxLon) maxLon = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    }
+  };
+  for (const f of geojson.features) {
+    if (f.geometry?.type === 'Polygon') {
+      for (const ring of (f.geometry as GeoJSON.Polygon).coordinates) visit(ring);
+    } else if (f.geometry?.type === 'MultiPolygon') {
+      for (const poly of (f.geometry as GeoJSON.MultiPolygon).coordinates) {
+        for (const ring of poly) visit(ring);
+      }
+    }
+  }
+  if (minLon === Infinity) return null;
+  return [minLon, minLat, maxLon, maxLat];
 }
 
 function getApproxWindFrequencies(lat: number): number[] {
