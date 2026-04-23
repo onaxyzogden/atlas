@@ -16,6 +16,7 @@ import {
   type LayerType,
 } from '@ogden/shared';
 import {
+  useCompleteness,
   useProject,
   useProjectLayers,
   useRefreshLayer,
@@ -81,6 +82,7 @@ const CATEGORIES: ReadonlyArray<{
 export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProps) {
   const { data, isLoading, isError } = useProjectLayers(projectId);
   const { data: project } = useProject(projectId);
+  const { data: completeness } = useCompleteness(projectId);
   const refresh = useRefreshLayer(projectId);
   const country = (project as { country?: Country } | undefined)?.country ?? 'US';
 
@@ -106,6 +108,11 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
   return (
     <div className={p.container} data-section-id="3">
       <h3 className={p.sectionLabel}>Site Data Layers</h3>
+
+      <CompletenessMeter
+        score={completeness?.score ?? null}
+        groups={groups}
+      />
 
       {isLoading && <div className={p.mb24}>Loading project layers…</div>}
       {isError && (
@@ -155,6 +162,8 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
         </section>
       ))}
 
+      <Tier2Placeholders />
+
       {other.length > 0 && (
         <section className={p.sectionGapLg}>
           <h4 className={p.sectionLabel}>Other detected layers</h4>
@@ -170,6 +179,159 @@ export default function SiteDataLayersPage({ projectId }: SiteDataLayersPageProp
         </section>
       )}
     </div>
+  );
+}
+
+function CompletenessMeter({
+  score,
+  groups,
+}: {
+  score: number | null;
+  groups: Array<{ cat: (typeof CATEGORIES)[number]; rows: ProjectLayerRow[] }>;
+}) {
+  const pct = score !== null ? Math.round(score * 100) : null;
+  return (
+    <div
+      style={{
+        padding: '10px 12px',
+        border: '1px solid var(--color-border)',
+        borderRadius: 6,
+        marginBottom: 16,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 6,
+        }}
+      >
+        <strong style={{ fontSize: 'var(--text-sm)' }}>Data Completeness</strong>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-lg)' }}>
+          {pct !== null ? `${pct}%` : '—'}
+        </span>
+      </div>
+      <div
+        style={{
+          height: 6,
+          background: 'rgba(255,255,255,0.06)',
+          borderRadius: 999,
+          overflow: 'hidden',
+          marginBottom: 10,
+        }}
+      >
+        <div
+          style={{
+            width: `${pct ?? 0}%`,
+            height: '100%',
+            background: pct !== null && pct >= 75 ? '#5cc88a' : pct !== null && pct >= 40 ? '#d9b36a' : '#d07b7b',
+            transition: 'width 200ms ease',
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+          gap: 6,
+          fontSize: 'var(--text-xs)',
+        }}
+      >
+        {groups.map(({ cat, rows }) => {
+          const complete = rows.filter((r) => r.fetchStatus === 'complete').length;
+          const total = cat.layerTypes.length;
+          return (
+            <div
+              key={cat.id}
+              style={{
+                padding: '4px 6px',
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: 4,
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 6,
+              }}
+            >
+              <span style={{ color: 'var(--color-text-muted)' }}>{cat.label}</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  color: complete === total && total > 0 ? '#5cc88a' : 'var(--color-text)',
+                }}
+              >
+                {complete}/{total}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const TIER2_PLACEHOLDERS: ReadonlyArray<{ key: string; label: string; blurb: string }> = [
+  { key: 'drone-ortho-terrain', label: 'Drone / orthomosaic imagery', blurb: 'Upload user-captured drone imagery, orthomosaics, and terrain models.' },
+  { key: 'manual-soil-water-tests', label: 'Manual soil & water tests', blurb: 'Log on-site soil and water test results with lab attribution.' },
+  { key: 'geological-bedrock-notes', label: 'Geological & bedrock notes', blurb: 'Capture geological substrate and bedrock-depth observations.' },
+  { key: 'solar-wind-fire', label: 'Solar, wind, fire risk', blurb: 'Solar radiation model, wind rose, and regional fire risk overlays.' },
+  { key: 'habitat-wildlife-corridors', label: 'Habitat & wildlife corridors', blurb: 'Protected-species presence and corridor continuity notes.' },
+  { key: 'adjacent-landuse-utilities', label: 'Adjacent land use & utilities', blurb: 'Neighbouring parcels, utility proximity, infrastructure access.' },
+];
+
+function Tier2Placeholders() {
+  return (
+    <section className={p.sectionGapLg}>
+      <h4 className={p.sectionLabel}>Tier 2 inputs (P2)</h4>
+      <div
+        style={{
+          fontSize: 'var(--text-xs)',
+          color: 'var(--color-text-muted)',
+          marginBottom: 8,
+        }}
+      >
+        User-supplied and enrichment datasets. Unlocked when the project's phase gate
+        advances to P2.
+      </div>
+      {TIER2_PLACEHOLDERS.map((item) => (
+        <div
+          key={item.key}
+          style={{
+            padding: '8px 10px',
+            border: '1px dashed var(--color-border)',
+            borderRadius: 6,
+            marginBottom: 6,
+            opacity: 0.72,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+            }}
+          >
+            <strong style={{ fontSize: 'var(--text-sm)' }}>{item.label}</strong>
+            <span
+              style={{
+                fontSize: 11,
+                padding: '1px 6px',
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--color-text-muted)',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              P2 · locked
+            </span>
+          </div>
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
+            {item.blurb}
+          </div>
+        </div>
+      ))}
+    </section>
   );
 }
 
