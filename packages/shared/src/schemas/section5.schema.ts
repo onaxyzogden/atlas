@@ -98,6 +98,44 @@ export const HydrologyWaterSummary = z.object({
       aridityClass: z.enum(['Hyperarid', 'Arid', 'Semi-arid', 'Dry sub-humid', 'Humid']),
     })
     .optional(),
+  // Water phasing & dependency mapping — optional block. Recommends a build
+  // order for on-site water components (pond → swale → check-dam → RWH →
+  // irrigation → wetland restoration) based on hydrologic dependencies, and
+  // flags ordering violations when `design_features` already assigns phases
+  // that contradict the rules. Omitted when no candidates and no placed
+  // features exist.
+  waterPhasing: z
+    .object({
+      components: z.array(
+        z.object({
+          component: z.enum([
+            'pond',
+            'swale',
+            'check_dam',
+            'berm',
+            'rain_catchment',
+            'water_tank',
+            'irrigation',
+            'wetland_restoration',
+          ]),
+          recommendedPhase: z.number().int().min(1).max(4),
+          dependsOn: z.array(z.string()),
+          rationale: z.string(),
+          sourceCount: z.number().int().nonnegative(),
+          sourceKind: z.enum(['placed', 'candidate', 'recommended']),
+        }),
+      ),
+      violations: z.array(
+        z.object({
+          component: z.string(),
+          assignedPhase: z.string(),
+          missingPrerequisite: z.string(),
+          reason: z.string(),
+        }),
+      ),
+      notes: z.string(),
+    })
+    .optional(),
   confidence: ConfidenceLevel,
   dataSources: z.array(z.string()),
   computedAt: z.string(),

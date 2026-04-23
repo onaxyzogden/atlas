@@ -140,6 +140,15 @@ crops, livestock, and access routes.
   `recommendedSetbackM`, `recommendedBufferM`, `restorationOpportunity`,
   `regulatoryNotes` (US CWA §404 / CA ESA + Conservation Authority).
   Setback/buffer values are rule-based lookups; not a legal survey.
+- `summary.waterPhasing` is an **optional** block. Derived in the route from
+  `design_features` rows (subtypes `pond`/`swale`/`check_dam`/`berm`/
+  `rain_catchment`/`water_tank`/`irrigation`/`wetland_restoration`) plus pond
+  / swale candidate counts and wetland restoration opportunity. Rules live in
+  `WATER_PHASE_RULES` in the route handler (earthworks → conveyance → storage
+  → use). Omitted when no features are placed and no candidates exist.
+  Violations flag placed features whose `phase_tag` precedes a prerequisite.
+  Scope is §5 diagnostic only — the actual phasing UI lives in §15 Timeline
+  (see `timelineHelpers.ts` `BUILD_DEPENDENCIES`, utilities-only today).
 - `summary.waterBudget` is an **optional** block on the ready response.
   The route derives it on demand via `computeHydrologyMetrics` from the
   climate/soils/elevation/wetlands/watershed layers; it is omitted when

@@ -197,10 +197,32 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
         };
       }
 
+      // Water phasing & dependency mapping — recommend a build order for on-site
+      // water components and flag ordering violations from placed design_features.
+      const placedRows = await db<{ subtype: string | null; phase_tag: string | null; label: string | null }[]>`
+        SELECT subtype, phase_tag, label
+        FROM design_features
+        WHERE project_id = ${req.projectId}
+          AND subtype IN (
+            'pond', 'swale', 'check_dam', 'berm', 'rain_catchment',
+            'water_tank', 'irrigation', 'wetland_restoration'
+          )
+      `;
+      const summaryData = row.summary_data as Record<string, unknown>;
+      const pondCandidateCount = (summaryData?.pondCandidates as { candidateCount?: number } | undefined)?.candidateCount ?? 0;
+      const swaleCandidateCount = (summaryData?.swaleCandidates as { candidateCount?: number } | undefined)?.candidateCount ?? 0;
+      const waterPhasing = computeWaterPhasing({
+        placed: placedRows,
+        pondCandidates: pondCandidateCount,
+        swaleCandidates: swaleCandidateCount,
+        hasWetland: Boolean(wetlandPlanning?.restorationOpportunity),
+      });
+
       const summary = HydrologyWaterSummary.parse({
         ...(row.summary_data as Record<string, unknown>),
         ...(waterBudget ? { waterBudget } : {}),
         ...(wetlandPlanning ? { wetlandPlanning } : {}),
+        ...(waterPhasing ? { waterPhasing } : {}),
       });
       return {
         data: HydrologyWaterResponse.parse({
@@ -217,4 +239,128 @@ export default async function hydrology_waterRoutes(fastify: FastifyInstance) {
       };
     },
   );
+}
+
+// ── Water phasing & dependency mapping ────────────────────────────────
+// Pure function: given placed design_features + candidate counts, derive a
+// build-order recommendation and flag any ordering violations. Scope is §5
+// diagnostic only; the real phasing UI lives in §15 Timeline.
+
+type WaterComponent =
+  | 'pond'
+  | 'swale'
+  | 'check_dam'
+  | 'berm'
+  | 'rain_catchment'
+  | 'water_tank'
+  | 'irrigation'
+  | 'wetland_restoration';
+
+interface PhaseRule {
+  component: WaterComponent;
+  recommendedPhase: 1 | 2 | 3 | 4;
+  dependsOn: WaterComponent[];
+  rationale: string;
+}
+
+const WATER_PHASE_RULES: PhaseRule[] = [
+  { component: 'pond', recommendedPhase: 1, dependsOn: [], rationale: 'Earthworks first — ponds anchor the water storage network.' },
+  { component: 'berm', recommendedPhase: 1, dependsOn: [], rationale: 'Berms shape overland flow; install with pond earthworks.' },
+  { component: 'swale', recommendedPhase: 2, dependsOn: ['pond'], rationale: 'Swales route overflow from ponds along contour.' },
+  { component: 'check_dam', recommendedPhase: 2, dependsOn: ['swale'], rationale: 'Check dams slow flow in swales and drainage lines.' },
+  { component: 'water_tank', recommendedPhase: 2, dependsOn: [], rationale: 'Cistern capacity needed before catchment plumbing.' },
+  { component: 'rain_catchment', recommendedPhase: 3, dependsOn: ['water_tank'], rationale: 'Roof catchment plumbs into existing storage.' },
+  { component: 'wetland_restoration', recommendedPhase: 3, dependsOn: ['pond'], rationale: 'Wetland planting follows stable hydrology from ponds.' },
+  { component: 'irrigation', recommendedPhase: 4, dependsOn: ['pond', 'water_tank'], rationale: 'Irrigation lines draw from established storage.' },
+];
+
+function computeWaterPhasing(input: {
+  placed: { subtype: string | null; phase_tag: string | null; label: string | null }[];
+  pondCandidates: number;
+  swaleCandidates: number;
+  hasWetland: boolean;
+}): HydrologyWaterSummaryT['waterPhasing'] {
+  const placedByType = new Map<string, { phase: string | null; label: string | null }[]>();
+  for (const row of input.placed) {
+    if (!row.subtype) continue;
+    const arr = placedByType.get(row.subtype) ?? [];
+    arr.push({ phase: row.phase_tag, label: row.label });
+    placedByType.set(row.subtype, arr);
+  }
+
+  const components: NonNullable<HydrologyWaterSummaryT['waterPhasing']>['components'] = [];
+  for (const rule of WATER_PHASE_RULES) {
+    const placed = placedByType.get(rule.component) ?? [];
+    let sourceCount = 0;
+    let sourceKind: 'placed' | 'candidate' | 'recommended' = 'recommended';
+    if (placed.length > 0) {
+      sourceCount = placed.length;
+      sourceKind = 'placed';
+    } else if (rule.component === 'pond' && input.pondCandidates > 0) {
+      sourceCount = input.pondCandidates;
+      sourceKind = 'candidate';
+    } else if (rule.component === 'swale' && input.swaleCandidates > 0) {
+      sourceCount = input.swaleCandidates;
+      sourceKind = 'candidate';
+    } else if (rule.component === 'wetland_restoration' && input.hasWetland) {
+      sourceCount = 1;
+      sourceKind = 'candidate';
+    }
+    components.push({
+      component: rule.component,
+      recommendedPhase: rule.recommendedPhase,
+      dependsOn: rule.dependsOn,
+      rationale: rule.rationale,
+      sourceCount,
+      sourceKind,
+    });
+  }
+
+  const relevant = components.some((c) => c.sourceKind !== 'recommended');
+  if (!relevant) return undefined;
+
+  // Violations: a placed feature whose assigned phase precedes any prerequisite
+  // that is also placed but assigned to a later phase (or not placed at all
+  // when the prerequisite is non-trivial).
+  const PHASE_NUM: Record<string, number> = {
+    'Phase 1': 1, 'Phase 2': 2, 'Phase 3': 3, 'Phase 4': 4,
+    'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4,
+  };
+  const violations: NonNullable<HydrologyWaterSummaryT['waterPhasing']>['violations'] = [];
+  for (const rule of WATER_PHASE_RULES) {
+    const placed = placedByType.get(rule.component) ?? [];
+    for (const p of placed) {
+      const assignedPhaseN = p.phase ? PHASE_NUM[p.phase] : undefined;
+      if (!assignedPhaseN) continue;
+      for (const req of rule.dependsOn) {
+        const reqPlaced = placedByType.get(req) ?? [];
+        if (reqPlaced.length === 0) {
+          violations.push({
+            component: p.label ?? rule.component,
+            assignedPhase: p.phase ?? 'unassigned',
+            missingPrerequisite: req,
+            reason: `${rule.component} depends on ${req} but no ${req} is placed on this site.`,
+          });
+          continue;
+        }
+        const minReqPhase = Math.min(
+          ...reqPlaced.map((r) => (r.phase ? PHASE_NUM[r.phase] ?? 99 : 99)),
+        );
+        if (minReqPhase > assignedPhaseN) {
+          violations.push({
+            component: p.label ?? rule.component,
+            assignedPhase: p.phase ?? 'unassigned',
+            missingPrerequisite: req,
+            reason: `${rule.component} is scheduled in ${p.phase} but required ${req} is not built until a later phase.`,
+          });
+        }
+      }
+    }
+  }
+
+  const notes = violations.length > 0
+    ? 'Ordering violations detected — review phase assignments on the timeline.'
+    : 'Recommended sequence follows hydrologic dependencies: earthworks → conveyance → storage → use.';
+
+  return { components, violations, notes };
 }

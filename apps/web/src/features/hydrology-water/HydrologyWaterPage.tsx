@@ -167,6 +167,35 @@ function ReadyView({
         </>
       )}
 
+      {summary.waterPhasing && summary.waterPhasing.components.length > 0 && (
+        <>
+          <h4 className={p.sectionLabel}>Phasing &amp; dependencies</h4>
+          <dl className={`${p.section} ${p.sectionGapLg}`}>
+            {summary.waterPhasing.components
+              .filter((c) => c.sourceKind !== 'recommended')
+              .map((c) => (
+                <Row
+                  key={c.component}
+                  label={`${c.component.replace(/_/g, ' ')} (${c.sourceKind}, ${c.sourceCount})`}
+                  value={`Phase ${c.recommendedPhase}${c.dependsOn.length > 0 ? ` · after ${c.dependsOn.join(', ')}` : ''}`}
+                />
+              ))}
+          </dl>
+          {summary.waterPhasing.violations.length > 0 && (
+            <ul className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-danger, #b91c1c)' }}>
+              {summary.waterPhasing.violations.map((v, i) => (
+                <li key={i}>
+                  <strong>{v.component}</strong> ({v.assignedPhase}): {v.reason}
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            {summary.waterPhasing.notes}
+          </div>
+        </>
+      )}
+
       <div className={p.mb24} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
         {attribution && <div>{attribution}</div>}
         {dataDate && <div>Source date: {dataDate}</div>}
