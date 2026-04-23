@@ -104,9 +104,19 @@ assembled by the NOAA / NASA POWER / ECCC / OpenMeteo adapter stack.
   (stub, not yet mounted in routing). Do not duplicate components — the
   cut-over is a follow-up task. Use the legacy path for any real UI change.
 - NASA POWER adapter is the international-routing fallback for climate
-  normals outside US/Canada (see `NasaPowerIntlRouting.test.ts`); sun-path
-  + solar-exposure heatmap UI items are `planned` (no shipped visualizer)
-  even though solar radiation inputs are available from NASA POWER.
+  normals outside US/Canada (see `NasaPowerIntlRouting.test.ts`).
+- Sun-path visualization is `done` as of the §6 phase-1 closure: the
+  shared `@ogden/shared` `astronomy/sunPath.ts` module drives both the
+  dashboard and the panel at the real parcel centroid, and exposes
+  per-season exposure scores through `solarExposureScore`.
+- Solar exposure map is `done` as a planning-grade computation (phase 2):
+  `POST /api/v1/climate-analysis/:projectId/solar-exposure/compute` reads
+  the DEM, computes per-cell slope + aspect, weights an hourly annual
+  sun-path against each cell, and returns a classified GeoJSON grid with
+  band summaries. Horizon shading from surrounding terrain is **not**
+  modelled — cells are treated as self-contained. The result is rendered
+  inline on the dashboard (`TERRAIN EXPOSURE MAP` section) via an SVG
+  minimap; a Mapbox/MapLibre overlay on the main map is not yet wired.
 - Frost pocket detection is shipped end-to-end (migration 008 ->
   MicroclimateProcessor -> site assessment flag -> dashboard badge), so
   the `frost-pocket-heat-sink` feature is `done` for frost; heat-sink
