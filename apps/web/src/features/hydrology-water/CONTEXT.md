@@ -1,8 +1,8 @@
 # CONTEXT — Section 5: Hydrology & Water Systems Planning
 
-> This folder is the canonical public surface for §5. Imports for §5
-> components should come from `@/features/hydrology-water`, not from
-> the legacy `@/features/hydrology/` path.
+> This folder is the canonical public surface for §5. All §5
+> components (`HydrologyWaterPage`, `HydrologyPanel`) live here and
+> import from `@/features/hydrology-water`.
 
 ## Phase tags
 P1 (done), P2 (planned) — see `packages/shared/src/featureManifest.ts`
@@ -28,15 +28,12 @@ crops, livestock, and access routes.
   drainage divides, drainage density, pond/swale candidate counts,
   confidence, data sources). Handles `not_ready` reasons (no_boundary
   / pipeline_pending / pipeline_failed).
-- `index.ts` — exports `HydrologyWaterPage` and re-exports
-  `HydrologyPanel` (Mapbox overlay — implementation lives in
-  `../hydrology/`, not here, to avoid touching legacy code).
+- `HydrologyPanel.tsx` — Mapbox overlay for flow paths, watershed,
+  drainage, wetlands. Takes map props and renders via MapLibre layers.
+- `HydrologyPanel.module.css`
+- `index.ts` — exports `HydrologyWaterPage` and `HydrologyPanel`.
 
-### Map overlay (legacy implementation, re-exported from this folder)
-- `apps/web/src/features/hydrology/HydrologyPanel.tsx` — Mapbox overlay
-  for flow paths, watershed, drainage, wetlands. Takes map props and
-  renders via MapLibre layers.
-- `apps/web/src/features/hydrology/HydrologyPanel.module.css`
+### Related (outside this folder)
 - `apps/web/src/features/dashboard/pages/HydrologyDashboard.tsx` —
   dashboard view over the same data.
 
@@ -107,12 +104,10 @@ crops, livestock, and access routes.
   mapping (planned).
 
 ## Known gotchas
-- Two folders carry Hydrology UI today: the Mapbox overlay still lives
-  at `features/hydrology/HydrologyPanel.tsx` and the dashboard page at
-  `features/dashboard/pages/HydrologyDashboard.tsx`. The overlay is
-  re-exported from this folder for canonical import, but we did NOT
-  move the file — moving is a follow-up task. Do not duplicate the
-  component.
+- The dashboard page at `features/dashboard/pages/HydrologyDashboard.tsx`
+  renders the same data in a different shell. Do not duplicate the
+  overlay component — import `HydrologyPanel` from
+  `@/features/hydrology-water` if you need it elsewhere.
 - Pond/swale/berm/check-dam items are `partial`: the candidate zones
   are computed by `WatershedRefinementProcessor` and persisted (and the
   counts render in `HydrologyWaterPage`), but the UI "placement
