@@ -404,9 +404,14 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="new"
           structureType={placementMode}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, laborHoursEstimate, materialTonnageEstimate }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);
+            // §9 infrastructure-cost-placeholder-per-structure: the modal
+            // now prefills its cost input with the template midrange, so
+            // `costEstimate` is always defined here (number | null). Fall
+            // back to the midrange only if the caller somehow omitted it.
+            const fallbackCost = Math.round((tmpl.costRange[0] + tmpl.costRange[1]) / 2);
             const structure: Structure = {
               id: crypto.randomUUID(),
               projectId,
@@ -418,7 +423,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               widthM,
               depthM,
               phase,
-              costEstimate: Math.round((tmpl.costRange[0] + tmpl.costRange[1]) / 2),
+              costEstimate: costEstimate === undefined ? fallbackCost : costEstimate,
               laborHoursEstimate,
               materialTonnageEstimate,
               infrastructureReqs: tmpl.infrastructureReqs,
@@ -444,8 +449,11 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="edit"
           structure={editingStructure}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, laborHoursEstimate, materialTonnageEstimate }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate }) => {
             const newGeometry = createFootprintPolygon(editingStructure.center, widthM, depthM, rotationDeg);
+            // costEstimate is `null` when the user cleared the field, and
+            // a number when they set/kept a value. Pass through as-is so
+            // stewards can explicitly "un-set" a cost.
             updateStructure(editingStructure.id, {
               name,
               phase,
@@ -453,6 +461,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               widthM,
               depthM,
               rotationDeg,
+              ...(costEstimate !== undefined ? { costEstimate } : {}),
               laborHoursEstimate,
               materialTonnageEstimate,
               geometry: newGeometry,

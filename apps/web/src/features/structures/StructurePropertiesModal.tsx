@@ -21,6 +21,14 @@ export interface StructureModalSaveData {
   widthM: number;
   depthM: number;
   rotationDeg: number;
+  /**
+   * §9 infrastructure-cost-placeholder-per-structure. `null` preserves
+   * the historical empty state (no cost set); a number overrides the
+   * template midrange default. The caller decides how to round-trip
+   * `undefined` (typically: treat it the same as a no-op and retain the
+   * existing value on edit).
+   */
+  costEstimate?: number | null;
   laborHoursEstimate?: number;
   materialTonnageEstimate?: number;
 }
@@ -66,6 +74,18 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       ? String(props.structure.materialTonnageEstimate)
       : '',
   );
+  // §9 infrastructure-cost-placeholder-per-structure — editable cost.
+  // On new placement, prefill with the template midrange so the value
+  // stewards see in the info badge is the same number stored on save.
+  // On edit, prefill with the saved value (or empty if it was cleared).
+  const templateMidCost = Math.round((template.costRange[0] + template.costRange[1]) / 2);
+  const [costEstimate, setCostEstimate] = useState<string>(
+    isEdit
+      ? typeof props.structure.costEstimate === 'number'
+        ? String(props.structure.costEstimate)
+        : ''
+      : String(templateMidCost),
+  );
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -75,6 +95,14 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       const n = Number(trimmed);
       return Number.isFinite(n) && n > 0 ? n : undefined;
     };
+    // §9 cost: blank → null (explicit "no cost set"); non-positive → null;
+    // positive number → that number.
+    const parseCost = (raw: string): number | null => {
+      const trimmed = raw.trim();
+      if (trimmed === '') return null;
+      const n = Number(trimmed);
+      return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+    };
     onSave({
       name: name.trim(),
       phase,
@@ -82,6 +110,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       widthM,
       depthM,
       rotationDeg,
+      costEstimate: parseCost(costEstimate),
       laborHoursEstimate: parseOptionalPositive(laborHours),
       materialTonnageEstimate: parseOptionalPositive(materialTons),
     });
@@ -236,6 +265,24 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
           <option value="Phase 3">Phase 3 {'\u2014'} Year 3-5</option>
           <option value="Phase 4">Phase 4 {'\u2014'} Year 5+</option>
         </select>
+
+        {/* §9 infrastructure-cost-placeholder-per-structure — editable cost */}
+        <label style={labelStyle} htmlFor="structure-cost">
+          Estimated Cost ($){' '}
+          <span style={{ opacity: 0.55 }}>
+            template midrange ${template.costRange[0].toLocaleString()}{'\u2013'}${template.costRange[1].toLocaleString()}
+          </span>
+        </label>
+        <input
+          id="structure-cost"
+          type="number"
+          min={0}
+          step={100}
+          value={costEstimate}
+          onChange={(e) => setCostEstimate(e.target.value)}
+          placeholder="e.g. 12000"
+          style={inputStyle}
+        />
 
         {/* §15 cost-labor-material-per-phase — optional rollup inputs */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
