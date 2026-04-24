@@ -20,8 +20,8 @@ import type { BuildPhase } from '../../store/phaseStore.js';
 const REGION = 'us-midwest' as const;
 const siteCtx = defaultSiteContext();
 const defaultPhases: BuildPhase[] = [
-  { id: 'ph1', projectId: 'p1', name: 'Phase 1', timeframe: 'Year 0-1', order: 1, description: '', color: '#ccc' },
-  { id: 'ph2', projectId: 'p1', name: 'Phase 2', timeframe: 'Year 1-3', order: 2, description: '', color: '#ddd' },
+  { id: 'ph1', projectId: 'p1', name: 'Phase 1', timeframe: 'Year 0-1', order: 1, description: '', color: '#ccc', completed: false, notes: '', completedAt: null },
+  { id: 'ph2', projectId: 'p1', name: 'Phase 2', timeframe: 'Year 1-3', order: 2, description: '', color: '#ddd', completed: false, notes: '', completedAt: null },
 ];
 
 function runFullPipeline(input: ReturnType<typeof regenerativeFarmScenario>) {

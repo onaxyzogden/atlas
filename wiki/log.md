@@ -4,6 +4,147 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-24 — §15 phase completion + notes · §13 utility status-sweep
+
+Two parallel manifest gap-fills.
+
+### Shipped
+- **§15 `phase-completion-tracking-notes`** — `partial → done`.
+  - `BuildPhase` extended with `completed`, `notes`, `completedAt`;
+    store bumped to v2 with legacy-phase migration + `togglePhaseCompleted`.
+  - `PhasingDashboard` Arc-summary gets a "Completion" cell with progress
+    bar; each phase card gets a color-matched checkbox, completed-at
+    badge, and working-notes textarea. CSS additions isolated to the
+    dashboard module.
+  - Financial test fixtures updated to include the three new required
+    `BuildPhase` fields.
+- **§13 utility placement sweep** — 8 entries `partial → done` after
+  confirming `UtilityPanel` covers all 15 `UtilityType`s with click-to-
+  place, localStorage persistence, and Phase 1–4 assignment (plus the
+  dedicated Phasing tab and the systems-tab composition of
+  `OffGridReadiness` + `SolarPlacement` + `WaterSystemPlanning`):
+  `solar-battery-generator-placement`, `water-tank-well-greywater-
+  planning`, `blackwater-septic-toilet`, `rain-catchment-corridor-
+  lighting`, `firewood-waste-compost-biochar`, `tool-maintenance-
+  laundry`, `utility-phasing`, `off-grid-readiness-redundancy`.
+  `energy-demand-notes` left `planned` — needs a per-utility demand
+  field that doesn't exist on `Utility` yet.
+
+### Verification
+`apps/web` tsc clean for every file touched today. Remaining
+`PlantingToolDashboard.tsx` tsc errors are pre-existing working-tree
+state (user-intentional rollback) — not regressed this session.
+
+### Decision
+`atlas/wiki/decisions/2026-04-24-phasing-completion-tracking-and-utility-status-sweep.md`
+
+### Recommended next
+- `energy-demand-notes` — add `demandKwhPerDay?: number` to `Utility`,
+  a light input in the placement modal, and a rollup card in the
+  Energy & Water systems tab.
+- `infrastructure-cost-placeholder-per-structure` (§9) — the §15 cost
+  rollup already uses `deriveInfrastructureCost`; flipping this needs
+  a sanity pass over the Structure panel to confirm per-structure
+  `costEstimate` edit UI is present end-to-end.
+- `temporary-vs-permanent-seasonal` (§15) — `planned`; low cost, just
+  a boolean + filter UI.
+
+---
+
+## 2026-04-24 — Pollinator §7 close: ecoregion adapter + patch-graph corridor layer
+
+Flipped `featureManifest` §7 `native-pollinator-biodiversity` from
+`partial` → `done`. Shipped:
+
+- `packages/shared/src/ecology/ecoregion.ts` — CEC Level III lookup
+  (bbox → nearest-centroid, 400 km fallback) across 7 eastern-NA
+  ecoregions covering Milton ON through mid-Atlantic. Plant lists
+  (~150 curated species) ship as JSON.
+- `packages/shared/src/ecology/pollinatorHabitat.ts` — heuristic accepts
+  `ecoregionId` + `corridorReadiness`; output adds `ecoregion`,
+  `ecoregionPlants`, `connectivityBand`. Weights exported for server re-use.
+- `apps/api/src/services/terrain/PollinatorOpportunityProcessor.ts` —
+  5×5 synthesized patch grid, Mulberry32-seeded deterministic cover-class
+  assignment, 4-neighbor patch-graph connectivity, `corridorReadiness`
+  index. Wires in after `SoilRegenerationProcessor` in the soil-regen
+  worker; failures are non-fatal.
+- `apps/web/src/features/map/PollinatorHabitatOverlay.tsx` — now reads
+  the new `pollinator_opportunity` layer directly. Fill = habitat quality,
+  stroke weight/colour = connectivity role.
+- `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` —
+  Corridor Connectivity metric, CEC ecoregion strip, recommended native
+  species cards (species/habit/bloom window).
+
+### Verification
+- `packages/shared` + `apps/api` tsc: clean.
+- `apps/web` tsc: only pre-existing errors in `PlantingToolDashboard.tsx`
+  and `src/tests/financial/*.test.ts` (unrelated).
+- `verify-scoring-parity.ts`: byte-identical scores across two runs.
+  Pollinator layer is read-side only — `computeScores.ts` untouched.
+
+### Honest scoping (caveats surfaced in layer + dashboard)
+- Patch grid is synthesized from aggregate land-cover %, not polygonized
+  land cover. For rigorous corridor analysis a polygonized land-cover
+  source + raster LCP is required (deferred).
+- Ecoregion lookup uses bbox + nearest-centroid — points near ecoregion
+  boundaries will misclassify. Documented in output.
+
+### Decision
+[`wiki/decisions/2026-04-24-atlas-pollinator-ecoregion-corridor.md`](decisions/2026-04-24-atlas-pollinator-ecoregion-corridor.md)
+
+---
+
+## 2026-04-24 — Accessibility Audit (WCAG 2.1 AA)
+
+Produced [`design-system/ogden-atlas/accessibility-audit.md`](../design-system/ogden-atlas/accessibility-audit.md),
+closing the a11y area deferred by the 2026-04-23 UX Scholar audit. Documentation
+only — no code changes in this session.
+
+### Headline findings
+
+- **P0 (one):** No skip-link anywhere in `AppShell.tsx`. Every keyboard user
+  must Tab through the full IconSidebar before reaching main content — WCAG
+  2.4.1 Level A fail. Recommendation: visually-hidden `<a href="#main-content">`
+  as first child of the shell div + `id="main-content"` on the existing
+  `<main>` at `AppShell.tsx:107`.
+- **P1 (six):** IconSidebar `<aside>` → `<nav>` promotion; `<div onClick>`
+  triage across 12 files (Modal's backdrop-dismiss is legitimate; others need
+  `<button>` or the role/tabIndex/onKeyDown trio); Input focus-ring uses
+  sage-green border-shift inconsistent with Button's gold ring; LayerLegendPopover
+  has `role="dialog"` but no focus trap; dashboard heading hierarchy skips
+  levels (h1 → h3); bare `<input>` inventory outside FormField adoption.
+- **P2 (five):** `title=` → DelayedTooltip sweep (70 occurrences across 34
+  files); Button spinner `@keyframes` missing `prefers-reduced-motion` block
+  (grep-confirmed); nav aria-labels; score live-region in SiteIntelligencePanel;
+  muted-text font-size guardrail.
+
+### Positive findings (compliance stamps)
+
+- Focus-ring token (`--color-focus-ring`) consumed correctly by Button, Input,
+  Tabs, Accordion.
+- `Modal.tsx:55-114` textbook focus trap (Escape + Tab cycle + restore).
+- `FormField.tsx:43-64` wires label/error/helper via `htmlFor` + injected
+  `aria-describedby`.
+- OKLCH contrast passes WCAG AA body text (13:1) and all status colors (5:1+).
+- 9 CSS files correctly respect `prefers-reduced-motion`.
+
+### Deliverables
+
+- **NEW:** `design-system/ogden-atlas/accessibility-audit.md` — 8 sections +
+  Priority Summary + Deferred + References. Follows the `ui-ux-scholar-audit.md`
+  template. Every finding cites `file:line`.
+- Cross-link: `ui-ux-scholar-audit.md` "does not cover" bullet updated to point
+  at the new audit.
+- `wiki/index.md` updated under Design System.
+
+### Next session
+
+Implementation plan that executes §1 (P0 skip-link + `<nav>` promotion) plus
+§§2–3 P1 items (div-onClick triage + focus-ring parity). The §5 tooltip sweep
+(mechanical, ~2 h) can run in a buffer session or parallel worktree.
+
+---
+
 ## 2026-04-24 — MapControlPopover primitive + mapZIndex token export
 
 Landed the two §5-deferred refactors from the IA & Panel Conventions spec
