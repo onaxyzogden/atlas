@@ -254,5 +254,27 @@ export async function maybeWriteAssessmentIfTier3Complete(
   const completed = parseInt(rows[0]?.completed ?? '0', 10);
   if (completed < 4) return null;
 
+  // Tier-3 job status can flip to 'complete' *just before* the Tier-3-derived
+  // project_layers row (microclimate / watershed_derived / soil_regeneration)
+  // is visible on a different pool connection. When that race loses, the
+  // writer scores against an incomplete layer set and persists a stale
+  // overall_score. Require the three derived layer rows to be present with
+  // fetch_status='complete' before we allow the write.
+  const derivedRows = await db<{ present: string }[]>`
+    SELECT count(*)::text AS present
+    FROM project_layers
+    WHERE project_id = ${projectId}
+      AND fetch_status = 'complete'
+      AND layer_type IN ('microclimate', 'watershed_derived', 'soil_regeneration')
+  `;
+  const derivedPresent = parseInt(derivedRows[0]?.present ?? '0', 10);
+  if (derivedPresent < 3) {
+    logger.info(
+      { projectId, derivedPresent },
+      'Deferring assessment write — Tier-3 derived project_layers not fully committed yet',
+    );
+    return null;
+  }
+
   return writeCanonicalAssessment(db, projectId);
 }

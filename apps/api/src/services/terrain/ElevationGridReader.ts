@@ -6,7 +6,16 @@
  */
 
 import { fromUrl, fromArrayBuffer } from 'geotiff';
+import proj4 from 'proj4';
 import type { Country } from '@ogden/shared';
+
+// NAD83(CSRS) / Canada Atlas Lambert — the CRS NRCan HRDEM COGs are stored in.
+// geotiff.js returns pixel origin/resolution in this CRS, so we reproject the
+// project bbox from EPSG:4326 before computing the read window.
+proj4.defs(
+  'EPSG:3979',
+  '+proj=lcc +lat_0=49 +lon_0=-95 +lat_1=49 +lat_2=77 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs +type=crs',
+);
 
 // ── Public interface ────────────────────────────────────────────────────────
 
@@ -158,7 +167,12 @@ async function readNrcanHrdem(bbox: [number, number, number, number]): Promise<E
   const tiff = await fromUrl(cogUrl);
   const image = await tiff.getImage();
 
-  // Convert geographic bbox to pixel coordinates
+  // HRDEM COGs are stored in EPSG:3979 (NAD83(CSRS) / Canada Atlas Lambert),
+  // not EPSG:4326. Origin/resolution are in metres in that projected CRS, so
+  // we must reproject the bbox corners before computing the pixel window.
+  // Treating lon/lat as metres collapsed the read window to a single nodata
+  // pixel → validCount=0 → Infinity propagated to `terrain_analysis` numeric
+  // columns → Postgres "numeric field overflow" (CA-3).
   const origin = image.getOrigin?.()
     ?? (() => { const b = image.getBoundingBox(); return [b[0], b[3]]; })();
   const originX = origin[0]!;
@@ -168,10 +182,17 @@ async function readNrcanHrdem(bbox: [number, number, number, number]): Promise<E
   const imgWidth = image.getWidth();
   const imgHeight = image.getHeight();
 
-  let px0 = Math.floor((minLon - originX) / resX!);
-  let py0 = Math.floor((originY - maxLat) / Math.abs(resY!));
-  let px1 = Math.ceil((maxLon - originX) / resX!);
-  let py1 = Math.ceil((originY - minLat) / Math.abs(resY!));
+  const [minX, minY] = proj4('EPSG:4326', 'EPSG:3979', [minLon, minLat]);
+  const [maxX, maxY] = proj4('EPSG:4326', 'EPSG:3979', [maxLon, maxLat]);
+  const projMinX = Math.min(minX!, maxX!);
+  const projMaxX = Math.max(minX!, maxX!);
+  const projMinY = Math.min(minY!, maxY!);
+  const projMaxY = Math.max(minY!, maxY!);
+
+  let px0 = Math.floor((projMinX - originX) / resX!);
+  let py0 = Math.floor((originY - projMaxY) / Math.abs(resY!));
+  let px1 = Math.ceil((projMaxX - originX) / resX!);
+  let py1 = Math.ceil((originY - projMinY) / Math.abs(resY!));
 
   px0 = Math.max(0, Math.min(imgWidth - 1, px0));
   py0 = Math.max(0, Math.min(imgHeight - 1, py0));
@@ -229,7 +250,9 @@ export async function findCogUrl(
     collections: [collection],
     bbox: [minLon, minLat, maxLon, maxLat],
     limit: 5,
-    sortby: [{ field: 'properties.datetime', direction: 'desc' }],
+    // STAC API queryables expose `datetime`, not `properties.datetime`;
+    // using the properties-prefixed name returns HTTP 500 ("not a valid Queryables").
+    sortby: [{ field: 'datetime', direction: 'desc' }],
   };
 
   const resp = await fetch(`${NRCAN_STAC_API}/search`, {

@@ -140,6 +140,19 @@ export class TerrainAnalysisProcessor {
 
     const dataSources = [grid.sourceApi];
 
+    // Fail fast if the elevation grid yielded no valid pixels — otherwise
+    // Infinity/−Infinity would reach the numeric columns as a cryptic
+    // "numeric field overflow". Upstream (ElevationGridReader) is the right
+    // place to diagnose source-data issues; here we just refuse to persist
+    // a meaningless row.
+    if (validCount === 0 || !Number.isFinite(minElev) || !Number.isFinite(maxElev)) {
+      throw new Error(
+        `Elevation grid has no valid pixels for project ${projectId} ` +
+        `(sourceApi=${grid.sourceApi}, resolution=${grid.resolution_m}m, ` +
+        `bbox=${grid.bbox.join(',')}) — likely a CRS/window mismatch in ElevationGridReader`,
+      );
+    }
+
     // UPSERT into terrain_analysis
     await this.db`
       INSERT INTO terrain_analysis (
