@@ -32,6 +32,22 @@ item list). As of 2026-04-24:
   + `style.load` re-sync + spine-btn compact toggle). Wired into
   `MapView` + `LeftToolSpine` via `restorationSlot`; state lives at
   `useMapStore.restorationPriorityVisible`.
+- `mulching-compost-covercrop-zones` — **done**.
+  `MulchCompostCovercropOverlay` filters the same `soil_regeneration`
+  FeatureCollection client-side to features whose `primaryIntervention`
+  is one of `mulching_priority` / `compost_application` /
+  `cover_crop_candidate`, classed by that discriminator (straw / humus /
+  young-legume palette). Store: `useMapStore.mulchCovercropVisible`;
+  slot: `mulchCovercropSlot` on `LeftToolSpine`.
+- `silvopasture-foodforest-regen-zones` — **done**.
+  `AgroforestryOverlay` filters `soil_regeneration` to features whose
+  `primaryIntervention` is `silvopasture_candidate` or
+  `food_forest_candidate`. Caveat: the manifest label names
+  "forest regeneration" as a third class, but the processor does not
+  yet emit a distinct forest-regeneration intervention type — it is
+  currently folded into the food-forest class. Surface this in any UI
+  copy; do not fake a separate legend entry. Store:
+  `useMapStore.agroforestryVisible`; slot: `agroforestrySlot`.
 - All other ecology / regeneration-planning items are P2-planned.
 
 ## Purpose

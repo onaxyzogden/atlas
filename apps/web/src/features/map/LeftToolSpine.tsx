@@ -18,6 +18,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import type maplibregl from 'maplibre-gl';
 import type MapboxDraw from '@mapbox/mapbox-gl-draw';
+import { mapZIndex } from '../../lib/tokens.js';
 
 const CrossSectionTool = lazy(() => import('./CrossSectionTool.js'));
 const HistoricalImageryControl = lazy(() => import('./HistoricalImageryControl.js'));
@@ -35,6 +36,8 @@ interface LeftToolSpineProps {
   microclimateSlot: ReactNode;
   windbreakSlot: ReactNode;
   restorationSlot: ReactNode;
+  mulchCovercropSlot: ReactNode;
+  agroforestrySlot: ReactNode;
   osmSlot: ReactNode;
 }
 
@@ -62,6 +65,8 @@ export default function LeftToolSpine({
   microclimateSlot,
   windbreakSlot,
   restorationSlot,
+  mulchCovercropSlot,
+  agroforestrySlot,
   osmSlot,
 }: LeftToolSpineProps) {
   return (
@@ -71,7 +76,7 @@ export default function LeftToolSpine({
         position: 'absolute',
         top: 132,
         left: 12,
-        zIndex: 2,
+        zIndex: mapZIndex.spine,
         display: 'flex',
         flexDirection: 'column',
         gap: 4,
@@ -93,6 +98,8 @@ export default function LeftToolSpine({
       {microclimateSlot}
       {windbreakSlot}
       {restorationSlot}
+      {mulchCovercropSlot}
+      {agroforestrySlot}
       <Suspense fallback={null}>
         <MeasureTools projectId={projectId} map={map} draw={draw} compact />
       </Suspense>

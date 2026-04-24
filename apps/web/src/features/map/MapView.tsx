@@ -29,7 +29,7 @@ import { useProjectStore } from '../../store/projectStore.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { getDomainContext, type DomainKey } from './domainMapping.js';
-import { map as mapTokens, group } from '../../lib/tokens.js';
+import { map as mapTokens, mapZIndex, group } from '../../lib/tokens.js';
 import css from './MapView.module.css';
 import './mapRailDashboard.css';
 
@@ -46,6 +46,10 @@ const WindbreakOverlay = lazy(() => import('./WindbreakOverlay.js'));
 const WindbreakToggle = lazy(() => import('./WindbreakOverlay.js').then((m) => ({ default: m.WindbreakToggle })));
 const RestorationPriorityOverlay = lazy(() => import('./RestorationPriorityOverlay.js'));
 const RestorationPriorityToggle = lazy(() => import('./RestorationPriorityOverlay.js').then((m) => ({ default: m.RestorationPriorityToggle })));
+const MulchCompostCovercropOverlay = lazy(() => import('./MulchCompostCovercropOverlay.js'));
+const MulchCompostCovercropToggle = lazy(() => import('./MulchCompostCovercropOverlay.js').then((m) => ({ default: m.MulchCompostCovercropToggle })));
+const AgroforestryOverlay = lazy(() => import('./AgroforestryOverlay.js'));
+const AgroforestryToggle = lazy(() => import('./AgroforestryOverlay.js').then((m) => ({ default: m.AgroforestryToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
@@ -329,6 +333,16 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <RestorationPriorityToggle compact />
               </Suspense>
             }
+            mulchCovercropSlot={
+              <Suspense fallback={null}>
+                <MulchCompostCovercropToggle compact />
+              </Suspense>
+            }
+            agroforestrySlot={
+              <Suspense fallback={null}>
+                <AgroforestryToggle compact />
+              </Suspense>
+            }
             osmSlot={
               <Suspense fallback={null}>
                 <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
@@ -347,7 +361,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             position: 'absolute',
             top: 16,
             right: 60,
-            zIndex: 2,
+            zIndex: mapZIndex.spine,
             display: 'flex',
             flexDirection: 'column',
             gap: 6,
@@ -382,6 +396,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           <RestorationPriorityOverlay projectId={project.id} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
+          <MulchCompostCovercropOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AgroforestryOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
           <SplitScreenCompare
             primaryMap={mapRef}
             boundaryGeojson={project.parcelBoundaryGeojson}
@@ -413,7 +433,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         {pendingCommentLngLat && (
           <div style={{
             position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            zIndex: 50, display: 'flex', gap: 6, alignItems: 'center',
+            zIndex: mapZIndex.top, display: 'flex', gap: 6, alignItems: 'center',
             background: 'var(--color-panel-bg, #1a1a1a)', border: '1px solid rgba(196,162,101,0.3)',
             borderRadius: 10, padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             minWidth: 320, maxWidth: 420,

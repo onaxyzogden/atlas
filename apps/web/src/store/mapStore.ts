@@ -79,6 +79,19 @@ interface MapState {
   restorationPriorityVisible: boolean;
   setRestorationPriorityVisible: (v: boolean) => void;
 
+  // §7 surface-intervention overlay (mulching + compost + cover crop) —
+  // filtered view of the `soil_regeneration` layer keyed on
+  // primaryIntervention ∈ {mulching_priority, compost_application,
+  // cover_crop_candidate}.
+  mulchCovercropVisible: boolean;
+  setMulchCovercropVisible: (v: boolean) => void;
+
+  // §7 agroforestry overlay (silvopasture + food forest) — filtered view
+  // of the `soil_regeneration` layer keyed on primaryIntervention ∈
+  // {silvopasture_candidate, food_forest_candidate}.
+  agroforestryVisible: boolean;
+  setAgroforestryVisible: (v: boolean) => void;
+
   // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
   // is added to MapCanvas when a release is selected.
   historicalRelease: { id: number; date: string } | null;
@@ -169,6 +182,12 @@ export const useMapStore = create<MapState>((set) => ({
 
   restorationPriorityVisible: false,
   setRestorationPriorityVisible: (restorationPriorityVisible) => set({ restorationPriorityVisible }),
+
+  mulchCovercropVisible: false,
+  setMulchCovercropVisible: (mulchCovercropVisible) => set({ mulchCovercropVisible }),
+
+  agroforestryVisible: false,
+  setAgroforestryVisible: (agroforestryVisible) => set({ agroforestryVisible }),
 
   historicalRelease: null,
   setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),
