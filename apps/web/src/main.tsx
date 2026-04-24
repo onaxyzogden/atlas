@@ -6,6 +6,15 @@ import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
 import './app/index.css';
+
+// Dev-only: axe-core a11y audit runs on every render and logs violations to
+// the console. Tree-shaken out of prod bundles via the DEV gate.
+if (import.meta.env.DEV) {
+  void import('@axe-core/react').then(({ default: axe }) => {
+    console.info('[axe] dev-mode a11y audit armed (1s debounce)');
+    axe(React, ReactDOM, 1000);
+  });
+}
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
 // Import connectivityStore to register online/offline listeners (side-effect import)
