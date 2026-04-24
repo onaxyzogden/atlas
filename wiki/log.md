@@ -85,11 +85,13 @@ requiring another manual audit pass.
 2. Package lives under `devDependencies`, so `npm install --prod` (or
    any prod-only install strategy) won't even fetch it.
 
-Dist-grep check (`grep -r "axe-core" apps/web/dist`) deferred — branch
-currently fails `vite build` on pre-existing unrelated breakage
-(`SolarClimateDashboard.tsx` imports symbols missing from
-`footprints.ts`; `HydrologyDashboard.tsx` references `Utility.capacityGal`
-absent from the type). Re-run the grep once upstream fixes land.
+Dist-grep check (`grep -rE "axe-core|@axe-core|axe\.run|AxeBuilder"
+apps/web/dist`) **confirmed clean** after commits `511031d` +
+`74ebbd8` resolved the upstream tsc/build breakage — zero matches in
+prod bundles. (Generic substring "axe" still matches inside unrelated
+words like `maxAxes`/`relaxation` across cesium/maplibre/turf —
+expected noise, verified non-referential.) Tree-shake working as
+designed.
 
 ### Verification
 - `corepack pnpm --filter @ogden/web add -D @axe-core/react` → installed
