@@ -24,6 +24,10 @@ export * from './astronomy/solarExposure.js';
 export * from './climate/comfortCalendar.js';
 export * from './climate/comfortGrid.js';
 export * from './climate/windbreakLines.js';
+export * from './ecology/pollinatorHabitat.js';
+export * from './ecology/ecoregion.js';
+export * from './ecology/corridorLCP.js';
+export * from './ecology/pollinatorHabitatState.js';
 
 // Constants
 export * from './constants/dataSources.js';

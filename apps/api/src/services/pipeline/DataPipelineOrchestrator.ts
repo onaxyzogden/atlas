@@ -43,6 +43,7 @@ import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
 import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
+import { PollinatorOpportunityProcessor } from '../terrain/PollinatorOpportunityProcessor.js';
 import { maybeWriteAssessmentIfTier3Complete } from '../assessments/SiteAssessmentWriter.js';
 import { claudeClient } from '../ai/ClaudeClient.js';
 import { writeAiOutput } from '../ai/AiOutputWriter.js';
@@ -185,6 +186,7 @@ export class DataPipelineOrchestrator {
   private watershedProcessor: WatershedRefinementProcessor;
   private microclimateProcessor: MicroclimateProcessor;
   private soilRegenerationProcessor: SoilRegenerationProcessor;
+  private pollinatorOpportunityProcessor: PollinatorOpportunityProcessor;
   private readonly connOpts: ConnectionOptions;
 
   constructor(
@@ -209,6 +211,7 @@ export class DataPipelineOrchestrator {
     this.watershedProcessor = new WatershedRefinementProcessor(db);
     this.microclimateProcessor = new MicroclimateProcessor(db);
     this.soilRegenerationProcessor = new SoilRegenerationProcessor(db);
+    this.pollinatorOpportunityProcessor = new PollinatorOpportunityProcessor(db);
   }
 
   /** Enqueue a Tier 1 data fetch for a project. Called after boundary is set. */
@@ -395,6 +398,17 @@ export class DataPipelineOrchestrator {
 
         try {
           await this.soilRegenerationProcessor.process(projectId);
+
+          // Pollinator enrichment: runs after soil-regen. Non-fatal — failures
+          // are logged but do not fail the soil-regen job. Pollinator output is
+          // read-side only (not wired into scoring), so this keeps
+          // verify-scoring-parity delta at 0.000.
+          try {
+            await this.pollinatorOpportunityProcessor.process(projectId);
+          } catch (pollErr) {
+            const pollMsg = pollErr instanceof Error ? pollErr.message : String(pollErr);
+            console.warn(`[pollinator_opportunity] ${projectId}: ${pollMsg}`);
+          }
 
           await this.db`
             UPDATE data_pipeline_jobs

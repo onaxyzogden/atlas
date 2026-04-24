@@ -552,6 +552,27 @@ export interface SoilRegenerationSummary {
   restorationPriority?: string | null;
 }
 
+export interface PollinatorOpportunitySummary {
+  corridorReadiness?: number | null;
+  patchCount?: number | null;
+  gridSize?: number | null;
+  ecoregionId?: string | null;
+  patchesByQuality?: {
+    high?: number | null;
+    moderate?: number | null;
+    low?: number | null;
+    hostile?: number | null;
+  };
+  patchesByRole?: {
+    core?: number | null;
+    stepping_stone?: number | null;
+    isolated?: number | null;
+    matrix?: number | null;
+  };
+  confidence?: 'high' | 'medium' | 'low';
+  caveat?: string | null;
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Map + union
 // ──────────────────────────────────────────────────────────────────────────
@@ -568,6 +589,7 @@ export interface LayerSummaryMap {
   watershed_derived: WatershedDerivedSummary;
   microclimate: MicroclimateSummary;
   soil_regeneration: SoilRegenerationSummary;
+  pollinator_opportunity: PollinatorOpportunitySummary;
   groundwater: GroundwaterSummary;
   water_quality: WaterQualitySummary;
   superfund: SuperfundSummary;
@@ -621,6 +643,7 @@ const NUMERIC_KEYS: Record<LayerType, readonly string[]> = {
   watershed_derived: ['flow_accumulation', 'twi_mean', 'contributing_area_ha'],
   microclimate: ['heat_island_delta_c', 'shelter_index'],
   soil_regeneration: [],
+  pollinator_opportunity: ['corridorReadiness', 'patchCount', 'gridSize'],
   groundwater: ['groundwater_depth_m', 'groundwater_depth_ft', 'station_nearest_km', 'station_count'],
   water_quality: ['ph_value', 'dissolved_oxygen_mg_l', 'nitrate_mg_l', 'turbidity_ntu', 'station_nearest_km', 'station_count'],
   superfund: ['nearest_site_km', 'sites_within_radius', 'sites_within_5km', 'sites_within_2km', 'recovery_percent'],
@@ -666,6 +689,7 @@ const STRING_KEYS_WITH_SENTINELS: Record<LayerType, readonly string[]> = {
   watershed_derived: ['hydrologic_position'],
   microclimate: ['frost_pocket_risk', 'solar_exposure'],
   soil_regeneration: ['restorationPriority'],
+  pollinator_opportunity: ['ecoregionId', 'caveat'],
   groundwater: ['station_name', 'measurement_date', 'regime_class', 'heuristic_note'],
   water_quality: ['ph_date', 'do_date', 'nitrate_date', 'turbidity_date', 'station_name', 'orgname', 'last_measured'],
   superfund: ['nearest_site_name', 'nearest_site_status', 'nearest_epa_id', 'nearest_city', 'federal_site_id', 'municipality', 'contamination_risk'],

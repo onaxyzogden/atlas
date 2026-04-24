@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -10,73 +10,41 @@ interface PollinatorHabitatOverlayProps {
 }
 
 const SOURCE_ID = 'pollinator-opportunity-zones';
-const CIRCLE_LAYER_ID = 'pollinator-opportunity-zones-circle';
+const FILL_LAYER_ID = 'pollinator-opportunity-zones-fill';
 const STROKE_LAYER_ID = 'pollinator-opportunity-zones-stroke';
 
-type PollinatorBand = 'high' | 'moderate' | 'low';
-
-// primaryIntervention → pollinator-planting-opportunity band. silvopasture &
-// food forest bring structural diversity + flowering trees; cover crops are
-// species-dependent and therefore moderate; mulching/compost are soil-first
-// interventions — low for pollinator forage in the short term.
-function bandForIntervention(intervention: string | undefined | null): PollinatorBand {
-  switch (intervention) {
-    case 'silvopasture_candidate':
-    case 'food_forest_candidate':
-      return 'high';
-    case 'cover_crop_candidate':
-      return 'moderate';
-    case 'mulching_priority':
-    case 'compost_application':
-    default:
-      return 'low';
-  }
-}
-
-function deriveFeatures(geojson: GeoJSON.FeatureCollection): GeoJSON.FeatureCollection {
-  return {
-    type: 'FeatureCollection',
-    features: geojson.features.map((f) => ({
-      ...f,
-      properties: {
-        ...(f.properties ?? {}),
-        pollinatorBand: bandForIntervention(
-          (f.properties as { primaryIntervention?: string } | null)?.primaryIntervention,
-        ),
-      },
-    })),
-  };
-}
-
 /**
- * §7 Pollinator-habitat opportunity overlay. Reads the `soil_regeneration`
- * layer (SoilRegenerationProcessor zone centroids) and paints each cell as a
- * classed circle keyed on a derived `pollinatorBand` — high / moderate / low —
- * from `primaryIntervention`. Represents *planting opportunity*, not current
- * habitat quality; corridor connectivity and true habitat-state rasters still
- * require substrate that does not yet exist in the pipeline.
+ * §7 Pollinator-opportunity overlay. Reads the `pollinator_opportunity` layer
+ * emitted by `PollinatorOpportunityProcessor` — a synthesized NxN patch grid
+ * over the project bbox with deterministic cover-class assignment.
+ *
+ * - Fill color is keyed on `habitatQuality` (high / moderate / low / hostile).
+ * - Stroke color + weight are keyed on `connectivityRole` (core /
+ *   stepping_stone / isolated / matrix).
+ *
+ * Honest scoping: the grid is not polygonized land cover — it is a
+ * synthesized patch approximation. The caveat is stored in the layer's
+ * summary_data and rendered in the §7 EcologicalDashboard.
  */
 export default function PollinatorHabitatOverlay({ projectId, map }: PollinatorHabitatOverlayProps) {
   const visible = useMapStore((s) => s.pollinatorOpportunityVisible);
   const overlayOpacity = useMapStore((s) => s.overlayOpacity);
-  const [rawGeojson, setRawGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [geojson, setGeojson] = useState<GeoJSON.FeatureCollection | null>(null);
   const [fetched, setFetched] = useState(false);
 
   useEffect(() => {
     if (!visible || fetched) return;
     api.layers
-      .get(projectId, 'soil_regeneration')
+      .get(projectId, 'pollinator_opportunity')
       .then((res) => {
         const data = (res as { data?: { geojsonData?: GeoJSON.FeatureCollection | null } }).data;
         if (data?.geojsonData && data.geojsonData.type === 'FeatureCollection') {
-          setRawGeojson(data.geojsonData);
+          setGeojson(data.geojsonData);
         }
       })
       .catch(() => { /* layer not materialised yet — leave null */ })
       .finally(() => setFetched(true));
   }, [visible, fetched, projectId]);
-
-  const geojson = useMemo(() => (rawGeojson ? deriveFeatures(rawGeojson) : null), [rawGeojson]);
 
   useEffect(() => {
     if (!map) return;
@@ -88,57 +56,68 @@ export default function PollinatorHabitatOverlay({ projectId, map }: PollinatorH
         const src = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
         if (src) {
           src.setData(geojson);
-          if (map.getLayer(CIRCLE_LAYER_ID)) {
-            map.setPaintProperty(CIRCLE_LAYER_ID, 'circle-opacity', overlayOpacity * 0.7);
+          if (map.getLayer(FILL_LAYER_ID)) {
+            map.setPaintProperty(FILL_LAYER_ID, 'fill-opacity', overlayOpacity * 0.55);
           }
           if (map.getLayer(STROKE_LAYER_ID)) {
-            map.setPaintProperty(STROKE_LAYER_ID, 'circle-stroke-opacity', overlayOpacity * 0.9);
+            map.setPaintProperty(STROKE_LAYER_ID, 'line-opacity', overlayOpacity * 0.95);
           }
         } else {
           map.addSource(SOURCE_ID, { type: 'geojson', data: geojson });
-          const bandColor: maplibregl.ExpressionSpecification = [
+
+          // habitatQuality → fill: sage/gold/muted/slate-red
+          const fillColor: maplibregl.ExpressionSpecification = [
             'match',
-            ['get', 'pollinatorBand'],
-            'high', '#6ba47a',      // sage green — strong forage + structure
-            'moderate', '#d4c564',  // warm gold — flowering cover crops
-            'low', '#9c8b6e',       // muted brown — soil-first cells
+            ['get', 'habitatQuality'],
+            'high', '#6ba47a',       // sage green — forage + structure
+            'moderate', '#d4c564',   // warm gold — edge habitat
+            'low', '#9c8b6e',        // muted — sparse forage
+            'hostile', '#7a4a4a',    // slate red — urban/impervious
             '#9c8b6e',
           ];
+          // connectivityRole → stroke color: gold/chrome/red/faint
+          const strokeColor: maplibregl.ExpressionSpecification = [
+            'match',
+            ['get', 'connectivityRole'],
+            'core', '#e0b56d',              // gold — anchor patches
+            'stepping_stone', '#c4b49a',    // chrome — bridge patches
+            'isolated', '#a85555',          // red — orphan patches
+            'matrix', 'rgba(180,165,140,0.4)',
+            'rgba(180,165,140,0.4)',
+          ];
+          // connectivityRole → stroke weight
+          const strokeWidth: maplibregl.ExpressionSpecification = [
+            'match',
+            ['get', 'connectivityRole'],
+            'core', 3,
+            'stepping_stone', 2,
+            'isolated', 1.5,
+            'matrix', 0.5,
+            0.5,
+          ];
+
           map.addLayer({
-            id: CIRCLE_LAYER_ID,
-            type: 'circle',
+            id: FILL_LAYER_ID,
+            type: 'fill',
             source: SOURCE_ID,
             paint: {
-              'circle-color': bandColor,
-              'circle-opacity': overlayOpacity * 0.7,
-              'circle-radius': [
-                'interpolate', ['linear'], ['zoom'],
-                10, 4,
-                14, 8,
-                18, 18,
-              ],
+              'fill-color': fillColor,
+              'fill-opacity': overlayOpacity * 0.55,
             },
           });
           map.addLayer({
             id: STROKE_LAYER_ID,
-            type: 'circle',
+            type: 'line',
             source: SOURCE_ID,
             paint: {
-              'circle-color': 'transparent',
-              'circle-stroke-color': bandColor,
-              'circle-stroke-width': 1.2,
-              'circle-stroke-opacity': overlayOpacity * 0.9,
-              'circle-radius': [
-                'interpolate', ['linear'], ['zoom'],
-                10, 4,
-                14, 8,
-                18, 18,
-              ],
+              'line-color': strokeColor,
+              'line-width': strokeWidth,
+              'line-opacity': overlayOpacity * 0.95,
             },
           });
         }
       } else {
-        for (const id of [STROKE_LAYER_ID, CIRCLE_LAYER_ID]) {
+        for (const id of [STROKE_LAYER_ID, FILL_LAYER_ID]) {
           if (map.getLayer(id)) map.removeLayer(id);
         }
         if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
@@ -160,13 +139,13 @@ export function PollinatorHabitatToggle({ compact = false }: { compact?: boolean
   const setVisible = useMapStore((s) => s.setPollinatorOpportunityVisible);
   if (compact) {
     return (
-      <DelayedTooltip label="Pollinator planting opportunity" position="right">
+      <DelayedTooltip label="Pollinator opportunity" position="right">
         <button
           onClick={() => setVisible(!visible)}
           aria-pressed={visible}
           className={`spine-btn${visible ? ' signifier-shimmer' : ''}`}
           data-active={visible}
-          aria-label="Toggle pollinator planting opportunity overlay"
+          aria-label="Toggle pollinator opportunity overlay"
         >
           {/* Lucide Flower-2 — pollinator signifier */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -179,7 +158,7 @@ export function PollinatorHabitatToggle({ compact = false }: { compact?: boolean
     );
   }
   return (
-    <DelayedTooltip label="Toggle pollinator planting opportunity overlay" position="bottom">
+    <DelayedTooltip label="Toggle pollinator opportunity overlay" position="bottom">
       <button
         onClick={() => setVisible(!visible)}
         aria-pressed={visible}
