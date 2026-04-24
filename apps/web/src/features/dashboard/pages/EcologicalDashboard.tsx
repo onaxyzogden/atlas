@@ -13,6 +13,7 @@ import type { AssessmentFlag, EcoregionId } from '@ogden/shared';
 import { computePollinatorHabitat } from '@ogden/shared';
 import ProgressBar from '../components/ProgressBar.js';
 import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
+import RegenerationTimelineCard from '../../regeneration/RegenerationTimelineCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -589,6 +590,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </div>
         )}
       </div>
+
+      {/* Regeneration Timeline — §7 intervention log (migration 015 + shared schema). */}
+      <RegenerationTimelineCard project={project} />
 
       {/* Carbon Estimate */}
       {carbon && (

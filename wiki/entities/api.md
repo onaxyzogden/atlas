@@ -23,6 +23,7 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 | `/api/v1/projects` | `routes/projects/` | CRUD, boundary upload, assessment, completeness |
 | `/api/v1/projects/:id/exports` | `routes/exports/` | PDF export generation + listing |
 | `/api/v1/projects/:id/files` | `routes/files/` | File upload/processing |
+| `/api/v1/projects/:id/regeneration-events` | `routes/regeneration-events/` | §7 stage-tagged intervention log — list (filters: `eventType`/`interventionType`/`phase`/`since`/`until`/`parentId`), create, patch, delete. Author-or-owner mutation guard. Geometry round-trip via `ST_GeomFromGeoJSON`/`ST_AsGeoJSON::jsonb`. Manual `mapRow()` (not `toCamelCase`) keeps geometry+jsonb handling visible. |
 | `/api/v1/layers` | `routes/layers/` | Data layer fetching/refresh |
 | `/api/v1/design-features` | `routes/design-features/` | Zone/structure/path CRUD |
 | `/api/v1/spiritual` | `routes/spiritual/` | Qibla computation |

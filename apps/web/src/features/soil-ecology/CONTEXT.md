@@ -186,10 +186,37 @@ and cropping placement).
   routes; do not add a side-channel table. The dashboard surfaces
   them verbatim — no parsing — because free-text is intentional
   pre-site-visit.
-- Ecology-side items (succession stage, invasive pressure, pollinator
-  / biodiversity corridor, carbon sequestration) are all **planned** —
-  no server surface exists yet. Do not stub client components that
-  pretend to hit endpoints that will 404.
+- Ecology-side items (succession stage, invasive pressure, carbon
+  sequestration) are **planned** — no server surface exists yet. Do
+  not stub client components that pretend to hit endpoints that will
+  404.
+- `native-pollinator-biodiversity` is **partial**. Four waves shipped:
+  (1) server-side pollinator opportunity grid
+  (`PollinatorOpportunityProcessor`), (2) `PollinatorHabitatOverlay`
+  classed-circle surface (reads the bbox-scale synthesized
+  `pollinator_opportunity` 5×5 grid — planting **opportunity**, mixed
+  cover sampling + connectivity role), (3) `BiodiversityCorridorOverlay`
+  Dijkstra LCP + 50 m turf-buffered band across the `soil_regeneration`
+  grid, and (4) `PollinatorHabitatStateOverlay` — parcel-scale **current
+  habitat** quality classified per zone from real `coverClass` +
+  `disturbanceLevel` via `classifyZoneHabitat` in
+  `@ogden/shared/ecology/pollinatorHabitatState`. Opportunity vs state
+  are intentionally two surfaces: opportunity answers "where should we
+  plant?", state answers "what's already here?". Neither feeds
+  `computeScores.ts` — scoring parity delta stays at 0.
+  Friction is a **zone-polygonized land-cover × impedance surface**:
+  per-zone `coverClass` + `disturbanceLevel` (already computed in
+  `SoilRegenerationProcessor.loadContext`) are emitted onto the
+  feature properties and consumed client-side by `frictionForCell`
+  in `@ogden/shared/ecology/corridorLCP`. Impedance vocabulary
+  follows Circuitscape / Omniscape / Theobald 2013 defaults
+  (forest/wetland = 1, cropland = 7, water = 12, urban = 15,
+  unknown = 5), multiplied by `1 + 0.4 × disturbanceLevel` and
+  discounted for planned permeable interventions (silvopasture /
+  food-forest × 0.7, cover crop × 0.9). This is planning-grade,
+  NOT a true pixel raster. Deferred: true pixel-scale friction
+  raster, Steiner-tree multi-anchor corridors, regional-plant lists,
+  cross-parcel stitching.
 - Regeneration-stage tagging + intervention log + before/after compare
   persist in the `regeneration_events` table (migration 015, shipped
   2026-04-24). Read/write through the typed `RegenerationEvent` +
@@ -201,9 +228,19 @@ and cropping placement).
   `apps/api/src/services/terrain/algorithms/soilRegeneration.ts` —
   if those TS enums change, update the CHECK constraints in the
   migration AND the Zod enums in `regenerationEvent.schema.ts` in the
-  same PR. API routes + UI are NOT yet wired — the substrate is there,
-  but `regen-stage-intervention-log` stays `planned` on the manifest
-  until routes + timeline UI ship.
+  same PR. API routes (`apps/api/src/routes/regeneration-events/`) +
+  UI (`apps/web/src/features/regeneration/`) are wired: the
+  `RegenerationTimelineCard` mounts on `EcologicalDashboard` directly
+  after the intervention list with an inline "Log event" disclosure
+  form. Dashboard-inline forms (as opposed to wizard-only intake) are
+  the new entry pattern for events logged over project lifetime —
+  follow the `LogEventForm` shape when adding other timeline-style
+  inputs. `regen-stage-intervention-log` → `done` on the manifest.
+  Out of scope: media upload (media_urls still empty array; object
+  storage integration separate), polygon-location drawing (Point via
+  boundary centroid or NULL site-wide only), before/after
+  photo-compare pane, editing/deleting events from the timeline UI
+  (mutations ship on the API but no dashboard button surface yet).
 - `SoilRegenerationProcessor` output is cached on the Tier-3 pipeline
   run — it does not recompute on UI navigation. Trigger a new run if a
   boundary changes; never synthesize zones client-side.

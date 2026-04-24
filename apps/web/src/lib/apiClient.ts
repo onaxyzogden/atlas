@@ -19,6 +19,9 @@ import type {
   CommentRecord,
   CreateCommentInput,
   UpdateCommentInput,
+  RegenerationEvent,
+  RegenerationEventInput,
+  RegenerationEventUpdateInput,
   ProjectMemberRecord,
   InviteMemberInput,
   UpdateMemberRoleInput,
@@ -348,6 +351,53 @@ export const api = {
 
     delete: (projectId: string, commentId: string) =>
       request<void>('DELETE', `/api/v1/projects/${projectId}/comments/${commentId}`),
+  },
+
+  regenerationEvents: {
+    list: (
+      projectId: string,
+      filters?: {
+        eventType?: RegenerationEvent['eventType'];
+        interventionType?: NonNullable<RegenerationEvent['interventionType']>;
+        phase?: NonNullable<RegenerationEvent['phase']>;
+        since?: string;
+        until?: string;
+        parentId?: string;
+      },
+    ) => {
+      const qs = filters
+        ? '?' + new URLSearchParams(
+            Object.entries(filters).filter(
+              (entry): entry is [string, string] =>
+                typeof entry[1] === 'string' && entry[1].length > 0,
+            ),
+          ).toString()
+        : '';
+      return request<RegenerationEvent[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/regeneration-events${qs && qs !== '?' ? qs : ''}`,
+      );
+    },
+
+    create: (projectId: string, input: RegenerationEventInput) =>
+      request<RegenerationEvent>(
+        'POST',
+        `/api/v1/projects/${projectId}/regeneration-events`,
+        input,
+      ),
+
+    update: (projectId: string, eventId: string, input: RegenerationEventUpdateInput) =>
+      request<RegenerationEvent>(
+        'PATCH',
+        `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
+        input,
+      ),
+
+    delete: (projectId: string, eventId: string) =>
+      request<void>(
+        'DELETE',
+        `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
+      ),
   },
 
   members: {

@@ -376,8 +376,10 @@ function polygonCentroid(poly: GeoJSON.Polygon): [number, number] | null {
   try {
     const c = turf.centroid({ type: 'Feature', geometry: poly, properties: {} });
     const coords = c.geometry.coordinates;
-    if (coords.length < 2 || !Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) return null;
-    return [coords[0], coords[1]];
+    const lng = coords[0];
+    const lat = coords[1];
+    if (typeof lng !== 'number' || typeof lat !== 'number' || !Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+    return [lng, lat];
   } catch {
     return null;
   }
@@ -455,10 +457,12 @@ function buildProximityChecks(cropAreas: CropArea[], utilities: Utility[]): Prox
         detail: 'Orchard geometry centroid unresolved.',
       };
     } else {
-      let best = { id: nurseries[0].id, name: nurseries[0].name, dist: distanceMetres(oc, nurseries[0].point) };
+      const first = nurseries[0]!;
+      let best = { id: first.id, name: first.name, dist: distanceMetres(oc, first.point) };
       for (let i = 1; i < nurseries.length; i++) {
-        const d = distanceMetres(oc, nurseries[i].point);
-        if (d < best.dist) best = { id: nurseries[i].id, name: nurseries[i].name, dist: d };
+        const n = nurseries[i]!;
+        const d = distanceMetres(oc, n.point);
+        if (d < best.dist) best = { id: n.id, name: n.name, dist: d };
       }
       const st = nurseryStatus(best.dist, true);
       const detailByStatus: Record<ProximityStatus, string> = {
@@ -495,10 +499,12 @@ function buildProximityChecks(cropAreas: CropArea[], utilities: Utility[]): Prox
         detail: 'Orchard geometry centroid unresolved.',
       };
     } else {
-      let best = { id: composts[0].id, name: composts[0].name, dist: distanceMetres(oc, composts[0].point) };
+      const first = composts[0]!;
+      let best = { id: first.id, name: first.name, dist: distanceMetres(oc, first.point) };
       for (let i = 1; i < composts.length; i++) {
-        const d = distanceMetres(oc, composts[i].point);
-        if (d < best.dist) best = { id: composts[i].id, name: composts[i].name, dist: d };
+        const c = composts[i]!;
+        const d = distanceMetres(oc, c.point);
+        if (d < best.dist) best = { id: c.id, name: c.name, dist: d };
       }
       const st = compostStatus(best.dist, true);
       const detailByStatus: Record<ProximityStatus, string> = {
@@ -684,19 +690,21 @@ function buildAccessChecks(
         detail: 'Orchard geometry centroid unresolved.',
       };
     } else {
+      const first = irrigationSources[0]!;
       let best = {
-        id: irrigationSources[0].id,
-        name: irrigationSources[0].name,
-        type: irrigationSources[0].type,
-        dist: distanceMetres(oc, irrigationSources[0].point),
+        id: first.id,
+        name: first.name,
+        type: first.type,
+        dist: distanceMetres(oc, first.point),
       };
       for (let i = 1; i < irrigationSources.length; i++) {
-        const d = distanceMetres(oc, irrigationSources[i].point);
+        const s = irrigationSources[i]!;
+        const d = distanceMetres(oc, s.point);
         if (d < best.dist) {
           best = {
-            id: irrigationSources[i].id,
-            name: irrigationSources[i].name,
-            type: irrigationSources[i].type,
+            id: s.id,
+            name: s.name,
+            type: s.type,
             dist: d,
           };
         }

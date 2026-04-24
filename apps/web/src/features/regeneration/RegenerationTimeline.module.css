@@ -1,0 +1,262 @@
+/* RegenerationTimelineCard + LogEventForm
+   Reuses the palette from EcologicalDashboard (`.interventionCard`, `.pendingCard`). */
+
+.section { margin-bottom: 24px; }
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 12px;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.45);
+  margin: 0;
+}
+
+.logBtn {
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.35);
+  border-radius: 5px;
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.logBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }
+
+.pendingCard {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(180,165,140,0.45);
+  text-align: center;
+}
+
+/* ── Event list ──────────────────────────────────────────────── */
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eventRow {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-status-good-rgb),0.12);
+  background: rgba(var(--color-status-good-rgb),0.03);
+}
+
+.eventHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.eventDate {
+  font-size: 11px;
+  font-family: var(--font-mono, 'Fira Code', monospace);
+  color: rgba(180,165,140,0.6);
+  white-space: nowrap;
+}
+
+.eventTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.9);
+  flex: 1;
+  min-width: 0;
+}
+
+.chip {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(232,220,200,0.8);
+}
+
+.chipType_observation { background: rgba(120,180,200,0.12); color: #7bb8cc; }
+.chipType_intervention { background: rgba(var(--color-gold-rgb),0.14); color: var(--color-primary); }
+.chipType_milestone { background: rgba(var(--color-status-good-rgb),0.15); color: var(--color-status-good); }
+.chipType_photo { background: rgba(180,130,200,0.14); color: #b689c8; }
+
+.followChip {
+  font-size: 11px;
+  color: rgba(180,165,140,0.55);
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(180,165,140,0.7);
+}
+
+.eventNotes {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(180,165,140,0.65);
+  margin: 4px 0 0;
+}
+
+.showMore {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.showMore:hover { text-decoration: underline; }
+
+/* ── Log event form ──────────────────────────────────────────── */
+.form {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
+  background: rgba(var(--color-gold-rgb), 0.04);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.5);
+}
+
+.input,
+.textarea {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: rgba(232,220,200,0.9);
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: rgba(var(--color-gold-rgb), 0.45);
+}
+
+.textarea { resize: vertical; min-height: 60px; }
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.segmentBtn {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: rgba(180,165,140,0.7);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.segmentBtn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: rgba(232,220,200,0.9);
+}
+.segmentBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.segmentBtnActive {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border-color: rgba(var(--color-gold-rgb), 0.45);
+  color: var(--color-primary);
+}
+
+.formError {
+  font-size: 12px;
+  color: #d46a5e;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(212,106,94,0.08);
+  border: 1px solid rgba(212,106,94,0.25);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btnSecondary,
+.btnPrimary {
+  padding: 7px 14px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.btnSecondary {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(180,165,140,0.7);
+}
+.btnSecondary:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
+
+.btnPrimary {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.45);
+  color: var(--color-primary);
+}
+.btnPrimary:hover:not(:disabled) { background: rgba(var(--color-gold-rgb), 0.3); }
+
+.btnPrimary:disabled,
+.btnSecondary:disabled { opacity: 0.5; cursor: not-allowed; }

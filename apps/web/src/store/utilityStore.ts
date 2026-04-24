@@ -41,6 +41,13 @@ export interface Utility {
    */
   demandKwhPerDay?: number;
   /**
+   * Optional storage capacity in US gallons. Meaningful for water-storage
+   * types (rain catchment, water tank). Read by the Hydrology dashboard's
+   * roof-catchment / cistern-sizing block to roll up placed capacity vs.
+   * recommended cistern size. Human-edited — no forecasting.
+   */
+  capacityGal?: number;
+  /**
    * Optional marker for temporary or seasonal utilities (§15 Timeline,
    * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
    * view"). `true` = present only for this phase or a subset of the year;
