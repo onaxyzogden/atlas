@@ -157,7 +157,14 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
           of the page and must sit on the highest elevation, *above*
           the blocking-flag alerts. Alerts are peers of the score,
           not a preamble. Reordered from alerts-first. */}
-      <div className={s.suitabilityCard} ref={suitabilityRef}>
+      <div
+        className={s.suitabilityCard}
+        ref={suitabilityRef}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label={`Overall suitability score: ${overallScore} out of 100`}
+      >
         <ScoreCircle score={overallScore} size={68} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -176,8 +176,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <label style={labelStyle}>Owner / Stakeholder Notes</label>
+          <label style={labelStyle} htmlFor="notes-owner">Owner / Stakeholder Notes</label>
           <textarea
+            id="notes-owner"
             value={data.ownerNotes}
             onChange={(e) => updateData({ ownerNotes: e.target.value })}
             placeholder="Vision for the property, current ownership, key contacts…"
@@ -187,8 +188,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Zoning & Regulatory Notes</label>
+          <label style={labelStyle} htmlFor="notes-zoning">Zoning & Regulatory Notes</label>
           <textarea
+            id="notes-zoning"
             value={data.zoningNotes}
             onChange={(e) => updateData({ zoningNotes: e.target.value })}
             placeholder="Zoning designation, permitted uses, setbacks, covenants…"
@@ -198,8 +200,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Access & Utility Notes</label>
+          <label style={labelStyle} htmlFor="notes-access">Access & Utility Notes</label>
           <textarea
+            id="notes-access"
             value={data.accessNotes}
             onChange={(e) => updateData({ accessNotes: e.target.value })}
             placeholder="Road access, easements, power, water, septic…"
@@ -209,8 +212,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Water Rights Notes</label>
+          <label style={labelStyle} htmlFor="notes-water-rights">Water Rights Notes</label>
           <textarea
+            id="notes-water-rights"
             value={data.waterRightsNotes}
             onChange={(e) => updateData({ waterRightsNotes: e.target.value })}
             placeholder="Existing water rights, wells, irrigation…"
@@ -222,8 +226,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         {/* Long-tail metadata — persisted to projects.metadata jsonb. */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <label style={labelStyle}>Climate Region</label>
+            <label style={labelStyle} htmlFor="notes-climate-region">Climate Region</label>
             <input
+              id="notes-climate-region"
               type="text"
               value={data.climateRegion}
               onChange={(e) => updateData({ climateRegion: e.target.value })}
@@ -232,8 +237,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             />
           </div>
           <div>
-            <label style={labelStyle}>Bioregion</label>
+            <label style={labelStyle} htmlFor="notes-bioregion">Bioregion</label>
             <input
+              id="notes-bioregion"
               type="text"
               value={data.bioregion}
               onChange={(e) => updateData({ bioregion: e.target.value })}
@@ -242,8 +248,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             />
           </div>
           <div>
-            <label style={labelStyle}>County</label>
+            <label style={labelStyle} htmlFor="notes-county">County</label>
             <input
+              id="notes-county"
               type="text"
               value={data.county}
               onChange={(e) => updateData({ county: e.target.value })}
@@ -252,8 +259,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             />
           </div>
           <div>
-            <label style={labelStyle}>Map Projection</label>
+            <label style={labelStyle} htmlFor="notes-map-projection">Map Projection</label>
             <input
+              id="notes-map-projection"
               type="text"
               value={data.mapProjection}
               onChange={(e) => updateData({ mapProjection: e.target.value })}
@@ -264,8 +272,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Legal Description</label>
+          <label style={labelStyle} htmlFor="notes-legal-description">Legal Description</label>
           <textarea
+            id="notes-legal-description"
             value={data.legalDescription}
             onChange={(e) => updateData({ legalDescription: e.target.value })}
             placeholder="Metes and bounds, lot/block, section-township-range…"
@@ -283,8 +292,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>pH (measured or observed)</label>
+              <label style={labelStyle} htmlFor="notes-soil-ph">pH (measured or observed)</label>
               <input
+                id="notes-soil-ph"
                 type="text"
                 value={data.soilPh}
                 onChange={(e) => updateData({ soilPh: e.target.value })}
@@ -293,8 +303,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
               />
             </div>
             <div>
-              <label style={labelStyle}>Organic Matter</label>
+              <label style={labelStyle} htmlFor="notes-soil-organic-matter">Organic Matter</label>
               <input
+                id="notes-soil-organic-matter"
                 type="text"
                 value={data.soilOrganicMatter}
                 onChange={(e) => updateData({ soilOrganicMatter: e.target.value })}
@@ -304,8 +315,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             </div>
           </div>
           <div>
-            <label style={labelStyle}>Compaction</label>
+            <label style={labelStyle} htmlFor="notes-soil-compaction">Compaction</label>
             <textarea
+              id="notes-soil-compaction"
               value={data.soilCompaction}
               onChange={(e) => updateData({ soilCompaction: e.target.value })}
               placeholder="Penetrometer readings, hardpan depth, observed compaction…"
@@ -314,8 +326,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             />
           </div>
           <div>
-            <label style={labelStyle}>Biological Activity</label>
+            <label style={labelStyle} htmlFor="notes-soil-biological-activity">Biological Activity</label>
             <textarea
+              id="notes-soil-biological-activity"
               value={data.soilBiologicalActivity}
               onChange={(e) => updateData({ soilBiologicalActivity: e.target.value })}
               placeholder="Earthworms, fungal mats, root systems, smell, colour…"
@@ -326,8 +339,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Field Observations</label>
+          <label style={labelStyle} htmlFor="notes-field-observations">Field Observations</label>
           <textarea
+            id="notes-field-observations"
             value={data.fieldObservations}
             onChange={(e) => updateData({ fieldObservations: e.target.value })}
             placeholder="Walk-through notes, visible features, seasonal signs…"
@@ -337,8 +351,9 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         </div>
 
         <div>
-          <label style={labelStyle}>Restrictions & Covenants</label>
+          <label style={labelStyle} htmlFor="notes-restrictions-covenants">Restrictions & Covenants</label>
           <textarea
+            id="notes-restrictions-covenants"
             value={data.restrictionsCovenants}
             onChange={(e) => updateData({ restrictionsCovenants: e.target.value })}
             placeholder="HOA rules, conservation easements, deed restrictions…"
@@ -372,6 +387,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
               type="file"
               multiple
               onChange={handleAddFiles}
+              aria-label="Add attachments"
               style={{ display: 'none' }}
             />
           </div>

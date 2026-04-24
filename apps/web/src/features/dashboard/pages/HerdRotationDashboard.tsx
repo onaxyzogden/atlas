@@ -279,7 +279,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
         </div>
 
         <div className={css.healthCard}>
-          <h3 className={css.healthTitle}>Get Started</h3>
+          <h2 className={css.healthTitle}>Get Started</h2>
           <div className={css.healthIndicator}>
             <span className={css.healthDot} />
             <span className={css.healthText}>
@@ -339,14 +339,14 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
           <div className={css.paddockHeader}>
             <div>
               <span className={css.paddockLabel}>ACTIVE PADDOCK</span>
-              <h3 className={css.paddockName}>
+              <h2 className={css.paddockName}>
                 {activePaddock.paddock.name}
                 {activePaddock.paddock.grazingCellGroup && (
                   <span className={css.paddockSub}>
                     ({activePaddock.paddock.grazingCellGroup})
                   </span>
                 )}
-              </h3>
+              </h2>
             </div>
             <div className={css.paddockAcres}>
               <span className={css.acresValue}>
@@ -431,7 +431,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
       {/* Recovery Tracking */}
       <div className={css.healthCard}>
-        <h3 className={css.healthTitle}>Recovery Tracking</h3>
+        <h2 className={css.healthTitle}>Recovery Tracking</h2>
         {recoveries.map((r) => (
           <ProgressBar
             key={r.paddockId}

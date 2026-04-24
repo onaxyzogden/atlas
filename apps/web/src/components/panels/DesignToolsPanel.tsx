@@ -6,7 +6,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   useZoneStore,
   ZONE_CATEGORY_CONFIG,
@@ -154,6 +154,14 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
     setPendingGeometry(null);
     draw?.deleteAll();
   }, [draw]);
+
+  // a11y: Escape key dismisses the zone-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleCancelModal(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, handleCancelModal]);
 
   return (
     <>
@@ -457,8 +465,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
 
       {/* ── Zone Naming Modal ─────────────────────────────────────── */}
       {showModal && (
-        <div className={s.modalOverlay} onClick={handleCancelModal}>
-          <div onClick={(e) => e.stopPropagation()} className={s.modalBox}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={s.modalOverlay} onClick={handleCancelModal} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={s.modalBox} role="dialog" aria-modal="true">
             <h2 className={s.modalTitle}>
               Name This Zone
             </h2>
@@ -467,8 +476,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </p>
 
             {/* Zone Name */}
-            <label className={s.modalLabel}>Zone Name *</label>
+            <label className={s.modalLabel} htmlFor="zone-modal-name">Zone Name *</label>
             <input
+              id="zone-modal-name"
               type="text"
               value={modalName}
               onChange={(e) => setModalName(e.target.value)}
@@ -506,8 +516,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             {/* Build Phase + Phase Color */}
             <div className={s.modalPhaseRow}>
               <div style={{ flex: 1 }}>
-                <label className={s.modalLabel}>Build Phase</label>
+                <label className={s.modalLabel} htmlFor="zone-modal-phase">Build Phase</label>
                 <select
+                  id="zone-modal-phase"
                   value={modalPhase}
                   onChange={(e) => setModalPhase(e.target.value)}
                   className={s.modalSelect}
@@ -534,8 +545,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </div>
 
             {/* Description */}
-            <label className={s.modalLabel}>Description</label>
+            <label className={s.modalLabel} htmlFor="zone-modal-description">Description</label>
             <textarea
+              id="zone-modal-description"
               value={modalDescription}
               onChange={(e) => setModalDescription(e.target.value)}
               placeholder="Purpose and design notes..."

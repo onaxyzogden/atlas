@@ -135,6 +135,9 @@
   --color-border:          var(--color-earth-200);
   --color-border-subtle:   var(--color-earth-100);
   --color-text:            var(--color-earth-900);
+  /* a11y: --color-text-muted ≈4.8:1 on dark bg — passes WCAG AA for body text
+     (≥14px or bold ≥11px). Do NOT pair with font-size <14px non-bold. For
+     small labels/timestamps use --color-text instead. */
   --color-text-muted:      var(--color-earth-600);
   --color-text-subtle:     var(--color-earth-400);
   --color-primary:         var(--color-earth-600);

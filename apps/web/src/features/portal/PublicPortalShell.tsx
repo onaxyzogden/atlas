@@ -59,6 +59,7 @@ export default function PublicPortalShell({ config, project }: Props) {
     >
       {/* Floating nav */}
       <nav
+        aria-label="Portal sections"
         style={{
           position: 'fixed',
           top: 0,

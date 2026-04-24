@@ -115,14 +115,15 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         </div>
 
         {/* Name */}
-        <label style={labelStyle}>Structure Name *</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus style={{ ...inputStyle, fontSize: 13, padding: '10px 12px' }} />
+        <label style={labelStyle} htmlFor="structure-name">Structure Name *</label>
+        <input id="structure-name" type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus style={{ ...inputStyle, fontSize: 13, padding: '10px 12px' }} />
 
         {/* Size controls */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Width: {widthM}m</label>
+            <label style={labelStyle} htmlFor="structure-width">Width: {widthM}m</label>
             <input
+              id="structure-width"
               type="range"
               min={1} max={Math.max(30, widthM + 5)} step={0.5}
               value={widthM}
@@ -131,8 +132,9 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
             />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Depth: {depthM}m</label>
+            <label style={labelStyle} htmlFor="structure-depth">Depth: {depthM}m</label>
             <input
+              id="structure-depth"
               type="range"
               min={1} max={Math.max(30, depthM + 5)} step={0.5}
               value={depthM}
@@ -143,9 +145,10 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         </div>
 
         {/* Rotation */}
-        <label style={labelStyle}>Orientation: {rotationDeg}{'\u00B0'}</label>
+        <label style={labelStyle} htmlFor="structure-rotation">Orientation: {rotationDeg}{'\u00B0'}</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <input
+            id="structure-rotation"
             type="range"
             min={0} max={360} step={5}
             value={rotationDeg}
@@ -182,8 +185,8 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         </div>
 
         {/* Phase */}
-        <label style={labelStyle}>Build Phase</label>
-        <select value={phase} onChange={(e) => setPhase(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+        <label style={labelStyle} htmlFor="structure-phase">Build Phase</label>
+        <select id="structure-phase" value={phase} onChange={(e) => setPhase(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
           <option value="Phase 1">Phase 1 {'\u2014'} Year 0-1</option>
           <option value="Phase 2">Phase 2 {'\u2014'} Year 1-3</option>
           <option value="Phase 3">Phase 3 {'\u2014'} Year 3-5</option>
@@ -191,8 +194,9 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         </select>
 
         {/* Notes */}
-        <label style={labelStyle}>Notes</label>
+        <label style={labelStyle} htmlFor="structure-notes">Notes</label>
         <textarea
+          id="structure-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Purpose, orientation, design notes..."

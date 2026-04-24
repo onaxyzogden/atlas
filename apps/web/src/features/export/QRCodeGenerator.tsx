@@ -81,13 +81,21 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
     link.click();
   };
 
+  // a11y: Escape key closes the QR modal
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
+    /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
     <div style={{
       position: 'fixed', inset: 0, zIndex: zIndex.modal,
       background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{
+    }} onClick={onClose} role="presentation">
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" style={{
         background: 'var(--color-panel-bg, #1a1611)', borderRadius: 12,
         padding: 24, textAlign: 'center', maxWidth: 320,
         border: '1px solid rgba(196,162,101,0.15)',

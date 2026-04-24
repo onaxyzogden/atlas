@@ -5,7 +5,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { usePathStore, PATH_TYPE_CONFIG, type PathType, type DesignPath } from '../../store/pathStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
@@ -54,6 +54,16 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
   const [name, setName] = useState('');
   const [phase, setPhase] = useState('Phase 1');
   const [notes, setNotes] = useState('');
+
+  // a11y: Escape key dismisses the path-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, draw]);
 
   const startDraw = useCallback(() => {
     if (!draw || !map) return;
@@ -199,9 +209,11 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
       {/* Path naming modal — always rendered when showModal is true */}
       {showModal && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}>
-          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`}>
+          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>Name This Path</h2>
             <p className={p.modalSubtitle}>
               {pendingLength > 1000 ? `${(pendingLength / 1000).toFixed(1)} km` : `${Math.round(pendingLength)} m`} {'\u2014'} {PATH_TYPE_CONFIG[selectedType].label}

@@ -105,6 +105,19 @@ export default function ProjectPage() {
     return () => { abortFetchForProject(id); };
   }, [project?.id]);
 
+  // a11y: Escape key dismisses whichever modal is currently open
+  useEffect(() => {
+    if (!isEditing && !showDeleteConfirm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isEditing) setIsEditing(false);
+        else if (showDeleteConfirm) setShowDeleteConfirm(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isEditing, showDeleteConfirm]);
+
   if (!ready) return null;
 
   if (!project) {
@@ -183,8 +196,9 @@ export default function ProjectPage() {
 
       {/* Editor modal */}
       {isEditing && (
-        <div className={css.modalOverlay} onClick={() => setIsEditing(false)}>
-          <div onClick={(e) => e.stopPropagation()} className={css.editorModal}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={css.modalOverlay} onClick={() => setIsEditing(false)} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={css.editorModal} role="dialog" aria-modal="true">
             <ProjectEditor project={project} onClose={() => setIsEditing(false)} />
           </div>
         </div>
@@ -195,8 +209,9 @@ export default function ProjectPage() {
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (
-        <div className={css.modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
-          <div onClick={(e) => e.stopPropagation()} className={css.deleteDialog}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={css.modalOverlay} onClick={() => setShowDeleteConfirm(false)} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={css.deleteDialog} role="dialog" aria-modal="true">
             <h3 className={css.deleteTitle}>Delete &ldquo;{project.name}&rdquo;?</h3>
             <p className={css.deleteDesc}>This will permanently remove the project, all zones, and attachments.</p>
             <div className={css.deleteActions}>

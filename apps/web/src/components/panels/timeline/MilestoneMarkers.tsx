@@ -42,7 +42,14 @@ export default function MilestoneMarkers({ milestones, phases, onAdd, onUpdate, 
                 </div>
               </div>
             ) : (
-              <div onClick={() => setEditingId(m.id)} style={{ cursor: 'pointer' }}>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`Edit milestone ${m.note}`}
+                onClick={() => setEditingId(m.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditingId(m.id); } }}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className={p.cardTitle}>{m.note}</div>
                 <div className={p.cardDesc}>{phase?.name ?? 'Unknown phase'}{m.targetDate ? ` \u2014 ${m.targetDate}` : ''}</div>
               </div>

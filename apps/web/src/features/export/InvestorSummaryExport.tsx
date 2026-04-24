@@ -4,7 +4,7 @@
  * Generates PDF via POST /api/v1/projects/:id/exports.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
@@ -77,9 +77,17 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
     }
   };
 
+  // a11y: Escape key closes the investor-summary modal
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: zIndex.modal, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 720, maxHeight: '90vh', overflowY: 'auto', background: semantic.surface, borderRadius: 12, color: sage[900] }}>
+    /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+    <div style={{ position: 'fixed', inset: 0, zIndex: zIndex.modal, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose} role="presentation">
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" style={{ width: 720, maxHeight: '90vh', overflowY: 'auto', background: semantic.surface, borderRadius: 12, color: sage[900] }}>
         {/* Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid rgba(21,128,61,0.15)' }}>
           <span style={{ fontSize: 13, fontWeight: 500 }}>Investor Summary</span>

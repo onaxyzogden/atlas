@@ -54,7 +54,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
         })();
 
   return (
-    <nav className={css.sidebar}>
+    <nav aria-label="Project dashboards" className={css.sidebar}>
       <div className={css.toggleWrap}>
         <GroupingToggle />
       </div>

@@ -36,7 +36,7 @@ export default function CartographicDashboard({ project, onSwitchToMap }: Cartog
 
       {/* Coordinate info */}
       <div className={css.coordCard}>
-        <h3 className={css.sectionLabel}>COORDINATE REFERENCE</h3>
+        <h2 className={css.sectionLabel}>COORDINATE REFERENCE</h2>
         <div className={css.coordGrid}>
           <div className={css.coordItem}>
             <span className={css.coordLabel}>Datum</span>
@@ -59,7 +59,7 @@ export default function CartographicDashboard({ project, onSwitchToMap }: Cartog
 
       {/* Active layers */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>ACTIVE DATA LAYERS</h3>
+        <h2 className={css.sectionLabel}>ACTIVE DATA LAYERS</h2>
         <div className={css.layerTable}>
           <div className={css.layerHeaderRow}>
             <span>Layer</span>
@@ -80,11 +80,11 @@ export default function CartographicDashboard({ project, onSwitchToMap }: Cartog
 
       {/* Survey baselines */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>SURVEY BASELINES</h3>
+        <h2 className={css.sectionLabel}>SURVEY BASELINES</h2>
         <div className={css.surveyList}>
           {SURVEYS.map((s) => (
             <div key={s.name} className={css.surveyCard}>
-              <h4 className={css.surveyName}>{s.name}</h4>
+              <h3 className={css.surveyName}>{s.name}</h3>
               <div className={css.surveyMeta}>
                 <span>Date: <strong>{s.date}</strong></span>
                 <span>Accuracy: <strong>{s.accuracy}</strong></span>

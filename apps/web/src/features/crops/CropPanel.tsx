@@ -5,7 +5,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../livestock/speciesData.js';
 import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
@@ -28,6 +28,16 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   const [showModal, setShowModal] = useState(false);
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
+
+  // a11y: Escape key dismisses the crop-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, draw]);
 
   // Form
   const [name, setName] = useState('');
@@ -180,11 +190,13 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
 
       {/* ── Crop Properties Modal ── */}
       {showModal && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div
           className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}
         >
-          <div onClick={(e) => e.stopPropagation()} className={p.modalContent}>
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>
               {info.icon} {info.label}
             </h2>

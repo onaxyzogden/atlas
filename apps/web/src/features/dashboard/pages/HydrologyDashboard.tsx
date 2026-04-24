@@ -93,7 +93,7 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
       {/* ── Suite header ──────────────────────────────────────────────────── */}
       <div className={css.suiteHeader}>
         <div className={css.suiteTitle}>Hydrology Planning Suite</div>
-        <nav className={css.suiteNav}>
+        <nav aria-label="Hydrology sub-dashboards" className={css.suiteNav}>
           {SUB_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -205,7 +205,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
       <div className={css.bufferRow}>
         {/* Aquifer card */}
         <div className={css.aquiferCard}>
-          <h3 className={css.aquiferTitle}>Aquifer Hydration</h3>
+          <h2 className={css.aquiferTitle}>Aquifer Hydration</h2>
           <p className={css.aquiferDesc}>
             Current soil moisture levels are performing at 112% of the decadal average.
             Primary storage ponds are at 92% capacity.
@@ -256,7 +256,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
 
       {/* Biomass vs Water Consumption */}
       <div className={css.comparisonCard}>
-        <h3 className={css.comparisonTitle}>Biomass vs. Water Consumption</h3>
+        <h2 className={css.comparisonTitle}>Biomass vs. Water Consumption</h2>
         <div className={css.comparisonLegend}>
           <span className={css.legendItem}><span className={css.legendDot} style={{ background: statusToken.good }} /> BIOMASS INDEX</span>
           <span className={css.legendItem}><span className={css.legendDot} style={{ background: statusToken.poor }} /> CONSUMPTION</span>
@@ -281,7 +281,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
 
       {/* Stewardship Guidance */}
       <div className={css.guidanceCard}>
-        <h3 className={css.guidanceTitle}>Stewardship Guidance</h3>
+        <h2 className={css.guidanceTitle}>Stewardship Guidance</h2>
         <div className={css.guidanceItem}>
           <span className={css.guidanceIcon}>
             <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke={statusToken.moderate} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -404,7 +404,7 @@ function FlowAnalysisTab() {
                   HEALTH {asset.health}
                 </span>
               </div>
-              <h4 className={css.assetName}>{asset.name}</h4>
+              <h3 className={css.assetName}>{asset.name}</h3>
               <p className={css.assetNote}>{asset.note}</p>
               <div className={css.assetMeta}>
                 <span className={css.assetMetaItem}>
@@ -671,7 +671,7 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
 
       {/* Seasonal chart */}
       <div className={css.comparisonCard}>
-        <h3 className={css.comparisonTitle}>Monthly Inflow vs. Demand</h3>
+        <h2 className={css.comparisonTitle}>Monthly Inflow vs. Demand</h2>
         <div className={css.comparisonLegend}>
           <span className={css.legendItem}>
             <span className={css.legendDot} style={{ background: group.hydrology }} />
@@ -765,7 +765,7 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
 
       {/* Assumptions footnote */}
       <div className={css.budgetAssumptions}>
-        <h4 className={css.budgetAssumptionsTitle}>Model Assumptions</h4>
+        <h3 className={css.budgetAssumptionsTitle}>Model Assumptions</h3>
         <ul className={css.budgetAssumptionsList}>
           <li>
             <strong>Inflow:</strong> annual catchment potential ({fmtGal(metrics.catchmentPotentialGal)} gal) distributed by{' '}
@@ -1005,7 +1005,7 @@ function RoofCatchmentTab({ projectId, precipMm }: { projectId: string; precipMm
 
       {/* Assumptions footnote */}
       <div className={css.budgetAssumptions}>
-        <h4 className={css.budgetAssumptionsTitle}>Model Assumptions</h4>
+        <h3 className={css.budgetAssumptionsTitle}>Model Assumptions</h3>
         <ul className={css.budgetAssumptionsList}>
           <li>
             <strong>Roof area:</strong> width &times; depth from each structure's footprint template.

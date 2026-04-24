@@ -314,7 +314,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
         <div className={css.ledgerHeader}>
           <div>
             <span className={css.ledgerTag}>DETAILED LEDGER</span>
-            <h3 className={css.ledgerTitle}>Forage Quality &amp; Activity</h3>
+            <h2 className={css.ledgerTitle}>Forage Quality &amp; Activity</h2>
           </div>
           <button className={css.logActivityBtn}>LOG NEW ACTIVITY</button>
         </div>
@@ -322,7 +322,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
         <div className={css.ledgerGrid}>
           {/* Forage Quality by Paddock */}
           <div className={css.ledgerCard}>
-            <h4 className={css.ledgerCardTitle}>Forage Quality by Paddock</h4>
+            <h3 className={css.ledgerCardTitle}>Forage Quality by Paddock</h3>
             <SimpleBarChart
               data={forageByPaddock}
               height={180}
@@ -336,7 +336,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
 
           {/* Recent Activity */}
           <div className={css.ledgerCard}>
-            <h4 className={css.ledgerCardTitle}>Recent Activity</h4>
+            <h3 className={css.ledgerCardTitle}>Recent Activity</h3>
             <div className={css.logsList}>
               {recentActivity.length === 0 && (
                 <p style={{ color: 'rgba(180,165,140,0.45)', fontSize: 13 }}>
@@ -368,7 +368,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
           <div className={css.ledgerHeader}>
             <div>
               <span className={css.ledgerTag}>WELFARE</span>
-              <h3 className={css.ledgerTitle}>Animal Welfare Summary</h3>
+              <h2 className={css.ledgerTitle}>Animal Welfare Summary</h2>
             </div>
           </div>
 

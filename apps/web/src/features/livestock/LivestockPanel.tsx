@@ -43,6 +43,16 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
 
+  // a11y: Escape key dismisses the paddock-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, draw]);
+
   // Form state
   const [name, setName] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState<LivestockSpecies[]>([]);
@@ -210,11 +220,13 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
 
       {/* ── Paddock Properties Modal ── */}
       {showModal && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div
           className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}
         >
-          <div onClick={(e) => e.stopPropagation()} className={p.modalContent}>
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>
               Name This Paddock
             </h2>

@@ -929,9 +929,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Suitable Species ─────────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>
+        <h2 className={css.sectionLabel}>
           SUITABLE SPECIES ({suitability.suitable.length} of {suitability.suitable.length + suitability.excluded.length})
-        </h3>
+        </h2>
         {suitability.suitable.length > 0 ? (
           <div className={css.speciesList}>
             {suitability.suitable.map((sp) => (
@@ -973,7 +973,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Design Metrics ───────────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>DESIGN METRICS</h3>
+        <h2 className={css.sectionLabel}>DESIGN METRICS</h2>
         {cropAreas.length > 0 ? (
           <div className={css.metricsGrid}>
             <div className={css.metricBox}>
@@ -997,7 +997,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {/* ── Water Demand Rollup (§11 species water-demand coupling) ─ */}
       {cropAreas.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>WATER DEMAND</h3>
+          <h2 className={css.sectionLabel}>WATER DEMAND</h2>
 
           {/* Summary tiles */}
           <div className={css.waterSummary}>
@@ -1076,12 +1076,12 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Orchard Safety (§11 frost-safe + drainage-sensitive) ─── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>
+        <h2 className={css.sectionLabel}>
           ORCHARD SAFETY
           <span className={`${css.orchardStatusPill} ${css[`orchardStatus_${orchardSafety.overallSite}`]}`}>
             {statusLabel(orchardSafety.overallSite)}
           </span>
-        </h3>
+        </h2>
 
         {/* Site factor grid */}
         <div className={css.orchardFactorGrid}>
@@ -1136,7 +1136,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Nursery & Compost Proximity (§11) ─────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>
+        <h2 className={css.sectionLabel}>
           NURSERY &amp; COMPOST PROXIMITY
           {proximity.orchardCount > 0 && (
             <span
@@ -1153,7 +1153,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
               )}
             </span>
           )}
-        </h3>
+        </h2>
 
         {/* Site-level counts */}
         <div className={css.proximityCounts}>
@@ -1269,7 +1269,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Access & Irrigation Tie-In (§11) ──────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>
+        <h2 className={css.sectionLabel}>
           ACCESS &amp; IRRIGATION TIE-IN
           {access.orchardCount > 0 && (
             <span
@@ -1286,7 +1286,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
               )}
             </span>
           )}
-        </h3>
+        </h2>
 
         {/* Site-level counts */}
         <div className={css.proximityCounts}>
@@ -1409,7 +1409,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Frost-Safe Planting Windows ──────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>FROST-SAFE PLANTING WINDOWS</h3>
+        <h2 className={css.sectionLabel}>FROST-SAFE PLANTING WINDOWS</h2>
         <div className={css.windowCard}>
           <div className={css.windowTitle}>Spring Window</div>
           <div className={css.windowDates}>{windows.springStart} — {windows.springEnd}</div>
@@ -1434,7 +1434,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── Spacing Logic ────────────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>SPACING LOGIC</h3>
+        <h2 className={css.sectionLabel}>SPACING LOGIC</h2>
         <div className={css.spacingCard}>
           <div className={css.spacingRow}>
             <span className={css.spacingLabel}>IN-ROW SPACING</span>
@@ -1466,7 +1466,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {/* ── Placement Validation ─────────────────────────────────── */}
       {validations.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>PLACEMENT VALIDATION</h3>
+          <h2 className={css.sectionLabel}>PLACEMENT VALIDATION</h2>
           {validations.map((v) => (
             <div key={v.cropAreaId} className={v.valid ? css.validationOk : css.validationWarn}>
               <div className={css.validationTitle}>
@@ -1484,7 +1484,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {/* ── Companion Planting ───────────────────────────────────── */}
       {companions.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>COMPANION PLANTING NOTES</h3>
+          <h2 className={css.sectionLabel}>COMPANION PLANTING NOTES</h2>
           {companions.map((c, i) => (
             <div key={i} className={css.companionRow}>
               <span className={c.relationship === 'companion' ? css.companionGood : css.companionBad}>
@@ -1502,7 +1502,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {/* ── Yield Estimates ──────────────────────────────────────── */}
       {yields.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>YIELD ESTIMATES</h3>
+          <h2 className={css.sectionLabel}>YIELD ESTIMATES</h2>
           <span className={css.yieldBadge}>Estimate — not a projection</span>
           {yields.map((y, i) => (
             <div key={i} className={css.yieldRow}>
