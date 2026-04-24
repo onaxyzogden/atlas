@@ -36,15 +36,20 @@ import './mapRailDashboard.css';
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
 const ViewModeSwitcher = lazy(() => import('./ViewModeSwitcher.js'));
-const CrossSectionTool = lazy(() => import('./CrossSectionTool.js'));
+// NOTE: CrossSectionTool, HistoricalImageryControl, and MeasureTools are
+// lazy-loaded inside LeftToolSpine; they're intentionally not imported here.
 const ViewshedOverlay = lazy(() => import('./ViewshedOverlay.js'));
 const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ default: m.ViewshedToggle })));
-const HistoricalImageryControl = lazy(() => import('./HistoricalImageryControl.js'));
+const MicroclimateOverlay = lazy(() => import('./MicroclimateOverlay.js'));
+const MicroclimateToggle = lazy(() => import('./MicroclimateOverlay.js').then((m) => ({ default: m.MicroclimateToggle })));
+const WindbreakOverlay = lazy(() => import('./WindbreakOverlay.js'));
+const WindbreakToggle = lazy(() => import('./WindbreakOverlay.js').then((m) => ({ default: m.WindbreakToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
-const MeasureTools = lazy(() => import('./MeasureTools.js'));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
 const OsmVectorControls = lazy(() => import('./OsmVectorOverlay.js').then((m) => ({ default: m.OsmVectorControls })));
+const LeftToolSpine = lazy(() => import('./LeftToolSpine.js'));
+const MapStyleSwitcher = lazy(() => import('./MapStyleSwitcher.js'));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -111,6 +116,8 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   // not on every render.
   const activeView = useUIStore((s) => s.activeMapView);
   const setActiveView = useUIStore((s) => s.setActiveMapView);
+  const rightPanelCollapsed = useUIStore((s) => s.rightPanelCollapsed);
+  const toggleRightPanelCollapsed = useUIStore((s) => s.toggleRightPanelCollapsed);
   const hasSeededViewRef = useRef(false);
   useEffect(() => {
     if (hasSeededViewRef.current) return;
@@ -286,17 +293,58 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           />
         </ErrorBoundary>
 
-        {/* §2 — view-mode (2D / 2.5D / 3D), cross-section, and viewshed tools
-            stacked top-left beneath the project card. */}
+        {/* ── Left Tool Spine (Analysis / Content) ──────────────────────────
+         * Per UX Scholar consultation (2026-04-23) the floating tool stack
+         * was restructured using the "perimeter strategy": analysis + content
+         * tools live on a slim 48 px left spine, while view-context controls
+         * (2D/2.5D/3D, Split, Basemap) moved to the top-right cluster below.
+         * Previous single column stacked all 7 tools and obstructed ~80 × 320 px
+         * of the left edge.
+         */}
+        <Suspense fallback={null}>
+          <LeftToolSpine
+            projectId={project.id}
+            map={mapRef}
+            draw={drawRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+            viewshedSlot={
+              <Suspense fallback={null}>
+                <ViewshedToggle compact />
+              </Suspense>
+            }
+            microclimateSlot={
+              <Suspense fallback={null}>
+                <MicroclimateToggle compact />
+              </Suspense>
+            }
+            windbreakSlot={
+              <Suspense fallback={null}>
+                <WindbreakToggle compact />
+              </Suspense>
+            }
+            osmSlot={
+              <Suspense fallback={null}>
+                <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
+              </Suspense>
+            }
+          />
+        </Suspense>
+
+        {/* ── Top-Right View-Context Cluster ──────────────────────────────
+         * ViewMode + Split sit above the basemap switcher (which is rendered
+         * in MapCanvas at top:56, right:60). All three are "set-and-forget"
+         * context controls so they share one perimeter strip.
+         */}
         <div
           style={{
             position: 'absolute',
-            top: 70,
-            left: 12,
+            top: 16,
+            right: 60,
             zIndex: 2,
             display: 'flex',
             flexDirection: 'column',
             gap: 6,
+            alignItems: 'flex-end',
             pointerEvents: 'none',
           }}
         >
@@ -304,26 +352,24 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             <ViewModeSwitcher onPitch={(deg) => mapRef?.easeTo({ pitch: deg, duration: 400 })} />
           </Suspense>
           <Suspense fallback={null}>
-            <CrossSectionTool projectId={project.id} map={mapRef} draw={drawRef} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <ViewshedToggle />
-          </Suspense>
-          <Suspense fallback={null}>
-            <HistoricalImageryControl map={mapRef} boundaryGeojson={project.parcelBoundaryGeojson} />
-          </Suspense>
-          <Suspense fallback={null}>
             <SplitScreenToggle />
           </Suspense>
           <Suspense fallback={null}>
-            <OsmVectorControls disabled={!project.parcelBoundaryGeojson} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <MeasureTools projectId={project.id} map={mapRef} draw={drawRef} />
+            <MapStyleSwitcher />
           </Suspense>
         </div>
         <Suspense fallback={null}>
           <ViewshedOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <MicroclimateOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <WindbreakOverlay
+            projectId={project.id}
+            map={mapRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+          />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare
@@ -660,8 +706,13 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         }
 
         return (
-          <div className={css.rightPanel}>
-            <RailPanelShell view={activeView} onClose={() => setActiveView(null)}>
+          <div className={`${css.rightPanel} ${rightPanelCollapsed ? css.rightPanelCollapsed : ''}`}>
+            <RailPanelShell
+              view={activeView}
+              onClose={() => setActiveView(null)}
+              collapsed={rightPanelCollapsed}
+              onToggleCollapsed={toggleRightPanelCollapsed}
+            >
               {panelContent}
             </RailPanelShell>
           </div>

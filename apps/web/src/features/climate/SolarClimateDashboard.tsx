@@ -22,8 +22,10 @@ import {
   type WindbreakCandidates,
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
+import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { useUtilityStore, type Utility, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
-import { api, type SolarExposureResponse } from '../../lib/apiClient.js';
+import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 
@@ -84,6 +86,9 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   const [terrainExposure, setTerrainExposure] = useState<SolarExposureResponse | null>(null);
   const [terrainExposureStatus, setTerrainExposureStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [terrainExposureError, setTerrainExposureError] = useState<string | null>(null);
+  const [comfortGrid, setComfortGrid] = useState<ComfortGridResponse | null>(null);
+  const [comfortGridStatus, setComfortGridStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [comfortGridError, setComfortGridError] = useState<string | null>(null);
 
   const handleComputeTerrainExposure = async () => {
     setTerrainExposureStatus('loading');
@@ -98,10 +103,35 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
     }
   };
 
+  const handleComputeComfortGrid = async () => {
+    setComfortGridStatus('loading');
+    setComfortGridError(null);
+    try {
+      const res = await api.climateAnalysis.computeComfortGrid(project.id);
+      setComfortGrid(res.data);
+      setComfortGridStatus('idle');
+    } catch (err) {
+      setComfortGridError(err instanceof Error ? err.message : String(err));
+      setComfortGridStatus('error');
+    }
+  };
+
   const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
   const microclimate = siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null;
   const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null;
   const microclimateStatus = siteData ? getLayer(siteData, 'microclimate')?.fetchStatus : undefined;
+
+  // Placed features for §6 placement scoring — filtered to this project.
+  const allStructures = useStructureStore((s) => s.structures);
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const solarArrays = useMemo(
+    () => allUtilities.filter((u) => u.projectId === project.id && u.type === 'solar_panel'),
+    [allUtilities, project.id],
+  );
+  const passiveSolarStructures = useMemo(
+    () => allStructures.filter((s) => s.projectId === project.id && PASSIVE_SOLAR_TYPES.has(s.type)),
+    [allStructures, project.id],
+  );
 
   const windRoseData = climate?._wind_rose ?? null;
   const center = useMemo(
@@ -271,6 +301,21 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
         </div>
       )}
 
+      {/* §6 Placement Scoring — scores placed solar arrays + passive-solar structures
+          against site climate signals (exposure, aspect, orientation). */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>PLACEMENT SCORING</h3>
+        <PlacementScoringCard
+          solarArrays={solarArrays}
+          passiveSolarStructures={passiveSolarStructures}
+          exposureBySeason={exposureBySeason}
+          dominantAspect={elevation?.aspect_dominant ?? null}
+          lat={lat}
+          hasClimate={climate != null}
+          onSwitchToMap={onSwitchToMap}
+        />
+      </div>
+
       {/* Microclimate Zones */}
       <div className={css.section}>
         <h3 className={css.sectionLabel}>MICROCLIMATE ZONES</h3>
@@ -438,6 +483,116 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           )}
         </div>
       </div>
+
+      {/* §6 Phase 3 — planning-grade comfort map: per-cell thermal comfort
+          from base normals + lapse rate + solar exposure. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>COMFORT EXPOSURE MAP</h3>
+        <div className={css.solarOppCard}>
+          {!comfortGrid && comfortGridStatus !== 'loading' && (() => {
+            const hasBoundary = project.parcelBoundaryGeojson != null;
+            const hasNormals = Boolean(
+              (climate as unknown as { _monthly_normals?: unknown[] } | null)?._monthly_normals?.length,
+            );
+            const disabled = !hasBoundary || !hasNormals;
+            return (
+              <>
+                <p className={css.solarOppText}>
+                  Classify every DEM cell into a thermal-comfort band (freezing &rarr; hot) using the
+                  parcel&apos;s monthly normals, adjusted by elevation adiabatic lapse
+                  (-6.5 &deg;C / 1000 m) and a modest solar-exposure bias. Identifies warm pockets,
+                  cold hollows, and the most comfortable zones for outdoor use.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleComputeComfortGrid}
+                  disabled={disabled}
+                  style={{
+                    marginTop: 12,
+                    padding: '8px 16px',
+                    background: !disabled ? group.livestock : 'rgba(255,255,255,0.08)',
+                    color: !disabled ? '#1a1611' : 'rgba(255,255,255,0.4)',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: !disabled ? 'pointer' : 'not-allowed',
+                    fontWeight: 600,
+                    fontSize: 12,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Compute Comfort Map
+                </button>
+                {!hasBoundary && (
+                  <p className={css.solarOppNote} style={{ marginTop: 8 }}>
+                    Draw a parcel boundary on the map first &mdash; DEM sampling requires a bounded area.
+                  </p>
+                )}
+                {hasBoundary && !hasNormals && (
+                  <p className={css.solarOppNote} style={{ marginTop: 8 }}>
+                    Monthly climate normals not yet fetched &mdash; run the climate data pipeline first.
+                  </p>
+                )}
+                {comfortGridError && (
+                  <p className={css.solarOppNote} style={{ color: statusToken.poor, marginTop: 8 }}>
+                    {comfortGridError}
+                  </p>
+                )}
+              </>
+            );
+          })()}
+          {comfortGridStatus === 'loading' && (
+            <p className={css.solarOppText}>Reading DEM and classifying comfort bands&hellip;</p>
+          )}
+          {comfortGrid && (
+            <>
+              <div className={css.metricGrid}>
+                <ClimateMetric
+                  label="Dominant Band"
+                  value={comfortGrid.summary.dominant_band}
+                />
+                <ClimateMetric
+                  label="Reference Elev."
+                  value={`${Math.round(comfortGrid.summary.reference_elevation_m)} m`}
+                />
+                <ClimateMetric
+                  label="Comfortable"
+                  value={`${comfortGrid.summary.comfortable_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Cool"
+                  value={`${comfortGrid.summary.cool_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Hot"
+                  value={`${comfortGrid.summary.hot_pct.toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Cold / Freezing"
+                  value={`${(comfortGrid.summary.cold_pct + comfortGrid.summary.freezing_pct).toFixed(1)}%`}
+                />
+                <ClimateMetric
+                  label="Reference Mean-Max"
+                  value={`${comfortGrid.summary.reference_mean_max_c.toFixed(1)} °C`}
+                />
+                <ClimateMetric
+                  label="Reference Mean-Min"
+                  value={`${comfortGrid.summary.reference_mean_min_c.toFixed(1)} °C`}
+                />
+              </div>
+              <ComfortMiniMap
+                geojson={comfortGrid.geojson}
+                boundary={project.parcelBoundaryGeojson ?? null}
+              />
+              <p className={css.solarOppNote}>
+                Source: {comfortGrid.summary.source_api} &middot; {comfortGrid.summary.sample_grid_size} cells
+                &middot; ~{Math.round(comfortGrid.summary.resolution_m)} m / cell. Horizon shading, wind
+                channelling, and structure shadows are not modelled.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -533,6 +688,83 @@ function ExposureMiniMap({
             strokeLinecap="round"
           />
         );
+      })}
+    </svg>
+  );
+}
+
+function ComfortMiniMap({
+  geojson,
+  boundary,
+}: {
+  geojson: GeoJSON.FeatureCollection;
+  boundary: GeoJSON.FeatureCollection | null;
+}) {
+  const width = 340;
+  const height = 240;
+
+  let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  for (const f of geojson.features) {
+    if (f.geometry?.type !== 'Polygon') continue;
+    for (const ring of (f.geometry as GeoJSON.Polygon).coordinates) {
+      for (const coord of ring) {
+        const lng = coord[0];
+        const lat = coord[1];
+        if (lng === undefined || lat === undefined) continue;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }
+    }
+  }
+  if (!isFinite(minLng)) return null;
+
+  const pad = 10;
+  const sx = (lng: number) =>
+    pad + ((lng - minLng) / (maxLng - minLng || 1)) * (width - 2 * pad);
+  const sy = (lat: number) =>
+    pad + ((maxLat - lat) / (maxLat - minLat || 1)) * (height - 2 * pad);
+
+  const bandFill: Record<string, string> = {
+    freezing: 'rgba(110, 150, 210, 0.85)',
+    cold: 'rgba(150, 180, 220, 0.80)',
+    cool: 'rgba(170, 210, 180, 0.80)',
+    comfortable: 'rgba(120, 200, 130, 0.92)',
+    hot: 'rgba(230, 140, 95, 0.90)',
+  };
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      style={{ display: 'block', margin: '12px auto 0', background: 'rgba(0,0,0,0.25)', borderRadius: 6 }}
+    >
+      {geojson.features.map((f, i) => {
+        if (f.geometry?.type !== 'Polygon') return null;
+        const ring = (f.geometry as GeoJSON.Polygon).coordinates[0];
+        if (!ring) return null;
+        const pts = ring
+          .map((c) => `${sx(c[0] ?? 0).toFixed(1)},${sy(c[1] ?? 0).toFixed(1)}`)
+          .join(' ');
+        const band = String(f.properties?.band ?? f.properties?.class ?? 'cool');
+        return (
+          <polygon
+            key={i}
+            points={pts}
+            fill={bandFill[band] ?? bandFill.cool}
+            stroke="none"
+          />
+        );
+      })}
+      {boundary?.features?.map((f, i) => {
+        if (f.geometry?.type !== 'Polygon') return null;
+        const ring = (f.geometry as GeoJSON.Polygon).coordinates[0];
+        if (!ring) return null;
+        const pts = ring
+          .map((c) => `${sx(c[0] ?? 0).toFixed(1)},${sy(c[1] ?? 0).toFixed(1)}`)
+          .join(' ');
+        return <polygon key={`b${i}`} points={pts} fill="none" stroke={group.livestock} strokeWidth={2} />;
       })}
     </svg>
   );
@@ -981,4 +1213,229 @@ function formatAzimuth(az: number | undefined): string {
   const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
   const i = Math.round(az / 45) % 8;
   return `${az.toFixed(0)}\u00B0 ${dirs[i]}`;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * §6 Placement Scoring — scores placed solar arrays and passive-solar-capable
+ * structures against site climate signals. Pure presentation-layer synthesis
+ * (no backend write, no shared-package export), mirroring the pattern used by
+ * HydrologyDashboard's buildMonthlyBudget and PhasingDashboard's cost rollup.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+const PASSIVE_SOLAR_TYPES: ReadonlySet<StructureType> = new Set<StructureType>([
+  'cabin', 'yurt', 'greenhouse', 'bathhouse', 'prayer_space', 'earthship', 'classroom',
+]);
+
+type ScoreTone = 'pos' | 'neg' | 'neutral';
+interface Chip { label: string; tone: ScoreTone; }
+interface ScoreResult { score: number; chips: Chip[]; }
+
+/** Aspect bonus — does the dominant aspect face the equator? */
+function aspectBonus(dominantAspect: string | null, lat: number): { pts: number; label: string; tone: ScoreTone } {
+  if (!dominantAspect) return { pts: 0, label: 'Aspect: unknown', tone: 'neutral' };
+  const a = dominantAspect.toUpperCase().trim();
+  // NH: equator-facing = S. SH: equator-facing = N.
+  const equatorDirs = lat >= 0 ? ['S', 'SSE', 'SSW'] : ['N', 'NNE', 'NNW'];
+  const tiltedDirs  = lat >= 0 ? ['SE', 'SW', 'ESE', 'WSW'] : ['NE', 'NW', 'ENE', 'WNW'];
+  if (equatorDirs.includes(a)) return { pts: 30, label: `Aspect ${a} (equator-facing)`, tone: 'pos' };
+  if (tiltedDirs.includes(a))  return { pts: 15, label: `Aspect ${a} (partially facing)`, tone: 'neutral' };
+  return { pts: 0, label: `Aspect ${a} (poor orientation)`, tone: 'neg' };
+}
+
+function scoreSolarArray(ctx: {
+  exposureSummer: number; exposureWinter: number; dominantAspect: string | null; lat: number;
+}): ScoreResult {
+  const chips: Chip[] = [];
+  let score = 0;
+
+  const summerPts = Math.round(ctx.exposureSummer * 40);
+  score += summerPts;
+  chips.push({
+    label: `Summer exposure ${Math.round(ctx.exposureSummer * 100)}%`,
+    tone: ctx.exposureSummer > 0.6 ? 'pos' : ctx.exposureSummer > 0.4 ? 'neutral' : 'neg',
+  });
+
+  const winterPts = Math.round(ctx.exposureWinter * 30);
+  score += winterPts;
+  chips.push({
+    label: `Winter exposure ${Math.round(ctx.exposureWinter * 100)}%`,
+    tone: ctx.exposureWinter > 0.4 ? 'pos' : ctx.exposureWinter > 0.25 ? 'neutral' : 'neg',
+  });
+
+  const ab = aspectBonus(ctx.dominantAspect, ctx.lat);
+  score += ab.pts;
+  chips.push({ label: ab.label, tone: ab.tone });
+
+  return { score: Math.min(100, Math.max(0, score)), chips };
+}
+
+function scorePassiveSolar(st: Structure, ctx: {
+  exposureSummer: number; exposureWinter: number; dominantAspect: string | null; lat: number;
+}): ScoreResult {
+  const chips: Chip[] = [];
+  let score = 0;
+
+  // Long-axis E-W alignment — passive solar wants the long wall facing the equator.
+  // If widthM >= depthM, the width dimension is the "long side"; rotation 0 means
+  // that long side is aligned E-W (width spans E-W). Otherwise the ideal is 90°.
+  const longIsWidth = st.widthM >= st.depthM;
+  const idealRot = longIsWidth ? 0 : 90;
+  // Deviation in [0, 90], treating 180° rotations as equivalent.
+  const r = ((st.rotationDeg - idealRot) % 180 + 180) % 180;
+  const deviation = Math.min(r, 180 - r);
+  const axisPts = Math.round(Math.max(0, 1 - deviation / 90) * 40);
+  score += axisPts;
+  const axisLabel =
+    deviation < 15 ? `Long axis E-W (${Math.round(deviation)}\u00B0 off)` :
+    deviation > 75 ? `Long axis N-S (${Math.round(deviation)}\u00B0 off)` :
+    `Long axis tilted (${Math.round(deviation)}\u00B0 off ideal)`;
+  chips.push({ label: axisLabel, tone: axisPts >= 30 ? 'pos' : axisPts >= 15 ? 'neutral' : 'neg' });
+
+  // Winter sun carries more weight than summer for passive heat gain.
+  const winterPts = Math.round(ctx.exposureWinter * 30);
+  score += winterPts;
+  chips.push({
+    label: `Winter sun ${Math.round(ctx.exposureWinter * 100)}%`,
+    tone: ctx.exposureWinter > 0.4 ? 'pos' : ctx.exposureWinter > 0.25 ? 'neutral' : 'neg',
+  });
+
+  const ab = aspectBonus(ctx.dominantAspect, ctx.lat);
+  score += ab.pts;
+  chips.push({ label: ab.label, tone: ab.tone });
+
+  return { score: Math.min(100, Math.max(0, score)), chips };
+}
+
+function scoreBand(score: number): { color: string; label: string } {
+  if (score >= 70) return { color: statusToken.good, label: 'STRONG' };
+  if (score >= 40) return { color: statusToken.moderate, label: 'MODERATE' };
+  return { color: statusToken.poor, label: 'WEAK' };
+}
+
+function chipColor(tone: ScoreTone): string {
+  return tone === 'pos' ? statusToken.good : tone === 'neg' ? statusToken.poor : statusToken.moderate;
+}
+
+function PlacementScoringCard({
+  solarArrays, passiveSolarStructures, exposureBySeason, dominantAspect, lat, hasClimate, onSwitchToMap,
+}: {
+  solarArrays: Utility[];
+  passiveSolarStructures: Structure[];
+  exposureBySeason: { spring: number; summer: number; fall: number; winter: number };
+  dominantAspect: string | null;
+  lat: number;
+  hasClimate: boolean;
+  onSwitchToMap: () => void;
+}) {
+  const ctx = {
+    exposureSummer: exposureBySeason.summer,
+    exposureWinter: exposureBySeason.winter,
+    dominantAspect,
+    lat,
+  };
+  const hasAnyPlaced = solarArrays.length > 0 || passiveSolarStructures.length > 0;
+
+  return (
+    <div className={css.placementCard}>
+      {!hasClimate && (
+        <p className={css.placementPending}>
+          Climate data loading &mdash; placement scores use latitude-only fallback.
+        </p>
+      )}
+
+      {/* Solar arrays sub-section */}
+      <div className={css.placementGroup}>
+        <div className={css.placementGroupHead}>
+          <span className={css.placementGroupTitle}>Solar Arrays</span>
+          <span className={css.placementGroupCount}>{solarArrays.length} placed</span>
+        </div>
+        {solarArrays.length === 0 ? (
+          <div className={css.placementEmpty}>
+            <span>No solar arrays placed yet.</span>
+            <button type="button" className={css.placementEmptyBtn} onClick={onSwitchToMap}>
+              Place from Map view &rarr;
+            </button>
+          </div>
+        ) : (
+          <ul className={css.placementList}>
+            {solarArrays.map((u) => {
+              const r = scoreSolarArray(ctx);
+              const band = scoreBand(r.score);
+              const cfg = UTILITY_TYPE_CONFIG[u.type];
+              return (
+                <li key={u.id} className={css.placementRow}>
+                  <div className={css.placementRowHead}>
+                    <span className={css.placementIcon}>{cfg.icon}</span>
+                    <span className={css.placementName}>{u.name}</span>
+                    <span className={css.placementScoreChip} style={{ color: band.color, borderColor: band.color }}>
+                      {r.score}
+                      <span className={css.placementScoreBand}>{band.label}</span>
+                    </span>
+                  </div>
+                  <div className={css.placementChipRow}>
+                    {r.chips.map((c, i) => (
+                      <span key={i} className={css.placementRationaleChip} style={{ color: chipColor(c.tone), borderColor: chipColor(c.tone) }}>
+                        {c.label}
+                      </span>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Passive-solar structures sub-section */}
+      <div className={css.placementGroup}>
+        <div className={css.placementGroupHead}>
+          <span className={css.placementGroupTitle}>Passive-Solar Structures</span>
+          <span className={css.placementGroupCount}>{passiveSolarStructures.length} placed</span>
+        </div>
+        {passiveSolarStructures.length === 0 ? (
+          <div className={css.placementEmpty}>
+            <span>No cabins, greenhouses, or passive-solar structures placed.</span>
+            <button type="button" className={css.placementEmptyBtn} onClick={onSwitchToMap}>
+              Place from Map view &rarr;
+            </button>
+          </div>
+        ) : (
+          <ul className={css.placementList}>
+            {passiveSolarStructures.map((st) => {
+              const r = scorePassiveSolar(st, ctx);
+              const band = scoreBand(r.score);
+              return (
+                <li key={st.id} className={css.placementRow}>
+                  <div className={css.placementRowHead}>
+                    <span className={css.placementIcon}>&#9962;</span>
+                    <span className={css.placementName}>{st.name}</span>
+                    <span className={css.placementTypeSub}>{st.type.replace(/_/g, ' ')}</span>
+                    <span className={css.placementScoreChip} style={{ color: band.color, borderColor: band.color }}>
+                      {r.score}
+                      <span className={css.placementScoreBand}>{band.label}</span>
+                    </span>
+                  </div>
+                  <div className={css.placementChipRow}>
+                    {r.chips.map((c, i) => (
+                      <span key={i} className={css.placementRationaleChip} style={{ color: chipColor(c.tone), borderColor: chipColor(c.tone) }}>
+                        {c.label}
+                      </span>
+                    ))}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {hasAnyPlaced && (
+        <p className={css.placementFootnote}>
+          Scores combine astronomical solar exposure, dominant aspect, and (for structures)
+          rotation alignment. Per-feature microclimate variation (shade, frost, local wind)
+          is a future iteration.
+        </p>
+      )}
+    </div>
+  );
 }

@@ -435,6 +435,11 @@ export const api = {
         'POST',
         `/api/v1/climate-analysis/${projectId}/solar-exposure/compute`,
       ),
+    computeComfortGrid: (projectId: string) =>
+      request<ComfortGridResponse>(
+        'POST',
+        `/api/v1/climate-analysis/${projectId}/comfort-grid/compute`,
+      ),
   },
 };
 
@@ -448,6 +453,24 @@ export interface SolarExposureResponse {
     high_pct: number;
     medium_pct: number;
     low_pct: number;
+    sample_grid_size: number;
+    resolution_m: number;
+    source_api: string;
+  };
+}
+
+export interface ComfortGridResponse {
+  geojson: GeoJSON.FeatureCollection;
+  summary: {
+    reference_mean_max_c: number;
+    reference_mean_min_c: number;
+    reference_elevation_m: number;
+    freezing_pct: number;
+    cold_pct: number;
+    cool_pct: number;
+    comfortable_pct: number;
+    hot_pct: number;
+    dominant_band: 'freezing' | 'cold' | 'cool' | 'comfortable' | 'hot';
     sample_grid_size: number;
     resolution_m: number;
     source_api: string;

@@ -124,26 +124,36 @@ assembled by the NOAA / NASA POWER / ECCC / OpenMeteo adapter stack.
   today — revisit if the spec requires them split.
 - Wind shelter is computed server-side but no wind-rose / prevailing-wind
   visualizer ships yet — status is `partial`, not `done`.
-- Microclimate opportunity map is `partial`: the backend classifies sun
-  trap / cold-air drainage / wind shelter zones, but the dedicated map
-  overlay rendering those classes is still on the UI backlog. Phase-3
+- Microclimate opportunity map is `done`: `MicroclimateOverlay` (mounted
+  in `features/map/MapView.tsx` under Suspense) fetches the `microclimate`
+  project layer and paints a classed fill (sun trap, wind shelter,
+  moisture band, frost-risk gradient, comfort rating) on the main map,
+  toggleable from the left tool spine. Colours match the dashboard
+  adaptation-card language. Phase-3
   shipped the `ADAPTATION RECOMMENDATIONS` card section that synthesises
   these signals into plain-language priority notes (frost, arid
   irrigation, freeze-thaw, heat-stress slopes, windbreak opportunity,
   short/long comfort seasons) — the overlay that plots the underlying
   zones on the map is still pending.
-- Seasonal comfort is `partial`: phase 3 ships a 12-month comfort
-  calendar strip on the dashboard (classifying each month into
-  freezing / cold / cool / comfortable / hot bands using
-  `monthly_normals` from NOAA / ECCC / NASA POWER, with an outdoor-use
-  season summary), but the spatial comfort MAP overlay across the
-  parcel is not yet wired.
-- Windbreak opportunity zones are `partial`: phase 3 ships candidate
-  windbreak LineStrings derived from the parcel bbox + prevailing wind
-  (rendered as dashed lines on the TERRAIN EXPOSURE minimap). This is
-  a geometric heuristic only — cold-wind-exposure and ventilation-
+- Seasonal comfort is `done`: the dashboard ships both a 12-month
+  calendar strip (using `monthly_normals` from NOAA / ECCC / NASA POWER)
+  and a planning-grade COMFORT EXPOSURE MAP section that calls
+  `POST /api/v1/climate-analysis/:projectId/comfort-grid/compute`.
+  The compute reads the DEM, adjusts base annual mean-max / mean-min
+  per cell by elevation adiabatic lapse (-6.5 °C / 1000 m) plus a
+  ±2 °C solar-exposure bias, and classifies cells into the same
+  freezing / cold / cool / comfortable / hot bands. Rendered inline as
+  an SVG minimap; a Mapbox main-map overlay is not yet wired.
+  Horizon shading, wind channelling, and structure shadows are
+  explicitly out of scope — those require the §9 obstacle model.
+- Windbreak opportunity zones are `partial`: candidate windbreak
+  LineStrings derived from the parcel bbox + prevailing wind ship in
+  two surfaces — a dashed overlay on the dashboard TERRAIN EXPOSURE
+  minimap, and a toggleable Mapbox line+symbol layer on the main map
+  (`features/map/WindbreakOverlay.tsx`). Both consume the shared
+  `buildWindbreakLines` heuristic. Cold-wind-exposure and ventilation-
   corridor mapping still need an obstacle model from §9 Structures
-  before they can ship.
+  before they can ship, so the manifest item stays `partial`.
 - Passive-solar building siting, windbreak opportunity zones, ventilation
   corridors, and structure/tree shadow casting are P2 and require an
   obstacle model (trees + structures) that is not yet captured in the

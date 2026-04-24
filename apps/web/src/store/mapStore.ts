@@ -60,6 +60,18 @@ interface MapState {
   viewshedVisible: boolean;
   setViewshedVisible: (v: boolean) => void;
 
+  // §6 microclimate opportunity overlay — when on, MicroclimateOverlay fetches
+  // the `microclimate` project layer (sun-trap, wind-shelter, frost-risk, and
+  // comfort-class polygons) and renders it as a classed fill.
+  microclimateVisible: boolean;
+  setMicroclimateVisible: (v: boolean) => void;
+
+  // §6 windbreak opportunity overlay — when on, WindbreakOverlay computes
+  // candidate windbreak lines client-side from the parcel bbox + climate
+  // prevailing-wind direction and paints them as a dashed Mapbox line layer.
+  windbreakVisible: boolean;
+  setWindbreakVisible: (v: boolean) => void;
+
   // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
   // is added to MapCanvas when a release is selected.
   historicalRelease: { id: number; date: string } | null;
@@ -141,6 +153,12 @@ export const useMapStore = create<MapState>((set) => ({
 
   viewshedVisible: false,
   setViewshedVisible: (viewshedVisible) => set({ viewshedVisible }),
+
+  microclimateVisible: false,
+  setMicroclimateVisible: (microclimateVisible) => set({ microclimateVisible }),
+
+  windbreakVisible: false,
+  setWindbreakVisible: (windbreakVisible) => set({ windbreakVisible }),
 
   historicalRelease: null,
   setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),
