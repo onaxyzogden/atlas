@@ -48,7 +48,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
   // Pack the wizard's flat metadata fields into the shared ProjectMetadata
   // shape. Empty strings are dropped so jsonb stays minimal.
   const buildMetadata = () => {
-    const md: Record<string, string> = {};
+    const md: Record<string, unknown> = {};
     if (data.climateRegion) md.climateRegion = data.climateRegion;
     if (data.bioregion) md.bioregion = data.bioregion;
     if (data.county) md.county = data.county;
@@ -56,6 +56,12 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
     if (data.fieldObservations) md.fieldObservations = data.fieldObservations;
     if (data.restrictionsCovenants) md.restrictionsCovenants = data.restrictionsCovenants;
     if (data.mapProjection) md.mapProjection = data.mapProjection;
+    const soilNotes: Record<string, string> = {};
+    if (data.soilPh) soilNotes.ph = data.soilPh;
+    if (data.soilOrganicMatter) soilNotes.organicMatter = data.soilOrganicMatter;
+    if (data.soilCompaction) soilNotes.compaction = data.soilCompaction;
+    if (data.soilBiologicalActivity) soilNotes.biologicalActivity = data.soilBiologicalActivity;
+    if (Object.keys(soilNotes).length > 0) md.soilNotes = soilNotes;
     return Object.keys(md).length > 0 ? md : undefined;
   };
 
@@ -266,6 +272,57 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             rows={2}
             style={inputStyle}
           />
+        </div>
+
+        {/* Soil notes — captured pre-site-visit; dashboard surfaces these
+            alongside SSURGO / SoilGrids adapter output. Persisted to
+            projects.metadata.soilNotes. */}
+        <div style={{ padding: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+            Soil Observations
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>pH (measured or observed)</label>
+              <input
+                type="text"
+                value={data.soilPh}
+                onChange={(e) => updateData({ soilPh: e.target.value })}
+                placeholder="e.g. 6.4, or 'slightly acidic'"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Organic Matter</label>
+              <input
+                type="text"
+                value={data.soilOrganicMatter}
+                onChange={(e) => updateData({ soilOrganicMatter: e.target.value })}
+                placeholder="e.g. 3.2%, 'dark topsoil ~20cm'"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Compaction</label>
+            <textarea
+              value={data.soilCompaction}
+              onChange={(e) => updateData({ soilCompaction: e.target.value })}
+              placeholder="Penetrometer readings, hardpan depth, observed compaction…"
+              rows={2}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Biological Activity</label>
+            <textarea
+              value={data.soilBiologicalActivity}
+              onChange={(e) => updateData({ soilBiologicalActivity: e.target.value })}
+              placeholder="Earthworms, fungal mats, root systems, smell, colour…"
+              rows={2}
+              style={inputStyle}
+            />
+          </div>
         </div>
 
         <div>

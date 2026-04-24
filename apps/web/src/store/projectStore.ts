@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CreateProjectInput } from '@ogden/shared';
+import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { geodataCache } from '../lib/geodataCache.js';
 
@@ -36,6 +36,8 @@ export interface LocalProject {
   visionStatement: string | null;
   units: 'metric' | 'imperial';
   attachments: ProjectAttachment[];
+  // Long-tail intake metadata (projects.metadata jsonb on the server).
+  metadata?: ProjectMetadata;
   // Sprint 3 — server-assigned UUID after backend sync (undefined = not yet synced)
   serverId?: string;
 }
@@ -107,6 +109,7 @@ export const useProjectStore = create<ProjectState>()(
           visionStatement: null,
           units: input.units ?? 'metric',
           attachments: [],
+          metadata: input.metadata,
         };
         set((state) => ({
           projects: [...state.projects, project],

@@ -17,6 +17,19 @@ export const ProjectStatus = z.enum(['active', 'archived', 'shared', 'candidate'
  * enforce it. Promote any field to a dedicated column once query
  * patterns demand indexing or FKs.
  */
+/**
+ * Free-text soil observations captured by the intake wizard before a
+ * site visit. These sit alongside (not instead of) SSURGO / SoilGrids
+ * adapter output — the dashboard surfaces both, clearly labelled.
+ */
+export const SoilNotes = z.object({
+  ph: z.string().max(200).optional(),
+  organicMatter: z.string().max(200).optional(),
+  compaction: z.string().max(500).optional(),
+  biologicalActivity: z.string().max(500).optional(),
+}).strict();
+export type SoilNotes = z.infer<typeof SoilNotes>;
+
 export const ProjectMetadata = z.object({
   climateRegion: z.string().max(100).optional(),
   bioregion: z.string().max(100).optional(),
@@ -25,6 +38,7 @@ export const ProjectMetadata = z.object({
   fieldObservations: z.string().max(5000).optional(),
   restrictionsCovenants: z.string().max(2000).optional(),
   mapProjection: z.string().max(50).optional(),
+  soilNotes: SoilNotes.optional(),
 }).strict();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

@@ -43,6 +43,11 @@ export interface WizardData {
   fieldObservations: string;
   restrictionsCovenants: string;
   mapProjection: string;
+  // Step 4 — soil notes (persisted to projects.metadata.soilNotes jsonb)
+  soilPh: string;
+  soilOrganicMatter: string;
+  soilCompaction: string;
+  soilBiologicalActivity: string;
 }
 
 const INITIAL_DATA: WizardData = {
@@ -66,6 +71,10 @@ const INITIAL_DATA: WizardData = {
   fieldObservations: '',
   restrictionsCovenants: '',
   mapProjection: '',
+  soilPh: '',
+  soilOrganicMatter: '',
+  soilCompaction: '',
+  soilBiologicalActivity: '',
 };
 
 const STEPS = [

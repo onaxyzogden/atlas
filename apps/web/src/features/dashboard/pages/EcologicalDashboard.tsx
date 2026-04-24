@@ -333,6 +333,38 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </>
         )}
 
+        {/* User-entered soil observations (projects.metadata.soilNotes) —
+            surfaces what the owner/designer saw on-site, alongside the
+            SSURGO / SoilGrids adapter output above. */}
+        {project.metadata?.soilNotes && (() => {
+          const sn = project.metadata!.soilNotes!;
+          const hasAny = sn.ph || sn.organicMatter || sn.compaction || sn.biologicalActivity;
+          if (!hasAny) return null;
+          return (
+            <>
+              <h4 className={css.subSectionLabel}>FIELD OBSERVATIONS</h4>
+              <div className={css.soilDataRow}>
+                {sn.ph && <SoilMetric label="OBSERVED pH" value={sn.ph} />}
+                {sn.organicMatter && <SoilMetric label="OBSERVED OM" value={sn.organicMatter} />}
+              </div>
+              {(sn.compaction || sn.biologicalActivity) && (
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {sn.compaction && (
+                    <div style={{ fontSize: 12, color: 'rgba(180,165,140,0.85)' }}>
+                      <strong style={{ color: 'rgba(180,165,140,0.6)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 11 }}>Compaction:</strong> {sn.compaction}
+                    </div>
+                  )}
+                  {sn.biologicalActivity && (
+                    <div style={{ fontSize: 12, color: 'rgba(180,165,140,0.85)' }}>
+                      <strong style={{ color: 'rgba(180,165,140,0.6)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 11 }}>Biology:</strong> {sn.biologicalActivity}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* Soil assessment flags */}
         {soilFlags.length > 0 && (
           <div style={{ marginTop: '12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
