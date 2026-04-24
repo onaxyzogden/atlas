@@ -512,3 +512,67 @@
   padding-top: 8px;
   line-height: 1.6;
 }
+
+/* ── §15 temporary-vs-permanent-seasonal ─────────────────────────── */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hideTempToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(20, 22, 20, 0.6);
+  border: 1px solid rgba(180, 165, 140, 0.18);
+  border-radius: 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.75);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.hideTempToggle:hover {
+  border-color: rgba(180, 165, 140, 0.32);
+  background: rgba(20, 22, 20, 0.8);
+}
+
+.hideTempToggle input {
+  cursor: pointer;
+  accent-color: rgba(var(--color-gold-rgb), 0.85);
+}
+
+.featureItemTemporary {
+  border-bottom-style: dashed !important;
+  border-bottom-color: rgba(180, 165, 140, 0.22) !important;
+  opacity: 0.78;
+}
+
+.featureItemTemporary .featureName {
+  font-style: italic;
+}
+
+.featureSubGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.featureTempBadge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px dashed rgba(180, 165, 140, 0.42);
+  border-radius: 3px;
+  color: rgba(180, 165, 140, 0.7);
+  background: rgba(180, 165, 140, 0.05);
+}

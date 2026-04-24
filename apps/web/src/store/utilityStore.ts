@@ -32,6 +32,29 @@ export interface Utility {
   center: [number, number];
   phase: string;
   notes: string;
+  /**
+   * Estimated steady-state energy demand in kWh/day. Optional — placeholder
+   * note the steward can jot down for load-balancing. The "Energy & Water"
+   * systems tab rolls these up and compares the total vs. estimated solar
+   * supply. Not a forecasting engine — just a human-editable number stored
+   * alongside the placement.
+   */
+  demandKwhPerDay?: number;
+  /**
+   * Optional marker for temporary or seasonal utilities (§15 Timeline,
+   * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
+   * view"). `true` = present only for this phase or a subset of the year;
+   * `false` / undefined = permanent. The PhasingDashboard uses this to
+   * offer a "Hide temporary" toggle and render temporary items with a
+   * dashed outline.
+   */
+  isTemporary?: boolean;
+  /**
+   * Optional 1-indexed months (1 = January, 12 = December) during which
+   * the utility is actually active on site. Meaningful only when
+   * `isTemporary` is `true`. Empty / undefined = year-round when present.
+   */
+  seasonalMonths?: number[];
   createdAt: string;
   updatedAt: string;
 }

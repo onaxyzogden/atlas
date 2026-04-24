@@ -9,6 +9,7 @@ import type maplibregl from 'maplibre-gl';
 import SolarPlacement from './SolarPlacement.js';
 import WaterSystemPlanning from './WaterSystemPlanning.js';
 import OffGridReadiness from './OffGridReadiness.js';
+import EnergyDemandRollup from './EnergyDemandRollup.js';
 import InfrastructurePhasing from './InfrastructurePhasing.js';
 import p from '../../styles/panel.module.css';
 import s from './UtilityPanel.module.css';
@@ -33,6 +34,8 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
   const [name, setName] = useState('');
   const [phase, setPhase] = useState('Phase 1');
   const [notes, setNotes] = useState('');
+  const [demandKwh, setDemandKwh] = useState<string>('');
+  const [isTemporary, setIsTemporary] = useState(false);
 
   // Site intelligence data for systems tab
   const siteData = useSiteData(projectId);
@@ -50,6 +53,8 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
     setPendingCenter([e.lngLat.lng, e.lngLat.lat]);
     setName(cfg.label);
     setNotes('');
+    setDemandKwh('');
+    setIsTemporary(false);
     setShowModal(true);
   }, [placementMode]);
 
@@ -68,8 +73,19 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
     };
   }, [map, placementMode, handleMapClick]);
 
+  // a11y: Escape key dismisses the utility-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); setPlacementMode(null); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, setPlacementMode]);
+
   const handleSave = useCallback(() => {
     if (!pendingCenter || !placementMode || !name.trim()) return;
+    const parsedDemand = demandKwh.trim() === '' ? undefined : Number(demandKwh);
     const utility: Utility = {
       id: crypto.randomUUID(),
       projectId,
@@ -78,6 +94,11 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
       center: pendingCenter,
       phase,
       notes,
+      demandKwhPerDay:
+        parsedDemand !== undefined && Number.isFinite(parsedDemand) && parsedDemand > 0
+          ? parsedDemand
+          : undefined,
+      isTemporary: isTemporary || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -86,7 +107,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
     setShowModal(false);
     setPendingCenter(null);
     setPlacementMode(null);
-  }, [pendingCenter, placementMode, name, phase, notes, projectId, addUtility, map, setPlacementMode]);
+  }, [pendingCenter, placementMode, name, phase, notes, demandKwh, isTemporary, projectId, addUtility, map, setPlacementMode]);
 
   // Group by category
   const categories = ['Energy', 'Water', 'Infrastructure'] as const;
@@ -177,6 +198,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
       {activeTab === 'systems' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
+          <EnergyDemandRollup utilities={utilities} />
           <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
         </div>
@@ -190,9 +212,11 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
 
       {/* Utility naming modal — stays outside tabs */}
       {showModal && placementMode && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); setPlacementMode(null); }}>
-          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentSm}`}>
+          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentSm}`} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>
               {UTILITY_TYPE_CONFIG[placementMode].icon} Place Utility
             </h2>
@@ -203,6 +227,38 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
             <select value={phase} onChange={(e) => setPhase(e.target.value)} className={p.formInput}>
               <option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option><option value="Phase 4">Phase 4</option>
             </select>
+            <label className={p.formLabel}>Energy demand (kWh / day) <span style={{ opacity: 0.5, fontWeight: 400 }}>optional</span></label>
+            <input
+              type="number"
+              value={demandKwh}
+              onChange={(e) => setDemandKwh(e.target.value)}
+              min={0}
+              step={0.1}
+              placeholder="e.g. 2.5"
+              className={p.formInput}
+            />
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 11,
+                color: 'var(--color-panel-text)',
+                marginTop: 8,
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={isTemporary}
+                onChange={(e) => setIsTemporary(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              Temporary / seasonal
+              <span style={{ opacity: 0.55, fontWeight: 400, fontSize: 10 }}>
+                (shown with dashed outline in Phasing)
+              </span>
+            </label>
             <label className={p.formLabel}>Notes</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${p.formInput} ${p.formTextarea}`} />
             <div className={p.btnRow}>

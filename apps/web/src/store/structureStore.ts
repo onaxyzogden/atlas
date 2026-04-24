@@ -44,6 +44,21 @@ export interface Structure {
   costEstimate: number | null;
   infrastructureReqs: string[];
   notes: string;
+  /**
+   * Optional marker for temporary or seasonal elements (§15 Timeline,
+   * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
+   * view"). `true` = present only for this phase or a subset of the year;
+   * `false` / undefined = permanent. The PhasingDashboard uses this to
+   * offer a "Hide temporary" toggle and render temporary items with a
+   * dashed outline.
+   */
+  isTemporary?: boolean;
+  /**
+   * Optional 1-indexed months (1 = January, 12 = December) during which
+   * the element is actually present on site. Meaningful only when
+   * `isTemporary` is `true`. Empty / undefined = year-round when present.
+   */
+  seasonalMonths?: number[];
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

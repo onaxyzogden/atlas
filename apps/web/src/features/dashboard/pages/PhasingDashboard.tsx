@@ -9,14 +9,13 @@
  * in other panels (Phase settings, Economics, Scenarios).
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { usePhaseStore } from '../../../store/phaseStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
-import { deriveInfrastructureCost } from '../../structures/footprints.js';
 import {
   aggregatePhaseFeatures,
   checkBuildOrder,
@@ -80,16 +79,15 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
     [structures, paths, utilities],
   );
 
-  // Per-phase cost rollup. Uses user-set `costEstimate` when present; otherwise
-  // falls back to the §9 derived placeholder (template cost-range midpoint
-  // scaled by actual footprint area). Keeps phase totals non-zero even before
-  // the user edits per-structure costs.
+  // Per-phase cost rollup — sums user-entered `costEstimate` values.
+  // Structures without an entered cost contribute 0 to the phase total;
+  // the empty state is explicit in the UI rather than back-filled with a
+  // heuristic (the derived-cost helper was removed from structures/footprints).
   const costByPhase = useMemo(() => {
     const map = new Map<string, number>();
     for (const st of structures) {
       const phaseName = st.phase || 'Unassigned';
-      const derived = deriveInfrastructureCost(st);
-      const cost = st.costEstimate ?? derived.mid;
+      const cost = st.costEstimate ?? 0;
       map.set(phaseName, (map.get(phaseName) ?? 0) + cost);
     }
     return map;
@@ -128,6 +126,18 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
   const completionPct =
     phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0;
 
+  // §15 temporary-vs-permanent-seasonal — let the steward hide short-lived
+  // items (winter-only grazing routes, construction tents, prototype paddocks)
+  // so the permanent buildout arc is legible on its own.
+  const [hideTemporary, setHideTemporary] = useState(false);
+  const temporaryCount = useMemo(() => {
+    let n = 0;
+    for (const summary of summaries.values()) {
+      for (const f of summary.features) if (f.isTemporary) n++;
+    }
+    return n;
+  }, [summaries]);
+
   return (
     <div className={css.page}>
       {/* ── Header ──────────────────────────────────────────────────── */}
@@ -141,12 +151,24 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
             feature assignments from the map-view Phase settings.
           </p>
         </div>
-        <button className={css.mapBtn} onClick={onSwitchToMap}>
-          Open Map View
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 7H11M8 4L11 7L8 10" />
-          </svg>
-        </button>
+        <div className={css.headerActions}>
+          {temporaryCount > 0 && (
+            <label className={css.hideTempToggle}>
+              <input
+                type="checkbox"
+                checked={hideTemporary}
+                onChange={(e) => setHideTemporary(e.target.checked)}
+              />
+              Hide temporary ({temporaryCount})
+            </label>
+          )}
+          <button className={css.mapBtn} onClick={onSwitchToMap}>
+            Open Map View
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7H11M8 4L11 7L8 10" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* ── Buildout Arc summary ────────────────────────────────────── */}
@@ -196,9 +218,12 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
         ) : (
           phases.map((phase) => {
             const summary = summaries.get(phase.name);
-            const featureCount = summary?.featureCount ?? 0;
+            const allFeatures = summary?.features ?? [];
+            const features = hideTemporary
+              ? allFeatures.filter((f) => !f.isTemporary)
+              : allFeatures;
+            const featureCount = features.length;
             const cost = costByPhase.get(phase.name) ?? 0;
-            const features = summary?.features ?? [];
             return (
               <div
                 key={phase.id}
@@ -253,10 +278,17 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
                 {features.length > 0 && (
                   <ul className={css.featureList}>
                     {features.slice(0, 8).map((f) => (
-                      <li key={f.id} className={css.featureItem}>
+                      <li
+                        key={f.id}
+                        className={`${css.featureItem} ${f.isTemporary ? css.featureItemTemporary : ''}`}
+                        title={f.isTemporary ? 'Temporary / seasonal' : undefined}
+                      >
                         <span className={css.featureType}>{f.featureType}</span>
                         <span className={css.featureName}>{f.name}</span>
-                        <span className={css.featureSub}>{f.subType}</span>
+                        <span className={css.featureSubGroup}>
+                          <span className={css.featureSub}>{f.subType}</span>
+                          {f.isTemporary && <span className={css.featureTempBadge}>temp</span>}
+                        </span>
                       </li>
                     ))}
                     {features.length > 8 && (

@@ -16,6 +16,18 @@ export interface PhaseFeature {
   featureType: 'structure' | 'path' | 'utility';
   subType: string;
   phase: string;
+  /**
+   * §15 temporary-vs-permanent-seasonal: `true` = item is only present for
+   * part of the year or a single phase. Defaults to `false` when the
+   * underlying store entity didn't opt in.
+   */
+  isTemporary: boolean;
+  /**
+   * §15 temporary-vs-permanent-seasonal: 1-indexed months (1 = Jan) the
+   * item is actually present. Empty when year-round. Only meaningful when
+   * `isTemporary` is `true`.
+   */
+  seasonalMonths: number[];
 }
 
 export interface PhaseSummary {
@@ -39,21 +51,45 @@ export function aggregatePhaseFeatures(
   for (const st of structures) {
     const phase = st.phase || 'Unassigned';
     const summary = ensure(phase);
-    summary.features.push({ id: st.id, name: st.name, featureType: 'structure', subType: st.type, phase });
+    summary.features.push({
+      id: st.id,
+      name: st.name,
+      featureType: 'structure',
+      subType: st.type,
+      phase,
+      isTemporary: st.isTemporary ?? false,
+      seasonalMonths: st.seasonalMonths ?? [],
+    });
     summary.featureCount++;
   }
 
   for (const pa of paths) {
     const phase = pa.phase || 'Unassigned';
     const summary = ensure(phase);
-    summary.features.push({ id: pa.id, name: pa.name, featureType: 'path', subType: pa.type, phase });
+    summary.features.push({
+      id: pa.id,
+      name: pa.name,
+      featureType: 'path',
+      subType: pa.type,
+      phase,
+      isTemporary: pa.isTemporary ?? false,
+      seasonalMonths: pa.seasonalMonths ?? [],
+    });
     summary.featureCount++;
   }
 
   for (const u of utilities) {
     const phase = u.phase || 'Unassigned';
     const summary = ensure(phase);
-    summary.features.push({ id: u.id, name: u.name, featureType: 'utility', subType: u.type, phase });
+    summary.features.push({
+      id: u.id,
+      name: u.name,
+      featureType: 'utility',
+      subType: u.type,
+      phase,
+      isTemporary: u.isTemporary ?? false,
+      seasonalMonths: u.seasonalMonths ?? [],
+    });
     summary.featureCount++;
   }
 
