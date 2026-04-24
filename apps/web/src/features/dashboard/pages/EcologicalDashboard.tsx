@@ -9,7 +9,8 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary, getLayer } from '../../../store/siteDataStore.js';
 import { computeAssessmentScores, deriveOpportunities } from '../../../lib/computeScores.js';
 import type { ScoredResult, ScoreComponent } from '../../../lib/computeScores.js';
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AssessmentFlag, EcoregionId } from '@ogden/shared';
+import { computePollinatorHabitat } from '@ogden/shared';
 import ProgressBar from '../components/ProgressBar.js';
 import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
 import css from './EcologicalDashboard.module.css';
@@ -86,7 +87,47 @@ function formatComponentName(name: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-const ECOLOGY_LAYER_SOURCES = new Set(['land_cover', 'wetlands_flood', 'soils', 'soil_regeneration']);
+interface PollinatorOppSummary {
+  corridorReadiness?: number | null;
+  patchCount?: number | null;
+  gridSize?: number | null;
+  ecoregionId?: string | null;
+  patchesByQuality?: {
+    high?: number | null;
+    moderate?: number | null;
+    low?: number | null;
+    hostile?: number | null;
+  };
+  patchesByRole?: {
+    core?: number | null;
+    stepping_stone?: number | null;
+    isolated?: number | null;
+    matrix?: number | null;
+  };
+  confidence?: 'high' | 'medium' | 'low';
+  caveat?: string | null;
+}
+
+const MONTH_ABBR = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function formatBloomWindow(bloom: [number, number] | undefined | null): string {
+  if (!bloom) return '';
+  const [a, b] = bloom;
+  const start = MONTH_ABBR[a] ?? '';
+  const end = MONTH_ABBR[b] ?? '';
+  if (!start || !end) return '';
+  return start === end ? start : `${start}\u2013${end}`;
+}
+
+function connectivityLabel(band: 'isolated' | 'fragmented' | 'connected' | 'unknown'): string {
+  switch (band) {
+    case 'connected': return 'Connected';
+    case 'fragmented': return 'Fragmented';
+    case 'isolated': return 'Isolated';
+    default: return 'Unknown';
+  }
+}
+
+const ECOLOGY_LAYER_SOURCES = new Set(['land_cover', 'wetlands_flood', 'soils', 'soil_regeneration', 'pollinator_opportunity']);
 
 export default function EcologicalDashboard({ project, onSwitchToMap }: EcologicalDashboardProps) {
   const siteData = useSiteData(project.id);
@@ -96,6 +137,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
   const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
   const wetlands = siteData ? getLayerSummary<WetlandsSummary>(siteData, 'wetlands_flood') : null;
   const soilRegen = siteData ? getLayerSummary<SoilRegenSummary>(siteData, 'soil_regeneration') : null;
+  const pollinatorOpp = siteData ? getLayerSummary<PollinatorOppSummary>(siteData, 'pollinator_opportunity') : null;
 
   const soilRegenStatus = siteData ? getLayer(siteData, 'soil_regeneration')?.fetchStatus : undefined;
   const landCoverStatus = siteData ? getLayer(siteData, 'land_cover')?.fetchStatus : undefined;
@@ -167,6 +209,22 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       .map(([name, pct]) => ({ name, pct: typeof pct === 'number' ? pct : 0 }))
       .sort((a, b) => b.pct - a.pct);
   }, [landCover]);
+
+  // Pollinator habitat + ecoregion (P2). Read-side heuristic; not part of
+  // scoring. When `pollinator_opportunity` hasn't been materialized yet,
+  // `ecoregionId` + `corridorReadiness` are undefined and the result falls
+  // back to habitat-class categories with connectivityBand='unknown'.
+  const pollinatorHabitat = useMemo(() => {
+    // Local LandCover/Wetlands interfaces in this file are a loose superset
+    // of the @ogden/shared ones; cast through `unknown` to cross the
+    // declaration boundary without weakening the shared types.
+    return computePollinatorHabitat({
+      landCover: (landCover ?? null) as unknown as Parameters<typeof computePollinatorHabitat>[0]['landCover'],
+      wetlands: (wetlands ?? null) as unknown as Parameters<typeof computePollinatorHabitat>[0]['wetlands'],
+      ecoregionId: (pollinatorOpp?.ecoregionId as EcoregionId | null | undefined) ?? null,
+      corridorReadiness: pollinatorOpp?.corridorReadiness ?? null,
+    });
+  }, [landCover, wetlands, pollinatorOpp]);
 
   // Carbon data
   const carbon = soilRegen?.carbonSequestration;
@@ -250,7 +308,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Soil Health */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>SOIL HEALTH</h3>
+        <h2 className={css.sectionLabel}>SOIL HEALTH</h2>
 
         {/* Core properties */}
         <div className={css.soilDataRow}>
@@ -265,7 +323,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {/* Physical properties */}
         {(bulkDensity !== null || rootingDepth !== null || awc !== null || ksat !== null) && (
           <>
-            <h4 className={css.subSectionLabel}>PHYSICAL PROPERTIES</h4>
+            <h3 className={css.subSectionLabel}>PHYSICAL PROPERTIES</h3>
             <div className={css.soilDataRow}>
               <SoilMetric label="BULK DENSITY" value={bulkDensity !== null ? `${bulkDensity.toFixed(2)} g/cm\u00B3` : null} />
               <SoilMetric label="ROOTING DEPTH" value={rootingDepth !== null ? `${rootingDepth.toFixed(0)} cm` : null} />
@@ -278,7 +336,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {/* Particle size */}
         {(clayPct !== null || siltPct !== null || sandPct !== null) && (
           <>
-            <h4 className={css.subSectionLabel}>PARTICLE SIZE</h4>
+            <h3 className={css.subSectionLabel}>PARTICLE SIZE</h3>
             <div className={css.soilDataRow}>
               <SoilMetric label="CLAY" value={clayPct !== null ? `${clayPct.toFixed(1)}%` : null} />
               <SoilMetric label="SILT" value={siltPct !== null ? `${siltPct.toFixed(1)}%` : null} />
@@ -290,7 +348,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {/* Chemical properties */}
         {(cec !== null || ec !== null || caco3 !== null || sar !== null) && (
           <>
-            <h4 className={css.subSectionLabel}>CHEMICAL PROPERTIES</h4>
+            <h3 className={css.subSectionLabel}>CHEMICAL PROPERTIES</h3>
             <div className={css.soilDataRow}>
               <SoilMetric label="CEC" value={cec !== null ? `${cec.toFixed(1)} meq/100g` : null} />
               <SoilMetric label="ELEC. COND." value={ec !== null ? `${ec.toFixed(2)} dS/m` : null} />
@@ -303,7 +361,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         {/* Derived indices */}
         {(fertilityIndex !== null || salinizationRisk !== null) && (
           <>
-            <h4 className={css.subSectionLabel}>DERIVED INDICES</h4>
+            <h3 className={css.subSectionLabel}>DERIVED INDICES</h3>
             <div className={css.soilDataRow}>
               {fertilityIndex !== null && (
                 <div className={css.soilDataItem}>
@@ -342,7 +400,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           if (!hasAny) return null;
           return (
             <>
-              <h4 className={css.subSectionLabel}>FIELD OBSERVATIONS</h4>
+              <h3 className={css.subSectionLabel}>FIELD OBSERVATIONS</h3>
               <div className={css.soilDataRow}>
                 {sn.ph && <SoilMetric label="OBSERVED pH" value={sn.ph} />}
                 {sn.organicMatter && <SoilMetric label="OBSERVED OM" value={sn.organicMatter} />}
@@ -384,7 +442,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Vegetation Communities — from land cover classes */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>VEGETATION COMMUNITIES</h3>
+        <h2 className={css.sectionLabel}>VEGETATION COMMUNITIES</h2>
         {coverClasses.length > 0 ? (
           <div className={css.coverCard}>
             {coverClasses.map((c) => (
@@ -409,7 +467,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Wetland & Riparian */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>WETLAND & RIPARIAN</h3>
+        <h2 className={css.sectionLabel}>WETLAND & RIPARIAN</h2>
         {wetlands ? (
           <div className={css.wetlandCard}>
             <div className={css.wetlandGrid}>
@@ -432,9 +490,87 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
         )}
       </div>
 
+      {/* Native Planting & Pollinator Habitat — P2 ecoregion surfacing.
+          Reads pollinator_opportunity for the CEC Level III ecoregion +
+          patch-graph connectivity band, and renders a curated plant list
+          when the ecoregion resolves. Falls back to habitat-class
+          categories otherwise. */}
+      <div className={css.section}>
+        <h2 className={css.sectionLabel}>NATIVE PLANTING & POLLINATOR HABITAT</h2>
+
+        {/* Ecoregion + connectivity strip */}
+        <div className={css.pollinatorEcoregionStrip}>
+          {pollinatorHabitat.ecoregion ? (
+            <div className={css.pollinatorEcoregionBlock}>
+              <span className={css.pollinatorEcoregionLabel}>CEC ECOREGION</span>
+              <span className={css.pollinatorEcoregionName}>{pollinatorHabitat.ecoregion.name}</span>
+              <span className={css.pollinatorEcoregionId}>{`Level III \u00B7 ${pollinatorHabitat.ecoregion.id}`}</span>
+            </div>
+          ) : (
+            <div className={css.pollinatorEcoregionBlock}>
+              <span className={css.pollinatorEcoregionLabel}>CEC ECOREGION</span>
+              <span className={css.pollinatorEcoregionName}>Not resolved</span>
+              <span className={css.pollinatorEcoregionId}>Run pollinator analysis</span>
+            </div>
+          )}
+          <div className={css.pollinatorEcoregionBlock}>
+            <span className={css.pollinatorEcoregionLabel}>HABITAT SUITABILITY</span>
+            <span className={css.pollinatorEcoregionName}>
+              {pollinatorHabitat.suitabilityScore}<span className={css.miniScoreOf}>/100</span>
+            </span>
+            <span className={css.pollinatorEcoregionId}>
+              {pollinatorHabitat.suitabilityBand === 'high' ? 'High' : pollinatorHabitat.suitabilityBand === 'moderate' ? 'Moderate' : 'Low'}
+            </span>
+          </div>
+          <div className={css.pollinatorEcoregionBlock}>
+            <span className={css.pollinatorEcoregionLabel}>CORRIDOR CONNECTIVITY</span>
+            <span className={css.pollinatorEcoregionName}>{connectivityLabel(pollinatorHabitat.connectivityBand)}</span>
+            <span className={css.pollinatorEcoregionId}>
+              {pollinatorOpp?.patchCount != null ? `${pollinatorOpp.patchCount} patches` : 'Patch-graph'}
+            </span>
+          </div>
+        </div>
+
+        {/* Recommended native species — curated ecoregion list when
+            available, habitat-class fallback categories otherwise. */}
+        {pollinatorHabitat.ecoregionPlants.length > 0 ? (
+          <>
+            <h3 className={css.subSectionLabel}>RECOMMENDED NATIVE SPECIES</h3>
+            <ul className={css.pollinatorPlantsList}>
+              {pollinatorHabitat.ecoregionPlants.map((plant) => (
+                <li key={plant.scientific} className={css.pollinatorPlantItem}>
+                  <div>
+                    <span className={css.pollinatorPlantCommon}>{plant.common}</span>
+                    <span className={css.pollinatorPlantSci}>{plant.scientific}</span>
+                  </div>
+                  <span className={css.pollinatorPlantMeta}>
+                    {`${plant.habit}${formatBloomWindow(plant.bloom) ? ` \u00B7 ${formatBloomWindow(plant.bloom)}` : ''}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <>
+            <h3 className={css.subSectionLabel}>HABITAT-CLASS CATEGORIES</h3>
+            <ul className={css.pollinatorPlantsList}>
+              {pollinatorHabitat.nativePlantCategories.map((cat, i) => (
+                <li key={i} className={css.pollinatorPlantItem}>
+                  <span className={css.pollinatorPlantCommon}>{cat}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {pollinatorHabitat.caveats.length > 0 && (
+          <p className={css.coverNote}>{pollinatorHabitat.caveats[0]}</p>
+        )}
+      </div>
+
       {/* Ecological Interventions — from Tier 3 soil_regeneration */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>ECOLOGICAL INTERVENTIONS</h3>
+        <h2 className={css.sectionLabel}>ECOLOGICAL INTERVENTIONS</h2>
         {soilRegen?.interventions && soilRegen.interventions.length > 0 ? (
           <div className={css.interventionList}>
             {soilRegen.interventions.map((iv, i) => (
@@ -457,7 +593,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* Carbon Estimate */}
       {carbon && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>CARBON SEQUESTRATION ESTIMATE</h3>
+          <h2 className={css.sectionLabel}>CARBON SEQUESTRATION ESTIMATE</h2>
           <div className={css.carbonGrid}>
             <CarbonMetric label="Current SOC" value={carbon.totalCurrentSOC_tC != null ? `${carbon.totalCurrentSOC_tC.toFixed(1)} tC` : null} />
             <CarbonMetric label="Potential SOC" value={carbon.totalPotentialSOC_tC != null ? `${carbon.totalPotentialSOC_tC.toFixed(1)} tC` : null} />
@@ -468,7 +604,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Ecological Opportunities — from rules engine */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>ECOLOGICAL OPPORTUNITIES</h3>
+        <h2 className={css.sectionLabel}>ECOLOGICAL OPPORTUNITIES</h2>
         {ecoOpportunities.length > 0 ? (
           <div className={css.opportunityList}>
             {ecoOpportunities.map((opp) => (

@@ -438,3 +438,79 @@
   transition: background 150ms;
 }
 .surveyBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }
+
+/* ── Native Planting & Pollinator Habitat (P2 ecoregion surfacing) ── */
+.pollinatorEcoregionStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.18);
+  border-radius: 8px;
+  background: rgba(var(--color-gold-rgb), 0.05);
+  margin-bottom: 14px;
+}
+.pollinatorEcoregionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.pollinatorEcoregionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(180,165,140,0.6);
+  text-transform: uppercase;
+}
+.pollinatorEcoregionName {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.92);
+  line-height: 1.25;
+}
+.pollinatorEcoregionId {
+  font-size: 11px;
+  color: rgba(180,165,140,0.55);
+  letter-spacing: 0.02em;
+}
+.pollinatorPlantsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+}
+.pollinatorPlantItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.02);
+}
+.pollinatorPlantCommon {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(232,220,200,0.88);
+  line-height: 1.35;
+}
+.pollinatorPlantSci {
+  display: block;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(180,165,140,0.55);
+  margin-top: 1px;
+}
+.pollinatorPlantMeta {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(var(--color-gold-rgb), 0.75);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
