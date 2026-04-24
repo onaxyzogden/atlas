@@ -4,6 +4,103 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-24 — Accessibility implementation slice 2 (WCAG 2.1 AA closure)
+
+Closes out the remaining P1/P2 findings from
+[`design-system/ogden-atlas/accessibility-audit.md`](../design-system/ogden-atlas/accessibility-audit.md).
+All 12 audit findings now marked ✅ shipped across slices 1 (P0 + early P1s)
+and 2 (this commit, `4802012`).
+
+### Shipped
+
+- **§3 `<div onClick>` triage** — 13 files sampled. 12 were modal-backdrop
+  dismissals; each gained a `useEffect` Escape-key listener +
+  `role="presentation"` on the backdrop + `role="dialog" aria-modal="true"` on
+  the inner `stopPropagation` panel. `MilestoneMarkers` card (the one non-modal
+  case) became `role="button" tabIndex={0} onKeyDown={Enter/Space}`.
+  Shared dismiss handler kept, no duplicated logic. `Modal.tsx` already had an
+  Escape handler, so it just gained the `role="presentation"` tag.
+- **§4 Dashboard heading hierarchy** — 9 dashboard pages renumbered so the
+  outline descends without skipping (h1 → h2 → h3). 31 tag changes total;
+  all `className` styling preserved so visual layout is unchanged.
+- **§8 Form labels** — 22 controls across `StructurePropertiesModal`,
+  `wizard/StepNotes`, and the `DesignToolsPanel` zone-naming modal now carry
+  `<label htmlFor>` + matching `id`; the hidden `<input type="file">` in
+  StepNotes gained an `aria-label`. `LoginPage` and `SplitScreenCompare` were
+  already compliant.
+- **§4 Score live-region** — `ScoresAndFlagsSection` suitability card now
+  carries `role="status" aria-live="polite" aria-atomic="true"` +
+  `aria-label="Overall suitability score: {score} out of 100"` so screen
+  readers announce score updates as derived layers complete.
+- **P2 polish** —
+  - Nav `aria-label`s: `DashboardSidebar` (`"Project dashboards"`),
+    `HydrologyDashboard` suite tabs (`"Hydrology sub-dashboards"`),
+    `PublicPortalShell` (`"Portal sections"`). `LandingNav` aria-label sits in
+    the working tree awaiting that feature's initial commit (landing/ still
+    untracked).
+  - `Button` spinner animation wrapped in `@media (prefers-reduced-motion: reduce)`
+    so the loading glyph freezes for users with the OS preference set.
+  - `tokens.css` gains a short comment documenting the `--color-text-muted`
+    ≥14px floor (preventive guardrail; existing usages all comply).
+
+### Verification
+
+- `tsc --noEmit` ran clean on every file touched this slice. The 48 repo-wide
+  pre-existing errors (PlantingToolDashboard `Object is possibly undefined`,
+  HydrologyDashboard `capacityGal`, AppShell route strings, regenerationEventStore)
+  are unchanged — none live in a slice-2 file.
+- Preview server remained green through the sweep; no console errors
+  introduced.
+- Audit doc `priority summary` table updated: all 12 findings now show
+  ✅ shipped with per-slice attribution.
+
+### Commits
+
+- `4802012` — `feat(a11y): slice 2 — §3 onClick triage + heading hierarchy +
+  form labels + P2 polish` (28 files, 540 +, 105 −, including the audit doc's
+  first commit).
+
+### Still open
+
+Nothing in the scoped audit. Deferred items (mobile `SlideUpPanel`
+ergonomics, public-portal full pass, automated axe tooling, WCAG 2.2 AA
+additions, map-canvas a11y, auth-flow audit) remain queued per the
+[audit's "Deferred / out of scope" section](../design-system/ogden-atlas/accessibility-audit.md#deferred--out-of-scope).
+
+---
+
+## 2026-04-24 — §15 cost-labor-material-per-phase
+
+Commit `6467aa0`. Extended the existing cost-per-phase rollup to include
+labor-hours and material-tonnage alongside cost. Structure gains two
+optional fields (`laborHoursEstimate?`, `materialTonnageEstimate?`);
+StructurePropertiesModal surfaces them as numeric inputs between Phase
+and Notes (both new + edit modes); DesignToolsPanel plumbs through both
+save paths; PhasingDashboard consolidates into `rollupByPhase` and
+renders four stats per phase card (features · cost · labor · material)
+with em-dash fallback on zero, plus a running labor/material detail
+line in the arc-summary cost cell.
+
+tsc clean on touched files. Total error count dropped from 52 → 13 via
+the intra-session `capacityGal` restoration, independent of this work.
+Manifest flipped `planned → done`.
+
+### Recommended next
+
+- **§14 `seasonal-storage-water-budget`** — standing plan file in
+  `~/.claude/plans/` already describes a Water Budget tab built from
+  `climate._monthly_normals` + `WHO_BASIC_DAILY_LITERS` (monthly inflow
+  vs. demand + running balance + storage sizing).
+- **§9 `infrastructure-cost-placeholder-per-structure`** — may be
+  flippable with zero code: `costEstimate` is populated at placement,
+  but the StructurePropertiesModal still lacks an input to edit it.
+  Low-cost add to this surface we just touched.
+- **§17 / §19 batch audit** — sweep status flags for items that are
+  effectively shipped but still marked `planned` (the prior §13 utility
+  sweep pattern).
+
+---
+
 ## 2026-04-24 — §13 energy-demand-notes · §15 temporary-vs-permanent-seasonal
 
 Two manifest gap-fills in a single combined commit (`c2e9862`, pushed to
@@ -2529,4 +2626,20 @@ Two-part session driven by `design-system/ogden-atlas/ui-ux-scholar-audit.md` (p
 ### Deferred
 
 - **Site Intelligence width.** `DashboardView` reserves a fixed 280 px right column for `DashboardMetrics`; the Site Intelligence panel fills the remaining `flex: 1` column and therefore never spans the full dashboard width. Not a bug per the current layout spec — flagged for follow-up if a full-width mode is wanted for specific sections.
+
+## 2026-04-24 — Pollinator habitat **state** overlay (4th §7 wave)
+
+**Motive.** The existing `PollinatorHabitatOverlay` reads the bbox-scale synthesized `pollinator_opportunity` 5×5 grid emitted by `PollinatorOpportunityProcessor` — a planting-opportunity surface that mixes cover sampling with connectivity role. That doesn't answer the parcel-scale question users actually ask on site: *what habitat exists here today?*
+
+**Shared helper.** Added [`packages/shared/src/ecology/pollinatorHabitatState.ts`](packages/shared/src/ecology/pollinatorHabitatState.ts) — pure `classifyZoneHabitat({ coverClass, disturbanceLevel })` returning `{ band, score, normalizedClass, isLimiting }`. Limiting table (cropland/urban/water) wins over supportive; limiting weight ≥ 0.9 → `hostile`, else `low`. Supportive weight is discounted by `1 − 0.3 × disturbanceLevel`, then banded at 0.8 / 0.55 / 0.3. Reuses `POLLINATOR_SUPPORTIVE_WEIGHTS` + `POLLINATOR_LIMITING_WEIGHTS` — no new authoritative vocabulary. Substring match prefers longest key so "Mixed Forest" beats "Forest". 10/10 vitest cases green.
+
+**Overlay.** [`apps/web/src/features/map/PollinatorHabitatStateOverlay.tsx`](apps/web/src/features/map/PollinatorHabitatStateOverlay.tsx) fetches the existing `soil_regeneration` layer, classifies each zone centroid via `classifyZoneHabitat`, writes `habitatStateBand` onto feature props, and paints classed circles + strokes keyed by a Mapbox `match` expression (sage / gold / muted / slate-red palette, mirroring the opportunity overlay). Lucide Leaf icon in the spine (distinct from the Flower-2 used on opportunity). `pollinatorHabitatStateVisible` + setter in [`mapStore.ts`](apps/web/src/store/mapStore.ts); compact toggle slotted into [`LeftToolSpine.tsx`](apps/web/src/features/map/LeftToolSpine.tsx); lazy imports + mount in [`MapView.tsx`](apps/web/src/features/map/MapView.tsx).
+
+**Scoring parity.** Untouched. `computeScores.ts` does not reference the new helper; `verify-scoring-parity.ts` stays at delta 0.
+
+### Deferred
+
+- True pixel-scale habitat raster (parcel-scale land cover sampled at say 10 m) rather than zone centroids.
+- Regional-plant lists keyed to `normalizedClass` for the tooltip ("supports X / Y").
+- Cross-parcel stitching — current overlay stops at the project boundary.
 
