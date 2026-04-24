@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../lib/maplibre.js';
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
 import { semantic } from '../../lib/tokens.js';
 import { map as mapTokens } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 const STYLES: { id: MapStyle; label: string }[] = [
   { id: 'satellite',   label: 'Satellite' },
@@ -24,7 +25,7 @@ interface SplitScreenCompareProps {
 }
 
 /**
- * §2 split-screen compare. Mounts a second maplibre map inside a resizable
+ * Â§2 split-screen compare. Mounts a second maplibre map inside a resizable
  * right pane and syncs its camera with the primary map via `move` events.
  * The compare pane is read-only: no draw, no edit, no layers except boundary
  * + an optional mirror of the primary map's drawn features.
@@ -61,7 +62,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
 
     right.once('load', () => setReady(true));
 
-    // ── Move sync — primary → right only, rAF-throttled so fast pans stay
+    // â”€â”€ Move sync â€” primary â†’ right only, rAF-throttled so fast pans stay
     // smooth instead of firing a jumpTo per 'move' tick. Right pane is
     // read-only.
     let pending = 0;
@@ -209,7 +210,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
             right: 12,
             display: 'flex',
             gap: 4,
-            background: 'rgba(26, 22, 17, 0.85)',
+            background: 'var(--color-chrome-bg-translucent)',
             borderRadius: 8,
             padding: '4px 6px',
             backdropFilter: 'blur(8px)',
@@ -260,24 +261,26 @@ export function SplitScreenToggle() {
   const active = useMapStore((s) => s.splitScreenActive);
   const setActive = useMapStore((s) => s.setSplitScreenActive);
   return (
-    <button
-      onClick={() => setActive(!active)}
-      aria-pressed={active}
-      style={{
-        padding: '6px 10px',
-        borderRadius: 6,
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: 12,
-        fontWeight: 500,
-        background: active ? semantic.primary : 'rgba(26, 22, 17, 0.85)',
-        color: active ? '#fff' : '#c4b49a',
-        backdropFilter: 'blur(8px)',
-        pointerEvents: 'auto',
-      }}
-      title="Split-screen compare"
-    >
-      {active ? 'Split · on' : 'Split'}
-    </button>
+    <DelayedTooltip label="Split-screen compare" position="bottom">
+      <button
+        onClick={() => setActive(!active)}
+        aria-pressed={active}
+        className={active ? 'signifier-shimmer' : undefined}
+        style={{
+          padding: '6px 10px',
+          borderRadius: 6,
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: 12,
+          fontWeight: 500,
+          background: active ? semantic.primary : 'var(--color-chrome-bg-translucent)',
+          color: active ? '#fff' : '#c4b49a',
+          backdropFilter: 'blur(8px)',
+          pointerEvents: 'auto',
+        }}
+      >
+        {active ? 'Split · on' : 'Split'}
+      </button>
+    </DelayedTooltip>
   );
 }

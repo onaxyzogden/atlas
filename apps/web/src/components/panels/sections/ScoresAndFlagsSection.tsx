@@ -16,6 +16,7 @@ import { OctagonX, Mountain, Thermometer, Layers, Waves, Droplets, Phone, Upload
 import { SectionProfiler } from '../../../lib/perfProfiler.js';
 import { confidence, semantic } from '../../../lib/tokens.js';
 import { Skeleton } from '../../ui/Skeleton.js';
+import { Sparkline } from '../../ui/Sparkline.js';
 import { ConfBadge, ScoreCircle } from './_shared.js';
 import { capConf } from './_helpers.js';
 import { LayerLegendPopover } from '../LayerLegendPopover.js';
@@ -95,6 +96,9 @@ export interface LiveDataRow {
   source?: string;
   dataDate?: string;
   reason?: 'freshness' | 'resolution' | 'authority';
+  /** Numeric trend series for inline sparkline (e.g. 12 monthly normals). */
+  sparkline?: number[];
+  sparklineLabel?: string;
 }
 
 export interface ConservationAuth {
@@ -298,6 +302,13 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
                     four lines in the narrow rail). */}
                 <div className={s.liveDataRight}>
                   <span className={s.liveDataValue}>{row.value}</span>
+                  {row.sparkline && row.sparkline.length >= 3 && (
+                    <Sparkline
+                      values={row.sparkline}
+                      accent="primary"
+                      ariaLabel={row.sparklineLabel ?? `${row.label} trend`}
+                    />
+                  )}
                   {row.classification && (
                     <span className={s.classificationChip} title="Formal classification">
                       {row.classification}

@@ -1,23 +1,27 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import type MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import type { ElevationProfileResponse } from '@ogden/shared';
 import { semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface CrossSectionToolProps {
   projectId: string;
   map: maplibregl.Map | null;
   draw: MapboxDraw | null;
+  /** When true, render a 40 px icon-only trigger suitable for the
+   *  vertical left tool spine. Profile panel is unchanged. */
+  compact?: boolean;
 }
 
 /**
- * §2 cross-section profile tool. On activate, switches MapboxDraw into
+ * Â§2 cross-section profile tool. On activate, switches MapboxDraw into
  * `draw_line_string` mode. On completion, POSTs the LineString to
  * `/api/v1/elevation/profile` and renders the returned samples as an inline
  * SVG line chart in a floating panel.
  */
-export default function CrossSectionTool({ projectId, map, draw }: CrossSectionToolProps) {
+export default function CrossSectionTool({ projectId, map, draw, compact = false }: CrossSectionToolProps) {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<ElevationProfileResponse | null>(null);
@@ -62,32 +66,56 @@ export default function CrossSectionTool({ projectId, map, draw }: CrossSectionT
     cursor: 'pointer',
     fontSize: 12,
     fontWeight: 500,
-    background: active ? semantic.primary : 'rgba(26, 22, 17, 0.85)',
+    background: active ? semantic.primary : 'var(--color-chrome-bg-translucent)',
     color: active ? '#fff' : '#c4b49a',
     backdropFilter: 'blur(8px)',
     pointerEvents: 'auto',
   };
 
+  const onTrigger = () => {
+    if (active) {
+      draw?.changeMode('simple_select');
+      draw?.deleteAll();
+      setActive(false);
+    } else {
+      setProfile(null);
+      setError(null);
+      setActive(true);
+    }
+  };
+
   return (
     <>
-      <button
-        onClick={() => {
-          if (active) {
-            draw?.changeMode('simple_select');
-            draw?.deleteAll();
-            setActive(false);
-          } else {
-            setProfile(null);
-            setError(null);
-            setActive(true);
-          }
-        }}
-        style={btnStyle}
-        aria-pressed={active}
-        title="Draw a line on the map to sample its elevation profile"
-      >
-        {active ? 'Cancel' : 'Cross-section'}
-      </button>
+      {compact ? (
+        <DelayedTooltip
+          label={active ? 'Cancel cross-section' : 'Cross-section'}
+          position="right"
+        >
+          <button
+            onClick={onTrigger}
+            aria-pressed={active}
+            className={`spine-btn${active ? ' signifier-shimmer' : ''}`}
+            data-active={active}
+            aria-label="Cross-section tool"
+          >
+            {/* Lucide ActivitySquare-style line chart */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 17l6-6 4 4 8-10"/>
+              <path d="M3 21h18"/>
+            </svg>
+          </button>
+        </DelayedTooltip>
+      ) : (
+        <DelayedTooltip label="Draw a line on the map to sample its elevation profile" position="right">
+          <button
+            onClick={onTrigger}
+            style={btnStyle}
+            aria-pressed={active}
+          >
+            {active ? 'Cancel' : 'Cross-section'}
+          </button>
+        </DelayedTooltip>
+      )}
 
       {(loading || profile || error) && (
         <ProfilePanel
@@ -121,7 +149,7 @@ function ProfilePanel({ loading, profile, error, onClose }: ProfilePanelProps) {
         right: 12,
         maxWidth: 720,
         margin: '0 auto',
-        background: 'rgba(26, 22, 17, 0.95)',
+        background: 'var(--color-chrome-bg-translucent)',
         border: '1px solid rgba(196,180,154,0.25)',
         borderRadius: 10,
         padding: '12px 14px',
@@ -138,10 +166,10 @@ function ProfilePanel({ loading, profile, error, onClose }: ProfilePanelProps) {
           style={{ background: 'transparent', border: 'none', color: '#c4b49a', cursor: 'pointer', fontSize: 16 }}
           aria-label="Close"
         >
-          ×
+          Ã—
         </button>
       </div>
-      {loading && <div style={{ color: '#c4b49a', fontSize: 12 }}>Sampling DEM…</div>}
+      {loading && <div style={{ color: '#c4b49a', fontSize: 12 }}>Sampling DEMâ€¦</div>}
       {error && <div style={{ color: '#d07b7b', fontSize: 12 }}>{error}</div>}
       {profile && <ProfileChart profile={profile} />}
     </div>
@@ -188,9 +216,9 @@ function ProfileChart({ profile }: { profile: ElevationProfileResponse }) {
         <polyline points={points} fill="none" stroke={semantic.primary} strokeWidth={1.5} />
       </svg>
       <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#c4b49a', marginTop: 4 }}>
-        <span>min {minM?.toFixed(1) ?? '—'} m</span>
-        <span>max {maxM?.toFixed(1) ?? '—'} m</span>
-        <span>relief {reliefM?.toFixed(1) ?? '—'} m</span>
+        <span>min {minM?.toFixed(1) ?? 'â€”'} m</span>
+        <span>max {maxM?.toFixed(1) ?? 'â€”'} m</span>
+        <span>relief {reliefM?.toFixed(1) ?? 'â€”'} m</span>
         <span style={{ marginLeft: 'auto', opacity: 0.7 }}>{sourceApi}</span>
       </div>
     </div>

@@ -14,6 +14,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
 import { useUIStore } from '../store/uiStore.js';
 import { GroupingToggle } from './ui/GroupingToggle.js';
+import { DelayedTooltip } from './ui/DelayedTooltip.js';
 import {
   MAP_ITEMS,
   PHASE_META,
@@ -77,6 +78,14 @@ export type SubItemId =
   | 'terrain-viz' | 'site-data'
   | 'site-assessment' | 'hydrology-basic' | 'solar-climate' | 'soil-ecology'
   | 'zones' | 'structures' | 'access' | 'livestock' | 'crops' | 'utilities'
+  // Grazing & Livestock dashboards — distinct from 'livestock' (which is the
+  // Design Atlas livestock-systems sub-tool).
+  | 'paddock' | 'rotation' | 'grazing' | 'herd'
+  // Forestry dashboards — distinct from 'crops' (Design Atlas crops sub-tool).
+  | 'planting' | 'forest' | 'carbon' | 'nursery'
+  // Energy / Infrastructure dashboards — distinct from 'utilities' (Design
+  // Atlas utilities sub-tool).
+  | 'energy' | 'infrastructure'
   | 'timeline' | 'vision' | 'economics' | 'regulatory' | 'feasibility'
   | 'ai' | 'scenarios' | 'collaboration' | 'moontrance' | 'educational' | 'spiritual' | 'zoning' | 'siting-rules'
   | 'templates' | 'reporting'
@@ -181,25 +190,29 @@ export default function IconSidebar({
       {/* ── Logo / Header ─────────────────────────────── */}
       <div className={s.logoRow}>
         {!collapsed && (
-          <Link to="/" className={s.logoLink}>
+          <Link to="/home" className={s.logoLink}>
             <span className={s.logoMark}>OGDEN</span>
             <span className={s.logoSub}>LAND DESIGN ATLAS</span>
           </Link>
         )}
-        <button
-          onClick={toggleCollapse}
-          className={s.collapseBtn}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        <DelayedTooltip
+          label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          position="right"
         >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            {collapsed ? (
-              <polyline points="5 2 10 7 5 12" />
-            ) : (
-              <polyline points="9 2 4 7 9 12" />
-            )}
-          </svg>
-        </button>
+          <button
+            onClick={toggleCollapse}
+            className={s.collapseBtn}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              {collapsed ? (
+                <polyline points="5 2 10 7 5 12" />
+              ) : (
+                <polyline points="9 2 4 7 9 12" />
+              )}
+            </svg>
+          </button>
+        </DelayedTooltip>
       </div>
 
       {/* ── Grouping toggle (hidden when collapsed) ───── */}
@@ -216,11 +229,15 @@ export default function IconSidebar({
 
           return (
             <div key={group.key} className={s.phaseGroup}>
+              <DelayedTooltip
+                label={`${group.badge} — ${group.name}`}
+                position="right"
+                disabled={!collapsed}
+              >
               <button
                 className={`${s.phaseHeader} ${resolvedOpenGroup === group.key ? s.phaseHeaderActive : ''}`}
                 onClick={() => setOpen(group.key)}
                 aria-expanded={isOpen}
-                title={collapsed ? `${group.badge} — ${group.name}` : undefined}
               >
                 <span
                   className={s.phaseBadge}
@@ -244,6 +261,7 @@ export default function IconSidebar({
                   </span>
                 )}
               </button>
+              </DelayedTooltip>
 
               {isOpen && (
                 <div className={s.phaseItems}>
@@ -277,29 +295,33 @@ export default function IconSidebar({
 
       {/* ── Bottom actions ────────────────────────────── */}
       <div className={s.bottomSection}>
-        <button
-          className={s.bottomBtn}
-          onClick={() => navigate({ to: '/new' })}
-          title="New Project"
-        >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <line x1="7" y1="1" x2="7" y2="13" />
-            <line x1="1" y1="7" x2="13" y2="7" />
-          </svg>
-          {!collapsed && <span className={s.bottomBtnLabel}>NEW PROJECT</span>}
-        </button>
+        <DelayedTooltip label="New Project" position="right" disabled={!collapsed}>
+          <button
+            className={s.bottomBtn}
+            onClick={() => navigate({ to: '/new' })}
+            aria-label="New Project"
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="1" x2="7" y2="13" />
+              <line x1="1" y1="7" x2="13" y2="7" />
+            </svg>
+            {!collapsed && <span className={s.bottomBtnLabel}>NEW PROJECT</span>}
+          </button>
+        </DelayedTooltip>
 
-        <button
-          className={`${s.bottomBtn} ${activeView === 'settings' ? s.bottomBtnActive : ''}`}
-          onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
-          title="Settings"
-        >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="7" cy="7" r="2" />
-            <path d="M7 1.5L7.9 3.2L9.9 2.4L9.5 4.5L11.5 5.1L10.2 6.7L11.5 8.3L9.5 8.9L9.9 11L7.9 10.2L7 11.9L6.1 10.2L4.1 11L4.5 8.9L2.5 8.3L3.8 6.7L2.5 5.1L4.5 4.5L4.1 2.4L6.1 3.2L7 1.5Z" />
-          </svg>
-          {!collapsed && <span className={s.bottomBtnLabel}>SETTINGS</span>}
-        </button>
+        <DelayedTooltip label="Settings" position="right" disabled={!collapsed}>
+          <button
+            className={`${s.bottomBtn} ${activeView === 'settings' ? s.bottomBtnActive : ''}`}
+            onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
+            aria-label="Settings"
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="2" />
+              <path d="M7 1.5L7.9 3.2L9.9 2.4L9.5 4.5L11.5 5.1L10.2 6.7L11.5 8.3L9.5 8.9L9.9 11L7.9 10.2L7 11.9L6.1 10.2L4.1 11L4.5 8.9L2.5 8.3L3.8 6.7L2.5 5.1L4.5 4.5L4.1 2.4L6.1 3.2L7 1.5Z" />
+            </svg>
+            {!collapsed && <span className={s.bottomBtnLabel}>SETTINGS</span>}
+          </button>
+        </DelayedTooltip>
       </div>
 
       {/* ── User account ──────────────────────────────── */}
@@ -372,6 +394,39 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
       return <svg {...props}><line x1="7" y1="13" x2="7" y2="5"/><path d="M7 9C7 9 5 7 3 7"/><path d="M7 7C7 7 9 5 11 5"/><path d="M7 5C7 5 5 3 4 2"/></svg>;
     case 'utilities':
       return <svg {...props}><polyline points="2 11 5 8 8 10 12 4"/><circle cx="2" cy="11" r="1" fill={color}/><circle cx="12" cy="4" r="1" fill={color}/></svg>;
+    // ── Livestock group ─────────────────────────────────────────────────
+    case 'paddock':
+      // Paddock Design — 3×2 fenced grid
+      return <svg {...props}><rect x="1.5" y="3" width="11" height="8" rx="0.5"/><line x1="5" y1="3" x2="5" y2="11"/><line x1="9" y1="3" x2="9" y2="11"/><line x1="1.5" y1="7" x2="12.5" y2="7"/></svg>;
+    case 'rotation':
+      // Herd Rotation — circular arrows
+      return <svg {...props}><path d="M11.5 7C11.5 9.5 9.5 11.5 7 11.5C5.2 11.5 3.6 10.5 2.8 9"/><polyline points="2.5 11.5 2.8 9 5.3 9.3"/><path d="M2.5 7C2.5 4.5 4.5 2.5 7 2.5C8.8 2.5 10.4 3.5 11.2 5"/><polyline points="11.5 2.5 11.2 5 8.7 4.7"/></svg>;
+    case 'grazing':
+      // Grazing Analysis — grass blades + baseline
+      return <svg {...props}><line x1="1" y1="12" x2="13" y2="12"/><path d="M3 12C3 10 2.5 8 2 7"/><path d="M3 12C3 10 3.5 8.5 4.5 7.5"/><path d="M7 12C7 9.5 6.3 7 5.5 5.5"/><path d="M7 12C7 9.5 7.7 7.5 9 6"/><path d="M11 12C11 10 10.5 8 10 7"/><path d="M11 12C11 10 11.5 8.5 12.5 7.5"/></svg>;
+    case 'herd':
+      // Livestock Inventory & Health Ledger — stacked count bars + tick
+      return <svg {...props}><rect x="1.5" y="2" width="8" height="2.2" rx="0.3"/><rect x="1.5" y="5.6" width="6" height="2.2" rx="0.3"/><rect x="1.5" y="9.2" width="9.5" height="2.2" rx="0.3"/><polyline points="10.5 3.5 11.5 4.5 13 2.5"/></svg>;
+    // ── Forestry group ──────────────────────────────────────────────────
+    case 'planting':
+      // Planting Tool — trowel / spade
+      return <svg {...props}><path d="M9.5 2.5L11.5 4.5"/><path d="M8 4L10 6"/><path d="M3 13L8 8L6 6L2 10C1.5 10.5 1.5 11.5 2 12L2 12C2.5 12.5 3 13 3 13Z" fill={color} fillOpacity="0.15"/></svg>;
+    case 'forest':
+      // Forest Hub — three trees of varying heights
+      return <svg {...props}><path d="M3.5 11L3.5 8"/><path d="M2 8L3.5 4L5 8Z" fill={color} fillOpacity="0.2"/><path d="M7 12L7 7"/><path d="M5 7L7 2L9 7Z" fill={color} fillOpacity="0.2"/><path d="M10.5 11L10.5 8"/><path d="M9 8L10.5 4L12 8Z" fill={color} fillOpacity="0.2"/></svg>;
+    case 'carbon':
+      // Carbon Diagnostic — leaf with downward arrow (sequestration)
+      return <svg {...props}><path d="M11 2C11 2 5 2 3 6C1.5 9 3 12 6 12C10 12 12 8 11 2Z" fill={color} fillOpacity="0.15"/><line x1="5" y1="10" x2="9" y2="6"/><polyline points="4.5 13 4.5 10 7.5 10" stroke="none" fill="none"/></svg>;
+    case 'nursery':
+      // Nursery Ledger — seedling in pot / tray
+      return <svg {...props}><path d="M7 7L7 3"/><path d="M7 5C6 5 5 4 4.5 3"/><path d="M7 5C8 5 9 4 9.5 3"/><path d="M3 7L11 7L10 12L4 12Z"/><line x1="3" y1="9" x2="11" y2="9"/></svg>;
+    // ── Energy / Infrastructure group ───────────────────────────────────
+    case 'energy':
+      // Energy & Off-Grid — lightning bolt inside circle
+      return <svg {...props}><circle cx="7" cy="7" r="5.5"/><path d="M7.5 3L5 7.5L7 7.5L6.5 11L9 6.5L7 6.5L7.5 3Z" fill={color} fillOpacity="0.2"/></svg>;
+    case 'infrastructure':
+      // Utilities & Infrastructure — pylon / transmission tower
+      return <svg {...props}><path d="M4 13L7 1L10 13"/><line x1="5.5" y1="7" x2="8.5" y2="7"/><line x1="5" y1="9" x2="9" y2="9"/><line x1="4.5" y1="11" x2="9.5" y2="11"/></svg>;
     case 'timeline':
       return <svg {...props}><circle cx="7" cy="7" r="5.5"/><polyline points="7 3.5 7 7 10 8.5"/></svg>;
     case 'vision':

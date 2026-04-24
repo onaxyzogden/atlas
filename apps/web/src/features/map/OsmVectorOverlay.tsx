@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { useMapStore } from '../../store/mapStore.js';
 import { semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface OsmVectorOverlayProps {
   map: maplibregl.Map | null;
@@ -88,7 +89,7 @@ function elementsToFc(elements: OverpassElement[]): OsmFc {
 }
 
 /**
- * §2 Phase 5 — OSM roads/water/buildings overlay. Fetches features in the
+ * Â§2 Phase 5 â€” OSM roads/water/buildings overlay. Fetches features in the
  * parcel bbox from the Overpass API once on mount; visibility of each kind is
  * controlled via mapStore.osmLayersVisible. Paint opacity is multiplied by the
  * global overlayOpacity so the dedicated slider dims everything together.
@@ -171,7 +172,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
     const sync = () => {
       if (!map.isStyleLoaded()) return;
 
-      // ── Roads ─────────────────────────────────────────────────────────
+      // â”€â”€ Roads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       if (osmVisible.roads) {
         if (!map.getSource(SOURCE_IDS.roads)) {
           map.addSource(SOURCE_IDS.roads, { type: 'geojson', data: data.roads });
@@ -197,7 +198,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
         map.removeSource(SOURCE_IDS.roads);
       }
 
-      // ── Water ─────────────────────────────────────────────────────────
+      // â”€â”€ Water â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       if (osmVisible.water) {
         if (!map.getSource(SOURCE_IDS.water)) {
           map.addSource(SOURCE_IDS.water, { type: 'geojson', data: data.water });
@@ -224,7 +225,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
         map.removeSource(SOURCE_IDS.water);
       }
 
-      // ── Buildings ─────────────────────────────────────────────────────
+      // â”€â”€ Buildings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       if (osmVisible.buildings) {
         if (!map.getSource(SOURCE_IDS.buildings)) {
           map.addSource(SOURCE_IDS.buildings, { type: 'geojson', data: data.buildings });
@@ -258,10 +259,12 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
 
 interface OsmVectorControlsProps {
   disabled?: boolean;
+  /** When true, render a 40 px icon-only trigger; submenu opens to the right. */
+  compact?: boolean;
 }
 
 /** Compact toggle group + global opacity slider for the overlay stack. */
-export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
+export function OsmVectorControls({ disabled, compact = false }: OsmVectorControlsProps) {
   const { roads, water, buildings } = useMapStore((s) => s.osmLayersVisible);
   const setOsmLayerVisible = useMapStore((s) => s.setOsmLayerVisible);
   const opacity = useMapStore((s) => s.overlayOpacity);
@@ -278,26 +281,49 @@ export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontSize: 12,
     fontWeight: 500,
-    background: anyOn ? semantic.primary : 'rgba(26, 22, 17, 0.85)',
+    background: anyOn ? semantic.primary : 'var(--color-chrome-bg-translucent)',
     color: anyOn ? '#fff' : '#c4b49a',
     backdropFilter: 'blur(8px)',
     pointerEvents: 'auto',
     opacity: disabled ? 0.5 : 1,
   };
 
+  const popoverPosition: React.CSSProperties = compact
+    ? { position: 'absolute', top: 0, left: 'calc(100% + 8px)' }
+    : { position: 'absolute', top: '100%', left: 0, marginTop: 4 };
+
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
-      <button onClick={() => setOpen((v) => !v)} style={btnStyle} disabled={disabled} title="OSM overlays + opacity">
-        Overlays{anyOn ? ` · ${[roads && 'R', water && 'W', buildings && 'B'].filter(Boolean).join('')}` : ''}
-      </button>
+      {compact ? (
+        <DelayedTooltip label="OSM overlays (roads / water / buildings)" position="right">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-pressed={anyOn}
+          className={`spine-btn${anyOn ? ' signifier-shimmer' : ''}`}
+          data-active={anyOn}
+          disabled={disabled}
+          aria-label="OSM overlays"
+        >
+          {/* Lucide Layers */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.91a1 1 0 0 0 0-1.83Z"/>
+            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+          </svg>
+        </button>
+        </DelayedTooltip>
+      ) : (
+        <DelayedTooltip label="OSM overlays + opacity" position="bottom">
+          <button onClick={() => setOpen((v) => !v)} style={btnStyle} disabled={disabled} className={anyOn ? 'signifier-shimmer' : undefined}>
+            Overlays{anyOn ? ` · ${[roads && 'R', water && 'W', buildings && 'B'].filter(Boolean).join('')}` : ''}
+          </button>
+        </DelayedTooltip>
+      )}
       {open && (
         <div
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            marginTop: 4,
-            background: 'rgba(26, 22, 17, 0.95)',
+            ...popoverPosition,
+            background: 'var(--color-chrome-bg-translucent)',
             border: '1px solid rgba(196,180,154,0.25)',
             borderRadius: 8,
             padding: 10,
@@ -313,7 +339,7 @@ export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
             <ToggleRow label="Buildings" on={buildings} onChange={(v) => setOsmLayerVisible('buildings', v)} />
           </div>
           <div style={{ fontSize: 10, color: '#c4b49a', marginBottom: 4, letterSpacing: '0.05em' }}>
-            OVERLAY OPACITY · {Math.round(opacity * 100)}%
+            OVERLAY OPACITY Â· {Math.round(opacity * 100)}%
           </div>
           <input
             type="range"
@@ -328,7 +354,7 @@ export function OsmVectorControls({ disabled }: OsmVectorControlsProps) {
             Source: OpenStreetMap via Overpass API
           </div>
           {status === 'loading' && (
-            <div style={{ fontSize: 10, color: '#c4b49a', marginTop: 4 }}>Fetching OSM features…</div>
+            <div style={{ fontSize: 10, color: '#c4b49a', marginTop: 4 }}>Fetching OSM featuresâ€¦</div>
           )}
           {status === 'error' && error && (
             <div style={{ fontSize: 10, color: '#d07b7b', marginTop: 4 }}>

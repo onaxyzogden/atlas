@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { useMapStore } from '../../store/mapStore.js';
 import { semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
-// Esri Wayback — free global historical World Imagery archive. Releases are
+// Esri Wayback â€” free global historical World Imagery archive. Releases are
 // quarterly snapshots of the World Imagery tile service.
 const WAYBACK_CONFIG_URL =
   'https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json';
@@ -28,6 +29,8 @@ const BOUNDARY_LINE_OVERLAY = 'wayback-boundary-line';
 interface HistoricalImageryControlProps {
   map: maplibregl.Map | null;
   boundaryGeojson?: GeoJSON.FeatureCollection | null | undefined;
+  /** When true, render a 40 px icon-only trigger; dropdown opens to the right. */
+  compact?: boolean;
 }
 
 /**
@@ -36,7 +39,7 @@ interface HistoricalImageryControlProps {
  * project boundary (when available) is mirrored on top so the user can orient
  * the historical imagery to the parcel.
  */
-export default function HistoricalImageryControl({ map, boundaryGeojson }: HistoricalImageryControlProps) {
+export default function HistoricalImageryControl({ map, boundaryGeojson, compact = false }: HistoricalImageryControlProps) {
   const release = useMapStore((s) => s.historicalRelease);
   const setRelease = useMapStore((s) => s.setHistoricalRelease);
   const overlayOpacity = useMapStore((s) => s.overlayOpacity);
@@ -110,7 +113,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
         } else if (map.getLayer(LAYER_ID)) {
           map.setPaintProperty(LAYER_ID, 'raster-opacity', overlayOpacity);
         }
-        // Boundary mirror — re-add above the raster so the parcel stays visible.
+        // Boundary mirror â€” re-add above the raster so the parcel stays visible.
         if (boundaryGeojson) {
           if (!map.getSource(BOUNDARY_SRC_OVERLAY)) {
             map.addSource(BOUNDARY_SRC_OVERLAY, { type: 'geojson', data: boundaryGeojson });
@@ -147,31 +150,51 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
     cursor: 'pointer',
     fontSize: 12,
     fontWeight: 500,
-    background: release ? semantic.primary : 'rgba(26, 22, 17, 0.85)',
+    background: release ? semantic.primary : 'var(--color-chrome-bg-translucent)',
     color: release ? '#fff' : '#c4b49a',
     backdropFilter: 'blur(8px)',
     pointerEvents: 'auto',
   };
 
+  const popoverPosition: React.CSSProperties = compact
+    ? { position: 'absolute', top: 0, left: 'calc(100% + 8px)' }
+    : { position: 'absolute', top: '100%', left: 0, marginTop: 4 };
+
   return (
     <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen((v) => !v)} style={btnStyle} aria-pressed={!!release}>
-        {release
-          ? tileStatus === 'loading'
-            ? `Historical · ${release.date} · …`
-            : tileStatus === 'empty'
-            ? `Historical · ${release.date} · no coverage`
-            : `Historical · ${release.date}`
-          : 'Historical'}
-      </button>
+      {compact ? (
+        <DelayedTooltip label={release ? `Historical · ${release.date}` : 'Historical imagery'} position="right">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-pressed={!!release}
+          className={`spine-btn${release ? ' signifier-shimmer' : ''}`}
+          data-active={!!release}
+          aria-label="Historical imagery"
+        >
+          {/* Lucide History */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l4 2"/>
+          </svg>
+        </button>
+        </DelayedTooltip>
+      ) : (
+        <button onClick={() => setOpen((v) => !v)} style={btnStyle} aria-pressed={!!release}>
+          {release
+            ? tileStatus === 'loading'
+              ? `Historical Â· ${release.date} Â· â€¦`
+              : tileStatus === 'empty'
+              ? `Historical Â· ${release.date} Â· no coverage`
+              : `Historical Â· ${release.date}`
+            : 'Historical'}
+        </button>
+      )}
       {open && (
         <div
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            marginTop: 4,
-            background: 'rgba(26, 22, 17, 0.95)',
+            ...popoverPosition,
+            background: 'var(--color-chrome-bg-translucent)',
             border: '1px solid rgba(196,180,154,0.25)',
             borderRadius: 8,
             padding: 6,
@@ -183,7 +206,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson }: Histo
           }}
         >
           {err && <div style={{ color: '#d07b7b', fontSize: 11, padding: 4 }}>{err}</div>}
-          {!releases && !err && <div style={{ color: '#c4b49a', fontSize: 11, padding: 4 }}>Loading releases…</div>}
+          {!releases && !err && <div style={{ color: '#c4b49a', fontSize: 11, padding: 4 }}>Loading releasesâ€¦</div>}
           {releases && (
             <>
               <button

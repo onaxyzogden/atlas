@@ -93,6 +93,11 @@ export interface LiveDataRow {
   label: string;
   value: string;
   detail?: string;
+  /** Formal classification code from the source (e.g. "Hardiness zone 6a",
+   *  "CLASS_1"). Rendered as a dedicated chip in the UI — distinct from
+   *  `detail` so the reader can separate "what kind of thing this is" from
+   *  free-form qualifiers. Phase C. */
+  classification?: string;
   confidence: 'High' | 'Medium' | 'Low';
   color: string;
   /** Provenance (Phase 3 UX): surfaced via delayed tooltip on the
@@ -102,6 +107,11 @@ export interface LiveDataRow {
   /** Why the confidence is what it is. Renderer maps this to a reason
    *  glyph (clock = freshness, crosshair = resolution, shield = authority). */
   reason?: 'freshness' | 'resolution' | 'authority';
+  /** Optional numeric series for a trend sparkline (e.g. 12 monthly
+   *  normals). Renderer decides whether to display it. */
+  sparkline?: number[];
+  /** Accessible label describing what the sparkline represents. */
+  sparklineLabel?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -2478,16 +2488,27 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
 
   // Climate
   if (climate) {
+    const climSummary = climate?.summary as Record<string, unknown> | undefined;
+    const monthlyNormals = climSummary?.['_monthly_normals'] as
+      | { month: number; precip_mm?: number | null }[]
+      | undefined;
+    const precipSeries = monthlyNormals
+      ?.slice()
+      .sort((a, b) => a.month - b.month)
+      .map((n) => Number(n.precip_mm ?? 0))
+      .filter((v) => Number.isFinite(v));
     rows.push({
       icon: 'climate',
       label: 'Climate',
       value: `${s(climate, 'annual_precip_mm')} mm/yr \u00B7 ${s(climate, 'growing_season_days')} frost-free`,
-      detail: `Hardiness zone ${s(climate, 'hardiness_zone')}`,
+      classification: `Hardiness zone ${s(climate, 'hardiness_zone')}`,
       confidence: normalizeConfidence(climate.confidence),
       color: confidence.high,
       source: climate.sourceApi,
       dataDate: climate.dataDate,
       reason: 'freshness',
+      sparkline: precipSeries && precipSeries.length >= 3 ? precipSeries : undefined,
+      sparklineLabel: precipSeries && precipSeries.length >= 3 ? 'Monthly precipitation' : undefined,
     });
   }
 
@@ -2497,7 +2518,7 @@ export function deriveLiveDataRows(layers: MockLayerResult[]): LiveDataRow[] {
       icon: 'soil',
       label: 'Soil',
       value: `${s(soilsLayer, 'predominant_texture')}, ${s(soilsLayer, 'drainage_class')}`,
-      detail: `${s(soilsLayer, 'farmland_class')}`,
+      classification: `${s(soilsLayer, 'farmland_class')}`,
       confidence: normalizeConfidence(soilsLayer.confidence),
       color: semantic.textSubtle,
       source: soilsLayer.sourceApi,

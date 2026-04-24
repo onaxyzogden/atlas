@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface ViewshedOverlayProps {
   projectId: string;
@@ -84,28 +85,49 @@ export default function ViewshedOverlay({ projectId, map }: ViewshedOverlayProps
   return null;
 }
 
-export function ViewshedToggle() {
+export function ViewshedToggle({ compact = false }: { compact?: boolean } = {}) {
   const visible = useMapStore((s) => s.viewshedVisible);
   const setVisible = useMapStore((s) => s.setViewshedVisible);
+  if (compact) {
+    return (
+      <DelayedTooltip label="Viewshed overlay" position="right">
+        <button
+          onClick={() => setVisible(!visible)}
+          aria-pressed={visible}
+          className={`spine-btn${visible ? ' signifier-shimmer' : ''}`}
+          data-active={visible}
+          aria-label="Toggle viewshed overlay"
+        >
+          {/* Lucide Eye â€” inlined to avoid extra imports in shared bundle */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </DelayedTooltip>
+    );
+  }
   return (
-    <button
-      onClick={() => setVisible(!visible)}
-      aria-pressed={visible}
-      style={{
-        padding: '6px 10px',
-        borderRadius: 6,
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: 12,
-        fontWeight: 500,
-        background: visible ? semantic.primary : 'rgba(26, 22, 17, 0.85)',
-        color: visible ? '#fff' : '#c4b49a',
-        backdropFilter: 'blur(8px)',
-        pointerEvents: 'auto',
-      }}
-      title="Toggle the pre-computed viewshed overlay"
-    >
-      Viewshed
-    </button>
+    <DelayedTooltip label="Toggle the pre-computed viewshed overlay" position="bottom">
+      <button
+        onClick={() => setVisible(!visible)}
+        aria-pressed={visible}
+        className={visible ? 'signifier-shimmer' : undefined}
+        style={{
+          padding: '6px 10px',
+          borderRadius: 6,
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: 12,
+          fontWeight: 500,
+          background: visible ? semantic.primary : 'var(--color-chrome-bg-translucent)',
+          color: visible ? '#fff' : '#c4b49a',
+          backdropFilter: 'blur(8px)',
+          pointerEvents: 'auto',
+        }}
+      >
+        Viewshed
+      </button>
+    </DelayedTooltip>
   );
 }

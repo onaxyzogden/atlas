@@ -7,10 +7,18 @@
 :root[data-theme="dark"],
 :root:not([data-theme="light"]):is(.prefers-dark) {
 
-  /* -- Background & Surface ------------------------------------------------ */
+  /* -- Background & Surface (elevation tiers, UX Scholar 2026-04-23) ------
+   * Surfaces get lighter as they rise to mimic natural light-from-above.
+   * Base → surface → raised = +6L per step in warm-neutral space. */
   --color-bg:              #1a1611;
-  --color-surface:         #241e17;
-  --color-surface-raised:  #2d261e;
+  --color-surface:         #2a2420;
+  --color-surface-raised:  #342d26;
+
+  /* Chrome neutrals override (slightly lifted off pure bg for depth) */
+  --color-chrome-bg:             #1f1d1a;
+  --color-chrome-bg-translucent: rgba(31, 29, 26, 0.95);
+  --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+  --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
   /* -- Borders ------------------------------------------------------------- */
   --color-border:          #3d3328;
@@ -54,8 +62,8 @@
   --color-warning-muted:   rgba(196, 160, 68, 0.15);
   --color-error:           #c45a4a;
   --color-error-muted:     rgba(196, 90, 74, 0.15);
-  --color-info:            #5a94b8;
-  --color-info-muted:      rgba(90, 148, 184, 0.15);
+  --color-info:            #6ea0bf;
+  --color-info-muted:      rgba(110, 160, 191, 0.15);
 
   /* -- Confidence ---------------------------------------------------------- */
   --color-confidence-high:   #5a9e6f;
@@ -92,8 +100,13 @@
   :root:not([data-theme="light"]) {
 
     --color-bg:              #1a1611;
-    --color-surface:         #241e17;
-    --color-surface-raised:  #2d261e;
+    --color-surface:         #2a2420;
+    --color-surface-raised:  #342d26;
+
+    --color-chrome-bg:             #1f1d1a;
+    --color-chrome-bg-translucent: rgba(31, 29, 26, 0.95);
+    --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+    --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
     --color-border:          #3d3328;
     --color-border-subtle:   #332a1f;
@@ -129,8 +142,8 @@
     --color-warning-muted:   rgba(196, 160, 68, 0.15);
     --color-error:           #c45a4a;
     --color-error-muted:     rgba(196, 90, 74, 0.15);
-    --color-info:            #5a94b8;
-    --color-info-muted:      rgba(90, 148, 184, 0.15);
+    --color-info:            #6ea0bf;
+    --color-info-muted:      rgba(110, 160, 191, 0.15);
 
     --color-confidence-high:   #5a9e6f;
     --color-confidence-medium: #c4a044;
@@ -156,5 +169,48 @@
     --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
     --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * OKLCH overrides (UX Scholar 2026-04-23, §2 + §4)
+ * Gated on browser support so older engines fall through to the hex
+ * declarations above. Reverse-computed from existing hex for visual
+ * parity; future pass can tighten L values for perceived-brightness
+ * uniformity across overlay hues.
+ * ───────────────────────────────────────────────────────────────────────── */
+@supports (color: oklch(0 0 0)) {
+  :root[data-theme="dark"],
+  :root:not([data-theme="light"]):is(.prefers-dark) {
+
+    /* Elevation ladder (constant chroma + hue, L varies) */
+    --color-bg:             oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface:        oklch(var(--l-surface) var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface-raised: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-panel-bg:       oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+
+    /* Semantic hues */
+    --color-primary: oklch(var(--l-primary) var(--c-primary) var(--h-primary));
+    --color-accent:  oklch(var(--l-accent)  var(--c-accent)  var(--h-accent));
+    --color-success: oklch(var(--l-success) var(--c-success) var(--h-success));
+    --color-warning: oklch(var(--l-warning) var(--c-warning) var(--h-warning));
+    --color-error:   oklch(var(--l-error)   var(--c-error)   var(--h-error));
+    --color-info:    oklch(var(--l-info)    var(--c-info)    var(--h-info));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-bg:             oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface:        oklch(var(--l-surface) var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface-raised: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-panel-bg:       oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+
+      --color-primary: oklch(var(--l-primary) var(--c-primary) var(--h-primary));
+      --color-accent:  oklch(var(--l-accent)  var(--c-accent)  var(--h-accent));
+      --color-success: oklch(var(--l-success) var(--c-success) var(--h-success));
+      --color-warning: oklch(var(--l-warning) var(--c-warning) var(--h-warning));
+      --color-error:   oklch(var(--l-error)   var(--c-error)   var(--h-error));
+      --color-info:    oklch(var(--l-info)    var(--c-info)    var(--h-info));
+    }
   }
 }

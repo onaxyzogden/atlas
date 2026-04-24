@@ -10,6 +10,8 @@ export { Skeleton } from './Skeleton';
 export { Spinner } from './Spinner';
 export { Toggle } from './Toggle';
 export { Tooltip } from './Tooltip';
+export { DelayedTooltip } from './DelayedTooltip';
+export { Sparkline } from './Sparkline';
 
 // Composites
 export { Card } from './Card';
