@@ -20,6 +20,7 @@ import { Sparkline } from '../../ui/Sparkline.js';
 import { ConfBadge, ScoreCircle } from './_shared.js';
 import { capConf } from './_helpers.js';
 import { LayerLegendPopover } from '../LayerLegendPopover.js';
+import { DelayedTooltip } from '../../ui/DelayedTooltip.js';
 import s from '../SiteIntelligencePanel.module.css';
 import p from '../../../styles/panel.module.css';
 
@@ -184,18 +185,22 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
               </button>
             )}
           </LayerLegendPopover>
+          {/* a11y: keyboard tooltip deferred — see accessibility-audit.md §5
+              (outer row's aggregate title duplicates the per-dot tooltips below; adding
+              another tabstop on the wrapper would be redundant) */}
           <div className={s.layerDotsRow} title={layerCompleteness.map((l) => `${l.label}: ${l.status}`).join(', ')}>
             {layerCompleteness.map((l) => (
-              <div
-                key={l.type}
-                className={`${s.layerDot} ${l.status === 'pending' ? s.layerDotPending : ''}`}
-                title={`${l.label}: ${l.status}`}
-                style={{
-                  background: l.status === 'complete' ? confidence.high
-                    : l.status === 'pending' ? semantic.sidebarActive
-                    : 'var(--color-panel-muted, #666)',
-                }}
-              />
+              <DelayedTooltip key={l.type} label={`${l.label}: ${l.status}`}>
+                <div
+                  tabIndex={0}
+                  className={`${s.layerDot} ${l.status === 'pending' ? s.layerDotPending : ''}`}
+                  style={{
+                    background: l.status === 'complete' ? confidence.high
+                      : l.status === 'pending' ? semantic.sidebarActive
+                      : 'var(--color-panel-muted, #666)',
+                  }}
+                />
+              </DelayedTooltip>
             ))}
           </div>
         </div>
@@ -310,9 +315,11 @@ export const ScoresAndFlagsSection = memo(function ScoresAndFlagsSection({
                     />
                   )}
                   {row.classification && (
-                    <span className={s.classificationChip} title="Formal classification">
-                      {row.classification}
-                    </span>
+                    <DelayedTooltip label="Formal classification">
+                      <span className={s.classificationChip} tabIndex={0}>
+                        {row.classification}
+                      </span>
+                    </DelayedTooltip>
                   )}
                 </div>
                 {row.detail && (

@@ -27,6 +27,7 @@ import UtilityPanel from '../../features/utilities/UtilityPanel.js';
 import { earth, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './DesignToolsPanel.module.css';
+import { DelayedTooltip } from '../ui/DelayedTooltip.js';
 
 interface DesignToolsPanelProps {
   projectId: string;
@@ -208,16 +209,17 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </div>
 
             {/* Draw button */}
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={canEdit}>
             <button
               onClick={canEdit ? startDraw : undefined}
               disabled={isDrawing || !draw || !canEdit}
-              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={`${s.drawBtn} ${isDrawing ? s.drawBtnDisabled : ''}`}
               style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
               {isDrawing ? 'Drawing... double-click to finish' : 'Draw Zone on Map'}
             </button>
+            </DelayedTooltip>
 
             {/* Defined zones */}
             <h3 className={p.sectionLabel}>Defined Zones ({zones.length})</h3>
@@ -237,6 +239,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         {z.areaM2 > 0 && ` \u2014 ${formatArea(z.areaM2)}`}
                       </div>
                     </div>
+                    <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}>
                     <button
                       onClick={canEdit ? () => {
                         deleteZone(z.id);
@@ -249,12 +252,12 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         }
                       } : undefined}
                       disabled={!canEdit}
-                      title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
                       className={s.deleteBtn}
                       style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                     >
                       {'\u00D7'}
                     </button>
+                    </DelayedTooltip>
                   </div>
                 ))}
               </div>
@@ -279,8 +282,8 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                     {types.map(([key, tmpl]) => {
                       const isActive = placementMode === key;
                       return (
+                        <DelayedTooltip key={key} label={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}>
                         <button
-                          key={key}
                           onClick={canEdit ? () => {
                             if (isActive) {
                               setPlacementMode(null);
@@ -289,13 +292,13 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                             }
                           } : undefined}
                           disabled={!canEdit}
-                          title={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}
                           className={`${s.structBtn} ${isActive ? s.structBtnActive : ''}`}
                           style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                         >
                           <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
                           <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{tmpl.label}</span>
                         </button>
+                        </DelayedTooltip>
                       );
                     })}
                   </div>
@@ -330,6 +333,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                           {st.costEstimate && ` \u2014 $${st.costEstimate.toLocaleString()}`}
                         </div>
                       </div>
+                      <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete structure'}>
                       <button
                         onClick={canEdit ? (e) => {
                           e.stopPropagation();
@@ -344,11 +348,12 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         } : undefined}
                         disabled={!canEdit}
                         className={s.deleteBtn}
-                        title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete structure'}
                         style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u00D7'}
                       </button>
+                      </DelayedTooltip>
+                      <DelayedTooltip label={!canEdit ? 'Editing requires Designer or Owner role' : 'Edit structure'}>
                       <button
                         onClick={canEdit ? (e) => {
                           e.stopPropagation();
@@ -356,11 +361,11 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         } : undefined}
                         disabled={!canEdit}
                         className={s.editBtn}
-                        title={!canEdit ? 'Editing requires Designer or Owner role' : 'Edit structure'}
                         style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u270E'}
                       </button>
+                      </DelayedTooltip>
                     </div>
                   );
                 })}

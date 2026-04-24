@@ -32,6 +32,7 @@ import { getDomainContext, type DomainKey } from './domainMapping.js';
 import { map as mapTokens, mapZIndex, group } from '../../lib/tokens.js';
 import css from './MapView.module.css';
 import './mapRailDashboard.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
@@ -52,6 +53,8 @@ const AgroforestryOverlay = lazy(() => import('./AgroforestryOverlay.js'));
 const AgroforestryToggle = lazy(() => import('./AgroforestryOverlay.js').then((m) => ({ default: m.AgroforestryToggle })));
 const PollinatorHabitatOverlay = lazy(() => import('./PollinatorHabitatOverlay.js'));
 const PollinatorHabitatToggle = lazy(() => import('./PollinatorHabitatOverlay.js').then((m) => ({ default: m.PollinatorHabitatToggle })));
+const BiodiversityCorridorOverlay = lazy(() => import('./BiodiversityCorridorOverlay.js'));
+const BiodiversityCorridorToggle = lazy(() => import('./BiodiversityCorridorOverlay.js').then((m) => ({ default: m.BiodiversityCorridorToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
@@ -273,15 +276,16 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           {isDrawingBoundary ? (
             <button onClick={cancelBoundaryDraw} className={css.btnCancelDraw}>Cancel Drawing</button>
           ) : (
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={effectiveCanEdit}>
             <button
               onClick={startBoundaryDraw}
               disabled={!drawRef || !effectiveCanEdit}
-              title={!effectiveCanEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={css.btnDrawBoundary}
               style={!effectiveCanEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {project.hasParcelBoundary ? 'Redraw Boundary' : 'Draw Boundary'}
             </button>
+            </DelayedTooltip>
           )}
           <span className={css.headerStats}>
             {zones.length} zones &middot; {structures.length} structures
@@ -349,6 +353,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             pollinatorOpportunitySlot={
               <Suspense fallback={null}>
                 <PollinatorHabitatToggle compact />
+              </Suspense>
+            }
+            biodiversityCorridorSlot={
+              <Suspense fallback={null}>
+                <BiodiversityCorridorToggle compact />
               </Suspense>
             }
             osmSlot={
@@ -425,6 +434,9 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         </Suspense>
         <Suspense fallback={null}>
           <PollinatorHabitatOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BiodiversityCorridorOverlay projectId={project.id} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare

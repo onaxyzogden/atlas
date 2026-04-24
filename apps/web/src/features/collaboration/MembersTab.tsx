@@ -10,6 +10,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import type { ProjectRole } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
 import { role as roleToken, semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface MembersTabProps {
   project: LocalProject;
@@ -211,6 +212,7 @@ export default function MembersTab({ project }: MembersTabProps) {
 
               {/* Remove button (owner only, not self, not other owner) */}
               {isOwner && !isMemberOwner && !isCurrentUser && (
+                <DelayedTooltip label="Remove member">
                 <button
                   onClick={() => handleRemove(m.userId)}
                   style={{
@@ -218,10 +220,10 @@ export default function MembersTab({ project }: MembersTabProps) {
                     color: 'var(--color-panel-muted)', fontSize: 14, padding: '0 4px',
                     flexShrink: 0,
                   }}
-                  title="Remove member"
                 >
                   {'\u2715'}
                 </button>
+                </DelayedTooltip>
               )}
             </div>
           );

@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 import { useVersionStore, type ProjectSnapshot } from '../../store/versionStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface VersionHistoryProps {
   projectId: string;
@@ -79,35 +80,37 @@ export default function VersionHistory({ projectId }: VersionHistoryProps) {
                 {formatTimestamp(snap.timestamp)}
               </div>
             </div>
-            <button
-              onClick={() => handleRestore(snap)}
-              style={{
-                padding: '3px 8px',
-                fontSize: 10,
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                background: 'transparent',
-                color: 'var(--color-text-muted)',
-                cursor: 'pointer',
-              }}
-              title="Restore this version"
-            >
-              Restore
-            </button>
-            <button
-              onClick={() => deleteSnapshot(snap.id)}
-              style={{
-                padding: '3px 6px',
-                fontSize: 12,
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-text-muted)',
-                cursor: 'pointer',
-              }}
-              title="Delete snapshot"
-            >
-              ×
-            </button>
+            <DelayedTooltip label="Restore this version">
+              <button
+                onClick={() => handleRestore(snap)}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: 10,
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                }}
+              >
+                Restore
+              </button>
+            </DelayedTooltip>
+            <DelayedTooltip label="Delete snapshot">
+              <button
+                onClick={() => deleteSnapshot(snap.id)}
+                style={{
+                  padding: '3px 6px',
+                  fontSize: 12,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+            </DelayedTooltip>
           </div>
         ))}
       </div>

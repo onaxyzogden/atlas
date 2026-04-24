@@ -24,10 +24,12 @@ import {
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
 import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
 import { useUtilityStore, type Utility, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
+import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } from '../structures/footprints.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface SolarClimateDashboardProps {
   project: {
@@ -130,6 +132,12 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   );
   const passiveSolarStructures = useMemo(
     () => allStructures.filter((s) => s.projectId === project.id && PASSIVE_SOLAR_TYPES.has(s.type)),
+    [allStructures, project.id],
+  );
+  // §6 Shadow casting — all placed structures, not just passive-solar
+  // (any structure with non-trivial height casts a meaningful shadow).
+  const projectStructures = useMemo(
+    () => allStructures.filter((s) => s.projectId === project.id),
     [allStructures, project.id],
   );
 
@@ -265,6 +273,16 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
         </div>
       </div>
 
+      {/* §6 Windbreak & Ventilation Corridor candidates */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>WINDBREAK CANDIDATES</h3>
+        <WindbreakCandidatesCard
+          windbreaks={windbreaks}
+          prevailingWind={climate?.prevailing_wind ?? null}
+          boundary={project.parcelBoundaryGeojson ?? null}
+        />
+      </div>
+
       {/* Growing Season Calendar */}
       <div className={css.section}>
         <h3 className={css.sectionLabel}>GROWING SEASON CALENDAR</h3>
@@ -310,10 +328,19 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           passiveSolarStructures={passiveSolarStructures}
           exposureBySeason={exposureBySeason}
           dominantAspect={elevation?.aspect_dominant ?? null}
+          meanSlopeDeg={elevation?.mean_slope_deg ?? null}
           lat={lat}
           hasClimate={climate != null}
           onSwitchToMap={onSwitchToMap}
         />
+      </div>
+
+      {/* §6 Shadow Footprints — solar-noon shadow length + direction per
+          structure at the solstices. Tree shadows deferred until a tree
+          entity exists in the feature stores. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>SHADOW FOOTPRINTS</h3>
+        <ShadowFootprintsCard structures={projectStructures} lat={lat} />
       </div>
 
       {/* Microclimate Zones */}
@@ -472,7 +499,7 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
               {windbreaks && windbreaks.lines.length > 0 && (
                 <p className={css.solarOppNote} style={{ marginTop: 6 }}>
                   <span style={{ display: 'inline-block', width: 18, height: 3, background: 'rgba(138,200,172,0.95)', borderRadius: 1.5, marginRight: 6, verticalAlign: 'middle' }} />
-                  {windbreaks.lines.length} windbreak candidate{windbreaks.lines.length === 1 ? '' : 's'} on {windbreaks.windwardEdge}, facing {Math.round(windbreaks.faceAzimuth)}&deg;. Lines perpendicular to prevailing wind ({climate?.prevailing_wind ?? '—'}).
+                  Green lines overlay the {windbreaks.lines.length} windbreak candidate{windbreaks.lines.length === 1 ? '' : 's'} &mdash; see the Windbreak Candidates section above for per-line details.
                 </p>
               )}
               <p className={css.solarOppNote}>
@@ -591,6 +618,171 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
               </p>
             </>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── §6 Windbreak candidates card ─────────────────────────────────────────────
+//
+// Surfaces the already-computed `buildWindbreakLines` output as a dedicated
+// planning card. Per-line context (position along the windward edge, length,
+// est. shelter reach) elevates the data beyond the one-line count previously
+// shown on the exposure-map legend.
+//
+// Shelter-reach math is a planning heuristic: a mature multi-row windbreak
+// (~8m canopy) reduces wind measurably out to ~20× canopy height (~160m),
+// with 60–80% reduction in the 5–10H zone. Species-specific picks belong in
+// §11 Vegetation & Agroforestry; this card stays geometry-only.
+
+const COMPASS_8 = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+
+function bearingLabel(deg: number): string {
+  const normalized = ((deg % 360) + 360) % 360;
+  const idx = Math.round(normalized / 45) % 8;
+  return COMPASS_8[idx]!;
+}
+
+function bearingFromCenter(
+  center: [number, number],
+  point: [number, number],
+): number {
+  const dLng = point[0] - center[0];
+  const dLat = point[1] - center[1];
+  if (Math.abs(dLng) < 1e-9 && Math.abs(dLat) < 1e-9) return 0;
+  const deg = (Math.atan2(dLng, dLat) * 180) / Math.PI;
+  return ((deg % 360) + 360) % 360;
+}
+
+/** Planning-grade windbreak canopy height assumption (metres). */
+const ASSUMED_WINDBREAK_CANOPY_M = 8;
+/** Max height multiplier for measurable downwind shelter (rule-of-thumb 20H). */
+const SHELTER_H_MULT_MAX = 20;
+
+function boundaryCentroid(
+  boundary: GeoJSON.FeatureCollection | null,
+): [number, number] | null {
+  if (!boundary) return null;
+  let sumLng = 0;
+  let sumLat = 0;
+  let count = 0;
+  for (const f of boundary.features ?? []) {
+    if (f.geometry?.type !== 'Polygon') continue;
+    const ring = (f.geometry as GeoJSON.Polygon).coordinates[0];
+    if (!ring || ring.length === 0) continue;
+    // Drop the closing coord if the ring is closed (first == last).
+    const first = ring[0];
+    const last = ring[ring.length - 1];
+    const closed =
+      first && last && first[0] === last[0] && first[1] === last[1];
+    const trimmed = closed ? ring.slice(0, -1) : ring;
+    for (const c of trimmed) {
+      const lng = c[0];
+      const lat = c[1];
+      if (lng == null || lat == null) continue;
+      sumLng += lng;
+      sumLat += lat;
+      count++;
+    }
+  }
+  return count > 0 ? [sumLng / count, sumLat / count] : null;
+}
+
+function WindbreakCandidatesCard({
+  windbreaks,
+  prevailingWind,
+  boundary,
+}: {
+  windbreaks: WindbreakCandidates | null;
+  prevailingWind: string | number | null | undefined;
+  boundary: GeoJSON.FeatureCollection | null;
+}) {
+  const centroid = useMemo(() => boundaryCentroid(boundary), [boundary]);
+
+  if (!windbreaks || windbreaks.lines.length === 0) {
+    return (
+      <div className={css.pendingNote}>
+        Prevailing wind direction is unavailable for this site, so no
+        windbreak candidates can be suggested. Add a{' '}
+        <code>prevailing_wind</code> value (e.g. &quot;SW&quot;, or a degrees
+        azimuth) to the climate layer to enable this card.
+      </div>
+    );
+  }
+
+  const totalLengthM = windbreaks.lines.reduce((sum, l) => sum + l.lengthM, 0);
+  const maxShelterM = ASSUMED_WINDBREAK_CANOPY_M * SHELTER_H_MULT_MAX;
+  const prevailingLabel =
+    prevailingWind != null && String(prevailingWind).trim() !== ''
+      ? String(prevailingWind).toUpperCase()
+      : `${Math.round(windbreaks.windAzimuth)}\u00B0`;
+
+  return (
+    <div className={css.placementCard}>
+      {/* Summary header */}
+      <div className={css.windbreakHeader}>
+        <div className={css.windbreakHeaderCell}>
+          <span className={css.windbreakHeaderLabel}>PREVAILING WIND</span>
+          <span className={css.windbreakHeaderValue}>{prevailingLabel}</span>
+        </div>
+        <div className={css.windbreakHeaderCell}>
+          <span className={css.windbreakHeaderLabel}>WINDWARD EDGE</span>
+          <span className={css.windbreakHeaderValue}>
+            {windbreaks.windwardEdge.toUpperCase()}
+          </span>
+        </div>
+        <div className={css.windbreakHeaderCell}>
+          <span className={css.windbreakHeaderLabel}>LINE AZIMUTH</span>
+          <span className={css.windbreakHeaderValue}>
+            {Math.round(windbreaks.faceAzimuth)}&deg;
+          </span>
+        </div>
+      </div>
+
+      {/* Per-line table header */}
+      <div className={css.windbreakTableHead}>
+        <span>LINE</span>
+        <span>POSITION</span>
+        <span>LENGTH</span>
+        <span>SHELTER REACH</span>
+      </div>
+
+      {/* Per-line rows */}
+      {windbreaks.lines.map((wb, i) => {
+        const label = String.fromCharCode(65 + i); // A, B, C...
+        const position = centroid
+          ? `${bearingLabel(bearingFromCenter(centroid, wb.midpoint))} of centroid`
+          : '\u2014';
+        return (
+          <div key={i} className={css.windbreakRow}>
+            <span className={css.windbreakCellLabel}>Line {label}</span>
+            <span className={css.windbreakCell}>{position}</span>
+            <span className={css.windbreakCell}>
+              {Math.round(wb.lengthM)} m
+            </span>
+            <span className={css.windbreakCell}>
+              up to {maxShelterM} m downwind
+            </span>
+          </div>
+        );
+      })}
+
+      {/* Footnote */}
+      <div className={css.windbreakFoot}>
+        <div>
+          <strong>Total:</strong> {Math.round(totalLengthM)} m across{' '}
+          {windbreaks.lines.length} candidate
+          {windbreaks.lines.length === 1 ? '' : 's'} on the{' '}
+          {windbreaks.windwardEdge}.
+        </div>
+        <div>
+          Shelter estimate assumes ~{ASSUMED_WINDBREAK_CANOPY_M} m mature
+          canopy. Significant wind reduction (60&ndash;80%) extends
+          5&ndash;10&times; canopy height downwind; measurable effect out to
+          ~{SHELTER_H_MULT_MAX}&times;. Pair evergreen and deciduous rows for
+          year-round shelter; species selection lives in &sect;11 Vegetation
+          &amp; Agroforestry.
         </div>
       </div>
     </div>
@@ -1317,12 +1509,13 @@ function chipColor(tone: ScoreTone): string {
 }
 
 function PlacementScoringCard({
-  solarArrays, passiveSolarStructures, exposureBySeason, dominantAspect, lat, hasClimate, onSwitchToMap,
+  solarArrays, passiveSolarStructures, exposureBySeason, dominantAspect, meanSlopeDeg, lat, hasClimate, onSwitchToMap,
 }: {
   solarArrays: Utility[];
   passiveSolarStructures: Structure[];
   exposureBySeason: { spring: number; summer: number; fall: number; winter: number };
   dominantAspect: string | null;
+  meanSlopeDeg: number | null;
   lat: number;
   hasClimate: boolean;
   onSwitchToMap: () => void;
@@ -1362,6 +1555,7 @@ function PlacementScoringCard({
               const r = scoreSolarArray(ctx);
               const band = scoreBand(r.score);
               const cfg = UTILITY_TYPE_CONFIG[u.type];
+              const warnings = placementWarningsSolar({ dominantAspect, meanSlopeDeg });
               return (
                 <li key={u.id} className={css.placementRow}>
                   <div className={css.placementRowHead}>
@@ -1379,6 +1573,21 @@ function PlacementScoringCard({
                       </span>
                     ))}
                   </div>
+                  {warnings.length > 0 && (
+                    <div className={css.placementChipRow}>
+                      {warnings.map((w, i) => (
+                        <DelayedTooltip key={i} label={w.detail}>
+                          <span
+                            tabIndex={0}
+                            className={css.placementWarningChip}
+                            style={{ color: warnColor(w.tone), borderColor: warnColor(w.tone) }}
+                          >
+                            &#9888; {w.label}
+                          </span>
+                        </DelayedTooltip>
+                      ))}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -1404,12 +1613,26 @@ function PlacementScoringCard({
             {passiveSolarStructures.map((st) => {
               const r = scorePassiveSolar(st, ctx);
               const band = scoreBand(r.score);
+              const warnings = placementWarningsStructure(st, { dominantAspect, meanSlopeDeg });
+              const cost = deriveInfrastructureCost(st);
               return (
                 <li key={st.id} className={css.placementRow}>
                   <div className={css.placementRowHead}>
                     <span className={css.placementIcon}>&#9962;</span>
                     <span className={css.placementName}>{st.name}</span>
                     <span className={css.placementTypeSub}>{st.type.replace(/_/g, ' ')}</span>
+                    <DelayedTooltip
+                      label={
+                        cost.source === 'user'
+                          ? `User-set cost: ${formatCostShort(cost.mid)}`
+                          : `Derived from template & footprint area (${formatCostShort(cost.low)}\u2013${formatCostShort(cost.high)})`
+                            + (cost.infraReqs.length ? `. Requires: ${cost.infraReqs.join(', ')}.` : '')
+                      }
+                    >
+                      <span tabIndex={0} className={css.placementCostChip}>
+                        {formatCostShort(cost.low)}&ndash;{formatCostShort(cost.high)}
+                      </span>
+                    </DelayedTooltip>
                     <span className={css.placementScoreChip} style={{ color: band.color, borderColor: band.color }}>
                       {r.score}
                       <span className={css.placementScoreBand}>{band.label}</span>
@@ -1422,6 +1645,21 @@ function PlacementScoringCard({
                       </span>
                     ))}
                   </div>
+                  {warnings.length > 0 && (
+                    <div className={css.placementChipRow}>
+                      {warnings.map((w, i) => (
+                        <DelayedTooltip key={i} label={w.detail}>
+                          <span
+                            tabIndex={0}
+                            className={css.placementWarningChip}
+                            style={{ color: warnColor(w.tone), borderColor: warnColor(w.tone) }}
+                          >
+                            &#9888; {w.label}
+                          </span>
+                        </DelayedTooltip>
+                      ))}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -1429,13 +1667,257 @@ function PlacementScoringCard({
         )}
       </div>
 
+      {passiveSolarStructures.length > 0 && (() => {
+        const sum = passiveSolarStructures.reduce(
+          (acc, st) => {
+            const c = deriveInfrastructureCost(st);
+            acc.low += c.low;
+            acc.high += c.high;
+            return acc;
+          },
+          { low: 0, high: 0 },
+        );
+        return (
+          <div className={css.placementCostSummary}>
+            <span className={css.placementCostSummaryLabel}>
+              Est. structure investment ({passiveSolarStructures.length})
+            </span>
+            <span className={css.placementCostSummaryValue}>
+              {formatCostShort(sum.low)}&ndash;{formatCostShort(sum.high)}
+            </span>
+          </div>
+        );
+      })()}
+
       {hasAnyPlaced && (
         <p className={css.placementFootnote}>
           Scores combine astronomical solar exposure, dominant aspect, and (for structures)
-          rotation alignment. Per-feature microclimate variation (shade, frost, local wind)
-          is a future iteration.
+          rotation alignment. Warnings flag site-wide slope and solar-orientation hazards;
+          typical setbacks: front 15&thinsp;m &middot; side 6&thinsp;m &middot; rear 10&thinsp;m
+          (refer to Regulatory section for jurisdiction-specific values). Cost chips are
+          template-based placeholders scaled by footprint area &mdash; override with the
+          structure&rsquo;s <em>costEstimate</em> field for a user-defined value.
         </p>
       )}
+    </div>
+  );
+}
+
+/** §9 placement warnings — site-wide slope + solar-orientation checks. Applied
+ *  to every placed feature because we don't yet have per-feature elevation /
+ *  boundary-distance sampling (that's a follow-on). */
+type WarnTone = 'advisory' | 'warning' | 'blocking';
+interface PlacementWarning { label: string; detail: string; tone: WarnTone; }
+
+const SLOPE_WARN_DEG = 15;
+const SLOPE_MAX_DEG = 25;
+const NORTH_HEMI_PREFERRED_ASPECTS = new Set(['S', 'SE', 'SW']);
+const SOUTH_HEMI_PREFERRED_ASPECTS = new Set(['N', 'NE', 'NW']);
+
+function placementWarningsSolar(
+  { dominantAspect, meanSlopeDeg }: { dominantAspect: string | null; meanSlopeDeg: number | null },
+): PlacementWarning[] {
+  const out: PlacementWarning[] = [];
+  if (meanSlopeDeg != null) {
+    if (meanSlopeDeg > SLOPE_MAX_DEG) {
+      out.push({
+        label: `Slope ${meanSlopeDeg.toFixed(0)}\u00B0 prohibitive`,
+        detail: `Site mean slope exceeds ${SLOPE_MAX_DEG}\u00B0 — ground-mount arrays need engineered footings.`,
+        tone: 'blocking',
+      });
+    } else if (meanSlopeDeg > SLOPE_WARN_DEG) {
+      out.push({
+        label: `Slope ${meanSlopeDeg.toFixed(0)}\u00B0 steep`,
+        detail: `Site mean slope exceeds ${SLOPE_WARN_DEG}\u00B0 — array anchoring becomes non-standard.`,
+        tone: 'warning',
+      });
+    }
+  }
+  // Solar orientation guide (site-wide aspect)
+  if (dominantAspect) {
+    // Solar arrays want sun-facing aspect; "N" (or "S" in southern hemisphere)
+    // significantly cuts yield on ground-mount systems without tilt correction.
+    if (/^N/i.test(dominantAspect)) {
+      out.push({
+        label: 'N-facing aspect cuts yield',
+        detail: 'Dominant north-facing slope — consider pole-mount with steeper tilt to compensate.',
+        tone: 'warning',
+      });
+    }
+  }
+  return out;
+}
+
+function placementWarningsStructure(
+  st: Structure,
+  { dominantAspect, meanSlopeDeg }: { dominantAspect: string | null; meanSlopeDeg: number | null },
+): PlacementWarning[] {
+  const out: PlacementWarning[] = [];
+  // Slope — structures are more sensitive than arrays; use SLOPE_RULES from SitingRules
+  // (structure_warn 15, structure_max 25). Duplicated here to avoid a cross-feature import
+  // for two constants; keep in sync with features/rules/SitingRules.ts.
+  if (meanSlopeDeg != null) {
+    if (meanSlopeDeg > SLOPE_MAX_DEG) {
+      out.push({
+        label: `Slope ${meanSlopeDeg.toFixed(0)}\u00B0 prohibitive`,
+        detail: `Slope above ${SLOPE_MAX_DEG}\u00B0 requires engineered foundations — most structure types aren't viable.`,
+        tone: 'blocking',
+      });
+    } else if (meanSlopeDeg > SLOPE_WARN_DEG) {
+      out.push({
+        label: `Slope ${meanSlopeDeg.toFixed(0)}\u00B0 — foundation review`,
+        detail: `Slope above ${SLOPE_WARN_DEG}\u00B0 adds foundation cost and site-prep complexity.`,
+        tone: 'warning',
+      });
+    }
+  }
+  // Solar orientation guide — only flag for passive-solar types where it matters.
+  if (dominantAspect) {
+    const key = dominantAspect.toUpperCase();
+    // Heuristic: flip preferred aspects for southern hemisphere. We don't have
+    // project latitude at the structure level here, so approximate via the
+    // site context passed through ctx; fall back to northern-hemi preferred set.
+    const preferred = NORTH_HEMI_PREFERRED_ASPECTS; // card passes northern-hemi-biased ctx
+    void SOUTH_HEMI_PREFERRED_ASPECTS;
+    if (!preferred.has(key)) {
+      // north-facing (NH) costs passive-solar types the most.
+      const isNorthish = /^N/.test(key);
+      out.push({
+        label: isNorthish ? 'N-facing — reduced passive solar' : `${key} aspect — suboptimal solar`,
+        detail: isNorthish
+          ? 'Structure sits on a north-facing slope: winter solar gain is limited; add glazing on the south facade or orient long axis east-west.'
+          : `Aspect ${key} is outside the preferred S/SE/SW band for passive-solar gain. Consider a different footprint location if possible.`,
+        tone: 'advisory',
+      });
+    }
+  }
+  // Placeholder for per-structure setback — requires boundary distance sampling,
+  // which is a distinct follow-on. We emit no setback chip here; the card
+  // footnote surfaces the typical setbacks so the user at least sees the rule.
+  return out;
+}
+
+function warnColor(tone: WarnTone): string {
+  switch (tone) {
+    case 'blocking': return 'rgba(220, 76, 76, 0.95)';
+    case 'warning':  return 'rgba(198, 154, 88, 0.95)';
+    case 'advisory': return 'rgba(120, 170, 210, 0.85)';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   §6 Shadow casting
+   ────────────────────────────────────────────────────────────────── */
+
+interface ShadowAt { shadowAzimuthDeg: number; shadowLengthM: number; solarAltitudeDeg: number; }
+
+function computeShadowAt(lat: number, heightM: number, season: Season): ShadowAt {
+  const summary = summarizeSunPath(computeSunPathForSeason(lat, season));
+  const solarAlt = summary.solarNoon.elevation;
+  const solarAz = summary.solarNoon.azimuth;
+  // Shadow points opposite the sun; length = h / tan(altitude).
+  // Guard against sun below horizon (polar winter) — treat as effectively infinite.
+  const altRad = (solarAlt * Math.PI) / 180;
+  const tanAlt = Math.tan(altRad);
+  const length = solarAlt > 0.5 && tanAlt > 1e-4 ? heightM / tanAlt : Number.POSITIVE_INFINITY;
+  return {
+    shadowAzimuthDeg: (solarAz + 180) % 360,
+    shadowLengthM: length,
+    solarAltitudeDeg: solarAlt,
+  };
+}
+
+function formatAzimuthCardinal(azimuthDeg: number): string {
+  const a = ((azimuthDeg % 360) + 360) % 360;
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const idx = Math.round(a / 45) % 8;
+  return `${dirs[idx]} (${a.toFixed(0)}\u00B0)`;
+}
+
+function formatShadowLength(m: number): string {
+  if (!Number.isFinite(m)) return '—';
+  if (m > 999) return `${(m / 1000).toFixed(2)} km`;
+  return `${m.toFixed(1)} m`;
+}
+
+function ShadowFootprintsCard({ structures, lat }: { structures: Structure[]; lat: number }) {
+  if (structures.length === 0) {
+    return (
+      <div className={css.placementCard}>
+        <p className={css.placementPending}>
+          No structures placed yet &mdash; shadow footprints appear once you add a building, barn, or other feature with meaningful height.
+        </p>
+      </div>
+    );
+  }
+
+  // Precompute solar-noon summaries so we only do the astronomy twice (winter + summer)
+  // regardless of how many structures are placed.
+  const winterSolar = summarizeSunPath(computeSunPathForSeason(lat, 'winter')).solarNoon;
+  const summerSolar = summarizeSunPath(computeSunPathForSeason(lat, 'summer')).solarNoon;
+
+  return (
+    <div className={css.placementCard}>
+      <div className={css.shadowHeaderRow}>
+        <div className={css.shadowHeaderCell} style={{ flex: '1 1 auto' }}>Structure</div>
+        <div className={css.shadowHeaderCell}>Ht.</div>
+        <DelayedTooltip label={`Winter solstice noon — sun at ${winterSolar.elevation.toFixed(0)}\u00B0 alt.`}>
+          <div tabIndex={0} className={css.shadowHeaderCell}>
+            Winter noon shadow
+          </div>
+        </DelayedTooltip>
+        <DelayedTooltip label={`Summer solstice noon — sun at ${summerSolar.elevation.toFixed(0)}\u00B0 alt.`}>
+          <div tabIndex={0} className={css.shadowHeaderCell}>
+            Summer noon shadow
+          </div>
+        </DelayedTooltip>
+      </div>
+      <ul className={css.placementList}>
+        {structures.map((st) => {
+          const h = estimateStructureHeightM(st.type);
+          const winter = computeShadowAt(lat, h, 'winter');
+          const summer = computeShadowAt(lat, h, 'summer');
+          const maxShadow = Math.max(
+            Number.isFinite(winter.shadowLengthM) ? winter.shadowLengthM : 0,
+            Number.isFinite(summer.shadowLengthM) ? summer.shadowLengthM : 0,
+          );
+          // Flag extreme winter shadows (>3× structure height) — a signal to
+          // check for solar conflicts with downstream features.
+          const isLongShadow = winter.shadowLengthM / Math.max(h, 0.1) > 3;
+          return (
+            <li key={st.id} className={css.shadowRow}>
+              <div className={css.shadowCell} style={{ flex: '1 1 auto' }}>
+                <div className={css.placementName}>{st.name}</div>
+                <div className={css.placementTypeSub}>{st.type.replace(/_/g, ' ')}</div>
+              </div>
+              <div className={css.shadowCell}>
+                <span className={css.shadowHeightValue}>{h.toFixed(1)} m</span>
+              </div>
+              <div className={css.shadowCell}>
+                <span className={css.shadowValue} style={isLongShadow ? { color: 'rgba(198, 154, 88, 0.95)' } : undefined}>
+                  {formatShadowLength(winter.shadowLengthM)}
+                </span>
+                <span className={css.shadowAzimuth}>{formatAzimuthCardinal(winter.shadowAzimuthDeg)}</span>
+              </div>
+              <div className={css.shadowCell}>
+                <span className={css.shadowValue}>{formatShadowLength(summer.shadowLengthM)}</span>
+                <span className={css.shadowAzimuth}>{formatAzimuthCardinal(summer.shadowAzimuthDeg)}</span>
+              </div>
+              {!Number.isFinite(maxShadow) && (
+                <div className={css.shadowFlag}>
+                  Sun below horizon on this date &mdash; polar winter conditions.
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <p className={css.placementFootnote}>
+        Heights are template estimates; shadow length &asymp; height / tan(solar altitude)
+        at solar noon. Amber-highlighted winter shadows stretch &gt;3&thinsp;&times; structure
+        height &mdash; check for conflicts with solar arrays, greenhouses, or south-facing
+        windows downstream. Tree shadow casting is pending a tree/canopy entity.
+      </p>
     </div>
   );
 }

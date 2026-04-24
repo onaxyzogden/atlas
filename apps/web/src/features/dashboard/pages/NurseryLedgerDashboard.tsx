@@ -146,6 +146,8 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
                 const isSow = idx === entry.sowMonth;
                 const isTransplant = idx === entry.transplantMonth;
                 return (
+                  // a11y: keyboard tooltip deferred — see accessibility-audit.md §5
+                  // (calendar grid: 12×N cells would spam focus order)
                   <div
                     key={idx}
                     className={isSow ? css.calCellSow : isTransplant ? css.calCellTransplant : css.calCell}

@@ -333,9 +333,9 @@ function ToolButton({
   onClick: () => void;
 }) {
   return (
+    <DelayedTooltip label={label}>
     <button
       onClick={onClick}
-      title={label}
       style={{
         padding: '5px 10px',
         borderRadius: 6,
@@ -354,5 +354,6 @@ function ToolButton({
       <span style={{ fontSize: 13 }}>{icon}</span>
       {label}
     </button>
+    </DelayedTooltip>
   );
 }

@@ -8,6 +8,7 @@
  */
 
 import { useUIStore, type SidebarGrouping } from '../../store/uiStore.js';
+import { DelayedTooltip } from './DelayedTooltip.js';
 import styles from './GroupingToggle.module.css';
 
 export interface GroupingToggleProps {
@@ -35,17 +36,17 @@ export function GroupingToggle({ className, size = 'default' }: GroupingTogglePr
       {OPTIONS.map((opt) => {
         const active = grouping === opt.value;
         return (
-          <button
-            key={opt.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            title={opt.title}
-            className={`${styles.option} ${active ? styles.optionActive : ''}`}
-            onClick={() => setGrouping(opt.value)}
-          >
-            {opt.label}
-          </button>
+          <DelayedTooltip key={opt.value} label={opt.title}>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={`${styles.option} ${active ? styles.optionActive : ''}`}
+              onClick={() => setGrouping(opt.value)}
+            >
+              {opt.label}
+            </button>
+          </DelayedTooltip>
         );
       })}
     </div>

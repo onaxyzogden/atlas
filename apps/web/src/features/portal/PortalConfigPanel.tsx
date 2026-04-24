@@ -8,6 +8,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 import { confidence, error as errorToken, group, semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface Props { project: LocalProject }
 
@@ -72,11 +73,11 @@ export default function PortalConfigPanel({ project }: Props) {
             /portal/{portalConfig.slug}
           </div>
         </div>
+        <DelayedTooltip label="Publishing requires internet" disabled={!isOffline}>
         <button
           onClick={() => updateConfig(project.id, { isPublished: !portalConfig.isPublished })}
           className={p.btnSmall}
           disabled={isOffline}
-          title={isOffline ? 'Publishing requires internet' : undefined}
           style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600, border: 'none',
             background: isOffline ? '#d1d5db'
@@ -88,6 +89,7 @@ export default function PortalConfigPanel({ project }: Props) {
         >
           {portalConfig.isPublished ? 'Unpublish' : 'Publish'}
         </button>
+        </DelayedTooltip>
       </div>
 
       {/* Share URL & Preview */}

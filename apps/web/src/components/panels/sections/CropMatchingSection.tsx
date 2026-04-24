@@ -18,6 +18,7 @@ import { ScoreCircle } from './_shared.js';
 import { getScoreColor } from './_helpers.js';
 import s from '../SiteIntelligencePanel.module.css';
 import p from '../../../styles/panel.module.css';
+import { DelayedTooltip } from '../../ui/DelayedTooltip.js';
 
 const CATEGORY_PILLS = ['cereal', 'legume', 'vegetable', 'fruit_nut', 'forage', 'cover_crop', 'forestry'] as const;
 
@@ -134,9 +135,11 @@ export const CropMatchingSection = memo(function CropMatchingSection({
                           style={{ width: `${pct}%`, background: getScoreColor(pct) }}
                         />
                       </div>
-                      <span className={s.breakdownValue} title={f.cropRange}>
-                        {f.siteValue}
-                      </span>
+                      <DelayedTooltip label={f.cropRange}>
+                        <span className={s.breakdownValue} tabIndex={0}>
+                          {f.siteValue}
+                        </span>
+                      </DelayedTooltip>
                     </div>
                   );
                 })}
@@ -176,16 +179,17 @@ export const CropMatchingSection = memo(function CropMatchingSection({
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 4 }}>
                           <span className={`${p.tokenIcon} ${p.fs9} ${p.mr2}`}>Pairs:</span>
                           {entry.companions.map((c) => (
-                            <span
-                              key={c}
-                              className={s.scoreBadge}
-                              title={entry.rationale[c] ?? ''}
-                              style={{
-                                background: `${confidence.high}18`, color: confidence.high, fontSize: 9, padding: '1px 6px',
-                              }}
-                            >
-                              {c}
-                            </span>
+                            <DelayedTooltip key={c} label={entry.rationale[c] ?? ''} disabled={!entry.rationale[c]}>
+                              <span
+                                tabIndex={0}
+                                className={s.scoreBadge}
+                                style={{
+                                  background: `${confidence.high}18`, color: confidence.high, fontSize: 9, padding: '1px 6px',
+                                }}
+                              >
+                                {c}
+                              </span>
+                            </DelayedTooltip>
                           ))}
                         </div>
                       )}
@@ -193,16 +197,17 @@ export const CropMatchingSection = memo(function CropMatchingSection({
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                           <span className={`${p.tokenIcon} ${p.fs9} ${p.mr2}`}>Avoid:</span>
                           {entry.antagonists.map((a) => (
-                            <span
-                              key={a}
-                              className={s.scoreBadge}
-                              title={entry.rationale[a] ?? ''}
-                              style={{
-                                background: `${confidence.low}18`, color: confidence.low, fontSize: 9, padding: '1px 6px',
-                              }}
-                            >
-                              {a}
-                            </span>
+                            <DelayedTooltip key={a} label={entry.rationale[a] ?? ''} disabled={!entry.rationale[a]}>
+                              <span
+                                tabIndex={0}
+                                className={s.scoreBadge}
+                                style={{
+                                  background: `${confidence.low}18`, color: confidence.low, fontSize: 9, padding: '1px 6px',
+                                }}
+                              >
+                                {a}
+                              </span>
+                            </DelayedTooltip>
                           ))}
                         </div>
                       )}

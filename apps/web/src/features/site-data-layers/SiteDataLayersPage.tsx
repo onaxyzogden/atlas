@@ -23,6 +23,7 @@ import {
   type ProjectLayerRow,
 } from '../../hooks/useProjectQueries.js';
 import p from '../../styles/panel.module.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface SiteDataLayersPageProps {
   projectId: string;
@@ -385,18 +386,20 @@ function LayerCard({
             {row.fetchStatus}
           </span>
           {row.confidence && (
-            <span
-              style={{
-                fontSize: 11,
-                padding: '1px 6px',
-                borderRadius: 999,
-                background: 'var(--color-surface-muted, rgba(255,255,255,0.06))',
-                color: 'var(--color-text-muted)',
-              }}
-              title="Confidence tier"
-            >
-              {row.confidence}
-            </span>
+            <DelayedTooltip label="Confidence tier">
+              <span
+                tabIndex={0}
+                style={{
+                  fontSize: 11,
+                  padding: '1px 6px',
+                  borderRadius: 999,
+                  background: 'var(--color-surface-muted, rgba(255,255,255,0.06))',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                {row.confidence}
+              </span>
+            </DelayedTooltip>
           )}
         </div>
         <div
@@ -538,20 +541,21 @@ function CoverageStrip({ coverage }: { coverage: CoverageDescription }) {
           <span />
           <span style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {alternates.map((a) => (
-              <span
-                key={a.country}
-                title={`${a.adapter} (${a.source})`}
-                style={{
-                  fontSize: 10,
-                  padding: '1px 6px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'var(--color-text-muted)',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              >
-                {a.country}: {a.adapter.replace(/Adapter$/, '')}
-              </span>
+              <DelayedTooltip key={a.country} label={`${a.adapter} (${a.source})`}>
+                <span
+                  tabIndex={0}
+                  style={{
+                    fontSize: 10,
+                    padding: '1px 6px',
+                    borderRadius: 999,
+                    background: 'rgba(255,255,255,0.06)',
+                    color: 'var(--color-text-muted)',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  {a.country}: {a.adapter.replace(/Adapter$/, '')}
+                </span>
+              </DelayedTooltip>
             ))}
           </span>
         </>

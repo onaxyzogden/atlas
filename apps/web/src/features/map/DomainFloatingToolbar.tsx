@@ -38,6 +38,7 @@ import type { DomainKey } from './domainMapping.js';
 import { useMapStore } from '../../store/mapStore.js';
 import type { LayerType } from '@ogden/shared';
 import css from './DomainFloatingToolbar.module.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface ToolDef {
   id: string;
@@ -423,10 +424,9 @@ export default function DomainFloatingToolbar({
                 : tool.label;
 
             return (
+              <DelayedTooltip key={tool.id} label={titleText}>
               <button
-                key={tool.id}
                 className={isActive ? css.toolBtnActive : css.toolBtn}
-                title={titleText}
                 disabled={isDisabled}
                 style={isDisabled ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                 onClick={() => {
@@ -443,6 +443,7 @@ export default function DomainFloatingToolbar({
                 </span>
                 <span className={css.toolLabel}>{tool.label}</span>
               </button>
+              </DelayedTooltip>
             );
           })}
         </div>

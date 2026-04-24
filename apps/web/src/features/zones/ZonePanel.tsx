@@ -25,6 +25,7 @@ import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface ZonePanelProps {
   projectId: string;
@@ -163,15 +164,16 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
         <div style={{ marginTop: 8 }}>
           {/* Draw button */}
           {!showForm && draw && (
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={canEdit}>
             <button
               onClick={canEdit ? startDraw : undefined}
               disabled={isDrawing || !canEdit}
-              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={s.drawBtn}
               style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {isDrawing ? 'Drawing\u2026 double-click to finish' : '+ Draw New Zone'}
             </button>
+            </DelayedTooltip>
           )}
 
           {/* Zone creation form */}
@@ -256,15 +258,16 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
                       {ZONE_CATEGORY_CONFIG[z.category].label} \u2014 {formatArea(z.areaM2)}
                     </div>
                   </div>
+                  <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}>
                   <button
                     onClick={canEdit ? () => handleDeleteZone(z.id) : undefined}
                     disabled={!canEdit}
                     className={s.deleteBtn}
-                    title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
                     style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                   >
                     \u00D7
                   </button>
+                  </DelayedTooltip>
                 </div>
               ))}
             </div>

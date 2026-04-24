@@ -28,6 +28,7 @@ import { LIVESTOCK_SPECIES, computeAnimalUnits } from '../../livestock/speciesDa
 import ProgressBar from '../components/ProgressBar.js';
 import css from './HerdRotationDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -407,12 +408,14 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
         <div className={css.quickStats}>
           <div className={css.quickStat}>
-            <span
-              className={css.quickStatLabel}
-              title="1 AU = livestock excreting 73 kg N per year (Manitoba Schedule A)"
-            >
-              Animal Units
-            </span>
+            <DelayedTooltip label="1 AU = livestock excreting 73 kg N per year (Manitoba Schedule A)">
+              <span
+                className={css.quickStatLabel}
+                tabIndex={0}
+              >
+                Animal Units
+              </span>
+            </DelayedTooltip>
             <span className={css.quickStatValue}>{totalAU.toFixed(1)} AU</span>
           </div>
           <div className={css.quickStat}>

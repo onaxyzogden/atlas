@@ -7,21 +7,26 @@ import { useState, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
+import { useStructureStore, type Structure } from '../../../store/structureStore.js';
+import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS, type HydroMetrics } from '../../../lib/hydrologyMetrics.js';
 import css from './HydrologyDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
 interface HydrologyDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
 
-type SubTab = 'overview' | 'flow' | 'metrics';
+type SubTab = 'overview' | 'flow' | 'metrics' | 'budget' | 'catchment';
 
 const SUB_TABS: { id: SubTab; label: string }[] = [
-  { id: 'overview', label: 'Overview'      },
-  { id: 'flow',     label: 'Flow Analysis' },
-  { id: 'metrics',  label: 'Water Metrics' },
+  { id: 'overview',  label: 'Overview'       },
+  { id: 'flow',      label: 'Flow Analysis'  },
+  { id: 'metrics',   label: 'Water Metrics'  },
+  { id: 'budget',    label: 'Water Budget'   },
+  { id: 'catchment', label: 'Roof Catchment' },
 ];
 
 // ─── Layer summary types ──────────────────────────────────────────────────────
@@ -74,8 +79,14 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
     });
   }, [siteData, project.acreage, project.parcelBoundaryGeojson]);
 
-  const precipMm    = siteData ? (getLayerSummary<ClimateSummary>(siteData, 'climate')?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm) : HYDRO_DEFAULTS.precipMm;
+  const climateSummary = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
+  const precipMm    = climateSummary?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
   const catchmentHa = (() => { const v = parseFloat(String(siteData ? (getLayerSummary<WatershedSummary>(siteData, 'watershed')?.catchment_area_ha ?? '') : '')); return isFinite(v) ? v : null; })();
+  const latitudeDeg = useMemo(() => {
+    if (!project.parcelBoundaryGeojson) return null;
+    try { return turf.centroid(project.parcelBoundaryGeojson).geometry.coordinates[1] ?? null; }
+    catch { return null; }
+  }, [project.parcelBoundaryGeojson]);
 
   return (
     <div className={css.page}>
@@ -94,23 +105,29 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
           ))}
         </nav>
         <div className={css.suiteActions}>
-          <button className={css.suiteIconBtn} title="Share" aria-label="Share">
-            <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="3" r="1.5"/><circle cx="4" cy="7.5" r="1.5"/><circle cx="11" cy="12" r="1.5"/>
-              <line x1="9.6" y1="3.9" x2="5.4" y2="6.6"/><line x1="5.4" y1="8.4" x2="9.6" y2="11.1"/>
-            </svg>
-          </button>
-          <button className={css.suiteIconBtn} title="Download" aria-label="Download">
-            <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2.5 11.5h10M7.5 2.5v7M4.5 7l3 3 3-3"/>
-            </svg>
-          </button>
-          <button className={css.suiteIconBtn} title="Settings" aria-label="Settings">
-            <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="7.5" cy="7.5" r="2"/>
-              <path d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M2.9 2.9l1.4 1.4M10.7 10.7l1.4 1.4M2.9 12.1l1.4-1.4M10.7 4.3l1.4-1.4"/>
-            </svg>
-          </button>
+          <DelayedTooltip label="Share">
+            <button className={css.suiteIconBtn} aria-label="Share">
+              <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="3" r="1.5"/><circle cx="4" cy="7.5" r="1.5"/><circle cx="11" cy="12" r="1.5"/>
+                <line x1="9.6" y1="3.9" x2="5.4" y2="6.6"/><line x1="5.4" y1="8.4" x2="9.6" y2="11.1"/>
+              </svg>
+            </button>
+          </DelayedTooltip>
+          <DelayedTooltip label="Download">
+            <button className={css.suiteIconBtn} aria-label="Download">
+              <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2.5 11.5h10M7.5 2.5v7M4.5 7l3 3 3-3"/>
+              </svg>
+            </button>
+          </DelayedTooltip>
+          <DelayedTooltip label="Settings">
+            <button className={css.suiteIconBtn} aria-label="Settings">
+              <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="7.5" cy="7.5" r="2"/>
+                <path d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M2.9 2.9l1.4 1.4M10.7 10.7l1.4 1.4M2.9 12.1l1.4-1.4M10.7 4.3l1.4-1.4"/>
+              </svg>
+            </button>
+          </DelayedTooltip>
         </div>
       </div>
 
@@ -122,6 +139,20 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
 
       {/* ── Water Metrics tab ─────────────────────────────────────────────── */}
       {activeTab === 'metrics' && <WaterMetricsTab metrics={metrics} precipMm={precipMm} catchmentHa={catchmentHa} />}
+
+      {/* ── Water Budget tab ──────────────────────────────────────────────── */}
+      {activeTab === 'budget' && (
+        <WaterBudgetTab
+          metrics={metrics}
+          climate={climateSummary}
+          latitudeDeg={latitudeDeg}
+        />
+      )}
+
+      {/* ── Roof Catchment tab ────────────────────────────────────────────── */}
+      {activeTab === 'catchment' && (
+        <RoofCatchmentTab projectId={project.id} precipMm={precipMm} />
+      )}
     </div>
   );
 }
@@ -166,7 +197,7 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
           <span className={css.metricLabel}>ANNUAL CATCHMENT POTENTIAL</span>
           <span className={css.metricValue}>{fmtGal(metrics.catchmentPotentialGal)}</span>
           <span className={css.metricUnit}>GALLONS/YEAR</span>
-          <span className={css.metricNote}>BASED ON {Math.round(precipMm)}\u202fMM MEAN ANNUAL PRECIPITATION</span>
+          <span className={css.metricNote}>BASED ON {Math.round(precipMm)}&#8239;MM MEAN ANNUAL PRECIPITATION</span>
         </div>
       </div>
 
@@ -473,5 +504,591 @@ function WaterMetricsTab({ metrics, precipMm, catchmentHa }: {
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Water Budget (Seasonal) ──────────────────────────────────────────────────
+
+interface MonthlyNormal {
+  month: number;
+  precip_mm: number | null;
+  mean_max_c: number | null;
+  mean_min_c: number | null;
+}
+
+const MONTH_LABELS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'] as const;
+
+// Northern-hemisphere irrigation shape (May–Sep peak). Sums to 12 by construction
+// so normalization against annual demand stays stable. Southern hemisphere is the
+// same array rotated by 6 months.
+const NH_IRRIGATION_WEIGHTS = [0.3, 0.3, 0.6, 1.2, 2.2, 3.0, 3.0, 2.6, 1.8, 0.8, 0.3, 0.3];
+
+interface MonthlyBudgetRow {
+  month: string;
+  inflowGal: number;
+  demandGal: number;
+  balanceGal: number;
+}
+
+interface MonthlyBudget {
+  rows: MonthlyBudgetRow[];
+  minBalanceGal: number;
+  minBalanceMonth: string;
+  maxDeficitGal: number;        // positive number = storage needed beyond baseline
+  distributionSource: 'normals' | 'uniform';
+}
+
+function buildMonthlyBudget(params: {
+  annualCatchmentGal: number;
+  annualDemandGal: number;
+  startingStorageGal: number;
+  monthlyNormals: MonthlyNormal[] | null;
+  latitudeDeg: number | null;
+}): MonthlyBudget {
+  const { annualCatchmentGal, annualDemandGal, startingStorageGal, monthlyNormals, latitudeDeg } = params;
+
+  // --- Inflow distribution ---
+  let inflowShares: number[];
+  let distributionSource: 'normals' | 'uniform' = 'uniform';
+  if (monthlyNormals && monthlyNormals.length === 12) {
+    const raw = monthlyNormals.map((m) => (typeof m.precip_mm === 'number' && isFinite(m.precip_mm) ? Math.max(0, m.precip_mm) : 0));
+    const total = raw.reduce((a, b) => a + b, 0);
+    if (total > 0) {
+      inflowShares = raw.map((v) => v / total);
+      distributionSource = 'normals';
+    } else {
+      inflowShares = new Array(12).fill(1 / 12);
+    }
+  } else {
+    inflowShares = new Array(12).fill(1 / 12);
+  }
+
+  // --- Demand distribution: household baseline (flat) + seasonal irrigation ---
+  // Baseline: assume 4 persons × 400 L/person/day (WHO_BASIC_DAILY_LITERS) × 30.4 days.
+  // One liter ≈ 0.264172 gal; kept as a literal to avoid cross-package import surface.
+  const baselineMonthlyLiters = 400 * 4 * 30.4;
+  const baselineMonthlyGal = baselineMonthlyLiters * 0.264172;
+  const baselineAnnualGal = baselineMonthlyGal * 12;
+  const irrigationAnnualGal = Math.max(0, annualDemandGal - baselineAnnualGal);
+
+  const southern = typeof latitudeDeg === 'number' && latitudeDeg < 0;
+  const irrigationWeights = southern
+    ? [...NH_IRRIGATION_WEIGHTS.slice(6), ...NH_IRRIGATION_WEIGHTS.slice(0, 6)]
+    : NH_IRRIGATION_WEIGHTS;
+  const weightSum = irrigationWeights.reduce((a, b) => a + b, 0);
+
+  // --- Build rows with running balance ---
+  let balance = startingStorageGal;
+  let minBalance = balance;
+  let minBalanceMonth: string = MONTH_LABELS[0]!;
+  const rows: MonthlyBudgetRow[] = [];
+  for (let i = 0; i < 12; i++) {
+    const inflow = annualCatchmentGal * (inflowShares[i] ?? 1 / 12);
+    const demand = baselineMonthlyGal + irrigationAnnualGal * ((irrigationWeights[i] ?? 1) / weightSum);
+    balance = balance + inflow - demand;
+    if (balance < minBalance) {
+      minBalance = balance;
+      minBalanceMonth = MONTH_LABELS[i]!;
+    }
+    rows.push({
+      month: MONTH_LABELS[i]!,
+      inflowGal: inflow,
+      demandGal: demand,
+      balanceGal: balance,
+    });
+  }
+
+  return {
+    rows,
+    minBalanceGal: minBalance,
+    minBalanceMonth,
+    maxDeficitGal: Math.max(0, startingStorageGal - minBalance),
+    distributionSource,
+  };
+}
+
+function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
+  metrics: HydroMetrics;
+  climate: ClimateSummary | null;
+  latitudeDeg: number | null;
+}) {
+  // Narrow the hidden _monthly_normals field (typed `unknown` in the shared package).
+  const monthlyNormals: MonthlyNormal[] | null = (() => {
+    const raw = (climate as { _monthly_normals?: unknown } | null)?._monthly_normals;
+    if (!Array.isArray(raw) || raw.length !== 12) return null;
+    return raw as MonthlyNormal[];
+  })();
+
+  // Annual demand convention matches computeHydrologyMetrics placeholder
+  // (irrigation ≈ 22% of annual rainfall potential). Baseline household adds on top.
+  const baselineAnnualGal = 400 * 4 * 30.4 * 0.264172 * 12;
+  const irrigationAnnualGal = metrics.catchmentPotentialGal * 0.22;
+  const annualDemandGal = baselineAnnualGal + irrigationAnnualGal;
+
+  const budget = useMemo(
+    () => buildMonthlyBudget({
+      annualCatchmentGal: metrics.catchmentPotentialGal,
+      annualDemandGal,
+      startingStorageGal: metrics.totalStorageGal,
+      monthlyNormals,
+      latitudeDeg,
+    }),
+    [metrics.catchmentPotentialGal, metrics.totalStorageGal, annualDemandGal, monthlyNormals, latitudeDeg],
+  );
+
+  // Chart scale: use max of either metric so both series share a consistent y-axis.
+  const peakGal = Math.max(
+    ...budget.rows.map((r) => Math.max(r.inflowGal, r.demandGal)),
+    1,
+  );
+
+  const recommendedStorageGal = budget.maxDeficitGal > 0
+    ? Math.round(budget.maxDeficitGal * 1.25)
+    : Math.round(metrics.totalStorageGal);
+  const storageGapGal = Math.max(0, recommendedStorageGal - metrics.totalStorageGal);
+
+  // Running-balance sparkline coordinates in a 0..600 × 0..80 viewBox.
+  const balances = budget.rows.map((r) => r.balanceGal);
+  const balMin = Math.min(...balances, 0);
+  const balMax = Math.max(...balances, metrics.totalStorageGal, 1);
+  const balRange = balMax - balMin || 1;
+  const polyPoints = budget.rows.map((r, i) => {
+    const x = 20 + (i * 560) / 11;
+    const y = 70 - ((r.balanceGal - balMin) / balRange) * 60;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <>
+      {/* Fallback banner when monthly normals unavailable */}
+      {budget.distributionSource === 'uniform' && (
+        <div className={css.budgetFallback}>
+          Monthly rainfall normals aren't available for this site — inflow is
+          distributed evenly across the 12 months. The seasonal shape is
+          indicative; add climate-normals data for a site-specific arc.
+        </div>
+      )}
+
+      {/* Seasonal chart */}
+      <div className={css.comparisonCard}>
+        <h3 className={css.comparisonTitle}>Monthly Inflow vs. Demand</h3>
+        <div className={css.comparisonLegend}>
+          <span className={css.legendItem}>
+            <span className={css.legendDot} style={{ background: group.hydrology }} />
+            INFLOW (CATCHMENT)
+          </span>
+          <span className={css.legendItem}>
+            <span className={css.legendDot} style={{ background: statusToken.moderate }} />
+            DEMAND
+          </span>
+        </div>
+        <div className={css.comparisonChart}>
+          {budget.rows.map((r) => {
+            const inflowPct = Math.max(0, (r.inflowGal / peakGal) * 100);
+            const demandPct = Math.max(0, (r.demandGal / peakGal) * 100);
+            return (
+              <div key={r.month} className={css.barGroup}>
+                <div className={css.barPair}>
+                  <div className={css.bar} style={{ height: `${inflowPct}%`, background: group.hydrology }} />
+                  <div className={css.bar} style={{ height: `${demandPct}%`, background: statusToken.moderate }} />
+                </div>
+                <span className={css.barLabel}>{r.month}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Running balance + sizing */}
+      <div className={css.budgetBalanceCard}>
+        <div className={css.budgetBalanceHeader}>
+          <div>
+            <span className={css.flowLabel}>RUNNING STORAGE BALANCE</span>
+            <p className={css.budgetBalanceSub}>
+              Cumulative inflow minus demand, starting from current storage.
+              {budget.minBalanceGal < 0
+                ? ` Balance goes negative in ${budget.minBalanceMonth} — storage is undersized for this demand arc.`
+                : ` Minimum reached in ${budget.minBalanceMonth} at ${fmtGal(budget.minBalanceGal)} gal.`}
+            </p>
+          </div>
+        </div>
+        <svg viewBox="0 0 600 80" className={css.budgetBalanceSvg} preserveAspectRatio="none">
+          {/* Zero line */}
+          {balMin < 0 && (
+            <line
+              x1={20}
+              x2={580}
+              y1={70 - ((0 - balMin) / balRange) * 60}
+              y2={70 - ((0 - balMin) / balRange) * 60}
+              stroke={statusToken.poor}
+              strokeWidth={0.5}
+              strokeDasharray="3 3"
+              opacity={0.6}
+            />
+          )}
+          <polyline
+            points={polyPoints}
+            fill="none"
+            stroke={budget.minBalanceGal < 0 ? statusToken.poor : group.hydrology}
+            strokeWidth={1.4}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+          {budget.rows.map((r, i) => {
+            const x = 20 + (i * 560) / 11;
+            return <text key={r.month} x={x} y={78} textAnchor="middle" fontSize={6} fill="rgba(180,165,140,0.4)">{r.month[0]}</text>;
+          })}
+        </svg>
+      </div>
+
+      {/* Storage sizing recommendation */}
+      <div className={css.metricsRow}>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>CURRENT STORAGE</span>
+          <span className={css.metricValue}>{fmtGal(metrics.totalStorageGal)}</span>
+          <span className={css.metricUnit}>GALLONS</span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>RECOMMENDED MINIMUM</span>
+          <span className={css.metricValue}>{fmtGal(recommendedStorageGal)}</span>
+          <span className={css.metricUnit}>GALLONS</span>
+          <span className={css.metricNote}>MAX DEFICIT &times; 1.25 SAFETY FACTOR</span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>STORAGE GAP</span>
+          <span className={css.metricValue} style={{ color: storageGapGal > 0 ? statusToken.poor : statusToken.good }}>
+            {storageGapGal > 0 ? `+${fmtGal(storageGapGal)}` : 'COVERED'}
+          </span>
+          {storageGapGal > 0 && <span className={css.metricUnit}>GALLONS SHORT</span>}
+        </div>
+      </div>
+
+      {/* Assumptions footnote */}
+      <div className={css.budgetAssumptions}>
+        <h4 className={css.budgetAssumptionsTitle}>Model Assumptions</h4>
+        <ul className={css.budgetAssumptionsList}>
+          <li>
+            <strong>Inflow:</strong> annual catchment potential ({fmtGal(metrics.catchmentPotentialGal)} gal) distributed by{' '}
+            {budget.distributionSource === 'normals' ? 'site-specific monthly rainfall normals' : 'equal monthly share (fallback)'}.
+          </li>
+          <li>
+            <strong>Domestic baseline:</strong> 4 persons &times; 400 L/day (WHO guideline) &asymp; {fmtGal(baselineAnnualGal)} gal/year, flat across months.
+          </li>
+          <li>
+            <strong>Irrigation:</strong> {fmtGal(irrigationAnnualGal)} gal/year (22% of catchment potential), seasonally weighted with a May&ndash;Sep peak{latitudeDeg != null && latitudeDeg < 0 ? ' (flipped for southern hemisphere)' : ''}.
+          </li>
+          <li>
+            <strong>Starting storage:</strong> {fmtGal(metrics.totalStorageGal)} gal (derived from site retention factor).
+          </li>
+          <li>
+            These figures are planning heuristics &mdash; refine with site-specific household size, irrigated acreage, and measured storage when known.
+          </li>
+        </ul>
+      </div>
+    </>
+  );
+}
+
+// ─── Roof Catchment & Rainwater Sizing ────────────────────────────────────────
+
+// Structure types whose footprint meaningfully captures rainwater for harvesting.
+// Excludes open pavilions, tents, and fire circles; excludes solar arrays, wells,
+// and water tanks (their footprints are structural but not roofed surfaces).
+const ROOFED_STRUCTURE_TYPES: ReadonlySet<Structure['type']> = new Set([
+  'cabin', 'yurt', 'greenhouse', 'barn', 'workshop', 'prayer_space',
+  'bathhouse', 'classroom', 'storage', 'animal_shelter', 'earthship',
+]);
+
+// Standard rainwater-harvesting runoff coefficient for solid roofs (metal/shingle/
+// tile). Industry guidance: 0.75–0.95 depending on surface; 0.85 is conservative-
+// typical. Distinct from NRCS soil runoff coefficients used elsewhere.
+const ROOF_RUNOFF_COEFF = 0.85;
+
+// 1 mm of rain over 1 m² = 1 liter. 1 liter = 0.264172 US gallons.
+const LITERS_PER_GALLON = 3.78541;
+
+// Utility types that count as water storage toward the cistern coverage check.
+const WATER_STORAGE_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set(['rain_catchment', 'water_tank']);
+
+function RoofCatchmentTab({ projectId, precipMm }: { projectId: string; precipMm: number }) {
+  const allStructures = useStructureStore((s) => s.structures);
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const updateUtility = useUtilityStore((s) => s.updateUtility);
+
+  const roofed = useMemo(
+    () => allStructures
+      .filter((s) => s.projectId === projectId && ROOFED_STRUCTURE_TYPES.has(s.type))
+      .map((s) => {
+        const areaM2 = (s.widthM ?? 0) * (s.depthM ?? 0);
+        const annualLiters = areaM2 * precipMm * ROOF_RUNOFF_COEFF;
+        const annualGal = annualLiters / LITERS_PER_GALLON;
+        return { structure: s, areaM2, annualGal };
+      })
+      .sort((a, b) => b.annualGal - a.annualGal),
+    [allStructures, projectId, precipMm],
+  );
+
+  const waterStorageUtilities = useMemo(
+    () => allUtilities
+      .filter((u) => u.projectId === projectId && WATER_STORAGE_UTILITY_TYPES.has(u.type))
+      .sort((a, b) => (b.capacityGal ?? 0) - (a.capacityGal ?? 0)),
+    [allUtilities, projectId],
+  );
+
+  const placedCapacityGal = waterStorageUtilities.reduce((sum, u) => sum + (u.capacityGal ?? 0), 0);
+  const unsizedCount = waterStorageUtilities.filter((u) => u.capacityGal == null).length;
+
+  const totalAreaM2 = roofed.reduce((sum, r) => sum + r.areaM2, 0);
+  const totalAnnualGal = roofed.reduce((sum, r) => sum + r.annualGal, 0);
+
+  // Cistern sizing recommendations
+  const bufferDays = 30;
+  const householdPersons = 4;
+  const householdDailyLiters = 400 * householdPersons;   // WHO 400 L/person/day
+  const bufferLiters = householdDailyLiters * bufferDays;
+  const bufferGal = bufferLiters / LITERS_PER_GALLON;
+  const tenPctYearlyGal = totalAnnualGal * 0.10;
+  // Use the larger of the two as the recommended cistern size.
+  const recommendedGal = Math.round(Math.max(bufferGal, tenPctYearlyGal));
+  const storageGapGal = Math.max(0, recommendedGal - placedCapacityGal);
+
+  if (roofed.length === 0) {
+    return (
+      <div className={css.budgetFallback}>
+        No roofed structures have been placed on this site yet. Add cabins, barns,
+        workshops, greenhouses, or similar structures from the map view to estimate
+        roof catchment yield and cistern sizing.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Summary metrics */}
+      <div className={css.metricsRow}>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>TOTAL ROOF AREA</span>
+          <span className={css.metricValue}>{totalAreaM2.toFixed(0)}</span>
+          <span className={css.metricUnit}>M&sup2;</span>
+          <span className={css.metricNote}>{roofed.length} ROOFED STRUCTURE{roofed.length === 1 ? '' : 'S'}</span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>ANNUAL HARVEST POTENTIAL</span>
+          <span className={css.metricValue}>{fmtGal(totalAnnualGal)}</span>
+          <span className={css.metricUnit}>GALLONS/YEAR</span>
+          <span className={css.metricNote}>
+            {Math.round(precipMm)}&#8239;MM RAINFALL &times; {ROOF_RUNOFF_COEFF.toFixed(2)} RUNOFF COEFF.
+          </span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>RECOMMENDED CISTERN</span>
+          <span className={css.metricValue}>{fmtGal(recommendedGal)}</span>
+          <span className={css.metricUnit}>GALLONS</span>
+          <span className={css.metricNote}>
+            {bufferGal > tenPctYearlyGal
+              ? `${bufferDays}-DAY HOUSEHOLD BUFFER (\u2248 ${householdPersons} PERSONS)`
+              : '10% OF ANNUAL HARVEST (FIRST-FLUSH \u002B SHORT BUFFER)'}
+          </span>
+        </div>
+      </div>
+
+      {/* Coverage check: recommended vs. placed capacity */}
+      <div className={css.metricsRow}>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>PLACED CISTERN CAPACITY</span>
+          <span className={css.metricValue}>
+            {waterStorageUtilities.length === 0 ? '\u2014' : fmtGal(placedCapacityGal)}
+          </span>
+          {waterStorageUtilities.length > 0 && <span className={css.metricUnit}>GALLONS</span>}
+          <span className={css.metricNote}>
+            {waterStorageUtilities.length === 0
+              ? 'NO RAIN CATCHMENT OR WATER TANK PLACED'
+              : `${waterStorageUtilities.length} UTILIT${waterStorageUtilities.length === 1 ? 'Y' : 'IES'}${unsizedCount > 0 ? ` \u00b7 ${unsizedCount} UNSIZED` : ''}`}
+          </span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>COVERAGE GAP</span>
+          <span
+            className={css.metricValue}
+            style={{ color: storageGapGal > 0 ? statusToken.poor : statusToken.good }}
+          >
+            {storageGapGal > 0 ? `+${fmtGal(storageGapGal)}` : 'COVERED'}
+          </span>
+          {storageGapGal > 0 && <span className={css.metricUnit}>GALLONS SHORT</span>}
+          <span className={css.metricNote}>
+            {storageGapGal > 0
+              ? 'ADD OR RESIZE STORAGE UTILITIES BELOW'
+              : 'PLACED CAPACITY MEETS OR EXCEEDS TARGET'}
+          </span>
+        </div>
+        <div className={css.metricCard}>
+          <span className={css.metricLabel}>COVERAGE RATIO</span>
+          <span className={css.metricValue}>
+            {recommendedGal > 0 ? `${Math.round((placedCapacityGal / recommendedGal) * 100)}%` : '\u2014'}
+          </span>
+          <span className={css.metricNote}>PLACED &divide; RECOMMENDED</span>
+        </div>
+      </div>
+
+      {/* Per-structure table */}
+      <div className={css.budgetBalanceCard}>
+        <div className={css.budgetBalanceHeader}>
+          <div>
+            <span className={css.flowLabel}>PER-STRUCTURE YIELD</span>
+            <p className={css.budgetBalanceSub}>
+              Annual catchment estimate for each roofed structure, sorted by yield.
+              Yield = roof area &times; annual rainfall &times; {ROOF_RUNOFF_COEFF.toFixed(2)} runoff coefficient.
+            </p>
+          </div>
+        </div>
+        <table className={css.roofTable}>
+          <thead>
+            <tr>
+              <th className={css.roofTh}>STRUCTURE</th>
+              <th className={css.roofTh}>TYPE</th>
+              <th className={css.roofThRight}>ROOF AREA (M&sup2;)</th>
+              <th className={css.roofThRight}>ANNUAL YIELD (GAL)</th>
+              <th className={css.roofThRight}>SHARE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roofed.map(({ structure, areaM2, annualGal }) => (
+              <tr key={structure.id} className={css.roofRow}>
+                <td className={css.roofTd}>{structure.name}</td>
+                <td className={css.roofTdDim}>{structure.type.replace(/_/g, ' ')}</td>
+                <td className={css.roofTdRight}>{areaM2.toFixed(0)}</td>
+                <td className={css.roofTdRight}>{fmtGal(annualGal)}</td>
+                <td className={css.roofTdRight}>
+                  {totalAnnualGal > 0 ? `${Math.round((annualGal / totalAnnualGal) * 100)}%` : '\u2014'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Storage utility capacity editor */}
+      <div className={css.budgetBalanceCard}>
+        <div className={css.budgetBalanceHeader}>
+          <div>
+            <span className={css.flowLabel}>STORAGE UTILITIES</span>
+            <p className={css.budgetBalanceSub}>
+              Rain catchment and water tank utilities placed for this site.
+              Enter a capacity in gallons to count each toward the coverage gap above.
+              Leave blank if unsized.
+            </p>
+          </div>
+        </div>
+        {waterStorageUtilities.length === 0 ? (
+          <p className={css.roofEmptyNote}>
+            No water storage utilities placed yet. Add a Rain Catchment or Water Tank
+            from the map view to start tracking cistern capacity.
+          </p>
+        ) : (
+          <table className={css.roofTable}>
+            <thead>
+              <tr>
+                <th className={css.roofTh}>UTILITY</th>
+                <th className={css.roofTh}>TYPE</th>
+                <th className={css.roofTh}>PHASE</th>
+                <th className={css.roofThRight}>CAPACITY (GAL)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {waterStorageUtilities.map((u) => (
+                <StorageCapacityRow key={u.id} utility={u} onSave={(gal) => updateUtility(u.id, { capacityGal: gal })} />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Assumptions footnote */}
+      <div className={css.budgetAssumptions}>
+        <h4 className={css.budgetAssumptionsTitle}>Model Assumptions</h4>
+        <ul className={css.budgetAssumptionsList}>
+          <li>
+            <strong>Roof area:</strong> width &times; depth from each structure's footprint template.
+            Roofed types: cabin, yurt, greenhouse, barn, workshop, prayer space, bathhouse,
+            classroom, storage, animal shelter, earthship. Open structures (pavilions,
+            tents, fire circles) and non-roof utilities (solar arrays, wells, tanks) are excluded.
+          </li>
+          <li>
+            <strong>Runoff coefficient:</strong> {ROOF_RUNOFF_COEFF.toFixed(2)} &mdash; standard
+            for solid roofs (metal, tile, shingle). Accounts for first-flush losses,
+            wind drift, and evaporation on a hot roof.
+          </li>
+          <li>
+            <strong>Annual rainfall:</strong> {Math.round(precipMm)} mm (from site climate layer).
+            1 mm rain &times; 1 m&sup2; = 1 liter.
+          </li>
+          <li>
+            <strong>Cistern sizing:</strong> the larger of (a) {bufferDays}-day household
+            buffer at {householdPersons} persons &times; 400 L/day (WHO guideline) = {fmtGal(bufferGal)} gal,
+            or (b) 10% of annual harvest = {fmtGal(tenPctYearlyGal)} gal. Real sizing should
+            also account for seasonal rainfall gaps &mdash; see the Water Budget tab.
+          </li>
+          <li>
+            Sizing is a planning heuristic. Local code, first-flush diverters, mosquito
+            controls, and tank material choice materially affect final capacity.
+          </li>
+        </ul>
+      </div>
+    </>
+  );
+}
+
+function StorageCapacityRow({ utility, onSave }: {
+  utility: Utility;
+  onSave: (capacityGal: number | undefined) => void;
+}) {
+  // Local draft so typing doesn't thrash the store on every keystroke.
+  const [draft, setDraft] = useState<string>(
+    utility.capacityGal != null ? String(utility.capacityGal) : '',
+  );
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed === '') {
+      if (utility.capacityGal !== undefined) onSave(undefined);
+      return;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      // Reset the field on invalid input; leave stored value unchanged.
+      setDraft(utility.capacityGal != null ? String(utility.capacityGal) : '');
+      return;
+    }
+    const rounded = Math.round(parsed);
+    if (rounded !== utility.capacityGal) onSave(rounded);
+  };
+
+  return (
+    <tr className={css.roofRow}>
+      <td className={css.roofTd}>{utility.name}</td>
+      <td className={css.roofTdDim}>{utility.type.replace(/_/g, ' ')}</td>
+      <td className={css.roofTdDim}>{utility.phase || '\u2014'}</td>
+      <td className={css.roofTdRight}>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          step={100}
+          placeholder="—"
+          className={css.capacityInput}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur();
+            if (e.key === 'Escape') {
+              setDraft(utility.capacityGal != null ? String(utility.capacityGal) : '');
+              (e.currentTarget as HTMLInputElement).blur();
+            }
+          }}
+          aria-label={`${utility.name} capacity in gallons`}
+        />
+      </td>
+    </tr>
   );
 }

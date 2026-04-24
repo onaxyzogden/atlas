@@ -33,6 +33,7 @@ import { computeVisionFit } from '../../lib/visionFit.js';
 import { fmtK, formatKRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './ScenarioPanel.module.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -489,12 +490,14 @@ function ScenarioCard({
           {scenario.description && <div className={s.scenarioDesc}>{scenario.description}</div>}
         </div>
         <div className={s.scenarioHeaderRight}>
-          <div
-            className={`${s.compareCheckbox} ${isSelected ? s.compareCheckboxSelected : ''}`}
-            title="Select for design diff"
-          >
-            {isSelected ? '\u2713' : ''}
-          </div>
+          <DelayedTooltip label="Select for design diff">
+            <div
+              tabIndex={0}
+              className={`${s.compareCheckbox} ${isSelected ? s.compareCheckboxSelected : ''}`}
+            >
+              {isSelected ? '\u2713' : ''}
+            </div>
+          </DelayedTooltip>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className={s.deleteBtn}

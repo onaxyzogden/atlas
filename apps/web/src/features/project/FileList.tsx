@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { api } from '../../lib/apiClient.js';
 import ConfidenceIndicator from '../assessment/ConfidenceIndicator.js';
 import { confidence } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface FileListProps {
   projectId: string;
@@ -138,20 +139,21 @@ function ServerFileRow({ file, onDelete }: { file: ServerFile; onDelete: () => v
           {formatFileSize(file.fileSizeBytes)}
         </span>
         <StatusBadge status={file.processingStatus} />
-        <button
-          onClick={onDelete}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-text-muted)',
-            cursor: 'pointer',
-            fontSize: 14,
-            padding: '0 4px',
-          }}
-          title="Remove file"
-        >
-          \u00D7
-        </button>
+        <DelayedTooltip label="Remove file">
+          <button
+            onClick={onDelete}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+              fontSize: 14,
+              padding: '0 4px',
+            }}
+          >
+            \u00D7
+          </button>
+        </DelayedTooltip>
       </div>
 
       {/* Extracted data preview */}

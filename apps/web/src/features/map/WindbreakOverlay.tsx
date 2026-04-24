@@ -3,6 +3,7 @@ import type maplibregl from 'maplibre-gl';
 import { buildWindbreakLines } from '@ogden/shared';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { useMapStore } from '../../store/mapStore.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface WindbreakOverlayProps {
   projectId: string;
@@ -121,43 +122,45 @@ export function WindbreakToggle({ compact = false }: { compact?: boolean } = {})
   const setVisible = useMapStore((s) => s.setWindbreakVisible);
   if (compact) {
     return (
-      <button
-        onClick={() => setVisible(!visible)}
-        aria-pressed={visible}
-        className="spine-btn"
-        data-active={visible}
-        title="Windbreak candidate overlay"
-        aria-label="Toggle windbreak candidate overlay"
-      >
-        {/* Lucide Wind — inlined */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
-          <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
-          <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
-        </svg>
-      </button>
+      <DelayedTooltip label="Windbreak candidate overlay">
+        <button
+          onClick={() => setVisible(!visible)}
+          aria-pressed={visible}
+          className="spine-btn"
+          data-active={visible}
+          aria-label="Toggle windbreak candidate overlay"
+        >
+          {/* Lucide Wind — inlined */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
+            <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
+            <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
+          </svg>
+        </button>
+      </DelayedTooltip>
     );
   }
   return (
-    <button
-      onClick={() => setVisible(!visible)}
-      aria-pressed={visible}
-      style={{
-        padding: '6px 10px',
-        borderRadius: 6,
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: 12,
-        fontWeight: 500,
-        background: visible ? '#8ac8ac' : 'var(--color-chrome-bg-translucent)',
-        color: visible ? '#12251c' : '#c4b49a',
-        backdropFilter: 'blur(8px)',
-        pointerEvents: 'auto',
-      }}
-      title="Toggle windbreak candidate overlay"
-    >
-      Windbreaks
-    </button>
+    <DelayedTooltip label="Toggle windbreak candidate overlay">
+      <button
+        onClick={() => setVisible(!visible)}
+        aria-pressed={visible}
+        style={{
+          padding: '6px 10px',
+          borderRadius: 6,
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: 12,
+          fontWeight: 500,
+          background: visible ? '#8ac8ac' : 'var(--color-chrome-bg-translucent)',
+          color: visible ? '#12251c' : '#c4b49a',
+          backdropFilter: 'blur(8px)',
+          pointerEvents: 'auto',
+        }}
+      >
+        Windbreaks
+      </button>
+    </DelayedTooltip>
   );
 }
 
