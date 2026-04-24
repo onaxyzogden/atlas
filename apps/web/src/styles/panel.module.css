@@ -9,6 +9,18 @@
   overflow-y: auto;
   height: 100%;
   color: var(--color-panel-text);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180, 165, 140, 0.18) transparent;
+}
+
+.container::-webkit-scrollbar { width: 6px; }
+.container::-webkit-scrollbar-track { background: transparent; }
+.container::-webkit-scrollbar-thumb {
+  background: rgba(180, 165, 140, 0.18);
+  border-radius: 3px;
+}
+.container::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 165, 140, 0.28);
 }
 
 .containerCompact {
