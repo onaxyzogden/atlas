@@ -206,7 +206,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'soil-type-drainage-ssurgo', label: 'Soil type visualization and drainage classification (from SSURGO)', phase: 'P1', status: 'done' },
       { key: 'ph-organic-compaction-notes', label: 'pH, organic matter, compaction notes fields', phase: 'P1', status: 'done' },
       { key: 'manual-soil-test-entry', label: 'Manual soil test entry, biological activity notes', phase: 'P2', status: 'planned' },
-      { key: 'soil-restoration-opportunity-map', label: 'Soil restoration opportunity map, disturbed land recovery zones', phase: 'P2', status: 'partial' },
+      { key: 'soil-restoration-opportunity-map', label: 'Soil restoration opportunity map, disturbed land recovery zones', phase: 'P2', status: 'done' },
       { key: 'mulching-compost-covercrop-zones', label: 'Mulching priority, compost application, cover crop opportunity zones', phase: 'P2', status: 'planned' },
       { key: 'silvopasture-foodforest-regen-zones', label: 'Silvopasture, food forest, forest regeneration candidate zones', phase: 'P2', status: 'planned' },
       { key: 'native-pollinator-biodiversity', label: 'Native planting, pollinator habitat, biodiversity corridor planning', phase: 'P2', status: 'planned' },

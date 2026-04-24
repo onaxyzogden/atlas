@@ -72,6 +72,13 @@ interface MapState {
   windbreakVisible: boolean;
   setWindbreakVisible: (v: boolean) => void;
 
+  // §7 soil restoration priority overlay — when on, RestorationPriorityOverlay
+  // fetches the `soil_regeneration` project layer (Point centroids classed by
+  // priorityClass: critical/high/moderate/low) and paints them as classed
+  // circles on the main map.
+  restorationPriorityVisible: boolean;
+  setRestorationPriorityVisible: (v: boolean) => void;
+
   // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
   // is added to MapCanvas when a release is selected.
   historicalRelease: { id: number; date: string } | null;
@@ -159,6 +166,9 @@ export const useMapStore = create<MapState>((set) => ({
 
   windbreakVisible: false,
   setWindbreakVisible: (windbreakVisible) => set({ windbreakVisible }),
+
+  restorationPriorityVisible: false,
+  setRestorationPriorityVisible: (restorationPriorityVisible) => set({ restorationPriorityVisible }),
 
   historicalRelease: null,
   setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),

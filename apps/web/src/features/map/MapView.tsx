@@ -44,6 +44,8 @@ const MicroclimateOverlay = lazy(() => import('./MicroclimateOverlay.js'));
 const MicroclimateToggle = lazy(() => import('./MicroclimateOverlay.js').then((m) => ({ default: m.MicroclimateToggle })));
 const WindbreakOverlay = lazy(() => import('./WindbreakOverlay.js'));
 const WindbreakToggle = lazy(() => import('./WindbreakOverlay.js').then((m) => ({ default: m.WindbreakToggle })));
+const RestorationPriorityOverlay = lazy(() => import('./RestorationPriorityOverlay.js'));
+const RestorationPriorityToggle = lazy(() => import('./RestorationPriorityOverlay.js').then((m) => ({ default: m.RestorationPriorityToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
@@ -322,6 +324,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <WindbreakToggle compact />
               </Suspense>
             }
+            restorationSlot={
+              <Suspense fallback={null}>
+                <RestorationPriorityToggle compact />
+              </Suspense>
+            }
             osmSlot={
               <Suspense fallback={null}>
                 <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
@@ -370,6 +377,9 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             map={mapRef}
             boundaryGeojson={project.parcelBoundaryGeojson}
           />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RestorationPriorityOverlay projectId={project.id} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare

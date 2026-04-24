@@ -34,6 +34,7 @@ interface LeftToolSpineProps {
   viewshedSlot: ReactNode;
   microclimateSlot: ReactNode;
   windbreakSlot: ReactNode;
+  restorationSlot: ReactNode;
   osmSlot: ReactNode;
 }
 
@@ -60,6 +61,7 @@ export default function LeftToolSpine({
   viewshedSlot,
   microclimateSlot,
   windbreakSlot,
+  restorationSlot,
   osmSlot,
 }: LeftToolSpineProps) {
   return (
@@ -90,6 +92,7 @@ export default function LeftToolSpine({
       {viewshedSlot}
       {microclimateSlot}
       {windbreakSlot}
+      {restorationSlot}
       <Suspense fallback={null}>
         <MeasureTools projectId={projectId} map={map} draw={draw} compact />
       </Suspense>

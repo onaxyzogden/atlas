@@ -24,9 +24,14 @@ item list). As of 2026-04-24:
   `projects.metadata.soilNotes` jsonb and surface on
   `EcologicalDashboard` under a FIELD OBSERVATIONS subsection next to
   the SSURGO-derived values.
-- Restoration-opportunity output is P2-partial (processor zones emit
-  intervention recommendations; dedicated restoration-priority map
-  overlay not yet wired).
+- `soil-restoration-opportunity-map` — **done**.
+  `RestorationPriorityOverlay` paints `SoilRegenerationProcessor` zone
+  centroids on the main Mapbox map as classed circles keyed on
+  `properties.priorityClass` (critical/high/moderate/low). Mirrors the
+  canonical ViewshedOverlay/MicroclimateOverlay pattern (fetch-on-visible
+  + `style.load` re-sync + spine-btn compact toggle). Wired into
+  `MapView` + `LeftToolSpine` via `restorationSlot`; state lives at
+  `useMapStore.restorationPriorityVisible`.
 - All other ecology / regeneration-planning items are P2-planned.
 
 ## Purpose
