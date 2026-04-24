@@ -1,8 +1,9 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { useMapStore } from '../../store/mapStore.js';
-import { semantic } from '../../lib/tokens.js';
+import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
 // Esri Wayback â€” free global historical World Imagery archive. Releases are
 // quarterly snapshots of the World Imagery tile service.
@@ -191,18 +192,15 @@ export default function HistoricalImageryControl({ map, boundaryGeojson, compact
         </button>
       )}
       {open && (
-        <div
+        <MapControlPopover
+          variant="dropdown"
           style={{
             ...popoverPosition,
-            background: 'var(--color-chrome-bg-translucent)',
-            border: '1px solid rgba(196,180,154,0.25)',
-            borderRadius: 8,
             padding: 6,
             minWidth: 180,
             maxHeight: 260,
             overflow: 'auto',
-            pointerEvents: 'auto',
-            zIndex: 4,
+            zIndex: mapZIndex.dropdown,
           }}
         >
           {err && <div style={{ color: '#d07b7b', fontSize: 11, padding: 4 }}>{err}</div>}
@@ -226,7 +224,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson, compact
               ))}
             </>
           )}
-        </div>
+        </MapControlPopover>
       )}
     </div>
   );

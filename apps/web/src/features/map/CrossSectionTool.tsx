@@ -1,9 +1,9 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import type { ElevationProfileResponse } from '@ogden/shared';
-import { semantic } from '../../lib/tokens.js';
+import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface CrossSectionToolProps {
@@ -154,7 +154,7 @@ function ProfilePanel({ loading, profile, error, onClose }: ProfilePanelProps) {
         borderRadius: 10,
         padding: '12px 14px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.45)',
-        zIndex: 50,
+        zIndex: mapZIndex.top,
         backdropFilter: 'blur(8px)',
         pointerEvents: 'auto',
       }}

@@ -1,7 +1,7 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../lib/maplibre.js';
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
-import { semantic } from '../../lib/tokens.js';
+import { semantic, mapZIndex } from '../../lib/tokens.js';
 import { map as mapTokens } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
@@ -198,7 +198,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
           bottom: 0,
           width: `${100 - splitPct}%`,
           borderLeft: '2px solid rgba(196,180,154,0.4)',
-          zIndex: 3,
+          zIndex: mapZIndex.splitPane,
           pointerEvents: 'auto',
         }}
       >
@@ -249,7 +249,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
           width: 6,
           cursor: 'col-resize',
           background: 'rgba(196,180,154,0.35)',
-          zIndex: 4,
+          zIndex: mapZIndex.dropdown,
           pointerEvents: 'auto',
         }}
       />

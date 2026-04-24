@@ -375,6 +375,19 @@
   --z-tooltip:  600;
   --z-max:      999;
 
+  /* Map canvas sub-scale — isolated by `.mapArea { position: relative }`
+     in MapView.module.css. Safe inside .mapArea only; outside, use --z-*. */
+  --z-map-spine:        2;
+  --z-map-base-overlay: 3;  /* Cesium 3D terrain overlay (shares layer with split-pane) */
+  --z-map-split-pane:   3;
+  --z-map-dropdown:     4;
+  --z-map-panel:        5;
+  --z-map-tooltip:      6;
+  --z-map-loading-chip: 9;  /* MapLoadingIndicator tile-fetch chip */
+  --z-map-toolbar:      10;
+  --z-map-mobile-bar:   40;
+  --z-map-top:          50;
+
   /* ========================================================================
      TRANSITIONS
      ======================================================================== */

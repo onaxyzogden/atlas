@@ -45,3 +45,8 @@ Read this first at the start of every session.
 - [2026-04-22 Feature Manifest Scaffolding Pass §§1-30](decisions/2026-04-22-feature-manifest-scaffolding-pass.md) — Framework (manifest, phase-gate plugin, generator, FUTURE tag) + 28 scaffolded section stubs across 8 commits `87d1a56` → `c02f75e` on `feat/shared-scoring`; downstream sessions land on mountable surfaces driven by `packages/shared/src/featureManifest.ts`
 - [2026-04-23 OKLCH Token Migration](decisions/2026-04-23-oklch-token-migration.md) — OKLCH primitives in `tokens.css`; `@supports`-gated dark-mode overrides so hex remains authoritative on unsupporting browsers; elevation ladder derivable from L-steps; closes audit §§2+4 P0/P1
 - [2026-04-23 DelayedTooltip Primitive](decisions/2026-04-23-delayed-tooltip-primitive.md) — `<DelayedTooltip>` as 800 ms preset over existing `<Tooltip>`; `title=` replaced across `IconSidebar` + map control chrome; paired with `.signifier-shimmer` active-state utility; closes audit §6 P0
+- [2026-04-24 MapControlPopover + mapZIndex](decisions/2026-04-24-map-control-popover-and-mapzindex.md) — `<MapControlPopover variant="panel"|"dropdown">` extracts the five-consumer glass-chrome pattern; `mapZIndex` TS export + `--z-map-*` CSS mirror replace all 1–50 sub-scale literals in `features/map/**`; closes IA spec §5 deferred items
+
+## Design System
+- [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)
+- [UX Scholar Audit](../design-system/ogden-atlas/ui-ux-scholar-audit.md) — Six-area UI/UX audit with P0/P1/P2 findings (source of the conventions spec and two 2026-04-23 ADRs)

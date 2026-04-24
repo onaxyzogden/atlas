@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MeasureTools â€” distance and area measurement on the map using Turf.js.
  *
  * Activated from the map toolbar. Displays result in an overlay.
@@ -11,7 +11,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
 import { api } from '../../lib/apiClient.js';
-import { map as mapTokens, semantic } from '../../lib/tokens.js';
+import { map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 type MeasureMode = 'none' | 'distance' | 'area' | 'elevation';
@@ -199,7 +199,7 @@ export default function MeasureTools({ draw, map, projectId, compact = false }: 
               flexDirection: 'column',
               gap: 6,
               pointerEvents: 'auto',
-              zIndex: 4,
+              zIndex: mapZIndex.dropdown,
             }}
           >
             <div

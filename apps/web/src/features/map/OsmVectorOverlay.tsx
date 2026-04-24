@@ -1,8 +1,9 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { useMapStore } from '../../store/mapStore.js';
-import { semantic } from '../../lib/tokens.js';
+import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
 interface OsmVectorOverlayProps {
   map: maplibregl.Map | null;
@@ -320,17 +321,12 @@ export function OsmVectorControls({ disabled, compact = false }: OsmVectorContro
         </DelayedTooltip>
       )}
       {open && (
-        <div
+        <MapControlPopover
+          variant="dropdown"
           style={{
             ...popoverPosition,
-            background: 'var(--color-chrome-bg-translucent)',
-            border: '1px solid rgba(196,180,154,0.25)',
-            borderRadius: 8,
-            padding: 10,
             minWidth: 200,
-            pointerEvents: 'auto',
-            zIndex: 4,
-            color: '#e9decb',
+            zIndex: mapZIndex.dropdown,
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
@@ -361,7 +357,7 @@ export function OsmVectorControls({ disabled, compact = false }: OsmVectorContro
               OSM fetch failed: {error}
             </div>
           )}
-        </div>
+        </MapControlPopover>
       )}
     </div>
   );

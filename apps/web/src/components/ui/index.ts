@@ -21,6 +21,8 @@ export { Accordion } from './Accordion';
 export { FormField } from './FormField';
 export { StepIndicator } from './StepIndicator';
 export { EmptyState } from './EmptyState';
+export { MapControlPopover } from './MapControlPopover';
+export type { MapControlPopoverProps, MapControlPopoverVariant } from './MapControlPopover';
 
 // Layout
 export { Stack } from './Stack';

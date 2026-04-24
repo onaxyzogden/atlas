@@ -1,5 +1,5 @@
 /**
- * TerrainControls — adds hillshade, contour lines, slope/aspect heatmaps
+ * TerrainControls â€” adds hillshade, contour lines, slope/aspect heatmaps
  * to the MapLibre map using MapTiler Terrain DEM tiles.
  *
  * These are P1 features from Section 2 of the Atlas spec.
@@ -7,8 +7,9 @@
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect } from 'react';
-import { earth, map as mapTokens, semantic } from '../../lib/tokens.js';
+import { earth, map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
 import { TERRAIN_DEM_URL, CONTOUR_TILES_URL } from '../../lib/maplibre.js';
+import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
 type TerrainLayer = 'hillshade' | 'contours' | 'slope';
 
@@ -56,16 +57,14 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
   if (!isMapReady) return null;
 
   return (
-    <div
+    <MapControlPopover
+      variant="panel"
+      collapsed={collapsed}
       style={{
-        pointerEvents: 'auto',
         flexShrink: 0,
-        background: 'rgba(26, 22, 17, 0.90)',
-        borderRadius: 10,
-        padding: collapsed ? '6px 10px' : 12,
-        backdropFilter: 'blur(10px)',
         color: mapTokens.label,
-        zIndex: 5,
+        zIndex: mapZIndex.panel,
+        border: 'none',
       }}
     >
       <button
@@ -82,7 +81,7 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
           padding: 0,
         }}
       >
-        Terrain {collapsed ? '▸' : '▾'}
+        Terrain {collapsed ? 'â–¸' : 'â–¾'}
       </button>
 
       {!collapsed && (
@@ -107,7 +106,7 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
           />
         </div>
       )}
-    </div>
+    </MapControlPopover>
   );
 }
 
@@ -156,7 +155,7 @@ function TerrainToggle({
   );
 }
 
-// ─── Map layer management ──────────────────────────────────────────────────
+// â”€â”€â”€ Map layer management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const DEM_SOURCE = 'mapbox-dem';
 

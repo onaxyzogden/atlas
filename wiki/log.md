@@ -4,6 +4,110 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-24 — MapControlPopover primitive + mapZIndex token export
+
+Landed the two §5-deferred refactors from the IA & Panel Conventions spec
+(`design-system/ogden-atlas/ia-and-panel-conventions.md`). Pure refactor — no
+visual change. Mandate: retire inline chrome/zIndex literals in `features/map/**`
+so future map surfaces are typed and centralized.
+
+### Deliverables
+
+- **`apps/web/src/components/ui/MapControlPopover.tsx`** (new) — thin
+  chrome-only wrapper. Two variants: `panel` (rgba(125,97,64,0.4) border, radius
+  10, padding 12/6px collapsed) and `dropdown` (rgba(196,180,154,0.25) border,
+  radius 8, padding 10). No built-in header or position — callers own both and
+  spread via the `style` prop (default ⊕ caller → caller wins).
+- **`apps/web/src/lib/tokens.ts`** — added `mapZIndex` const (10 keys:
+  `spine 2 / baseOverlay 3 / splitPane 3 / dropdown 4 / panel 5 / tooltip 6 /
+  loadingChip 9 / toolbar 10 / mobileBar 40 / top 50`) below the existing global
+  `zIndex` export.
+- **`apps/web/src/styles/tokens.css`** — `--z-map-*` CSS mirror of the TS
+  export. Two entries (`baseOverlay`, `loadingChip`) added after Phase 4 grep
+  surfaced inline literals not in the original plan inventory (`cesiumOverlay`
+  z:3 in `MapView.module.css`, `MapLoadingIndicator.module.css` chip z:9).
+- **Consumer migrations** — 5 files now use `<MapControlPopover>`:
+  `GaezOverlay.tsx`, `SoilOverlay.tsx`, `TerrainControls.tsx`,
+  `HistoricalImageryControl.tsx`, `OsmVectorOverlay.tsx`. `TerrainControls` was
+  borderless pre-refactor; preserved via `border: 'none'` style override (flagged
+  in ADR as a de facto inconsistency to revisit).
+- **zIndex literal sweep** — 13 inline sites swapped to tokens across
+  `LeftToolSpine`, `MeasureTools`, `CrossSectionTool`, `MapView.tsx ×2`,
+  `SplitScreenCompare ×2`, `GaezOverlay` (tooltip), `SoilOverlay` (tooltip) on
+  the TSX side; `MapView.module.css ×4`, `DomainFloatingToolbar.module.css`,
+  `MapLoadingIndicator.module.css` on the CSS side.
+- **Doc updates** — `ia-and-panel-conventions.md` §2 matrix row + §4 callout +
+  §5 deferred items flipped to "Landed 2026-04-24" with file refs.
+
+### Verification
+
+- Grep gate: `zIndex:\s*[1-9]` in `features/map/**/*.tsx` → 0 hits;
+  `z-index:\s*[1-9]` in `features/map/**/*.module.css` → 0 hits.
+- Vite HMR: all 5 consumers reload without errors after migration.
+- Preview: map controls unchanged (chrome pixel-identical; `TerrainControls`
+  deliberately still borderless).
+- `tsc --noEmit`: clean (Phase 1, 2, 3 passes — Phase 4 pass pending).
+
+### ADR
+
+[2026-04-24 — MapControlPopover primitive + mapZIndex token export](decisions/2026-04-24-map-control-popover-and-mapzindex.md)
+
+---
+
+## 2026-04-24 — UX Scholar audit §§1 + 3: IA & panel conventions codified (P2)
+
+Doc-only session closing the last two P2 items from the UX Scholar audit
+(`design-system/ogden-atlas/ui-ux-scholar-audit.md` §§1 + 3). No code changes.
+
+### Deliverable
+
+- `design-system/ogden-atlas/ia-and-panel-conventions.md` (new) — 5-section spec:
+  1. Perimeter strategy — the five zones (top chrome / left spine / map hero /
+     floating tool spine / right rail) with per-zone owner, file, width, z-index,
+     and route scope; invariants (no top bar on `/project/*`, one rail at a time,
+     tool spine is floating-not-structural, map corner conventions).
+  2. Z-index scale — global tier (`tokens.ts:303-312`, 8 steps base→max=999) +
+     map canvas local sub-scale (1–50, isolated by `.mapArea { position: relative }`
+     per `MapView.module.css:3-10`); rule that inline map-sub-scale numbers are
+     acceptable only inside `.mapArea`.
+  3. Panel decision matrix — 8 rows (rail / bottom sheet / modal / map-control
+     popover / floating toolbar / command palette / toast / delayed tooltip) each
+     citing a primitive file + "when to use" / "when NOT" guidance; anti-patterns
+     list (re-invented modals, custom z-index >10, second rail, native `title=`).
+  4. Ad-hoc floating inventory — 9 existing `features/map/*` floating surfaces
+     documented with their shared glass-chrome recipe (`--color-chrome-bg-translucent`
+     + `backdrop-filter: blur(8–10px)` + warm-gold border).
+  5. Forward guidance (deferred) — `MapControlPopover` primitive extraction,
+     `mapZIndex` token export, top-chrome-on-`/project/*` rationale.
+
+### Cross-links
+
+- Audit §§1 and 3 each gained a **Status (2026-04-24)** line pointing to the new spec.
+- The new spec links back to audit, `MASTER.md`, and the two 2026-04-23 ADRs
+  (OKLCH, DelayedTooltip).
+
+### Not done / deferred
+
+- No `MapControlPopover` primitive — the pattern is documented but not extracted.
+- No `mapZIndex` token export — still lives as a comment in `MapView.module.css`.
+- No ADR — this spec supersedes nothing; it formalizes existing practice.
+  If the `MapControlPopover` or `mapZIndex` refactors land, an ADR will accompany them.
+
+### Files touched
+
+- `design-system/ogden-atlas/ia-and-panel-conventions.md` (new)
+- `design-system/ogden-atlas/ui-ux-scholar-audit.md` (2 status lines)
+- `wiki/log.md` (this entry)
+- `wiki/index.md` (spec link added)
+
+### Recommended next session
+
+`MapControlPopover` primitive + `mapZIndex` token export — this turns the
+"de facto glass chrome" pattern into a typed API and retires the ~9 inline
+`zIndex: 5 / 10` literals under `features/map/`.
+
+---
+
 ## 2026-04-23 — En-dash rendering fix + formatRange helper extraction
 
 Two-commit pass on `main` closing a UI bug in the Economics panel and
