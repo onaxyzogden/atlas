@@ -11,6 +11,7 @@ export * from './schemas/file.schema.js';
 export * from './schemas/export.schema.js';
 export * from './schemas/portal.schema.js';
 export * from './schemas/collaboration.schema.js';
+export * from './schemas/regenerationEvent.schema.js';
 export * from './schemas/websocket.schema.js';
 export * from './schemas/section2.schema.js';
 export * from './schemas/elevation.schema.js';

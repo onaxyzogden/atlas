@@ -191,9 +191,19 @@ and cropping placement).
   no server surface exists yet. Do not stub client components that
   pretend to hit endpoints that will 404.
 - Regeneration-stage tagging + intervention log + before/after compare
-  depend on a yet-to-exist `regeneration_events` table. Wait for that
-  migration before starting UI; do not jam events into
-  `projects.metadata`.
+  persist in the `regeneration_events` table (migration 015, shipped
+  2026-04-24). Read/write through the typed `RegenerationEvent` +
+  `RegenerationEventInput` schemas in `@ogden/shared`. The table
+  bundles all three concerns: `event_type='intervention'` +
+  `intervention_type` = intervention log; `phase + progress` = stage
+  tagging; `parent_event_id` self-FK = before/after pair. Vocabulary
+  mirrors `InterventionType` and `SequencePhase` from
+  `apps/api/src/services/terrain/algorithms/soilRegeneration.ts` —
+  if those TS enums change, update the CHECK constraints in the
+  migration AND the Zod enums in `regenerationEvent.schema.ts` in the
+  same PR. API routes + UI are NOT yet wired — the substrate is there,
+  but `regen-stage-intervention-log` stays `planned` on the manifest
+  until routes + timeline UI ship.
 - `SoilRegenerationProcessor` output is cached on the Tier-3 pipeline
   run — it does not recompute on UI navigation. Trigger a new run if a
   boundary changes; never synthesize zones client-side.
