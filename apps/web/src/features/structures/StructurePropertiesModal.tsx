@@ -9,17 +9,33 @@ import type { StructureType, Structure } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
 import { semantic, zIndex } from '../../lib/tokens.js';
 
+/**
+ * Save payload for both new-placement and edit flows. Labor / material
+ * fields are optional so legacy call sites keep working, and a blank
+ * input round-trips as `undefined` rather than `0`.
+ */
+export interface StructureModalSaveData {
+  name: string;
+  phase: string;
+  notes: string;
+  widthM: number;
+  depthM: number;
+  rotationDeg: number;
+  laborHoursEstimate?: number;
+  materialTonnageEstimate?: number;
+}
+
 interface NewPlacementProps {
   mode: 'new';
   structureType: StructureType;
-  onSave: (data: { name: string; phase: string; notes: string; widthM: number; depthM: number; rotationDeg: number }) => void;
+  onSave: (data: StructureModalSaveData) => void;
   onCancel: () => void;
 }
 
 interface EditProps {
   mode: 'edit';
   structure: Structure;
-  onSave: (data: { name: string; phase: string; notes: string; widthM: number; depthM: number; rotationDeg: number }) => void;
+  onSave: (data: StructureModalSaveData) => void;
   onCancel: () => void;
 }
 
@@ -37,10 +53,38 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
   const [widthM, setWidthM] = useState(isEdit ? props.structure.widthM : template.widthM);
   const [depthM, setDepthM] = useState(isEdit ? props.structure.depthM : template.depthM);
   const [rotationDeg, setRotationDeg] = useState(isEdit ? props.structure.rotationDeg : 0);
+  // §15 cost-labor-material-per-phase — optional rollup inputs. Stored as
+  // strings so a blank field round-trips as `undefined` on save rather
+  // than an accidental `0`.
+  const [laborHours, setLaborHours] = useState<string>(
+    isEdit && typeof props.structure.laborHoursEstimate === 'number'
+      ? String(props.structure.laborHoursEstimate)
+      : '',
+  );
+  const [materialTons, setMaterialTons] = useState<string>(
+    isEdit && typeof props.structure.materialTonnageEstimate === 'number'
+      ? String(props.structure.materialTonnageEstimate)
+      : '',
+  );
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave({ name: name.trim(), phase, notes, widthM, depthM, rotationDeg });
+    const parseOptionalPositive = (raw: string): number | undefined => {
+      const trimmed = raw.trim();
+      if (trimmed === '') return undefined;
+      const n = Number(trimmed);
+      return Number.isFinite(n) && n > 0 ? n : undefined;
+    };
+    onSave({
+      name: name.trim(),
+      phase,
+      notes,
+      widthM,
+      depthM,
+      rotationDeg,
+      laborHoursEstimate: parseOptionalPositive(laborHours),
+      materialTonnageEstimate: parseOptionalPositive(materialTons),
+    });
   };
 
   const inputStyle: React.CSSProperties = {
@@ -192,6 +236,40 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
           <option value="Phase 3">Phase 3 {'\u2014'} Year 3-5</option>
           <option value="Phase 4">Phase 4 {'\u2014'} Year 5+</option>
         </select>
+
+        {/* §15 cost-labor-material-per-phase — optional rollup inputs */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle} htmlFor="structure-labor">
+              Labor (hrs) <span style={{ opacity: 0.55 }}>optional</span>
+            </label>
+            <input
+              id="structure-labor"
+              type="number"
+              min={0}
+              step={1}
+              value={laborHours}
+              onChange={(e) => setLaborHours(e.target.value)}
+              placeholder="e.g. 120"
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle} htmlFor="structure-material">
+              Material (t) <span style={{ opacity: 0.55 }}>optional</span>
+            </label>
+            <input
+              id="structure-material"
+              type="number"
+              min={0}
+              step={0.1}
+              value={materialTons}
+              onChange={(e) => setMaterialTons(e.target.value)}
+              placeholder="e.g. 3.5"
+              style={inputStyle}
+            />
+          </div>
+        </div>
 
         {/* Notes */}
         <label style={labelStyle} htmlFor="structure-notes">Notes</label>

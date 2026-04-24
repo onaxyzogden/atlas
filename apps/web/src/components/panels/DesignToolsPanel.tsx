@@ -404,7 +404,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="new"
           structureType={placementMode}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, laborHoursEstimate, materialTonnageEstimate }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);
             const structure: Structure = {
@@ -419,6 +419,8 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               depthM,
               phase,
               costEstimate: Math.round((tmpl.costRange[0] + tmpl.costRange[1]) / 2),
+              laborHoursEstimate,
+              materialTonnageEstimate,
               infrastructureReqs: tmpl.infrastructureReqs,
               notes: n,
               createdAt: new Date().toISOString(),
@@ -442,9 +444,19 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="edit"
           structure={editingStructure}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, laborHoursEstimate, materialTonnageEstimate }) => {
             const newGeometry = createFootprintPolygon(editingStructure.center, widthM, depthM, rotationDeg);
-            updateStructure(editingStructure.id, { name, phase, notes: n, widthM, depthM, rotationDeg, geometry: newGeometry });
+            updateStructure(editingStructure.id, {
+              name,
+              phase,
+              notes: n,
+              widthM,
+              depthM,
+              rotationDeg,
+              laborHoursEstimate,
+              materialTonnageEstimate,
+              geometry: newGeometry,
+            });
 
             // Update map layer
             if (map) {

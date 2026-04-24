@@ -79,16 +79,20 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
     [structures, paths, utilities],
   );
 
-  // Per-phase cost rollup — sums user-entered `costEstimate` values.
-  // Structures without an entered cost contribute 0 to the phase total;
-  // the empty state is explicit in the UI rather than back-filled with a
-  // heuristic (the derived-cost helper was removed from structures/footprints).
-  const costByPhase = useMemo(() => {
-    const map = new Map<string, number>();
+  // Per-phase rollup — sums user-entered `costEstimate`, `laborHoursEstimate`,
+  // and `materialTonnageEstimate` values (§15 cost-labor-material-per-phase).
+  // Structures without a value contribute 0; the empty state is explicit in
+  // the UI rather than back-filled with a heuristic.
+  const rollupByPhase = useMemo(() => {
+    const map = new Map<string, { cost: number; laborHrs: number; materialTons: number }>();
     for (const st of structures) {
       const phaseName = st.phase || 'Unassigned';
-      const cost = st.costEstimate ?? 0;
-      map.set(phaseName, (map.get(phaseName) ?? 0) + cost);
+      const prev = map.get(phaseName) ?? { cost: 0, laborHrs: 0, materialTons: 0 };
+      map.set(phaseName, {
+        cost: prev.cost + (st.costEstimate ?? 0),
+        laborHrs: prev.laborHrs + (st.laborHoursEstimate ?? 0),
+        materialTons: prev.materialTons + (st.materialTonnageEstimate ?? 0),
+      });
     }
     return map;
   }, [structures]);
@@ -110,10 +114,20 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
   const totalViolations = buildViolations.length + cropViolations.length + structureViolations.length;
 
   const totalFeatures = structures.length + utilities.length + paths.length;
-  const totalCost = useMemo(
-    () => [...costByPhase.values()].reduce((a, b) => a + b, 0),
-    [costByPhase],
-  );
+  const totals = useMemo(() => {
+    let cost = 0;
+    let laborHrs = 0;
+    let materialTons = 0;
+    for (const r of rollupByPhase.values()) {
+      cost += r.cost;
+      laborHrs += r.laborHrs;
+      materialTons += r.materialTons;
+    }
+    return { cost, laborHrs, materialTons };
+  }, [rollupByPhase]);
+  const totalCost = totals.cost;
+  const totalLaborHrs = totals.laborHrs;
+  const totalMaterialTons = totals.materialTons;
   const firstPhase = phases[0];
   const lastPhase = phases[phases.length - 1];
   const arcRange =
@@ -187,7 +201,11 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
         <div className={css.arcCell}>
           <span className={css.arcLabel}>Est. total cost</span>
           <span className={css.arcValue}>{formatCurrency(totalCost)}</span>
-          <span className={css.arcDetail}>Sum of structure estimates</span>
+          <span className={css.arcDetail}>
+            {totalLaborHrs > 0 || totalMaterialTons > 0
+              ? `${totalLaborHrs > 0 ? `${Math.round(totalLaborHrs).toLocaleString()} labor hrs` : '\u2014 labor'} \u00B7 ${totalMaterialTons > 0 ? `${totalMaterialTons.toFixed(1)} t material` : '\u2014 material'}`
+              : 'Sum of structure estimates'}
+          </span>
         </div>
         <div className={css.arcCell}>
           <span className={css.arcLabel}>Arc</span>
@@ -223,7 +241,8 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
               ? allFeatures.filter((f) => !f.isTemporary)
               : allFeatures;
             const featureCount = features.length;
-            const cost = costByPhase.get(phase.name) ?? 0;
+            const rollup = rollupByPhase.get(phase.name) ?? { cost: 0, laborHrs: 0, materialTons: 0 };
+            const { cost, laborHrs, materialTons } = rollup;
             return (
               <div
                 key={phase.id}
@@ -271,6 +290,18 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
                     <div className={css.stat}>
                       <span className={css.statValue}>{formatCurrency(cost)}</span>
                       <span className={css.statLabel}>est. cost</span>
+                    </div>
+                    <div className={css.stat}>
+                      <span className={css.statValue}>
+                        {laborHrs > 0 ? `${Math.round(laborHrs).toLocaleString()} hr` : '\u2014'}
+                      </span>
+                      <span className={css.statLabel}>labor</span>
+                    </div>
+                    <div className={css.stat}>
+                      <span className={css.statValue}>
+                        {materialTons > 0 ? `${materialTons.toFixed(1)} t` : '\u2014'}
+                      </span>
+                      <span className={css.statLabel}>material</span>
                     </div>
                   </div>
                 </div>

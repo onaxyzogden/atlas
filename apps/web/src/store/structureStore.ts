@@ -42,6 +42,20 @@ export interface Structure {
   depthM: number;
   phase: string;
   costEstimate: number | null;
+  /**
+   * Optional steward-entered labor estimate in person-hours for this
+   * structure. Read by the PhasingDashboard to roll up labor load by
+   * phase alongside cost (§15 "Cost, labor, material need by phase").
+   * Placeholder — not a scheduling engine.
+   */
+  laborHoursEstimate?: number;
+  /**
+   * Optional steward-entered material estimate in metric tons (delivered
+   * mass). Read by the PhasingDashboard to roll up material demand by
+   * phase alongside cost and labor (§15 "Cost, labor, material need by
+   * phase"). Placeholder — not a BOM.
+   */
+  materialTonnageEstimate?: number;
   infrastructureReqs: string[];
   notes: string;
   /**
