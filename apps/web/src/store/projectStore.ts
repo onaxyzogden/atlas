@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
+import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
@@ -63,6 +64,13 @@ interface ProjectState {
   createProject: (input: CreateProjectInput) => LocalProject;
   updateProject: (id: string, updates: Partial<LocalProject>) => void;
   deleteProject: (id: string) => void;
+  /**
+   * Duplicate an existing project — clones the project metadata + parcel
+   * boundary + all design-intent entities (zones, structures, paths,
+   * utilities, crops, paddocks, phases). Returns the new project, or `null`
+   * if the source id is unknown. Spec: §1 "Duplicate project from template".
+   */
+  duplicateProject: (sourceId: string, overrideName?: string) => LocalProject | null;
   setActiveProject: (id: string | null) => void;
   addAttachment: (projectId: string, attachment: ProjectAttachment) => void;
   removeAttachment: (projectId: string, attachmentId: string) => void;
@@ -138,6 +146,50 @@ export const useProjectStore = create<ProjectState>()(
           projects: state.projects.filter((p) => p.id !== id),
           activeProjectId: state.activeProjectId === id ? null : state.activeProjectId,
         }));
+      },
+
+      duplicateProject: (sourceId, overrideName) => {
+        const source = get().projects.find((p) => p.id === sourceId);
+        if (!source) return null;
+        const now = new Date().toISOString();
+        const newId = generateId();
+        // Deep-clone metadata. Drop serverId (the new project hasn't synced)
+        // and reset attachments — re-uploading parsed blobs would double-fill
+        // IndexedDB without the user opting in.
+        const {
+          id: _sourceIdField,
+          serverId: _sourceServerId,
+          createdAt: _sourceCreatedAt,
+          updatedAt: _sourceUpdatedAt,
+          attachments: _sourceAttachments,
+          parcelBoundaryGeojson: sourceBoundary,
+          ...rest
+        } = source;
+        const clone: LocalProject = {
+          ...rest,
+          id: newId,
+          name: overrideName ?? `${source.name} (Copy)`,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+          attachments: [],
+          parcelBoundaryGeojson: sourceBoundary,
+          // metadata is a structured object — shallow-copy is enough since
+          // it's treated as immutable downstream.
+          metadata: source.metadata ? { ...source.metadata } : undefined,
+        };
+        set((state) => ({
+          projects: [...state.projects, clone],
+        }));
+        // Replicate the boundary blob in IndexedDB under the new id, and
+        // clone every design-intent entity scoped to the source.
+        if (sourceBoundary) {
+          geodataCache.put(`boundary:${newId}`, sourceBoundary).catch((err) => {
+            console.warn('[OGDEN] Failed to cache cloned boundary:', err);
+          });
+        }
+        cascadeCloneProject(sourceId, newId);
+        return clone;
       },
 
       setActiveProject: (id) => set({ activeProjectId: id }),

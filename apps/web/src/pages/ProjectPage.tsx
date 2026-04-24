@@ -30,6 +30,7 @@ export default function ProjectPage() {
   const projects = useProjectStore((s) => s.projects);
   const setActiveProject = useProjectStore((s) => s.setActiveProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
+  const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const project = projects.find((p) => p.id === projectId);
 
   const allZones = useZoneStore((s) => s.zones);
@@ -134,6 +135,14 @@ export default function ProjectPage() {
     navigate({ to: '/' });
   };
 
+  const handleDuplicate = () => {
+    const clone = duplicateProject(project.id);
+    if (clone) {
+      setActiveProject(clone.id);
+      navigate({ to: '/project/$projectId', params: { projectId: clone.id } });
+    }
+  };
+
   return (
     <div className={css.layout}>
       <ProjectTabBar
@@ -189,6 +198,7 @@ export default function ProjectPage() {
               onEdit={() => setIsEditing(true)}
               onExport={() => setShowExport(true)}
               onDelete={() => setShowDeleteConfirm(true)}
+              onDuplicate={handleDuplicate}
             />
           </div>
         </div>

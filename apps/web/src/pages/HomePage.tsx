@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { Button } from '../components/ui/Button.js';
 import { Badge } from '../components/ui/Badge.js';
@@ -22,6 +22,17 @@ const PROJECT_TYPE_LABELS: Record<string, string> = {
 
 export default function HomePage() {
   const projects = useProjectStore((s) => s.projects);
+  const duplicateProject = useProjectStore((s) => s.duplicateProject);
+  const setActiveProject = useProjectStore((s) => s.setActiveProject);
+  const navigate = useNavigate();
+
+  const handleDuplicate = (sourceId: string) => {
+    const clone = duplicateProject(sourceId);
+    if (clone) {
+      setActiveProject(clone.id);
+      navigate({ to: '/project/$projectId', params: { projectId: clone.id } });
+    }
+  };
 
   const [ready, setReady] = useState(() => useProjectStore.persist.hasHydrated?.() ?? true);
   useEffect(() => {
@@ -79,34 +90,48 @@ export default function HomePage() {
 
         <div className={styles.grid}>
           {projects.map((p) => (
-            <Link
-              key={p.id}
-              to="/project/$projectId"
-              params={{ projectId: p.id }}
-              className={styles.card}
-            >
-              <h3 className={styles.cardName}>{p.name}</h3>
+            <div key={p.id} className={styles.cardWrapper}>
+              <Link
+                to="/project/$projectId"
+                params={{ projectId: p.id }}
+                className={styles.card}
+              >
+                <h3 className={styles.cardName}>{p.name}</h3>
 
-              {p.projectType && (
-                <Badge variant="default" size="sm">
-                  {PROJECT_TYPE_LABELS[p.projectType] ?? p.projectType}
-                </Badge>
-              )}
+                {p.projectType && (
+                  <Badge variant="default" size="sm">
+                    {PROJECT_TYPE_LABELS[p.projectType] ?? p.projectType}
+                  </Badge>
+                )}
 
-              {p.description && (
-                <p className={styles.cardDesc}>
-                  {p.description.length > 120 ? p.description.slice(0, 120) + '\u2026' : p.description}
-                </p>
-              )}
+                {p.description && (
+                  <p className={styles.cardDesc}>
+                    {p.description.length > 120 ? p.description.slice(0, 120) + '\u2026' : p.description}
+                  </p>
+                )}
 
-              <div className={styles.cardMeta}>
-                {p.address && <span>{p.address}</span>}
-                <span className={styles.cardMetaRight}>
-                  <span className={`${styles.boundaryDot} ${p.hasParcelBoundary ? styles.boundaryDotSet : styles.boundaryDotNone}`} />
-                  {p.hasParcelBoundary ? 'Boundary set' : 'No boundary'}
-                </span>
-              </div>
-            </Link>
+                <div className={styles.cardMeta}>
+                  {p.address && <span>{p.address}</span>}
+                  <span className={styles.cardMetaRight}>
+                    <span className={`${styles.boundaryDot} ${p.hasParcelBoundary ? styles.boundaryDotSet : styles.boundaryDotNone}`} />
+                    {p.hasParcelBoundary ? 'Boundary set' : 'No boundary'}
+                  </span>
+                </div>
+              </Link>
+              <button
+                type="button"
+                className={styles.cardDuplicateBtn}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDuplicate(p.id);
+                }}
+                aria-label={`Duplicate ${p.name} as a new project`}
+                title="Duplicate as template"
+              >
+                Duplicate
+              </button>
+            </div>
           ))}
         </div>
       </div>

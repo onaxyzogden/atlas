@@ -36,6 +36,50 @@
   gap: var(--space-4);
 }
 
+/* ─── Project card wrapper (allows the duplicate-button overlay to live
+       outside the <Link> while still being visually attached) ─────────── */
+.cardWrapper {
+  position: relative;
+}
+
+.cardWrapper:hover .cardDuplicateBtn,
+.cardWrapper:focus-within .cardDuplicateBtn {
+  opacity: 1;
+}
+
+.cardDuplicateBtn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-default),
+              color var(--duration-base) var(--ease-default),
+              border-color var(--duration-base) var(--ease-default);
+}
+
+.cardDuplicateBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-earth-300);
+}
+
+.cardDuplicateBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
 /* ─── Project card ─────────────────────────────────────────────────────── */
 .card {
   display: block;

@@ -110,9 +110,10 @@ interface MapViewProps {
   onEdit: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }
 
-export default function MapView({ project, zones, structures, onEdit, onExport, onDelete }: MapViewProps) {
+export default function MapView({ project, zones, structures, onEdit, onExport, onDelete, onDuplicate }: MapViewProps) {
   const isMobile = useIsMobile();
   const updateProject = useProjectStore((s) => s.updateProject);
 
@@ -668,7 +669,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'templates' && <TemplatePanel project={project} />}
               {activeView === 'reporting' && <ReportingPanel project={project} onOpenExport={onExport} />}
               {activeView === 'settings' && (
-                <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} />
+                <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} onDuplicate={onDuplicate} />
               )}
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
               {activeView === 'paddockDesign' && (
@@ -817,17 +818,20 @@ function SettingsPanel({
   onEdit,
   onExport,
   onDelete,
+  onDuplicate,
 }: {
   project: { name: string };
   onEdit: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   return (
     <div className={css.settingsPanel}>
       <h2 className={css.settingsTitle}>Project Settings</h2>
       <div className={css.settingsList}>
         <button onClick={onEdit} className={css.settingsBtn}>Edit Project Details</button>
+        <button onClick={onDuplicate} className={css.settingsBtn}>Duplicate as Template</button>
         <button onClick={onExport} className={css.settingsBtn}>Export / Print Summary</button>
         <button onClick={onDelete} className={css.settingsBtnDanger}>Delete Project</button>
       </div>

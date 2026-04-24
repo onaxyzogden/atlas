@@ -89,7 +89,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'restore-previous', label: 'Restore previous project state', phase: 'P2', status: 'partial' },
       { key: 'save-candidates', label: 'Save multiple candidate properties', phase: 'P2', status: 'planned' },
       { key: 'compare-candidates', label: 'Compare candidate properties side by side', phase: 'P2', status: 'planned' },
-      { key: 'duplicate-from-template', label: 'Duplicate project from template', phase: 'P2', status: 'planned' },
+      { key: 'duplicate-from-template', label: 'Duplicate project from template', phase: 'P2', status: 'done' },
     ],
   },
   {
