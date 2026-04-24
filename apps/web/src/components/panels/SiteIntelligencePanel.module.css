@@ -63,17 +63,106 @@
   to { opacity: 1; }
 }
 
-/* ── Overall suitability card ─────────────────────────────────── */
+/* ── Sticky mini-score bar ──────────────────────────────────────
+   Scholar #UX (Phase B / #6): once the suitability "heart" scrolls
+   off, the user loses the page's anchor. A slim 40 px sticky bar
+   slides in with the score + critical-chip so the score is always
+   one glance away. Visibility driven by IntersectionObserver on
+   `.suitabilityCard` in the parent. Negative horizontal margins
+   bleed the bar across the container's padding so it reads as a
+   true page chrome element rather than an inset card. */
+.stickyMini {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 var(--space-5);
+  margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-5)) 0;
+  background: color-mix(in oklch, var(--color-panel-card) 78%, #000 22%);
+  border-bottom: 1px solid rgba(var(--color-gold-rgb), 0.18);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity 180ms var(--ease-default, ease),
+              transform 180ms var(--ease-default, ease);
+  pointer-events: none;
+}
+.stickyMiniVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.stickyMiniLabel {
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  color: var(--color-panel-text);
+  letter-spacing: 0.01em;
+}
+.stickyMiniCritical {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  color: var(--color-error);
+  background: rgba(var(--color-error-rgb), 0.14);
+  border: 1px solid rgba(var(--color-error-rgb), 0.3);
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stickyMini { transition: opacity 120ms linear; transform: none; }
+}
+
+/* ── Top Bento grid ──────────────────────────────────────────────
+   Scholar #UX (Phase B / #6): the top band groups the score anchor
+   with its peers (critical alert + derived analyses). Originally a
+   two-column grid at ≥420 px; downgraded to single-column because
+   the Site Intelligence rail is ~360 px wide — the two-column mode
+   cut the right column off past the panel edge. The `.topBento`
+   wrapper is retained so grid `gap` owns spacing (replaces the old
+   per-card `margin-bottom`). If a future layout gives the panel
+   real width, reintroduce the 2-col breakpoint via a container
+   query (not viewport) so it activates on the container's size. */
+.topBento {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--space-5);
+}
+.topBentoRight {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* ── Overall suitability card ───────────────────────────────────
+   Scholar #UX (Phase 1): this card is the "qalb" / heart of the page
+   and sits on the highest elevation. Using an OKLCH mix to lift the
+   surface above the default panel card (lighter brown) so it reads
+   as primary without needing a shadow.
+   Phase B: when nested inside `.topBento`, drop the card's own
+   `margin-bottom` — the grid owns spacing now. */
 .suitabilityCard {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: var(--color-panel-card);
+  background: color-mix(in oklch, var(--color-panel-card) 88%, #ffffff 12%);
   border: 1px solid var(--color-panel-card-border);
   border-radius: 12px;
-  margin-bottom: var(--space-5);
+  box-shadow: 0 0 0 1px rgba(var(--color-gold-rgb, 198, 154, 88), 0.08) inset;
 }
+
+/* Bento wrapper owns the bottom margin now. */
+.topBento .suitabilityCard { margin-bottom: 0; }
 
 .suitabilityTitle {
   font-size: 15px;
@@ -165,6 +254,20 @@
   color: var(--color-panel-text);
 }
 
+/* Right-aligned value + classification chip column. Stacking these
+   vertically prevents the chip from squeezing the value in narrow
+   rails. `min-width: 0` lets the value soft-wrap before pushing the
+   confidence pill off-row. */
+.liveDataRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 0;
+  text-align: right;
+}
+
 .liveDataDetail {
   font-size: 10px;
   font-weight: var(--font-semibold);
@@ -175,6 +278,24 @@
   white-space: pre-line;
   text-align: center;
   line-height: 1.2;
+}
+
+/* Scholar #UX (Phase C / #4): formal classification chip.
+   Pulled out of the generic "detail" style so the reader sees
+   "this is a classification code" (neutral pill) distinct from
+   italic qualifiers like "Estimated". Muted neutral tone lets
+   the confidence pill keep the color budget. */
+.classificationChip {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-text);
+  border: 1px solid var(--color-panel-card-border);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
 }
 
 .chevron {
@@ -326,9 +447,13 @@
   line-height: 1.4;
 }
 
+/* Scholar #UX (Phase 1): "Nur" glow — a soft ambient halo behind the
+   badge so it feels like it emits light from within the dark theme
+   rather than being a foreign red sticker on top of it. */
 .severity_critical {
   color: var(--color-error);
-  background: rgba(var(--color-error-rgb), 0.1);
+  background: rgba(var(--color-error-rgb), 0.14);
+  box-shadow: 0 0 10px rgba(var(--color-error-rgb), 0.25);
 }
 
 .severity_warning {
@@ -353,6 +478,28 @@
 .scoreCircle {
   position: relative;
   flex-shrink: 0;
+}
+
+/* Scholar #UX (Phase 4b refit): a single ~2 s gold glow that runs
+   once when the hero score mounts or its key changes. Conveys
+   "this result is fresh / live" without the loudness of a looping
+   pulse. Pseudo-element so the SVG stroke stays intact. */
+.scoreCirclePulse::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(var(--color-gold-rgb), 0.45);
+  animation: scoreCirclePulseGlow 2s ease-out 1;
+  pointer-events: none;
+}
+@keyframes scoreCirclePulseGlow {
+  0%   { box-shadow: 0 0 0 0   rgba(var(--color-gold-rgb), 0.45); }
+  60%  { box-shadow: 0 0 0 10px rgba(var(--color-gold-rgb), 0);    }
+  100% { box-shadow: 0 0 0 0   rgba(var(--color-gold-rgb), 0);    }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scoreCirclePulse::before { animation: none; }
 }
 
 .scoreCircleInner {
@@ -382,6 +529,45 @@
   padding: 1px 5px;
   border-radius: 3px;
   flex-shrink: 0;
+}
+
+/* Scholar #UX (Phase 3): reason-glyph + pill clustered into a single
+   hover target. The glyph signals *why* the confidence is what it is
+   (clock=freshness, crosshair=resolution, shield=authority); the pill
+   signals the level itself. Full provenance revealed on delayed hover. */
+.confBadgeWithReason {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: help;
+}
+
+.confReasonGlyph {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-panel-muted);
+  opacity: 0.75;
+  transition: opacity var(--duration-base, 150ms);
+}
+
+.confBadgeWithReason:hover .confReasonGlyph {
+  opacity: 1;
+}
+
+.confTooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.4;
+  min-width: 180px;
+}
+
+.confTooltipRow strong {
+  font-weight: var(--font-semibold);
+  color: var(--color-panel-muted);
+  margin-right: 4px;
 }
 
 /* ── AI Enrichment ───────────────────────────────────────────────── */
@@ -465,11 +651,16 @@
   flex-direction: column;
   gap: 6px;
 }
+/* Bento owns spacing — drop the legacy margin when nested. */
+.topBentoRight .blockingAlertWrap { margin-bottom: 0; }
 
+/* Scholar #UX (Phase 1): tinted-luminous background + left accent
+   stroke instead of a full red border. Urgent but not "swallowing"
+   the page — reads as peer of the suitability score, not preamble. */
 .blockingAlert {
   padding: 10px 12px;
-  background: rgba(var(--color-error-rgb), 0.06);
-  border: 1px solid rgba(var(--color-error-rgb), 0.2);
+  background: rgba(var(--color-error-rgb), 0.1);
+  border: none;
   border-left: 3px solid var(--color-error);
   border-radius: var(--radius-md);
   display: flex;
@@ -486,6 +677,181 @@
   color: var(--color-error);
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* Scholar #UX (Phase A): Actionable alert body.
+   Layout: [icon] [title + reason + cta/source]. The critical alert is
+   no longer a flat dead-end message — it's a mini task card with a
+   clear next step. */
+.blockingAlertBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0; /* allow text to wrap rather than overflow the flex parent */
+}
+
+.blockingAlertHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.blockingAlertTitle {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-panel-text);
+  line-height: 1.3;
+}
+
+.blockingAlertReason {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-panel-text);
+  opacity: 0.92;
+}
+
+.blockingAlertFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+/* Primary CTA — tinted red so it reads as tied to the alert without
+   competing with gold primary buttons elsewhere on the page. Hover
+   intensifies the glow rather than changing hue. */
+.blockingAlertCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-error);
+  background: rgba(var(--color-error-rgb), 0.16);
+  border: 1px solid rgba(var(--color-error-rgb), 0.32);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: background var(--duration-base, 150ms), box-shadow var(--duration-base, 150ms);
+}
+
+.blockingAlertCta:hover,
+.blockingAlertCta:focus-visible {
+  background: rgba(var(--color-error-rgb), 0.22);
+  box-shadow: 0 0 10px rgba(var(--color-error-rgb), 0.28);
+  outline: none;
+}
+
+.blockingAlertCta:active {
+  background: rgba(var(--color-error-rgb), 0.28);
+}
+
+/* ── Layer legend popover (Phase C / #2) ─────────────────────────
+   The "Data layers: N/7" label doubles as a popover trigger —
+   opening a structured legend mapping each dot back to its layer
+   name and live status. Closes on outside click / Escape. */
+.legendAnchor {
+  position: relative;
+  display: inline-block;
+}
+.legendTrigger {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.legendTrigger:hover,
+.legendTrigger:focus-visible {
+  color: var(--color-panel-text);
+  outline: none;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.legendPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 240px;
+  padding: 10px 12px 12px;
+  background: var(--color-panel-bg, #1a1a1a);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: var(--color-panel-text);
+}
+.legendHeader {
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-panel-muted);
+  margin-bottom: 6px;
+}
+.legendList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.legendLabel {
+  flex: 1;
+  color: var(--color-panel-text);
+}
+.legendStatus {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  font-style: italic;
+}
+.legendDivider {
+  height: 1px;
+  background: var(--color-panel-card-border);
+  margin: 10px 0 8px;
+}
+.legendFootnote {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--color-panel-muted);
+  font-style: italic;
+}
+.legendClose {
+  margin-top: 10px;
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 4px;
+  color: var(--color-panel-muted);
+  cursor: pointer;
+}
+.legendClose:hover {
+  color: var(--color-panel-text);
+  border-color: rgba(var(--color-gold-rgb), 0.3);
 }
 
 /* ── Layer completeness dots ─────────────────────────────────────── */
@@ -514,11 +880,43 @@
 
 /* ── Tier 3 status card ──────────────────────────────────────────── */
 .tier3Card {
-  padding: 10px 14px;
   background: var(--color-panel-card);
   border: 1px solid var(--color-panel-card-border);
   border-radius: 10px;
   margin-bottom: var(--space-5);
+  overflow: hidden;
+}
+
+/* Scholar #UX (Phase 3 refit): disclosure header — when all four rows
+   are "waiting", the card collapses to a single line that reads
+   "N analyses awaiting Tier-1 data ▾" so this section stops eating
+   dead vertical space. Click expands the full dependency list. */
+.tier3Header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-panel-muted);
+}
+.tier3Header:hover {
+  background: rgba(var(--color-gold-rgb), 0.04);
+}
+.tier3HeaderTitle {
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+.tier3Body {
+  padding: 4px 14px 10px;
+  border-top: 1px solid var(--color-panel-subtle);
 }
 
 .tier3Row {
@@ -550,6 +948,19 @@
 .tier3Waiting {
   color: var(--color-panel-muted);
   background: rgba(0, 0, 0, 0.06);
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+/* Scholar #UX (Phase 2): inline shimmer slot for "computing" analyses.
+   A subtle animated skeleton signals the system is actively working
+   alongside the user instead of a static dim "— Waiting" label. */
+.tier3Shimmer {
+  display: inline-flex;
+  align-items: center;
+  min-width: 72px;
+  justify-content: flex-end;
 }
 
 /* ── Score row clickable + breakdown ─────────────────────────────── */

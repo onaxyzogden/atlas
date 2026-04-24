@@ -7,7 +7,9 @@
  */
 
 import { memo } from 'react';
+import { Clock, Crosshair, ShieldCheck } from 'lucide-react';
 import { confidence, semantic } from '../../../lib/tokens.js';
+import { Tooltip } from '../../ui/Tooltip.js';
 import s from '../SiteIntelligencePanel.module.css';
 import p from '../../../styles/panel.module.css';
 
@@ -40,12 +42,88 @@ export const RefreshIcon = memo(function RefreshIcon({ spinning }: { spinning?: 
   );
 });
 
-export const ConfBadge = memo(function ConfBadge({ level }: { level: 'High' | 'Medium' | 'Low' }) {
-  const colorMap = { High: p.badgeHigh, Medium: p.badgeMedium, Low: p.badgeLow };
-  return (
-    <span className={`${p.badgeConfidence} ${colorMap[level]}`}>
+export type ConfReason = 'freshness' | 'resolution' | 'authority';
+
+/** Provenance surfaced through a delayed tooltip.
+ *
+ *  Scholar #UX (Phase 3): the confidence rating in isolation leaves
+ *  the user asking "confidence in *what*?" — freshness? source
+ *  authority? spatial resolution? This attaches the reason as a glyph
+ *  next to the pill and exposes the full provenance on hover (~800ms
+ *  delay so it doesn't fire while the user is just passing through). */
+export interface ConfMeta {
+  source?: string;
+  dataDate?: string;
+  reason?: ConfReason;
+}
+
+const REASON_GLYPH: Record<ConfReason, { Icon: typeof Clock; label: string }> = {
+  freshness: { Icon: Clock, label: 'Freshness' },
+  resolution: { Icon: Crosshair, label: 'Spatial resolution' },
+  authority: { Icon: ShieldCheck, label: 'Source authority' },
+};
+
+export const ConfBadge = memo(function ConfBadge({
+  level,
+  meta,
+  variant = 'neutral',
+}: {
+  level: 'High' | 'Medium' | 'Low';
+  meta?: ConfMeta;
+  /** `'neutral'` (default) = monochrome grey — confidence is meta-data,
+   *  not a site verdict. `'semantic'` = green/gold/red, reserved for
+   *  truly interpretive signals (e.g. a quality tier). Scholar #UX
+   *  Phase 2 refit. */
+  variant?: 'neutral' | 'semantic';
+}) {
+  const semanticMap = { High: p.badgeHigh, Medium: p.badgeMedium, Low: p.badgeLow };
+  const neutralMap = { High: p.badgeNeutralHigh, Medium: p.badgeNeutralMedium, Low: p.badgeNeutralLow };
+  const classFor = variant === 'semantic' ? semanticMap[level] : neutralMap[level];
+  const pill = (
+    <span className={`${p.badgeConfidence} ${classFor}`}>
       {level}
     </span>
+  );
+
+  if (!meta || (!meta.source && !meta.dataDate && !meta.reason)) {
+    return pill;
+  }
+
+  const glyph = meta.reason ? REASON_GLYPH[meta.reason] : null;
+  const tooltipContent = (
+    <span className={s.confTooltipBody}>
+      {meta.reason && (
+        <span className={s.confTooltipRow}>
+          <strong>Rated on:</strong> {REASON_GLYPH[meta.reason].label.toLowerCase()}
+        </span>
+      )}
+      {meta.source && (
+        <span className={s.confTooltipRow}>
+          <strong>Source:</strong> {meta.source}
+        </span>
+      )}
+      {meta.dataDate && (
+        <span className={s.confTooltipRow}>
+          <strong>Data date:</strong> {meta.dataDate}
+        </span>
+      )}
+    </span>
+  );
+
+  return (
+    <Tooltip content={tooltipContent} position="left" delay={800}>
+      <span className={s.confBadgeWithReason}>
+        {glyph && (
+          <span
+            className={s.confReasonGlyph}
+            aria-label={`Rated on ${glyph.label.toLowerCase()}`}
+          >
+            <glyph.Icon size={10} strokeWidth={2} />
+          </span>
+        )}
+        {pill}
+      </span>
+    </Tooltip>
   );
 });
 
@@ -55,8 +133,12 @@ export const ScoreCircle = memo(function ScoreCircle({ score, size }: { score: n
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
   const color = score >= 80 ? confidence.high : score >= 60 ? semantic.sidebarActive : confidence.low;
+  const isHero = size > 50;
   return (
-    <div className={s.scoreCircle} style={{ width: size, height: size }}>
+    <div
+      className={`${s.scoreCircle} ${isHero ? s.scoreCirclePulse : ''}`}
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-panel-card-border)" strokeWidth={sw} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />

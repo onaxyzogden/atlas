@@ -227,6 +227,30 @@
   color: var(--color-confidence-low);
 }
 
+/* Scholar #UX (Phase 2 refit): neutral confidence pill.
+   Confidence is a *meta-attribute* of the data ("how sure are we?"),
+   not an interpretation of the site ("is this arid?"). Color-coding
+   both in the same traffic-light palette made users read meta-data
+   as a site verdict. Neutral monochrome keeps the provenance signal
+   legible while the semantic palette is reserved for interpretive
+   chips (Arid, Low suitability, Hardiness zone, etc.). */
+.badgeNeutralHigh {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.10);
+  color: var(--color-panel-text);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.14);
+}
+.badgeNeutralMedium {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.06);
+  color: var(--color-panel-muted);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.10);
+}
+.badgeNeutralLow {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.03);
+  color: var(--color-panel-muted);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.06);
+  opacity: 0.75;
+}
+
 .badgeActive {
   background: rgba(var(--color-accent-rgb), 0.15);
   color: var(--color-accent);
