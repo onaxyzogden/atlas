@@ -398,6 +398,33 @@ export const api = {
         'DELETE',
         `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
       ),
+
+    uploadMedia: (projectId: string, file: File): Promise<ApiEnvelope<{
+      url: string;
+      contentType: string;
+      size: number;
+      filename: string;
+    }>> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const headers: Record<string, string> = {};
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      return fetch(`/api/v1/projects/${projectId}/regeneration-events/media`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      }).then(async (res) => {
+        const json = await res.json();
+        if (!res.ok || json.error) {
+          throw new ApiError(
+            json.error?.code ?? 'UPLOAD_FAILED',
+            json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
+            res.status,
+          );
+        }
+        return json;
+      });
+    },
   },
 
   members: {

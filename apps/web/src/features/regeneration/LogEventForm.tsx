@@ -3,11 +3,12 @@
  * regeneration events. Creates observation / intervention / milestone /
  * photo rows via the RegenerationEvent API.
  *
- * Minimal by design: no media upload (separate ticket), no map-drawing
- * (Point via "Use boundary centre" or NULL site-wide).
+ * Photos upload synchronously to /regeneration-events/media before submit;
+ * returned URLs flow into the event's mediaUrls array. Boundary location
+ * (Point via "Use boundary centre" or NULL site-wide) — no map drawing yet.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   RegenerationEventInput,
   type RegenerationEventType,
@@ -17,6 +18,7 @@ import {
 } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useRegenerationEventStore } from '../../store/regenerationEventStore.js';
+import { api } from '../../lib/apiClient.js';
 import css from './RegenerationTimeline.module.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
@@ -79,13 +81,41 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
   const [progress, setProgress] = useState<RegenerationProgress | ''>('');
   const [notes, setNotes] = useState('');
   const [locationMode, setLocationMode] = useState<'site' | 'centre'>('site');
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const centroid = useMemo(
     () => boundaryCentroid(project.parcelBoundaryGeojson),
     [project.parcelBoundaryGeojson],
   );
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    const incoming = Array.from(files);
+    setUploadingCount((n) => n + incoming.length);
+    for (const file of incoming) {
+      try {
+        const res = await api.regenerationEvents.uploadMedia(projectServerId, file);
+        if (res.data?.url) {
+          setMediaUrls((prev) => [...prev, res.data!.url]);
+        }
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setUploadingCount((n) => n - 1);
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function removeMedia(url: string) {
+    setMediaUrls((prev) => prev.filter((u) => u !== url));
+  }
 
   async function submit() {
     setError(null);
@@ -103,6 +133,7 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
       progress: progress || undefined,
       notes: notes.trim() || undefined,
       location,
+      mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
     };
 
     const parsed = RegenerationEventInput.safeParse(candidate);
@@ -233,6 +264,41 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
       </div>
 
       <div className={css.fieldRow}>
+        <label className={css.fieldLabel}>PHOTOS</label>
+        <div className={css.mediaPicker}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => handleFiles(e.target.files)}
+            className={css.mediaInput}
+          />
+          {mediaUrls.length > 0 && (
+            <div className={css.mediaThumbs}>
+              {mediaUrls.map((url) => (
+                <div key={url} className={css.mediaThumb}>
+                  <img src={url} alt="" />
+                  <button
+                    type="button"
+                    className={css.mediaRemove}
+                    onClick={() => removeMedia(url)}
+                    aria-label="Remove photo"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {uploadingCount > 0 && (
+            <div className={css.mediaStatus}>Uploading {uploadingCount}…</div>
+          )}
+          {uploadError && <div className={css.formError}>{uploadError}</div>}
+        </div>
+      </div>
+
+      <div className={css.fieldRow}>
         <label className={css.fieldLabel}>LOCATION</label>
         <div className={css.segmented}>
           <button
@@ -261,8 +327,13 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
         <button type="button" className={css.btnSecondary} onClick={onCancel} disabled={submitting}>
           Cancel
         </button>
-        <button type="button" className={css.btnPrimary} onClick={submit} disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save event'}
+        <button
+          type="button"
+          className={css.btnPrimary}
+          onClick={submit}
+          disabled={submitting || uploadingCount > 0}
+        >
+          {submitting ? 'Saving…' : uploadingCount > 0 ? 'Wait for upload…' : 'Save event'}
         </button>
       </div>
     </div>

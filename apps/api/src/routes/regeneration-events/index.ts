@@ -16,8 +16,12 @@ import {
   RegenerationInterventionType,
   RegenerationPhase,
 } from '@ogden/shared';
-import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import { NotFoundError, ForbiddenError, ValidationError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
+import { getStorageProvider } from '../../services/storage/StorageProvider.js';
+
+const MEDIA_SIZE_LIMIT = 10 * 1024 * 1024;
+const ALLOWED_MEDIA_MIME = /^image\/(jpeg|png|webp|gif|heic|heif)$/i;
 
 const ParamsEventId = z.object({
   id: z.string().uuid(),
@@ -60,6 +64,7 @@ function mapRow(row: Record<string, unknown>) {
 
 export default async function regenerationEventRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
+  const storage = getStorageProvider();
 
   // GET /:id/regeneration-events — list events for project
   fastify.get<{ Params: { id: string }; Querystring: Record<string, string> }>(
@@ -258,6 +263,56 @@ export default async function regenerationEventRoutes(fastify: FastifyInstance) 
 
       reply.code(204);
       return '';
+    },
+  );
+
+  // POST /:id/regeneration-events/media — upload a single image, returns URL.
+  // The form posts here per-file before the event itself is created. Returned
+  // URLs flow into the event's `mediaUrls` array on the subsequent POST.
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/regeneration-events/media',
+    {
+      preHandler: [
+        authenticate,
+        resolveProjectRole,
+        requireRole('owner', 'designer'),
+      ],
+    },
+    async (req, reply) => {
+      const multipartFile = await req.file();
+      if (!multipartFile) throw new ValidationError('No file uploaded');
+
+      const mime = multipartFile.mimetype || '';
+      if (!ALLOWED_MEDIA_MIME.test(mime)) {
+        throw new ValidationError(
+          `Unsupported media type: ${mime}. Allowed: jpeg, png, webp, gif, heic.`,
+        );
+      }
+
+      const chunks: Buffer[] = [];
+      let total = 0;
+      for await (const chunk of multipartFile.file) {
+        total += chunk.length;
+        if (total > MEDIA_SIZE_LIMIT) {
+          throw new ValidationError(
+            `File too large: exceeds the ${MEDIA_SIZE_LIMIT / (1024 * 1024)} MB cap`,
+          );
+        }
+        chunks.push(chunk);
+      }
+      const buffer = Buffer.concat(chunks);
+
+      const mediaId = crypto.randomUUID();
+      const sanitized = (multipartFile.filename || 'upload').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const key = `projects/${req.projectId}/regeneration-events/${mediaId}/${sanitized}`;
+      const url = await storage.upload(key, buffer, mime);
+
+      reply.code(201);
+      return {
+        data: { url, contentType: mime, size: buffer.length, filename: sanitized },
+        meta: undefined,
+        error: null,
+      };
     },
   );
 }

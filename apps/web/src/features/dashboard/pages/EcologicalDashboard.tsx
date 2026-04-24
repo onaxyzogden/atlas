@@ -250,6 +250,10 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </div>
         </div>
         <DashboardSectionSkeleton cards={3} rowsPerCard={4} label="Loading ecological data" />
+        {/* Timeline is project-scoped, not site-data-scoped — surface it
+            during env-data load so users can log observations without
+            waiting on third-party API roundtrips. */}
+        <RegenerationTimelineCard project={project} />
       </div>
     );
   }

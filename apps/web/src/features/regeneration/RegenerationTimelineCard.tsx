@@ -18,7 +18,13 @@ function humanize(s: string): string {
 }
 
 function formatDate(isoDate: string): string {
-  const d = new Date(isoDate + 'T00:00:00Z');
+  // Parse YYYY-MM-DD as a *local* calendar date so "2026-04-23" doesn't get
+  // shifted by the local offset when rendered (UTC midnight → previous day
+  // in negative offsets). Falls through to Date constructor for full ISO.
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  const d = m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(isoDate);
   if (isNaN(d.getTime())) return isoDate;
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
@@ -118,6 +124,22 @@ function EventRow({ event, parent }: { event: RegenerationEvent; parent: Regener
             </button>
           )}
         </p>
+      )}
+
+      {event.mediaUrls && event.mediaUrls.length > 0 && (
+        <div className={css.eventMedia}>
+          {event.mediaUrls.map((url) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className={css.eventMediaThumb}
+            >
+              <img src={url} alt="" />
+            </a>
+          ))}
+        </div>
       )}
     </div>
   );

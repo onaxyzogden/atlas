@@ -236,11 +236,23 @@ and cropping placement).
   the new entry pattern for events logged over project lifetime —
   follow the `LogEventForm` shape when adding other timeline-style
   inputs. `regen-stage-intervention-log` → `done` on the manifest.
-  Out of scope: media upload (media_urls still empty array; object
-  storage integration separate), polygon-location drawing (Point via
-  boundary centroid or NULL site-wide only), before/after
-  photo-compare pane, editing/deleting events from the timeline UI
-  (mutations ship on the API but no dashboard button surface yet).
+  Media upload is wired (2026-04-24): `LogEventForm` exposes a
+  multi-file image picker that POSTs each file to
+  `POST /api/v1/projects/:id/regeneration-events/media` (10 MB cap, JPEG
+  /PNG/WebP/GIF/HEIC) before submit; returned URLs flow into the
+  event's `mediaUrls` array, and `EventRow` renders them as a
+  thumbnail strip linking to the full image. Backend uses the
+  `StorageProvider` abstraction — S3 in production, local filesystem
+  fallback under `apps/api/data/uploads/` when `S3_BUCKET` is unset
+  *or* set without AWS credentials; the local-fs branch is served by
+  a path-traversal-guarded `GET /uploads/*` handler in
+  `apps/api/src/app.ts`. The shared `mediaUrls` schema accepts either
+  absolute `http(s)` URLs or server-relative paths starting with `/`
+  so both storage modes round-trip cleanly.
+  Still out of scope: polygon-location drawing (Point via boundary
+  centroid or NULL site-wide only), before/after photo-compare pane,
+  editing/deleting events from the timeline UI (mutations ship on the
+  API but no dashboard button surface yet).
 - `SoilRegenerationProcessor` output is cached on the Tier-3 pipeline
   run — it does not recompute on UI navigation. Trigger a new run if a
   boundary changes; never synthesize zones client-side.

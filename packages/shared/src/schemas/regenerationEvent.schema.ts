@@ -88,7 +88,18 @@ export const RegenerationEventInput = z.object({
   areaHa: z.number().nonnegative().nullable().optional(),
 
   observations: RegenerationObservations.optional(),
-  mediaUrls: z.array(z.string().url()).max(50).optional(),
+  mediaUrls: z
+    .array(
+      z
+        .string()
+        .min(1)
+        .refine(
+          (s) => /^https?:\/\//i.test(s) || s.startsWith('/'),
+          { message: 'must be an absolute URL or server-relative path' },
+        ),
+    )
+    .max(50)
+    .optional(),
 
   parentEventId: z.string().uuid().nullable().optional(),
 });

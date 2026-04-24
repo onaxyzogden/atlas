@@ -5,8 +5,8 @@
  * Used by src/index.ts for production and by tests via app.inject().
  */
 
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { readFileSync, createReadStream, statSync } from 'fs';
+import { resolve, dirname, normalize, join } from 'path';
 import { fileURLToPath } from 'url';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
@@ -155,6 +155,32 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
+
+  // Static serve for the LocalStorageProvider — only kicks in when local
+  // storage is in use; otherwise S3 URLs are returned directly. The
+  // path-traversal guard (resolve + startsWith) is the critical security
+  // control here.
+  const uploadsRoot = resolve(process.cwd(), 'data', 'uploads');
+  app.get<{ Params: { '*': string } }>('/uploads/*', async (req, reply) => {
+    const requested = (req.params as { '*': string })['*'];
+    const target = normalize(join(uploadsRoot, requested));
+    if (!target.startsWith(uploadsRoot)) {
+      reply.code(400);
+      return { error: 'invalid path' };
+    }
+    try {
+      const stat = statSync(target);
+      if (!stat.isFile()) {
+        reply.code(404);
+        return { error: 'not found' };
+      }
+      reply.header('Cache-Control', 'private, max-age=300');
+      return reply.send(createReadStream(target));
+    } catch {
+      reply.code(404);
+      return { error: 'not found' };
+    }
+  });
 
   // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
   await app.register(basemapTerrainRoutes, { prefix: '/api/v1/basemap-terrain' });
