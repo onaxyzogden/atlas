@@ -357,7 +357,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             }
             biodiversityCorridorSlot={
               <Suspense fallback={null}>
-                <BiodiversityCorridorToggle compact />
+                <BiodiversityCorridorToggle />
               </Suspense>
             }
             osmSlot={

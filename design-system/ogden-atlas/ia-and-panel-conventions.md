@@ -137,7 +137,7 @@ Pick the row that matches your need. If none fit, ask before inventing.
 
 These ship in the codebase today and have been flagged for later migration. Do not copy their pattern; when you touch these files, migrate them.
 
-- [`BiodiversityCorridorOverlay.tsx:265-287`](../../apps/web/src/features/map/BiodiversityCorridorOverlay.tsx) — the non-compact toggle renders a hand-rolled `backdropFilter` button. The compact path (lines 240–263) correctly uses a spine-btn. Fix = move all chrome into `MapControlPopover` with `variant="dropdown"` and delete the inline style block.
+- ~~[`BiodiversityCorridorOverlay.tsx:265-287`](../../apps/web/src/features/map/BiodiversityCorridorOverlay.tsx) — non-compact toggle with hand-rolled `backdropFilter` chrome.~~ **Resolved 2026-04-24.** The non-compact branch was dead code (only consumer was `MapView.tsx` passing `compact />`); resolution = delete the branch and drop the `compact` prop, leaving only the spine-btn return. No `MapControlPopover` migration needed — a label-only toggle is the wrong shape for a popover container.
 - **Broader map-overlay migration.** Grep `backdropFilter` in `apps/web/src/features/map/**` currently hits 10 files; only 5 (GAEZ, Soil, Terrain, HistoricalImagery, OSMVector) went through the c276c51 `MapControlPopover` migration. The rest (e.g., `AgroforestryOverlay`, `CrossSectionTool`, `MeasureTools`, `MicroclimateOverlay`, `MulchCompostCovercropOverlay`) still ship the pre-primitive chrome and should be audited for popover vs spine-btn vs no-chrome classification.
 
 ---
@@ -158,7 +158,7 @@ These already exist, share the glass-chrome pattern, and set precedent. If you'r
 **Paint-only overlays (no chrome of their own):** mount a MapLibre source/layer pair via effect hooks and render `null` — visibility is driven by a parent toggle (spine-btn or domain-toolbar entry). These are the cleanest overlay pattern; prefer this shape when a layer has no per-overlay controls.
 
 - [`features/map/PollinatorHabitatStateOverlay.tsx`](../../apps/web/src/features/map/PollinatorHabitatStateOverlay.tsx) — §7 zone-centroid habitat classification; pure paint.
-- [`features/map/BiodiversityCorridorOverlay.tsx`](../../apps/web/src/features/map/BiodiversityCorridorOverlay.tsx) (paint portion, lines 1–234) — §7 dijkstra LCP corridor band; the toggle UI below it is the §3 known violation.
+- [`features/map/BiodiversityCorridorOverlay.tsx`](../../apps/web/src/features/map/BiodiversityCorridorOverlay.tsx) — §7 dijkstra LCP corridor band; pure paint, with a co-located spine-btn export (`BiodiversityCorridorToggle`).
 
 **Shared chrome (de facto pattern):**
 
@@ -205,3 +205,4 @@ These are explicitly **out of scope** for this spec. Flagged so contributors kno
   - §4 gained a "Paint-only overlays" sub-list for `PollinatorHabitatStateOverlay` and the paint portion of `BiodiversityCorridorOverlay`.
   - §5 retired the "MapControlPopover primitive — Landed" and "Map z-index token export — Landed" items (now reflected in the body); added migration-completion + landing-OKLCH items.
   - Validates (no doc change): 28-file `title=` → `DelayedTooltip` retrofit in commit `29bf499` confirms the §3 DelayedTooltip row.
+- **2026-04-24 (BiodiversityCorridorToggle resolution)** — §3 Known violations entry struck through and marked resolved; §4 Paint-only overlays line for `BiodiversityCorridorOverlay` updated (no longer carrying a violation note). Resolution was branch deletion, not popover migration — the dead non-compact path served only an unused call site.
