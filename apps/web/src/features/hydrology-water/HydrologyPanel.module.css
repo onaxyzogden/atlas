@@ -1,7 +1,7 @@
-/* HydrologyPanel — component-specific styles */
+/* HydrologyPanel â€” component-specific styles */
 
 .root {
-  background: rgba(26, 22, 17, 0.90);
+  background: var(--color-chrome-bg-translucent);
   border-radius: var(--radius-lg, 10px);
   backdrop-filter: blur(10px);
   color: var(--color-panel-text);

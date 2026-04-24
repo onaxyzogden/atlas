@@ -38,6 +38,7 @@ interface LeftToolSpineProps {
   restorationSlot: ReactNode;
   mulchCovercropSlot: ReactNode;
   agroforestrySlot: ReactNode;
+  pollinatorOpportunitySlot: ReactNode;
   osmSlot: ReactNode;
 }
 
@@ -67,6 +68,7 @@ export default function LeftToolSpine({
   restorationSlot,
   mulchCovercropSlot,
   agroforestrySlot,
+  pollinatorOpportunitySlot,
   osmSlot,
 }: LeftToolSpineProps) {
   return (
@@ -100,6 +102,7 @@ export default function LeftToolSpine({
       {restorationSlot}
       {mulchCovercropSlot}
       {agroforestrySlot}
+      {pollinatorOpportunitySlot}
       <Suspense fallback={null}>
         <MeasureTools projectId={projectId} map={map} draw={draw} compact />
       </Suspense>

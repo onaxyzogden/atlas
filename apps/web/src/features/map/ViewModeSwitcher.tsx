@@ -12,7 +12,7 @@ interface ViewModeSwitcherProps {
 }
 
 /**
- * §2 view-mode control. 2D and 2.5D stay inside MapLibre (pitch 0 / 45°).
+ * Â§2 view-mode control. 2D and 2.5D stay inside MapLibre (pitch 0 / 45Â°).
  * 3D flips `is3DTerrain`, which MapView uses to mount CesiumTerrainViewer.
  */
 export default function ViewModeSwitcher({ onPitch }: ViewModeSwitcherProps) {
@@ -30,7 +30,7 @@ export default function ViewModeSwitcher({ onPitch }: ViewModeSwitcherProps) {
       style={{
         display: 'flex',
         gap: 4,
-        background: 'rgba(26, 22, 17, 0.85)',
+        background: 'var(--color-chrome-bg-translucent)',
         borderRadius: 8,
         padding: '4px 6px',
         backdropFilter: 'blur(8px)',

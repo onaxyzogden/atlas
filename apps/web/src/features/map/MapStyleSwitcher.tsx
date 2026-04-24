@@ -17,7 +17,7 @@ export default function MapStyleSwitcher() {
       style={{
         display: 'flex',
         gap: 4,
-        background: 'rgba(26, 22, 17, 0.85)',
+        background: 'var(--color-chrome-bg-translucent)',
         borderRadius: 8,
         padding: '4px 6px',
         backdropFilter: 'blur(8px)',

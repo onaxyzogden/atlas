@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PublicPortalShell â€” full-page storytelling layout for the public portal.
  * Dark earth-tone aesthetic, scroll-spy navigation, OGDEN footer.
  */

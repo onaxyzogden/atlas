@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { Satellite, Mountain, MountainSnow, Map as MapIcon, Layers, type LucideIcon } from 'lucide-react';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../lib/maplibre.js';
 import { useMapStore, type MapStyle } from '../../store/mapStore.js';
 import { semantic, mapZIndex } from '../../lib/tokens.js';
 import { map as mapTokens } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
-const STYLES: { id: MapStyle; label: string }[] = [
-  { id: 'satellite',   label: 'Satellite' },
-  { id: 'terrain',     label: 'Terrain' },
-  { id: 'topographic', label: 'Topographic' },
-  { id: 'street',      label: 'Street' },
-  { id: 'hybrid',      label: 'Hybrid' },
+const STYLES: { id: MapStyle; label: string; icon: LucideIcon }[] = [
+  { id: 'satellite',   label: 'Satellite',   icon: Satellite },
+  { id: 'terrain',     label: 'Terrain',     icon: Mountain },
+  { id: 'topographic', label: 'Topographic', icon: MountainSnow },
+  { id: 'street',      label: 'Street',      icon: MapIcon },
+  { id: 'hybrid',      label: 'Hybrid',      icon: Layers },
 ];
 
 interface SplitScreenCompareProps {
@@ -171,7 +172,13 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
       primaryMap?.resize();
       rightMapRef.current?.resize();
     };
-    const onUp = () => { draggingRef.current = false; document.body.style.cursor = ''; };
+    const onUp = () => {
+      draggingRef.current = false;
+      document.body.style.cursor = '';
+      // Restore text/element selection once drag ends.
+      document.body.style.userSelect = '';
+      (document.body.style as CSSStyleDeclaration & { webkitUserSelect?: string }).webkitUserSelect = '';
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
@@ -206,41 +213,72 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
         <div
           style={{
             position: 'absolute',
+            // Anchored to the split pane's top-LEFT edge (just right of the
+            // divider) so it can't collide with the primary pane's
+            // .floatingControls (Redraw Boundary + stats) which occupy the
+            // map-area's top-right corner at a higher z-index. The old
+            // top:12 right:12 placement put the switcher directly under
+            // that chrome.
             top: 12,
-            right: 12,
+            left: 12,
+            maxWidth: 'calc(100% - 24px)',
             display: 'flex',
-            gap: 4,
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+            gap: 2,
             background: 'var(--color-chrome-bg-translucent)',
             borderRadius: 8,
-            padding: '4px 6px',
+            padding: '3px 4px',
             backdropFilter: 'blur(8px)',
           }}
         >
-          {STYLES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setRightStyle(s.id)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: 6,
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 12,
-                fontWeight: 500,
-                background: rightStyle === s.id ? semantic.primary : 'transparent',
-                color: rightStyle === s.id ? '#fff' : '#c4b49a',
-              }}
-              aria-pressed={rightStyle === s.id}
-            >
-              {s.label}
-            </button>
-          ))}
+          {STYLES.map((s) => {
+            const Icon = s.icon;
+            const active = rightStyle === s.id;
+            return (
+              <DelayedTooltip key={s.id} label={s.label} position="bottom">
+                <button
+                  onClick={() => setRightStyle(s.id)}
+                  aria-pressed={active}
+                  aria-label={s.label}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    borderRadius: 6,
+                    border: active
+                      ? '1px solid rgba(224, 181, 109, 0.55)'
+                      : '1px solid transparent',
+                    cursor: 'pointer',
+                    background: active ? 'rgba(224, 181, 109, 0.22)' : 'transparent',
+                    color: active ? 'var(--color-gold-active, #e0b56d)' : '#c4b49a',
+                    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                  }}
+                >
+                  <Icon size={16} strokeWidth={2} aria-hidden="true" />
+                </button>
+              </DelayedTooltip>
+            );
+          })}
         </div>
       </div>
 
       {/* Draggable divider */}
       <div
-        onMouseDown={() => { draggingRef.current = true; document.body.style.cursor = 'col-resize'; }}
+        onMouseDown={(e) => {
+          // Prevent the browser from starting a text selection at mousedown —
+          // without this, dragging the divider highlights whatever text or
+          // element the pointer crosses (sidebar labels, panel titles, etc.).
+          e.preventDefault();
+          draggingRef.current = true;
+          document.body.style.cursor = 'col-resize';
+          // Suppress selection globally during the drag; restored in onUp.
+          document.body.style.userSelect = 'none';
+          (document.body.style as CSSStyleDeclaration & { webkitUserSelect?: string }).webkitUserSelect = 'none';
+        }}
         style={{
           position: 'absolute',
           top: 0,

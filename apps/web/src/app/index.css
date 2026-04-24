@@ -96,6 +96,48 @@ body {
   #root { height: auto; overflow: visible; }
 }
 
+/* ─── Left tool spine buttons ─────────────────────────────────────────────
+ * Shared styles for the 40 px icon-only triggers used by Cross-section,
+ * Viewshed, Measure, Historical, and OSM overlays inside
+ * <LeftToolSpine />. Declared globally so each tool component can opt in
+ * via `className="spine-btn"` without pulling a CSS module.
+ * data-active="true" marks the toggled-on state.
+ */
+.spine-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #c4b49a;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  padding: 0;
+  pointer-events: auto;
+}
+.spine-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e9decb;
+}
+.spine-btn:focus-visible {
+  outline: 2px solid rgba(180, 165, 140, 0.6);
+  outline-offset: 2px;
+}
+.spine-btn[data-active="true"] {
+  /* Active state uses high-chroma gold (#e0b56d) per UX Scholar 2026-04-23 —
+   * the brand gold #c4a265 fails WCAG AA on dark chrome at small sizes. */
+  background: rgba(224, 181, 109, 0.22);
+  color: var(--color-gold-active, #e0b56d);
+  border-color: rgba(224, 181, 109, 0.55);
+}
+.spine-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ─── Utility ────────────────────────────────────────────────────────────── */
 .sr-only {
   position: absolute;

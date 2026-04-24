@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import { useMapStore } from '../../store/mapStore.js';

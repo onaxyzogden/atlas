@@ -1,9 +1,9 @@
-/* ZonePanel — component-specific styles */
+/* ZonePanel â€” component-specific styles */
 
 .root {
   pointer-events: auto;
   flex-shrink: 0;
-  background: rgba(26, 22, 17, 0.92);
+  background: var(--color-chrome-bg-translucent);
   border-radius: var(--radius-lg, 10px);
   padding: var(--space-3);
   backdrop-filter: blur(10px);

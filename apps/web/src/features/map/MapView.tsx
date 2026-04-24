@@ -50,6 +50,8 @@ const MulchCompostCovercropOverlay = lazy(() => import('./MulchCompostCovercropO
 const MulchCompostCovercropToggle = lazy(() => import('./MulchCompostCovercropOverlay.js').then((m) => ({ default: m.MulchCompostCovercropToggle })));
 const AgroforestryOverlay = lazy(() => import('./AgroforestryOverlay.js'));
 const AgroforestryToggle = lazy(() => import('./AgroforestryOverlay.js').then((m) => ({ default: m.AgroforestryToggle })));
+const PollinatorHabitatOverlay = lazy(() => import('./PollinatorHabitatOverlay.js'));
+const PollinatorHabitatToggle = lazy(() => import('./PollinatorHabitatOverlay.js').then((m) => ({ default: m.PollinatorHabitatToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
@@ -114,6 +116,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setLayerVisible = useMapStore((s) => s.setLayerVisible);
   const is3DTerrain = useMapStore((s) => s.is3DTerrain);
+  const splitScreenActive = useMapStore((s) => s.splitScreenActive);
 
   // Lifted into uiStore so the IconSidebar rendered in ProjectPage (when the
   // Map tab is active) can drive the same panel state. The store holds the
@@ -343,6 +346,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <AgroforestryToggle compact />
               </Suspense>
             }
+            pollinatorOpportunitySlot={
+              <Suspense fallback={null}>
+                <PollinatorHabitatToggle compact />
+              </Suspense>
+            }
             osmSlot={
               <Suspense fallback={null}>
                 <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
@@ -352,14 +360,24 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         </Suspense>
 
         {/* ── Top-Right View-Context Cluster ──────────────────────────────
-         * ViewMode + Split sit above the basemap switcher (which is rendered
-         * in MapCanvas at top:56, right:60). All three are "set-and-forget"
-         * context controls so they share one perimeter strip.
+         * ViewMode + Split + basemap switcher — "set-and-forget" context
+         * controls sharing one perimeter strip. Positioned at top:56 so it
+         * sits BELOW the floatingControls row (Redraw Boundary + project
+         * stats) which occupies top:16. right:60 clears the MapLibre zoom
+         * column (which Atlas CSS offsets to top:56 right:10, ~44px wide).
+         *
+         * When split-screen is active, the secondary pane renders its own
+         * basemap switcher (top:12 right:12 of the pane) and the primary
+         * pane's visible area collapses to the left half — so rendering
+         * ViewMode + primary MapStyleSwitcher on top of the split pane is
+         * both redundant and visually noisy. Hide them; leave only the
+         * Split toggle so users retain an exit affordance from its usual
+         * top-right location.
          */}
         <div
           style={{
             position: 'absolute',
-            top: 16,
+            top: 56,
             right: 60,
             zIndex: mapZIndex.spine,
             display: 'flex',
@@ -369,15 +387,19 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             pointerEvents: 'none',
           }}
         >
-          <Suspense fallback={null}>
-            <ViewModeSwitcher onPitch={(deg) => mapRef?.easeTo({ pitch: deg, duration: 400 })} />
-          </Suspense>
+          {!splitScreenActive && (
+            <Suspense fallback={null}>
+              <ViewModeSwitcher onPitch={(deg) => mapRef?.easeTo({ pitch: deg, duration: 400 })} />
+            </Suspense>
+          )}
           <Suspense fallback={null}>
             <SplitScreenToggle />
           </Suspense>
-          <Suspense fallback={null}>
-            <MapStyleSwitcher />
-          </Suspense>
+          {!splitScreenActive && (
+            <Suspense fallback={null}>
+              <MapStyleSwitcher />
+            </Suspense>
+          )}
         </div>
         <Suspense fallback={null}>
           <ViewshedOverlay projectId={project.id} map={mapRef} />
@@ -400,6 +422,9 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         </Suspense>
         <Suspense fallback={null}>
           <AgroforestryOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PollinatorHabitatOverlay projectId={project.id} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare
