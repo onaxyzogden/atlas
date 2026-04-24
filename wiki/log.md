@@ -2790,3 +2790,24 @@ Also adds `'pollinator_opportunity'` to `ECOLOGY_LAYER_SOURCES` so its flags flo
 ### Recommended next session
 
 - `BiodiversityCorridorOverlay` migration to `MapControlPopover` (small, isolated; closes the flagged violation). Or the `MASTER.md` palette refresh if a wider design-system-doc session is preferred.
+
+## 2026-04-24 — Regeneration events API + timeline UI (manifest `regen-stage-intervention-log` → done)
+
+**Motive.** Migration 015 + Zod schema shipped last session but no one could read or write. `EcologicalDashboard` showed derived/planned interventions but had no way to log what was actually done on site, so §7's intervention-log / stage-tagging / before-after concerns were a dormant substrate. Closed both remaining layers.
+
+**Typecheck debt cleared first.**
+- `Utility.capacityGal?: number` added to [apps/web/src/store/utilityStore.ts](apps/web/src/store/utilityStore.ts) — `HydrologyDashboard`'s roof-catchment / cistern-sizing block had been using the field all along; the persist blob already holds it, typing just caught up.
+- [PlantingToolDashboard.tsx](apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx) tightened for `noUncheckedIndexedAccess`: polygon centroid coords narrow through typed locals, and proximity loops hoist `nurseries[0]` / `composts[0]` / `irrigationSources[0]` into a `first` constant, addressing subsequent elements through per-iteration locals rather than re-reaching through the original array.
+
+**API route.** New Fastify module [apps/api/src/routes/regeneration-events/index.ts](apps/api/src/routes/regeneration-events/index.ts) mirrors the comments-route pattern: `GET` (any role) with optional `eventType / interventionType / phase / since / until / parentId` filters, `POST / PATCH / DELETE` guarded by `owner | designer` with additional author-or-owner gate on mutations. Geometry round-trips through `ST_GeomFromGeoJSON` / `ST_AsGeoJSON::jsonb`; rows come back through a local `mapRow` rather than `toCamelCase` to keep geometry + jsonb handling visible. Registered at `/api/v1/projects` prefix in [app.ts](apps/api/src/app.ts).
+
+**Client + store.** Added `api.regenerationEvents.{ list, create, update, delete }` cluster to [apiClient.ts](apps/web/src/lib/apiClient.ts) mirroring `api.comments`. Filters serialize through a typed `URLSearchParams` pass. [regenerationEventStore.ts](apps/web/src/store/regenerationEventStore.ts) parallels `siteDataStore`: `eventsByProject[projectId] = { events, status, error }`; mutations refetch on success.
+
+**UI.** New [apps/web/src/features/regeneration/](apps/web/src/features/regeneration/) folder carrying `RegenerationTimelineCard.tsx`, `LogEventForm.tsx`, `useRegenerationEvents.ts`, `RegenerationTimeline.module.css`. Card mounts on [EcologicalDashboard](apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx) directly after the intervention-list section. Events sort `event_date DESC, created_at DESC`, with event-type chip + title + date header, optional intervention/phase/progress/area tag row, `↳ follows "<parent>"` link for `parent_event_id`, and 140-char notes truncation + show-more toggle.
+
+**Form convention.** `LogEventForm` introduces the **dashboard-inline disclosure form** as the entry pattern for lifecycle events (distinct from wizard-only intake). Collapsed "+ Log event" button → inline expanded form with `RegenerationEventInput.safeParse()` gating submit, segmented `eventType` / `progress` controls, conditional `interventionType` select when `eventType === 'intervention'`, site-wide vs. boundary-centre Point location (no map-drawing yet). Documented in [soil-ecology CONTEXT.md](apps/web/src/features/soil-ecology/CONTEXT.md) so future timeline-style inputs follow the same shape.
+
+**Explicitly deferred.** Media upload (object storage separate ticket — `media_urls` stays empty array), polygon-location drawing, before/after side-by-side photo compare, editing/deleting events from the timeline UI (API supports it; no button surface wired yet), and list cursor pagination (acceptable until a project crosses ~500 events).
+
+**Verification.** `tsc -b packages/shared apps/api` clean. `tsc --noEmit` on `apps/web` clean across every touched file (`regeneration/*`, `regenerationEventStore`, `apiClient`, `utilityStore`, `EcologicalDashboard`, `HydrologyDashboard`, `PlantingToolDashboard`). Browser round-trip unverified — `EcologicalDashboard` is behind auth and no preview click-through this session.
+
