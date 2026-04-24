@@ -5,7 +5,7 @@
  * At placement time, we translate to the target lat/lng using Turf.js.
  */
 
-import type { StructureType } from '../../store/structureStore.js';
+import type { Structure, StructureType } from '../../store/structureStore.js';
 
 export interface FootprintTemplate {
   widthM: number;
@@ -188,4 +188,108 @@ export function createFootprintPolygon(
     type: 'Polygon',
     coordinates: [[...corners, corners[0]!]],
   };
+}
+
+/**
+ * Approximate ridge/eave height in metres for each structure type. Used by
+ * the §6 Solar & Climate dashboard for shadow-length estimation
+ * (`computeShadowAt`). These are intentionally rough placeholders — a real
+ * value should come off the Structure record once we expose a height field.
+ */
+const STRUCTURE_HEIGHT_M: Record<StructureType, number> = {
+  cabin: 5.5,
+  yurt: 4.2,
+  pavilion: 4.5,
+  greenhouse: 3.5,
+  barn: 7.0,
+  workshop: 4.5,
+  prayer_space: 6.0,
+  bathhouse: 3.5,
+  classroom: 5.0,
+  storage: 3.0,
+  animal_shelter: 3.5,
+  compost_station: 1.8,
+  water_pump_house: 2.8,
+  tent_glamping: 3.2,
+  fire_circle: 0.5,
+  lookout: 6.0,
+  earthship: 5.5,
+  solar_array: 2.5,
+  well: 1.5,
+  water_tank: 3.5,
+};
+
+export function estimateStructureHeightM(type: StructureType): number {
+  return STRUCTURE_HEIGHT_M[type] ?? 4.0;
+}
+
+/**
+ * Cost band for a placed structure. When the steward has set
+ * `costEstimate`, the band is centered on that value (\u00B115%) and
+ * `source` is `'user'`. Otherwise the band is derived from the type
+ * template's `costRange` scaled by the placed footprint's area relative
+ * to the template's nominal area, clamped to [0.5x, 2x] so a hand-resized
+ * footprint doesn't blow the cost into nonsense territory.
+ *
+ * Returned `infraReqs` are passed through from the type template so the
+ * dashboard can surface "Requires: water, power" hints alongside the
+ * cost chip.
+ */
+export interface InfrastructureCostBand {
+  low: number;
+  mid: number;
+  high: number;
+  source: 'user' | 'template';
+  infraReqs: string[];
+}
+
+export function deriveInfrastructureCost(st: Structure): InfrastructureCostBand {
+  const tmpl = STRUCTURE_TEMPLATES[st.type];
+  const infraReqs = tmpl?.infrastructureReqs ?? [];
+
+  if (st.costEstimate != null && Number.isFinite(st.costEstimate) && st.costEstimate >= 0) {
+    const mid = st.costEstimate;
+    return {
+      low: Math.round(mid * 0.85),
+      mid,
+      high: Math.round(mid * 1.15),
+      source: 'user',
+      infraReqs,
+    };
+  }
+
+  if (!tmpl) {
+    return { low: 0, mid: 0, high: 0, source: 'template', infraReqs };
+  }
+
+  const [tLow, tHigh] = tmpl.costRange;
+  const nominalArea = tmpl.widthM * tmpl.depthM;
+  const placedArea = (st.widthM ?? tmpl.widthM) * (st.depthM ?? tmpl.depthM);
+  const scaleRaw = nominalArea > 0 ? placedArea / nominalArea : 1;
+  const scale = Math.max(0.5, Math.min(2, scaleRaw));
+
+  const low = Math.round(tLow * scale);
+  const high = Math.round(tHigh * scale);
+  const mid = Math.round((low + high) / 2);
+  return { low, mid, high, source: 'template', infraReqs };
+}
+
+/**
+ * Short money formatter used by cost chips and roll-ups. Aimed at glanceable
+ * widths, not currency-correct precision: `$25k`, `$1.2M`, `$850`.
+ */
+export function formatCostShort(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '$0';
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    const m = value / 1_000_000;
+    const fixed = m >= 10 ? m.toFixed(0) : m.toFixed(1);
+    return `$${fixed.replace(/\.0$/, '')}M`;
+  }
+  if (abs >= 1_000) {
+    const k = value / 1_000;
+    const fixed = k >= 10 ? k.toFixed(0) : k.toFixed(1);
+    return `$${fixed.replace(/\.0$/, '')}k`;
+  }
+  return `$${Math.round(value)}`;
 }

@@ -35,7 +35,7 @@ export default function AppShell({ children }: AppShellProps) {
       </a>
       {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/home" className={styles.logo}>
+        <Link to="/" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
           <span className={styles.logoSub}>Land Design Atlas</span>
         </Link>
@@ -101,7 +101,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Back to Projects */}
         {!isHome && pathname !== '/new' && (
-          <Link to="/home" aria-label="Back to all projects" className={styles.backLink}>
+          <Link to="/" aria-label="Back to all projects" className={styles.backLink}>
             All Projects
           </Link>
         )}

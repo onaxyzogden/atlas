@@ -190,7 +190,7 @@ export default function IconSidebar({
       {/* ── Logo / Header ─────────────────────────────── */}
       <div className={s.logoRow}>
         {!collapsed && (
-          <Link to="/home" className={s.logoLink}>
+          <Link to="/" className={s.logoLink}>
             <span className={s.logoMark}>OGDEN</span>
             <span className={s.logoSub}>LAND DESIGN ATLAS</span>
           </Link>
