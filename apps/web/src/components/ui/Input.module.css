@@ -67,7 +67,6 @@
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--color-accent, #527852);
   box-shadow: 0 0 0 3px var(--color-focus-ring, rgba(82, 120, 82, 0.45));
 }
 

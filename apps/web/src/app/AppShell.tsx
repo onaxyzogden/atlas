@@ -20,7 +20,7 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === '/';
+  const isHome = pathname === '/home';
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
@@ -30,9 +30,12 @@ export default function AppShell({ children }: AppShellProps) {
 
   return (
     <div className={styles.shell}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
       {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/" className={styles.logo}>
+        <Link to="/home" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
           <span className={styles.logoSub}>Land Design Atlas</span>
         </Link>
@@ -98,13 +101,13 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Back to Projects */}
         {!isHome && pathname !== '/new' && (
-          <Link to="/" aria-label="Back to all projects" className={styles.backLink}>
+          <Link to="/home" aria-label="Back to all projects" className={styles.backLink}>
             All Projects
           </Link>
         )}
       </header>}
 
-      <main className={styles.main}>
+      <main id="main-content" className={styles.main}>
         {children}
       </main>
 

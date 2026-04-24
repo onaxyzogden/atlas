@@ -185,7 +185,7 @@ export default function IconSidebar({
   const displayInitial = (displayName[0] ?? 'U').toUpperCase();
 
   return (
-    <aside className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>
+    <nav aria-label="Atlas domains" className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>
 
       {/* ── Logo / Header ─────────────────────────────── */}
       <div className={s.logoRow}>
@@ -334,7 +334,7 @@ export default function IconSidebar({
           </div>
         )}
       </div>
-    </aside>
+    </nav>
   );
 }
 
