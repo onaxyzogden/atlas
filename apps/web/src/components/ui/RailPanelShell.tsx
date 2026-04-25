@@ -15,6 +15,13 @@ import styles from './RailPanelShell.module.css';
 export interface RailPanelShellProps {
   view: SidebarView;
   onClose?: () => void;
+  /** When true, the body is hidden and the shell renders as a thin
+   *  icon strip with only an "expand" affordance. The outer .rightPanel
+   *  container is responsible for the width transition. */
+  collapsed?: boolean;
+  /** Click handler for the collapse/expand chevron. Omit to hide the
+   *  control entirely (e.g., on mobile where the slide-up panel is used). */
+  onToggleCollapsed?: () => void;
   children: React.ReactNode;
 }
 
@@ -63,37 +70,81 @@ const VIEW_LABELS: Record<Exclude<SidebarView, null>, string> = {
   unmapped: 'Not Wired',
 };
 
-export const RailPanelShell: React.FC<RailPanelShellProps> = ({ view, onClose, children }) => {
+export const RailPanelShell: React.FC<RailPanelShellProps> = ({
+  view,
+  onClose,
+  collapsed = false,
+  onToggleCollapsed,
+  children,
+}) => {
   if (!view) return <>{children}</>;
 
   const label = VIEW_LABELS[view] ?? view;
 
+  // Collapsed: render a thin icon strip with an expand chevron and a
+  // vertical label. The close button is retained so users can dismiss
+  // the panel without first expanding it.
+  if (collapsed) {
+    // Entire strip is the click target — rendered as <button> when a
+    // toggle handler is provided. Falls back to a plain div otherwise.
+    const CollapsedTag = onToggleCollapsed ? 'button' : 'div';
+    const collapsedProps = onToggleCollapsed
+      ? ({
+          type: 'button' as const,
+          onClick: onToggleCollapsed,
+          'aria-label': 'Expand panel',
+          title: 'Expand panel',
+        })
+      : {};
+    return (
+      <CollapsedTag
+        className={`${styles.shell} ${styles.shellCollapsed}`}
+        {...collapsedProps}
+      >
+        <span className={styles.collapseBtn} aria-hidden="true">
+          {/* Chevron pointing left (into the panel) */}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 3 L4 7 L9 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <span className={styles.verticalLabel}>{label}</span>
+      </CollapsedTag>
+    );
+  }
+
+  // Header is rendered as a full-width <button> so clicking anywhere in
+  // the bar (label or chevron) collapses the panel. The chevron is kept
+  // as a visual affordance but is no longer the sole click target.
+  const HeaderTag = onToggleCollapsed ? 'button' : 'div';
+  const headerProps = onToggleCollapsed
+    ? ({
+        type: 'button' as const,
+        onClick: onToggleCollapsed,
+        'aria-label': 'Collapse panel',
+        title: 'Collapse panel',
+      })
+    : {};
+
   return (
     <div className={styles.shell}>
-      <div className={styles.header}>
+      <HeaderTag className={styles.header} {...headerProps}>
         <div className={styles.eyebrow}>
           <span className={styles.label}>{label}</span>
         </div>
-        {onClose && (
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Close panel"
-            title="Close panel"
-          >
-            {/* Simple X glyph — avoids pulling in a new icon dep */}
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M3 3 L11 11 M11 3 L3 11"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        )}
-      </div>
+        <div className={styles.headerActions}>
+          {onToggleCollapsed && (
+            <span
+              className={styles.collapseBtn}
+              aria-hidden="true"
+            >
+              {/* Chevron pointing right (out of the panel) */}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M5 3 L10 7 L5 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          )}
+        </div>
+      </HeaderTag>
       <div className={styles.body}>{children}</div>
     </div>
   );

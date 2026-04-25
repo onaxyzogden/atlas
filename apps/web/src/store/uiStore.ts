@@ -39,6 +39,12 @@ interface UIState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
 
+  // Right rail panel — collapsed shows a thin strip with an expand affordance.
+  // Persisted so the preference sticks across sessions.
+  rightPanelCollapsed: boolean;
+  toggleRightPanelCollapsed: () => void;
+  setRightPanelCollapsed: (v: boolean) => void;
+
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
   // 'phase'  = workflow-oriented (P1–P4), onboarding-friendly (default)
   // 'domain' = subject-oriented (hydrology, grazing, forestry…), matches GIS conventions
@@ -93,6 +99,11 @@ export const useUIStore = create<UIState>()(
       // Sidebar
       sidebarOpen: true,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+
+      // Right rail panel collapse — default expanded.
+      rightPanelCollapsed: false,
+      toggleRightPanelCollapsed: () => set((s) => ({ rightPanelCollapsed: !s.rightPanelCollapsed })),
+      setRightPanelCollapsed: (v) => set({ rightPanelCollapsed: v }),
 
       // Sidebar grouping — default to phase (preserves onboarding narrative)
       sidebarGrouping: 'phase' as SidebarGrouping,
@@ -154,6 +165,7 @@ export const useUIStore = create<UIState>()(
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
         sidebarGrouping: state.sidebarGrouping,
+        rightPanelCollapsed: state.rightPanelCollapsed,
       }),
     },
   ),
