@@ -25,6 +25,7 @@ import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
+import MobileTractorZonesCard from '../../livestock/MobileTractorZonesCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -366,6 +367,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §22 Mission-weighted impact — multi-axis ROI rollup */}
       <MissionImpactRollupCard project={project} />
+
+      {/* §11 Mobile-tractor zones — chicken / rabbit / pig candidates */}
+      <MobileTractorZonesCard projectId={project.id} />
 
       {/* Soil Health */}
       <div className={css.section}>
