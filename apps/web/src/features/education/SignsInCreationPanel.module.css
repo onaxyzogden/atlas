@@ -1,0 +1,202 @@
+/* §19 SignsInCreationPanel — interpretive overlay matching the
+   EducationalAtlasDashboard card grammar. Quiet ink-on-parchment
+   palette so the references read like footnotes rather than chrome. */
+
+.card {
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+}
+
+.cardHint {
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  line-height: 1.5;
+}
+
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.22);
+  border-radius: 4px;
+  color: rgba(var(--color-gold-rgb), 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.toggleBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.14);
+  border-color: rgba(var(--color-gold-rgb), 0.36);
+}
+
+/* ── Amanah note ────────────────────────────────────────────────────── */
+
+.amanah {
+  margin: 16px 0 18px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.02);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.72);
+}
+
+.amanah strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}
+
+/* ── Section labels ─────────────────────────────────────────────────── */
+
+.sectionLabel {
+  margin: 18px 0 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+/* ── Triggered signs list ───────────────────────────────────────────── */
+
+.signList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signItem {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.18);
+  background: rgba(var(--color-gold-rgb), 0.04);
+}
+
+.signHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.signTheme {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.45;
+}
+
+.signRef {
+  font-size: 11px;
+  font-family: 'Fira Code', monospace;
+  color: rgba(var(--color-gold-rgb), 0.78);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.signConnection {
+  margin: 6px 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.signCount {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.06);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(180, 165, 140, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Untriggered (ghost) signs ──────────────────────────────────────── */
+
+.signListGhost {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signGhost {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.015);
+  opacity: 0.8;
+}
+
+.signInvitation {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────── */
+
+.empty {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.015);
+  color: rgba(180, 165, 140, 0.7);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* ── Footnote ───────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(232, 220, 200, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.5);
+}

@@ -21,6 +21,7 @@ import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
 import PrivacyCohortPlanningCard from '../../zones/PrivacyCohortPlanningCard.js';
 import ContemplationZonesCard from '../../zones/ContemplationZonesCard.js';
+import SignsInCreationPanel from '../../education/SignsInCreationPanel.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -206,6 +207,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §8 Quiet contemplation zone rollup ──────────────────────── */}
       <ContemplationZonesCard projectId={project.id} />
+
+      {/* ── §19 Signs in Creation interpretive overlay ──────────────── */}
+      <SignsInCreationPanel project={project} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
