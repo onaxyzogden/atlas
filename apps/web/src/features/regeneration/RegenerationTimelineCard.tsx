@@ -2,14 +2,16 @@
  * RegenerationTimelineCard — §7 intervention-log surface on EcologicalDashboard.
  *
  * Lists regeneration_events for the active project (chronological, most recent
- * first), with an inline "Log event" disclosure form. Closes the remaining
- * manifest layer above migration 015 + the shared Zod schema.
+ * first), with an inline "Log event" disclosure form. Events linked via
+ * parentEventId surface a "Log follow-up" / "Compare" action pair that drives
+ * the side-by-side PhotoComparePane overlay.
  */
 
 import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { RegenerationEvent } from '@ogden/shared';
 import LogEventForm from './LogEventForm.js';
+import PhotoComparePane from './PhotoComparePane.js';
 import { useRegenerationEventsForProject } from './useRegenerationEvents.js';
 import css from './RegenerationTimeline.module.css';
 
@@ -37,6 +39,8 @@ export default function RegenerationTimelineCard({ project }: Props) {
   const projectServerId = project.serverId ?? project.id;
   const state = useRegenerationEventsForProject(projectServerId);
   const [formOpen, setFormOpen] = useState(false);
+  const [followUpParent, setFollowUpParent] = useState<RegenerationEvent | null>(null);
+  const [comparePair, setComparePair] = useState<{ before: RegenerationEvent; after: RegenerationEvent } | null>(null);
 
   const events = state?.events ?? [];
   const parentById = useMemo(() => {
@@ -44,6 +48,16 @@ export default function RegenerationTimelineCard({ project }: Props) {
     for (const e of events) m.set(e.id, e);
     return m;
   }, [events]);
+
+  function startFollowUp(parent: RegenerationEvent) {
+    setFollowUpParent(parent);
+    setFormOpen(true);
+  }
+
+  function closeForm() {
+    setFormOpen(false);
+    setFollowUpParent(null);
+  }
 
   return (
     <div className={css.section}>
@@ -59,8 +73,10 @@ export default function RegenerationTimelineCard({ project }: Props) {
       {formOpen && (
         <LogEventForm
           project={project}
-          onSubmitted={() => setFormOpen(false)}
-          onCancel={() => setFormOpen(false)}
+          parentEvent={followUpParent}
+          onClearParent={() => setFollowUpParent(null)}
+          onSubmitted={closeForm}
+          onCancel={closeForm}
         />
       )}
 
@@ -76,14 +92,46 @@ export default function RegenerationTimelineCard({ project }: Props) {
         </div>
       ) : (
         <div className={css.eventList}>
-          {events.map((e) => <EventRow key={e.id} event={e} parent={e.parentEventId ? parentById.get(e.parentEventId) ?? null : null} />)}
+          {events.map((e) => {
+            const parent = e.parentEventId ? parentById.get(e.parentEventId) ?? null : null;
+            const canCompare = !!parent
+              && (e.mediaUrls?.length ?? 0) > 0
+              && (parent.mediaUrls?.length ?? 0) > 0;
+            return (
+              <EventRow
+                key={e.id}
+                event={e}
+                parent={parent}
+                onFollowUp={() => startFollowUp(e)}
+                onCompare={canCompare && parent ? () => setComparePair({ before: parent, after: e }) : null}
+              />
+            );
+          })}
         </div>
+      )}
+
+      {comparePair && (
+        <PhotoComparePane
+          before={comparePair.before}
+          after={comparePair.after}
+          onClose={() => setComparePair(null)}
+        />
       )}
     </div>
   );
 }
 
-function EventRow({ event, parent }: { event: RegenerationEvent; parent: RegenerationEvent | null }) {
+function EventRow({
+  event,
+  parent,
+  onFollowUp,
+  onCompare,
+}: {
+  event: RegenerationEvent;
+  parent: RegenerationEvent | null;
+  onFollowUp: () => void;
+  onCompare: (() => void) | null;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const notes = event.notes ?? '';
@@ -141,6 +189,17 @@ function EventRow({ event, parent }: { event: RegenerationEvent; parent: Regener
           ))}
         </div>
       )}
+
+      <div className={css.rowActions}>
+        <button type="button" className={css.rowActionBtn} onClick={onFollowUp}>
+          Log follow-up
+        </button>
+        {onCompare && (
+          <button type="button" className={css.rowActionBtn} onClick={onCompare}>
+            Compare before / after
+          </button>
+        )}
+      </div>
     </div>
   );
 }

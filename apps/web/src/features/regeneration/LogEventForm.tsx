@@ -11,6 +11,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   RegenerationEventInput,
+  type RegenerationEvent,
   type RegenerationEventType,
   type RegenerationInterventionType,
   type RegenerationPhase,
@@ -67,9 +68,16 @@ interface LogEventFormProps {
   project: LocalProject;
   onSubmitted: () => void;
   onCancel: () => void;
+  /**
+   * When set, this submission is a follow-up to an earlier event. The form
+   * shows a "follows {parent title}" banner and submits with
+   * `parentEventId = parentEvent.id`, enabling before/after photo compare.
+   */
+  parentEvent?: RegenerationEvent | null;
+  onClearParent?: () => void;
 }
 
-export default function LogEventForm({ project, onSubmitted, onCancel }: LogEventFormProps) {
+export default function LogEventForm({ project, onSubmitted, onCancel, parentEvent, onClearParent }: LogEventFormProps) {
   const projectServerId = project.serverId ?? project.id;
   const createEvent = useRegenerationEventStore((s) => s.createEvent);
 
@@ -134,6 +142,7 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
       notes: notes.trim() || undefined,
       location,
       mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+      parentEventId: parentEvent?.id,
     };
 
     const parsed = RegenerationEventInput.safeParse(candidate);
@@ -155,6 +164,21 @@ export default function LogEventForm({ project, onSubmitted, onCancel }: LogEven
 
   return (
     <div className={css.form}>
+      {parentEvent && (
+        <div className={css.followBanner}>
+          <span>↳ Follow-up to "{parentEvent.title}"</span>
+          {onClearParent && (
+            <button
+              type="button"
+              className={css.followBannerClear}
+              onClick={onClearParent}
+              aria-label="Clear follow-up link"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
       <div className={css.fieldRow}>
         <label className={css.fieldLabel}>EVENT TYPE</label>
         <div className={css.segmented}>

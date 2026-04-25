@@ -249,10 +249,19 @@ and cropping placement).
   `apps/api/src/app.ts`. The shared `mediaUrls` schema accepts either
   absolute `http(s)` URLs or server-relative paths starting with `/`
   so both storage modes round-trip cleanly.
+  Before/after photo-compare pane shipped 2026-04-25: rows linked via
+  `parentEventId` surface "Log follow-up" (always) and
+  "Compare before / after" (when both self + parent carry photos)
+  action buttons. The compare button opens a `PhotoComparePane` overlay
+  (`features/regeneration/PhotoComparePane.tsx`) — side-by-side BEFORE /
+  AFTER columns with title, date, photos, and notes. No drag-slider
+  overlay: field photos aren't pixel-aligned, so the side-by-side read
+  is the honest one. "Log follow-up" pre-threads `parentEventId` into
+  `LogEventForm` and renders a "↳ Follow-up to '…'" banner (clearable).
   Still out of scope: polygon-location drawing (Point via boundary
-  centroid or NULL site-wide only), before/after photo-compare pane,
-  editing/deleting events from the timeline UI (mutations ship on the
-  API but no dashboard button surface yet).
+  centroid or NULL site-wide only), editing/deleting events from the
+  timeline UI (mutations ship on the API but no dashboard button surface
+  yet).
 - `SoilRegenerationProcessor` output is cached on the Tier-3 pipeline
   run — it does not recompute on UI navigation. Trigger a new run if a
   boundary changes; never synthesize zones client-side.
