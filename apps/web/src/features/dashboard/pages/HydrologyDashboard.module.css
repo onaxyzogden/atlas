@@ -261,6 +261,131 @@
 .flowStatLabel { font-size: 11px; color: rgba(180,165,140,0.4); }
 .flowStatValue { font-size: 16px; font-weight: 700; color: rgba(232,220,200,0.9); }
 
+/* §16 Scenario controls — water-flood-drought-scenario-sim. */
+.scenarioCard {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 175, 220, 0.18);
+  background: rgba(140, 175, 220, 0.03);
+  margin-bottom: 16px;
+}
+.scenarioHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.scenarioSub {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(180,165,140,0.7);
+}
+.scenarioSub strong {
+  color: rgba(232,220,200,0.92);
+  font-weight: 600;
+}
+.scenarioReset {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: rgba(232,220,200,0.85);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.scenarioReset:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+}
+.scenarioPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.scenarioPreset {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.025);
+  color: rgba(200,190,170,0.85);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.scenarioPreset:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(232,220,200,0.95);
+}
+.scenarioPresetActive {
+  background: rgba(140, 175, 220, 0.18);
+  border-color: rgba(140, 175, 220, 0.5);
+  color: rgba(190, 215, 245, 0.98);
+}
+.scenarioPresetActive:hover {
+  background: rgba(140, 175, 220, 0.22);
+  border-color: rgba(140, 175, 220, 0.6);
+}
+.scenarioSliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 20px;
+}
+.scenarioSliderRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scenarioSliderLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(180,165,140,0.6);
+}
+.scenarioSliderValue {
+  color: rgba(232,220,200,0.9);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.scenarioSlider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.scenarioSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(190, 215, 245, 0.95);
+  border: 1px solid rgba(140, 175, 220, 0.6);
+  cursor: pointer;
+}
+.scenarioSlider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(190, 215, 245, 0.95);
+  border: 1px solid rgba(140, 175, 220, 0.6);
+  cursor: pointer;
+}
+
 /* Comparison chart */
 .comparisonCard {
   padding: 24px;

@@ -607,6 +607,26 @@ function buildMonthlyBudget(params: {
   };
 }
 
+/**
+ * §16 scenario presets — water-flood-drought-scenario-sim.
+ * Each preset is just a (precipMult, demandMult) pair applied to the
+ * existing annual catchment and annual demand inputs of
+ * `buildMonthlyBudget`. The seasonal arc, running balance, and storage
+ * sizing all reflow automatically. Pure presentation; no new physics.
+ */
+const SCENARIO_PRESETS: Array<{
+  id: 'baseline' | 'drought' | 'wet' | 'flood';
+  label: string;
+  precipMult: number;
+  demandMult: number;
+  description: string;
+}> = [
+  { id: 'baseline', label: 'Baseline',  precipMult: 1.00, demandMult: 1.00, description: 'Climate normals, household demand as modeled.' },
+  { id: 'drought',  label: 'Drought',   precipMult: 0.55, demandMult: 1.15, description: 'Severe-drought year (~45% precip deficit) with elevated irrigation demand.' },
+  { id: 'wet',      label: 'Wet year',  precipMult: 1.40, demandMult: 0.90, description: 'Above-normal precipitation, irrigation backed off as soils stay moist.' },
+  { id: 'flood',    label: 'Flood',     precipMult: 1.85, demandMult: 1.00, description: 'Extreme-precipitation year — surfaces storage overflow without modeling event-level flow.' },
+];
+
 function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
   metrics: HydroMetrics;
   climate: ClimateSummary | null;
@@ -619,13 +639,33 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
     return raw as MonthlyNormal[];
   })();
 
+  // §16 scenario state. Multipliers drive both presets and freeform sliders.
+  const [precipMult, setPrecipMult] = useState(1);
+  const [demandMult, setDemandMult] = useState(1);
+
   // Annual demand convention matches computeHydrologyMetrics placeholder
   // (irrigation ≈ 22% of annual rainfall potential). Baseline household adds on top.
   const baselineAnnualGal = 400 * 4 * 30.4 * 0.264172 * 12;
   const irrigationAnnualGal = metrics.catchmentPotentialGal * 0.22;
   const annualDemandGal = baselineAnnualGal + irrigationAnnualGal;
 
+  // Scenario-adjusted inputs.
+  const scenarioCatchmentGal = metrics.catchmentPotentialGal * precipMult;
+  const scenarioDemandGal = annualDemandGal * demandMult;
+
   const budget = useMemo(
+    () => buildMonthlyBudget({
+      annualCatchmentGal: scenarioCatchmentGal,
+      annualDemandGal: scenarioDemandGal,
+      startingStorageGal: metrics.totalStorageGal,
+      monthlyNormals,
+      latitudeDeg,
+    }),
+    [scenarioCatchmentGal, scenarioDemandGal, metrics.totalStorageGal, monthlyNormals, latitudeDeg],
+  );
+
+  // Baseline budget for delta comparison (always at 100%/100%).
+  const baselineBudget = useMemo(
     () => buildMonthlyBudget({
       annualCatchmentGal: metrics.catchmentPotentialGal,
       annualDemandGal,
@@ -635,6 +675,12 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
     }),
     [metrics.catchmentPotentialGal, metrics.totalStorageGal, annualDemandGal, monthlyNormals, latitudeDeg],
   );
+
+  // Identify the active preset (if any) by exact mult match.
+  const activePreset = SCENARIO_PRESETS.find(
+    (p) => Math.abs(p.precipMult - precipMult) < 0.005 && Math.abs(p.demandMult - demandMult) < 0.005,
+  );
+  const isScenarioActive = !(precipMult === 1 && demandMult === 1);
 
   // Chart scale: use max of either metric so both series share a consistent y-axis.
   const peakGal = Math.max(
@@ -660,6 +706,78 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
 
   return (
     <>
+      {/* §16 Scenario controls — multipliers reflow the entire tab. */}
+      <div className={css.scenarioCard}>
+        <div className={css.scenarioHead}>
+          <div>
+            <span className={css.flowLabel}>SCENARIO</span>
+            <p className={css.scenarioSub}>
+              {activePreset
+                ? <><strong>{activePreset.label}</strong> {'\u2014'} {activePreset.description}</>
+                : isScenarioActive
+                  ? <>Custom: precip {Math.round(precipMult * 100)}%, demand {Math.round(demandMult * 100)}% vs. climate normals.</>
+                  : <>Climate normals as fetched. Switch to a stress scenario to see the seasonal arc and storage gap reflow.</>
+              }
+            </p>
+          </div>
+          {isScenarioActive && (
+            <button
+              type="button"
+              onClick={() => { setPrecipMult(1); setDemandMult(1); }}
+              className={css.scenarioReset}
+            >
+              Reset
+            </button>
+          )}
+        </div>
+        <div className={css.scenarioPresets}>
+          {SCENARIO_PRESETS.map((preset) => {
+            const isActive = activePreset?.id === preset.id;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => { setPrecipMult(preset.precipMult); setDemandMult(preset.demandMult); }}
+                className={`${css.scenarioPreset} ${isActive ? css.scenarioPresetActive : ''}`}
+                title={preset.description}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className={css.scenarioSliders}>
+          <label className={css.scenarioSliderRow}>
+            <span className={css.scenarioSliderLabel}>
+              Precipitation <span className={css.scenarioSliderValue}>{Math.round(precipMult * 100)}%</span>
+            </span>
+            <input
+              type="range"
+              min={0.3}
+              max={2.0}
+              step={0.05}
+              value={precipMult}
+              onChange={(e) => setPrecipMult(parseFloat(e.target.value))}
+              className={css.scenarioSlider}
+            />
+          </label>
+          <label className={css.scenarioSliderRow}>
+            <span className={css.scenarioSliderLabel}>
+              Demand <span className={css.scenarioSliderValue}>{Math.round(demandMult * 100)}%</span>
+            </span>
+            <input
+              type="range"
+              min={0.5}
+              max={1.6}
+              step={0.05}
+              value={demandMult}
+              onChange={(e) => setDemandMult(parseFloat(e.target.value))}
+              className={css.scenarioSlider}
+            />
+          </label>
+        </div>
+      </div>
+
       {/* Fallback banner when monthly normals unavailable */}
       {budget.distributionSource === 'uniform' && (
         <div className={css.budgetFallback}>
@@ -760,6 +878,21 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
             {storageGapGal > 0 ? `+${fmtGal(storageGapGal)}` : 'COVERED'}
           </span>
           {storageGapGal > 0 && <span className={css.metricUnit}>GALLONS SHORT</span>}
+          {isScenarioActive && (() => {
+            const baselineRecommended = baselineBudget.maxDeficitGal > 0
+              ? Math.round(baselineBudget.maxDeficitGal * 1.25)
+              : Math.round(metrics.totalStorageGal);
+            const baselineGap = Math.max(0, baselineRecommended - metrics.totalStorageGal);
+            const delta = storageGapGal - baselineGap;
+            if (Math.abs(delta) < 100) return null;
+            return (
+              <span className={css.metricNote}>
+                {delta > 0
+                  ? `+${fmtGal(delta)} vs baseline`
+                  : `${fmtGal(Math.abs(delta))} better than baseline`}
+              </span>
+            );
+          })()}
         </div>
       </div>
 
@@ -780,6 +913,13 @@ function WaterBudgetTab({ metrics, climate, latitudeDeg }: {
           <li>
             <strong>Starting storage:</strong> {fmtGal(metrics.totalStorageGal)} gal (derived from site retention factor).
           </li>
+          {isScenarioActive && (
+            <li>
+              <strong>Scenario adjustment:</strong> precip &times; {precipMult.toFixed(2)}, demand &times; {demandMult.toFixed(2)}.
+              Scenario inflow {fmtGal(scenarioCatchmentGal)} gal / scenario demand {fmtGal(scenarioDemandGal)} gal.
+              Steady-state annual-volume model &mdash; not an event-level flood simulation.
+            </li>
+          )}
           <li>
             These figures are planning heuristics &mdash; refine with site-specific household size, irrigated acreage, and measured storage when known.
           </li>
