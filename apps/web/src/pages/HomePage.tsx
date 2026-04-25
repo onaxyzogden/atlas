@@ -20,9 +20,12 @@ const PROJECT_TYPE_LABELS: Record<string, string> = {
   moontrance: 'OGDEN Template',
 };
 
+type StatusFilter = 'all' | 'active' | 'candidate';
+
 export default function HomePage() {
   const projects = useProjectStore((s) => s.projects);
   const duplicateProject = useProjectStore((s) => s.duplicateProject);
+  const updateProject = useProjectStore((s) => s.updateProject);
   const setActiveProject = useProjectStore((s) => s.setActiveProject);
   const navigate = useNavigate();
 
@@ -33,6 +36,27 @@ export default function HomePage() {
       navigate({ to: '/project/$projectId', params: { projectId: clone.id } });
     }
   };
+
+  // §1 save-candidates: stewards flag exploratory properties as "candidates"
+  // so the working list stays focused on active builds. The LocalProject
+  // status union already has 'candidate' — this UI just surfaces writers
+  // and a filter chip. Toggles between 'active' and 'candidate'; doesn't
+  // touch 'archived' or 'shared'.
+  const toggleCandidate = (projectId: string, current: string) => {
+    updateProject(projectId, {
+      status: current === 'candidate' ? 'active' : 'candidate',
+    });
+  };
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const candidateCount = projects.filter((p) => p.status === 'candidate').length;
+  const activeCount = projects.filter((p) => p.status === 'active').length;
+  const visibleProjects = projects.filter((p) => {
+    if (statusFilter === 'candidate') return p.status === 'candidate';
+    if (statusFilter === 'active') return p.status === 'active';
+    return true; // 'all' — include archived + shared too, preserving the
+    // historical default of showing every row.
+  });
 
   // §1 Compare-mode: a steward toggles "Compare" in the header, picks
   // 2+ project cards via checkboxes, then jumps to /projects/compare with
@@ -124,28 +148,79 @@ export default function HomePage() {
                 </Button>
               </>
             ) : (
-              projects.length >= 2 && (
-                <Button variant="secondary" size="sm" onClick={startCompare}>
-                  Compare
-                </Button>
-              )
+              <>
+                {/* §1 Candidate filter — hidden until a candidate exists so
+                    the chrome doesn't clutter fresh accounts. */}
+                {candidateCount > 0 && (
+                  <div className={styles.filterChips} role="tablist" aria-label="Filter projects by status">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={statusFilter === 'all'}
+                      className={`${styles.filterChip} ${statusFilter === 'all' ? styles.filterChipActive : ''}`}
+                      onClick={() => setStatusFilter('all')}
+                    >
+                      All <span className={styles.filterChipCount}>{projects.length}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={statusFilter === 'active'}
+                      className={`${styles.filterChip} ${statusFilter === 'active' ? styles.filterChipActive : ''}`}
+                      onClick={() => setStatusFilter('active')}
+                    >
+                      Active <span className={styles.filterChipCount}>{activeCount}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={statusFilter === 'candidate'}
+                      className={`${styles.filterChip} ${statusFilter === 'candidate' ? styles.filterChipActive : ''}`}
+                      onClick={() => setStatusFilter('candidate')}
+                    >
+                      Candidates <span className={styles.filterChipCount}>{candidateCount}</span>
+                    </button>
+                  </div>
+                )}
+                {projects.length >= 2 && (
+                  <Button variant="secondary" size="sm" onClick={startCompare}>
+                    Compare
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
 
+        {visibleProjects.length === 0 && statusFilter !== 'all' && (
+          <div className={styles.filterEmpty}>
+            {statusFilter === 'candidate'
+              ? 'No projects marked as candidates yet. Use the "Mark as candidate" button on a project card to flag an exploratory property.'
+              : 'No active projects. Promote a candidate from the Candidates tab, or create a new project.'}
+          </div>
+        )}
+
         <div className={styles.grid}>
-          {projects.map((p) => {
+          {visibleProjects.map((p) => {
             const isSelected = selectedIds.includes(p.id);
-            const cardClass = `${styles.card} ${compareMode && isSelected ? styles.cardSelected : ''}`;
+            const isCandidate = p.status === 'candidate';
+            const cardClass = `${styles.card} ${compareMode && isSelected ? styles.cardSelected : ''} ${isCandidate ? styles.cardCandidate : ''}`;
             const inner = (
               <>
                 <h3 className={styles.cardName}>{p.name}</h3>
 
-                {p.projectType && (
-                  <Badge variant="default" size="sm">
-                    {PROJECT_TYPE_LABELS[p.projectType] ?? p.projectType}
-                  </Badge>
-                )}
+                <div className={styles.cardBadges}>
+                  {p.projectType && (
+                    <Badge variant="default" size="sm">
+                      {PROJECT_TYPE_LABELS[p.projectType] ?? p.projectType}
+                    </Badge>
+                  )}
+                  {isCandidate && (
+                    <Badge variant="info" size="sm" dot>
+                      Candidate
+                    </Badge>
+                  )}
+                </div>
 
                 {p.description && (
                   <p className={styles.cardDesc}>
@@ -190,19 +265,42 @@ export default function HomePage() {
                   </Link>
                 )}
                 {!compareMode && (
-                  <button
-                    type="button"
-                    className={styles.cardDuplicateBtn}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleDuplicate(p.id);
-                    }}
-                    aria-label={`Duplicate ${p.name} as a new project`}
-                    title="Duplicate as template"
-                  >
-                    Duplicate
-                  </button>
+                  <div className={styles.cardActions}>
+                    <button
+                      type="button"
+                      className={styles.cardActionBtn}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleCandidate(p.id, p.status);
+                      }}
+                      aria-label={
+                        isCandidate
+                          ? `Promote ${p.name} to an active project`
+                          : `Mark ${p.name} as a candidate property`
+                      }
+                      title={
+                        isCandidate
+                          ? 'Promote to active project'
+                          : 'Mark as candidate (exploratory)'
+                      }
+                    >
+                      {isCandidate ? 'Promote' : 'Candidate'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cardActionBtn}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDuplicate(p.id);
+                      }}
+                      aria-label={`Duplicate ${p.name} as a new project`}
+                      title="Duplicate as template"
+                    >
+                      Duplicate
+                    </button>
+                  </div>
                 )}
               </div>
             );

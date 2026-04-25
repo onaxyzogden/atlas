@@ -87,7 +87,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'project-permissions', label: 'Set project permissions', phase: 'P1', status: 'done' },
       { key: 'autosave-versions', label: 'Auto-save and version snapshots', phase: 'P1', status: 'done' },
       { key: 'restore-previous', label: 'Restore previous project state', phase: 'P2', status: 'partial' },
-      { key: 'save-candidates', label: 'Save multiple candidate properties', phase: 'P2', status: 'planned' },
+      { key: 'save-candidates', label: 'Save multiple candidate properties', phase: 'P2', status: 'done' },
       { key: 'compare-candidates', label: 'Compare candidate properties side by side', phase: 'P2', status: 'done' },
       { key: 'duplicate-from-template', label: 'Duplicate project from template', phase: 'P2', status: 'done' },
     ],
