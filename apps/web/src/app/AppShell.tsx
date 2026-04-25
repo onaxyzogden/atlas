@@ -20,7 +20,7 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === '/home';
+  const isHome = pathname === '/';
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();

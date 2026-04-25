@@ -43,6 +43,12 @@ export interface Structure {
   phase: string;
   costEstimate: number | null;
   /**
+   * Optional ridge/eave height in metres. Used by the §6 Solar & Climate
+   * dashboard for shadow-length estimation. Falls back to the per-type
+   * height table in `features/structures/footprints.ts` when unset.
+   */
+  heightM?: number;
+  /**
    * Optional steward-entered labor estimate in person-hours for this
    * structure. Read by the PhasingDashboard to roll up labor load by
    * phase alongside cost (§15 "Cost, labor, material need by phase").

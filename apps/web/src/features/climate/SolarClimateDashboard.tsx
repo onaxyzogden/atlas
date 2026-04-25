@@ -1874,7 +1874,7 @@ function ShadowFootprintsCard({ structures, lat }: { structures: Structure[]; la
       </div>
       <ul className={css.placementList}>
         {structures.map((st) => {
-          const h = estimateStructureHeightM(st.type);
+          const h = estimateStructureHeightM(st);
           const winter = computeShadowAt(lat, h, 'winter');
           const summer = computeShadowAt(lat, h, 'summer');
           const maxShadow = Math.max(

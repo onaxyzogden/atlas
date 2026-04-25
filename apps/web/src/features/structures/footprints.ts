@@ -191,10 +191,9 @@ export function createFootprintPolygon(
 }
 
 /**
- * Approximate ridge/eave height in metres for each structure type. Used by
- * the §6 Solar & Climate dashboard for shadow-length estimation
- * (`computeShadowAt`). These are intentionally rough placeholders — a real
- * value should come off the Structure record once we expose a height field.
+ * Per-type fallback ridge/eave heights in metres. Used by `estimateStructureHeightM`
+ * when the Structure record itself doesn't carry an explicit `heightM`. Rough
+ * estimates aimed at shadow-length math, not engineering.
  */
 const STRUCTURE_HEIGHT_M: Record<StructureType, number> = {
   cabin: 5.5,
@@ -219,8 +218,21 @@ const STRUCTURE_HEIGHT_M: Record<StructureType, number> = {
   water_tank: 3.5,
 };
 
-export function estimateStructureHeightM(type: StructureType): number {
-  return STRUCTURE_HEIGHT_M[type] ?? 4.0;
+/**
+ * Resolve the ridge/eave height in metres for a structure. Prefers the
+ * steward-entered `heightM` on the Structure when present (positive, finite);
+ * otherwise falls back to the per-type table. Accepts either a full Structure
+ * or a bare type for callers that don't have the record handy.
+ */
+export function estimateStructureHeightM(input: Structure | StructureType): number {
+  if (typeof input === 'object' && input !== null) {
+    const explicit = input.heightM;
+    if (typeof explicit === 'number' && Number.isFinite(explicit) && explicit > 0) {
+      return explicit;
+    }
+    return STRUCTURE_HEIGHT_M[input.type] ?? 4.0;
+  }
+  return STRUCTURE_HEIGHT_M[input] ?? 4.0;
 }
 
 /**
