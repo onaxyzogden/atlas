@@ -16,6 +16,7 @@ import {
   checkDependencyViolations,
 } from '../../utilities/utilityAnalysis.js';
 import { confidence, error as errorToken, semantic, status as statusToken } from '../../../lib/tokens.js';
+import SupportInfrastructureCard from '../../structures/SupportInfrastructureCard.js';
 import css from './EnergyDashboard.module.css';
 
 interface EnergyDashboardProps {
@@ -162,6 +163,9 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
           </ul>
         )}
       </div>
+
+      {/* ── §9 Support infrastructure rollup (infrastructure focus only) ── */}
+      {!isEnergy && <SupportInfrastructureCard projectId={project.id} />}
 
       {/* ── Dependency violations ───────────────────────────────────── */}
       {violations.length > 0 && (
