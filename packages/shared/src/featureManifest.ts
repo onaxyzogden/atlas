@@ -493,7 +493,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'feasibility-summary', label: 'Feasibility summary, constraint checklist, missing information checklist', phase: 'P2', status: 'done' },
-      { key: 'regulatory-risk-notes', label: 'Regulatory risk notes (see Section 0e for full regulatory layer)', phase: 'P2', status: 'planned' },
+      { key: 'regulatory-risk-notes', label: 'Regulatory risk notes (see Section 0e for full regulatory layer)', phase: 'P2', status: 'done' },
       { key: 'access-water-ag-livestock-feasibility', label: 'Access, water, agricultural, livestock feasibility notes', phase: 'P2', status: 'planned' },
       { key: 'hospitality-education-energy-feasibility', label: 'Hospitality, education, energy feasibility notes', phase: 'P2', status: 'planned' },
       { key: 'terrain-construction-difficulty', label: 'Terrain construction difficulty notes', phase: 'P2', status: 'planned' },
