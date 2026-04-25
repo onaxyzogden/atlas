@@ -14,6 +14,7 @@ import { computePollinatorHabitat } from '@ogden/shared';
 import ProgressBar from '../components/ProgressBar.js';
 import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
 import RegenerationTimelineCard from '../../regeneration/RegenerationTimelineCard.js';
+import SoilSamplesCard from '../../soil-samples/SoilSamplesCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -250,9 +251,10 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </div>
         </div>
         <DashboardSectionSkeleton cards={3} rowsPerCard={4} label="Loading ecological data" />
-        {/* Timeline is project-scoped, not site-data-scoped — surface it
-            during env-data load so users can log observations without
-            waiting on third-party API roundtrips. */}
+        {/* Timeline + manual samples are project-scoped, not site-data-scoped —
+            surface them during env-data load so users can log observations
+            without waiting on third-party API roundtrips. */}
+        <SoilSamplesCard project={project} />
         <RegenerationTimelineCard project={project} />
       </div>
     );
@@ -594,6 +596,10 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </div>
         )}
       </div>
+
+      {/* Manual soil samples — §7 lab results + in-field biological-activity
+          readings, complements the modeled SSURGO / SoilGrids layers. */}
+      <SoilSamplesCard project={project} />
 
       {/* Regeneration Timeline — §7 intervention log (migration 015 + shared schema). */}
       <RegenerationTimelineCard project={project} />

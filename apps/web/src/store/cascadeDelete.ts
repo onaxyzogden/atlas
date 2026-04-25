@@ -15,6 +15,7 @@ import { usePathStore } from './pathStore.js';
 import { usePhaseStore } from './phaseStore.js';
 import { usePortalStore } from './portalStore.js';
 import { useScenarioStore } from './scenarioStore.js';
+import { useSoilSampleStore } from './soilSampleStore.js';
 import { useUtilityStore } from './utilityStore.js';
 import { useVersionStore } from './versionStore.js';
 
@@ -63,6 +64,10 @@ export function cascadeDeleteProject(projectId: string): void {
 
   safeDelete('scenarios', () => useScenarioStore.setState((s) => ({
     scenarios: s.scenarios.filter((sc) => sc.projectId !== projectId),
+  })));
+
+  safeDelete('soilSamples', () => useSoilSampleStore.setState((s) => ({
+    samples: s.samples.filter((sm) => sm.projectId !== projectId),
   })));
 
   safeDelete('utilities', () => useUtilityStore.setState((s) => ({
