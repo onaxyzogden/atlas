@@ -13,6 +13,9 @@ import type { RegenerationEvent } from '@ogden/shared';
 import LogEventForm from './LogEventForm.js';
 import PhotoComparePane from './PhotoComparePane.js';
 import { useRegenerationEventsForProject } from './useRegenerationEvents.js';
+import { useRegenerationEventStore } from '../../store/regenerationEventStore.js';
+import { useAuthStore } from '../../store/authStore.js';
+import { useProjectRole } from '../../hooks/useProjectRole.js';
 import css from './RegenerationTimeline.module.css';
 
 function humanize(s: string): string {
@@ -38,8 +41,13 @@ interface Props {
 export default function RegenerationTimelineCard({ project }: Props) {
   const projectServerId = project.serverId ?? project.id;
   const state = useRegenerationEventsForProject(projectServerId);
+  const deleteEvent = useRegenerationEventStore((s) => s.deleteEvent);
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
+  const { canDelete } = useProjectRole(projectServerId);
   const [formOpen, setFormOpen] = useState(false);
   const [followUpParent, setFollowUpParent] = useState<RegenerationEvent | null>(null);
+  const [editTarget, setEditTarget] = useState<RegenerationEvent | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [comparePair, setComparePair] = useState<{ before: RegenerationEvent; after: RegenerationEvent } | null>(null);
 
   const events = state?.events ?? [];
@@ -49,14 +57,38 @@ export default function RegenerationTimelineCard({ project }: Props) {
     return m;
   }, [events]);
 
+  function canModify(ev: RegenerationEvent): boolean {
+    return canDelete || (!!currentUserId && ev.authorId === currentUserId);
+  }
+
   function startFollowUp(parent: RegenerationEvent) {
+    setEditTarget(null);
     setFollowUpParent(parent);
     setFormOpen(true);
+  }
+
+  function startEdit(ev: RegenerationEvent) {
+    setFollowUpParent(null);
+    setEditTarget(ev);
+    setFormOpen(true);
+  }
+
+  async function handleDelete(ev: RegenerationEvent) {
+    if (!window.confirm(`Delete "${ev.title}"? This cannot be undone.`)) return;
+    setDeletingId(ev.id);
+    try {
+      await deleteEvent(projectServerId, ev.id);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   function closeForm() {
     setFormOpen(false);
     setFollowUpParent(null);
+    setEditTarget(null);
   }
 
   return (
@@ -75,6 +107,7 @@ export default function RegenerationTimelineCard({ project }: Props) {
           project={project}
           parentEvent={followUpParent}
           onClearParent={() => setFollowUpParent(null)}
+          editEvent={editTarget}
           onSubmitted={closeForm}
           onCancel={closeForm}
         />
@@ -104,6 +137,9 @@ export default function RegenerationTimelineCard({ project }: Props) {
                 parent={parent}
                 onFollowUp={() => startFollowUp(e)}
                 onCompare={canCompare && parent ? () => setComparePair({ before: parent, after: e }) : null}
+                onEdit={canModify(e) ? () => startEdit(e) : null}
+                onDelete={canModify(e) ? () => handleDelete(e) : null}
+                deleting={deletingId === e.id}
               />
             );
           })}
@@ -126,11 +162,17 @@ function EventRow({
   parent,
   onFollowUp,
   onCompare,
+  onEdit,
+  onDelete,
+  deleting,
 }: {
   event: RegenerationEvent;
   parent: RegenerationEvent | null;
   onFollowUp: () => void;
   onCompare: (() => void) | null;
+  onEdit: (() => void) | null;
+  onDelete: (() => void) | null;
+  deleting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -191,12 +233,27 @@ function EventRow({
       )}
 
       <div className={css.rowActions}>
-        <button type="button" className={css.rowActionBtn} onClick={onFollowUp}>
+        <button type="button" className={css.rowActionBtn} onClick={onFollowUp} disabled={deleting}>
           Log follow-up
         </button>
         {onCompare && (
-          <button type="button" className={css.rowActionBtn} onClick={onCompare}>
+          <button type="button" className={css.rowActionBtn} onClick={onCompare} disabled={deleting}>
             Compare before / after
+          </button>
+        )}
+        {onEdit && (
+          <button type="button" className={css.rowActionBtn} onClick={onEdit} disabled={deleting}>
+            Edit
+          </button>
+        )}
+        {onDelete && (
+          <button
+            type="button"
+            className={`${css.rowActionBtn} ${css.rowActionBtnDanger}`}
+            onClick={onDelete}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
           </button>
         )}
       </div>

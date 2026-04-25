@@ -258,10 +258,12 @@ and cropping placement).
   overlay: field photos aren't pixel-aligned, so the side-by-side read
   is the honest one. "Log follow-up" pre-threads `parentEventId` into
   `LogEventForm` and renders a "↳ Follow-up to '…'" banner (clearable).
-  Still out of scope: polygon-location drawing (Point via boundary
-  centroid or NULL site-wide only), editing/deleting events from the
-  timeline UI (mutations ship on the API but no dashboard button surface
-  yet).
+  Row-level "Edit" and "Delete" buttons surface on events the current
+  user owns (row `authorId` matches the signed-in user) or on any event
+  for project owners. Edit re-uses `LogEventForm` in prefill mode and
+  submits via `RegenerationEventUpdateInput` (partial schema); delete
+  goes through a native `window.confirm`. Still out of scope: polygon-
+  location drawing (Point via boundary centroid or NULL site-wide only).
 - `SoilRegenerationProcessor` output is cached on the Tier-3 pipeline
   run — it does not recompute on UI navigation. Trigger a new run if a
   boundary changes; never synthesize zones client-side.

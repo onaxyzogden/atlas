@@ -11,6 +11,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   RegenerationEventInput,
+  RegenerationEventUpdateInput,
   type RegenerationEvent,
   type RegenerationEventType,
   type RegenerationInterventionType,
@@ -75,21 +76,30 @@ interface LogEventFormProps {
    */
   parentEvent?: RegenerationEvent | null;
   onClearParent?: () => void;
+  /**
+   * When set, the form operates in edit mode — fields prefill from the event
+   * and submit calls PATCH via updateEvent() instead of create.
+   */
+  editEvent?: RegenerationEvent | null;
 }
 
-export default function LogEventForm({ project, onSubmitted, onCancel, parentEvent, onClearParent }: LogEventFormProps) {
+export default function LogEventForm({ project, onSubmitted, onCancel, parentEvent, onClearParent, editEvent }: LogEventFormProps) {
   const projectServerId = project.serverId ?? project.id;
   const createEvent = useRegenerationEventStore((s) => s.createEvent);
+  const updateEvent = useRegenerationEventStore((s) => s.updateEvent);
+  const isEdit = !!editEvent;
 
-  const [eventType, setEventType] = useState<RegenerationEventType>('observation');
-  const [title, setTitle] = useState('');
-  const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [interventionType, setInterventionType] = useState<RegenerationInterventionType | ''>('');
-  const [phase, setPhase] = useState<RegenerationPhase | ''>('');
-  const [progress, setProgress] = useState<RegenerationProgress | ''>('');
-  const [notes, setNotes] = useState('');
-  const [locationMode, setLocationMode] = useState<'site' | 'centre'>('site');
-  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [eventType, setEventType] = useState<RegenerationEventType>(editEvent?.eventType ?? 'observation');
+  const [title, setTitle] = useState(editEvent?.title ?? '');
+  const [eventDate, setEventDate] = useState(() => editEvent?.eventDate ?? new Date().toISOString().slice(0, 10));
+  const [interventionType, setInterventionType] = useState<RegenerationInterventionType | ''>(editEvent?.interventionType ?? '');
+  const [phase, setPhase] = useState<RegenerationPhase | ''>(editEvent?.phase ?? '');
+  const [progress, setProgress] = useState<RegenerationProgress | ''>(editEvent?.progress ?? '');
+  const [notes, setNotes] = useState(editEvent?.notes ?? '');
+  const [locationMode, setLocationMode] = useState<'site' | 'centre'>(
+    editEvent?.location?.type === 'Point' ? 'centre' : 'site',
+  );
+  const [mediaUrls, setMediaUrls] = useState<string[]>(editEvent?.mediaUrls ?? []);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -142,29 +152,50 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
       notes: notes.trim() || undefined,
       location,
       mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
-      parentEventId: parentEvent?.id,
+      parentEventId: isEdit ? undefined : parentEvent?.id,
     };
 
-    const parsed = RegenerationEventInput.safeParse(candidate);
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Invalid input');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await createEvent(projectServerId, parsed.data);
-      onSubmitted();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSubmitting(false);
+    if (isEdit && editEvent) {
+      const parsed = RegenerationEventUpdateInput.safeParse(candidate);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await updateEvent(projectServerId, editEvent.id, parsed.data);
+        onSubmitted();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      const parsed = RegenerationEventInput.safeParse(candidate);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? 'Invalid input');
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await createEvent(projectServerId, parsed.data);
+        onSubmitted();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setSubmitting(false);
+      }
     }
   }
 
   return (
     <div className={css.form}>
-      {parentEvent && (
+      {isEdit && (
+        <div className={css.followBanner}>
+          <span>Editing event</span>
+        </div>
+      )}
+      {!isEdit && parentEvent && (
         <div className={css.followBanner}>
           <span>↳ Follow-up to "{parentEvent.title}"</span>
           {onClearParent && (
@@ -357,7 +388,7 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
           onClick={submit}
           disabled={submitting || uploadingCount > 0}
         >
-          {submitting ? 'Saving…' : uploadingCount > 0 ? 'Wait for upload…' : 'Save event'}
+          {submitting ? 'Saving…' : uploadingCount > 0 ? 'Wait for upload…' : isEdit ? 'Save changes' : 'Save event'}
         </button>
       </div>
     </div>

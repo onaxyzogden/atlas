@@ -377,10 +377,21 @@
   font-family: inherit;
   transition: background 120ms, color 120ms, border-color 120ms;
 }
-.rowActionBtn:hover {
+.rowActionBtn:hover:not(:disabled) {
   background: rgba(var(--color-gold-rgb), 0.1);
   border-color: rgba(var(--color-gold-rgb), 0.35);
   color: var(--color-primary);
+}
+.rowActionBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rowActionBtnDanger {
+  border-color: rgba(212,106,94,0.3);
+  color: rgba(212,106,94,0.85);
+}
+.rowActionBtnDanger:hover:not(:disabled) {
+  background: rgba(212,106,94,0.12);
+  border-color: rgba(212,106,94,0.5);
+  color: #e68578;
 }
 
 .followBanner {
