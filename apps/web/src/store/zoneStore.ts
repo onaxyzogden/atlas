@@ -40,6 +40,22 @@ export type InvasivePressure = 'none' | 'low' | 'medium' | 'high';
  */
 export type SuccessionStage = 'bare' | 'pioneer' | 'mid' | 'climax';
 
+/**
+ * Seasonality / phased-use tag — when during the year the zone is
+ * actually in use. Captures the design distinction between a zone that
+ * works year-round (e.g., a barn), one that's seasonal (e.g., a summer
+ * camping area), and one that's intentionally temporary (e.g., an event
+ * staging zone for a one-off gathering or a phased construction laydown).
+ *
+ * Spec: §8 `seasonal-temporary-phased-use-zones` (featureManifest).
+ */
+export type Seasonality =
+  | 'year_round'
+  | 'summer'
+  | 'winter'
+  | 'spring_fall'
+  | 'temporary';
+
 export const INVASIVE_PRESSURE_LABELS: Record<InvasivePressure, string> = {
   none: 'None',
   low: 'Low',
@@ -66,6 +82,28 @@ export const SUCCESSION_STAGE_COLORS: Record<SuccessionStage, string> = {
   pioneer: '#d4c564',
   mid: '#a8a06a',
   climax: '#6ba47a',
+};
+
+export const SEASONALITY_LABELS: Record<Seasonality, string> = {
+  year_round: 'Year-round',
+  summer: 'Summer only',
+  winter: 'Winter only',
+  spring_fall: 'Spring / Fall',
+  temporary: 'Temporary / event',
+};
+
+/**
+ * Season-tinted swatches: warm hues for summer, cool for winter, neutral
+ * for year-round, soft green for shoulder seasons, dashed-purple feel
+ * for temporary use. Picked to read distinctly from invasive/succession
+ * palettes so the three rollups don't blur together.
+ */
+export const SEASONALITY_COLORS: Record<Seasonality, string> = {
+  year_round: '#7e8a6f',
+  summer: '#d68b4a',
+  winter: '#5a87a8',
+  spring_fall: '#9bb37a',
+  temporary: '#a87fb8',
 };
 
 export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: string; icon: string }> = {
@@ -105,6 +143,13 @@ export interface LandZone {
    */
   invasivePressure?: InvasivePressure | null;
   successionStage?: SuccessionStage | null;
+  /**
+   * Season / phased-use tag. Optional — undefined means the steward
+   * hasn't made a call yet. No persist version bump because the field
+   * is optional; existing zones load with `undefined`.
+   * Spec: §8 `seasonal-temporary-phased-use-zones`.
+   */
+  seasonality?: Seasonality | null;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */
