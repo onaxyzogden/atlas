@@ -30,6 +30,7 @@ import { api, type SolarExposureResponse, type ComfortGridResponse } from '../..
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
 import SeasonalShadowCard from './SeasonalShadowCard.js';
 import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
+import PassiveSolarTuningCard from './PassiveSolarTuningCard.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -363,6 +364,12 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           elevation={elevation}
           lat={lat}
         />
+      </div>
+
+      {/* §6 Passive-solar tuning — per-structure rotate-by-X advisories. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>PASSIVE-SOLAR TUNING</h3>
+        <PassiveSolarTuningCard projectId={project.id} lat={lat} />
       </div>
 
       {/* Microclimate Zones */}
