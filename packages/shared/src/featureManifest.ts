@@ -482,7 +482,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'export-comments-with-report', label: 'Export comments with report', phase: 'P3', status: 'planned' },
       { key: 'view-only-shareable-link', label: 'View-only shareable link (no account required — see Section 0g)', phase: 'P3', status: 'planned' },
       { key: 'stakeholder-community-review-mode', label: 'Simplified stakeholder view and community review mode', phase: 'P3', status: 'planned' },
-      { key: 'meeting-presentation-mode', label: 'Meeting presentation mode', phase: 'P3', status: 'planned' },
+      { key: 'meeting-presentation-mode', label: 'Meeting presentation mode', phase: 'P3', status: 'done' },
     ],
   },
   {

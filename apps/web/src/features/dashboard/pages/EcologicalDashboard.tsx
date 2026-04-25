@@ -26,6 +26,7 @@ import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js'
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
 import MobileTractorZonesCard from '../../livestock/MobileTractorZonesCard.js';
+import PresentationDeckCard from '../../collaboration/PresentationDeckCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -370,6 +371,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §11 Mobile-tractor zones — chicken / rabbit / pig candidates */}
       <MobileTractorZonesCard projectId={project.id} />
+
+      {/* §20 Meeting presentation deck — flattens project into a 7-slide briefing */}
+      <PresentationDeckCard project={project} />
 
       {/* Soil Health */}
       <div className={css.section}>
