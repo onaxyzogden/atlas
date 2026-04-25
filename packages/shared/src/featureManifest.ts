@@ -196,7 +196,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'structure-tree-shadow-casting', label: 'Structure and tree shadow casting', phase: 'P2', status: 'done' },
       { key: 'solar-panel-placement-zones', label: 'Best solar panel placement zones', phase: 'P2', status: 'partial' },
       { key: 'passive-solar-building-siting', label: 'Passive solar building siting analysis', phase: 'P2', status: 'partial' },
-      { key: 'prevailing-wind-shelter', label: 'Prevailing wind visualization, wind shelter analysis', phase: 'P1', status: 'partial' },
+      { key: 'prevailing-wind-shelter', label: 'Prevailing wind visualization, wind shelter analysis', phase: 'P1', status: 'done' },
       { key: 'windbreak-ventilation-corridors', label: 'Windbreak opportunity zones, cold wind exposure, ventilation corridor mapping', phase: 'P2', status: 'partial' },
       { key: 'frost-pocket-heat-sink', label: 'Frost pocket mapping, heat sink identification', phase: 'P2', status: 'done' },
       { key: 'seasonal-comfort-outdoor-seasonality', label: 'Seasonal comfort map, outdoor use seasonality map', phase: 'P2', status: 'done' },
@@ -417,7 +417,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'rules-layer-siting-logic', label: 'Rules layer for siting logic', phase: 'P3', status: 'partial' },
       { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'partial' },
-      { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'planned' },
+      { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'partial' },
       { key: 'ecological-wildlife-protection-rules', label: 'Ecological and wildlife protection rules', phase: 'P3', status: 'done' },
       { key: 'rule-scoring-conflict-alerts-explainable-recommendations', label: 'Rule scoring, conflict alerts, explainable recommendation layer', phase: 'P3', status: 'partial' },
       { key: 'why-this-suggestion-was-made', label: "'Why this suggestion was made' output (see Section 0d AI guardrails)", phase: 'P3', status: 'done' },
