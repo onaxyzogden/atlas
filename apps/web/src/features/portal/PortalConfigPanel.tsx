@@ -9,6 +9,7 @@ import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 import { confidence, error as errorToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
 
 interface Props { project: LocalProject }
 
@@ -221,6 +222,9 @@ export default function PortalConfigPanel({ project }: Props) {
           })}
         </div>
       )}
+
+      {/* Share snapshot preview */}
+      <PortalShareSnapshotCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />
