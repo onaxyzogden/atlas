@@ -257,6 +257,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'structure-dependency-build-order', label: 'Structure dependency and build order logic', phase: 'P3', status: 'done' },
       { key: 'infrastructure-cost-placeholder-per-structure', label: 'Infrastructure requirement summary, cost placeholder per structure', phase: 'P2', status: 'done' },
       { key: 'alternate-footprint-options', label: 'Alternate footprint options', phase: 'P3', status: 'done' },
+      { key: 'multi-story-structure-support', label: 'Multi-story structure support (cost / floor-area scaling)', phase: 'P3', status: 'done' },
     ],
   },
   {

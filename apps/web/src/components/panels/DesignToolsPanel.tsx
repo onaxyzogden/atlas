@@ -404,7 +404,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="new"
           structureType={placementMode}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);
             // §9 infrastructure-cost-placeholder-per-structure: the modal
@@ -426,6 +426,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               costEstimate: costEstimate === undefined ? fallbackCost : costEstimate,
               laborHoursEstimate,
               materialTonnageEstimate,
+              // §9 multi-story-structure-support — only persist when > 1
+              // so legacy single-story structures stay clean.
+              ...(storiesCount && storiesCount > 1 ? { storiesCount } : {}),
               infrastructureReqs: tmpl.infrastructureReqs,
               notes: n,
               createdAt: new Date().toISOString(),
@@ -449,11 +452,14 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="edit"
           structure={editingStructure}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
             const newGeometry = createFootprintPolygon(editingStructure.center, widthM, depthM, rotationDeg);
             // costEstimate is `null` when the user cleared the field, and
             // a number when they set/kept a value. Pass through as-is so
             // stewards can explicitly "un-set" a cost.
+            // §9 multi-story-structure-support — write the field on every
+            // edit so reverting from 2 stories back to 1 actually persists
+            // (Partial<Structure> spread won't clear an absent key).
             updateStructure(editingStructure.id, {
               name,
               phase,
@@ -464,6 +470,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               ...(costEstimate !== undefined ? { costEstimate } : {}),
               laborHoursEstimate,
               materialTonnageEstimate,
+              storiesCount: storiesCount ?? 1,
               geometry: newGeometry,
             });
 

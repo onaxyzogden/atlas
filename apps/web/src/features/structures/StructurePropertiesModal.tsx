@@ -31,6 +31,12 @@ export interface StructureModalSaveData {
   costEstimate?: number | null;
   laborHoursEstimate?: number;
   materialTonnageEstimate?: number;
+  /**
+   * §9 multi-story-structure-support. Number of habitable stories (1, 2,
+   * or 3 in the UI). Multiplies usable floor area and rough cost.
+   * Optional / absent = treat as 1.
+   */
+  storiesCount?: number;
 }
 
 interface NewPlacementProps {
@@ -62,6 +68,11 @@ const ALT_FOOTPRINT_PRESETS = [
 function snapToHalf(n: number): number {
   return Math.round(n * 2) / 2;
 }
+
+/* §9 multi-story-structure-support — three stories is enough for any
+   plausible homestead structure. The map polygon stays single-level;
+   stories only multiply usable floor area + cost in the modal. */
+const STORY_OPTIONS = [1, 2, 3] as const;
 
 export default function StructurePropertiesModal(props: StructurePropertiesModalProps) {
   const { onSave, onCancel } = props;
@@ -100,6 +111,11 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         : ''
       : String(templateMidCost),
   );
+  // §9 multi-story-structure-support — defaults to 1 (no behaviour change
+  // for legacy structures that don't have the field).
+  const [storiesCount, setStoriesCount] = useState<number>(
+    isEdit ? props.structure.storiesCount ?? 1 : 1,
+  );
 
   /* §9 alternate-footprint-options — three preset sizes derived from the
      template. Clicking a preset snaps width / depth and updates cost
@@ -111,7 +127,12 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
     const d = snapToHalf(template.depthM * p.factor);
     const area = w * d;
     const defaultArea = template.widthM * template.depthM;
-    const cost = Math.round(templateMidCost * (defaultArea === 0 ? 1 : area / defaultArea));
+    /* §9 multi-story-structure-support — preset cost scales with both
+       footprint area and stories count so the chip preview matches what
+       the steward will actually save. */
+    const cost = Math.round(
+      templateMidCost * (defaultArea === 0 ? 1 : area / defaultArea) * storiesCount,
+    );
     const isActive = w === widthM && d === depthM;
     return { ...p, w, d, area, cost, isActive };
   });
@@ -148,6 +169,7 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       costEstimate: parseCost(costEstimate),
       laborHoursEstimate: parseOptionalPositive(laborHours),
       materialTonnageEstimate: parseOptionalPositive(materialTons),
+      storiesCount,
     });
   };
 
@@ -337,6 +359,54 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         {/* Footprint summary */}
         <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 12, textAlign: 'center' }}>
           {widthM}m {'\u00D7'} {depthM}m = {(widthM * depthM).toFixed(0)} m{'\u00B2'} ({(widthM * depthM / 4046.86 * 10000).toFixed(0)} ft{'\u00B2'})
+          {storiesCount > 1 && (
+            <>
+              {' '}{'\u00B7'} {storiesCount} stories ={' '}
+              <strong style={{ color: 'var(--color-panel-text)', fontWeight: 600 }}>
+                {(widthM * depthM * storiesCount).toFixed(0)} m{'\u00B2'} floor
+              </strong>
+            </>
+          )}
+        </div>
+
+        {/* §9 multi-story-structure-support — stories selector */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ ...labelStyle, marginBottom: 6 }}>Stories</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {STORY_OPTIONS.map((n) => {
+              const active = n === storiesCount;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setStoriesCount(n)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: 8,
+                    border: active
+                      ? '1px solid rgba(196, 162, 101, 0.55)'
+                      : '1px solid rgba(255,255,255,0.08)',
+                    background: active
+                      ? 'rgba(196, 162, 101, 0.12)'
+                      : 'rgba(255,255,255,0.025)',
+                    color: 'var(--color-panel-text)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: '0.02em',
+                  }}
+                  title={`${n}${n === 1 ? ' story' : ' stories'}`}
+                >
+                  {n} {n === 1 ? 'story' : 'stories'}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'var(--color-panel-muted)', marginTop: 6, opacity: 0.7 }}>
+            Multiplies usable floor area and the rough cost preview. Map footprint stays single-level.
+          </div>
         </div>
 
         {/* Phase */}

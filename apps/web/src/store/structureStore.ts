@@ -49,6 +49,14 @@ export interface Structure {
    */
   heightM?: number;
   /**
+   * Optional number of habitable stories (§9 multi-story-structure-support).
+   * Treated as 1 when absent. Multiplies usable floor area and the rough
+   * cost estimate inside the StructurePropertiesModal — does not currently
+   * change the rendered footprint geometry on the map (which is a single
+   * polygon at ground level regardless of vertical stack).
+   */
+  storiesCount?: number;
+  /**
    * Optional steward-entered labor estimate in person-hours for this
    * structure. Read by the PhasingDashboard to roll up labor load by
    * phase alongside cost (§15 "Cost, labor, material need by phase").
