@@ -275,7 +275,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'main-secondary-emergency-service-access', label: 'Main, secondary, emergency, service access planning', phase: 'P2', status: 'partial' },
-      { key: 'pedestrian-trail-vehicle-farm-lane', label: 'Pedestrian path, trail, vehicle route, farm lane planning', phase: 'P2', status: 'partial' },
+      { key: 'pedestrian-trail-vehicle-farm-lane', label: 'Pedestrian path, trail, vehicle route, farm lane planning', phase: 'P2', status: 'done' },
       { key: 'animal-corridor-grazing-route', label: 'Animal movement corridor, grazing route planning', phase: 'P2', status: 'partial' },
       { key: 'accessible-route-planning', label: 'Accessible route planning', phase: 'P2', status: 'done' },
       { key: 'route-slope-conflict-detection', label: 'Route slope analysis, conflict detection', phase: 'P3', status: 'partial' },
