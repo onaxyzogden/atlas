@@ -78,7 +78,11 @@ export default function ZoneSeasonalityRollup({ projectId }: Props) {
         tagged += ac;
         const months = ACTIVE_MONTHS[z.seasonality];
         for (let m = 0; m < 12; m++) {
-          if (months[m]) monthly[m] += ac;
+          // months[m] / monthly[m] are always defined for m ∈ [0,11] on a
+          // 12-element array, but TS strict mode (noUncheckedIndexedAccess)
+          // can't see that — short-circuit on the boolean read keeps the
+          // numeric write safely guarded.
+          if (months[m] === true) monthly[m] = (monthly[m] ?? 0) + ac;
         }
       } else {
         bucket.untagged += ac;
