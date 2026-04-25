@@ -18,6 +18,7 @@ import SoilSamplesCard from '../../soil-samples/SoilSamplesCard.js';
 import ZoneEcologyRollup from '../../zones/ZoneEcologyRollup.js';
 import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
 import ZoneSeasonalityRollup from '../../zones/ZoneSeasonalityRollup.js';
+import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -259,6 +260,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
             can log observations without waiting on third-party API
             roundtrips. */}
         <ZoneEcologyRollup projectId={project.id} />
+        <EcologicalProtectionCard projectId={project.id} />
         <ZoneSeasonalityRollup projectId={project.id} />
         <CarbonByLandUseCard projectId={project.id} />
         <SoilSamplesCard project={project} />
@@ -607,6 +609,11 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* Zone ecological-condition rollup — §7 invasive pressure + succession
           stage aggregated by acreage across all zones. */}
       <ZoneEcologyRollup projectId={project.id} />
+
+      {/* §17 Ecological & wildlife protection rules — heuristic checks
+          against conservation / water_retention zones (footprint
+          violations, riparian setback, invasive-pressure flags). */}
+      <EcologicalProtectionCard projectId={project.id} />
 
       {/* §8 Seasonal / phased-use rollup: acres-by-season + per-month
           coverage strip from zone.seasonality tags. */}

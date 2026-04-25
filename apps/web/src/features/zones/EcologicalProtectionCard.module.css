@@ -1,0 +1,188 @@
+/* §17 EcologicalProtectionCard — heuristic ecological-rule rollup.
+   Visual language matches ZoneEcologyRollup / LivestockLandFitCard so
+   it drops into EcologicalDashboard cleanly. Severity tints mirror
+   the RulesPanel palette (error red / warning amber / info blue). */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Summary badges ─────────────────────────────────────────── */
+
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.summaryBadge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.badge_error {
+  background: rgba(196, 78, 63, 0.08);
+  color: rgba(232, 160, 150, 0.95);
+  border-color: rgba(196, 78, 63, 0.22);
+}
+
+.badge_warning {
+  background: rgba(196, 162, 101, 0.08);
+  color: rgba(232, 200, 130, 0.95);
+  border-color: rgba(196, 162, 101, 0.22);
+}
+
+.badge_info {
+  background: rgba(91, 157, 184, 0.08);
+  color: rgba(150, 200, 220, 0.95);
+  border-color: rgba(91, 157, 184, 0.22);
+}
+
+.badge_clear {
+  background: rgba(120, 175, 110, 0.08);
+  color: rgba(180, 220, 165, 0.95);
+  border-color: rgba(120, 175, 110, 0.22);
+}
+
+/* ── Finding cards ──────────────────────────────────────────── */
+
+.findingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.finding {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.findingHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.findingIcon {
+  font-size: 13px;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.findingTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.45;
+}
+
+.findingDetail {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.78);
+  line-height: 1.5;
+  margin: 4px 0;
+  padding-left: 21px;
+}
+
+.findingSuggestion {
+  font-size: 10.5px;
+  font-style: italic;
+  line-height: 1.5;
+  padding-left: 21px;
+  letter-spacing: 0.01em;
+}
+
+/* Severity tints applied per-finding */
+
+.tint_error {
+  background: rgba(196, 78, 63, 0.05);
+  border-color: rgba(196, 78, 63, 0.18);
+}
+.tint_error .findingSuggestion {
+  color: rgba(232, 130, 120, 0.85);
+}
+
+.tint_warning {
+  background: rgba(196, 162, 101, 0.05);
+  border-color: rgba(196, 162, 101, 0.18);
+}
+.tint_warning .findingSuggestion {
+  color: rgba(220, 180, 110, 0.85);
+}
+
+.tint_info {
+  background: rgba(91, 157, 184, 0.04);
+  border-color: rgba(91, 157, 184, 0.16);
+}
+.tint_info .findingSuggestion {
+  color: rgba(140, 190, 215, 0.85);
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.7);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.empty strong {
+  color: rgba(220, 210, 190, 0.92);
+  font-weight: 600;
+}
+
+/* ── Footnote ───────────────────────────────────────────────── */
+
+.footnote {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 500;
+}
