@@ -1,0 +1,258 @@
+/* §5 SitingWarningsCard — wind / view / privacy / noise rollup.
+   Sibling visual language to GatheringRetreatCard / SupportInfrastructureCard
+   but with severity-driven tile borders (warning red / amber / blue) instead
+   of palette-as-domain, since this card's job is to surface alarm. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Tile grid — one cell per §5 dimension ─────────────────────── */
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 700px) {
+  .tileGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tile {
+  position: relative;
+  padding: 12px 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.tileHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.tileIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tileLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.tileCount {
+  font-size: 22px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tileBlurb {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+/* ── Severity-driven tile accents ─────────────────────────────── */
+
+.tile_blocking {
+  border-color: rgba(232, 100, 90, 0.55);
+  background: rgba(232, 100, 90, 0.06);
+}
+
+.tile_warning {
+  border-color: rgba(232, 178, 90, 0.45);
+  background: rgba(232, 178, 90, 0.05);
+}
+
+.tile_advisory {
+  border-color: rgba(140, 175, 220, 0.35);
+  background: rgba(140, 175, 220, 0.04);
+}
+
+.tilePending {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.012);
+  opacity: 0.78;
+}
+
+/* ── Severity pill ─────────────────────────────────────────────── */
+
+.severityPill {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+.pill_blocking {
+  background: rgba(232, 100, 90, 0.18);
+  color: rgba(255, 180, 170, 0.95);
+}
+
+.pill_warning {
+  background: rgba(232, 178, 90, 0.16);
+  color: rgba(245, 210, 150, 0.92);
+}
+
+.pill_advisory {
+  background: rgba(140, 175, 220, 0.16);
+  color: rgba(190, 215, 245, 0.92);
+}
+
+.pendingPill {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+}
+
+/* ── Per-violation list ────────────────────────────────────────── */
+
+.violationList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.violationRow {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.dot_blocking { background: rgba(232, 100, 90, 0.95); }
+.dot_warning  { background: rgba(232, 178, 90, 0.95); }
+.dot_advisory { background: rgba(140, 175, 220, 0.85); }
+
+.violationBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.violationDim {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.violationTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+  line-height: 1.4;
+}
+
+.violationOn {
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.violationSuggest {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.5;
+}
+
+/* ── Empty state ───────────────────────────────────────────────── */
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+/* ── Footnote ──────────────────────────────────────────────────── */
+
+.footnote {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 500;
+}
