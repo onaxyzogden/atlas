@@ -327,7 +327,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'species-suitability-water-demand', label: 'Species suitability notes, water-demand classification', phase: 'P2', status: 'done' },
       { key: 'access-harvest-irrigation-tie-in', label: 'Access-to-harvest and irrigation tie-in planning', phase: 'P2', status: 'done' },
       { key: 'nursery-compost-proximity', label: 'Nursery zone, compost proximity planning', phase: 'P2', status: 'done' },
-      { key: 'seasonal-productivity-multilayer', label: 'Seasonal productivity map, multi-layer planting visualization', phase: 'P3', status: 'planned' },
+      { key: 'seasonal-productivity-multilayer', label: 'Seasonal productivity map, multi-layer planting visualization', phase: 'P3', status: 'done' },
       { key: 'year-to-maturity-yield-placeholder', label: 'Year-to-maturity phasing, yield placeholder estimates', phase: 'P3', status: 'partial' },
     ],
   },
