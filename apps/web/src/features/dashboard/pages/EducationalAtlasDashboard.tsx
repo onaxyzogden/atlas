@@ -25,6 +25,7 @@ import SignsInCreationPanel from '../../education/SignsInCreationPanel.js';
 import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverlaysCard.js';
 import GuidedWalkthroughCard from '../../education/GuidedWalkthroughCard.js';
 import WalkingTourScriptCard from '../../education/WalkingTourScriptCard.js';
+import EducationCoverageCard from '../../education/EducationCoverageCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -186,6 +187,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
           </div>
         )}
       </div>
+
+      {/* ── §19 Educational mode coverage matrix ───────────────────── */}
+      <EducationCoverageCard project={project} />
 
       {/* ── §9 Gathering & retreat capacity rollup ──────────────────── */}
       <GatheringRetreatCard projectId={project.id} />

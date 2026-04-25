@@ -453,7 +453,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P3', 'P4', 'MT'],
     status: 'partial',
     features: [
-      { key: 'clickable-hotspots-side-panel', label: 'Clickable hotspots, side panel explanations', phase: 'P3', status: 'partial' },
+      { key: 'clickable-hotspots-side-panel', label: 'Clickable hotspots, side panel explanations', phase: 'P3', status: 'done' },
       { key: 'rationale-cards-purpose-meaning', label: 'Feature-specific rationale cards tied to purpose and meaning', phase: 'MT', status: 'planned' },
       { key: 'ecology-water-livestock-agroforestry-modes', label: 'Ecology, water, livestock, agroforestry explanation modes', phase: 'MT', status: 'planned' },
       { key: 'spiritual-symbolism-regeneration-modes', label: 'Spiritual symbolism and regeneration phase explanation modes', phase: 'MT', status: 'planned' },
