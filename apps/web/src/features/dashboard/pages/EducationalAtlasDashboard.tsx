@@ -18,6 +18,7 @@ import BuildOrderCard from '../../structures/BuildOrderCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
+import PrivacyCohortPlanningCard from '../../zones/PrivacyCohortPlanningCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -194,6 +195,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §9 Structure dependency & build-order rollup ────────────── */}
       <BuildOrderCard projectId={project.id} />
+
+      {/* ── §8 Family privacy & men's cohort program-design rollup ──── */}
+      <PrivacyCohortPlanningCard projectId={project.id} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
