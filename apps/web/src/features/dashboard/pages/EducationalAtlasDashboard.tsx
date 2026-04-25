@@ -14,6 +14,7 @@ import { useStructureStore } from '../../../store/structureStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
+import BuildOrderCard from '../../structures/BuildOrderCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
@@ -190,6 +191,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §9 Setback / Slope / Solar orientation warnings ─────────── */}
       <SetbackSlopeSolarCard project={project} />
+
+      {/* ── §9 Structure dependency & build-order rollup ────────────── */}
+      <BuildOrderCard projectId={project.id} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
