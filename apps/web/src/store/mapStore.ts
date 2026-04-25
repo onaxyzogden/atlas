@@ -92,6 +92,26 @@ interface MapState {
   agroforestryVisible: boolean;
   setAgroforestryVisible: (v: boolean) => void;
 
+  // §7 pollinator-habitat opportunity overlay — derived band (high/moderate/low)
+  // from primaryIntervention on the `soil_regeneration` layer. Represents
+  // planting *opportunity*, not current habitat quality.
+  pollinatorOpportunityVisible: boolean;
+  setPollinatorOpportunityVisible: (v: boolean) => void;
+
+  // §7 biodiversity corridor overlay — least-cost path across the
+  // `soil_regeneration` grid between the two farthest high-opportunity
+  // habitat anchors. Planning-grade connectivity candidate.
+  biodiversityCorridorVisible: boolean;
+  setBiodiversityCorridorVisible: (v: boolean) => void;
+
+  // §7 pollinator habitat **state** overlay — per-zone classification of
+  // CURRENT habitat quality from `coverClass` + `disturbanceLevel` on the
+  // `soil_regeneration` layer. Distinct from `pollinatorOpportunityVisible`
+  // (planting opportunity from planned interventions, bbox-scale synthesized
+  // grid). This one reads real per-zone cover at parcel scale.
+  pollinatorHabitatStateVisible: boolean;
+  setPollinatorHabitatStateVisible: (v: boolean) => void;
+
   // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
   // is added to MapCanvas when a release is selected.
   historicalRelease: { id: number; date: string } | null;
@@ -188,6 +208,15 @@ export const useMapStore = create<MapState>((set) => ({
 
   agroforestryVisible: false,
   setAgroforestryVisible: (agroforestryVisible) => set({ agroforestryVisible }),
+
+  pollinatorOpportunityVisible: false,
+  setPollinatorOpportunityVisible: (pollinatorOpportunityVisible) => set({ pollinatorOpportunityVisible }),
+
+  biodiversityCorridorVisible: false,
+  setBiodiversityCorridorVisible: (biodiversityCorridorVisible) => set({ biodiversityCorridorVisible }),
+
+  pollinatorHabitatStateVisible: false,
+  setPollinatorHabitatStateVisible: (pollinatorHabitatStateVisible) => set({ pollinatorHabitatStateVisible }),
 
   historicalRelease: null,
   setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),

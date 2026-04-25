@@ -107,6 +107,12 @@ export class SoilRegenerationProcessor {
           annualSeqRate: carbon?.annualSeqRate_tChaYr ?? 0,
           primaryIntervention: intervention?.primaryIntervention ?? 'cover_crop_candidate',
           suitabilityScore: intervention?.suitabilityScore ?? 0,
+          // Per-zone land cover context from the `land_cover` layer's
+          // class-distribution summary, intersected 1:1 with soil zones
+          // inside `loadContext`. Consumed by `BiodiversityCorridorOverlay`
+          // to build a cover × impedance friction surface.
+          coverClass: zone.landCover.coverClass,
+          disturbanceLevel: zone.landCover.disturbanceLevel,
           areaHa: zone.areaHa,
         },
         geometry: {

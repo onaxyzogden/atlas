@@ -55,6 +55,8 @@ const PollinatorHabitatOverlay = lazy(() => import('./PollinatorHabitatOverlay.j
 const PollinatorHabitatToggle = lazy(() => import('./PollinatorHabitatOverlay.js').then((m) => ({ default: m.PollinatorHabitatToggle })));
 const BiodiversityCorridorOverlay = lazy(() => import('./BiodiversityCorridorOverlay.js'));
 const BiodiversityCorridorToggle = lazy(() => import('./BiodiversityCorridorOverlay.js').then((m) => ({ default: m.BiodiversityCorridorToggle })));
+const PollinatorHabitatStateOverlay = lazy(() => import('./PollinatorHabitatStateOverlay.js'));
+const PollinatorHabitatStateToggle = lazy(() => import('./PollinatorHabitatStateOverlay.js').then((m) => ({ default: m.PollinatorHabitatStateToggle })));
 const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
 const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
@@ -361,6 +363,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <BiodiversityCorridorToggle />
               </Suspense>
             }
+            pollinatorHabitatStateSlot={
+              <Suspense fallback={null}>
+                <PollinatorHabitatStateToggle compact />
+              </Suspense>
+            }
             osmSlot={
               <Suspense fallback={null}>
                 <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
@@ -438,6 +445,9 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         </Suspense>
         <Suspense fallback={null}>
           <BiodiversityCorridorOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PollinatorHabitatStateOverlay projectId={project.id} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare
