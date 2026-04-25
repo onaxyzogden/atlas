@@ -169,14 +169,24 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         ))}
       </div>
 
-      {/* Paddock drawing is initiated from the floating toolbar's Paddock tool.
-          Show a subtle hint while a draw is in progress so users know where to
-          finish the polygon. */}
-      {isDrawing && (
-        <div className={p.empty} style={{ marginTop: 8, marginBottom: 8 }}>
-          Drawing paddock — double-click on the map to finish
-        </div>
-      )}
+      {/* In-panel draw trigger — mirrors the Zones tab affordance so users
+          don't have to discover the floating Paddock-Design toolbar. Fires
+          the same `ogden:paddock:start` event the toolbar uses, so the
+          existing handler above flips intent and enters polygon-draw mode. */}
+      <button
+        type="button"
+        onClick={() => {
+          if (!map || !draw) return;
+          map.fire('ogden:paddock:start' as unknown as keyof maplibregl.MapEventType);
+          draw.changeMode('draw_polygon');
+        }}
+        disabled={isDrawing || !draw || !map}
+        className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
+        style={{ marginTop: 12 }}
+      >
+        <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
+        {isDrawing ? 'Drawing… double-click to finish' : 'Draw Paddock on Map'}
+      </button>
 
       {/* Paddock list */}
       <div className={p.sectionLabel}>
