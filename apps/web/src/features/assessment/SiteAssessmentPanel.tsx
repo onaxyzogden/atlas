@@ -12,6 +12,7 @@
 
 import type { ConfidenceLevel } from '@ogden/shared';
 import ConfidenceIndicator from './ConfidenceIndicator.js';
+import DataCompletenessCard from './DataCompletenessCard.js';
 import { useAssessment } from '../../hooks/useProjectQueries.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import p from '../../styles/panel.module.css';
@@ -61,6 +62,8 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
       <h3 className={p.sectionLabel}>
         Site Assessment
       </h3>
+
+      <DataCompletenessCard project={project} />
 
       {/* Headline — persisted overall score when available */}
       {serverAssessment && overall !== null && (

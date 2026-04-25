@@ -600,7 +600,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'source-citation-tracking', label: 'Source citation tracking', phase: 'P2', status: 'planned' },
       { key: 'assumption-tracking', label: 'Assumption tracking', phase: 'P2', status: 'planned' },
       { key: 'confidence-rating-per-analysis', label: 'Confidence rating per analysis', phase: 'P2', status: 'done' },
-      { key: 'incomplete-data-warnings', label: 'Incomplete-data warnings', phase: 'P2', status: 'partial' },
+      { key: 'incomplete-data-warnings', label: 'Incomplete-data warnings', phase: 'P2', status: 'done' },
       { key: 'manual-override-logging', label: 'Manual override logging', phase: 'P2', status: 'planned' },
       { key: 'qa-checklist', label: 'QA checklist', phase: 'P2', status: 'planned' },
       { key: 'design-review-checklist', label: 'Design review checklist', phase: 'P2', status: 'planned' },
