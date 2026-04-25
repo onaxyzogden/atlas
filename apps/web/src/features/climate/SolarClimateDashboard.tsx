@@ -27,6 +27,7 @@ import { useUtilityStore, type Utility, UTILITY_TYPE_CONFIG } from '../../store/
 import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } from '../structures/footprints.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
+import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -620,6 +621,12 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           )}
         </div>
       </div>
+
+      {/* §16 Wind, shade & canopy maturity simulation ─────────────────── */}
+      <WindShadeCanopySimCard
+        projectId={project.id}
+        parcelBoundaryGeojson={project.parcelBoundaryGeojson ?? null}
+      />
     </div>
   );
 }
