@@ -617,7 +617,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P4', 'MT'],
     status: 'partial',
     features: [
-      { key: 'public-landing-page', label: 'Public landing page for project', phase: 'P4', status: 'partial' },
+      { key: 'public-landing-page', label: 'Public landing page for project', phase: 'P4', status: 'done' },
       { key: 'interactive-public-property-view', label: 'Interactive public property view, guided public tour', phase: 'P4', status: 'planned' },
       { key: 'stage-reveal-story', label: 'Stage reveal story, mission story overlay', phase: 'MT', status: 'planned' },
       { key: 'donation-support-cta', label: 'Donation / support CTA integration', phase: 'P4', status: 'planned' },
