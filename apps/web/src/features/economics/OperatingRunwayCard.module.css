@@ -1,0 +1,239 @@
+/* §22 OperatingRunwayCard — annual revenue vs cost burn-down view. */
+
+.card {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 var(--space-4);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0 0 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.85);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 480px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.badgeGood { background: rgba(180, 200, 150, 0.12); color: rgba(180, 220, 150, 0.95); border-color: rgba(180, 200, 150, 0.3); }
+.badgeFair { background: rgba(220, 180, 100, 0.1);  color: rgba(232, 200, 130, 0.9);  border-color: rgba(220, 180, 100, 0.3); }
+.badgePoor { background: rgba(220, 130, 110, 0.1);  color: rgba(230, 160, 140, 0.9);  border-color: rgba(220, 130, 110, 0.3); }
+
+/* ── KPIs row ──────────────────────────────────────────────────────── */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpi_good { border-color: rgba(180, 200, 150, 0.25); background: rgba(180, 200, 150, 0.04); }
+.kpi_fair { border-color: rgba(220, 180, 100, 0.25); background: rgba(220, 180, 100, 0.035); }
+.kpi_poor { border-color: rgba(220, 130, 110, 0.3);  background: rgba(220, 130, 110, 0.04); }
+
+.kpiLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.kpiValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.kpiSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+/* ── Chart ─────────────────────────────────────────────────────────── */
+.chartWrap {
+  position: relative;
+  margin: 6px 0 4px;
+}
+
+.chartLegend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  margin-bottom: 6px;
+}
+
+.legDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+.legDot_cap { background: rgba(180, 165, 140, 0.7); }
+.legDot_ops { background: rgba(220, 130, 110, 0.7); }
+.legDot_rev { background: rgba(180, 220, 150, 0.7); }
+.legDot_bridge {
+  background: rgba(220, 180, 100, 0.18);
+  border: 1px dashed rgba(220, 180, 100, 0.45);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.axisLabel {
+  font-size: 8px;
+  fill: rgba(180, 165, 140, 0.55);
+}
+
+.yearLabel {
+  font-size: 8.5px;
+  fill: rgba(180, 165, 140, 0.7);
+  text-anchor: middle;
+}
+
+.zeroLine {
+  stroke: rgba(232, 220, 200, 0.25);
+  stroke-width: 0.6;
+}
+
+.gridLine {
+  stroke: rgba(232, 220, 200, 0.06);
+  stroke-width: 0.5;
+}
+
+.bridgeBand {
+  fill: rgba(220, 180, 100, 0.08);
+  stroke: rgba(220, 180, 100, 0.32);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+
+.beMarker {
+  stroke: rgba(180, 220, 150, 0.65);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 1.5;
+}
+
+.beLabel {
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: rgba(180, 220, 150, 0.9);
+}
+
+/* ── Yearly table (compact) ────────────────────────────────────────── */
+.tableWrap {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 10px;
+}
+
+.tableHead {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 1fr 60px;
+  gap: 6px;
+  padding: 4px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 1fr 60px;
+  gap: 6px;
+  padding: 5px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  align-items: baseline;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.tableRow_bridge {
+  background: rgba(220, 180, 100, 0.04);
+}
+
+.tableRow_surplus {
+  background: rgba(180, 200, 150, 0.025);
+}
+
+.tCol_year {
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.tCol_cap, .tCol_ops, .tCol_rev {
+  font-variant-numeric: tabular-nums;
+}
+
+.tCol_net {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tCol_neg { color: rgba(230, 160, 140, 0.95); }
+.tCol_pos { color: rgba(180, 220, 150, 0.92); }
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+.footnote {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.55);
+}

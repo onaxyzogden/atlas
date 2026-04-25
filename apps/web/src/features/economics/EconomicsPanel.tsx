@@ -13,6 +13,7 @@ import { zone } from '../../lib/tokens.js';
 import { formatKRange, formatUsdRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
+import OperatingRunwayCard from './OperatingRunwayCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -290,6 +291,9 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               peakNeg={breakEven.peakNegativeCashflow.high}
             />
           </div>
+
+          {/* Operating runway — annual revenue vs cost burn-down */}
+          <OperatingRunwayCard cashflow={cashflow} breakEven={breakEven} />
 
           {/* Category breakdown */}
           <SectionLabel>Investment by Category</SectionLabel>

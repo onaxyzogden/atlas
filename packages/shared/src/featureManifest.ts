@@ -417,7 +417,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'rules-layer-siting-logic', label: 'Rules layer for siting logic', phase: 'P3', status: 'partial' },
       { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'partial' },
-      { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'partial' },
+      { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'done' },
       { key: 'ecological-wildlife-protection-rules', label: 'Ecological and wildlife protection rules', phase: 'P3', status: 'done' },
       { key: 'rule-scoring-conflict-alerts-explainable-recommendations', label: 'Rule scoring, conflict alerts, explainable recommendation layer', phase: 'P3', status: 'partial' },
       { key: 'why-this-suggestion-was-made', label: "'Why this suggestion was made' output (see Section 0d AI guardrails)", phase: 'P3', status: 'done' },
@@ -518,7 +518,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cost-override-contractor-bid-import', label: 'User cost override and contractor bid import', phase: 'P3', status: 'planned' },
       { key: 'cost-sensitivity-hidden-costs-contingency', label: 'Cost sensitivity sliders, hidden cost flags, contingency recommendations', phase: 'P3', status: 'planned' },
       { key: 'enterprise-revenue-templates-ramp-timeline', label: 'Enterprise revenue templates with ramp timeline modeling', phase: 'P3', status: 'planned' },
-      { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'partial' },
+      { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'done' },
       { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'done' },
       { key: 'overbuilt-for-revenue-lean-mvp', label: "'Overbuilt for revenue' AI warning, Lean MVP path view", phase: 'P3', status: 'planned' },
       { key: 'investor-summary-landowner-partnership', label: 'Investor summary dashboard, landowner partnership summary', phase: 'P3', status: 'partial' },
