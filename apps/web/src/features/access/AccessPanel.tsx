@@ -11,6 +11,7 @@ import { useZoneStore } from '../../store/zoneStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import AccessAnalysisCard from './AccessAnalysisCard.js';
+import AccessibleRouteCard from './AccessibleRouteCard.js';
 import AnimalCorridors from './AnimalCorridors.js';
 import ArrivalSequence from './ArrivalSequence.js';
 import RouteConflicts from './RouteConflicts.js';
@@ -204,6 +205,7 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           {project?.projectType && <ArrivalSequence arrivalPaths={arrivalPaths} projectType={project.projectType} />}
           <RouteConflicts paths={paths} zones={zones} />
           <SlopeWarnings paths={paths} terrainSummary={terrainSummary} />
+          <AccessibleRouteCard paths={paths} terrainSummary={terrainSummary} />
         </div>
       )}
 
