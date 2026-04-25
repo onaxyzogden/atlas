@@ -24,6 +24,7 @@ import SimpleBarChart from '../components/SimpleBarChart.js';
 import LivestockLandFitCard from '../../livestock/LivestockLandFitCard.js';
 import LivestockWelfarePhasingCard from '../../livestock/LivestockWelfarePhasingCard.js';
 import BiosecurityBufferCard from '../../livestock/BiosecurityBufferCard.js';
+import PastureUtilizationCard from '../../livestock/PastureUtilizationCard.js';
 import css from './LivestockDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 
@@ -373,6 +374,9 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
 
       {/* §11 Biosecurity & buffer audit — disease-vector setbacks, isolation pad candidate */}
       <BiosecurityBufferCard projectId={project.id} parcelBoundaryGeojson={project.parcelBoundaryGeojson ?? null} />
+
+      {/* §11 Pasture utilization — paddock-by-paddock stocking-density feedback */}
+      <PastureUtilizationCard projectId={project.id} />
 
       {/* Animal Welfare Summary */}
       {welfare && (

@@ -296,7 +296,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'species-selection-multi-species-planning', label: 'Species selection planner, multi-species planning', phase: 'P2', status: 'partial' },
       { key: 'rotational-grazing-cell-paddock-drawing', label: 'Rotational grazing cell design, paddock boundary drawing', phase: 'P2', status: 'partial' },
-      { key: 'paddock-sizing-stocking-density', label: 'Paddock sizing calculator, stocking density assumptions', phase: 'P2', status: 'partial' },
+      { key: 'paddock-sizing-stocking-density', label: 'Paddock sizing calculator, stocking density assumptions', phase: 'P2', status: 'done' },
       { key: 'recovery-period-rotation-schedule', label: 'Recovery period planner, rotation schedule view', phase: 'P2', status: 'partial' },
       { key: 'water-shelter-shade-access', label: 'Water point, shelter, and shade access planning', phase: 'P2', status: 'partial' },
       { key: 'chicken-rabbit-pig-tractor-zones', label: 'Chicken tractor, rabbit tractor, pig disturbance zone planning', phase: 'P2', status: 'done' },
