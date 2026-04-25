@@ -15,6 +15,7 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
+import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -182,6 +183,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §5 Wind / View / Privacy / Noise siting warnings ────────── */}
       <SitingWarningsCard project={project} />
+
+      {/* ── §5 Walkability / Water / Zone relationship checks ───────── */}
+      <SpatialRelationshipsCard project={project} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>

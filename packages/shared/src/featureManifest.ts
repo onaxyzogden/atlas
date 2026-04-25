@@ -253,7 +253,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'tent-glamping-gathering-firecircle-lookout', label: 'Tent / glamping layout, outdoor gathering, fire circle, lookout placement', phase: 'P2', status: 'done' },
       { key: 'setback-slope-solar-orientation-warnings', label: 'Setback warning, slope warning, solar orientation guide', phase: 'P3', status: 'partial' },
       { key: 'wind-view-privacy-noise-analysis', label: 'Wind shelter, view preservation, privacy, noise exposure analysis', phase: 'P3', status: 'done' },
-      { key: 'walkability-water-zone-relationship-checks', label: 'Walkability, relationship-to-water, relationship-to-zones checks', phase: 'P3', status: 'planned' },
+      { key: 'walkability-water-zone-relationship-checks', label: 'Walkability, relationship-to-water, relationship-to-zones checks', phase: 'P3', status: 'done' },
       { key: 'structure-dependency-build-order', label: 'Structure dependency and build order logic', phase: 'P3', status: 'planned' },
       { key: 'infrastructure-cost-placeholder-per-structure', label: 'Infrastructure requirement summary, cost placeholder per structure', phase: 'P2', status: 'done' },
       { key: 'alternate-footprint-options', label: 'Alternate footprint options', phase: 'P3', status: 'planned' },
