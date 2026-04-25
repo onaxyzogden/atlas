@@ -29,6 +29,7 @@ import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
 import SeasonalShadowCard from './SeasonalShadowCard.js';
+import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -351,6 +352,17 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
       <div className={css.section}>
         <h3 className={css.sectionLabel}>SEASONAL SHADOW ROLLUP</h3>
         <SeasonalShadowCard structures={projectStructures} lat={lat} />
+      </div>
+
+      {/* §6 Microclimate Insights — derived advisories from prevailing wind,
+          slope aspect, and parcel latitude. Complements upstream zone counts. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>MICROCLIMATE INSIGHTS</h3>
+        <MicroclimateInsightsCard
+          climate={climate}
+          elevation={elevation}
+          lat={lat}
+        />
       </div>
 
       {/* Microclimate Zones */}

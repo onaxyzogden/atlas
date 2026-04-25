@@ -156,7 +156,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'risk-opportunity-limitation-summaries', label: 'Risk summary, opportunity summary, limitation summary', phase: 'P1', status: 'partial' },
       { key: 'steep-slope-flood-frost-wind-detection', label: 'Steep slope, flood-prone area, frost pocket, wind exposure detection', phase: 'P1', status: 'done' },
       { key: 'sun-trap-dry-wet-erosion-compaction', label: 'Sun trap, dry/wet zone, erosion hotspot, compaction risk identification', phase: 'P2', status: 'partial' },
-      { key: 'natural-shelter-solar-exposure', label: 'Natural shelter zone and solar exposure analysis', phase: 'P2', status: 'partial' },
+      { key: 'natural-shelter-solar-exposure', label: 'Natural shelter zone and solar exposure analysis', phase: 'P2', status: 'done' },
       { key: 'microclimate-cold-air-drainage', label: 'Microclimate and cold-air drainage analysis', phase: 'P2', status: 'done' },
       { key: 'candidate-zones-pond-swale-keyline-orchard-grazing-structure', label: 'Pond, swale, keyline, orchard, grazing, structure candidate zones', phase: 'P2', status: 'partial' },
       { key: 'restoration-priority-regeneration-sequence', label: 'Restoration priority map and regeneration sequence suggestion', phase: 'P2', status: 'partial' },
