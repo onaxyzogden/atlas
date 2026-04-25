@@ -16,6 +16,7 @@ import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectio
 import RegenerationTimelineCard from '../../regeneration/RegenerationTimelineCard.js';
 import SoilSamplesCard from '../../soil-samples/SoilSamplesCard.js';
 import ZoneEcologyRollup from '../../zones/ZoneEcologyRollup.js';
+import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -257,6 +258,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
             can log observations without waiting on third-party API
             roundtrips. */}
         <ZoneEcologyRollup projectId={project.id} />
+        <CarbonByLandUseCard projectId={project.id} />
         <SoilSamplesCard project={project} />
         <RegenerationTimelineCard project={project} />
       </div>
@@ -603,6 +605,11 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* Zone ecological-condition rollup — §7 invasive pressure + succession
           stage aggregated by acreage across all zones. */}
       <ZoneEcologyRollup projectId={project.id} />
+
+      {/* §7 Carbon-by-land-use: per-zone-category sequestration estimate
+          driven by drawn zones + successionStage tags. Distinct from the
+          modeled SOC card below — vegetation potential vs. soil pool. */}
+      <CarbonByLandUseCard projectId={project.id} />
 
       {/* Manual soil samples — §7 lab results + in-field biological-activity
           readings, complements the modeled SSURGO / SoilGrids layers. */}

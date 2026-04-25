@@ -1,0 +1,176 @@
+/* §7 CarbonByLandUseCard — annual sequestration potential by zone
+   category. Visual language mirrors ZoneEcologyRollup so the two §7
+   cards read as siblings. */
+
+.section {
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 0 12px;
+}
+
+.empty {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.55);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-status-good-rgb), 0.12);
+  background: rgba(var(--color-status-good-rgb), 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.statSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.barBlock {
+  margin-bottom: 12px;
+}
+
+.barHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.barTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85);
+  letter-spacing: 0.05em;
+}
+
+.barMeta {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.45);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.barTrack {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.barSeg {
+  height: 100%;
+  transition: width 240ms ease;
+}
+
+.legend {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.legendSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendValue {
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.45);
+}
+
+.assumptions {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.assumptionsLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin-bottom: 6px;
+}
+
+.assumptionsList {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.assumptionsList li {
+  margin-bottom: 4px;
+}
+
+.assumptionsList li:last-child {
+  margin-bottom: 0;
+}
