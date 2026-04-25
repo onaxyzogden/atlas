@@ -297,7 +297,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'predator-risk-zone-map', label: 'Predator risk zone map', phase: 'P3', status: 'partial' },
       { key: 'fertility-manure-impact-heatmap', label: 'Fertility distribution heatmap, manure impact zone planning', phase: 'P3', status: 'planned' },
       { key: 'browse-pressure-overgrazing-risk', label: 'Browse pressure analysis, overgrazing risk detection', phase: 'P3', status: 'partial' },
-      { key: 'livestock-land-fit-enterprise-zone', label: 'Livestock-to-land fit score, enterprise-by-zone allocation', phase: 'P3', status: 'planned' },
+      { key: 'livestock-land-fit-enterprise-zone', label: 'Livestock-to-land fit score, enterprise-by-zone allocation', phase: 'P3', status: 'done' },
       { key: 'species-human-conflict-warnings', label: 'Species conflict and human-animal movement conflict warnings', phase: 'P3', status: 'partial' },
       { key: 'guest-safe-livestock-buffer', label: 'Guest-safe livestock buffer planning', phase: 'MT', status: 'partial' },
       { key: 'welfare-notes-infrastructure-phasing', label: 'Animal welfare notes, livestock infrastructure phasing', phase: 'P2', status: 'planned' },

@@ -1,0 +1,204 @@
+/* §11 LivestockLandFitCard — per-zone × per-species fit matrix.
+   Visual language matches SitingWarningsCard.module.css (color tokens,
+   font sizes, spacing, border radii) but adds a horizontally-scrolling
+   matrix grid that the shared rollup CSS doesn't cover. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Site banner (slope / drainage / OM) ──────────────────────── */
+
+.siteBanner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.siteBanner strong {
+  color: rgba(232, 220, 200, 0.92);
+  font-weight: 600;
+}
+
+/* ── Matrix table ─────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11.5px;
+  min-width: 520px;
+}
+
+.matrix thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(20, 22, 24, 0.95);
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.matrix thead th.zoneCol {
+  text-align: left;
+  padding-left: 12px;
+  min-width: 160px;
+}
+
+.matrix tbody td {
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.matrix tbody td.zoneCell {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.zoneName {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zoneNameTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.zoneNameSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+}
+
+/* ── Star rating ─────────────────────────────────────────────── */
+
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.starOn {
+  color: rgba(220, 188, 120, 0.95);
+}
+
+.starOff {
+  color: rgba(180, 165, 140, 0.18);
+}
+
+.fitCell {
+  position: relative;
+  cursor: help;
+}
+
+.fitCell:hover .rationale {
+  display: block;
+}
+
+.fitTier_3 { background: rgba(120, 175, 110, 0.06); }
+.fitTier_2 { background: rgba(140, 175, 220, 0.04); }
+.fitTier_1 { background: rgba(232, 178, 90, 0.04); }
+.fitTier_0 { background: rgba(232, 100, 90, 0.04); }
+
+.rationale {
+  display: none;
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(20, 22, 24, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(220, 210, 190, 0.92);
+  font-size: 10.5px;
+  line-height: 1.45;
+  text-align: left;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Empty state ───────────────────────────────────────────────── */
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+/* ── Footnote ──────────────────────────────────────────────────── */
+
+.footnote {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 500;
+}
