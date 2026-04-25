@@ -49,6 +49,20 @@ interface EditProps {
 
 type StructurePropertiesModalProps = NewPlacementProps | EditProps;
 
+/* §9 alternate-footprint-options — three preset sizes derived from the
+   template's recommended dimensions. Lets stewards quickly see what a
+   smaller / larger version of the same structure would mean for area
+   and rough cost without having to fiddle with both sliders. */
+const ALT_FOOTPRINT_PRESETS = [
+  { id: 'compact', label: 'Compact', factor: 0.75, blurb: 'Tighter footprint' },
+  { id: 'default', label: 'Default', factor: 1.0, blurb: 'Template midrange' },
+  { id: 'roomy',   label: 'Roomy',   factor: 1.3, blurb: 'More floor area' },
+] as const;
+
+function snapToHalf(n: number): number {
+  return Math.round(n * 2) / 2;
+}
+
 export default function StructurePropertiesModal(props: StructurePropertiesModalProps) {
   const { onSave, onCancel } = props;
   const isEdit = props.mode === 'edit';
@@ -86,6 +100,27 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
         : ''
       : String(templateMidCost),
   );
+
+  /* §9 alternate-footprint-options — three preset sizes derived from the
+     template. Clicking a preset snaps width / depth and updates cost
+     proportional to area (linear approximation; foundation and plumbing
+     don't actually scale linearly, but this is a steward-facing
+     conversation starter, not a quote). */
+  const altPresets = ALT_FOOTPRINT_PRESETS.map((p) => {
+    const w = snapToHalf(template.widthM * p.factor);
+    const d = snapToHalf(template.depthM * p.factor);
+    const area = w * d;
+    const defaultArea = template.widthM * template.depthM;
+    const cost = Math.round(templateMidCost * (defaultArea === 0 ? 1 : area / defaultArea));
+    const isActive = w === widthM && d === depthM;
+    return { ...p, w, d, area, cost, isActive };
+  });
+
+  const applyPreset = (w: number, d: number, cost: number) => {
+    setWidthM(w);
+    setDepthM(d);
+    setCostEstimate(String(cost));
+  };
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -214,6 +249,53 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
               onChange={(e) => setDepthM(parseFloat(e.target.value))}
               style={{ width: '100%', accentColor: semantic.sidebarActive }}
             />
+          </div>
+        </div>
+
+        {/* §9 alternate-footprint-options — preset chips */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ ...labelStyle, marginBottom: 6 }}>Alternate sizes</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {altPresets.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p.w, p.d, p.cost)}
+                style={{
+                  flex: 1,
+                  padding: '8px 6px',
+                  borderRadius: 8,
+                  border: p.isActive
+                    ? '1px solid rgba(196, 162, 101, 0.55)'
+                    : '1px solid rgba(255,255,255,0.08)',
+                  background: p.isActive
+                    ? 'rgba(196, 162, 101, 0.12)'
+                    : 'rgba(255,255,255,0.025)',
+                  color: 'var(--color-panel-text)',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  lineHeight: 1.2,
+                }}
+                title={p.blurb}
+              >
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
+                  {p.label}
+                </span>
+                <span style={{ fontSize: 10.5, color: 'var(--color-panel-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  {p.w}{'\u00D7'}{p.d}m {'\u00B7'} {p.area.toFixed(0)}m{'\u00B2'}
+                </span>
+                <span style={{ fontSize: 10.5, color: 'var(--color-panel-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  ~${p.cost.toLocaleString()}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'var(--color-panel-muted)', marginTop: 6, opacity: 0.7 }}>
+            Cost scales linearly with floor area {'\u2014'} a conversation starter, not a quote.
           </div>
         </div>
 
