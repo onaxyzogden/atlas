@@ -250,7 +250,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'earthship-cabin-yurt-pavilion-greenhouse-barn-workshop', label: 'Earthship, cabin, yurt, pavilion, greenhouse, barn, workshop placement', phase: 'P2', status: 'partial' },
       { key: 'prayer-bathhouse-classroom-placement', label: 'Prayer space, bathhouse, classroom placement', phase: 'MT', status: 'partial' },
       { key: 'storage-shelter-compost-pumphouse-placement', label: 'Storage, animal shelter, compost, water/pump house placement', phase: 'P2', status: 'done' },
-      { key: 'tent-glamping-gathering-firecircle-lookout', label: 'Tent / glamping layout, outdoor gathering, fire circle, lookout placement', phase: 'P2', status: 'planned' },
+      { key: 'tent-glamping-gathering-firecircle-lookout', label: 'Tent / glamping layout, outdoor gathering, fire circle, lookout placement', phase: 'P2', status: 'done' },
       { key: 'setback-slope-solar-orientation-warnings', label: 'Setback warning, slope warning, solar orientation guide', phase: 'P3', status: 'partial' },
       { key: 'wind-view-privacy-noise-analysis', label: 'Wind shelter, view preservation, privacy, noise exposure analysis', phase: 'P3', status: 'planned' },
       { key: 'walkability-water-zone-relationship-checks', label: 'Walkability, relationship-to-water, relationship-to-zones checks', phase: 'P3', status: 'planned' },

@@ -13,6 +13,7 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
+import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -174,6 +175,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
           </div>
         )}
       </div>
+
+      {/* ── §9 Gathering & retreat capacity rollup ──────────────────── */}
+      <GatheringRetreatCard projectId={project.id} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
