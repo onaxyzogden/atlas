@@ -24,6 +24,50 @@ export type ZoneCategory =
   | 'buffer'
   | 'future_expansion';
 
+/**
+ * Invasive-species pressure — qualitative observation per zone.
+ * Intentionally coarse (4 bands) so stewards can tag from a walk-through
+ * without needing a formal survey. Mirrors the biological-activity vocab
+ * used in `soilSampleStore`.
+ */
+export type InvasivePressure = 'none' | 'low' | 'medium' | 'high';
+
+/**
+ * Succession stage — where the vegetation community currently sits on
+ * the bare-ground-to-climax gradient. Used to flag early-succession zones
+ * that are regeneration candidates vs climax zones that should be left
+ * alone. Drawn from standard old-field succession vocabulary.
+ */
+export type SuccessionStage = 'bare' | 'pioneer' | 'mid' | 'climax';
+
+export const INVASIVE_PRESSURE_LABELS: Record<InvasivePressure, string> = {
+  none: 'None',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
+
+export const INVASIVE_PRESSURE_COLORS: Record<InvasivePressure, string> = {
+  none: '#6ba47a',
+  low: '#d4c564',
+  medium: '#c88b4a',
+  high: '#a8574a',
+};
+
+export const SUCCESSION_STAGE_LABELS: Record<SuccessionStage, string> = {
+  bare: 'Bare',
+  pioneer: 'Pioneer',
+  mid: 'Mid-succession',
+  climax: 'Climax',
+};
+
+export const SUCCESSION_STAGE_COLORS: Record<SuccessionStage, string> = {
+  bare: '#9c8b6e',
+  pioneer: '#d4c564',
+  mid: '#a8a06a',
+  climax: '#6ba47a',
+};
+
 export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: string; icon: string }> = {
   habitation:       { label: 'Habitation',        color: zone.habitation, icon: '🏠' },
   food_production:  { label: 'Food Production',   color: zone.food_production, icon: '🌱' },
@@ -51,6 +95,16 @@ export interface LandZone {
   notes: string;
   geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   areaM2: number;
+  /**
+   * Ecological condition notes — optional per-zone tags captured by
+   * stewards during walk-throughs. Drive the §7 EcologicalDashboard
+   * rollup card and feed future regeneration-priority logic. Left
+   * undefined on existing zones; no migration required because both
+   * fields are optional.
+   * Spec: §7 `invasive-succession-mapping` (featureManifest).
+   */
+  invasivePressure?: InvasivePressure | null;
+  successionStage?: SuccessionStage | null;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

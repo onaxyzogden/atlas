@@ -210,7 +210,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'mulching-compost-covercrop-zones', label: 'Mulching priority, compost application, cover crop opportunity zones', phase: 'P2', status: 'done' },
       { key: 'silvopasture-foodforest-regen-zones', label: 'Silvopasture, food forest, forest regeneration candidate zones', phase: 'P2', status: 'done' },
       { key: 'native-pollinator-biodiversity', label: 'Native planting, pollinator habitat, biodiversity corridor planning', phase: 'P2', status: 'done' },
-      { key: 'invasive-succession-mapping', label: 'Invasive pressure notes, succession stage mapping', phase: 'P2', status: 'planned' },
+      { key: 'invasive-succession-mapping', label: 'Invasive pressure notes, succession stage mapping', phase: 'P2', status: 'done' },
       { key: 'carbon-sequestration-potential', label: 'Carbon sequestration potential map', phase: 'P2', status: 'planned' },
       { key: 'regen-stage-intervention-log', label: 'Regeneration stage tagging, intervention log, before/after comparison', phase: 'P2', status: 'done' },
     ],

@@ -129,6 +129,12 @@
   gap: 4px;
 }
 
+.zoneRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .zoneItem {
   display: flex;
   align-items: center;
@@ -137,6 +143,81 @@
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: var(--text-xs);
+}
+
+.zoneChips {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.zoneChip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid currentColor;
+  line-height: 1.4;
+}
+
+.editBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-panel-muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.editBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-panel-text);
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 6px 16px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(107, 164, 122, 0.06);
+  border: 1px solid rgba(107, 164, 122, 0.2);
+}
+
+.editLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-panel-muted);
+  margin-top: 2px;
+}
+
+.editDoneBtn {
+  align-self: flex-end;
+  margin-top: 4px;
+  padding: 4px 12px;
+  border: 1px solid rgba(107, 164, 122, 0.4);
+  border-radius: 4px;
+  background: rgba(107, 164, 122, 0.2);
+  color: #a8d4ba;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.editDoneBtn:hover {
+  background: rgba(107, 164, 122, 0.3);
 }
 
 .zoneSwatch {
