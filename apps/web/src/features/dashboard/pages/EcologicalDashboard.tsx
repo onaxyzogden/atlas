@@ -9,8 +9,10 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary, getLayer } from '../../../store/siteDataStore.js';
 import { computeAssessmentScores, deriveOpportunities } from '../../../lib/computeScores.js';
 import type { ScoredResult, ScoreComponent } from '../../../lib/computeScores.js';
-import type { AssessmentFlag, EcoregionId } from '@ogden/shared';
+import type { AssessmentFlag, EcoregionId, PollinatorGuild } from '@ogden/shared';
 import { computePollinatorHabitat } from '@ogden/shared';
+import { ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { useMapStore } from '../../../store/mapStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
 import RegenerationTimelineCard from '../../regeneration/RegenerationTimelineCard.js';
@@ -19,6 +21,7 @@ import ZoneEcologyRollup from '../../zones/ZoneEcologyRollup.js';
 import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
 import ZoneSeasonalityRollup from '../../zones/ZoneSeasonalityRollup.js';
 import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
+import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -133,11 +136,41 @@ function connectivityLabel(band: 'isolated' | 'fragmented' | 'connected' | 'unkn
   }
 }
 
+/**
+ * Guild badges — short abbreviation + full label tooltip. Rendered next to
+ * each plant in the recommended species list so the steward can see at a
+ * glance which pollinator guilds the plant supports. Order in this object
+ * is preserved when rendering for visual consistency.
+ */
+const GUILD_META: Record<PollinatorGuild, { abbr: string; label: string }> = {
+  bees_generalist: { abbr: 'Be', label: 'Generalist bees' },
+  bumblebees: { abbr: 'Bb', label: 'Bumblebees' },
+  specialist_bees: { abbr: 'Sp', label: 'Specialist bees' },
+  butterflies: { abbr: 'Bf', label: 'Butterflies' },
+  moths_night_pollinators: { abbr: 'Mo', label: 'Moths / night pollinators' },
+  hummingbirds: { abbr: 'Hu', label: 'Hummingbirds' },
+};
+
 const ECOLOGY_LAYER_SOURCES = new Set(['land_cover', 'wetlands_flood', 'soils', 'soil_regeneration', 'pollinator_opportunity']);
 
 export default function EcologicalDashboard({ project, onSwitchToMap }: EcologicalDashboardProps) {
   const siteData = useSiteData(project.id);
   const [expandedBreakdown, setExpandedBreakdown] = useState<string | null>(null);
+  const [caveatsOpen, setCaveatsOpen] = useState<boolean>(false);
+  const setPollinatorOpportunityVisible = useMapStore((s) => s.setPollinatorOpportunityVisible);
+
+  /**
+   * Empty-state CTA — switches the project view to the map and turns on
+   * the pollinator-opportunity overlay, which triggers the layer fetch
+   * (and materialization on the backend if it's not yet computed). This
+   * is the only path to populating the curated species list + suitability
+   * score, so the empty-state block surfaces it as the primary action
+   * rather than as flat hint text.
+   */
+  const runPollinatorAnalysis = () => {
+    setPollinatorOpportunityVisible(true);
+    onSwitchToMap();
+  };
 
   const soils = siteData ? getLayerSummary<SoilsSummary>(siteData, 'soils') : null;
   const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
@@ -511,8 +544,10 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           patch-graph connectivity band, and renders a curated plant list
           when the ecoregion resolves. Falls back to habitat-class
           categories otherwise. */}
-      <div className={css.section}>
-        <h2 className={css.sectionLabel}>NATIVE PLANTING & POLLINATOR HABITAT</h2>
+      <div className={`${css.section} ${css.pollinatorSection}`}>
+        <h2 className={`${css.sectionLabel} ${css.pollinatorSectionLabel}`}>
+          NATIVE PLANTING & POLLINATOR HABITAT
+        </h2>
 
         {/* Ecoregion + connectivity strip */}
         <div className={css.pollinatorEcoregionStrip}>
@@ -523,11 +558,21 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
               <span className={css.pollinatorEcoregionId}>{`Level III \u00B7 ${pollinatorHabitat.ecoregion.id}`}</span>
             </div>
           ) : (
-            <div className={css.pollinatorEcoregionBlock}>
+            <button
+              type="button"
+              onClick={runPollinatorAnalysis}
+              className={`${css.pollinatorEcoregionBlock} ${css.pollinatorRunCta}`}
+              aria-label="Run pollinator analysis to resolve ecoregion and populate species recommendations"
+            >
               <span className={css.pollinatorEcoregionLabel}>CEC ECOREGION</span>
-              <span className={css.pollinatorEcoregionName}>Not resolved</span>
-              <span className={css.pollinatorEcoregionId}>Run pollinator analysis</span>
-            </div>
+              <span className={css.pollinatorRunCtaLabel}>
+                Run pollinator analysis
+                <ArrowRight size={14} strokeWidth={2.25} aria-hidden="true" />
+              </span>
+              <span className={css.pollinatorEcoregionId}>
+                Resolves species + suitability
+              </span>
+            </button>
           )}
           <div className={css.pollinatorEcoregionBlock}>
             <span className={css.pollinatorEcoregionLabel}>HABITAT SUITABILITY</span>
@@ -553,17 +598,41 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           <>
             <h3 className={css.subSectionLabel}>RECOMMENDED NATIVE SPECIES</h3>
             <ul className={css.pollinatorPlantsList}>
-              {pollinatorHabitat.ecoregionPlants.map((plant) => (
-                <li key={plant.scientific} className={css.pollinatorPlantItem}>
-                  <div>
-                    <span className={css.pollinatorPlantCommon}>{plant.common}</span>
-                    <span className={css.pollinatorPlantSci}>{plant.scientific}</span>
-                  </div>
-                  <span className={css.pollinatorPlantMeta}>
-                    {`${plant.habit}${formatBloomWindow(plant.bloom) ? ` \u00B7 ${formatBloomWindow(plant.bloom)}` : ''}`}
-                  </span>
-                </li>
-              ))}
+              {pollinatorHabitat.ecoregionPlants.map((plant) => {
+                // Stable order: keys of GUILD_META, filtered to plant.guilds.
+                const orderedGuilds = (Object.keys(GUILD_META) as PollinatorGuild[]).filter(
+                  (g) => plant.guilds.includes(g),
+                );
+                return (
+                  <li key={plant.scientific} className={css.pollinatorPlantItem}>
+                    <div className={css.pollinatorPlantHead}>
+                      <div>
+                        <span className={css.pollinatorPlantCommon}>{plant.common}</span>
+                        <span className={css.pollinatorPlantSci}>{plant.scientific}</span>
+                      </div>
+                      {orderedGuilds.length > 0 && (
+                        <div
+                          className={css.pollinatorGuildBadges}
+                          aria-label={`Pollinator guilds: ${orderedGuilds.map((g) => GUILD_META[g].label).join(', ')}`}
+                        >
+                          {orderedGuilds.map((g) => (
+                            <span
+                              key={g}
+                              className={css.pollinatorGuildBadge}
+                              title={GUILD_META[g].label}
+                            >
+                              {GUILD_META[g].abbr}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className={css.pollinatorPlantMeta}>
+                      {`${plant.habit}${formatBloomWindow(plant.bloom) ? ` \u00B7 ${formatBloomWindow(plant.bloom)}` : ''}`}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : (
@@ -579,8 +648,42 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           </>
         )}
 
+        {/* Caveat drawer — first caveat is always visible inline; if there
+            are more, "Why this matters" toggles the full ordered list. The
+            shared package guarantees `caveats` is non-empty when at least
+            one of land-cover/wetlands/ecoregion data is missing or coarse,
+            so the drawer surfaces the honest scoping the heuristic ships
+            with rather than burying it. */}
         {pollinatorHabitat.caveats.length > 0 && (
-          <p className={css.coverNote}>{pollinatorHabitat.caveats[0]}</p>
+          <div className={css.pollinatorCaveats}>
+            <p className={css.coverNote}>{pollinatorHabitat.caveats[0]}</p>
+            {pollinatorHabitat.caveats.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className={css.pollinatorCaveatToggle}
+                  onClick={() => setCaveatsOpen((v) => !v)}
+                  aria-expanded={caveatsOpen}
+                  aria-controls="pollinator-caveat-list"
+                >
+                  {caveatsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  {caveatsOpen
+                    ? 'Hide details'
+                    : `Why this matters (${pollinatorHabitat.caveats.length - 1} more)`}
+                </button>
+                {caveatsOpen && (
+                  <ul
+                    id="pollinator-caveat-list"
+                    className={css.pollinatorCaveatList}
+                  >
+                    {pollinatorHabitat.caveats.slice(1).map((c, i) => (
+                      <li key={i} className={css.pollinatorCaveatItem}>{c}</li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -630,6 +733,10 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Regeneration Timeline — §7 intervention log (migration 015 + shared schema). */}
       <RegenerationTimelineCard project={project} />
+
+      {/* §16 Carrying capacity rollup — site-level "what can this land carry?"
+          across livestock head-capacity, crop yield, and water budget. */}
+      <CarryingCapacityCard project={project} />
 
       {/* Carbon Estimate */}
       {carbon && (

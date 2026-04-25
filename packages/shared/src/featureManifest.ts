@@ -398,7 +398,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'water-flood-drought-scenario-sim', label: 'Water flow, flood, drought scenario simulation', phase: 'P3', status: 'done' },
       { key: 'wind-shade-tree-canopy-sim', label: 'Wind exposure, shade growth, tree maturity, canopy expansion simulation', phase: 'P3', status: 'done' },
       { key: 'erosion-grazing-recovery-modeling', label: 'Erosion mitigation, grazing pressure, recovery timeline modeling', phase: 'P3', status: 'planned' },
-      { key: 'carrying-capacity-yield-projections', label: 'Carrying capacity scenario, yield projection placeholders', phase: 'P3', status: 'planned' },
+      { key: 'carrying-capacity-yield-projections', label: 'Carrying capacity scenario, yield projection placeholders', phase: 'P3', status: 'done' },
       { key: 'visitor-event-parking-overflow-sim', label: 'Visitor traffic, event load, parking overflow scenario modeling', phase: 'P3', status: 'planned' },
       { key: 'build-cost-revenue-ranges', label: 'Build cost and revenue scenario ranges', phase: 'P3', status: 'partial' },
       { key: 'best-base-worst-case-scenarios', label: 'Best-case / base-case / worst-case scenarios', phase: 'P3', status: 'partial' },
