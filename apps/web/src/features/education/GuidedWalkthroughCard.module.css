@@ -1,0 +1,230 @@
+/* §19 GuidedWalkthroughCard — auto-suggested thematic tour itineraries.
+   Same ink-on-parchment palette as the heuristic family. */
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 28px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 600px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ── Tour list ────────────────────────────────────────────────────────── */
+
+.tourList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tour {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+}
+
+/* Per-theme accent on the left edge */
+.tour_water     { border-left-color: rgba(120, 180, 220, 0.6); }
+.tour_soil_food { border-left-color: rgba(180, 200, 150, 0.6); }
+.tour_spiritual { border-left-color: rgba(220, 200, 130, 0.6); }
+.tour_community { border-left-color: rgba(220, 180, 140, 0.6); }
+.tour_livestock { border-left-color: rgba(220, 130, 110, 0.55); }
+.tour_energy    { border-left-color: rgba(230, 195, 110, 0.6); }
+
+.tourHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.05);
+  margin-bottom: 10px;
+}
+
+.tourGlyph {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tourMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tourLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.tour_water     .tourLabel { color: rgba(160, 200, 235, 0.95); }
+.tour_soil_food .tourLabel { color: rgba(195, 215, 165, 0.95); }
+.tour_spiritual .tourLabel { color: rgba(232, 215, 145, 0.95); }
+.tour_community .tourLabel { color: rgba(230, 200, 160, 0.95); }
+.tour_livestock .tourLabel { color: rgba(225, 150, 130, 0.95); }
+.tour_energy    .tourLabel { color: rgba(235, 205, 125, 0.95); }
+
+.tourSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.01em;
+}
+
+.tourNarrative {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(200, 188, 165, 0.78);
+  font-style: italic;
+}
+
+/* ── Waypoint list ────────────────────────────────────────────────────── */
+
+.waypointList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.waypoint {
+  display: flex;
+  gap: 12px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.waypointNum {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(232, 220, 200, 0.08);
+  color: rgba(232, 220, 200, 0.85);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.waypointBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.waypointHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.waypointName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.waypointType {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.waypointPrompt {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

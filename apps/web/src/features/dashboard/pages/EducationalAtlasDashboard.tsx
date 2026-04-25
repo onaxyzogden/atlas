@@ -23,6 +23,7 @@ import PrivacyCohortPlanningCard from '../../zones/PrivacyCohortPlanningCard.js'
 import ContemplationZonesCard from '../../zones/ContemplationZonesCard.js';
 import SignsInCreationPanel from '../../education/SignsInCreationPanel.js';
 import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverlaysCard.js';
+import GuidedWalkthroughCard from '../../education/GuidedWalkthroughCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -215,14 +216,16 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
       {/* ── §19 Educational route narrative overlays ────────────────── */}
       <EducationalRouteOverlaysCard project={project} />
 
-      {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
+      {/* ── §19 Guided walkthrough — auto-grouped thematic tours ─────── */}
+      <GuidedWalkthroughCard project={project} />
+
+      {/* ── Remaining tour-playback items (P4 stubs) ─────────────────── */}
       <div className={css.card}>
         <div className={css.cardHead}>
-          <h2 className={css.cardTitle}>Guided Walkthrough</h2>
-          <span className={css.cardHint}>Passive tour, voiceover script, slide mode.</span>
+          <h2 className={css.cardTitle}>Tour Playback (Pending)</h2>
+          <span className={css.cardHint}>Voiceover script, slide mode, quiz checkpoints.</span>
         </div>
         <div className={css.p4List}>
-          <P4Row label="Passive learning tour" desc="Auto-advance through features with narrated rationale." />
           <P4Row label="Voiceover script export" desc="Generate a voiceable script for stakeholder videos." />
           <P4Row label="Slide presentation mode" desc="Present the design as a deck, one feature per slide." />
           <P4Row label="Training / quiz mode" desc="Checkpoint questions for students and operators." />
