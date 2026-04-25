@@ -519,7 +519,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cost-sensitivity-hidden-costs-contingency', label: 'Cost sensitivity sliders, hidden cost flags, contingency recommendations', phase: 'P3', status: 'planned' },
       { key: 'enterprise-revenue-templates-ramp-timeline', label: 'Enterprise revenue templates with ramp timeline modeling', phase: 'P3', status: 'planned' },
       { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'partial' },
-      { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'planned' },
+      { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'done' },
       { key: 'overbuilt-for-revenue-lean-mvp', label: "'Overbuilt for revenue' AI warning, Lean MVP path view", phase: 'P3', status: 'planned' },
       { key: 'investor-summary-landowner-partnership', label: 'Investor summary dashboard, landowner partnership summary', phase: 'P3', status: 'partial' },
       { key: 'grant-readiness-total-cost-of-ownership', label: 'Grant-readiness checklist, total cost of ownership view', phase: 'P3', status: 'planned' },
