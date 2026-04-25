@@ -20,6 +20,7 @@ import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
 import PrivacyCohortPlanningCard from '../../zones/PrivacyCohortPlanningCard.js';
+import ContemplationZonesCard from '../../zones/ContemplationZonesCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -202,6 +203,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §9 Prayer / bathhouse / classroom rationale rollup ──────── */}
       <SpiritualCommunalCard project={project} />
+
+      {/* ── §8 Quiet contemplation zone rollup ──────────────────────── */}
+      <ContemplationZonesCard projectId={project.id} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
