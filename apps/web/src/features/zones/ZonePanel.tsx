@@ -29,6 +29,7 @@ import { computeAssessmentScores } from '../../lib/computeScores.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import ZoneSizingCalculator from './ZoneSizingCalculator.js';
 import ZoneConflictDetector from './ZoneConflictDetector.js';
+import ZoneSiteSuitabilityCard from './ZoneSiteSuitabilityCard.js';
 import ZoneAllocationSummary from './ZoneAllocationSummary.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -465,6 +466,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
           <ZoneAllocationSummary zones={zones} totalAcreage={project?.acreage ?? null} />
           <ZoneSizingCalculator zones={zones} totalAcreage={project?.acreage ?? null} />
           <ZoneConflictDetector zones={zones} siteData={siteData} />
+          <ZoneSiteSuitabilityCard zones={zones} siteData={siteData} />
           <ZoneAutoSuggest scores={scores} siteData={siteData} existingCategories={existingCategories} />
         </div>
       )}

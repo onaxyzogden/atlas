@@ -23,6 +23,7 @@ import { usePhaseStore } from '../../store/phaseStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import RulesPanel from '../rules/RulesPanel.js';
 import AccessEfficiencyCard from '../rules/AccessEfficiencyCard.js';
+import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
 import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
@@ -390,6 +391,7 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
       {/* Design rules (inline) */}
       <h3 className={p.sectionLabel}>Design Rules</h3>
       <AccessEfficiencyCard project={project} />
+      <SafetyBufferRulesCard project={project} />
       <RulesPanel project={project} />
     </div>
   );

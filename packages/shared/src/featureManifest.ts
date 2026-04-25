@@ -233,7 +233,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'zone-categories-primary-secondary', label: 'Zone categories, primary/secondary use designation', phase: 'P1', status: 'partial' },
       { key: 'zone-sizing-calculator', label: 'Zone sizing calculator', phase: 'P1', status: 'partial' },
       { key: 'auto-suggest-zones', label: 'Auto-suggest zones based on site analysis', phase: 'P2', status: 'partial' },
-      { key: 'zone-overlap-conflict-adjacency', label: 'Zone overlap, conflict, and adjacency analysis', phase: 'P2', status: 'partial' },
+      { key: 'zone-overlap-conflict-adjacency', label: 'Zone overlap, conflict, and adjacency analysis', phase: 'P2', status: 'done' },
       { key: 'habitation-food-livestock-commons-planning', label: 'Habitation, food production, livestock, commons zone planning', phase: 'P1', status: 'partial' },
       { key: 'prayer-spiritual-zone-planning', label: 'Prayer / spiritual zone planning', phase: 'MT', status: 'partial' },
       { key: 'quiet-contemplation-zone-planning', label: 'Quiet contemplation zone planning', phase: 'MT', status: 'done' },
