@@ -1,0 +1,271 @@
+/* §11 LivestockWelfarePhasingCard — per-species welfare standards +
+   per-phase infrastructure rollup. Visual language matches
+   LivestockLandFitCard.module.css (color tokens, font sizes, spacing,
+   border radii) so the two §11 cards read as a coherent pair. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Section labels ──────────────────────────────────────────── */
+
+.sectionLabel {
+  margin: 14px 0 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.sectionLabel:first-of-type {
+  margin-top: 4px;
+}
+
+/* ── Per-species grid ────────────────────────────────────────── */
+
+.speciesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.speciesCard {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.speciesHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speciesIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.speciesName {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.speciesCount {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.speciesNotesList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.speciesNoteRow {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.speciesNoteLabel {
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding-top: 1px;
+}
+
+.speciesNoteValue {
+  color: rgba(220, 210, 190, 0.85);
+}
+
+.speciesGates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ── Per-phase rows ──────────────────────────────────────────── */
+
+.phaseRow {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.phaseRow:last-child {
+  margin-bottom: 0;
+}
+
+.phaseHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.phaseName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.phaseCount {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseAllGood {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(120, 175, 110, 0.85);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(120, 175, 110, 0.08);
+  border: 1px solid rgba(120, 175, 110, 0.2);
+}
+
+.phaseGates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.phaseNeeds {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.phaseNeedsLabel {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(232, 178, 90, 0.7);
+  margin-bottom: 6px;
+}
+
+.phaseNeedsList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(220, 210, 190, 0.82);
+}
+
+.phaseNeedsList li {
+  margin-bottom: 2px;
+}
+
+/* ── Gate chip ───────────────────────────────────────────────── */
+
+.gateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+
+.gateChipLabel {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  opacity: 0.85;
+}
+
+.gateChipValue {
+  font-weight: 600;
+}
+
+.gate_good {
+  background: rgba(120, 175, 110, 0.08);
+  border-color: rgba(120, 175, 110, 0.22);
+  color: rgba(180, 220, 165, 0.92);
+}
+
+.gate_partial {
+  background: rgba(232, 178, 90, 0.07);
+  border-color: rgba(232, 178, 90, 0.2);
+  color: rgba(232, 200, 130, 0.92);
+}
+
+.gate_poor {
+  background: rgba(232, 100, 90, 0.06);
+  border-color: rgba(232, 100, 90, 0.2);
+  color: rgba(232, 160, 150, 0.92);
+}
+
+/* ── Footnote ────────────────────────────────────────────────── */
+
+.footnote {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 500;
+}

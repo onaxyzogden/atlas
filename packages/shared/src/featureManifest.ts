@@ -300,7 +300,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'livestock-land-fit-enterprise-zone', label: 'Livestock-to-land fit score, enterprise-by-zone allocation', phase: 'P3', status: 'done' },
       { key: 'species-human-conflict-warnings', label: 'Species conflict and human-animal movement conflict warnings', phase: 'P3', status: 'partial' },
       { key: 'guest-safe-livestock-buffer', label: 'Guest-safe livestock buffer planning', phase: 'MT', status: 'partial' },
-      { key: 'welfare-notes-infrastructure-phasing', label: 'Animal welfare notes, livestock infrastructure phasing', phase: 'P2', status: 'planned' },
+      { key: 'welfare-notes-infrastructure-phasing', label: 'Animal welfare notes, livestock infrastructure phasing', phase: 'P2', status: 'done' },
     ],
   },
   {

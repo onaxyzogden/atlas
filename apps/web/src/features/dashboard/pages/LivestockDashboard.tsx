@@ -22,6 +22,7 @@ import {
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
 import LivestockLandFitCard from '../../livestock/LivestockLandFitCard.js';
+import LivestockWelfarePhasingCard from '../../livestock/LivestockWelfarePhasingCard.js';
 import css from './LivestockDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 
@@ -365,6 +366,9 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
 
       {/* §11 Livestock-land fit matrix (per-zone × per-species) */}
       <LivestockLandFitCard projectId={project.id} />
+
+      {/* §11 Welfare notes + per-phase infrastructure rollup */}
+      <LivestockWelfarePhasingCard projectId={project.id} />
 
       {/* Animal Welfare Summary */}
       {welfare && (
