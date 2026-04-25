@@ -659,7 +659,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'mens-cohort-family-expansion-zones', label: "[P2] Men's cohort training zone and family expansion stage planning", phase: 'MT', status: 'planned' },
       { key: 'hospitality-sequence-planning', label: '[P2] Hospitality sequence planning', phase: 'MT', status: 'planned' },
       { key: 'islamic-adab-privacy-logic', label: '[P2] Islamic-adab-conscious privacy logic', phase: 'MT', status: 'planned' },
-      { key: 'educational-immersion-route', label: '[P2] Educational immersion route planning', phase: 'MT', status: 'planned' },
+      { key: 'educational-immersion-route', label: '[P2] Educational immersion route planning', phase: 'MT', status: 'done' },
       { key: 'regeneration-remembrance-storytelling', label: '[P2] Regeneration + remembrance storytelling layer', phase: 'MT', status: 'planned' },
       { key: 'staged-vision-raw-to-heaven', label: '[P2] Staged vision from raw land to heaven-like experience', phase: 'MT', status: 'partial' },
       { key: 'signs-in-creation-interpretive', label: "[P3] 'Signs in creation' interpretive mode", phase: 'MT', status: 'planned' },

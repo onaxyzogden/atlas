@@ -22,6 +22,7 @@ import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
 import PrivacyCohortPlanningCard from '../../zones/PrivacyCohortPlanningCard.js';
 import ContemplationZonesCard from '../../zones/ContemplationZonesCard.js';
 import SignsInCreationPanel from '../../education/SignsInCreationPanel.js';
+import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverlaysCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -210,6 +211,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §19 Signs in Creation interpretive overlay ──────────────── */}
       <SignsInCreationPanel project={project} />
+
+      {/* ── §19 Educational route narrative overlays ────────────────── */}
+      <EducationalRouteOverlaysCard project={project} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
