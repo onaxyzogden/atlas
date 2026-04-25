@@ -237,10 +237,17 @@ designed.
   app clean for axe's default ruleset.
 
 ### Still open
-- Automated CI a11y gate (axe-playwright or @axe-core/playwright in a
-  `pnpm test:a11y` target).
 - Mobile `SlideUpPanel` ergonomics pass (deferred in main audit).
 - Public-portal full a11y audit (deferred).
+
+### CI a11y gate — decision deferred (not built this session)
+Discussed `pnpm test:a11y` via `@axe-core/playwright` (best ruleset
+depth, best DX vs. Lighthouse-CI / Pa11y-CI alternatives). **Not
+implemented** — chose dev-mode console as the primary tripwire +
+quarterly manual axe sweep as the cheaper-but-discipline-dependent
+holding pattern. Empirically a clean codebase re-acquires 1–3 serious
+violations per quarter without an automated gate; revisit if drift
+shows up in the next manual sweep.
 
 ---
 
