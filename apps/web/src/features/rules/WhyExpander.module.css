@@ -1,0 +1,123 @@
+/* §17 WhyExpander — "why this suggestion was made" inline expander.
+   Native <details>/<summary> for zero-state accessibility. Visual tokens
+   match SitingWarningsCard.module.css so the expander reads as a member
+   of the rollup card family. */
+
+.expander {
+  margin-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+  padding-top: 6px;
+}
+
+.expander[open] {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+.summary {
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+  transition: color 150ms ease;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:hover {
+  color: rgba(220, 188, 120, 0.85);
+}
+
+.summary::before {
+  content: '\25B8'; /* ▸ */
+  font-size: 9px;
+  transition: transform 150ms ease;
+  display: inline-block;
+}
+
+.expander[open] .summary::before {
+  transform: rotate(90deg);
+}
+
+/* ── Body ─────────────────────────────────────────────────────── */
+
+.body {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Definition rows: small caps label + value */
+.row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.value {
+  color: rgba(220, 210, 190, 0.85);
+}
+
+.value strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 600;
+}
+
+.value code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(220, 188, 120, 0.85);
+}
+
+/* Severity-change inline arrow */
+.sevArrow {
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 4px;
+}
+
+.sevChange {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 6px;
+  font-style: italic;
+}
+
+/* Site-visit pill */
+.siteVisitPill {
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(140, 175, 220, 0.16);
+  color: rgba(190, 215, 245, 0.92);
+}

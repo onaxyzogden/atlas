@@ -34,6 +34,7 @@ import {
   type WeightedViolation,
   type EffectiveSeverity,
 } from '../../hooks/useSitingEvaluation.js';
+import WhyExpander from './WhyExpander.js';
 import css from './SitingWarningsCard.module.css';
 
 interface Props {
@@ -195,6 +196,7 @@ export default function SpatialRelationshipsCard({ project }: Props) {
                   <span className={css.violationSuggest}>
                     {'\u2192'} {v.suggestion}
                   </span>
+                  <WhyExpander v={v} />
                 </div>
               </li>
             )),
