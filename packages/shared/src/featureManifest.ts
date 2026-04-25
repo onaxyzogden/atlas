@@ -248,7 +248,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'place-rotate-resize-structures', label: 'Place, rotate, resize structures on map', phase: 'P2', status: 'partial' },
       { key: 'structure-type-footprint-library', label: 'Structure type assignment, building footprint library', phase: 'P2', status: 'partial' },
       { key: 'earthship-cabin-yurt-pavilion-greenhouse-barn-workshop', label: 'Earthship, cabin, yurt, pavilion, greenhouse, barn, workshop placement', phase: 'P2', status: 'partial' },
-      { key: 'prayer-bathhouse-classroom-placement', label: 'Prayer space, bathhouse, classroom placement', phase: 'MT', status: 'partial' },
+      { key: 'prayer-bathhouse-classroom-placement', label: 'Prayer space, bathhouse, classroom placement', phase: 'MT', status: 'done' },
       { key: 'storage-shelter-compost-pumphouse-placement', label: 'Storage, animal shelter, compost, water/pump house placement', phase: 'P2', status: 'done' },
       { key: 'tent-glamping-gathering-firecircle-lookout', label: 'Tent / glamping layout, outdoor gathering, fire circle, lookout placement', phase: 'P2', status: 'done' },
       { key: 'setback-slope-solar-orientation-warnings', label: 'Setback warning, slope warning, solar orientation guide', phase: 'P3', status: 'done' },

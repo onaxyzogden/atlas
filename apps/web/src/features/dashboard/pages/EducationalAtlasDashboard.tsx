@@ -15,6 +15,7 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import BuildOrderCard from '../../structures/BuildOrderCard.js';
+import SpiritualCommunalCard from '../../structures/SpiritualCommunalCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
 import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
@@ -198,6 +199,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §8 Family privacy & men's cohort program-design rollup ──── */}
       <PrivacyCohortPlanningCard projectId={project.id} />
+
+      {/* ── §9 Prayer / bathhouse / classroom rationale rollup ──────── */}
+      <SpiritualCommunalCard project={project} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
