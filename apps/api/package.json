@@ -12,6 +12,7 @@
     "enumerate:gaez-futures": "tsx scripts/enumerate-gaez-futures.ts",
     "ingest:gaez": "tsx scripts/convert-gaez-to-cog.ts",
     "lint": "tsc --noEmit",
+    "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
