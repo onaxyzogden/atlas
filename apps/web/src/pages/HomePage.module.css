@@ -19,6 +19,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-6);
+  gap: var(--space-3);
 }
 
 .title {
@@ -27,6 +28,18 @@
   font-weight: var(--font-semibold);
   color: var(--color-text);
   letter-spacing: var(--tracking-tight);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.selectionCount {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Project grid ─────────────────────────────────────────────────────── */
@@ -89,10 +102,72 @@
   padding: var(--space-5);
   text-decoration: none;
   color: var(--color-text);
+  text-align: start;
+  font: inherit;
+  width: 100%;
+  position: relative;
   transition: box-shadow var(--duration-base) var(--ease-default),
               transform var(--duration-base) var(--ease-default),
               border-color var(--duration-base) var(--ease-default);
   cursor: pointer;
+}
+
+/* In compare-mode the card is rendered as a <button>; selected state
+   gets a tinted border + background to read at a glance. */
+.cardSelected {
+  border-color: var(--color-primary);
+  background: var(--color-surface-active, var(--color-surface));
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.selectCheckbox {
+  position: absolute;
+  top: var(--space-3);
+  inset-inline-end: var(--space-3);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: 14px;
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+}
+
+.selectCheckboxOn {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-bg);
+}
+
+/* Sticky bottom bar for the compare flow. */
+.compareBar {
+  position: sticky;
+  bottom: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.compareBarText {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.compareBarActions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .card:hover {

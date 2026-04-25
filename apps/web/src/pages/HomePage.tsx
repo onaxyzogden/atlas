@@ -34,6 +34,33 @@ export default function HomePage() {
     }
   };
 
+  // §1 Compare-mode: a steward toggles "Compare" in the header, picks
+  // 2+ project cards via checkboxes, then jumps to /projects/compare with
+  // a comma-separated id list. Cancelling clears the selection without
+  // navigating away.
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+  const startCompare = () => {
+    setCompareMode(true);
+    setSelectedIds([]);
+  };
+  const cancelCompare = () => {
+    setCompareMode(false);
+    setSelectedIds([]);
+  };
+  const submitCompare = () => {
+    if (selectedIds.length < 2) return;
+    navigate({
+      to: '/projects/compare',
+      search: { ids: selectedIds.join(',') },
+    });
+  };
+
   const [ready, setReady] = useState(() => useProjectStore.persist.hasHydrated?.() ?? true);
   useEffect(() => {
     if (ready) return;
@@ -86,16 +113,32 @@ export default function HomePage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Your Projects</h1>
+          <div className={styles.headerActions}>
+            {compareMode ? (
+              <>
+                <span className={styles.selectionCount}>
+                  {selectedIds.length} selected
+                </span>
+                <Button variant="secondary" size="sm" onClick={cancelCompare}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              projects.length >= 2 && (
+                <Button variant="secondary" size="sm" onClick={startCompare}>
+                  Compare
+                </Button>
+              )
+            )}
+          </div>
         </div>
 
         <div className={styles.grid}>
-          {projects.map((p) => (
-            <div key={p.id} className={styles.cardWrapper}>
-              <Link
-                to="/project/$projectId"
-                params={{ projectId: p.id }}
-                className={styles.card}
-              >
+          {projects.map((p) => {
+            const isSelected = selectedIds.includes(p.id);
+            const cardClass = `${styles.card} ${compareMode && isSelected ? styles.cardSelected : ''}`;
+            const inner = (
+              <>
                 <h3 className={styles.cardName}>{p.name}</h3>
 
                 {p.projectType && (
@@ -117,24 +160,80 @@ export default function HomePage() {
                     {p.hasParcelBoundary ? 'Boundary set' : 'No boundary'}
                   </span>
                 </div>
-              </Link>
-              <button
-                type="button"
-                className={styles.cardDuplicateBtn}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleDuplicate(p.id);
-                }}
-                aria-label={`Duplicate ${p.name} as a new project`}
-                title="Duplicate as template"
-              >
-                Duplicate
-              </button>
-            </div>
-          ))}
+              </>
+            );
+            return (
+              <div key={p.id} className={styles.cardWrapper}>
+                {compareMode ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleSelected(p.id)}
+                    className={cardClass}
+                    aria-pressed={isSelected}
+                    aria-label={`${isSelected ? 'Unselect' : 'Select'} ${p.name} for comparison`}
+                  >
+                    <span
+                      className={`${styles.selectCheckbox} ${isSelected ? styles.selectCheckboxOn : ''}`}
+                      aria-hidden="true"
+                    >
+                      {isSelected ? '\u2713' : ''}
+                    </span>
+                    {inner}
+                  </button>
+                ) : (
+                  <Link
+                    to="/project/$projectId"
+                    params={{ projectId: p.id }}
+                    className={cardClass}
+                  >
+                    {inner}
+                  </Link>
+                )}
+                {!compareMode && (
+                  <button
+                    type="button"
+                    className={styles.cardDuplicateBtn}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDuplicate(p.id);
+                    }}
+                    aria-label={`Duplicate ${p.name} as a new project`}
+                    title="Duplicate as template"
+                  >
+                    Duplicate
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {compareMode && (
+        <div className={styles.compareBar} role="region" aria-label="Comparison selection">
+          <span className={styles.compareBarText}>
+            {selectedIds.length === 0
+              ? 'Pick at least 2 projects to compare.'
+              : selectedIds.length === 1
+                ? '1 selected \u2014 pick at least one more.'
+                : `${selectedIds.length} selected \u2014 ready to compare.`}
+          </span>
+          <div className={styles.compareBarActions}>
+            <Button variant="secondary" size="sm" onClick={cancelCompare}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={submitCompare}
+              disabled={selectedIds.length < 2}
+            >
+              Compare {selectedIds.length >= 2 ? `(${selectedIds.length})` : ''}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
