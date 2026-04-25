@@ -1,0 +1,231 @@
+/* §24 FieldworkChecklistCard — today's-walk punch list. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint strong {
+  color: rgba(232, 220, 200, 0.92);
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(180, 200, 150, 0.06);
+  border: 1px solid rgba(180, 200, 150, 0.18);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 220, 195, 0.82);
+}
+
+/* ── Tally row ────────────────────────────────────────────────────────── */
+
+.tallyRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 14px;
+}
+
+.tally {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tallyValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tallyLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+}
+
+.tone_good { color: rgba(180, 200, 150, 0.95); }
+.tone_fair { color: rgba(220, 180, 100, 0.95); }
+.tone_muted { color: rgba(232, 220, 200, 0.85); }
+
+/* ── Kind block ───────────────────────────────────────────────────────── */
+
+.kindBlock {
+  margin-bottom: 14px;
+}
+
+.kindLabel {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.kind_paddock { color: rgba(220, 180, 100, 0.9); }
+.kind_water { color: rgba(140, 190, 220, 0.9); }
+.kind_structure { color: rgba(196, 162, 101, 0.9); }
+.kind_crop { color: rgba(180, 200, 150, 0.95); }
+
+/* ── Item rows ────────────────────────────────────────────────────────── */
+
+.itemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itemRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.row_paddock { border-left-color: rgba(220, 180, 100, 0.55); }
+.row_water { border-left-color: rgba(140, 190, 220, 0.55); }
+.row_structure { border-left-color: rgba(196, 162, 101, 0.55); }
+.row_crop { border-left-color: rgba(180, 200, 150, 0.55); }
+
+.itemObserved {
+  background: rgba(180, 200, 150, 0.05);
+  border-left-color: rgba(180, 200, 150, 0.7);
+  opacity: 0.78;
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.itemName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.itemReason {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.itemStamp {
+  font-size: 10px;
+  color: rgba(180, 200, 150, 0.85);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ── Toggle button ────────────────────────────────────────────────────── */
+
+.toggleBtn,
+.toggleBtnDone {
+  flex-shrink: 0;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+  background: rgba(196, 162, 101, 0.08);
+  color: rgba(232, 200, 130, 0.95);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 36px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.toggleBtn:hover {
+  background: rgba(196, 162, 101, 0.16);
+}
+
+.toggleBtnDone {
+  border-color: rgba(180, 200, 150, 0.55);
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(200, 220, 170, 0.95);
+}
+
+.toggleBtnDone:hover {
+  background: rgba(180, 200, 150, 0.22);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

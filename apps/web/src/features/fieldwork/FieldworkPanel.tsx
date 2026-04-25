@@ -19,6 +19,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import WalkRouteRecorder from './WalkRouteRecorder.js';
 import SiteChecklist from './SiteChecklist.js';
 import FieldNoteExport from './FieldNoteExport.js';
+import FieldworkChecklistCard from './FieldworkChecklistCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -125,7 +126,10 @@ export default function FieldworkPanel({ project, map }: Props) {
       )}
 
       {activeTab === 'checklist' && (
-        <SiteChecklist projectId={project.id} />
+        <>
+          <FieldworkChecklistCard projectId={project.id} />
+          <SiteChecklist projectId={project.id} />
+        </>
       )}
 
       {/* ── Export ──────────────────────────────────────── */}
