@@ -28,6 +28,7 @@ import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } f
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
+import SeasonalShadowCard from './SeasonalShadowCard.js';
 import css from './SolarClimateDashboard.module.css';
 import { earth, status as statusToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -342,6 +343,14 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
       <div className={css.section}>
         <h3 className={css.sectionLabel}>SHADOW FOOTPRINTS</h3>
         <ShadowFootprintsCard structures={projectStructures} lat={lat} />
+      </div>
+
+      {/* §6 Seasonal Shadow Rollup — per-month noon shadow arc with site-mean
+          chart + top winter casters; complements the solstice-only footprints
+          card by surfacing chronic-shade structures across the full year. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>SEASONAL SHADOW ROLLUP</h3>
+        <SeasonalShadowCard structures={projectStructures} lat={lat} />
       </div>
 
       {/* Microclimate Zones */}

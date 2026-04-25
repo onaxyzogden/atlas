@@ -193,7 +193,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'sun-path-visualization', label: 'Sun path visualization, seasonal sun angle simulation', phase: 'P1', status: 'done' },
       { key: 'shade-solar-exposure-heatmap', label: 'Shade analysis, solar exposure heatmap', phase: 'P1', status: 'done' },
-      { key: 'structure-tree-shadow-casting', label: 'Structure and tree shadow casting', phase: 'P2', status: 'partial' },
+      { key: 'structure-tree-shadow-casting', label: 'Structure and tree shadow casting', phase: 'P2', status: 'done' },
       { key: 'solar-panel-placement-zones', label: 'Best solar panel placement zones', phase: 'P2', status: 'partial' },
       { key: 'passive-solar-building-siting', label: 'Passive solar building siting analysis', phase: 'P2', status: 'partial' },
       { key: 'prevailing-wind-shelter', label: 'Prevailing wind visualization, wind shelter analysis', phase: 'P1', status: 'partial' },
