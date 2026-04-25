@@ -22,6 +22,7 @@ import {
   checkCropBuildOrder,
   checkStructureBuildOrder,
 } from '../../../components/panels/timeline/timelineHelpers.js';
+import PermitReadinessCard from '../../structures/PermitReadinessCard.js';
 import css from './PhasingDashboard.module.css';
 
 interface PhasingDashboardProps {
@@ -448,6 +449,9 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
           </div>
         )
       )}
+
+      {/* ── §15 Per-phase permit readiness ──────────────────────────── */}
+      <PermitReadinessCard projectId={project.id} />
 
       {/* ── Footnote ────────────────────────────────────────────────── */}
       <div className={css.footnote}>
