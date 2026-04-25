@@ -7,7 +7,7 @@
 }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -55,7 +55,7 @@
   margin-bottom: 6px;
 }
 .summaryValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -88,7 +88,7 @@
   margin-bottom: 12px;
 }
 .paddockName {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -152,7 +152,7 @@
   margin-bottom: 20px;
 }
 .scheduleTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);

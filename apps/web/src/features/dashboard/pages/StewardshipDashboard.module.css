@@ -2,7 +2,7 @@
 .page { max-width: 860px; }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -57,7 +57,7 @@
   font-size: 22px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
 }
 .headlineConf {
   font-size: 11px;
@@ -179,7 +179,7 @@
   text-align: center;
 }
 .quote {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-style: italic;
   line-height: 1.6;

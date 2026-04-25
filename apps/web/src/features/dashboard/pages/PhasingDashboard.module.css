@@ -28,7 +28,7 @@
 }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.92);
@@ -95,7 +95,7 @@
 }
 
 .arcValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.92);
@@ -103,7 +103,7 @@
 }
 
 .arcValueSmall {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 500;
   color: rgba(232, 220, 200, 0.85);
@@ -219,7 +219,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   flex-shrink: 0;
@@ -276,7 +276,7 @@
 }
 
 .statValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.9);
@@ -378,7 +378,7 @@
 }
 
 .cardTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.88);

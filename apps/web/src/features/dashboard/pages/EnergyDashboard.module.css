@@ -28,7 +28,7 @@
 }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.92);
@@ -85,7 +85,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 600;
   flex-shrink: 0;
@@ -180,7 +180,7 @@
 }
 
 .cardTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.88);

@@ -136,7 +136,7 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
               transform="rotate(-90 50 50)"
               style={{ transition: 'stroke-dasharray 600ms ease' }}
             />
-            <text x={50} y={46} textAnchor="middle" fill="rgba(232,220,200,0.95)" fontSize={28} fontWeight={600} fontFamily="var(--font-display, 'Lora', Georgia, serif)">{overallScore}</text>
+            <text x={50} y={46} textAnchor="middle" fill="rgba(232,220,200,0.95)" fontSize={28} fontWeight={600} fontFamily="var(--font-display)">{overallScore}</text>
             <text x={50} y={62} textAnchor="middle" fill="rgba(180,165,140,0.4)" fontSize={10}>/100</text>
           </svg>
         </div>

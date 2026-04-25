@@ -20,7 +20,7 @@
   margin-bottom: 8px;
 }
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -87,7 +87,7 @@
   margin-bottom: 4px;
 }
 .paddockName {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   font-style: italic;
@@ -103,7 +103,7 @@
 .paddockAcres { text-align: right; }
 .acresValue {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -155,7 +155,7 @@
   margin-bottom: 4px;
 }
 .statValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -227,7 +227,7 @@
   margin-bottom: 20px;
 }
 .healthTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   font-style: italic;

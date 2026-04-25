@@ -137,7 +137,7 @@ const statCellStyle: React.CSSProperties = {
 };
 
 const statValueStyle: React.CSSProperties = {
-  fontFamily: "var(--font-display, 'Lora', Georgia, serif)",
+  fontFamily: 'var(--font-display)',
   fontSize: 16,
   fontWeight: 600,
   color: 'var(--color-panel-text)',

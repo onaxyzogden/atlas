@@ -56,7 +56,7 @@
   letter-spacing: 0.01em;
   color: rgba(232, 220, 200, 0.95);
   line-height: 1.2;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
 }
 
 .floatingProjectSub {

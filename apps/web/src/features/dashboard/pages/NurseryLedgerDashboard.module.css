@@ -4,7 +4,7 @@
 .page { max-width: 860px; }
 
 .title {
-  font-family: 'Fira Code', var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
   color: var(--color-success-50);

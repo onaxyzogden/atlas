@@ -33,7 +33,7 @@
 }
 
 .value {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.95);

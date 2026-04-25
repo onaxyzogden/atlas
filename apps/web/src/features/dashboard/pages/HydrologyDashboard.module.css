@@ -15,7 +15,7 @@
 }
 
 .suiteTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
   color: rgba(232,220,200,0.7);
@@ -85,7 +85,7 @@
   margin-bottom: 8px;
 }
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 30px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -141,7 +141,7 @@
 .metricValueRow { display: flex; align-items: baseline; gap: 6px; }
 .metricValue {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -183,7 +183,7 @@
   background: rgba(255,255,255,0.02);
 }
 .aquiferTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -216,7 +216,7 @@
   justify-content: space-between;
 }
 .droughtValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 48px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -270,7 +270,7 @@
   margin-bottom: 20px;
 }
 .comparisonTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -333,7 +333,7 @@
   margin-bottom: 20px;
 }
 .guidanceTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -397,7 +397,7 @@
   flex-wrap: wrap;
 }
 .ledgerTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -445,7 +445,7 @@
 }
 .pumpCardLabel {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -498,7 +498,7 @@
 .pumpStat:first-child { padding-left: 0; }
 .pumpStat:last-child { border-right: none; }
 .pumpStatValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -552,7 +552,7 @@
   border: 1px solid;
 }
 .assetName {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -586,7 +586,7 @@
   background: rgba(255,255,255,0.02);
 }
 .fieldObsTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -606,7 +606,7 @@
   background: rgba(255,255,255,0.02);
 }
 .maintenanceTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -658,7 +658,7 @@
   background: rgba(var(--color-group-hydrology-rgb),0.04);
 }
 .quoteText {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 14px;
   font-style: italic;
   font-weight: 500;
