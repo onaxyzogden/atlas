@@ -16,6 +16,7 @@ import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
+import SetbackSlopeSolarCard from '../../rules/SetbackSlopeSolarCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -186,6 +187,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §5 Walkability / Water / Zone relationship checks ───────── */}
       <SpatialRelationshipsCard project={project} />
+
+      {/* ── §9 Setback / Slope / Solar orientation warnings ─────────── */}
+      <SetbackSlopeSolarCard project={project} />
 
       {/* ── Guided tour (P4 stub) ───────────────────────────────────── */}
       <div className={css.card}>
