@@ -1,0 +1,335 @@
+/* §12 CompanionRotationPlannerCard — family-based rotation + companion audit. */
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 28px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Summary row ──────────────────────────────────────────────────────── */
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 700px) {
+  .summaryRow { grid-template-columns: repeat(2, 1fr); }
+}
+
+.summaryStat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.summaryValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.summarySub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+}
+
+.toneGood { color: rgba(180, 200, 150, 0.95); }
+.toneFair { color: rgba(220, 180, 100, 0.95); }
+.tonePoor { color: rgba(220, 130, 110, 0.95); }
+
+/* ── Site-wide rollup ─────────────────────────────────────────────────── */
+
+.rollupBlock {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 16px;
+}
+
+.rollupTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 8px;
+}
+
+.rollupBar {
+  display: flex;
+  height: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.rollupSeg {
+  height: 100%;
+  transition: width 200ms ease;
+}
+
+.rollupLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.rollupLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.rollupSwatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.rollupLabel {
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.rollupPct {
+  color: rgba(180, 165, 140, 0.65);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ── Per-area row ─────────────────────────────────────────────────────── */
+
+.areaList {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.areaRow {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+}
+
+.tone_good { border-left-color: rgba(180, 200, 150, 0.7); }
+.tone_fair { border-left-color: rgba(220, 180, 100, 0.7); }
+.tone_poor { border-left-color: rgba(220, 130, 110, 0.85); }
+
+.areaHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.areaName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.areaType {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.familyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.familyChip {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.chipMuted {
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.speciesLine {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.65);
+  margin-bottom: 10px;
+}
+
+.speciesNames {
+  color: rgba(220, 210, 185, 0.78);
+}
+
+/* ── Rotation flow ────────────────────────────────────────────────────── */
+
+.rotationBlock {
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.rotationLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 6px;
+}
+
+.rotationFlow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 700px) {
+  .rotationFlow { grid-template-columns: repeat(2, 1fr); }
+}
+
+.rotationStep {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rotationYear {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.rotationFamily {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ── Flags ────────────────────────────────────────────────────────────── */
+
+.flagList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.flagFair {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 200, 165, 0.85);
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(220, 180, 100, 0.06);
+  border-left: 2px solid rgba(220, 180, 100, 0.5);
+}
+
+.flagPoor {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 200, 185, 0.9);
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(220, 130, 110, 0.07);
+  border-left: 2px solid rgba(220, 130, 110, 0.6);
+}
+
+.flagFair strong, .flagPoor strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

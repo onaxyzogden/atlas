@@ -23,6 +23,7 @@ import {
 } from '../../planting/plantingAnalysis.js';
 import { SPECIES_BY_ID } from '../../planting/plantSpeciesData.js';
 import SeasonalProductivityCard from '../../crops/SeasonalProductivityCard.js';
+import CompanionRotationPlannerCard from '../../crops/CompanionRotationPlannerCard.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -1529,6 +1530,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §12 Seasonal Productivity ────────────────────────────── */}
       <SeasonalProductivityCard project={project} />
+
+      {/* ── §12 Companion & Rotation Planner ─────────────────────── */}
+      <CompanionRotationPlannerCard projectId={project.id} />
 
       {/* ── AI Siting Support ────────────────────────────────────── */}
       <div className={css.aiCard}>
