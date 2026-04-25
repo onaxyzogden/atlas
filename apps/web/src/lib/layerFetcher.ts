@@ -596,16 +596,16 @@ async function fetchElevationNrcan(
   }
 
   const d = result.data;
-  if (!d || d.fetchStatus !== 'complete' || !d.summary) {
+  if (!d || d.fetch_status !== 'complete' || !d.summary) {
     throw new Error(d?.message ?? 'No HRDEM data available');
   }
 
   return {
     layerType: 'elevation',
-    fetchStatus: d.fetchStatus,
+    fetchStatus: d.fetch_status,
     confidence: d.confidence,
-    dataDate: d.dataDate ?? new Date().toISOString().split('T')[0]!,
-    sourceApi: d.sourceApi,
+    dataDate: d.data_date ?? new Date().toISOString().split('T')[0]!,
+    sourceApi: d.source_api,
     attribution: d.attribution,
     summary: {
       min_elevation_m: d.summary.min_elevation_m,
@@ -617,7 +617,7 @@ async function fetchElevationNrcan(
       datum: d.datum,
       datum_offset_applied: d.datum_offset_applied,
       original_datum: d.original_datum,
-      rasterUrl: d.rasterUrl,
+      rasterUrl: d.raster_url,
       raster_tile: d.raster_tile,
     },
   };
