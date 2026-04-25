@@ -16,6 +16,7 @@ import AnimalCorridors from './AnimalCorridors.js';
 import ArrivalSequence from './ArrivalSequence.js';
 import RouteConflicts from './RouteConflicts.js';
 import SlopeWarnings from './SlopeWarnings.js';
+import WayfindingPlanCard from './WayfindingPlanCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -206,6 +207,7 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           <RouteConflicts paths={paths} zones={zones} />
           <SlopeWarnings paths={paths} terrainSummary={terrainSummary} />
           <AccessibleRouteCard paths={paths} terrainSummary={terrainSummary} />
+          <WayfindingPlanCard projectId={projectId} />
         </div>
       )}
 

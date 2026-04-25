@@ -1,0 +1,275 @@
+/* §10 WayfindingPlanCard — compact right-rail card matching AccessPanel
+   aesthetic: ink-on-parchment palette, dense info density. Same visual
+   vocabulary as the §16 / §18 / §19 dashboard cards but sized for the
+   400-ish-px right-rail panel rather than a wide dashboard column. */
+
+.card {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-top: 12px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 14px 12px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Score gauge ─────────────────────────────────────────────────────── */
+
+.scoreRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tone_good {
+  border-color: rgba(180, 200, 150, 0.28);
+  background: rgba(180, 200, 150, 0.05);
+}
+.tone_fair {
+  border-color: rgba(220, 180, 100, 0.24);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tone_poor {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.scoreVal {
+  font-size: 26px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.scoreOf {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 2px;
+}
+
+.scoreMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreWord {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.tone_good .scoreWord { color: rgba(180, 200, 150, 0.95); }
+.tone_fair .scoreWord { color: rgba(220, 180, 100, 0.95); }
+.tone_poor .scoreWord { color: rgba(220, 130, 110, 0.95); }
+
+.scoreSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  letter-spacing: 0.02em;
+}
+
+/* ── Stat strip ──────────────────────────────────────────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(255, 255, 255, 0.012);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1;
+}
+
+.statNote {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 1px;
+}
+
+/* ── Flag rows (arrival reachability, etc.) ──────────────────────────── */
+
+.flagRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid rgba(220, 180, 100, 0.22);
+  background: rgba(220, 180, 100, 0.04);
+  margin-bottom: 10px;
+}
+
+.flagDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(220, 180, 100, 0.92);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.flagBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.flagTitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  line-height: 1.35;
+}
+
+.flagSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.45;
+}
+
+/* ── Issues list ─────────────────────────────────────────────────────── */
+
+.issues {
+  margin-top: 12px;
+}
+
+.issuesLabel {
+  margin: 0 0 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.issueList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.issue {
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(255, 255, 255, 0.014);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.issueKind {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(220, 180, 100, 0.85);
+}
+
+.issueDetail {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(232, 220, 200, 0.78);
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}
