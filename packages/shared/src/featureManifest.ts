@@ -538,7 +538,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'planned' },
       { key: 'gis-kml-geojson-export', label: 'GIS layer export, KML / GeoJSON export', phase: 'P3', status: 'partial' },
       { key: 'image-export-screenshot', label: 'Image export, screenshot capture', phase: 'P3', status: 'partial' },
-      { key: 'branded-presentation-print-layout', label: 'Branded presentation mode, print layout mode', phase: 'P3', status: 'planned' },
+      { key: 'branded-presentation-print-layout', label: 'Branded presentation mode, print layout mode', phase: 'P3', status: 'done' },
       { key: 'white-label-export-mode', label: 'White-label export mode', phase: 'P3', status: 'planned' },
       { key: 'flyover-video-export', label: 'Flyover video export', phase: 'P4', status: 'planned' },
       { key: 'qr-share-embed-website', label: 'QR-share link, embed view on website', phase: 'P4', status: 'planned' },

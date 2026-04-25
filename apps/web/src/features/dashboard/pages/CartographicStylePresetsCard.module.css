@@ -1,0 +1,304 @@
+/* §23 CartographicStylePresetsCard — named map-style preset library. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Active block ─────────────────────────────────────────────────────── */
+
+.activeBlock {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(196, 162, 101, 0.06) 0%, rgba(196, 162, 101, 0.015) 100%);
+  border: 1px solid rgba(196, 162, 101, 0.18);
+  margin-bottom: 18px;
+}
+
+.activeLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(232, 200, 130, 0.85);
+}
+
+.activeName {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  margin-top: 4px;
+}
+
+.activeIntent {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.78);
+  margin-top: 6px;
+}
+
+.activeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.activeMeta strong {
+  color: rgba(232, 220, 200, 0.9);
+  font-weight: 600;
+}
+
+/* ── Preset grid ──────────────────────────────────────────────────────── */
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 720px) {
+  .presetGrid { grid-template-columns: 1fr; }
+}
+
+.preset {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.presetActive {
+  border-color: rgba(196, 162, 101, 0.4);
+  background: rgba(196, 162, 101, 0.04);
+}
+
+.presetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.presetName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.presetAudience {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+}
+
+.activeBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.18);
+  color: rgba(232, 200, 130, 0.95);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  white-space: nowrap;
+}
+
+.activateBtn {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.06);
+  color: rgba(220, 210, 185, 0.85);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.activateBtn:hover {
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.95);
+  border-color: rgba(196, 162, 101, 0.3);
+}
+
+/* ── Swatch row preview ───────────────────────────────────────────────── */
+
+.swatchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+/* ── Swatch legend ────────────────────────────────────────────────────── */
+
+.swatchLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.swatchLegendItem {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 10.5px;
+}
+
+.swatchDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.swatchLabel {
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.swatchHex {
+  color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 9.5px;
+}
+
+/* ── Preset body ──────────────────────────────────────────────────────── */
+
+.presetIntent {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.72);
+}
+
+.presetFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.presetMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.presetMetaLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.presetMetaValue {
+  font-size: 10.5px;
+  color: rgba(220, 210, 185, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+.presetCaveat {
+  font-size: 10.5px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(220, 130, 110, 0.06);
+  border-left: 2px solid rgba(220, 130, 110, 0.4);
+  color: rgba(220, 200, 185, 0.8);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote code {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(232, 200, 130, 0.85);
+}

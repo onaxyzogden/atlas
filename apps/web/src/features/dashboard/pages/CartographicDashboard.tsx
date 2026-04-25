@@ -4,6 +4,7 @@
 
 import type { LocalProject } from '../../../store/projectStore.js';
 import css from './CartographicDashboard.module.css';
+import CartographicStylePresetsCard from './CartographicStylePresetsCard.js';
 
 interface CartographicDashboardProps {
   project: LocalProject;
@@ -94,6 +95,8 @@ export default function CartographicDashboard({ project, onSwitchToMap }: Cartog
           ))}
         </div>
       </div>
+
+      <CartographicStylePresetsCard />
 
       <button className={css.mapBtn} onClick={onSwitchToMap}>
         OPEN MAP VIEW
