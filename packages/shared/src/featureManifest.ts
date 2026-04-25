@@ -434,7 +434,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'stub',
     features: [
       { key: 'ai-site-summary', label: 'AI site summary (with data source attribution and confidence level)', phase: 'P3', status: 'partial' },
-      { key: 'ai-constraint-opportunity-summaries', label: 'AI constraint and opportunity summaries', phase: 'P3', status: 'planned' },
+      { key: 'ai-constraint-opportunity-summaries', label: 'AI constraint and opportunity summaries', phase: 'P3', status: 'done' },
       { key: 'ai-feature-placement-suggestions', label: 'AI feature placement suggestions (with explainability output)', phase: 'P3', status: 'planned' },
       { key: 'ai-phased-build-water-grazing-orchard-strategies', label: 'AI phased build, water strategy, grazing strategy, orchard strategy suggestions', phase: 'P3', status: 'planned' },
       { key: 'ai-risk-warnings-ecological-interpretation', label: 'AI risk warnings and ecological interpretation', phase: 'P3', status: 'planned' },

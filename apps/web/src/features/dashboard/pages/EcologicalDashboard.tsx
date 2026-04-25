@@ -22,6 +22,7 @@ import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
 import ZoneSeasonalityRollup from '../../zones/ZoneSeasonalityRollup.js';
 import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
 import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
+import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
 import css from './EcologicalDashboard.module.css';
 
 interface EcologicalDashboardProps {
@@ -354,6 +355,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           ))}
         </div>
       )}
+
+      {/* §18 AI design synthesis — deterministic constraint/opportunity rollup */}
+      <AiSiteSynthesisCard project={project} />
 
       {/* Soil Health */}
       <div className={css.section}>
