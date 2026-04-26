@@ -281,7 +281,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'route-slope-conflict-detection', label: 'Route slope analysis, conflict detection', phase: 'P3', status: 'done' },
       { key: 'public-private-circulation-layers', label: 'Public vs private circulation layers', phase: 'P2', status: 'planned' },
       { key: 'arrival-sequence-design', label: 'Arrival sequence design (guest experience path)', phase: 'MT', status: 'partial' },
-      { key: 'parking-turning-delivery-checks', label: 'Parking capacity, turning radius, delivery access checks', phase: 'P3', status: 'planned' },
+      { key: 'parking-turning-delivery-checks', label: 'Parking capacity, turning radius, delivery access checks', phase: 'P3', status: 'done' },
       { key: 'quiet-circulation-routes', label: 'Quiet circulation routes', phase: 'MT', status: 'partial' },
       { key: 'event-flow-night-lighting-safety', label: 'Event flow, night lighting route, safety and visibility checks', phase: 'P3', status: 'planned' },
       { key: 'wayfinding-system-planning', label: 'Wayfinding system planning', phase: 'P3', status: 'done' },
