@@ -32,6 +32,7 @@ import EcologicalRiskWarningsCard from '../../ai-design-support/EcologicalRiskWa
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
+import MissionTradeoffExplorerCard from '../../decision/MissionTradeoffExplorerCard.js';
 import MobileTractorZonesCard from '../../livestock/MobileTractorZonesCard.js';
 import PresentationDeckCard from '../../collaboration/PresentationDeckCard.js';
 import css from './EcologicalDashboard.module.css';
@@ -390,6 +391,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §22 Mission-weighted impact — multi-axis ROI rollup */}
       <MissionImpactRollupCard project={project} />
+
+      {/* §22 Mission tradeoff explorer — interactive weight-tuning what-if */}
+      <MissionTradeoffExplorerCard project={project} />
 
       {/* §11 Mobile-tractor zones — chicken / rabbit / pig candidates */}
       <MobileTractorZonesCard projectId={project.id} />
