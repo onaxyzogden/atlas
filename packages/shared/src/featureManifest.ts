@@ -404,7 +404,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'best-base-worst-case-scenarios', label: 'Best-case / base-case / worst-case scenarios', phase: 'P3', status: 'done' },
       { key: 'climate-shift-overlays', label: 'Climate shift scenario overlays', phase: 'P4', status: 'done' },
       { key: 'fire-emergency-infrastructure-failure-water-shortage', label: 'Fire / emergency, infrastructure failure, water shortage scenarios', phase: 'P3', status: 'planned' },
-      { key: 'layout-option-a-b-c-comparison', label: 'Alternate layout and design option A/B/C comparison', phase: 'P3', status: 'partial' },
+      { key: 'layout-option-a-b-c-comparison', label: 'Alternate layout and design option A/B/C comparison', phase: 'P3', status: 'done' },
       { key: 'sensitivity-analysis-by-assumption', label: 'Sensitivity analysis by assumption', phase: 'P3', status: 'done' },
     ],
   },
