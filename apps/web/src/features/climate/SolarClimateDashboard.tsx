@@ -28,6 +28,7 @@ import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } f
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
+import SolarPlacementCandidatesCard from './SolarPlacementCandidatesCard.js';
 import SeasonalShadowCard from './SeasonalShadowCard.js';
 import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
 import PassiveSolarTuningCard from './PassiveSolarTuningCard.js';
@@ -322,6 +323,21 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           <AdaptationCards items={adaptations} />
         </div>
       )}
+
+      {/* §6 Best placement zones — site-wide solar potential + candidate-zone
+          guidance ahead of placement. Complements PlacementScoringCard, which
+          scores already-placed arrays. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>BEST PLACEMENT ZONES</h3>
+        <SolarPlacementCandidatesCard
+          lat={lat}
+          meanSlopeDeg={elevation?.mean_slope_deg ?? null}
+          dominantAspect={elevation?.aspect_dominant ?? null}
+          exposureBySeason={exposureBySeason}
+          hasClimate={climate != null}
+          acreage={project.acreage ?? null}
+        />
+      </div>
 
       {/* §6 Placement Scoring — scores placed solar arrays + passive-solar structures
           against site climate signals (exposure, aspect, orientation). */}
