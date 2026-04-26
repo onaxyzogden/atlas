@@ -26,6 +26,7 @@ import AccessEfficiencyCard from '../rules/AccessEfficiencyCard.js';
 import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
 import GuestPrivacyCard from '../rules/GuestPrivacyCard.js';
 import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
+import DomainFeasibilityCard from './DomainFeasibilityCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -300,6 +301,9 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
 
       {/* Missing information checklist */}
       <MissingInformationChecklistCard project={project} />
+
+      {/* §28 Domain feasibility — Access · Water · Agricultural · Livestock */}
+      <DomainFeasibilityCard project={project} />
 
       {/* Vision fit analysis */}
       {fitResults.length > 0 && (

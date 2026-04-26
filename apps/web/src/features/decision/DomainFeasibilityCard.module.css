@@ -1,0 +1,232 @@
+/* §28 DomainFeasibilityCard — Access / Water / Ag / Livestock verdict rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 16px;
+}
+
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+}
+
+.tone_good  { border-color: rgba(180, 200, 150, 0.18); }
+.tone_fair  { border-color: rgba(220, 180, 100, 0.18); }
+.tone_poor  { border-color: rgba(220, 130, 110, 0.22); }
+.tone_muted { border-color: rgba(232, 220, 200, 0.04); }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+}
+
+.row_good {
+  background: rgba(180, 200, 150, 0.05);
+  border-left-color: rgba(180, 200, 150, 0.85);
+}
+
+.row_fair {
+  background: rgba(220, 180, 100, 0.04);
+  border-left-color: rgba(220, 180, 100, 0.7);
+}
+
+.row_poor {
+  background: rgba(220, 130, 110, 0.04);
+  border-left-color: rgba(220, 130, 110, 0.55);
+}
+
+.row_unknown {
+  background: rgba(232, 220, 200, 0.025);
+  border-left-color: rgba(180, 165, 140, 0.35);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.verdictTag {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.tag_good {
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(195, 215, 165, 0.95);
+  border: 1px solid rgba(180, 200, 150, 0.25);
+}
+
+.tag_fair {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.92);
+  border: 1px solid rgba(220, 180, 100, 0.22);
+}
+
+.tag_poor {
+  background: rgba(220, 130, 110, 0.12);
+  color: rgba(230, 160, 145, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.22);
+}
+
+.tag_unknown {
+  background: rgba(180, 165, 140, 0.1);
+  color: rgba(200, 190, 170, 0.78);
+  border: 1px solid rgba(180, 165, 140, 0.2);
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headline {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bullet {
+  position: relative;
+  padding-left: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 190, 170, 0.78);
+}
+
+.bullet::before {
+  content: '\2022';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}

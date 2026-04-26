@@ -494,7 +494,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'feasibility-summary', label: 'Feasibility summary, constraint checklist, missing information checklist', phase: 'P2', status: 'done' },
       { key: 'regulatory-risk-notes', label: 'Regulatory risk notes (see Section 0e for full regulatory layer)', phase: 'P2', status: 'done' },
-      { key: 'access-water-ag-livestock-feasibility', label: 'Access, water, agricultural, livestock feasibility notes', phase: 'P2', status: 'planned' },
+      { key: 'access-water-ag-livestock-feasibility', label: 'Access, water, agricultural, livestock feasibility notes', phase: 'P2', status: 'done' },
       { key: 'hospitality-education-energy-feasibility', label: 'Hospitality, education, energy feasibility notes', phase: 'P2', status: 'planned' },
       { key: 'terrain-construction-difficulty', label: 'Terrain construction difficulty notes', phase: 'P2', status: 'planned' },
       { key: 'capital-intensity-operational-complexity', label: 'Capital intensity estimate, operational complexity score', phase: 'P2', status: 'planned' },
@@ -560,7 +560,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'walk-route-quick-annotation', label: 'Walk route recording, quick annotation mode', phase: 'P4', status: 'planned' },
       { key: 'on-site-measurement-logging', label: 'On-site measurement logging', phase: 'P4', status: 'planned' },
       { key: 'site-visit-report-generation', label: 'Site visit report generation', phase: 'P4', status: 'planned' },
-      { key: 'punch-list-site-verification', label: 'Punch-list creation, site verification against design', phase: 'P4', status: 'planned' },
+      { key: 'punch-list-site-verification', label: 'Punch-list creation, site verification against design', phase: 'P4', status: 'done' },
       { key: 'as-built-update-mode', label: 'As-built update mode', phase: 'P4', status: 'planned' },
     ],
   },
