@@ -1,0 +1,217 @@
+/* §24 OfflineSyncStatusCard — sync state surface for FieldworkPanel. */
+
+.card {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 14px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── State strip ───────────────────────────────────────────────────── */
+
+.stateStrip {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 10px;
+}
+
+.stateBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.stateDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 4px;
+  background: rgba(180, 200, 150, 0.85);
+  flex-shrink: 0;
+}
+
+.state_clean .stateDot { background: rgba(180, 200, 150, 0.95); }
+.state_pending .stateDot { background: rgba(220, 180, 100, 0.95); }
+.state_syncing .stateDot { background: rgba(150, 190, 220, 0.95); }
+.state_error .stateDot { background: rgba(220, 130, 110, 0.95); }
+.state_offline .stateDot { background: rgba(180, 165, 140, 0.7); }
+
+.state_clean { border-color: rgba(180, 200, 150, 0.22); }
+.state_pending { border-color: rgba(220, 180, 100, 0.2); }
+.state_syncing { border-color: rgba(150, 190, 220, 0.22); }
+.state_error { border-color: rgba(220, 130, 110, 0.24); }
+.state_offline { border-color: rgba(180, 165, 140, 0.18); }
+
+.stateTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stateWord {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: 0.02em;
+}
+
+.state_clean .stateWord { color: rgba(180, 200, 150, 0.95); }
+.state_pending .stateWord { color: rgba(220, 180, 100, 0.95); }
+.state_syncing .stateWord { color: rgba(150, 190, 220, 0.95); }
+.state_error .stateWord { color: rgba(220, 130, 110, 0.95); }
+.state_offline .stateWord { color: rgba(220, 210, 185, 0.85); }
+
+.stateSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.45;
+}
+
+/* ── Stat strip ────────────────────────────────────────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.statNote {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.55);
+  line-height: 1.35;
+  margin-top: 1px;
+}
+
+/* ── Per-type breakdown ────────────────────────────────────────────── */
+
+.sectionLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin: 4px 0 6px;
+}
+
+.typeList {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.typeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.014);
+  font-size: 10.5px;
+}
+
+.typeLabel {
+  color: rgba(232, 220, 200, 0.88);
+  font-weight: 500;
+}
+
+.typeCount {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+  min-width: 24px;
+  text-align: right;
+}
+
+.typeCountZero {
+  color: rgba(180, 165, 140, 0.4);
+  font-weight: 500;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}

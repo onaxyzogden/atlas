@@ -23,6 +23,7 @@ import FieldworkChecklistCard from './FieldworkChecklistCard.js';
 import WalkChecklistCard from './WalkChecklistCard.js';
 import SiteVisitReportCard from './SiteVisitReportCard.js';
 import GeotaggedPhotoGalleryCard from './GeotaggedPhotoGalleryCard.js';
+import OfflineSyncStatusCard from './OfflineSyncStatusCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -85,6 +86,9 @@ export default function FieldworkPanel({ project, map }: Props) {
           </span>
         </div>
       </div>
+
+      {/* §24 Offline & sync status (offline-field-mode-sync). Visible on every tab. */}
+      <OfflineSyncStatusCard projectId={project.id} />
 
       {/* ── Tab Bar ─────────────────────────────────────── */}
       <div className={css.tabBar}>
