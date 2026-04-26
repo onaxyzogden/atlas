@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
+import MicroclimatePocketCard from '../../terrain/MicroclimatePocketCard.js';
 import css from './TerrainDashboard.module.css';
 import { status as statusToken } from '../../../lib/tokens.js';
 
@@ -244,6 +245,9 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
           <p className={css.aspectNote}>{aspectNote}</p>
         </div>
       </div>
+
+      {/* §7 Microclimate pockets — aspect × slope × hardiness zone */}
+      <MicroclimatePocketCard project={project} />
 
       {/* Drainage patterns */}
       <div className={css.section}>
