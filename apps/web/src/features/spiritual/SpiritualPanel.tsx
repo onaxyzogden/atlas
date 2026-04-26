@@ -15,6 +15,7 @@ import QiblaDisplay from './QiblaDisplay.js';
 import PrayerSpaceAlignment from './PrayerSpaceAlignment.js';
 import SolarEvents from './SolarEvents.js';
 import QuietZonePlanning from './QuietZonePlanning.js';
+import PrayerZoneReadinessCard from './PrayerZoneReadinessCard.js';
 import MoontranceSpiritual from './MoontranceSpiritual.js';
 import SignsInCreation from './SignsInCreation.js';
 import p from '../../styles/panel.module.css';
@@ -88,6 +89,8 @@ export default function SpiritualPanel({ project }: SpiritualPanelProps) {
 
       {activeTab === 'spaces' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* §6 per-spiritual-zone prayer-readiness audit */}
+          <PrayerZoneReadinessCard project={project} />
           <QuietZonePlanning spiritualZones={spiritualZones} infrastructureZones={infrastructureZones} vehiclePaths={vehiclePaths} />
           <MoontranceSpiritual identity={visionData?.moontranceIdentity ?? null} projectType={project.projectType ?? ''} />
         </div>
