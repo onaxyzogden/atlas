@@ -27,6 +27,7 @@ import CompanionRotationPlannerCard from '../../crops/CompanionRotationPlannerCa
 import AllelopathyWarningCard from '../../crops/AllelopathyWarningCard.js';
 import OrchardGuildSuggestionsCard from '../../crops/OrchardGuildSuggestionsCard.js';
 import CanopyMaturityCard from '../../crops/CanopyMaturityCard.js';
+import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -1545,6 +1546,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §15 Canopy Maturity & Overlap Projection ─────────────── */}
       <CanopyMaturityCard projectId={project.id} />
+
+      {/* ── §16 Climate Shift Scenario Overlay (mid-century) ─────── */}
+      <ClimateShiftScenarioCard projectId={project.id} />
 
       {/* ── AI Siting Support ────────────────────────────────────── */}
       <div className={css.aiCard}>
