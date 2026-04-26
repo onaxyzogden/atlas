@@ -72,6 +72,7 @@ import { EnvironmentalRiskSection } from './sections/EnvironmentalRiskSection.js
 import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js';
 import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
 import { SolarWindFireRiskCard } from './sections/SolarWindFireRiskCard.js';
+import { ManualLabTestsCard } from './sections/ManualLabTestsCard.js';
 import { HydrologyExtensionsSection } from './sections/HydrologyExtensionsSection.js';
 import { EnergyIntelligenceSection } from './sections/EnergyIntelligenceSection.js';
 import { GeologicalBedrockSection } from './sections/GeologicalBedrockSection.js';
@@ -756,6 +757,7 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         onToggleSoil={onToggleSoil}
       />
 
+      <ManualLabTestsCard projectId={project.id} />
 
       <InfrastructureAccessSection
         infraMetrics={infraMetrics}

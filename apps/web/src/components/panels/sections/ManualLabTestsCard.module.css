@@ -1,0 +1,205 @@
+/* §3 ManualLabTestsCard — Tier-2 manual lab-test rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.cardHint em {
+  color: rgba(180, 165, 140, 0.8);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.tierBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(140, 180, 200, 0.12);
+  color: rgba(180, 215, 235, 0.92);
+  border: 1px solid rgba(140, 180, 200, 0.22);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.empty strong {
+  color: rgba(232, 220, 200, 0.9);
+  font-weight: 600;
+}
+
+.empty em {
+  color: rgba(180, 215, 235, 0.85);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.sectionLabel {
+  margin: 12px 0 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.testList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.testRow {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.testHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.testAge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+
+.testFlags {
+  display: flex;
+  gap: 4px;
+}
+
+.flagChip {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(180, 165, 140, 0.1);
+  color: rgba(180, 165, 140, 0.85);
+  border: 1px solid rgba(180, 165, 140, 0.18);
+}
+
+.flagVerified {
+  background: rgba(180, 200, 150, 0.12);
+  color: rgba(190, 215, 160, 0.95);
+  border-color: rgba(180, 200, 150, 0.28);
+}
+
+.testNote {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: rgba(220, 210, 185, 0.78);
+  word-break: break-word;
+}
+
+.moreNote {
+  margin-top: 6px;
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}

@@ -134,7 +134,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'landcover-vegetation-nlcd', label: 'Land cover and vegetation classification (NLCD — Tier 1)', phase: 'P1', status: 'done' },
       { key: 'climate-normals-noaa', label: 'Climate normals, precipitation, temperature, frost risk (NOAA — Tier 1)', phase: 'P1', status: 'done' },
       { key: 'drone-ortho-terrain', label: 'User-uploaded drone imagery, orthomosaic, terrain model (Tier 2)', phase: 'P2', status: 'planned' },
-      { key: 'manual-soil-water-tests', label: 'Manual soil test entry, water test data (Tier 2)', phase: 'P2', status: 'planned' },
+      { key: 'manual-soil-water-tests', label: 'Manual soil test entry, water test data (Tier 2)', phase: 'P2', status: 'done' },
       { key: 'geological-bedrock-notes', label: 'Geological substrate, bedrock depth notes', phase: 'P2', status: 'done' },
       { key: 'solar-wind-fire', label: 'Solar radiation, wind rose, fire risk layers', phase: 'P2', status: 'done' },
       { key: 'habitat-wildlife-corridors', label: 'Habitat, wildlife corridor, protected species notes', phase: 'P2', status: 'done' },
