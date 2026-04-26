@@ -28,6 +28,7 @@ import AllelopathyWarningCard from '../../crops/AllelopathyWarningCard.js';
 import OrchardGuildSuggestionsCard from '../../crops/OrchardGuildSuggestionsCard.js';
 import CanopyMaturityCard from '../../crops/CanopyMaturityCard.js';
 import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
+import ShadeSuccessionForecastCard from '../../crops/ShadeSuccessionForecastCard.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -1549,6 +1550,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §16 Climate Shift Scenario Overlay (mid-century) ─────── */}
       <ClimateShiftScenarioCard projectId={project.id} />
+
+      {/* ── §12 Shade Succession Forecast (Y5/Y10/Y20/Y50 arc) ───── */}
+      <ShadeSuccessionForecastCard projectId={project.id} />
 
       {/* ── AI Siting Support ────────────────────────────────────── */}
       <div className={css.aiCard}>

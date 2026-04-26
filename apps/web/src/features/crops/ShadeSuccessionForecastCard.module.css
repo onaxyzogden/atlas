@@ -1,0 +1,315 @@
+/* §12 ShadeSuccessionForecastCard — multi-decade canopy arc with senescence. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 14px 0 16px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.68);
+  max-width: 600px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 24px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.015);
+  color: rgba(180, 165, 140, 0.62);
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+/* ── Aggregate timeline ── */
+.timelineLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 8px;
+}
+
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.timelineCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.timelineYear {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.7);
+  letter-spacing: 0.04em;
+}
+
+.timelineBarTrack {
+  width: 100%;
+  height: 88px;
+  background: rgba(232, 220, 200, 0.03);
+  border-radius: 5px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.timelineBarFill {
+  width: 100%;
+  border-radius: 5px 5px 0 0;
+  transition: height 0.25s ease;
+}
+
+.barSage {
+  background: linear-gradient(to top, rgba(160, 195, 130, 0.9), rgba(180, 215, 150, 0.5));
+}
+
+.barAmber {
+  background: linear-gradient(to top, rgba(220, 180, 100, 0.85), rgba(240, 200, 120, 0.45));
+}
+
+.barNeutral {
+  background: linear-gradient(to top, rgba(196, 162, 101, 0.7), rgba(220, 185, 130, 0.4));
+}
+
+.timelineValue {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Callout box (collapse warning) ── */
+.calloutBox {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.calloutAmber {
+  background: rgba(220, 180, 100, 0.07);
+  border-left: 3px solid rgba(220, 180, 100, 0.7);
+}
+
+.calloutRust {
+  background: rgba(220, 130, 110, 0.07);
+  border-left: 3px solid rgba(220, 130, 110, 0.7);
+}
+
+.calloutTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin-bottom: 4px;
+}
+
+.calloutBody {
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(200, 188, 165, 0.78);
+}
+
+/* ── Per-cluster breakdown ── */
+.subhead {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin: 14px 0 8px;
+}
+
+.clusterList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clusterRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.clusterSage {
+  border-left: 3px solid rgba(160, 195, 130, 0.7);
+}
+
+.clusterAmber {
+  border-left: 3px solid rgba(220, 180, 100, 0.7);
+}
+
+.clusterRust {
+  border-left: 3px solid rgba(220, 130, 110, 0.75);
+}
+
+.clusterHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.clusterName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.clusterTypeBadge {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.clusterArc {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.clusterArcCell {
+  text-align: center;
+  padding: 5px 4px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.clusterArcYear {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 1px;
+}
+
+.clusterArcShade {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+
+.clusterRoles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.roleChip {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.role_pioneer {
+  background: rgba(220, 180, 100, 0.1);
+  color: rgba(235, 200, 130, 0.95);
+}
+
+.role_midstory {
+  background: rgba(180, 195, 145, 0.1);
+  color: rgba(200, 215, 165, 0.95);
+}
+
+.role_climax {
+  background: rgba(120, 165, 110, 0.12);
+  color: rgba(165, 200, 150, 0.95);
+}
+
+.role_unknown {
+  background: rgba(232, 220, 200, 0.03);
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.clusterWarn {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(220, 130, 110, 0.06);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(235, 165, 145, 0.92);
+}
+
+/* ── Footer summary ── */
+.summary {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.summary strong {
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  margin-top: 8px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.5);
+}
