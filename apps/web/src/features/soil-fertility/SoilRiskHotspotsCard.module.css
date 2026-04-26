@@ -1,0 +1,251 @@
+/* §3 SoilRiskHotspotsCard — derived dry/wet/erosion/compaction advisories. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.hint strong {
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.badgeGood { background: rgba(180, 200, 150, 0.12); color: rgba(180, 220, 150, 0.95); border-color: rgba(180, 200, 150, 0.3); }
+.badgeFair { background: rgba(220, 180, 100, 0.10); color: rgba(232, 200, 130, 0.9);  border-color: rgba(220, 180, 100, 0.3); }
+.badgePoor { background: rgba(220, 130, 110, 0.10); color: rgba(230, 160, 140, 0.9);  border-color: rgba(220, 130, 110, 0.3); }
+
+.empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.65);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+/* ── Risk-kind summary tiles ─────────────────────────────────────────── */
+.kindGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 700px) {
+  .kindGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.kindStat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kindStatHit {
+  border-color: rgba(220, 180, 100, 0.3);
+  background: rgba(220, 180, 100, 0.045);
+}
+
+.kindIcon {
+  font-size: 14px;
+  color: rgba(220, 180, 100, 0.85);
+  width: 16px;
+  text-align: center;
+}
+
+.kindLabel {
+  flex: 1;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.kindValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Per-zone list ───────────────────────────────────────────────────── */
+.list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row_high  { border-left-color: rgba(220, 130, 110, 0.7); background: rgba(220, 130, 110, 0.045); }
+.row_med   { border-left-color: rgba(220, 180, 100, 0.7); background: rgba(220, 180, 100, 0.035); }
+.row_low   { border-left-color: rgba(220, 180, 100, 0.45); background: rgba(220, 180, 100, 0.025); }
+.row_clear { border-left-color: rgba(180, 200, 150, 0.6);  background: rgba(180, 200, 150, 0.035); }
+
+.rowMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.rowName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowCat {
+  font-size: 10.5px;
+  color: rgba(220, 200, 130, 0.85);
+  text-transform: capitalize;
+}
+
+.rowArea {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.65);
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowBand {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+  background: transparent;
+}
+
+/* ── Per-flag pill ───────────────────────────────────────────────────── */
+.flagList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flag {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.022);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.flag_high   { border-left: 2px solid rgba(220, 130, 110, 0.8); }
+.flag_medium { border-left: 2px solid rgba(220, 180, 100, 0.8); }
+.flag_low    { border-left: 2px solid rgba(180, 200, 150, 0.8); }
+
+.flagIcon {
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+  color: rgba(232, 200, 130, 0.85);
+}
+
+.flagKind {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(220, 200, 130, 0.85);
+  white-space: nowrap;
+}
+
+.flagText {
+  flex: 1;
+  font-style: italic;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.clearNote {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 220, 150, 0.78);
+  font-style: italic;
+  padding: 4px 0 0;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+.footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

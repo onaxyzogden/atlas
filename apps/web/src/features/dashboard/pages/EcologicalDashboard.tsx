@@ -24,6 +24,7 @@ import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
 import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
+import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
 import MobileTractorZonesCard from '../../livestock/MobileTractorZonesCard.js';
 import PresentationDeckCard from '../../collaboration/PresentationDeckCard.js';
@@ -737,6 +738,13 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           against conservation / water_retention zones (footprint
           violations, riparian setback, invasive-pressure flags). */}
       <EcologicalProtectionCard projectId={project.id} />
+
+      {/* §3 Soil risk hotspots — derived dry / wet / erosion / compaction
+          advisories per zone, using paddock stocking density, succession
+          stage, and proximity to water utilities. Closes the partial-status
+          §3 sun-trap-dry-wet-erosion-compaction manifest item (the sun-trap
+          half is covered upstream by MicroclimateInsightsCard). */}
+      <SoilRiskHotspotsCard projectId={project.id} />
 
       {/* §8 Seasonal / phased-use rollup: acres-by-season + per-month
           coverage strip from zone.seasonality tags. */}
