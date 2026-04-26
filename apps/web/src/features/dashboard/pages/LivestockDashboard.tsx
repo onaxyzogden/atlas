@@ -25,6 +25,7 @@ import LivestockLandFitCard from '../../livestock/LivestockLandFitCard.js';
 import LivestockWelfarePhasingCard from '../../livestock/LivestockWelfarePhasingCard.js';
 import BiosecurityBufferCard from '../../livestock/BiosecurityBufferCard.js';
 import PastureUtilizationCard from '../../livestock/PastureUtilizationCard.js';
+import PredatorRiskHotspotsCard from '../../livestock/PredatorRiskHotspotsCard.js';
 import css from './LivestockDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 
@@ -377,6 +378,11 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
 
       {/* §11 Pasture utilization — paddock-by-paddock stocking-density feedback */}
       <PastureUtilizationCard projectId={project.id} />
+
+      {/* §11 Predator risk by paddock — woodland-edge baseline composed
+          with species vulnerability, edge density, fencing type, and
+          shelter proximity. Mitigations per paddock. */}
+      <PredatorRiskHotspotsCard projectId={project.id} />
 
       {/* Animal Welfare Summary */}
       {welfare && (
