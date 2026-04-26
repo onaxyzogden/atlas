@@ -167,8 +167,10 @@ function shiftZone(currentZone: number, tempDelta: number): number {
 }
 
 export default function ClimateShiftScenarioCard({ projectId }: Props) {
-  const cropAreas = useCropStore((s) =>
-    s.cropAreas.filter((c) => c.projectId === projectId),
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const cropAreas = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === projectId),
+    [allCropAreas, projectId],
   );
   const project = useProjectStore((s) =>
     s.projects.find((p) => p.id === projectId),

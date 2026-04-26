@@ -108,14 +108,26 @@ function saveObserved(projectId: string, observed: Record<string, ObservedEntry>
 
 export default function WalkChecklistCard({ projectId }: Props) {
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
-  const structures = useStructureStore((s) =>
-    s.structures.filter((st) => st.projectId === projectId),
+  const allStructures = useStructureStore((s) => s.structures);
+  const structures = useMemo(
+    () => allStructures.filter((st) => st.projectId === projectId),
+    [allStructures, projectId],
   );
-  const utilities = useUtilityStore((s) =>
-    s.utilities.filter((u) => u.projectId === projectId),
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const utilities = useMemo(
+    () => allUtilities.filter((u) => u.projectId === projectId),
+    [allUtilities, projectId],
   );
-  const cropAreas = useCropStore((s) => s.cropAreas.filter((c) => c.projectId === projectId));
-  const paddocks = useLivestockStore((s) => s.paddocks.filter((p) => p.projectId === projectId));
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const cropAreas = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === projectId),
+    [allCropAreas, projectId],
+  );
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const paddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === projectId),
+    [allPaddocks, projectId],
+  );
   const siteData = useSiteData(projectId);
 
   const [observed, setObserved] = useState<Record<string, ObservedEntry>>(() =>
