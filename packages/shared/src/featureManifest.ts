@@ -89,7 +89,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'field-observations-legal', label: 'Add field observations and legal description', phase: 'P1', status: 'partial' },
       { key: 'zoning-utility-notes', label: 'Add zoning, municipal, access, utility notes', phase: 'P1', status: 'partial' },
       { key: 'restrictions-covenants', label: 'Add restrictions / covenants notes', phase: 'P1', status: 'partial' },
-      { key: 'climate-bioregion-county', label: 'Add climate region, bioregion, county metadata', phase: 'P1', status: 'partial' },
+      { key: 'climate-bioregion-county', label: 'Add climate region, bioregion, county metadata', phase: 'P1', status: 'done' },
       { key: 'units-projection', label: 'Set units and map projection', phase: 'P1', status: 'done' },
       { key: 'project-permissions', label: 'Set project permissions', phase: 'P1', status: 'done' },
       { key: 'autosave-versions', label: 'Auto-save and version snapshots', phase: 'P1', status: 'done' },
@@ -356,7 +356,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3', 'MT'],
     status: 'partial',
     features: [
-      { key: 'toggle-current-vs-vision', label: 'Toggle current land vs vision', phase: 'P2', status: 'partial' },
+      { key: 'toggle-current-vs-vision', label: 'Toggle current land vs vision', phase: 'P2', status: 'done' },
       { key: 'before-after-concept-masterplan-overlay', label: 'Before / after comparison, concept masterplan overlay', phase: 'P2', status: 'done' },
       { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'done' },
       { key: 'signs-in-creation-interpretive-mode', label: "'Signs in creation' interpretive mode", phase: 'MT', status: 'done' },
