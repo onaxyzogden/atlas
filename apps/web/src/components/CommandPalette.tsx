@@ -1,5 +1,5 @@
 /**
- * CommandPalette — quick search and action bar (Cmd+K / Ctrl+K).
+ * CommandPalette â€” quick search and action bar (Cmd+K / Ctrl+K).
  *
  * P1 features from Section 0h:
  *   - Search bar
@@ -144,7 +144,7 @@ export default function CommandPalette() {
         style={{
           width: 480, maxWidth: '90vw',
           maxHeight: 400,
-          background: 'var(--color-surface, rgba(26, 22, 17, 0.98))',
+          background: 'var(--color-surface, var(--color-chrome-bg-translucent))',
           border: '1px solid var(--color-border, #3d3328)',
           borderRadius: 12,
           overflow: 'hidden',

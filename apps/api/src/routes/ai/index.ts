@@ -10,6 +10,7 @@ import { config } from '../../lib/config.js';
 import { AppError } from '../../lib/errors.js';
 
 import { AIEnrichmentRequest } from '@ogden/shared';
+import { claudeClient } from '../../services/ai/ClaudeClient.js';
 
 const ChatRequestSchema = z.object({
   messages: z.array(
@@ -83,16 +84,9 @@ export default async function aiRoutes(fastify: FastifyInstance) {
     }
 
     const body = AIEnrichmentRequest.parse(req.body);
-
-    // Phase 3: call ClaudeClient.enrichAssessmentFlags(body) here
-    // For now, return the flags unchanged with a stub response
+    const result = await claudeClient.enrichAssessmentFlags(body);
     return {
-      data: {
-        enrichedFlags: body.flags,
-        siteSynthesis: undefined,
-        generatedAt: new Date().toISOString(),
-        modelId: 'stub',
-      },
+      data: result,
       meta: undefined,
       error: null,
     };

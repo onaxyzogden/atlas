@@ -9,6 +9,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useStructureStore, type Structure } from '../../store/structureStore.js';
 import TemplateMarketplace from './TemplateMarketplace.js';
+import ExtractedPatternsCard from './ExtractedPatternsCard.js';
 import p from '../../styles/panel.module.css';
 import { semantic } from '../../lib/tokens.js';
 
@@ -44,6 +45,11 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
       <p className={p.subtitle}>
         Start from proven frameworks. Templates provide pre-configured zones, structures, and phasing plans.
       </p>
+
+      {/* §20 Reusable Frameworks — surface the patterns embedded in this
+          project so the steward can see what would carry over into a
+          template. Read-only inventory; "save as template" lands later. */}
+      {!selected && <ExtractedPatternsCard projectId={project.id} />}
 
       {/* Template list */}
       {!selected && (

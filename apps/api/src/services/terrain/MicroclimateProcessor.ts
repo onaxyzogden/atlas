@@ -178,14 +178,14 @@ export class MicroclimateProcessor {
         ${confidence},
         ${dataDate},
         ${'Derived from terrain analysis, climate normals, soil drainage, and watershed data'},
-        ${JSON.stringify(geojsonData)},
-        ${JSON.stringify(summaryData)},
-        ${JSON.stringify({
+        ${this.db.json(geojsonData as never) as unknown as string},
+        ${this.db.json(summaryData as never) as unknown as string},
+        ${this.db.json({
           resolution_m: grid.resolution_m,
           gridWidth: grid.width,
           gridHeight: grid.height,
           sourceLayerCount: dataSources.length,
-        })},
+        } as never) as unknown as string},
         now()
       )
       ON CONFLICT (project_id, layer_type) DO UPDATE SET

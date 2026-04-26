@@ -19,6 +19,8 @@ function PanelShell({ name, children }: { name: string; children: ReactNode }) {
   );
 }
 
+const SiteIntelligenceDashboard = lazy(() => import('./pages/SiteIntelligenceDashboard.js'));
+const MapLayersDashboard = lazy(() => import('./pages/MapLayersDashboard.js'));
 const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
 const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
 const LivestockDashboard = lazy(() => import('./pages/LivestockDashboard.js'));
@@ -37,6 +39,11 @@ const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPane
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
 const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
+const DecisionSupportPanel = lazy(() => import('../../features/decision/DecisionSupportPanel.js'));
+const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
+const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
+const PhasingDashboard = lazy(() => import('./pages/PhasingDashboard.js'));
+const SiteDataLayersPage = lazy(() => import('../../features/site-data-layers/SiteDataLayersPage.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -52,6 +59,24 @@ const SECTION_LABELS: Record<string, string> = {
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
   switch (section) {
+    case 'site-intelligence':
+      return (
+        <PanelShell name="Site Intelligence">
+          <SiteIntelligenceDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'map-layers':
+      return (
+        <PanelShell name="Map Layers">
+          <MapLayersDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'data-catalog':
+      return (
+        <PanelShell name="Data Catalog">
+          <SiteDataLayersPage projectId={project.serverId ?? project.id} />
+        </PanelShell>
+      );
     case 'grazing-analysis':
       return (
         <PanelShell name="Grazing Analysis">
@@ -159,6 +184,36 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Regulatory">
           <RegulatoryPanel project={project} />
+        </PanelShell>
+      );
+    case 'energy-offgrid':
+      return (
+        <PanelShell name="Energy & Off-Grid">
+          <EnergyDashboard project={project} onSwitchToMap={onSwitchToMap} focus="energy" />
+        </PanelShell>
+      );
+    case 'infrastructure-utilities':
+      return (
+        <PanelShell name="Utilities & Infrastructure">
+          <EnergyDashboard project={project} onSwitchToMap={onSwitchToMap} focus="infrastructure" />
+        </PanelShell>
+      );
+    case 'timeline-phasing':
+      return (
+        <PanelShell name="Timeline & Phasing">
+          <PhasingDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'educational':
+      return (
+        <PanelShell name="Educational Atlas">
+          <EducationalAtlasDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'feasibility':
+      return (
+        <PanelShell name="Feasibility">
+          <DecisionSupportPanel project={project} />
         </PanelShell>
       );
     default:

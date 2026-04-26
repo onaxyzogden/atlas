@@ -1,16 +1,36 @@
 /**
- * IconSidebar — full-height left navigation panel for the project view.
- * Organized by development phase (P1–P4) with accordion behavior.
- * Includes logo, phase groups, and bottom nav (new project, settings, user).
+ * IconSidebar — full-height left navigation panel for the project (map) view.
+ *
+ * Now driven by the canonical taxonomy (`features/navigation/taxonomy.ts`)
+ * and respects the shared `sidebarGrouping` preference (phase vs. domain).
+ * The accordion behavior (one group open at a time, collapsed-icon mode)
+ * is unchanged. The localStorage key generalizes from
+ * `ogden-sidebar-open-phase` → `ogden-sidebar-open-group` to hold either a
+ * PhaseKey or DomainGroupKey depending on the active preference.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
+import { useUIStore } from '../store/uiStore.js';
+import { GroupingToggle } from './ui/GroupingToggle.js';
+import { DelayedTooltip } from './ui/DelayedTooltip.js';
+import {
+  MAP_ITEMS,
+  PHASE_META,
+  PHASE_ORDER,
+  DOMAIN_META,
+  DOMAIN_ORDER,
+  groupByPhase,
+  groupByDomain,
+  type NavItem,
+  type PhaseKey,
+  type DomainGroupKey,
+} from '../features/navigation/taxonomy.js';
 import s from './IconSidebar.module.css';
-import { phase as phaseTokens } from '../lib/tokens.js';
 
-// The panel a sub-item maps to (existing SidebarView panel keys)
+// ── Re-exports (kept stable for downstream consumers) ───────────────────────
+
 export type SidebarView =
   | 'layers'
   | 'intelligence'
@@ -18,6 +38,9 @@ export type SidebarView =
   | 'design'
   | 'ai'
   | 'regulatory'
+  | 'feasibility'
+  | 'energy'
+  | 'infrastructure'
   | 'economic'
   | 'timeline'
   | 'vision'
@@ -35,96 +58,39 @@ export type SidebarView =
   | 'zoning'
   | 'siting'
   | 'settings'
+  | 'unmapped'
+  | 'terrain'
+  | 'cartographic'
+  | 'ecological'
+  | 'stewardship'
+  | 'climate'
+  | 'planting'
+  | 'forest'
+  | 'carbon'
+  | 'nursery'
+  | 'paddockDesign'
+  | 'herdRotation'
+  | 'grazingAnalysis'
+  | 'livestockInventory'
   | null;
 
-// Granular navigation item id (what appears highlighted in the sidebar)
 export type SubItemId =
   | 'terrain-viz' | 'site-data'
   | 'site-assessment' | 'hydrology-basic' | 'solar-climate' | 'soil-ecology'
   | 'zones' | 'structures' | 'access' | 'livestock' | 'crops' | 'utilities'
-  | 'timeline' | 'vision' | 'economics' | 'regulatory'
+  // Grazing & Livestock dashboards — distinct from 'livestock' (which is the
+  // Design Atlas livestock-systems sub-tool).
+  | 'paddock' | 'rotation' | 'grazing' | 'herd'
+  // Forestry dashboards — distinct from 'crops' (Design Atlas crops sub-tool).
+  | 'planting' | 'forest' | 'carbon' | 'nursery'
+  // Energy / Infrastructure dashboards — distinct from 'utilities' (Design
+  // Atlas utilities sub-tool).
+  | 'energy' | 'infrastructure'
+  | 'timeline' | 'vision' | 'economics' | 'regulatory' | 'feasibility'
   | 'ai' | 'scenarios' | 'collaboration' | 'moontrance' | 'educational' | 'spiritual' | 'zoning' | 'siting-rules'
   | 'templates' | 'reporting'
   | 'portal' | 'fieldwork' | 'history'
   | 'settings';
-
-interface SubItem {
-  id: SubItemId;
-  label: string;
-  panel: SidebarView;
-}
-
-interface PhaseGroup {
-  phase: 'P1' | 'P2' | 'P3' | 'P4';
-  name: string;
-  desc: string;
-  color: string;
-  items: SubItem[];
-}
-
-const PHASE_GROUPS: PhaseGroup[] = [
-  {
-    phase: 'P1',
-    name: 'Site Intelligence',
-    desc: 'Terrain visualization, site data layers, automated site assessment',
-    color: phaseTokens[1],
-    items: [
-      { id: 'terrain-viz',     label: 'Terrain Visualization', panel: 'layers' },
-      { id: 'site-data',       label: 'Site Data Layers',     panel: 'intelligence' },
-      { id: 'site-assessment', label: 'Site Assessment',      panel: 'intelligence' },
-      { id: 'hydrology-basic', label: 'Hydrology (Basic)',    panel: 'hydrology' },
-      { id: 'solar-climate',   label: 'Solar & Climate',      panel: 'intelligence' },
-      { id: 'soil-ecology',    label: 'Soil & Ecology',       panel: 'intelligence' },
-    ],
-  },
-  {
-    phase: 'P2',
-    name: 'Design Atlas',
-    desc: 'Full structure/zone planning, hydrology, livestock, crop design',
-    color: phaseTokens[2],
-    items: [
-      { id: 'zones',       label: 'Zones & Land Use',      panel: 'design' },
-      { id: 'structures',  label: 'Structures & Built',    panel: 'design' },
-      { id: 'access',      label: 'Access & Circulation',  panel: 'design' },
-      { id: 'livestock',   label: 'Livestock Systems',     panel: 'design' },
-      { id: 'crops',       label: 'Crops & Agroforestry',  panel: 'design' },
-      { id: 'utilities',   label: 'Utilities & Energy',    panel: 'design' },
-      { id: 'timeline',    label: 'Timeline & Phasing',    panel: 'timeline' },
-      { id: 'vision',      label: 'Vision Layer',          panel: 'vision' },
-      { id: 'spiritual',   label: 'Spiritual',             panel: 'spiritual' },
-      { id: 'zoning',        label: 'Zoning',                panel: 'zoning' },
-      { id: 'siting-rules', label: 'Siting Rules',          panel: 'siting' },
-      { id: 'economics',    label: 'Economics',             panel: 'economic' },
-      { id: 'regulatory',  label: 'Regulatory',            panel: 'regulatory' },
-    ],
-  },
-  {
-    phase: 'P3',
-    name: 'Collaboration + AI',
-    desc: 'Multi-user access, AI-assisted outputs, scenario modeling',
-    color: phaseTokens[3],
-    items: [
-      { id: 'ai',            label: 'AI Atlas',          panel: 'ai' },
-      { id: 'scenarios',     label: 'Scenarios',         panel: 'scenarios' },
-      { id: 'collaboration', label: 'Collaboration',     panel: 'collaboration' },
-      { id: 'moontrance',    label: 'OGDEN Identity',    panel: 'moontrance' },
-      { id: 'educational',   label: 'Educational Atlas', panel: 'educational' },
-      { id: 'templates',     label: 'Templates',         panel: 'templates' },
-      { id: 'reporting',     label: 'Reports & Export',  panel: 'reporting' },
-    ],
-  },
-  {
-    phase: 'P4',
-    name: 'Public + Portal',
-    desc: 'Public storytelling, export suite, mobile fieldwork, templates',
-    color: phaseTokens[4],
-    items: [
-      { id: 'portal',   label: 'Public Portal',    panel: 'portal' },
-      { id: 'fieldwork', label: 'Fieldwork',       panel: 'fieldnotes' },
-      { id: 'history',  label: 'Version History',  panel: 'history' },
-    ],
-  },
-];
 
 interface IconSidebarProps {
   activeView: SidebarView;
@@ -133,7 +99,10 @@ interface IconSidebarProps {
   onSubItemChange: (id: SubItemId, panel: SidebarView) => void;
 }
 
-type PhaseKey = 'P1' | 'P2' | 'P3' | 'P4';
+type GroupKey = PhaseKey | DomainGroupKey;
+
+const LS_OPEN_GROUP = 'ogden-sidebar-open-group';
+const LS_LEGACY_OPEN_PHASE = 'ogden-sidebar-open-phase';
 
 export default function IconSidebar({
   activeView,
@@ -143,18 +112,20 @@ export default function IconSidebar({
 }: IconSidebarProps) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const grouping = useUIStore((st) => st.sidebarGrouping);
 
-  // Collapsed sidebar state
+  // Collapsed sidebar state (unchanged)
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem('ogden-sidebar-collapsed') === 'true'; } catch { return false; }
   });
 
-  // Accordion: which phase is open (only one at a time)
-  const [openPhase, setOpenPhase] = useState<PhaseKey>(() => {
+  // Which group is currently open. Stored once; applies to whichever grouping
+  // is active. We migrate the legacy `ogden-sidebar-open-phase` key once.
+  const [openGroup, setOpenGroup] = useState<GroupKey>(() => {
     try {
-      const stored = localStorage.getItem('ogden-sidebar-open-phase');
-      if (stored === 'P1' || stored === 'P2' || stored === 'P3' || stored === 'P4') return stored;
-    } catch { /* */ }
+      const stored = localStorage.getItem(LS_OPEN_GROUP) ?? localStorage.getItem(LS_LEGACY_OPEN_PHASE);
+      if (stored) return stored as GroupKey;
+    } catch { /* noop */ }
     return 'P1';
   });
 
@@ -164,18 +135,57 @@ export default function IconSidebar({
     try { localStorage.setItem('ogden-sidebar-collapsed', String(next)); } catch { /* */ }
   };
 
-  const togglePhase = (phase: PhaseKey) => {
-    const next = openPhase === phase ? phase : phase; // always opens clicked phase
-    setOpenPhase(next);
-    try { localStorage.setItem('ogden-sidebar-open-phase', next); } catch { /* */ }
+  const setOpen = (key: GroupKey) => {
+    setOpenGroup(key);
+    try { localStorage.setItem(LS_OPEN_GROUP, key); } catch { /* */ }
   };
 
-  // When sidebar collapses, open phase stays but items are hidden
+  // Build display groups from taxonomy based on current preference.
+  interface DisplayGroup {
+    key: GroupKey;
+    badge: string;     // short label for the left badge (e.g. "P1" or a 2-letter abbr)
+    name: string;
+    desc: string;
+    color: string;
+    items: NavItem[];
+  }
+
+  const groups: DisplayGroup[] =
+    grouping === 'phase'
+      ? (() => {
+          const byPhase = groupByPhase(MAP_ITEMS);
+          return PHASE_ORDER.map((p) => ({
+            key: p,
+            badge: p,
+            name: PHASE_META[p].name,
+            desc: PHASE_META[p].desc,
+            color: PHASE_META[p].color,
+            items: byPhase[p],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : (() => {
+          const byDomain = groupByDomain(MAP_ITEMS);
+          return DOMAIN_ORDER.map((d) => ({
+            key: d,
+            badge: domainBadge(d),
+            name: DOMAIN_META[d].name,
+            desc: '',
+            color: DOMAIN_META[d].color,
+            items: byDomain[d],
+          })).filter((g) => g.items.length > 0);
+        })();
+
+  // If the persisted openGroup doesn't exist in the current grouping, fall back
+  // to the first available group. This handles the phase↔domain toggle cleanly.
+  const resolvedOpenGroup: GroupKey = groups.some((g) => g.key === openGroup)
+    ? openGroup
+    : (groups[0]?.key ?? 'P1');
+
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'User Account';
   const displayInitial = (displayName[0] ?? 'U').toUpperCase();
 
   return (
-    <aside className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>
+    <nav aria-label="Atlas domains" className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>
 
       {/* ── Logo / Header ─────────────────────────────── */}
       <div className={s.logoRow}>
@@ -185,48 +195,61 @@ export default function IconSidebar({
             <span className={s.logoSub}>LAND DESIGN ATLAS</span>
           </Link>
         )}
-        <button
-          onClick={toggleCollapse}
-          className={s.collapseBtn}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        <DelayedTooltip
+          label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          position="right"
         >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            {collapsed ? (
-              <polyline points="5 2 10 7 5 12" />
-            ) : (
-              <polyline points="9 2 4 7 9 12" />
-            )}
-          </svg>
-        </button>
+          <button
+            onClick={toggleCollapse}
+            className={s.collapseBtn}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              {collapsed ? (
+                <polyline points="5 2 10 7 5 12" />
+              ) : (
+                <polyline points="9 2 4 7 9 12" />
+              )}
+            </svg>
+          </button>
+        </DelayedTooltip>
       </div>
 
-      {/* ── Phase Accordion ───────────────────────────── */}
+      {/* ── Grouping toggle (hidden when collapsed) ───── */}
+      {!collapsed && (
+        <div className={s.toggleWrap}>
+          <GroupingToggle size="compact" />
+        </div>
+      )}
+
+      {/* ── Group accordion ───────────────────────────── */}
       <div className={s.phaseList}>
-        {PHASE_GROUPS.map((group) => {
-          const isOpen = openPhase === group.phase && !collapsed;
+        {groups.map((group) => {
+          const isOpen = resolvedOpenGroup === group.key && !collapsed;
 
           return (
-            <div key={group.phase} className={s.phaseGroup}>
-              {/* Phase header button */}
-              <button
-                className={`${s.phaseHeader} ${openPhase === group.phase ? s.phaseHeaderActive : ''}`}
-                onClick={() => togglePhase(group.phase)}
-                aria-expanded={isOpen}
-                title={collapsed ? `${group.phase} — ${group.name}` : undefined}
+            <div key={group.key} className={s.phaseGroup}>
+              <DelayedTooltip
+                label={`${group.badge} — ${group.name}`}
+                position="right"
+                disabled={!collapsed}
               >
-                {/* Phase badge */}
+              <button
+                className={`${s.phaseHeader} ${resolvedOpenGroup === group.key ? s.phaseHeaderActive : ''}`}
+                onClick={() => setOpen(group.key)}
+                aria-expanded={isOpen}
+              >
                 <span
                   className={s.phaseBadge}
                   style={{ backgroundColor: group.color + '33', color: group.color, borderColor: group.color + '55' }}
                 >
-                  {group.phase}
+                  {group.badge}
                 </span>
 
                 {!collapsed && (
                   <div className={s.phaseHeaderText}>
                     <span className={s.phaseName}>{group.name}</span>
-                    <span className={s.phaseDesc}>{group.desc}</span>
+                    {group.desc && <span className={s.phaseDesc}>{group.desc}</span>}
                   </div>
                 )}
 
@@ -238,21 +261,23 @@ export default function IconSidebar({
                   </span>
                 )}
               </button>
+              </DelayedTooltip>
 
-              {/* Sub-items (only when expanded and not collapsed sidebar) */}
               {isOpen && (
                 <div className={s.phaseItems}>
                   {group.items.map((item) => {
-                    const isActive = activeSubItem === item.id;
+                    const subId = (item.mapSubItem ?? item.id) as SubItemId;
+                    const panel = item.panel as SidebarView;
+                    const isActive = activeSubItem === subId;
                     return (
                       <button
                         key={item.id}
                         className={`${s.subItem} ${isActive ? s.subItemActive : ''}`}
                         style={isActive ? { borderLeftColor: group.color } : undefined}
-                        onClick={() => onSubItemChange(item.id, item.panel)}
+                        onClick={() => onSubItemChange(subId, panel)}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                        <SubItemIcon id={item.id} active={isActive} phaseColor={group.color} />
+                        <SubItemIcon id={subId} active={isActive} phaseColor={group.color} />
                         <span className={s.subItemLabel}>{item.label}</span>
                       </button>
                     );
@@ -260,7 +285,6 @@ export default function IconSidebar({
                 </div>
               )}
 
-              {/* Collapsed: show a thin color bar as phase divider */}
               {collapsed && (
                 <div className={s.collapsedPhaseDivider} style={{ backgroundColor: group.color + '40' }} />
               )}
@@ -271,29 +295,33 @@ export default function IconSidebar({
 
       {/* ── Bottom actions ────────────────────────────── */}
       <div className={s.bottomSection}>
-        <button
-          className={s.bottomBtn}
-          onClick={() => navigate({ to: '/new' })}
-          title="New Project"
-        >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <line x1="7" y1="1" x2="7" y2="13" />
-            <line x1="1" y1="7" x2="13" y2="7" />
-          </svg>
-          {!collapsed && <span className={s.bottomBtnLabel}>NEW PROJECT</span>}
-        </button>
+        <DelayedTooltip label="New Project" position="right" disabled={!collapsed}>
+          <button
+            className={s.bottomBtn}
+            onClick={() => navigate({ to: '/new' })}
+            aria-label="New Project"
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="1" x2="7" y2="13" />
+              <line x1="1" y1="7" x2="13" y2="7" />
+            </svg>
+            {!collapsed && <span className={s.bottomBtnLabel}>NEW PROJECT</span>}
+          </button>
+        </DelayedTooltip>
 
-        <button
-          className={`${s.bottomBtn} ${activeView === 'settings' ? s.bottomBtnActive : ''}`}
-          onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
-          title="Settings"
-        >
-          <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="7" cy="7" r="2" />
-            <path d="M7 1.5L7.9 3.2L9.9 2.4L9.5 4.5L11.5 5.1L10.2 6.7L11.5 8.3L9.5 8.9L9.9 11L7.9 10.2L7 11.9L6.1 10.2L4.1 11L4.5 8.9L2.5 8.3L3.8 6.7L2.5 5.1L4.5 4.5L4.1 2.4L6.1 3.2L7 1.5Z" />
-          </svg>
-          {!collapsed && <span className={s.bottomBtnLabel}>SETTINGS</span>}
-        </button>
+        <DelayedTooltip label="Settings" position="right" disabled={!collapsed}>
+          <button
+            className={`${s.bottomBtn} ${activeView === 'settings' ? s.bottomBtnActive : ''}`}
+            onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
+            aria-label="Settings"
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="2" />
+              <path d="M7 1.5L7.9 3.2L9.9 2.4L9.5 4.5L11.5 5.1L10.2 6.7L11.5 8.3L9.5 8.9L9.9 11L7.9 10.2L7 11.9L6.1 10.2L4.1 11L4.5 8.9L2.5 8.3L3.8 6.7L2.5 5.1L4.5 4.5L4.1 2.4L6.1 3.2L7 1.5Z" />
+            </svg>
+            {!collapsed && <span className={s.bottomBtnLabel}>SETTINGS</span>}
+          </button>
+        </DelayedTooltip>
       </div>
 
       {/* ── User account ──────────────────────────────── */}
@@ -306,11 +334,27 @@ export default function IconSidebar({
           </div>
         )}
       </div>
-    </aside>
+    </nav>
   );
 }
 
-// ── Sub-item icons ─────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function domainBadge(d: DomainGroupKey): string {
+  switch (d) {
+    case 'site-overview':         return 'SO';
+    case 'grazing-livestock':     return 'GL';
+    case 'forestry':              return 'FR';
+    case 'hydrology-terrain':     return 'HT';
+    case 'finance':               return 'FN';
+    case 'energy-infrastructure': return 'EI';
+    case 'compliance':            return 'CP';
+    case 'reporting-portal':      return 'RP';
+    case 'general':               return 'GN';
+  }
+}
+
+// ── Sub-item icons (unchanged) ──────────────────────────────────────────────
 
 function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolean; phaseColor: string }) {
   const color = active ? phaseColor : 'var(--color-sidebar-icon, #6b7b6b)';
@@ -350,6 +394,39 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
       return <svg {...props}><line x1="7" y1="13" x2="7" y2="5"/><path d="M7 9C7 9 5 7 3 7"/><path d="M7 7C7 7 9 5 11 5"/><path d="M7 5C7 5 5 3 4 2"/></svg>;
     case 'utilities':
       return <svg {...props}><polyline points="2 11 5 8 8 10 12 4"/><circle cx="2" cy="11" r="1" fill={color}/><circle cx="12" cy="4" r="1" fill={color}/></svg>;
+    // ── Livestock group ─────────────────────────────────────────────────
+    case 'paddock':
+      // Paddock Design — 3×2 fenced grid
+      return <svg {...props}><rect x="1.5" y="3" width="11" height="8" rx="0.5"/><line x1="5" y1="3" x2="5" y2="11"/><line x1="9" y1="3" x2="9" y2="11"/><line x1="1.5" y1="7" x2="12.5" y2="7"/></svg>;
+    case 'rotation':
+      // Herd Rotation — circular arrows
+      return <svg {...props}><path d="M11.5 7C11.5 9.5 9.5 11.5 7 11.5C5.2 11.5 3.6 10.5 2.8 9"/><polyline points="2.5 11.5 2.8 9 5.3 9.3"/><path d="M2.5 7C2.5 4.5 4.5 2.5 7 2.5C8.8 2.5 10.4 3.5 11.2 5"/><polyline points="11.5 2.5 11.2 5 8.7 4.7"/></svg>;
+    case 'grazing':
+      // Grazing Analysis — grass blades + baseline
+      return <svg {...props}><line x1="1" y1="12" x2="13" y2="12"/><path d="M3 12C3 10 2.5 8 2 7"/><path d="M3 12C3 10 3.5 8.5 4.5 7.5"/><path d="M7 12C7 9.5 6.3 7 5.5 5.5"/><path d="M7 12C7 9.5 7.7 7.5 9 6"/><path d="M11 12C11 10 10.5 8 10 7"/><path d="M11 12C11 10 11.5 8.5 12.5 7.5"/></svg>;
+    case 'herd':
+      // Livestock Inventory & Health Ledger — stacked count bars + tick
+      return <svg {...props}><rect x="1.5" y="2" width="8" height="2.2" rx="0.3"/><rect x="1.5" y="5.6" width="6" height="2.2" rx="0.3"/><rect x="1.5" y="9.2" width="9.5" height="2.2" rx="0.3"/><polyline points="10.5 3.5 11.5 4.5 13 2.5"/></svg>;
+    // ── Forestry group ──────────────────────────────────────────────────
+    case 'planting':
+      // Planting Tool — trowel / spade
+      return <svg {...props}><path d="M9.5 2.5L11.5 4.5"/><path d="M8 4L10 6"/><path d="M3 13L8 8L6 6L2 10C1.5 10.5 1.5 11.5 2 12L2 12C2.5 12.5 3 13 3 13Z" fill={color} fillOpacity="0.15"/></svg>;
+    case 'forest':
+      // Forest Hub — three trees of varying heights
+      return <svg {...props}><path d="M3.5 11L3.5 8"/><path d="M2 8L3.5 4L5 8Z" fill={color} fillOpacity="0.2"/><path d="M7 12L7 7"/><path d="M5 7L7 2L9 7Z" fill={color} fillOpacity="0.2"/><path d="M10.5 11L10.5 8"/><path d="M9 8L10.5 4L12 8Z" fill={color} fillOpacity="0.2"/></svg>;
+    case 'carbon':
+      // Carbon Diagnostic — leaf with downward arrow (sequestration)
+      return <svg {...props}><path d="M11 2C11 2 5 2 3 6C1.5 9 3 12 6 12C10 12 12 8 11 2Z" fill={color} fillOpacity="0.15"/><line x1="5" y1="10" x2="9" y2="6"/><polyline points="4.5 13 4.5 10 7.5 10" stroke="none" fill="none"/></svg>;
+    case 'nursery':
+      // Nursery Ledger — seedling in pot / tray
+      return <svg {...props}><path d="M7 7L7 3"/><path d="M7 5C6 5 5 4 4.5 3"/><path d="M7 5C8 5 9 4 9.5 3"/><path d="M3 7L11 7L10 12L4 12Z"/><line x1="3" y1="9" x2="11" y2="9"/></svg>;
+    // ── Energy / Infrastructure group ───────────────────────────────────
+    case 'energy':
+      // Energy & Off-Grid — lightning bolt inside circle
+      return <svg {...props}><circle cx="7" cy="7" r="5.5"/><path d="M7.5 3L5 7.5L7 7.5L6.5 11L9 6.5L7 6.5L7.5 3Z" fill={color} fillOpacity="0.2"/></svg>;
+    case 'infrastructure':
+      // Utilities & Infrastructure — pylon / transmission tower
+      return <svg {...props}><path d="M4 13L7 1L10 13"/><line x1="5.5" y1="7" x2="8.5" y2="7"/><line x1="5" y1="9" x2="9" y2="9"/><line x1="4.5" y1="11" x2="9.5" y2="11"/></svg>;
     case 'timeline':
       return <svg {...props}><circle cx="7" cy="7" r="5.5"/><polyline points="7 3.5 7 7 10 8.5"/></svg>;
     case 'vision':
@@ -358,6 +435,8 @@ function SubItemIcon({ id, active, phaseColor }: { id: SubItemId; active: boolea
       return <svg {...props}><rect x="1" y="8" width="3" height="5" rx="0.3"/><rect x="5.5" y="5" width="3" height="8" rx="0.3"/><rect x="10" y="2" width="3" height="11" rx="0.3"/></svg>;
     case 'regulatory':
       return <svg {...props}><path d="M7 1L13 3.5V7C13 10.5 10.5 12.5 7 13.5C3.5 12.5 1 10.5 1 7V3.5L7 1Z"/><polyline points="4.5 7 6.5 9.5 10 5"/></svg>;
+    case 'feasibility':
+      return <svg {...props}><rect x="2" y="1.5" width="10" height="11" rx="1"/><polyline points="4.5 5 5.5 6 7 4.5"/><polyline points="4.5 8 5.5 9 7 7.5"/><line x1="8.5" y1="5" x2="11" y2="5"/><line x1="8.5" y1="8" x2="11" y2="8"/></svg>;
     case 'ai':
       return <svg {...props}><path d="M7 1L8.3 5H13L9.5 7.5L11 12L7 9L3 12L4.5 7.5L1 5H5.7L7 1Z" fill={color} fillOpacity="0.2"/></svg>;
     case 'scenarios':

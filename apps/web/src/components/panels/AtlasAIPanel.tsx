@@ -23,6 +23,7 @@ import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { confidence, error as errorToken, water } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './AtlasAIPanel.module.css';
+import { DelayedTooltip } from '../ui/DelayedTooltip.js';
 
 interface AtlasAIPanelProps {
   project: LocalProject;
@@ -463,22 +464,24 @@ export default function AtlasAIPanel({ project }: AtlasAIPanelProps) {
                     )}
 
                     <div className={s.ratingWrap}>
-                      <button
-                        onClick={() => handleRating(i, 'helpful')}
-                        className={`${s.ratingBtn} ${msg.rating === 'helpful' ? s.ratingActive : s.ratingInactive}`}
-                        style={{ color: confidence.high }}
-                        title="Helpful"
-                      >
-                        {'\u{1F44D}'}
-                      </button>
-                      <button
-                        onClick={() => handleRating(i, 'not_helpful')}
-                        className={`${s.ratingBtn} ${msg.rating === 'not_helpful' ? s.ratingActive : s.ratingInactive}`}
-                        style={{ color: errorToken.DEFAULT }}
-                        title="Not helpful"
-                      >
-                        {'\u{1F44E}'}
-                      </button>
+                      <DelayedTooltip label="Helpful">
+                        <button
+                          onClick={() => handleRating(i, 'helpful')}
+                          className={`${s.ratingBtn} ${msg.rating === 'helpful' ? s.ratingActive : s.ratingInactive}`}
+                          style={{ color: confidence.high }}
+                        >
+                          {'\u{1F44D}'}
+                        </button>
+                      </DelayedTooltip>
+                      <DelayedTooltip label="Not helpful">
+                        <button
+                          onClick={() => handleRating(i, 'not_helpful')}
+                          className={`${s.ratingBtn} ${msg.rating === 'not_helpful' ? s.ratingActive : s.ratingInactive}`}
+                          style={{ color: errorToken.DEFAULT }}
+                        >
+                          {'\u{1F44E}'}
+                        </button>
+                      </DelayedTooltip>
                     </div>
                   </div>
                 )}

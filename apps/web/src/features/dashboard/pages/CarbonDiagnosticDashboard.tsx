@@ -86,7 +86,7 @@ export default function CarbonDiagnosticDashboard({ project, onSwitchToMap }: Ca
       {/* Biomass Accumulation chart */}
       <div className={css.chartCard}>
         <div className={css.chartHeader}>
-          <h3 className={css.chartTitle}>Biomass Accumulation</h3>
+          <h2 className={css.chartTitle}>Biomass Accumulation</h2>
           <span className={css.chartPeriod}>LAST 12 MONTHS</span>
         </div>
         <SimpleBarChart

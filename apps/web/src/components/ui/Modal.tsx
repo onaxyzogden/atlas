@@ -133,7 +133,8 @@ export const Modal: React.FC<ModalProps> = ({
     .join(' ');
 
   return createPortal(
-    <div className={styles.overlay} onClick={handleOverlayClick}>
+    /* a11y: backdrop click dismiss; Escape key handled in useEffect keydown listener above */
+    <div className={styles.overlay} onClick={handleOverlayClick} role="presentation">
       <div
         ref={panelRef}
         className={panelClassNames}

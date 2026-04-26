@@ -97,7 +97,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
 
       {/* ── Propagation Inventory ──────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>PROPAGATION INVENTORY</h3>
+        <h2 className={css.sectionLabel}>PROPAGATION INVENTORY</h2>
         {batches.length > 0 ? (
           <div className={css.stockRow}>
             {batches.map((b) => {
@@ -128,7 +128,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
 
       {/* ── Germination Calendar ───────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>GERMINATION CALENDAR</h3>
+        <h2 className={css.sectionLabel}>GERMINATION CALENDAR</h2>
         <div className={css.calendarWrap}>
           {/* Month headers */}
           <div className={css.calMonthRow}>
@@ -146,6 +146,8 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
                 const isSow = idx === entry.sowMonth;
                 const isTransplant = idx === entry.transplantMonth;
                 return (
+                  // a11y: keyboard tooltip deferred — see accessibility-audit.md §5
+                  // (calendar grid: 12×N cells would spam focus order)
                   <div
                     key={idx}
                     className={isSow ? css.calCellSow : isTransplant ? css.calCellTransplant : css.calCell}
@@ -166,7 +168,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       {/* ── Nursery Zone Microclimate ──────────────────────────── */}
       {nurseryMicro.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>NURSERY ZONE MICROCLIMATE</h3>
+          <h2 className={css.sectionLabel}>NURSERY ZONE MICROCLIMATE</h2>
           {nurseryMicro.map((nz) => (
             <div key={nz.zoneId} className={css.readinessItem}>
               <div className={css.readinessLeft}>
@@ -184,7 +186,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       {/* ── Readiness Tracking ─────────────────────────────────── */}
       {readiness.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>READINESS TRACKING</h3>
+          <h2 className={css.sectionLabel}>READINESS TRACKING</h2>
           {readiness.map((r) => (
             <div key={r.batchId} className={r.isOverdue ? css.readinessOverdue : css.readinessItem}>
               <div className={css.readinessLeft}>
@@ -206,7 +208,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       {/* ── Stock Transfer Log ─────────────────────────────────── */}
       {transfers.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>STOCK TRANSFER LOG</h3>
+          <h2 className={css.sectionLabel}>STOCK TRANSFER LOG</h2>
           {transfers.map((t) => (
             <div key={t.id} className={css.transferItem}>
               {t.quantity} plants transferred on {new Date(t.transferDate).toLocaleDateString()}
@@ -219,7 +221,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       {/* ── Seed Saving Notes ──────────────────────────────────── */}
       {seedSaving.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>SEED SAVING</h3>
+          <h2 className={css.sectionLabel}>SEED SAVING</h2>
           {seedSaving.map((b) => {
             const info = PROPAGATION_BY_SPECIES[b.species];
             const windowLabel = info?.seedSavingWindow?.replace('_', ' ') ?? 'unknown';
@@ -236,7 +238,7 @@ export default function NurseryLedgerDashboard({ project, onSwitchToMap }: Nurse
       {/* ── Stock Summary by Stage ─────────────────────────────── */}
       {summary.byStage.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>STOCK BY STAGE</h3>
+          <h2 className={css.sectionLabel}>STOCK BY STAGE</h2>
           {summary.byStage.map((s) => (
             <div key={s.stage} className={css.readinessItem}>
               <span className={css.readinessSpecies}>{STAGE_LABELS[s.stage] ?? s.stage}</span>

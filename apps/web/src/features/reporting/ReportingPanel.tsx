@@ -19,7 +19,9 @@ import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { api } from '../../lib/apiClient.js';
 import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
+import ClientHandoffPackageCard from './ClientHandoffPackageCard.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { group, warning, sage, error as errorToken, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
@@ -552,10 +554,10 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
               {/* Actions row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <DelayedTooltip label="PDF export requires internet" disabled={!isOffline}>
                 <button
                   onClick={() => requireOnline(() => handleGenerate(entry.exportType), 'PDF Export')}
                   disabled={!rd.ready || isGen || isOffline}
-                  title={isOffline ? 'PDF export requires internet' : undefined}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '5px 12px', fontSize: 11, fontWeight: 500,
@@ -568,6 +570,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
                 >
                   {isGen ? <><IconSpinner /> Generating...</> : 'Generate'}
                 </button>
+                </DelayedTooltip>
                 {url && (
                   <a
                     href={url}
@@ -675,6 +678,9 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
           </span>
         </div>
       </div>
+
+      {/* ── §27 Client handoff package ── */}
+      <ClientHandoffPackageCard project={project} />
 
       {/* ── Export modals ── */}
       {showInvestor && <InvestorSummaryExport project={project} onClose={() => setShowInvestor(false)} />}

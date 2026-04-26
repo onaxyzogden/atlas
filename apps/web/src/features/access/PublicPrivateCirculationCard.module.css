@@ -1,0 +1,260 @@
+/* §10 PublicPrivateCirculationCard — circulation-segregation audit.
+   Right-rail card matching the AccessPanel aesthetic. */
+
+.card {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-top: 12px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  padding: 14px 12px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Top stat strip ─────────────────────────────────────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.statNote {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 1px;
+}
+
+/* ── Network split bar ───────────────────────────────────────────────── */
+
+.splitBar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  margin-bottom: 12px;
+}
+
+.splitPub {
+  background: rgba(180, 200, 150, 0.85);
+  height: 100%;
+}
+
+.splitShr {
+  background: rgba(196, 162, 101, 0.7);
+  height: 100%;
+}
+
+.splitPriv {
+  background: rgba(180, 165, 140, 0.45);
+  height: 100%;
+}
+
+/* ── Facet block ─────────────────────────────────────────────────────── */
+
+.facet {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 10px;
+}
+
+.tone_good {
+  border-color: rgba(180, 200, 150, 0.28);
+  background: rgba(180, 200, 150, 0.05);
+}
+.tone_fair {
+  border-color: rgba(220, 180, 100, 0.24);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tone_poor {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.facetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.facetLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.verdictWord {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.tone_good .verdictWord { color: rgba(180, 200, 150, 0.95); }
+.tone_fair .verdictWord { color: rgba(220, 180, 100, 0.95); }
+.tone_poor .verdictWord { color: rgba(220, 130, 110, 0.95); }
+
+.facetSub {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+/* ── Flag rows ───────────────────────────────────────────────────────── */
+
+.flagList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.flagRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.flagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(220, 180, 100, 0.85);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.tone_poor .flagDot { background: rgba(220, 130, 110, 0.92); }
+
+.flagBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.flagTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  line-height: 1.35;
+}
+
+.flagSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.45;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}

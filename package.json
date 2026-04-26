@@ -6,6 +6,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
     "migrate": "pnpm --filter @ogden/api migrate",
     "db:studio": "pnpm --filter @ogden/api db:studio"
   },

@@ -1,0 +1,248 @@
+/* §10 QuietCirculationRouteCard — acoustic-separation audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+.cardHint em { color: rgba(180, 165, 140, 0.8); font-style: normal; font-weight: 600; }
+.cardHint strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+}
+.empty strong { color: rgba(232, 220, 200, 0.9); font-weight: 600; }
+.empty em { color: rgba(220, 200, 150, 0.85); font-style: normal; font-weight: 600; }
+
+.infoLine {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.04);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.75);
+  margin-bottom: 8px;
+}
+
+.routeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.routeRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tierExcellent {
+  border-color: rgba(150, 200, 180, 0.28);
+  background: rgba(150, 200, 180, 0.05);
+}
+.tierGood {
+  border-color: rgba(180, 200, 150, 0.24);
+  background: rgba(180, 200, 150, 0.04);
+}
+.tierCompromised {
+  border-color: rgba(220, 180, 100, 0.26);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tierNoisy {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+.tierNeutral {
+  border-color: rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.03);
+}
+
+.routeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.routeName {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: -0.01em;
+}
+
+.tierChip {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.tierChip.tierExcellent {
+  background: rgba(150, 200, 180, 0.16);
+  color: rgba(180, 220, 200, 0.95);
+  border-color: rgba(150, 200, 180, 0.32);
+}
+.tierChip.tierGood {
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(190, 215, 160, 0.95);
+  border-color: rgba(180, 200, 150, 0.28);
+}
+.tierChip.tierCompromised {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.95);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.tierChip.tierNoisy {
+  background: rgba(220, 130, 110, 0.14);
+  color: rgba(235, 165, 145, 0.95);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.tierChip.tierNeutral {
+  background: rgba(232, 220, 200, 0.08);
+  color: rgba(220, 210, 185, 0.85);
+  border-color: rgba(232, 220, 200, 0.18);
+}
+
+.routeMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metaSep { opacity: 0.5; }
+
+.exposureBar {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.exposureLabel {
+  font-size: 9.5px;
+  color: rgba(220, 180, 100, 0.85);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.exposureTrack {
+  height: 4px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.exposureFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(220, 180, 100, 0.7) 0%,
+    rgba(220, 130, 110, 0.85) 100%
+  );
+  transition: width 200ms ease;
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+.footnote em { color: rgba(180, 165, 140, 0.75); font-style: normal; font-weight: 600; }
+.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }

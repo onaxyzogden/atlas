@@ -1,0 +1,160 @@
+/* §21 HospitalityEducationEnergyCard — programmatic feasibility. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+/* ── Per-facet panel ─────────────────────────────────────────── */
+.facet {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 10px;
+}
+
+.facet:last-of-type {
+  margin-bottom: 0;
+}
+
+.facetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.facetLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.verdict {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 3px;
+}
+
+.verdictGood {
+  background: rgba(160, 195, 130, 0.15);
+  color: rgba(190, 220, 160, 0.95);
+}
+
+.verdictNeutral {
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(220, 195, 145, 0.95);
+}
+
+.verdictWarn {
+  background: rgba(220, 130, 110, 0.15);
+  color: rgba(235, 165, 140, 0.95);
+}
+
+.verdictMuted {
+  background: rgba(180, 165, 140, 0.12);
+  color: rgba(180, 165, 140, 0.8);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stat {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 3px;
+}
+
+.statValue {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.facetNote {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.muted {
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 10.5px;
+}
+
+.footnote {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+@media (max-width: 720px) {
+  .statGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

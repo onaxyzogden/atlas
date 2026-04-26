@@ -73,7 +73,7 @@ export function useKeyboardShortcuts() {
         // Cmd/Ctrl + H — Home
         if (mod && e.key === 'h') {
           e.preventDefault();
-          navigate({ to: '/' });
+          navigate({ to: '/home' });
           return;
         }
 

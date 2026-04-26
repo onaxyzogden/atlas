@@ -22,6 +22,16 @@ import { evaluateRules, type ProjectState } from '../rules/RulesEngine.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import RulesPanel from '../rules/RulesPanel.js';
+import AccessEfficiencyCard from '../rules/AccessEfficiencyCard.js';
+import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
+import GuestPrivacyCard from '../rules/GuestPrivacyCard.js';
+import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
+import DomainFeasibilityCard from './DomainFeasibilityCard.js';
+import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
+import SeasonalRealismCard from './SeasonalRealismCard.js';
+import CapitalIntensityCard from './CapitalIntensityCard.js';
+import TerrainConstructionDifficultyCard from './TerrainConstructionDifficultyCard.js';
+import HospitalityEducationEnergyCard from './HospitalityEducationEnergyCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -133,18 +143,6 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
       label: 'Land zones defined',
       status: zones.length >= 3 ? 'pass' : zones.length > 0 ? 'warn' : 'unknown',
       note: `${zones.length} zones defined`,
-    });
-
-    items.push({
-      label: 'Zoning notes recorded',
-      status: project.zoningNotes ? 'pass' : 'unknown',
-      note: project.zoningNotes ? 'Zoning notes present' : 'Add zoning research notes',
-    });
-
-    items.push({
-      label: 'Water rights noted',
-      status: project.waterRightsNotes ? 'pass' : 'unknown',
-      note: project.waterRightsNotes ? 'Water rights documented' : 'Research water rights for this property',
     });
 
     // Score-based items (only when scores are available)
@@ -306,6 +304,12 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
         ))}
       </div>
 
+      {/* Missing information checklist */}
+      <MissingInformationChecklistCard project={project} />
+
+      {/* §28 Domain feasibility — Access · Water · Agricultural · Livestock */}
+      <DomainFeasibilityCard project={project} />
+
       {/* Vision fit analysis */}
       {fitResults.length > 0 && (
         <>
@@ -394,8 +398,28 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
         </>
       )}
 
+      {/* §21 Annual maintenance labor-hours estimate
+          (maintenance-complexity-score). */}
+      <MaintenanceComplexityCard project={project} />
+
+      {/* §21 Seasonal realism — phase x month x task suitability matrix
+          (seasonal-vulnerability-phasing-realism). */}
+      <SeasonalRealismCard project={project} />
+
+      {/* §21 Capital x Ops intensity — 4-axis radar with archetype label
+          (capital-intensity-operational-complexity). */}
+      <CapitalIntensityCard project={project} />
+
+      {/* §21 Terrain construction difficulty — slope premium per structure
+          (terrain-construction-difficulty). */}
+      <TerrainConstructionDifficultyCard project={project} />
+      <HospitalityEducationEnergyCard project={project} />
+
       {/* Design rules (inline) */}
       <h3 className={p.sectionLabel}>Design Rules</h3>
+      <AccessEfficiencyCard project={project} />
+      <SafetyBufferRulesCard project={project} />
+      <GuestPrivacyCard project={project} />
       <RulesPanel project={project} />
     </div>
   );

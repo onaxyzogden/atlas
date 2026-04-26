@@ -310,3 +310,20 @@ export const zIndex = {
   tooltip:  600,
   max:      999,
 } as const;
+
+// Map canvas local sub-scale — isolated by `.mapArea { position: relative }`
+// in MapView.module.css. Safe inside .mapArea only; outside, use the global
+// zIndex scale above. Mirrors --z-map-* custom properties in tokens.css.
+
+export const mapZIndex = {
+  spine:       2,   // LeftToolSpine
+  baseOverlay: 3,   // Cesium 3D terrain overlay (shares layer with splitPane)
+  splitPane:   3,   // SplitScreenCompare right pane
+  dropdown:    4,   // dropdown popovers (Historical, OSM, MeasureTools)
+  panel:       5,   // main map control panels + floating cards + inline legends
+  tooltip:     6,   // inline hover readout tooltips
+  loadingChip: 9,   // MapLoadingIndicator tile-fetch chip
+  toolbar:     10,  // DomainFloatingToolbar
+  mobileBar:   40,  // mobile bar, loading overlays
+  top:         50,  // top-level map controls (CrossSection, top toolbar)
+} as const;

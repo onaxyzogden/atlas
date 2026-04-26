@@ -4,7 +4,7 @@
 
 .hero { margin-bottom: 20px; }
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -43,7 +43,7 @@
 }
 .topMetricValue {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -71,7 +71,7 @@
   margin-bottom: 16px;
 }
 .chartTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   font-style: italic;
@@ -104,7 +104,7 @@
   margin-bottom: 10px;
 }
 .guidanceQuote {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 15px;
   font-style: italic;
   line-height: 1.6;
@@ -225,4 +225,19 @@
   background: rgba(var(--color-gold-rgb), 0.15);
   padding: 3px 8px;
   border-radius: 4px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .topMetricValue { font-size: 28px; }
+  .chartCard { padding: 18px; }
+  .reportBtn { padding: 12px 18px; font-size: 11px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .topMetrics { grid-template-columns: 1fr; }
+  .topMetricValue { font-size: 26px; }
+  .timelineLabel { font-size: 8px; }
+  .timelineStage:not(.timelineStageActive) .timelineLabel { display: none; }
 }

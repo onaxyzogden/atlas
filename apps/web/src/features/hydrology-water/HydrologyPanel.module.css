@@ -1,0 +1,106 @@
+/* HydrologyPanel â€” component-specific styles */
+
+.root {
+  background: var(--color-chrome-bg-translucent);
+  border-radius: var(--radius-lg, 10px);
+  backdrop-filter: blur(10px);
+  color: var(--color-panel-text);
+  pointer-events: auto;
+  flex-shrink: 0;
+  max-width: 220px;
+}
+
+.rootCollapsed {
+  padding: 6px 10px;
+}
+
+.rootExpanded {
+  padding: var(--space-3);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--color-water-400);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0;
+}
+
+.body {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layerBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-panel-text);
+  width: 100%;
+}
+
+.layerBtnActive {
+  background: rgba(var(--color-water-400-rgb), 0.2);
+  border: 1px solid rgba(var(--color-water-400-rgb), 0.5);
+}
+
+.layerBtnInactive {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.layerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.layerDotInactive {
+  background: var(--color-panel-subtle, #3d3328);
+}
+
+.layerLabel {
+  font-size: var(--text-xs);
+}
+
+.layerLabelActive {
+  font-weight: var(--font-semibold);
+}
+
+.layerLabelInactive {
+  font-weight: 400;
+}
+
+.layerDesc {
+  font-size: 10px;
+  color: var(--color-panel-muted);
+}
+
+.legend {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.legendTitle {
+  color: var(--color-panel-muted);
+  margin-bottom: 4px;
+}
+
+.legendFlow { color: var(--color-water-400); }
+.legendWatershed { color: var(--color-water-600); }
+.legendFlood { color: var(--color-error); }
+.legendWetland { color: var(--color-confidence-high); }

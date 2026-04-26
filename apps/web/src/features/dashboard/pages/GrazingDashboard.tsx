@@ -24,6 +24,8 @@ import {
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
+import ErosionGrazingRecoveryCard from '../../scenarios/ErosionGrazingRecoveryCard.js';
+import ForageQualitySeasonalCard from '../../livestock/ForageQualitySeasonalCard.js';
 import css from './GrazingDashboard.module.css';
 import { status as statusToken } from '../../../lib/tokens.js';
 
@@ -401,6 +403,14 @@ export default function GrazingDashboard({ project, onSwitchToMap }: GrazingDash
           ))}
         </div>
       )}
+
+      {/* §16 Erosion risk · grazing pressure · recovery timeline rollup —
+          per-paddock compound risk score and years-to-baseline projection. */}
+      <ErosionGrazingRecoveryCard project={project} />
+
+      {/* §11 Seasonal forage quality — 12-month CP/TDN/DMD curves with
+          supplement-window flagging. Heuristic cool-season pasture model. */}
+      <ForageQualitySeasonalCard project={project} />
 
       {/* Historical archetypes */}
       <div className={css.historicalSection}>

@@ -217,12 +217,19 @@ export class EcccClimateAdapter implements DataSourceAdapter {
       'ECCC climate fetch complete',
     );
 
+    // `data_date` is a Postgres `date` column — it must parse as a real date.
+    // `normals.data_period` is a label like "1981-2010" or "Estimated" which
+    // throws "Invalid time value" through postgres.js's date serializer.
+    // Map the normals period to its start-year ISO date; fall back to null.
+    const periodStart = /^(\d{4})[–-]/.exec(normals.data_period)?.[1];
+    const dataDate = periodStart ? `${periodStart}-01-01` : null;
+
     return {
       layerType: this.layerType,
       sourceApi: normals.source_api,
       attributionText: this.getAttributionText(),
       confidence: normals.confidence,
-      dataDate: normals.data_period,
+      dataDate,
       summaryData: normals,
     };
   }

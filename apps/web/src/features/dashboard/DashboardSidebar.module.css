@@ -10,6 +10,12 @@
   overflow: hidden;
 }
 
+.toggleWrap {
+  padding: 12px 16px 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
 .scrollArea {
   flex: 1;
   overflow-y: auto;

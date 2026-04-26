@@ -1,0 +1,170 @@
+/* §6 MicroclimateInsightsCard — derived microclimate advisories. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.hint em {
+  color: rgba(220, 200, 130, 0.85);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.badgeGood {
+  background: rgba(180, 200, 150, 0.12);
+  color: rgba(180, 220, 150, 0.95);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+
+.badgeFair {
+  background: rgba(220, 180, 100, 0.1);
+  color: rgba(232, 200, 130, 0.9);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+
+.badgePoor {
+  background: rgba(220, 130, 110, 0.1);
+  color: rgba(230, 160, 140, 0.9);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────── */
+
+.empty {
+  margin: 0 0 12px;
+  padding: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.65);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+/* ── List of advisories ──────────────────────────────────────────────── */
+
+.list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tone_good { border-left-color: rgba(180, 200, 150, 0.7); background: rgba(180, 200, 150, 0.04); }
+.tone_fair { border-left-color: rgba(220, 180, 100, 0.65); background: rgba(220, 180, 100, 0.035); }
+.tone_poor { border-left-color: rgba(220, 130, 110, 0.7); background: rgba(220, 130, 110, 0.04); }
+.tone_neutral { border-left-color: rgba(180, 165, 140, 0.4); }
+
+.rowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.4;
+}
+
+.rowTone {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag_good { background: rgba(180, 200, 150, 0.15); color: rgba(180, 220, 150, 0.95); }
+.tag_fair { background: rgba(220, 180, 100, 0.12); color: rgba(232, 200, 130, 0.9); }
+.tag_poor { background: rgba(220, 130, 110, 0.12); color: rgba(230, 160, 140, 0.9); }
+.tag_neutral { background: rgba(180, 165, 140, 0.1); color: rgba(220, 210, 185, 0.85); }
+
+.rowDetail {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.rowBasis {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.rowBasis em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+  margin-right: 4px;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

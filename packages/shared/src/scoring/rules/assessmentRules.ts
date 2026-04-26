@@ -9,6 +9,13 @@
 
 import type { RuleContext } from './ruleEngine.js';
 
+export interface AssessmentRuleAction {
+  id: string;
+  label: string;
+  kind: 'request' | 'upload' | 'contact' | 'dismiss';
+  href?: string;
+}
+
 export interface AssessmentRule {
   id: string;
   type: 'risk' | 'opportunity';
@@ -20,6 +27,10 @@ export interface AssessmentRule {
   message: (ctx: RuleContext) => string;
   layerSource: string;
   needsSiteVisit?: boolean;
+  /** Optional short headline shown above the message on rendered alerts. */
+  title?: string;
+  /** Optional next-step the user can take to resolve this flag. */
+  action?: AssessmentRuleAction | ((ctx: RuleContext) => AssessmentRuleAction);
 }
 
 /* ================================================================== */
@@ -284,13 +295,28 @@ const riskRules: AssessmentRule[] = [
     country: 'all',
     layerSource: 'Wetlands / Flood',
     needsSiteVisit: true,
+    title: 'Development restricted in mapped flood zone',
+    // Phase-A UX: concrete reason + primary CTA. The old "verify with local
+    // authority" admonishment moved into the `action`; the message now
+    // describes *what's true* instead of *what the user must do*.
     condition: (ctx) => {
       const fz = ctx.str(ctx.wetlands, 'flood_zone').toLowerCase();
-      return fz.length > 0 && !fz.includes('minimal risk') && !fz.includes('not regulated');
+      return (
+        fz.length > 0 &&
+        !fz.includes('minimal risk') &&
+        !fz.includes('not regulated') &&
+        !fz.includes('data not available') &&
+        !fz.includes('unknown')
+      );
     },
     message: (ctx) => {
       const fz = ctx.str(ctx.wetlands, 'flood_zone');
-      return `${fz} — restricts development, verify with local authority`;
+      return `This parcel sits within ${fz}. Permitted uses, freeboard, and fill/grade are governed by the local floodplain authority.`;
+    },
+    action: {
+      id: 'flood-zone-verify',
+      label: 'Verify with local authority',
+      kind: 'contact',
     },
   },
   {

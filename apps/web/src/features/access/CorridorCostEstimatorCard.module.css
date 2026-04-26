@@ -1,0 +1,303 @@
+/* §13 CorridorCostEstimatorCard — per-meter path + trench cost rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Total block ──────────────────────────────────────────────────────── */
+
+.totalBlock {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(196, 162, 101, 0.06) 0%, rgba(196, 162, 101, 0.015) 100%);
+  border: 1px solid rgba(196, 162, 101, 0.18);
+  margin-bottom: 18px;
+}
+
+.totalLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(232, 200, 130, 0.85);
+}
+
+.totalRange {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 6px 0 12px;
+  flex-wrap: wrap;
+}
+
+.totalRangeMid {
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.totalRangeBounds {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bound {
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+.boundDivider {
+  color: rgba(180, 165, 140, 0.4);
+}
+
+.totalSplit {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .totalSplit { grid-template-columns: 1fr; }
+}
+
+.splitChip {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  border-left: 3px solid rgba(180, 165, 140, 0.4);
+}
+
+.tone_path { border-left-color: rgba(196, 162, 101, 0.7); }
+.tone_trench { border-left-color: rgba(120, 170, 210, 0.7); }
+.tone_crossing { border-left-color: rgba(220, 130, 110, 0.7); }
+
+.splitLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.splitValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.splitPct {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ── Section ──────────────────────────────────────────────────────────── */
+
+.section {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 8px;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.012);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.table th {
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.05);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.table td {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: rgba(220, 210, 185, 0.85);
+  border-bottom: 1px solid rgba(232, 220, 200, 0.03);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.numStrong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 600;
+}
+
+.tableSubtotal td {
+  background: rgba(196, 162, 101, 0.05);
+  font-weight: 700;
+  font-size: 11.5px;
+  color: rgba(232, 200, 130, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: none;
+}
+
+/* ── Utility list ─────────────────────────────────────────────────────── */
+
+.utilList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.utilRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+  flex-wrap: wrap;
+}
+
+.cat_water { border-left-color: rgba(120, 170, 210, 0.7); }
+.cat_energy { border-left-color: rgba(196, 162, 101, 0.7); }
+.cat_other { border-left-color: rgba(180, 165, 140, 0.5); }
+
+.utilName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.utilMeta {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.utilMetrics {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.utilM, .utilRate {
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.utilDivider, .utilEq {
+  color: rgba(180, 165, 140, 0.4);
+}
+
+.utilSubtotal {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+  font-size: 12.5px;
+}
+
+/* ── Crossing note ────────────────────────────────────────────────────── */
+
+.crossingNote {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(220, 130, 110, 0.07);
+  border-left: 2px solid rgba(220, 130, 110, 0.5);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 200, 185, 0.85);
+  margin-bottom: 14px;
+}
+
+.crossingNote strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

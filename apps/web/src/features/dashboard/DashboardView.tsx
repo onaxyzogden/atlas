@@ -17,6 +17,8 @@ interface DashboardViewProps {
 }
 
 const MOBILE_SECTIONS = [
+  { id: 'site-intelligence', label: 'Site Intelligence' },
+  { id: 'map-layers', label: 'Map Layers' },
   { id: 'paddock-design', label: 'Paddock Design' },
   { id: 'herd-rotation', label: 'Herd Rotation' },
   { id: 'grazing-analysis', label: 'Grazing Analysis' },

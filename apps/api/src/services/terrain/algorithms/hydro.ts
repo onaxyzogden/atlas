@@ -139,6 +139,50 @@ export function computeFlowAccumulation(
 }
 
 /**
+ * Compute aspect (downslope azimuth, degrees clockwise from north) for each
+ * cell using finite differences. Returns a Float32Array where values are in
+ * [0, 360) for sloped cells and NaN for flat / nodata / edge cells.
+ *
+ * Aspect convention: 0 = N, 90 = E, 180 = S, 270 = W — matches azimuth output
+ * of the shared sun-path calculations so dot-product weighting is direct.
+ */
+export function computeAspectGrid(grid: ElevationGrid): Float32Array {
+  const { data, width, height, cellSizeX, cellSizeY, noDataValue } = grid;
+  const aspect = new Float32Array(width * height);
+  for (let i = 0; i < aspect.length; i++) aspect[i] = NaN;
+
+  for (let row = 1; row < height - 1; row++) {
+    for (let col = 1; col < width - 1; col++) {
+      const idx = row * width + col;
+      const z = data[idx]!;
+      if (z === noDataValue || z < -1000) continue;
+
+      const zL = data[idx - 1]!;
+      const zR = data[idx + 1]!;
+      const zU = data[idx - width]!;
+      const zD = data[idx + width]!;
+
+      if (zL === noDataValue || zR === noDataValue || zU === noDataValue || zD === noDataValue) continue;
+      if (zL < -1000 || zR < -1000 || zU < -1000 || zD < -1000) continue;
+
+      const dzdx = (zR - zL) / (2 * cellSizeX);
+      const dzdy = (zD - zU) / (2 * cellSizeY);
+
+      // Flat → leave NaN
+      if (dzdx === 0 && dzdy === 0) continue;
+
+      // atan2(dzdx, dzdy) gives downslope direction in radians.
+      // dzdy uses row-increasing-southward convention (zD - zU), so add sign flip.
+      let az = Math.atan2(dzdx, -dzdy) * (180 / Math.PI);
+      if (az < 0) az += 360;
+      aspect[idx] = az;
+    }
+  }
+
+  return aspect;
+}
+
+/**
  * Compute slope in degrees for each cell using finite differences.
  * Returns a Float32Array of slope values.
  */

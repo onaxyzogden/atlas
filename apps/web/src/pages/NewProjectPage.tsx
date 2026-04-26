@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react';
+import type { Country } from '@ogden/shared';
 import { StepIndicator } from '../components/ui/index.js';
 import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
 import StepLocation from '../features/project/wizard/StepLocation.js';
@@ -20,7 +21,7 @@ export interface WizardData {
   // Step 1
   name: string;
   projectType: string;
-  country: 'US' | 'CA';
+  country: Country;
   units: 'metric' | 'imperial';
   description: string;
   // Step 2
@@ -34,6 +35,19 @@ export interface WizardData {
   zoningNotes: string;
   accessNotes: string;
   waterRightsNotes: string;
+  // Step 4 — long-tail metadata (persisted to projects.metadata jsonb)
+  climateRegion: string;
+  bioregion: string;
+  county: string;
+  legalDescription: string;
+  fieldObservations: string;
+  restrictionsCovenants: string;
+  mapProjection: string;
+  // Step 4 — soil notes (persisted to projects.metadata.soilNotes jsonb)
+  soilPh: string;
+  soilOrganicMatter: string;
+  soilCompaction: string;
+  soilBiologicalActivity: string;
 }
 
 const INITIAL_DATA: WizardData = {
@@ -50,6 +64,17 @@ const INITIAL_DATA: WizardData = {
   zoningNotes: '',
   accessNotes: '',
   waterRightsNotes: '',
+  climateRegion: '',
+  bioregion: '',
+  county: '',
+  legalDescription: '',
+  fieldObservations: '',
+  restrictionsCovenants: '',
+  mapProjection: '',
+  soilPh: '',
+  soilOrganicMatter: '',
+  soilCompaction: '',
+  soilBiologicalActivity: '',
 };
 
 const STEPS = [

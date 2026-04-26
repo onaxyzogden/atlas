@@ -1,0 +1,252 @@
+/* §22 MissionImpactRollupCard — multi-axis mission impact rollup. Same
+   ink-on-parchment palette as §10/§11/§16/§18/§19 cards. */
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 28px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 600px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ── Overall headline ────────────────────────────────────────────────── */
+
+.overallRow {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tone_good {
+  border-color: rgba(180, 200, 150, 0.28);
+  background: rgba(180, 200, 150, 0.05);
+}
+.tone_fair {
+  border-color: rgba(220, 180, 100, 0.24);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tone_poor {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.overallVal {
+  font-size: 30px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.overallOf {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 3px;
+}
+
+.overallMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.overallWord {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.tone_good .overallWord { color: rgba(180, 200, 150, 0.95); }
+.tone_fair .overallWord { color: rgba(220, 180, 100, 0.95); }
+.tone_poor .overallWord { color: rgba(220, 130, 110, 0.95); }
+
+.overallSub {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.62);
+  letter-spacing: 0.02em;
+}
+
+/* ── Axis rows (multi-axis bar chart) ────────────────────────────────── */
+
+.axes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.axisRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.axisHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.axisGlyph {
+  font-size: 14px;
+  color: rgba(196, 162, 101, 0.65);
+  width: 18px;
+  display: inline-block;
+  text-align: center;
+  line-height: 1;
+}
+
+.axisLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(232, 220, 200, 0.88);
+  flex: 1;
+}
+
+.axisValue {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* tone_* applied directly to .axisValue — color the number itself */
+.axisValue.tone_good { color: rgba(180, 200, 150, 0.95); }
+.axisValue.tone_fair { color: rgba(220, 180, 100, 0.95); }
+.axisValue.tone_poor { color: rgba(220, 130, 110, 0.95); }
+
+.axisBarTrack {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.05);
+  overflow: hidden;
+}
+
+.axisBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 200ms ease-out;
+}
+
+.fill_good { background: linear-gradient(90deg, rgba(180, 200, 150, 0.55), rgba(180, 200, 150, 0.85)); }
+.fill_fair { background: linear-gradient(90deg, rgba(220, 180, 100, 0.5), rgba(220, 180, 100, 0.8)); }
+.fill_poor { background: linear-gradient(90deg, rgba(220, 130, 110, 0.5), rgba(220, 130, 110, 0.8)); }
+
+.axisRationale {
+  margin: 2px 0 0 28px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Biggest-gap callout ─────────────────────────────────────────────── */
+
+.gapCallout {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  background: rgba(196, 162, 101, 0.05);
+}
+
+.gapLabel {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(232, 200, 130, 0.85);
+  margin-bottom: 4px;
+}
+
+.gapBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(232, 220, 200, 0.82);
+}
+
+.gapBody strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 600;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

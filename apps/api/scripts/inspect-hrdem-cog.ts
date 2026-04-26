@@ -1,0 +1,11 @@
+import { fromUrl } from 'geotiff';
+const url = 'https://canelevation-dem.s3.ca-central-1.amazonaws.com/hrdem-lidar/TRCA-GTA_2023-1m-dtm.tif';
+const tiff = await fromUrl(url);
+const image = await tiff.getImage();
+console.log('size:', image.getWidth(), 'x', image.getHeight());
+console.log('origin:', image.getOrigin());
+console.log('resolution:', image.getResolution());
+console.log('bbox:', image.getBoundingBox());
+const keys = image.getGeoKeys() as Record<string, unknown>;
+console.log('geokeys:', JSON.stringify(keys, null, 2));
+console.log('nodata:', image.getGDALNoData());

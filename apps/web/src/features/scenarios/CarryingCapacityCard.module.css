@@ -1,0 +1,274 @@
+/* §16 CarryingCapacityCard — three-lens site rollup. Same ink-on-parchment
+   palette as the surrounding ecological dashboard, with a quiet zone-header
+   row and three peer columns so the eye reads them as a single rollup. */
+
+.section { margin-bottom: 28px; }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 520px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+}
+
+.fallbackBanner {
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.22);
+  background: rgba(196, 162, 101, 0.04);
+  color: rgba(232, 200, 130, 0.85);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* ── Three-lens grid ────────────────────────────────────────────────── */
+
+.lensGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .lensGrid { grid-template-columns: 1fr; }
+}
+
+.lens {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lensHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lensLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.qualityChip,
+.qualityChipNeutral {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.qualityChipNeutral {
+  background: rgba(232, 220, 200, 0.06);
+  color: rgba(180, 165, 140, 0.6);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+}
+
+.q_high {
+  background: rgba(74, 124, 89, 0.16);
+  color: rgba(160, 200, 170, 0.95);
+  border: 1px solid rgba(74, 124, 89, 0.28);
+}
+.q_good {
+  background: rgba(138, 154, 116, 0.16);
+  color: rgba(180, 200, 150, 0.92);
+  border: 1px solid rgba(138, 154, 116, 0.26);
+}
+.q_moderate {
+  background: rgba(184, 134, 11, 0.14);
+  color: rgba(220, 180, 100, 0.92);
+  border: 1px solid rgba(184, 134, 11, 0.24);
+}
+.q_poor {
+  background: rgba(139, 69, 19, 0.16);
+  color: rgba(210, 140, 100, 0.92);
+  border: 1px solid rgba(139, 69, 19, 0.26);
+}
+
+.lensHero {
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+  font-family: 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.05;
+  margin-top: 2px;
+}
+
+.lensHeroUnit {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(180, 165, 140, 0.55);
+  font-family: inherit;
+  text-transform: uppercase;
+}
+
+.lensSub {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.lensRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.035);
+  font-size: 11.5px;
+}
+
+.lensRowLabel {
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.01em;
+}
+
+.lensRowVal {
+  color: rgba(232, 220, 200, 0.88);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.surplusVal { color: rgba(160, 200, 170, 0.92); }
+.deficitVal { color: rgba(210, 140, 100, 0.92); }
+
+.lensFootnote {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.45);
+  font-style: italic;
+}
+
+.lensEmpty {
+  padding: 12px 0;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ── Utilization bar ─────────────────────────────────────────────────── */
+
+.utilBar {
+  position: relative;
+  margin-top: 8px;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.05);
+  overflow: hidden;
+}
+
+.utilBarFill {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(138, 154, 116, 0.45),
+    rgba(196, 162, 101, 0.55)
+  );
+  transition: width 0.4s ease;
+}
+
+.utilBarLabel {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.85);
+  line-height: 16px;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote strong {
+  color: rgba(232, 220, 200, 0.78);
+  font-weight: 600;
+}

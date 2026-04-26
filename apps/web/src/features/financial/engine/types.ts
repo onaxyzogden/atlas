@@ -136,7 +136,11 @@ export interface SiteContext {
   meanSlopeDeg: number;
   maxSlopeDeg: number;
   predominantAspect: string;
-  country: 'US' | 'CA';
+  // INTL projects currently reuse US-Midwest defaults for regional cost lookups
+  // (safest cheap choice — documented in wiki/decisions/2026-04-22-country-intl).
+  // Downstream CostSource emits confidence:'low' for INTL to make the fallback
+  // explicit in the UI.
+  country: 'US' | 'CA' | 'INTL';
 }
 
 export const DEFAULT_SITE_CONTEXT: SiteContext = {
@@ -178,25 +182,46 @@ export interface FinancialModel {
 
 // ── Database Types ──
 
+/**
+ * Provenance metadata for a cost benchmark row. Audit §6.10 requires every
+ * published benchmark to either cite a public source or explicitly declare
+ * itself a placeholder — "cite or leave null".
+ */
+export interface CostSource {
+  /** Human-readable source citation, or null when no authoritative source yet identified. */
+  citation: string | null;
+  /** Year of the source publication (for freshness / decay). null when citation is null. */
+  year: number | null;
+  /** Confidence the value tracks reality in the target region. */
+  confidence: 'high' | 'medium' | 'low';
+  /** Optional freeform note (e.g. "placeholder — awaiting OSCIA 2024 budget"). */
+  note?: string;
+}
+
 export interface ZoneCostBenchmark {
   costPerAcre: CostRange;
   description: string;
+  source?: CostSource;
 }
 
 export interface FenceCostBenchmark {
   costPerMetre: CostRange;
+  source?: CostSource;
 }
 
 export interface PathCostBenchmark {
   costPerMetre: CostRange;
+  source?: CostSource;
 }
 
 export interface UtilityCostBenchmark {
   systemCost: CostRange;
+  source?: CostSource;
 }
 
 export interface CropCostBenchmark {
   establishmentPerAcre: CostRange;
+  source?: CostSource;
 }
 
 export interface RegionalCostBenchmarks {

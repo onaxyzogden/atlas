@@ -8,7 +8,7 @@
  * and transformed via computeScores pure functions.
  */
 
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, useSiteDataStore } from '../../store/siteDataStore.js';
@@ -39,11 +39,13 @@ import { computeAhpWeights, DEFAULT_ATLAS_AHP_MATRIX } from '../../lib/fuzzyMCDM
 import { useSiteIntelligenceMetrics } from '../../hooks/useSiteIntelligenceMetrics.js';
 import { CATEGORY_LABELS } from '../../data/ecocropSubset.js';
 import { Spinner } from '../ui/Spinner.js';
+import { DashboardSectionSkeleton } from '../ui/DashboardSectionSkeleton.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { confidence, semantic } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
 // Sprint BK: shared memoized leaves + helpers relocated to sections/
+import { DelayedTooltip } from '../ui/DelayedTooltip.js';
 import { AILabel, RefreshIcon, ConfBadge, ScoreCircle } from './sections/_shared.js';
 import {
   severityColor,
@@ -55,6 +57,8 @@ import {
   getCompactionColor,
 } from './sections/_helpers.js';
 import { ScoresAndFlagsSection } from './sections/ScoresAndFlagsSection.js';
+import { SynthesisSummarySection } from './sections/SynthesisSummarySection.js';
+import { StickyMiniScore } from './StickyMiniScore.js';
 import { CropMatchingSection } from './sections/CropMatchingSection.js';
 import { RegulatoryHeritageSection } from './sections/RegulatoryHeritageSection.js';
 import { HydrologyIntelligenceSection } from './sections/HydrologyIntelligenceSection.js';
@@ -63,11 +67,15 @@ import { WaterQualitySection } from './sections/WaterQualitySection.js';
 import { SoilIntelligenceSection } from './sections/SoilIntelligenceSection.js';
 import { DesignIntelligenceSection } from './sections/DesignIntelligenceSection.js';
 import { InfrastructureAccessSection } from './sections/InfrastructureAccessSection.js';
+import { AdjacentLandUseUtilitiesCard } from './sections/AdjacentLandUseUtilitiesCard.js';
 import { EnvironmentalRiskSection } from './sections/EnvironmentalRiskSection.js';
 import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js';
 import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
+import { SolarWindFireRiskCard } from './sections/SolarWindFireRiskCard.js';
+import { ManualLabTestsCard } from './sections/ManualLabTestsCard.js';
 import { HydrologyExtensionsSection } from './sections/HydrologyExtensionsSection.js';
 import { EnergyIntelligenceSection } from './sections/EnergyIntelligenceSection.js';
+import { GeologicalBedrockSection } from './sections/GeologicalBedrockSection.js';
 import { SiteSummaryNarrativeSection } from './sections/SiteSummaryNarrativeSection.js';
 import { AssessmentScoresSection } from './sections/AssessmentScoresSection.js';
 import { FuzzyFaoSection } from './sections/FuzzyFaoSection.js';
@@ -104,10 +112,10 @@ const TIER1_LABELS: Record<string, string> = {
 };
 
 const TIER3_TYPES = [
-  { type: 'terrain_analysis', label: 'Terrain Analysis' },
-  { type: 'watershed_derived', label: 'Watershed Derived' },
-  { type: 'microclimate', label: 'Microclimate' },
-  { type: 'soil_regeneration', label: 'Soil Regeneration' },
+  { type: 'terrain_analysis', label: 'Terrain Analysis', dependsOn: ['elevation'] as const },
+  { type: 'watershed_derived', label: 'Watershed Derived', dependsOn: ['watershed', 'wetlands_flood'] as const },
+  { type: 'microclimate', label: 'Microclimate', dependsOn: ['climate'] as const },
+  { type: 'soil_regeneration', label: 'Soil Regeneration', dependsOn: ['soils'] as const },
 ] as const;
 
 function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
@@ -123,6 +131,9 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   const [demogOpen, setDemogOpen] = useState(true);
   const [diOpen, setDiOpen] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // Phase B: ref on the main suitability card — IntersectionObserver in
+  // StickyMiniScore watches it to decide when to slide the mini bar in.
+  const suitabilityRef = useRef<HTMLDivElement | null>(null);
   const [expandedScore, setExpandedScore] = useState<string | null>(null);
   const [showAllOpps, setShowAllOpps] = useState(false);
   const [showAllRisks, setShowAllRisks] = useState(false);
@@ -151,17 +162,31 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
 
   const layerCompleteCount = layerCompleteness.filter((l) => l.status === 'complete').length;
 
-  // Tier 3 derived analysis status
+  // Tier 3 derived analysis status.
+  // Scholar #UX (Phase 2): Waiting is a non-response that breaks the
+  // interactive feedback loop. Compute a `blockedBy` hint from missing
+  // Tier 1 dependencies so the user sees *why* the analysis is paused
+  // instead of a flat "— Waiting" dead-end.
   const tier3Status = useMemo(() => {
-    return TIER3_TYPES.map(({ type, label }) => {
+    return TIER3_TYPES.map(({ type, label, dependsOn }) => {
       const layer = layers.find((l) => l.layerType === type);
       const status = layer?.fetchStatus;
-      return {
-        label,
-        status: status === 'complete' ? 'complete' as const
-          : status === 'pending' ? 'computing' as const
-          : 'waiting' as const,
-      };
+      const normalized = status === 'complete' ? 'complete' as const
+        : status === 'pending' ? 'computing' as const
+        : 'waiting' as const;
+      // Only compute blockedBy when truly waiting — no point telling
+      // the user why something is "pending" when it's already working.
+      let blockedBy: string | undefined;
+      if (normalized === 'waiting') {
+        const missing = dependsOn
+          .filter((dep) => {
+            const depLayer = layers.find((l) => l.layerType === dep);
+            return depLayer?.fetchStatus !== 'complete';
+          })
+          .map((dep) => TIER1_LABELS[dep] ?? dep);
+        if (missing.length > 0) blockedBy = missing.join(' + ');
+      }
+      return { label, status: normalized, blockedBy };
     });
   }, [layers]);
 
@@ -403,6 +428,24 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
     return { geothermal, storage };
   }, [layers]);
 
+  // §3 geological-bedrock-notes — substrate / bedrock depth presentation inputs
+  const geologicalBedrock = useMemo(() => {
+    const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    if (!soilsLayer) return null;
+    const ss = soilsLayer.summary as Record<string, unknown> | undefined;
+    const gwLayer = layers.find((l) => l.layerType === 'groundwater');
+    const gws = gwLayer?.summary as Record<string, unknown> | undefined;
+    const textureClass = typeof ss?.texture_class === 'string'
+      ? ss.texture_class
+      : typeof ss?.predominant_texture === 'string' ? ss.predominant_texture : null;
+    return {
+      bedrockDepthM: typeof ss?.depth_to_bedrock_m === 'number' ? ss.depth_to_bedrock_m : null,
+      textureClass,
+      drainageClass: typeof ss?.drainage_class === 'string' ? ss.drainage_class : null,
+      groundwaterDepthM: typeof gws?.groundwater_depth_m === 'number' ? gws.groundwater_depth_m : null,
+    };
+  }, [layers]);
+
   // Sprint BE: Cat 5 — Climate projections (IPCC AR6 regional deltas)
   const climateProjections = useMemo(() => {
     const climLayer = layers.find((l) => l.layerType === 'climate');
@@ -589,17 +632,22 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   const onToggleSiteContext = useCallback(() => setSiteContextOpen((v) => !v), []);
   const onToggleCommunity = useCallback(() => setDemogOpen((v) => !v), []);
 
-  // ── First load — show spinner when no data exists yet ──────────────────
+  // ── First load — show section skeleton when no data exists yet ───────
+  // Skeleton over spinner: a card-shaped shimmer sets expectations about the
+  // layout that is about to appear, so the transition to real data doesn't
+  // feel like a reflow. Reduced-motion users fall back to a static block via
+  // the skeleton's own CSS.
   if (siteData?.status === 'loading' && layers.length === 0) {
     return (
       <div className={p.container}>
         <div className={s.headerRow}>
           <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 0' }}>
-          <Spinner size="lg" />
-          <span style={{ fontSize: 13, color: 'var(--color-panel-muted)' }}>Fetching environmental data...</span>
-        </div>
+        <DashboardSectionSkeleton
+          cards={3}
+          rowsPerCard={4}
+          label="Fetching environmental data"
+        />
       </div>
     );
   }
@@ -621,19 +669,28 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   // ── Complete / error state — render full panel ─────────────────────────
   return (
     <div className={p.container}>
+      {/* Phase B: sticky mini-score — first child so `position: sticky;
+          top: 0` binds to the scroll root's top edge. Hidden by default;
+          slides in when the main suitability card leaves the viewport. */}
+      <StickyMiniScore
+        score={overallScore}
+        criticalCount={blockingFlags.length}
+        targetRef={suitabilityRef}
+      />
       {/* Header */}
       <div className={s.headerRow}>
         <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
+        <DelayedTooltip label="Layer refresh requires internet" disabled={!isOffline}>
         <button
           onClick={handleRefresh}
           className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`}
           aria-label="Refresh site data"
           disabled={isOffline || isRefreshing}
-          title={isOffline ? 'Layer refresh requires internet' : undefined}
         >
           <RefreshIcon spinning={isRefreshing} />
           {isRefreshing && <span className={s.refreshHint}>Refreshing...</span>}
         </button>
+        </DelayedTooltip>
       </div>
 
       {/* ── Refresh banner ───────────────────────────────────────── */}
@@ -658,6 +715,19 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         consAuth={consAuth}
         lastFetched={lastFetched}
         country={project.country}
+        suitabilityRef={suitabilityRef}
+      />
+
+      {/* ── §4 Risk / Opportunity / Limitation synthesis ──────────────
+          Compact three-pillar TL;DR wedged between the bento hero and
+          the detailed intelligence stack. Derives limitations presentationally
+          (no shared rule engine for that flag type yet). */}
+      <SynthesisSummarySection
+        topConstraints={topConstraints}
+        topOpportunities={topOpportunities}
+        blockingFlagsCount={blockingFlags.length}
+        incompleteLayerCount={7 - layerCompleteCount}
+        acreage={project.acreage ?? null}
       />
 
       {/* ── Hydrology Intelligence (Sprint BK: extracted) ─────────── */}
@@ -687,6 +757,7 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         onToggleSoil={onToggleSoil}
       />
 
+      <ManualLabTestsCard projectId={project.id} />
 
       <InfrastructureAccessSection
         infraMetrics={infraMetrics}
@@ -694,6 +765,8 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         infraOpen={infraOpen}
         onToggleInfra={onToggleInfra}
       />
+
+      <AdjacentLandUseUtilitiesCard layers={layers} />
 
       <EnvironmentalRiskSection
         airQualityMetrics={airQualityMetrics}
@@ -729,7 +802,27 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
 
       <EnergyIntelligenceSection energyIntelligence={energyIntelligence} />
 
+      {geologicalBedrock && (
+        <GeologicalBedrockSection
+          bedrockDepthM={geologicalBedrock.bedrockDepthM}
+          textureClass={geologicalBedrock.textureClass}
+          drainageClass={geologicalBedrock.drainageClass}
+          groundwaterDepthM={geologicalBedrock.groundwaterDepthM}
+        />
+      )}
+
       <ClimateProjectionsSection climateProjections={climateProjections} />
+
+      <SolarWindFireRiskCard
+        layers={layers}
+        lat={(() => {
+          try {
+            if (!project.parcelBoundaryGeojson) return null;
+            const c = turf.centroid(project.parcelBoundaryGeojson);
+            return c.geometry.coordinates[1] ?? null;
+          } catch { return null; }
+        })()}
+      />
 
       <EcosystemServicesSection ecosystemIntelligence={ecosystemIntelligence} />
 

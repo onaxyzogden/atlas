@@ -6,7 +6,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   useLivestockStore,
   type Paddock,
@@ -43,6 +43,16 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
 
+  // a11y: Escape key dismisses the paddock-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, draw]);
+
   // Form state
   const [name, setName] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState<LivestockSpecies[]>([]);
@@ -51,12 +61,23 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   const [guestSafe, setGuestSafe] = useState(false);
   const [notes, setNotes] = useState('');
 
-  const startDraw = useCallback(() => {
-    if (!draw || !map) return;
-    setIsDrawing(true);
-    draw.changeMode('draw_polygon');
+  // Paddock-draw intent is driven by the DomainFloatingToolbar's Paddock button.
+  // When the toolbar fires `ogden:paddock:start`, we flip the intent flag so the
+  // next `draw.create` is interpreted as a paddock (and the properties modal
+  // opens). Intent clears on create (consumed or not) so stale flags can't leak
+  // into a subsequent non-paddock draw.
+  const paddockIntentRef = useRef(false);
 
+  useEffect(() => {
+    if (!map || !draw) return;
+    const handleStart = () => {
+      paddockIntentRef.current = true;
+      setIsDrawing(true);
+    };
     const handleCreate = () => {
+      if (!paddockIntentRef.current) return;
+      paddockIntentRef.current = false;
+      setIsDrawing(false);
       const all = draw.getAll();
       const last = all.features[all.features.length - 1];
       if (last?.geometry.type === 'Polygon') {
@@ -73,11 +94,16 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         setNotes('');
         setShowModal(true);
       }
-      setIsDrawing(false);
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on('ogden:paddock:start' as any, handleStart);
+    map.on('draw.create', handleCreate);
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.off('ogden:paddock:start' as any, handleStart);
       map.off('draw.create', handleCreate);
     };
-    map.on('draw.create', handleCreate);
-  }, [draw, map]);
+  }, [map, draw]);
 
   const handleSave = useCallback(() => {
     if (!pendingGeometry || !name.trim()) return;
@@ -143,13 +169,23 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         ))}
       </div>
 
-      {/* Draw paddock button */}
+      {/* In-panel draw trigger — mirrors the Zones tab affordance so users
+          don't have to discover the floating Paddock-Design toolbar. Fires
+          the same `ogden:paddock:start` event the toolbar uses, so the
+          existing handler above flips intent and enters polygon-draw mode. */}
       <button
-        onClick={startDraw}
-        disabled={isDrawing || !draw}
+        type="button"
+        onClick={() => {
+          if (!map || !draw) return;
+          map.fire('ogden:paddock:start' as unknown as keyof maplibregl.MapEventType);
+          draw.changeMode('draw_polygon');
+        }}
+        disabled={isDrawing || !draw || !map}
         className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
+        style={{ marginTop: 12 }}
       >
-        {isDrawing ? 'Drawing... double-click to finish' : 'Draw Paddock on Map'}
+        <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
+        {isDrawing ? 'Drawing… double-click to finish' : 'Draw Paddock on Map'}
       </button>
 
       {/* Paddock list */}
@@ -194,11 +230,13 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
 
       {/* ── Paddock Properties Modal ── */}
       {showModal && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div
           className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}
         >
-          <div onClick={(e) => e.stopPropagation()} className={p.modalContent}>
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>
               Name This Paddock
             </h2>

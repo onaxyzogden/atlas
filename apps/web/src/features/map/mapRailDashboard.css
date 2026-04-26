@@ -1,0 +1,208 @@
+/* mapRailDashboard.css — global narrow-width overrides.
+   Applied to any dashboard page mounted inside the Map View's 340px right
+   rail. CSS Modules preserve original class names in their hashed output
+   (format `_<name>_<hash>`), so substring [class*="name"] selectors work
+   without needing to touch each module. */
+
+.map-rail-dashboard {
+  container-type: inline-size;
+  container-name: mapRailDash;
+  /* Reset the 860px ceiling each dashboard page applies. */
+  max-width: 100%;
+  /* Match the breathing room other right-rail panels apply internally so the
+     first heading/hero isn't clipped by the panel's top edge. */
+  padding: 20px 16px 32px;
+  box-sizing: border-box;
+  /* Safety net: no horizontal scroll regardless of descendant overflow. */
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+/* .page is the common root class every dashboard uses. Override its 860px
+   max-width so content fills the rail. */
+.map-rail-dashboard [class*="page"] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Never let media force horizontal scroll. */
+.map-rail-dashboard img,
+.map-rail-dashboard svg,
+.map-rail-dashboard video,
+.map-rail-dashboard canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Long tokens (URLs, IDs, coords) should wrap, not push width. Use
+   break-word (not "anywhere") so ordinary prose breaks at word boundaries
+   and only mid-word when a token literally exceeds the line. */
+.map-rail-dashboard {
+  overflow-wrap: break-word;
+}
+
+@container mapRailDash (max-width: 520px) {
+  /* Shrink all headline titles (PaddockName, sectorTitle, title, etc.). */
+  .map-rail-dashboard [class*="title" i],
+  .map-rail-dashboard [class*="Title" i],
+  .map-rail-dashboard [class*="sectorTitle"],
+  .map-rail-dashboard [class*="heroTitle"] {
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Common dashboard description block. */
+  .map-rail-dashboard [class*="desc"] {
+    font-size: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Collapse any multi-column grid to a single column when it's narrow.
+     Generic substring selectors catch *Row, *Grid, *Stats, *Meta, *Bar
+     variants across all dashboard pages (CSS-Modules preserves the human
+     name). For "Bar" we drop the case-insensitive flag so it won't match
+     tokens like sidebar / scrollbar if they ever appear. */
+  .map-rail-dashboard [class*="Row" i],
+  .map-rail-dashboard [class*="Grid" i],
+  .map-rail-dashboard [class*="Stats" i],
+  .map-rail-dashboard [class*="Meta" i],
+  .map-rail-dashboard [class*="Bar"],
+  .map-rail-dashboard [class*="envBar"],
+  .map-rail-dashboard [class*="twoCol" i],
+  .map-rail-dashboard [class*="threeCol" i] {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Where a two-stat row is semantically paired, keep 2 columns. */
+  .map-rail-dashboard [class*="summaryRow"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Card padding eases. */
+  .map-rail-dashboard [class*="summaryCard"],
+  .map-rail-dashboard [class*="paddockCard"],
+  .map-rail-dashboard [class*="section"],
+  .map-rail-dashboard [class*="Section"],
+  .map-rail-dashboard [class*="Card"] {
+    padding: 12px !important;
+  }
+
+  /* Summary value reflow. */
+  .map-rail-dashboard [class*="summaryValue"] {
+    font-size: 20px !important;
+  }
+
+  /* Schedule / table-style 4-col grids → 3-col, hide 4th cell. */
+  .map-rail-dashboard [class*="scheduleHeaderRow"],
+  .map-rail-dashboard [class*="scheduleRow"] {
+    grid-template-columns: 1.4fr 1fr 0.8fr !important;
+    gap: 6px !important;
+    padding: 8px 6px !important;
+  }
+  .map-rail-dashboard [class*="scheduleHeaderRow"] > :nth-child(4),
+  .map-rail-dashboard [class*="scheduleRow"] > :nth-child(4) {
+    display: none !important;
+  }
+
+  /* Tighten hero blocks that use fixed heights. Some heroes have absolutely-
+     positioned overlays (inset:0 or bottom/left/right) — if we shrink the
+     hero to auto the overlay collapses and its title vanishes. Force those
+     overlays to static flow so their content sizes the hero naturally. */
+  .map-rail-dashboard [class*="Hero" i],
+  .map-rail-dashboard [class*="hero" i],
+  .map-rail-dashboard [class*="hotspotCard" i] {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 14px 16px !important;
+  }
+  .map-rail-dashboard [class*="Overlay" i] {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    padding: 14px 16px !important;
+    background: transparent !important;
+  }
+
+  /* Buttons / CTAs shrink. */
+  .map-rail-dashboard [class*="mapBtn"],
+  .map-rail-dashboard [class*="ctaBtn"],
+  .map-rail-dashboard [class*="ctaButton"],
+  .map-rail-dashboard [class*="surveyBtn"],
+  .map-rail-dashboard [class*="reportBtn"],
+  .map-rail-dashboard [class*="logActivityBtn"] {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Absolutely-positioned badges/pills risk overlapping shrunken titles —
+     reflow them into normal document flow. */
+  .map-rail-dashboard [class*="statusBadge" i],
+  .map-rail-dashboard [class*="Badge" i] {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    text-align: left !important;
+    margin-top: 4px;
+  }
+
+  /* Flex rows that fan wide stats/controls horizontally should wrap so no
+     trailing button/pill gets clipped by the rail edge. */
+  .map-rail-dashboard [class*="hotspotStats"],
+  .map-rail-dashboard [class*="ledgerHeader"],
+  .map-rail-dashboard [class*="paddockHeader"],
+  .map-rail-dashboard [class*="cardHeader"],
+  .map-rail-dashboard [class*="timeline" i],
+  .map-rail-dashboard [class*="Bar" i],
+  .map-rail-dashboard [class*="sectionControls"],
+  .map-rail-dashboard [class*="Controls" i] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Progress tracks / sliders inside wrapping toolbars should take a whole
+     line rather than squeeze adjacent controls off-screen. */
+  .map-rail-dashboard [class*="timelineTrack"],
+  .map-rail-dashboard [class*="Track" i]:not(button):not(a) {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Actions container stretches to a full row so its buttons never clip. */
+  .map-rail-dashboard [class*="timelineActions"],
+  .map-rail-dashboard [class*="Actions" i] {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Any pill-style button (including COMPARE DATES) may be wider than the
+     rail when kept nowrap; allow text wrapping + shrink. */
+  .map-rail-dashboard button,
+  .map-rail-dashboard [class*="Btn" i],
+  .map-rail-dashboard [class*="btn" i] {
+    white-space: normal !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Paddock acres block (right-aligned) reflows left when wrapped. */
+  .map-rail-dashboard [class*="paddockAcres"] {
+    text-align: left !important;
+  }
+}
+
+@container mapRailDash (max-width: 360px) {
+  .map-rail-dashboard [class*="summaryRow"] {
+    grid-template-columns: 1fr !important;
+  }
+  .map-rail-dashboard [class*="title" i],
+  .map-rail-dashboard [class*="Title" i] {
+    font-size: 18px !important;
+  }
+}

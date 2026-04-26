@@ -9,6 +9,7 @@ import { FLAGS } from '@ogden/shared';
 import { usePresenceStore, type PresenceUser } from '../store/presenceStore.js';
 import { avatar } from '../lib/tokens';
 import css from './PresenceBar.module.css';
+import { DelayedTooltip } from './ui/DelayedTooltip.js';
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -65,13 +66,15 @@ function UserAvatar({ user }: { user: PresenceUser }) {
   const bg = colorForUser(user.userId);
 
   return (
-    <div
-      className={css.avatar}
-      style={{ backgroundColor: bg }}
-      title={`${user.userName}${user.isTyping ? ` (${user.typingAction ?? 'editing'})` : ''}`}
-    >
-      <span className={css.initials}>{getInitials(user.userName)}</span>
-      {isActive && <span className={css.pulse} />}
-    </div>
+    <DelayedTooltip label={`${user.userName}${user.isTyping ? ` (${user.typingAction ?? 'editing'})` : ''}`}>
+      <div
+        className={css.avatar}
+        style={{ backgroundColor: bg }}
+        tabIndex={0}
+      >
+        <span className={css.initials}>{getInitials(user.userName)}</span>
+        {isActive && <span className={css.pulse} />}
+      </div>
+    </DelayedTooltip>
   );
 }

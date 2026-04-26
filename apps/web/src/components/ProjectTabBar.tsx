@@ -19,7 +19,7 @@ export default function ProjectTabBar({ projectName, activeTab, onTabChange, pro
   return (
     <div className={css.bar}>
       <div className={css.left}>
-        <Link to="/" className={css.backLink} aria-label="Back to projects">
+        <Link to="/home" className={css.backLink} aria-label="Back to projects">
           <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 2 4 7 9 12" />
           </svg>

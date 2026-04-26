@@ -1,0 +1,304 @@
+/* §6 PassiveSolarTuningCard — rotate-by-X advisories per habitable structure. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.hint strong {
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.badgeGood { background: rgba(180, 200, 150, 0.12); color: rgba(180, 220, 150, 0.95); border-color: rgba(180, 200, 150, 0.3); }
+.badgeFair { background: rgba(220, 180, 100, 0.1);  color: rgba(232, 200, 130, 0.9);  border-color: rgba(220, 180, 100, 0.3); }
+.badgePoor { background: rgba(220, 130, 110, 0.1);  color: rgba(230, 160, 140, 0.9);  border-color: rgba(220, 130, 110, 0.3); }
+
+.empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.65);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+/* ── Glazing-facing primer ───────────────────────────────────────────── */
+.primer {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(220, 180, 100, 0.04);
+  border: 1px solid rgba(220, 180, 100, 0.18);
+  margin: 0 0 12px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.primer strong {
+  color: rgba(232, 200, 130, 0.92);
+  font-weight: 600;
+}
+
+/* ── Summary stats row ───────────────────────────────────────────────── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 700px) {
+  .summaryGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat_good { border-color: rgba(180, 200, 150, 0.25); background: rgba(180, 200, 150, 0.04); }
+.stat_fair { border-color: rgba(220, 180, 100, 0.25); background: rgba(220, 180, 100, 0.035); }
+.stat_poor { border-color: rgba(220, 130, 110, 0.3);  background: rgba(220, 130, 110, 0.04); }
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.statSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+/* ── Per-structure list ──────────────────────────────────────────────── */
+.list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.band_aligned { border-left-color: rgba(180, 200, 150, 0.7); background: rgba(180, 200, 150, 0.04); }
+.band_tunable { border-left-color: rgba(220, 180, 100, 0.7); background: rgba(220, 180, 100, 0.035); }
+.band_critical { border-left-color: rgba(220, 130, 110, 0.7); background: rgba(220, 130, 110, 0.045); }
+
+.rowMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.rowName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowType {
+  font-size: 11px;
+  color: rgba(220, 200, 130, 0.85);
+}
+
+.rowDims {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.65);
+  font-style: italic;
+}
+
+.rowBand {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag_aligned  { background: rgba(180, 200, 150, 0.18); color: rgba(180, 220, 150, 0.95); }
+.tag_tunable  { background: rgba(220, 180, 100, 0.15); color: rgba(232, 200, 130, 0.95); }
+.tag_critical { background: rgba(220, 130, 110, 0.18); color: rgba(230, 160, 140, 0.95); }
+
+/* ── Rotation gauge — visual axis indicator ──────────────────────────── */
+.gauge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0;
+}
+
+.gaugeBar {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+  overflow: visible;
+}
+
+.gaugeIdeal {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(180, 220, 150, 0.7);
+  border-radius: 1px;
+}
+
+.gaugeBand {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(180, 200, 150, 0.16);
+  border-radius: 3px;
+}
+
+.gaugeMarker {
+  position: absolute;
+  top: -3px;
+  width: 8px;
+  height: 12px;
+  background: rgba(232, 220, 200, 0.92);
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.gaugeMark_aligned  { background: rgba(180, 220, 150, 0.95); }
+.gaugeMark_tunable  { background: rgba(232, 200, 130, 0.95); }
+.gaugeMark_critical { background: rgba(230, 160, 140, 0.95); }
+
+.gaugeLabel {
+  font-size: 9px;
+  color: rgba(180, 165, 140, 0.6);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  width: 40px;
+}
+
+/* ── Figures grid ────────────────────────────────────────────────────── */
+.rowFigures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 12px;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .rowFigures { grid-template-columns: repeat(2, 1fr); }
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.figLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.figValue {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(220, 210, 185, 0.88);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowAdvisory {
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.78);
+  font-style: italic;
+  padding: 4px 0 0;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+.footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

@@ -23,15 +23,46 @@ import { wsService } from '../../lib/wsService.js';
 import GPSTracker from '../mobile/GPSTracker.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
+import { EmptyState } from '../../components/ui/EmptyState.js';
+import { RailPanelShell } from '../../components/ui/RailPanelShell.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { getDomainContext, type DomainKey } from './domainMapping.js';
-import { map as mapTokens, group } from '../../lib/tokens.js';
+import { map as mapTokens, mapZIndex, group } from '../../lib/tokens.js';
 import css from './MapView.module.css';
+import './mapRailDashboard.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
+const ViewModeSwitcher = lazy(() => import('./ViewModeSwitcher.js'));
+// NOTE: CrossSectionTool, HistoricalImageryControl, and MeasureTools are
+// lazy-loaded inside LeftToolSpine; they're intentionally not imported here.
+const ViewshedOverlay = lazy(() => import('./ViewshedOverlay.js'));
+const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ default: m.ViewshedToggle })));
+const MicroclimateOverlay = lazy(() => import('./MicroclimateOverlay.js'));
+const MicroclimateToggle = lazy(() => import('./MicroclimateOverlay.js').then((m) => ({ default: m.MicroclimateToggle })));
+const WindbreakOverlay = lazy(() => import('./WindbreakOverlay.js'));
+const WindbreakToggle = lazy(() => import('./WindbreakOverlay.js').then((m) => ({ default: m.WindbreakToggle })));
+const RestorationPriorityOverlay = lazy(() => import('./RestorationPriorityOverlay.js'));
+const RestorationPriorityToggle = lazy(() => import('./RestorationPriorityOverlay.js').then((m) => ({ default: m.RestorationPriorityToggle })));
+const MulchCompostCovercropOverlay = lazy(() => import('./MulchCompostCovercropOverlay.js'));
+const MulchCompostCovercropToggle = lazy(() => import('./MulchCompostCovercropOverlay.js').then((m) => ({ default: m.MulchCompostCovercropToggle })));
+const AgroforestryOverlay = lazy(() => import('./AgroforestryOverlay.js'));
+const AgroforestryToggle = lazy(() => import('./AgroforestryOverlay.js').then((m) => ({ default: m.AgroforestryToggle })));
+const PollinatorHabitatOverlay = lazy(() => import('./PollinatorHabitatOverlay.js'));
+const PollinatorHabitatToggle = lazy(() => import('./PollinatorHabitatOverlay.js').then((m) => ({ default: m.PollinatorHabitatToggle })));
+const BiodiversityCorridorOverlay = lazy(() => import('./BiodiversityCorridorOverlay.js'));
+const BiodiversityCorridorToggle = lazy(() => import('./BiodiversityCorridorOverlay.js').then((m) => ({ default: m.BiodiversityCorridorToggle })));
+const PollinatorHabitatStateOverlay = lazy(() => import('./PollinatorHabitatStateOverlay.js'));
+const PollinatorHabitatStateToggle = lazy(() => import('./PollinatorHabitatStateOverlay.js').then((m) => ({ default: m.PollinatorHabitatStateToggle })));
+const SplitScreenCompare = lazy(() => import('./SplitScreenCompare.js'));
+const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) => ({ default: m.SplitScreenToggle })));
+const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
+const OsmVectorControls = lazy(() => import('./OsmVectorOverlay.js').then((m) => ({ default: m.OsmVectorControls })));
+const LeftToolSpine = lazy(() => import('./LeftToolSpine.js'));
+const MapStyleSwitcher = lazy(() => import('./MapStyleSwitcher.js'));
 
 // Lazy-loaded panels
 const MapLayersPanel = lazy(() => import('../../components/panels/MapLayersPanel.js'));
@@ -43,6 +74,7 @@ const TimelinePanel = lazy(() => import('../../components/panels/TimelinePanel.j
 const PortalConfigPanel = lazy(() => import('../portal/PortalConfigPanel.js'));
 const VisionPanel = lazy(() => import('../vision/VisionPanel.js'));
 const DecisionSupportPanel = lazy(() => import('../decision/DecisionSupportPanel.js'));
+const RegulatoryPanel = lazy(() => import('../regulatory/RegulatoryPanel.js'));
 const MoontrancePanel = lazy(() => import('../moontrance/MoontrancePanel.js'));
 const SpiritualPanel = lazy(() => import('../spiritual/SpiritualPanel.js'));
 const VersionHistory = lazy(() => import('../project/VersionHistory.js'));
@@ -52,7 +84,22 @@ const ScenarioPanel = lazy(() => import('../scenarios/ScenarioPanel.js'));
 const TemplatePanel = lazy(() => import('../templates/TemplatePanel.js'));
 const ReportingPanel = lazy(() => import('../reporting/ReportingPanel.js'));
 const FieldworkPanel = lazy(() => import('../fieldwork/FieldworkPanel.js'));
-const LivestockPanel = lazy(() => import('../livestock/LivestockPanel.js'));
+const PaddockDesignDashboard = lazy(() => import('../dashboard/pages/PaddockDesignDashboard.js'));
+const HerdRotationDashboard = lazy(() => import('../dashboard/pages/HerdRotationDashboard.js'));
+const GrazingDashboard = lazy(() => import('../dashboard/pages/GrazingDashboard.js'));
+const LivestockDashboard = lazy(() => import('../dashboard/pages/LivestockDashboard.js'));
+const PaddockListFloating = lazy(() => import('../livestock/PaddockListFloating.js'));
+// Dashboard-page-backed rail panels (parity with dashboard view)
+const TerrainDashboard = lazy(() => import('../dashboard/pages/TerrainDashboard.js'));
+const CartographicDashboard = lazy(() => import('../dashboard/pages/CartographicDashboard.js'));
+const EcologicalDashboard = lazy(() => import('../dashboard/pages/EcologicalDashboard.js'));
+const StewardshipDashboard = lazy(() => import('../dashboard/pages/StewardshipDashboard.js'));
+const SolarClimateDashboard = lazy(() => import('../climate/SolarClimateDashboard.js'));
+const PlantingToolDashboard = lazy(() => import('../dashboard/pages/PlantingToolDashboard.js'));
+const ForestHubDashboard = lazy(() => import('../dashboard/pages/ForestHubDashboard.js'));
+const CarbonDiagnosticDashboard = lazy(() => import('../dashboard/pages/CarbonDiagnosticDashboard.js'));
+const NurseryLedgerDashboard = lazy(() => import('../dashboard/pages/NurseryLedgerDashboard.js'));
+const EnergyDashboard = lazy(() => import('../dashboard/pages/EnergyDashboard.js'));
 const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
 const ZonePanel = lazy(() => import('../zones/ZonePanel.js'));
 const SitingPanel = lazy(() => import('../rules/SitingPanel.js'));
@@ -65,25 +112,43 @@ interface MapViewProps {
   onEdit: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }
 
-export default function MapView({ project, zones, structures, onEdit, onExport, onDelete }: MapViewProps) {
+export default function MapView({ project, zones, structures, onEdit, onExport, onDelete, onDuplicate }: MapViewProps) {
   const isMobile = useIsMobile();
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setLayerVisible = useMapStore((s) => s.setLayerVisible);
   const is3DTerrain = useMapStore((s) => s.is3DTerrain);
+  const splitScreenActive = useMapStore((s) => s.splitScreenActive);
 
-  const [activeView, setActiveView] = useState<SidebarView>(
-    () => getDomainContext(useUIStore.getState().activeDashboardSection).panel,
-  );
+  // Lifted into uiStore so the IconSidebar rendered in ProjectPage (when the
+  // Map tab is active) can drive the same panel state. The store holds the
+  // nullable value directly so "close panel" (setActiveView(null)) still
+  // collapses the rail — we only seed from the domain context on first mount,
+  // not on every render.
+  const activeView = useUIStore((s) => s.activeMapView);
+  const setActiveView = useUIStore((s) => s.setActiveMapView);
+  const rightPanelCollapsed = useUIStore((s) => s.rightPanelCollapsed);
+  const toggleRightPanelCollapsed = useUIStore((s) => s.toggleRightPanelCollapsed);
+  const hasSeededViewRef = useRef(false);
+  useEffect(() => {
+    if (hasSeededViewRef.current) return;
+    hasSeededViewRef.current = true;
+    if (useUIStore.getState().activeMapView == null) {
+      setActiveView(getDomainContext(useUIStore.getState().activeDashboardSection).panel);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [isDrawingBoundary, setIsDrawingBoundary] = useState(false);
 
   const [mapRef, setMapRef] = useState<maplibregl.Map | null>(null);
   const [drawRef, setDrawRef] = useState<MapboxDraw | null>(null);
   const [markerRef, setMarkerRef] = useState<maplibregl.Marker | null>(null);
   const [boundaryColor, setBoundaryColor] = useState<string>(mapTokens.boundary);
+  const [mirrorFeatures, setMirrorFeatures] = useState<GeoJSON.FeatureCollection | null>(null);
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [pendingCommentLngLat, setPendingCommentLngLat] = useState<[number, number] | null>(null);
   const [pendingCommentText, setPendingCommentText] = useState('');
@@ -98,6 +163,28 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   // Unauthenticated users retain full local editing capability
   const effectiveCanEdit = !isAuthenticated || canEdit;
   const layoutRef = useRef<HTMLDivElement>(null);
+
+  // §2 Phase 4 — mirror drawn features to the compare pane. Subscribe to draw
+  // events once we have both the map + draw instance, then snapshot the full
+  // feature collection whenever anything changes.
+  useEffect(() => {
+    if (!mapRef || !drawRef) return;
+    const snapshot = () => {
+      try {
+        const fc = drawRef.getAll() as GeoJSON.FeatureCollection;
+        setMirrorFeatures(fc.features.length ? fc : null);
+      } catch { /* draw not ready */ }
+    };
+    snapshot();
+    mapRef.on('draw.create', snapshot);
+    mapRef.on('draw.update', snapshot);
+    mapRef.on('draw.delete', snapshot);
+    return () => {
+      mapRef.off('draw.create', snapshot);
+      mapRef.off('draw.update', snapshot);
+      mapRef.off('draw.delete', snapshot);
+    };
+  }, [mapRef, drawRef]);
 
   // Resize map when container becomes visible (after tab switch from display:none)
   useEffect(() => {
@@ -192,15 +279,16 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           {isDrawingBoundary ? (
             <button onClick={cancelBoundaryDraw} className={css.btnCancelDraw}>Cancel Drawing</button>
           ) : (
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={effectiveCanEdit}>
             <button
               onClick={startBoundaryDraw}
               disabled={!drawRef || !effectiveCanEdit}
-              title={!effectiveCanEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={css.btnDrawBoundary}
               style={!effectiveCanEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {project.hasParcelBoundary ? 'Redraw Boundary' : 'Draw Boundary'}
             </button>
+            </DelayedTooltip>
           )}
           <span className={css.headerStats}>
             {zones.length} zones &middot; {structures.length} structures
@@ -220,6 +308,157 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             onMarkerCreated={(m) => setMarkerRef(m)}
           />
         </ErrorBoundary>
+
+        {/* ── Left Tool Spine (Analysis / Content) ──────────────────────────
+         * Per UX Scholar consultation (2026-04-23) the floating tool stack
+         * was restructured using the "perimeter strategy": analysis + content
+         * tools live on a slim 48 px left spine, while view-context controls
+         * (2D/2.5D/3D, Split, Basemap) moved to the top-right cluster below.
+         * Previous single column stacked all 7 tools and obstructed ~80 × 320 px
+         * of the left edge.
+         */}
+        <Suspense fallback={null}>
+          <LeftToolSpine
+            projectId={project.id}
+            map={mapRef}
+            draw={drawRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+            viewshedSlot={
+              <Suspense fallback={null}>
+                <ViewshedToggle compact />
+              </Suspense>
+            }
+            microclimateSlot={
+              <Suspense fallback={null}>
+                <MicroclimateToggle compact />
+              </Suspense>
+            }
+            windbreakSlot={
+              <Suspense fallback={null}>
+                <WindbreakToggle compact />
+              </Suspense>
+            }
+            restorationSlot={
+              <Suspense fallback={null}>
+                <RestorationPriorityToggle compact />
+              </Suspense>
+            }
+            mulchCovercropSlot={
+              <Suspense fallback={null}>
+                <MulchCompostCovercropToggle compact />
+              </Suspense>
+            }
+            agroforestrySlot={
+              <Suspense fallback={null}>
+                <AgroforestryToggle compact />
+              </Suspense>
+            }
+            pollinatorOpportunitySlot={
+              <Suspense fallback={null}>
+                <PollinatorHabitatToggle compact />
+              </Suspense>
+            }
+            biodiversityCorridorSlot={
+              <Suspense fallback={null}>
+                <BiodiversityCorridorToggle />
+              </Suspense>
+            }
+            pollinatorHabitatStateSlot={
+              <Suspense fallback={null}>
+                <PollinatorHabitatStateToggle compact />
+              </Suspense>
+            }
+            osmSlot={
+              <Suspense fallback={null}>
+                <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
+              </Suspense>
+            }
+          />
+        </Suspense>
+
+        {/* ── Top-Right View-Context Cluster ──────────────────────────────
+         * ViewMode + Split + basemap switcher — "set-and-forget" context
+         * controls sharing one perimeter strip. Positioned at top:56 so it
+         * sits BELOW the floatingControls row (Redraw Boundary + project
+         * stats) which occupies top:16. right:60 clears the MapLibre zoom
+         * column (which Atlas CSS offsets to top:56 right:10, ~44px wide).
+         *
+         * When split-screen is active, the secondary pane renders its own
+         * basemap switcher (top:12 right:12 of the pane) and the primary
+         * pane's visible area collapses to the left half — so rendering
+         * ViewMode + primary MapStyleSwitcher on top of the split pane is
+         * both redundant and visually noisy. Hide them; leave only the
+         * Split toggle so users retain an exit affordance from its usual
+         * top-right location.
+         */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 56,
+            right: 60,
+            zIndex: mapZIndex.spine,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            alignItems: 'flex-end',
+            pointerEvents: 'none',
+          }}
+        >
+          {!splitScreenActive && (
+            <Suspense fallback={null}>
+              <ViewModeSwitcher onPitch={(deg) => mapRef?.easeTo({ pitch: deg, duration: 400 })} />
+            </Suspense>
+          )}
+          <Suspense fallback={null}>
+            <SplitScreenToggle />
+          </Suspense>
+          {!splitScreenActive && (
+            <Suspense fallback={null}>
+              <MapStyleSwitcher />
+            </Suspense>
+          )}
+        </div>
+        <Suspense fallback={null}>
+          <ViewshedOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <MicroclimateOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <WindbreakOverlay
+            projectId={project.id}
+            map={mapRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+          />
+        </Suspense>
+        <Suspense fallback={null}>
+          <RestorationPriorityOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <MulchCompostCovercropOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AgroforestryOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PollinatorHabitatOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BiodiversityCorridorOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PollinatorHabitatStateOverlay projectId={project.id} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SplitScreenCompare
+            primaryMap={mapRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+            mirrorFeatures={mirrorFeatures}
+          />
+        </Suspense>
+        <Suspense fallback={null}>
+          <OsmVectorOverlay map={mapRef} boundaryGeojson={project.parcelBoundaryGeojson} />
+        </Suspense>
 
         {/* Sprint CB — map-side GAEZ v4 suitability overlay + picker. */}
         <ErrorBoundary>
@@ -242,7 +481,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         {pendingCommentLngLat && (
           <div style={{
             position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            zIndex: 50, display: 'flex', gap: 6, alignItems: 'center',
+            zIndex: mapZIndex.top, display: 'flex', gap: 6, alignItems: 'center',
             background: 'var(--color-panel-bg, #1a1a1a)', border: '1px solid rgba(196,162,101,0.3)',
             borderRadius: 10, padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             minWidth: 320, maxWidth: 420,
@@ -368,6 +607,17 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
             />
           </Suspense>
         )}
+
+        {!isMobile && (
+          activeView === 'paddockDesign' ||
+          activeView === 'herdRotation' ||
+          activeView === 'grazingAnalysis' ||
+          activeView === 'livestockInventory'
+        ) && (
+          <Suspense fallback={null}>
+            <PaddockListFloating projectId={project.id} draw={drawRef} map={mapRef} />
+          </Suspense>
+        )}
       </div>
 
       {/* Right panel content */}
@@ -385,7 +635,8 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'hydrology' && <HydrologyRightPanel project={project} />}
               {activeView === 'ai' && <AtlasAIPanel project={project} />}
               {activeView === 'economic' && <EconomicsPanel project={project} />}
-              {activeView === 'regulatory' && <DecisionSupportPanel project={project} />}
+              {activeView === 'regulatory' && <RegulatoryPanel project={project} />}
+              {activeView === 'feasibility' && <DecisionSupportPanel project={project} />}
               {activeView === 'timeline' && <TimelinePanel project={project} />}
               {activeView === 'history' && (
                 <div className={css.historyWrapper}>
@@ -428,13 +679,98 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'templates' && <TemplatePanel project={project} />}
               {activeView === 'reporting' && <ReportingPanel project={project} onOpenExport={onExport} />}
               {activeView === 'settings' && (
-                <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} />
+                <SettingsPanel project={project} onEdit={onEdit} onExport={onExport} onDelete={onDelete} onDuplicate={onDuplicate} />
               )}
               {activeView === 'fieldnotes' && <FieldworkPanel project={project} map={mapRef} />}
-              {activeView === 'livestock' && <LivestockPanel projectId={project.id} draw={drawRef} map={mapRef} />}
+              {activeView === 'paddockDesign' && (
+                <div className="map-rail-dashboard">
+                  <PaddockDesignDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'herdRotation' && (
+                <div className="map-rail-dashboard">
+                  <HerdRotationDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'grazingAnalysis' && (
+                <div className="map-rail-dashboard">
+                  <GrazingDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'livestockInventory' && (
+                <div className="map-rail-dashboard">
+                  <LivestockDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'terrain' && (
+                <div className="map-rail-dashboard">
+                  <TerrainDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'cartographic' && (
+                <div className="map-rail-dashboard">
+                  <CartographicDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'ecological' && (
+                <div className="map-rail-dashboard">
+                  <EcologicalDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'stewardship' && (
+                <div className="map-rail-dashboard">
+                  <StewardshipDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'climate' && (
+                <div className="map-rail-dashboard">
+                  <SolarClimateDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'planting' && (
+                <div className="map-rail-dashboard">
+                  <PlantingToolDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'forest' && (
+                <div className="map-rail-dashboard">
+                  <ForestHubDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'carbon' && (
+                <div className="map-rail-dashboard">
+                  <CarbonDiagnosticDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'nursery' && (
+                <div className="map-rail-dashboard">
+                  <NurseryLedgerDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'energy' && (
+                <div className="map-rail-dashboard">
+                  <EnergyDashboard project={project} onSwitchToMap={() => setActiveView(null)} focus="energy" />
+                </div>
+              )}
+              {activeView === 'infrastructure' && (
+                <div className="map-rail-dashboard">
+                  <EnergyDashboard project={project} onSwitchToMap={() => setActiveView(null)} focus="infrastructure" />
+                </div>
+              )}
               {activeView === 'educational' && <EducationalAtlasPanel project={project} />}
               {activeView === 'zoning' && <ZonePanel projectId={project.id} draw={drawRef} map={mapRef} canEdit={effectiveCanEdit} />}
               {activeView === 'siting' && <SitingPanel project={project} />}
+              {activeView === 'unmapped' && (
+                <EmptyState
+                  icon={<span aria-hidden="true" style={{ fontSize: 28 }}>{'\u{1F6A7}'}</span>}
+                  title="No panel wired for this view yet"
+                  description={
+                    activeDashboardSection
+                      ? `"${activeDashboardSection}" does not map to a map-rail panel. Open the Dashboard for a full view, or pick a different domain from the rail.`
+                      : 'This domain has no dedicated map-rail panel yet. Open the Dashboard for a full view, or pick a different domain from the rail.'
+                  }
+                />
+              )}
             </Suspense>
           </ErrorBoundary>
         );
@@ -447,7 +783,18 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           );
         }
 
-        return <div className={css.rightPanel}>{panelContent}</div>;
+        return (
+          <div className={`${css.rightPanel} ${rightPanelCollapsed ? css.rightPanelCollapsed : ''}`}>
+            <RailPanelShell
+              view={activeView}
+              onClose={() => setActiveView(null)}
+              collapsed={rightPanelCollapsed}
+              onToggleCollapsed={toggleRightPanelCollapsed}
+            >
+              {panelContent}
+            </RailPanelShell>
+          </div>
+        );
       })()}
 
       {/* Mobile bottom bar */}
@@ -481,17 +828,20 @@ function SettingsPanel({
   onEdit,
   onExport,
   onDelete,
+  onDuplicate,
 }: {
   project: { name: string };
   onEdit: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   return (
     <div className={css.settingsPanel}>
       <h2 className={css.settingsTitle}>Project Settings</h2>
       <div className={css.settingsList}>
         <button onClick={onEdit} className={css.settingsBtn}>Edit Project Details</button>
+        <button onClick={onDuplicate} className={css.settingsBtn}>Duplicate as Template</button>
         <button onClick={onExport} className={css.settingsBtn}>Export / Print Summary</button>
         <button onClick={onDelete} className={css.settingsBtnDanger}>Delete Project</button>
       </div>

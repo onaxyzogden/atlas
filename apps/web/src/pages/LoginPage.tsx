@@ -44,8 +44,8 @@ export default function LoginPage() {
         await register(email, password, displayName || undefined);
       }
       // Success — navigate to requested page or home
-      const dest = search.redirect ?? '/';
-      navigate({ to: dest as '/' });
+      const dest = search.redirect ?? '/home';
+      navigate({ to: dest as '/home' });
     } catch {
       // Error is already in the store — just re-enable the form
     } finally {

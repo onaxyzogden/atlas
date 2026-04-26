@@ -6,6 +6,7 @@
 
 import type { ConfidenceLevel } from '@ogden/shared';
 import { confidence, semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 const CONFIG: Record<ConfidenceLevel, { label: string; color: string; description: string }> = {
   high: {
@@ -40,29 +41,31 @@ export default function ConfidenceIndicator({
 
   if (compact) {
     return (
-      <span
-        title={`${cfg.label}: ${cfg.description}`}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          fontSize: 11,
-          fontWeight: 600,
-          color: cfg.color,
-          textTransform: 'capitalize',
-        }}
-      >
+      <DelayedTooltip label={`${cfg.label}: ${cfg.description}`}>
         <span
+          tabIndex={0}
           style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: cfg.color,
-            display: 'inline-block',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 11,
+            fontWeight: 600,
+            color: cfg.color,
+            textTransform: 'capitalize',
           }}
-        />
-        {confidence}
-      </span>
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: cfg.color,
+              display: 'inline-block',
+            }}
+          />
+          {confidence}
+        </span>
+      </DelayedTooltip>
     );
   }
 

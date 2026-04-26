@@ -13,6 +13,7 @@ src/
     ui/             — 16 reusable components (Button, Card, Modal, etc.)
     IconSidebar.tsx  — Main navigation sidebar
   features/
+    _templates/     — SECTION_CONTEXT.md.tmpl (scaffold generator template)
     dashboard/      — DashboardView, DashboardSidebar, DashboardRouter, 14 dashboard pages
     climate/        — SolarClimateDashboard
     economics/      — EconomicsPanel
@@ -22,6 +23,8 @@ src/
     export/         — InvestorSummaryExport, ProjectSummaryExport, EducationalBookletExport
     fieldwork/      — FieldworkPanel, FieldNoteExport
     map/            — Map view, drawing tools, layer controls
+    <slug>/         — 28 scaffolded §§2-29 feature folders (CONTEXT.md + Page.tsx + index.ts)
+                      driven by [[feature-manifest]]. §1 uses legacy project/ folder.
   store/            — 26 Zustand stores
   lib/              — layerFetcher, geoParsers, scoring engine, tokens.ts (TS token bridge)
   pages/            — Top-level route pages
@@ -185,3 +188,15 @@ All use `persist` middleware with localStorage. Key stores:
 - Unused-import cleanup: `HydrologyExtensionsSection.tsx`, `ClimateProjectionsSection.tsx`, `EnergyIntelligenceSection.tsx` had all `semantic.*` code references swapped — `semantic` dropped from their tokens.js imports.
 - Verification: `npx tsc --noEmit` clean, `npm run build` succeeds (22.02 s, panel chunk 1,144.14 kB / gzip 158.66 kB — unchanged vs BQ; class-name concats net-zero in bundled output). Remaining 26 `semantic.*` inline refs are runtime-dynamic (badge colors from `confidence.*`, conditional-color spans) and intentionally kept inline.
 - Cumulative: panel + 27 sections carry **159 inline styles** (down from pre-BQ ~378 on sections alone). `panel.module.css` grew by 28 classes across BQ+BR (16 + 12), each tagged by sprint.
+
+## UI/UX Scholar P0 + P1 (2026-04-23 / 2026-04-24)
+
+Design-system primitives + token architecture driven by `design-system/ogden-atlas/ui-ux-scholar-audit.md`.
+
+**Token architecture.** OKLCH primitives live at the top of `apps/web/src/styles/tokens.css` (`--l-bg/surface/raised/popover`, `--c-warm-neutral`, `--h-warm-neutral`, plus L/C/H triples for primary/accent/success/warning/error/info). `apps/web/src/styles/dark-mode.css` wraps its surface + semantic overrides in `@supports (color: oklch(0 0 0))` so the hex declarations above the gate remain authoritative on unsupporting browsers. See ADR `2026-04-23-oklch-token-migration.md`.
+
+**UI primitives.** Three additions to `apps/web/src/components/ui/`:
+
+- `DelayedTooltip.tsx` — 800 ms preset over existing `<Tooltip>`. Replaces native `title=` across icon-only chrome (`IconSidebar`, map tool spine, overlay toggles). ADR `2026-04-23-delayed-tooltip-primitive.md`.
+- `Sparkline.tsx` — zero-dep SVG micro-chart for inline trend display. Neutral stroke, semantic accent on endpoint dot only. First consumer: Climate row in `ScoresAndFlagsSection` renders monthly precipitation from `climate.summary._monthly_normals`. `LiveDataRow.sparkline?: number[]` is the transport — plumbed in `packages/shared/src/scoring/computeScores.ts::deriveLiveDataRows` and mirrored on the local `LiveDataRow` type in `apps/web/src/components/panels/sections/ScoresAndFlagsSection.tsx`.
+- `.signifier-shimmer` utility in `apps/web/src/styles/utilities.css` — `@property`-driven conic-gradient border, masked to outline only, with `prefers-reduced-motion` guard. Applied to active overlay toggles + active tool buttons.

@@ -169,7 +169,13 @@ export function useSiteIntelligenceMetrics(
         bulkDensity: bdRaw,
         ksatUmS: typeof ss.ksat_um_s === 'number' ? ss.ksat_um_s : null,
         caco3Pct: typeof ss.caco3_pct === 'number' ? ss.caco3_pct : null,
-        coarseFragmentPct: typeof ss.coarse_fragment_pct === 'number' ? ss.coarse_fragment_pct : null,
+        coarseFragmentPct: typeof ss.coarse_fragment_pct_chfrags === 'number'
+          ? ss.coarse_fragment_pct_chfrags
+          : (typeof ss.coarse_fragment_pct === 'number' ? ss.coarse_fragment_pct : null),
+        baseSaturationPct: typeof ss.base_saturation_pct === 'number' ? ss.base_saturation_pct : null,
+        baseSaturationMethod: (ss.base_saturation_method === 'sum_of_cations' || ss.base_saturation_method === 'nh4oac_ph7'
+          ? ss.base_saturation_method
+          : null) as 'sum_of_cations' | 'nh4oac_ph7' | null,
         awcCmCm: typeof ss.awc_cm_cm === 'number' ? ss.awc_cm_cm : null,
         textureClass: typeof ss.texture_class === 'string' ? ss.texture_class : null,
         drainageClass: typeof ss.drainage_class === 'string' ? ss.drainage_class : null,

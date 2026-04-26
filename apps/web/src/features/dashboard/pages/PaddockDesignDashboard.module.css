@@ -1,9 +1,13 @@
 /* PaddockDesignDashboard */
 
-.page { max-width: 860px; }
+.page {
+  max-width: 860px;
+  container-type: inline-size;
+  container-name: paddockPage;
+}
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -26,6 +30,13 @@
   margin-bottom: 24px;
 }
 @media (max-width: 768px) { .summaryRow { grid-template-columns: repeat(2, 1fr); } }
+@container paddockPage (max-width: 520px) {
+  .summaryRow { grid-template-columns: repeat(2, 1fr); }
+}
+@container paddockPage (max-width: 360px) {
+  .summaryValue { font-size: 20px; }
+  .summaryCard { padding: 12px 10px; }
+}
 
 .summaryCard {
   padding: 16px;
@@ -44,7 +55,7 @@
   margin-bottom: 6px;
 }
 .summaryValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -58,6 +69,11 @@
   margin-bottom: 28px;
 }
 @media (max-width: 768px) { .paddockGrid { grid-template-columns: 1fr; } }
+@container paddockPage (max-width: 520px) {
+  .paddockGrid { grid-template-columns: 1fr; }
+  .paddockCard { padding: 14px; }
+  .paddockName { font-size: 15px; }
+}
 
 .paddockCard {
   padding: 18px;
@@ -72,7 +88,7 @@
   margin-bottom: 12px;
 }
 .paddockName {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -136,7 +152,7 @@
   margin-bottom: 20px;
 }
 .scheduleTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232,220,200,0.85);
@@ -169,6 +185,22 @@
   transition: background 100ms;
 }
 .scheduleRow:hover { background: rgba(255,255,255,0.02); }
+
+@container paddockPage (max-width: 520px) {
+  .scheduleSection { padding: 14px; }
+  .scheduleHeaderRow,
+  .scheduleRow {
+    grid-template-columns: 1.4fr 1fr 0.8fr;
+    gap: 6px;
+    padding: 8px 6px;
+  }
+  /* Hide the 4th (notes) column in narrow containers */
+  .scheduleHeaderRow > :nth-child(4),
+  .scheduleRow > :nth-child(4) { display: none; }
+  .scheduleCell { font-size: 12px; }
+  .title { font-size: 22px; }
+  .desc { font-size: 12px; margin-bottom: 16px; }
+}
 
 .scheduleCell {
   font-size: 13px;
@@ -209,4 +241,17 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   color: rgba(180,165,140,0.4);
+}
+
+/* ── Responsive (viewport-level — supplements container queries) ── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .summaryRow { grid-template-columns: 1fr 1fr; }
+  .summaryValue { font-size: 20px; }
+  .paddockCardHeader { flex-direction: column; gap: 6px; }
+  .paddockMeta { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .metaValue { font-size: 14px; }
 }

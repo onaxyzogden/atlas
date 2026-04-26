@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { WithConfidence } from './confidence.schema.js';
+import { Country } from './project.schema.js';
 
 export const AssessmentFlagCategory = z.enum([
   'agriculture',
@@ -19,7 +20,10 @@ export const AssessmentFlag = z.object({
   message: z.string(),
   layerSource: z.string().optional(),
   priority: z.number().int().min(0).max(100).default(50),
-  country: z.enum(['US', 'CA', 'all']).default('all'),
+  // Reuses the shared Country enum (US | CA | INTL) and adds 'all' for
+  // rules that apply regardless of country. The 04-19 audit flagged a local
+  // redundant enum here — this is the dedupe.
+  country: z.union([Country, z.literal('all')]).default('all'),
   needsSiteVisit: z.boolean().default(false),
 });
 export type AssessmentFlag = z.infer<typeof AssessmentFlag>;
@@ -73,7 +77,7 @@ export const AIEnrichmentRequest = z.object({
   projectId: z.string().uuid(),
   flags: z.array(AssessmentFlag),
   layerSummaries: z.record(z.record(z.unknown())),
-  country: z.enum(['US', 'CA']),
+  country: Country,
 });
 export type AIEnrichmentRequest = z.infer<typeof AIEnrichmentRequest>;
 
@@ -90,3 +94,27 @@ export const AIEnrichmentResponse = z.object({
   modelId: z.string(),
 });
 export type AIEnrichmentResponse = z.infer<typeof AIEnrichmentResponse>;
+
+// GET /projects/:id/assessment response shape.
+// Raw `site_assessments` row (snake_case) + optional terrainAnalysis block.
+// Kept loose (unknowns for jsonb fields) because the route spreads the raw
+// row — consumer code narrows as needed.
+export const AssessmentResponse = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  version: z.number().int().positive(),
+  is_current: z.boolean(),
+  confidence: z.enum(['high', 'medium', 'low']),
+  suitability_score: z.number().nullable(),
+  buildability_score: z.number().nullable(),
+  water_resilience_score: z.number().nullable(),
+  ag_potential_score: z.number().nullable(),
+  overall_score: z.number().nullable(),
+  score_breakdown: z.unknown().nullable(),
+  flags: z.array(z.unknown()).nullable(),
+  needs_site_visit: z.boolean(),
+  data_sources_used: z.array(z.string()).nullable(),
+  computed_at: z.string(),
+  terrainAnalysis: z.unknown().nullable().optional(),
+});
+export type AssessmentResponse = z.infer<typeof AssessmentResponse>;

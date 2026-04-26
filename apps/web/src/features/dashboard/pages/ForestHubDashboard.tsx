@@ -111,7 +111,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
       {/* ── Existing Vegetation ────────────────────────────────── */}
       {vegetation.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>EXISTING VEGETATION</h3>
+          <h2 className={css.sectionLabel}>EXISTING VEGETATION</h2>
           {vegetation.map((v) => (
             <div key={v.className} className={css.vegRow}>
               <span className={css.vegLabel}>{v.className}</span>
@@ -123,7 +123,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
 
       {/* ── Operational Data ───────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>OPERATIONAL DATA</h3>
+        <h2 className={css.sectionLabel}>OPERATIONAL DATA</h2>
         <div className={css.dataList}>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Soil Moisture</span>
@@ -142,7 +142,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
 
       {/* ── Soil Biology ──────────────────────────────────────── */}
       <div className={css.soilCard}>
-        <h3 className={css.sectionLabel}>SOIL BIOLOGY — FOREST CONTEXT</h3>
+        <h2 className={css.sectionLabel}>SOIL BIOLOGY — FOREST CONTEXT</h2>
         <div className={css.dataList}>
           <div className={css.dataRow}>
             <span className={css.dataLabel}>Fungi:Bacteria Ratio</span>
@@ -161,7 +161,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
 
       {/* ── Carbon Stock ──────────────────────────────────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>CARBON STOCK ESTIMATE</h3>
+        <h2 className={css.sectionLabel}>CARBON STOCK ESTIMATE</h2>
         <div className={css.carbonGrid}>
           <div className={css.carbonCard}>
             <span className={css.carbonValue}>{carbon.currentSOC}</span>
@@ -195,7 +195,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
       {/* ── Forestry Zones ────────────────────────────────────── */}
       {forestryZones.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>FORESTRY ZONES</h3>
+          <h2 className={css.sectionLabel}>FORESTRY ZONES</h2>
           {forestryZones.map((fz) => (
             <div key={fz.zoneId} className={css.zoneCard}>
               <div className={css.zoneName}>{fz.zoneName}</div>
@@ -213,7 +213,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
       {/* ── Silvopasture Opportunities ────────────────────────── */}
       {silvopasture.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>SILVOPASTURE OPPORTUNITIES</h3>
+          <h2 className={css.sectionLabel}>SILVOPASTURE OPPORTUNITIES</h2>
           {silvopasture.map((sp) => (
             <div key={sp.zoneId} className={css.silvoCard}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -229,7 +229,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
       {/* ── Planting Tool Integration ─────────────────────────── */}
       {cropAreas.length > 0 && (
         <div className={css.section}>
-          <h3 className={css.sectionLabel}>FOREST CROP AREAS</h3>
+          <h2 className={css.sectionLabel}>FOREST CROP AREAS</h2>
           {cropAreas.map((ca) => (
             <div key={ca.id} className={css.zoneCard}>
               <div className={css.zoneName}>{ca.name || ca.type}</div>
@@ -243,7 +243,7 @@ export default function ForestHubDashboard({ project, onSwitchToMap }: ForestHub
 
       {/* ── Canopy Succession — 7-Layer Food Forest ───────────── */}
       <div className={css.section}>
-        <h3 className={css.sectionLabel}>CANOPY SUCCESSION — 7-LAYER FOOD FOREST</h3>
+        <h2 className={css.sectionLabel}>CANOPY SUCCESSION — 7-LAYER FOOD FOREST</h2>
         {FOOD_FOREST_LAYERS.map((layer) => (
           <div key={layer.layer} className={css.canopyRow}>
             <span className={css.canopyDot} style={{ background: layer.color }} />

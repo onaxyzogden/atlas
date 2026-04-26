@@ -13,6 +13,13 @@
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useMemo } from 'react';
+import {
+  computeSunPathForSeason,
+  summarizeSunPath,
+  SEASON_DATES,
+  type Season,
+  type SunPosition,
+} from '@ogden/shared';
 import ClimateScenarioOverlay from './ClimateScenarioOverlay.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
@@ -26,21 +33,6 @@ interface SolarClimatePanelProps {
   isMapReady: boolean;
   projectId?: string;
 }
-
-type Season = 'spring' | 'summer' | 'fall' | 'winter';
-
-interface SunPosition {
-  hour: number;
-  azimuth: number; // degrees from north
-  elevation: number; // degrees above horizon
-}
-
-const SEASON_DATES: Record<Season, { month: number; day: number; label: string }> = {
-  spring: { month: 3, day: 20, label: 'Spring Equinox' },
-  summer: { month: 6, day: 21, label: 'Summer Solstice' },
-  fall: { month: 9, day: 22, label: 'Fall Equinox' },
-  winter: { month: 12, day: 21, label: 'Winter Solstice' },
-};
 
 const WIND_DIRECTIONS_8 = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 const WIND_DIRECTIONS_16 = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'] as const;
@@ -61,18 +53,10 @@ export default function SolarClimatePanel({ center, map, isMapReady, projectId }
   });
 
   // Compute approximate sun positions for the selected season
-  const sunPath = useMemo(() => computeSunPath(lat, activeSeason), [lat, activeSeason]);
-
-  // Daylight hours
-  const daylightHours = useMemo(() => {
-    const visibleHours = sunPath.filter((p) => p.elevation > 0);
-    return visibleHours.length;
-  }, [sunPath]);
-
-  // Solar noon altitude
-  const solarNoon = useMemo(() => {
-    return sunPath.reduce((max, p) => (p.elevation > max.elevation ? p : max), sunPath[0]!);
-  }, [sunPath]);
+  const sunPath = useMemo(() => computeSunPathForSeason(lat, activeSeason), [lat, activeSeason]);
+  const sunSummary = useMemo(() => summarizeSunPath(sunPath), [sunPath]);
+  const daylightHours = sunSummary.daylightHours;
+  const solarNoon = sunSummary.solarNoon;
 
   if (!isMapReady) return <PanelLoader label="Waiting for map..." />;
 
@@ -322,46 +306,6 @@ function MetricBox({ label, value }: { label: string; value: string }) {
       <div className={s.metricValue}>{value}</div>
     </div>
   );
-}
-
-// ─── Astronomical calculations ───────────────────────────────────────────
-
-function computeSunPath(lat: number, season: Season): SunPosition[] {
-  const { month, day } = SEASON_DATES[season];
-  const doy = Math.floor((month - 1) * 30.44 + day);
-
-  const B = ((doy - 1) * 360) / 365;
-  const Br = (B * Math.PI) / 180;
-  const declination =
-    0.006918 -
-    0.399912 * Math.cos(Br) +
-    0.070257 * Math.sin(Br) -
-    0.006758 * Math.cos(2 * Br) +
-    0.000907 * Math.sin(2 * Br);
-  const decDeg = (declination * 180) / Math.PI;
-
-  const latRad = (lat * Math.PI) / 180;
-  const decRad = (decDeg * Math.PI) / 180;
-
-  const positions: SunPosition[] = [];
-
-  for (let hour = 4; hour <= 21; hour++) {
-    const hourAngle = (hour - 12) * 15;
-    const haRad = (hourAngle * Math.PI) / 180;
-
-    const sinEl =
-      Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad);
-    const elevation = (Math.asin(Math.max(-1, Math.min(1, sinEl))) * 180) / Math.PI;
-
-    const cosAz =
-      (Math.sin(decRad) - Math.sin(latRad) * sinEl) / (Math.cos(latRad) * Math.cos((elevation * Math.PI) / 180));
-    let azimuth = (Math.acos(Math.max(-1, Math.min(1, cosAz))) * 180) / Math.PI;
-    if (hourAngle > 0) azimuth = 360 - azimuth;
-
-    positions.push({ hour, azimuth, elevation });
-  }
-
-  return positions;
 }
 
 function getApproxWindFrequencies(lat: number): number[] {

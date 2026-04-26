@@ -1,0 +1,603 @@
+/* PhasingDashboard — §15 Timeline, Phasing & Staged Buildout */
+
+.page {
+  padding: 32px 40px 48px;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin: 0 0 8px;
+}
+
+.desc {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.7);
+  max-width: 620px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.mapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.28);
+  border-radius: 4px;
+  color: rgba(var(--color-gold-rgb), 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.mapBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border-color: rgba(var(--color-gold-rgb), 0.42);
+}
+
+/* ── Buildout Arc summary ───────────────────────────────────────── */
+
+.arc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  padding: 0;
+  background: rgba(180, 165, 140, 0.1);
+  border: 1px solid rgba(180, 165, 140, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.arcCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  background: rgba(20, 22, 20, 0.5);
+}
+
+.arcLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.arcValue {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.1;
+}
+
+.arcValueSmall {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.85);
+  line-height: 1.3;
+}
+
+.arcDetail {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.arcValueSuffix {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 2px;
+}
+
+.arcProgressTrack {
+  width: 100%;
+  height: 4px;
+  background: rgba(180, 165, 140, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.arcProgressFill {
+  height: 100%;
+  background: rgba(var(--color-gold-rgb), 0.7);
+  border-radius: 2px;
+  transition: width 240ms ease;
+}
+
+/* ── Phase cards ────────────────────────────────────────────────── */
+
+.phaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phaseCard {
+  padding: 18px 22px;
+  background: rgba(20, 22, 20, 0.5);
+  border: 1px solid rgba(180, 165, 140, 0.12);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.phaseCardCompleted {
+  background: rgba(20, 22, 20, 0.35);
+  border-color: rgba(180, 165, 140, 0.2);
+}
+
+.phaseCardCompleted .phaseName,
+.phaseCardCompleted .phaseDesc {
+  opacity: 0.65;
+}
+
+.phaseCheckbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(180, 165, 140, 0.35);
+  background: rgba(20, 22, 20, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  color: rgba(20, 22, 20, 0.95);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.phaseCheckbox:hover {
+  border-color: rgba(180, 165, 140, 0.6);
+}
+
+.phaseCheckboxChecked {
+  /* Inline style sets border + background to phase color;
+     this rule keeps the checkmark contrast tight. */
+  color: rgba(20, 22, 20, 0.95);
+}
+
+.phaseCompletedBadge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: rgba(var(--color-gold-rgb), 0.8);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.22);
+}
+
+.phaseHead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.phaseCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.phaseMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phaseNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.phaseName {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.phaseYears {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.phaseDesc {
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  line-height: 1.5;
+}
+
+.phaseStats {
+  display: flex;
+  gap: 18px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  row-gap: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 60px;
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+/* ── Feature list within a phase ───────────────────────────────── */
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(180, 165, 140, 0.08);
+  padding-top: 10px;
+}
+
+.featureItem {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(180, 165, 140, 0.04);
+}
+
+.featureItem:last-child {
+  border-bottom: none;
+}
+
+.featureType {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.featureName {
+  color: rgba(232, 220, 200, 0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.featureSub {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.featureMore {
+  padding: 6px 0;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+/* ── Empty state ────────────────────────────────────────────────── */
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  background: rgba(20, 22, 20, 0.3);
+  border: 1px dashed rgba(180, 165, 140, 0.15);
+  border-radius: 6px;
+}
+
+.empty p {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.6);
+  margin: 0;
+}
+
+/* ── Warning card ───────────────────────────────────────────────── */
+
+.card {
+  padding: 20px 24px;
+  background: rgba(20, 22, 20, 0.4);
+  border: 1px solid rgba(180, 165, 140, 0.1);
+  border-radius: 6px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+  margin: 0;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  letter-spacing: 0.04em;
+}
+
+.warnSubhead {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(200, 140, 80, 0.7);
+  margin: 14px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(200, 140, 80, 0.15);
+}
+.warnSubhead:first-of-type {
+  margin-top: 8px;
+}
+
+.warnList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.warnItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(180, 165, 140, 0.08);
+}
+
+.warnItem:last-child {
+  border-bottom: none;
+}
+
+.warnDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(200, 140, 80, 0.85);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.warnBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.warnName {
+  font-size: 13px;
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 500;
+}
+
+.warnPhase {
+  color: rgba(180, 165, 140, 0.55);
+  font-weight: 400;
+}
+
+.warnReason {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  line-height: 1.5;
+}
+
+.warnReason strong {
+  color: rgba(232, 220, 200, 0.75);
+  font-weight: 600;
+}
+
+/* ── Working notes (per phase card) ─────────────────────────────── */
+
+.phaseNotesBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(180, 165, 140, 0.08);
+  padding-top: 10px;
+}
+
+.phaseNotesLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.phaseNotesInput {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(15, 17, 15, 0.55);
+  border: 1px solid rgba(180, 165, 140, 0.15);
+  border-radius: 4px;
+  color: rgba(232, 220, 200, 0.88);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 44px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.phaseNotesInput:focus {
+  outline: none;
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+  background: rgba(15, 17, 15, 0.7);
+}
+
+.phaseNotesInput::placeholder {
+  color: rgba(180, 165, 140, 0.35);
+  font-style: italic;
+}
+
+/* ── Footnote ───────────────────────────────────────────────────── */
+
+.footnote {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.4);
+  padding-top: 8px;
+  line-height: 1.6;
+}
+
+/* ── §15 temporary-vs-permanent-seasonal ─────────────────────────── */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hideTempToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(20, 22, 20, 0.6);
+  border: 1px solid rgba(180, 165, 140, 0.18);
+  border-radius: 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.75);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.hideTempToggle:hover {
+  border-color: rgba(180, 165, 140, 0.32);
+  background: rgba(20, 22, 20, 0.8);
+}
+
+.hideTempToggle input {
+  cursor: pointer;
+  accent-color: rgba(var(--color-gold-rgb), 0.85);
+}
+
+.featureItemTemporary {
+  border-bottom-style: dashed !important;
+  border-bottom-color: rgba(180, 165, 140, 0.22) !important;
+  opacity: 0.78;
+}
+
+.featureItemTemporary .featureName {
+  font-style: italic;
+}
+
+.featureSubGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.featureTempBadge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px dashed rgba(180, 165, 140, 0.42);
+  border-radius: 3px;
+  color: rgba(180, 165, 140, 0.7);
+  background: rgba(180, 165, 140, 0.05);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .page { padding: 28px 28px 40px; }
+}
+@media (max-width: 768px) {
+  .page { padding: 20px 16px 32px; gap: 18px; }
+  .title { font-size: 24px; }
+  .arc { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .arcCell { padding: 12px 14px; }
+  .arcValue { font-size: 20px; }
+  .phaseCard { padding: 14px 16px; }
+  .phaseHead { flex-wrap: wrap; }
+  .phaseStats { gap: 12px; justify-content: flex-start; }
+}
+@media (max-width: 375px) {
+  .page { padding: 16px 12px 24px; }
+  .title { font-size: 22px; }
+  .arc { grid-template-columns: 1fr 1fr; }
+  .featureItem { grid-template-columns: 64px 1fr; row-gap: 2px; }
+  .featureSubGroup { grid-column: 1 / -1; justify-self: start; }
+}

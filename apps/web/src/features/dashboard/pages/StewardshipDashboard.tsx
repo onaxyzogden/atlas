@@ -9,6 +9,7 @@ import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import { computeAssessmentScores, computeOverallScore, deriveOpportunities } from '../../../lib/computeScores.js';
 import type { ScoredResult } from '../../../lib/computeScores.js';
 import ProgressBar from '../components/ProgressBar.js';
+import PunchListCard from '../../stewardship/PunchListCard.js';
 import css from './StewardshipDashboard.module.css';
 import { status as statusToken } from '../../../lib/tokens.js';
 
@@ -104,7 +105,7 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
   // Derive action items from opportunity analysis
   const actionItems = useMemo(() => {
     if (!siteData?.layers?.length) return [];
-    const opps = deriveOpportunities(siteData.layers, (project.country as 'US' | 'CA') || 'US');
+    const opps = deriveOpportunities(siteData.layers, project.country || 'US');
     return opps.slice(0, 4).map((opp) => ({
       priority: opp.severity === 'critical' ? 'High' : opp.severity === 'warning' ? 'Medium' : 'Standard',
       task: opp.message,
@@ -136,7 +137,7 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
               transform="rotate(-90 50 50)"
               style={{ transition: 'stroke-dasharray 600ms ease' }}
             />
-            <text x={50} y={46} textAnchor="middle" fill="rgba(232,220,200,0.95)" fontSize={28} fontWeight={600} fontFamily="var(--font-display, 'Lora', Georgia, serif)">{overallScore}</text>
+            <text x={50} y={46} textAnchor="middle" fill="rgba(232,220,200,0.95)" fontSize={28} fontWeight={600} fontFamily="var(--font-display)">{overallScore}</text>
             <text x={50} y={62} textAnchor="middle" fill="rgba(180,165,140,0.4)" fontSize={10}>/100</text>
           </svg>
         </div>
@@ -203,6 +204,9 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
           and organic transition programs.
         </div>
       </div>
+
+      {/* §24 Site verification punch-list — derived per-entity field checklist */}
+      <PunchListCard project={project} />
 
       {/* Stewardship quote */}
       <div className={css.quoteCard}>

@@ -1,0 +1,159 @@
+/* §8 ZoneSeasonalityRollup — acres-by-season bar + monthly coverage
+   strip. Visual language mirrors ZoneEcologyRollup so the §7/§8 cards
+   read as siblings on the EcologicalDashboard. */
+
+.section {
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 0 12px;
+}
+
+.empty {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.55);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.block {
+  margin-bottom: 14px;
+}
+
+.block:last-of-type {
+  margin-bottom: 0;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.blockTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85);
+  letter-spacing: 0.05em;
+}
+
+.blockMeta {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.45);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.barTrack {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.barSeg {
+  height: 100%;
+  transition: width 240ms ease;
+}
+
+.legend {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 4px 10px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.legendSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendValue {
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.45);
+}
+
+/* Monthly coverage strip — twelve thin columns (J F M A M J J A S O N D)
+   with a sage-green fill scaled to each month's tagged-acre activity
+   relative to the year's peak. */
+.monthStrip {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  height: 56px;
+  padding: 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.monthCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+.monthBar {
+  width: 100%;
+  border-radius: 2px;
+  min-height: 1px;
+  transition: height 240ms ease;
+}
+
+.monthLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.hint {
+  margin-top: 10px;
+  padding-top: 8px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.5;
+}
+
+.hint strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}

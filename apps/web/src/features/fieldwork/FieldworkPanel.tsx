@@ -19,6 +19,11 @@ import type { LocalProject } from '../../store/projectStore.js';
 import WalkRouteRecorder from './WalkRouteRecorder.js';
 import SiteChecklist from './SiteChecklist.js';
 import FieldNoteExport from './FieldNoteExport.js';
+import FieldworkChecklistCard from './FieldworkChecklistCard.js';
+import WalkChecklistCard from './WalkChecklistCard.js';
+import SiteVisitReportCard from './SiteVisitReportCard.js';
+import GeotaggedPhotoGalleryCard from './GeotaggedPhotoGalleryCard.js';
+import OfflineSyncStatusCard from './OfflineSyncStatusCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -26,7 +31,7 @@ interface Props {
   map: maplibregl.Map | null;
 }
 
-type Tab = 'notes' | 'data' | 'walk' | 'checklist';
+type Tab = 'notes' | 'data' | 'walk' | 'checklist' | 'photos';
 
 const DATA_TYPES: { id: FieldworkType; label: string }[] = [
   { id: 'soil_sample', label: 'Soil' },
@@ -82,6 +87,9 @@ export default function FieldworkPanel({ project, map }: Props) {
         </div>
       </div>
 
+      {/* §24 Offline & sync status (offline-field-mode-sync). Visible on every tab. */}
+      <OfflineSyncStatusCard projectId={project.id} />
+
       {/* ── Tab Bar ─────────────────────────────────────── */}
       <div className={css.tabBar}>
         {([
@@ -89,6 +97,7 @@ export default function FieldworkPanel({ project, map }: Props) {
           { id: 'data' as Tab, label: 'Data' },
           { id: 'walk' as Tab, label: 'Routes' },
           { id: 'checklist' as Tab, label: 'Checklist' },
+          { id: 'photos' as Tab, label: 'Photos' },
         ]).map((tab) => (
           <button
             key={tab.id}
@@ -125,7 +134,15 @@ export default function FieldworkPanel({ project, map }: Props) {
       )}
 
       {activeTab === 'checklist' && (
-        <SiteChecklist projectId={project.id} />
+        <>
+          <WalkChecklistCard projectId={project.id} />
+          <FieldworkChecklistCard projectId={project.id} />
+          <SiteChecklist projectId={project.id} />
+        </>
+      )}
+
+      {activeTab === 'photos' && (
+        <GeotaggedPhotoGalleryCard projectId={project.id} />
       )}
 
       {/* ── Export ──────────────────────────────────────── */}
@@ -134,6 +151,9 @@ export default function FieldworkPanel({ project, map }: Props) {
           <FieldNoteExport entries={fieldNotes} projectName={project.name} />
         </div>
       )}
+
+      {/* §17 Site visit report (audience-aware markdown composer) */}
+      {activeTab === 'notes' && <SiteVisitReportCard project={project} />}
     </div>
   );
 }

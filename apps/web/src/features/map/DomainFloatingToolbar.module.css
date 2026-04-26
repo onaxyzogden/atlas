@@ -2,15 +2,19 @@
 /* Parent (.mapArea) already has position: relative in MapView.module.css */
 
 .toolbar {
+  /* Tint fallback — overridden per-render via inline --domain-tint. */
+  --domain-tint: #c4a265;
+
   position: absolute;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: var(--z-map-toolbar);
   background: rgba(15, 22, 12, 0.88);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 2px solid var(--domain-tint);
   border-radius: 12px;
   padding: 6px 10px 8px;
   display: flex;
@@ -20,7 +24,14 @@
   max-width: calc(100% - 48px);
   min-width: 280px;
   pointer-events: auto;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  /* Top-edge glow in the domain color — subtle but unmistakable. */
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    0 -1px 10px color-mix(in srgb, var(--domain-tint) 28%, transparent);
+  /* Intentionally no transition on border-top-color / box-shadow: Chromium
+     does not interpolate transitions whose values come through var() without
+     a registered @property, so transitioning here left the border stuck at
+     its first-paint color when the domain changed. Snap-swap is correct. */
 }
 
 /* ─── Header row ──────────────────────────────────────────────────────── */
@@ -42,7 +53,11 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  /* Mix the tint with a warm off-white so it reads against the dark pill
+     without shouting. Falls back gracefully where color-mix isn't supported. */
   color: rgba(180, 165, 140, 0.65);
+  color: color-mix(in srgb, var(--domain-tint) 55%, rgba(232, 220, 200, 0.8));
+  /* No transition for the same var()-interpolation reason as .toolbar. */
 }
 
 .chevron {
@@ -85,18 +100,26 @@
 
 .toolBtnActive {
   composes: toolBtn;
-  background: rgba(var(--color-earth-600-rgb), 0.22);
-  border-color: rgba(var(--color-gold-rgb), 0.4);
-  color: var(--color-primary);
+  /* Active state now picks up the current domain tint instead of the
+     hard-coded earth/gold — keeps the "which domain am I in" signal
+     consistent across every button state. */
+  background: color-mix(in srgb, var(--domain-tint) 22%, transparent);
+  border-color: color-mix(in srgb, var(--domain-tint) 55%, transparent);
+  color: color-mix(in srgb, var(--domain-tint) 35%, #ffffff);
 }
 
 .toolBtnActive:hover {
-  background: rgba(var(--color-earth-600-rgb), 0.32);
+  background: color-mix(in srgb, var(--domain-tint) 32%, transparent);
 }
 
 .toolIcon {
   font-size: 15px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
 }
 
 .toolLabel {

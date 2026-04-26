@@ -9,6 +9,18 @@
   overflow-y: auto;
   height: 100%;
   color: var(--color-panel-text);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180, 165, 140, 0.18) transparent;
+}
+
+.container::-webkit-scrollbar { width: 6px; }
+.container::-webkit-scrollbar-track { background: transparent; }
+.container::-webkit-scrollbar-thumb {
+  background: rgba(180, 165, 140, 0.18);
+  border-radius: 3px;
+}
+.container::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 165, 140, 0.28);
 }
 
 .containerCompact {
@@ -225,6 +237,30 @@
 .badgeLow {
   background: rgba(var(--color-confidence-low-rgb), 0.15);
   color: var(--color-confidence-low);
+}
+
+/* Scholar #UX (Phase 2 refit): neutral confidence pill.
+   Confidence is a *meta-attribute* of the data ("how sure are we?"),
+   not an interpretation of the site ("is this arid?"). Color-coding
+   both in the same traffic-light palette made users read meta-data
+   as a site verdict. Neutral monochrome keeps the provenance signal
+   legible while the semantic palette is reserved for interpretive
+   chips (Arid, Low suitability, Hardiness zone, etc.). */
+.badgeNeutralHigh {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.10);
+  color: var(--color-panel-text);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.14);
+}
+.badgeNeutralMedium {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.06);
+  color: var(--color-panel-muted);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.10);
+}
+.badgeNeutralLow {
+  background: rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.03);
+  color: var(--color-panel-muted);
+  border: 1px solid rgba(var(--color-panel-text-rgb, 245, 237, 217), 0.06);
+  opacity: 0.75;
 }
 
 .badgeActive {
@@ -728,6 +764,20 @@
   font-family: inherit;
   margin-bottom: 12px;
   box-sizing: border-box;
+}
+
+/* Native <select> option rendering ignores most CSS, but background and color
+   do apply cross-browser. Force a dark panel + readable text so the dropdown
+   doesn't fall back to the OS default (white bg / faint grey text) and become
+   unreadable on our dark theme. */
+.formInput option {
+  background: var(--color-panel-bg, #1a1a1a);
+  color: var(--color-panel-text);
+}
+.formInput option:checked,
+.formInput option:hover {
+  background: var(--color-panel-subtle);
+  color: var(--color-panel-text);
 }
 
 .formTextarea {

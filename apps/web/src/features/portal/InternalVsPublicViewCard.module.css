@@ -1,0 +1,316 @@
+/* §20 InternalVsPublicViewCard — side-by-side audience preview. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.toggleGroup {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.toggleBtn {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.78);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.toggleBtn:hover {
+  background: rgba(232, 220, 200, 0.08);
+}
+
+.toggleActive {
+  background: rgba(196, 162, 101, 0.18) !important;
+  border-color: rgba(196, 162, 101, 0.4) !important;
+  color: rgba(232, 200, 130, 0.95) !important;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pane {
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0.78;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.pane_internal {
+  border-left: 3px solid rgba(180, 200, 150, 0.55);
+}
+
+.pane_public {
+  border-left: 3px solid rgba(120, 170, 210, 0.55);
+}
+
+.paneLive {
+  opacity: 1;
+  border-color: rgba(196, 162, 101, 0.32);
+  background: rgba(196, 162, 101, 0.04);
+}
+
+.paneHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.paneLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.paneAudience {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.fieldBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fieldLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.fieldValue {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.4;
+}
+
+.fieldText {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.fieldDim {
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+  line-height: 1.5;
+}
+
+.notesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noteItem {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.noteLabel {
+  font-weight: 700;
+  color: rgba(232, 200, 130, 0.85);
+  letter-spacing: 0.02em;
+}
+
+.noteText {
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.entityList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.entityItem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.entityCount {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232, 200, 130, 0.95);
+  min-width: 22px;
+  text-align: right;
+}
+
+.entityLabel {
+  color: rgba(220, 210, 185, 0.85);
+  font-weight: 500;
+}
+
+.entityBreakdown {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  font-weight: 500;
+}
+
+.entityEmpty {
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.tagAi {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(232, 200, 130, 0.95);
+  border: 1px solid rgba(196, 162, 101, 0.32);
+  align-self: flex-start;
+}
+
+.tagPublic {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(180, 165, 140, 0.12);
+  color: rgba(180, 165, 140, 0.85);
+  border: 1px solid rgba(180, 165, 140, 0.25);
+  align-self: flex-start;
+}
+
+.rulesBlock {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.18);
+  margin-bottom: 4px;
+}
+
+.rulesTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.rulesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ruleItem {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.ruleField {
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.02em;
+}
+
+.ruleText {
+  color: rgba(180, 165, 140, 0.78);
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

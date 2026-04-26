@@ -24,7 +24,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   writeCanonicalAssessment,
   maybeWriteAssessmentIfTier3Complete,
-  SCORE_LABEL_TO_COLUMN,
 } from '../services/assessments/SiteAssessmentWriter.js';
 
 // ─── Mock DB builder ──────────────────────────────────────────────────────────
@@ -40,9 +39,10 @@ function buildMockDb() {
 
   // Tagged-template that shifts the next row-set off the queue.
   const taggedTemplate = (_strings: TemplateStringsArray, ...values: unknown[]) => {
-    // Capture INSERT values for assertion (the INSERT is the only query that
-    // receives all the scoreBreakdown/score values as bound params).
-    if (values.length >= 12) captured.values = values;
+    // Capture INSERT values for assertion. Post migration 009 the INSERT
+    // has 9 bindings (no per-column score plucking); threshold 8 uniquely
+    // identifies it across the other queries in the writer sequence.
+    if (values.length >= 8) captured.values = values;
     return Promise.resolve(queue.shift() ?? []);
   };
 
@@ -185,49 +185,62 @@ describe('writeCanonicalAssessment — full flow', () => {
     expect(result.skipped).toBe(false);
     expect(result.version).toBe(1);
 
-    // Inspect captured INSERT bindings. `is_current` is hard-coded `true` in
-    // the SQL (not a bound param), so 13 bindings in this order:
+    // Inspect captured INSERT bindings. Post migration 009: `is_current` is
+    // hard-coded `true` in the SQL (not a bound param), and the 4 legacy
+    // score columns are gone. 9 bindings remain in this order:
     //   0 projectId, 1 version, 2 confidence,
-    //   3 suitability_score, 4 buildability_score, 5 water_resilience_score,
-    //   6 ag_potential_score, 7 overall_score,
-    //   8 score_breakdown (json), 9 flags (json), 10 needs_site_visit,
-    //   11 data_sources_used, 12 computed_at
+    //   3 overall_score,
+    //   4 score_breakdown (json), 5 flags (json), 6 needs_site_visit,
+    //   7 data_sources_used, 8 computed_at
     const v = mock.captured.values;
+    expect(v).toHaveLength(9);
     expect(v[0]).toBe('proj-123');
     expect(v[1]).toBe(1);                        // version
     expect(['high', 'medium', 'low']).toContain(v[2]); // confidence rollup
 
-    // 5 score columns (4 tracked + overall) — must all be numbers in [0,100]
-    for (let i = 3; i <= 7; i++) {
-      expect(typeof v[i]).toBe('number');
-      expect(v[i] as number).toBeGreaterThanOrEqual(0);
-      expect(v[i] as number).toBeLessThanOrEqual(100);
-    }
+    // overall_score — number in [0,100]
+    expect(typeof v[3]).toBe('number');
+    expect(v[3] as number).toBeGreaterThanOrEqual(0);
+    expect(v[3] as number).toBeLessThanOrEqual(100);
 
-    // score_breakdown is a json-wrapped array of ScoredResult with all 4 tracked labels.
-    const breakdown = v[8] as { __json: unknown };
+    // score_breakdown is a json-wrapped ScoredResult[] — canonical per-label
+    // source, at least 10 entries with the expected shape on every element.
+    const breakdown = v[4] as { __json: unknown };
     expect(breakdown).toHaveProperty('__json');
-    const scored = breakdown.__json as { label: string }[];
+    const scored = breakdown.__json as Array<{
+      label: string;
+      score: number;
+      confidence: string;
+      score_breakdown: unknown;
+      computedAt: string;
+    }>;
     expect(Array.isArray(scored)).toBe(true);
-    const labels = scored.map((s) => s.label);
-    for (const expectedLabel of Object.values(SCORE_LABEL_TO_COLUMN)) {
-      expect(labels).toContain(expectedLabel);
+    expect(scored.length).toBeGreaterThanOrEqual(10);
+    for (const s of scored) {
+      expect(typeof s.label).toBe('string');
+      expect(s.label.length).toBeGreaterThan(0);
+      expect(typeof s.score).toBe('number');
+      expect(s.score).toBeGreaterThanOrEqual(0);
+      expect(s.score).toBeLessThanOrEqual(100);
+      expect(['high', 'medium', 'low']).toContain(s.confidence);
+      expect(Array.isArray(s.score_breakdown)).toBe(true);
+      expect(typeof s.computedAt).toBe('string');
     }
 
     // flags starts empty
-    const flags = v[9] as { __json: unknown };
+    const flags = v[5] as { __json: unknown };
     expect(flags.__json).toEqual([]);
 
     // needs_site_visit is a boolean (true iff confidence rolled up to 'low')
-    expect(typeof v[10]).toBe('boolean');
+    expect(typeof v[6]).toBe('boolean');
 
     // data_sources_used matches the layer types we fed in
-    const sources = v[11] as string[];
+    const sources = v[7] as string[];
     expect(sources).toEqual(['climate', 'soils', 'elevation', 'wetlands_flood', 'land_cover', 'watershed']);
 
     // computed_at is an ISO-8601 timestamp
-    expect(typeof v[12]).toBe('string');
-    expect(v[12] as string).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(typeof v[8]).toBe('string');
+    expect(v[8] as string).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
   it('no-ops with skipped=debounced when a recent is_current row exists', async () => {

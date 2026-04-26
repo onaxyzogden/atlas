@@ -31,3 +31,54 @@
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ─── Active signifier — shimmer stroke (UX Scholar 2026-04-23, §2) ────────
+ * Apply to a button/control to signify its "active" state without using a
+ * saturated fill that would occlude underlying map data. Rotating conic
+ * gradient rendered as a 1px border via mask compositing; GPU-accelerated
+ * in modern Chromium. Respects prefers-reduced-motion.
+ * ───────────────────────────────────────────────────────────────────────── */
+@property --signifier-shimmer-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes signifier-shimmer-rotate {
+  to { --signifier-shimmer-angle: 360deg; }
+}
+
+.signifier-shimmer {
+  position: relative;
+  isolation: isolate;
+}
+.signifier-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--signifier-shimmer-angle, 0deg),
+    var(--color-primary) 0%,
+    var(--color-accent) 28%,
+    var(--color-primary) 50%,
+    var(--color-accent) 78%,
+    var(--color-primary) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: signifier-shimmer-rotate 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signifier-shimmer::before { animation: none; }
+}

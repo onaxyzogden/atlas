@@ -2,25 +2,25 @@
  * SiteAssessmentWriter — persists a canonical `site_assessments` row for a
  * project after its Tier-3 pipeline completes.
  *
- * Since 2026-04-21 (sprint: shared-scoring unification), this file NO LONGER
- * hosts its own scorer. The canonical 11-score computation lives in
- * `@ogden/shared/scoring/computeScores.ts`, which is also consumed by the web
- * app. The writer's responsibility is:
+ * Responsibilities (post migration 009, 2026-04-21):
  *
  *   1. Read `project_layers.summary_data` + project acreage/country.
  *   2. Adapt DB LayerRows to the `MockLayerResult[]` shape the shared scorer
  *      expects (pure function: `layerRowsToMockLayers`).
  *   3. Call `computeAssessmentScores(...)` from `@ogden/shared/scoring` with
  *      a pipeline-timestamp `computedAt` (deterministic for tests).
- *   4. Pluck 4 specific labels → DB columns via `SCORE_LABEL_TO_COLUMN`.
- *   5. Serialise the full 11-score array into the `score_breakdown` jsonb so
- *      nothing is lost; UI consumers can read whichever they want.
- *   6. In one transaction: flip existing `is_current` false; INSERT new row
+ *   4. Persist the full `ScoredResult[]` into `score_breakdown` jsonb (source
+ *      of truth for all per-label scores).
+ *   5. Denormalise `overall_score` via `computeOverallScore(scores)` for cheap
+ *      sorts/indexes.
+ *   6. Roll up `confidence` across all ScoredResults (weakest wins).
+ *   7. In one transaction: flip existing `is_current = false`; INSERT new row
  *      with bumped version.
  *
- * The 4 DB columns are a lossy projection of the 11 scores. If the shared
- * scorer renames any of the 4 tracked labels, the runtime assertion in
- * `writeCanonicalAssessment` throws loudly rather than silently NULLing.
+ * The legacy 4-column projection (suitability_score, buildability_score,
+ * water_resilience_score, ag_potential_score) was dropped in migration 009 —
+ * `score_breakdown` is now canonical. Label-based column plucking is gone;
+ * renames inside the shared scorer no longer break the writer.
  */
 
 import pino from 'pino';
@@ -56,19 +56,6 @@ interface LayerRow {
   attribution: string | null;
 }
 
-/**
- * Canonical mapping from shared-scorer ScoredResult.label → site_assessments
- * DB column. If any of these labels stop appearing in the shared scorer output,
- * the writer throws (see `writeCanonicalAssessment`) rather than silently
- * writing NULL.
- */
-export const SCORE_LABEL_TO_COLUMN = {
-  water_resilience_score: 'Water Resilience',
-  buildability_score: 'Buildability',
-  suitability_score: 'Agricultural Suitability',
-  ag_potential_score: 'Regenerative Potential',
-} as const;
-
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEBOUNCE_MS = 30_000;
@@ -95,17 +82,16 @@ export function layerRowsToMockLayers(rows: LayerRow[]): MockLayerResult[] {
     sourceApi: r.source_api ?? '',
     attribution: r.attribution ?? '',
     summary: r.summary_data ?? {},
-  }));
+  } as MockLayerResult));
 }
 
 // ─── Rollup helpers ───────────────────────────────────────────────────────────
 
 /**
- * Roll up confidence across all ScoredResults. Matches the v1 writer rule:
- * `min(confidences)` where high > medium > low. Applied to every ScoredResult
- * emitted by the shared scorer (not just the 4 mapped to DB columns), so the
- * overall confidence reflects the weakest contributing layer across the
- * full assessment.
+ * Roll up confidence across all ScoredResults. Rule: `min(confidences)` where
+ * high > medium > low. Applied to every ScoredResult emitted by the shared
+ * scorer (all 10 labels, not just a subset), so overall confidence reflects
+ * the weakest contributing layer across the full assessment.
  */
 function rollupConfidence(scores: ScoredResult[]): Confidence {
   const confs = scores.map((s) => s.confidence);
@@ -120,19 +106,6 @@ function clampScore(n: number): number {
   return Math.round(Math.max(0, Math.min(100, n)) * 10) / 10;
 }
 
-/** Look up a ScoredResult by its label; throw loudly if missing. */
-function scoreByLabel(scores: ScoredResult[], label: string): ScoredResult {
-  const found = scores.find((s) => s.label === label);
-  if (!found) {
-    throw new Error(
-      `[SiteAssessmentWriter] Shared scorer emitted no ScoredResult with label="${label}". ` +
-      `This breaks the DB mapping in SCORE_LABEL_TO_COLUMN. Likely cause: a rename inside ` +
-      `packages/shared/src/scoring/computeScores.ts. Fix: update the constant, add a test.`,
-    );
-  }
-  return found;
-}
-
 // ─── Writer ───────────────────────────────────────────────────────────────────
 
 /**
@@ -142,6 +115,10 @@ function scoreByLabel(scores: ScoredResult[], label: string): ScoredResult {
  * last DEBOUNCE_MS milliseconds, this is a no-op (skipped=true). Protects
  * against all four Tier-3 workers independently firing the writer when the
  * last one completes.
+ *
+ * Invariant: `overall_score` is always `computeOverallScore(score_breakdown)`
+ * — both are written together inside a single transaction from the same
+ * scorer output. Zero drift possible.
  */
 export async function writeCanonicalAssessment(
   db: postgres.Sql,
@@ -182,7 +159,7 @@ export async function writeCanonicalAssessment(
 
   // 3. Load all project layer summaries.
   const layerRows = await db<LayerRow[]>`
-    SELECT layer_type, summary_data, confidence, data_date::text, source_api, attribution
+    SELECT layer_type, summary_data, confidence, data_date::text, source_api, attribution_text AS attribution
     FROM project_layers
     WHERE project_id = ${projectId}
       AND fetch_status = 'complete'
@@ -197,19 +174,10 @@ export async function writeCanonicalAssessment(
   const computedAt = new Date().toISOString();
   const scores = computeAssessmentScores(mockLayers, acreage, country, computedAt);
 
-  // 5. Pluck the 4 DB-column scores by label (throws loudly if any missing).
-  const scoreMap = {
-    suitability_score: scoreByLabel(scores, SCORE_LABEL_TO_COLUMN.suitability_score),
-    buildability_score: scoreByLabel(scores, SCORE_LABEL_TO_COLUMN.buildability_score),
-    water_resilience_score: scoreByLabel(scores, SCORE_LABEL_TO_COLUMN.water_resilience_score),
-    ag_potential_score: scoreByLabel(scores, SCORE_LABEL_TO_COLUMN.ag_potential_score),
-  };
-
-  // Overall is `computeOverallScore` (the shared weighted-mean over the first
-  // 8 non-classification scores), rounded + clamped for numeric(4,1).
+  // 5. Denormalise overall + roll up confidence (no per-label plucking — the
+  //    full ScoredResult[] goes into score_breakdown as source of truth).
   const overall = clampScore(computeOverallScore(scores));
   const overallConfidence = rollupConfidence(scores);
-
   const dataSourcesUsed = layerRows.map((r) => r.layer_type);
 
   // 6. Transactional write — flip is_current, INSERT new row with bumped version.
@@ -233,17 +201,13 @@ export async function writeCanonicalAssessment(
     const rows = await tx<{ id: string }[]>`
       INSERT INTO site_assessments (
         project_id, version, is_current, confidence,
-        suitability_score, buildability_score, water_resilience_score, ag_potential_score, overall_score,
+        overall_score,
         score_breakdown, flags, needs_site_visit, data_sources_used, computed_at
       ) VALUES (
         ${projectId},
         ${nextVersion},
         true,
         ${overallConfidence},
-        ${clampScore(scoreMap.suitability_score.score)},
-        ${clampScore(scoreMap.buildability_score.score)},
-        ${clampScore(scoreMap.water_resilience_score.score)},
-        ${clampScore(scoreMap.ag_potential_score.score)},
         ${overall},
         ${tx.json(scores) as unknown as string},
         ${tx.json([]) as unknown as string},
@@ -289,6 +253,28 @@ export async function maybeWriteAssessmentIfTier3Complete(
   `;
   const completed = parseInt(rows[0]?.completed ?? '0', 10);
   if (completed < 4) return null;
+
+  // Tier-3 job status can flip to 'complete' *just before* the Tier-3-derived
+  // project_layers row (microclimate / watershed_derived / soil_regeneration)
+  // is visible on a different pool connection. When that race loses, the
+  // writer scores against an incomplete layer set and persists a stale
+  // overall_score. Require the three derived layer rows to be present with
+  // fetch_status='complete' before we allow the write.
+  const derivedRows = await db<{ present: string }[]>`
+    SELECT count(*)::text AS present
+    FROM project_layers
+    WHERE project_id = ${projectId}
+      AND fetch_status = 'complete'
+      AND layer_type IN ('microclimate', 'watershed_derived', 'soil_regeneration')
+  `;
+  const derivedPresent = parseInt(derivedRows[0]?.present ?? '0', 10);
+  if (derivedPresent < 3) {
+    logger.info(
+      { projectId, derivedPresent },
+      'Deferring assessment write — Tier-3 derived project_layers not fully committed yet',
+    );
+    return null;
+  }
 
   return writeCanonicalAssessment(db, projectId);
 }

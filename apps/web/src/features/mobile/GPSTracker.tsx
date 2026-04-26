@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { maplibregl } from '../../lib/maplibre.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface GPSTrackerProps {
   map: maplibregl.Map | null;
@@ -120,21 +121,22 @@ export default function GPSTracker({ map, isMapReady }: GPSTrackerProps) {
       </button>
 
       {isTracking && markerRef.current && (
-        <button
-          onClick={flyToLocation}
-          style={{
-            padding: '6px 8px',
-            fontSize: 11,
-            border: '1px solid var(--color-panel-card-border)',
-            borderRadius: 6,
-            background: 'transparent',
-            color: 'var(--color-panel-muted)',
-            cursor: 'pointer',
-          }}
-          title="Fly to my location"
-        >
-          {'\u{1F4CD}'}
-        </button>
+        <DelayedTooltip label="Fly to my location">
+          <button
+            onClick={flyToLocation}
+            style={{
+              padding: '6px 8px',
+              fontSize: 11,
+              border: '1px solid var(--color-panel-card-border)',
+              borderRadius: 6,
+              background: 'transparent',
+              color: 'var(--color-panel-muted)',
+              cursor: 'pointer',
+            }}
+          >
+            {'\u{1F4CD}'}
+          </button>
+        </DelayedTooltip>
       )}
 
       {accuracy !== null && (

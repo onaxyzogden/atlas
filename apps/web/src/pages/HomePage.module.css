@@ -19,6 +19,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-6);
+  gap: var(--space-3);
 }
 
 .title {
@@ -29,11 +30,136 @@
   letter-spacing: var(--tracking-tight);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.selectionCount {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* §1 save-candidates — status-filter chip group (All / Active / Candidates).
+   Hidden on fresh accounts; only appears once at least one candidate exists. */
+.filterChips {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-base) var(--ease-default),
+              color var(--duration-base) var(--ease-default);
+}
+
+.filterChip:hover {
+  color: var(--color-text);
+}
+
+.filterChipActive {
+  background: var(--color-earth-100, rgba(0, 0, 0, 0.06));
+  color: var(--color-text);
+}
+
+.filterChipCount {
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-bg);
+}
+
+.filterChipActive .filterChipCount {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.filterEmpty {
+  padding: var(--space-5) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  background: var(--color-surface);
+  margin-bottom: var(--space-4);
+}
+
 /* ─── Project grid ─────────────────────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-4);
+}
+
+/* ─── Project card wrapper (allows the duplicate-button overlay to live
+       outside the <Link> while still being visually attached) ─────────── */
+.cardWrapper {
+  position: relative;
+}
+
+.cardWrapper:hover .cardActions,
+.cardWrapper:focus-within .cardActions {
+  opacity: 1;
+}
+
+/* Card action cluster (Mark/Promote + Duplicate). Hidden by default and
+   revealed on hover/focus so the card stays clean at rest. */
+.cardActions {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-default);
+}
+
+.cardActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--duration-base) var(--ease-default),
+              border-color var(--duration-base) var(--ease-default),
+              background var(--duration-base) var(--ease-default);
+}
+
+.cardActionBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-earth-300);
+}
+
+.cardActionBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 /* ─── Project card ─────────────────────────────────────────────────────── */
@@ -45,10 +171,87 @@
   padding: var(--space-5);
   text-decoration: none;
   color: var(--color-text);
+  text-align: start;
+  font: inherit;
+  width: 100%;
+  position: relative;
   transition: box-shadow var(--duration-base) var(--ease-default),
               transform var(--duration-base) var(--ease-default),
               border-color var(--duration-base) var(--ease-default);
   cursor: pointer;
+}
+
+/* In compare-mode the card is rendered as a <button>; selected state
+   gets a tinted border + background to read at a glance. */
+.cardSelected {
+  border-color: var(--color-primary);
+  background: var(--color-surface-active, var(--color-surface));
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* §1 Candidate-status card — dashed border to flag "exploratory, not yet
+   committed". Reads at a glance without competing with projectType Badge. */
+.cardCandidate {
+  border-style: dashed;
+  border-color: var(--color-earth-300, var(--color-border));
+  background: var(--color-surface);
+}
+
+.cardBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+.selectCheckbox {
+  position: absolute;
+  top: var(--space-3);
+  inset-inline-end: var(--space-3);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: 14px;
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+}
+
+.selectCheckboxOn {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-bg);
+}
+
+/* Sticky bottom bar for the compare flow. */
+.compareBar {
+  position: sticky;
+  bottom: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.compareBarText {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.compareBarActions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .card:hover {

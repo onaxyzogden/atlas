@@ -1,0 +1,333 @@
+/* §11 BiosecurityBufferCard — disease-vector setback audit. */
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 28px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Summary row ──────────────────────────────────────────────────────── */
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.summaryStat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.summaryValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.summarySub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+}
+
+.toneGood { color: rgba(180, 200, 150, 0.95); }
+.toneFair { color: rgba(220, 180, 100, 0.95); }
+.tonePoor { color: rgba(220, 130, 110, 0.95); }
+
+/* ── Rules block ──────────────────────────────────────────────────────── */
+
+.rulesBlock {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 16px;
+}
+
+.rulesTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 8px;
+}
+
+.rulesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rulesList li {
+  font-size: 11.5px;
+  color: rgba(220, 210, 185, 0.85);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleNote {
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+  margin-left: 4px;
+}
+
+.ruleDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ruleDot[data-rule="livestock"] { background: rgba(220, 130, 110, 0.7); }
+.ruleDot[data-rule="water"] { background: rgba(120, 170, 210, 0.75); }
+.ruleDot[data-rule="human"] { background: rgba(196, 162, 101, 0.75); }
+.ruleDot[data-rule="boundary"] { background: rgba(180, 165, 140, 0.7); }
+
+/* ── Per-structure report ─────────────────────────────────────────────── */
+
+.reportList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.3);
+}
+
+.tone_good { border-left-color: rgba(180, 200, 150, 0.7); }
+.tone_fair { border-left-color: rgba(220, 180, 100, 0.7); }
+.tone_poor { border-left-color: rgba(220, 130, 110, 0.85); }
+
+.reportHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.reportName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.reportType {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+}
+
+.reportStatus {
+  flex-shrink: 0;
+}
+
+.statusGood {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: rgba(180, 200, 150, 0.12);
+  color: rgba(180, 200, 150, 0.95);
+  border: 1px solid rgba(180, 200, 150, 0.25);
+}
+
+.statusBad {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: rgba(220, 130, 110, 0.12);
+  color: rgba(220, 160, 130, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.25);
+}
+
+/* ── Buffer grid (4 columns of nearest-distance per category) ─────────── */
+
+.bufferGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 700px) {
+  .bufferGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.bufferStat {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.bufferLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.bufferValue {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+  margin-top: 2px;
+}
+
+.bufferReq {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.5);
+  margin-top: 1px;
+}
+
+/* ── Violations list ──────────────────────────────────────────────────── */
+
+.violationList {
+  list-style: none;
+  margin: 0;
+  padding: 8px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.violation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.85);
+  line-height: 1.45;
+}
+
+.violationText strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 600;
+}
+
+/* ── Isolation pad recommendation ─────────────────────────────────────── */
+
+.isolationCard {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(180, 200, 150, 0.08) 0%, rgba(180, 200, 150, 0.02) 100%);
+  border: 1px solid rgba(180, 200, 150, 0.2);
+  margin-bottom: 12px;
+}
+
+.isolationLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 200, 150, 0.85);
+}
+
+.isolationName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  margin-top: 3px;
+}
+
+.isolationNote {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 188, 165, 0.78);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

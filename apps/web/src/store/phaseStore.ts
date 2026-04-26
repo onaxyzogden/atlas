@@ -17,6 +17,21 @@ export interface BuildPhase {
   order: number;
   description: string;
   color: string;
+  /**
+   * Phase completion flag — user marks a phase `completed: true` when all
+   * planned features for that phase are built. Drives the "X of Y phases
+   * complete" Arc summary and the phase-card checkbox in PhasingDashboard.
+   * Defaults to `false` on new phases; legacy v1 phases migrate with `false`.
+   */
+  completed: boolean;
+  /**
+   * Optional free-text working notes (blockers, vendor contacts, timeline
+   * adjustments). Distinct from `description` which describes the phase's
+   * conceptual role.
+   */
+  notes: string;
+  /** ISO timestamp when `completed` last flipped to true. */
+  completedAt: string | null;
 }
 
 interface PhaseState {
@@ -26,6 +41,7 @@ interface PhaseState {
   addPhase: (phase: BuildPhase) => void;
   updatePhase: (id: string, updates: Partial<BuildPhase>) => void;
   deletePhase: (id: string) => void;
+  togglePhaseCompleted: (id: string) => void;
   setActiveFilter: (filter: string) => void;
   getProjectPhases: (projectId: string) => BuildPhase[];
   ensureDefaults: (projectId: string) => void;
@@ -54,6 +70,19 @@ export const usePhaseStore = create<PhaseState>()(
       deletePhase: (id) =>
         set((s) => ({ phases: s.phases.filter((p) => p.id !== id) })),
 
+      togglePhaseCompleted: (id) =>
+        set((s) => ({
+          phases: s.phases.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  completed: !p.completed,
+                  completedAt: !p.completed ? new Date().toISOString() : null,
+                }
+              : p,
+          ),
+        })),
+
       setActiveFilter: (filter) => set({ activeFilter: filter }),
 
       getProjectPhases: (projectId) =>
@@ -68,14 +97,32 @@ export const usePhaseStore = create<PhaseState>()(
           ...d,
           id: crypto.randomUUID(),
           projectId,
+          completed: false,
+          notes: '',
+          completedAt: null,
         }));
         set((s) => ({ phases: [...s.phases, ...defaults] }));
       },
     }),
     {
       name: 'ogden-phases',
-      version: 1,
+      version: 2,
       partialize: (state) => ({ phases: state.phases }),
+      migrate: (persisted, version) => {
+        const state = persisted as { phases?: Partial<BuildPhase>[] };
+        if (version < 2 && Array.isArray(state.phases)) {
+          // v1 → v2: add completion tracking fields. All existing phases
+          // start uncompleted and with empty notes; users can toggle from the
+          // PhasingDashboard phase-card checkbox.
+          state.phases = state.phases.map((p) => ({
+            completed: false,
+            notes: '',
+            completedAt: null,
+            ...p,
+          })) as BuildPhase[];
+        }
+        return state;
+      },
     },
   ),
 );

@@ -9,6 +9,9 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { useMaplibre } from './hooks/useMaplibre.js';
 import { maplibregl, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
+import MapLoadingIndicator from './MapLoadingIndicator.js';
+import MapStyleSwitcher from './MapStyleSwitcher.js';
+import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
@@ -583,24 +586,25 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       {/* Map canvas */}
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
-      {/* Loading overlay */}
+      {/* Initial-load overlay — shimmer bar across the canvas so the user
+          sees "something is happening" before the first tile arrives. */}
       {!isLoaded && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(26, 22, 17, 0.7)',
-            color: mapTokens.label,
-            fontSize: '14px',
-            letterSpacing: '0.05em',
-          }}
-        >
-          Loading map…
+        <div className={loadingCss.overlay}>
+          <div className={loadingCss.shimmerBar} aria-hidden="true" />
+          <div className={loadingCss.label} style={{ color: mapTokens.label }}>
+            Loading map
+          </div>
         </div>
       )}
+
+      {/* Post-load, in-flight tile chip — only surfaces after the initial
+          style-load finishes (suppressed while the overlay above is showing). */}
+      <MapLoadingIndicator map={map} suppressed={!isLoaded} />
+
+      {/* Basemap style switcher — satellite / terrain / topographic / street / hybrid */}
+      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, pointerEvents: 'none' }}>
+        <MapStyleSwitcher />
+      </div>
 
       {/* Map scale bar is added natively by Mapbox — no floating panels needed */}
     </div>

@@ -1,0 +1,199 @@
+/* §20 ExtractedPatternsCard — reusable pattern bundles read off current project. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  background: rgba(196, 162, 101, 0.10);
+  color: rgba(232, 200, 130, 0.9);
+}
+
+.empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.65);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+/* ── Bundle grid ───────────────────────────────────────────────────── */
+.bundleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bundle {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bundleTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.bundleSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.4;
+}
+
+.bundleEmpty {
+  margin: 0;
+  font-size: 10.5px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.statList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.022);
+  font-size: 11px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.statLabel {
+  flex: 1;
+  color: rgba(220, 210, 185, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statCount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: rgba(232, 200, 130, 0.85);
+  flex-shrink: 0;
+}
+
+/* ── Phase row ─────────────────────────────────────────────────────── */
+.phaseRow {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.phaseLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.9);
+  margin-bottom: 8px;
+}
+
+.phaseChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.phaseChip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.024);
+  border-left: 3px solid rgba(180, 165, 140, 0.4);
+  min-width: 110px;
+}
+
+.phaseChipDone {
+  background: rgba(180, 200, 150, 0.06);
+}
+
+.phaseChipName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.phaseChipMeta {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

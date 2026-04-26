@@ -1,0 +1,246 @@
+/* §17 EducationalExplainerCard — what-is + pre-place checklists. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summaryRow {
+  display: flex;
+  gap: 24px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.18);
+  margin-bottom: 16px;
+}
+
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: -0.01em;
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section:last-of-type {
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.empty {
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.02);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  border-radius: 6px;
+  border-left: 3px solid rgba(232, 220, 200, 0.15);
+  background: rgba(232, 220, 200, 0.02);
+  overflow: hidden;
+}
+
+.rowOpen {
+  background: rgba(232, 220, 200, 0.04);
+}
+
+.group_structure {
+  border-left-color: rgba(196, 162, 101, 0.55);
+}
+.group_utility {
+  border-left-color: rgba(120, 175, 200, 0.55);
+}
+.group_crop {
+  border-left-color: rgba(180, 200, 150, 0.55);
+}
+.group_paddock {
+  border-left-color: rgba(220, 180, 100, 0.55);
+}
+.group_zone {
+  border-left-color: rgba(200, 150, 200, 0.45);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.rowHead:hover {
+  background: rgba(232, 220, 200, 0.03);
+}
+
+.rowGroup {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  min-width: 70px;
+}
+
+.rowTitle {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowToggle {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.7);
+  width: 14px;
+  text-align: center;
+}
+
+.rowBody {
+  padding: 4px 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.lineLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin-right: 4px;
+}
+
+.preplace {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.checklist {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.checklist li {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.82);
+  margin-bottom: 3px;
+}
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

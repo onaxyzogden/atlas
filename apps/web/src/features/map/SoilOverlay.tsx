@@ -18,7 +18,8 @@ import { fromUrl } from 'geotiff';
 import { useMapStore } from '../../store/mapStore.js';
 import { rgbaToCss } from './gaezColor.js';
 import { SOIL_RAMPS, rampGradientCss, type SoilRamp, type SoilRampId } from './soilColor.js';
-import { map as mapTokens, semantic } from '../../lib/tokens.js';
+import { map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
+import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
 const OVERLAY_SOURCE_ID = 'soil-properties-source';
 const OVERLAY_LAYER_ID = 'soil-properties-layer';
@@ -58,7 +59,7 @@ interface RasterState {
   entry: CatalogEntry;
 }
 
-// ── SoilOverlay — canvas-source + decode lifecycle ─────────────────────────
+// â”€â”€ SoilOverlay â€” canvas-source + decode lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SoilOverlayProps {
   map: maplibregl.Map | null;
@@ -246,7 +247,7 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
     return () => { cancelled = true; };
   }, [map, visible, activeEntry]);
 
-  // Hover readout — pixel-sampled in-memory (no network).
+  // Hover readout â€” pixel-sampled in-memory (no network).
   useEffect(() => {
     if (!map || !visible) return;
 
@@ -269,7 +270,7 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
       setTooltip({
         x: point.x,
         y: point.y,
-        text: `${s.entry.label} · ${formatted}`,
+        text: `${s.entry.label} Â· ${formatted}`,
         borderColor: rgbaToCss(rgba),
       });
     };
@@ -307,14 +308,14 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
         position: 'absolute',
         left: tooltip.x + 12,
         top: tooltip.y + 12,
-        background: 'rgba(26,22,17,0.95)',
+        background: 'var(--color-chrome-bg-translucent)',
         border: `1px solid ${tooltip.borderColor}`,
         color: mapTokens.label,
         padding: '6px 8px',
         borderRadius: 6,
         fontSize: 11,
         pointerEvents: 'none',
-        zIndex: 6,
+        zIndex: mapZIndex.tooltip,
         whiteSpace: 'nowrap',
         letterSpacing: '0.02em',
       }}
@@ -339,7 +340,7 @@ function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   return undefined;
 }
 
-// ── SoilMapControls — floating picker + legend ─────────────────────────────
+// â”€â”€ SoilMapControls â€” floating picker + legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function SoilMapControls() {
   const visible = useMapStore((s) => s.visibleLayers.has('soil_properties'));
@@ -388,24 +389,20 @@ export function SoilMapControls() {
 
   if (!visible) return null;
 
-  const panelStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 12,
-    right: 260,
-    zIndex: 5,
-    background: 'rgba(26, 22, 17, 0.92)',
-    color: mapTokens.label,
-    border: '1px solid rgba(125, 97, 64, 0.4)',
-    borderRadius: 10,
-    padding: collapsed ? '6px 10px' : 12,
-    backdropFilter: 'blur(10px)',
-    minWidth: collapsed ? undefined : 220,
-    fontSize: 12,
-    pointerEvents: 'auto',
-  };
-
   return (
-    <div style={panelStyle}>
+    <MapControlPopover
+      variant="panel"
+      collapsed={collapsed}
+      style={{
+        position: 'absolute',
+        top: 12,
+        right: 260,
+        zIndex: mapZIndex.panel,
+        color: mapTokens.label,
+        minWidth: collapsed ? undefined : 220,
+        fontSize: 12,
+      }}
+    >
       <button
         onClick={() => setCollapsed((v) => !v)}
         style={{
@@ -423,7 +420,7 @@ export function SoilMapControls() {
           textAlign: 'left',
         }}
       >
-        Soil Properties {collapsed ? '▸' : '▾'}
+        Soil Properties {collapsed ? 'â–¸' : 'â–¾'}
       </button>
       {!collapsed && (
         <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -431,7 +428,7 @@ export function SoilMapControls() {
             <div style={{ color: '#c07878', fontSize: 11 }}>Catalog failed: {error}</div>
           )}
           {!catalog && !error && (
-            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalog…</div>
+            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalogâ€¦</div>
           )}
           {catalog && catalog.length === 0 && (
             <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>
@@ -464,11 +461,11 @@ export function SoilMapControls() {
             </>
           )}
           <div style={{ fontSize: 10, color: semantic.sidebarIcon, fontStyle: 'italic', marginTop: 4 }}>
-            ISRIC SoilGrids v2.0 · CC BY 4.0
+            ISRIC SoilGrids v2.0 Â· CC BY 4.0
           </div>
         </div>
       )}
-    </div>
+    </MapControlPopover>
   );
 }
 

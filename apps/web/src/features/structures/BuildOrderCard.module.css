@@ -1,0 +1,237 @@
+/* §9 BuildOrderCard — phase-stacked dependency rollup. Visual language
+   matches the §9 sibling cards (SupportInfrastructure / GatheringRetreat)
+   with a blue-cool foundation tint that distinguishes "sequencing" from
+   "exposure" or "rollup" cards. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.blockedTag {
+  color: rgba(245, 165, 100, 0.95);
+  font-weight: 600;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+/* ── Phase list ─────────────────────────────────────────────────── */
+
+.phaseList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  counter-reset: phase;
+}
+
+.phaseItem {
+  position: relative;
+  padding: 12px 14px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.phaseHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.phaseLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(140, 175, 220, 0.85);
+}
+
+.phaseBlurb {
+  flex: 1;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  line-height: 1.4;
+}
+
+.phaseCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+.blockedInline {
+  color: rgba(245, 165, 100, 0.95);
+  font-weight: 600;
+}
+
+.phaseEmpty {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.4);
+  font-style: italic;
+}
+
+/* ── Foundation grid (Phase 1) ─────────────────────────────────── */
+
+.foundationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .foundationGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.foundationCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.foundationMet {
+  border-color: rgba(140, 200, 160, 0.45);
+  background: rgba(140, 200, 160, 0.06);
+}
+
+.foundationUnmet {
+  border-style: dashed;
+  border-color: rgba(245, 165, 100, 0.5);
+  background: rgba(245, 165, 100, 0.05);
+}
+
+.foundationIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.foundationLabel {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.foundationCount {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Structure list ────────────────────────────────────────────── */
+
+.structureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.structurePill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.structurePillBlocked {
+  border-color: rgba(245, 165, 100, 0.4);
+  background: rgba(245, 165, 100, 0.04);
+}
+
+.structureIcon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  line-height: 1;
+}
+
+.structureName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.statusOk {
+  font-size: 10.5px;
+  color: rgba(140, 200, 160, 0.85);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.statusBlocked {
+  font-size: 10.5px;
+  color: rgba(245, 165, 100, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ── Footnote ──────────────────────────────────────────────────── */
+
+.footnote {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 500;
+}

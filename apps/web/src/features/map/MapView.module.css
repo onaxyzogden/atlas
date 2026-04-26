@@ -1,12 +1,19 @@
 /* MapView — extracted from ProjectPage */
 
 /*
- * Map-internal z-index sub-scale (isolated by .mapArea stacking context):
- *   1-3  : base overlays (cesiumOverlay)
- *   5    : controls, labels, panels (floatingControls, terrain, zone, solar)
- *   10   : floating toolbar (DomainFloatingToolbar)
- *   40   : mobile bar, loading states
- *   50   : top-level map controls
+ * Map-internal z-index sub-scale — source of truth:
+ *   TS:   `mapZIndex` in apps/web/src/lib/tokens.ts
+ *   CSS:  --z-map-* custom properties in apps/web/src/styles/tokens.css
+ *
+ * Isolated by .mapArea { position: relative } stacking context:
+ *   2  spine         LeftToolSpine
+ *   3  split-pane    SplitScreenCompare
+ *   4  dropdown      popover dropdowns
+ *   5  panel         floating controls + legends + project card
+ *   6  tooltip       inline hover readouts
+ *   10 toolbar       DomainFloatingToolbar
+ *   40 mobile-bar    mobile chrome, loading states
+ *   50 top           top-level map controls
  */
 
 .layout {
@@ -33,7 +40,7 @@
   position: absolute;
   top: 16px;
   left: 16px;
-  z-index: 5;
+  z-index: var(--z-map-panel);
   background: rgba(15, 26, 18, 0.82);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -49,7 +56,7 @@
   letter-spacing: 0.01em;
   color: rgba(232, 220, 200, 0.95);
   line-height: 1.2;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
 }
 
 .floatingProjectSub {
@@ -67,7 +74,7 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 5;
+  z-index: var(--z-map-panel);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -117,7 +124,7 @@
 .cesiumOverlay {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--z-map-base-overlay);
 }
 
 .cesiumLoading {
@@ -140,6 +147,16 @@
   background: var(--color-bg);
   overflow-y: auto;
   flex-shrink: 0;
+  transition: width var(--duration-base, 200ms) var(--ease-default, ease);
+}
+
+/* Collapsed rail — thin strip showing only the vertical label + expand
+ * chevron. Width picked to comfortably hold a 24px-wide button with
+ * padding on either side.
+ */
+.rightPanelCollapsed {
+  width: 32px;
+  overflow: hidden;
 }
 
 /* ─── History ────────────────────────────────────────────────────────── */
@@ -167,7 +184,7 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 40;
+  z-index: var(--z-map-mobile-bar);
   padding: 0 var(--space-2);
 }
 

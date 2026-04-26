@@ -1,0 +1,263 @@
+/* §11 AnimalCorridorGrazingRouteCard — corridor/grazing-route audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.cardHint em {
+  color: rgba(180, 165, 140, 0.8);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.empty strong { color: rgba(232, 220, 200, 0.9); font-weight: 600; }
+.empty em { color: rgba(220, 200, 150, 0.85); font-style: normal; font-weight: 600; }
+
+.routeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.routeRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.flagOk {
+  border-color: rgba(180, 200, 150, 0.24);
+  background: rgba(180, 200, 150, 0.04);
+}
+.flagSingle {
+  border-color: rgba(220, 180, 100, 0.26);
+  background: rgba(220, 180, 100, 0.04);
+}
+.flagIsolated {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.routeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.routeIdent {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.routeName {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: -0.01em;
+}
+
+.routeType {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.flagChip {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.flagChipOk {
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(190, 215, 160, 0.95);
+  border: 1px solid rgba(180, 200, 150, 0.28);
+}
+.flagChipSingle {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.95);
+  border: 1px solid rgba(220, 180, 100, 0.3);
+}
+.flagChipIsolated {
+  background: rgba(220, 130, 110, 0.14);
+  color: rgba(235, 165, 145, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.3);
+}
+
+.routeMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.metaItem { font-variant-numeric: tabular-nums; }
+.metaSep { opacity: 0.5; }
+
+.paddockChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.paddockChip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.06);
+  color: rgba(232, 220, 200, 0.85);
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  display: inline-flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.chipDist {
+  font-size: 9px;
+  color: rgba(180, 165, 140, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+.paddockMore {
+  font-size: 9.5px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.6);
+  align-self: center;
+}
+
+.warningBox {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(220, 130, 110, 0.26);
+  background: rgba(220, 130, 110, 0.05);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(220, 200, 185, 0.85);
+}
+
+.warningBox strong {
+  color: rgba(235, 165, 145, 0.95);
+  font-weight: 700;
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}

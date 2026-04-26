@@ -1,0 +1,289 @@
+/* §13 VisionBoardCard — local reference-imagery gallery. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.controlRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.captionGroup {
+  flex: 1;
+  min-width: 220px;
+}
+
+.controlLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.select,
+.input {
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(232, 220, 200, 0.92);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  font-family: inherit;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: rgba(196, 162, 101, 0.5);
+}
+
+.fileInput {
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.error {
+  padding: 8px 12px;
+  border-radius: 5px;
+  background: rgba(220, 130, 110, 0.12);
+  color: rgba(230, 160, 145, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.3);
+  font-size: 11.5px;
+  margin-bottom: 10px;
+}
+
+.statusRow {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.18);
+  margin-bottom: 14px;
+}
+
+.statusItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 64px;
+}
+
+.statusValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: -0.01em;
+}
+
+.statusLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.clearBtn {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 5px;
+  background: rgba(220, 130, 110, 0.08);
+  color: rgba(230, 160, 145, 0.9);
+  border: 1px solid rgba(220, 130, 110, 0.22);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.clearBtn:hover:not(:disabled) {
+  background: rgba(220, 130, 110, 0.15);
+  border-color: rgba(220, 130, 110, 0.4);
+}
+
+.clearBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 7px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.02);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.slotBlock {
+  margin-bottom: 16px;
+}
+
+.slotTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.slotCount {
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.6);
+  margin-left: 4px;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  position: relative;
+  margin: 0;
+  border-radius: 7px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.thumb {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tileCaption {
+  padding: 8px 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(220, 210, 185, 0.88);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.captionPlaceholder {
+  color: rgba(180, 165, 140, 0.5);
+  font-style: italic;
+}
+
+.tileMeta {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(232, 220, 200, 0.92);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.removeBtn:hover {
+  background: rgba(220, 130, 110, 0.7);
+}
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.08);
+  color: rgba(220, 210, 185, 0.85);
+}

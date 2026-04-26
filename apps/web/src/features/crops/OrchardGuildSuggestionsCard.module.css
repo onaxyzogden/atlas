@@ -1,0 +1,228 @@
+/* §12 OrchardGuildSuggestionsCard — perennial guild matches per crop area. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid rgba(180, 200, 150, 0.35);
+  background: rgba(180, 200, 150, 0.10);
+  color: rgba(190, 210, 160, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Area list ─────────────────────────────────────────────────────── */
+.areaList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.area {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.areaHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.areaName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.areaMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  text-transform: capitalize;
+}
+
+.noAnchor {
+  margin: 0;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.6);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.018);
+  border-radius: 6px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+}
+
+/* ── Anchor block ──────────────────────────────────────────────────── */
+.anchorList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.anchor {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.022);
+  border-left: 3px solid rgba(180, 200, 150, 0.55);
+}
+
+.anchorHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.anchorTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.anchorMatched {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+/* ── Filled chip row ───────────────────────────────────────────────── */
+.filledRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+  font-size: 10.5px;
+}
+
+.filledLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 200, 150, 0.85);
+  margin-right: 4px;
+}
+
+.chip {
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: rgba(180, 200, 150, 0.12);
+  border: 1px solid rgba(180, 200, 150, 0.3);
+  color: rgba(190, 210, 160, 0.92);
+}
+
+/* ── Missing list ──────────────────────────────────────────────────── */
+.missingList {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.missing {
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(220, 180, 100, 0.04);
+  border-left: 2px solid rgba(220, 180, 100, 0.5);
+}
+
+.missingHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+
+.missingRole {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 200, 130, 0.92);
+}
+
+.missingBlurb {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+  flex: 1;
+  min-width: 200px;
+}
+
+.suggestionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.suggestion {
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(220, 180, 100, 0.25);
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.complete {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  font-style: italic;
+  color: rgba(190, 210, 160, 0.85);
+}
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

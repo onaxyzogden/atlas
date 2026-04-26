@@ -24,10 +24,17 @@ import {
   computeForageQuality,
   type RecoveryStatus,
 } from '../../livestock/livestockAnalysis.js';
-import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
+import { LIVESTOCK_SPECIES, computeAnimalUnits } from '../../livestock/speciesData.js';
 import ProgressBar from '../components/ProgressBar.js';
+import RotationScheduleCard from '../../livestock/RotationScheduleCard.js';
+import PaddockCellDesignCard from '../../livestock/PaddockCellDesignCard.js';
+import AnimalCorridorGrazingRouteCard from '../../livestock/AnimalCorridorGrazingRouteCard.js';
+import BrowsePressureRiskCard from '../../livestock/BrowsePressureRiskCard.js';
+import FencingLayoutCard from '../../livestock/FencingLayoutCard.js';
+import MultiSpeciesPlannerCard from '../../livestock/MultiSpeciesPlannerCard.js';
 import css from './HerdRotationDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -153,10 +160,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
     [paddocks],
   );
 
-  const totalHead = useMemo(
-    () => inventory.reduce((sum, e) => sum + e.totalHead, 0),
-    [inventory],
-  );
+  const totalAU = useMemo(() => computeAnimalUnits(inventory), [inventory]);
 
   /* ---------- Hero: dominant group & species ---------- */
   const heroInfo = useMemo(() => {
@@ -281,7 +285,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
         </div>
 
         <div className={css.healthCard}>
-          <h3 className={css.healthTitle}>Get Started</h3>
+          <h2 className={css.healthTitle}>Get Started</h2>
           <div className={css.healthIndicator}>
             <span className={css.healthDot} />
             <span className={css.healthText}>
@@ -341,14 +345,14 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
           <div className={css.paddockHeader}>
             <div>
               <span className={css.paddockLabel}>ACTIVE PADDOCK</span>
-              <h3 className={css.paddockName}>
+              <h2 className={css.paddockName}>
                 {activePaddock.paddock.name}
                 {activePaddock.paddock.grazingCellGroup && (
                   <span className={css.paddockSub}>
                     ({activePaddock.paddock.grazingCellGroup})
                   </span>
                 )}
-              </h3>
+              </h2>
             </div>
             <div className={css.paddockAcres}>
               <span className={css.acresValue}>
@@ -410,8 +414,15 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
         <div className={css.quickStats}>
           <div className={css.quickStat}>
-            <span className={css.quickStatLabel}>Herd Size</span>
-            <span className={css.quickStatValue}>{totalHead} head</span>
+            <DelayedTooltip label="1 AU = livestock excreting 73 kg N per year (Manitoba Schedule A)">
+              <span
+                className={css.quickStatLabel}
+                tabIndex={0}
+              >
+                Animal Units
+              </span>
+            </DelayedTooltip>
+            <span className={css.quickStatValue}>{totalAU.toFixed(1)} AU</span>
           </div>
           <div className={css.quickStat}>
             <span className={css.quickStatLabel}>Water Points</span>
@@ -426,7 +437,7 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
       {/* Recovery Tracking */}
       <div className={css.healthCard}>
-        <h3 className={css.healthTitle}>Recovery Tracking</h3>
+        <h2 className={css.healthTitle}>Recovery Tracking</h2>
         {recoveries.map((r) => (
           <ProgressBar
             key={r.paddockId}
@@ -437,13 +448,23 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
         ))}
       </div>
 
-      {/* CTA */}
-      <button className={css.ctaButton} onClick={onSwitchToMap}>
-        INITIATE HERD ROTATION
-        <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 8H13M10 5L13 8L10 11" />
-        </svg>
-      </button>
+      {/* §16 Cell design audit */}
+      <PaddockCellDesignCard projectId={project.id} />
+
+      {/* §16 Rotation schedule */}
+      <RotationScheduleCard projectId={project.id} />
+
+      {/* §16 Fencing layout & gate estimate */}
+      <FencingLayoutCard projectId={project.id} />
+
+      {/* §11 Animal corridor / grazing route audit */}
+      <AnimalCorridorGrazingRouteCard projectId={project.id} />
+
+      {/* §11 Browse pressure & overgrazing risk — per-paddock combined audit */}
+      <BrowsePressureRiskCard projectId={project.id} />
+
+      {/* §11 Multi-species planner — niche distribution + pattern recommendations */}
+      <MultiSpeciesPlannerCard projectId={project.id} />
 
       {/* Site environment bar */}
       <div className={css.coordsBar}>

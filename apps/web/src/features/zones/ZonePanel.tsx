@@ -11,8 +11,17 @@ import * as turf from '@turf/turf';
 import {
   useZoneStore,
   ZONE_CATEGORY_CONFIG,
+  INVASIVE_PRESSURE_LABELS,
+  INVASIVE_PRESSURE_COLORS,
+  SUCCESSION_STAGE_LABELS,
+  SUCCESSION_STAGE_COLORS,
+  SEASONALITY_LABELS,
+  SEASONALITY_COLORS,
   type ZoneCategory,
   type LandZone,
+  type InvasivePressure,
+  type SuccessionStage,
+  type Seasonality,
 } from '../../store/zoneStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
@@ -20,11 +29,17 @@ import { computeAssessmentScores } from '../../lib/computeScores.js';
 import { PanelLoader } from '../../components/ui/PanelLoader.js';
 import ZoneSizingCalculator from './ZoneSizingCalculator.js';
 import ZoneConflictDetector from './ZoneConflictDetector.js';
+import ZoneSiteSuitabilityCard from './ZoneSiteSuitabilityCard.js';
 import ZoneAllocationSummary from './ZoneAllocationSummary.js';
+import ZoneAllocationSummaryReportCard from './ZoneAllocationSummaryReportCard.js';
+import ZoneAllocationBalanceCard from './ZoneAllocationBalanceCard.js';
+import ServiceExpansionPreservationCard from './ServiceExpansionPreservationCard.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
+import ZoneSuggestionAuditCard from './ZoneSuggestionAuditCard.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface ZonePanelProps {
   projectId: string;
@@ -40,6 +55,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
   const allZones = useZoneStore((st) => st.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
   const addZone = useZoneStore((st) => st.addZone);
+  const updateZone = useZoneStore((st) => st.updateZone);
   const deleteZone = useZoneStore((st) => st.deleteZone);
 
   const project = useProjectStore((st) => st.projects.find((pr) => pr.id === projectId));
@@ -67,6 +83,18 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
   const [formPrimaryUse, setFormPrimaryUse] = useState('');
   const [formSecondaryUse, setFormSecondaryUse] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  // Ecological-condition tags (§7 invasive-succession-mapping).
+  // Blank string = "no opinion yet" — stored as null on the zone so the
+  // dashboard rollup can count untagged zones separately.
+  const [formInvasivePressure, setFormInvasivePressure] = useState<InvasivePressure | ''>('');
+  const [formSuccessionStage, setFormSuccessionStage] = useState<SuccessionStage | ''>('');
+  // §8 seasonal-temporary-phased-use-zones — when this zone is in active
+  // use during the year. Blank = "not set" (stored as null).
+  const [formSeasonality, setFormSeasonality] = useState<Seasonality | ''>('');
+
+  // Inline per-zone ecology-condition editor: which zone id is currently
+  // expanded, or null when nothing is open.
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const startDraw = useCallback(() => {
     if (!draw || !map) return;
@@ -103,6 +131,9 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
       notes: formNotes,
       geometry: pendingGeometry,
       areaM2: pendingArea,
+      invasivePressure: formInvasivePressure === '' ? null : formInvasivePressure,
+      successionStage: formSuccessionStage === '' ? null : formSuccessionStage,
+      seasonality: formSeasonality === '' ? null : formSeasonality,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -116,10 +147,14 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
     setFormPrimaryUse('');
     setFormSecondaryUse('');
     setFormNotes('');
+    setFormInvasivePressure('');
+    setFormSuccessionStage('');
+    setFormSeasonality('');
     draw?.deleteAll();
   }, [
     pendingGeometry, pendingArea, formName, formCategory,
     formPrimaryUse, formSecondaryUse, formNotes,
+    formInvasivePressure, formSuccessionStage, formSeasonality,
     projectId, addZone, map, isMapReady, draw,
   ]);
 
@@ -163,15 +198,16 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
         <div style={{ marginTop: 8 }}>
           {/* Draw button */}
           {!showForm && draw && (
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={canEdit}>
             <button
               onClick={canEdit ? startDraw : undefined}
               disabled={isDrawing || !canEdit}
-              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={s.drawBtn}
               style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {isDrawing ? 'Drawing\u2026 double-click to finish' : '+ Draw New Zone'}
             </button>
+            </DelayedTooltip>
           )}
 
           {/* Zone creation form */}
@@ -221,6 +257,43 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
                   rows={2}
                   className={`${p.input} ${s.textareaInput}`}
                 />
+                {/* §7 invasive-succession tags — optional, steward can
+                    leave blank and tag later via the inline edit row. */}
+                <select
+                  value={formInvasivePressure}
+                  onChange={(e) => setFormInvasivePressure((e.target.value as InvasivePressure | ''))}
+                  className={`${p.input} ${s.selectInput}`}
+                  aria-label="Invasive pressure"
+                >
+                  <option value="">Invasive pressure — not set</option>
+                  {(Object.keys(INVASIVE_PRESSURE_LABELS) as InvasivePressure[]).map((k) => (
+                    <option key={k} value={k}>Invasive pressure: {INVASIVE_PRESSURE_LABELS[k]}</option>
+                  ))}
+                </select>
+                <select
+                  value={formSuccessionStage}
+                  onChange={(e) => setFormSuccessionStage((e.target.value as SuccessionStage | ''))}
+                  className={`${p.input} ${s.selectInput}`}
+                  aria-label="Succession stage"
+                >
+                  <option value="">Succession stage — not set</option>
+                  {(Object.keys(SUCCESSION_STAGE_LABELS) as SuccessionStage[]).map((k) => (
+                    <option key={k} value={k}>Succession: {SUCCESSION_STAGE_LABELS[k]}</option>
+                  ))}
+                </select>
+                {/* §8 seasonal-temporary-phased-use-zones — when this zone
+                    is in active use during the year. */}
+                <select
+                  value={formSeasonality}
+                  onChange={(e) => setFormSeasonality((e.target.value as Seasonality | ''))}
+                  className={`${p.input} ${s.selectInput}`}
+                  aria-label="Seasonal use"
+                >
+                  <option value="">Seasonal use — not set</option>
+                  {(Object.keys(SEASONALITY_LABELS) as Seasonality[]).map((k) => (
+                    <option key={k} value={k}>Use: {SEASONALITY_LABELS[k]}</option>
+                  ))}
+                </select>
                 <div className={s.formActions}>
                   <button
                     onClick={handleSaveZone}
@@ -248,23 +321,136 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
           {zones.length > 0 && (
             <div className={s.zoneList}>
               {zones.map((z) => (
-                <div key={z.id} className={s.zoneItem}>
-                  <span className={s.zoneSwatch} style={{ background: z.color }} />
-                  <div className={s.zoneInfo}>
-                    <div className={s.zoneName}>{z.name}</div>
-                    <div className={s.zoneMeta}>
-                      {ZONE_CATEGORY_CONFIG[z.category].label} \u2014 {formatArea(z.areaM2)}
+                <div key={z.id} className={s.zoneRow}>
+                  <div className={s.zoneItem}>
+                    <span className={s.zoneSwatch} style={{ background: z.color }} />
+                    <div className={s.zoneInfo}>
+                      <div className={s.zoneName}>{z.name}</div>
+                      <div className={s.zoneMeta}>
+                        {ZONE_CATEGORY_CONFIG[z.category].label} \u2014 {formatArea(z.areaM2)}
+                      </div>
+                      {(z.invasivePressure || z.successionStage || z.seasonality) && (
+                        <div className={s.zoneChips}>
+                          {z.invasivePressure && (
+                            <span
+                              className={s.zoneChip}
+                              style={{
+                                borderColor: INVASIVE_PRESSURE_COLORS[z.invasivePressure],
+                                color: INVASIVE_PRESSURE_COLORS[z.invasivePressure],
+                              }}
+                              title="Invasive pressure"
+                            >
+                              Inv: {INVASIVE_PRESSURE_LABELS[z.invasivePressure]}
+                            </span>
+                          )}
+                          {z.successionStage && (
+                            <span
+                              className={s.zoneChip}
+                              style={{
+                                borderColor: SUCCESSION_STAGE_COLORS[z.successionStage],
+                                color: SUCCESSION_STAGE_COLORS[z.successionStage],
+                              }}
+                              title="Succession stage"
+                            >
+                              {SUCCESSION_STAGE_LABELS[z.successionStage]}
+                            </span>
+                          )}
+                          {z.seasonality && (
+                            <span
+                              className={s.zoneChip}
+                              style={{
+                                borderColor: SEASONALITY_COLORS[z.seasonality],
+                                color: SEASONALITY_COLORS[z.seasonality],
+                              }}
+                              title="Seasonal / phased use"
+                            >
+                              {SEASONALITY_LABELS[z.seasonality]}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    <DelayedTooltip label={!canEdit ? 'Editing requires Designer or Owner role' : 'Tag ecological condition'}>
+                      <button
+                        onClick={canEdit ? () => setEditingId(editingId === z.id ? null : z.id) : undefined}
+                        disabled={!canEdit}
+                        className={s.editBtn}
+                        style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
+                        aria-label={`Edit ecological condition for ${z.name}`}
+                        aria-expanded={editingId === z.id}
+                      >
+                        Tag
+                      </button>
+                    </DelayedTooltip>
+                    <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}>
+                    <button
+                      onClick={canEdit ? () => handleDeleteZone(z.id) : undefined}
+                      disabled={!canEdit}
+                      className={s.deleteBtn}
+                      style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
+                    >
+                      \u00D7
+                    </button>
+                    </DelayedTooltip>
                   </div>
-                  <button
-                    onClick={canEdit ? () => handleDeleteZone(z.id) : undefined}
-                    disabled={!canEdit}
-                    className={s.deleteBtn}
-                    title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
-                    style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
-                  >
-                    \u00D7
-                  </button>
+
+                  {/* Inline edit disclosure: lets stewards tag invasive
+                      pressure + succession stage on existing zones without
+                      a separate drawer. Scope deliberately narrow — name /
+                      category / use fields stay immutable here. */}
+                  {editingId === z.id && (
+                    <div className={s.editRow}>
+                      <label className={s.editLabel}>Invasive pressure</label>
+                      <select
+                        value={z.invasivePressure ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value as InvasivePressure | '';
+                          updateZone(z.id, { invasivePressure: v === '' ? null : v });
+                        }}
+                        className={`${p.input} ${s.selectInput}`}
+                      >
+                        <option value="">Not set</option>
+                        {(Object.keys(INVASIVE_PRESSURE_LABELS) as InvasivePressure[]).map((k) => (
+                          <option key={k} value={k}>{INVASIVE_PRESSURE_LABELS[k]}</option>
+                        ))}
+                      </select>
+                      <label className={s.editLabel}>Succession stage</label>
+                      <select
+                        value={z.successionStage ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value as SuccessionStage | '';
+                          updateZone(z.id, { successionStage: v === '' ? null : v });
+                        }}
+                        className={`${p.input} ${s.selectInput}`}
+                      >
+                        <option value="">Not set</option>
+                        {(Object.keys(SUCCESSION_STAGE_LABELS) as SuccessionStage[]).map((k) => (
+                          <option key={k} value={k}>{SUCCESSION_STAGE_LABELS[k]}</option>
+                        ))}
+                      </select>
+                      <label className={s.editLabel}>Seasonal use</label>
+                      <select
+                        value={z.seasonality ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value as Seasonality | '';
+                          updateZone(z.id, { seasonality: v === '' ? null : v });
+                        }}
+                        className={`${p.input} ${s.selectInput}`}
+                      >
+                        <option value="">Not set</option>
+                        {(Object.keys(SEASONALITY_LABELS) as Seasonality[]).map((k) => (
+                          <option key={k} value={k}>{SEASONALITY_LABELS[k]}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className={s.editDoneBtn}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -282,9 +468,25 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ZoneAllocationSummary zones={zones} totalAcreage={project?.acreage ?? null} />
+          <ZoneAllocationSummaryReportCard
+            zones={zones}
+            totalAcreage={project?.acreage ?? null}
+            projectName={project?.name ?? null}
+          />
+          <ZoneAllocationBalanceCard
+            zones={zones}
+            totalAcreage={project?.acreage ?? null}
+            projectType={project?.projectType ?? null}
+          />
+          <ServiceExpansionPreservationCard
+            zones={zones}
+            totalAcreage={project?.acreage ?? null}
+          />
           <ZoneSizingCalculator zones={zones} totalAcreage={project?.acreage ?? null} />
           <ZoneConflictDetector zones={zones} siteData={siteData} />
+          <ZoneSiteSuitabilityCard zones={zones} siteData={siteData} />
           <ZoneAutoSuggest scores={scores} siteData={siteData} existingCategories={existingCategories} />
+          <ZoneSuggestionAuditCard projectId={projectId} scores={scores} existingCategories={existingCategories} />
         </div>
       )}
     </div>

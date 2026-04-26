@@ -5,16 +5,26 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { usePathStore, PATH_TYPE_CONFIG, type PathType, type DesignPath } from '../../store/pathStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import AccessAnalysisCard from './AccessAnalysisCard.js';
+import AccessibleRouteCard from './AccessibleRouteCard.js';
 import AnimalCorridors from './AnimalCorridors.js';
 import ArrivalSequence from './ArrivalSequence.js';
 import RouteConflicts from './RouteConflicts.js';
 import SlopeWarnings from './SlopeWarnings.js';
+import RouteSlopeAuditCard from './RouteSlopeAuditCard.js';
+import WayfindingPlanCard from './WayfindingPlanCard.js';
+import CorridorCostEstimatorCard from './CorridorCostEstimatorCard.js';
+import ParkingDeliveryAccessCard from './ParkingDeliveryAccessCard.js';
+import EventFlowLightingCard from './EventFlowLightingCard.js';
+import PublicPrivateCirculationCard from './PublicPrivateCirculationCard.js';
+import ArrivalSequenceDesignCard from './ArrivalSequenceDesignCard.js';
+import ServiceAccessContinuityCard from './ServiceAccessContinuityCard.js';
+import QuietCirculationRouteCard from './QuietCirculationRouteCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -54,6 +64,16 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
   const [name, setName] = useState('');
   const [phase, setPhase] = useState('Phase 1');
   const [notes, setNotes] = useState('');
+
+  // a11y: Escape key dismisses the path-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, draw]);
 
   const startDraw = useCallback(() => {
     if (!draw || !map) return;
@@ -190,18 +210,37 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AccessAnalysisCard paths={paths} />
+          {/* §10 Main/secondary/emergency/service access continuity. */}
+          <ServiceAccessContinuityCard projectId={projectId} />
           <AnimalCorridors corridors={corridors} livestockZones={livestockZones} waterZones={waterZones} />
           {project?.projectType && <ArrivalSequence arrivalPaths={arrivalPaths} projectType={project.projectType} />}
           <RouteConflicts paths={paths} zones={zones} />
           <SlopeWarnings paths={paths} terrainSummary={terrainSummary} />
+          {/* §10 Per-path slope + erosion audit (route-slope-conflict-detection). */}
+          <RouteSlopeAuditCard projectId={projectId} />
+          <AccessibleRouteCard paths={paths} terrainSummary={terrainSummary} />
+          <WayfindingPlanCard projectId={projectId} />
+          <CorridorCostEstimatorCard projectId={projectId} parcelBoundaryGeojson={project?.parcelBoundaryGeojson ?? null} />
+          {/* §10 Parking, turning radius, delivery reach (parking-turning-delivery-checks). */}
+          <ParkingDeliveryAccessCard projectId={projectId} />
+          {/* §10 Event flow & night lighting (event-flow-night-lighting-safety). */}
+          <EventFlowLightingCard projectId={projectId} />
+          {/* §10 Public vs private circulation (public-private-circulation-layers). */}
+          <PublicPrivateCirculationCard projectId={projectId} />
+          {/* §10 Arrival sequence design — guest-experience reveal-tier audit. */}
+          <ArrivalSequenceDesignCard projectId={projectId} />
+          {/* §10 Quiet circulation acoustic-separation audit. */}
+          <QuietCirculationRouteCard projectId={projectId} />
         </div>
       )}
 
       {/* Path naming modal — always rendered when showModal is true */}
       {showModal && (
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
         <div className={p.modalOverlay}
+          role="presentation"
           onClick={() => { setShowModal(false); draw?.deleteAll(); }}>
-          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`}>
+          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`} role="dialog" aria-modal="true">
             <h2 className={p.modalTitle}>Name This Path</h2>
             <p className={p.modalSubtitle}>
               {pendingLength > 1000 ? `${(pendingLength / 1000).toFixed(1)} km` : `${Math.round(pendingLength)} m`} {'\u2014'} {PATH_TYPE_CONFIG[selectedType].label}

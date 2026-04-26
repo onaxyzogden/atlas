@@ -25,12 +25,14 @@ import {
 // ─── Enums ──────────────────────────────────────────────────────────────────
 
 describe('Country enum', () => {
-  it('accepts US and CA', () => {
+  it('accepts US, CA, and INTL', () => {
     expect(Country.parse('US')).toBe('US');
     expect(Country.parse('CA')).toBe('CA');
+    expect(Country.parse('INTL')).toBe('INTL');
   });
   it('rejects invalid country', () => {
     expect(Country.safeParse('UK').success).toBe(false);
+    expect(Country.safeParse('MX').success).toBe(false);
   });
 });
 

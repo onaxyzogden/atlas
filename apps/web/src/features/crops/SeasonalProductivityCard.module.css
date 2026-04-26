@@ -1,0 +1,137 @@
+/* §12 SeasonalProductivityCard — matches PlantingToolDashboard grammar.
+   Earth Green #15803D · Harvest Gold #CA8A04 · Pale Green #F0FDF4 */
+
+.section { margin-bottom: 24px; }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(var(--color-group-reporting-rgb), 0.55);
+  margin: 0 0 12px;
+  display: block;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(var(--color-warning-rgb), 0.15);
+  color: var(--color-warning);
+  margin-bottom: 12px;
+}
+
+.card {
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--color-group-reporting-rgb), 0.15);
+  background: rgba(var(--color-group-reporting-rgb), 0.03);
+}
+
+/* ── Strip rows ─────────────────────────────────────────────────────── */
+
+.row {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.row:last-of-type {
+  border-bottom: none;
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.rowName {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  color: var(--color-success-50);
+  font-weight: 500;
+}
+
+.rowMeta {
+  font-size: 10px;
+  color: rgba(var(--color-group-reporting-rgb), 0.5);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+}
+
+.stripWrap {
+  width: 100%;
+}
+
+.strip {
+  display: block;
+  width: 100%;
+  height: 42px;
+}
+
+.monthLabel {
+  font-family: 'Fira Code', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  fill: rgba(var(--color-group-reporting-rgb), 0.45);
+}
+
+/* ── Gap callout ────────────────────────────────────────────────────── */
+
+.gapCallout {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--color-warning-rgb), 0.25);
+  background: rgba(var(--color-warning-rgb), 0.06);
+}
+
+.gapLabel {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-warning);
+  margin-right: 8px;
+}
+
+.gapMonths {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(var(--color-success-50-rgb), 0.85);
+}
+
+.gapHint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(var(--color-success-50-rgb), 0.55);
+  font-style: italic;
+}
+
+/* ── Footnote ───────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(var(--color-group-reporting-rgb), 0.5);
+}
+
+.footnote em {
+  color: rgba(var(--color-group-reporting-rgb), 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

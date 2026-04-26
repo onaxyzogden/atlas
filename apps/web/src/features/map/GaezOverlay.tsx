@@ -1,13 +1,13 @@
 /**
- * Sprint CB — map-side FAO GAEZ v4 suitability overlay.
- * Sprint CC — yield-gradient mode + hover readout + JWT auth on /raster/*.
+ * Sprint CB â€” map-side FAO GAEZ v4 suitability overlay.
+ * Sprint CC â€” yield-gradient mode + hover readout + JWT auth on /raster/*.
  *
  * Two responsibilities, co-located because they share state (gaezSelection):
  *
  *   1. <GaezOverlay map={map} />
  *        When `visibleLayers` contains `gaez_suitability`, decodes the currently-
  *        selected (crop, waterSupply, inputLevel, variable) COG via geotiff.js
- *        into a full-world offscreen canvas (4320×2160) and mounts it as a
+ *        into a full-world offscreen canvas (4320Ã—2160) and mounts it as a
  *        MapLibre `canvas` source + `raster` layer.
  *
  *        CB: suitability paint only (5 categorical bands via suitabilityToRgba).
@@ -45,7 +45,7 @@
  *    pixels to force a re-read.
  *  - Z-order: we pass `beforeId` pointing at the first `symbol` layer (labels)
  *    so the overlay sits below symbols but above the base style.
- *  - Decode cost: 4320×2160 → ~50–80ms on a modern laptop. Main-thread MVP;
+ *  - Decode cost: 4320Ã—2160 â†’ ~50â€“80ms on a modern laptop. Main-thread MVP;
  *    defer Web Worker offload until profiled.
  */
 
@@ -67,16 +67,17 @@ import {
   yieldToRgba,
   YIELD_GRADIENT_CSS,
 } from './gaezColor.js';
-import { map as mapTokens, semantic } from '../../lib/tokens.js';
+import { map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
+import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
-// Full-world pixel dimensions for GAEZ v4 at 5 arc-min (4320 × 2160).
+// Full-world pixel dimensions for GAEZ v4 at 5 arc-min (4320 Ã— 2160).
 const WORLD_WIDTH = 4320;
 const WORLD_HEIGHT = 2160;
 
 const OVERLAY_SOURCE_ID = 'gaez-suitability-source';
 const OVERLAY_LAYER_ID = 'gaez-suitability-layer';
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface CatalogEntry {
   crop: string;
@@ -91,7 +92,7 @@ interface CatalogResponse {
 }
 
 /**
- * Sprint CC — snapshot of the most recent successful decode. The hover handler
+ * Sprint CC â€” snapshot of the most recent successful decode. The hover handler
  * reads this by ref (no re-render storm) to look up the pixel under the cursor.
  * Georeferencing math mirrors GaezRasterService.samplePoint() (originX/originY
  * are the UL corner of the top-left pixel; xRes is positive, yRes is negative).
@@ -117,7 +118,7 @@ interface TooltipState {
   borderColor: string;
 }
 
-// ── GaezOverlay — the canvas-source + decode lifecycle ─────────────────────
+// â”€â”€ GaezOverlay â€” the canvas-source + decode lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface GaezOverlayProps {
   map: maplibregl.Map | null;
@@ -138,20 +139,20 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
     canvasRef.current = c;
   }
 
-  // Sprint CC — hover readout state. Ref holds the decoded band (large,
+  // Sprint CC â€” hover readout state. Ref holds the decoded band (large,
   // no need to re-render on change); state holds the tooltip position/text
   // (small, triggers the tooltip div render).
   const rasterStateRef = useRef<RasterState | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const rafHandleRef = useRef<number | null>(null);
 
-  // ── Add/remove the MapLibre source+layer based on visibility. ────────────
+  // â”€â”€ Add/remove the MapLibre source+layer based on visibility. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!map) return;
     if (!visible) {
       if (map.getLayer(OVERLAY_LAYER_ID)) map.removeLayer(OVERLAY_LAYER_ID);
       if (map.getSource(OVERLAY_SOURCE_ID)) map.removeSource(OVERLAY_SOURCE_ID);
-      // CC — drop the ref so a stale decode doesn't answer hover after toggle-off.
+      // CC â€” drop the ref so a stale decode doesn't answer hover after toggle-off.
       rasterStateRef.current = null;
       setTooltip(null);
       return;
@@ -196,7 +197,7 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
     };
   }, [map, visible]);
 
-  // ── Decode + paint on selection change. ──────────────────────────────────
+  // â”€â”€ Decode + paint on selection change. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!map || !visible || !selection) return;
     const canvas = canvasRef.current;
@@ -206,14 +207,14 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
     (async () => {
       try {
         const url = rasterUrl(selection);
-        // Sprint CC — auth header on the raster request. RemoteSourceOptions.headers
+        // Sprint CC â€” auth header on the raster request. RemoteSourceOptions.headers
         // is forwarded to geotiff's internal fetch (verified in remote.d.ts).
         const tiff = await fromUrl(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
         const image = await tiff.getImage();
         const raster = await image.readRasters({ interleave: false });
         if (cancelled) return;
 
-        // Paint raster into the 4320×2160 offscreen canvas.
+        // Paint raster into the 4320Ã—2160 offscreen canvas.
         const bandsUnknown = raster as unknown as ArrayLike<ArrayLike<number>>;
         const band = bandsUnknown[0];
         if (!band) return;
@@ -223,14 +224,14 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // ── Georeferencing snapshot for the hover handler ─────────────────
+        // â”€â”€ Georeferencing snapshot for the hover handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // geotiff.js exposes `getOrigin()` = [x, y] of the UL pixel corner and
         // `getResolution()` = [xRes, yRes]; yRes is typically negative (north-up).
         const origin = image.getOrigin() as [number, number];
         const resolution = image.getResolution() as [number, number];
         const gdalNoData = (image.getGDALNoData?.() ?? null) as number | null;
 
-        // ── Max-yield (variable === 'yield' only) ─────────────────────────
+        // â”€â”€ Max-yield (variable === 'yield' only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         let maxYield = 0;
         if (selection.variable === 'yield') {
           const step = Math.max(1, Math.floor((band.length as number) / 10000));
@@ -281,7 +282,7 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
         }
         ctx.putImageData(imageData, 0, 0);
 
-        // ── CC: publish the snapshot for the hover handler. Atomic overwrite;
+        // â”€â”€ CC: publish the snapshot for the hover handler. Atomic overwrite;
         // if a second decode is in flight the worst case is a frame of old data.
         rasterStateRef.current = {
           band,
@@ -321,7 +322,7 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
     return () => { cancelled = true; };
   }, [map, visible, selection, token, setGaezMaxYield]);
 
-  // ── Sprint CC — hover readout. Reads rasterStateRef (no re-render storm)
+  // â”€â”€ Sprint CC â€” hover readout. Reads rasterStateRef (no re-render storm)
   //    and sets tooltip state; rAF-gated so 60Hz mousemove can't saturate the
   //    renderer. Pointer is converted to (px, py) using the exact origin/res
   //    from the decoded image (mirrors GaezRasterService.samplePoint).
@@ -333,7 +334,7 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
       if (!s) { setTooltip(null); return; }
       const { lng, lat } = lngLat;
       const px = Math.floor((lng - s.originX) / s.xRes);
-      const py = Math.floor((lat - s.originY) / s.yRes); // yRes negative → positive py as lat goes south
+      const py = Math.floor((lat - s.originY) / s.yRes); // yRes negative â†’ positive py as lat goes south
       if (px < 0 || py < 0 || px >= s.width || py >= s.height) { setTooltip(null); return; }
       const v = s.band[py * s.width + px] as number;
       if (v == null || !Number.isFinite(v)) { setTooltip(null); return; }
@@ -374,14 +375,14 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
         position: 'absolute',
         left: tooltip.x + 12,
         top: tooltip.y + 12,
-        background: 'rgba(26,22,17,0.95)',
+        background: 'var(--color-chrome-bg-translucent)',
         border: `1px solid ${tooltip.borderColor}`,
         color: mapTokens.label,
         padding: '6px 8px',
         borderRadius: 6,
         fontSize: 11,
         pointerEvents: 'none',
-        zIndex: 6,
+        zIndex: mapZIndex.tooltip,
         whiteSpace: 'nowrap',
         letterSpacing: '0.02em',
       }}
@@ -392,11 +393,11 @@ export function GaezOverlay({ map }: GaezOverlayProps) {
 }
 
 /**
- * Sprint CC — render the tooltip text + border color from a decoded pixel.
+ * Sprint CC â€” render the tooltip text + border color from a decoded pixel.
  *
- *   suitability mode → `maize rainfed high · S2 · <yield-if-known> kg/ha`
+ *   suitability mode â†’ `maize rainfed high Â· S2 Â· <yield-if-known> kg/ha`
  *                       (yield is unknown from a suitability-only band; omit)
- *   yield mode       → `maize rainfed high · 5,400 kg/ha`
+ *   yield mode       â†’ `maize rainfed high Â· 5,400 kg/ha`
  */
 function formatTooltip(
   s: RasterState,
@@ -411,28 +412,28 @@ function formatTooltip(
     const rgba = yieldToRgba(v, maxYield);
     return {
       x, y,
-      text: `${label} · ${kgha} kg/ha`,
+      text: `${label} Â· ${kgha} kg/ha`,
       borderColor: rgbaToCss(rgba),
     };
   }
-  // suitability mode — v is a class code (1-9). Map to an S1/S2/S3/N/Water label.
+  // suitability mode â€” v is a class code (1-9). Map to an S1/S2/S3/N/Water label.
   const classLabel = suitabilityClassLabel(v);
   const rgba = suitabilityToRgba(v);
   return {
     x, y,
-    text: `${label} · ${classLabel}`,
+    text: `${label} Â· ${classLabel}`,
     borderColor: rgbaToCss(rgba),
   };
 }
 
 function suitabilityClassLabel(code: number): string {
-  if (!Number.isFinite(code)) return '—';
+  if (!Number.isFinite(code)) return 'â€”';
   if (code >= 1 && code <= 2) return 'S1';
   if (code >= 3 && code <= 4) return 'S2';
   if (code >= 5 && code <= 6) return 'S3';
   if (code >= 7 && code <= 8) return 'N';
   if (code === 9) return 'Water';
-  return '—';
+  return 'â€”';
 }
 
 function rasterUrl(sel: GaezSelection): string {
@@ -454,7 +455,7 @@ function getFirstSymbolLayer(map: maplibregl.Map): string | undefined {
   return undefined;
 }
 
-// ── GaezMapControls — floating picker + legend ────────────────────────────
+// â”€â”€ GaezMapControls â€” floating picker + legend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function GaezMapControls() {
   const visible = useMapStore((s) => s.visibleLayers.has('gaez_suitability'));
@@ -513,24 +514,20 @@ export function GaezMapControls() {
 
   if (!visible) return null;
 
-  const panelStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 5,
-    background: 'rgba(26, 22, 17, 0.92)',
-    color: mapTokens.label,
-    border: '1px solid rgba(125, 97, 64, 0.4)',
-    borderRadius: 10,
-    padding: collapsed ? '6px 10px' : 12,
-    backdropFilter: 'blur(10px)',
-    minWidth: collapsed ? undefined : 220,
-    fontSize: 12,
-    pointerEvents: 'auto',
-  };
-
   return (
-    <div style={panelStyle}>
+    <MapControlPopover
+      variant="panel"
+      collapsed={collapsed}
+      style={{
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        zIndex: mapZIndex.panel,
+        color: mapTokens.label,
+        minWidth: collapsed ? undefined : 220,
+        fontSize: 12,
+      }}
+    >
       <button
         onClick={() => setCollapsed((v) => !v)}
         style={{
@@ -548,7 +545,7 @@ export function GaezMapControls() {
           textAlign: 'left',
         }}
       >
-        GAEZ Suitability {collapsed ? '▸' : '▾'}
+        GAEZ Suitability {collapsed ? 'â–¸' : 'â–¾'}
       </button>
       {!collapsed && (
         <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -556,7 +553,7 @@ export function GaezMapControls() {
             <div style={{ color: '#c07878', fontSize: 11 }}>Catalog failed: {error}</div>
           )}
           {!catalog && !error && (
-            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalog…</div>
+            <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>Loading catalogâ€¦</div>
           )}
           {catalog && catalog.length === 0 && (
             <div style={{ color: semantic.sidebarIcon, fontSize: 11 }}>
@@ -617,7 +614,7 @@ export function GaezMapControls() {
                   });
                 }}
               />
-              {/* Sprint CC — mode toggle (Class / Yield). */}
+              {/* Sprint CC â€” mode toggle (Class / Yield). */}
               <ModeToggle
                 value={selection.variable}
                 onChange={(v) => setSelection({ ...selection, variable: v })}
@@ -626,11 +623,11 @@ export function GaezMapControls() {
           )}
           <Legend variable={selection?.variable ?? 'suitability'} />
           <div style={{ fontSize: 10, color: semantic.sidebarIcon, fontStyle: 'italic', marginTop: 4 }}>
-            FAO GAEZ v4 · CC BY-NC-SA 3.0 IGO
+            FAO GAEZ v4 Â· CC BY-NC-SA 3.0 IGO
           </div>
         </div>
       )}
-    </div>
+    </MapControlPopover>
   );
 }
 
@@ -673,7 +670,7 @@ function LabeledSelect({
   );
 }
 
-// ── Sprint CC — Class / Yield mode toggle. Segmented button pair. ──────────
+// â”€â”€ Sprint CC â€” Class / Yield mode toggle. Segmented button pair. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ModeToggle({
   value,
   onChange,
@@ -718,9 +715,9 @@ function ModeToggle({
   );
 }
 
-// ── Legend — discrete swatches for suitability, gradient strip for yield. ──
+// â”€â”€ Legend â€” discrete swatches for suitability, gradient strip for yield. â”€â”€
 function Legend({ variable }: { variable: GaezVariable }) {
-  // Sprint CC — pulled from the store (set by GaezOverlay's decode effect).
+  // Sprint CC â€” pulled from the store (set by GaezOverlay's decode effect).
   const maxYield = useMapStore((s) => s.gaezMaxYield);
 
   if (variable === 'yield') {

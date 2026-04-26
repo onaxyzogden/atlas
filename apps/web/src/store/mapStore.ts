@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import type { LayerType } from '@ogden/shared';
 
-export type MapStyle = 'satellite' | 'terrain' | 'street' | 'hybrid';
+export type MapStyle = 'satellite' | 'terrain' | 'topographic' | 'street' | 'hybrid';
 export type DrawMode = 'none' | 'polygon' | 'line' | 'point';
+export type ViewMode = '2d' | '2.5d' | '3d';
 
 // Sprint CB — map-side FAO GAEZ v4 suitability overlay selection.
 // Drives GaezOverlay: picking a (crop, waterSupply, inputLevel) tuple re-fetches
@@ -48,6 +49,93 @@ interface MapState {
   // 3D terrain (Cesium)
   is3DTerrain: boolean;
   set3DTerrain: (v: boolean) => void;
+
+  // §2 view-mode control. '2d' = top-down MapLibre (pitch 0). '2.5d' = MapLibre
+  // pitched to 45°. '3d' = Cesium globe overlay (flips is3DTerrain on).
+  viewMode: ViewMode;
+  setViewMode: (m: ViewMode) => void;
+
+  // §2 viewshed overlay toggle — when on, MapCanvas fetches the stored
+  // viewshed_geojson from the basemap-terrain route and renders it.
+  viewshedVisible: boolean;
+  setViewshedVisible: (v: boolean) => void;
+
+  // §6 microclimate opportunity overlay — when on, MicroclimateOverlay fetches
+  // the `microclimate` project layer (sun-trap, wind-shelter, frost-risk, and
+  // comfort-class polygons) and renders it as a classed fill.
+  microclimateVisible: boolean;
+  setMicroclimateVisible: (v: boolean) => void;
+
+  // §6 windbreak opportunity overlay — when on, WindbreakOverlay computes
+  // candidate windbreak lines client-side from the parcel bbox + climate
+  // prevailing-wind direction and paints them as a dashed Mapbox line layer.
+  windbreakVisible: boolean;
+  setWindbreakVisible: (v: boolean) => void;
+
+  // §7 soil restoration priority overlay — when on, RestorationPriorityOverlay
+  // fetches the `soil_regeneration` project layer (Point centroids classed by
+  // priorityClass: critical/high/moderate/low) and paints them as classed
+  // circles on the main map.
+  restorationPriorityVisible: boolean;
+  setRestorationPriorityVisible: (v: boolean) => void;
+
+  // §7 surface-intervention overlay (mulching + compost + cover crop) —
+  // filtered view of the `soil_regeneration` layer keyed on
+  // primaryIntervention ∈ {mulching_priority, compost_application,
+  // cover_crop_candidate}.
+  mulchCovercropVisible: boolean;
+  setMulchCovercropVisible: (v: boolean) => void;
+
+  // §7 agroforestry overlay (silvopasture + food forest) — filtered view
+  // of the `soil_regeneration` layer keyed on primaryIntervention ∈
+  // {silvopasture_candidate, food_forest_candidate}.
+  agroforestryVisible: boolean;
+  setAgroforestryVisible: (v: boolean) => void;
+
+  // §7 pollinator-habitat opportunity overlay — derived band (high/moderate/low)
+  // from primaryIntervention on the `soil_regeneration` layer. Represents
+  // planting *opportunity*, not current habitat quality.
+  pollinatorOpportunityVisible: boolean;
+  setPollinatorOpportunityVisible: (v: boolean) => void;
+
+  // §7 biodiversity corridor overlay — least-cost path across the
+  // `soil_regeneration` grid between the two farthest high-opportunity
+  // habitat anchors. Planning-grade connectivity candidate.
+  biodiversityCorridorVisible: boolean;
+  setBiodiversityCorridorVisible: (v: boolean) => void;
+
+  // §7 pollinator habitat **state** overlay — per-zone classification of
+  // CURRENT habitat quality from `coverClass` + `disturbanceLevel` on the
+  // `soil_regeneration` layer. Distinct from `pollinatorOpportunityVisible`
+  // (planting opportunity from planned interventions, bbox-scale synthesized
+  // grid). This one reads real per-zone cover at parcel scale.
+  pollinatorHabitatStateVisible: boolean;
+  setPollinatorHabitatStateVisible: (v: boolean) => void;
+
+  // §2 historical imagery (Esri Wayback). Null = not active. The raster layer
+  // is added to MapCanvas when a release is selected.
+  historicalRelease: { id: number; date: string } | null;
+  setHistoricalRelease: (r: { id: number; date: string } | null) => void;
+
+  // §2 split-screen compare — renders a second maplibre map side-by-side.
+  splitScreenActive: boolean;
+  setSplitScreenActive: (v: boolean) => void;
+  splitScreenStyle: MapStyle;
+  setSplitScreenStyle: (s: MapStyle) => void;
+
+  // §2 Phase 5 — global overlay opacity (0..1). Applied by HistoricalImagery,
+  // ViewshedOverlay, and OsmVectorOverlay raster/fill paints so the user can
+  // dim overlays without individually toggling them.
+  overlayOpacity: number;
+  setOverlayOpacity: (v: number) => void;
+
+  // §2 Phase 5 — OSM vector overlays (roads, waterbodies, buildings) fetched
+  // from Overpass within the parcel bbox. Each key is independent.
+  osmLayersVisible: { roads: boolean; water: boolean; buildings: boolean };
+  setOsmLayerVisible: (k: 'roads' | 'water' | 'buildings', v: boolean) => void;
+  osmOverlayStatus: 'idle' | 'loading' | 'ready' | 'error';
+  osmOverlayError: string | null;
+  setOsmOverlayStatus: (s: 'idle' | 'loading' | 'ready' | 'error', err?: string | null) => void;
 
   // UI state
   isMeasuring: boolean;
@@ -98,6 +186,56 @@ export const useMapStore = create<MapState>((set) => ({
 
   is3DTerrain: false,
   set3DTerrain: (is3DTerrain) => set({ is3DTerrain }),
+
+  viewMode: '2d',
+  setViewMode: (viewMode) =>
+    set({ viewMode, is3DTerrain: viewMode === '3d' }),
+
+  viewshedVisible: false,
+  setViewshedVisible: (viewshedVisible) => set({ viewshedVisible }),
+
+  microclimateVisible: false,
+  setMicroclimateVisible: (microclimateVisible) => set({ microclimateVisible }),
+
+  windbreakVisible: false,
+  setWindbreakVisible: (windbreakVisible) => set({ windbreakVisible }),
+
+  restorationPriorityVisible: false,
+  setRestorationPriorityVisible: (restorationPriorityVisible) => set({ restorationPriorityVisible }),
+
+  mulchCovercropVisible: false,
+  setMulchCovercropVisible: (mulchCovercropVisible) => set({ mulchCovercropVisible }),
+
+  agroforestryVisible: false,
+  setAgroforestryVisible: (agroforestryVisible) => set({ agroforestryVisible }),
+
+  pollinatorOpportunityVisible: false,
+  setPollinatorOpportunityVisible: (pollinatorOpportunityVisible) => set({ pollinatorOpportunityVisible }),
+
+  biodiversityCorridorVisible: false,
+  setBiodiversityCorridorVisible: (biodiversityCorridorVisible) => set({ biodiversityCorridorVisible }),
+
+  pollinatorHabitatStateVisible: false,
+  setPollinatorHabitatStateVisible: (pollinatorHabitatStateVisible) => set({ pollinatorHabitatStateVisible }),
+
+  historicalRelease: null,
+  setHistoricalRelease: (historicalRelease) => set({ historicalRelease }),
+
+  splitScreenActive: false,
+  setSplitScreenActive: (splitScreenActive) => set({ splitScreenActive }),
+  splitScreenStyle: 'satellite',
+  setSplitScreenStyle: (splitScreenStyle) => set({ splitScreenStyle }),
+
+  overlayOpacity: 0.85,
+  setOverlayOpacity: (overlayOpacity) => set({ overlayOpacity }),
+
+  osmLayersVisible: { roads: false, water: false, buildings: false },
+  setOsmLayerVisible: (k, v) =>
+    set((state) => ({ osmLayersVisible: { ...state.osmLayersVisible, [k]: v } })),
+  osmOverlayStatus: 'idle',
+  osmOverlayError: null,
+  setOsmOverlayStatus: (osmOverlayStatus, err = null) =>
+    set({ osmOverlayStatus, osmOverlayError: err }),
 
   isMeasuring: false,
   setMeasuring: (isMeasuring) => set({ isMeasuring }),

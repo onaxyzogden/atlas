@@ -25,7 +25,40 @@ oversights — they are tracked to prevent quiet violation at launch.
 
 ## Operational
 
-_(Future sprints append blockers here.)_
+- [ ] **Caveat-disclosure plumbing across scoring panels.**
+  `EcologicalDashboard.tsx:200-250` renders only the first `caveats[]`
+  entry; `HydrologyPanel`, `EconomicsPanel`, and `RegulatoryPanel`
+  likely mirror this pattern (not audited). Add a "Why this matters"
+  collapsed disclosure listing the full `caveats[]` array per scoring
+  surface so users see the full reasoning, not just the first caveat.
+  Source: [decisions/2026-04-25-pre-flight-audit.md](decisions/2026-04-25-pre-flight-audit.md).
+
+- [ ] **Citation backfill on regional cost rows.**
+  `packages/shared/src/regionalCosts/US_MIDWEST.ts` and
+  `regionalCosts/CA_ONTARIO.ts` carry ~10 rows each with
+  `citation: null, confidence: 'low'` (habitation, food_production,
+  commons, spiritual, education, retreat, water_retention,
+  infrastructure zones, plus `post_rail` fencing). Financial outputs
+  that hit these rows are unbacked. Either source citations, hide
+  cost outputs whose rows are `confidence: 'low'`, or surface a
+  banner. Source:
+  [decisions/2026-04-22-regional-cost-dataset.md](decisions/2026-04-22-regional-cost-dataset.md)
+  + [decisions/2026-04-25-pre-flight-audit.md](decisions/2026-04-25-pre-flight-audit.md).
+
+- [ ] **Map-overlay chrome migration to `MapControlPopover`.**
+  10 overlays still ship hand-rolled `backdropFilter` chrome:
+  `AgroforestryOverlay`, `BiodiversityCorridorOverlay`,
+  `CrossSectionTool`, `MeasureTools`, `MicroclimateOverlay`,
+  `MulchCompostCovercropOverlay`, `RestorationPriorityOverlay`,
+  `ViewshedOverlay`, `HistoricalImageryControl`, `OsmVectorOverlay`,
+  `SplitScreenCompare`, `WindbreakOverlay`. Migrate to
+  `<MapControlPopover variant="panel"|"dropdown">` per
+  [decisions/2026-04-24-map-control-popover-and-mapzindex.md](decisions/2026-04-24-map-control-popover-and-mapzindex.md).
+
+- [ ] **`SlideUpPanel` / `RailPanelShell` focus-trap audit.**
+  `Modal.tsx` is correct. `SlideUpPanel.tsx` and `RailPanelShell.tsx`
+  focus-trap behavior unverified — accessibility blocker for any
+  modal-equivalent surface. Add focus trap or document the absence.
 
 ## Compliance
 

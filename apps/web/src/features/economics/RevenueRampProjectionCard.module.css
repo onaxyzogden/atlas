@@ -1,0 +1,235 @@
+/* §22 RevenueRampProjectionCard — 5-year stacked-area projection. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(180, 165, 140, 0.04);
+  border: 1px solid rgba(180, 165, 140, 0.12);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Summary row ──────────────────────────────────────────────────── */
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 14px;
+}
+
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.summaryValue {
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryUnit {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 1px;
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+}
+
+.tone_good { color: rgba(180, 200, 150, 0.95); }
+.tone_fair { color: rgba(220, 180, 100, 0.95); }
+.tone_muted { color: rgba(232, 220, 200, 0.85); }
+
+/* ── Chart ────────────────────────────────────────────────────────── */
+
+.chartWrap {
+  margin-bottom: 8px;
+  padding: 8px 0 0;
+}
+
+.chartSvg {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+.area_orchard { fill: rgba(180, 200, 150, 0.78); stroke: rgba(180, 200, 150, 0.95); stroke-width: 0.5; }
+.area_livestock { fill: rgba(220, 180, 100, 0.78); stroke: rgba(220, 180, 100, 0.95); stroke-width: 0.5; }
+.area_retreat { fill: rgba(196, 162, 101, 0.78); stroke: rgba(196, 162, 101, 0.95); stroke-width: 0.5; }
+.area_education { fill: rgba(140, 190, 220, 0.78); stroke: rgba(140, 190, 220, 0.95); stroke-width: 0.5; }
+.area_agritourism { fill: rgba(200, 150, 200, 0.72); stroke: rgba(200, 150, 200, 0.92); stroke-width: 0.5; }
+
+.chartXLabel {
+  font-size: 8px;
+  font-weight: 600;
+  fill: rgba(180, 165, 140, 0.65);
+  letter-spacing: 0.04em;
+}
+
+/* ── Legend ───────────────────────────────────────────────────────── */
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.seg_orchard { background: rgba(180, 200, 150, 0.85); }
+.seg_livestock { background: rgba(220, 180, 100, 0.85); }
+.seg_retreat { background: rgba(196, 162, 101, 0.85); }
+.seg_education { background: rgba(140, 190, 220, 0.85); }
+.seg_agritourism { background: rgba(200, 150, 200, 0.8); }
+
+.legendLabel {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.75);
+  font-weight: 500;
+}
+
+/* ── Year table ───────────────────────────────────────────────────── */
+
+.yearTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 11px;
+}
+
+.tableHead {
+  text-align: right;
+  padding: 6px 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tableHead:first-child {
+  text-align: left;
+}
+
+.tableLabel {
+  padding: 8px 8px;
+  font-size: 11.5px;
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableCell {
+  padding: 8px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.totalRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.totalRow .tableLabel {
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.totalCell {
+  font-weight: 700;
+  color: rgba(180, 200, 150, 0.95);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

@@ -13,6 +13,7 @@ import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
 import { semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface CollaborationPanelProps {
   project: LocalProject;
@@ -310,9 +311,11 @@ function CommentCard({ comment, onResolve, onDelete, onFly, resolved }: { commen
         <span className={`${p.text11} ${p.fontSemibold}`} style={{ color: 'var(--color-panel-text)' }}>{comment.author}</span>
         <span className={`${p.text9} ${p.muted}`}>{formatTime(comment.createdAt)}</span>
         {comment.location && (
-          <button onClick={onFly} className={p.textBtn} style={{ marginLeft: 'auto', fontSize: 11 }} title="Fly to location">
-            {'\u{1F4CD}'}
-          </button>
+          <DelayedTooltip label="Fly to location">
+            <button onClick={onFly} className={p.textBtn} style={{ marginLeft: 'auto', fontSize: 11 }}>
+              {'\u{1F4CD}'}
+            </button>
+          </DelayedTooltip>
         )}
       </div>
       <div className={`${p.text12} ${p.leading15} ${p.mb8}`} style={{ color: 'var(--color-panel-text)' }}>{comment.text}</div>

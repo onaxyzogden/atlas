@@ -1,0 +1,278 @@
+/* §17 PhasedBuildStrategyCard — four parallel build threads. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 720px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.threadList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thread {
+  border-radius: 8px;
+  border-left: 3px solid rgba(232, 220, 200, 0.15);
+  background: rgba(232, 220, 200, 0.025);
+  overflow: hidden;
+}
+
+.thread_build {
+  border-left-color: rgba(196, 162, 101, 0.55);
+}
+
+.thread_water {
+  border-left-color: rgba(120, 170, 210, 0.55);
+}
+
+.thread_grazing {
+  border-left-color: rgba(220, 180, 100, 0.55);
+}
+
+.thread_orchard {
+  border-left-color: rgba(180, 200, 150, 0.55);
+}
+
+.threadOpen {
+  background: rgba(232, 220, 200, 0.045);
+}
+
+.threadHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.threadHead:hover {
+  background: rgba(232, 220, 200, 0.03);
+}
+
+.threadHeadLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.threadLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.threadBlurb {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.threadHeadRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.readinessTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: rgba(232, 220, 200, 0.05);
+  color: rgba(220, 210, 185, 0.78);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+}
+
+.readiness_not_started {
+  background: rgba(220, 130, 110, 0.12) !important;
+  color: rgba(230, 160, 145, 0.95) !important;
+  border-color: rgba(220, 130, 110, 0.28) !important;
+}
+
+.readiness_in_progress {
+  background: rgba(220, 180, 100, 0.12) !important;
+  color: rgba(232, 200, 130, 0.95) !important;
+  border-color: rgba(220, 180, 100, 0.28) !important;
+}
+
+.readiness_mature {
+  background: rgba(180, 200, 150, 0.15) !important;
+  color: rgba(195, 210, 165, 0.95) !important;
+  border-color: rgba(180, 200, 150, 0.3) !important;
+}
+
+.threadToggle {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.7);
+  width: 14px;
+  text-align: center;
+}
+
+.threadBody {
+  padding: 6px 16px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.readinessLine {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.78);
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.phaseList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phaseRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.phase_1 {
+  border-left: 2px solid rgba(220, 130, 110, 0.5);
+}
+
+.phase_2 {
+  border-left: 2px solid rgba(220, 180, 100, 0.5);
+}
+
+.phase_3 {
+  border-left: 2px solid rgba(180, 200, 150, 0.5);
+}
+
+.phaseTag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.9);
+  white-space: nowrap;
+  padding-top: 2px;
+  min-width: 60px;
+}
+
+.phaseBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.phaseAction {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(232, 220, 200, 0.92);
+  font-weight: 500;
+}
+
+.phaseMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.phaseMetaLabel {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

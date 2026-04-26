@@ -12,7 +12,7 @@
 }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.95);
@@ -85,7 +85,7 @@
 }
 
 .hotspotTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.95);
@@ -210,7 +210,7 @@
 }
 
 .cardTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   color: rgba(232, 220, 200, 0.85);
@@ -233,7 +233,7 @@
 }
 
 .historicalTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.9);
@@ -274,8 +274,26 @@
   margin-bottom: 6px;
 }
 .historicalValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 600;
   color: rgba(232, 220, 200, 0.9);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .hotspotCard { height: 180px; }
+  .hotspotOverlay { padding: 16px 18px; }
+  .hotspotStats { gap: 18px; flex-wrap: wrap; }
+  .timeline { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .timelineRange { order: -1; flex-basis: 100%; }
+  .historicalSection { padding: 18px; }
+  .card { padding: 16px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .statusBadge { position: static; text-align: left; margin-top: 8px; }
+  .historicalGrid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .historicalValue { font-size: 18px; }
 }

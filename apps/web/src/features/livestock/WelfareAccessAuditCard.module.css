@@ -1,0 +1,280 @@
+/* §11 WelfareAccessAuditCard — per-paddock shade/shelter/water audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 16px;
+}
+
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+}
+
+.sectionTitle {
+  margin: 14px 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+}
+
+.row_good {
+  background: rgba(180, 200, 150, 0.05);
+  border-left-color: rgba(180, 200, 150, 0.85);
+}
+
+.row_fair {
+  background: rgba(220, 180, 100, 0.05);
+  border-left-color: rgba(220, 180, 100, 0.7);
+}
+
+.row_poor {
+  background: rgba(220, 130, 110, 0.06);
+  border-left-color: rgba(220, 130, 110, 0.85);
+}
+
+.row_missing {
+  background: rgba(180, 165, 140, 0.07);
+  border-left-color: rgba(180, 165, 140, 0.6);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-block;
+  min-width: 56px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.tag_good {
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(195, 215, 165, 0.95);
+  border: 1px solid rgba(180, 200, 150, 0.25);
+}
+
+.tag_fair {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.92);
+  border: 1px solid rgba(220, 180, 100, 0.22);
+}
+
+.tag_poor {
+  background: rgba(220, 130, 110, 0.16);
+  color: rgba(232, 165, 145, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.28);
+}
+
+.tag_missing {
+  background: rgba(180, 165, 140, 0.12);
+  color: rgba(200, 190, 170, 0.85);
+  border: 1px solid rgba(180, 165, 140, 0.22);
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.kindBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(140, 165, 200, 0.1);
+  color: rgba(160, 185, 215, 0.85);
+  border: 1px solid rgba(140, 165, 200, 0.2);
+  margin-left: auto;
+}
+
+.axisList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.axisRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 190, 170, 0.85);
+  flex-wrap: wrap;
+}
+
+.axisTag {
+  display: inline-block;
+  min-width: 56px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.axisLabel {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: rgba(220, 210, 185, 0.78);
+  flex-shrink: 0;
+}
+
+.axisDetail {
+  flex: 1;
+  min-width: 200px;
+}
+
+.remediation {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.06);
+  border-left: 2px solid rgba(196, 162, 101, 0.45);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(232, 200, 130, 0.85);
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(180, 200, 150, 0.06);
+  border: 1px solid rgba(180, 200, 150, 0.18);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}

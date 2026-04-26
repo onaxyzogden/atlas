@@ -10,7 +10,8 @@
  *   parity is structural: the function cannot produce different numbers on
  *   either side for the same inputs. This script proves the module is
  *   importable + callable in a real Node process (not just in vitest), and
- *   produces the 11 expected ScoredResult labels for a realistic layer set.
+ *   produces the 14 expected ScoredResult labels for a realistic layer set
+ *   (8 weighted scores + 3 §5 water-resilience sub-scores + FAO + USDA LCC).
  *
  * Usage:
  *   pnpm --filter @ogden/api exec tsx apps/api/scripts/verify-scoring-parity.ts
@@ -93,6 +94,27 @@ const FIXTURE: MockLayerResult[] = [
     attribution: 'USGS NHD',
     summary: { catchment_area_ha: 85, nearest_stream_m: 120 },
   },
+  {
+    // §5 sub-scores consume watershed_derived (pond/swale counts, runoff,
+    // detention area, drainage-density class); fixture exercises each
+    // Water-Retention / Drought-Resilience / Storm-Resilience component.
+    layerType: 'watershed_derived',
+    fetchStatus: 'complete',
+    confidence: 'medium',
+    dataDate: '2026-04-01',
+    sourceApi: 'Tier3Pipeline',
+    attribution: 'ogden-atlas tier3',
+    summary: {
+      runoff: { maxAccumulation: 180, meanAccumulation: 22, highConcentrationPct: 3.2 },
+      flood: { detentionZoneCount: 2, detentionAreaPct: 3.1 },
+      drainageDivides: { divideCount: 4, divideCellPct: 5.5 },
+      drainageDensity: { drainageDensityKmPerKm2: 0.9, drainageDensityClass: 'Moderate' },
+      pondCandidates: { candidateCount: 3 },
+      swaleCandidates: { candidateCount: 6 },
+      confidence: 'medium',
+      dataSources: ['tier3-pipeline'],
+    },
+  },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -112,10 +134,19 @@ async function main(): Promise<void> {
   const scores = computeAssessmentScores(FIXTURE, 40, 'US', computedAt);
   const overall = computeOverallScore(scores);
 
-  banner('ALL 11 SCORES');
+  banner(`ALL ${scores.length} SCORES`);
   for (const s of scores) {
     const score = typeof s.score === 'number' ? s.score.toFixed(1) : 'n/a';
     console.log(`  ${s.label.padEnd(30)} ${score.padStart(6)}   [${s.confidence}]`);
+  }
+
+  // Sanity: assert the three §5 sub-scores are present (non-trivially exercised
+  // by the watershed_derived fixture above — a missing one means regression).
+  const requiredSub = ['Water Retention', 'Drought Resilience', 'Storm Resilience'];
+  const missing = requiredSub.filter((l) => !scores.some((s) => s.label === l));
+  if (missing.length) {
+    console.error(`  MISSING §5 sub-scores: ${missing.join(', ')}`);
+    process.exitCode = 2;
   }
 
   banner('OVERALL');
@@ -171,25 +202,66 @@ async function main(): Promise<void> {
   }
   const sql = postgres(url);
   try {
-    const rows = await sql<{ overall_score: string | null; score_breakdown: unknown }[]>`
-      SELECT overall_score::text, score_breakdown
+    // Load the same inputs the writer used: project acreage/country + all
+    // complete project_layers. Run them through the shared scorer exactly as
+    // SiteAssessmentWriter does, then compare to the DB's stored overall_score.
+    // Any non-zero delta here is a real writer-vs-scorer divergence.
+    const [project] = await sql<{ acreage: string | null; country: string }[]>`
+      SELECT acreage::text, country FROM projects WHERE id = ${projectId}
+    `;
+    if (!project) {
+      console.log(`  Project ${projectId} not found`);
+      return;
+    }
+    const layerRows = await sql<{
+      layer_type: string;
+      summary_data: Record<string, unknown> | null;
+      confidence: string | null;
+      data_date: string | null;
+      source_api: string | null;
+      attribution: string | null;
+    }[]>`
+      SELECT layer_type, summary_data, confidence, data_date::text,
+             source_api, attribution_text AS attribution
+      FROM project_layers
+      WHERE project_id = ${projectId} AND fetch_status = 'complete'
+    `;
+    const [assessment] = await sql<{ overall_score: string | null; computed_at: string }[]>`
+      SELECT overall_score::text, computed_at::text
       FROM site_assessments
       WHERE project_id = ${projectId} AND is_current = true
     `;
-    if (rows.length === 0) {
+    if (!assessment) {
       console.log(`  No is_current row for project ${projectId}`);
+      return;
+    }
+
+    const normalizeConfidence = (c: string | null): 'high' | 'medium' | 'low' =>
+      c === 'high' || c === 'medium' || c === 'low' ? c : 'low';
+    const realLayers: MockLayerResult[] = layerRows.map((r) => ({
+      layerType: r.layer_type as MockLayerResult['layerType'],
+      fetchStatus: 'complete',
+      confidence: normalizeConfidence(r.confidence),
+      dataDate: r.data_date ?? '',
+      sourceApi: r.source_api ?? '',
+      attribution: r.attribution ?? '',
+      summary: r.summary_data ?? {},
+    } as MockLayerResult));
+    const realAcreage = project.acreage !== null ? parseFloat(project.acreage) : null;
+    const realScores = computeAssessmentScores(
+      realLayers, realAcreage, project.country, assessment.computed_at,
+    );
+    const realOverall = computeOverallScore(realScores);
+    const dbOverall = parseFloat(assessment.overall_score ?? '0');
+    const delta = Math.abs(dbOverall - realOverall);
+    console.log(`  Real-layer rescore: ${realOverall.toFixed(1)} (${layerRows.length} layers)`);
+    console.log(`  DB overall_score : ${dbOverall.toFixed(1)}`);
+    console.log(`  |delta|          : ${delta.toFixed(3)}`);
+    if (delta <= 0.1) {
+      console.log('  ✓ Writer/scorer parity within numeric(4,1) rounding threshold');
     } else {
-      const row = rows[0]!;
-      const dbOverall = parseFloat(row.overall_score ?? '0');
-      const delta = Math.abs(dbOverall - overall);
-      console.log(`  DB overall_score: ${dbOverall.toFixed(1)}`);
-      console.log(`  Script overall  : ${overall.toFixed(1)}`);
-      console.log(`  |delta|         : ${delta.toFixed(3)}`);
-      console.log(
-        delta <= 0.1
-          ? '  ✓ Match within numeric(4,1) rounding threshold'
-          : '  ✗ MISMATCH — investigate (different inputs, not function bug)',
-      );
+      console.error('  ✗ Parity FAILED — writer and scorer disagree on same inputs');
+      process.exitCode = 5;
     }
   } finally {
     await sql.end();

@@ -10,6 +10,8 @@ export { Skeleton } from './Skeleton';
 export { Spinner } from './Spinner';
 export { Toggle } from './Toggle';
 export { Tooltip } from './Tooltip';
+export { DelayedTooltip } from './DelayedTooltip';
+export { Sparkline } from './Sparkline';
 
 // Composites
 export { Card } from './Card';
@@ -19,6 +21,8 @@ export { Accordion } from './Accordion';
 export { FormField } from './FormField';
 export { StepIndicator } from './StepIndicator';
 export { EmptyState } from './EmptyState';
+export { MapControlPopover } from './MapControlPopover';
+export type { MapControlPopoverProps, MapControlPopoverVariant } from './MapControlPopover';
 
 // Layout
 export { Stack } from './Stack';

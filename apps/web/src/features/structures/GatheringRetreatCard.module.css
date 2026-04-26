@@ -1,0 +1,164 @@
+/* §9 GatheringRetreatCard — rollup of the four gathering / retreat
+   structure subtypes. Visual language mirrors SupportInfrastructureCard
+   so the two §9 cards read as siblings, but with a warm-amber bar fill
+   to distinguish "program / people" from "operations / things". */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.totalCell {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.totalLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.totalValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.subtypeList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subtypeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.subtypeHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtypeIcon {
+  font-size: 16px;
+  line-height: 1;
+  width: 22px;
+  text-align: center;
+}
+
+.subtypeName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+  letter-spacing: 0.02em;
+}
+
+.subtypeCount {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.subtypeBarTrack {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+/* Warm-amber gradient — distinguishes program/people surfaces from the
+   sage-green "operations/things" palette used by SupportInfrastructure. */
+.subtypeBarFill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(214, 139, 74, 0.85) 0%,
+    rgba(232, 178, 122, 0.85) 100%
+  );
+  transition: width 240ms ease;
+}
+
+.subtypeMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.subtypeMetaMuted {
+  color: rgba(180, 165, 140, 0.35);
+  font-style: italic;
+}
+
+.footnote {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  line-height: 1.55;
+}

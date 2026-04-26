@@ -1,0 +1,174 @@
+/* §16 BestBaseWorstCaseCard — uncertainty envelope summary. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Case grid ────────────────────────────────────────────────────────── */
+
+.caseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 720px) {
+  .caseGrid { grid-template-columns: 1fr; }
+}
+
+.caseCol {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  border-top: 3px solid rgba(180, 165, 140, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.case_best { border-top-color: rgba(180, 200, 150, 0.7); }
+.case_base { border-top-color: rgba(196, 162, 101, 0.7); }
+.case_worst { border-top-color: rgba(220, 130, 110, 0.7); }
+
+.caseLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.caseSublabel {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 6px;
+}
+
+.metricRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.03);
+}
+
+.metricRow:last-child { border-bottom: none; }
+
+.metricKey {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.metricVal {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Spread block ─────────────────────────────────────────────────────── */
+
+.spreadBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 12px;
+}
+
+.spreadRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.spreadLabel {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.spreadVal {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.spreadOk { color: rgba(180, 200, 150, 0.85); }
+.spreadHigh { color: rgba(220, 130, 110, 0.9); }
+
+/* ── Callout ──────────────────────────────────────────────────────────── */
+
+.callout {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(220, 130, 110, 0.07);
+  border-left: 2px solid rgba(220, 130, 110, 0.5);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 200, 185, 0.85);
+  margin-bottom: 12px;
+}
+
+.callout strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

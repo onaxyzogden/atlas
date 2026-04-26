@@ -1,0 +1,278 @@
+/* §17 AccessEfficiencyCard — permaculture zone-stepping audit per dwelling. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Tally row ────────────────────────────────────────────────────────── */
+
+.tallyRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 14px;
+}
+
+.tally {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tallyValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tallyLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+}
+
+.tone_good { color: rgba(180, 200, 150, 0.9); }
+.tone_fair { color: rgba(220, 180, 100, 0.95); }
+.tone_poor { color: rgba(220, 130, 110, 0.95); }
+.tone_muted { color: rgba(232, 220, 200, 0.85); }
+
+/* ── Dwelling list ────────────────────────────────────────────────────── */
+
+.dwellingList {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dwellingRow {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tone_good { border-left-color: rgba(180, 200, 150, 0.7); }
+.tone_fair { border-left-color: rgba(220, 180, 100, 0.7); }
+.tone_poor { border-left-color: rgba(220, 130, 110, 0.7); }
+
+.dwellingHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.dwellingName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.toneBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.badge_good { color: rgba(180, 200, 150, 0.95); }
+.badge_fair { color: rgba(220, 180, 100, 0.95); }
+.badge_poor { color: rgba(220, 130, 110, 0.95); }
+
+/* ── Leg grid ─────────────────────────────────────────────────────────── */
+
+.legGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.leg {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.leg_good { border-color: rgba(180, 200, 150, 0.18); }
+.leg_fair { border-color: rgba(220, 180, 100, 0.2); }
+.leg_poor { border-color: rgba(220, 130, 110, 0.22); }
+
+.legZone {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.legLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.legDist {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.leg_good .legDist { color: rgba(180, 200, 150, 0.95); }
+.leg_fair .legDist { color: rgba(220, 180, 100, 0.95); }
+.leg_poor .legDist { color: rgba(220, 130, 110, 0.95); }
+
+.legThreshold {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dwelling foot ────────────────────────────────────────────────────── */
+
+.dwellingFoot {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.footKey {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footVal {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+/* ── Recommendation block ─────────────────────────────────────────────── */
+
+.recommendBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(220, 130, 110, 0.06);
+  border: 1px solid rgba(220, 130, 110, 0.18);
+  margin-bottom: 12px;
+}
+
+.recommendKey {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 130, 110, 0.95);
+}
+
+.recommendVal {
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.recommendVal strong {
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

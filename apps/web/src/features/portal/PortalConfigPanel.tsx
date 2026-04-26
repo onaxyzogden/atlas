@@ -8,6 +8,11 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import p from '../../styles/panel.module.css';
 import { confidence, error as errorToken, group, semantic } from '../../lib/tokens.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
+import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
+import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
+import StakeholderReviewModeCard from './StakeholderReviewModeCard.js';
 
 interface Props { project: LocalProject }
 
@@ -72,11 +77,11 @@ export default function PortalConfigPanel({ project }: Props) {
             /portal/{portalConfig.slug}
           </div>
         </div>
+        <DelayedTooltip label="Publishing requires internet" disabled={!isOffline}>
         <button
           onClick={() => updateConfig(project.id, { isPublished: !portalConfig.isPublished })}
           className={p.btnSmall}
           disabled={isOffline}
-          title={isOffline ? 'Publishing requires internet' : undefined}
           style={{
             padding: '6px 16px', fontSize: 11, fontWeight: 600, border: 'none',
             background: isOffline ? '#d1d5db'
@@ -88,6 +93,7 @@ export default function PortalConfigPanel({ project }: Props) {
         >
           {portalConfig.isPublished ? 'Unpublish' : 'Publish'}
         </button>
+        </DelayedTooltip>
       </div>
 
       {/* Share URL & Preview */}
@@ -219,6 +225,18 @@ export default function PortalConfigPanel({ project }: Props) {
           })}
         </div>
       )}
+
+      {/* Share snapshot preview */}
+      <PortalShareSnapshotCard project={project} />
+
+      {/* §20 Internal vs public view side-by-side audit */}
+      <InternalVsPublicViewCard project={project} />
+
+      {/* §20 Share-link readiness audit */}
+      <ShareLinkReadinessCard project={project} />
+
+      {/* §20 Stakeholder review mode (community review framing) */}
+      <StakeholderReviewModeCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />

@@ -6,7 +6,7 @@
  */
 
 import type maplibregl from 'maplibre-gl';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   useZoneStore,
   ZONE_CATEGORY_CONFIG,
@@ -27,6 +27,7 @@ import UtilityPanel from '../../features/utilities/UtilityPanel.js';
 import { earth, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './DesignToolsPanel.module.css';
+import { DelayedTooltip } from '../ui/DelayedTooltip.js';
 
 interface DesignToolsPanelProps {
   projectId: string;
@@ -154,6 +155,14 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
     draw?.deleteAll();
   }, [draw]);
 
+  // a11y: Escape key dismisses the zone-naming modal when open
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleCancelModal(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showModal, handleCancelModal]);
+
   return (
     <>
       <div className={p.container}>
@@ -208,16 +217,17 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </div>
 
             {/* Draw button */}
+            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={canEdit}>
             <button
               onClick={canEdit ? startDraw : undefined}
               disabled={isDrawing || !draw || !canEdit}
-              title={!canEdit ? 'Editing requires Designer or Owner role' : undefined}
               className={`${s.drawBtn} ${isDrawing ? s.drawBtnDisabled : ''}`}
               style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
               {isDrawing ? 'Drawing... double-click to finish' : 'Draw Zone on Map'}
             </button>
+            </DelayedTooltip>
 
             {/* Defined zones */}
             <h3 className={p.sectionLabel}>Defined Zones ({zones.length})</h3>
@@ -237,6 +247,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         {z.areaM2 > 0 && ` \u2014 ${formatArea(z.areaM2)}`}
                       </div>
                     </div>
+                    <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}>
                     <button
                       onClick={canEdit ? () => {
                         deleteZone(z.id);
@@ -249,12 +260,12 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         }
                       } : undefined}
                       disabled={!canEdit}
-                      title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete zone'}
                       className={s.deleteBtn}
                       style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                     >
                       {'\u00D7'}
                     </button>
+                    </DelayedTooltip>
                   </div>
                 ))}
               </div>
@@ -279,8 +290,8 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                     {types.map(([key, tmpl]) => {
                       const isActive = placementMode === key;
                       return (
+                        <DelayedTooltip key={key} label={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}>
                         <button
-                          key={key}
                           onClick={canEdit ? () => {
                             if (isActive) {
                               setPlacementMode(null);
@@ -289,13 +300,13 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                             }
                           } : undefined}
                           disabled={!canEdit}
-                          title={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}
                           className={`${s.structBtn} ${isActive ? s.structBtnActive : ''}`}
                           style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                         >
                           <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
                           <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{tmpl.label}</span>
                         </button>
+                        </DelayedTooltip>
                       );
                     })}
                   </div>
@@ -330,6 +341,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                           {st.costEstimate && ` \u2014 $${st.costEstimate.toLocaleString()}`}
                         </div>
                       </div>
+                      <DelayedTooltip label={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete structure'}>
                       <button
                         onClick={canEdit ? (e) => {
                           e.stopPropagation();
@@ -344,11 +356,12 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         } : undefined}
                         disabled={!canEdit}
                         className={s.deleteBtn}
-                        title={!canEdit ? 'Deleting requires Designer or Owner role' : 'Delete structure'}
                         style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u00D7'}
                       </button>
+                      </DelayedTooltip>
+                      <DelayedTooltip label={!canEdit ? 'Editing requires Designer or Owner role' : 'Edit structure'}>
                       <button
                         onClick={canEdit ? (e) => {
                           e.stopPropagation();
@@ -356,11 +369,11 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                         } : undefined}
                         disabled={!canEdit}
                         className={s.editBtn}
-                        title={!canEdit ? 'Editing requires Designer or Owner role' : 'Edit structure'}
                         style={!canEdit ? { opacity: 0.3, cursor: 'not-allowed' } : undefined}
                       >
                         {'\u270E'}
                       </button>
+                      </DelayedTooltip>
                     </div>
                   );
                 })}
@@ -391,9 +404,15 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="new"
           structureType={placementMode}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg }) => {
+          lat={pendingStructureCenter[1]}
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);
+            // §9 infrastructure-cost-placeholder-per-structure: the modal
+            // now prefills its cost input with the template midrange, so
+            // `costEstimate` is always defined here (number | null). Fall
+            // back to the midrange only if the caller somehow omitted it.
+            const fallbackCost = Math.round((tmpl.costRange[0] + tmpl.costRange[1]) / 2);
             const structure: Structure = {
               id: crypto.randomUUID(),
               projectId,
@@ -405,7 +424,12 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               widthM,
               depthM,
               phase,
-              costEstimate: Math.round((tmpl.costRange[0] + tmpl.costRange[1]) / 2),
+              costEstimate: costEstimate === undefined ? fallbackCost : costEstimate,
+              laborHoursEstimate,
+              materialTonnageEstimate,
+              // §9 multi-story-structure-support — only persist when > 1
+              // so legacy single-story structures stay clean.
+              ...(storiesCount && storiesCount > 1 ? { storiesCount } : {}),
               infrastructureReqs: tmpl.infrastructureReqs,
               notes: n,
               createdAt: new Date().toISOString(),
@@ -429,9 +453,27 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="edit"
           structure={editingStructure}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
             const newGeometry = createFootprintPolygon(editingStructure.center, widthM, depthM, rotationDeg);
-            updateStructure(editingStructure.id, { name, phase, notes: n, widthM, depthM, rotationDeg, geometry: newGeometry });
+            // costEstimate is `null` when the user cleared the field, and
+            // a number when they set/kept a value. Pass through as-is so
+            // stewards can explicitly "un-set" a cost.
+            // §9 multi-story-structure-support — write the field on every
+            // edit so reverting from 2 stories back to 1 actually persists
+            // (Partial<Structure> spread won't clear an absent key).
+            updateStructure(editingStructure.id, {
+              name,
+              phase,
+              notes: n,
+              widthM,
+              depthM,
+              rotationDeg,
+              ...(costEstimate !== undefined ? { costEstimate } : {}),
+              laborHoursEstimate,
+              materialTonnageEstimate,
+              storiesCount: storiesCount ?? 1,
+              geometry: newGeometry,
+            });
 
             // Update map layer
             if (map) {
@@ -452,8 +494,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
 
       {/* ── Zone Naming Modal ─────────────────────────────────────── */}
       {showModal && (
-        <div className={s.modalOverlay} onClick={handleCancelModal}>
-          <div onClick={(e) => e.stopPropagation()} className={s.modalBox}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={s.modalOverlay} onClick={handleCancelModal} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={s.modalBox} role="dialog" aria-modal="true">
             <h2 className={s.modalTitle}>
               Name This Zone
             </h2>
@@ -462,8 +505,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </p>
 
             {/* Zone Name */}
-            <label className={s.modalLabel}>Zone Name *</label>
+            <label className={s.modalLabel} htmlFor="zone-modal-name">Zone Name *</label>
             <input
+              id="zone-modal-name"
               type="text"
               value={modalName}
               onChange={(e) => setModalName(e.target.value)}
@@ -501,8 +545,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             {/* Build Phase + Phase Color */}
             <div className={s.modalPhaseRow}>
               <div style={{ flex: 1 }}>
-                <label className={s.modalLabel}>Build Phase</label>
+                <label className={s.modalLabel} htmlFor="zone-modal-phase">Build Phase</label>
                 <select
+                  id="zone-modal-phase"
                   value={modalPhase}
                   onChange={(e) => setModalPhase(e.target.value)}
                   className={s.modalSelect}
@@ -529,8 +574,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
             </div>
 
             {/* Description */}
-            <label className={s.modalLabel}>Description</label>
+            <label className={s.modalLabel} htmlFor="zone-modal-description">Description</label>
             <textarea
+              id="zone-modal-description"
               value={modalDescription}
               onChange={(e) => setModalDescription(e.target.value)}
               placeholder="Purpose and design notes..."

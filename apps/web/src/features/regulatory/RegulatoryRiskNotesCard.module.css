@@ -1,0 +1,185 @@
+/* §21 RegulatoryRiskNotesCard — categorical regulatory risk surfaces. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Tally row ────────────────────────────────────────────────────────── */
+
+.tallyRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 14px;
+}
+
+.tally {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tallyValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tallyLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.toneLikely { color: rgba(220, 130, 110, 0.95); }
+.tonePossible { color: rgba(220, 180, 100, 0.95); }
+.toneUnlikely { color: rgba(180, 200, 150, 0.9); }
+.toneNa { color: rgba(180, 165, 140, 0.7); }
+
+/* ── Risk list ────────────────────────────────────────────────────────── */
+
+.riskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.riskRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.risk_likely { border-left-color: rgba(220, 130, 110, 0.7); }
+.risk_possible { border-left-color: rgba(220, 180, 100, 0.7); }
+.risk_unlikely { border-left-color: rgba(180, 200, 150, 0.7); }
+.risk_na { border-left-color: rgba(180, 165, 140, 0.3); opacity: 0.78; }
+
+.riskHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.riskLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.riskBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.risk_likely .riskBadge { color: rgba(220, 130, 110, 0.95); }
+.risk_possible .riskBadge { color: rgba(220, 180, 100, 0.95); }
+.risk_unlikely .riskBadge { color: rgba(180, 200, 150, 0.9); }
+.risk_na .riskBadge { color: rgba(180, 165, 140, 0.7); }
+
+.riskRationale {
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.riskNextStep {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.7);
+}
+
+.nextStepKey {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

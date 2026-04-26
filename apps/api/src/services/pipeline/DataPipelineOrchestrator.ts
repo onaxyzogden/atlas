@@ -35,12 +35,19 @@ import { NlcdAdapter } from './adapters/NlcdAdapter.js';
 import { AafcLandCoverAdapter } from './adapters/AafcLandCoverAdapter.js';
 import { UsCountyGisAdapter } from './adapters/UsCountyGisAdapter.js';
 import { OntarioMunicipalAdapter } from './adapters/OntarioMunicipalAdapter.js';
+import { NwisGroundwaterAdapter } from './adapters/NwisGroundwaterAdapter.js';
+import { PgmnGroundwaterAdapter } from './adapters/PgmnGroundwaterAdapter.js';
+import { NasaPowerAdapter } from './adapters/NasaPowerAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
 import { WatershedRefinementProcessor } from '../terrain/WatershedRefinementProcessor.js';
 import { MicroclimateProcessor } from '../terrain/MicroclimateProcessor.js';
 import { SoilRegenerationProcessor } from '../terrain/SoilRegenerationProcessor.js';
+import { PollinatorOpportunityProcessor } from '../terrain/PollinatorOpportunityProcessor.js';
 import { maybeWriteAssessmentIfTier3Complete } from '../assessments/SiteAssessmentWriter.js';
+import { claudeClient } from '../ai/ClaudeClient.js';
+import { writeAiOutput } from '../ai/AiOutputWriter.js';
+import { buildNarrativeContext } from '../ai/NarrativeContextBuilder.js';
 
 export interface ProjectContext {
   projectId: string;
@@ -151,6 +158,16 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   if (config.adapter === 'OntarioMunicipalAdapter') {
     return new OntarioMunicipalAdapter(config.source, layerType);
   }
+  if (config.adapter === 'NwisGroundwaterAdapter') {
+    return new NwisGroundwaterAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'PgmnGroundwaterAdapter') {
+    return new PgmnGroundwaterAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'NasaPowerAdapter') {
+    // INTL bucket for climate. Globally valid, grid-interpolated.
+    return new NasaPowerAdapter(config.source, layerType);
+  }
 
   // All Tier 1 adapters implemented — fallthrough should not occur in practice
   return new ManualFlagAdapter(config.source, layerType);
@@ -164,10 +181,12 @@ export class DataPipelineOrchestrator {
   private watershedQueue: Queue;
   private microclimateQueue: Queue;
   private soilRegenerationQueue: Queue;
+  private narrativeQueue: Queue;
   private terrainProcessor: TerrainAnalysisProcessor;
   private watershedProcessor: WatershedRefinementProcessor;
   private microclimateProcessor: MicroclimateProcessor;
   private soilRegenerationProcessor: SoilRegenerationProcessor;
+  private pollinatorOpportunityProcessor: PollinatorOpportunityProcessor;
   private readonly connOpts: ConnectionOptions;
 
   constructor(
@@ -187,10 +206,12 @@ export class DataPipelineOrchestrator {
     this.watershedQueue = new Queue('tier3-watershed', { connection: this.connOpts });
     this.microclimateQueue = new Queue('tier3-microclimate', { connection: this.connOpts });
     this.soilRegenerationQueue = new Queue('tier3-soil-regeneration', { connection: this.connOpts });
+    this.narrativeQueue = new Queue('narrative-generation', { connection: this.connOpts });
     this.terrainProcessor = new TerrainAnalysisProcessor(db);
     this.watershedProcessor = new WatershedRefinementProcessor(db);
     this.microclimateProcessor = new MicroclimateProcessor(db);
     this.soilRegenerationProcessor = new SoilRegenerationProcessor(db);
+    this.pollinatorOpportunityProcessor = new PollinatorOpportunityProcessor(db);
   }
 
   /** Enqueue a Tier 1 data fetch for a project. Called after boundary is set. */
@@ -230,50 +251,47 @@ export class DataPipelineOrchestrator {
         `;
 
         try {
-          await this.terrainProcessor.process(projectId);
+          try {
+            await this.terrainProcessor.process(projectId);
 
+            await this.db`
+              UPDATE data_pipeline_jobs
+              SET status = 'complete', completed_at = now()
+              WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
+            `;
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            await this.db`
+              UPDATE data_pipeline_jobs
+              SET status = 'failed', error_message = ${message}
+              WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
+            `;
+            throw err;
+          }
+        } finally {
+          // Enqueue microclimate regardless of terrain outcome. Terrain failure
+          // must not silently suppress microclimate; the processor itself throws
+          // a clear error if terrain_analysis is missing, and attempts:3 buys
+          // retry headroom if the UPDATE 'complete' commit races the read.
           await this.db`
-            UPDATE data_pipeline_jobs
-            SET status = 'complete', completed_at = now()
-            WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
+            INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+            VALUES (${projectId}, 'compute_microclimate', 'queued')
           `;
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          await this.db`
-            UPDATE data_pipeline_jobs
-            SET status = 'failed', error_message = ${message}
-            WHERE project_id = ${projectId} AND job_type = 'compute_terrain' AND status = 'running'
-          `;
-          throw err;
+          await this.microclimateQueue.add('compute_microclimate', { projectId }, {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 10000 },
+            removeOnComplete: 50,
+            removeOnFail: 25,
+          });
         }
-
-        // Trigger microclimate analysis after terrain completes
-        await this.db`
-          INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-          VALUES (${projectId}, 'compute_microclimate', 'queued')
-        `;
-        await this.microclimateQueue.add('compute_microclimate', { projectId }, {
-          attempts: 2,
-          backoff: { type: 'exponential', delay: 10000 },
-          removeOnComplete: 50,
-          removeOnFail: 25,
-        });
 
         await job.updateProgress(100);
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -314,17 +332,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -365,17 +375,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -397,6 +399,17 @@ export class DataPipelineOrchestrator {
         try {
           await this.soilRegenerationProcessor.process(projectId);
 
+          // Pollinator enrichment: runs after soil-regen. Non-fatal — failures
+          // are logged but do not fail the soil-regen job. Pollinator output is
+          // read-side only (not wired into scoring), so this keeps
+          // verify-scoring-parity delta at 0.000.
+          try {
+            await this.pollinatorOpportunityProcessor.process(projectId);
+          } catch (pollErr) {
+            const pollMsg = pollErr instanceof Error ? pollErr.message : String(pollErr);
+            console.warn(`[pollinator_opportunity] ${projectId}: ${pollMsg}`);
+          }
+
           await this.db`
             UPDATE data_pipeline_jobs
             SET status = 'complete', completed_at = now()
@@ -416,17 +429,9 @@ export class DataPipelineOrchestrator {
 
         // Fires once when all 4 Tier-3 jobs for this project are complete.
         // The writer is idempotent + debounced, so concurrent invocations
-        // from parallel workers are safe.
-        try {
-          await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
-        } catch (err) {
-          // Writer failure must never fail the worker — log and continue.
-          const message = err instanceof Error ? err.message : String(err);
-          this.db`
-            INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
-            VALUES (${projectId}, 'write_assessment', 'failed', ${message})
-          `.catch(() => { /* best-effort */ });
-        }
+        // from parallel workers are safe. On a non-skipped write we also
+        // enqueue narrative generation.
+        await this.handleTier3Completion(projectId);
       },
       { connection: this.connOpts, concurrency: 2 },
     );
@@ -458,58 +463,141 @@ export class DataPipelineOrchestrator {
       centroidLng: project.centroid_lng ? Number(project.centroid_lng) : null,
     };
 
-    // Fan out — fetch all layer types in parallel
-    const results = await Promise.allSettled(
-      LAYER_TYPES.map((layerType) =>
-        this.fetchLayer(layerType, ctx).then((result) => this.storeLayerResult(result, ctx)),
-      ),
-    );
+    // Bookend start — flip the queued fetch_tier1 row to running so observers
+    // (and the verification harness) can see the job is in flight.
+    await this.db`
+      UPDATE data_pipeline_jobs
+      SET status = 'running', started_at = now()
+      WHERE project_id = ${projectId} AND job_type = 'fetch_tier1' AND status IN ('queued', 'failed')
+    `;
 
-    const failed = results.filter((r: PromiseSettledResult<void>) => r.status === 'rejected');
-    if (failed.length > 0) {
-      console.error(`${failed.length}/${LAYER_TYPES.length} layers failed for project ${projectId}`);
+    try {
+      // Fan out — fetch all layer types in parallel. Each layer is wrapped so
+      // an adapter exception or store-UPDATE error marks the row as 'failed'
+      // (instead of leaving it stuck in 'fetching') and logs the real cause.
+      const outcomes = await Promise.all(
+        LAYER_TYPES.map((layerType) => this.fetchAndStoreLayer(layerType, ctx)),
+      );
+
+      const failed = outcomes.filter((o) => o.status === 'failed');
+      if (failed.length > 0) {
+        console.error(
+          `${failed.length}/${LAYER_TYPES.length} layers failed for project ${projectId}: ` +
+            failed.map((o) => `${o.layerType}=${o.error}`).join('; '),
+        );
+      }
+
+      // Recompute data completeness score
+      await this.updateCompletenessScore(projectId);
+
+      // Gate — require every Tier-1 layer the Tier-3 workers depend on to have
+      // landed cleanly. If anything is missing we throw rather than enqueue a
+      // doomed Tier-3 fan-out; the catch below surfaces the reason on the
+      // fetch_tier1 row instead of four opaque Tier-3 failures.
+      const completeLayers = new Set(
+        outcomes.filter((o) => o.status === 'complete').map((o) => o.layerType),
+      );
+      const REQUIRED_TIER1: Tier1LayerType[] = [
+        'elevation', 'soils', 'watershed', 'wetlands_flood', 'land_cover', 'climate',
+      ];
+      const missing = REQUIRED_TIER1.filter((t) => !completeLayers.has(t));
+      if (missing.length > 0) {
+        throw new Error(
+          `tier1 incomplete — cannot start tier-3; missing: ${missing.join(', ')}`,
+        );
+      }
+
+      // Trigger Tier 3 terrain analysis
+      await this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+        VALUES (${projectId}, 'compute_terrain', 'queued')
+      `;
+      await this.terrainQueue.add('compute_terrain', { projectId }, {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 10000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+
+      // Trigger Tier 3 watershed refinement
+      await this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+        VALUES (${projectId}, 'compute_watershed', 'queued')
+      `;
+      await this.watershedQueue.add('compute_watershed', { projectId }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 10000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+
+      // Trigger Tier 3 soil regeneration (depends on soils + land_cover, not terrain)
+      await this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+        VALUES (${projectId}, 'compute_soil_regeneration', 'queued')
+      `;
+      await this.soilRegenerationQueue.add('compute_soil_regeneration', { projectId }, {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 10000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+
+      // Microclimate is enqueued from the terrain worker's tail (finally block)
+      // so it fires after terrain_analysis is written — no first-attempt race —
+      // while still firing on terrain failure.
+
+      await this.db`
+        UPDATE data_pipeline_jobs
+        SET status = 'complete', completed_at = now()
+        WHERE project_id = ${projectId} AND job_type = 'fetch_tier1' AND status = 'running'
+      `;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      await this.db`
+        UPDATE data_pipeline_jobs
+        SET status = 'failed', error_message = ${message}
+        WHERE project_id = ${projectId} AND job_type = 'fetch_tier1' AND status = 'running'
+      `;
+      throw err;
     }
 
-    // Recompute data completeness score
-    await this.updateCompletenessScore(projectId);
-
-    // Trigger Tier 3 terrain analysis
-    await this.db`
-      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-      VALUES (${projectId}, 'compute_terrain', 'queued')
-    `;
-    await this.terrainQueue.add('compute_terrain', { projectId }, {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 10000 },
-      removeOnComplete: 50,
-      removeOnFail: 25,
-    });
-
-    // Trigger Tier 3 watershed refinement
-    await this.db`
-      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-      VALUES (${projectId}, 'compute_watershed', 'queued')
-    `;
-    await this.watershedQueue.add('compute_watershed', { projectId }, {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 10000 },
-      removeOnComplete: 50,
-      removeOnFail: 25,
-    });
-
-    // Trigger Tier 3 soil regeneration (depends on soils + land_cover, not terrain)
-    await this.db`
-      INSERT INTO data_pipeline_jobs (project_id, job_type, status)
-      VALUES (${projectId}, 'compute_soil_regeneration', 'queued')
-    `;
-    await this.soilRegenerationQueue.add('compute_soil_regeneration', { projectId }, {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 10000 },
-      removeOnComplete: 50,
-      removeOnFail: 25,
-    });
-
     await job.updateProgress(100);
+  }
+
+  /**
+   * Fetch a single Tier-1 layer and persist its result. Any error — from the
+   * adapter itself or from the store UPDATE — is caught here, logged with the
+   * layer name and full error, and written back as `fetch_status='failed'` so
+   * the row never gets stuck in `'fetching'`. Returns a per-layer outcome the
+   * caller uses for rollup logging.
+   */
+  private async fetchAndStoreLayer(
+    layerType: Tier1LayerType,
+    ctx: ProjectContext,
+  ): Promise<{ layerType: Tier1LayerType; status: 'complete' | 'failed'; error?: string }> {
+    try {
+      const result = await this.fetchLayer(layerType, ctx);
+      await this.storeLayerResult(result, ctx);
+      return { layerType, status: 'complete' };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? err.stack : undefined;
+      console.error(`[tier1] layer=${layerType} project=${ctx.projectId} error=${message}`, stack);
+      try {
+        await this.db`
+          UPDATE project_layers SET
+            fetch_status = 'failed',
+            metadata     = ${this.db.json({ error: message } as never) as unknown as string},
+            fetched_at   = now()
+          WHERE project_id = ${ctx.projectId} AND layer_type = ${layerType}
+        `;
+      } catch (markErr) {
+        const m = markErr instanceof Error ? markErr.message : String(markErr);
+        console.error(`[tier1] layer=${layerType} failed to mark row as failed: ${m}`);
+      }
+      return { layerType, status: 'failed', error: message };
+    }
   }
 
   private async fetchLayer(layerType: Tier1LayerType, ctx: ProjectContext): Promise<AdapterResult> {
@@ -537,12 +625,12 @@ export class DataPipelineOrchestrator {
         confidence       = ${result.confidence},
         data_date        = ${result.dataDate},
         attribution_text = ${result.attributionText},
-        geojson_data     = ${result.geojsonData ? JSON.stringify(result.geojsonData) : null},
-        summary_data     = ${result.summaryData ? JSON.stringify(result.summaryData) : null},
+        geojson_data     = ${result.geojsonData ? this.db.json(result.geojsonData as never) as unknown as string : null},
+        summary_data     = ${result.summaryData ? this.db.json(result.summaryData as never) as unknown as string : null},
         raster_url       = ${result.rasterUrl ?? null},
         wms_url          = ${result.wmsUrl ?? null},
         wms_layers       = ${result.wmsLayers ?? null},
-        metadata         = ${result.metadata ? JSON.stringify(result.metadata) : null},
+        metadata         = ${result.metadata ? this.db.json(result.metadata as never) as unknown as string : null},
         fetched_at       = now()
       WHERE project_id = ${ctx.projectId} AND layer_type = ${result.layerType}
     `;
@@ -582,5 +670,91 @@ export class DataPipelineOrchestrator {
       UPDATE projects SET data_completeness_score = ${Math.round(score * 10) / 10}
       WHERE id = ${projectId}
     `;
+  }
+
+  /**
+   * Post-Tier-3 hook — runs the canonical assessment writer, and when it
+   * actually writes (not debounced/skipped) enqueues narrative generation.
+   * Writer + narrative failures never fail the calling Tier-3 worker.
+   */
+  private async handleTier3Completion(projectId: string): Promise<void> {
+    let wroteAssessment = false;
+    try {
+      const result = await maybeWriteAssessmentIfTier3Complete(this.db, projectId);
+      wroteAssessment = !!result && !result.skipped;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status, error_message)
+        VALUES (${projectId}, 'write_assessment', 'failed', ${message})
+      `.catch(() => { /* best-effort */ });
+    }
+
+    if (!wroteAssessment) return;
+    if (!claudeClient.isConfigured()) return;
+
+    try {
+      await this.db`
+        INSERT INTO data_pipeline_jobs (project_id, job_type, status)
+        VALUES (${projectId}, 'generate_narrative', 'queued')
+      `;
+      await this.narrativeQueue.add('generate_narrative', { projectId }, {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 15000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[narrative] enqueue failed for project ${projectId}: ${message}`);
+    }
+  }
+
+  /** Start the BullMQ worker that generates site narrative + design recommendation. */
+  startNarrativeWorker(): Worker {
+    return new Worker(
+      'narrative-generation',
+      async (job: Job) => {
+        const { projectId } = job.data as { projectId: string };
+
+        await this.db`
+          UPDATE data_pipeline_jobs
+          SET status = 'running', started_at = now()
+          WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status IN ('queued', 'failed')
+        `;
+
+        try {
+          const contextText = await buildNarrativeContext(this.db, projectId);
+          if (!contextText) {
+            throw new Error(`narrative context unavailable — project ${projectId} not found or has no layers`);
+          }
+
+          const [narrative, recommendation] = await Promise.all([
+            claudeClient.generateSiteNarrative({ projectId, contextText }),
+            claudeClient.generateDesignRecommendation({ projectId, contextText }),
+          ]);
+
+          await writeAiOutput(this.db, narrative);
+          await writeAiOutput(this.db, recommendation);
+
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'complete', completed_at = now()
+            WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status = 'running'
+          `;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          await this.db`
+            UPDATE data_pipeline_jobs
+            SET status = 'failed', error_message = ${message}
+            WHERE project_id = ${projectId} AND job_type = 'generate_narrative' AND status = 'running'
+          `;
+          throw err;
+        }
+
+        await job.updateProgress(100);
+      },
+      { connection: this.connOpts, concurrency: 1 },
+    );
   }
 }

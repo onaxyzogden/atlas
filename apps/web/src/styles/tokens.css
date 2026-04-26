@@ -8,6 +8,32 @@
 :root {
 
   /* ========================================================================
+     OKLCH PRIMITIVES (UX Scholar 2026-04-23)
+     Lightness / Chroma / Hue separated so elevation and semantic scales
+     can be derived rather than hand-tuned. Consumed via @supports-gated
+     oklch(...) overrides in dark-mode.css. On browsers < Chrome 111 /
+     Firefox 113 / Safari 15.4, the hex tokens below remain authoritative.
+     Values reverse-computed from existing hex so Phase 1 is visually
+     identical; perceived-brightness uniformity is a follow-up pass.
+     ======================================================================== */
+
+  /* Elevation ladder — hold chroma/hue constant so surfaces differ only in L */
+  --l-bg:            15.5%;
+  --l-surface:       21%;
+  --l-raised:        26.5%;
+  --l-popover:       33%;
+  --c-warm-neutral:  0.010;
+  --h-warm-neutral:  60;
+
+  /* Semantic hue channels (dark-mode targets) */
+  --l-primary: 72%;   --c-primary: 0.08;   --h-primary: 80;
+  --l-accent:  60%;   --c-accent:  0.05;   --h-accent:  145;
+  --l-success: 64%;   --c-success: 0.10;   --h-success: 150;
+  --l-warning: 72%;   --c-warning: 0.13;   --h-warning: 85;
+  --l-error:   59%;   --c-error:   0.15;   --h-error:   30;
+  --l-info:    68%;   --c-info:    0.07;   --h-info:    235;
+
+  /* ========================================================================
      COLOR PALETTE
      ======================================================================== */
 
@@ -76,11 +102,14 @@
   --color-error-600: #9b3a2a;
   --color-error-700: #7d2e22;
 
-  --color-info-50:  #eef5f8;
-  --color-info-100: #d6e8ef;
-  --color-info-500: #3d7f9e;
-  --color-info-600: #2a6180;
-  --color-info-700: #234f68;
+  /* Semantic Info — desaturated UI blue, intentionally distinct from
+   * zone-water/hydrology palette so Map Data ≠ UI Signifier (per UX Scholar
+   * 2026-04-23: biophilic hues reserved for map polygons). */
+  --color-info-50:  #eef3f7;
+  --color-info-100: #d5e3ee;
+  --color-info-500: #5b8eaf;
+  --color-info-600: #46759a;
+  --color-info-700: #365c7c;
 
   /* --- Confidence levels --- */
   --color-confidence-high:   #2d7a4f;
@@ -106,6 +135,9 @@
   --color-border:          var(--color-earth-200);
   --color-border-subtle:   var(--color-earth-100);
   --color-text:            var(--color-earth-900);
+  /* a11y: --color-text-muted ≈4.8:1 on dark bg — passes WCAG AA for body text
+     (≥14px or bold ≥11px). Do NOT pair with font-size <14px non-bold. For
+     small labels/timestamps use --color-text instead. */
   --color-text-muted:      var(--color-earth-600);
   --color-text-subtle:     var(--color-earth-400);
   --color-primary:         var(--color-earth-600);
@@ -113,6 +145,12 @@
   --color-accent:          var(--color-sage-600);
   --color-accent-hover:    var(--color-sage-700);
   --color-focus-ring:      rgba(82, 120, 82, 0.45);
+
+  /* Brand gold (brand moments) vs. active-state gold (higher chroma for
+   * contrast on dark chrome; per UX Scholar — #c4a265 fails WCAG AA on
+   * dark brown at small sizes, so #e0b56d is reserved for active UI). */
+  --color-gold-brand:      #c4a265;
+  --color-gold-active:     #e0b56d;
 
   /* --- Status (semantic — light mode) --- */
   --color-success:         var(--color-success-500);
@@ -124,9 +162,20 @@
   --color-info:            var(--color-info-500);
   --color-info-muted:      rgba(61, 127, 158, 0.15);
 
+  /* --- Chrome neutrals (UX Scholar 2026-04-23) -------------------------
+   * Earth-tinted neutral anchors the frame without competing with the
+   * biophilic map imagery. Keep brown hues for brand moments only. */
+  --color-chrome-bg:             #1f1d1a;
+  --color-chrome-bg-translucent: rgba(31, 29, 26, 0.97);
+  /* Page-dimming overlay (loading states, modal scrims) — intentionally
+   * lower opacity than chrome-bg-translucent so underlying map remains
+   * partially legible during async loads. */
+  --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+  --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
+
   /* --- Panel / Sidebar / Header --- */
-  --color-header-bg:       rgba(49, 38, 23, 0.97);
-  --color-sidebar-bg:      rgba(49, 38, 23, 0.97);
+  --color-header-bg:       var(--color-chrome-bg-translucent);
+  --color-sidebar-bg:      var(--color-chrome-bg-translucent);
   --color-sidebar-icon:    #9a8a74;
   --color-sidebar-active:  #c4a265;
   --color-sidebar-text:    #e8dcc8;
@@ -328,6 +377,19 @@
   --z-toast:    500;
   --z-tooltip:  600;
   --z-max:      999;
+
+  /* Map canvas sub-scale — isolated by `.mapArea { position: relative }`
+     in MapView.module.css. Safe inside .mapArea only; outside, use --z-*. */
+  --z-map-spine:        2;
+  --z-map-base-overlay: 3;  /* Cesium 3D terrain overlay (shares layer with split-pane) */
+  --z-map-split-pane:   3;
+  --z-map-dropdown:     4;
+  --z-map-panel:        5;
+  --z-map-tooltip:      6;
+  --z-map-loading-chip: 9;  /* MapLoadingIndicator tile-fetch chip */
+  --z-map-toolbar:      10;
+  --z-map-mobile-bar:   40;
+  --z-map-top:          50;
 
   /* ========================================================================
      TRANSITIONS

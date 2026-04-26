@@ -31,9 +31,20 @@ const MUKEY_RESPONSE = {
 
 const HORIZON_RESPONSE = {
   Table: [
-    ['mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph', 'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3', 'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct', 'sodium_adsorption_ratio', 'drainage_class', 'taxonomy_class', 'component_name', 'component_pct'],
-    ['658812', '60', '0', '30', '6.2', '2.5', '12.0', '0.5', '1.35', '14.0', '0.32', '0.18', '100', '18', '42', '40', '0', '0', '1.0', 'Well drained', 'Udorthents', 'Urban land', '60'],
-    ['658813', '40', '0', '25', '5.8', '3.2', '18.5', '0.3', '1.28', '8.5', '0.28', '0.22', '120', '35', '45', '20', '0', '0', '0.5', 'Well drained', 'Fine, kaolinitic, mesic Typic Paleudults', 'Christiana', '40'],
+    ['mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph', 'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3', 'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct', 'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'basesat_pct', 'basesatall_pct', 'drainage_class', 'taxonomy_class', 'component_name', 'component_pct'],
+    ['658812', '60', '0', '30', '6.2', '2.5', '12.0', '0.5', '1.35', '14.0', '0.32', '0.18', '100', '18', '42', '40', '0', '0', '1.0', '2', '0', '72', '78', 'Well drained', 'Udorthents', 'Urban land', '60'],
+    ['658813', '40', '0', '25', '5.8', '3.2', '18.5', '0.3', '1.28', '8.5', '0.28', '0.22', '120', '35', '45', '20', '0', '0', '0.5', '0', '0', '65', '70', 'Well drained', 'Fine, kaolinitic, mesic Typic Paleudults', 'Christiana', '40'],
+  ],
+};
+
+// chfrags child-table response: SUM(fragvol_r) GROUP BY cokey/mukey.
+// Urban land (658812/60%): 22% frag total; Christiana (658813/40%): 8% frag total.
+// Component-weighted: (22*60 + 8*40) / 100 = 16.4
+const CHFRAGS_RESPONSE = {
+  Table: [
+    ['mukey', 'comppct_r', 'frag_total_pct'],
+    ['658812', '60', '22'],
+    ['658813', '40', '8'],
   ],
 };
 
@@ -120,7 +131,9 @@ describe('Weighted average computation', () => {
         bulk_density_g_cm3: 1.35, ksat_um_s: 14.0, kfact: 0.32, awc_cm_cm: 0.18,
         rooting_depth_cm: 100, claytotal_r: 18, silttotal_r: 42, sandtotal_r: 40,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 1.0,
-        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, texture_description: 'Silt loam',
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0,
+        basesat_pct: 72, basesatall_pct: 78,
+        texture_description: 'Silt loam',
         drainage_class: 'Well drained', taxonomy_class: 'Udorthents',
         component_name: 'Urban land', component_pct: 60,
       },
@@ -130,7 +143,9 @@ describe('Weighted average computation', () => {
         bulk_density_g_cm3: 1.28, ksat_um_s: 8.5, kfact: 0.28, awc_cm_cm: 0.22,
         rooting_depth_cm: 120, claytotal_r: 35, silttotal_r: 45, sandtotal_r: 20,
         caco3_pct: 0, gypsum_pct: 0, sodium_adsorption_ratio: 0.5,
-        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0, texture_description: 'Silty clay loam',
+        surface_stoniness: null, frag3to10_pct: 0, fraggt10_pct: 0,
+        basesat_pct: 65, basesatall_pct: 70,
+        texture_description: 'Silty clay loam',
         drainage_class: 'Well drained', taxonomy_class: 'Paleudults',
         component_name: 'Christiana', component_pct: 40,
       },
@@ -150,6 +165,12 @@ describe('Weighted average computation', () => {
     // Dominant component (highest comppct_r = 60)
     expect(result.dominant_component_name).toBe('Urban land');
     expect(result.drainage_class).toBe('Well drained');
+
+    // Audit H5 #4: basesat weighted averages
+    // basesat: (72*60 + 65*40) / 100 = 69.2
+    expect(result.basesat_pct).toBeCloseTo(69.2, 1);
+    // basesatall: (78*60 + 70*40) / 100 = 74.8
+    expect(result.basesatall_pct).toBeCloseTo(74.8, 1);
   });
 
   it('returns nulls for empty rows', () => {
@@ -273,7 +294,8 @@ describe('Zero-mukey response (outside SSURGO coverage)', () => {
 
 describe('Full adapter fetch (mocked SDA)', () => {
   it('fetches and processes SSURGO data correctly', async () => {
-    // Mock three sequential SDA calls: mukey → horizon → profile+restrictions
+    // Mock four sequential SDA calls:
+    // mukey → horizon → profile+restrictions → chfrags
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -286,6 +308,10 @@ describe('Full adapter fetch (mocked SDA)', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => PROFILE_RESPONSE,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => CHFRAGS_RESPONSE,
       });
 
     const adapter = new SsurgoAdapter('ssurgo', 'soils');
@@ -333,8 +359,68 @@ describe('Full adapter fetch (mocked SDA)', () => {
     expect(restrictive?.kind).toBe('Fragipan');
     expect(restrictive?.depth_cm).toBe(60);
 
-    // Verify three SDA calls were made (mukey, horizon, profile+restrictions)
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    // Audit H5 #4: chfrags canonical coarse-fragment total + basesat disambiguation
+    // chfrags weighted: (22 * 60 + 8 * 40) / 100 = 16.4
+    expect(summary.coarse_fragment_pct_chfrags).toBeCloseTo(16.4, 1);
+    // basesatall_r present → prefer sum_of_cations
+    expect(summary.base_saturation_method).toBe('sum_of_cations');
+    // basesatall weighted: (78 * 60 + 70 * 40) / 100 = 74.8
+    expect(summary.base_saturation_pct).toBeCloseTo(74.8, 1);
+
+    // Verify four SDA calls were made (mukey, horizon, profile+restrictions, chfrags)
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+  });
+
+  it('falls back to legacy coarse_fragment_pct when chfrags query fails', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => MUKEY_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => HORIZON_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => PROFILE_RESPONSE })
+      .mockRejectedValueOnce(new Error('SDA chfrags unavailable'));
+
+    const adapter = new SsurgoAdapter('ssurgo', 'soils');
+    const result = await adapter.fetchForBoundary(DC_POLYGON, {
+      projectId: 'test-123', country: 'US', provinceState: 'DC',
+      conservationAuthId: null, boundaryGeojson: DC_POLYGON,
+      centroidLat: 38.887, centroidLng: -77.034,
+    });
+
+    const summary = result.summaryData as Record<string, unknown>;
+    expect(summary.coarse_fragment_pct_chfrags).toBeNull();
+    // Legacy field still populated from frag3to10 + fraggt10 in HORIZON_RESPONSE:
+    // Urban land frag3to10=2, Christiana=0 → weighted (2*60 + 0*40)/100 = 1.2
+    expect(summary.coarse_fragment_pct).toBeCloseTo(1.2, 1);
+    // basesat fields remain intact (came from the horizon query, not chfrags)
+    expect(summary.base_saturation_method).toBe('sum_of_cations');
+  });
+
+  it('falls back to nh4oac_ph7 when only basesat_r is present', async () => {
+    // Horizon fixture where basesatall_r is null for both components
+    const HORIZON_RESPONSE_NO_BASESATALL = {
+      Table: [
+        ['mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph', 'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3', 'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r', 'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct', 'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'basesat_pct', 'basesatall_pct', 'drainage_class', 'taxonomy_class', 'component_name', 'component_pct'],
+        ['658812', '60', '0', '30', '6.2', '2.5', '12.0', '0.5', '1.35', '14.0', '0.32', '0.18', '100', '18', '42', '40', '0', '0', '1.0', '0', '0', '60', null, 'Well drained', 'Udorthents', 'Urban land', '60'],
+        ['658813', '40', '0', '25', '5.8', '3.2', '18.5', '0.3', '1.28', '8.5', '0.28', '0.22', '120', '35', '45', '20', '0', '0', '0.5', '0', '0', '55', null, 'Well drained', 'Typic Paleudults', 'Christiana', '40'],
+      ],
+    };
+
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => MUKEY_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => HORIZON_RESPONSE_NO_BASESATALL })
+      .mockResolvedValueOnce({ ok: true, json: async () => PROFILE_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => CHFRAGS_RESPONSE });
+
+    const adapter = new SsurgoAdapter('ssurgo', 'soils');
+    const result = await adapter.fetchForBoundary(DC_POLYGON, {
+      projectId: 'test-123', country: 'US', provinceState: 'DC',
+      conservationAuthId: null, boundaryGeojson: DC_POLYGON,
+      centroidLat: 38.887, centroidLng: -77.034,
+    });
+
+    const summary = result.summaryData as Record<string, unknown>;
+    expect(summary.base_saturation_method).toBe('nh4oac_ph7');
+    // Weighted: (60 * 60 + 55 * 40) / 100 = 58
+    expect(summary.base_saturation_pct).toBeCloseTo(58, 1);
   });
 });
 

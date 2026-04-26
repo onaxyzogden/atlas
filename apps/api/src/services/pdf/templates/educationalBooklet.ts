@@ -44,31 +44,87 @@ const LAYER_EXPLANATIONS: Record<string, { title: string; whatItIs: string; whyI
   },
 };
 
-const SCORE_EXPLANATIONS: Record<string, { plain: string; good: string; poor: string }> = {
-  overall: {
+/**
+ * Plain-language explanations keyed by ScoredResult.label exactly as emitted
+ * by @ogden/shared/scoring (see packages/shared/src/scoring/computeScores.ts
+ * — the `buildResult(<label>, …)` call sites). Covers all 10 labels the US
+ * pipeline emits plus the CA-only "Canada Soil Capability" and the
+ * denormalised "Overall".
+ *
+ * Orientation: most labels are "higher score = better outcome". `Design
+ * Complexity` is inverted — its raw score reports complexity level (higher =
+ * more difficult site), and computeOverallScore(...) flips it via
+ * `100 - score` before aggregating. For inverted labels we flag `inverted:
+ * true` so the booklet picks `good` vs `poor` against the flipped threshold
+ * instead of the default `>= 60`.
+ */
+const SCORE_EXPLANATIONS: Record<string, {
+  plain: string;
+  good: string;
+  poor: string;
+  /** If true, the "good" verdict fires when score < 40 (inverted). Default: score >= 60. */
+  inverted?: boolean;
+}> = {
+  Overall: {
     plain: 'An overall rating of how well-suited your property is for your intended use, considering all factors together.',
     good: 'Your property has strong fundamentals across multiple categories.',
     poor: 'Several factors may need attention or creative solutions to achieve your goals.',
   },
-  suitability: {
+  'Agricultural Suitability': {
     plain: 'How well your property matches typical requirements for this type of project — considering soil, terrain, water, and access.',
     good: 'The natural characteristics of your land align well with your project type.',
     poor: 'Your land may need significant modification or a different approach to work well for this project type.',
   },
-  buildability: {
+  Buildability: {
     plain: 'How easy or challenging it would be to construct buildings and infrastructure on your property.',
     good: 'Your terrain and soil conditions are favorable for construction.',
     poor: 'Construction may require extra engineering, foundations, or site preparation.',
   },
-  water_resilience: {
+  'Water Resilience': {
     plain: 'How well your property handles water — both having enough and managing excess. This includes drainage, flood risk, and water availability.',
     good: 'Your property has good water management potential with low flood risk.',
     poor: 'Water challenges may need creative solutions like swales, ponds, or drainage improvements.',
   },
-  ag_potential: {
-    plain: 'How productive your land could be for growing food, raising livestock, or other agricultural uses.',
-    good: 'Your soil, climate, and terrain are favorable for agricultural production.',
-    poor: 'Agriculture may require soil improvement, irrigation, or selection of hardy crop varieties.',
+  'Regenerative Potential': {
+    plain: 'How productive your land could be for growing food, raising livestock, or other agricultural uses over the long term — with a focus on soil health and ecosystem resilience.',
+    good: 'Your soil, climate, and terrain are favorable for regenerative agricultural production.',
+    poor: 'Regenerative farming may require soil improvement, cover cropping, or careful species selection.',
+  },
+  'Habitat Sensitivity': {
+    plain: 'How much ecological value your land already holds — wetlands, protected species habitat, intact forest, riparian buffers, and proximity to conservation areas. A higher score means more of the native ecosystem is still present and worth protecting.',
+    good: 'Your land carries meaningful ecological value. This is an asset for conservation-minded design — and also something to respect, since some of these features may be regulated or require setbacks.',
+    poor: 'Your land has been significantly disturbed or cleared. This gives you more design freedom, but also an opportunity: restoring habitat can be one of the highest-leverage moves you make.',
+  },
+  'Stewardship Readiness': {
+    plain: 'How ready your land is for active stewardship work — soil health, erosion control, solar and wind potential, proximity to community resources, and readiness for regenerative practices like cover cropping and rotational grazing.',
+    good: 'Conditions favor hands-on stewardship. Soil, climate, and infrastructure align well for the day-to-day work of caring for the land.',
+    poor: 'Stewardship will take more upfront investment — soil amendments, erosion control, or infrastructure additions — before the land is ready to return the effort.',
+  },
+  'Community Suitability': {
+    plain: 'How well the surrounding community can support a Community-Supported Regenerative Agriculture (CSRA) project — looking at population density, incomes, education levels, homeownership, and how active the local area feels.',
+    good: 'Your surrounding area has the demographic fundamentals to support a community-based agricultural project.',
+    poor: 'You may need to invest more in outreach, education, and relationship-building to grow a local community around this land.',
+  },
+  'Design Complexity': {
+    inverted: true,
+    plain: 'How complicated your land is to design around — slope variability, flood-zone constraints, zoning restrictions, regulated wetlands, and terrain variation. Unlike the other scores, LOWER is easier here: a low score means a simpler site to plan; a high score means more constraints to work with.',
+    good: 'Your site is relatively simple to design. Fewer terrain surprises, fewer regulatory overlays, more freedom in where things can go.',
+    poor: 'Your site has real design complexity — steep variability, flood constraints, protected features, or tight zoning. A good design is still possible, but expect more iterations, more professional input, and more careful phasing.',
+  },
+  'FAO Land Suitability': {
+    plain: 'An international standard from the UN Food and Agriculture Organization that rates land for crop production on a scale from S1 (Highly Suitable) through S2, S3 (marginally suitable) to N1, N2 (not suitable). This score translates the classification into 0–100 for comparison.',
+    good: 'By FAO standards, your land is well-suited for crop production without major limitations.',
+    poor: 'By FAO standards, your land has limitations for typical crop production. Specialist crops, modified management, or non-crop uses may fit better.',
+  },
+  'USDA Land Capability': {
+    plain: 'The US Department of Agriculture classifies land into Classes I–VIII based on how severe its limitations are for cultivation. Classes I–IV can be cultivated with increasing management needs; Classes V–VIII are better suited to pasture, forestry, or wildlife. This score translates the classification into 0–100.',
+    good: 'By USDA standards, your land is in the cultivable range with manageable limitations.',
+    poor: 'By USDA standards, your land has significant limitations for cultivation. It may be better suited to grazing, forestry, wildlife habitat, or perennial systems.',
+  },
+  'Canada Soil Capability': {
+    plain: 'Agriculture and Agri-Food Canada\u2019s 1\u20137 Soil Capability classification: Class 1 is prime farmland with no significant limitations; Class 7 has limitations severe enough to preclude agriculture. The subclass letter (W/D/E/F/M/R) identifies the dominant limitation. This score translates the class into 0\u2013100.',
+    good: 'By Canadian standards, your land is in the agriculturally capable range with manageable limitations.',
+    poor: 'By Canadian standards, your land has substantial limitations for agriculture. Non-agricultural stewardship uses may be a better fit.',
   },
 };
 
@@ -142,29 +198,51 @@ export function renderEducationalBooklet(data: ExportDataBag): string {
   }
 
   // ─── Score Explanations ───────────────────────────────────────
+  // Shape note (post migration 009): iterate the canonical ScoredResult[]
+  // in `a.score_breakdown`. For labels we have plain-language copy (see
+  // SCORE_EXPLANATIONS above), render the rich card; for the rest, render
+  // a minimal card with score + generic verdict (graceful degradation).
   let scoreSection = '';
   if (a) {
-    const scores = [
-      { key: 'overall', label: 'Overall Score', value: a.overall_score },
-      { key: 'suitability', label: 'Suitability', value: a.suitability_score },
-      { key: 'buildability', label: 'Buildability', value: a.buildability_score },
-      { key: 'water_resilience', label: 'Water Resilience', value: a.water_resilience_score },
-      { key: 'ag_potential', label: 'Agricultural Potential', value: a.ag_potential_score },
+    const breakdownArr = Array.isArray(a.score_breakdown) ? a.score_breakdown : [];
+
+    type Entry = { label: string; value: number | null };
+    const scores: Entry[] = [
+      { label: 'Overall', value: a.overall_score },
+      ...breakdownArr.map((r) => ({ label: r.label, value: r.score })),
     ];
 
     const scoreCards = scores.map((s) => {
       if (s.value == null) return '';
-      const info = SCORE_EXPLANATIONS[s.key];
-      if (!info) return '';
       const color = scoreColor(s.value);
-      const verdict = s.value >= 60 ? info.good : info.poor;
+      const info = SCORE_EXPLANATIONS[s.label];
+      if (info) {
+        // Design Complexity (and any other `inverted` entry) reads backwards:
+        // high score = high complexity = harder to design. Flip the threshold
+        // so `good` copy surfaces on low scores for those labels.
+        const goodThresholdMet = info.inverted ? s.value < 40 : s.value >= 60;
+        const verdict = goodThresholdMet ? info.good : info.poor;
+        return `
+          <div class="card" style="break-inside:avoid;border-left:4px solid ${color}">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">${esc(s.label)}</h3>
+              <span style="font-family:'Fira Code',monospace;font-size:18pt;font-weight:700;color:${color}">${Math.round(s.value)}<span style="font-size:10pt">/100</span></span>
+            </div>
+            <p style="margin-top:8px">${info.plain}</p>
+            <p><strong>What this means for you:</strong> ${verdict}</p>
+          </div>`;
+      }
+      // Graceful degradation — label without copy yet. Still useful for the
+      // reader: score + generic verdict. Follow-up sprint adds the copy.
+      const verdict = s.value >= 60
+        ? 'This score suggests favourable conditions in this category.'
+        : 'This score suggests challenges worth investigating further.';
       return `
         <div class="card" style="break-inside:avoid;border-left:4px solid ${color}">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="margin:0">${s.label}</h3>
+            <h3 style="margin:0">${esc(s.label)}</h3>
             <span style="font-family:'Fira Code',monospace;font-size:18pt;font-weight:700;color:${color}">${Math.round(s.value)}<span style="font-size:10pt">/100</span></span>
           </div>
-          <p style="margin-top:8px">${info.plain}</p>
           <p><strong>What this means for you:</strong> ${verdict}</p>
         </div>`;
     }).join('');

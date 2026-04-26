@@ -12,11 +12,16 @@
     "./scoring": {
       "types": "./src/scoring/index.ts",
       "default": "./src/scoring/index.ts"
+    },
+    "./manifest": {
+      "types": "./src/featureManifest.ts",
+      "default": "./src/featureManifest.ts"
     }
   },
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit",
+    "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {

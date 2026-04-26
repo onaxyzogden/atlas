@@ -1,0 +1,51 @@
+/* GroupingToggle — segmented control. */
+
+.toggle {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.option {
+  flex: 1 1 0;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-default),
+    background var(--duration-fast) var(--ease-default);
+}
+
+.option:hover {
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.optionActive {
+  background: rgba(196, 162, 101, 0.18);
+  color: #e8dcc8;
+}
+
+.optionActive:hover {
+  color: #ffffff;
+}
+
+.compact .option {
+  padding: 4px 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}

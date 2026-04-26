@@ -83,6 +83,13 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* ─── Grouping toggle wrap ────────────────────────────────────────────── */
+.toggleWrap {
+  padding: 8px 12px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
 /* ─── Phase list ──────────────────────────────────────────────────────── */
 .phaseList {
   flex: 1;

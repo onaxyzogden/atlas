@@ -1,0 +1,284 @@
+/* §11 NutrientBalanceCard — nitrogen demand vs. supply rollup. Same
+   ink-on-parchment palette as the §16 / §18 / §19 dashboard cards. */
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin-bottom: 28px;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 600px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ── Headline balance ────────────────────────────────────────────────── */
+
+.balanceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tone_good {
+  border-color: rgba(180, 200, 150, 0.28);
+  background: rgba(180, 200, 150, 0.05);
+}
+.tone_fair {
+  border-color: rgba(220, 180, 100, 0.24);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tone_poor {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.balanceFigure {
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.balanceSign {
+  font-size: 22px;
+  color: rgba(180, 200, 150, 0.85);
+}
+
+.tone_poor .balanceSign { color: rgba(220, 130, 110, 0.85); }
+
+.balanceUnit {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-left: 4px;
+}
+
+.balanceMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.balanceWord {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.tone_good .balanceWord { color: rgba(180, 200, 150, 0.95); }
+.tone_fair .balanceWord { color: rgba(220, 180, 100, 0.95); }
+.tone_poor .balanceWord { color: rgba(220, 130, 110, 0.95); }
+
+.balanceSub {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  letter-spacing: 0.02em;
+}
+
+/* ── Two-column demand vs supply ─────────────────────────────────────── */
+
+.columnsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .columnsRow { grid-template-columns: 1fr; }
+}
+
+.column {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.column_demand {
+  border-left: 3px solid rgba(220, 130, 110, 0.5);
+}
+
+.column_supply {
+  border-left: 3px solid rgba(180, 200, 150, 0.5);
+}
+
+.columnHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.columnLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.column_demand .columnLabel { color: rgba(220, 130, 110, 0.92); }
+.column_supply .columnLabel { color: rgba(180, 200, 150, 0.92); }
+
+.columnTotal {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: -0.005em;
+}
+
+.columnUnit {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.columnEmpty {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.14);
+  background: rgba(255, 255, 255, 0.012);
+  color: rgba(180, 165, 140, 0.5);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* ── Line items ──────────────────────────────────────────────────────── */
+
+.lineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line {
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lineHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lineSrc {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.lineQty {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+.lineDetail {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.01em;
+}
+
+.lineMore {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  text-align: center;
+  padding: 4px 0;
+  font-style: italic;
+}
+
+/* ── Footnote ────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

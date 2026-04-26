@@ -1,0 +1,289 @@
+/* §10 ArrivalSequenceDesignCard — guest-experience reveal-tier audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.018);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.verdictBanner {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid transparent;
+}
+
+.verdictGood {
+  background: rgba(160, 195, 130, 0.10);
+  border-left-color: rgba(160, 195, 130, 0.65);
+}
+
+.verdictCaution {
+  background: rgba(220, 180, 100, 0.10);
+  border-left-color: rgba(220, 180, 100, 0.65);
+}
+
+.verdictInfo {
+  background: rgba(150, 175, 200, 0.10);
+  border-left-color: rgba(150, 175, 200, 0.55);
+}
+
+.verdictTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.95);
+  margin-bottom: 3px;
+}
+
+.verdictNote {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.headlineGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.headlineStat {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.sectionLabel {
+  margin: 14px 0 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.rowList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pathRow {
+  padding: 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  border-left-width: 3px;
+}
+
+.tier-linear-march { border-left-color: rgba(220, 180, 100, 0.65); }
+.tier-direct { border-left-color: rgba(180, 165, 140, 0.45); }
+.tier-single-reveal { border-left-color: rgba(160, 195, 130, 0.5); }
+.tier-curated { border-left-color: rgba(160, 195, 130, 0.7); }
+.tier-crowded { border-left-color: rgba(220, 130, 110, 0.65); }
+
+.rowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rowMain {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pathName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pathLength {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  letter-spacing: 0.04em;
+}
+
+.tierBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.04);
+}
+
+.tierBadge-linear-march { color: rgba(235, 200, 130, 0.95); }
+.tierBadge-direct { color: rgba(180, 165, 140, 0.85); }
+.tierBadge-single-reveal { color: rgba(190, 220, 160, 0.85); }
+.tierBadge-curated { color: rgba(190, 220, 160, 0.95); }
+.tierBadge-crowded { color: rgba(235, 165, 140, 0.95); }
+
+.rowMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.metricBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.metricLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.metricValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(220, 210, 185, 0.92);
+}
+
+.milestoneList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.milestoneChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 14px;
+  background: rgba(232, 220, 200, 0.04);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.9);
+}
+
+.milestoneIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(196, 162, 101, 0.18);
+  color: rgba(196, 162, 101, 0.95);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.milestoneDist {
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 10.5px;
+}
+
+.cautionNote {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(220, 180, 100, 0.06);
+  border-left: 2px solid rgba(220, 180, 100, 0.55);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.assumption {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+@media (max-width: 720px) {
+  .headlineGrid { grid-template-columns: repeat(2, 1fr); }
+  .rowMetrics { grid-template-columns: repeat(2, 1fr); }
+}

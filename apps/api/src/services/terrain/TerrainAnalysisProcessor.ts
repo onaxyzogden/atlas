@@ -140,6 +140,19 @@ export class TerrainAnalysisProcessor {
 
     const dataSources = [grid.sourceApi];
 
+    // Fail fast if the elevation grid yielded no valid pixels — otherwise
+    // Infinity/−Infinity would reach the numeric columns as a cryptic
+    // "numeric field overflow". Upstream (ElevationGridReader) is the right
+    // place to diagnose source-data issues; here we just refuse to persist
+    // a meaningless row.
+    if (validCount === 0 || !Number.isFinite(minElev) || !Number.isFinite(maxElev)) {
+      throw new Error(
+        `Elevation grid has no valid pixels for project ${projectId} ` +
+        `(sourceApi=${grid.sourceApi}, resolution=${grid.resolution_m}m, ` +
+        `bbox=${grid.bbox.join(',')}) — likely a CRS/window mismatch in ElevationGridReader`,
+      );
+    }
+
     // UPSERT into terrain_analysis
     await this.db`
       INSERT INTO terrain_analysis (
@@ -164,33 +177,33 @@ export class TerrainAnalysisProcessor {
         ${Math.round(meanElev * 100) / 100},
         ${Math.round(curvature.profileMean * 10000) / 10000},
         ${Math.round(curvature.planMean * 10000) / 10000},
-        ${JSON.stringify(curvature.classification)},
-        ${JSON.stringify(curvatureGeojson)},
+        ${this.db.json(curvature.classification as never) as unknown as string},
+        ${this.db.json(curvatureGeojson as never) as unknown as string},
         ${viewshed.visiblePct},
         ${`SRID=4326;POINT(${viewshed.observerPoint[0]} ${viewshed.observerPoint[1]})`},
-        ${JSON.stringify(viewshedGeojson)},
+        ${this.db.json(viewshedGeojson as never) as unknown as string},
         ${frostPocket.areaPct},
         ${frostPocket.severity},
-        ${JSON.stringify(frostPocketGeojson)},
-        ${JSON.stringify(coldAirPathsGeojson)},
-        ${JSON.stringify(coldAirPoolingGeojson)},
+        ${this.db.json(frostPocketGeojson as never) as unknown as string},
+        ${this.db.json(coldAirPathsGeojson as never) as unknown as string},
+        ${this.db.json(coldAirPoolingGeojson as never) as unknown as string},
         ${coldAir.riskRating},
-        ${JSON.stringify(tpi.classification)},
+        ${this.db.json(tpi.classification as never) as unknown as string},
         ${tpi.dominantClass},
-        ${JSON.stringify(tpiGeojson)},
+        ${this.db.json(tpiGeojson as never) as unknown as string},
         ${twi.meanTWI},
-        ${JSON.stringify(twi.classification)},
+        ${this.db.json(twi.classification as never) as unknown as string},
         ${twi.dominantClass},
-        ${JSON.stringify(twiGeojson)},
+        ${this.db.json(twiGeojson as never) as unknown as string},
         ${tri.meanTRI_m},
-        ${JSON.stringify(tri.classification)},
+        ${this.db.json(tri.classification as never) as unknown as string},
         ${tri.dominantClass},
-        ${JSON.stringify(triGeojson)},
+        ${this.db.json(triGeojson as never) as unknown as string},
         ${erosion.meanErosionRate},
         ${erosion.maxErosionRate},
-        ${JSON.stringify(erosion.classification)},
+        ${this.db.json(erosion.classification as never) as unknown as string},
         ${erosion.dominantClass},
-        ${JSON.stringify(erosionGeojson)},
+        ${this.db.json(erosionGeojson as never) as unknown as string},
         ${erosion.confidence},
         ${grid.sourceApi},
         ${grid.confidence},

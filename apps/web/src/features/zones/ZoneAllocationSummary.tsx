@@ -39,6 +39,8 @@ export default function ZoneAllocationSummary({ zones, totalAcreage }: ZoneAlloc
       {hasProperty && (
         <div style={{ height: 10, display: 'flex', borderRadius: 5, overflow: 'hidden', marginBottom: 8, background: 'var(--color-sand-100, #e5e0d5)' }}>
           {allocation.entries.map((e) => (
+            // a11y: keyboard tooltip deferred — see accessibility-audit.md §5
+            // (stacked-bar segments: adding tabstops for every slice would spam focus order)
             <div
               key={e.category}
               style={{

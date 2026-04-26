@@ -20,6 +20,8 @@ import ProjectTabBar from '../components/ProjectTabBar.js';
 import MapView from '../features/map/MapView.js';
 import DashboardView from '../features/dashboard/DashboardView.js';
 import DashboardSidebar from '../features/dashboard/DashboardSidebar.js';
+import IconSidebar from '../components/IconSidebar.js';
+import { resolveDashboardSectionFromRail } from '../features/navigation/taxonomy.js';
 import css from './ProjectPage.module.css';
 
 export default function ProjectPage() {
@@ -28,6 +30,7 @@ export default function ProjectPage() {
   const projects = useProjectStore((s) => s.projects);
   const setActiveProject = useProjectStore((s) => s.setActiveProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
+  const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const project = projects.find((p) => p.id === projectId);
 
   const allZones = useZoneStore((s) => s.zones);
@@ -39,6 +42,10 @@ export default function ProjectPage() {
   const isMobile = useIsMobile();
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
+  const activeMapView = useUIStore((s) => s.activeMapView);
+  const setActiveMapView = useUIStore((s) => s.setActiveMapView);
+  const activeMapSubItem = useUIStore((s) => s.activeMapSubItem);
+  const setActiveMapSubItem = useUIStore((s) => s.setActiveMapSubItem);
   const [isEditing, setIsEditing] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -99,20 +106,41 @@ export default function ProjectPage() {
     return () => { abortFetchForProject(id); };
   }, [project?.id]);
 
+  // a11y: Escape key dismisses whichever modal is currently open
+  useEffect(() => {
+    if (!isEditing && !showDeleteConfirm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isEditing) setIsEditing(false);
+        else if (showDeleteConfirm) setShowDeleteConfirm(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isEditing, showDeleteConfirm]);
+
   if (!ready) return null;
 
   if (!project) {
     return (
       <div className={css.notFound}>
         <h2 className={css.notFoundTitle}>Project not found</h2>
-        <Link to="/" className={css.notFoundLink}>Back to projects</Link>
+        <Link to="/home" className={css.notFoundLink}>Back to projects</Link>
       </div>
     );
   }
 
   const handleDelete = () => {
     deleteProject(project.id);
-    navigate({ to: '/' });
+    navigate({ to: '/home' });
+  };
+
+  const handleDuplicate = () => {
+    const clone = duplicateProject(project.id);
+    if (clone) {
+      setActiveProject(clone.id);
+      navigate({ to: '/project/$projectId', params: { projectId: clone.id } });
+    }
   };
 
   return (
@@ -125,11 +153,33 @@ export default function ProjectPage() {
       />
 
       <div className={css.mainRow}>
-        {/* Shared left sidebar — always visible on desktop */}
-        {!isMobile && (
+        {/* Left sidebar — swap based on active tab.
+            Dashboard tab: domain-grouped dashboard rail (clickable sections).
+            Map tab: icon rail (phase/domain grouped, drives map panels).
+            Both read the same `sidebarGrouping` preference, so toggling
+            Phase ⇄ Domain in one view applies everywhere. */}
+        {!isMobile && activeTab === 'dashboard' && (
           <DashboardSidebar
             activeSection={activeDashboardSection}
             onSectionChange={setActiveDashboardSection}
+          />
+        )}
+        {!isMobile && activeTab === 'map' && (
+          <IconSidebar
+            activeView={activeMapView}
+            onViewChange={setActiveMapView}
+            activeSubItem={activeMapSubItem}
+            onSubItemChange={(id, panel) => {
+              setActiveMapSubItem(id);
+              setActiveMapView(panel);
+              // Keep the dashboard-section context in sync so downstream
+              // consumers (DomainFloatingToolbar domain tint, mirror metrics)
+              // reflect what the rail is showing.
+              if (panel) {
+                const section = resolveDashboardSectionFromRail(id, panel);
+                if (section) setActiveDashboardSection(section);
+              }
+            }}
           />
         )}
 
@@ -148,6 +198,7 @@ export default function ProjectPage() {
               onEdit={() => setIsEditing(true)}
               onExport={() => setShowExport(true)}
               onDelete={() => setShowDeleteConfirm(true)}
+              onDuplicate={handleDuplicate}
             />
           </div>
         </div>
@@ -155,8 +206,9 @@ export default function ProjectPage() {
 
       {/* Editor modal */}
       {isEditing && (
-        <div className={css.modalOverlay} onClick={() => setIsEditing(false)}>
-          <div onClick={(e) => e.stopPropagation()} className={css.editorModal}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={css.modalOverlay} onClick={() => setIsEditing(false)} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={css.editorModal} role="dialog" aria-modal="true">
             <ProjectEditor project={project} onClose={() => setIsEditing(false)} />
           </div>
         </div>
@@ -167,8 +219,9 @@ export default function ProjectPage() {
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (
-        <div className={css.modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
-          <div onClick={(e) => e.stopPropagation()} className={css.deleteDialog}>
+        /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
+        <div className={css.modalOverlay} onClick={() => setShowDeleteConfirm(false)} role="presentation">
+          <div onClick={(e) => e.stopPropagation()} className={css.deleteDialog} role="dialog" aria-modal="true">
             <h3 className={css.deleteTitle}>Delete &ldquo;{project.name}&rdquo;?</h3>
             <p className={css.deleteDesc}>This will permanently remove the project, all zones, and attachments.</p>
             <div className={css.deleteActions}>

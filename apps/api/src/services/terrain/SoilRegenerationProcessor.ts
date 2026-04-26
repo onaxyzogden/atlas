@@ -107,6 +107,12 @@ export class SoilRegenerationProcessor {
           annualSeqRate: carbon?.annualSeqRate_tChaYr ?? 0,
           primaryIntervention: intervention?.primaryIntervention ?? 'cover_crop_candidate',
           suitabilityScore: intervention?.suitabilityScore ?? 0,
+          // Per-zone land cover context from the `land_cover` layer's
+          // class-distribution summary, intersected 1:1 with soil zones
+          // inside `loadContext`. Consumed by `BiodiversityCorridorOverlay`
+          // to build a cover × impedance friction surface.
+          coverClass: zone.landCover.coverClass,
+          disturbanceLevel: zone.landCover.disturbanceLevel,
           areaHa: zone.areaHa,
         },
         geometry: {
@@ -137,12 +143,12 @@ export class SoilRegenerationProcessor {
         ${ctx.confidence},
         ${dataDate},
         ${'Derived from soil survey data and land cover classification'},
-        ${JSON.stringify(geojsonData)},
-        ${JSON.stringify(summaryData)},
-        ${JSON.stringify({
+        ${this.db.json(geojsonData as never) as unknown as string},
+        ${this.db.json(summaryData as never) as unknown as string},
+        ${this.db.json({
           zoneCount: ctx.zones.length,
           sourceLayerCount: ctx.dataSources.length,
-        })},
+        } as never) as unknown as string},
         now()
       )
       ON CONFLICT (project_id, layer_type) DO UPDATE SET
@@ -182,7 +188,7 @@ export class SoilRegenerationProcessor {
 
     // Load source layers
     const layers = await this.db`
-      SELECT layer_type, confidence, summary_data
+      SELECT layer_type, fetch_status, confidence, summary_data
       FROM project_layers
       WHERE project_id = ${projectId}
         AND layer_type IN ('soils', 'land_cover', 'elevation')
@@ -194,6 +200,27 @@ export class SoilRegenerationProcessor {
     const soilsLayer = getLayer('soils');
     const landCoverLayer = getLayer('land_cover');
     const elevationLayer = getLayer('elevation');
+
+    // Guard: required inputs must be fetched and have summary_data. Without
+    // this check the parsers silently fall through to hard-coded defaults
+    // ("1 zone, loam, 3% OM"), producing a meaningless assessment. Fail loudly
+    // instead so the job is marked failed and the writer's gate stays closed.
+    const needsSoils =
+      !soilsLayer ||
+      soilsLayer.fetch_status !== 'complete' ||
+      soilsLayer.summary_data == null;
+    const needsLandCover =
+      !landCoverLayer ||
+      landCoverLayer.fetch_status !== 'complete' ||
+      landCoverLayer.summary_data == null;
+    if (needsSoils || needsLandCover) {
+      const missing: string[] = [];
+      if (needsSoils) missing.push(`soils(status=${soilsLayer?.fetch_status ?? 'missing'})`);
+      if (needsLandCover) missing.push(`land_cover(status=${landCoverLayer?.fetch_status ?? 'missing'})`);
+      throw new Error(
+        `soil_regeneration: required Tier-1 layers not ready — ${missing.join(', ')}`,
+      );
+    }
 
     // Parse soils into SoilZone[]
     const soilZones = parseSoilZones(soilsLayer, elevationLayer, bbox);

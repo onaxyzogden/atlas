@@ -19,6 +19,9 @@ import type {
   CommentRecord,
   CreateCommentInput,
   UpdateCommentInput,
+  RegenerationEvent,
+  RegenerationEventInput,
+  RegenerationEventUpdateInput,
   ProjectMemberRecord,
   InviteMemberInput,
   UpdateMemberRoleInput,
@@ -29,6 +32,13 @@ import type {
   CreateSuggestedEditInput,
   ReviewSuggestedEditInput,
   ProjectRole,
+  AssessmentResponse,
+  HydrologyWaterResponse,
+  BasemapTerrainResponse,
+  ElevationProfileRequest,
+  ElevationProfileResponse,
+  ElevationPointRequest,
+  ElevationPointResponse,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -63,9 +73,10 @@ async function request<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<ApiEnvelope<T>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = {};
+  if (body != null) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
@@ -137,13 +148,50 @@ export const api = {
       request<{ id: string; acreage: number }>('POST', `/api/v1/projects/${id}/boundary`, { geojson }),
 
     assessment: (id: string) =>
-      request<unknown>('GET', `/api/v1/projects/${id}/assessment`),
+      request<AssessmentResponse>('GET', `/api/v1/projects/${id}/assessment`),
+
+    aiOutputs: (id: string) =>
+      request<Record<string, {
+        id: string;
+        projectId: string;
+        outputType: string;
+        content: string;
+        confidence: 'high' | 'medium' | 'low';
+        dataSources: string[];
+        caveat: string | null;
+        needsSiteVisit: boolean;
+        modelId: string;
+        generatedAt: string;
+      }>>('GET', `/api/v1/projects/${id}/ai-outputs`),
 
     completeness: (id: string) =>
       request<{ score: number; layers: unknown[] }>('GET', `/api/v1/projects/${id}/completeness`),
 
     delete: (id: string) =>
       request<void>('DELETE', `/api/v1/projects/${id}`),
+  },
+
+  templates: {
+    list: () =>
+      request<Array<{
+        id: string;
+        ownerId: string;
+        name: string;
+        sourceProjectId: string | null;
+        createdAt: string;
+      }>>('GET', '/api/v1/templates'),
+
+    create: (input: { name: string; sourceProjectId: string }) =>
+      request<{
+        id: string;
+        ownerId: string;
+        name: string;
+        sourceProjectId: string | null;
+        createdAt: string;
+      }>('POST', '/api/v1/templates', input),
+
+    instantiate: (id: string, input: { name: string }) =>
+      request<ProjectSummary>('POST', `/api/v1/templates/${id}/instantiate`, input),
   },
 
   designFeatures: {
@@ -305,6 +353,80 @@ export const api = {
       request<void>('DELETE', `/api/v1/projects/${projectId}/comments/${commentId}`),
   },
 
+  regenerationEvents: {
+    list: (
+      projectId: string,
+      filters?: {
+        eventType?: RegenerationEvent['eventType'];
+        interventionType?: NonNullable<RegenerationEvent['interventionType']>;
+        phase?: NonNullable<RegenerationEvent['phase']>;
+        since?: string;
+        until?: string;
+        parentId?: string;
+      },
+    ) => {
+      const qs = filters
+        ? '?' + new URLSearchParams(
+            Object.entries(filters).filter(
+              (entry): entry is [string, string] =>
+                typeof entry[1] === 'string' && entry[1].length > 0,
+            ),
+          ).toString()
+        : '';
+      return request<RegenerationEvent[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/regeneration-events${qs && qs !== '?' ? qs : ''}`,
+      );
+    },
+
+    create: (projectId: string, input: RegenerationEventInput) =>
+      request<RegenerationEvent>(
+        'POST',
+        `/api/v1/projects/${projectId}/regeneration-events`,
+        input,
+      ),
+
+    update: (projectId: string, eventId: string, input: RegenerationEventUpdateInput) =>
+      request<RegenerationEvent>(
+        'PATCH',
+        `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
+        input,
+      ),
+
+    delete: (projectId: string, eventId: string) =>
+      request<void>(
+        'DELETE',
+        `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
+      ),
+
+    uploadMedia: (projectId: string, file: File): Promise<ApiEnvelope<{
+      url: string;
+      contentType: string;
+      size: number;
+      filename: string;
+    }>> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const headers: Record<string, string> = {};
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      return fetch(`/api/v1/projects/${projectId}/regeneration-events/media`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      }).then(async (res) => {
+        const json = await res.json();
+        if (!res.ok || json.error) {
+          throw new ApiError(
+            json.error?.code ?? 'UPLOAD_FAILED',
+            json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
+            res.status,
+          );
+        }
+        return json;
+      });
+    },
+  },
+
   members: {
     list: (projectId: string) =>
       request<ProjectMemberRecord[]>('GET', `/api/v1/projects/${projectId}/members`),
@@ -361,4 +483,73 @@ export const api = {
         input,
       ),
   },
+
+  hydrologyWater: {
+    get: (projectId: string) =>
+      request<HydrologyWaterResponse>('GET', `/api/v1/hydrology-water/${projectId}`),
+  },
+
+  basemapTerrain: {
+    get: (projectId: string) =>
+      request<BasemapTerrainResponse>('GET', `/api/v1/basemap-terrain/${projectId}`),
+    viewshed: (projectId: string) =>
+      request<{ status: 'ready'; geojson: GeoJSON.FeatureCollection } | { status: 'not_ready' }>(
+        'GET',
+        `/api/v1/basemap-terrain/${projectId}/viewshed`,
+      ),
+  },
+
+  elevation: {
+    profile: (input: ElevationProfileRequest) =>
+      request<ElevationProfileResponse>('POST', '/api/v1/elevation/profile', input),
+    point: (input: ElevationPointRequest) =>
+      request<ElevationPointResponse>('POST', '/api/v1/elevation/point', input),
+  },
+
+  climateAnalysis: {
+    computeSolarExposure: (projectId: string) =>
+      request<SolarExposureResponse>(
+        'POST',
+        `/api/v1/climate-analysis/${projectId}/solar-exposure/compute`,
+      ),
+    computeComfortGrid: (projectId: string) =>
+      request<ComfortGridResponse>(
+        'POST',
+        `/api/v1/climate-analysis/${projectId}/comfort-grid/compute`,
+      ),
+  },
 };
+
+export interface SolarExposureResponse {
+  geojson: GeoJSON.FeatureCollection;
+  summary: {
+    mean_exposure: number;
+    min_exposure: number;
+    max_exposure: number;
+    excellent_pct: number;
+    high_pct: number;
+    medium_pct: number;
+    low_pct: number;
+    sample_grid_size: number;
+    resolution_m: number;
+    source_api: string;
+  };
+}
+
+export interface ComfortGridResponse {
+  geojson: GeoJSON.FeatureCollection;
+  summary: {
+    reference_mean_max_c: number;
+    reference_mean_min_c: number;
+    reference_elevation_m: number;
+    freezing_pct: number;
+    cold_pct: number;
+    cool_pct: number;
+    comfortable_pct: number;
+    hot_pct: number;
+    dominant_band: 'freezing' | 'cold' | 'cool' | 'comfortable' | 'hot';
+    sample_grid_size: number;
+    resolution_m: number;
+    source_api: string;
+  };
+}

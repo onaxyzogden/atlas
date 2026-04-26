@@ -2,10 +2,11 @@ import { useMapStore, type MapStyle } from '../../store/mapStore.js';
 import { semantic } from '../../lib/tokens.js';
 
 const STYLES: { id: MapStyle; label: string }[] = [
-  { id: 'satellite', label: 'Satellite' },
-  { id: 'terrain',   label: 'Terrain' },
-  { id: 'street',    label: 'Street' },
-  { id: 'hybrid',    label: 'Hybrid' },
+  { id: 'satellite',   label: 'Satellite' },
+  { id: 'terrain',     label: 'Terrain' },
+  { id: 'topographic', label: 'Topographic' },
+  { id: 'street',      label: 'Street' },
+  { id: 'hybrid',      label: 'Hybrid' },
 ];
 
 export default function MapStyleSwitcher() {
@@ -16,7 +17,7 @@ export default function MapStyleSwitcher() {
       style={{
         display: 'flex',
         gap: 4,
-        background: 'rgba(26, 22, 17, 0.85)',
+        background: 'var(--color-chrome-bg-translucent)',
         borderRadius: 8,
         padding: '4px 6px',
         backdropFilter: 'blur(8px)',

@@ -59,13 +59,30 @@ Client-side scoring engine that computes **8 weighted assessment dimensions + 2-
 | Sprint W | Proximity data (additional OSM-derived distances, supplements infrastructure layer) | ~153 |
 
 ## Where It's Used
-- `apps/web/src/lib/computeScores.ts` — main engine (10-11 scoring functions: 8 weighted + 2-3 classification)
+- `packages/shared/src/scoring/computeScores.ts` — **canonical engine** (lifted from web on 2026-04-21; 10-11 scoring functions: 8 weighted + 2-3 classification). Exported via the `@ogden/shared/scoring` subpath.
+- `apps/web/src/lib/computeScores.ts` — thin shim: `export * from '@ogden/shared/scoring'`
+- `apps/api/src/services/assessments/SiteAssessmentWriter.ts` — API writer consumes the same module and persists the full `ScoredResult[]` into `site_assessments.score_breakdown` (canonical since migration 009, 2026-04-21)
 - `apps/web/src/lib/cropMatching.ts` — crop suitability scoring (9-factor EcoCrop matching, rain-fed vs irrigated)
 - `apps/web/src/lib/hydrologyMetrics.ts` — hydrology metric computation (PET, aridity, RWH, irrigation)
 - `SiteIntelligencePanel` — displays scores, breakdowns, Hydrology Intelligence, Soil Intelligence, and crop list
 - `DecisionSupportPanel` — uses scores for feasibility analysis
 - `RegulatoryPanel` — uses flags for compliance assessment
-- PDF templates (site_assessment, educational_booklet) — renders scores as gauges
+- PDF templates (site_assessment, educational_booklet) — iterate `score_breakdown: ScoredResult[]` to render 10 label gauges + per-component factor tables
+
+## Canonical storage shape (2026-04-21, migration 009)
+`site_assessments.score_breakdown` jsonb is the single source of truth for per-label scores. Shape: `ScoredResult[]` exactly as `computeAssessmentScores(...)` returns it. Each element:
+```ts
+{
+  label: string;                       // 'Water Resilience', 'Buildability', 'Agricultural Suitability', …
+  score: number;                       // 0–100
+  rating: 'Exceptional' | 'Good' | 'Moderate' | 'Low' | 'Insufficient Data';
+  confidence: 'high' | 'medium' | 'low';
+  dataSources: string[];
+  computedAt: string;                  // ISO-8601
+  score_breakdown: ScoreComponent[];   // per-factor contributions
+}
+```
+`site_assessments.overall_score` (numeric(4,1)) is denormalised from `computeOverallScore(scores)` inside the same writer transaction — zero drift by construction. The pre-009 dedicated columns (`suitability_score`, `buildability_score`, `water_resilience_score`, `ag_potential_score`) were dropped; see `wiki/decisions/2026-04-21-site-assessments-schema-lift.md`.
 
 ## Constraints
 - WithConfidence mixin on all outputs — never present a score without confidence

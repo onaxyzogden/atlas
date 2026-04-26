@@ -12,6 +12,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { SETBACK_RULES } from '../rules/SitingRules.js';
 import { confidence, utility } from '../../lib/tokens.js';
+import RegulatoryRiskNotesCard from './RegulatoryRiskNotesCard.js';
 import p from '../../styles/panel.module.css';
 import s from './RegulatoryPanel.module.css';
 
@@ -98,6 +99,9 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
           {riskScore.description}
         </div>
       </div>
+
+      {/* Categorical regulatory risk surfaces */}
+      <RegulatoryRiskNotesCard project={project} />
 
       {/* Zoning section */}
       <RegSection
@@ -192,13 +196,13 @@ export default function RegulatoryPanel({ project }: RegulatoryPanelProps) {
             {floodWetland.wetland_pct != null && (
               <div className={s.infoRow}>
                 <span className={s.infoLabel}>Wetland Coverage</span>
-                <span className={s.infoValue}>{floodWetland.wetland_pct.toFixed(1)}%</span>
+                <span className={s.infoValue}>{Number(floodWetland.wetland_pct).toFixed(1)}%</span>
               </div>
             )}
             {floodWetland.regulated_area_pct != null && (
               <div className={s.infoRow}>
                 <span className={s.infoLabel}>Regulated Area</span>
-                <span className={s.infoValue}>{floodWetland.regulated_area_pct.toFixed(1)}%</span>
+                <span className={s.infoValue}>{Number(floodWetland.regulated_area_pct).toFixed(1)}%</span>
               </div>
             )}
           </div>

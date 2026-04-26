@@ -148,3 +148,87 @@
   color: var(--color-confidence-high);
   text-align: center;
 }
+
+/* §10 AccessibleRouteCard — per-path mobility-friendliness rating. */
+
+.accessibleRow {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-panel-card-border);
+  background: var(--color-panel-card);
+  margin-bottom: 6px;
+}
+
+.accessibleHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.accessibleName {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accessibleNote {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--color-panel-muted);
+}
+
+.accessibleBadge {
+  font-size: 9px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.accessibleBadge_yes {
+  background: rgba(var(--color-confidence-high-rgb), 0.15);
+  color: var(--color-confidence-high);
+}
+
+.accessibleBadge_maybe {
+  background: rgba(var(--color-warning-rgb), 0.14);
+  color: var(--color-warning);
+}
+
+.accessibleBadge_no {
+  background: rgba(var(--color-error-rgb), 0.12);
+  color: var(--color-error);
+}
+
+.accessibleEmpty {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-panel-card-border);
+  background: rgba(255, 255, 255, 0.015);
+  color: var(--color-panel-muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.accessibleEmpty em {
+  color: var(--color-panel-text);
+  font-style: normal;
+  font-weight: var(--font-medium);
+}
+
+.accessibleFootnote {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-panel-card-border);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--color-panel-muted);
+  opacity: 0.85;
+}

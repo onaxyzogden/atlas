@@ -1,0 +1,318 @@
+/* §27 ClientHandoffPackageCard — read-only deliverable consolidator. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+/* ── Verdict banner ── */
+.verdictBanner {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 4px solid transparent;
+}
+
+.verdictGreen {
+  background: rgba(160, 195, 130, 0.10);
+  border-left-color: rgba(160, 195, 130, 0.65);
+}
+
+.verdictCaution {
+  background: rgba(220, 180, 100, 0.10);
+  border-left-color: rgba(220, 180, 100, 0.65);
+}
+
+.verdictBlocker {
+  background: rgba(220, 130, 110, 0.12);
+  border-left-color: rgba(220, 130, 110, 0.7);
+}
+
+.verdictTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.95);
+  margin-bottom: 3px;
+}
+
+.verdictNote {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+/* ── Section label ── */
+.sectionLabel {
+  margin: 14px 0 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+/* ── Inclusions ── */
+.inclusionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inclusionItem,
+.inclusionItemMissing {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.inclusionItemMissing {
+  background: rgba(220, 130, 110, 0.05);
+  border-color: rgba(220, 130, 110, 0.18);
+}
+
+.inclusionDot {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(160, 195, 130, 0.18);
+  color: rgba(190, 220, 160, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.inclusionItemMissing .inclusionDot {
+  background: rgba(220, 130, 110, 0.18);
+  color: rgba(235, 165, 140, 0.95);
+}
+
+.inclusionMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.inclusionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin-bottom: 2px;
+}
+
+.inclusionCount {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.7);
+  margin-left: 6px;
+}
+
+.inclusionDetail {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Findings ── */
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.findingRow {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  border-left-width: 3px;
+}
+
+.findingBlocker {
+  border-left-color: rgba(220, 130, 110, 0.7);
+}
+
+.findingCaution {
+  border-left-color: rgba(220, 180, 100, 0.65);
+}
+
+.findingGreen {
+  border-left-color: rgba(160, 195, 130, 0.6);
+}
+
+.findingTier {
+  flex-shrink: 0;
+  width: 64px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+
+.findingBlocker .findingTier {
+  color: rgba(235, 165, 140, 0.95);
+}
+
+.findingCaution .findingTier {
+  color: rgba(235, 200, 130, 0.95);
+}
+
+.findingGreen .findingTier {
+  color: rgba(190, 220, 160, 0.95);
+}
+
+.findingMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.findingLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin-bottom: 2px;
+}
+
+.findingDetail {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+/* ── Mode chooser ── */
+.modeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.modeTile,
+.modeTileActive {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.modeTile:hover {
+  border-color: rgba(232, 220, 200, 0.18);
+}
+
+.modeTileActive {
+  background: rgba(196, 162, 101, 0.10);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+
+.modeTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.modeDetail {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.modeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.modeRowLabel {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.modeRowValue {
+  color: rgba(180, 165, 140, 0.85);
+}
+
+/* ── Privacy note ── */
+.privacyNote {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.privacyTitle {
+  color: rgba(220, 210, 185, 0.92);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 720px) {
+  .modeGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,7 +2,7 @@
 .page { max-width: 860px; }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -53,7 +53,7 @@
 }
 .elevValue {
   display: block;
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -167,3 +167,16 @@
   transition: background 150ms;
 }
 .mapBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .elevValue { font-size: 22px; }
+  .slopeCard, .aspectCard, .drainageCard { padding: 16px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .elevGrid { grid-template-columns: 1fr 1fr; }
+  .elevValue { font-size: 20px; }
+  .aspectItem { grid-template-columns: 24px 1fr 36px; gap: 8px; }
+}

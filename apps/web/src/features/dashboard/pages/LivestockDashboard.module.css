@@ -3,7 +3,7 @@
 .page { max-width: 860px; }
 
 .title {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -33,7 +33,7 @@
   gap: 8px;
 }
 .sectionTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   font-style: italic;
@@ -90,7 +90,7 @@
   border: 1px solid;
 }
 .herdName {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   color: rgba(232,220,200,0.95);
@@ -120,7 +120,7 @@
   margin-bottom: 2px;
 }
 .herdStatValue {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -162,7 +162,7 @@
   margin-bottom: 4px;
 }
 .ledgerTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
   color: rgba(232,220,200,0.9);
@@ -198,7 +198,7 @@
   background: rgba(255,255,255,0.015);
 }
 .ledgerCardTitle {
-  font-family: var(--font-display, 'Lora', Georgia, serif);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
   font-style: italic;
@@ -260,4 +260,24 @@
   letter-spacing: 0.04em;
   color: rgba(180,165,140,0.4);
   text-transform: uppercase;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .sectionHeader { flex-direction: column; align-items: flex-start; }
+  .sectionControls { gap: 10px; }
+  .herdCard { padding: 16px; }
+  .herdName { font-size: 18px; }
+  .herdStatValue { font-size: 20px; }
+  .ledgerSection { padding: 18px; }
+  .ledgerHeader { flex-direction: column; gap: 12px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .herdStats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .herdStatValue { font-size: 18px; }
+  .herdFooter { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .ledgerCard { padding: 12px; }
+  .logActivityBtn { width: 100%; justify-content: center; }
 }

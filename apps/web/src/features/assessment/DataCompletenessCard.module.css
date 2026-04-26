@@ -1,0 +1,234 @@
+/* §26 DataCompletenessCard — per-section intake audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Overall ──────────────────────────────────────────────────────── */
+
+.overallRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 14px;
+}
+
+.overallBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.overallValue {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.overallUnit {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 4px;
+}
+
+.overallLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.overallBarWrap {
+  display: flex;
+  align-items: center;
+}
+
+.overallBar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.overallBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 200ms ease;
+}
+
+/* ── Section list ─────────────────────────────────────────────────── */
+
+.sectionList {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.sectionLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.sectionScore {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionScoreUnit {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.5);
+  margin-left: 2px;
+}
+
+.sectionMeta {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.sectionMissing {
+  color: rgba(220, 180, 100, 0.85);
+}
+
+/* ── Tone classes ─────────────────────────────────────────────────── */
+
+.tone_good { color: rgba(180, 200, 150, 0.95); }
+.tone_fair { color: rgba(220, 180, 100, 0.95); }
+.tone_poor { color: rgba(220, 130, 110, 0.95); }
+
+.bg_good { background: rgba(180, 200, 150, 0.7); }
+.bg_fair { background: rgba(220, 180, 100, 0.75); }
+.bg_poor { background: rgba(220, 130, 110, 0.75); }
+
+.border_good { border-left-color: rgba(180, 200, 150, 0.7); }
+.border_fair { border-left-color: rgba(220, 180, 100, 0.7); }
+.border_poor { border-left-color: rgba(220, 130, 110, 0.7); }
+
+/* ── Fix-first block ──────────────────────────────────────────────── */
+
+.fixBlock {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(220, 130, 110, 0.06);
+  border: 1px solid rgba(220, 130, 110, 0.18);
+  margin-bottom: 12px;
+}
+
+.fixKey {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 130, 110, 0.95);
+  margin-bottom: 4px;
+}
+
+.fixList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fixRow {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.fixRow strong {
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

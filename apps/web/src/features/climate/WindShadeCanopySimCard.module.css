@@ -1,0 +1,250 @@
+/* §16 WindShadeCanopySimCard — matches SolarClimateDashboard's
+   ink-on-parchment palette. Aggregate row uses gold accents,
+   per-area rows are quieter so the eye finds the totals first. */
+
+.section { margin-bottom: 28px; }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 480px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+}
+
+/* ── Aggregate (top) row ────────────────────────────────────────────── */
+
+.aggregate {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 162, 101, 0.22);
+  background: rgba(196, 162, 101, 0.05);
+}
+
+.aggHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.aggLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.aggMeta {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.62);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.horizonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.horizonCell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.18);
+  background: rgba(196, 162, 101, 0.04);
+}
+
+.horizonYr {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 200, 130, 0.85);
+}
+
+.horizonShade {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-family: 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.horizonPct {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.horizonShelter {
+  margin-top: 2px;
+  font-size: 10px;
+  color: rgba(150, 200, 220, 0.78);
+  letter-spacing: 0.01em;
+}
+
+/* ── Per-area rows ──────────────────────────────────────────────────── */
+
+.areaList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.areaRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.areaRowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.areaName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.areaType {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.areaMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.horizonGridSm {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.horizonCellSm {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.horizonYrSm {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.horizonShadeSm {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(220, 210, 185, 0.85);
+  font-family: 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.horizonShelterSm {
+  font-size: 9.5px;
+  color: rgba(150, 200, 220, 0.7);
+}
+
+/* ── Empty state ────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+  background: rgba(232, 220, 200, 0.015);
+  color: rgba(180, 165, 140, 0.7);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* ── Footnote ───────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}

@@ -5,8 +5,8 @@
  * Used by src/index.ts for production and by tests via app.inject().
  */
 
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { readFileSync, createReadStream, statSync } from 'fs';
+import { resolve, dirname, normalize, join } from 'path';
 import { fileURLToPath } from 'url';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 import cors from '@fastify/cors';
@@ -22,10 +22,12 @@ import databasePlugin from './plugins/database.js';
 import redisPlugin from './plugins/redis.js';
 import authPlugin from './plugins/auth.js';
 import rbacPlugin from './plugins/rbac.js';
+import featureGatePlugin from './plugins/featureGate.js';
 import websocketPlugin from './plugins/websocket.js';
 
 import authRoutes from './routes/auth/index.js';
 import projectRoutes from './routes/projects/index.js';
+import templateRoutes from './routes/templates/index.js';
 import layerRoutes from './routes/layers/index.js';
 import spiritualRoutes from './routes/spiritual/index.js';
 import pipelineRoutes from './routes/pipeline/index.js';
@@ -45,6 +47,50 @@ import memberRoutes from './routes/members/index.js';
 import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
+import regenerationEventRoutes from './routes/regeneration-events/index.js';
+
+// ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
+import basemapTerrainRoutes from './routes/basemap-terrain/index.js';
+import siteDataLayersRoutes from './routes/site-data-layers/index.js';
+import siteAssessmentRoutes from './routes/site-assessment/index.js';
+import adminGovernanceRoutes from './routes/admin-governance/index.js';
+
+// ── Scaffolded sections (Batch 2: §§5, 6, 7, 13) ──
+import hydrologyWaterRoutes from './routes/hydrology-water/index.js';
+import climateAnalysisRoutes from './routes/climate-analysis/index.js';
+import soilEcologyRoutes from './routes/soil-ecology/index.js';
+import utilitiesEnergyRoutes from './routes/utilities-energy/index.js';
+
+// ── Scaffolded sections (Batch 3: §§8, 9, 10, 12) ──
+import zoningAllocationRoutes from './routes/zoning-allocation/index.js';
+import structuresBuildingsRoutes from './routes/structures-buildings/index.js';
+import accessCirculationRoutes from './routes/access-circulation/index.js';
+import cropsAgroforestryRoutes from './routes/crops-agroforestry/index.js';
+
+// ── Scaffolded sections (Batch 4: §§11, 14, 15, 16) ──
+import livestockSystemsRoutes from './routes/livestock-systems/index.js';
+import moontranceVisionRoutes from './routes/moontrance-vision/index.js';
+import timelinePhasingRoutes from './routes/timeline-phasing/index.js';
+import simulationScenariosRoutes from './routes/simulation-scenarios/index.js';
+
+// ── Scaffolded sections (Batch 5: §§17, 18, 21, 22) ──
+import designRulesRoutes from './routes/design-rules/index.js';
+import aiDesignSupportRoutes from './routes/ai-design-support/index.js';
+import decisionFeasibilityRoutes from './routes/decision-feasibility/index.js';
+import economicModelingRoutes from './routes/economic-modeling/index.js';
+
+// ── Scaffolded sections (Batch 6: §§19, 20, 23, 25) ──
+import educationInterpretiveRoutes from './routes/education-interpretive/index.js';
+import collaborationReviewRoutes from './routes/collaboration-review/index.js';
+import reportingExportRoutes from './routes/reporting-export/index.js';
+import reusableFrameworksRoutes from './routes/reusable-frameworks/index.js';
+
+// ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+import mobileFieldworkRoutes from './routes/mobile-fieldwork/index.js';
+import publicPortalSectionRoutes from './routes/public-portal/index.js';
+import futureGeospatialRoutes from './routes/future-geospatial/index.js';
+import moontranceIdentityRoutes from './routes/moontrance-identity/index.js';
+
 import { DataPipelineOrchestrator } from './services/pipeline/DataPipelineOrchestrator.js';
 import { closeBrowser } from './services/pdf/browserManager.js';
 import { subscribeBroadcast } from './lib/broadcast.js';
@@ -79,6 +125,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(redisPlugin);
   await app.register(authPlugin);
   await app.register(rbacPlugin);
+  await app.register(featureGatePlugin);
   await app.register(websocketPlugin);
 
   // ─── Pipeline orchestrator (populated in onReady once DB + Redis are available)
@@ -88,6 +135,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   await app.register(authRoutes,     { prefix: '/api/v1/auth' });
   await app.register(projectRoutes,  { prefix: '/api/v1/projects' });
+  await app.register(templateRoutes, { prefix: '/api/v1/templates' });
   await app.register(layerRoutes,    { prefix: '/api/v1/layers' });
   await app.register(spiritualRoutes,{ prefix: '/api/v1/spiritual' });
   await app.register(pipelineRoutes, { prefix: '/api/v1/pipeline' });
@@ -105,7 +153,76 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(organizationRoutes,  { prefix: '/api/v1/organizations' });
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
+  await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
+
+  // Static serve for the LocalStorageProvider — only kicks in when local
+  // storage is in use; otherwise S3 URLs are returned directly. The
+  // path-traversal guard (resolve + startsWith) is the critical security
+  // control here.
+  const uploadsRoot = resolve(process.cwd(), 'data', 'uploads');
+  app.get<{ Params: { '*': string } }>('/uploads/*', async (req, reply) => {
+    const requested = (req.params as { '*': string })['*'];
+    const target = normalize(join(uploadsRoot, requested));
+    if (!target.startsWith(uploadsRoot)) {
+      reply.code(400);
+      return { error: 'invalid path' };
+    }
+    try {
+      const stat = statSync(target);
+      if (!stat.isFile()) {
+        reply.code(404);
+        return { error: 'not found' };
+      }
+      reply.header('Cache-Control', 'private, max-age=300');
+      return reply.send(createReadStream(target));
+    } catch {
+      reply.code(404);
+      return { error: 'not found' };
+    }
+  });
+
+  // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
+  await app.register(basemapTerrainRoutes, { prefix: '/api/v1/basemap-terrain' });
+  await app.register(siteDataLayersRoutes, { prefix: '/api/v1/site-data-layers' });
+  await app.register(siteAssessmentRoutes, { prefix: '/api/v1/site-assessment' });
+  await app.register(adminGovernanceRoutes,{ prefix: '/api/v1/admin-governance' });
+
+  // ── Scaffolded sections (Batch 2: §§5, 6, 7, 13) ──
+  await app.register(hydrologyWaterRoutes,  { prefix: '/api/v1/hydrology-water' });
+  await app.register(climateAnalysisRoutes, { prefix: '/api/v1/climate-analysis' });
+  await app.register(soilEcologyRoutes,     { prefix: '/api/v1/soil-ecology' });
+  await app.register(utilitiesEnergyRoutes, { prefix: '/api/v1/utilities-energy' });
+
+  // ── Scaffolded sections (Batch 3: §§8, 9, 10, 12) ──
+  await app.register(zoningAllocationRoutes,    { prefix: '/api/v1/zoning-allocation' });
+  await app.register(structuresBuildingsRoutes, { prefix: '/api/v1/structures-buildings' });
+  await app.register(accessCirculationRoutes,   { prefix: '/api/v1/access-circulation' });
+  await app.register(cropsAgroforestryRoutes,   { prefix: '/api/v1/crops-agroforestry' });
+
+  // ── Scaffolded sections (Batch 4: §§11, 14, 15, 16) ──
+  await app.register(livestockSystemsRoutes,     { prefix: '/api/v1/livestock-systems' });
+  await app.register(moontranceVisionRoutes,     { prefix: '/api/v1/moontrance-vision' });
+  await app.register(timelinePhasingRoutes,      { prefix: '/api/v1/timeline-phasing' });
+  await app.register(simulationScenariosRoutes,  { prefix: '/api/v1/simulation-scenarios' });
+
+  // ── Scaffolded sections (Batch 5: §§17, 18, 21, 22) ──
+  await app.register(designRulesRoutes,          { prefix: '/api/v1/design-rules' });
+  await app.register(aiDesignSupportRoutes,      { prefix: '/api/v1/ai-design-support' });
+  await app.register(decisionFeasibilityRoutes,  { prefix: '/api/v1/decision-feasibility' });
+  await app.register(economicModelingRoutes,     { prefix: '/api/v1/economic-modeling' });
+
+  // ── Scaffolded sections (Batch 6: §§19, 20, 23, 25) ──
+  await app.register(educationInterpretiveRoutes, { prefix: '/api/v1/education-interpretive' });
+  await app.register(collaborationReviewRoutes,   { prefix: '/api/v1/collaboration-review' });
+  await app.register(reportingExportRoutes,       { prefix: '/api/v1/reporting-export' });
+  await app.register(reusableFrameworksRoutes,    { prefix: '/api/v1/reusable-frameworks' });
+
+  // ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+  await app.register(mobileFieldworkRoutes,       { prefix: '/api/v1/mobile-fieldwork' });
+  await app.register(publicPortalSectionRoutes,   { prefix: '/api/v1/public-portal' });
+  await app.register(futureGeospatialRoutes,      { prefix: '/api/v1/future-geospatial' });
+  await app.register(moontranceIdentityRoutes,    { prefix: '/api/v1/moontrance-identity' });
 
   // ─── GAEZ raster service (manifest loaded if present; absent = disabled) ────
 
@@ -182,7 +299,8 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
         orchestrator.startWatershedWorker();
         orchestrator.startMicroclimateWorker();
         orchestrator.startSoilRegenerationWorker();
-        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed + tier3-microclimate + tier3-soil-regeneration)');
+        orchestrator.startNarrativeWorker();
+        app.log.info('Data pipeline workers started (tier1-data + tier3-terrain + tier3-watershed + tier3-microclimate + tier3-soil-regeneration + narrative-generation)');
 
         // Relay Redis pub/sub broadcasts to local WebSocket connections
         const redisSub = subscribeBroadcast(redis, (projectId, event) => {

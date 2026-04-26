@@ -13,6 +13,14 @@ import { zone } from '../../lib/tokens.js';
 import { formatKRange, formatUsdRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
+import OperatingRunwayCard from './OperatingRunwayCard.js';
+import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
+import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
+import MaturityYieldCurveCard from '../crops/MaturityYieldCurveCard.js';
+import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js';
+import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
+import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
+import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -291,6 +299,16 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
             />
           </div>
 
+          {/* Operating runway — annual revenue vs cost burn-down */}
+          <OperatingRunwayCard cashflow={cashflow} breakEven={breakEven} />
+
+          {/* §22 Sensitivity by assumption — how do ±20% / ±50% lever shifts move headline metrics? */}
+          <SensitivityAnalysisCard model={model} />
+
+          {/* §22 Hidden cost flags + contingency recommendation
+              (cost-sensitivity-hidden-costs-contingency). */}
+          <HiddenCostsContingencyCard project={project} model={model} />
+
           {/* Category breakdown */}
           <SectionLabel>Investment by Category</SectionLabel>
           <div className={`${p.section} ${p.sectionGapLg}`}>
@@ -307,6 +325,11 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               </div>
             ))}
           </div>
+
+          {/* §22 Total cost of ownership (10yr capex + opex + lifecycle replacement)
+              — closes grant-readiness-total-cost-of-ownership alongside the
+              Grant Readiness section below. */}
+          <TotalCostOfOwnershipCard project={project} model={model} />
 
           {/* Grant readiness */}
           {grantItems.length > 0 && (
@@ -400,6 +423,8 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               </div>
             </>
           )}
+
+          <MaturityYieldCurveCard projectId={project.id} />
         </>
       )}
 
@@ -440,6 +465,9 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Revenue tab */}
       {activeTab === 'revenue' && (
         <>
+          <EnterpriseRevenueMixCard projectId={project.id} />
+          <RevenueRampProjectionCard projectId={project.id} />
+          <OverbuiltForRevenueWarningCard projectId={project.id} />
           <div className={`${p.section} ${p.sectionGapLg}`}>
             {revenueStreams.length === 0 && (
               <div className={p.empty}>

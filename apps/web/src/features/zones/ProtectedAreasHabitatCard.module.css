@@ -1,0 +1,301 @@
+/* §3 ProtectedAreasHabitatCard — protected-area + critical-habitat posture. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.postureBox {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: rgba(232, 220, 200, 0.025);
+  border-left: 3px solid rgba(180, 165, 140, 0.4);
+}
+
+.posture_critical {
+  background: rgba(220, 130, 110, 0.07);
+  border-left-color: rgba(220, 130, 110, 0.85);
+}
+
+.posture_sensitive {
+  background: rgba(220, 180, 100, 0.06);
+  border-left-color: rgba(220, 180, 100, 0.7);
+}
+
+.posture_aware {
+  background: rgba(140, 165, 200, 0.05);
+  border-left-color: rgba(140, 165, 200, 0.6);
+}
+
+.posture_clear {
+  background: rgba(180, 200, 150, 0.05);
+  border-left-color: rgba(180, 200, 150, 0.6);
+}
+
+.posture_unknown {
+  background: rgba(232, 220, 200, 0.025);
+  border-left-color: rgba(180, 165, 140, 0.4);
+}
+
+.postureLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.postureHeadline {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.88);
+}
+
+.sectionTitle {
+  margin: 14px 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border-left: 3px solid rgba(180, 165, 140, 0.35);
+}
+
+.row_critical {
+  background: rgba(220, 130, 110, 0.06);
+  border-left-color: rgba(220, 130, 110, 0.85);
+}
+
+.row_sensitive {
+  background: rgba(220, 180, 100, 0.05);
+  border-left-color: rgba(220, 180, 100, 0.7);
+}
+
+.row_aware {
+  background: rgba(140, 165, 200, 0.04);
+  border-left-color: rgba(140, 165, 200, 0.6);
+}
+
+.row_clear {
+  background: rgba(180, 200, 150, 0.04);
+  border-left-color: rgba(180, 200, 150, 0.55);
+}
+
+.row_unknown {
+  background: rgba(232, 220, 200, 0.025);
+  border-left-color: rgba(180, 165, 140, 0.35);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-block;
+  min-width: 64px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.tag_critical {
+  background: rgba(220, 130, 110, 0.16);
+  color: rgba(232, 165, 145, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.28);
+}
+
+.tag_sensitive {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.92);
+  border: 1px solid rgba(220, 180, 100, 0.22);
+}
+
+.tag_aware {
+  background: rgba(140, 165, 200, 0.12);
+  color: rgba(160, 185, 215, 0.9);
+  border: 1px solid rgba(140, 165, 200, 0.22);
+}
+
+.tag_clear {
+  background: rgba(180, 200, 150, 0.12);
+  color: rgba(195, 215, 165, 0.9);
+  border: 1px solid rgba(180, 200, 150, 0.22);
+}
+
+.tag_unknown {
+  background: rgba(180, 165, 140, 0.1);
+  color: rgba(200, 190, 170, 0.78);
+  border: 1px solid rgba(180, 165, 140, 0.2);
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.kindBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(140, 165, 200, 0.1);
+  color: rgba(160, 185, 215, 0.85);
+  border: 1px solid rgba(140, 165, 200, 0.2);
+  margin-left: auto;
+}
+
+.rowDetail {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 190, 170, 0.8);
+  padding-left: 76px;
+}
+
+.speciesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.speciesItem {
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(140, 165, 200, 0.08);
+  color: rgba(180, 200, 220, 0.88);
+  border: 1px solid rgba(140, 165, 200, 0.18);
+}
+
+.moreNote {
+  font-size: 10.5px;
+  padding: 3px 8px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.recList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recItem {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(200, 190, 170, 0.85);
+  padding-left: 14px;
+  position: relative;
+}
+
+.recItem::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: rgba(196, 162, 101, 0.6);
+  font-weight: 700;
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(180, 200, 150, 0.06);
+  border: 1px solid rgba(180, 200, 150, 0.18);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}

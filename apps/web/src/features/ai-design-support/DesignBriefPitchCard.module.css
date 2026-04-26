@@ -1,0 +1,270 @@
+/* §17 DesignBriefPitchCard — one-page exportable brief composition. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 7px 14px;
+  border-radius: 5px;
+  background: rgba(196, 162, 101, 0.1);
+  color: rgba(232, 200, 130, 0.95);
+  border: 1px solid rgba(196, 162, 101, 0.25);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.actionBtn:hover {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.4);
+}
+
+.generatedAt {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: auto;
+}
+
+/* ── Brief preview ────────────────────────────────────────────────── */
+
+.brief {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  border-radius: 8px;
+  padding: 24px 28px;
+  margin-bottom: 14px;
+}
+
+.briefTitle {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgba(232, 220, 200, 0.96);
+  line-height: 1.2;
+}
+
+.briefSubtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 16px;
+}
+
+.factRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 18px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.factLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.factValue {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section:last-of-type {
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.sectionBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.88);
+}
+
+.placeholder {
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+}
+
+.bulletList {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.bulletList li {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.88);
+  margin-bottom: 4px;
+}
+
+.numberList {
+  margin: 0;
+  padding-left: 18px;
+  list-style: decimal;
+}
+
+.numberList li {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.88);
+  margin-bottom: 6px;
+}
+
+.briefFooter {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+  line-height: 1.55;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ── Print styles — print only the brief preview, not the chrome ──── */
+
+@media print {
+  .card {
+    border: none;
+    background: white;
+    color: black;
+    padding: 0;
+    margin: 0;
+  }
+  .cardHead,
+  .actionRow,
+  .footnote {
+    display: none !important;
+  }
+  .brief {
+    background: white !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  .briefTitle,
+  .factValue,
+  .sectionBody,
+  .bulletList li,
+  .numberList li {
+    color: #111 !important;
+  }
+  .briefSubtitle,
+  .factLabel,
+  .briefFooter {
+    color: #555 !important;
+  }
+  .sectionTitle {
+    color: #7a5a25 !important;
+  }
+  .factRow {
+    border-color: #ccc !important;
+  }
+  .briefFooter {
+    border-color: #ccc !important;
+  }
+}

@@ -21,6 +21,12 @@ import {
 } from '../../livestock/livestockAnalysis.js';
 import { LIVESTOCK_SPECIES } from '../../livestock/speciesData.js';
 import SimpleBarChart from '../components/SimpleBarChart.js';
+import LivestockLandFitCard from '../../livestock/LivestockLandFitCard.js';
+import LivestockWelfarePhasingCard from '../../livestock/LivestockWelfarePhasingCard.js';
+import BiosecurityBufferCard from '../../livestock/BiosecurityBufferCard.js';
+import PastureUtilizationCard from '../../livestock/PastureUtilizationCard.js';
+import PredatorRiskHotspotsCard from '../../livestock/PredatorRiskHotspotsCard.js';
+import WelfareAccessAuditCard from '../../livestock/WelfareAccessAuditCard.js';
 import css from './LivestockDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 
@@ -314,7 +320,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
         <div className={css.ledgerHeader}>
           <div>
             <span className={css.ledgerTag}>DETAILED LEDGER</span>
-            <h3 className={css.ledgerTitle}>Forage Quality &amp; Activity</h3>
+            <h2 className={css.ledgerTitle}>Forage Quality &amp; Activity</h2>
           </div>
           <button className={css.logActivityBtn}>LOG NEW ACTIVITY</button>
         </div>
@@ -322,7 +328,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
         <div className={css.ledgerGrid}>
           {/* Forage Quality by Paddock */}
           <div className={css.ledgerCard}>
-            <h4 className={css.ledgerCardTitle}>Forage Quality by Paddock</h4>
+            <h3 className={css.ledgerCardTitle}>Forage Quality by Paddock</h3>
             <SimpleBarChart
               data={forageByPaddock}
               height={180}
@@ -336,7 +342,7 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
 
           {/* Recent Activity */}
           <div className={css.ledgerCard}>
-            <h4 className={css.ledgerCardTitle}>Recent Activity</h4>
+            <h3 className={css.ledgerCardTitle}>Recent Activity</h3>
             <div className={css.logsList}>
               {recentActivity.length === 0 && (
                 <p style={{ color: 'rgba(180,165,140,0.45)', fontSize: 13 }}>
@@ -362,13 +368,34 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
         </div>
       </div>
 
+      {/* §11 Livestock-land fit matrix (per-zone × per-species) */}
+      <LivestockLandFitCard projectId={project.id} />
+
+      {/* §11 Welfare notes + per-phase infrastructure rollup */}
+      <LivestockWelfarePhasingCard projectId={project.id} />
+
+      {/* §11 Biosecurity & buffer audit — disease-vector setbacks, isolation pad candidate */}
+      <BiosecurityBufferCard projectId={project.id} parcelBoundaryGeojson={project.parcelBoundaryGeojson ?? null} />
+
+      {/* §11 Pasture utilization — paddock-by-paddock stocking-density feedback */}
+      <PastureUtilizationCard projectId={project.id} />
+
+      {/* §11 Predator risk by paddock — woodland-edge baseline composed
+          with species vulnerability, edge density, fencing type, and
+          shelter proximity. Mitigations per paddock. */}
+      <PredatorRiskHotspotsCard projectId={project.id} />
+
+      {/* §11 Welfare access audit — per-paddock distance check against
+          shade / shelter / water anchors (≤100 m good, ≤200 m fair, >200 m poor). */}
+      <WelfareAccessAuditCard projectId={project.id} />
+
       {/* Animal Welfare Summary */}
       {welfare && (
         <div className={css.ledgerSection}>
           <div className={css.ledgerHeader}>
             <div>
               <span className={css.ledgerTag}>WELFARE</span>
-              <h3 className={css.ledgerTitle}>Animal Welfare Summary</h3>
+              <h2 className={css.ledgerTitle}>Animal Welfare Summary</h2>
             </div>
           </div>
 

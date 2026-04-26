@@ -109,9 +109,17 @@ let instance: StorageProvider | null = null;
 
 export function getStorageProvider(): StorageProvider {
   if (!instance) {
-    if (config.S3_BUCKET) {
+    const hasAwsCreds = Boolean(
+      process.env.AWS_ACCESS_KEY_ID || process.env.AWS_PROFILE,
+    );
+    if (config.S3_BUCKET && hasAwsCreds) {
       console.log(`[Storage] Using S3 bucket: ${config.S3_BUCKET}`);
       instance = new S3StorageProvider();
+    } else if (config.S3_BUCKET) {
+      console.log(
+        `[Storage] S3_BUCKET=${config.S3_BUCKET} but no AWS creds — falling back to local filesystem`,
+      );
+      instance = new LocalStorageProvider();
     } else {
       console.log('[Storage] S3_BUCKET not set — using local filesystem');
       instance = new LocalStorageProvider();

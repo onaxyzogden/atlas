@@ -1,0 +1,260 @@
+/* §21 SeasonalRealismCard — phase × month × task suitability matrix. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.fallbackBanner {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(220, 180, 100, 0.07);
+  border-left: 3px solid rgba(220, 180, 100, 0.6);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 200, 160, 0.82);
+}
+
+/* ── Phase rows ── */
+.phaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phaseRow {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.phaseHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.phaseHeadLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.phaseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.phaseName {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.phaseTimeframe {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  letter-spacing: 0.04em;
+}
+
+.completedBadge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(160, 195, 130, 0.15);
+  color: rgba(180, 215, 150, 0.92);
+}
+
+.phaseScoreGood {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(180, 215, 150, 0.95);
+}
+
+.phaseScoreFair {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(235, 200, 130, 0.95);
+}
+
+.phaseScorePoor {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(235, 165, 145, 0.95);
+}
+
+.phaseScoreNeutral {
+  font-size: 16px;
+  color: rgba(180, 165, 140, 0.5);
+}
+
+.emptyPhase {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+  padding: 6px 0;
+}
+
+/* ── Matrix grid ── */
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matrixHeader,
+.matrixRow {
+  display: grid;
+  grid-template-columns: 130px repeat(12, 1fr);
+  gap: 3px;
+  align-items: center;
+}
+
+.matrixCorner {
+  font-size: 10px;
+}
+
+.matrixMonth {
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.matrixLabel {
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.85);
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.matrixCount {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.matrixCell {
+  height: 18px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.04);
+}
+
+.cellIdeal {
+  background: rgba(160, 195, 130, 0.7);
+}
+.cellOk {
+  background: rgba(180, 195, 145, 0.28);
+}
+.cellRisky {
+  background: rgba(220, 180, 100, 0.45);
+}
+.cellSevere {
+  background: rgba(220, 130, 110, 0.55);
+}
+
+/* ── Phase footer ── */
+.phaseFooter {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  flex-wrap: wrap;
+}
+
+.phaseFooter strong {
+  color: rgba(232, 220, 200, 0.92);
+  font-weight: 600;
+}
+
+.phaseWarn {
+  color: rgba(235, 165, 145, 0.92);
+  font-weight: 500;
+}
+
+/* ── Footer summary ── */
+.summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.summary strong {
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  margin-top: 8px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.5);
+}

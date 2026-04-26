@@ -59,6 +59,8 @@ interface HorizonRow {
   sodium_adsorption_ratio: number | null;
   frag3to10_pct: number | null;
   fraggt10_pct: number | null;
+  basesat_pct: number | null;
+  basesatall_pct: number | null;
   surface_stoniness: string | null;
   texture_description: string | null;
   drainage_class: string | null;
@@ -118,6 +120,13 @@ interface SoilSummary {
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
   coarse_fragment_pct: number | null;
+  /** Canonical coarse-fragment total summed from SSURGO `chfrags.fragvol_r`.
+   *  Preferred over `coarse_fragment_pct` when present. Null when the
+   *  chfrags child query returns no rows or fails. */
+  coarse_fragment_pct_chfrags: number | null;
+  /** Base saturation — preferred value; see `base_saturation_method`. */
+  base_saturation_pct: number | null;
+  base_saturation_method: 'sum_of_cations' | 'nh4oac_ph7' | null;
   surface_stoniness: string | null;
 
   // Derived
@@ -224,6 +233,8 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
   gypsum_pct: number | null;
   sodium_adsorption_ratio: number | null;
   coarse_fragment_pct: number | null;
+  basesat_pct: number | null;
+  basesatall_pct: number | null;
   // Categorical (dominant)
   drainage_class: string | null;
   texture_description: string | null;
@@ -238,6 +249,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
       coarse_fragment_pct: null,
+      basesat_pct: null, basesatall_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -251,6 +263,7 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       rooting_depth_cm: null, clay_pct: null, silt_pct: null, sand_pct: null,
       caco3_pct: null, gypsum_pct: null, sodium_adsorption_ratio: null,
       coarse_fragment_pct: null,
+      basesat_pct: null, basesatall_pct: null,
       drainage_class: null, texture_description: null, taxonomy_class: null,
       dominant_component_name: null, surface_stoniness: null,
     };
@@ -297,6 +310,8 @@ export function computeWeightedAverages(rows: HorizonRow[]): {
       if (a === null && b === null) return null;
       return Math.round(((a ?? 0) + (b ?? 0)) * 10) / 10;
     })(),
+    basesat_pct: weightedAvg('basesat_pct'),
+    basesatall_pct: weightedAvg('basesatall_pct'),
     drainage_class: dominant.drainage_class ?? null,
     texture_description: dominant.texture_description ?? null,
     taxonomy_class: dominant.taxonomy_class ?? null,
@@ -464,9 +479,13 @@ async function postToSda(query: string): Promise<SdaResponse> {
   const timeout = setTimeout(() => controller.abort(), SDA_TIMEOUT_MS);
 
   try {
+    // SDA's `format=JSON` returns ONLY data rows — no column-name header.
+    // `JSON+COLUMNNAME` prepends a header row, which parseSdaRows relies on
+    // (it treats table[0] as column names). Without the header every
+    // colIndexes lookup returns -1 and every parsed field is null.
     const body = new URLSearchParams({
       query,
-      format: 'JSON',
+      format: 'JSON+COLUMNNAME',
     });
 
     const response = await fetch(SDA_ENDPOINT, {
@@ -580,9 +599,7 @@ export class SsurgoAdapter implements DataSourceAdapter {
              h.ec_r AS ec_ds_m,
              h.dbthirdbar_r AS bulk_density_g_cm3,
              h.ksat_r AS ksat_um_s,
-             h.kfact_r AS kfact,
              h.awc_r AS awc_cm_cm,
-             h.restrdepdh_r AS rooting_depth_cm,
              h.claytotal_r, h.silttotal_r, h.sandtotal_r,
              h.caco3_r AS caco3_pct,
              h.gypsum_r AS gypsum_pct,
@@ -606,9 +623,11 @@ export class SsurgoAdapter implements DataSourceAdapter {
     const horizonRows = parseSdaRows<HorizonRow>(horizonResponse, [
       'mukey', 'comppct_r', 'hzdept_r', 'hzdepb_r', 'ph',
       'organic_matter_pct', 'cec_meq_100g', 'ec_ds_m', 'bulk_density_g_cm3',
-      'ksat_um_s', 'kfact', 'awc_cm_cm', 'rooting_depth_cm', 'claytotal_r',
+      'ksat_um_s', 'awc_cm_cm', 'claytotal_r',
       'silttotal_r', 'sandtotal_r', 'caco3_pct', 'gypsum_pct',
-      'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct', 'drainage_class', 'taxonomy_class',
+      'sodium_adsorption_ratio', 'frag3to10_pct', 'fraggt10_pct',
+      'basesat_pct', 'basesatall_pct',
+      'drainage_class', 'taxonomy_class',
       'component_name', 'component_pct',
     ]);
 
@@ -722,8 +741,65 @@ export class SsurgoAdapter implements DataSourceAdapter {
       restrictiveLayer = null;
     }
 
+    // Step 3c: chfrags child-table query — canonical coarse-fragment total.
+    // `SUM(fragvol_r) GROUP BY cokey` per topsoil horizon (hzdept_r = 0), then
+    // component-weighted average. Preferred over the `frag3to10_r + fraggt10_r`
+    // aggregate because it captures fine gravel and multi-size-class fragments.
+    // Non-critical: on failure we keep the legacy estimate.
+    let coarseFragmentPctChfrags: number | null = null;
+    try {
+      const chfragsQuery = `
+        SELECT c.mukey, c.comppct_r, SUM(cf.fragvol_r) AS frag_total_pct
+        FROM component c
+        INNER JOIN chorizon h ON h.cokey = c.cokey
+        INNER JOIN chfrags cf ON cf.chkey = h.chkey
+        WHERE c.mukey IN (${mukeyList})
+          AND c.majcompflag = 'Yes'
+          AND h.hzdept_r = 0
+        GROUP BY c.mukey, c.comppct_r, c.cokey
+      `;
+
+      const chfragsResponse = await postToSda(chfragsQuery);
+      const chfragsRows = parseSdaRows<Record<string, unknown>>(chfragsResponse, [
+        'mukey', 'comppct_r', 'frag_total_pct',
+      ]);
+
+      const toNum = (v: unknown): number | null => {
+        if (typeof v === 'number') return isNaN(v) ? null : v;
+        if (typeof v === 'string') { const n = parseFloat(v); return isNaN(n) ? null : n; }
+        return null;
+      };
+
+      let sum = 0;
+      let weightSum = 0;
+      for (const row of chfragsRows) {
+        const v = toNum(row.frag_total_pct);
+        const w = toNum(row.comppct_r) ?? 0;
+        if (v !== null && w > 0) {
+          sum += v * w;
+          weightSum += w;
+        }
+      }
+      coarseFragmentPctChfrags = weightSum > 0
+        ? Math.round((sum / weightSum) * 10) / 10
+        : null;
+    } catch (err) {
+      logger.warn({ err: (err as Error).message }, 'SSURGO chfrags query failed — falling back to legacy frag3to10/fraggt10 estimate');
+      coarseFragmentPctChfrags = null;
+    }
+
     // Step 4: Compute weighted averages
     const weighted = computeWeightedAverages(horizonRows);
+
+    // Step 4b: Base saturation disambiguation. SSURGO exposes two fields:
+    //   `basesatall_r` — sum-of-cations (preferred for agronomic assessment)
+    //   `basesat_r`    — NH4OAc extractable at pH 7 (taxonomic standard)
+    // Prefer sum-of-cations when present; fall back to NH4OAc; null otherwise.
+    const baseSaturationPct = weighted.basesatall_pct ?? weighted.basesat_pct;
+    const baseSaturationMethod: 'sum_of_cations' | 'nh4oac_ph7' | null =
+      weighted.basesatall_pct !== null ? 'sum_of_cations'
+      : weighted.basesat_pct !== null ? 'nh4oac_ph7'
+      : null;
 
     // Step 5: Derive additional fields
     const organicCarbonPct = weighted.organic_matter_pct !== null
@@ -767,6 +843,9 @@ export class SsurgoAdapter implements DataSourceAdapter {
       gypsum_pct: weighted.gypsum_pct,
       sodium_adsorption_ratio: weighted.sodium_adsorption_ratio,
       coarse_fragment_pct: weighted.coarse_fragment_pct,
+      coarse_fragment_pct_chfrags: coarseFragmentPctChfrags,
+      base_saturation_pct: baseSaturationPct,
+      base_saturation_method: baseSaturationMethod,
       surface_stoniness: weighted.surface_stoniness,
       texture_class: textureClass,
       fertility_index: fertilityIndex,
@@ -841,6 +920,9 @@ export class SsurgoAdapter implements DataSourceAdapter {
         gypsum_pct: null,
         sodium_adsorption_ratio: null,
         coarse_fragment_pct: null,
+        coarse_fragment_pct_chfrags: null,
+        base_saturation_pct: null,
+        base_saturation_method: null,
         surface_stoniness: null,
         texture_class: null,
         fertility_index: null,

@@ -2,7 +2,8 @@
  * Template registry — maps export types to their render functions.
  */
 
-import type { ExportType, CreateExportInput } from '@ogden/shared';
+import type { ExportType, CreateExportInput, AssessmentFlag } from '@ogden/shared';
+import type { ScoredResult } from '@ogden/shared/scoring';
 
 // ─── Data bag passed to every template ────────────────────────────────────────
 
@@ -30,20 +31,15 @@ export interface ProjectRow {
 
 export interface AssessmentRow {
   id: string;
-  suitability_score: number | null;
-  buildability_score: number | null;
-  water_resilience_score: number | null;
-  ag_potential_score: number | null;
   overall_score: number | null;
-  score_breakdown: Record<string, Record<string, number>> | null;
-  flags: Array<{
-    type: string;
-    severity: string;
-    category: string;
-    message: string;
-    layerSource?: string;
-    needsSiteVisit?: boolean;
-  }> | null;
+  /**
+   * Canonical per-label scores from @ogden/shared/scoring, stored as jsonb.
+   * Shape: ScoredResult[] — each element has {label, score, confidence,
+   * score_breakdown: ScoreComponent[], …}. The legacy dict-of-dicts shape
+   * (Record<string, Record<string, number>>) was retired in migration 009.
+   */
+  score_breakdown: ScoredResult[] | null;
+  flags: AssessmentFlag[] | null;
   data_sources_used: string[] | null;
   confidence: string;
   needs_site_visit: boolean;
