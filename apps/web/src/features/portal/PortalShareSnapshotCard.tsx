@@ -103,7 +103,11 @@ const PRESET_PALETTES: Record<string, { label: string; palette: { name: string; 
 const PRESET_STORAGE_KEY = 'atlas:cartographic-style-preset';
 
 export default function PortalShareSnapshotCard({ project }: Props) {
-  const config = usePortalStore((s) => s.getConfig(project.id));
+  const allConfigs = usePortalStore((s) => s.configs);
+  const config = useMemo(
+    () => allConfigs.find((c) => c.projectId === project.id),
+    [allConfigs, project.id],
+  );
   const [copied, setCopied] = useState(false);
   const [activePresetId, setActivePresetId] = useState<string>('presentation');
 

@@ -41,21 +41,35 @@ interface ReadinessCheck {
 }
 
 export default function ShareLinkReadinessCard({ project }: Props) {
-  const portalConfig = usePortalStore((s) => s.getConfig(project.id));
-  const structuresLen = useStructureStore(
-    (s) => s.structures.filter((st) => st.projectId === project.id).length,
+  const allConfigs = usePortalStore((s) => s.configs);
+  const portalConfig = useMemo(
+    () => allConfigs.find((c) => c.projectId === project.id),
+    [allConfigs, project.id],
   );
-  const utilitiesLen = useUtilityStore(
-    (s) => s.utilities.filter((u) => u.projectId === project.id).length,
+  const allStructures = useStructureStore((s) => s.structures);
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const allZones = useZoneStore((s) => s.zones);
+  const structuresLen = useMemo(
+    () => allStructures.filter((st) => st.projectId === project.id).length,
+    [allStructures, project.id],
   );
-  const cropsLen = useCropStore(
-    (s) => s.cropAreas.filter((c) => c.projectId === project.id).length,
+  const utilitiesLen = useMemo(
+    () => allUtilities.filter((u) => u.projectId === project.id).length,
+    [allUtilities, project.id],
   );
-  const paddocksLen = useLivestockStore(
-    (s) => s.paddocks.filter((p) => p.projectId === project.id).length,
+  const cropsLen = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === project.id).length,
+    [allCropAreas, project.id],
   );
-  const zonesLen = useZoneStore(
-    (s) => s.zones.filter((z) => z.projectId === project.id).length,
+  const paddocksLen = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === project.id).length,
+    [allPaddocks, project.id],
+  );
+  const zonesLen = useMemo(
+    () => allZones.filter((z) => z.projectId === project.id).length,
+    [allZones, project.id],
   );
 
   const [copied, setCopied] = useState(false);
