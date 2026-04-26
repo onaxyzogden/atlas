@@ -9,6 +9,7 @@ import { useCommentStore, type Comment } from '../../store/commentStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import MembersTab from './MembersTab.js';
+import CommentsByFeatureCard from './CommentsByFeatureCard.js';
 import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
@@ -157,6 +158,11 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
           >
             {isAddingComment ? 'Click on map to place comment...' : '\u{1F4CD} Add Comment to Map'}
           </button>
+
+          {/* Per-feature rollup */}
+          {comments.length > 0 && (
+            <CommentsByFeatureCard projectId={project.id} />
+          )}
 
           {/* Open comments */}
           {openComments.length > 0 && (

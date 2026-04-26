@@ -473,7 +473,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'multi-user-rbac', label: 'Multi-user access, role-based permissions (Owner, Designer, Reviewer, Viewer)', phase: 'P3', status: 'partial' },
-      { key: 'commenting-on-map-and-features', label: 'Commenting on map and on specific features', phase: 'P3', status: 'partial' },
+      { key: 'commenting-on-map-and-features', label: 'Commenting on map and on specific features', phase: 'P3', status: 'done' },
       { key: 'suggest-edit-markup-threads', label: 'Suggest edit mode, markup tools, discussion threads', phase: 'P3', status: 'planned' },
       { key: 'task-assignment-approval-revisions', label: 'Task assignment, approval workflow, revision requests', phase: 'P3', status: 'planned' },
       { key: 'version-compare-changelog-snapshots', label: 'Version comparison, change log, snapshot sharing', phase: 'P3', status: 'planned' },
