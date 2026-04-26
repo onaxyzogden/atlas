@@ -232,7 +232,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'draw-custom-zones-naming-color', label: 'Draw custom zones, zone naming and color coding', phase: 'P1', status: 'partial' },
       { key: 'zone-categories-primary-secondary', label: 'Zone categories, primary/secondary use designation', phase: 'P1', status: 'partial' },
       { key: 'zone-sizing-calculator', label: 'Zone sizing calculator', phase: 'P1', status: 'done' },
-      { key: 'auto-suggest-zones', label: 'Auto-suggest zones based on site analysis', phase: 'P2', status: 'partial' },
+      { key: 'auto-suggest-zones', label: 'Auto-suggest zones based on site analysis', phase: 'P2', status: 'done' },
       { key: 'zone-overlap-conflict-adjacency', label: 'Zone overlap, conflict, and adjacency analysis', phase: 'P2', status: 'done' },
       { key: 'habitation-food-livestock-commons-planning', label: 'Habitation, food production, livestock, commons zone planning', phase: 'P1', status: 'partial' },
       { key: 'prayer-spiritual-zone-planning', label: 'Prayer / spiritual zone planning', phase: 'MT', status: 'partial' },
@@ -276,7 +276,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'main-secondary-emergency-service-access', label: 'Main, secondary, emergency, service access planning', phase: 'P2', status: 'partial' },
       { key: 'pedestrian-trail-vehicle-farm-lane', label: 'Pedestrian path, trail, vehicle route, farm lane planning', phase: 'P2', status: 'done' },
-      { key: 'animal-corridor-grazing-route', label: 'Animal movement corridor, grazing route planning', phase: 'P2', status: 'partial' },
+      { key: 'animal-corridor-grazing-route', label: 'Animal movement corridor, grazing route planning', phase: 'P2', status: 'done' },
       { key: 'accessible-route-planning', label: 'Accessible route planning', phase: 'P2', status: 'done' },
       { key: 'route-slope-conflict-detection', label: 'Route slope analysis, conflict detection', phase: 'P3', status: 'done' },
       { key: 'public-private-circulation-layers', label: 'Public vs private circulation layers', phase: 'P2', status: 'done' },
