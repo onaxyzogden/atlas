@@ -16,6 +16,7 @@ import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
 import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
 import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
+import MaturityYieldCurveCard from '../crops/MaturityYieldCurveCard.js';
 import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js';
 import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
@@ -422,6 +423,8 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               </div>
             </>
           )}
+
+          <MaturityYieldCurveCard projectId={project.id} />
         </>
       )}
 
