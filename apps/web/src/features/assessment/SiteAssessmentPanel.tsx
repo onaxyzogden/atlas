@@ -13,6 +13,7 @@
 import type { ConfidenceLevel } from '@ogden/shared';
 import ConfidenceIndicator from './ConfidenceIndicator.js';
 import DataCompletenessCard from './DataCompletenessCard.js';
+import SiteNarrativeSummaryCard from './SiteNarrativeSummaryCard.js';
 import { useAssessment } from '../../hooks/useProjectQueries.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import p from '../../styles/panel.module.css';
@@ -111,6 +112,12 @@ export default function SiteAssessmentPanel({ project }: SiteAssessmentPanelProp
           </div>
         </div>
       )}
+
+      {/* §3 Risk / Opportunity / Limitation narrative — derived from the
+          actually-placed design state (zones, structures, paddocks,
+          utilities, paths, crops). Complements the metadata-driven flag
+          list above with design-state read-back. */}
+      <SiteNarrativeSummaryCard project={project} />
 
       {/* Data sources notice */}
       {!serverAssessment && (

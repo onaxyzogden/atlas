@@ -153,7 +153,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'automated-site-summary', label: 'Automated site summary with data source attribution', phase: 'P1', status: 'done' },
       { key: 'suitability-regen-buildability-scores', label: 'Property suitability, regenerative potential, buildability scores (with confidence indicators)', phase: 'P1', status: 'done' },
       { key: 'water-ag-habitat-scores', label: 'Water resilience, agricultural suitability, habitat sensitivity scores', phase: 'P1', status: 'done' },
-      { key: 'risk-opportunity-limitation-summaries', label: 'Risk summary, opportunity summary, limitation summary', phase: 'P1', status: 'partial' },
+      { key: 'risk-opportunity-limitation-summaries', label: 'Risk summary, opportunity summary, limitation summary', phase: 'P1', status: 'done' },
       { key: 'steep-slope-flood-frost-wind-detection', label: 'Steep slope, flood-prone area, frost pocket, wind exposure detection', phase: 'P1', status: 'done' },
       { key: 'sun-trap-dry-wet-erosion-compaction', label: 'Sun trap, dry/wet zone, erosion hotspot, compaction risk identification', phase: 'P2', status: 'done' },
       { key: 'natural-shelter-solar-exposure', label: 'Natural shelter zone and solar exposure analysis', phase: 'P2', status: 'done' },
