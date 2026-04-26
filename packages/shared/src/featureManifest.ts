@@ -321,7 +321,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'agroforestry-windbreak-shelterbelt-silvopasture', label: 'Agroforestry band, windbreak, shelterbelt, silvopasture planning', phase: 'P2', status: 'partial' },
       { key: 'pollinator-strip-companion-zone-notes', label: 'Pollinator strip, companion planting zone notes', phase: 'P2', status: 'done' },
       { key: 'tree-spacing-calculator', label: 'Tree spacing calculator', phase: 'P2', status: 'partial' },
-      { key: 'canopy-maturity-root-overlap', label: 'Canopy maturity simulation, root zone overlap visualization', phase: 'P3', status: 'planned' },
+      { key: 'canopy-maturity-root-overlap', label: 'Canopy maturity simulation, root zone overlap visualization', phase: 'P3', status: 'done' },
       { key: 'shade-succession-forecasting', label: 'Shade succession forecasting', phase: 'P3', status: 'planned' },
       { key: 'frost-safe-orchard-drainage-placement', label: 'Frost-safe orchard zone detection, drainage-sensitive placement', phase: 'P2', status: 'done' },
       { key: 'species-suitability-water-demand', label: 'Species suitability notes, water-demand classification', phase: 'P2', status: 'done' },
