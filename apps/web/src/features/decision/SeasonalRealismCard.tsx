@@ -163,7 +163,11 @@ export default function SeasonalRealismCard({ project }: SeasonalRealismCardProp
   const utilities = useUtilityStore((st) => st.utilities).filter((x) => x.projectId === project.id);
   const cropAreas = useCropStore((st) => st.cropAreas).filter((x) => x.projectId === project.id);
   const paddocks = useLivestockStore((st) => st.paddocks).filter((x) => x.projectId === project.id);
-  const phases = usePhaseStore((st) => st.getProjectPhases(project.id));
+  const allPhases = usePhaseStore((st) => st.phases);
+  const phases = useMemo(
+    () => allPhases.filter((p) => p.projectId === project.id).sort((a, b) => a.order - b.order),
+    [allPhases, project.id],
+  );
 
   const siteData = useSiteData(project.id);
   const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
