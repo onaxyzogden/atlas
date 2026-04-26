@@ -28,6 +28,7 @@ import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } f
 import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
+import WindCorridorAuditCard from './WindCorridorAuditCard.js';
 import SolarPlacementCandidatesCard from './SolarPlacementCandidatesCard.js';
 import SeasonalShadowCard from './SeasonalShadowCard.js';
 import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
@@ -285,6 +286,19 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           windbreaks={windbreaks}
           prevailingWind={climate?.prevailing_wind ?? null}
           boundary={project.parcelBoundaryGeojson ?? null}
+        />
+      </div>
+
+      {/* §6 Wind Corridor Audit — exposure findings + windbreak rollup. */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>WIND CORRIDOR AUDIT</h3>
+        <WindCorridorAuditCard
+          prevailingWind={climate?.prevailing_wind ?? null}
+          windSpeedMs={climate?.wind_speed_ms ?? null}
+          windRose={windRoseData}
+          windShelter={microclimate?.windShelter ?? null}
+          windbreakCount={windbreaks?.lines.length ?? 0}
+          windbreakTotalLengthM={windbreaks?.lines.reduce((sum, l) => sum + l.lengthM, 0) ?? 0}
         />
       </div>
 
