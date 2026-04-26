@@ -26,6 +26,7 @@ import AccessEfficiencyCard from '../rules/AccessEfficiencyCard.js';
 import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
 import GuestPrivacyCard from '../rules/GuestPrivacyCard.js';
 import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
+import WhatMustBeSolvedFirstCard from './WhatMustBeSolvedFirstCard.js';
 import DomainFeasibilityCard from './DomainFeasibilityCard.js';
 import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
 import SeasonalRealismCard from './SeasonalRealismCard.js';
@@ -304,6 +305,9 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
           </div>
         ))}
       </div>
+
+      {/* §21 Triage — what must be solved first / then / eventually */}
+      <WhatMustBeSolvedFirstCard project={project} />
 
       {/* Missing information checklist */}
       <MissingInformationChecklistCard project={project} />
