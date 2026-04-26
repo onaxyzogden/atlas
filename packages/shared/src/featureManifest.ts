@@ -377,7 +377,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3'],
     status: 'partial',
     features: [
-      { key: 'timeline-slider-year-modes', label: 'Timeline slider, Year 0 / Year 1 / Year 3 / Year 5 / Full Vision modes', phase: 'P2', status: 'partial' },
+      { key: 'timeline-slider-year-modes', label: 'Timeline slider, Year 0 / Year 1 / Year 3 / Year 5 / Full Vision modes', phase: 'P2', status: 'done' },
       { key: 'custom-phase-dependencies-milestones', label: 'Custom phase creation, stage dependencies, milestone view', phase: 'P2', status: 'done' },
       { key: 'build-sequence-infrastructure-water-regen-revenue', label: 'Build sequence map, infrastructure/water/regeneration/revenue-first sequencing', phase: 'P2', status: 'done' },
       { key: 'temporary-vs-permanent-seasonal', label: 'Temporary vs permanent elements, seasonal phase view', phase: 'P2', status: 'done' },
