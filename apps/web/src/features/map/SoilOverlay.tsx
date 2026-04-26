@@ -87,7 +87,16 @@ export function SoilOverlay({ map }: SoilOverlayProps) {
     if (!visible || catalog) return;
     let cancelled = false;
     fetch('/api/v1/soilgrids/catalog')
-      .then((r) => r.json() as Promise<CatalogResponse>)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Catalog HTTP ${r.status} — ${r.statusText}`);
+        const text = await r.text();
+        if (!text) throw new Error('Catalog returned empty body');
+        try {
+          return JSON.parse(text) as CatalogResponse;
+        } catch {
+          throw new Error(`Catalog returned non-JSON body: ${text.slice(0, 80)}`);
+        }
+      })
       .then((j) => {
         if (cancelled) return;
         setCatalog(j.data?.entries ?? []);
@@ -355,7 +364,16 @@ export function SoilMapControls() {
     if (!visible || catalog) return;
     let cancelled = false;
     fetch('/api/v1/soilgrids/catalog')
-      .then((r) => r.json() as Promise<CatalogResponse>)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Catalog HTTP ${r.status} — ${r.statusText}`);
+        const text = await r.text();
+        if (!text) throw new Error('Catalog returned empty body');
+        try {
+          return JSON.parse(text) as CatalogResponse;
+        } catch {
+          throw new Error(`Catalog returned non-JSON body: ${text.slice(0, 80)}`);
+        }
+      })
       .then((j) => {
         if (cancelled) return;
         setCatalog(j.data?.entries ?? []);
