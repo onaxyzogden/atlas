@@ -29,6 +29,7 @@ import OrchardGuildSuggestionsCard from '../../crops/OrchardGuildSuggestionsCard
 import CanopyMaturityCard from '../../crops/CanopyMaturityCard.js';
 import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
 import ShadeSuccessionForecastCard from '../../crops/ShadeSuccessionForecastCard.js';
+import TreeSpacingCalculatorCard from '../../crops/TreeSpacingCalculatorCard.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -1535,6 +1536,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §12 Seasonal Productivity ────────────────────────────── */}
       <SeasonalProductivityCard project={project} />
+
+      {/* ── §12 Tree Spacing Calculator ──────────────────────────── */}
+      <TreeSpacingCalculatorCard projectId={project.id} />
 
       {/* ── §12 Companion & Rotation Planner ─────────────────────── */}
       <CompanionRotationPlannerCard projectId={project.id} />
