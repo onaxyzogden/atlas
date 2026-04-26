@@ -10,6 +10,7 @@ import p from '../../styles/panel.module.css';
 import { confidence, error as errorToken, group, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
+import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
 
 interface Props { project: LocalProject }
 
@@ -225,6 +226,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* Share snapshot preview */}
       <PortalShareSnapshotCard project={project} />
+
+      {/* §20 Internal vs public view side-by-side audit */}
+      <InternalVsPublicViewCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />

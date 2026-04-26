@@ -385,7 +385,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'permit-dependencies-readiness-checklist', label: 'Permit dependency warnings, readiness checklist per phase', phase: 'P3', status: 'done' },
       { key: 'phase-completion-tracking-notes', label: 'Phase completion tracking and notes', phase: 'P2', status: 'done' },
       { key: 'scenario-phasing-alternatives', label: 'Scenario-based phasing alternatives', phase: 'P3', status: 'partial' },
-      { key: 'path-modes-fastest-lowest-cost-regen-investor', label: "'Fastest feasible path', 'Lowest cost path', 'Most regenerative path', 'Investor presentation path' modes", phase: 'P3', status: 'planned' },
+      { key: 'path-modes-fastest-lowest-cost-regen-investor', label: "'Fastest feasible path', 'Lowest cost path', 'Most regenerative path', 'Investor presentation path' modes", phase: 'P3', status: 'done' },
     ],
   },
   {
@@ -477,7 +477,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'suggest-edit-markup-threads', label: 'Suggest edit mode, markup tools, discussion threads', phase: 'P3', status: 'planned' },
       { key: 'task-assignment-approval-revisions', label: 'Task assignment, approval workflow, revision requests', phase: 'P3', status: 'planned' },
       { key: 'version-compare-changelog-snapshots', label: 'Version comparison, change log, snapshot sharing', phase: 'P3', status: 'planned' },
-      { key: 'internal-vs-public-views', label: 'Internal vs public views, stakeholder presentation links', phase: 'P3', status: 'planned' },
+      { key: 'internal-vs-public-views', label: 'Internal vs public views, stakeholder presentation links', phase: 'P3', status: 'done' },
       { key: 'team-activity-feed', label: 'Team activity feed, review checklist, sign-off workflow by stage', phase: 'P3', status: 'partial' },
       { key: 'export-comments-with-report', label: 'Export comments with report', phase: 'P3', status: 'planned' },
       { key: 'view-only-shareable-link', label: 'View-only shareable link (no account required — see Section 0g)', phase: 'P3', status: 'planned' },
