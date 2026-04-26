@@ -24,6 +24,7 @@ import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
 import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
 import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDetectorCard.js';
+import NeedsSiteVisitCard from '../../ai-design-support/NeedsSiteVisitCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
@@ -367,6 +368,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §17 Assumption & open-question detector — pairs with the synthesis card */}
       <AssumptionGapDetectorCard project={project} />
+
+      {/* §17 Needs-site-visit flags — what to walk for next time */}
+      <NeedsSiteVisitCard project={project} />
 
       {/* §11 Nutrient cycling balance — N demand vs. supply rollup */}
       <NutrientBalanceCard projectId={project.id} />
