@@ -414,7 +414,7 @@ export default function TreeSpacingCalculatorCard({ projectId }: TreeSpacingCalc
       {summary.totalTrees > 0 && (
         <>
           <div className={css.sectionLabel}>Pattern density comparison</div>
-          <div className={css.headlineGrid}>
+          <div className={css.patternGrid}>
             {PATTERN_FACTORS.map((p) => {
               const trees = Math.round(summary.totalTrees * p.factor);
               const delta = p.factor === 1 ? null : Math.round((p.factor - 1) * 100);

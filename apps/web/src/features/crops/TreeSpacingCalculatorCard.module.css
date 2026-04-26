@@ -91,6 +91,14 @@
   color: rgba(220, 210, 185, 0.85);
 }
 
+/* ── Pattern density grid (3 columns, used for square/triangular/quincunx) ── */
+.patternGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
 /* ── Headline grid ── */
 .headlineGrid {
   display: grid;
