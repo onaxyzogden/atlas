@@ -16,6 +16,7 @@ import AnimalCorridors from './AnimalCorridors.js';
 import ArrivalSequence from './ArrivalSequence.js';
 import RouteConflicts from './RouteConflicts.js';
 import SlopeWarnings from './SlopeWarnings.js';
+import RouteSlopeAuditCard from './RouteSlopeAuditCard.js';
 import WayfindingPlanCard from './WayfindingPlanCard.js';
 import CorridorCostEstimatorCard from './CorridorCostEstimatorCard.js';
 import p from '../../styles/panel.module.css';
@@ -207,6 +208,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           {project?.projectType && <ArrivalSequence arrivalPaths={arrivalPaths} projectType={project.projectType} />}
           <RouteConflicts paths={paths} zones={zones} />
           <SlopeWarnings paths={paths} terrainSummary={terrainSummary} />
+          {/* §10 Per-path slope + erosion audit (route-slope-conflict-detection). */}
+          <RouteSlopeAuditCard projectId={projectId} />
           <AccessibleRouteCard paths={paths} terrainSummary={terrainSummary} />
           <WayfindingPlanCard projectId={projectId} />
           <CorridorCostEstimatorCard projectId={projectId} parcelBoundaryGeojson={project?.parcelBoundaryGeojson ?? null} />
