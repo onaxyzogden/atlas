@@ -27,6 +27,7 @@ import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js'
 import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDetectorCard.js';
 import NeedsSiteVisitCard from '../../ai-design-support/NeedsSiteVisitCard.js';
 import AlternativeLayoutRationaleCard from '../../ai-design-support/AlternativeLayoutRationaleCard.js';
+import FeaturePlacementSuggestionsCard from '../../ai-design-support/FeaturePlacementSuggestionsCard.js';
 import DesignBriefPitchCard from '../../ai-design-support/DesignBriefPitchCard.js';
 import EcologicalRiskWarningsCard from '../../ai-design-support/EcologicalRiskWarningsCard.js';
 import EducationalExplainerCard from '../../ai-design-support/EducationalExplainerCard.js';
@@ -382,6 +383,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §17 Alternative layout rationale — proposed swaps + dashboard delta */}
       <AlternativeLayoutRationaleCard project={project} />
+
+      {/* §17 AI feature placement suggestions — site-derived "where to put what" */}
+      <FeaturePlacementSuggestionsCard project={project} />
 
       {/* §17 Design brief / landowner pitch — exportable one-page summary */}
       <DesignBriefPitchCard project={project} />
