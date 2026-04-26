@@ -498,7 +498,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'hospitality-education-energy-feasibility', label: 'Hospitality, education, energy feasibility notes', phase: 'P2', status: 'planned' },
       { key: 'terrain-construction-difficulty', label: 'Terrain construction difficulty notes', phase: 'P2', status: 'planned' },
       { key: 'capital-intensity-operational-complexity', label: 'Capital intensity estimate, operational complexity score', phase: 'P2', status: 'planned' },
-      { key: 'seasonal-vulnerability-phasing-realism', label: 'Seasonal vulnerability score, phasing realism score', phase: 'P2', status: 'planned' },
+      { key: 'seasonal-vulnerability-phasing-realism', label: 'Seasonal vulnerability score, phasing realism score', phase: 'P2', status: 'done' },
       { key: 'good-fit-poor-fit-best-use', label: "'Good fit / poor fit', 'Best use of this land', 'Not recommended uses' summaries", phase: 'P2', status: 'partial' },
       { key: 'what-must-be-solved-first', label: "'What must be solved first', 'What can wait' summaries", phase: 'P2', status: 'partial' },
       { key: 'maintenance-complexity-score', label: 'Maintenance complexity score', phase: 'P3', status: 'done' },
