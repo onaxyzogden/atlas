@@ -252,7 +252,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3', 'MT'],
     status: 'partial',
     features: [
-      { key: 'place-rotate-resize-structures', label: 'Place, rotate, resize structures on map', phase: 'P2', status: 'partial' },
+      { key: 'place-rotate-resize-structures', label: 'Place, rotate, resize structures on map', phase: 'P2', status: 'done' },
       { key: 'structure-type-footprint-library', label: 'Structure type assignment, building footprint library', phase: 'P2', status: 'partial' },
       { key: 'earthship-cabin-yurt-pavilion-greenhouse-barn-workshop', label: 'Earthship, cabin, yurt, pavilion, greenhouse, barn, workshop placement', phase: 'P2', status: 'partial' },
       { key: 'prayer-bathhouse-classroom-placement', label: 'Prayer space, bathhouse, classroom placement', phase: 'MT', status: 'done' },

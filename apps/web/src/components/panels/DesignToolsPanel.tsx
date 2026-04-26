@@ -404,6 +404,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="new"
           structureType={placementMode}
+          lat={pendingStructureCenter[1]}
           onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);

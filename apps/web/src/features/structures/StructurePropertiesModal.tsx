@@ -42,6 +42,11 @@ export interface StructureModalSaveData {
 interface NewPlacementProps {
   mode: 'new';
   structureType: StructureType;
+  /**
+   * Optional latitude (degrees) of the placement point. Enables the
+   * §9 building-orientation feedback card. Omit to hide the card.
+   */
+  lat?: number;
   onSave: (data: StructureModalSaveData) => void;
   onCancel: () => void;
 }
@@ -79,6 +84,10 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
   const isEdit = props.mode === 'edit';
   const structureType = isEdit ? props.structure.type : props.structureType;
   const template = STRUCTURE_TEMPLATES[structureType];
+  // §9 building-orientation feedback — needs a latitude to know which
+  // hemisphere the steward is designing in. Edit mode reads it off the
+  // existing structure; new mode accepts it as an optional prop.
+  const lat: number | null = isEdit ? props.structure.center[1] : props.lat ?? null;
 
   const [name, setName] = useState(isEdit ? props.structure.name : template.label);
   const [phase, setPhase] = useState(isEdit ? props.structure.phase : 'Phase 1');
@@ -356,6 +365,9 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
           </div>
         </div>
 
+        {/* §9 building-orientation feedback — only when we know lat */}
+        <OrientationFeedback rotationDeg={rotationDeg} widthM={widthM} depthM={depthM} lat={lat} onRecommend={(r) => setRotationDeg(r)} />
+
         {/* Footprint summary */}
         <div style={{ fontSize: 11, color: 'var(--color-panel-muted)', marginBottom: 12, textAlign: 'center' }}>
           {widthM}m {'\u00D7'} {depthM}m = {(widthM * depthM).toFixed(0)} m{'\u00B2'} ({(widthM * depthM / 4046.86 * 10000).toFixed(0)} ft{'\u00B2'})
@@ -505,3 +517,164 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
 
 const labelStyle: React.CSSProperties = { fontSize: 11, color: 'var(--color-panel-muted)', display: 'block', marginBottom: 4 };
 const cancelBtnStyle: React.CSSProperties = { flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, background: 'transparent', color: 'var(--color-panel-muted)', cursor: 'pointer' };
+
+/* ─── §9 Building-Orientation Feedback ────────────────────────────────
+ *
+ * Surfaces live feedback as the steward rotates the structure: how far
+ * the long axis sits from true East–West (the passive-solar baseline in
+ * both hemispheres), an estimated impact on winter solar gain, which
+ * face is the "long" side, and a one-click "snap to optimal" action.
+ *
+ * Heuristic, not a building-physics simulation. The cosine-squared
+ * impact estimate is a steward-facing conversation starter sized to
+ * match the rest of the modal's costing/labor placeholders.
+ *
+ * Convention assumed: rotationDeg = 0 means the structure's `widthM`
+ * axis runs East–West (the long side faces South in the NH). This
+ * matches how `createFootprintPolygon` lays the rectangle out before
+ * applying rotation.
+ */
+function OrientationFeedback({
+  rotationDeg,
+  widthM,
+  depthM,
+  lat,
+  onRecommend,
+}: {
+  rotationDeg: number;
+  widthM: number;
+  depthM: number;
+  lat: number | null;
+  onRecommend: (rot: number) => void;
+}) {
+  if (lat === null || !Number.isFinite(lat)) return null;
+
+  // The "long axis" runs along the longer dimension. If depth > width,
+  // the user has flipped what counts as the long side, so the optimal
+  // rotation is 90° offset.
+  const longIsWidth = widthM >= depthM;
+  const optimalRot = longIsWidth ? 0 : 90;
+
+  // Effective offset (0–90°) of the long axis from true East–West.
+  let raw = ((rotationDeg - optimalRot) % 180 + 180) % 180;
+  if (raw > 90) raw = 180 - raw;
+  const offsetDeg = raw;
+
+  // cos²(theta) impact on direct south-facing exposure. Rough.
+  const cosTheta = Math.cos((offsetDeg * Math.PI) / 180);
+  const exposureFactor = cosTheta * cosTheta;
+  const lossPct = Math.round((1 - exposureFactor) * 100);
+
+  let tone: 'good' | 'fair' | 'poor';
+  let toneLabel: string;
+  let toneColor: string;
+  if (offsetDeg <= 15) {
+    tone = 'good';
+    toneLabel = 'Well-aligned';
+    toneColor = 'rgba(180, 200, 150, 0.85)';
+  } else if (offsetDeg <= 35) {
+    tone = 'fair';
+    toneLabel = 'Acceptable';
+    toneColor = 'rgba(220, 180, 100, 0.85)';
+  } else {
+    tone = 'poor';
+    toneLabel = 'Off-axis';
+    toneColor = 'rgba(220, 130, 110, 0.85)';
+  }
+
+  const hemisphere = lat >= 0 ? 'NH' : 'SH';
+  const longFaces = hemisphere === 'NH' ? 'south' : 'north';
+  const recommendation =
+    tone === 'good'
+      ? `Long side faces ${longFaces} within ${offsetDeg.toFixed(0)}° of optimal — winter sun captured efficiently.`
+      : tone === 'fair'
+        ? `Long side ${offsetDeg.toFixed(0)}° off ${longFaces}-facing axis — losing roughly ${lossPct}% of direct winter exposure vs. an aligned ridge.`
+        : `Long side ${offsetDeg.toFixed(0)}° off ${longFaces}-facing axis — roughly ${lossPct}% direct winter exposure lost. Consider rotating toward optimal.`;
+
+  return (
+    <div
+      style={{
+        marginBottom: 12,
+        padding: '10px 12px',
+        borderRadius: 8,
+        background: 'rgba(255,255,255,0.022)',
+        border: '1px solid rgba(232,220,200,0.06)',
+        borderLeft: `3px solid ${toneColor}`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          marginBottom: 6,
+        }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-panel-text)' }}>
+          Solar orientation
+        </span>
+        <span
+          style={{
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            padding: '2px 7px',
+            borderRadius: 4,
+            color: toneColor,
+            border: `1px solid ${toneColor}`,
+            background: 'rgba(255,255,255,0.02)',
+          }}
+        >
+          {toneLabel}
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          lineHeight: 1.5,
+          color: 'rgba(220,210,185,0.82)',
+          fontStyle: 'italic',
+        }}
+      >
+        {recommendation}
+      </div>
+      <div
+        style={{
+          marginTop: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          fontSize: 10.5,
+          color: 'var(--color-panel-muted)',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        <span>
+          {hemisphere} · lat {lat.toFixed(2)}° · {offsetDeg.toFixed(0)}° off E–W
+        </span>
+        {tone !== 'good' && (
+          <button
+            type="button"
+            onClick={() => onRecommend(optimalRot)}
+            style={{
+              fontSize: 10.5,
+              padding: '3px 8px',
+              borderRadius: 4,
+              border: '1px solid rgba(196,162,101,0.35)',
+              background: 'rgba(196,162,101,0.08)',
+              color: 'rgba(232,200,130,0.9)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+            title={`Snap rotation to ${optimalRot}°`}
+          >
+            Snap to {optimalRot}°
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
