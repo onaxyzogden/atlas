@@ -30,6 +30,7 @@ import DomainFeasibilityCard from './DomainFeasibilityCard.js';
 import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
 import SeasonalRealismCard from './SeasonalRealismCard.js';
 import CapitalIntensityCard from './CapitalIntensityCard.js';
+import TerrainConstructionDifficultyCard from './TerrainConstructionDifficultyCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -407,6 +408,10 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
       {/* §21 Capital x Ops intensity — 4-axis radar with archetype label
           (capital-intensity-operational-complexity). */}
       <CapitalIntensityCard project={project} />
+
+      {/* §21 Terrain construction difficulty — slope premium per structure
+          (terrain-construction-difficulty). */}
+      <TerrainConstructionDifficultyCard project={project} />
 
       {/* Design rules (inline) */}
       <h3 className={p.sectionLabel}>Design Rules</h3>
