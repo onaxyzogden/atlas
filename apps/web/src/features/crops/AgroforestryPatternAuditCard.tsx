@@ -61,9 +61,18 @@ interface AgroforestryPatternAuditCardProps {
 }
 
 export default function AgroforestryPatternAuditCard({ project, projectId }: AgroforestryPatternAuditCardProps) {
-  const cropAreas = useCropStore((s) => s.cropAreas.filter((c) => c.projectId === projectId));
-  const paddocks = useLivestockStore((s) => s.paddocks.filter((p) => p.projectId === projectId));
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
   const siteData = useSiteData(projectId);
+
+  const cropAreas = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === projectId),
+    [allCropAreas, projectId],
+  );
+  const paddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === projectId),
+    [allPaddocks, projectId],
+  );
 
   const view = useMemo(() => {
     const climate = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
