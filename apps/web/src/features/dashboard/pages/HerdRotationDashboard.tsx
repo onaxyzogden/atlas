@@ -29,6 +29,7 @@ import ProgressBar from '../components/ProgressBar.js';
 import RotationScheduleCard from '../../livestock/RotationScheduleCard.js';
 import PaddockCellDesignCard from '../../livestock/PaddockCellDesignCard.js';
 import AnimalCorridorGrazingRouteCard from '../../livestock/AnimalCorridorGrazingRouteCard.js';
+import BrowsePressureRiskCard from '../../livestock/BrowsePressureRiskCard.js';
 import FencingLayoutCard from '../../livestock/FencingLayoutCard.js';
 import MultiSpeciesPlannerCard from '../../livestock/MultiSpeciesPlannerCard.js';
 import css from './HerdRotationDashboard.module.css';
@@ -458,6 +459,9 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
       {/* §11 Animal corridor / grazing route audit */}
       <AnimalCorridorGrazingRouteCard projectId={project.id} />
+
+      {/* §11 Browse pressure & overgrazing risk — per-paddock combined audit */}
+      <BrowsePressureRiskCard projectId={project.id} />
 
       {/* §11 Multi-species planner — niche distribution + pattern recommendations */}
       <MultiSpeciesPlannerCard projectId={project.id} />
