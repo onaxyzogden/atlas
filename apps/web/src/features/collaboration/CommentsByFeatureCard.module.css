@@ -1,0 +1,248 @@
+/* §16 CommentsByFeatureCard — comments grouped by feature type / feature. */
+
+.card {
+  padding: 16px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.65);
+}
+.cardHint strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statOpen {
+  background: rgba(220, 180, 100, 0.07);
+  border-color: rgba(220, 180, 100, 0.22);
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+}
+.empty strong { color: rgba(232, 220, 200, 0.9); font-weight: 600; }
+
+.bucketList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bucket {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bucketActive {
+  border-color: rgba(220, 180, 100, 0.22);
+  background: rgba(220, 180, 100, 0.04);
+}
+
+.bucketHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bucketIdent {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bucketIcon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.bucketLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.bucketCount {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.bucketCounts {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.chip {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.chipOpen {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.95);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+
+.chipResolved {
+  background: rgba(180, 200, 150, 0.12);
+  color: rgba(190, 215, 160, 0.9);
+  border-color: rgba(180, 200, 150, 0.24);
+}
+
+.featureList {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.featureRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 10.5px;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.featureId {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.featureCounts {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.featureOpen {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(232, 200, 130, 0.95);
+}
+
+.featureDone {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(190, 215, 160, 0.85);
+}
+
+.featureTotal {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.featureTime {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.65);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+.footnote em { color: rgba(180, 165, 140, 0.75); font-style: normal; font-weight: 600; }
+.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }

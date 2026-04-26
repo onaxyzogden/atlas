@@ -361,7 +361,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'done' },
       { key: 'signs-in-creation-interpretive-mode', label: "'Signs in creation' interpretive mode", phase: 'MT', status: 'done' },
       { key: 'spiritual-educational-storytelling-layer', label: 'Spiritual / educational storytelling layer', phase: 'MT', status: 'partial' },
-      { key: 'service-stewardship-framing-panels', label: 'Service / stewardship framing panels', phase: 'MT', status: 'partial' },
+      { key: 'service-stewardship-framing-panels', label: 'Service / stewardship framing panels', phase: 'MT', status: 'done' },
       { key: 'feature-explanations-tied-to-purpose', label: 'Feature explanations tied to purpose, not just function', phase: 'MT', status: 'planned' },
       { key: 'guided-flyover-scene-bookmarks', label: 'Guided flyover mode, scene bookmarks', phase: 'P3', status: 'planned' },
       { key: 'curated-visitor-journey-camera-angles', label: 'Curated visitor journey, presentation-safe camera angles', phase: 'P3', status: 'planned' },
@@ -473,7 +473,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'multi-user-rbac', label: 'Multi-user access, role-based permissions (Owner, Designer, Reviewer, Viewer)', phase: 'P3', status: 'partial' },
-      { key: 'commenting-on-map-and-features', label: 'Commenting on map and on specific features', phase: 'P3', status: 'partial' },
+      { key: 'commenting-on-map-and-features', label: 'Commenting on map and on specific features', phase: 'P3', status: 'done' },
       { key: 'suggest-edit-markup-threads', label: 'Suggest edit mode, markup tools, discussion threads', phase: 'P3', status: 'planned' },
       { key: 'task-assignment-approval-revisions', label: 'Task assignment, approval workflow, revision requests', phase: 'P3', status: 'planned' },
       { key: 'version-compare-changelog-snapshots', label: 'Version comparison, change log, snapshot sharing', phase: 'P3', status: 'planned' },
@@ -532,7 +532,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3', 'P4'],
     status: 'partial',
     features: [
-      { key: 'pdf-site-assessment-export', label: 'PDF site assessment export', phase: 'P2', status: 'partial' },
+      { key: 'pdf-site-assessment-export', label: 'PDF site assessment export', phase: 'P2', status: 'done' },
       { key: 'design-brief-feature-schedule-export', label: 'Design brief export, feature schedule export', phase: 'P2', status: 'partial' },
       { key: 'phasing-cost-investor-landowner-exports', label: 'Phasing report, cost summary, investor presentation, landowner pitch exports', phase: 'P3', status: 'planned' },
       { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'planned' },

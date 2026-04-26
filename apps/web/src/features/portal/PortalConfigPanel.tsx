@@ -13,6 +13,7 @@ import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
 import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
 import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
 import StakeholderReviewModeCard from './StakeholderReviewModeCard.js';
+import ServiceStewardshipFramingCard from './ServiceStewardshipFramingCard.js';
 
 interface Props { project: LocalProject }
 
@@ -30,7 +31,11 @@ const SECTION_LABELS: Record<PortalSection, string> = {
 
 export default function PortalConfigPanel({ project }: Props) {
   const { isOffline } = useOfflineGate();
-  const config = usePortalStore((s) => s.getConfig(project.id));
+  const allConfigs = usePortalStore((s) => s.configs);
+  const config = useMemo(
+    () => allConfigs.find((c) => c.projectId === project.id),
+    [allConfigs, project.id],
+  );
   const createConfig = usePortalStore((s) => s.createConfig);
   const updateConfig = usePortalStore((s) => s.updateConfig);
   const loadFromBackend = usePortalStore((s) => s.loadFromBackend);
@@ -237,6 +242,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* §20 Stakeholder review mode (community review framing) */}
       <StakeholderReviewModeCard project={project} />
+
+      {/* §14 Service / stewardship framing panels */}
+      <ServiceStewardshipFramingCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />
