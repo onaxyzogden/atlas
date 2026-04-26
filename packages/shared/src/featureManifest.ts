@@ -521,7 +521,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'done' },
       { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'done' },
       { key: 'overbuilt-for-revenue-lean-mvp', label: "'Overbuilt for revenue' AI warning, Lean MVP path view", phase: 'P3', status: 'done' },
-      { key: 'investor-summary-landowner-partnership', label: 'Investor summary dashboard, landowner partnership summary', phase: 'P3', status: 'partial' },
+      { key: 'investor-summary-landowner-partnership', label: 'Investor summary dashboard, landowner partnership summary', phase: 'P3', status: 'done' },
       { key: 'grant-readiness-total-cost-of-ownership', label: 'Grant-readiness checklist, total cost of ownership view', phase: 'P3', status: 'done' },
     ],
   },

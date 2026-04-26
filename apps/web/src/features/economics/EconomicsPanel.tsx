@@ -21,6 +21,7 @@ import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js'
 import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
+import LandownerPartnershipCard from './LandownerPartnershipCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -330,6 +331,9 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               — closes grant-readiness-total-cost-of-ownership alongside the
               Grant Readiness section below. */}
           <TotalCostOfOwnershipCard project={project} model={model} />
+
+          {/* §22 Landowner / Investor partnership split-of-interest summary. */}
+          <LandownerPartnershipCard project={project} model={model} />
 
           {/* Grant readiness */}
           {grantItems.length > 0 && (
