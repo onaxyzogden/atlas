@@ -72,6 +72,7 @@ import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js
 import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
 import { HydrologyExtensionsSection } from './sections/HydrologyExtensionsSection.js';
 import { EnergyIntelligenceSection } from './sections/EnergyIntelligenceSection.js';
+import { GeologicalBedrockSection } from './sections/GeologicalBedrockSection.js';
 import { SiteSummaryNarrativeSection } from './sections/SiteSummaryNarrativeSection.js';
 import { AssessmentScoresSection } from './sections/AssessmentScoresSection.js';
 import { FuzzyFaoSection } from './sections/FuzzyFaoSection.js';
@@ -422,6 +423,22 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       : null;
     if (!geothermal && !storage) return null;
     return { geothermal, storage };
+  }, [layers]);
+
+  // §3 geological-bedrock-notes — substrate / bedrock depth presentation inputs
+  const geologicalBedrock = useMemo(() => {
+    const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    const gwLayer = layers.find((l) => l.layerType === 'groundwater');
+    const ss = soilsLayer?.summary as Record<string, unknown> | undefined;
+    const gws = gwLayer?.summary as Record<string, unknown> | undefined;
+    const bedrockDepthM = typeof ss?.depth_to_bedrock_m === 'number' ? ss.depth_to_bedrock_m : null;
+    if (bedrockDepthM == null) return null;
+    return {
+      bedrockDepthM,
+      textureClass: typeof ss?.texture_class === 'string' ? ss.texture_class : null,
+      drainageClass: typeof ss?.drainage_class === 'string' ? ss.drainage_class : null,
+      groundwaterDepthM: typeof gws?.groundwater_depth_m === 'number' ? gws.groundwater_depth_m : null,
+    };
   }, [layers]);
 
   // Sprint BE: Cat 5 — Climate projections (IPCC AR6 regional deltas)
@@ -776,6 +793,15 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       />
 
       <EnergyIntelligenceSection energyIntelligence={energyIntelligence} />
+
+      {geologicalBedrock && (
+        <GeologicalBedrockSection
+          bedrockDepthM={geologicalBedrock.bedrockDepthM}
+          textureClass={geologicalBedrock.textureClass}
+          drainageClass={geologicalBedrock.drainageClass}
+          groundwaterDepthM={geologicalBedrock.groundwaterDepthM}
+        />
+      )}
 
       <ClimateProjectionsSection climateProjections={climateProjections} />
 
