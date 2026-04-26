@@ -1,0 +1,223 @@
+/* §21 CapitalIntensityCard — 4-axis radar + archetype classification. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+/* ── Radar + archetype body ── */
+.body {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.radarWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radarSvg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
+.radarGrid {
+  fill: none;
+  stroke: rgba(232, 220, 200, 0.08);
+  stroke-width: 1;
+}
+
+.radarSpoke {
+  stroke: rgba(232, 220, 200, 0.06);
+  stroke-width: 1;
+}
+
+.radarFill {
+  fill: rgba(196, 162, 101, 0.18);
+  stroke: rgba(220, 185, 130, 0.7);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.radarLabel {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  fill: rgba(180, 165, 140, 0.78);
+}
+
+.archetypeWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.archetypeBadge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+}
+
+.archetypeDesc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.85);
+  max-width: 460px;
+}
+
+.archetypeLean {
+  background: rgba(160, 195, 130, 0.12);
+  color: rgba(180, 215, 150, 0.95);
+}
+.archetypeBalanced {
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.95);
+}
+.archetypeCapital {
+  background: rgba(180, 195, 145, 0.12);
+  color: rgba(210, 225, 175, 0.95);
+}
+.archetypeOps {
+  background: rgba(220, 180, 100, 0.12);
+  color: rgba(235, 200, 130, 0.95);
+}
+.archetypeSeasonal {
+  background: rgba(220, 130, 110, 0.1);
+  color: rgba(235, 165, 145, 0.95);
+}
+.archetypeComplex {
+  background: rgba(220, 130, 110, 0.16);
+  color: rgba(235, 145, 130, 0.98);
+}
+
+/* ── Axis bars ── */
+.axisList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.axisRow {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.axisHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.axisLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.axisScore {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+
+.axisBarTrack {
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.04);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.axisBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+
+.barSage {
+  background: linear-gradient(to right, rgba(160, 195, 130, 0.85), rgba(180, 215, 150, 0.55));
+}
+.barNeutral {
+  background: linear-gradient(to right, rgba(196, 162, 101, 0.75), rgba(220, 185, 130, 0.45));
+}
+.barAmber {
+  background: linear-gradient(to right, rgba(220, 180, 100, 0.85), rgba(235, 200, 130, 0.5));
+}
+.barRust {
+  background: linear-gradient(to right, rgba(220, 130, 110, 0.85), rgba(235, 165, 145, 0.55));
+}
+
+.axisRaw {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.footnote {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}

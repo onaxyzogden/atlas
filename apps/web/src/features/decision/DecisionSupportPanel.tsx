@@ -29,6 +29,7 @@ import MissingInformationChecklistCard from './MissingInformationChecklistCard.j
 import DomainFeasibilityCard from './DomainFeasibilityCard.js';
 import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
 import SeasonalRealismCard from './SeasonalRealismCard.js';
+import CapitalIntensityCard from './CapitalIntensityCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -402,6 +403,10 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
       {/* §21 Seasonal realism — phase x month x task suitability matrix
           (seasonal-vulnerability-phasing-realism). */}
       <SeasonalRealismCard project={project} />
+
+      {/* §21 Capital x Ops intensity — 4-axis radar with archetype label
+          (capital-intensity-operational-complexity). */}
+      <CapitalIntensityCard project={project} />
 
       {/* Design rules (inline) */}
       <h3 className={p.sectionLabel}>Design Rules</h3>
