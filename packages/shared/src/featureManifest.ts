@@ -577,7 +577,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'livestock-water-degraded-land-templates', label: 'Livestock-first, water-retention-first, degraded land restoration templates', phase: 'P3', status: 'planned' },
       { key: 'mens-cohort-campus-template', label: "Men's cohort campus template", phase: 'MT', status: 'planned' },
       { key: 'family-oriented-community-template', label: 'Family-oriented community template', phase: 'MT', status: 'planned' },
-      { key: 'saved-bundles-rules-hotspots-phases-costs', label: 'Saved feature bundles, rule sets, hotspot sets, phase structures, cost models', phase: 'P3', status: 'planned' },
+      { key: 'saved-bundles-rules-hotspots-phases-costs', label: 'Saved feature bundles, rule sets, hotspot sets, phase structures, cost models', phase: 'P3', status: 'partial' },
       { key: 'template-duplication-locking-governance', label: 'Template duplication and locking / governance', phase: 'P3', status: 'partial' },
       { key: 'template-marketplace', label: 'Template marketplace', phase: 'P4', status: 'planned' },
     ],
