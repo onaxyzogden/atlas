@@ -29,6 +29,7 @@ import type { WindRoseData } from '../../lib/layerFetcher.js';
 import { api, type SolarExposureResponse, type ComfortGridResponse } from '../../lib/apiClient.js';
 import WindShadeCanopySimCard from './WindShadeCanopySimCard.js';
 import WindCorridorAuditCard from './WindCorridorAuditCard.js';
+import SeasonalWindBalanceCard from './SeasonalWindBalanceCard.js';
 import SolarPlacementCandidatesCard from './SolarPlacementCandidatesCard.js';
 import SeasonalShadowCard from './SeasonalShadowCard.js';
 import MicroclimateInsightsCard from './MicroclimateInsightsCard.js';
@@ -300,6 +301,13 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
           windbreakCount={windbreaks?.lines.length ?? 0}
           windbreakTotalLengthM={windbreaks?.lines.reduce((sum, l) => sum + l.lengthM, 0) ?? 0}
         />
+      </div>
+
+      {/* §6 Seasonal wind balance — winter shelter vs summer ventilation
+          tradeoff (windbreak-ventilation-corridors). */}
+      <div className={css.section}>
+        <h3 className={css.sectionLabel}>SEASONAL WIND BALANCE</h3>
+        <SeasonalWindBalanceCard windRose={windRoseData} />
       </div>
 
       {/* Growing Season Calendar */}
