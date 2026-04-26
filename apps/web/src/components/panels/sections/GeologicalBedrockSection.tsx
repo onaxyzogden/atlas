@@ -80,7 +80,47 @@ export const GeologicalBedrockSection = memo(function GeologicalBedrockSection({
   drainageClass,
   groundwaterDepthM,
 }: GeologicalBedrockSectionProps) {
-  if (bedrockDepthM == null) return null;
+  if (bedrockDepthM == null) {
+    return (
+      <SectionProfiler id="site-intel-geological-bedrock">
+        <div className={`${s.liveDataWrap} ${p.mb20}`}>
+          <div className={`${s.liveDataHeader} ${p.cursorDefault}`}>
+            <span className={p.tokenActive}>&#9968;</span>
+            <span className={s.liveDataTitle}>Geological Substrate &amp; Bedrock</span>
+            <div className={p.flex1} />
+            <span
+              className={s.scoreBadge}
+              style={{
+                background: 'rgba(196, 162, 101, 0.12)',
+                color: 'rgba(232, 200, 130, 0.9)',
+                fontSize: '9px',
+                letterSpacing: '0.08em',
+              }}
+            >
+              HEURISTIC
+            </span>
+          </div>
+          <div className={p.innerPad}>
+            <div className={`${s.liveDataRow} ${p.colStretchPad} ${p.borderBottomNone}`}>
+              <span className={s.liveDataLabel}>Depth to Bedrock</span>
+              <div className={p.tokenIconFs12Leading} style={{ fontStyle: 'italic', opacity: 0.75 }}>
+                Bedrock depth not measured for this parcel. Verify with site
+                geotech, driller logs, or a soil survey before sizing footings,
+                wells, or pond earthworks.
+              </div>
+              {(textureClass || drainageClass) && (
+                <div className={`${p.tokenIcon} ${p.fs11} ${p.mt4}`} style={{ opacity: 0.7 }}>
+                  Substrate context:&nbsp;
+                  {textureClass ? `${textureClass} texture` : 'texture n/a'}
+                  {drainageClass ? ` \u00b7 ${drainageClass} drainage` : ''}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </SectionProfiler>
+    );
+  }
 
   const depthFt = Math.round(bedrockDepthM * 3.28084 * 10) / 10;
   const band = bandFor(bedrockDepthM);

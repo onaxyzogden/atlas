@@ -428,14 +428,16 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
   // §3 geological-bedrock-notes — substrate / bedrock depth presentation inputs
   const geologicalBedrock = useMemo(() => {
     const soilsLayer = layers.find((l) => l.layerType === 'soils');
+    if (!soilsLayer) return null;
+    const ss = soilsLayer.summary as Record<string, unknown> | undefined;
     const gwLayer = layers.find((l) => l.layerType === 'groundwater');
-    const ss = soilsLayer?.summary as Record<string, unknown> | undefined;
     const gws = gwLayer?.summary as Record<string, unknown> | undefined;
-    const bedrockDepthM = typeof ss?.depth_to_bedrock_m === 'number' ? ss.depth_to_bedrock_m : null;
-    if (bedrockDepthM == null) return null;
+    const textureClass = typeof ss?.texture_class === 'string'
+      ? ss.texture_class
+      : typeof ss?.predominant_texture === 'string' ? ss.predominant_texture : null;
     return {
-      bedrockDepthM,
-      textureClass: typeof ss?.texture_class === 'string' ? ss.texture_class : null,
+      bedrockDepthM: typeof ss?.depth_to_bedrock_m === 'number' ? ss.depth_to_bedrock_m : null,
+      textureClass,
       drainageClass: typeof ss?.drainage_class === 'string' ? ss.drainage_class : null,
       groundwaterDepthM: typeof gws?.groundwater_depth_m === 'number' ? gws.groundwater_depth_m : null,
     };
