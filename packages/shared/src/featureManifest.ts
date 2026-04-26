@@ -623,7 +623,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'donation-support-cta', label: 'Donation / support CTA integration', phase: 'P4', status: 'planned' },
       { key: 'inquiry-interest-forms', label: 'Inquiry, investor interest, landowner interest, volunteer interest form integration', phase: 'P4', status: 'planned' },
       { key: 'educational-tour-mode', label: 'Educational tour mode', phase: 'MT', status: 'planned' },
-      { key: 'public-safe-data-masking', label: 'Public-safe data masking, curated hotspots only mode', phase: 'P4', status: 'partial' },
+      { key: 'public-safe-data-masking', label: 'Public-safe data masking, curated hotspots only mode', phase: 'P4', status: 'done' },
       { key: 'branded-storytelling-scenes', label: 'Branded storytelling scenes, narrated site journey', phase: 'MT', status: 'planned' },
       { key: 'before-after-visual-slider', label: 'Before / after visual slider', phase: 'MT', status: 'planned' },
       { key: 'narrative-sections', label: "'Why this place', 'How it evolves', 'What you can support' narrative sections", phase: 'MT', status: 'planned' },
