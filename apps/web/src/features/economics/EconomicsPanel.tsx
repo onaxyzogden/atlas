@@ -17,6 +17,8 @@ import OperatingRunwayCard from './OperatingRunwayCard.js';
 import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
 import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
 import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js';
+import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
+import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -297,6 +299,13 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
 
           {/* Operating runway — annual revenue vs cost burn-down */}
           <OperatingRunwayCard cashflow={cashflow} breakEven={breakEven} />
+
+          {/* §22 Sensitivity by assumption — how do ±20% / ±50% lever shifts move headline metrics? */}
+          <SensitivityAnalysisCard model={model} />
+
+          {/* §22 Hidden cost flags + contingency recommendation
+              (cost-sensitivity-hidden-costs-contingency). */}
+          <HiddenCostsContingencyCard project={project} model={model} />
 
           {/* Category breakdown */}
           <SectionLabel>Investment by Category</SectionLabel>
