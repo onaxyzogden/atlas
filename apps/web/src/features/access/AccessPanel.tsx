@@ -22,6 +22,7 @@ import CorridorCostEstimatorCard from './CorridorCostEstimatorCard.js';
 import ParkingDeliveryAccessCard from './ParkingDeliveryAccessCard.js';
 import EventFlowLightingCard from './EventFlowLightingCard.js';
 import PublicPrivateCirculationCard from './PublicPrivateCirculationCard.js';
+import ArrivalSequenceDesignCard from './ArrivalSequenceDesignCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -222,6 +223,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           <EventFlowLightingCard projectId={projectId} />
           {/* §10 Public vs private circulation (public-private-circulation-layers). */}
           <PublicPrivateCirculationCard projectId={projectId} />
+          {/* §10 Arrival sequence design — guest-experience reveal-tier audit. */}
+          <ArrivalSequenceDesignCard projectId={projectId} />
         </div>
       )}
 
