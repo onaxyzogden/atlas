@@ -125,14 +125,14 @@ export default function ProjectPage() {
     return (
       <div className={css.notFound}>
         <h2 className={css.notFoundTitle}>Project not found</h2>
-        <Link to="/" className={css.notFoundLink}>Back to projects</Link>
+        <Link to="/home" className={css.notFoundLink}>Back to projects</Link>
       </div>
     );
   }
 
   const handleDelete = () => {
     deleteProject(project.id);
-    navigate({ to: '/' });
+    navigate({ to: '/home' });
   };
 
   const handleDuplicate = () => {

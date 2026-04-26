@@ -579,3 +579,25 @@
   color: rgba(180, 165, 140, 0.7);
   background: rgba(180, 165, 140, 0.05);
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .page { padding: 28px 28px 40px; }
+}
+@media (max-width: 768px) {
+  .page { padding: 20px 16px 32px; gap: 18px; }
+  .title { font-size: 24px; }
+  .arc { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .arcCell { padding: 12px 14px; }
+  .arcValue { font-size: 20px; }
+  .phaseCard { padding: 14px 16px; }
+  .phaseHead { flex-wrap: wrap; }
+  .phaseStats { gap: 12px; justify-content: flex-start; }
+}
+@media (max-width: 375px) {
+  .page { padding: 16px 12px 24px; }
+  .title { font-size: 22px; }
+  .arc { grid-template-columns: 1fr 1fr; }
+  .featureItem { grid-template-columns: 64px 1fr; row-gap: 2px; }
+  .featureSubGroup { grid-column: 1 / -1; justify-self: start; }
+}

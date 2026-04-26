@@ -24,7 +24,16 @@
   gap: 12px;
   margin-bottom: 28px;
 }
-@media (max-width: 768px) { .summaryRow { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) {
+  .summaryRow { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .layerGrid { grid-template-columns: 1fr; }
+  .summaryValue { font-size: 22px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 24px; }
+  .summaryRow { grid-template-columns: 1fr; }
+  .summaryCard { padding: 12px; }
+}
 
 .summaryCard {
   padding: 16px;

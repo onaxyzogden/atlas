@@ -240,7 +240,7 @@ export default function CompareCandidatesPage() {
     return (
       <div className={css.page}>
         <div className={css.container}>
-          <Link to="/" className={css.backLink}>{'\u2190'} Back to projects</Link>
+          <Link to="/home" className={css.backLink}>{'\u2190'} Back to projects</Link>
           <h1 className={css.title}>Compare Candidates</h1>
           <div className={css.empty}>
             No projects selected.
@@ -257,7 +257,7 @@ export default function CompareCandidatesPage() {
   return (
     <div className={css.page}>
       <div className={css.container}>
-        <Link to="/" className={css.backLink}>{'\u2190'} Back to projects</Link>
+        <Link to="/home" className={css.backLink}>{'\u2190'} Back to projects</Link>
         <div className={css.header}>
           <h1 className={css.title}>Compare Candidates</h1>
           <p className={css.subtitle}>

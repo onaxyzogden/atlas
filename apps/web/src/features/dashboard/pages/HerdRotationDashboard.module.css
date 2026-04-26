@@ -307,3 +307,24 @@
   background: var(--color-status-good);
   display: inline-block;
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero { padding: 20px 22px; }
+  .title { font-size: 24px; }
+  .paddockCard { padding: 18px; }
+  .paddockHeader { flex-direction: column; gap: 10px; }
+  .paddockAcres { text-align: left; }
+  .quickStats { grid-template-columns: 1fr 1fr; }
+  .ctaButton { max-width: none; padding: 12px 18px; }
+}
+@media (max-width: 375px) {
+  .hero { padding: 16px; }
+  .title { font-size: 22px; }
+  .paddockName { font-size: 18px; }
+  .acresValue { font-size: 24px; }
+  .statValue { font-size: 18px; }
+  .quickStats { grid-template-columns: 1fr; }
+  .coordsBar { gap: 10px; padding: 8px 12px; font-size: 10px; }
+  .coordsStatus { margin-left: 0; }
+}

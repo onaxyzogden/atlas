@@ -261,3 +261,23 @@
   color: rgba(180,165,140,0.4);
   text-transform: uppercase;
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .sectionHeader { flex-direction: column; align-items: flex-start; }
+  .sectionControls { gap: 10px; }
+  .herdCard { padding: 16px; }
+  .herdName { font-size: 18px; }
+  .herdStatValue { font-size: 20px; }
+  .ledgerSection { padding: 18px; }
+  .ledgerHeader { flex-direction: column; gap: 12px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .herdStats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .herdStatValue { font-size: 18px; }
+  .herdFooter { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .ledgerCard { padding: 12px; }
+  .logActivityBtn { width: 100%; justify-content: center; }
+}

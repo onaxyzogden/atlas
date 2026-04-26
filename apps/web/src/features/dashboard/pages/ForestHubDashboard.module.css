@@ -314,3 +314,21 @@
   font-size: 13px;
   color: rgba(255,255,255,0.3);
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sectorTitle { font-size: 24px; }
+  .healthCard { padding: 18px; }
+  .gaugeWrapper { width: 100px; height: 100px; }
+  .gaugeValue { font-size: 24px; }
+  .canopyRow { flex-wrap: wrap; }
+  .canopyLayer { min-width: 80px; }
+  .canopyHeight { min-width: 64px; }
+}
+@media (max-width: 375px) {
+  .sectorTitle { font-size: 20px; }
+  .carbonGrid { grid-template-columns: 1fr; }
+  .gaugeWrapper { width: 88px; height: 88px; }
+  .gaugeValue { font-size: 22px; }
+  .dataValue { font-size: 13px; }
+}

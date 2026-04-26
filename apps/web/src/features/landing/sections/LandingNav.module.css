@@ -1,0 +1,108 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-6);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+
+.nav[data-scrolled='true'] {
+  background: var(--color-bg);
+  border-bottom-color: var(--color-border-subtle);
+}
+
+.inner {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.logo {
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--text-lg);
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.logo span {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-left: var(--space-2);
+  letter-spacing: normal;
+  font-size: var(--text-sm);
+}
+
+.links {
+  display: flex;
+  gap: var(--space-5);
+  margin-left: var(--space-8);
+  flex: 1;
+}
+
+.link {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  padding: var(--space-2) 0;
+  border-radius: var(--radius-sm);
+  transition: color 150ms ease;
+}
+
+.link:hover {
+  color: var(--color-text);
+}
+
+.link[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-sage-600, var(--color-text));
+  outline-offset: 2px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.signIn {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: color 150ms ease;
+}
+
+.signIn:hover {
+  color: var(--color-text);
+}
+
+.signIn:focus-visible {
+  outline: 2px solid var(--color-sage-600, var(--color-text));
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .links { display: none; }
+}
+
+@media (max-width: 480px) {
+  .signIn { display: none; }
+}

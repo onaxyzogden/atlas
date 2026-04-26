@@ -136,3 +136,18 @@
   transition: background 150ms;
 }
 .mapBtn:hover { background: rgba(var(--color-gold-rgb), 0.18); }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+  .layerHeaderRow,
+  .layerRow { grid-template-columns: 2fr 1.5fr 1fr; }
+  .layerRes { display: none; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .coordGrid { grid-template-columns: 1fr 1fr; }
+  .layerHeaderRow,
+  .layerRow { grid-template-columns: 2fr 1fr; padding: 10px 12px; gap: 8px; }
+  .layerSource { display: none; }
+}

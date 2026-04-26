@@ -2,10 +2,12 @@
  * Route definitions — TanStack Router file-based routing.
  *
  * Routes:
- *   /              → Home (project list)
+ *   /              → Landing (public) — redirects to /home if authenticated
+ *   /home          → Home (project list, authenticated)
  *   /new           → New project wizard
  *   /project/$id   → Project view (map + dashboard)
  *   /login         → Login / register (outside AppShell)
+ *   /portal/$slug  → Public project portal (outside AppShell)
  */
 
 import {
@@ -13,6 +15,7 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  redirect,
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
@@ -22,6 +25,19 @@ import ProjectPage from '../pages/ProjectPage.js';
 import CompareCandidatesPage from '../features/project/compare/CompareCandidatesPage.js';
 import PortalPage from '../pages/PortalPage.js';
 import LoginPage from '../pages/LoginPage.js';
+import { LandingPage } from '../features/landing/index.js';
+
+// Auth gate used by the public landing route. Reads the persisted token
+// directly so the redirect fires before AppShell mounts (avoiding a flash
+// of LandingPage for already-signed-in users).
+const AUTH_TOKEN_KEY = 'ogden-auth-token';
+function isAuthenticated(): boolean {
+  try {
+    return Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
+  } catch {
+    return false;
+  }
+}
 
 // ─── Root layout (with AppShell) ──────────────────────────────────────────
 const rootRoute = createRootRoute({
@@ -42,7 +58,7 @@ const appShellRoute = createRoute({
 // ─── Main pages (inside AppShell) ─────────────────────────────────────────
 const homeRoute = createRoute({
   getParentRoute: () => appShellRoute,
-  path: '/',
+  path: '/home',
   component: HomePage,
 });
 
@@ -65,6 +81,18 @@ const compareCandidatesRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => ({
     ids: typeof search.ids === 'string' ? search.ids : '',
   }),
+});
+
+// ─── Landing page (outside AppShell — public marketing) ─────────────────
+const landingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: LandingPage,
+  beforeLoad: () => {
+    if (isAuthenticated()) {
+      throw redirect({ to: '/home' });
+    }
+  },
 });
 
 // ─── Login page (outside AppShell — own centered layout) ─────────────────
@@ -103,6 +131,7 @@ const routeTree = rootRoute.addChildren([
     compareCandidatesRoute,
     notFoundRoute,
   ]),
+  landingRoute,
   loginRoute,
   portalRoute,
 ]);

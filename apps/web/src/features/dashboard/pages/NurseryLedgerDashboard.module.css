@@ -274,3 +274,21 @@
   font-size: 13px;
   color: rgba(255,255,255,0.3);
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .summaryGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .title { font-size: 22px; }
+  .summaryValue { font-size: 22px; }
+  .stockValue { font-size: 18px; }
+  /* Calendar already wraps in overflow-x scroller; tighten label col. */
+  .calMonthRow, .calRow { grid-template-columns: 92px repeat(12, 1fr); }
+}
+@media (max-width: 375px) {
+  .title { font-size: 20px; }
+  .summaryGrid { grid-template-columns: 1fr; }
+  .stockHeader { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .calMonthRow, .calRow { grid-template-columns: 72px repeat(12, 1fr); }
+}

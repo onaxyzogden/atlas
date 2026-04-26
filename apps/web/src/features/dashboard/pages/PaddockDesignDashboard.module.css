@@ -242,3 +242,16 @@
   letter-spacing: 0.08em;
   color: rgba(180,165,140,0.4);
 }
+
+/* ── Responsive (viewport-level — supplements container queries) ── */
+@media (max-width: 768px) {
+  .title { font-size: 26px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .summaryRow { grid-template-columns: 1fr 1fr; }
+  .summaryValue { font-size: 20px; }
+  .paddockCardHeader { flex-direction: column; gap: 6px; }
+  .paddockMeta { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .metaValue { font-size: 14px; }
+}

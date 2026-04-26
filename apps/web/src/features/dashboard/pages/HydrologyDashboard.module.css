@@ -808,3 +808,16 @@
 }
 @media (max-width: 768px) { .metricsTabGrid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .metricsTabGrid { grid-template-columns: 1fr; } }
+
+/* ── Cross-cutting responsive tightening (375 px floor) ─────────── */
+@media (max-width: 768px) {
+  .suiteHeader { gap: 12px; padding-bottom: 12px; margin-bottom: 20px; }
+  .suiteNav { flex-wrap: wrap; gap: 2px; }
+  .suiteTab { padding: 4px 10px; font-size: 10px; }
+  .title { font-size: 24px; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 20px; }
+  .suiteTitle { font-size: 13px; }
+  .suiteTab { padding: 3px 8px; font-size: 9px; letter-spacing: 0.06em; }
+}

@@ -375,3 +375,22 @@
   font-size: 13px;
   color: rgba(255,255,255,0.3);
 }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .terrainHero { height: 150px; }
+  .terrainOverlay { padding: 18px 20px; }
+  .title { font-size: 22px; }
+  .speciesCard { padding: 12px 14px; }
+  .metricsGrid { gap: 8px; }
+  .metricBox { padding: 14px; }
+  .metricValue { font-size: 26px; }
+  .aiCard { padding: 16px; }
+}
+@media (max-width: 375px) {
+  .terrainHero { height: 130px; }
+  .terrainOverlay { padding: 14px 16px; }
+  .title { font-size: 20px; }
+  .metricsGrid { grid-template-columns: 1fr; }
+  .speciesCard { flex-direction: column; align-items: flex-start; gap: 6px; }
+}

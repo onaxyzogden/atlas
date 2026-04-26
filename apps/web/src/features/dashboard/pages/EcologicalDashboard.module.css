@@ -474,6 +474,43 @@
   color: rgba(180,165,140,0.55);
   letter-spacing: 0.02em;
 }
+/* CTA-style empty-state block — replaces the flat "Not resolved /
+   Run pollinator analysis" stack. Renders as a clickable card that
+   inherits the strip's grid layout (so it lines up with the other
+   two blocks) but signals affordance with a gold-tinted background,
+   pointer cursor, and hover lift. The middle row swaps from the
+   muted "Not resolved" name to a high-contrast gold label with a
+   trailing arrow. */
+.pollinatorRunCta {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.4);
+  border-radius: 6px;
+  background: rgba(var(--color-gold-rgb), 0.1);
+  padding: 8px 10px;
+  margin: -8px -10px;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.pollinatorRunCta:hover {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border-color: rgba(var(--color-gold-rgb), 0.65);
+  transform: translateY(-1px);
+}
+.pollinatorRunCta:focus-visible {
+  outline: 2px solid rgba(var(--color-gold-rgb), 0.7);
+  outline-offset: 2px;
+}
+.pollinatorRunCtaLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(var(--color-gold-rgb), 0.95);
+  line-height: 1.25;
+}
 .pollinatorPlantsList {
   list-style: none;
   margin: 0;
@@ -484,13 +521,106 @@
 }
 .pollinatorPlantItem {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px 10px;
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 6px;
   background: rgba(255,255,255,0.02);
+}
+.pollinatorPlantHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pollinatorGuildBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.pollinatorGuildBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(var(--color-gold-rgb), 0.85);
+  background: rgba(var(--color-gold-rgb), 0.1);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.25);
+  border-radius: 3px;
+  cursor: help;
+}
+.pollinatorCaveats {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pollinatorCaveatToggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(var(--color-gold-rgb), 0.78);
+  background: transparent;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.22);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.pollinatorCaveatToggle:hover {
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+}
+.pollinatorCaveatList {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 2px solid rgba(var(--color-gold-rgb), 0.3);
+  background: rgba(255,255,255,0.02);
+  border-radius: 0 4px 4px 0;
+}
+.pollinatorCaveatItem {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(232,220,200,0.7);
+}
+
+/* ── Pollinator section card surface ────────────────────────────
+   The pollinator section grew into a substantive sub-feature
+   (ecoregion strip + curated species list + guild badges + caveat
+   drawer) — significantly more content density than the flat
+   margin-only sections above and below it. The card treatment
+   sets it apart visually, signals "this is a derived analysis,
+   not a raw layer summary", and hints at the gold language
+   already in use by guild badges and the caveat drawer. */
+.pollinatorSection {
+  position: relative;
+  padding: 18px 18px 18px 22px;
+  border: 1px solid rgba(var(--color-gold-rgb), 0.18);
+  border-left: 3px solid rgba(var(--color-gold-rgb), 0.55);
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--color-gold-rgb), 0.04) 0%,
+      rgba(255,255,255,0.015) 60%
+    );
+}
+.pollinatorSectionLabel {
+  color: rgba(var(--color-gold-rgb), 0.78);
+  margin-bottom: 14px;
 }
 .pollinatorPlantCommon {
   display: block;
@@ -513,4 +643,28 @@
   color: rgba(var(--color-gold-rgb), 0.75);
   text-transform: uppercase;
   flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .carbonGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .title { font-size: 24px; }
+  .scoreValue { font-size: 36px; }
+  .headerRow { flex-direction: column; gap: 12px; }
+  .dualScoreRow { grid-template-columns: 1fr; }
+  .miniScoreValue { font-size: 28px; }
+  .wetlandGrid { grid-template-columns: 1fr; }
+  .pollinatorEcoregionStrip { grid-template-columns: 1fr; gap: 8px; }
+  .pollinatorPlantsList { grid-template-columns: 1fr; }
+  .coverRow { flex-wrap: wrap; }
+  .coverName { min-width: 100%; }
+}
+@media (max-width: 375px) {
+  .title { font-size: 22px; }
+  .scoreValue { font-size: 32px; }
+  .carbonGrid { grid-template-columns: 1fr; }
+  .miniScoreCard, .coverCard, .wetlandCard, .interventionCard, .opportunityItem { padding: 12px 14px; }
+  .opportunityItem { gap: 10px; }
 }
