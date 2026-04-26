@@ -20,6 +20,7 @@ import { api } from '../../lib/apiClient.js';
 import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
 import ClientHandoffPackageCard from './ClientHandoffPackageCard.js';
+import SiteAssessmentExportPreviewCard from './SiteAssessmentExportPreviewCard.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { group, warning, sage, error as errorToken, semantic } from '../../lib/tokens.js';
@@ -678,6 +679,9 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
           </span>
         </div>
       </div>
+
+      {/* ── §19 Site assessment export preview ── */}
+      <SiteAssessmentExportPreviewCard project={project} />
 
       {/* ── §27 Client handoff package ── */}
       <ClientHandoffPackageCard project={project} />
