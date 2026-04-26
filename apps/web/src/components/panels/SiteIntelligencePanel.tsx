@@ -71,6 +71,7 @@ import { AdjacentLandUseUtilitiesCard } from './sections/AdjacentLandUseUtilitie
 import { EnvironmentalRiskSection } from './sections/EnvironmentalRiskSection.js';
 import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js';
 import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
+import { SolarWindFireRiskCard } from './sections/SolarWindFireRiskCard.js';
 import { HydrologyExtensionsSection } from './sections/HydrologyExtensionsSection.js';
 import { EnergyIntelligenceSection } from './sections/EnergyIntelligenceSection.js';
 import { GeologicalBedrockSection } from './sections/GeologicalBedrockSection.js';
@@ -809,6 +810,17 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       )}
 
       <ClimateProjectionsSection climateProjections={climateProjections} />
+
+      <SolarWindFireRiskCard
+        layers={layers}
+        lat={(() => {
+          try {
+            if (!project.parcelBoundaryGeojson) return null;
+            const c = turf.centroid(project.parcelBoundaryGeojson);
+            return c.geometry.coordinates[1] ?? null;
+          } catch { return null; }
+        })()}
+      />
 
       <EcosystemServicesSection ecosystemIntelligence={ecosystemIntelligence} />
 

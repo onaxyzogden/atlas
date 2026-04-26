@@ -1,0 +1,166 @@
+/* §3 SolarWindFireRiskCard — solar/wind/fire heuristic rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.facet {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 10px;
+}
+
+.tone_good {
+  border-color: rgba(180, 200, 150, 0.28);
+  background: rgba(180, 200, 150, 0.05);
+}
+.tone_fair {
+  border-color: rgba(220, 180, 100, 0.24);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tone_poor {
+  border-color: rgba(220, 130, 110, 0.28);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.facetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.facetLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.verdictWord {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.tone_good .verdictWord { color: rgba(180, 200, 150, 0.95); }
+.tone_fair .verdictWord { color: rgba(220, 180, 100, 0.95); }
+.tone_poor .verdictWord { color: rgba(220, 130, 110, 0.95); }
+
+.facetDetail {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.facetHintLine {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+.statRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.statBlock {
+  flex: 1 1 auto;
+  min-width: 90px;
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote strong {
+  color: rgba(232, 220, 200, 0.85);
+  font-weight: 600;
+}
