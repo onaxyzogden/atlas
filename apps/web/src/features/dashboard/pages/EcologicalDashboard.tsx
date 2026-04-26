@@ -31,6 +31,7 @@ import DesignBriefPitchCard from '../../ai-design-support/DesignBriefPitchCard.j
 import EcologicalRiskWarningsCard from '../../ai-design-support/EcologicalRiskWarningsCard.js';
 import EducationalExplainerCard from '../../ai-design-support/EducationalExplainerCard.js';
 import WhyHerePanelsCard from '../../ai-design-support/WhyHerePanelsCard.js';
+import AiOutputFeedbackCard from '../../ai-design-support/AiOutputFeedbackCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
@@ -393,6 +394,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §19 Why-here / problem / if-omitted panels per placed entity type */}
       <WhyHerePanelsCard project={project} />
+
+      {/* §17 AI output rating + feedback — local thumbs/tags/notes per surface */}
+      <AiOutputFeedbackCard project={project} />
 
       {/* §11 Nutrient cycling balance — N demand vs. supply rollup */}
       <NutrientBalanceCard projectId={project.id} />
