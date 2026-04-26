@@ -22,6 +22,7 @@ import ZoneEcologyRollup from '../../zones/ZoneEcologyRollup.js';
 import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
 import ZoneSeasonalityRollup from '../../zones/ZoneSeasonalityRollup.js';
 import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
+import ProtectedAreasHabitatCard from '../../zones/ProtectedAreasHabitatCard.js';
 import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
 import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDetectorCard.js';
@@ -783,6 +784,11 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
           against conservation / water_retention zones (footprint
           violations, riparian setback, invasive-pressure flags). */}
       <EcologicalProtectionCard projectId={project.id} />
+
+      {/* §3 Protected areas + critical habitat posture — surfaces
+          USFWS / state-park proximity and listed-species presence
+          from infrastructure + critical_habitat layer summaries. */}
+      <ProtectedAreasHabitatCard projectId={project.id} />
 
       {/* §3 Soil risk hotspots — derived dry / wet / erosion / compaction
           advisories per zone, using paddock stocking density, succession

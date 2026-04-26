@@ -137,7 +137,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'manual-soil-water-tests', label: 'Manual soil test entry, water test data (Tier 2)', phase: 'P2', status: 'planned' },
       { key: 'geological-bedrock-notes', label: 'Geological substrate, bedrock depth notes', phase: 'P2', status: 'planned' },
       { key: 'solar-wind-fire', label: 'Solar radiation, wind rose, fire risk layers', phase: 'P2', status: 'planned' },
-      { key: 'habitat-wildlife-corridors', label: 'Habitat, wildlife corridor, protected species notes', phase: 'P2', status: 'planned' },
+      { key: 'habitat-wildlife-corridors', label: 'Habitat, wildlife corridor, protected species notes', phase: 'P2', status: 'done' },
       { key: 'adjacent-landuse-utilities', label: 'Adjacent land use, infrastructure proximity, utility network notes', phase: 'P2', status: 'planned' },
       { key: 'legal-setback-easement-zoning', label: 'Legal setback, easement, municipal zoning overlays (see Section 0e)', phase: 'P1', status: 'done' },
       { key: 'data-completeness-score', label: 'Data Completeness Score on project dashboard', phase: 'P1', status: 'done' },
