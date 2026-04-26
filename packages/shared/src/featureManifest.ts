@@ -274,7 +274,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3', 'MT'],
     status: 'partial',
     features: [
-      { key: 'main-secondary-emergency-service-access', label: 'Main, secondary, emergency, service access planning', phase: 'P2', status: 'partial' },
+      { key: 'main-secondary-emergency-service-access', label: 'Main, secondary, emergency, service access planning', phase: 'P2', status: 'done' },
       { key: 'pedestrian-trail-vehicle-farm-lane', label: 'Pedestrian path, trail, vehicle route, farm lane planning', phase: 'P2', status: 'done' },
       { key: 'animal-corridor-grazing-route', label: 'Animal movement corridor, grazing route planning', phase: 'P2', status: 'done' },
       { key: 'accessible-route-planning', label: 'Accessible route planning', phase: 'P2', status: 'done' },
@@ -294,7 +294,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3', 'MT'],
     status: 'partial',
     features: [
-      { key: 'species-selection-multi-species-planning', label: 'Species selection planner, multi-species planning', phase: 'P2', status: 'partial' },
+      { key: 'species-selection-multi-species-planning', label: 'Species selection planner, multi-species planning', phase: 'P2', status: 'done' },
       { key: 'rotational-grazing-cell-paddock-drawing', label: 'Rotational grazing cell design, paddock boundary drawing', phase: 'P2', status: 'done' },
       { key: 'paddock-sizing-stocking-density', label: 'Paddock sizing calculator, stocking density assumptions', phase: 'P2', status: 'done' },
       { key: 'recovery-period-rotation-schedule', label: 'Recovery period planner, rotation schedule view', phase: 'P2', status: 'done' },

@@ -23,6 +23,7 @@ import ParkingDeliveryAccessCard from './ParkingDeliveryAccessCard.js';
 import EventFlowLightingCard from './EventFlowLightingCard.js';
 import PublicPrivateCirculationCard from './PublicPrivateCirculationCard.js';
 import ArrivalSequenceDesignCard from './ArrivalSequenceDesignCard.js';
+import ServiceAccessContinuityCard from './ServiceAccessContinuityCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -208,6 +209,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AccessAnalysisCard paths={paths} />
+          {/* §10 Main/secondary/emergency/service access continuity. */}
+          <ServiceAccessContinuityCard projectId={projectId} />
           <AnimalCorridors corridors={corridors} livestockZones={livestockZones} waterZones={waterZones} />
           {project?.projectType && <ArrivalSequence arrivalPaths={arrivalPaths} projectType={project.projectType} />}
           <RouteConflicts paths={paths} zones={zones} />
