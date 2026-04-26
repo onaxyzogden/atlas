@@ -415,7 +415,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P3', 'MT'],
     status: 'partial',
     features: [
-      { key: 'rules-layer-siting-logic', label: 'Rules layer for siting logic', phase: 'P3', status: 'partial' },
+      { key: 'rules-layer-siting-logic', label: 'Rules layer for siting logic', phase: 'P3', status: 'done' },
       { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'partial' },
       { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'done' },
       { key: 'ecological-wildlife-protection-rules', label: 'Ecological and wildlife protection rules', phase: 'P3', status: 'done' },
@@ -472,7 +472,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P3'],
     status: 'partial',
     features: [
-      { key: 'multi-user-rbac', label: 'Multi-user access, role-based permissions (Owner, Designer, Reviewer, Viewer)', phase: 'P3', status: 'partial' },
+      { key: 'multi-user-rbac', label: 'Multi-user access, role-based permissions (Owner, Designer, Reviewer, Viewer)', phase: 'P3', status: 'done' },
       { key: 'commenting-on-map-and-features', label: 'Commenting on map and on specific features', phase: 'P3', status: 'done' },
       { key: 'suggest-edit-markup-threads', label: 'Suggest edit mode, markup tools, discussion threads', phase: 'P3', status: 'planned' },
       { key: 'task-assignment-approval-revisions', label: 'Task assignment, approval workflow, revision requests', phase: 'P3', status: 'planned' },
