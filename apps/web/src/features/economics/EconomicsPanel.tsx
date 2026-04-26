@@ -15,6 +15,7 @@ import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
 import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
+import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -446,6 +447,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {activeTab === 'revenue' && (
         <>
           <EnterpriseRevenueMixCard projectId={project.id} />
+          <RevenueRampProjectionCard projectId={project.id} />
           <div className={`${p.section} ${p.sectionGapLg}`}>
             {revenueStreams.length === 0 && (
               <div className={p.empty}>

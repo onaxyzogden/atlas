@@ -517,7 +517,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'regional-cost-database', label: 'Regional cost database with low/mid/high ranges (Section 0f)', phase: 'P3', status: 'planned' },
       { key: 'cost-override-contractor-bid-import', label: 'User cost override and contractor bid import', phase: 'P3', status: 'planned' },
       { key: 'cost-sensitivity-hidden-costs-contingency', label: 'Cost sensitivity sliders, hidden cost flags, contingency recommendations', phase: 'P3', status: 'planned' },
-      { key: 'enterprise-revenue-templates-ramp-timeline', label: 'Enterprise revenue templates with ramp timeline modeling', phase: 'P3', status: 'planned' },
+      { key: 'enterprise-revenue-templates-ramp-timeline', label: 'Enterprise revenue templates with ramp timeline modeling', phase: 'P3', status: 'done' },
       { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'done' },
       { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'done' },
       { key: 'overbuilt-for-revenue-lean-mvp', label: "'Overbuilt for revenue' AI warning, Lean MVP path view", phase: 'P3', status: 'planned' },
