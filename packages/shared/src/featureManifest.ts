@@ -553,7 +553,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'mobile-friendly-map-gps', label: 'Mobile-friendly map view, GPS location on site', phase: 'P2', status: 'partial' },
-      { key: 'field-note-geotagged-photo', label: 'Field note and geotagged photo capture', phase: 'P2', status: 'partial' },
+      { key: 'field-note-geotagged-photo', label: 'Field note and geotagged photo capture', phase: 'P2', status: 'done' },
       { key: 'voice-memo-site-checklist', label: 'Voice memo attachment, site checklist mode', phase: 'P2', status: 'done' },
       { key: 'offline-field-mode-sync', label: 'Offline field mode and sync (see Section 0g)', phase: 'P2', status: 'planned' },
       { key: 'soil-water-structure-issue-logging', label: 'Soil sample, water issue, structure issue point logging', phase: 'P4', status: 'planned' },

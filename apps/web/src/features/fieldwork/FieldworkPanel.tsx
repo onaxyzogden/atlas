@@ -22,6 +22,7 @@ import FieldNoteExport from './FieldNoteExport.js';
 import FieldworkChecklistCard from './FieldworkChecklistCard.js';
 import WalkChecklistCard from './WalkChecklistCard.js';
 import SiteVisitReportCard from './SiteVisitReportCard.js';
+import GeotaggedPhotoGalleryCard from './GeotaggedPhotoGalleryCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -29,7 +30,7 @@ interface Props {
   map: maplibregl.Map | null;
 }
 
-type Tab = 'notes' | 'data' | 'walk' | 'checklist';
+type Tab = 'notes' | 'data' | 'walk' | 'checklist' | 'photos';
 
 const DATA_TYPES: { id: FieldworkType; label: string }[] = [
   { id: 'soil_sample', label: 'Soil' },
@@ -92,6 +93,7 @@ export default function FieldworkPanel({ project, map }: Props) {
           { id: 'data' as Tab, label: 'Data' },
           { id: 'walk' as Tab, label: 'Routes' },
           { id: 'checklist' as Tab, label: 'Checklist' },
+          { id: 'photos' as Tab, label: 'Photos' },
         ]).map((tab) => (
           <button
             key={tab.id}
@@ -133,6 +135,10 @@ export default function FieldworkPanel({ project, map }: Props) {
           <FieldworkChecklistCard projectId={project.id} />
           <SiteChecklist projectId={project.id} />
         </>
+      )}
+
+      {activeTab === 'photos' && (
+        <GeotaggedPhotoGalleryCard projectId={project.id} />
       )}
 
       {/* ── Export ──────────────────────────────────────── */}
