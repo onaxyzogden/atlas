@@ -513,7 +513,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'cost-estimate-by-feature-phase', label: 'Cost estimate by feature and by phase (with regional benchmarks — see Section 0f)', phase: 'P2', status: 'partial' },
       { key: 'revenue-stream-tagging-enterprise-mapping', label: 'Revenue stream tagging, enterprise mapping', phase: 'P2', status: 'partial' },
-      { key: 'enterprise-revenue-placeholders', label: 'Orchard, livestock, retreat, education, agritourism revenue placeholders', phase: 'P2', status: 'planned' },
+      { key: 'enterprise-revenue-placeholders', label: 'Orchard, livestock, retreat, education, agritourism revenue placeholders', phase: 'P2', status: 'done' },
       { key: 'regional-cost-database', label: 'Regional cost database with low/mid/high ranges (Section 0f)', phase: 'P3', status: 'planned' },
       { key: 'cost-override-contractor-bid-import', label: 'User cost override and contractor bid import', phase: 'P3', status: 'planned' },
       { key: 'cost-sensitivity-hidden-costs-contingency', label: 'Cost sensitivity sliders, hidden cost flags, contingency recommendations', phase: 'P3', status: 'planned' },

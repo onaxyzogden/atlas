@@ -14,6 +14,7 @@ import { formatKRange, formatUsdRange } from '../../lib/formatRange.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
+import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -444,6 +445,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Revenue tab */}
       {activeTab === 'revenue' && (
         <>
+          <EnterpriseRevenueMixCard projectId={project.id} />
           <div className={`${p.section} ${p.sectionGapLg}`}>
             {revenueStreams.length === 0 && (
               <div className={p.empty}>

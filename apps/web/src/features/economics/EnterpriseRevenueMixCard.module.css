@@ -1,0 +1,300 @@
+/* §22 EnterpriseRevenueMixCard — steward annual-gross placeholders. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Total ────────────────────────────────────────────────────────── */
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 12px;
+}
+
+.totalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.totalValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(180, 200, 150, 0.95);
+  line-height: 1;
+}
+
+.totalLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.resetAllBtn {
+  border: 1px solid rgba(220, 130, 110, 0.4);
+  background: rgba(220, 130, 110, 0.08);
+  color: rgba(220, 180, 165, 0.9);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.resetAllBtn:hover {
+  background: rgba(220, 130, 110, 0.16);
+}
+
+/* ── Stacked bar ──────────────────────────────────────────────────── */
+
+.stackedBar {
+  display: flex;
+  height: 16px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.stackedSegment {
+  height: 100%;
+  transition: width 200ms ease;
+}
+
+.seg_orchard { background: rgba(180, 200, 150, 0.85); }
+.seg_livestock { background: rgba(220, 180, 100, 0.85); }
+.seg_retreat { background: rgba(196, 162, 101, 0.85); }
+.seg_education { background: rgba(140, 190, 220, 0.85); }
+.seg_agritourism { background: rgba(200, 150, 200, 0.8); }
+
+.stackedEmpty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+  letter-spacing: 0.04em;
+}
+
+/* ── Stream rows ──────────────────────────────────────────────────── */
+
+.streamList {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.streamRow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.streamMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.streamSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.streamLabelBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.streamName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.streamHint {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.streamControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.streamShare {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.9);
+  width: 44px;
+  text-align: right;
+}
+
+.streamShareUnit {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.5);
+  margin-left: 1px;
+}
+
+/* ── Input ────────────────────────────────────────────────────────── */
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-height: 32px;
+}
+
+.inputWrap:focus-within {
+  border-color: rgba(196, 162, 101, 0.5);
+}
+
+.inputPrefix,
+.inputSuffix {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  font-weight: 600;
+}
+
+.input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(232, 220, 200, 0.95);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  width: 90px;
+  text-align: right;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: rgba(180, 165, 140, 0.4);
+  font-weight: 500;
+}
+
+.resetBtn {
+  border: 1px solid rgba(180, 165, 140, 0.3);
+  background: transparent;
+  color: rgba(180, 165, 140, 0.75);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.resetBtn:hover {
+  background: rgba(180, 165, 140, 0.1);
+  color: rgba(220, 220, 195, 0.92);
+}
+
+.defaultBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(180, 165, 140, 0.55);
+  padding: 6px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* ── Footnote ─────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.7);
+  font-style: normal;
+  font-weight: 600;
+}
