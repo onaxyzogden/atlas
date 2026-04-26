@@ -20,6 +20,7 @@ import RouteSlopeAuditCard from './RouteSlopeAuditCard.js';
 import WayfindingPlanCard from './WayfindingPlanCard.js';
 import CorridorCostEstimatorCard from './CorridorCostEstimatorCard.js';
 import ParkingDeliveryAccessCard from './ParkingDeliveryAccessCard.js';
+import EventFlowLightingCard from './EventFlowLightingCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -216,6 +217,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           <CorridorCostEstimatorCard projectId={projectId} parcelBoundaryGeojson={project?.parcelBoundaryGeojson ?? null} />
           {/* §10 Parking, turning radius, delivery reach (parking-turning-delivery-checks). */}
           <ParkingDeliveryAccessCard projectId={projectId} />
+          {/* §10 Event flow & night lighting (event-flow-night-lighting-safety). */}
+          <EventFlowLightingCard projectId={projectId} />
         </div>
       )}
 

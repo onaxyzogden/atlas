@@ -283,7 +283,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'arrival-sequence-design', label: 'Arrival sequence design (guest experience path)', phase: 'MT', status: 'partial' },
       { key: 'parking-turning-delivery-checks', label: 'Parking capacity, turning radius, delivery access checks', phase: 'P3', status: 'done' },
       { key: 'quiet-circulation-routes', label: 'Quiet circulation routes', phase: 'MT', status: 'partial' },
-      { key: 'event-flow-night-lighting-safety', label: 'Event flow, night lighting route, safety and visibility checks', phase: 'P3', status: 'planned' },
+      { key: 'event-flow-night-lighting-safety', label: 'Event flow, night lighting route, safety and visibility checks', phase: 'P3', status: 'done' },
       { key: 'wayfinding-system-planning', label: 'Wayfinding system planning', phase: 'P3', status: 'done' },
     ],
   },
