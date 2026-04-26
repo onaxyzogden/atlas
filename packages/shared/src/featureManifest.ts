@@ -439,7 +439,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'ai-phased-build-water-grazing-orchard-strategies', label: 'AI phased build, water strategy, grazing strategy, orchard strategy suggestions', phase: 'P3', status: 'planned' },
       { key: 'ai-risk-warnings-ecological-interpretation', label: 'AI risk warnings and ecological interpretation', phase: 'P3', status: 'done' },
       { key: 'ai-design-brief-investor-landowner-pitch', label: 'AI design brief, investor summary, landowner pitch generation (editable, clearly labeled as AI draft)', phase: 'P3', status: 'done' },
-      { key: 'ai-educational-explanation-checklists', label: 'AI educational explanation and checklist generation', phase: 'P3', status: 'planned' },
+      { key: 'ai-educational-explanation-checklists', label: 'AI educational explanation and checklist generation', phase: 'P3', status: 'done' },
       { key: 'ai-assumptions-unanswered-questions-data-gap-detector', label: 'AI assumptions extractor, unanswered questions detector, data gap detector', phase: 'P3', status: 'done' },
       { key: 'ai-needs-site-visit-flags', label: "AI 'needs site visit' flags (triggered at confidence below Medium)", phase: 'P3', status: 'done' },
       { key: 'ai-alternative-layout-rationale', label: 'AI alternative layout and design rationale output', phase: 'P3', status: 'done' },
