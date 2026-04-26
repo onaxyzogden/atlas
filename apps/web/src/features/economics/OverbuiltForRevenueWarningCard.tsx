@@ -99,14 +99,20 @@ function saveLeanToggle(projectId: string, value: boolean): void {
 }
 
 export default function OverbuiltForRevenueWarningCard({ projectId }: Props) {
-  const structures = useStructureStore((s) =>
-    s.structures.filter((st) => st.projectId === projectId),
+  const allStructures = useStructureStore((s) => s.structures);
+  const structures = useMemo(
+    () => allStructures.filter((st) => st.projectId === projectId),
+    [allStructures, projectId],
   );
-  const paddocks = useLivestockStore((s) =>
-    s.paddocks.filter((p) => p.projectId === projectId),
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const paddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === projectId),
+    [allPaddocks, projectId],
   );
-  const crops = useCropStore((s) =>
-    s.cropAreas.filter((c) => c.projectId === projectId),
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const crops = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === projectId),
+    [allCropAreas, projectId],
   );
 
   const [overrides, setOverrides] = useState<Partial<Record<StreamId, number>>>(
