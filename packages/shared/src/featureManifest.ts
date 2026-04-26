@@ -442,7 +442,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'ai-educational-explanation-checklists', label: 'AI educational explanation and checklist generation', phase: 'P3', status: 'planned' },
       { key: 'ai-assumptions-unanswered-questions-data-gap-detector', label: 'AI assumptions extractor, unanswered questions detector, data gap detector', phase: 'P3', status: 'done' },
       { key: 'ai-needs-site-visit-flags', label: "AI 'needs site visit' flags (triggered at confidence below Medium)", phase: 'P3', status: 'done' },
-      { key: 'ai-alternative-layout-rationale', label: 'AI alternative layout and design rationale output', phase: 'P3', status: 'planned' },
+      { key: 'ai-alternative-layout-rationale', label: 'AI alternative layout and design rationale output', phase: 'P3', status: 'done' },
       { key: 'ai-output-rating-feedback', label: 'AI output rating / feedback system', phase: 'P3', status: 'partial' },
     ],
   },
