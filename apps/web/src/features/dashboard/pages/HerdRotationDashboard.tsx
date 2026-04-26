@@ -30,6 +30,7 @@ import RotationScheduleCard from '../../livestock/RotationScheduleCard.js';
 import PaddockCellDesignCard from '../../livestock/PaddockCellDesignCard.js';
 import AnimalCorridorGrazingRouteCard from '../../livestock/AnimalCorridorGrazingRouteCard.js';
 import FencingLayoutCard from '../../livestock/FencingLayoutCard.js';
+import MultiSpeciesPlannerCard from '../../livestock/MultiSpeciesPlannerCard.js';
 import css from './HerdRotationDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
@@ -457,6 +458,9 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
       {/* §11 Animal corridor / grazing route audit */}
       <AnimalCorridorGrazingRouteCard projectId={project.id} />
+
+      {/* §11 Multi-species planner — niche distribution + pattern recommendations */}
+      <MultiSpeciesPlannerCard projectId={project.id} />
 
       {/* Site environment bar */}
       <div className={css.coordsBar}>

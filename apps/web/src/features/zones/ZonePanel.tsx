@@ -34,6 +34,7 @@ import ZoneAllocationSummary from './ZoneAllocationSummary.js';
 import ZoneAllocationSummaryReportCard from './ZoneAllocationSummaryReportCard.js';
 import ZoneAllocationBalanceCard from './ZoneAllocationBalanceCard.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
+import ZoneSuggestionAuditCard from './ZoneSuggestionAuditCard.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
@@ -480,6 +481,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
           <ZoneConflictDetector zones={zones} siteData={siteData} />
           <ZoneSiteSuitabilityCard zones={zones} siteData={siteData} />
           <ZoneAutoSuggest scores={scores} siteData={siteData} existingCategories={existingCategories} />
+          <ZoneSuggestionAuditCard projectId={projectId} scores={scores} existingCategories={existingCategories} />
         </div>
       )}
     </div>
