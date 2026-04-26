@@ -26,6 +26,7 @@ import PermitReadinessCard from '../../structures/PermitReadinessCard.js';
 import PathModesCard from './PathModesCard.js';
 import BeforeAfterMasterplanCard from '../../vision/BeforeAfterMasterplanCard.js';
 import StageRevealNarrativeCard from '../../vision/StageRevealNarrativeCard.js';
+import CurrentVsVisionToggleCard from '../../vision/CurrentVsVisionToggleCard.js';
 import TimelineYearModeCard from '../../phasing/TimelineYearModeCard.js';
 import ScenarioPhasingAlternativesCard from '../../phasing/ScenarioPhasingAlternativesCard.js';
 import css from './PhasingDashboard.module.css';
@@ -454,6 +455,9 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
           </div>
         )
       )}
+
+      {/* ── §14 Current land vs full vision toggle + gap quantification */}
+      <CurrentVsVisionToggleCard projectId={project.id} />
 
       {/* ── §14 Before / after masterplan overlay ───────────────────── */}
       <BeforeAfterMasterplanCard projectId={project.id} />
