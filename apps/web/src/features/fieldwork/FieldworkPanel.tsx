@@ -21,6 +21,7 @@ import SiteChecklist from './SiteChecklist.js';
 import FieldNoteExport from './FieldNoteExport.js';
 import FieldworkChecklistCard from './FieldworkChecklistCard.js';
 import WalkChecklistCard from './WalkChecklistCard.js';
+import SiteVisitReportCard from './SiteVisitReportCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -140,6 +141,9 @@ export default function FieldworkPanel({ project, map }: Props) {
           <FieldNoteExport entries={fieldNotes} projectName={project.name} />
         </div>
       )}
+
+      {/* §17 Site visit report (audience-aware markdown composer) */}
+      {activeTab === 'notes' && <SiteVisitReportCard project={project} />}
     </div>
   );
 }

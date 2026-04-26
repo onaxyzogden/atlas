@@ -559,7 +559,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'soil-water-structure-issue-logging', label: 'Soil sample, water issue, structure issue point logging', phase: 'P4', status: 'planned' },
       { key: 'walk-route-quick-annotation', label: 'Walk route recording, quick annotation mode', phase: 'P4', status: 'planned' },
       { key: 'on-site-measurement-logging', label: 'On-site measurement logging', phase: 'P4', status: 'planned' },
-      { key: 'site-visit-report-generation', label: 'Site visit report generation', phase: 'P4', status: 'planned' },
+      { key: 'site-visit-report-generation', label: 'Site visit report generation', phase: 'P4', status: 'done' },
       { key: 'punch-list-site-verification', label: 'Punch-list creation, site verification against design', phase: 'P4', status: 'done' },
       { key: 'as-built-update-mode', label: 'As-built update mode', phase: 'P4', status: 'planned' },
     ],
