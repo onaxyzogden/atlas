@@ -160,7 +160,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'microclimate-cold-air-drainage', label: 'Microclimate and cold-air drainage analysis', phase: 'P2', status: 'done' },
       { key: 'candidate-zones-pond-swale-keyline-orchard-grazing-structure', label: 'Pond, swale, keyline, orchard, grazing, structure candidate zones', phase: 'P2', status: 'done' },
       { key: 'restoration-priority-regeneration-sequence', label: 'Restoration priority map and regeneration sequence suggestion', phase: 'P2', status: 'done' },
-      { key: 'what-this-land-wants', label: "'What this land wants' summary (AI)", phase: 'P2', status: 'partial' },
+      { key: 'what-this-land-wants', label: "'What this land wants' summary (AI)", phase: 'P2', status: 'done' },
       { key: 'threats-and-leverage-interventions', label: "'Main threats to success' and 'Highest leverage interventions' summaries", phase: 'P2', status: 'done' },
     ],
   },
