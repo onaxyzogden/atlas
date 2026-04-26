@@ -28,6 +28,7 @@ import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDete
 import NeedsSiteVisitCard from '../../ai-design-support/NeedsSiteVisitCard.js';
 import AlternativeLayoutRationaleCard from '../../ai-design-support/AlternativeLayoutRationaleCard.js';
 import DesignBriefPitchCard from '../../ai-design-support/DesignBriefPitchCard.js';
+import EcologicalRiskWarningsCard from '../../ai-design-support/EcologicalRiskWarningsCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
@@ -380,6 +381,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §17 Design brief / landowner pitch — exportable one-page summary */}
       <DesignBriefPitchCard project={project} />
+
+      {/* §17 Ecological risk warnings — concrete failure modes from layers + entities */}
+      <EcologicalRiskWarningsCard project={project} />
 
       {/* §11 Nutrient cycling balance — N demand vs. supply rollup */}
       <NutrientBalanceCard projectId={project.id} />
