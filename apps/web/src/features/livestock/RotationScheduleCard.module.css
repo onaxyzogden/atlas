@@ -1,0 +1,255 @@
+/* §16 RotationScheduleCard — forward-looking paddock rotation timeline. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.018);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+/* ── Status pills ── */
+.statusRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.statusPill {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left-width: 3px;
+}
+
+.pillReady { border-left-color: rgba(160, 195, 130, 0.65); }
+.pillOverdue { border-left-color: rgba(220, 130, 110, 0.7); }
+.pillResting { border-left-color: rgba(150, 175, 200, 0.6); }
+.pillActive { border-left-color: rgba(220, 180, 100, 0.65); }
+
+.pillCount {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+}
+
+.pillLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+/* ── Group block ── */
+.groupBlock {
+  margin-bottom: 16px;
+}
+
+.groupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.groupName {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.groupMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+/* ── Rotation rows ── */
+.rotationList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rotationRow {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.rowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.paddockName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.speciesIcons {
+  font-size: 12px;
+  color: rgba(220, 210, 185, 0.7);
+  letter-spacing: 0.08em;
+}
+
+.rowAction {
+  flex-shrink: 0;
+}
+
+.actionLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.04);
+}
+
+.barReady { color: rgba(190, 220, 160, 0.95); }
+.barOverdue { color: rgba(235, 165, 140, 0.95); }
+.barResting { color: rgba(180, 200, 220, 0.85); }
+.barActive { color: rgba(235, 200, 130, 0.95); }
+
+/* ── Timeline track ── */
+.timelineTrack {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.05);
+  overflow: visible;
+  margin-bottom: 6px;
+}
+
+.timelineBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.timelineMarker {
+  position: absolute;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: rgba(232, 220, 200, 0.92);
+  border: 2px solid rgba(28, 26, 22, 0.85);
+  box-shadow: 0 0 0 1px rgba(196, 162, 101, 0.4);
+}
+
+/* ── Foot row ── */
+.rowFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.03);
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.daysNote {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Assumption footnote ── */
+.assumption {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+@media (max-width: 720px) {
+  .statusRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
