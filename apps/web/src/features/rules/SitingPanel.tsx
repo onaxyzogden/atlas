@@ -20,6 +20,7 @@ import {
 import p from '../../styles/panel.module.css';
 import s from './SitingPanel.module.css';
 import ConflictDensityRollupCard from './ConflictDensityRollupCard.js';
+import RulesLayerOverviewCard from './RulesLayerOverviewCard.js';
 
 /* ------------------------------------------------------------------ */
 /*  Props & tab type                                                   */
@@ -80,6 +81,9 @@ export default function SitingPanel({ project }: SitingPanelProps) {
 
       {/* §17 Per-feature conflict density rollup with explainable chains */}
       <ConflictDensityRollupCard project={project} />
+
+      {/* §17 Rules-layer configuration snapshot (rules-layer-siting-logic) */}
+      <RulesLayerOverviewCard />
 
       <div className={p.tabBar}>
         <button className={`${p.tabBtn} ${activeTab === 'alerts' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('alerts')}>
