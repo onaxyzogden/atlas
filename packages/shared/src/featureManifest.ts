@@ -384,7 +384,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cost-labor-material-per-phase', label: 'Cost, labor, material need by phase', phase: 'P2', status: 'done' },
       { key: 'permit-dependencies-readiness-checklist', label: 'Permit dependency warnings, readiness checklist per phase', phase: 'P3', status: 'done' },
       { key: 'phase-completion-tracking-notes', label: 'Phase completion tracking and notes', phase: 'P2', status: 'done' },
-      { key: 'scenario-phasing-alternatives', label: 'Scenario-based phasing alternatives', phase: 'P3', status: 'partial' },
+      { key: 'scenario-phasing-alternatives', label: 'Scenario-based phasing alternatives', phase: 'P3', status: 'done' },
       { key: 'path-modes-fastest-lowest-cost-regen-investor', label: "'Fastest feasible path', 'Lowest cost path', 'Most regenerative path', 'Investor presentation path' modes", phase: 'P3', status: 'done' },
     ],
   },
