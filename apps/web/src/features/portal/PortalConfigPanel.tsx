@@ -11,6 +11,7 @@ import { confidence, error as errorToken, group, semantic } from '../../lib/toke
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
 import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
+import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
 
 interface Props { project: LocalProject }
 
@@ -229,6 +230,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* §20 Internal vs public view side-by-side audit */}
       <InternalVsPublicViewCard project={project} />
+
+      {/* §20 Share-link readiness audit */}
+      <ShareLinkReadinessCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />
