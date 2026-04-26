@@ -28,6 +28,7 @@ import { LIVESTOCK_SPECIES, computeAnimalUnits } from '../../livestock/speciesDa
 import ProgressBar from '../components/ProgressBar.js';
 import RotationScheduleCard from '../../livestock/RotationScheduleCard.js';
 import PaddockCellDesignCard from '../../livestock/PaddockCellDesignCard.js';
+import FencingLayoutCard from '../../livestock/FencingLayoutCard.js';
 import css from './HerdRotationDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
@@ -449,6 +450,9 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
 
       {/* §16 Rotation schedule */}
       <RotationScheduleCard projectId={project.id} />
+
+      {/* §16 Fencing layout & gate estimate */}
+      <FencingLayoutCard projectId={project.id} />
 
       {/* Site environment bar */}
       <div className={css.coordsBar}>
