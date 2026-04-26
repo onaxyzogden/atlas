@@ -24,6 +24,7 @@ import {
 } from '../../../components/panels/timeline/timelineHelpers.js';
 import PermitReadinessCard from '../../structures/PermitReadinessCard.js';
 import PathModesCard from './PathModesCard.js';
+import BeforeAfterMasterplanCard from '../../vision/BeforeAfterMasterplanCard.js';
 import css from './PhasingDashboard.module.css';
 
 interface PhasingDashboardProps {
@@ -450,6 +451,9 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
           </div>
         )
       )}
+
+      {/* ── §14 Before / after masterplan overlay ───────────────────── */}
+      <BeforeAfterMasterplanCard projectId={project.id} />
 
       {/* ── §15 Per-phase permit readiness ──────────────────────────── */}
       <PermitReadinessCard projectId={project.id} />

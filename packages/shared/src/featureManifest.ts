@@ -357,7 +357,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'toggle-current-vs-vision', label: 'Toggle current land vs vision', phase: 'P2', status: 'partial' },
-      { key: 'before-after-concept-masterplan-overlay', label: 'Before / after comparison, concept masterplan overlay', phase: 'P2', status: 'partial' },
+      { key: 'before-after-concept-masterplan-overlay', label: 'Before / after comparison, concept masterplan overlay', phase: 'P2', status: 'done' },
       { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'partial' },
       { key: 'signs-in-creation-interpretive-mode', label: "'Signs in creation' interpretive mode", phase: 'MT', status: 'done' },
       { key: 'spiritual-educational-storytelling-layer', label: 'Spiritual / educational storytelling layer', phase: 'MT', status: 'partial' },
