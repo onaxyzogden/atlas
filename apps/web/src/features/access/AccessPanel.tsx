@@ -24,6 +24,7 @@ import EventFlowLightingCard from './EventFlowLightingCard.js';
 import PublicPrivateCirculationCard from './PublicPrivateCirculationCard.js';
 import ArrivalSequenceDesignCard from './ArrivalSequenceDesignCard.js';
 import ServiceAccessContinuityCard from './ServiceAccessContinuityCard.js';
+import QuietCirculationRouteCard from './QuietCirculationRouteCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -228,6 +229,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           <PublicPrivateCirculationCard projectId={projectId} />
           {/* §10 Arrival sequence design — guest-experience reveal-tier audit. */}
           <ArrivalSequenceDesignCard projectId={projectId} />
+          {/* §10 Quiet circulation acoustic-separation audit. */}
+          <QuietCirculationRouteCard projectId={projectId} />
         </div>
       )}
 
