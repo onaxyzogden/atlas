@@ -1,0 +1,237 @@
+/* §14 ServiceStewardshipFramingCard — service / stewardship reframing panels. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(196, 162, 101, 0.85);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.summaryStat {
+  flex-shrink: 0;
+  text-align: center;
+  min-width: 80px;
+}
+
+.summaryValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  line-height: 1;
+}
+
+.summaryDenom {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 2px;
+}
+
+.summaryLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 4px;
+}
+
+.summaryNote {
+  flex: 1;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.sectionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionItem {
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  overflow: hidden;
+}
+
+.sectionDisabled {
+  opacity: 0.55;
+}
+
+.sectionHeader {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.sectionHeader:hover {
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.sectionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sectionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(180, 165, 140, 0.4);
+  flex-shrink: 0;
+}
+
+.sectionEnabled .sectionDot {
+  background: rgba(160, 195, 130, 0.85);
+}
+
+.sectionName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.sectionStatus {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.sectionEnabled .sectionStatus {
+  color: rgba(160, 195, 130, 0.85);
+}
+
+.sectionChevron {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.6);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.04);
+  flex-shrink: 0;
+}
+
+.sectionDetail {
+  padding: 4px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid rgba(232, 220, 200, 0.05);
+  margin-top: 2px;
+  padding-top: 12px;
+}
+
+.framingGroup,
+.framingNudge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.framingNudge {
+  padding: 10px 12px;
+  border-left: 2px solid rgba(196, 162, 101, 0.4);
+  background: rgba(196, 162, 101, 0.05);
+  border-radius: 0 6px 6px 0;
+}
+
+.framingLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.framingText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}

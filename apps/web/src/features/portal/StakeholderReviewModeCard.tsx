@@ -117,12 +117,14 @@ const AUDIENCES: Record<Audience, { label: string; framing: string; note: string
 
 export default function StakeholderReviewModeCard({ project }: Props) {
   const portalConfig = usePortalStore((s) => s.getConfig(project.id));
-  const phases = usePhaseStore(
-    (s) =>
-      s.phases
+  const allPhases = usePhaseStore((s) => s.phases);
+  const phases = useMemo(
+    () =>
+      allPhases
         .filter((p) => p.projectId === project.id)
         .slice()
         .sort((a, b) => a.order - b.order),
+    [allPhases, project.id],
   );
   const structuresLen = useStructureStore(
     (s) => s.structures.filter((st) => st.projectId === project.id).length,

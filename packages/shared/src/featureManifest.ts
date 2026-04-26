@@ -361,7 +361,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'done' },
       { key: 'signs-in-creation-interpretive-mode', label: "'Signs in creation' interpretive mode", phase: 'MT', status: 'done' },
       { key: 'spiritual-educational-storytelling-layer', label: 'Spiritual / educational storytelling layer', phase: 'MT', status: 'partial' },
-      { key: 'service-stewardship-framing-panels', label: 'Service / stewardship framing panels', phase: 'MT', status: 'partial' },
+      { key: 'service-stewardship-framing-panels', label: 'Service / stewardship framing panels', phase: 'MT', status: 'done' },
       { key: 'feature-explanations-tied-to-purpose', label: 'Feature explanations tied to purpose, not just function', phase: 'MT', status: 'planned' },
       { key: 'guided-flyover-scene-bookmarks', label: 'Guided flyover mode, scene bookmarks', phase: 'P3', status: 'planned' },
       { key: 'curated-visitor-journey-camera-angles', label: 'Curated visitor journey, presentation-safe camera angles', phase: 'P3', status: 'planned' },

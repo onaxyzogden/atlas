@@ -13,6 +13,7 @@ import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
 import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
 import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
 import StakeholderReviewModeCard from './StakeholderReviewModeCard.js';
+import ServiceStewardshipFramingCard from './ServiceStewardshipFramingCard.js';
 
 interface Props { project: LocalProject }
 
@@ -237,6 +238,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* §20 Stakeholder review mode (community review framing) */}
       <StakeholderReviewModeCard project={project} />
+
+      {/* §14 Service / stewardship framing panels */}
+      <ServiceStewardshipFramingCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />
