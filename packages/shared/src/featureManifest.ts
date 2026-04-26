@@ -237,7 +237,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'habitation-food-livestock-commons-planning', label: 'Habitation, food production, livestock, commons zone planning', phase: 'P1', status: 'done' },
       { key: 'prayer-spiritual-zone-planning', label: 'Prayer / spiritual zone planning', phase: 'MT', status: 'done' },
       { key: 'quiet-contemplation-zone-planning', label: 'Quiet contemplation zone planning', phase: 'MT', status: 'done' },
-      { key: 'guest-retreat-education-event-parking', label: 'Guest / retreat, education, event, parking zone planning', phase: 'P2', status: 'partial' },
+      { key: 'guest-retreat-education-event-parking', label: 'Guest / retreat, education, event, parking zone planning', phase: 'P2', status: 'done' },
       { key: 'women-family-privacy-planning', label: 'Women / family privacy planning (where relevant to program design)', phase: 'MT', status: 'done' },
       { key: 'mens-cohort-activity-zone-planning', label: "Men's cohort activity zone planning", phase: 'MT', status: 'done' },
       { key: 'service-maintenance-expansion-preservation', label: 'Service, maintenance, future expansion, preservation zone planning', phase: 'P2', status: 'done' },
