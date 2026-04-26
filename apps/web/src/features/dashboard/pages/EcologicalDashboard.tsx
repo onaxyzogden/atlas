@@ -33,6 +33,7 @@ import EcologicalRiskWarningsCard from '../../ai-design-support/EcologicalRiskWa
 import EducationalExplainerCard from '../../ai-design-support/EducationalExplainerCard.js';
 import WhyHerePanelsCard from '../../ai-design-support/WhyHerePanelsCard.js';
 import AiOutputFeedbackCard from '../../ai-design-support/AiOutputFeedbackCard.js';
+import PhasedBuildStrategyCard from '../../ai-design-support/PhasedBuildStrategyCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
@@ -387,6 +388,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* §17 AI feature placement suggestions — site-derived "where to put what" */}
       <FeaturePlacementSuggestionsCard project={project} />
 
+      {/* §17 Phased build / water / grazing / orchard strategies */}
+      <PhasedStrategiesCard project={project} />
+
       {/* §17 Design brief / landowner pitch — exportable one-page summary */}
       <DesignBriefPitchCard project={project} />
 
@@ -401,6 +405,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §17 AI output rating + feedback — local thumbs/tags/notes per surface */}
       <AiOutputFeedbackCard project={project} />
+
+      {/* §17 Phased build / water / grazing / orchard strategies */}
+      <PhasedBuildStrategyCard project={project} />
 
       {/* §11 Nutrient cycling balance — N demand vs. supply rollup */}
       <NutrientBalanceCard projectId={project.id} />
