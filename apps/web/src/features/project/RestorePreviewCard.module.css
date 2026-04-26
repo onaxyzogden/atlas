@@ -1,0 +1,261 @@
+/* §1 RestorePreviewCard — diff preview for the most recent snapshot. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.bandPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 110px;
+}
+
+.bandLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.bandCount {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.bandClean {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.bandClean .bandLabel { color: rgba(180, 200, 150, 0.95); }
+
+.bandMinor {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.bandMinor .bandLabel { color: rgba(220, 180, 100, 0.95); }
+
+.bandMajor {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.bandMajor .bandLabel { color: rgba(220, 130, 110, 0.95); }
+
+.snapMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 14px;
+}
+
+.snapRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11.5px;
+}
+
+.snapLabel {
+  color: rgba(180, 165, 140, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+
+.snapValue {
+  color: rgba(232, 220, 200, 0.9);
+  font-weight: 500;
+  text-align: right;
+}
+
+.snapDim {
+  color: rgba(180, 165, 140, 0.55);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.cleanNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(220, 230, 200, 0.88);
+  background: rgba(180, 200, 150, 0.05);
+  border: 1px solid rgba(180, 200, 150, 0.2);
+  margin: 0 0 12px;
+}
+
+.cleanIcon {
+  color: rgba(180, 200, 150, 0.95);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.diffGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.diffGroup {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+}
+
+.diffGroupTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.diffGroupCount {
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.55);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.diffList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diffItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.diffLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.diffArrow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  flex-wrap: wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.diffCurrent {
+  color: rgba(220, 130, 110, 0.85);
+  text-decoration: line-through;
+  text-decoration-color: rgba(220, 130, 110, 0.35);
+}
+
+.diffSep {
+  color: rgba(180, 165, 140, 0.5);
+  font-weight: 700;
+}
+
+.diffSnapshot {
+  color: rgba(180, 200, 150, 0.95);
+}
+
+.diffEmpty {
+  color: rgba(180, 165, 140, 0.4);
+  font-style: italic;
+  text-decoration: none;
+}
+
+.unchanged {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.65);
+  background: rgba(232, 220, 200, 0.025);
+  border-radius: 6px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
