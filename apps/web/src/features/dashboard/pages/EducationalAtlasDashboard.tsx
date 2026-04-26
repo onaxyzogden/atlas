@@ -26,6 +26,7 @@ import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverla
 import GuidedWalkthroughCard from '../../education/GuidedWalkthroughCard.js';
 import WalkingTourScriptCard from '../../education/WalkingTourScriptCard.js';
 import EducationCoverageCard from '../../education/EducationCoverageCard.js';
+import VisionBoardCard from '../../education/VisionBoardCard.js';
 import css from './EducationalAtlasDashboard.module.css';
 
 interface EducationalAtlasProps {
@@ -226,6 +227,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §19 Walking tour script — voiceable 5-stop narration ─────── */}
       <WalkingTourScriptCard project={project} />
+
+      {/* ── §13 Vision board — local reference imagery per slot ──────── */}
+      <VisionBoardCard project={project} />
 
       {/* ── Remaining tour-playback items (P4 stubs) ─────────────────── */}
       <div className={css.card}>

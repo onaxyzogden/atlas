@@ -365,7 +365,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'feature-explanations-tied-to-purpose', label: 'Feature explanations tied to purpose, not just function', phase: 'MT', status: 'planned' },
       { key: 'guided-flyover-scene-bookmarks', label: 'Guided flyover mode, scene bookmarks', phase: 'P3', status: 'planned' },
       { key: 'curated-visitor-journey-camera-angles', label: 'Curated visitor journey, presentation-safe camera angles', phase: 'P3', status: 'planned' },
-      { key: 'vision-board-media-reference-imagery', label: 'Vision board media embedding, reference imagery per feature', phase: 'P3', status: 'planned' },
+      { key: 'vision-board-media-reference-imagery', label: 'Vision board media embedding, reference imagery per feature', phase: 'P3', status: 'done' },
       { key: 'why-what-replaces-what-stage-panels', label: "'Why this is here', 'What this replaces', 'What stage this appears' panels", phase: 'P3', status: 'planned' },
       { key: 'problem-solves-dependencies-panels', label: "'What problem this solves', 'What it depends on' panels", phase: 'P3', status: 'planned' },
     ],
