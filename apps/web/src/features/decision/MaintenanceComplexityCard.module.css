@@ -1,0 +1,302 @@
+/* §21 MaintenanceComplexityCard — annual labor-hours estimate. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 12px;
+}
+
+.headlineBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.headlineValue {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.headlineLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  text-align: center;
+}
+
+.headlineBand .headlineValue {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.complexityBar {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  overflow: hidden;
+  margin: 4px 0 6px;
+}
+
+.complexityFill {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.complexityTick {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(232, 220, 200, 0.4);
+  pointer-events: none;
+}
+
+.bandCaption {
+  margin: 0 0 14px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 190, 170, 0.78);
+}
+
+/* Band variants — tint headline cell + bar fill */
+
+.band_light {
+  background: rgba(180, 200, 150, 0.45);
+  color: rgba(195, 215, 165, 0.98);
+}
+.headlineBand.band_light {
+  background: rgba(180, 200, 150, 0.14);
+  border: 1px solid rgba(180, 200, 150, 0.3);
+}
+.headlineBand.band_light .headlineValue {
+  color: rgba(195, 215, 165, 0.98);
+}
+
+.band_moderate {
+  background: rgba(220, 200, 130, 0.5);
+  color: rgba(232, 210, 140, 0.98);
+}
+.headlineBand.band_moderate {
+  background: rgba(220, 200, 130, 0.14);
+  border: 1px solid rgba(220, 200, 130, 0.3);
+}
+.headlineBand.band_moderate .headlineValue {
+  color: rgba(232, 210, 140, 0.98);
+}
+
+.band_heavy {
+  background: rgba(220, 160, 100, 0.55);
+  color: rgba(232, 180, 130, 0.98);
+}
+.headlineBand.band_heavy {
+  background: rgba(220, 160, 100, 0.14);
+  border: 1px solid rgba(220, 160, 100, 0.3);
+}
+.headlineBand.band_heavy .headlineValue {
+  color: rgba(232, 180, 130, 0.98);
+}
+
+.band_extreme {
+  background: rgba(220, 130, 110, 0.6);
+  color: rgba(232, 165, 145, 0.98);
+}
+.headlineBand.band_extreme {
+  background: rgba(220, 130, 110, 0.16);
+  border: 1px solid rgba(220, 130, 110, 0.3);
+}
+.headlineBand.band_extreme .headlineValue {
+  color: rgba(232, 165, 145, 0.98);
+}
+
+.sectionTitle {
+  margin: 14px 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border-left: 3px solid rgba(196, 162, 101, 0.55);
+}
+
+.rowMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rowCat {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  min-width: 66px;
+}
+
+.rowTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowQual {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.rowHours {
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 200, 130, 0.95);
+  flex-shrink: 0;
+}
+
+.catList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catRow {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px;
+  align-items: center;
+  gap: 12px;
+}
+
+.catLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.catBarTrack {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.catBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(196, 162, 101, 0.6), rgba(220, 180, 100, 0.85));
+  border-radius: 4px;
+}
+
+.catValue {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(220, 210, 185, 0.85);
+  text-align: right;
+}
+
+.empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(180, 200, 150, 0.06);
+  border: 1px solid rgba(180, 200, 150, 0.18);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(220, 210, 185, 0.82);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

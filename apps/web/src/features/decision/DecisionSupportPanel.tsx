@@ -27,6 +27,7 @@ import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
 import GuestPrivacyCard from '../rules/GuestPrivacyCard.js';
 import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
 import DomainFeasibilityCard from './DomainFeasibilityCard.js';
+import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -392,6 +393,10 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
           </div>
         </>
       )}
+
+      {/* §21 Annual maintenance labor-hours estimate
+          (maintenance-complexity-score). */}
+      <MaintenanceComplexityCard project={project} />
 
       {/* Design rules (inline) */}
       <h3 className={p.sectionLabel}>Design Rules</h3>
