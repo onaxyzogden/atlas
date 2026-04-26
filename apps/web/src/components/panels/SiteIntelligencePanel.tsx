@@ -67,6 +67,7 @@ import { WaterQualitySection } from './sections/WaterQualitySection.js';
 import { SoilIntelligenceSection } from './sections/SoilIntelligenceSection.js';
 import { DesignIntelligenceSection } from './sections/DesignIntelligenceSection.js';
 import { InfrastructureAccessSection } from './sections/InfrastructureAccessSection.js';
+import { AdjacentLandUseUtilitiesCard } from './sections/AdjacentLandUseUtilitiesCard.js';
 import { EnvironmentalRiskSection } from './sections/EnvironmentalRiskSection.js';
 import { EcosystemServicesSection } from './sections/EcosystemServicesSection.js';
 import { ClimateProjectionsSection } from './sections/ClimateProjectionsSection.js';
@@ -761,6 +762,8 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         infraOpen={infraOpen}
         onToggleInfra={onToggleInfra}
       />
+
+      <AdjacentLandUseUtilitiesCard layers={layers} />
 
       <EnvironmentalRiskSection
         airQualityMetrics={airQualityMetrics}

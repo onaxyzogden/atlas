@@ -1,0 +1,246 @@
+/* §3 AdjacentLandUseUtilitiesCard — adjacent land cover + qualitative utility rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.cardHint em {
+  color: rgba(196, 162, 101, 0.85);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sectionLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin: 6px 0 8px;
+}
+
+/* ── Land cover list ───────────────────────────────────────────────── */
+
+.classList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.classRow {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.014);
+  font-size: 11px;
+}
+
+.classDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(180, 165, 140, 0.5);
+  align-self: center;
+}
+
+.cat_natural { background: rgba(180, 200, 150, 0.85); }
+.cat_agricultural { background: rgba(220, 180, 100, 0.85); }
+.cat_developed { background: rgba(220, 130, 110, 0.8); }
+.cat_water { background: rgba(150, 190, 220, 0.85); }
+.cat_other { background: rgba(180, 165, 140, 0.5); }
+
+.classLabel {
+  color: rgba(232, 220, 200, 0.9);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.classPct {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+}
+
+.classNote {
+  color: rgba(180, 165, 140, 0.55);
+  font-size: 10px;
+  font-style: italic;
+  text-align: right;
+}
+
+/* ── Headline strip ────────────────────────────────────────────────── */
+
+.headlineStrip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.headlineBlock {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.headlineLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.headlineValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Utility rows ──────────────────────────────────────────────────── */
+
+.utilList {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.utilRow {
+  padding: 9px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.utilHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.utilLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.utilTier {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.tier_serviceable {
+  color: rgba(180, 200, 150, 0.95);
+  background: rgba(180, 200, 150, 0.1);
+  border-color: rgba(180, 200, 150, 0.25);
+}
+
+.tier_marginal {
+  color: rgba(220, 180, 100, 0.95);
+  background: rgba(220, 180, 100, 0.1);
+  border-color: rgba(220, 180, 100, 0.25);
+}
+
+.tier_self {
+  color: rgba(220, 160, 130, 0.95);
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.22);
+}
+
+.utilHeadline {
+  font-size: 11px;
+  color: rgba(232, 220, 200, 0.82);
+  font-variant-numeric: tabular-nums;
+}
+
+.utilDetail {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.75);
+  font-style: normal;
+  font-weight: 600;
+}
