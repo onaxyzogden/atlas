@@ -12,6 +12,7 @@ import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import PortalShareSnapshotCard from './PortalShareSnapshotCard.js';
 import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
 import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
+import StakeholderReviewModeCard from './StakeholderReviewModeCard.js';
 
 interface Props { project: LocalProject }
 
@@ -233,6 +234,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* §20 Share-link readiness audit */}
       <ShareLinkReadinessCard project={project} />
+
+      {/* §20 Stakeholder review mode (community review framing) */}
+      <StakeholderReviewModeCard project={project} />
 
       {/* Donation */}
       <SectionHeader label="Support & Donations" expanded={expanded === 'support'} onToggle={() => setExpanded(expanded === 'support' ? null : 'support')} />
