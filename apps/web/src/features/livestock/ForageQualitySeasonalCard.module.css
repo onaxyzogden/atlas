@@ -1,0 +1,214 @@
+/* §11 ForageQualitySeasonalCard — 12-month forage-quality curve. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 720px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+}
+
+/* ── Summary tiles ─────────────────────────────────────────────────── */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 720px) {
+  .tiles { grid-template-columns: 1fr; }
+}
+
+.tile {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  border-left: 3px solid rgba(180, 200, 150, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tile_warn {
+  border-left-color: rgba(220, 130, 110, 0.55);
+}
+
+.tileLabel {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  font-weight: 600;
+}
+
+.tileValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tileSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.4;
+}
+
+/* ── Chart ─────────────────────────────────────────────────────────── */
+.chartWrap {
+  margin-bottom: 14px;
+  padding: 8px 4px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.flagBand {
+  fill: rgba(220, 130, 110, 0.07);
+}
+
+.gridLine {
+  stroke: rgba(232, 220, 200, 0.08);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 3;
+}
+
+.lineProtein { fill: none; stroke: rgba(180, 200, 150, 0.85); stroke-width: 1.6; }
+.lineTdn     { fill: none; stroke: rgba(220, 180, 100, 0.85); stroke-width: 1.6; }
+.lineDmd     { fill: none; stroke: rgba(140, 165, 200, 0.85); stroke-width: 1.6; }
+
+.axisLabel {
+  fill: rgba(180, 165, 140, 0.55);
+  font-size: 9px;
+  font-family: inherit;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 6px 8px 2px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  vertical-align: middle;
+}
+
+.legendProtein .swatch { background: rgba(180, 200, 150, 0.85); }
+.legendTdn     .swatch { background: rgba(220, 180, 100, 0.85); }
+.legendDmd     .swatch { background: rgba(140, 165, 200, 0.85); }
+.legendFlag    .swatch { background: rgba(220, 130, 110, 0.5); height: 8px; border-radius: 2px; }
+
+/* ── Monthly table ─────────────────────────────────────────────────── */
+.tableWrap {
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th, .table td {
+  padding: 5px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.table th {
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.6);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rowLabel {
+  text-align: left !important;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85) !important;
+  white-space: nowrap;
+}
+
+.thFlagged {
+  color: rgba(220, 130, 110, 0.85) !important;
+}
+
+.tdFlagged {
+  background: rgba(220, 130, 110, 0.06);
+  color: rgba(220, 195, 130, 0.92) !important;
+  font-weight: 600;
+}
+
+/* ── Footnote ──────────────────────────────────────────────────────── */
+.footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
