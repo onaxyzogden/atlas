@@ -32,6 +32,7 @@ import SeasonalRealismCard from './SeasonalRealismCard.js';
 import CapitalIntensityCard from './CapitalIntensityCard.js';
 import TerrainConstructionDifficultyCard from './TerrainConstructionDifficultyCard.js';
 import HospitalityEducationEnergyCard from './HospitalityEducationEnergyCard.js';
+import BestUseSummaryCard from './BestUseSummaryCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -309,6 +310,10 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
 
       {/* §28 Domain feasibility — Access · Water · Agricultural · Livestock */}
       <DomainFeasibilityCard project={project} />
+
+      {/* §19 Best-use ranking across all project types
+          (good-fit-poor-fit-best-use). */}
+      <BestUseSummaryCard project={project} />
 
       {/* Vision fit analysis */}
       {fitResults.length > 0 && (

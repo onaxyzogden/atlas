@@ -1,0 +1,233 @@
+/* §19 BestUseSummaryCard — best-use / not-recommended ranking. */
+
+.card {
+  padding: 16px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 16px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+  margin: 0;
+}
+
+.currentBanner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  margin-bottom: 14px;
+}
+
+.currentGood {
+  border-color: rgba(180, 200, 150, 0.3);
+  background: rgba(180, 200, 150, 0.05);
+}
+.currentMid {
+  border-color: rgba(220, 180, 100, 0.28);
+  background: rgba(220, 180, 100, 0.05);
+}
+.currentBad {
+  border-color: rgba(220, 130, 110, 0.3);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.currentLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+  margin-bottom: 4px;
+}
+
+.currentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.currentName {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.currentScore {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+.currentNote {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.8);
+}
+
+.band {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 3px solid rgba(180, 165, 140, 0.4);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.bandGood {
+  border-left-color: rgba(180, 200, 150, 0.65);
+  background: rgba(180, 200, 150, 0.04);
+}
+.bandMid {
+  border-left-color: rgba(220, 180, 100, 0.55);
+  background: rgba(220, 180, 100, 0.03);
+}
+.bandBad {
+  border-left-color: rgba(220, 130, 110, 0.6);
+  background: rgba(220, 130, 110, 0.04);
+}
+
+.bandTitle {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.bandEmpty {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.rowMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.rowName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.youAreHere {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.18);
+  color: rgba(232, 200, 130, 0.95);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+}
+
+.rowScore {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.75);
+}
+
+.metaGood {
+  color: rgba(190, 215, 160, 0.9);
+}
+.metaBad {
+  color: rgba(225, 150, 130, 0.9);
+}
+.metaCrit {
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 600;
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+}
+.footnote em { color: rgba(180, 165, 140, 0.8); font-style: normal; font-weight: 600; }
+.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
