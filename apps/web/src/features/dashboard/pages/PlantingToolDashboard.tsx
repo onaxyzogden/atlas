@@ -30,6 +30,7 @@ import CanopyMaturityCard from '../../crops/CanopyMaturityCard.js';
 import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
 import ShadeSuccessionForecastCard from '../../crops/ShadeSuccessionForecastCard.js';
 import TreeSpacingCalculatorCard from '../../crops/TreeSpacingCalculatorCard.js';
+import AgroforestryPatternAuditCard from '../../crops/AgroforestryPatternAuditCard.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -1548,6 +1549,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §12 Orchard Guild Suggestions (perennials) ───────────── */}
       <OrchardGuildSuggestionsCard projectId={project.id} />
+
+      {/* ── §12 Agroforestry Pattern Audit (windbreak / silvopasture / food-forest / alley) ── */}
+      <AgroforestryPatternAuditCard project={project} projectId={project.id} />
 
       {/* ── §15 Canopy Maturity & Overlap Projection ─────────────── */}
       <CanopyMaturityCard projectId={project.id} />
