@@ -165,7 +165,7 @@ export default function PredatorRiskHotspotsCard({ projectId }: PredatorRiskHots
   const zones = useZoneStore((st) => st.zones).filter((z) => z.projectId === projectId);
   const structures = useStructureStore((st) => st.structures).filter((st2) => st2.projectId === projectId);
   const siteData = useSiteData(projectId);
-  const landCover = getLayerSummary<LandCoverSummary>(siteData, 'landCover');
+  const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'landCover') : null;
   const canopyPct = typeof landCover?.tree_canopy_pct === 'number' ? landCover.tree_canopy_pct : 0;
 
   const analysis = useMemo<PaddockRisk[]>(() => {

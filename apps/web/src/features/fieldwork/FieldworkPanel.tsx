@@ -20,6 +20,7 @@ import WalkRouteRecorder from './WalkRouteRecorder.js';
 import SiteChecklist from './SiteChecklist.js';
 import FieldNoteExport from './FieldNoteExport.js';
 import FieldworkChecklistCard from './FieldworkChecklistCard.js';
+import WalkChecklistCard from './WalkChecklistCard.js';
 import css from './FieldworkPanel.module.css';
 
 interface Props {
@@ -127,6 +128,7 @@ export default function FieldworkPanel({ project, map }: Props) {
 
       {activeTab === 'checklist' && (
         <>
+          <WalkChecklistCard projectId={project.id} />
           <FieldworkChecklistCard projectId={project.id} />
           <SiteChecklist projectId={project.id} />
         </>
