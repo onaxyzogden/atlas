@@ -1,0 +1,270 @@
+/* §8 ProgramCoverageCard — habitation/food/livestock/commons coverage. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tag {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(180, 165, 140, 0.7);
+  border: 1px solid rgba(180, 165, 140, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ─── Headline pill ───────────────────────────────────────────────── */
+
+.headlinePill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 130px;
+}
+
+.headlineLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.headlineScore {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.headlineScoreDim {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.headlineSub {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+.headlineGood {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.headlineGood .headlineScore { color: rgba(180, 200, 150, 0.95); }
+
+.headlineFair {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.headlineFair .headlineScore { color: rgba(220, 180, 100, 0.95); }
+
+.headlinePoor {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.headlinePoor .headlineScore { color: rgba(220, 130, 110, 0.95); }
+
+/* ─── Row list ────────────────────────────────────────────────────── */
+
+.rowList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+}
+
+.row.toneFunctional {
+  background: rgba(180, 200, 150, 0.04);
+  border-color: rgba(180, 200, 150, 0.18);
+}
+
+.row.toneSketch {
+  background: rgba(220, 180, 100, 0.04);
+  border-color: rgba(220, 180, 100, 0.18);
+}
+
+.row.toneEmpty {
+  background: rgba(220, 130, 110, 0.04);
+  border-color: rgba(220, 130, 110, 0.18);
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.rowName {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  flex: 1 1 auto;
+}
+
+.rowHint {
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.62);
+}
+
+/* ─── Tone pills (also used as row class) ─────────────────────────── */
+
+.tonePill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.tonePill.toneFunctional {
+  color: rgba(180, 200, 150, 0.95);
+  background: rgba(180, 200, 150, 0.1);
+  border-color: rgba(180, 200, 150, 0.28);
+}
+
+.tonePill.toneSketch {
+  color: rgba(220, 180, 100, 0.95);
+  background: rgba(220, 180, 100, 0.1);
+  border-color: rgba(220, 180, 100, 0.28);
+}
+
+.tonePill.toneEmpty {
+  color: rgba(220, 130, 110, 0.95);
+  background: rgba(220, 130, 110, 0.1);
+  border-color: rgba(220, 130, 110, 0.28);
+}
+
+/* ─── Row stats ───────────────────────────────────────────────────── */
+
+.rowStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.statDim {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.rowFlag {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.82);
+  font-style: italic;
+}
+
+/* ─── Footnote ────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.6);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
