@@ -542,7 +542,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'white-label-export-mode', label: 'White-label export mode', phase: 'P3', status: 'planned' },
       { key: 'flyover-video-export', label: 'Flyover video export', phase: 'P4', status: 'planned' },
       { key: 'qr-share-embed-website', label: 'QR-share link, embed view on website', phase: 'P4', status: 'planned' },
-      { key: 'interactive-public-share-readonly-client-handoff', label: 'Interactive public share mode, read-only client handoff mode', phase: 'P4', status: 'planned' },
+      { key: 'interactive-public-share-readonly-client-handoff', label: 'Interactive public share mode, read-only client handoff mode', phase: 'P4', status: 'done' },
     ],
   },
   {
