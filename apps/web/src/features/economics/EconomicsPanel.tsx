@@ -19,6 +19,7 @@ import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
 import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js';
 import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
+import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -323,6 +324,11 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               </div>
             ))}
           </div>
+
+          {/* §22 Total cost of ownership (10yr capex + opex + lifecycle replacement)
+              — closes grant-readiness-total-cost-of-ownership alongside the
+              Grant Readiness section below. */}
+          <TotalCostOfOwnershipCard project={project} model={model} />
 
           {/* Grant readiness */}
           {grantItems.length > 0 && (

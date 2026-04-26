@@ -1,0 +1,219 @@
+/* §22 TotalCostOfOwnershipCard — 10yr TCO with lifecycle replacement. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+  margin-bottom: 12px;
+}
+
+.headlineBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.headlineEmphasis {
+  background: rgba(196, 162, 101, 0.08);
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+}
+
+.headlineLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.headlineValue {
+  font-size: 17px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.headlineValueAccent {
+  font-size: 19px;
+  font-weight: 700;
+  color: rgba(232, 200, 130, 0.95);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.headlineSub {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.6);
+  text-align: center;
+}
+
+.perAcreRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  margin-bottom: 14px;
+}
+
+.perAcreLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.perAcreValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.perAcreNote {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin: 0 0 8px;
+}
+
+.lifecycleList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lifecycleRow {
+  padding: 8px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.lifecycleHead {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+
+.lifecycleLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.lifecycleService {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.65);
+  font-weight: 500;
+}
+
+.lifecycleCost {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  min-width: 60px;
+  text-align: right;
+}
+
+.lifecycleNote {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.45;
+}
+
+.footnote {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote em {
+  color: rgba(180, 165, 140, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
