@@ -16,6 +16,7 @@ import { useMapStore } from '../../../store/mapStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import { DashboardSectionSkeleton } from '../../../components/ui/DashboardSectionSkeleton.js';
 import RegenerationTimelineCard from '../../regeneration/RegenerationTimelineCard.js';
+import RestorationPriorityCard from '../../restoration/RestorationPriorityCard.js';
 import SoilSamplesCard from '../../soil-samples/SoilSamplesCard.js';
 import ZoneEcologyRollup from '../../zones/ZoneEcologyRollup.js';
 import CarbonByLandUseCard from '../../zones/CarbonByLandUseCard.js';
@@ -26,6 +27,7 @@ import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js'
 import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDetectorCard.js';
 import NeedsSiteVisitCard from '../../ai-design-support/NeedsSiteVisitCard.js';
 import AlternativeLayoutRationaleCard from '../../ai-design-support/AlternativeLayoutRationaleCard.js';
+import DesignBriefPitchCard from '../../ai-design-support/DesignBriefPitchCard.js';
 import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
@@ -375,6 +377,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §17 Alternative layout rationale — proposed swaps + dashboard delta */}
       <AlternativeLayoutRationaleCard project={project} />
+
+      {/* §17 Design brief / landowner pitch — exportable one-page summary */}
+      <DesignBriefPitchCard project={project} />
 
       {/* §11 Nutrient cycling balance — N demand vs. supply rollup */}
       <NutrientBalanceCard projectId={project.id} />
@@ -773,6 +778,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* Regeneration Timeline — §7 intervention log (migration 015 + shared schema). */}
       <RegenerationTimelineCard project={project} />
+
+      {/* §4 Restoration priority — composite per-zone score + Y1/Y2/Y3+ phased sequence. */}
+      <RestorationPriorityCard project={project} />
 
       {/* §16 Carrying capacity rollup — site-level "what can this land carry?"
           across livestock head-capacity, crop yield, and water budget. */}
