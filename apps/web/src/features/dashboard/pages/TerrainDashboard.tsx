@@ -8,6 +8,7 @@ import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import ProgressBar from '../components/ProgressBar.js';
 import MicroclimatePocketCard from '../../terrain/MicroclimatePocketCard.js';
 import CandidateZoneSuggestionCard from '../../terrain/CandidateZoneSuggestionCard.js';
+import ThreatsAndLeverageCard from '../../terrain/ThreatsAndLeverageCard.js';
 import css from './TerrainDashboard.module.css';
 import { status as statusToken } from '../../../lib/tokens.js';
 
@@ -252,6 +253,9 @@ export default function TerrainDashboard({ project, onSwitchToMap }: TerrainDash
 
       {/* §4 Candidate zone suggestions — synthesizes terrain + hydrology into typed zones */}
       <CandidateZoneSuggestionCard project={project} />
+
+      {/* §4 Threats vs leverage interventions — pairs ranked threats with low-effort moves */}
+      <ThreatsAndLeverageCard project={project} />
 
       {/* Drainage patterns */}
       <div className={css.section}>
