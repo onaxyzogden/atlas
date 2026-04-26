@@ -99,14 +99,21 @@ function saveOverrides(
 }
 
 export default function EnterpriseRevenueMixCard({ projectId }: Props) {
-  const structures = useStructureStore((s) =>
-    s.structures.filter((st) => st.projectId === projectId),
+  const allStructures = useStructureStore((s) => s.structures);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const allCrops = useCropStore((s) => s.cropAreas);
+
+  const structures = useMemo(
+    () => allStructures.filter((st) => st.projectId === projectId),
+    [allStructures, projectId],
   );
-  const paddocks = useLivestockStore((s) =>
-    s.paddocks.filter((p) => p.projectId === projectId),
+  const paddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === projectId),
+    [allPaddocks, projectId],
   );
-  const crops = useCropStore((s) =>
-    s.cropAreas.filter((c) => c.projectId === projectId),
+  const crops = useMemo(
+    () => allCrops.filter((c) => c.projectId === projectId),
+    [allCrops, projectId],
   );
 
   const [overrides, setOverrides] = useState<Partial<Record<StreamId, number>>>(
