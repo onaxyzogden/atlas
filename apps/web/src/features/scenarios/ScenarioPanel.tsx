@@ -35,6 +35,7 @@ import p from '../../styles/panel.module.css';
 import s from './ScenarioPanel.module.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import BestBaseWorstCaseCard from './BestBaseWorstCaseCard.js';
+import BuildCostRevenueRangesCard from './BuildCostRevenueRangesCard.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -360,6 +361,9 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
 
       {/* ── Best / Base / Worst Case ─────────────────────────────────── */}
       <BestBaseWorstCaseCard model={model} />
+
+      {/* ── §16 Build cost & revenue ranges (phase-by-phase) ──────────── */}
+      <BuildCostRevenueRangesCard model={model} />
 
       {/* ── Saved scenarios ──────────────────────────────────────────── */}
       {scenarios.length > 0 && (

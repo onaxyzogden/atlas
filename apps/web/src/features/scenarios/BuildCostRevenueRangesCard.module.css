@@ -1,0 +1,156 @@
+/* §16 BuildCostRevenueRangesCard — phase-by-phase cost/revenue envelope. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.018);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.sectionLabel {
+  margin: 14px 0 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.table {
+  display: grid;
+  grid-template-columns: 60px repeat(3, 1fr) 80px;
+  gap: 1px;
+  background: rgba(232, 220, 200, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+
+.headCell,
+.cell,
+.yearCell,
+.spreadCell {
+  padding: 8px 10px;
+  background: rgba(28, 26, 22, 0.85);
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.88);
+}
+
+.headCell {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  background: rgba(28, 26, 22, 0.95);
+}
+
+.yearCell {
+  font-weight: 700;
+  color: rgba(196, 162, 101, 0.9);
+}
+
+.cell_low { color: rgba(180, 200, 150, 0.85); }
+.cell_mid { color: rgba(232, 220, 200, 0.95); font-weight: 600; }
+.cell_high { color: rgba(220, 165, 130, 0.85); }
+
+.spreadCell {
+  text-align: right;
+  font-weight: 600;
+}
+
+.spreadOk { color: rgba(180, 200, 150, 0.85); }
+.spreadWide { color: rgba(220, 130, 110, 0.9); }
+
+.envelopeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  margin-top: 14px;
+}
+
+.envelopeLabel {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.envelopeNote {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.envelopeNote strong {
+  color: rgba(232, 220, 200, 0.95);
+  font-weight: 700;
+}
+
+.envelopeNarrowing { border-left: 3px solid rgba(180, 200, 150, 0.7); }
+.envelopeWidening { border-left: 3px solid rgba(220, 130, 110, 0.7); }
+.envelopeFlat { border-left: 3px solid rgba(180, 165, 140, 0.5); }
+
+.assumption {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+@media (max-width: 720px) {
+  .table { grid-template-columns: 50px repeat(3, 1fr) 60px; font-size: 10px; }
+  .headCell, .cell, .yearCell, .spreadCell { padding: 6px 6px; }
+}

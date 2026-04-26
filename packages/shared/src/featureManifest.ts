@@ -400,7 +400,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'erosion-grazing-recovery-modeling', label: 'Erosion mitigation, grazing pressure, recovery timeline modeling', phase: 'P3', status: 'done' },
       { key: 'carrying-capacity-yield-projections', label: 'Carrying capacity scenario, yield projection placeholders', phase: 'P3', status: 'done' },
       { key: 'visitor-event-parking-overflow-sim', label: 'Visitor traffic, event load, parking overflow scenario modeling', phase: 'P3', status: 'planned' },
-      { key: 'build-cost-revenue-ranges', label: 'Build cost and revenue scenario ranges', phase: 'P3', status: 'partial' },
+      { key: 'build-cost-revenue-ranges', label: 'Build cost and revenue scenario ranges', phase: 'P3', status: 'done' },
       { key: 'best-base-worst-case-scenarios', label: 'Best-case / base-case / worst-case scenarios', phase: 'P3', status: 'done' },
       { key: 'climate-shift-overlays', label: 'Climate shift scenario overlays', phase: 'P4', status: 'done' },
       { key: 'fire-emergency-infrastructure-failure-water-shortage', label: 'Fire / emergency, infrastructure failure, water shortage scenarios', phase: 'P3', status: 'planned' },
