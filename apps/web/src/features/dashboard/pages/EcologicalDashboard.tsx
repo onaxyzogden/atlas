@@ -388,9 +388,6 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       {/* §17 AI feature placement suggestions — site-derived "where to put what" */}
       <FeaturePlacementSuggestionsCard project={project} />
 
-      {/* §17 Phased build / water / grazing / orchard strategies */}
-      <PhasedStrategiesCard project={project} />
-
       {/* §17 Design brief / landowner pitch — exportable one-page summary */}
       <DesignBriefPitchCard project={project} />
 

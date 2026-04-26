@@ -9,6 +9,7 @@ import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import { computeAssessmentScores, computeOverallScore, deriveOpportunities } from '../../../lib/computeScores.js';
 import type { ScoredResult } from '../../../lib/computeScores.js';
 import ProgressBar from '../components/ProgressBar.js';
+import PunchListCard from '../../stewardship/PunchListCard.js';
 import css from './StewardshipDashboard.module.css';
 import { status as statusToken } from '../../../lib/tokens.js';
 
@@ -203,6 +204,9 @@ export default function StewardshipDashboard({ project, onSwitchToMap }: Steward
           and organic transition programs.
         </div>
       </div>
+
+      {/* §24 Site verification punch-list — derived per-entity field checklist */}
+      <PunchListCard project={project} />
 
       {/* Stewardship quote */}
       <div className={css.quoteCard}>
