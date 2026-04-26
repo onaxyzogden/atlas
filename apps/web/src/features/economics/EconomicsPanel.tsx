@@ -16,6 +16,7 @@ import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
 import EnterpriseRevenueMixCard from './EnterpriseRevenueMixCard.js';
 import RevenueRampProjectionCard from './RevenueRampProjectionCard.js';
+import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -448,6 +449,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
         <>
           <EnterpriseRevenueMixCard projectId={project.id} />
           <RevenueRampProjectionCard projectId={project.id} />
+          <OverbuiltForRevenueWarningCard projectId={project.id} />
           <div className={`${p.section} ${p.sectionGapLg}`}>
             {revenueStreams.length === 0 && (
               <div className={p.empty}>
