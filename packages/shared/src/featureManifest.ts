@@ -419,7 +419,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'partial' },
       { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'done' },
       { key: 'ecological-wildlife-protection-rules', label: 'Ecological and wildlife protection rules', phase: 'P3', status: 'done' },
-      { key: 'rule-scoring-conflict-alerts-explainable-recommendations', label: 'Rule scoring, conflict alerts, explainable recommendation layer', phase: 'P3', status: 'partial' },
+      { key: 'rule-scoring-conflict-alerts-explainable-recommendations', label: 'Rule scoring, conflict alerts, explainable recommendation layer', phase: 'P3', status: 'done' },
       { key: 'why-this-suggestion-was-made', label: "'Why this suggestion was made' output (see Section 0d AI guardrails)", phase: 'P3', status: 'done' },
       { key: 'user-adjustable-design-priority-weight-sliders', label: 'User-adjustable design priority weight sliders', phase: 'P3', status: 'planned' },
       { key: 'ogden-specific-design-template', label: 'OGDEN-specific design template', phase: 'MT', status: 'planned' },
