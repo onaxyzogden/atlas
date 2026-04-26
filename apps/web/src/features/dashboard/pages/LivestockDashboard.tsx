@@ -26,6 +26,7 @@ import LivestockWelfarePhasingCard from '../../livestock/LivestockWelfarePhasing
 import BiosecurityBufferCard from '../../livestock/BiosecurityBufferCard.js';
 import PastureUtilizationCard from '../../livestock/PastureUtilizationCard.js';
 import PredatorRiskHotspotsCard from '../../livestock/PredatorRiskHotspotsCard.js';
+import WelfareAccessAuditCard from '../../livestock/WelfareAccessAuditCard.js';
 import css from './LivestockDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 
@@ -383,6 +384,10 @@ export default function LivestockDashboard({ project, onSwitchToMap }: Livestock
           with species vulnerability, edge density, fencing type, and
           shelter proximity. Mitigations per paddock. */}
       <PredatorRiskHotspotsCard projectId={project.id} />
+
+      {/* §11 Welfare access audit — per-paddock distance check against
+          shade / shelter / water anchors (≤100 m good, ≤200 m fair, >200 m poor). */}
+      <WelfareAccessAuditCard projectId={project.id} />
 
       {/* Animal Welfare Summary */}
       {welfare && (
