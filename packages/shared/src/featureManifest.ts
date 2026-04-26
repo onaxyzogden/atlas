@@ -242,7 +242,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'mens-cohort-activity-zone-planning', label: "Men's cohort activity zone planning", phase: 'MT', status: 'done' },
       { key: 'service-maintenance-expansion-preservation', label: 'Service, maintenance, future expansion, preservation zone planning', phase: 'P2', status: 'partial' },
       { key: 'seasonal-temporary-phased-use-zones', label: 'Seasonal, temporary, phased use zones', phase: 'P2', status: 'done' },
-      { key: 'land-allocation-summary-report', label: 'Land allocation summary report', phase: 'P2', status: 'partial' },
+      { key: 'land-allocation-summary-report', label: 'Land allocation summary report', phase: 'P2', status: 'done' },
     ],
   },
   {

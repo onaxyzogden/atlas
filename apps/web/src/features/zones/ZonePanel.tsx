@@ -31,6 +31,7 @@ import ZoneSizingCalculator from './ZoneSizingCalculator.js';
 import ZoneConflictDetector from './ZoneConflictDetector.js';
 import ZoneSiteSuitabilityCard from './ZoneSiteSuitabilityCard.js';
 import ZoneAllocationSummary from './ZoneAllocationSummary.js';
+import ZoneAllocationSummaryReportCard from './ZoneAllocationSummaryReportCard.js';
 import ZoneAllocationBalanceCard from './ZoneAllocationBalanceCard.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -465,6 +466,11 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ZoneAllocationSummary zones={zones} totalAcreage={project?.acreage ?? null} />
+          <ZoneAllocationSummaryReportCard
+            zones={zones}
+            totalAcreage={project?.acreage ?? null}
+            projectName={project?.name ?? null}
+          />
           <ZoneAllocationBalanceCard
             zones={zones}
             totalAcreage={project?.acreage ?? null}
