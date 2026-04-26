@@ -240,7 +240,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'guest-retreat-education-event-parking', label: 'Guest / retreat, education, event, parking zone planning', phase: 'P2', status: 'partial' },
       { key: 'women-family-privacy-planning', label: 'Women / family privacy planning (where relevant to program design)', phase: 'MT', status: 'done' },
       { key: 'mens-cohort-activity-zone-planning', label: "Men's cohort activity zone planning", phase: 'MT', status: 'done' },
-      { key: 'service-maintenance-expansion-preservation', label: 'Service, maintenance, future expansion, preservation zone planning', phase: 'P2', status: 'partial' },
+      { key: 'service-maintenance-expansion-preservation', label: 'Service, maintenance, future expansion, preservation zone planning', phase: 'P2', status: 'done' },
       { key: 'seasonal-temporary-phased-use-zones', label: 'Seasonal, temporary, phased use zones', phase: 'P2', status: 'done' },
       { key: 'land-allocation-summary-report', label: 'Land allocation summary report', phase: 'P2', status: 'done' },
     ],
@@ -328,7 +328,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'access-harvest-irrigation-tie-in', label: 'Access-to-harvest and irrigation tie-in planning', phase: 'P2', status: 'done' },
       { key: 'nursery-compost-proximity', label: 'Nursery zone, compost proximity planning', phase: 'P2', status: 'done' },
       { key: 'seasonal-productivity-multilayer', label: 'Seasonal productivity map, multi-layer planting visualization', phase: 'P3', status: 'done' },
-      { key: 'year-to-maturity-yield-placeholder', label: 'Year-to-maturity phasing, yield placeholder estimates', phase: 'P3', status: 'partial' },
+      { key: 'year-to-maturity-yield-placeholder', label: 'Year-to-maturity phasing, yield placeholder estimates', phase: 'P3', status: 'done' },
     ],
   },
   {
@@ -358,7 +358,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'toggle-current-vs-vision', label: 'Toggle current land vs vision', phase: 'P2', status: 'partial' },
       { key: 'before-after-concept-masterplan-overlay', label: 'Before / after comparison, concept masterplan overlay', phase: 'P2', status: 'done' },
-      { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'partial' },
+      { key: 'stage-by-stage-reveal-narrative', label: 'Stage-by-stage reveal, design narrative mode', phase: 'P2', status: 'done' },
       { key: 'signs-in-creation-interpretive-mode', label: "'Signs in creation' interpretive mode", phase: 'MT', status: 'done' },
       { key: 'spiritual-educational-storytelling-layer', label: 'Spiritual / educational storytelling layer', phase: 'MT', status: 'partial' },
       { key: 'service-stewardship-framing-panels', label: 'Service / stewardship framing panels', phase: 'MT', status: 'partial' },

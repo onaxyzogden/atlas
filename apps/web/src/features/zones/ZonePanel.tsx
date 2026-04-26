@@ -33,6 +33,7 @@ import ZoneSiteSuitabilityCard from './ZoneSiteSuitabilityCard.js';
 import ZoneAllocationSummary from './ZoneAllocationSummary.js';
 import ZoneAllocationSummaryReportCard from './ZoneAllocationSummaryReportCard.js';
 import ZoneAllocationBalanceCard from './ZoneAllocationBalanceCard.js';
+import ServiceExpansionPreservationCard from './ServiceExpansionPreservationCard.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import ZoneSuggestionAuditCard from './ZoneSuggestionAuditCard.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
@@ -476,6 +477,10 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
             zones={zones}
             totalAcreage={project?.acreage ?? null}
             projectType={project?.projectType ?? null}
+          />
+          <ServiceExpansionPreservationCard
+            zones={zones}
+            totalAcreage={project?.acreage ?? null}
           />
           <ZoneSizingCalculator zones={zones} totalAcreage={project?.acreage ?? null} />
           <ZoneConflictDetector zones={zones} siteData={siteData} />

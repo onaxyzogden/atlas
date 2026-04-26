@@ -1,0 +1,292 @@
+/* §7 ServiceExpansionPreservationCard — non-program zone rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+}
+.cardHint strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+
+.heuristicBadge {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.statFlagged {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.24);
+}
+
+.statLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.25);
+  background: rgba(255, 255, 255, 0.015);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.75);
+}
+.empty strong { color: rgba(232, 220, 200, 0.9); font-weight: 600; }
+
+.bucketList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bucket {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tierOk {
+  border-color: rgba(180, 200, 150, 0.22);
+  background: rgba(180, 200, 150, 0.04);
+}
+.tierElevated {
+  border-color: rgba(220, 180, 100, 0.26);
+  background: rgba(220, 180, 100, 0.04);
+}
+.tierHigh {
+  border-color: rgba(220, 130, 110, 0.3);
+  background: rgba(220, 130, 110, 0.05);
+}
+
+.bucketHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.bucketIdent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bucketLabel {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.bucketBlurb {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.tierChip {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.tierChip.tierOk {
+  background: rgba(180, 200, 150, 0.14);
+  color: rgba(190, 215, 160, 0.95);
+  border-color: rgba(180, 200, 150, 0.28);
+}
+.tierChip.tierElevated {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(232, 200, 130, 0.95);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.tierChip.tierHigh {
+  background: rgba(220, 130, 110, 0.14);
+  color: rgba(235, 165, 145, 0.95);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+
+.bucketMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.metric {
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricLabel {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.metricVal {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.zoneList {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zoneRow {
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 10.5px;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.zoneSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.zoneName {
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zoneCategory {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  white-space: nowrap;
+}
+
+.zoneArea {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.9);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.zoneUse {
+  grid-column: 2 / -1;
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bucketEmpty {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(180, 165, 140, 0.2);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}
+.footnote em { color: rgba(180, 165, 140, 0.75); font-style: normal; font-weight: 600; }
+.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
