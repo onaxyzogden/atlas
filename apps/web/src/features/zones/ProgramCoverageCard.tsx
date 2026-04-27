@@ -122,7 +122,7 @@ interface Props {
 
 export default function ProgramCoverageCard({ projectId, zones }: Props) {
   const allStructures = useStructureStore((s) => s.structures);
-  const allCrops = useCropStore((s) => s.crops);
+  const allCrops = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
 
   const { rows, totalProgramAreaM2 } = useMemo(() => {
