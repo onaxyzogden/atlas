@@ -1,0 +1,262 @@
+/* §16 VisitorEventOverflowSimCard — three-scenario load simulator. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 580px;
+}
+
+.verdict {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.9);
+  white-space: nowrap;
+  max-width: 280px;
+  text-align: center;
+}
+
+.verdict_block { border-color: rgba(220, 140, 110, 0.4); color: rgba(232, 165, 130, 0.95); background: rgba(220, 140, 110, 0.08); }
+.verdict_work { border-color: rgba(196, 162, 101, 0.4); color: rgba(232, 200, 145, 0.95); background: rgba(196, 162, 101, 0.06); }
+.verdict_done { border-color: rgba(160, 195, 130, 0.4); color: rgba(190, 215, 165, 0.95); background: rgba(160, 195, 130, 0.06); }
+.verdict_unknown { border-color: rgba(140, 175, 195, 0.32); color: rgba(170, 200, 220, 0.92); background: rgba(140, 175, 195, 0.05); }
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 14px;
+}
+
+.headline {
+  text-align: center;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.headlineValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.headlineLabel {
+  margin-top: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.scenarioList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.scenario {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.tone_ok { border-left: 3px solid rgba(160, 195, 130, 0.55); }
+.tone_tight { border-left: 3px solid rgba(196, 162, 101, 0.55); }
+.tone_overflow { border-left: 3px solid rgba(220, 140, 110, 0.6); }
+.tone_na { border-left: 3px solid rgba(140, 175, 195, 0.4); }
+
+.scenarioHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.scenarioLabel {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  margin-bottom: 3px;
+}
+
+.scenarioBlurb {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+.tonePill {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.85);
+  white-space: nowrap;
+}
+
+.tonePill_ok { color: rgba(190, 215, 165, 0.98); border-color: rgba(160, 195, 130, 0.4); background: rgba(160, 195, 130, 0.08); }
+.tonePill_tight { color: rgba(232, 200, 145, 0.98); border-color: rgba(196, 162, 101, 0.4); background: rgba(196, 162, 101, 0.08); }
+.tonePill_overflow { color: rgba(232, 165, 130, 0.98); border-color: rgba(220, 140, 110, 0.42); background: rgba(220, 140, 110, 0.1); }
+.tonePill_na { color: rgba(170, 200, 220, 0.9); border-color: rgba(140, 175, 195, 0.3); background: rgba(140, 175, 195, 0.05); }
+
+.scenarioStats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.scenarioStat {
+  text-align: center;
+  padding: 6px 4px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  min-width: 0;
+}
+
+.stat_ok { border-color: rgba(160, 195, 130, 0.3); background: rgba(160, 195, 130, 0.05); }
+.stat_tight { border-color: rgba(196, 162, 101, 0.3); background: rgba(196, 162, 101, 0.05); }
+.stat_overflow { border-color: rgba(220, 140, 110, 0.4); background: rgba(220, 140, 110, 0.07); }
+.stat_na { border-color: rgba(140, 175, 195, 0.25); background: rgba(140, 175, 195, 0.04); }
+
+.scenarioStatValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.scenarioStatLabel {
+  margin-top: 3px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.programList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.programRow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+}
+
+.programRowEmpty {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.programName {
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.programMeta {
+  color: rgba(180, 165, 140, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+
+.caveats {
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.caveatList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.caveatRow {
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: rgba(196, 162, 101, 0.05);
+  border: 1px solid rgba(196, 162, 101, 0.22);
+  font-size: 10.5px;
+  color: rgba(220, 210, 185, 0.82);
+  line-height: 1.45;
+}
+
+.footnote {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}

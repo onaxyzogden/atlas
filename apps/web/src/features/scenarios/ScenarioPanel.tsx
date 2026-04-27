@@ -37,6 +37,7 @@ import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import BestBaseWorstCaseCard from './BestBaseWorstCaseCard.js';
 import BuildCostRevenueRangesCard from './BuildCostRevenueRangesCard.js';
 import LayoutOptionABCComparisonCard from './LayoutOptionABCComparisonCard.js';
+import VisitorEventOverflowSimCard from './VisitorEventOverflowSimCard.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -368,6 +369,9 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
 
       {/* ── §16 Layout options A / B / C comparison ───────────────────── */}
       <LayoutOptionABCComparisonCard model={model} />
+
+      {/* ── §16 Visitor / event / parking overflow simulator ──────────── */}
+      <VisitorEventOverflowSimCard project={project} />
 
       {/* ── Saved scenarios ──────────────────────────────────────────── */}
       {scenarios.length > 0 && (

@@ -399,7 +399,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'wind-shade-tree-canopy-sim', label: 'Wind exposure, shade growth, tree maturity, canopy expansion simulation', phase: 'P3', status: 'done' },
       { key: 'erosion-grazing-recovery-modeling', label: 'Erosion mitigation, grazing pressure, recovery timeline modeling', phase: 'P3', status: 'done' },
       { key: 'carrying-capacity-yield-projections', label: 'Carrying capacity scenario, yield projection placeholders', phase: 'P3', status: 'done' },
-      { key: 'visitor-event-parking-overflow-sim', label: 'Visitor traffic, event load, parking overflow scenario modeling', phase: 'P3', status: 'planned' },
+      { key: 'visitor-event-parking-overflow-sim', label: 'Visitor traffic, event load, parking overflow scenario modeling', phase: 'P3', status: 'done' },
       { key: 'build-cost-revenue-ranges', label: 'Build cost and revenue scenario ranges', phase: 'P3', status: 'done' },
       { key: 'best-base-worst-case-scenarios', label: 'Best-case / base-case / worst-case scenarios', phase: 'P3', status: 'done' },
       { key: 'climate-shift-overlays', label: 'Climate shift scenario overlays', phase: 'P4', status: 'done' },
@@ -511,7 +511,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     phases: ['P2', 'P3'],
     status: 'partial',
     features: [
-      { key: 'cost-estimate-by-feature-phase', label: 'Cost estimate by feature and by phase (with regional benchmarks — see Section 0f)', phase: 'P2', status: 'partial' },
+      { key: 'cost-estimate-by-feature-phase', label: 'Cost estimate by feature and by phase (with regional benchmarks — see Section 0f)', phase: 'P2', status: 'done' },
       { key: 'revenue-stream-tagging-enterprise-mapping', label: 'Revenue stream tagging, enterprise mapping', phase: 'P2', status: 'partial' },
       { key: 'enterprise-revenue-placeholders', label: 'Orchard, livestock, retreat, education, agritourism revenue placeholders', phase: 'P2', status: 'done' },
       { key: 'regional-cost-database', label: 'Regional cost database with low/mid/high ranges (Section 0f)', phase: 'P3', status: 'planned' },
