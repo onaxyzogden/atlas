@@ -43,6 +43,21 @@ interface PhaseState {
   deletePhase: (id: string) => void;
   togglePhaseCompleted: (id: string) => void;
   setActiveFilter: (filter: string) => void;
+  /**
+   * Returns a freshly-allocated, sorted array. **Do NOT call inside a
+   * Zustand selector** — it produces a new snapshot every render and
+   * triggers "Maximum update depth exceeded" via `useSyncExternalStore`.
+   *
+   * Correct usage: subscribe to `state.phases` raw, then derive in `useMemo`:
+   * ```ts
+   * const allPhases = usePhaseStore((s) => s.phases);
+   * const phases = useMemo(
+   *   () => allPhases.filter((p) => p.projectId === id).sort((a, b) => a.order - b.order),
+   *   [allPhases, id],
+   * );
+   * ```
+   * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
+   */
   getProjectPhases: (projectId: string) => BuildPhase[];
   ensureDefaults: (projectId: string) => void;
 }

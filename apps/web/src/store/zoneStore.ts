@@ -162,6 +162,12 @@ interface ZoneState {
   addZone: (zone: LandZone) => void;
   updateZone: (id: string, updates: Partial<LandZone>) => void;
   deleteZone: (id: string) => void;
+  /**
+   * Returns a freshly-allocated array. **Do NOT call inside a Zustand
+   * selector** — new snapshot every render → infinite loop.
+   * Subscribe to `state.zones` raw and derive in `useMemo`.
+   * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
+   */
   getProjectZones: (projectId: string) => LandZone[];
 }
 

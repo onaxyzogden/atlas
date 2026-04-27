@@ -27,6 +27,12 @@ interface VersionState {
 
   createSnapshot: (project: LocalProject, label: string) => void;
   restoreSnapshot: (snapshotId: string) => LocalProject | null;
+  /**
+   * Returns a freshly-allocated, sorted array. **Do NOT call inside a
+   * Zustand selector** — new snapshot every render → infinite loop.
+   * Subscribe to `state.snapshots` raw and derive in `useMemo`.
+   * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
+   */
   getProjectSnapshots: (projectId: string) => ProjectSnapshot[];
   deleteSnapshot: (snapshotId: string) => void;
   pruneOldSnapshots: (projectId: string) => void;
