@@ -590,7 +590,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'user-management', label: 'User management', phase: 'P1', status: 'done' },
-      { key: 'workspace-management', label: 'Workspace management', phase: 'P1', status: 'partial' },
+      { key: 'workspace-management', label: 'Workspace management', phase: 'P1', status: 'done' },
       { key: 'organization-settings', label: 'Organization settings', phase: 'P1', status: 'partial' },
       { key: 'access-controls', label: 'Access controls', phase: 'P1', status: 'done' },
       { key: 'project-ownership-transfer', label: 'Project ownership transfer', phase: 'P1', status: 'planned' },

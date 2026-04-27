@@ -14,6 +14,7 @@ import ZoningAccessUtilityCard from './ZoningAccessUtilityCard.js';
 import OwnerStakeholderRosterCard from './OwnerStakeholderRosterCard.js';
 import MetadataManagementCard from './MetadataManagementCard.js';
 import AuditLogCard from './AuditLogCard.js';
+import WorkspaceManagementReadinessCard from './WorkspaceManagementReadinessCard.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
 import FileList from './FileList.js';
@@ -230,6 +231,9 @@ export default function ProjectDashboard({ project }: Props) {
 
       {/* §26 Audit log — governance-sensitive event trail */}
       <AuditLogCard project={project} />
+
+      {/* §26 Workspace-wide project posture audit */}
+      <WorkspaceManagementReadinessCard project={project} />
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />
