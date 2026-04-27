@@ -11,6 +11,7 @@ import type { ProjectRole } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
 import { role as roleToken, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import UserManagementReadinessCard from './UserManagementReadinessCard.js';
 
 interface MembersTabProps {
   project: LocalProject;
@@ -91,6 +92,9 @@ export default function MembersTab({ project }: MembersTabProps) {
 
   return (
     <div>
+      {/* §26 user-management readiness audit (sibling of AuditLogCard) */}
+      <UserManagementReadinessCard project={project} />
+
       {/* Invite form (owner only) */}
       {isOwner && (
         <div className={p.mb16}>
