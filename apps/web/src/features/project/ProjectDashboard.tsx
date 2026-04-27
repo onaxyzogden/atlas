@@ -11,6 +11,8 @@ import RegulatoryPanel from '../regulatory/RegulatoryPanel.js';
 import FieldObservationsLegalCard from './FieldObservationsLegalCard.js';
 import RestrictionsCovenantsCard from './RestrictionsCovenantsCard.js';
 import ZoningAccessUtilityCard from './ZoningAccessUtilityCard.js';
+import OwnerStakeholderRosterCard from './OwnerStakeholderRosterCard.js';
+import MetadataManagementCard from './MetadataManagementCard.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
 import FileList from './FileList.js';
@@ -218,6 +220,12 @@ export default function ProjectDashboard({ project }: Props) {
 
       {/* §3 Zoning, access & utility envelope */}
       <ZoningAccessUtilityCard project={project} />
+
+      {/* §3 Owner & stakeholder narrative + roster cross-ref */}
+      <OwnerStakeholderRosterCard project={project} />
+
+      {/* §26 Metadata coverage audit (5 buckets) */}
+      <MetadataManagementCard project={project} />
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />
