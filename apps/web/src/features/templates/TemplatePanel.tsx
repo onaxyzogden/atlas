@@ -11,6 +11,7 @@ import { useStructureStore, type Structure } from '../../store/structureStore.js
 import TemplateMarketplace from './TemplateMarketplace.js';
 import ExtractedPatternsCard from './ExtractedPatternsCard.js';
 import RuleHotspotCostBundlesCard from './RuleHotspotCostBundlesCard.js';
+import TemplateGovernanceCard from './TemplateGovernanceCard.js';
 import p from '../../styles/panel.module.css';
 import { semantic } from '../../lib/tokens.js';
 
@@ -52,6 +53,7 @@ export default function TemplatePanel({ project }: TemplatePanelProps) {
           template. Read-only inventory; "save as template" lands later. */}
       {!selected && <ExtractedPatternsCard projectId={project.id} />}
       {!selected && <RuleHotspotCostBundlesCard project={project} />}
+      {!selected && <TemplateGovernanceCard />}
 
       {/* Template list */}
       {!selected && (
