@@ -164,6 +164,10 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'threats-and-leverage-interventions', label: "'Main threats to success' and 'Highest leverage interventions' summaries", phase: 'P2', status: 'done' },
     ],
   },
+  // 2026-04-27: spatial vector retention added — hydrology and wetland fetchers
+  // now keep raw GeoJSON features in IndexedDB (see apps/web/src/lib/layerFetcher.ts
+  // SPATIAL_LAYER_TYPES). This is plumbing under §2/§5; consumers (auto-zoning,
+  // design rules, suitability) sample via apps/web/src/lib/spatialSampling.ts.
   {
     id: 5,
     slug: 'hydrology-water',
