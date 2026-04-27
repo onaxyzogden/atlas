@@ -20,11 +20,15 @@ import {
   PHASE_ORDER,
   DOMAIN_META,
   DOMAIN_ORDER,
+  STAGE_META,
+  STAGE_ORDER,
   groupByPhase,
   groupByDomain,
+  groupByStage,
   type NavItem,
   type PhaseKey,
   type DomainGroupKey,
+  type StageKey,
 } from '../features/navigation/taxonomy.js';
 import s from './IconSidebar.module.css';
 
@@ -114,7 +118,7 @@ const isItemActive = (
   return true;
 };
 
-type GroupKey = PhaseKey | DomainGroupKey;
+type GroupKey = StageKey | PhaseKey | DomainGroupKey;
 
 const LS_OPEN_GROUP = 'ogden-sidebar-open-group';
 const LS_LEGACY_OPEN_PHASE = 'ogden-sidebar-open-phase';
@@ -139,7 +143,7 @@ export default function IconSidebar({
       const stored = localStorage.getItem(LS_OPEN_GROUP) ?? localStorage.getItem(LS_LEGACY_OPEN_PHASE);
       if (stored) return stored as GroupKey;
     } catch { /* noop */ }
-    return 'P1';
+    return 'S1';
   });
 
   const toggleCollapse = () => {
@@ -164,7 +168,19 @@ export default function IconSidebar({
   }
 
   const groups: DisplayGroup[] =
-    grouping === 'phase'
+    grouping === 'stage'
+      ? (() => {
+          const byStage = groupByStage(MAP_ITEMS);
+          return STAGE_ORDER.map((s, idx) => ({
+            key: s,
+            badge: String(idx + 1),
+            name: STAGE_META[s].name,
+            desc: STAGE_META[s].desc,
+            color: STAGE_META[s].color,
+            items: byStage[s],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : grouping === 'phase'
       ? (() => {
           const byPhase = groupByPhase(MAP_ITEMS);
           return PHASE_ORDER.map((p) => ({
@@ -189,10 +205,10 @@ export default function IconSidebar({
         })();
 
   // If the persisted openGroup doesn't exist in the current grouping, fall back
-  // to the first available group. This handles the phase↔domain toggle cleanly.
+  // to the first available group. This handles the stage↔phase↔domain toggle cleanly.
   const resolvedOpenGroup: GroupKey = groups.some((g) => g.key === openGroup)
     ? openGroup
-    : (groups[0]?.key ?? 'P1');
+    : (groups[0]?.key ?? 'S1');
 
   return (
     <nav aria-label="Atlas domains" className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>

@@ -44,6 +44,13 @@ export type DomainGroupKey =
   | 'reporting-portal'
   | 'general';
 
+/**
+ * Stage = the 5-step workflow lens introduced by the 2026-04-27 UI/UX upgrade
+ * brief (`atlas/docs/ui-ux-upgrade-brief.md` §4). Phase/Domain remain as
+ * power-user lenses; Stage is the new default.
+ */
+export type StageKey = 'S1' | 'S2' | 'S3' | 'S4' | 'S5';
+
 // ── NavItem ──────────────────────────────────────────────────────────────────
 
 export interface NavItem {
@@ -55,6 +62,13 @@ export interface NavItem {
   phase: PhaseKey;
   /** Subject group (domain grouping). */
   domainGroup: DomainGroupKey;
+  /**
+   * Stage in the 5-step workflow lens (Understand → Constraints → Design →
+   * Feasibility → Report). Optional: cross-cutting items (settings, archive,
+   * fieldwork, history) intentionally have no stage and drop out of the
+   * stage-grouped sidebar.
+   */
+  stage?: StageKey;
 
   /** Map-rail panel to mount. Omit if item has no map view. */
   panel?: Exclude<SidebarView, null>;
@@ -99,6 +113,34 @@ export const PHASE_META: Record<PhaseKey, { name: string; desc: string; color: s
   },
 };
 
+export const STAGE_META: Record<StageKey, { name: string; desc: string; color: string }> = {
+  S1: {
+    name: 'Understand the Land',
+    desc: 'Site Intelligence, Hydrology, Soil, Climate, Terrain',
+    color: phaseTokens[1],
+  },
+  S2: {
+    name: 'Identify Constraints',
+    desc: 'Regulatory, Wetlands / Flood, Zoning, Environmental Risk',
+    color: groupTokens.compliance,
+  },
+  S3: {
+    name: 'Design the System',
+    desc: 'Paddocks, Planting, Forestry, Water Systems, Infrastructure',
+    color: phaseTokens[2],
+  },
+  S4: {
+    name: 'Test Feasibility',
+    desc: 'Economics, Scenarios, Timeline, Biomass',
+    color: phaseTokens[3],
+  },
+  S5: {
+    name: 'Prepare the Report',
+    desc: 'Public Portal, Investor Summary, Export',
+    color: phaseTokens[4],
+  },
+};
+
 export const DOMAIN_META: Record<DomainGroupKey, { name: string; color: string }> = {
   'site-overview':         { name: 'Site Overview',         color: groupTokens.hydrology },
   'grazing-livestock':     { name: 'Grazing & Livestock',   color: groupTokens.livestock },
@@ -113,6 +155,7 @@ export const DOMAIN_META: Record<DomainGroupKey, { name: string; color: string }
 
 // Ordered list used when iterating groups in UI.
 export const PHASE_ORDER: PhaseKey[] = ['P1', 'P2', 'P3', 'P4'];
+export const STAGE_ORDER: StageKey[] = ['S1', 'S2', 'S3', 'S4', 'S5'];
 export const DOMAIN_ORDER: DomainGroupKey[] = [
   'site-overview',
   'energy-infrastructure',
@@ -134,17 +177,17 @@ export const NAV_ITEMS: NavItem[] = [
   // Collapsing it here lets the one-item Compliance group disappear.
   {
     id: 'regulatory', label: 'Regulatory',
-    phase: 'P2', domainGroup: 'site-overview',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S2',
     panel: 'regulatory', mapSubItem: 'regulatory',
   },
   {
     id: 'site-intelligence', label: 'Site Intelligence',
-    phase: 'P1', domainGroup: 'site-overview',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1',
     panel: 'intelligence', mapSubItem: 'site-assessment',
   },
   {
     id: 'map-layers', label: 'Map Layers',
-    phase: 'P1', domainGroup: 'site-overview',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1',
     panel: 'layers', mapSubItem: 'terrain-viz',
   },
   // §3 Site Data Layers catalog — server-authoritative view of every
@@ -153,19 +196,19 @@ export const NAV_ITEMS: NavItem[] = [
   // is already handled by `map-layers`.
   {
     id: 'data-catalog', label: 'Data Catalog',
-    phase: 'P1', domainGroup: 'site-overview',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1',
     dashboardOnly: true,
   },
   {
     id: 'feasibility', label: 'Feasibility',
-    phase: 'P2', domainGroup: 'site-overview',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S4',
     panel: 'feasibility', mapSubItem: 'feasibility',
   },
   // Biomass is a site-characterization readout (standing carbon / vegetation
   // load), so it belongs with Site Overview rather than the General catch-all.
   {
     id: 'biomass', label: 'Biomass',
-    phase: 'P1', domainGroup: 'site-overview',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S4',
     panel: 'biomass', mapSubItem: 'biomass',
     layers: ['land_cover'],
   },
@@ -173,25 +216,25 @@ export const NAV_ITEMS: NavItem[] = [
   // ── Grazing & Livestock ────────────────────────────────────────────────────
   {
     id: 'paddock-design', label: 'Paddock Design',
-    phase: 'P2', domainGroup: 'grazing-livestock',
+    phase: 'P2', domainGroup: 'grazing-livestock', stage: 'S3',
     panel: 'paddockDesign', mapSubItem: 'paddock',
     layers: ['land_cover', 'soils'], domain: 'paddockDesign',
   },
   {
     id: 'herd-rotation', label: 'Herd Rotation',
-    phase: 'P2', domainGroup: 'grazing-livestock',
+    phase: 'P2', domainGroup: 'grazing-livestock', stage: 'S3',
     panel: 'herdRotation', mapSubItem: 'rotation',
     layers: ['land_cover', 'soils'], domain: 'herdRotation',
   },
   {
     id: 'grazing-analysis', label: 'Grazing Analysis',
-    phase: 'P2', domainGroup: 'grazing-livestock',
+    phase: 'P2', domainGroup: 'grazing-livestock', stage: 'S3',
     panel: 'grazingAnalysis', mapSubItem: 'grazing',
     layers: ['land_cover', 'soils'], domain: 'grazingAnalysis',
   },
   {
     id: 'livestock-inventory', label: 'Inventory & Health Ledger',
-    phase: 'P2', domainGroup: 'grazing-livestock',
+    phase: 'P2', domainGroup: 'grazing-livestock', stage: 'S3',
     panel: 'livestockInventory', mapSubItem: 'herd',
     layers: ['land_cover', 'soils'], domain: 'livestockInventory',
   },
@@ -199,25 +242,25 @@ export const NAV_ITEMS: NavItem[] = [
   // ── Forestry ───────────────────────────────────────────────────────────────
   {
     id: 'planting-tool', label: 'Planting Tool',
-    phase: 'P2', domainGroup: 'forestry',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3',
     panel: 'planting', mapSubItem: 'planting',
     layers: ['soils', 'land_cover'], domain: 'plantingTool',
   },
   {
     id: 'forest-hub', label: 'Forest Hub',
-    phase: 'P2', domainGroup: 'forestry',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3',
     panel: 'forest', mapSubItem: 'forest',
     layers: ['soils', 'land_cover'], domain: 'forestHub',
   },
   {
     id: 'carbon-diagnostic', label: 'Carbon Diagnostic',
-    phase: 'P2', domainGroup: 'forestry',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3',
     panel: 'carbon', mapSubItem: 'carbon',
     layers: ['soils', 'land_cover'], domain: 'carbonDiagnostic',
   },
   {
     id: 'nursery-ledger', label: 'Nursery Ledger',
-    phase: 'P2', domainGroup: 'forestry',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3',
     panel: 'nursery', mapSubItem: 'nursery',
     layers: ['soils', 'land_cover'], domain: 'nurseryLedger',
   },
@@ -225,41 +268,41 @@ export const NAV_ITEMS: NavItem[] = [
   // ── Hydrology & Terrain ────────────────────────────────────────────────────
   {
     id: 'cartographic', label: 'Cartographic',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'cartographic', mapSubItem: 'site-data',
     layers: ['land_cover', 'zoning'], domain: 'cartographic',
   },
   {
     // Canonical id `hydrology`; legacy route kept for DashboardRouter/DashboardMetrics.
     id: 'hydrology', label: 'Hydrology',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'hydrology', mapSubItem: 'hydrology-basic',
     dashboardRoute: 'hydrology-dashboard',
     layers: ['watershed', 'wetlands_flood'], domain: 'hydrology',
   },
   {
     id: 'ecological', label: 'Ecological',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'ecological', mapSubItem: 'site-assessment',
     layers: ['land_cover', 'soils'], domain: 'ecology',
   },
   {
     // Canonical id `terrain`; legacy route kept for DashboardRouter/DashboardMetrics.
     id: 'terrain', label: 'Terrain',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'terrain', mapSubItem: 'terrain-viz',
     dashboardRoute: 'terrain-dashboard',
     layers: ['elevation'], domain: 'terrain',
   },
   {
     id: 'stewardship', label: 'Stewardship',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'stewardship', mapSubItem: 'soil-ecology',
     layers: ['land_cover', 'soils'], domain: 'ecology',
   },
   {
     id: 'climate', label: 'Solar & Climate',
-    phase: 'P1', domainGroup: 'hydrology-terrain',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1',
     panel: 'climate', mapSubItem: 'solar-climate',
     layers: ['climate'],
   },
@@ -267,35 +310,35 @@ export const NAV_ITEMS: NavItem[] = [
   // ── Finance ────────────────────────────────────────────────────────────────
   {
     id: 'timeline-phasing', label: 'Timeline & Phasing',
-    phase: 'P2', domainGroup: 'finance',
+    phase: 'P2', domainGroup: 'finance', stage: 'S4',
     panel: 'timeline', mapSubItem: 'timeline',
   },
   {
     id: 'economics', label: 'Economics',
-    phase: 'P2', domainGroup: 'finance',
+    phase: 'P2', domainGroup: 'finance', stage: 'S4',
     panel: 'economic', mapSubItem: 'economics',
   },
   {
     id: 'scenarios', label: 'Scenarios',
-    phase: 'P3', domainGroup: 'finance',
+    phase: 'P3', domainGroup: 'finance', stage: 'S4',
     panel: 'scenarios', mapSubItem: 'scenarios',
   },
   {
     id: 'investor-summary', label: 'Investor Summary',
-    phase: 'P3', domainGroup: 'finance',
+    phase: 'P3', domainGroup: 'finance', stage: 'S5',
     panel: 'economic', mapSubItem: 'economics',
   },
 
   // ── Energy & Infrastructure ────────────────────────────────────────────────
   {
     id: 'energy-offgrid', label: 'Energy & Off-Grid',
-    phase: 'P2', domainGroup: 'energy-infrastructure',
+    phase: 'P2', domainGroup: 'energy-infrastructure', stage: 'S3',
     panel: 'energy', mapSubItem: 'energy',
     layers: ['elevation'], domain: 'energy',
   },
   {
     id: 'infrastructure-utilities', label: 'Utilities & Infrastructure',
-    phase: 'P2', domainGroup: 'energy-infrastructure',
+    phase: 'P2', domainGroup: 'energy-infrastructure', stage: 'S3',
     panel: 'infrastructure', mapSubItem: 'infrastructure',
     layers: ['soils', 'watershed'], domain: 'infrastructure',
   },
@@ -307,100 +350,104 @@ export const NAV_ITEMS: NavItem[] = [
   // ── Reporting & Portal ─────────────────────────────────────────────────────
   {
     id: 'reporting', label: 'Reports & Export',
-    phase: 'P3', domainGroup: 'reporting-portal',
+    phase: 'P3', domainGroup: 'reporting-portal', stage: 'S5',
     panel: 'reporting', mapSubItem: 'reporting',
   },
   {
     id: 'portal', label: 'Public Portal',
-    phase: 'P4', domainGroup: 'reporting-portal',
+    phase: 'P4', domainGroup: 'reporting-portal', stage: 'S5',
     panel: 'portal', mapSubItem: 'portal',
   },
   {
     id: 'educational', label: 'Educational Atlas',
-    phase: 'P3', domainGroup: 'reporting-portal',
+    phase: 'P3', domainGroup: 'reporting-portal', stage: 'S5',
     panel: 'educational', mapSubItem: 'educational',
   },
 
   // ── General (cross-cutting) ────────────────────────────────────────────────
   {
     id: 'siting-rules', label: 'Siting Rules',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S2',
     panel: 'siting', mapSubItem: 'siting-rules',
     layers: ['elevation', 'soils', 'watershed', 'wetlands_flood'],
   },
 
   // Dashboard-only (no map-rail panel yet)
+  // Settings/archive are infra surfaces; intentionally untagged so they drop
+  // out of the stage-grouped sidebar (settings is reachable via SidebarBottomControls).
   { id: 'dashboard-settings',  label: 'Settings', phase: 'P4', domainGroup: 'general', dashboardOnly: true },
   { id: 'archive',             label: 'Archive',  phase: 'P4', domainGroup: 'general', dashboardOnly: true },
 
   // ── Map-only items (Design Atlas sub-tools + fieldwork + history) ─────────
   {
     id: 'zones', label: 'Zones & Land Use',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S3',
     panel: 'design', mapSubItem: 'zones', mapOnly: true,
   },
   {
     id: 'structures', label: 'Structures & Built',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S3',
     panel: 'design', mapSubItem: 'structures', mapOnly: true,
   },
   {
     id: 'access', label: 'Access & Circulation',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S3',
     panel: 'design', mapSubItem: 'access', mapOnly: true,
   },
   {
     id: 'livestock-systems', label: 'Livestock Systems',
-    phase: 'P2', domainGroup: 'grazing-livestock',
+    phase: 'P2', domainGroup: 'grazing-livestock', stage: 'S3',
     panel: 'design', mapSubItem: 'livestock', mapOnly: true,
   },
   {
     id: 'crops', label: 'Crops & Agroforestry',
-    phase: 'P2', domainGroup: 'forestry',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3',
     panel: 'design', mapSubItem: 'crops', mapOnly: true,
   },
   {
     id: 'utilities', label: 'Utilities & Energy',
-    phase: 'P2', domainGroup: 'energy-infrastructure',
+    phase: 'P2', domainGroup: 'energy-infrastructure', stage: 'S3',
     panel: 'design', mapSubItem: 'utilities', mapOnly: true,
   },
   // (Removed duplicate mapOnly `timeline` entry — `timeline-phasing` under
   // Finance already covers the map rail via panel: 'timeline'.)
   {
     id: 'vision', label: 'Vision Layer',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S3',
     panel: 'vision', mapSubItem: 'vision', mapOnly: true,
   },
   {
     id: 'spiritual', label: 'Spiritual',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S3',
     panel: 'spiritual', mapSubItem: 'spiritual', mapOnly: true,
   },
   {
     id: 'zoning', label: 'Zoning',
-    phase: 'P2', domainGroup: 'general',
+    phase: 'P2', domainGroup: 'general', stage: 'S2',
     panel: 'zoning', mapSubItem: 'zoning',
   },
   {
     id: 'ai', label: 'AI Atlas',
-    phase: 'P3', domainGroup: 'general',
+    phase: 'P3', domainGroup: 'general', stage: 'S4',
     panel: 'ai', mapSubItem: 'ai', mapOnly: true,
   },
   {
     id: 'collaboration', label: 'Collaboration',
-    phase: 'P3', domainGroup: 'general',
+    phase: 'P3', domainGroup: 'general', stage: 'S4',
     panel: 'collaboration', mapSubItem: 'collaboration',
   },
   {
     id: 'moontrance', label: 'OGDEN Identity',
-    phase: 'P3', domainGroup: 'general',
+    phase: 'P3', domainGroup: 'general', stage: 'S5',
     panel: 'moontrance', mapSubItem: 'moontrance', mapOnly: true,
   },
   {
     id: 'templates', label: 'Templates',
-    phase: 'P3', domainGroup: 'general',
+    phase: 'P3', domainGroup: 'general', stage: 'S5',
     panel: 'templates', mapSubItem: 'templates',
   },
+  // Fieldwork & history are cross-cutting; intentionally untagged so they
+  // drop out of the stage-grouped sidebar (per upgrade brief §4 mapping).
   {
     id: 'fieldwork', label: 'Fieldwork',
     phase: 'P4', domainGroup: 'general',
@@ -419,6 +466,19 @@ export const NAV_ITEMS: NavItem[] = [
 export function groupByPhase(items: NavItem[]): Record<PhaseKey, NavItem[]> {
   const out: Record<PhaseKey, NavItem[]> = { P1: [], P2: [], P3: [], P4: [] };
   for (const item of items) out[item.phase].push(item);
+  return out;
+}
+
+/**
+ * Group a filtered item list by stage, preserving STAGE_ORDER.
+ * Items without a `stage` (cross-cutting infra: settings, archive, fieldwork,
+ * history) are intentionally omitted, matching the upgrade brief §4.
+ */
+export function groupByStage(items: NavItem[]): Record<StageKey, NavItem[]> {
+  const out: Record<StageKey, NavItem[]> = { S1: [], S2: [], S3: [], S4: [], S5: [] };
+  for (const item of items) {
+    if (item.stage) out[item.stage].push(item);
+  }
   return out;
 }
 
