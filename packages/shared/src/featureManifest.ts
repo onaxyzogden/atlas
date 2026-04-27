@@ -478,7 +478,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'task-assignment-approval-revisions', label: 'Task assignment, approval workflow, revision requests', phase: 'P3', status: 'planned' },
       { key: 'version-compare-changelog-snapshots', label: 'Version comparison, change log, snapshot sharing', phase: 'P3', status: 'planned' },
       { key: 'internal-vs-public-views', label: 'Internal vs public views, stakeholder presentation links', phase: 'P3', status: 'done' },
-      { key: 'team-activity-feed', label: 'Team activity feed, review checklist, sign-off workflow by stage', phase: 'P3', status: 'partial' },
+      { key: 'team-activity-feed', label: 'Team activity feed, review checklist, sign-off workflow by stage', phase: 'P3', status: 'done' },
       { key: 'export-comments-with-report', label: 'Export comments with report', phase: 'P3', status: 'planned' },
       { key: 'view-only-shareable-link', label: 'View-only shareable link (no account required — see Section 0g)', phase: 'P3', status: 'done' },
       { key: 'stakeholder-community-review-mode', label: 'Simplified stakeholder view and community review mode', phase: 'P3', status: 'done' },
