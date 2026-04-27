@@ -37,17 +37,11 @@ import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 // ─── §11 Species water-demand rollup ──────────────────────────────────────────
 //
 // Each `PlantSpeciesInfo` carries a `waterDemand: 'low' | 'medium' | 'high'`
-// class. These are planning-grade annual irrigation rates for temperate zones,
-// chosen to round cleanly against typical regenerative-ag literature:
-//   - low:    ~190 L/m²/yr  (drought-tolerant, established)
-//   - medium: ~415 L/m²/yr  (standard fruit/nut orchard)
-//   - high:   ~835 L/m²/yr  (berries, intensive beds)
-// Converted to US gallons for consistency with Hydrology dashboards.
-const WATER_DEMAND_GAL_PER_M2_YR: Record<'low' | 'medium' | 'high', number> = {
-  low: 50,
-  medium: 110,
-  high: 220,
-};
+// class. The per-m² rate is no longer a flat 3-class table — it now varies
+// by crop area type via `@ogden/shared/demand` (orchard:medium ≠
+// market_garden:medium). Areas with no resolvable species fall back to the
+// per-area-type "typical" rate.
+import { getCropAreaDemandGalPerM2Yr, type CropAreaType } from '@ogden/shared/demand';
 
 type WaterDemandClass = 'low' | 'medium' | 'high' | 'unknown';
 
@@ -92,7 +86,10 @@ function buildWaterDemandRollup(cropAreas: CropArea[]): WaterDemandRollup {
         dominant = sp.waterDemand;
       }
     }
-    const rate = dominant === 'unknown' ? 0 : WATER_DEMAND_GAL_PER_M2_YR[dominant];
+    const rate = getCropAreaDemandGalPerM2Yr({
+      areaType: area.type as CropAreaType,
+      waterDemandClass: dominant === 'unknown' ? undefined : dominant,
+    });
     const gallonsPerYear = Math.round(area.areaM2 * rate);
     rows.push({
       areaId: area.id,

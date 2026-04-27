@@ -10,6 +10,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType } from '../../../store/utilityStore.js';
+import { useStructureStore } from '../../../store/structureStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
   computeOffGridReadiness,
@@ -36,6 +37,11 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
   const utilities = useMemo(
     () => allUtilities.filter((u) => u.projectId === project.id),
     [allUtilities, project.id],
+  );
+  const allStructures = useStructureStore((s) => s.structures);
+  const structures = useMemo(
+    () => allStructures.filter((st) => st.projectId === project.id),
+    [allStructures, project.id],
   );
   const energyUtilities = useMemo(
     () => utilities.filter((u) => ENERGY_TYPES.includes(u.type)),
@@ -135,7 +141,7 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
 
       {/* ── Energy & Water read-outs (parity with map rail's Utilities tab) ── */}
       <div className={css.readouts}>
-        <EnergyDemandRollup utilities={utilities} />
+        <EnergyDemandRollup utilities={utilities} structures={structures} />
         {isEnergy && <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />}
         <div id="water-systems" style={{ scrollMarginTop: 16 }}>
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />

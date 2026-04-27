@@ -42,9 +42,27 @@ Subpath export; not re-exported from the main barrel to avoid a cycle with
 | `petModel.ts` | FAO-56 Penman-Monteith + Blaney-Criddle PET dispatcher. |
 | `rules/` | Rule engine (`ruleEngine.ts`, `assessmentRules.ts`). |
 
+## Demand subpath (`@ogden/shared/demand`)
+**Added 2026-04-27.** Separate entry point — not re-exported from the main
+barrel. Source of truth for water + electricity demand coefficients used by
+the hydrology engine and the energy/utility/planting dashboards. Decision:
+[decisions/2026-04-27-demand-coefficient-tables.md](../decisions/2026-04-27-demand-coefficient-tables.md).
+
+| File | Purpose |
+|------|---------|
+| `structureDemand.ts` | `STRUCTURE_WATER_GAL_PER_DAY` + `STRUCTURE_KWH_PER_DAY` by `StructureType`; `GREENHOUSE_*_PER_M2_DAY` per-m² rates; `getStructureWaterGalPerDay()` / `getStructureKwhPerDay()` apply `widthM × depthM` for greenhouses and `storiesCount` linearly for others. |
+| `utilityDemand.ts` | `UTILITY_KWH_PER_DAY` by `UtilityType` (loads only — generation/storage/passive = 0); `getUtilityKwhPerDay()` honors steward-entered `demandKwhPerDay > 0` override, else falls back to default. |
+| `cropDemand.ts` | Per-area-type × class table (`CROP_AREA_GAL_PER_M2_YR`) — orchard medium 110 ≠ market_garden medium 200; `CROP_AREA_TYPICAL_GAL_PER_M2_YR` typical fallback; `getCropAreaDemandGalPerM2Yr()` / `getCropAreaWaterGalYr()` helpers. |
+| `rollup.ts` | `sumSiteDemand({ structures, utilities, cropAreas })` → `{ structureWaterGalPerDay, cropWaterGalYr, waterGalYr, electricityKwhPerDay, electricityKwhYr }`. Additive across all three entity sets. |
+
+`hydrologyMetrics.ts` accepts optional `structures`/`utilities`/`cropAreas` on
+`HydroInputs`; when any are present, irrigation demand uses the rollup.
+When none are passed, the 22%-of-rainfall fallback remains for back-compat.
+
 ## Notes
 - All schemas use strict Zod validation
 - `WithConfidence` mixin applied to all analysis outputs
 - Export from barrel `src/index.ts` — always add new schemas here
 - The scoring subpath is a separate entry point (`./scoring`); consumers
   import from `@ogden/shared/scoring`, not the root.
+- Same convention for `./demand` and `./manifest`.

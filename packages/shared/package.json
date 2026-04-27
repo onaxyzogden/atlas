@@ -16,6 +16,10 @@
     "./manifest": {
       "types": "./src/featureManifest.ts",
       "default": "./src/featureManifest.ts"
+    },
+    "./demand": {
+      "types": "./src/demand/index.ts",
+      "default": "./src/demand/index.ts"
     }
   },
   "scripts": {

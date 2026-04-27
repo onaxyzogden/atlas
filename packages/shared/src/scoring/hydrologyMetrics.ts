@@ -7,6 +7,12 @@
 
 import { status } from './tokens.js';
 import { computePet, type PetMethod } from './petModel.js';
+import {
+  sumSiteDemand,
+  type StructureLike,
+  type UtilityLike,
+  type CropAreaLike,
+} from '../demand/index.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,6 +55,17 @@ export interface HydroInputs {
   latitudeDeg?: number;
   /** Site mean elevation in metres above sea level — optional, defaults to 100 m */
   elevationM?: number;
+
+  /**
+   * Optional placed structures, utilities, and crop areas. When any of these
+   * are provided, `irrigationDemandGal` is computed by summing per-type
+   * demand coefficients via `sumSiteDemand` (`@ogden/shared/demand`). When
+   * all three are absent, falls back to the legacy 22%-of-rainfall placeholder
+   * for back-compat with callers that don't yet thread placed entities through.
+   */
+  structures?: StructureLike[];
+  utilities?: UtilityLike[];
+  cropAreas?: CropAreaLike[];
 }
 
 export interface HydroMetrics {
@@ -209,7 +226,20 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
   const targetRetentionPct = C > 0.6 ? 0.42 : 0.60;
   const currentRetentionGal = annualRainfallGal * currentRetentionPct;
   const targetRetentionGal = annualRainfallGal * targetRetentionPct;
-  const irrigationDemandGal = annualRainfallGal * 0.22;
+  // Demand: sum from placed structures/utilities/cropAreas when supplied;
+  // otherwise fall back to the legacy 22%-of-rainfall placeholder (back-compat
+  // for callers that don't yet thread placed entities through).
+  const hasPlacedDemand =
+    (inputs.structures?.length ?? 0) > 0 ||
+    (inputs.utilities?.length ?? 0) > 0 ||
+    (inputs.cropAreas?.length ?? 0) > 0;
+  const irrigationDemandGal = hasPlacedDemand
+    ? sumSiteDemand({
+        structures: inputs.structures,
+        utilities: inputs.utilities,
+        cropAreas: inputs.cropAreas,
+      }).waterGalYr
+    : annualRainfallGal * 0.22;
   const surplusGal = targetRetentionGal - irrigationDemandGal;
 
   // ── Flow rates (gal/min) ───────────────────────────────────────────────────

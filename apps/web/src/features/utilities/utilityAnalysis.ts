@@ -19,6 +19,8 @@ export interface SolarEstimate {
 }
 
 export function estimateSolarOutput(panelCount: number, avgIrradiance = 4.5): SolarEstimate {
+  // TODO: thread real irradiance from NASA POWER (climate layer
+  // `solar_radiation_kwh_m2_day`) instead of the 4.5 kWh/m²/day default.
   const panelAreaM2 = panelCount * 2.0; // ~2m2 per residential panel
   const efficiency = 0.18;
   const dailyKwh = panelAreaM2 * avgIrradiance * efficiency;
