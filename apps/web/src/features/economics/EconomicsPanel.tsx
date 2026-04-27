@@ -23,6 +23,7 @@ import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
 import CostByFeaturePhaseCard from './CostByFeaturePhaseCard.js';
 import LandownerPartnershipCard from './LandownerPartnershipCard.js';
+import RevenueStreamTaggingCard from './RevenueStreamTaggingCard.js';
 
 interface EconomicsPanelProps {
   project: LocalProject;
@@ -471,6 +472,8 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Revenue tab */}
       {activeTab === 'revenue' && (
         <>
+          {/* §22 revenue-stream-tagging-enterprise-mapping — tag/intent audit */}
+          <RevenueStreamTaggingCard project={project} />
           <EnterpriseRevenueMixCard projectId={project.id} />
           <RevenueRampProjectionCard projectId={project.id} />
           <OverbuiltForRevenueWarningCard projectId={project.id} />
