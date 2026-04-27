@@ -15,6 +15,7 @@
  * constructing a `MockLayerResult`.
  */
 
+import type { FeatureCollection } from 'geojson';
 import type { LayerType } from '../constants/dataSources.js';
 import type { LayerSummaryMap } from './layerSummary.js';
 
@@ -24,7 +25,21 @@ interface BaseLayerFields {
   dataDate: string;
   sourceApi: string;
   attribution: string;
+  /** Optional spatial payload retained alongside the summary so downstream
+   *  features (auto-zoning, design rules, suitability) can sample real
+   *  geometry instead of just per-site means. Web stores this in IndexedDB
+   *  rather than localStorage — see apps/web/src/lib/layerFetcher.ts. */
+  spatial?: SpatialLayerPayload;
 }
+
+/** Vector spatial payload. A discriminated union leaves room for a future
+ *  `{ kind: 'raster'; ... }` variant when slope grids and land-cover tiles
+ *  get their own caching strategy. */
+export type SpatialLayerPayload = {
+  kind: 'vector';
+  features: FeatureCollection;
+  bbox: [number, number, number, number];
+};
 
 /** Discriminated union keyed by `layerType`. Consumers narrow via
  *  `if (layer.layerType === 'climate') { layer.summary.annual_precip_mm }`. */
