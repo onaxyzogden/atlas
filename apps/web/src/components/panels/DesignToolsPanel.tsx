@@ -24,6 +24,7 @@ import LivestockPanel from '../../features/livestock/LivestockPanel.js';
 import CropPanel from '../../features/crops/CropPanel.js';
 import AccessPanel from '../../features/access/AccessPanel.js';
 import UtilityPanel from '../../features/utilities/UtilityPanel.js';
+import { useUIStore } from '../../store/uiStore.js';
 import { earth, zone, semantic, structure as structureTokens, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './DesignToolsPanel.module.css';
@@ -38,9 +39,18 @@ interface DesignToolsPanelProps {
 
 type Tab = 'zones' | 'structures' | 'livestock' | 'crops' | 'paths' | 'utilities';
 
+const SUBITEM_TO_TAB: Record<string, Tab> = {
+  zones: 'zones',
+  structures: 'structures',
+  livestock: 'livestock',
+  crops: 'crops',
+  access: 'paths',
+  utilities: 'utilities',
+};
+
 export default function DesignToolsPanel({ projectId, draw, map, canEdit = true }: DesignToolsPanelProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('zones');
-  const [selectedCategory, setSelectedCategory] = useState<ZoneCategory>('habitation');
+  const activeMapSubItem = useUIStore((s) => s.activeMapSubItem);
+  const activeTab: Tab = (activeMapSubItem && SUBITEM_TO_TAB[activeMapSubItem]) ?? 'zones';
   const [isDrawing, setIsDrawing] = useState(false);
 
   // Modal state
@@ -68,6 +78,25 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
   const [pendingStructureCenter, setPendingStructureCenter] = useState<[number, number] | null>(null);
   const [editingStructure, setEditingStructure] = useState<Structure | null>(null);
   const updateStructure = useStructureStore((ss) => ss.updateStructure);
+  const [showStructurePicker, setShowStructurePicker] = useState(false);
+
+  // Toolbar's "Place Structure" action triggers the picker overlay.
+  useEffect(() => {
+    if (!map) return;
+    const onOpen = () => setShowStructurePicker(true);
+    map.on('ogden:structures:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    return () => {
+      map.off('ogden:structures:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    };
+  }, [map]);
+
+  // a11y: Escape closes the structure picker
+  useEffect(() => {
+    if (!showStructurePicker) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowStructurePicker(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showStructurePicker]);
 
   // Click-to-place handler for structures
   const handleMapClick = useCallback((e: { lngLat: { lng: number; lat: number } }) => {
@@ -93,34 +122,41 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
     };
   }, [map, placementMode, handleMapClick]);
 
-  const startDraw = useCallback(() => {
-    if (!draw || !map) return;
-    setIsDrawing(true);
-    draw.changeMode('draw_polygon');
-
-    const handleCreate = () => {
-      const all = draw.getAll();
-      const lastFeature = all.features[all.features.length - 1];
-      if (lastFeature?.geometry.type === 'Polygon') {
-        setPendingGeometry(lastFeature.geometry as GeoJSON.Polygon);
-        // Compute area
-        try {
-          import('@turf/turf').then((turf) => {
-            setPendingArea(turf.area(lastFeature as GeoJSON.Feature<GeoJSON.Polygon>));
-          }).catch((err) => { console.warn('[OGDEN] Turf area calculation failed:', err); });
-        } catch (err) { console.warn('[OGDEN] Turf import failed:', err); }
-        setModalCategory(selectedCategory);
-        setModalName('');
-        setModalPhase('Phase 1');
-        setModalDescription('');
-        setShowModal(true);
-      }
-      setIsDrawing(false);
-      map.off('draw.create', handleCreate);
+  // Triggered by the bottom toolbar's Draw Zone tool. The toolbar already
+  // calls draw.changeMode('draw_polygon') and fires `ogden:zones:start-draw`;
+  // here we just attach the one-shot draw.create handler so the post-draw
+  // modal opens with sensible defaults (category is picked inside the modal).
+  useEffect(() => {
+    if (!map) return;
+    const handleStart = () => {
+      if (!draw) return;
+      setIsDrawing(true);
+      const handleCreate = () => {
+        const all = draw.getAll();
+        const lastFeature = all.features[all.features.length - 1];
+        if (lastFeature?.geometry.type === 'Polygon') {
+          setPendingGeometry(lastFeature.geometry as GeoJSON.Polygon);
+          try {
+            import('@turf/turf').then((turf) => {
+              setPendingArea(turf.area(lastFeature as GeoJSON.Feature<GeoJSON.Polygon>));
+            }).catch((err) => { console.warn('[OGDEN] Turf area calculation failed:', err); });
+          } catch (err) { console.warn('[OGDEN] Turf import failed:', err); }
+          setModalCategory('habitation');
+          setModalName('');
+          setModalPhase('Phase 1');
+          setModalDescription('');
+          setShowModal(true);
+        }
+        setIsDrawing(false);
+        map.off('draw.create', handleCreate);
+      };
+      map.on('draw.create', handleCreate);
     };
-
-    map.on('draw.create', handleCreate);
-  }, [draw, map, selectedCategory]);
+    map.on('ogden:zones:start-draw' as keyof maplibregl.MapEventType, handleStart);
+    return () => {
+      map.off('ogden:zones:start-draw' as keyof maplibregl.MapEventType, handleStart);
+    };
+  }, [draw, map]);
 
   const handleSaveZone = useCallback(() => {
     if (!pendingGeometry || !modalName.trim()) return;
@@ -168,66 +204,13 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
       <div className={p.container}>
         <h2 className={p.title}>Design Tools</h2>
 
-        {/* Tab switcher */}
-        <div className={s.tabRow}>
-          {(['zones', 'structures', 'livestock', 'crops', 'paths', 'utilities'] as Tab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`${s.tabBtn} ${activeTab === tab ? s.tabBtnActive : ''}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
         {activeTab === 'zones' && (
           <>
-            {/* Zone type selector */}
-            <div className={p.label} style={{ marginBottom: 10 }}>Select Zone Type</div>
-            <div className={s.zoneGrid}>
-              {(Object.entries(ZONE_CATEGORY_CONFIG) as [ZoneCategory, typeof ZONE_CATEGORY_CONFIG[ZoneCategory]][]).map(
-                ([key, config]) => {
-                  const isSelected = selectedCategory === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedCategory(key)}
-                      className={s.zoneTypeBtn}
-                      style={{
-                        background: isSelected ? `${config.color}15` : undefined,
-                        borderColor: isSelected ? `${config.color}40` : undefined,
-                        color: isSelected ? config.color : undefined,
-                      }}
-                    >
-                      <span
-                        className={`${s.zoneTypeDot} ${isSelected ? s.zoneTypeDotActive : ''}`}
-                        style={{
-                          background: config.color,
-                          borderColor: isSelected ? config.color : undefined,
-                          boxShadow: isSelected ? `0 0 6px ${config.color}40` : 'none',
-                        }}
-                      />
-                      <span style={{ lineHeight: 1.2, fontWeight: isSelected ? 500 : 400 }}>{config.label}</span>
-                      {isSelected && <span className={s.zoneTypeCheck} style={{ color: config.color }}>{'\u2713'}</span>}
-                    </button>
-                  );
-                },
-              )}
-            </div>
-
-            {/* Draw button */}
-            <DelayedTooltip label="Editing requires Designer or Owner role" disabled={canEdit}>
-            <button
-              onClick={canEdit ? startDraw : undefined}
-              disabled={isDrawing || !draw || !canEdit}
-              className={`${s.drawBtn} ${isDrawing ? s.drawBtnDisabled : ''}`}
-              style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-            >
-              <span style={{ fontSize: 16 }}>{'\u25A2'}</span>
-              {isDrawing ? 'Drawing... double-click to finish' : 'Draw Zone on Map'}
-            </button>
-            </DelayedTooltip>
+            {isDrawing && (
+              <div className={p.empty} style={{ marginBottom: 10 }}>
+                Drawing — double-click on the map to finish the polygon.
+              </div>
+            )}
 
             {/* Defined zones */}
             <h3 className={p.sectionLabel}>Defined Zones ({zones.length})</h3>
@@ -275,45 +258,6 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
 
         {activeTab === 'structures' && (
           <>
-            {/* Structure type categories */}
-            {(['dwelling', 'agricultural', 'spiritual', 'gathering', 'utility', 'infrastructure'] as const).map((cat) => {
-              const types = (Object.entries(STRUCTURE_TEMPLATES) as [StructureType, typeof STRUCTURE_TEMPLATES[StructureType]][])
-                .filter(([, t]) => t.category === cat);
-              if (types.length === 0) return null;
-              const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
-              return (
-                <div key={cat} style={{ marginBottom: 14 }}>
-                  <div className={s.structCatLabel}>
-                    {catLabel}
-                  </div>
-                  <div className={s.structGrid}>
-                    {types.map(([key, tmpl]) => {
-                      const isActive = placementMode === key;
-                      return (
-                        <DelayedTooltip key={key} label={!canEdit ? 'Editing requires Designer or Owner role' : tmpl.label}>
-                        <button
-                          onClick={canEdit ? () => {
-                            if (isActive) {
-                              setPlacementMode(null);
-                            } else {
-                              setPlacementMode(key);
-                            }
-                          } : undefined}
-                          disabled={!canEdit}
-                          className={`${s.structBtn} ${isActive ? s.structBtnActive : ''}`}
-                          style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-                        >
-                          <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
-                          <span style={{ lineHeight: 1.2, fontWeight: isActive ? 500 : 400 }}>{tmpl.label}</span>
-                        </button>
-                        </DelayedTooltip>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-
             {/* Placement mode indicator */}
             {placementMode && (
               <div className={s.placementIndicator}>
@@ -398,6 +342,48 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
           <UtilityPanel projectId={projectId} map={map} />
         )}
       </div>
+
+      {/* ── Structure Template Picker (opened by toolbar action) ─── */}
+      {showStructurePicker && (
+        <div
+          className={s.modalOverlay}
+          role="presentation"
+          onClick={() => setShowStructurePicker(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className={s.modalBox} role="dialog" aria-modal="true">
+            <h2 className={s.modalTitle}>Choose Structure Template</h2>
+            <p className={s.modalSubtitle}>Select a type, then click on the map to place it.</p>
+            {(['dwelling', 'agricultural', 'spiritual', 'gathering', 'utility', 'infrastructure'] as const).map((cat) => {
+              const types = (Object.entries(STRUCTURE_TEMPLATES) as [StructureType, typeof STRUCTURE_TEMPLATES[StructureType]][])
+                .filter(([, t]) => t.category === cat);
+              if (types.length === 0) return null;
+              const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
+              return (
+                <div key={cat} style={{ marginBottom: 14 }}>
+                  <div className={s.structCatLabel}>{catLabel}</div>
+                  <div className={s.structGrid}>
+                    {types.map(([key, tmpl]) => (
+                      <button
+                        key={key}
+                        onClick={canEdit ? () => {
+                          setPlacementMode(key);
+                          setShowStructurePicker(false);
+                        } : undefined}
+                        disabled={!canEdit}
+                        className={s.structBtn}
+                        style={!canEdit ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                      >
+                        <span style={{ fontSize: 13 }}>{tmpl.icon}</span>
+                        <span style={{ lineHeight: 1.2 }}>{tmpl.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Structure Properties Modal (new placement) ──────────── */}
       {showStructureModal && placementMode && pendingStructureCenter && (

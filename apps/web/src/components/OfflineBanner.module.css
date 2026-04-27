@@ -49,10 +49,28 @@
   color: #ffffff;
 }
 
-/* ── Pending (online, but has queued ops) ── */
+/* ── Pending (online, but has queued ops) ──
+   Project-page chrome audit (2026-04-25): pending is the lowest-urgency
+   variant, so it now renders as a top-right corner pill rather than a
+   full-width sticky bar. This avoids pushing the project tab-bar down on
+   every queued change while still being visible. */
 .pending {
-  background: var(--color-earth-200, #e5ddd0);
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  left: auto;
+  width: auto;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: rgba(229, 221, 208, 0.92);
   color: var(--color-earth-800, #453321);
+  border: 1px solid rgba(69, 51, 33, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  font-size: 11px;
+  /* Above z-toast so it floats above any sidebar overlays. */
+  z-index: calc(var(--z-toast, 500) + 1);
+  /* Reset banner flex layout to a tight inline pill */
+  flex-shrink: 0;
 }
 
 /* ── Icon ── */

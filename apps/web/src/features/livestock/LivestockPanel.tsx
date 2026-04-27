@@ -268,7 +268,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
                   const capacity = Math.floor(areaHa * info.typicalStocking);
                   return (
                     <div key={sp} style={{ marginBottom: 4 }}>
-                      {info.icon} <strong>{info.label}:</strong> ~{capacity} head at typical stocking ({info.typicalStocking}/ha)
+                      {info.icon} <strong>{info.label}:</strong> ~{capacity} {info.stockingUnit} at typical stocking ({info.typicalStocking}/ha)
                       <br />
                       <span className={p.opacity70}>{info.fencingNote}</span>
                     </div>

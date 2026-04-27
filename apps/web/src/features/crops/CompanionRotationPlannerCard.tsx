@@ -17,6 +17,7 @@
  */
 import { useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
+import { MARKET_GARDEN_BUNDLES_BY_ID } from './marketGardenBundles.js';
 import css from './CompanionRotationPlannerCard.module.css';
 
 const ANNUAL_TYPES: ReadonlySet<CropAreaType> = new Set(['row_crop', 'garden_bed', 'market_garden']);
@@ -139,9 +140,17 @@ export default function CompanionRotationPlannerCard({ projectId }: Props) {
   );
 
   const rows = useMemo<AreaRow[]>(() => annualAreas.map((area) => {
-    const families = Array.from(new Set(area.species.map(inferFamily))) as Family[];
+    const inferred = Array.from(new Set(area.species.map(inferFamily))) as Family[];
+    // Bundle override: market gardens with a non-mixed bundle assert the family
+    // explicitly, so prefer that over keyword inference from free-text species.
+    const bundle = area.marketGardenBundle ? MARKET_GARDEN_BUNDLES_BY_ID[area.marketGardenBundle] : undefined;
+    const bundleFamily: Family | null =
+      bundle && bundle.rotationFamily !== 'mixed' ? (bundle.rotationFamily as Family) : null;
+    const families = bundleFamily
+      ? Array.from(new Set([bundleFamily, ...inferred])) as Family[]
+      : inferred;
     // Primary family = most common; here we just take the first non-other.
-    const primary = families.find((f) => f !== 'other') ?? 'other';
+    const primary = bundleFamily ?? families.find((f) => f !== 'other') ?? 'other';
     const conflicts = findConflicts(families);
     const recommended = nextRotation(families);
     return {

@@ -1,0 +1,111 @@
+/* Shared chrome for dashboard pages that wrap an existing right-rail panel.
+   Adds page-level padding + a wayfinding header above the embedded panel,
+   plus an optional banner explaining map-only features when present. */
+
+.page {
+  padding: 32px 40px 48px;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  margin: 0 0 8px;
+}
+
+.desc {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.7);
+  max-width: 560px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.mapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.28);
+  border-radius: 4px;
+  color: rgba(var(--color-gold-rgb), 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.mapBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.18);
+  border-color: rgba(var(--color-gold-rgb), 0.42);
+}
+
+.banner {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(196, 162, 101, 0.06);
+  border: 1px solid rgba(196, 162, 101, 0.18);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(232, 220, 200, 0.82);
+}
+
+.bannerLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(var(--color-gold-rgb), 0.9);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bannerLink:hover {
+  color: rgba(var(--color-gold-rgb), 1);
+}
+
+/* The embedded rail panel was designed for a 320px-wide rail — give it
+   bounded width inside the wider dashboard layout so it doesn't stretch
+   awkwardly. */
+.embedded {
+  max-width: 720px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .page { padding: 28px 28px 40px; }
+}
+@media (max-width: 768px) {
+  .page { padding: 20px 16px 32px; gap: 16px; }
+  .title { font-size: 24px; }
+}

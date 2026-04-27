@@ -99,6 +99,7 @@ const PlantingToolDashboard = lazy(() => import('../dashboard/pages/PlantingTool
 const ForestHubDashboard = lazy(() => import('../dashboard/pages/ForestHubDashboard.js'));
 const CarbonDiagnosticDashboard = lazy(() => import('../dashboard/pages/CarbonDiagnosticDashboard.js'));
 const NurseryLedgerDashboard = lazy(() => import('../dashboard/pages/NurseryLedgerDashboard.js'));
+const BiomassDashboard = lazy(() => import('../dashboard/pages/BiomassDashboard.js'));
 const EnergyDashboard = lazy(() => import('../dashboard/pages/EnergyDashboard.js'));
 const EducationalAtlasPanel = lazy(() => import('../../components/panels/EducationalAtlasPanel.js'));
 const ZonePanel = lazy(() => import('../zones/ZonePanel.js'));
@@ -160,6 +161,12 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
 
   // Role-based access control
   const { role, canEdit } = useProjectRole(project.serverId ?? project.id);
+  // Server-scoped project id for API calls. The local `project.id` is the
+  // browser-only handle from projectStore; overlays that hit project-scoped
+  // endpoints (viewshed, microclimate, windbreak, restoration, agroforestry,
+  // pollinator, biodiversity, …) need the synced server id or they 404 even
+  // with a valid auth token.
+  const apiProjectId = project.serverId ?? project.id;
   // Unauthenticated users retain full local editing capability
   const effectiveCanEdit = !isAuthenticated || canEdit;
   const layoutRef = useRef<HTMLDivElement>(null);
@@ -204,10 +211,23 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDashboardSection]);
 
-  // Derive active domain for the floating toolbar
+  // Derive active domain for the floating toolbar.
+  // Design Atlas sub-items are mapOnly NavItems with no domain in the
+  // dashboard taxonomy, so we override based on activeMapSubItem when one
+  // of those is selected — otherwise fall back to the dashboard-section domain.
+  const activeMapSubItem = useUIStore((s) => s.activeMapSubItem);
   const activeDomain = useMemo((): DomainKey => {
+    const SUBITEM_DOMAIN_OVERRIDE: Partial<Record<string, DomainKey>> = {
+      zones: 'zones',
+      structures: 'structures',
+      crops: 'crops',
+      access: 'paths',
+    };
+    if (activeMapSubItem && SUBITEM_DOMAIN_OVERRIDE[activeMapSubItem]) {
+      return SUBITEM_DOMAIN_OVERRIDE[activeMapSubItem]!;
+    }
     return getDomainContext(activeDashboardSection).domain;
-  }, [activeDashboardSection]);
+  }, [activeDashboardSection, activeMapSubItem]);
 
   const handleCenterProperty = () => {
     if (!mapRef) return;
@@ -319,7 +339,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
          */}
         <Suspense fallback={null}>
           <LeftToolSpine
-            projectId={project.id}
+            projectId={apiProjectId}
             map={mapRef}
             draw={drawRef}
             boundaryGeojson={project.parcelBoundaryGeojson}
@@ -419,35 +439,35 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
           )}
         </div>
         <Suspense fallback={null}>
-          <ViewshedOverlay projectId={project.id} map={mapRef} />
+          <ViewshedOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <MicroclimateOverlay projectId={project.id} map={mapRef} />
+          <MicroclimateOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <WindbreakOverlay
-            projectId={project.id}
+            projectId={apiProjectId}
             map={mapRef}
             boundaryGeojson={project.parcelBoundaryGeojson}
           />
         </Suspense>
         <Suspense fallback={null}>
-          <RestorationPriorityOverlay projectId={project.id} map={mapRef} />
+          <RestorationPriorityOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <MulchCompostCovercropOverlay projectId={project.id} map={mapRef} />
+          <MulchCompostCovercropOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <AgroforestryOverlay projectId={project.id} map={mapRef} />
+          <AgroforestryOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <PollinatorHabitatOverlay projectId={project.id} map={mapRef} />
+          <PollinatorHabitatOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <BiodiversityCorridorOverlay projectId={project.id} map={mapRef} />
+          <BiodiversityCorridorOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
-          <PollinatorHabitatStateOverlay projectId={project.id} map={mapRef} />
+          <PollinatorHabitatStateOverlay projectId={apiProjectId} map={mapRef} />
         </Suspense>
         <Suspense fallback={null}>
           <SplitScreenCompare
@@ -745,6 +765,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               {activeView === 'nursery' && (
                 <div className="map-rail-dashboard">
                   <NurseryLedgerDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
+                </div>
+              )}
+              {activeView === 'biomass' && (
+                <div className="map-rail-dashboard">
+                  <BiomassDashboard project={project} onSwitchToMap={() => setActiveView(null)} />
                 </div>
               )}
               {activeView === 'energy' && (

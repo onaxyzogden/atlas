@@ -44,6 +44,12 @@ const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
 const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
 const PhasingDashboard = lazy(() => import('./pages/PhasingDashboard.js'));
 const SiteDataLayersPage = lazy(() => import('../../features/site-data-layers/SiteDataLayersPage.js'));
+const ZoningDashboard = lazy(() => import('./pages/ZoningDashboard.js'));
+const CollaborationDashboard = lazy(() => import('./pages/CollaborationDashboard.js'));
+const TemplatesDashboard = lazy(() => import('./pages/TemplatesDashboard.js'));
+const FieldworkDashboard = lazy(() => import('./pages/FieldworkDashboard.js'));
+const VersionHistoryDashboard = lazy(() => import('./pages/VersionHistoryDashboard.js'));
+const BiomassDashboard = lazy(() => import('./pages/BiomassDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -52,7 +58,6 @@ interface DashboardRouterProps {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  'biomass': 'Biomass',
   'dashboard-settings': 'Settings',
   'archive': 'Archive',
 };
@@ -156,6 +161,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
           <StewardshipDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
+    case 'biomass':
+      return (
+        <PanelShell name="Biomass">
+          <BiomassDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
     case 'climate':
       return (
         <PanelShell name="Climate">
@@ -214,6 +225,36 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Feasibility">
           <DecisionSupportPanel project={project} />
+        </PanelShell>
+      );
+    case 'zoning':
+      return (
+        <PanelShell name="Zoning">
+          <ZoningDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'collaboration':
+      return (
+        <PanelShell name="Collaboration">
+          <CollaborationDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'templates':
+      return (
+        <PanelShell name="Templates">
+          <TemplatesDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'fieldwork':
+      return (
+        <PanelShell name="Fieldwork">
+          <FieldworkDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'history':
+      return (
+        <PanelShell name="Version History">
+          <VersionHistoryDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     default:

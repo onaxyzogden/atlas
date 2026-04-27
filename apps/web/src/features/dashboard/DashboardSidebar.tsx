@@ -6,6 +6,7 @@
 
 import { useUIStore } from '../../store/uiStore.js';
 import { GroupingToggle } from '../../components/ui/GroupingToggle.js';
+import SidebarBottomControls from '../../components/SidebarBottomControls.js';
 import {
   DASHBOARD_ITEMS,
   PHASE_META,
@@ -17,6 +18,12 @@ import {
   type NavItem,
 } from '../navigation/taxonomy.js';
 import css from './DashboardSidebar.module.css';
+
+/** Settings is surfaced via the shared bottom-controls (project-page
+ *  chrome audit, 2026-04-25), so we filter it out of the accordion to
+ *  avoid duplication with the bottom row. Map-rail's IconSidebar never
+ *  carried a Settings accordion item — this keeps the two rails aligned. */
+const ACCORDION_ITEMS = DASHBOARD_ITEMS.filter((item) => item.id !== 'dashboard-settings');
 
 export interface DashboardSection {
   id: string;
@@ -35,7 +42,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
   const sections: Array<{ key: string; name: string; color: string; items: NavItem[] }> =
     grouping === 'phase'
       ? (() => {
-          const byPhase = groupByPhase(DASHBOARD_ITEMS);
+          const byPhase = groupByPhase(ACCORDION_ITEMS);
           return PHASE_ORDER.map((p) => ({
             key: p,
             name: `${p} — ${PHASE_META[p].name}`,
@@ -44,7 +51,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
           })).filter((g) => g.items.length > 0);
         })()
       : (() => {
-          const byDomain = groupByDomain(DASHBOARD_ITEMS);
+          const byDomain = groupByDomain(ACCORDION_ITEMS);
           return DOMAIN_ORDER.map((d) => ({
             key: d,
             name: DOMAIN_META[d].name,
@@ -85,6 +92,10 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
           </div>
         ))}
       </div>
+      <SidebarBottomControls
+        settingsActive={activeSection === 'dashboard-settings'}
+        onSettingsClick={() => onSectionChange('dashboard-settings')}
+      />
     </nav>
   );
 }

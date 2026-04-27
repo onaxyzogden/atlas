@@ -24,6 +24,10 @@ export interface CropArea {
   irrigationType: 'drip' | 'sprinkler' | 'flood' | 'rain_fed' | 'none';
   phase: string;
   notes: string;
+  /** Computed annual irrigation demand (US gal/yr) — derived from area × waterDemand class. */
+  waterGalYr?: number;
+  /** Market-garden bundle id (see marketGardenBundles.ts); set only when type === 'market_garden'. */
+  marketGardenBundle?: string;
   createdAt: string;
   updatedAt: string;
 }

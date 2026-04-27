@@ -163,7 +163,12 @@ export const NAV_ITEMS: NavItem[] = [
   },
   // Biomass is a site-characterization readout (standing carbon / vegetation
   // load), so it belongs with Site Overview rather than the General catch-all.
-  { id: 'biomass', label: 'Biomass', phase: 'P1', domainGroup: 'site-overview', dashboardOnly: true },
+  {
+    id: 'biomass', label: 'Biomass',
+    phase: 'P1', domainGroup: 'site-overview',
+    panel: 'biomass', mapSubItem: 'biomass',
+    layers: ['land_cover'],
+  },
 
   // ── Grazing & Livestock ────────────────────────────────────────────────────
   {
@@ -374,7 +379,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: 'zoning', label: 'Zoning',
     phase: 'P2', domainGroup: 'general',
-    panel: 'zoning', mapSubItem: 'zoning', mapOnly: true,
+    panel: 'zoning', mapSubItem: 'zoning',
   },
   {
     id: 'ai', label: 'AI Atlas',
@@ -384,7 +389,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: 'collaboration', label: 'Collaboration',
     phase: 'P3', domainGroup: 'general',
-    panel: 'collaboration', mapSubItem: 'collaboration', mapOnly: true,
+    panel: 'collaboration', mapSubItem: 'collaboration',
   },
   {
     id: 'moontrance', label: 'OGDEN Identity',
@@ -394,17 +399,17 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: 'templates', label: 'Templates',
     phase: 'P3', domainGroup: 'general',
-    panel: 'templates', mapSubItem: 'templates', mapOnly: true,
+    panel: 'templates', mapSubItem: 'templates',
   },
   {
     id: 'fieldwork', label: 'Fieldwork',
     phase: 'P4', domainGroup: 'general',
-    panel: 'fieldnotes', mapSubItem: 'fieldwork', mapOnly: true,
+    panel: 'fieldnotes', mapSubItem: 'fieldwork',
   },
   {
     id: 'history', label: 'Version History',
     phase: 'P4', domainGroup: 'general',
-    panel: 'history', mapSubItem: 'history', mapOnly: true,
+    panel: 'history', mapSubItem: 'history',
   },
 ];
 

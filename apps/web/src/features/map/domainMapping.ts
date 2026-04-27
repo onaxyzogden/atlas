@@ -31,6 +31,10 @@ export type DomainKey =
   | 'cartographic'
   | 'energy'
   | 'infrastructure'
+  | 'zones'
+  | 'structures'
+  | 'crops'
+  | 'paths'
   | 'default';
 
 export interface DomainContext {

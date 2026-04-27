@@ -1,5 +1,5 @@
 /**
- * MeasureTools â€” distance and area measurement on the map using Turf.js.
+ * MeasureTools - distance and area measurement on the map using Turf.js.
  *
  * Activated from the map toolbar. Displays result in an overlay.
  * Uses MapboxDraw in simple_select / draw_line_string / draw_polygon modes.
@@ -7,7 +7,8 @@
 
 import type maplibregl from 'maplibre-gl';
 import { maplibregl as maplibreDefault } from '../../lib/maplibre.js';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { Ruler, Square, Mountain, X as XIcon } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
 import { api } from '../../lib/apiClient.js';
@@ -54,7 +55,7 @@ export default function MeasureTools({ draw, map, projectId, compact = false }: 
         clearElevMarker();
         return;
       }
-      // Entering a different mode â€” clear any stale elevation pin.
+      // Entering a different mode - clear any stale elevation pin.
       clearElevMarker();
 
       setMode(m);
@@ -87,7 +88,7 @@ export default function MeasureTools({ draw, map, projectId, compact = false }: 
           if (areaM2 > 10000) {
             setResult(`${(areaM2 / 10000).toFixed(2)} ha (${(areaM2 / 4046.86).toFixed(2)} ac)`);
           } else {
-            setResult(`${areaM2.toFixed(0)} mÂ²`);
+            setResult(`${areaM2.toFixed(0)} m\u00B2`);
           }
         }
       };
@@ -99,12 +100,12 @@ export default function MeasureTools({ draw, map, projectId, compact = false }: 
     [draw, map, mode, setMeasuring, clearElevMarker],
   );
 
-  // Elevation click handler â€” when mode is 'elevation', single click on the
+  // Elevation click handler - when mode is 'elevation', single click on the
   // map samples the point and displays the elevation.
   useEffect(() => {
     if (!map || mode !== 'elevation') return;
     const onClick = async (e: maplibregl.MapMouseEvent) => {
-      setResult('Samplingâ€¦');
+      setResult('Sampling\u2026');
       // Drop a persistent marker at the click so the user can see what was
       // sampled; replaces any previous elevation pin.
       clearElevMarker();
@@ -149,23 +150,23 @@ export default function MeasureTools({ draw, map, projectId, compact = false }: 
       <ToolButton
         active={mode === 'distance'}
         label="Distance"
-        icon="ðŸ“"
+        icon={<Ruler size={13} strokeWidth={2} aria-hidden="true" />}
         onClick={() => startMeasure('distance')}
       />
       <ToolButton
         active={mode === 'area'}
         label="Area"
-        icon="â¬¡"
+        icon={<Square size={13} strokeWidth={2} aria-hidden="true" />}
         onClick={() => startMeasure('area')}
       />
       <ToolButton
         active={mode === 'elevation'}
         label="Elevation"
-        icon="â–²"
+        icon={<Mountain size={13} strokeWidth={2} aria-hidden="true" />}
         onClick={() => startMeasure('elevation')}
       />
       {mode !== 'none' && (
-        <ToolButton active={false} label="Clear" icon="âœ•" onClick={clearMeasure} />
+        <ToolButton active={false} label="Clear" icon={<XIcon size={13} strokeWidth={2} aria-hidden="true" />} onClick={clearMeasure} />
       )}
     </>
   );
@@ -329,7 +330,7 @@ function ToolButton({
 }: {
   active: boolean;
   label: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
 }) {
   return (

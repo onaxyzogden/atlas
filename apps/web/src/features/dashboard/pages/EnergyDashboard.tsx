@@ -17,6 +17,9 @@ import {
 } from '../../utilities/utilityAnalysis.js';
 import { confidence, error as errorToken, semantic, status as statusToken } from '../../../lib/tokens.js';
 import SupportInfrastructureCard from '../../structures/SupportInfrastructureCard.js';
+import EnergyDemandRollup from '../../utilities/EnergyDemandRollup.js';
+import SolarPlacement from '../../utilities/SolarPlacement.js';
+import WaterSystemPlanning from '../../utilities/WaterSystemPlanning.js';
 import css from './EnergyDashboard.module.css';
 
 interface EnergyDashboardProps {
@@ -54,6 +57,11 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
     if (!siteData) return null;
     const watershed = getLayerSummary<{ detention_pct?: number }>(siteData, 'watershed_derived');
     return watershed?.detention_pct ?? null;
+  }, [siteData]);
+  const swaleCount = useMemo(() => {
+    if (!siteData) return null;
+    const soilRegen = getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration');
+    return soilRegen?.interventions?.count ?? null;
   }, [siteData]);
 
   const readiness = useMemo(
@@ -124,6 +132,15 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
         })}
       </div>
       )}
+
+      {/* ── Energy & Water read-outs (parity with map rail's Utilities tab) ── */}
+      <div className={css.readouts}>
+        <EnergyDemandRollup utilities={utilities} />
+        {isEnergy && <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />}
+        <div id="water-systems" style={{ scrollMarginTop: 16 }}>
+          <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
+        </div>
+      </div>
 
       {/* ── Placed utilities ────────────────────────────────────────── */}
       <div className={css.card}>

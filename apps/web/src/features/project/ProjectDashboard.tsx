@@ -10,6 +10,7 @@ import DataCompletenessWidget from '../assessment/DataCompletenessWidget.js';
 import RegulatoryPanel from '../regulatory/RegulatoryPanel.js';
 import FieldObservationsLegalCard from './FieldObservationsLegalCard.js';
 import RestrictionsCovenantsCard from './RestrictionsCovenantsCard.js';
+import ZoningAccessUtilityCard from './ZoningAccessUtilityCard.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
 import FileList from './FileList.js';
@@ -214,6 +215,9 @@ export default function ProjectDashboard({ project }: Props) {
 
       {/* §3 Covenants + governance constraint picture */}
       <RestrictionsCovenantsCard project={project} />
+
+      {/* §3 Zoning, access & utility envelope */}
+      <ZoningAccessUtilityCard project={project} />
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />

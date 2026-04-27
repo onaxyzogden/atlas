@@ -6,6 +6,12 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js"],
       "port": 5200
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps\\api && npm run dev"],
+      "port": 3001
     }
   ]
 }

@@ -21,6 +21,7 @@ import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
 import ClientHandoffPackageCard from './ClientHandoffPackageCard.js';
 import SiteAssessmentExportPreviewCard from './SiteAssessmentExportPreviewCard.js';
+import DesignBriefFeatureSchedulePreviewCard from './DesignBriefFeatureSchedulePreviewCard.js';
 import GisExportReadinessCard from './GisExportReadinessCard.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -686,6 +687,9 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
       {/* ── §19 Site assessment export preview ── */}
       <SiteAssessmentExportPreviewCard project={project} />
+
+      {/* ── §23 Design brief / feature schedule preview ── */}
+      <DesignBriefFeatureSchedulePreviewCard project={project} />
 
       {/* ── §27 Client handoff package ── */}
       <ClientHandoffPackageCard project={project} />
