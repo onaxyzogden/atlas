@@ -607,7 +607,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'locked-approval-states', label: 'Locked approval states', phase: 'P2', status: 'planned' },
       { key: 'archive-delete-recover-projects', label: 'Archive / delete / recover projects', phase: 'P2', status: 'planned' },
       { key: 'naming-conventions', label: 'Naming conventions', phase: 'P2', status: 'planned' },
-      { key: 'metadata-management', label: 'Metadata management', phase: 'P2', status: 'partial' },
+      { key: 'metadata-management', label: 'Metadata management', phase: 'P2', status: 'done' },
     ],
   },
   {
