@@ -84,7 +84,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'upload-title-survey-siteplan', label: 'Upload title map / survey / site plan', phase: 'P1', status: 'done' },
       { key: 'import-drone-ortho-terrain', label: 'Import drone, orthomosaic, terrain model imagery', phase: 'P2', status: 'planned' },
       { key: 'assign-type-intent', label: 'Assign project type and design intent', phase: 'P1', status: 'done' },
-      { key: 'owner-stakeholder-notes', label: 'Save owner / stakeholder notes', phase: 'P1', status: 'partial' },
+      { key: 'owner-stakeholder-notes', label: 'Save owner / stakeholder notes', phase: 'P1', status: 'done' },
       { key: 'attach-media', label: 'Attach photos, videos, documents, site notes', phase: 'P1', status: 'done' },
       { key: 'field-observations-legal', label: 'Add field observations and legal description', phase: 'P1', status: 'done' },
       { key: 'zoning-utility-notes', label: 'Add zoning, municipal, access, utility notes', phase: 'P1', status: 'done' },
@@ -416,7 +416,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'rules-layer-siting-logic', label: 'Rules layer for siting logic', phase: 'P3', status: 'done' },
-      { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'partial' },
+      { key: 'siting-rules-structure-orchard-water-grazing-quiet-sacred', label: 'Structure, orchard, water, grazing, quiet zone, sacred zone siting rules', phase: 'P3', status: 'done' },
       { key: 'siting-rules-privacy-solar-access-safety', label: 'Guest privacy, solar access, access efficiency, safety buffer rules', phase: 'P3', status: 'done' },
       { key: 'ecological-wildlife-protection-rules', label: 'Ecological and wildlife protection rules', phase: 'P3', status: 'done' },
       { key: 'rule-scoring-conflict-alerts-explainable-recommendations', label: 'Rule scoring, conflict alerts, explainable recommendation layer', phase: 'P3', status: 'done' },
