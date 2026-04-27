@@ -13,6 +13,7 @@ import RestrictionsCovenantsCard from './RestrictionsCovenantsCard.js';
 import ZoningAccessUtilityCard from './ZoningAccessUtilityCard.js';
 import OwnerStakeholderRosterCard from './OwnerStakeholderRosterCard.js';
 import MetadataManagementCard from './MetadataManagementCard.js';
+import AuditLogCard from './AuditLogCard.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
 import FileList from './FileList.js';
@@ -226,6 +227,9 @@ export default function ProjectDashboard({ project }: Props) {
 
       {/* §26 Metadata coverage audit (5 buckets) */}
       <MetadataManagementCard project={project} />
+
+      {/* §26 Audit log — governance-sensitive event trail */}
+      <AuditLogCard project={project} />
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />
