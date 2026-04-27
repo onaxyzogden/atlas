@@ -28,6 +28,7 @@ import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverla
 import GuidedWalkthroughCard from '../../education/GuidedWalkthroughCard.js';
 import WalkingTourScriptCard from '../../education/WalkingTourScriptCard.js';
 import SlideExportPreviewCard from '../../education/SlideExportPreviewCard.js';
+import ScriptDeckReadinessCard from '../../education/ScriptDeckReadinessCard.js';
 import EducationCoverageCard from '../../education/EducationCoverageCard.js';
 import VisionBoardCard from '../../education/VisionBoardCard.js';
 import css from './EducationalAtlasDashboard.module.css';
@@ -239,6 +240,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §19 Slide-presentation-mode preview deck ─────────────────── */}
       <SlideExportPreviewCard project={project} />
+
+      {/* ── §19 Voiceover + slide export readiness audit ─────────────── */}
+      <ScriptDeckReadinessCard project={project} />
 
       {/* ── §13 Vision board — local reference imagery per slot ──────── */}
       <VisionBoardCard project={project} />

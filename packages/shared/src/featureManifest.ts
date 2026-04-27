@@ -459,7 +459,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'spiritual-symbolism-regeneration-modes', label: 'Spiritual symbolism and regeneration phase explanation modes', phase: 'MT', status: 'planned' },
       { key: 'why-here-not-there-panels', label: "'Why here, not there?', 'What problem does this solve?', 'What happens if omitted?' panels", phase: 'P3', status: 'done' },
       { key: 'passive-learning-tour-walkthrough', label: 'Passive learning tour, guided walkthrough mode', phase: 'P4', status: 'done' },
-      { key: 'voiceover-script-slide-export', label: 'Voiceover-ready script export, slide presentation mode', phase: 'P4', status: 'partial' },
+      { key: 'voiceover-script-slide-export', label: 'Voiceover-ready script export, slide presentation mode', phase: 'P4', status: 'done' },
       { key: 'public-stakeholder-education-modes', label: 'Public and stakeholder education modes', phase: 'P4', status: 'planned' },
       { key: 'operator-training-student-quiz-modes', label: 'Training mode for operators, quiz/checkpoint mode for students', phase: 'P4', status: 'planned' },
       { key: 'before-after-change-over-time', label: 'Before/after educational storytelling, change-over-time panels', phase: 'MT', status: 'planned' },
