@@ -147,7 +147,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
       irrigationType: 'rain_fed',
       phase,
       notes,
-      waterGalYr: computeWaterGalYr(pendingArea, resolvedWaterDemand),
+      waterGalYr: computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass: resolvedWaterDemand }),
       ...(isMarketGarden && bundle ? { marketGardenBundle: bundle.id } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -174,12 +174,12 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   );
   const waterDemandClass = activeBundle?.waterDemand ?? info.waterDemand;
   const waterGalYr = useMemo(
-    () => computeWaterGalYr(pendingArea, waterDemandClass),
-    [pendingArea, waterDemandClass],
+    () => computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass }),
+    [pendingArea, selectedType, waterDemandClass],
   );
   const waterLitersYr = useMemo(
-    () => computeWaterLitersYr(pendingArea, waterDemandClass),
-    [pendingArea, waterDemandClass],
+    () => computeWaterLitersYr(pendingArea, { areaType: selectedType, waterDemandClass }),
+    [pendingArea, selectedType, waterDemandClass],
   );
   const spacingNoun = SPACING_NOUN[selectedType] ?? 'plants';
 

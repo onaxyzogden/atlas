@@ -10,6 +10,7 @@ import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import { useStructureStore, type Structure } from '../../../store/structureStore.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
+import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useUIStore } from '../../../store/uiStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS, type HydroMetrics } from '../../../lib/hydrologyMetrics.js';
 import type { StructureLike } from '@ogden/shared/demand';
@@ -65,6 +66,11 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
     () => allCropAreas.filter((c) => c.projectId === project.id),
     [allCropAreas, project.id],
   );
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const projectPaddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === project.id),
+    [allPaddocks, project.id],
+  );
 
   const metrics = useMemo(() => {
     const climate   = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate')         : null;
@@ -100,6 +106,9 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
         widthM: s.widthM,
         depthM: s.depthM,
         storiesCount: s.storiesCount,
+        demandWaterGalPerDay: s.demandWaterGalPerDay,
+        demandKwhPerDay: s.demandKwhPerDay,
+        occupantCount: s.occupantCount,
       })),
       utilities: projectUtilities.map((u) => ({
         type: u.type,
@@ -110,8 +119,13 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
         areaM2: c.areaM2,
         waterDemandClass: c.waterDemand,
       })),
+      paddocks: projectPaddocks.map((p) => ({
+        species: p.species,
+        stockingDensity: p.stockingDensity,
+        areaM2: p.areaM2,
+      })),
     });
-  }, [siteData, project.acreage, project.parcelBoundaryGeojson, projectStructures, projectUtilities, projectCropAreas]);
+  }, [siteData, project.acreage, project.parcelBoundaryGeojson, projectStructures, projectUtilities, projectCropAreas, projectPaddocks]);
 
   const climateSummary = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
   const precipMm    = climateSummary?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;

@@ -9,4 +9,5 @@
 export * from './structureDemand.js';
 export * from './utilityDemand.js';
 export * from './cropDemand.js';
+export * from './livestockDemand.js';
 export * from './rollup.js';

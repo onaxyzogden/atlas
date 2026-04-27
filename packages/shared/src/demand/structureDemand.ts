@@ -93,12 +93,31 @@ export const STRUCTURE_KWH_PER_DAY: Record<StructureType, number> = {
 /** Greenhouse-only: kWh/m² of footprint per day. */
 export const GREENHOUSE_KWH_PER_M2_DAY = 0.05;
 
+/**
+ * Structure types whose water + electricity demand scales linearly with
+ * `occupantCount`. Other types (barn, classroom, prayer_space, etc.) have
+ * occupancy-independent loads and ignore `occupantCount`.
+ */
+export const RESIDENTIAL_STRUCTURE_TYPES: readonly StructureType[] = [
+  'cabin',
+  'yurt',
+  'tent_glamping',
+  'earthship',
+  'bathhouse',
+];
+
 /** Minimal shape required for demand calculation — a subset of `Structure`. */
 export interface StructureLike {
   type: StructureType;
   widthM?: number;
   depthM?: number;
   storiesCount?: number;
+  /** Steward override for water (gal/day). When `> 0`, takes precedence over per-type/per-m²/occupant logic. */
+  demandWaterGalPerDay?: number;
+  /** Steward override for electricity (kWh/day). When `> 0`, takes precedence over per-type/per-m²/occupant logic. */
+  demandKwhPerDay?: number;
+  /** Number of human occupants — applied only to RESIDENTIAL_STRUCTURE_TYPES. Defaults to 1. */
+  occupantCount?: number;
 }
 
 function footprintM2(s: StructureLike): number {
@@ -111,16 +130,28 @@ function storiesMultiplier(s: StructureLike): number {
   return s.storiesCount && s.storiesCount > 0 ? s.storiesCount : 1;
 }
 
+function occupantsMultiplier(s: StructureLike): number {
+  if (!RESIDENTIAL_STRUCTURE_TYPES.includes(s.type)) return 1;
+  const n = s.occupantCount;
+  return typeof n === 'number' && n > 0 ? n : 1;
+}
+
 export function getStructureWaterGalPerDay(s: StructureLike): number {
+  if (typeof s.demandWaterGalPerDay === 'number' && s.demandWaterGalPerDay > 0) {
+    return s.demandWaterGalPerDay;
+  }
   if (s.type === 'greenhouse') {
     return footprintM2(s) * GREENHOUSE_WATER_GAL_PER_M2_DAY;
   }
-  return (STRUCTURE_WATER_GAL_PER_DAY[s.type] ?? 0) * storiesMultiplier(s);
+  return (STRUCTURE_WATER_GAL_PER_DAY[s.type] ?? 0) * occupantsMultiplier(s) * storiesMultiplier(s);
 }
 
 export function getStructureKwhPerDay(s: StructureLike): number {
+  if (typeof s.demandKwhPerDay === 'number' && s.demandKwhPerDay > 0) {
+    return s.demandKwhPerDay;
+  }
   if (s.type === 'greenhouse') {
     return footprintM2(s) * GREENHOUSE_KWH_PER_M2_DAY;
   }
-  return (STRUCTURE_KWH_PER_DAY[s.type] ?? 0) * storiesMultiplier(s);
+  return (STRUCTURE_KWH_PER_DAY[s.type] ?? 0) * occupantsMultiplier(s) * storiesMultiplier(s);
 }

@@ -69,6 +69,11 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
     const soilRegen = getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration');
     return soilRegen?.interventions?.count ?? null;
   }, [siteData]);
+  const solarIrradianceKwhM2Day = useMemo(() => {
+    if (!siteData) return undefined;
+    const climate = getLayerSummary<{ solar_radiation_kwh_m2_day?: number }>(siteData, 'climate');
+    return climate?.solar_radiation_kwh_m2_day;
+  }, [siteData]);
 
   const readiness = useMemo(
     () => computeOffGridReadiness(utilities, sunTrapPct, detentionPct),
@@ -141,7 +146,7 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
 
       {/* ── Energy & Water read-outs (parity with map rail's Utilities tab) ── */}
       <div className={css.readouts}>
-        <EnergyDemandRollup utilities={utilities} structures={structures} />
+        <EnergyDemandRollup utilities={utilities} structures={structures} solarIrradianceKwhM2Day={solarIrradianceKwhM2Day} />
         {isEnergy && <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />}
         <div id="water-systems" style={{ scrollMarginTop: 16 }}>
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />

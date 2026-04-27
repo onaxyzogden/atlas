@@ -42,6 +42,8 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
 
   // Site intelligence data for systems tab
   const siteData = useSiteData(projectId);
+  const climate = useMemo(() => siteData ? getLayerSummary<{ solar_radiation_kwh_m2_day?: number }>(siteData, 'climate') : null, [siteData]);
+  const solarIrradianceKwhM2Day = climate?.solar_radiation_kwh_m2_day;
   const microclimate = useMemo(() => siteData ? getLayerSummary<{ sunTraps?: { areaPct?: number } }>(siteData, 'microclimate') : null, [siteData]);
   const watershed = useMemo(() => siteData ? getLayerSummary<{ detention_pct?: number }>(siteData, 'watershed_derived') : null, [siteData]);
   const soilRegen = useMemo(() => siteData ? getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration') : null, [siteData]);
@@ -201,7 +203,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
       {activeTab === 'systems' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
-          <EnergyDemandRollup utilities={utilities} structures={structures} />
+          <EnergyDemandRollup utilities={utilities} structures={structures} solarIrradianceKwhM2Day={solarIrradianceKwhM2Day} />
           <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
         </div>

@@ -9,9 +9,11 @@ import { status } from './tokens.js';
 import { computePet, type PetMethod } from './petModel.js';
 import {
   sumSiteDemand,
+  petClimateMultiplier,
   type StructureLike,
   type UtilityLike,
   type CropAreaLike,
+  type LivestockLike,
 } from '../demand/index.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -66,6 +68,7 @@ export interface HydroInputs {
   structures?: StructureLike[];
   utilities?: UtilityLike[];
   cropAreas?: CropAreaLike[];
+  paddocks?: LivestockLike[];
 }
 
 export interface HydroMetrics {
@@ -226,18 +229,34 @@ export function computeHydrologyMetrics(inputs: HydroInputs): HydroMetrics {
   const targetRetentionPct = C > 0.6 ? 0.42 : 0.60;
   const currentRetentionGal = annualRainfallGal * currentRetentionPct;
   const targetRetentionGal = annualRainfallGal * targetRetentionPct;
-  // Demand: sum from placed structures/utilities/cropAreas when supplied;
+  // Demand: sum from placed structures/utilities/cropAreas/paddocks when supplied;
   // otherwise fall back to the legacy 22%-of-rainfall placeholder (back-compat
-  // for callers that don't yet thread placed entities through).
+  // for callers that don't yet thread placed entities through). When climate
+  // data is present, scale crop demand by a PET multiplier (clamped 0.7–1.5).
   const hasPlacedDemand =
     (inputs.structures?.length ?? 0) > 0 ||
     (inputs.utilities?.length ?? 0) > 0 ||
-    (inputs.cropAreas?.length ?? 0) > 0;
+    (inputs.cropAreas?.length ?? 0) > 0 ||
+    (inputs.paddocks?.length ?? 0) > 0;
+  const climateMultiplier = inputs.solarRadKwhM2Day || inputs.windMs || inputs.rhPct
+    ? petClimateMultiplier(
+        computePet({
+          annualTempC,
+          solarRadKwhM2Day: inputs.solarRadKwhM2Day,
+          windMs: inputs.windMs,
+          rhPct: inputs.rhPct,
+          latitudeDeg: inputs.latitudeDeg,
+          elevationM: inputs.elevationM,
+        }).petMm,
+      )
+    : 1;
   const irrigationDemandGal = hasPlacedDemand
     ? sumSiteDemand({
         structures: inputs.structures,
         utilities: inputs.utilities,
         cropAreas: inputs.cropAreas,
+        paddocks: inputs.paddocks,
+        climateMultiplier,
       }).waterGalYr
     : annualRainfallGal * 0.22;
   const surplusGal = targetRetentionGal - irrigationDemandGal;

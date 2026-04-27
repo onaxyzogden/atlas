@@ -45,6 +45,12 @@ import { getCropAreaDemandGalPerM2Yr, type CropAreaType } from '@ogden/shared/de
 
 type WaterDemandClass = 'low' | 'medium' | 'high' | 'unknown';
 
+const WATER_DEMAND_GAL_PER_M2_YR: Record<'low' | 'medium' | 'high', number> = {
+  low: 50,
+  medium: 110,
+  high: 220,
+};
+
 interface CropAreaWaterRow {
   areaId: string;
   areaName: string;
@@ -867,7 +873,10 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
   // Yield estimates
   const yields = useMemo(() => computeYieldEstimates(cropAreas), [cropAreas]);
 
-  // §11 Water-demand rollup across placed crop areas
+  // §11 Water-demand rollup across placed crop areas. Climate / PET multiplier
+  // is applied in `computeHydrologyMetrics` (Hydrology dashboard), where full
+  // solar/wind/RH inputs are available. PlantingTool's display rollup stays at
+  // the unscaled per-area-type baseline so per-area numbers remain comparable.
   const waterDemand = useMemo(() => buildWaterDemandRollup(cropAreas), [cropAreas]);
 
   // §11 Orchard safety — site-level frost/drainage/slope verdict + per-area risk
@@ -955,7 +964,7 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
                   <span className={css.speciesLatin}>{sp.latinName}</span>
                 </div>
                 <div className={css.speciesTags}>
-                  <DelayedTooltip label={`Water demand: ${waterClassLabel(sp.waterDemand)} — ~${WATER_DEMAND_GAL_PER_M2_YR[sp.waterDemand]} gal/m²/yr`}>
+                  <DelayedTooltip label={`Water demand: ${waterClassLabel(sp.waterDemand)} — ~${getCropAreaDemandGalPerM2Yr({ areaType: 'orchard', waterDemandClass: sp.waterDemand })} gal/m²/yr (orchard reference)`}>
                     <span
                       tabIndex={0}
                       className={`${css.waterChip} ${css[`waterChip_${sp.waterDemand}`]}`}
@@ -1073,10 +1082,12 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
           {/* Footnote */}
           <div className={css.waterFoot}>
             <div>
-              Per-class rates: low ~{WATER_DEMAND_GAL_PER_M2_YR.low} gal/m²/yr,
-              medium ~{WATER_DEMAND_GAL_PER_M2_YR.medium} gal/m²/yr,
-              high ~{WATER_DEMAND_GAL_PER_M2_YR.high} gal/m²/yr. Mixed beds use the
-              thirstiest species as a conservative sizing assumption.
+              Per-class rates vary by crop area type (orchard reference: low ~
+              {getCropAreaDemandGalPerM2Yr({ areaType: 'orchard', waterDemandClass: 'low' })} gal/m²/yr,
+              medium ~{getCropAreaDemandGalPerM2Yr({ areaType: 'orchard', waterDemandClass: 'medium' })} gal/m²/yr,
+              high ~{getCropAreaDemandGalPerM2Yr({ areaType: 'orchard', waterDemandClass: 'high' })} gal/m²/yr).
+              Market gardens and row crops draw more; food forests and silvopasture less.
+              Mixed beds use the thirstiest species as a conservative sizing assumption.
             </div>
             <div>
               Compare this figure against the site&apos;s annual catchment potential in the

@@ -87,6 +87,23 @@ export interface Structure {
    * `isTemporary` is `true`. Empty / undefined = year-round when present.
    */
   seasonalMonths?: number[];
+  /**
+   * Optional steward override for daily water demand (US gal/day). When `> 0`,
+   * wins over the per-type default in `@ogden/shared/demand` regardless of
+   * `occupantCount` or `storiesCount`.
+   */
+  demandWaterGalPerDay?: number;
+  /**
+   * Optional steward override for daily electricity demand (kWh/day). Same
+   * precedence rules as `demandWaterGalPerDay`.
+   */
+  demandKwhPerDay?: number;
+  /**
+   * Optional human-occupant count for residential structures (cabin, yurt,
+   * tent_glamping, earthship, bathhouse). Multiplies water + electricity
+   * demand linearly. Treated as 1 when absent or non-residential.
+   */
+  occupantCount?: number;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

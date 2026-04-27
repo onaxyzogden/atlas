@@ -391,7 +391,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
           mode="new"
           structureType={placementMode}
           lat={pendingStructureCenter[1]}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount, demandWaterGalPerDay, demandKwhPerDay, occupantCount }) => {
             const tmpl = STRUCTURE_TEMPLATES[placementMode];
             const geometry = createFootprintPolygon(pendingStructureCenter, widthM, depthM, rotationDeg);
             // §9 infrastructure-cost-placeholder-per-structure: the modal
@@ -416,6 +416,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               // §9 multi-story-structure-support — only persist when > 1
               // so legacy single-story structures stay clean.
               ...(storiesCount && storiesCount > 1 ? { storiesCount } : {}),
+              ...(demandWaterGalPerDay !== undefined ? { demandWaterGalPerDay } : {}),
+              ...(demandKwhPerDay !== undefined ? { demandKwhPerDay } : {}),
+              ...(occupantCount !== undefined && occupantCount > 1 ? { occupantCount } : {}),
               infrastructureReqs: tmpl.infrastructureReqs,
               notes: n,
               createdAt: new Date().toISOString(),
@@ -439,7 +442,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
         <StructurePropertiesModal
           mode="edit"
           structure={editingStructure}
-          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount }) => {
+          onSave={({ name, phase, notes: n, widthM, depthM, rotationDeg, costEstimate, laborHoursEstimate, materialTonnageEstimate, storiesCount, demandWaterGalPerDay, demandKwhPerDay, occupantCount }) => {
             const newGeometry = createFootprintPolygon(editingStructure.center, widthM, depthM, rotationDeg);
             // costEstimate is `null` when the user cleared the field, and
             // a number when they set/kept a value. Pass through as-is so
@@ -458,6 +461,9 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
               laborHoursEstimate,
               materialTonnageEstimate,
               storiesCount: storiesCount ?? 1,
+              demandWaterGalPerDay,
+              demandKwhPerDay,
+              occupantCount,
               geometry: newGeometry,
             });
 

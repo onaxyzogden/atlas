@@ -22,8 +22,14 @@ import {
   CROP_AREA_GAL_PER_M2_YR,
   getCropAreaDemandGalPerM2Yr,
   getCropAreaWaterGalYr,
+  petClimateMultiplier,
   type CropAreaType,
 } from '../demand/cropDemand.js';
+import {
+  LIVESTOCK_WATER_GAL_PER_HEAD_DAY,
+  getPaddockWaterGalPerDay,
+  type LivestockSpecies,
+} from '../demand/livestockDemand.js';
 import { sumSiteDemand } from '../demand/rollup.js';
 import { computeHydrologyMetrics } from '../scoring/hydrologyMetrics.js';
 
@@ -170,6 +176,122 @@ describe('sumSiteDemand rollup', () => {
     expect(r.waterGalYr).toBeLessThan(605_000);
     // Electricity: cabin 8 + bathhouse 4 + well_pump 6 + lighting 1 = 19 kWh/day
     expect(r.electricityKwhPerDay).toBe(19);
+  });
+});
+
+describe('structure overrides + occupancy', () => {
+  it('demandWaterGalPerDay override wins over per-type default', () => {
+    const def = getStructureWaterGalPerDay({ type: 'cabin' });
+    const override = getStructureWaterGalPerDay({ type: 'cabin', demandWaterGalPerDay: 200 });
+    expect(override).toBe(200);
+    expect(override).not.toBe(def);
+  });
+
+  it('demandKwhPerDay override wins over per-type default', () => {
+    expect(getStructureKwhPerDay({ type: 'cabin', demandKwhPerDay: 25 })).toBe(25);
+  });
+
+  it('zero or negative override falls through to default', () => {
+    expect(getStructureWaterGalPerDay({ type: 'cabin', demandWaterGalPerDay: 0 }))
+      .toBe(STRUCTURE_WATER_GAL_PER_DAY.cabin);
+  });
+
+  it('residential structure scales linearly with occupantCount', () => {
+    const one = getStructureWaterGalPerDay({ type: 'cabin' });
+    const four = getStructureWaterGalPerDay({ type: 'cabin', occupantCount: 4 });
+    expect(four).toBe(one * 4);
+    const fourKwh = getStructureKwhPerDay({ type: 'cabin', occupantCount: 4 });
+    expect(fourKwh).toBe(getStructureKwhPerDay({ type: 'cabin' }) * 4);
+  });
+
+  it('non-residential structure ignores occupantCount', () => {
+    const def = getStructureWaterGalPerDay({ type: 'barn' });
+    expect(getStructureWaterGalPerDay({ type: 'barn', occupantCount: 4 })).toBe(def);
+  });
+
+  it('override outranks occupantCount scaling', () => {
+    expect(getStructureWaterGalPerDay({ type: 'cabin', demandWaterGalPerDay: 100, occupantCount: 4 }))
+      .toBe(100);
+  });
+
+  it('residential scaling stacks with storiesCount', () => {
+    const one = getStructureWaterGalPerDay({ type: 'cabin' });
+    const stacked = getStructureWaterGalPerDay({ type: 'cabin', occupantCount: 4, storiesCount: 2 });
+    expect(stacked).toBe(one * 4 * 2);
+  });
+});
+
+describe('livestock water demand', () => {
+  const SPECIES: LivestockSpecies[] = [
+    'sheep', 'cattle', 'goats', 'poultry', 'pigs',
+    'horses', 'ducks_geese', 'rabbits', 'bees',
+  ];
+
+  it('every species has a finite gal/head/day rate ≥ 0', () => {
+    for (const sp of SPECIES) {
+      expect(Number.isFinite(LIVESTOCK_WATER_GAL_PER_HEAD_DAY[sp])).toBe(true);
+      expect(LIVESTOCK_WATER_GAL_PER_HEAD_DAY[sp]).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('paddock water scales linearly with stockingDensity × area', () => {
+    const small = getPaddockWaterGalPerDay({ species: ['cattle'], stockingDensity: 5, areaM2: 10_000 });
+    const big = getPaddockWaterGalPerDay({ species: ['cattle'], stockingDensity: 5, areaM2: 20_000 });
+    expect(big).toBe(small * 2);
+  });
+
+  it('multi-species paddock splits head equally across species', () => {
+    const cattleOnly = getPaddockWaterGalPerDay({ species: ['cattle'], stockingDensity: 10, areaM2: 10_000 });
+    const mixed = getPaddockWaterGalPerDay({ species: ['cattle', 'sheep'], stockingDensity: 10, areaM2: 10_000 });
+    // 10 head total; 5 cattle × 15 + 5 sheep × 2 = 75 + 10 = 85; cattle-only = 150
+    expect(cattleOnly).toBe(150);
+    expect(mixed).toBe(85);
+  });
+
+  it('explicit headCount overrides stocking-density derivation', () => {
+    const r = getPaddockWaterGalPerDay({ species: ['cattle'], stockingDensity: 100, areaM2: 100_000, headCount: 10 });
+    expect(r).toBe(150);
+  });
+
+  it('returns 0 when no species or no head', () => {
+    expect(getPaddockWaterGalPerDay({ species: [], stockingDensity: 10, areaM2: 10_000 })).toBe(0);
+    expect(getPaddockWaterGalPerDay({ species: ['cattle'], stockingDensity: 0, areaM2: 10_000 })).toBe(0);
+  });
+
+  it('rollup includes livestock water in waterGalYr', () => {
+    const r = sumSiteDemand({
+      paddocks: [{ species: ['cattle'], stockingDensity: 10, areaM2: 20_000 }],
+    });
+    // 20 head × 15 gal/day × 365 = 109_500
+    expect(r.livestockWaterGalYr).toBe(109_500);
+    expect(r.waterGalYr).toBe(109_500);
+  });
+});
+
+describe('PET climate multiplier', () => {
+  it('reference PET ≈ 1100 mm/yr returns ~1.0', () => {
+    expect(petClimateMultiplier(1100)).toBeCloseTo(1.0, 2);
+  });
+
+  it('clamps to 1.5 above 1650 mm/yr', () => {
+    expect(petClimateMultiplier(2000)).toBe(1.5);
+    expect(petClimateMultiplier(5000)).toBe(1.5);
+  });
+
+  it('clamps to 0.7 below 770 mm/yr', () => {
+    expect(petClimateMultiplier(500)).toBe(0.7);
+    expect(petClimateMultiplier(0)).toBe(1);
+  });
+
+  it('falls through to 1.0 for non-finite or non-positive inputs', () => {
+    expect(petClimateMultiplier(NaN)).toBe(1);
+    expect(petClimateMultiplier(-50)).toBe(1);
+  });
+
+  it('applies multiplier to crop demand resolver', () => {
+    const base = getCropAreaDemandGalPerM2Yr({ areaType: 'orchard' });
+    const scaled = getCropAreaDemandGalPerM2Yr({ areaType: 'orchard' }, 1.2);
+    expect(scaled).toBeCloseTo(base * 1.2, 5);
   });
 });
 

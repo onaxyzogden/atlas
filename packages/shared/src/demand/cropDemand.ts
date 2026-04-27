@@ -13,8 +13,9 @@
  *      market gardens on `medium`.
  *   2. Else fall back to the per-areaType "typical" rate.
  *
- * NOTE: a climate / PET multiplier (× 1.2 in arid zones) is *deferred* —
- * flat 1.0 in this pass. See plan deferred section.
+ * Climate multiplier (PET-driven) is now an optional second arg on the
+ * resolver — see `petClimateMultiplier()` below. Defaults to 1.0 when callers
+ * don't pass climate data, preserving back-compat.
  */
 export type CropAreaType =
   | 'orchard'
@@ -71,22 +72,39 @@ export interface CropAreaLike {
   waterDemandClass?: WaterDemandClass;
 }
 
-export function getCropAreaDemandGalPerM2Yr(input: {
-  areaType: CropAreaType;
-  waterDemandClass?: WaterDemandClass;
-}): number {
-  if (input.waterDemandClass) {
-    return CROP_AREA_GAL_PER_M2_YR[input.areaType]?.[input.waterDemandClass]
-      ?? CROP_AREA_TYPICAL_GAL_PER_M2_YR[input.areaType]
-      ?? 0;
-  }
-  return CROP_AREA_TYPICAL_GAL_PER_M2_YR[input.areaType] ?? 0;
+export function getCropAreaDemandGalPerM2Yr(
+  input: {
+    areaType: CropAreaType;
+    waterDemandClass?: WaterDemandClass;
+  },
+  climateMultiplier: number = 1,
+): number {
+  const base = input.waterDemandClass
+    ? (CROP_AREA_GAL_PER_M2_YR[input.areaType]?.[input.waterDemandClass]
+       ?? CROP_AREA_TYPICAL_GAL_PER_M2_YR[input.areaType]
+       ?? 0)
+    : (CROP_AREA_TYPICAL_GAL_PER_M2_YR[input.areaType] ?? 0);
+  return base * climateMultiplier;
 }
 
-export function getCropAreaWaterGalYr(area: CropAreaLike): number {
-  const rate = getCropAreaDemandGalPerM2Yr({
-    areaType: area.type,
-    waterDemandClass: area.waterDemandClass,
-  });
+export function getCropAreaWaterGalYr(
+  area: CropAreaLike,
+  climateMultiplier: number = 1,
+): number {
+  const rate = getCropAreaDemandGalPerM2Yr(
+    { areaType: area.type, waterDemandClass: area.waterDemandClass },
+    climateMultiplier,
+  );
   return Math.round(area.areaM2 * rate);
+}
+
+/**
+ * PET-based climate multiplier on crop water demand. Reference PET ≈ 1100 mm/yr
+ * (FAO-56 temperate baseline). Clamped to [0.7, 1.5] to avoid runaway swings
+ * from outlier climate readings.
+ */
+export function petClimateMultiplier(petMmYr: number, refPetMmYr = 1100): number {
+  if (!Number.isFinite(petMmYr) || petMmYr <= 0 || refPetMmYr <= 0) return 1;
+  const raw = petMmYr / refPetMmYr;
+  return Math.min(1.5, Math.max(0.7, raw));
 }

@@ -50,14 +50,17 @@ the hydrology engine and the energy/utility/planting dashboards. Decision:
 
 | File | Purpose |
 |------|---------|
-| `structureDemand.ts` | `STRUCTURE_WATER_GAL_PER_DAY` + `STRUCTURE_KWH_PER_DAY` by `StructureType`; `GREENHOUSE_*_PER_M2_DAY` per-m² rates; `getStructureWaterGalPerDay()` / `getStructureKwhPerDay()` apply `widthM × depthM` for greenhouses and `storiesCount` linearly for others. |
+| `structureDemand.ts` | `STRUCTURE_WATER_GAL_PER_DAY` + `STRUCTURE_KWH_PER_DAY` by `StructureType`; `GREENHOUSE_*_PER_M2_DAY` per-m² rates; `RESIDENTIAL_STRUCTURE_TYPES` set (cabin/yurt/tent_glamping/earthship/bathhouse). `getStructureWaterGalPerDay()` / `getStructureKwhPerDay()` honour `demandWaterGalPerDay` / `demandKwhPerDay` overrides first, then apply greenhouse area, occupants (residential only), and `storiesCount`. |
 | `utilityDemand.ts` | `UTILITY_KWH_PER_DAY` by `UtilityType` (loads only — generation/storage/passive = 0); `getUtilityKwhPerDay()` honors steward-entered `demandKwhPerDay > 0` override, else falls back to default. |
-| `cropDemand.ts` | Per-area-type × class table (`CROP_AREA_GAL_PER_M2_YR`) — orchard medium 110 ≠ market_garden medium 200; `CROP_AREA_TYPICAL_GAL_PER_M2_YR` typical fallback; `getCropAreaDemandGalPerM2Yr()` / `getCropAreaWaterGalYr()` helpers. |
-| `rollup.ts` | `sumSiteDemand({ structures, utilities, cropAreas })` → `{ structureWaterGalPerDay, cropWaterGalYr, waterGalYr, electricityKwhPerDay, electricityKwhYr }`. Additive across all three entity sets. |
+| `cropDemand.ts` | Per-area-type × class table (`CROP_AREA_GAL_PER_M2_YR`) — orchard medium 110 ≠ market_garden medium 200; `CROP_AREA_TYPICAL_GAL_PER_M2_YR` typical fallback; `getCropAreaDemandGalPerM2Yr(spec, climateMultiplier?)` / `getCropAreaWaterGalYr(area, climateMultiplier?)` helpers; `petClimateMultiplier(petMm, refPetMm = 1100)` clamps to `[0.7, 1.5]`. |
+| `livestockDemand.ts` | **Added round 2.** `LIVESTOCK_WATER_GAL_PER_HEAD_DAY` (FAO + USDA NRCS) by 9-species enum; `getPaddockWaterGalPerDay({ species[], stockingDensity, areaM2, headCount? })` with multi-species head splitting. |
+| `rollup.ts` | `sumSiteDemand({ structures, utilities, cropAreas, paddocks, climateMultiplier? })` → `{ structureWaterGalPerDay, cropWaterGalYr, livestockWaterGalYr, waterGalYr, electricityKwhPerDay, electricityKwhYr }`. Additive across all four entity sets; PET multiplier applied inside the crop reducer. |
 
-`hydrologyMetrics.ts` accepts optional `structures`/`utilities`/`cropAreas` on
-`HydroInputs`; when any are present, irrigation demand uses the rollup.
-When none are passed, the 22%-of-rainfall fallback remains for back-compat.
+`hydrologyMetrics.ts` accepts optional `structures`/`utilities`/`cropAreas`/`paddocks`
+on `HydroInputs`; when any are present, irrigation demand uses the rollup. PET-driven
+`climateMultiplier` is derived from `computePet()` and applied automatically when
+solar/wind/RH data is present (else 1.0 — preserves the 22%-of-rainfall fallback
+back-compat for callers without placed entities).
 
 ## Notes
 - All schemas use strict Zod validation
