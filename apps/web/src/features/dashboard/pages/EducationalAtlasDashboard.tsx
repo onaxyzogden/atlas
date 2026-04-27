@@ -16,6 +16,7 @@ import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import BuildOrderCard from '../../structures/BuildOrderCard.js';
 import StructureArchetypeAuditCard from '../../structures/StructureArchetypeAuditCard.js';
+import StructureFootprintLibraryCard from '../../structures/StructureFootprintLibraryCard.js';
 import SpiritualCommunalCard from '../../structures/SpiritualCommunalCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
@@ -210,6 +211,9 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §7 Structure archetype audit vs project intent ──────────── */}
       <StructureArchetypeAuditCard project={project} />
+
+      {/* ── §9 Structure type / footprint reference library ─────────── */}
+      <StructureFootprintLibraryCard project={project} />
 
       {/* ── §8 Family privacy & men's cohort program-design rollup ──── */}
       <PrivacyCohortPlanningCard projectId={project.id} />

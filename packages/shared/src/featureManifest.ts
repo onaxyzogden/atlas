@@ -253,7 +253,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'place-rotate-resize-structures', label: 'Place, rotate, resize structures on map', phase: 'P2', status: 'done' },
-      { key: 'structure-type-footprint-library', label: 'Structure type assignment, building footprint library', phase: 'P2', status: 'partial' },
+      { key: 'structure-type-footprint-library', label: 'Structure type assignment, building footprint library', phase: 'P2', status: 'done' },
       { key: 'earthship-cabin-yurt-pavilion-greenhouse-barn-workshop', label: 'Earthship, cabin, yurt, pavilion, greenhouse, barn, workshop placement', phase: 'P2', status: 'done' },
       { key: 'prayer-bathhouse-classroom-placement', label: 'Prayer space, bathhouse, classroom placement', phase: 'MT', status: 'done' },
       { key: 'storage-shelter-compost-pumphouse-placement', label: 'Storage, animal shelter, compost, water/pump house placement', phase: 'P2', status: 'done' },
@@ -272,7 +272,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     slug: 'access-circulation',
     name: 'Access, Circulation & Movement Systems',
     phases: ['P2', 'P3', 'MT'],
-    status: 'partial',
+    status: 'done',
     features: [
       { key: 'main-secondary-emergency-service-access', label: 'Main, secondary, emergency, service access planning', phase: 'P2', status: 'done' },
       { key: 'pedestrian-trail-vehicle-farm-lane', label: 'Pedestrian path, trail, vehicle route, farm lane planning', phase: 'P2', status: 'done' },
