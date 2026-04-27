@@ -375,7 +375,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     slug: 'timeline-phasing',
     name: 'Timeline, Phasing & Staged Buildout',
     phases: ['P2', 'P3'],
-    status: 'partial',
+    status: 'done',
     features: [
       { key: 'timeline-slider-year-modes', label: 'Timeline slider, Year 0 / Year 1 / Year 3 / Year 5 / Full Vision modes', phase: 'P2', status: 'done' },
       { key: 'custom-phase-dependencies-milestones', label: 'Custom phase creation, stage dependencies, milestone view', phase: 'P2', status: 'done' },
@@ -536,7 +536,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'design-brief-feature-schedule-export', label: 'Design brief export, feature schedule export', phase: 'P2', status: 'partial' },
       { key: 'phasing-cost-investor-landowner-exports', label: 'Phasing report, cost summary, investor presentation, landowner pitch exports', phase: 'P3', status: 'planned' },
       { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'planned' },
-      { key: 'gis-kml-geojson-export', label: 'GIS layer export, KML / GeoJSON export', phase: 'P3', status: 'partial' },
+      { key: 'gis-kml-geojson-export', label: 'GIS layer export, KML / GeoJSON export', phase: 'P3', status: 'done' },
       { key: 'image-export-screenshot', label: 'Image export, screenshot capture', phase: 'P3', status: 'partial' },
       { key: 'branded-presentation-print-layout', label: 'Branded presentation mode, print layout mode', phase: 'P3', status: 'done' },
       { key: 'white-label-export-mode', label: 'White-label export mode', phase: 'P3', status: 'planned' },
