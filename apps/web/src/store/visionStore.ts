@@ -64,6 +64,8 @@ const EMPTY_MOONTRANCE: MoontranceIdentity = {
 interface VisionState {
   visions: VisionData[];
 
+  /** Returns a stable stored reference (`.find()` on `visions[]`) — SAFE to call
+   *  inside a Zustand selector. */
   getVisionData: (projectId: string) => VisionData | undefined;
   ensureDefaults: (projectId: string) => void;
   updatePhaseNote: (projectId: string, phaseKey: PhaseKey, notes: string) => void;

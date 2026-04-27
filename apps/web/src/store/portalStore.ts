@@ -63,7 +63,11 @@ export interface PortalConfig {
 interface PortalState {
   configs: PortalConfig[];
 
+  /** Returns a stable stored reference (`.find()` on `configs[]`) — SAFE to call
+   *  inside a Zustand selector. */
   getConfig: (projectId: string) => PortalConfig | undefined;
+  /** Returns a stable stored reference (`.find()` on `configs[]`, filtered to
+   *  `isPublished`) — SAFE to call inside a Zustand selector. */
   getBySlug: (slug: string) => PortalConfig | undefined;
   createConfig: (projectId: string, slug: string) => PortalConfig;
   updateConfig: (projectId: string, updates: Partial<PortalConfig>) => void;
