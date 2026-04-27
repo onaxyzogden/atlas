@@ -21,6 +21,7 @@ import OverbuiltForRevenueWarningCard from './OverbuiltForRevenueWarningCard.js'
 import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
+import CostByFeaturePhaseCard from './CostByFeaturePhaseCard.js';
 import LandownerPartnershipCard from './LandownerPartnershipCard.js';
 
 interface EconomicsPanelProps {
@@ -435,6 +436,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {/* Costs tab */}
       {activeTab === 'costs' && (
         <div className={`${p.section} ${p.sectionGapLg}`}>
+          <CostByFeaturePhaseCard model={model} />
           {costLineItems.length === 0 && (
             <div className={p.empty}>No cost items. Place features on the map.</div>
           )}
