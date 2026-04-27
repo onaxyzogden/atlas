@@ -47,7 +47,7 @@ Open `apps/api/.env` and set these values:
 
 | Variable | Required | What to Set |
 |----------|----------|-------------|
-| `DATABASE_URL` | YES | `postgresql://ogden:ogden_dev_password@localhost:5432/ogden_atlas` (matches Docker Compose defaults - no change needed) |
+| `DATABASE_URL` | YES | `postgresql://ogden_app:ogden_dev_password@localhost:5432/ogden_atlas` (matches Docker Compose defaults - no change needed) |
 | `JWT_SECRET` | YES | **Must be at least 32 characters.** Replace the placeholder with any random string, e.g.: `openssl rand -hex 32` |
 | `REDIS_URL` | YES | `redis://localhost:6379` (default - no change needed) |
 | `PORT` | no | `3001` (default - no change needed) |
@@ -61,7 +61,7 @@ Example working `apps/api/.env`:
 ```env
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://ogden:ogden_dev_password@localhost:5432/ogden_atlas
+DATABASE_URL=postgresql://ogden_app:ogden_dev_password@localhost:5432/ogden_atlas
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=a]3Fk9$mPqR7vWx2Tz!bN4cY8dL0eJ6hG1iKoU5sA
 ```
@@ -107,7 +107,7 @@ ogden-redis       Up ... (healthy)
 You can also test the database connection directly:
 
 ```bash
-docker exec ogden-postgres pg_isready -U ogden -d ogden_atlas
+docker exec ogden-postgres pg_isready -U ogden_app -d ogden_atlas
 ```
 
 Expected: `ogden_atlas - accepting connections`
@@ -252,7 +252,7 @@ Expected response (HTTP 201):
 
 | Field | Error | Fix |
 |-------|-------|-----|
-| `DATABASE_URL` | "Required" or "Invalid url" | Set to `postgresql://ogden:ogden_dev_password@localhost:5432/ogden_atlas` |
+| `DATABASE_URL` | "Required" or "Invalid url" | Set to `postgresql://ogden_app:ogden_dev_password@localhost:5432/ogden_atlas` |
 | `JWT_SECRET` | "String must contain at least 32 character(s)" | Replace placeholder with a 32+ character string |
 
 ### `connect ECONNREFUSED 127.0.0.1:5432`
@@ -323,7 +323,7 @@ docker compose -f infrastructure/docker-compose.yml up -d
 pnpm --filter @ogden/api migrate
 
 # Option B: Manually record already-applied migrations
-docker exec -i ogden-postgres psql -U ogden -d ogden_atlas <<'SQL'
+docker exec -i ogden-postgres psql -U ogden_app -d ogden_atlas <<'SQL'
 CREATE TABLE IF NOT EXISTS schema_migrations (
   version TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at TIMESTAMPTZ DEFAULT now()
 );
@@ -361,3 +361,17 @@ pnpm --filter @ogden/api migrate
 cd apps/api  && pnpm dev    # Terminal 1: API on :3001
 cd apps/web  && pnpm dev    # Terminal 2: Frontend on :5200
 ```
+
+---
+
+## Claude Code preview servers
+
+`.claude/launch.json` exposes both `web` (port 5200) and `api` (port 3001) so Claude Code's `preview_start` can launch either. The `web` preview proxies `/api/*` to `localhost:3001`, so calls fail with `ECONNREFUSED` unless the `api` preview is also running.
+
+Prerequisites for the `api` preview to start successfully (same as step 6 above):
+
+- `apps/api/.env` must exist with a valid 32+ char `JWT_SECRET`
+- Postgres + Redis must be up: `docker compose -f infrastructure/docker-compose.yml up -d`
+- Migrations applied: `pnpm --filter @ogden/api migrate`
+
+The `api` entry invokes Node directly with `--env-file=.env --import=tsx --watch src/index.ts` (mirroring `apps/api`'s `dev` script) so it doesn't depend on `pnpm` being on PATH.
