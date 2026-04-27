@@ -1,0 +1,175 @@
+/* FeasibilityVerdictHero — mirrors LandVerdictCard styling, tuned for
+   the larger Feasibility Command Center context (more facts, longer
+   subhead, project-type focused).
+*/
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scoreCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.scoreLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(240, 230, 210, 0.96);
+  letter-spacing: -0.01em;
+}
+
+.verdictBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.verdict_strong {
+  background: rgba(76, 175, 80, 0.18);
+  color: #7fcf83;
+  border: 1px solid rgba(76, 175, 80, 0.35);
+}
+.verdict_conditional {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b97a;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+}
+.verdict_caution {
+  background: rgba(231, 142, 76, 0.18);
+  color: #e89967;
+  border: 1px solid rgba(231, 142, 76, 0.4);
+}
+.verdict_blocked {
+  background: rgba(214, 86, 76, 0.18);
+  color: #e08077;
+  border: 1px solid rgba(214, 86, 76, 0.4);
+}
+
+.subhead {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(180, 165, 140, 0.85);
+  margin: 0;
+}
+
+.interpretation {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(232, 220, 200, 0.92);
+  margin: 0;
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 24px;
+  padding: 12px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+}
+
+.factLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 2px;
+}
+
+.factValue {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.factWarn { color: #e89967; }
+.factGood { color: #7fcf83; }
+
+.factEmpty {
+  color: rgba(180, 165, 140, 0.45);
+  font-style: italic;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.35);
+  background: rgba(196, 162, 101, 0.1);
+  color: rgba(232, 220, 200, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+.cta:hover:not(:disabled) {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ctaPrimary {
+  background: rgba(196, 162, 101, 0.22);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.ctaPrimary:hover:not(:disabled) {
+  background: rgba(196, 162, 101, 0.32);
+}
+
+@media (max-width: 720px) {
+  .card { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+  .scoreCol { flex-direction: row; align-items: center; gap: 12px; }
+  .factGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+}

@@ -1,0 +1,169 @@
+/* FeasibilityCommandCenter — full-width feasibility cockpit layout. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 24px 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+  color: rgba(240, 230, 210, 0.97);
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: rgba(180, 165, 140, 0.8);
+  margin: 0;
+  max-width: 70ch;
+}
+
+/* ── 2-col main layout: body + sticky rail ────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.railWrap {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .railWrap {
+    position: static;
+  }
+}
+
+/* ── Inner body 2-col grid: Fit | Execution ───────────────────────── */
+.bodyGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 960px) {
+  .bodyGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.columnTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.85);
+  margin: 0;
+}
+
+.columnHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+
+/* ── Section headings (Design Rules) ──────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 6px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.sectionHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.65);
+  margin: 0 0 6px;
+  font-style: italic;
+}
+
+/* ── Methodology drawer ───────────────────────────────────────────── */
+.methodology {
+  margin-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
+.methodologySummary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.75);
+  padding: 6px 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.methodologySummary::-webkit-details-marker { display: none; }
+.methodologySummary::before {
+  content: '▸';
+  display: inline-block;
+  transition: transform 120ms;
+  font-size: 10px;
+}
+.methodology[open] > .methodologySummary::before {
+  transform: rotate(90deg);
+}
+
+.methodologyBody {
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .page { padding: 14px 14px 24px; }
+  .pageTitle { font-size: 18px; }
+}

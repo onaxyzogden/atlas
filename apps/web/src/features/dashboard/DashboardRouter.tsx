@@ -39,7 +39,7 @@ const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPane
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
 const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
-const DecisionSupportPanel = lazy(() => import('../../features/decision/DecisionSupportPanel.js'));
+const FeasibilityCommandCenter = lazy(() => import('../../features/decision/FeasibilityCommandCenter.js'));
 const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
 const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
 const PhasingDashboard = lazy(() => import('./pages/PhasingDashboard.js'));
@@ -224,7 +224,7 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
     case 'feasibility':
       return (
         <PanelShell name="Feasibility">
-          <DecisionSupportPanel project={project} />
+          <FeasibilityCommandCenter project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'zoning':
