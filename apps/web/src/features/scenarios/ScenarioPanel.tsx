@@ -38,6 +38,7 @@ import BestBaseWorstCaseCard from './BestBaseWorstCaseCard.js';
 import BuildCostRevenueRangesCard from './BuildCostRevenueRangesCard.js';
 import LayoutOptionABCComparisonCard from './LayoutOptionABCComparisonCard.js';
 import VisitorEventOverflowSimCard from './VisitorEventOverflowSimCard.js';
+import EmergencyResilienceSimCard from './EmergencyResilienceSimCard.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -372,6 +373,9 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
 
       {/* ── §16 Visitor / event / parking overflow simulator ──────────── */}
       <VisitorEventOverflowSimCard project={project} />
+
+      {/* ── §16 Fire / water / infrastructure resilience simulator ────── */}
+      <EmergencyResilienceSimCard project={project} />
 
       {/* ── Saved scenarios ──────────────────────────────────────────── */}
       {scenarios.length > 0 && (
