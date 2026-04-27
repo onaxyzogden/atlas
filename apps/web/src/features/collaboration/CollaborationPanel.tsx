@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import MembersTab from './MembersTab.js';
 import CommentsByFeatureCard from './CommentsByFeatureCard.js';
+import TeamActivityDigestCard from './TeamActivityDigestCard.js';
 import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
@@ -104,6 +105,9 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
       <h2 className={p.title}>
         Collaboration
       </h2>
+
+      {/* §20 Team activity digest + sign-off readiness */}
+      <TeamActivityDigestCard project={project} />
 
       {/* Tab switcher */}
       <div className={p.tabBar}>

@@ -37,6 +37,7 @@ import ZoneAllocationBalanceCard from './ZoneAllocationBalanceCard.js';
 import ServiceExpansionPreservationCard from './ServiceExpansionPreservationCard.js';
 import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import ZoneSuggestionAuditCard from './ZoneSuggestionAuditCard.js';
+import ZoneNamingCoverageCard from './ZoneNamingCoverageCard.js';
 import { earth, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
@@ -469,6 +470,8 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ZoneAllocationSummary zones={zones} totalAcreage={project?.acreage ?? null} />
+          {/* §8 draw-custom-zones-naming-color — name + colour hygiene audit */}
+          <ZoneNamingCoverageCard projectId={projectId} />
           {/* §8 Habitation/food/livestock/commons four-quadrant coverage */}
           <ProgramCoverageCard projectId={projectId} zones={zones} />
           <ZoneAllocationSummaryReportCard
