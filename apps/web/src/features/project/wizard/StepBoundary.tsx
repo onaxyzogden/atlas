@@ -25,6 +25,88 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
   const [importInfo, setImportInfo] = useState<string | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [geocodeWarning, setGeocodeWarning] = useState<string | null>(null);
+
+  // Keep latest wizard data accessible from stable callbacks (map load handler,
+  // Recenter button) without re-creating the map.
+  const dataRef = useRef(data);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
+  const updateDataRef = useRef(updateData);
+  useEffect(() => { updateDataRef.current = updateData; }, [updateData]);
+
+  /** Re-center the map using the priority: boundary > manual coords > geocode. */
+  const centerMap = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const d = dataRef.current;
+
+    // 1. Boundary wins — fitBounds via showBoundaryOnMap.
+    if (d.parcelBoundaryGeojson) {
+      showBoundaryOnMap(map, d.parcelBoundaryGeojson as GeoJSON.FeatureCollection);
+      setGeocodeWarning(null);
+      return;
+    }
+
+    // 2. Manual coordinates.
+    const lat = parseFloat(d.centerLat);
+    const lng = parseFloat(d.centerLng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      map.flyTo({ center: [lng, lat], zoom: 15, duration: 1200 });
+      setGeocodeWarning(null);
+      return;
+    }
+
+    // 3. Geocode address (scoped by country + provinceState).
+    if (d.address && hasMapToken) {
+      const queryParts = [d.address];
+      if (d.provinceState) queryParts.push(d.provinceState);
+      const query = queryParts.join(', ');
+      const params = new URLSearchParams({ key: maptilerKey ?? '', limit: '1' });
+      if (d.country === 'US') params.set('country', 'us');
+      else if (d.country === 'CA') params.set('country', 'ca');
+
+      fetch(
+        `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?${params.toString()}`,
+      )
+        .then((r) => r.json())
+        .then((result) => {
+          const feature = result?.features?.[0];
+          if (feature?.center) {
+            const [glng, glat] = feature.center as [number, number];
+            map.flyTo({ center: [glng, glat], zoom: 15, duration: 1200 });
+            setGeocodeWarning(null);
+            // Backfill so the project remembers the resolved center without a
+            // second geocode call later.
+            if (!d.centerLat && !d.centerLng) {
+              updateDataRef.current({ centerLat: String(glat), centerLng: String(glng) });
+            }
+          } else {
+            setGeocodeWarning(
+              "Couldn't locate that address. Go back to Step 2 and enter coordinates to center the map.",
+            );
+          }
+        })
+        .catch((err) => {
+          console.warn('[OGDEN] Address geocode failed:', err);
+          setGeocodeWarning(
+            "Couldn't locate that address. Go back to Step 2 and enter coordinates to center the map.",
+          );
+        });
+      return;
+    }
+
+    // No signal at all — leave at default and prompt user.
+    setGeocodeWarning(
+      'No address or coordinates provided. Go back to Step 2 to add them so the map can center on your property.',
+    );
+  }, []);
+
+  const canRecenter = Boolean(
+    data.parcelBoundaryGeojson ||
+      (data.centerLat && data.centerLng) ||
+      data.address,
+  );
 
   // Initialize map
   useEffect(() => {
@@ -79,26 +161,7 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
 
     map.on('load', () => {
       setIsMapReady(true);
-
-      // If boundary already exists (e.g. user went back), display it
-      if (data.parcelBoundaryGeojson) {
-        showBoundaryOnMap(map, data.parcelBoundaryGeojson as GeoJSON.FeatureCollection);
-      } else if (data.address && hasMapToken) {
-        // Geocode the address from Step 2 to center the map
-        fetch(
-          `https://api.maptiler.com/geocoding/${encodeURIComponent(data.address)}.json?key=${maptilerKey}&limit=1`
-        )
-          .then((r) => r.json())
-          .then((result) => {
-            const feature = result?.features?.[0];
-            if (feature?.center) {
-              map.flyTo({ center: feature.center, zoom: 15, duration: 1200 });
-            }
-          })
-          .catch((err) => {
-            console.warn('[OGDEN] Address geocode failed:', err);
-          });
-      }
+      centerMap();
     });
 
     // Capture drawn geometry
@@ -252,6 +315,23 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
 
         <div style={{ flex: 1 }} />
 
+        <button
+          onClick={centerMap}
+          disabled={!canRecenter}
+          style={{
+            padding: '7px 16px',
+            fontSize: 12,
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            background: 'transparent',
+            color: canRecenter ? 'var(--color-text)' : 'var(--color-text-muted)',
+            cursor: canRecenter ? 'pointer' : 'not-allowed',
+            opacity: canRecenter ? 1 : 0.5,
+          }}
+        >
+          Recenter
+        </button>
+
         {data.parcelBoundaryGeojson !== null && (
           <button
             onClick={() => {
@@ -280,6 +360,55 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           </button>
         )}
       </div>
+
+      {/* Geocode warning banner */}
+      {geocodeWarning && !mapError && (
+        <div
+          role="status"
+          style={{
+            padding: '10px 20px',
+            background: 'var(--color-earth-100)',
+            borderBottom: '1px solid var(--color-border)',
+            fontSize: 12,
+            color: 'var(--color-earth-800)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ flex: 1 }}>{geocodeWarning}</span>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '5px 12px',
+              fontSize: 12,
+              border: '1px solid var(--color-earth-600)',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-earth-800)',
+              cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            Back to Step 2
+          </button>
+          <button
+            onClick={() => setGeocodeWarning(null)}
+            aria-label="Dismiss"
+            style={{
+              padding: '5px 10px',
+              fontSize: 12,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Map or fallback */}
       {mapError ? (

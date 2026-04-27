@@ -28,6 +28,8 @@ export interface WizardData {
   address: string;
   parcelId: string;
   provinceState: string;
+  centerLat: string;
+  centerLng: string;
   // Step 3
   parcelBoundaryGeojson: unknown | null;
   // Step 4
@@ -59,6 +61,8 @@ const INITIAL_DATA: WizardData = {
   address: '',
   parcelId: '',
   provinceState: '',
+  centerLat: '',
+  centerLng: '',
   parcelBoundaryGeojson: null,
   ownerNotes: '',
   zoningNotes: '',

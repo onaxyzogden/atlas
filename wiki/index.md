@@ -50,6 +50,7 @@ Read this first at the start of every session.
 - [2026-04-26 Zustand Selector Stability](decisions/2026-04-26-zustand-selector-stability.md) — Subscribe-then-derive pattern: read raw store array in selector, compute project-filtered slice in `useMemo`; closes infinite-render anti-pattern across 10 cards
 - [2026-04-27 Right Rail / Bottom Toolbar Split](decisions/2026-04-27-right-rail-bottom-toolbar-split.md) — Right rail = read-out only; bottom `DomainFloatingToolbar` = all action tools; both surfaces driven by `useUIStore.activeDashboardSection`; Biomass surfaces on map + dashboard via shared `BiomassDashboard` component
 - [2026-04-27 Demand Coefficient Tables](decisions/2026-04-27-demand-coefficient-tables.md) — New `@ogden/shared/demand` subpath: per-type water + electricity tables for structures/utilities/crops, additive `sumSiteDemand`, hydrology engine consumes placed entities (replaces 22%-of-rainfall placeholder)
+- [2026-04-27 Project Intake Map Centering](decisions/2026-04-27-project-intake-map-centering.md) — Boundary > manual coords > scoped geocode priority for new-project map; `centerLat`/`centerLng` added to `ProjectMetadata` (jsonb, no migration); wizard adds lat/lng inputs + paste shortcut + Recenter button + failure banner
 
 ## Design System
 - [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)
