@@ -87,7 +87,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'owner-stakeholder-notes', label: 'Save owner / stakeholder notes', phase: 'P1', status: 'partial' },
       { key: 'attach-media', label: 'Attach photos, videos, documents, site notes', phase: 'P1', status: 'done' },
       { key: 'field-observations-legal', label: 'Add field observations and legal description', phase: 'P1', status: 'done' },
-      { key: 'zoning-utility-notes', label: 'Add zoning, municipal, access, utility notes', phase: 'P1', status: 'partial' },
+      { key: 'zoning-utility-notes', label: 'Add zoning, municipal, access, utility notes', phase: 'P1', status: 'done' },
       { key: 'restrictions-covenants', label: 'Add restrictions / covenants notes', phase: 'P1', status: 'done' },
       { key: 'climate-bioregion-county', label: 'Add climate region, bioregion, county metadata', phase: 'P1', status: 'done' },
       { key: 'units-projection', label: 'Set units and map projection', phase: 'P1', status: 'done' },
