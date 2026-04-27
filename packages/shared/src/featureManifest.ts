@@ -533,7 +533,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     status: 'partial',
     features: [
       { key: 'pdf-site-assessment-export', label: 'PDF site assessment export', phase: 'P2', status: 'done' },
-      { key: 'design-brief-feature-schedule-export', label: 'Design brief export, feature schedule export', phase: 'P2', status: 'partial' },
+      { key: 'design-brief-feature-schedule-export', label: 'Design brief export, feature schedule export', phase: 'P2', status: 'done' },
       { key: 'phasing-cost-investor-landowner-exports', label: 'Phasing report, cost summary, investor presentation, landowner pitch exports', phase: 'P3', status: 'planned' },
       { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'planned' },
       { key: 'gis-kml-geojson-export', label: 'GIS layer export, KML / GeoJSON export', phase: 'P3', status: 'done' },
