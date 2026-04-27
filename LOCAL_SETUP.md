@@ -361,3 +361,17 @@ pnpm --filter @ogden/api migrate
 cd apps/api  && pnpm dev    # Terminal 1: API on :3001
 cd apps/web  && pnpm dev    # Terminal 2: Frontend on :5200
 ```
+
+---
+
+## Claude Code preview servers
+
+`.claude/launch.json` exposes both `web` (port 5200) and `api` (port 3001) so Claude Code's `preview_start` can launch either. The `web` preview proxies `/api/*` to `localhost:3001`, so calls fail with `ECONNREFUSED` unless the `api` preview is also running.
+
+Prerequisites for the `api` preview to start successfully (same as step 6 above):
+
+- `apps/api/.env` must exist with a valid 32+ char `JWT_SECRET`
+- Postgres + Redis must be up: `docker compose -f infrastructure/docker-compose.yml up -d`
+- Migrations applied: `pnpm --filter @ogden/api migrate`
+
+The `api` entry invokes Node directly with `--env-file=.env --import=tsx --watch src/index.ts` (mirroring `apps/api`'s `dev` script) so it doesn't depend on `pnpm` being on PATH.
