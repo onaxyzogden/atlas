@@ -31,6 +31,13 @@ export interface ProjectLocation {
   country: string;
   acreage: number;
   acreageUnit: "ac" | "ha";
+  /**
+   * Optional parcel boundary as GeoJSON Polygon (lng/lat ring, first = last).
+   * When present, DiagnoseMap fits to its bounds and uses its centroid in
+   * place of any hard-coded center. Mock data for v3.1 — a real cadastral
+   * fetch lands in v3.2.
+   */
+  boundary?: GeoJSON.Polygon;
 }
 
 export interface Verdict {

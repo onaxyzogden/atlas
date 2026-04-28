@@ -15,6 +15,21 @@ export const MTC_PROJECT: Project = {
     country: "CA",
     acreage: 128,
     acreageUnit: "ha",
+    // Hand-drawn rectangular polygon centered near [-78.20, 44.50], sized to
+    // ~128 ha (~1.6 km E-W × ~0.8 km N-S). Real cadastral geometry lands in
+    // v3.2; this mock is enough to drive DiagnoseMap.fitBounds + outline.
+    boundary: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [-78.211, 44.4965],
+          [-78.189, 44.4965],
+          [-78.189, 44.5035],
+          [-78.211, 44.5035],
+          [-78.211, 44.4965],
+        ],
+      ],
+    },
   },
 
   verdict: {

@@ -17,7 +17,7 @@ export interface MatrixTogglesPopoverProps {
 
 export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { topography, toggle } = useMatrixTogglesStore();
+  const { topography, sectors, toggle } = useMatrixTogglesStore();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -52,21 +52,23 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         </span>
       </label>
 
-      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.2">
-        <input type="checkbox" checked={false} disabled readOnly />
+      <label className={css.row}>
+        <input
+          type="checkbox"
+          checked={sectors}
+          onChange={() => toggle("sectors")}
+        />
         <span className={css.rowBody}>
-          <span className={css.rowLabel}>
-            Sectors <span className={css.soonBadge}>v3.2</span>
-          </span>
-          <span className={css.rowDesc}>Sun, wind, fire, water flows</span>
+          <span className={css.rowLabel}>Sectors</span>
+          <span className={css.rowDesc}>Solar arcs (winter · summer · equinox)</span>
         </span>
       </label>
 
-      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.2">
+      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.3">
         <input type="checkbox" checked={false} disabled readOnly />
         <span className={css.rowBody}>
           <span className={css.rowLabel}>
-            Zones <span className={css.soonBadge}>v3.2</span>
+            Zones <span className={css.soonBadge}>v3.3</span>
           </span>
           <span className={css.rowDesc}>Use-frequency rings (0–5)</span>
         </span>
@@ -80,7 +82,7 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         >
           {topography ? "Hide topography" : "Show topography"}
         </button>
-        <span className={css.note}>Topography live · Sectors &amp; Zones in v3.2</span>
+        <span className={css.note}>Topography &amp; Sectors live · Zones in v3.3</span>
       </div>
     </div>
   );

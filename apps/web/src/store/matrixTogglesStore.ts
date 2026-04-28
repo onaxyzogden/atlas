@@ -33,15 +33,14 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
-      // v2 (2026-04-28): Sectors and Zones have no data layer yet — force
-      // false so any persisted-true state from the v1 mock-overlay build
-      // does not paint phantom overlays on Diagnose.
-      version: 2,
+      // v3 (2026-04-28): Sectors are now data-backed (suncalc solar arcs).
+      // Zones still has no data layer — keep zones force-cleared.
+      // v1 → v3: clear both. v2 → v3: clear zones (sectors already false).
+      version: 3,
       migrate: (persisted) => {
         const s = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
           ...s,
-          sectors: false,
           zones: false,
         } as MatrixTogglesState;
       },

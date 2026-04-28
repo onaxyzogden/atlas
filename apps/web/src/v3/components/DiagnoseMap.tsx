@@ -6,11 +6,13 @@
  * Diagnose, not Discover. Children are render-prop overlay components that
  * receive the live map instance and the parcel centroid.
  *
- * MTC centroid is hard-coded for v3.1 — mockProject lacks lat/lng. Real
- * parcel geometry will swap in when the project store gains a boundary.
+ * Viewport: when `boundary` is provided, the map fits to its bounds and
+ * the centroid passed to render-prop children is `bounds.getCenter()`.
+ * When absent, falls back to the legacy `centroid` + `zoom` props (kept
+ * for non-MTC mock projects that don't yet carry a boundary polygon).
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   maplibregl,
   MAP_STYLES,
@@ -21,29 +23,68 @@ import MapTokenMissing from "../../components/MapTokenMissing.js";
 import { useMatrixTogglesStore } from "../../store/matrixTogglesStore.js";
 import css from "./DiagnoseMap.module.css";
 
+const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
+const BOUNDARY_LINE_LAYER = "diagnose-parcel-boundary-line";
+const BOUNDARY_FILL_LAYER = "diagnose-parcel-boundary-fill";
+const FIT_PADDING = 48;
+
 export interface DiagnoseMapChildProps {
   map: maplibregl.Map;
   centroid: [number, number];
 }
 
 export interface DiagnoseMapProps {
+  /** Fallback center if `boundary` is absent. */
   centroid: [number, number];
+  /** Fallback zoom if `boundary` is absent. */
   zoom?: number;
+  /** Parcel boundary polygon. When present, drives viewport + centroid. */
+  boundary?: GeoJSON.Polygon;
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
-export default function DiagnoseMap({ centroid, zoom = 14, children }: DiagnoseMapProps) {
+function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds {
+  const ring = poly.coordinates[0];
+  const b = new maplibregl.LngLatBounds(
+    [ring[0][0], ring[0][1]],
+    [ring[0][0], ring[0][1]],
+  );
+  for (const [lng, lat] of ring) b.extend([lng, lat]);
+  return b;
+}
+
+export default function DiagnoseMap({
+  centroid,
+  zoom = 14,
+  boundary,
+  children,
+}: DiagnoseMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
 
   const topography = useMatrixTogglesStore((s) => s.topography);
+  const sectors = useMatrixTogglesStore((s) => s.sectors);
+  const anyOn = topography || sectors;
+
+  // Derive viewport from boundary when available; fall back to props otherwise.
+  const { initialCenter, effectiveCentroid } = useMemo(() => {
+    if (boundary) {
+      const b = polygonBounds(boundary);
+      const c = b.getCenter();
+      return {
+        initialCenter: [c.lng, c.lat] as [number, number],
+        effectiveCentroid: [c.lng, c.lat] as [number, number],
+      };
+    }
+    return { initialCenter: centroid, effectiveCentroid: centroid };
+  }, [boundary, centroid]);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const m = new maplibregl.Map({
       container: containerRef.current,
       style: MAP_STYLES["topographic"],
-      center: centroid,
+      center: initialCenter,
       zoom,
       attributionControl: { compact: true },
       transformRequest: maptilerTransformRequest,
@@ -54,7 +95,62 @@ export default function DiagnoseMap({ centroid, zoom = 14, children }: DiagnoseM
       setMap(null);
       m.remove();
     };
-  }, [centroid, zoom]);
+    // initialCenter intentionally not in deps — recentering on memo identity
+    // change would steal the user's pan. Boundary identity is the real signal,
+    // and that's handled by the fitBounds effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
+
+  // Paint boundary outline + fitBounds when boundary is present.
+  useEffect(() => {
+    if (!map || !boundary) return;
+    const data: GeoJSON.Feature<GeoJSON.Polygon> = {
+      type: "Feature",
+      properties: {},
+      geometry: boundary,
+    };
+
+    const ensure = () => {
+      const existing = map.getSource(BOUNDARY_SOURCE_ID) as
+        | maplibregl.GeoJSONSource
+        | undefined;
+      if (!existing) {
+        map.addSource(BOUNDARY_SOURCE_ID, { type: "geojson", data });
+      } else {
+        existing.setData(data);
+      }
+      if (!map.getLayer(BOUNDARY_FILL_LAYER)) {
+        map.addLayer({
+          id: BOUNDARY_FILL_LAYER,
+          type: "fill",
+          source: BOUNDARY_SOURCE_ID,
+          paint: {
+            "fill-color": "#c4a265",
+            "fill-opacity": 0.06,
+          },
+        });
+      }
+      if (!map.getLayer(BOUNDARY_LINE_LAYER)) {
+        map.addLayer({
+          id: BOUNDARY_LINE_LAYER,
+          type: "line",
+          source: BOUNDARY_SOURCE_ID,
+          paint: {
+            "line-color": "#7a6a3f",
+            "line-width": 2,
+            "line-opacity": 0.85,
+          },
+        });
+      }
+      map.fitBounds(polygonBounds(boundary), {
+        padding: FIT_PADDING,
+        animate: false,
+      });
+    };
+
+    if (map.isStyleLoaded()) ensure();
+    else map.once("load", ensure);
+  }, [map, boundary]);
 
   if (!hasMapToken) {
     return (
@@ -67,14 +163,22 @@ export default function DiagnoseMap({ centroid, zoom = 14, children }: DiagnoseM
   return (
     <div className={css.wrap}>
       <div ref={containerRef} className={css.map} />
-      {map && children?.({ map, centroid })}
-      {topography && (
+      {map && children?.({ map, centroid: effectiveCentroid })}
+      {anyOn && (
         <div className={css.legend} aria-hidden="true">
           <span className={css.legendTitle}>Active overlays</span>
-          <span className={css.legendRow}>
-            <span className={css.swatch} style={{ background: "#7a6a3f" }} />
-            Topography (contours)
-          </span>
+          {topography && (
+            <span className={css.legendRow}>
+              <span className={css.swatch} style={{ background: "#7a6a3f" }} />
+              Topography (contours)
+            </span>
+          )}
+          {sectors && (
+            <span className={css.legendRow}>
+              <span className={css.swatch} style={{ background: "#c4a265" }} />
+              Solar sectors (sun arcs)
+            </span>
+          )}
         </div>
       )}
     </div>

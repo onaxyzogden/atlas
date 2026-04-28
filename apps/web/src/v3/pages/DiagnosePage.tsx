@@ -15,14 +15,18 @@ import { useParams } from "@tanstack/react-router";
 import StageHero from "../components/StageHero.js";
 import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
+import { useMemo } from "react";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
+import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
+import { computeSolarSectors } from "../../lib/sectors/solar.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DiagnosePage.module.css";
 
-// MTC centroid — mockProject lacks lat/lng for v3.1. Real parcel geometry
-// will swap in when the project store gains a boundary feature.
-const MTC_CENTROID: [number, number] = [-78.20, 44.50];
+// Fallback center used only when the project carries no boundary polygon.
+// MTC has one (mockProject.location.boundary), so DiagnoseMap fits to it
+// and this constant is unused on /v3/project/mtc/diagnose.
+const FALLBACK_CENTROID: [number, number] = [-78.20, 44.50];
 
 export default function DiagnosePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -62,8 +66,13 @@ export default function DiagnosePage() {
             Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
           </p>
         </header>
-        <DiagnoseMap centroid={MTC_CENTROID}>
-          {({ map }) => <TopographyOverlay map={map} />}
+        <DiagnoseMap
+          centroid={FALLBACK_CENTROID}
+          boundary={project.location.boundary}
+        >
+          {({ map, centroid }) => (
+            <DiagnoseOverlays map={map} centroid={centroid} />
+          )}
         </DiagnoseMap>
       </section>
 
@@ -95,6 +104,22 @@ export default function DiagnosePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function DiagnoseOverlays({
+  map,
+  centroid,
+}: {
+  map: import("maplibre-gl").Map;
+  centroid: [number, number];
+}) {
+  const sectors = useMemo(() => computeSolarSectors(centroid), [centroid]);
+  return (
+    <>
+      <TopographyOverlay map={map} />
+      <SectorsOverlay map={map} sectors={sectors} />
+    </>
   );
 }
 
