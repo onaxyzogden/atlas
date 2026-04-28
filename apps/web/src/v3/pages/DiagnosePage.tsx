@@ -174,10 +174,21 @@ function DiagnosePageMap({
   const clearHomestead = useHomesteadStore((s) => s.clear);
   const boundary = project.location.boundary;
 
+  const anchor = useMemo(
+    () => getEffectiveAnchor(homestead, boundary, FALLBACK_CENTROID),
+    [homestead, boundary],
+  );
+  const {
+    frequencies: liveWindFreqs,
+    source: windSource,
+    status: windStatus,
+  } = useWindClimatology(anchor);
+
   return (
     <DiagnoseMap
       centroid={FALLBACK_CENTROID}
       boundary={boundary}
+      windStatus={windStatus}
       homestead={{
         enabled: true,
         hasHomestead: !!homestead,
@@ -188,16 +199,18 @@ function DiagnosePageMap({
           : "Anchored at parcel centroid",
       }}
     >
-      {({ map, centroid }) => {
+      {({ map }) => {
         mapRef.current = map;
         return (
           <>
             <DiagnoseOverlays
               map={map}
-              centroid={centroid}
+              anchor={anchor}
               boundary={boundary}
               projectId={project.id}
               homestead={homestead}
+              liveWindFreqs={liveWindFreqs}
+              windSource={windSource}
             />
             {pulse && (
               <SpotlightPulse key={pulse.key} map={map} point={pulse.point} />
@@ -211,23 +224,22 @@ function DiagnosePageMap({
 
 function DiagnoseOverlays({
   map,
-  centroid,
+  anchor,
   boundary,
   projectId,
   homestead,
+  liveWindFreqs,
+  windSource,
 }: {
   map: import("maplibre-gl").Map;
-  centroid: [number, number];
+  anchor: [number, number];
   boundary?: GeoJSON.Polygon;
   projectId: string;
   homestead: [number, number] | undefined;
+  liveWindFreqs: import("../../lib/wind-climatology/cache.js").WindFrequencies | undefined;
+  windSource: string | undefined;
 }) {
-  const anchor = useMemo(
-    () => getEffectiveAnchor(homestead, boundary, centroid),
-    [homestead, boundary, centroid],
-  );
   const sectors = useMemo(() => computeSolarSectors(anchor), [anchor]);
-  const { frequencies: liveWindFreqs, source: windSource } = useWindClimatology(anchor);
   const wind = useMemo(
     () =>
       computeWindSectors(

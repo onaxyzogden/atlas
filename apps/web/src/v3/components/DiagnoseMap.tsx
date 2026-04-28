@@ -21,6 +21,7 @@ import {
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
 import { useMatrixTogglesStore } from "../../store/matrixTogglesStore.js";
+import type { WindClimatologyStatus } from "../data/useWindClimatology.js";
 import css from "./DiagnoseMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
@@ -55,6 +56,8 @@ export interface DiagnoseMapProps {
   boundary?: GeoJSON.Polygon;
   /** Optional homestead-placement control rendered as a small map toolbar. */
   homestead?: HomesteadControl;
+  /** Provenance of the wind rose — drives a chip in the legend. */
+  windStatus?: WindClimatologyStatus;
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
@@ -73,6 +76,7 @@ export default function DiagnoseMap({
   zoom = 14,
   boundary,
   homestead,
+  windStatus,
   children,
 }: DiagnoseMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -270,6 +274,7 @@ export default function DiagnoseMap({
             <span className={css.legendRow}>
               <span className={css.swatch} style={{ background: "#5b7a8a" }} />
               Wind (prevailing rose)
+              {windStatus && <WindStatusChip status={windStatus} />}
             </span>
           )}
           {homestead?.legendNote && (
@@ -278,5 +283,28 @@ export default function DiagnoseMap({
         </div>
       )}
     </div>
+  );
+}
+
+const CHIP_LABEL: Record<WindClimatologyStatus, string> = {
+  live: "Live ERA5",
+  fallback: "Defaults",
+  loading: "Loading…",
+};
+
+function WindStatusChip({ status }: { status: WindClimatologyStatus }) {
+  return (
+    <span
+      className={`${css.windChip} ${css[`windChip_${status}`]}`}
+      title={
+        status === "live"
+          ? "Open-Meteo ERA5 reanalysis for this anchor"
+          : status === "fallback"
+            ? "Pedagogical Eastern-Ontario climatology (live fetch unavailable)"
+            : "Fetching ERA5 climatology…"
+      }
+    >
+      {CHIP_LABEL[status]}
+    </span>
   );
 }

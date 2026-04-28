@@ -60,6 +60,35 @@
   opacity: 0.85;
 }
 
+.windChip {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.windChip_live {
+  background: rgba(110, 168, 119, 0.22);
+  color: #a9d8b1;
+  border: 1px solid rgba(110, 168, 119, 0.45);
+}
+
+.windChip_fallback {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b87a;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+}
+
+.windChip_loading {
+  background: rgba(242, 237, 227, 0.10);
+  color: rgba(242, 237, 227, 0.7);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
 .toolbar {
   position: absolute;
   bottom: 28px;
