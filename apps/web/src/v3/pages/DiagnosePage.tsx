@@ -31,6 +31,7 @@ import { computeConcentricZones } from "../../lib/zones/concentric.js";
 import { getEffectiveAnchor } from "../../lib/anchor/effectiveAnchor.js";
 import { useHomesteadStore } from "../../store/homesteadStore.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { useWindClimatology } from "../data/useWindClimatology.js";
 import { downloadDiagnoseBrief } from "../lib/exportDiagnoseBrief.js";
 import type { DiagnoseCategoryId } from "../types.js";
 import css from "./DiagnosePage.module.css";
@@ -226,7 +227,15 @@ function DiagnoseOverlays({
     [homestead, boundary, centroid],
   );
   const sectors = useMemo(() => computeSolarSectors(anchor), [anchor]);
-  const wind = useMemo(() => computeWindSectors(anchor), [anchor]);
+  const { frequencies: liveWindFreqs, source: windSource } = useWindClimatology(anchor);
+  const wind = useMemo(
+    () =>
+      computeWindSectors(
+        anchor,
+        liveWindFreqs ? { frequencies: liveWindFreqs, sourceLabel: windSource } : undefined,
+      ),
+    [anchor, liveWindFreqs, windSource],
+  );
   const zones = useMemo(() => computeConcentricZones(anchor), [anchor]);
   return (
     <>

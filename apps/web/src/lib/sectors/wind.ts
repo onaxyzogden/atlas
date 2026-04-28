@@ -54,6 +54,8 @@ export interface ComputeWindSectorsOptions {
   frequencies?: Partial<Record<CompassCode, number>>;
   /** Outermost petal radius (the most-prevalent direction). Default 600m. */
   maxReachMeters?: number;
+  /** Provenance label stamped onto sources[]. Defaults to the pedagogical mock. */
+  sourceLabel?: string;
 }
 
 function isValidFrequency(v: unknown): v is number {
@@ -104,16 +106,13 @@ export function computeWindSectors(
     };
   });
 
+  const provenance = opts.sourceLabel
+    ?? "Eastern Ontario pedagogical climatology — W/NW prevailing (mock)";
+
   return {
     centroid: anchor,
     generatedAt: new Date().toISOString(),
     wedges,
-    sources: [
-      {
-        kind: "wind",
-        provenance:
-          "Eastern Ontario pedagogical climatology — W/NW prevailing (mock)",
-      },
-    ],
+    sources: [{ kind: "wind", provenance }],
   };
 }
