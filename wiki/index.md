@@ -56,6 +56,7 @@ Read this first at the start of every session.
 - [2026-04-27 Project Intake Map Centering](decisions/2026-04-27-project-intake-map-centering.md) — Boundary > manual coords > scoped geocode priority for new-project map; `centerLat`/`centerLng` added to `ProjectMetadata` (jsonb, no migration); wizard adds lat/lng inputs + paste shortcut + Recenter button + failure banner
 - [2026-04-28 Needs & Yields Dependency Graph](decisions/2026-04-28-needs-yields-dependency-graph.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/relationships` subpath, output→input routing required for design completion, `integrationScore` added to scoring engine
 - [2026-04-28 Temporal Slider — Succession Modelling](decisions/2026-04-28-temporal-slider-succession-modeling.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/succession` subpath with species growth curves, Year 1-50 canvas slider, `temporalCoherenceScore` + `successionScore` sub-dimensions
+- [2026-04-28 Atlas Wind-Prevailing Sector Overlay](decisions/2026-04-28-atlas-wind-prevailing-overlay.md) — Fourth Diagnose matrix toggle (eight-direction compass-petal rose); mock Eastern-Ontario climatology; `matrixTogglesStore` v4 → v5
 
 ## Design System
 - [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)
