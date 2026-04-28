@@ -24,6 +24,7 @@ Read this first at the start of every session.
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
 - [Feature Manifest](concepts/feature-manifest.md) — 30-section source-of-truth for features, phase gating, scaffolding generator
+- [Permaculture Alignment](concepts/permaculture-alignment.md) — 3 ethics + 12 Holmgren principles assessment from 2026-04-28 Permaculture Scholar dialogue; 4 represented / 6 partial / 3 missing; six prioritised recommendations
 
 ## Decisions
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
@@ -52,6 +53,8 @@ Read this first at the start of every session.
 - [2026-04-27 Demand Coefficient Tables](decisions/2026-04-27-demand-coefficient-tables.md) — New `@ogden/shared/demand` subpath: per-type water + electricity tables for structures/utilities/crops, additive `sumSiteDemand`, hydrology engine consumes placed entities (replaces 22%-of-rainfall placeholder)
 - [2026-04-27 Demand Model Round 2](decisions/2026-04-27-demand-model-round-2.md) — Closes round-1 deferrals: structure overrides + residential occupancy, livestock water module (FAO/NRCS coefficients + multi-species head splitting), NASA POWER irradiance threaded through solar rollup, PET-driven crop climate multiplier (clamped 0.7–1.5)
 - [2026-04-27 Project Intake Map Centering](decisions/2026-04-27-project-intake-map-centering.md) — Boundary > manual coords > scoped geocode priority for new-project map; `centerLat`/`centerLng` added to `ProjectMetadata` (jsonb, no migration); wizard adds lat/lng inputs + paste shortcut + Recenter button + failure banner
+- [2026-04-28 Needs & Yields Dependency Graph](decisions/2026-04-28-needs-yields-dependency-graph.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/relationships` subpath, output→input routing required for design completion, `integrationScore` added to scoring engine
+- [2026-04-28 Temporal Slider — Succession Modelling](decisions/2026-04-28-temporal-slider-succession-modeling.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/succession` subpath with species growth curves, Year 1-50 canvas slider, `temporalCoherenceScore` + `successionScore` sub-dimensions
 
 ## Design System
 - [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)
