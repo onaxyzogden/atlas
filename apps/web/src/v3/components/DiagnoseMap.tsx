@@ -256,7 +256,7 @@ export default function DiagnoseMap({
           {topography && (
             <span className={css.legendRow}>
               <span className={css.swatch} style={{ background: "#7a6a3f" }} />
-              Topography (contours)
+              Topography (contours + hillshade)
             </span>
           )}
           {sectors && (

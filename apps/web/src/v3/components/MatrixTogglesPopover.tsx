@@ -48,7 +48,7 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         />
         <span className={css.rowBody}>
           <span className={css.rowLabel}>Topography</span>
-          <span className={css.rowDesc}>Contours, slope, aspect, watersheds</span>
+          <span className={css.rowDesc}>Contours + hillshade relief</span>
         </span>
       </label>
 
