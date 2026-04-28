@@ -30,6 +30,7 @@ import { computeConcentricZones } from "../../lib/zones/concentric.js";
 import { getEffectiveAnchor } from "../../lib/anchor/effectiveAnchor.js";
 import { useHomesteadStore } from "../../store/homesteadStore.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { downloadDiagnoseBrief } from "../lib/exportDiagnoseBrief.js";
 import type { DiagnoseCategoryId } from "../types.js";
 import css from "./DiagnosePage.module.css";
 
@@ -89,7 +90,11 @@ export default function DiagnosePage() {
             onClick: () =>
               navigate({ to: "/v3/project/$projectId/design", params: { projectId: project.id } }),
           },
-          { label: "Download Brief", variant: "secondary", onClick: () => {} },
+          {
+            label: "Download Brief",
+            variant: "secondary",
+            onClick: () => downloadDiagnoseBrief(project),
+          },
         ]}
         aside={<ParcelPlaceholder caption={brief.parcelCaption} />}
       />
