@@ -73,6 +73,13 @@ All use `persist` middleware with localStorage. Key stores:
 - Branch coverage (`computeScores.ts`): **84.61%** (138 tests passing, target >80% met 2026-04-12)
 - All stores: **localStorage-only** (no backend sync — `serverId` field prepared but unused)
 - Auth guard: **commented out** for dev convenience
+- **Atlas v3.0 lifecycle shell** (parallel route tree, 2026-04-28) — all 7
+  stages live under `/v3/project/:id/{home,discover,diagnose,design,prove,build,operate,report}`.
+  Mock-only via [`useV3Project`](../../apps/web/src/v3/data/useV3Project.ts).
+  No MapboxGL imports anywhere in v3. v2 `/project/$projectId` workspace
+  remains mounted; cutover deferred to v3.1. See decision record
+  [`2026-04-28-atlas-v3-mock-first-lifecycle-shell.md`](../decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md)
+  and backlog [`apps/web/src/v3/BACKLOG-v3.1.md`](../../apps/web/src/v3/BACKLOG-v3.1.md).
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
