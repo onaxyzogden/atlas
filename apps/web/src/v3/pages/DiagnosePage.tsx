@@ -21,9 +21,11 @@ import type { Map as MaplibreMap } from "maplibre-gl";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
+import WindSectorsOverlay from "../components/overlays/WindSectorsOverlay.js";
 import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import HomesteadMarker from "../components/overlays/HomesteadMarker.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
+import { computeWindSectors } from "../../lib/sectors/wind.js";
 import { computeConcentricZones } from "../../lib/zones/concentric.js";
 import { getEffectiveAnchor } from "../../lib/anchor/effectiveAnchor.js";
 import { useHomesteadStore } from "../../store/homesteadStore.js";
@@ -209,11 +211,13 @@ function DiagnoseOverlays({
     [homestead, boundary, centroid],
   );
   const sectors = useMemo(() => computeSolarSectors(anchor), [anchor]);
+  const wind = useMemo(() => computeWindSectors(anchor), [anchor]);
   const zones = useMemo(() => computeConcentricZones(anchor), [anchor]);
   return (
     <>
       <TopographyOverlay map={map} />
       <SectorsOverlay map={map} sectors={sectors} />
+      <WindSectorsOverlay map={map} rose={wind} />
       <ZonesOverlay map={map} zones={zones} boundary={boundary} />
       {homestead && (
         <HomesteadMarker map={map} projectId={projectId} point={homestead} />

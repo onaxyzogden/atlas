@@ -82,7 +82,8 @@ export default function DiagnoseMap({
   const topography = useMatrixTogglesStore((s) => s.topography);
   const sectors = useMatrixTogglesStore((s) => s.sectors);
   const zones = useMatrixTogglesStore((s) => s.zones);
-  const anyOn = topography || sectors || zones;
+  const wind = useMatrixTogglesStore((s) => s.wind);
+  const anyOn = topography || sectors || zones || wind;
 
   // Derive viewport from boundary when available; fall back to props otherwise.
   const { initialCenter, effectiveCentroid } = useMemo(() => {
@@ -263,6 +264,12 @@ export default function DiagnoseMap({
             <span className={css.legendRow}>
               <span className={css.swatch} style={{ background: "#a85a3f" }} />
               Zones (use-frequency rings)
+            </span>
+          )}
+          {wind && (
+            <span className={css.legendRow}>
+              <span className={css.swatch} style={{ background: "#5b7a8a" }} />
+              Wind (prevailing rose)
             </span>
           )}
           {homestead?.legendNote && (

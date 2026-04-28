@@ -75,7 +75,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
 
   const [matrixOpen, setMatrixOpen] = useState(false);
   const matrixActiveCount = useMatrixTogglesStore(
-    (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones),
+    (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones) + Number(s.wind),
   );
 
   const stagesById = new Map(LIFECYCLE_STAGES.map((s) => [s.id, s]));
@@ -156,7 +156,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
               aria-expanded={matrixOpen}
               aria-haspopup="dialog"
               onClick={() => setMatrixOpen((open) => !open)}
-              title="Topography · Sectors · Zones overlay"
+              title="Topography · Sectors · Zones · Wind overlay"
             >
               <span className={css.utilityLabel}>
                 Matrix Toggles
@@ -167,7 +167,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                 )}
               </span>
               <span className={css.utilityDesc}>
-                Topography · Sectors · Zones overlay
+                Topography · Sectors · Zones · Wind overlay
               </span>
             </button>
           </li>

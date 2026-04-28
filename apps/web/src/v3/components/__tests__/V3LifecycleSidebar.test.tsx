@@ -28,8 +28,8 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("../../../store/matrixTogglesStore.js", () => {
-  // All three overlays on so the badge counts 3.
-  const state = { topography: true, sectors: true, zones: true };
+  // All four overlays on so the badge counts 4.
+  const state = { topography: true, sectors: true, zones: true, wind: true };
   return {
     useMatrixTogglesStore: (selector?: (s: typeof state) => unknown) =>
       selector ? selector(state) : state,
@@ -78,9 +78,9 @@ describe("V3LifecycleSidebar (Phase B)", () => {
 
   it("Matrix Toggles label shows the active count badge when overlays are on", () => {
     render(<V3LifecycleSidebar activeStage="home" />);
-    // Mock store has all three overlays on → count=3
+    // Mock store has all four overlays on → count=4
     const btn = screen.getByText(/Matrix Toggles/).closest("button")!;
-    expect(btn.textContent).toMatch(/3/);
+    expect(btn.textContent).toMatch(/4/);
   });
 
   it("renders P1 utilities as disabled buttons", () => {
