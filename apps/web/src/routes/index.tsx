@@ -101,13 +101,6 @@ const v3ComponentsDebugRoute = createRoute({
   component: V3ComponentsDebugPage,
 });
 
-// ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
-const v3EthicsReferenceRoute = createRoute({
-  getParentRoute: () => appShellRoute,
-  path: '/v3/reference/ethics',
-  component: EthicsReferencePage,
-});
-
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────
 // Lifecycle workspace: 7 stages + home, all under the V3ProjectLayout shell.
 // Phase 1 stubs render a placeholder per stage; later phases swap in real pages.
@@ -115,6 +108,14 @@ const v3ProjectLayoutRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/project/$projectId',
   component: V3ProjectLayout,
+});
+
+// ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
+// Nested under v3ProjectLayoutRoute so the lifecycle sidebar persists.
+const v3EthicsReferenceRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'reference/ethics',
+  component: EthicsReferencePage,
 });
 
 const v3IndexRoute = createRoute({
@@ -210,7 +211,6 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
-    v3EthicsReferenceRoute,
     v3ProjectLayoutRoute.addChildren([
       v3IndexRoute,
       v3HomeRoute,
@@ -221,6 +221,7 @@ const routeTree = rootRoute.addChildren([
       v3BuildRoute,
       v3OperateRoute,
       v3ReportRoute,
+      v3EthicsReferenceRoute,
     ]),
     notFoundRoute,
   ]),

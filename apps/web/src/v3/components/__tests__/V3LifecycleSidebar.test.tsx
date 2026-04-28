@@ -7,7 +7,7 @@
  *   - Phase group labels (Understand · Design · Live)
  *   - Renamed stage labels (Observe / Test / Steward / Evaluate)
  *   - P0 utilities surface real affordances:
- *       Ethics & Principles → real link to /v3/reference/ethics
+ *       Ethics & Principles → real link to /v3/project/$projectId/reference/ethics
  *       Matrix Toggles      → button that opens the popover
  *   - P1 utilities render disabled.
  *
@@ -28,7 +28,9 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("../../../store/matrixTogglesStore.js", () => {
-  const state = { topography: false, sectors: true, zones: false };
+  // topography=true so the active-count badge renders. Sectors/Zones are
+  // ignored in v3.1 — the sidebar only counts data-backed overlays.
+  const state = { topography: true, sectors: false, zones: false };
   return {
     useMatrixTogglesStore: (selector?: (s: typeof state) => unknown) =>
       selector ? selector(state) : state,
@@ -58,11 +60,11 @@ describe("V3LifecycleSidebar (Phase B)", () => {
     expect(screen.getByText("Evaluate")).toBeTruthy();
   });
 
-  it("Ethics & Principles is a real link to /v3/reference/ethics", () => {
+  it("Ethics & Principles is a real link nested under the project layout", () => {
     render(<V3LifecycleSidebar activeStage="home" />);
     const link = screen.getByText("Ethics & Principles").closest("a");
     expect(link).toBeTruthy();
-    expect(link?.getAttribute("href")).toBe("/v3/reference/ethics");
+    expect(link?.getAttribute("href")).toBe("/v3/project/$projectId/reference/ethics");
   });
 
   it("Matrix Toggles button opens the popover on click", () => {
@@ -77,7 +79,7 @@ describe("V3LifecycleSidebar (Phase B)", () => {
 
   it("Matrix Toggles label shows the active count badge when overlays are on", () => {
     render(<V3LifecycleSidebar activeStage="home" />);
-    // Mock store has sectors=true → count=1
+    // Mock store has topography=true → count=1
     const btn = screen.getByText(/Matrix Toggles/).closest("button")!;
     expect(btn.textContent).toMatch(/1/);
   });

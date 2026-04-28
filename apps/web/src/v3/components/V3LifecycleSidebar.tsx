@@ -74,9 +74,9 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const projectId = params.projectId ?? "mtc";
 
   const [matrixOpen, setMatrixOpen] = useState(false);
-  const matrixActiveCount = useMatrixTogglesStore(
-    (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones),
-  );
+  // Only count data-backed overlays (topography). Sectors/Zones are visibly
+  // disabled v3.2 placeholders — counting them would lie about active layers.
+  const matrixActiveCount = useMatrixTogglesStore((s) => Number(s.topography));
 
   const stagesById = new Map(LIFECYCLE_STAGES.map((s) => [s.id, s]));
 
@@ -137,7 +137,8 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         <ul className={css.utilityList}>
           <li className={css.utilityItem}>
             <Link
-              to="/v3/reference/ethics"
+              to="/v3/project/$projectId/reference/ethics"
+              params={{ projectId }}
               className={css.utilityBtn}
               title="Earth Care · People Care · Fair Share"
             >
