@@ -33,17 +33,12 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
-      // v3 (2026-04-28): Sectors are now data-backed (suncalc solar arcs).
-      // Zones still has no data layer — keep zones force-cleared.
-      // v1 → v3: clear both. v2 → v3: clear zones (sectors already false).
-      version: 3,
-      migrate: (persisted) => {
-        const s = (persisted ?? {}) as Partial<MatrixTogglesState>;
-        return {
-          ...s,
-          zones: false,
-        } as MatrixTogglesState;
-      },
+      // v4 (2026-04-28): Zones overlay is now data-backed (concentric
+      // use-frequency rings). All three toggles are live; the migrate
+      // is a no-op pass-through — earlier versions force-cleared zones,
+      // which remains a sensible default on upgrade.
+      version: 4,
+      migrate: (persisted) => persisted as MatrixTogglesState,
     },
   ),
 );

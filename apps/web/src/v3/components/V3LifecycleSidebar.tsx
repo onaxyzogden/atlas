@@ -74,11 +74,8 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const projectId = params.projectId ?? "mtc";
 
   const [matrixOpen, setMatrixOpen] = useState(false);
-  // Only count data-backed overlays. Topography (contour tiles) and Sectors
-  // (suncalc solar arcs) are live; Zones is still a v3.3 placeholder, so
-  // counting it would lie about active layers.
   const matrixActiveCount = useMatrixTogglesStore(
-    (s) => Number(s.topography) + Number(s.sectors),
+    (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones),
   );
 
   const stagesById = new Map(LIFECYCLE_STAGES.map((s) => [s.id, s]));

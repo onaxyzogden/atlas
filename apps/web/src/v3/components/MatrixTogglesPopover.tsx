@@ -17,7 +17,7 @@ export interface MatrixTogglesPopoverProps {
 
 export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { topography, sectors, toggle } = useMatrixTogglesStore();
+  const { topography, sectors, zones, toggle } = useMatrixTogglesStore();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -64,13 +64,15 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         </span>
       </label>
 
-      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.3">
-        <input type="checkbox" checked={false} disabled readOnly />
+      <label className={css.row}>
+        <input
+          type="checkbox"
+          checked={zones}
+          onChange={() => toggle("zones")}
+        />
         <span className={css.rowBody}>
-          <span className={css.rowLabel}>
-            Zones <span className={css.soonBadge}>v3.3</span>
-          </span>
-          <span className={css.rowDesc}>Use-frequency rings (0–5)</span>
+          <span className={css.rowLabel}>Zones</span>
+          <span className={css.rowDesc}>Use-frequency rings (Zone 0–5)</span>
         </span>
       </label>
 
@@ -82,7 +84,7 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         >
           {topography ? "Hide topography" : "Show topography"}
         </button>
-        <span className={css.note}>Topography &amp; Sectors live · Zones in v3.3</span>
+        <span className={css.note}>Topography · Sectors · Zones live</span>
       </div>
     </div>
   );

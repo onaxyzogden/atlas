@@ -19,7 +19,9 @@ import { useMemo } from "react";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
+import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
+import { computeConcentricZones } from "../../lib/zones/concentric.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DiagnosePage.module.css";
 
@@ -71,7 +73,11 @@ export default function DiagnosePage() {
           boundary={project.location.boundary}
         >
           {({ map, centroid }) => (
-            <DiagnoseOverlays map={map} centroid={centroid} />
+            <DiagnoseOverlays
+              map={map}
+              centroid={centroid}
+              boundary={project.location.boundary}
+            />
           )}
         </DiagnoseMap>
       </section>
@@ -110,15 +116,19 @@ export default function DiagnosePage() {
 function DiagnoseOverlays({
   map,
   centroid,
+  boundary,
 }: {
   map: import("maplibre-gl").Map;
   centroid: [number, number];
+  boundary?: GeoJSON.Polygon;
 }) {
   const sectors = useMemo(() => computeSolarSectors(centroid), [centroid]);
+  const zones = useMemo(() => computeConcentricZones(centroid), [centroid]);
   return (
     <>
       <TopographyOverlay map={map} />
       <SectorsOverlay map={map} sectors={sectors} />
+      <ZonesOverlay map={map} zones={zones} boundary={boundary} />
     </>
   );
 }
