@@ -11,7 +11,7 @@
  * Every category card carries the mandated "What this means" sentence.
  */
 
-import { useParams } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import StageHero from "../components/StageHero.js";
 import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
@@ -37,6 +37,7 @@ const FALLBACK_CENTROID: [number, number] = [-78.20, 44.50];
 
 export default function DiagnosePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
+  const navigate = useNavigate();
   const project = useV3Project(params.projectId);
 
   if (!project) {
@@ -68,7 +69,12 @@ export default function DiagnosePage() {
         verdict={brief.verdict}
         meta={brief.parcelCaption}
         actions={[
-          { label: "Open Design Studio", variant: "primary", onClick: () => {} },
+          {
+            label: "Open Design Studio",
+            variant: "primary",
+            onClick: () =>
+              navigate({ to: "/v3/project/$projectId/design", params: { projectId: project.id } }),
+          },
           { label: "Download Brief", variant: "secondary", onClick: () => {} },
         ]}
         aside={<ParcelPlaceholder caption={brief.parcelCaption} />}
