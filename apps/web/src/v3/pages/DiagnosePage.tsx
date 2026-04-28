@@ -24,6 +24,7 @@ import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
 import WindSectorsOverlay from "../components/overlays/WindSectorsOverlay.js";
 import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import HomesteadMarker from "../components/overlays/HomesteadMarker.js";
+import SpotlightPulse from "../components/overlays/SpotlightPulse.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
 import { computeWindSectors } from "../../lib/sectors/wind.js";
 import { computeConcentricZones } from "../../lib/zones/concentric.js";
@@ -66,12 +67,14 @@ export default function DiagnosePage() {
     : [];
 
   const mapRef = useRef<MaplibreMap | null>(null);
+  const [pulse, setPulse] = useState<{ point: [number, number]; key: number } | null>(null);
   const mapTarget = openDetail?.mapTarget;
   const onOpenOnMap = mapTarget
     ? () => {
         const map = mapRef.current;
         if (!map) return;
         map.flyTo({ center: mapTarget.center, zoom: mapTarget.zoom ?? 16, essential: true });
+        setPulse({ point: mapTarget.center, key: Date.now() });
         setOpenCategoryId(null);
       }
     : undefined;
@@ -106,7 +109,7 @@ export default function DiagnosePage() {
             Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
           </p>
         </header>
-        <DiagnosePageMap project={project} mapRef={mapRef} />
+        <DiagnosePageMap project={project} mapRef={mapRef} pulse={pulse} />
 
       </section>
 
@@ -159,9 +162,11 @@ export default function DiagnosePage() {
 function DiagnosePageMap({
   project,
   mapRef,
+  pulse,
 }: {
   project: import("../types.js").Project;
   mapRef: React.MutableRefObject<MaplibreMap | null>;
+  pulse: { point: [number, number]; key: number } | null;
 }) {
   const homestead = useHomesteadStore((s) => s.byProject[project.id]);
   const setHomestead = useHomesteadStore((s) => s.set);
@@ -185,13 +190,18 @@ function DiagnosePageMap({
       {({ map, centroid }) => {
         mapRef.current = map;
         return (
-          <DiagnoseOverlays
-            map={map}
-            centroid={centroid}
-            boundary={boundary}
-            projectId={project.id}
-            homestead={homestead}
-          />
+          <>
+            <DiagnoseOverlays
+              map={map}
+              centroid={centroid}
+              boundary={boundary}
+              projectId={project.id}
+              homestead={homestead}
+            />
+            {pulse && (
+              <SpotlightPulse key={pulse.key} map={map} point={pulse.point} />
+            )}
+          </>
         );
       }}
     </DiagnoseMap>
