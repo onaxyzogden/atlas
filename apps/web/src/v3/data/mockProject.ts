@@ -149,6 +149,30 @@ export const MTC_PROJECT: Project = {
       impact: "low",
       dueLabel: "Due in 2 weeks",
     },
+    {
+      id: "d1",
+      title: "Choose primary water source: well vs. rainwater capture",
+      type: "decision",
+      status: "todo",
+      impact: "high",
+      dueLabel: "Decide this week",
+    },
+    {
+      id: "d2",
+      title: "Approve final paddock count (3, 4, or 5)",
+      type: "decision",
+      status: "todo",
+      impact: "high",
+      dueLabel: "Decide this week",
+    },
+    {
+      id: "d3",
+      title: "Confirm enterprise mix with stakeholders",
+      type: "decision",
+      status: "todo",
+      impact: "medium",
+      dueLabel: "Decide next week",
+    },
   ],
 
   activity: [
