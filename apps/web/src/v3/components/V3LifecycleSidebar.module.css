@@ -1,0 +1,113 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.homeLink {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.homeLink:hover {
+  background: var(--color-bg);
+}
+
+.stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stageItem {
+  margin: 0;
+}
+
+.stageLink {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-text);
+  border: 1px solid transparent;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.stageLink:hover {
+  background: var(--color-bg);
+}
+
+.stageLink.active,
+.homeLink.active {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  box-shadow: inset 3px 0 0 0 var(--color-brand, #c4a265);
+}
+
+.stageIndex {
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.stageLink.active .stageIndex {
+  background: var(--color-brand, #c4a265);
+  color: #1f1d1a;
+  border-color: var(--color-brand, #c4a265);
+}
+
+.stageBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stageLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.stageDesc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
