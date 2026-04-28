@@ -220,4 +220,144 @@ export const MTC_PROJECT: Project = {
     capitalBurden: "moderate",
     confidence: "mixed",
   },
+
+  diagnose: {
+    verdict: {
+      status: "conditional",
+      label: "Conditional Opportunity",
+      score: 72,
+      scoreLabel: "Land Brief",
+      summary:
+        "This 128 ha parcel is suitable for the proposed teaching farm with several conditions. Soils, terrain, and climate are well matched; water reliability and wetland setbacks are the load-bearing constraints.",
+    },
+    parcelCaption: "Lot 42 · Wellington County · 128 ha",
+    categories: [
+      {
+        id: "regulatory",
+        title: "Regulatory",
+        status: "conditional",
+        statusLabel: "Conditional",
+        summary:
+          "Conservation Authority jurisdiction covers 14% of the parcel. A wetland-setback variance will be required for any structure within 30 m of the south marsh.",
+        meaning: "Most of the design footprint is buildable, but the south marsh edge will need permits before any construction.",
+        metric: { label: "CA jurisdiction", value: "14%" },
+      },
+      {
+        id: "soil",
+        title: "Soil",
+        status: "strong",
+        statusLabel: "Strong",
+        summary:
+          "Predominantly Guelph loam (62%) with a band of Burford sandy loam to the north. Drainage is good; pH 6.4–6.9; organic matter 4.1%.",
+        meaning: "Soils support the full crop and pasture mix in the design without major amendment.",
+        metric: { label: "Tilth", value: "Loam, OM 4.1%" },
+      },
+      {
+        id: "water",
+        title: "Water",
+        status: "at-risk",
+        statusLabel: "At Risk",
+        summary:
+          "Seasonal stream on the east boundary; groundwater test well yields 4 gpm — below the 8 gpm needed for full livestock load. No surface storage.",
+        meaning: "Reliable year-round water for the planned herd is not yet proven; storage or a deeper well will be required.",
+        metric: { label: "Well yield", value: "4 gpm" },
+      },
+      {
+        id: "terrain",
+        title: "Terrain",
+        status: "workable",
+        statusLabel: "Workable",
+        summary:
+          "Gentle 2–6% slope across the central plateau, opening to a 9% south-facing slope ideal for orchard and solar siting.",
+        meaning: "Terrain is friendly to grazing rotation and passive design; no slope work needed for primary uses.",
+        metric: { label: "Slope range", value: "2–9%" },
+      },
+      {
+        id: "ecology",
+        title: "Ecology",
+        status: "workable",
+        statusLabel: "Workable",
+        summary:
+          "Mixed deciduous edge along the north and west boundaries provides shelter and biodiversity. Two SAR-listed bird species observed seasonally.",
+        meaning: "Ecology is a net asset — preserve the hedgerows and stagger grazing to avoid disturbing nesting windows.",
+        metric: { label: "Hedgerow", value: "1.4 km" },
+      },
+      {
+        id: "climate",
+        title: "Climate",
+        status: "strong",
+        statusLabel: "Strong",
+        summary:
+          "USDA zone 5b. 165-day growing season, 870 mm annual precipitation evenly distributed. Late-spring frost risk is moderate.",
+        meaning: "Climate fully supports the planned mix; only frost-sensitive species need siting consideration.",
+        metric: { label: "Growing days", value: "165" },
+      },
+      {
+        id: "infrastructure",
+        title: "Infrastructure",
+        status: "conditional",
+        statusLabel: "Conditional",
+        summary:
+          "Paved road frontage on the west; three-phase power within 200 m. No on-parcel septic or potable supply; cell signal weak in the south basin.",
+        meaning: "Connection costs are reasonable for the main building zone; remote ops will need satellite or fixed-wireless backup.",
+        metric: { label: "Power", value: "3-phase, 200 m" },
+      },
+    ],
+    insights: [
+      {
+        id: "r1",
+        kind: "risk",
+        title: "Water yield insufficient for full herd",
+        detail: "Existing well delivers 4 gpm; full livestock plan needs 8 gpm. Without storage or a second well, summer drawdown will throttle stocking.",
+      },
+      {
+        id: "r2",
+        kind: "risk",
+        title: "Wetland setback compresses south footprint",
+        detail: "30 m no-build buffer along the south marsh removes ~3 ha from the usable building zone and shifts the planned barn north.",
+      },
+      {
+        id: "r3",
+        kind: "risk",
+        title: "Late-spring frost on south slope",
+        detail: "Cold-air drainage onto the lower south slope risks orchard bud loss in 2 of 5 years; consider higher placement or wind machines.",
+      },
+      {
+        id: "o1",
+        kind: "opportunity",
+        title: "South-facing slope ideal for orchard + solar",
+        detail: "9% south slope is uncommon at this latitude — strong fit for fruit, nuts, and a 30 kW solar array sharing the same aspect.",
+      },
+      {
+        id: "o2",
+        kind: "opportunity",
+        title: "Hedgerows already provide shelter belts",
+        detail: "1.4 km of established mixed-deciduous edge cuts the cost of windbreak planting and accelerates biodiversity targets.",
+      },
+      {
+        id: "o3",
+        kind: "opportunity",
+        title: "Conservation programs cosign wetland stewardship",
+        detail: "South marsh enrollment in the provincial wetland program qualifies for 60% setback-restoration cost share.",
+      },
+      {
+        id: "l1",
+        kind: "limitation",
+        title: "No on-parcel potable supply",
+        detail: "Drinking water for the teaching center will require either a deeper well or trucked supply until municipal connection is feasible.",
+      },
+      {
+        id: "l2",
+        kind: "limitation",
+        title: "Cell coverage weak in south basin",
+        detail: "Field-staff comms and IoT sensors in the south third will need satellite or fixed-wireless backhaul.",
+      },
+      {
+        id: "l3",
+        kind: "limitation",
+        title: "Seasonal access on east two-track",
+        detail: "Spring thaw renders the east access two-track impassable for 3–5 weeks; rotation plans must avoid east-only stocking in March.",
+      },
+    ],
+  },
 };

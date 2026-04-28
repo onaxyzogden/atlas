@@ -126,6 +126,50 @@ export interface Candidate {
   };
 }
 
+/** Diagnose category — one of the 7 plain-language land-brief sections. */
+export type DiagnoseCategoryId =
+  | "regulatory"
+  | "soil"
+  | "water"
+  | "terrain"
+  | "ecology"
+  | "climate"
+  | "infrastructure";
+
+export type CategoryStatus =
+  | "strong"
+  | "workable"
+  | "conditional"
+  | "at-risk"
+  | "blocked"
+  | "incomplete";
+
+export interface DiagnoseCategory {
+  id: DiagnoseCategoryId;
+  title: string;
+  status: CategoryStatus;
+  statusLabel: string; // e.g. "Workable", "Conditional"
+  summary: string; // 1–2 sentences of plain-language findings
+  meaning: string; // "What this means" sentence
+  metric?: { label: string; value: string }; // optional headline metric
+}
+
+/** Insight surfaced in the Risks / Opportunities / Limitations 3-panel row. */
+export type InsightKind = "risk" | "opportunity" | "limitation";
+export interface Insight {
+  id: string;
+  kind: InsightKind;
+  title: string;
+  detail: string;
+}
+
+export interface DiagnoseBrief {
+  verdict: Verdict;
+  parcelCaption?: string; // e.g. "Lot 42 · Wellington County"
+  categories: DiagnoseCategory[];
+  insights: Insight[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -142,4 +186,6 @@ export interface Project {
   activity: ActivityEntry[];
   readiness: ReadinessSummary;
   designElements?: DesignElement[];
+  /** Land brief data for /v3/project/:id/diagnose. */
+  diagnose?: DiagnoseBrief;
 }
