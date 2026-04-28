@@ -21,7 +21,11 @@ const VALID_EDGE: Edge = {
 
 describe('relationshipsStore', () => {
   beforeEach(() => {
-    useRelationshipsStore.setState({ edgesByProject: {}, viewActive: false });
+    useRelationshipsStore.setState({
+      edgesByProject: {},
+      pendingByProject: {},
+      viewActive: false,
+    });
   });
 
   it('round-trips a valid edge per project', () => {

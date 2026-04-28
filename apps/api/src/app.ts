@@ -43,6 +43,7 @@ import exportRoutes from './routes/exports/index.js';
 import portalRoutes from './routes/portal/index.js';
 import publicPortalRoutes from './routes/portal/public.js';
 import commentRoutes from './routes/comments/index.js';
+import relationshipRoutes from './routes/relationships/index.js';
 import memberRoutes from './routes/members/index.js';
 import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
@@ -149,6 +150,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(portalRoutes,        { prefix: '/api/v1/projects' });
   await app.register(publicPortalRoutes,  { prefix: '/api/v1/portal' });
   await app.register(commentRoutes,       { prefix: '/api/v1/projects' });
+  await app.register(relationshipRoutes,  { prefix: '/api/v1/projects' });
   await app.register(memberRoutes,        { prefix: '/api/v1/projects' });
   await app.register(organizationRoutes,  { prefix: '/api/v1/organizations' });
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });

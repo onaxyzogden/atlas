@@ -1,8 +1,8 @@
 /**
  * RelationshipsRail — small floating readout shown only when the
  * relationships view is active. Displays:
- * - Integration score (0–100, derived from `integrationScoreFromEdges`),
- *   tagged "weight 0 — informational" until Phase 3 lifts the weight.
+ * - Integration score (0–100, derived from `integrationScoreFromEdges`).
+ *   Phase 3 lifts the weight to 0.10 in the overall scoring pipeline.
  * - List of orphan outputs (resources produced but not routed to any
  *   sink) so the designer can see what's still leaking.
  *
@@ -48,7 +48,7 @@ export default function RelationshipsRail() {
         position: 'absolute',
         right: 12,
         bottom: 24,
-        zIndex: mapZIndex.toolPopover,
+        zIndex: mapZIndex.panel,
         width: 280,
         padding: 12,
         borderRadius: 10,
@@ -70,12 +70,12 @@ export default function RelationshipsRail() {
             fontSize: 10,
             padding: '2px 6px',
             borderRadius: 4,
-            background: 'rgba(196,162,101,0.15)',
-            color: '#c4a265',
+            background: 'rgba(138,200,172,0.18)',
+            color: '#8ac8ac',
           }}
-          title="Phase 2: informational only. Weight lifts to 0.10 in Phase 3."
+          title="Phase 3: edges contribute weight 0.10 to the overall score."
         >
-          weight 0
+          weight 0.10 · live
         </span>
       </div>
 

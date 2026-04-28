@@ -1,7 +1,7 @@
 # ADR: Needs & Yields dependency graph
 
 **Date:** 2026-04-28
-**Status:** accepted (Phase 2 of 3 — canvas edges shipped 2026-04-28 behind `FEATURE_RELATIONSHIPS`)
+**Status:** accepted (all 3 phases shipped 2026-04-28 behind `FEATURE_RELATIONSHIPS`; integration weight 0 → 0.10 in computeOverallScore)
 **Scope:** `packages/shared/src/demand/`, new `packages/shared/src/relationships/`, `apps/web/src/features/map/`, scoring engine
 
 ## Context

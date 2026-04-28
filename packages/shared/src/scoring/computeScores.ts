@@ -2337,18 +2337,21 @@ function computeCanadaSoilCapability(
 
 const WEIGHTS: Record<string, number> = {
   'Water Resilience': 0.15,
-  'Agricultural Suitability': 0.15,
-  'Regenerative Potential': 0.15,
+  'Agricultural Suitability': 0.13,
+  'Regenerative Potential': 0.12,
   'Buildability': 0.12,
   'Habitat Sensitivity': 0.10,
   'Stewardship Readiness': 0.18,
-  'Design Complexity': 0.10,
+  'Design Complexity': 0.05,
   'Community Suitability': 0.05,
-  // Phase 1 of the Needs & Yields rollout: dimension is computed and
-  // surfaced in the UI but contributes 0 to the overall score until the
-  // canvas-level edge editor lands. See ADR
+  // Phase 3 of the Needs & Yields rollout: edges are now persisted, so
+  // the dimension carries weight (0.10). The redistribution drew from
+  // Design Complexity (-0.05, P8 makes integration the precise measure
+  // of complexity), Regenerative Potential (-0.03, P6 cycling = engine
+  // of regeneration), and Agricultural Suitability (-0.02, P3 cycling
+  // boosts yields). See ADR
   // wiki/decisions/2026-04-28-needs-yields-dependency-graph.md.
-  'Ecological Integration': 0,
+  'Ecological Integration': 0.10,
 };
 
 export function computeOverallScore(scores: ScoredResult[], weights?: number[]): number {

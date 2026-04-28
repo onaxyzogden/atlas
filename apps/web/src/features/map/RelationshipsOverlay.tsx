@@ -20,13 +20,16 @@ import { FLAGS } from '@ogden/shared';
 import {
   OUTPUTS_BY_TYPE,
   INPUTS_BY_TYPE,
+  closedLoops,
   type EntityType,
   type Edge,
   type ResourceType,
+  type PlacedEntity,
 } from '@ogden/shared/relationships';
 import { mapZIndex } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { useRelationshipsStore } from '../../store/relationshipsStore.js';
+import { useRelationshipsSync } from './useRelationshipsSync.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import {
   useAllPlacedEntities,
@@ -38,6 +41,10 @@ const SOCKET_RING = 26;
 const OUTPUT_COLOR = 'var(--color-confidence-high, #8ac8ac)';
 const INPUT_COLOR = 'var(--color-confidence-medium, #d8b96b)';
 const EDGE_COLOR = 'rgba(196, 162, 101, 0.85)';
+// Edges that participate in a closed loop render brighter / thicker — visual
+// confirmation of Holmgren P6 (Produce No Waste) on the canvas.
+const EDGE_CYCLE_COLOR = 'rgba(138, 200, 172, 1)';
+const EDGE_CYCLE_GLOW = 'rgba(138, 200, 172, 0.45)';
 const INVALID_FLASH_MS = 600;
 
 type SocketKind = 'output' | 'input';
@@ -160,6 +167,8 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
   const addEdge = useRelationshipsStore((s) => s.addEdge);
   const removeEdge = useRelationshipsStore((s) => s.removeEdge);
   const placed = useAllPlacedEntities();
+
+  useRelationshipsSync(activeProjectId);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [version, setVersion] = useState(0);
@@ -288,6 +297,23 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
     );
   };
 
+  // Set of "fromId>toId" keys for every directed edge that participates in
+  // at least one closed loop. The graph is small (hundreds of entities at
+  // most), so recomputing on edge change is cheap.
+  const cycleEdgeKeys = useMemo(() => {
+    const entitiesForCycle: PlacedEntity[] = placed.map((p) => ({ id: p.id, type: p.type }));
+    const loops = closedLoops(entitiesForCycle, edges);
+    const keys = new Set<string>();
+    for (const cycle of loops) {
+      for (let i = 0; i < cycle.length; i += 1) {
+        const from = cycle[i] as string;
+        const to = cycle[(i + 1) % cycle.length] as string;
+        keys.add(`${from}>${to}`);
+      }
+    }
+    return keys;
+  }, [placed, edges]);
+
   const renderedEdges = edges
     .map((edge) => {
       const from = entityById.get(edge.fromId);
@@ -298,7 +324,8 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
       if (fromIdx === -1 || toIdx === -1) return null;
       const fp = socketPosition(from.x, from.y, fromIdx, from.outputs.length, 'output');
       const tp = socketPosition(to.x, to.y, toIdx, to.inputs.length, 'input');
-      return { edge, fp, tp };
+      const inCycle = cycleEdgeKeys.has(`${edge.fromId}>${edge.toId}`);
+      return { edge, fp, tp, inCycle };
     })
     .filter((v): v is NonNullable<typeof v> => v !== null);
 
@@ -309,7 +336,7 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: mapZIndex.toolPopover,
+        zIndex: mapZIndex.panel,
         pointerEvents: 'none',
       }}
     >
@@ -319,21 +346,35 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
         style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
         aria-hidden="true"
       >
-        {renderedEdges.map(({ edge, fp, tp }, i) => (
+        {renderedEdges.map(({ edge, fp, tp, inCycle }, i) => (
           <g key={i}>
+            {inCycle && (
+              <line
+                x1={fp.x}
+                y1={fp.y}
+                x2={tp.x}
+                y2={tp.y}
+                stroke={EDGE_CYCLE_GLOW}
+                strokeWidth={6}
+                strokeLinecap="round"
+                pointerEvents="none"
+              />
+            )}
             <line
               x1={fp.x}
               y1={fp.y}
               x2={tp.x}
               y2={tp.y}
-              stroke={EDGE_COLOR}
-              strokeWidth={2}
+              stroke={inCycle ? EDGE_CYCLE_COLOR : EDGE_COLOR}
+              strokeWidth={inCycle ? 3 : 2}
               strokeLinecap="round"
               style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
               onClick={() => handleEdgeClick(edge)}
             >
               <title>
-                {`${edge.fromOutput} → ${edge.toInput} (click to remove)`}
+                {inCycle
+                  ? `${edge.fromOutput} → ${edge.toInput} · in closed loop (click to remove)`
+                  : `${edge.fromOutput} → ${edge.toInput} (click to remove)`}
               </title>
             </line>
           </g>

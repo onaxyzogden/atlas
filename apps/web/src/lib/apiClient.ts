@@ -518,7 +518,33 @@ export const api = {
         `/api/v1/climate-analysis/${projectId}/comfort-grid/compute`,
       ),
   },
+
+  relationships: {
+    list: (projectId: string) =>
+      request<RelationshipRecord[]>('GET', `/api/v1/projects/${projectId}/relationships`),
+
+    create: (projectId: string, edge: RelationshipEdgePayload) =>
+      request<RelationshipRecord>('POST', `/api/v1/projects/${projectId}/relationships`, edge),
+
+    delete: (projectId: string, edgeId: string) =>
+      request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
+  },
 };
+
+export interface RelationshipEdgePayload {
+  fromId: string;
+  fromOutput: string;
+  toId: string;
+  toInput: string;
+  ratio?: number;
+}
+
+export interface RelationshipRecord extends RelationshipEdgePayload {
+  id: string;
+  createdAt: string;
+}
+
+export { ApiError };
 
 export interface SolarExposureResponse {
   geojson: GeoJSON.FeatureCollection;
