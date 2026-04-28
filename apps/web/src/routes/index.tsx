@@ -35,6 +35,7 @@ import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
+import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -90,6 +91,13 @@ const compareCandidatesRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => ({
     ids: typeof search.ids === 'string' ? search.ids : '',
   }),
+});
+
+// ─── Atlas 3.0 — debug route (Phase 2 storybook gate) ───────────────────
+const v3ComponentsDebugRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/components',
+  component: V3ComponentsDebugPage,
 });
 
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────
@@ -193,6 +201,7 @@ const routeTree = rootRoute.addChildren([
     newProjectRoute,
     projectRoute,
     compareCandidatesRoute,
+    v3ComponentsDebugRoute,
     v3ProjectLayoutRoute.addChildren([
       v3IndexRoute,
       v3HomeRoute,

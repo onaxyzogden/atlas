@@ -8,7 +8,7 @@
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
 import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
-import V3DecisionRail from "./components/V3DecisionRail.js";
+import DecisionRail from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
 import type { LifecycleStage } from "./types.js";
 
@@ -40,13 +40,7 @@ export default function V3ProjectLayout() {
   return (
     <LandOsShell
       sidebar={<V3LifecycleSidebar activeStage={activeStage} />}
-      rail={
-        <V3DecisionRail
-          stage={activeStage}
-          projectName={project?.name ?? "No project"}
-          verdictLabel={project?.verdict.label ?? "—"}
-        />
-      }
+      rail={<DecisionRail stage={activeStage} project={project} />}
     >
       <Outlet />
     </LandOsShell>
