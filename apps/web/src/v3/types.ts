@@ -101,6 +101,31 @@ export interface ReadinessSummary {
   confidence: ConfidenceTier;
 }
 
+/** Candidate property surfaced on the Discover board. */
+export interface Candidate {
+  id: string;
+  name: string;
+  region: string;
+  acreage: number;
+  acreageUnit: "ac" | "ha";
+  priceUsd: number;
+  isNew?: boolean;
+  /** Coarse verdict shown as the headline pill. */
+  verdict: VerdictStatus;
+  verdictLabel: string;
+  /** "Education", "Conservation", "Mixed Use", etc. */
+  fitTags: string[];
+  /** Headline blocker shown front-of-card. */
+  topBlocker: { title: string; severity: BlockerSeverity };
+  /** Four headline sub-scores (0–100). */
+  subScores: {
+    landFit: number;
+    water: number;
+    regulation: number;
+    access: number;
+  };
+}
+
 export interface Project {
   id: string;
   name: string;
