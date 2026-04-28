@@ -151,6 +151,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 
 .utilityList {
@@ -166,6 +167,22 @@
   margin: 0;
 }
 
+.utilityCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: var(--color-brand, #c4a265);
+  color: #1f1d1a;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .utilityBtn {
   width: 100%;
   display: flex;
@@ -178,6 +195,8 @@
   border: 1px solid transparent;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   transition: background 120ms ease, border-color 120ms ease;
   font-family: inherit;
 }

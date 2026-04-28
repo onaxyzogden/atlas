@@ -85,6 +85,14 @@ The Scholar's verdict, in one line: **the lifecycle axis is correct, but four of
 
 ## Implications for Phase B (sidebar code changes)
 
+**Status:** shipped 2026-04-28. Phase A landed the rename + grouping + footer scaffold in commit `61c5f9a`; this pass (Phase B) wired the P0 utilities to real surfaces:
+
+- **Ethics & Principles** → static reference page at `/v3/reference/ethics` ([apps/web/src/v3/pages/EthicsReferencePage.tsx](../../apps/web/src/v3/pages/EthicsReferencePage.tsx)) listing the 3 ethics + 12 Holmgren principles. Cheapest version per the plan; live scorer deferred.
+- **Matrix Toggles** → popover ([apps/web/src/v3/components/MatrixTogglesPopover.tsx](../../apps/web/src/v3/components/MatrixTogglesPopover.tsx)) backed by `matrixTogglesStore` (Topography / Sectors / Zones booleans, `localStorage`-persisted). Active count badge surfaces in the sidebar label. Map overlay layer that consumes the toggles ships in v3.1.
+- **Plant Database / Climate Tools** remain disabled "Coming soon" P1 placeholders.
+
+Render coverage in [apps/web/src/v3/components/__tests__/V3LifecycleSidebar.test.tsx](../../apps/web/src/v3/components/__tests__/V3LifecycleSidebar.test.tsx).
+
 The Scholar's input lands cleanly on **Shape 4** of the four shapes pre-listed in the plan: combined label refresh + grouping + bottom utility nav.
 
 Specifically:

@@ -36,6 +36,7 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
+import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -98,6 +99,13 @@ const v3ComponentsDebugRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/components',
   component: V3ComponentsDebugPage,
+});
+
+// ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
+const v3EthicsReferenceRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/reference/ethics',
+  component: EthicsReferencePage,
 });
 
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────
@@ -202,6 +210,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    v3EthicsReferenceRoute,
     v3ProjectLayoutRoute.addChildren([
       v3IndexRoute,
       v3HomeRoute,

@@ -15,8 +15,11 @@
  * stubs, P1 entries are disabled "Coming soon" placeholders.
  */
 
+import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { LIFECYCLE_STAGES, type BannerId } from "../../features/land-os/lifecycle.js";
+import { useMatrixTogglesStore } from "../../store/matrixTogglesStore.js";
+import MatrixTogglesPopover from "./MatrixTogglesPopover.js";
 import css from "./V3LifecycleSidebar.module.css";
 
 const V3_STAGE_LABELS: Record<BannerId, string> = {
@@ -51,18 +54,15 @@ const PHASE_GROUPS: PhaseGroup[] = [
   { id: "live", label: "Live", stageIds: ["build", "operate", "report"] },
 ];
 
-interface UtilityLink {
+interface DisabledLink {
   id: string;
   label: string;
   description: string;
-  priority: "p0" | "p1";
 }
 
-const UTILITY_LINKS: UtilityLink[] = [
-  { id: "ethics", label: "Ethics & Principles", description: "Earth Care · People Care · Fair Share", priority: "p0" },
-  { id: "matrix", label: "Matrix Toggles", description: "Topography · Sectors · Zones overlay", priority: "p0" },
-  { id: "plants", label: "Plant Database", description: "Species lookup & guilds", priority: "p1" },
-  { id: "climate", label: "Climate Tools", description: "Hardiness · solar angle · weather", priority: "p1" },
+const DISABLED_LINKS: DisabledLink[] = [
+  { id: "plants", label: "Plant Database", description: "Species lookup & guilds" },
+  { id: "climate", label: "Climate Tools", description: "Hardiness · solar angle · weather" },
 ];
 
 export interface V3LifecycleSidebarProps {
@@ -72,6 +72,11 @@ export interface V3LifecycleSidebarProps {
 export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? "mtc";
+
+  const [matrixOpen, setMatrixOpen] = useState(false);
+  const matrixActiveCount = useMatrixTogglesStore(
+    (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones),
+  );
 
   const stagesById = new Map(LIFECYCLE_STAGES.map((s) => [s.id, s]));
 
@@ -130,25 +135,59 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
       <footer className={css.footer}>
         <span className={css.eyebrow}>Reference</span>
         <ul className={css.utilityList}>
-          {UTILITY_LINKS.map((link) => {
-            const disabled = link.priority === "p1";
-            return (
-              <li key={link.id} className={css.utilityItem}>
-                <button
-                  type="button"
-                  className={`${css.utilityBtn} ${disabled ? css.utilityDisabled : ""}`}
-                  disabled={disabled}
-                  title={disabled ? "Coming soon" : link.description}
-                >
-                  <span className={css.utilityLabel}>{link.label}</span>
-                  <span className={css.utilityDesc}>
-                    {disabled ? "Coming soon" : link.description}
+          <li className={css.utilityItem}>
+            <Link
+              to="/v3/reference/ethics"
+              className={css.utilityBtn}
+              title="Earth Care · People Care · Fair Share"
+            >
+              <span className={css.utilityLabel}>Ethics &amp; Principles</span>
+              <span className={css.utilityDesc}>
+                Earth Care · People Care · Fair Share
+              </span>
+            </Link>
+          </li>
+
+          <li className={css.utilityItem}>
+            <button
+              type="button"
+              className={css.utilityBtn}
+              aria-expanded={matrixOpen}
+              aria-haspopup="dialog"
+              onClick={() => setMatrixOpen((open) => !open)}
+              title="Topography · Sectors · Zones overlay"
+            >
+              <span className={css.utilityLabel}>
+                Matrix Toggles
+                {matrixActiveCount > 0 && (
+                  <span className={css.utilityCount} aria-label={`${matrixActiveCount} active`}>
+                    {matrixActiveCount}
                   </span>
-                </button>
-              </li>
-            );
-          })}
+                )}
+              </span>
+              <span className={css.utilityDesc}>
+                Topography · Sectors · Zones overlay
+              </span>
+            </button>
+          </li>
+
+          {DISABLED_LINKS.map((link) => (
+            <li key={link.id} className={css.utilityItem}>
+              <button
+                type="button"
+                className={`${css.utilityBtn} ${css.utilityDisabled}`}
+                disabled
+                title="Coming soon"
+              >
+                <span className={css.utilityLabel}>{link.label}</span>
+                <span className={css.utilityDesc}>Coming soon</span>
+              </button>
+            </li>
+          ))}
         </ul>
+        {matrixOpen && (
+          <MatrixTogglesPopover onClose={() => setMatrixOpen(false)} />
+        )}
       </footer>
     </nav>
   );
