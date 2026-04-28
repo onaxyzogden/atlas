@@ -1,7 +1,7 @@
 # ADR: Needs & Yields dependency graph
 
 **Date:** 2026-04-28
-**Status:** proposed
+**Status:** accepted (Phase 1 of 3 — shared package shipped 2026-04-28)
 **Scope:** `packages/shared/src/demand/`, new `packages/shared/src/relationships/`, `apps/web/src/features/map/`, scoring engine
 
 ## Context

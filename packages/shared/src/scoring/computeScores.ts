@@ -2344,6 +2344,11 @@ const WEIGHTS: Record<string, number> = {
   'Stewardship Readiness': 0.18,
   'Design Complexity': 0.10,
   'Community Suitability': 0.05,
+  // Phase 1 of the Needs & Yields rollout: dimension is computed and
+  // surfaced in the UI but contributes 0 to the overall score until the
+  // canvas-level edge editor lands. See ADR
+  // wiki/decisions/2026-04-28-needs-yields-dependency-graph.md.
+  'Ecological Integration': 0,
 };
 
 export function computeOverallScore(scores: ScoredResult[], weights?: number[]): number {

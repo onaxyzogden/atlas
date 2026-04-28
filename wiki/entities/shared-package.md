@@ -62,10 +62,30 @@ on `HydroInputs`; when any are present, irrigation demand uses the rollup. PET-d
 solar/wind/RH data is present (else 1.0 — preserves the 22%-of-rainfall fallback
 back-compat for callers without placed entities).
 
+## Relationships subpath (`@ogden/shared/relationships`)
+**Added 2026-04-28.** Separate entry point — not re-exported from the main
+barrel. Phase 1 of the Needs & Yields rollout: data model + algorithms only,
+no UI. Decision:
+[decisions/2026-04-28-needs-yields-dependency-graph.md](../decisions/2026-04-28-needs-yields-dependency-graph.md).
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | 13-value `ResourceType` const tuple (manure, greywater, compost, biomass, seed, forage, mulch, heat, shade, pollination, pest_predation, nutrient_uptake, surface_water); `ResourceTypeSchema` Zod enum; `EdgeSchema` (`fromId`, `fromOutput`, `toId`, `toInput`, optional `ratio` ∈ [0,1]); `PlacedEntity<T>` interface; `RelationshipsState` value object (`{ entities, edges }`). |
+| `catalog.ts` | `EntityType` union across the four demand-module enums (StructureType ∪ UtilityType ∪ CropAreaType ∪ LivestockSpecies); `OUTPUTS_BY_TYPE` and `INPUTS_BY_TYPE` `Record<EntityType, ResourceType[]>` seeds covering all 54 entity types. `Record<EntityType, …>` makes adding a new enum value a typecheck failure here, enforcing exhaustiveness. |
+| `flow.ts` | Pure-function Edge CRUD over `RelationshipsState` — `addEdge`, `removeEdge`, `addEntity`, `removeEntity`, `emptyState()`. `addEdge` validates via `EdgeSchema.parse`. |
+| `cycle.ts` | `orphanOutputs(entities, edges)` (catalog outputs no edge routes), `unmetInputs(entities, edges)` (catalog inputs no edge supplies), `closedLoops(entities, edges)` (Johnson-style DFS, returns canonical-rotation cycles deduplicated), `integrationScoreFromEdges(entities, edges)` ∈ [0,1] (vacuously 1 when no outputs declared). |
+| `index.ts` | Barrel re-export of all four modules. |
+
+Scoring engine slot: `WEIGHTS['Ecological Integration'] = 0` in
+[computeScores.ts](../../packages/shared/src/scoring/computeScores.ts) — the
+dimension is reserved at weight 0 in Phase 1 so existing project overall
+scores don't shift; weight is moved up when Phase 2 (canvas edge editor)
+ships and the dimension is computed for every project.
+
 ## Notes
 - All schemas use strict Zod validation
 - `WithConfidence` mixin applied to all analysis outputs
 - Export from barrel `src/index.ts` — always add new schemas here
 - The scoring subpath is a separate entry point (`./scoring`); consumers
   import from `@ogden/shared/scoring`, not the root.
-- Same convention for `./demand` and `./manifest`.
+- Same convention for `./demand`, `./manifest`, and `./relationships`.
