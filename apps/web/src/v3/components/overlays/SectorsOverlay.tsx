@@ -121,8 +121,20 @@ export default function SectorsOverlay({ map, sectors }: SectorsOverlayProps) {
       });
     };
 
-    if (map.isStyleLoaded()) ensure();
-    else map.once("load", ensure);
+    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
+    if (ready()) {
+      ensure();
+      return;
+    }
+    const onStyle = () => {
+      if (!ready()) return;
+      ensure();
+      map.off("styledata", onStyle);
+    };
+    map.on("styledata", onStyle);
+    return () => {
+      map.off("styledata", onStyle);
+    };
   }, [map, data, visible]);
 
   return null;
