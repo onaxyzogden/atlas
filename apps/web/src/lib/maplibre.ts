@@ -49,6 +49,9 @@ export const TERRAIN_DEM_URL = `https://api.maptiler.com/tiles/terrain-rgb-v2/ti
 /** Vector contour lines (source-layer: "contour", property: "ele") */
 export const CONTOUR_TILES_URL = `https://api.maptiler.com/tiles/contours/tiles.json?key=${key}`;
 
+/** OpenMapTiles vector tiles — source-layers include "water" (polygon) and "waterway" (line) */
+export const OPENMAPTILES_TILES_URL = `https://api.maptiler.com/tiles/v3/tiles.json?key=${key}`;
+
 /** Whether a MapTiler API key is configured */
 export const hasMapToken = !!key;
 

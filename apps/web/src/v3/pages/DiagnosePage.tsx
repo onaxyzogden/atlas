@@ -22,6 +22,7 @@ import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
 import WindSectorsOverlay from "../components/overlays/WindSectorsOverlay.js";
+import WaterOverlay from "../components/overlays/WaterOverlay.js";
 import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import HomesteadMarker from "../components/overlays/HomesteadMarker.js";
 import SpotlightPulse from "../components/overlays/SpotlightPulse.js";
@@ -256,6 +257,7 @@ function DiagnoseOverlays({
   return (
     <>
       <TopographyOverlay map={map} />
+      <WaterOverlay map={map} />
       <SectorsOverlay map={map} sectors={sectors} />
       <WindSectorsOverlay map={map} rose={wind} />
       <ZonesOverlay map={map} zones={zones} boundary={boundary} />

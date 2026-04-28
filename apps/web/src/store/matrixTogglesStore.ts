@@ -13,13 +13,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type MatrixToggleKey = 'topography' | 'sectors' | 'zones' | 'wind';
+export type MatrixToggleKey = 'topography' | 'sectors' | 'zones' | 'wind' | 'water';
 
 export interface MatrixTogglesState {
   topography: boolean;
   sectors: boolean;
   zones: boolean;
   wind: boolean;
+  water: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -31,16 +32,23 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       sectors: false,
       zones: false,
       wind: false,
+      water: false,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
-        set(() => ({ topography: value, sectors: value, zones: value, wind: value })),
+        set(() => ({
+          topography: value,
+          sectors: value,
+          zones: value,
+          wind: value,
+          water: value,
+        })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
-      // v5 (2026-04-28): added wind-prevailing rose toggle. Migrate fills
-      // `wind: false` for any v4 persisted state so existing users don't
-      // inherit a noisy fourth overlay on first load.
-      version: 5,
+      // v6 (2026-04-28): added water (streams + surface water) toggle.
+      // v5 added wind-prevailing rose. Migrate seeds `false` for any
+      // missing key so existing users don't inherit unfamiliar overlays.
+      version: 6,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -48,6 +56,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           sectors: prev.sectors ?? false,
           zones: prev.zones ?? false,
           wind: prev.wind ?? false,
+          water: prev.water ?? false,
         } as MatrixTogglesState;
       },
     },

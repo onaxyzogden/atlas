@@ -87,7 +87,8 @@ export default function DiagnoseMap({
   const sectors = useMatrixTogglesStore((s) => s.sectors);
   const zones = useMatrixTogglesStore((s) => s.zones);
   const wind = useMatrixTogglesStore((s) => s.wind);
-  const anyOn = topography || sectors || zones || wind;
+  const water = useMatrixTogglesStore((s) => s.water);
+  const anyOn = topography || sectors || zones || wind || water;
 
   // Derive viewport from boundary when available; fall back to props otherwise.
   const { initialCenter, effectiveCentroid } = useMemo(() => {
@@ -275,6 +276,12 @@ export default function DiagnoseMap({
               <span className={css.swatch} style={{ background: "#5b7a8a" }} />
               Wind (prevailing rose)
               {windStatus && <WindStatusChip status={windStatus} />}
+            </span>
+          )}
+          {water && (
+            <span className={css.legendRow}>
+              <span className={css.swatch} style={{ background: "#5b8aa8" }} />
+              Water (streams · surface water)
             </span>
           )}
           {homestead?.legendNote && (

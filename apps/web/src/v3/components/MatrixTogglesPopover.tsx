@@ -17,7 +17,7 @@ export interface MatrixTogglesPopoverProps {
 
 export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { topography, sectors, zones, wind, toggle } = useMatrixTogglesStore();
+  const { topography, sectors, zones, wind, water, toggle } = useMatrixTogglesStore();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -88,6 +88,18 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         </span>
       </label>
 
+      <label className={css.row}>
+        <input
+          type="checkbox"
+          checked={water}
+          onChange={() => toggle("water")}
+        />
+        <span className={css.rowBody}>
+          <span className={css.rowLabel}>Water</span>
+          <span className={css.rowDesc}>Streams, ponds, wetlands</span>
+        </span>
+      </label>
+
       <div className={css.foot}>
         <button
           type="button"
@@ -96,7 +108,7 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         >
           {topography ? "Hide topography" : "Show topography"}
         </button>
-        <span className={css.note}>Topography · Sectors · Zones · Wind live</span>
+        <span className={css.note}>Topography · Sectors · Zones · Wind · Water live</span>
       </div>
     </div>
   );
