@@ -413,6 +413,38 @@ export const MTC_PROJECT: Project = {
         mapHint:
           "On the site map, the topography overlay shows the gentle plateau in the north and the steeper south slope opening toward the parcel boundary.",
       },
+      soil: {
+        whatsHappening:
+          "Predominantly Guelph loam (62%) across the central plateau and southern slope, with a band of Burford sandy loam tracing the north third. Drainage is good across both. Sample pH ranges 6.4–6.9 with 4.1% organic matter parcel-wide.",
+        whatsWrong:
+          "Nothing load-bearing. The Burford band drains faster and dries out earlier in summer, so any annuals planted there will need either irrigation or a drought-tolerant rotation.",
+        whatNext:
+          "Treat the Guelph loam plateau as the primary cropping + intensive grazing footprint. Reserve the Burford band for perennial pasture or windbreak species that tolerate sandier soils. No amendment is required before year 1.",
+        metrics: [
+          { label: "Dominant soil", value: "Guelph loam", hint: "62% of parcel" },
+          { label: "Secondary band", value: "Burford sandy loam", hint: "north third" },
+          { label: "pH range", value: "6.4 – 6.9", hint: "near-ideal for the planned mix" },
+          { label: "Organic matter", value: "4.1%", hint: "above 3% baseline" },
+        ],
+        mapHint:
+          "On the site map, the loam-to-sandy-loam transition runs roughly along the north edge of the central plateau.",
+      },
+      climate: {
+        whatsHappening:
+          "USDA hardiness zone 5b. ~165-day growing season with 870 mm annual precipitation evenly spread through the year. Late-spring frost remains a moderate risk on the lower south slope two years in five.",
+        whatsWrong:
+          "The frost-pocket risk on the south basin is the only climate constraint that bites the design — frost-sensitive species (early-flowering fruit, tender annuals) shouldn't sit in the lower band.",
+        whatNext:
+          "Plant frost-sensitive perennials on the upper south slope above the cold-air drainage; reserve the basin for cold-tolerant rotations. Budget for frost cover or wind machines in years where bud-break tracks early.",
+        metrics: [
+          { label: "Hardiness zone", value: "5b", hint: "USDA reference" },
+          { label: "Growing days", value: "165", hint: "annual avg" },
+          { label: "Precipitation", value: "870 mm/yr", hint: "evenly distributed" },
+          { label: "Late-frost risk", value: "Moderate", hint: "lower south slope, 2 of 5 years" },
+        ],
+        mapHint:
+          "On the site map, the frost-risk band aligns with the lower south slope visible under the topography overlay.",
+      },
     },
   },
 
