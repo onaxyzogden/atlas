@@ -331,6 +331,7 @@ export const MTC_PROJECT: Project = {
         kind: "risk",
         title: "Wetland setback compresses south footprint",
         detail: "30 m no-build buffer along the south marsh removes ~3 ha from the usable building zone and shifts the planned barn north.",
+        categoryIds: ["regulatory"],
       },
       {
         id: "r3",
@@ -351,6 +352,7 @@ export const MTC_PROJECT: Project = {
         kind: "opportunity",
         title: "Hedgerows already provide shelter belts",
         detail: "1.4 km of established mixed-deciduous edge cuts the cost of windbreak planting and accelerates biodiversity targets.",
+        categoryIds: ["ecology"],
       },
       {
         id: "o3",
@@ -371,6 +373,7 @@ export const MTC_PROJECT: Project = {
         kind: "limitation",
         title: "Cell coverage weak in south basin",
         detail: "Field-staff comms and IoT sensors in the south third will need satellite or fixed-wireless backhaul.",
+        categoryIds: ["infrastructure"],
       },
       {
         id: "l3",
@@ -444,6 +447,54 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the frost-risk band aligns with the lower south slope visible under the topography overlay.",
+      },
+      regulatory: {
+        whatsHappening:
+          "The Conservation Authority claims jurisdiction over 14% of the parcel — the south marsh and a 30 m buffer ring around it. The remaining 86% sits under standard rural-zoning rules with no overlay constraints.",
+        whatsWrong:
+          "The proposed barn footprint sits 22 m from the marsh edge, inside the 30 m no-build buffer. Any structure within the buffer requires a setback variance, and the variance process adds 8–14 weeks before ground can be broken.",
+        whatNext:
+          "Either shift the barn 8 m north of the buffer line (cleanest path) or file the variance early so the permit clock runs in parallel with detailed design. Confirm wetland-program enrolment in the same filing — it qualifies the parcel for restoration cost-share.",
+        metrics: [
+          { label: "CA jurisdiction", value: "14%", hint: "south marsh + 30 m buffer" },
+          { label: "Wetland setback", value: "30 m", hint: "no-build buffer" },
+          { label: "Current barn offset", value: "22 m", hint: "8 m short of rule" },
+          { label: "Variance lead time", value: "8–14 weeks", hint: "if filed" },
+        ],
+        mapHint:
+          "On the site map, the regulated band traces the south marsh; the planned barn marker sits inside the buffer ring.",
+      },
+      ecology: {
+        whatsHappening:
+          "1.4 km of mixed-deciduous hedgerow runs along the north and west boundaries, with a smaller patch along the east two-track. Two species-at-risk birds (Bobolink, Eastern Meadowlark) have been observed nesting in the central plateau grasses between mid-May and late July.",
+        whatsWrong:
+          "Nothing structural — the ecology is a net asset. The only watch-out is grazing schedule: a tight rotation that hits the central plateau in June would disturb active nests and put SAR compliance at risk.",
+        whatNext:
+          "Preserve the existing hedgerows as windbreaks (no clearing required). Stagger the rotation so the central plateau is not grazed mid-May through late July, or fence a 4 ha nesting refuge inside that window. Document the SAR observation in the operations plan for traceability.",
+        metrics: [
+          { label: "Hedgerow length", value: "1.4 km", hint: "north + west boundaries" },
+          { label: "SAR species", value: "2", hint: "Bobolink, Eastern Meadowlark" },
+          { label: "Nesting window", value: "Mid-May – Late July", hint: "avoid central-plateau grazing" },
+          { label: "Refuge needed", value: "~4 ha", hint: "if rotation cannot shift" },
+        ],
+        mapHint:
+          "On the site map, the hedgerow polygons trace the north and west boundary; the SAR observation pins cluster on the central plateau.",
+      },
+      infrastructure: {
+        whatsHappening:
+          "Paved road frontage runs the full length of the west boundary. Three-phase power sits within 200 m of the planned building zone. There is no on-parcel septic, no potable supply, and cell signal drops to one bar in the south basin.",
+        whatsWrong:
+          "Servicing is workable but not free. Power extension and a Class 4 septic together run $35–55K, and remote ops in the south basin will not have reliable cell — staff comms and IoT sensors there need a fallback link.",
+        whatNext:
+          "Budget the power extension and septic in the year-1 capital plan. Confirm a fixed-wireless or satellite backhaul for the south basin before placing field-staff stations there. Drinking water depends on the well decision in the Water category — keep the two plans in sync.",
+        metrics: [
+          { label: "Power", value: "3-phase, 200 m", hint: "extension required" },
+          { label: "Road frontage", value: "Paved, west", hint: "no upgrade needed" },
+          { label: "On-parcel septic", value: "None", hint: "Class 4 system needed" },
+          { label: "Cell coverage", value: "Weak (south basin)", hint: "satellite/fixed-wireless backup" },
+        ],
+        mapHint:
+          "On the site map, the power extension would run east from the west road frontage; the south basin (cell-weak zone) sits below the frost band.",
       },
     },
   },
