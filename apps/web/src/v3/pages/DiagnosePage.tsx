@@ -21,8 +21,11 @@ import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
 import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
+import HomesteadMarker from "../components/overlays/HomesteadMarker.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
 import { computeConcentricZones } from "../../lib/zones/concentric.js";
+import { getEffectiveAnchor } from "../../lib/anchor/effectiveAnchor.js";
+import { useHomesteadStore } from "../../store/homesteadStore.js";
 import { useV3Project } from "../data/useV3Project.js";
 import type { DiagnoseCategoryId } from "../types.js";
 import css from "./DiagnosePage.module.css";
@@ -78,18 +81,8 @@ export default function DiagnosePage() {
             Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
           </p>
         </header>
-        <DiagnoseMap
-          centroid={FALLBACK_CENTROID}
-          boundary={project.location.boundary}
-        >
-          {({ map, centroid }) => (
-            <DiagnoseOverlays
-              map={map}
-              centroid={centroid}
-              boundary={project.location.boundary}
-            />
-          )}
-        </DiagnoseMap>
+        <DiagnosePageMap project={project} />
+
       </section>
 
       <section className={css.section} aria-label="Land categories">
@@ -137,22 +130,66 @@ export default function DiagnosePage() {
   );
 }
 
+function DiagnosePageMap({ project }: { project: import("../types.js").Project }) {
+  const homestead = useHomesteadStore((s) => s.byProject[project.id]);
+  const setHomestead = useHomesteadStore((s) => s.set);
+  const clearHomestead = useHomesteadStore((s) => s.clear);
+  const boundary = project.location.boundary;
+
+  return (
+    <DiagnoseMap
+      centroid={FALLBACK_CENTROID}
+      boundary={boundary}
+      homestead={{
+        enabled: true,
+        hasHomestead: !!homestead,
+        onPlace: (p) => setHomestead(project.id, p),
+        onClear: () => clearHomestead(project.id),
+        legendNote: homestead
+          ? "Anchored at homestead"
+          : "Anchored at parcel centroid",
+      }}
+    >
+      {({ map, centroid }) => (
+        <DiagnoseOverlays
+          map={map}
+          centroid={centroid}
+          boundary={boundary}
+          projectId={project.id}
+          homestead={homestead}
+        />
+      )}
+    </DiagnoseMap>
+  );
+}
+
 function DiagnoseOverlays({
   map,
   centroid,
   boundary,
+  projectId,
+  homestead,
 }: {
   map: import("maplibre-gl").Map;
   centroid: [number, number];
   boundary?: GeoJSON.Polygon;
+  projectId: string;
+  homestead: [number, number] | undefined;
 }) {
-  const sectors = useMemo(() => computeSolarSectors(centroid), [centroid]);
-  const zones = useMemo(() => computeConcentricZones(centroid), [centroid]);
+  const anchor = useMemo(
+    () => getEffectiveAnchor(homestead, boundary, centroid),
+    [homestead, boundary, centroid],
+  );
+  const sectors = useMemo(() => computeSolarSectors(anchor), [anchor]);
+  const zones = useMemo(() => computeConcentricZones(anchor), [anchor]);
   return (
     <>
       <TopographyOverlay map={map} />
       <SectorsOverlay map={map} sectors={sectors} />
       <ZonesOverlay map={map} zones={zones} boundary={boundary} />
+      {homestead && (
+        <HomesteadMarker map={map} projectId={projectId} point={homestead} />
+      )}
     </>
   );
 }

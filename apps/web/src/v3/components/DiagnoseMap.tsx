@@ -33,6 +33,19 @@ export interface DiagnoseMapChildProps {
   centroid: [number, number];
 }
 
+export interface HomesteadControl {
+  /** Render a "Place homestead" / "Move" / "Clear" toolbar. */
+  enabled: boolean;
+  /** True when a homestead is currently set — flips the toolbar verbs. */
+  hasHomestead: boolean;
+  /** Called with map lngLat when user clicks during placement mode. */
+  onPlace: (point: [number, number]) => void;
+  /** Called when user clears the homestead. */
+  onClear: () => void;
+  /** Caption appended to the legend ("· anchored at homestead"/"· at centroid"). */
+  legendNote?: string;
+}
+
 export interface DiagnoseMapProps {
   /** Fallback center if `boundary` is absent. */
   centroid: [number, number];
@@ -40,6 +53,8 @@ export interface DiagnoseMapProps {
   zoom?: number;
   /** Parcel boundary polygon. When present, drives viewport + centroid. */
   boundary?: GeoJSON.Polygon;
+  /** Optional homestead-placement control rendered as a small map toolbar. */
+  homestead?: HomesteadControl;
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
@@ -57,10 +72,12 @@ export default function DiagnoseMap({
   centroid,
   zoom = 14,
   boundary,
+  homestead,
   children,
 }: DiagnoseMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
+  const [placing, setPlacing] = useState(false);
 
   const topography = useMatrixTogglesStore((s) => s.topography);
   const sectors = useMatrixTogglesStore((s) => s.sectors);
@@ -169,6 +186,24 @@ export default function DiagnoseMap({
     };
   }, [map, boundary]);
 
+  // Placement mode: one-shot map click → onPlace, then exit. Crosshair cursor
+  // is set on the canvas while active; restored on exit/cleanup.
+  useEffect(() => {
+    if (!map || !placing || !homestead) return;
+    const canvas = map.getCanvas();
+    const prevCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const onClick = (e: maplibregl.MapMouseEvent) => {
+      homestead.onPlace([e.lngLat.lng, e.lngLat.lat]);
+      setPlacing(false);
+    };
+    map.once("click", onClick);
+    return () => {
+      canvas.style.cursor = prevCursor;
+      map.off("click", onClick);
+    };
+  }, [map, placing, homestead]);
+
   if (!hasMapToken) {
     return (
       <div className={css.wrap}>
@@ -181,6 +216,34 @@ export default function DiagnoseMap({
     <div className={css.wrap}>
       <div ref={containerRef} className={css.map} />
       {map && children?.({ map, centroid: effectiveCentroid })}
+      {homestead?.enabled && (
+        <div className={css.toolbar}>
+          <button
+            type="button"
+            className={css.toolBtn}
+            data-active={placing ? "true" : "false"}
+            onClick={() => setPlacing((p) => !p)}
+          >
+            {placing
+              ? "Click map…"
+              : homestead.hasHomestead
+                ? "Move homestead"
+                : "Place homestead"}
+          </button>
+          {homestead.hasHomestead && (
+            <button
+              type="button"
+              className={css.toolBtn}
+              onClick={() => {
+                setPlacing(false);
+                homestead.onClear();
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
       {anyOn && (
         <div className={css.legend} aria-hidden="true">
           <span className={css.legendTitle}>Active overlays</span>
@@ -201,6 +264,9 @@ export default function DiagnoseMap({
               <span className={css.swatch} style={{ background: "#a85a3f" }} />
               Zones (use-frequency rings)
             </span>
+          )}
+          {homestead?.legendNote && (
+            <span className={css.legendNote}>{homestead.legendNote}</span>
           )}
         </div>
       )}

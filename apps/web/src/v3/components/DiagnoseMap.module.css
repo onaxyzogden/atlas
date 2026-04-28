@@ -52,6 +52,47 @@
   flex: 0 0 auto;
 }
 
+.legendNote {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(242, 237, 227, 0.18);
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 28px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+
+.toolBtn {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(31, 29, 26, 0.85);
+  color: #f2ede3;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.toolBtn:hover {
+  background: rgba(31, 29, 26, 0.95);
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.toolBtn[data-active="true"] {
+  background: #c4a265;
+  color: #1f1d1a;
+  border-color: #c4a265;
+}
+
 .empty {
   display: flex;
   align-items: center;
