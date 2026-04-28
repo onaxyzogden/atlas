@@ -170,6 +170,52 @@ export interface DiagnoseBrief {
   insights: Insight[];
 }
 
+/** A candidate land use scored against the project vision. */
+export type FitQuality = "excellent" | "good" | "moderate" | "poor";
+export interface BestUse {
+  id: string;
+  useType: string; // e.g. "Educational Farm", "Conservation Reserve"
+  visionFit: number; // 0–100
+  fitQuality: FitQuality;
+  note?: string; // 1-line elaboration
+}
+
+/** Single bar in the Vision Fit Analysis stack. */
+export interface VisionFitBar {
+  category: string; // e.g. "Educational Goals", "Regenerative Practices"
+  value: number; // 0–100
+  benchmark?: number; // optional comparator (e.g. industry baseline)
+  note?: string;
+}
+
+/** Headline execution stats — the cost of building this design. */
+export interface ExecutionStat {
+  id: string;
+  label: string; // "Annual Labor", "Full-Time Equivalents", etc.
+  value: string; // already-formatted, e.g. "$1.4M", "4.2 FTE"
+  hint?: string; // tiny sub-label e.g. "incl. seasonal"
+  tone?: "neutral" | "good" | "watch" | "warning";
+}
+
+export type DesignRuleStatus = "pass" | "warning" | "blocked";
+/** A single Pass/Warning/Blocked row in the Design Rules & Safety table. */
+export interface DesignRule {
+  id: string;
+  rule: string; // e.g. "Water source within 100 m of paddock"
+  status: DesignRuleStatus;
+  detail: string; // 1-sentence reason for the status
+}
+
+export interface ProveBrief {
+  /** Optional override; falls back to project.verdict (typically the same). */
+  verdict?: Verdict;
+  blockers: Blocker[]; // headline 4 blocking issues
+  bestUses: BestUse[];
+  visionFit: VisionFitBar[];
+  execution: ExecutionStat[];
+  designRules: DesignRule[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -188,4 +234,6 @@ export interface Project {
   designElements?: DesignElement[];
   /** Land brief data for /v3/project/:id/diagnose. */
   diagnose?: DiagnoseBrief;
+  /** Feasibility brief for /v3/project/:id/prove. */
+  prove?: ProveBrief;
 }

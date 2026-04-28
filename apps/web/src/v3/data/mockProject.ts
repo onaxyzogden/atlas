@@ -360,4 +360,142 @@ export const MTC_PROJECT: Project = {
       },
     ],
   },
+
+  prove: {
+    blockers: [
+      {
+        id: "pb1",
+        title: "Livestock water source not placed",
+        severity: "blocking",
+        description: "All four paddocks are stocked at 1.2 AU/ha but no water point is on the design.",
+        recommendedAction: "Place at least one trough or pond per paddock with a max walk of 200 m.",
+        actionLabel: "Fix on Map",
+      },
+      {
+        id: "pb2",
+        title: "Cash flow turns negative in year 3",
+        severity: "blocking",
+        description: "Year-3 peak cash deficit is $480K against a $250K reserve.",
+        recommendedAction: "Phase the orchard or reduce staff onboarding pace before year 3.",
+        actionLabel: "Adjust Phasing",
+      },
+      {
+        id: "pb3",
+        title: "South building zone violates wetland setback",
+        severity: "warning",
+        description: "Proposed barn footprint sits 22 m from the south marsh; rule is 30 m.",
+        recommendedAction: "Shift the barn 8 m north or apply for a 22 m setback variance.",
+        actionLabel: "Move on Map",
+      },
+      {
+        id: "pb4",
+        title: "Education program staffing undefined",
+        severity: "incomplete",
+        description: "Teaching FTE counts are not yet entered for years 2–5.",
+        recommendedAction: "Add teaching staff to the operations plan to size labor reality.",
+        actionLabel: "Add Roles",
+      },
+    ],
+
+    bestUses: [
+      {
+        id: "u1",
+        useType: "Educational Farm + Teaching Center",
+        visionFit: 92,
+        fitQuality: "excellent",
+        note: "Anchor use — full alignment with vision, terrain, and ecology.",
+      },
+      {
+        id: "u2",
+        useType: "Rotational Grazing (Cattle + Sheep)",
+        visionFit: 84,
+        fitQuality: "excellent",
+        note: "Soils and slope support the rotation; needs water placement to unlock.",
+      },
+      {
+        id: "u3",
+        useType: "Mixed Orchard + Solar Array",
+        visionFit: 76,
+        fitQuality: "good",
+        note: "9% south slope is a strong fit; mind late-spring frost on lower band.",
+      },
+      {
+        id: "u4",
+        useType: "Conservation & Wetland Restoration",
+        visionFit: 71,
+        fitQuality: "good",
+        note: "South marsh enrolment qualifies for 60% cost-share on stewardship.",
+      },
+      {
+        id: "u5",
+        useType: "Annual Cash Crops",
+        visionFit: 48,
+        fitQuality: "moderate",
+        note: "Possible on the central plateau but conflicts with rotational grazing plan.",
+      },
+      {
+        id: "u6",
+        useType: "Industrial Greenhouse",
+        visionFit: 22,
+        fitQuality: "poor",
+        note: "Off-vision; capital intensity and water demand exceed parcel capacity.",
+      },
+    ],
+
+    visionFit: [
+      { category: "Educational Goals", value: 92, benchmark: 75, note: "Curriculum + parcel are well matched." },
+      { category: "Regenerative Practices", value: 88, benchmark: 70, note: "Rotation + perennials drive soil health." },
+      { category: "Ecological Integrity", value: 84, benchmark: 70, note: "Hedgerows + setbacks preserve habitat." },
+      { category: "Community & Cultural Fit", value: 79, benchmark: 70, note: "Public events fit county zoning." },
+      { category: "Economic Viability", value: 63, benchmark: 70, note: "Year-3 cash gap is the headline risk." },
+      { category: "Operational Realism", value: 58, benchmark: 70, note: "FTE plan is incomplete; rework required." },
+    ],
+
+    execution: [
+      { id: "e1", label: "Annual Labor", value: "$680K", hint: "incl. seasonal", tone: "watch" },
+      { id: "e2", label: "Full-Time Equivalents", value: "4.2 FTE", hint: "stable yr 4+", tone: "neutral" },
+      { id: "e3", label: "Total Investment", value: "$3.1M", hint: "phased over 5 yr", tone: "watch" },
+      { id: "e4", label: "Peak Cash Need", value: "$480K", hint: "year 3", tone: "warning" },
+      { id: "e5", label: "Capital & Ops Intensity", value: "Moderate", hint: "manageable with phasing", tone: "good" },
+    ],
+
+    designRules: [
+      {
+        id: "dr1",
+        rule: "Livestock water within 200 m of every paddock",
+        status: "blocked",
+        detail: "Paddocks A, B, C, D are stocked but no water point is placed.",
+      },
+      {
+        id: "dr2",
+        rule: "30 m wetland setback on all structures",
+        status: "warning",
+        detail: "Barn sits 22 m from south marsh — needs variance or relocation.",
+      },
+      {
+        id: "dr3",
+        rule: "Maximum 12% slope under buildings",
+        status: "pass",
+        detail: "All structures sit on the 2–6% central plateau.",
+      },
+      {
+        id: "dr4",
+        rule: "Hedgerow buffer preserved on north & west boundaries",
+        status: "pass",
+        detail: "Existing 1.4 km hedgerow is fully retained in the design.",
+      },
+      {
+        id: "dr5",
+        rule: "Emergency egress within 300 m of every occupied building",
+        status: "warning",
+        detail: "Cabin cluster is 380 m from the secondary access path.",
+      },
+      {
+        id: "dr6",
+        rule: "Rotational grazing maintains 30-day rest minimum",
+        status: "pass",
+        detail: "4-paddock rotation plan delivers 36-day average rest.",
+      },
+    ],
+  },
 };
