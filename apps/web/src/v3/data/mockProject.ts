@@ -324,6 +324,7 @@ export const MTC_PROJECT: Project = {
         kind: "risk",
         title: "Water yield insufficient for full herd",
         detail: "Existing well delivers 4 gpm; full livestock plan needs 8 gpm. Without storage or a second well, summer drawdown will throttle stocking.",
+        categoryIds: ["water"],
       },
       {
         id: "r2",
@@ -336,12 +337,14 @@ export const MTC_PROJECT: Project = {
         kind: "risk",
         title: "Late-spring frost on south slope",
         detail: "Cold-air drainage onto the lower south slope risks orchard bud loss in 2 of 5 years; consider higher placement or wind machines.",
+        categoryIds: ["terrain", "climate"],
       },
       {
         id: "o1",
         kind: "opportunity",
         title: "South-facing slope ideal for orchard + solar",
         detail: "9% south slope is uncommon at this latitude — strong fit for fruit, nuts, and a 30 kW solar array sharing the same aspect.",
+        categoryIds: ["terrain"],
       },
       {
         id: "o2",
@@ -354,12 +357,14 @@ export const MTC_PROJECT: Project = {
         kind: "opportunity",
         title: "Conservation programs cosign wetland stewardship",
         detail: "South marsh enrollment in the provincial wetland program qualifies for 60% setback-restoration cost share.",
+        categoryIds: ["water"],
       },
       {
         id: "l1",
         kind: "limitation",
         title: "No on-parcel potable supply",
         detail: "Drinking water for the teaching center will require either a deeper well or trucked supply until municipal connection is feasible.",
+        categoryIds: ["water"],
       },
       {
         id: "l2",
@@ -372,8 +377,43 @@ export const MTC_PROJECT: Project = {
         kind: "limitation",
         title: "Seasonal access on east two-track",
         detail: "Spring thaw renders the east access two-track impassable for 3–5 weeks; rotation plans must avoid east-only stocking in March.",
+        categoryIds: ["terrain"],
       },
     ],
+    categoryDetails: {
+      water: {
+        whatsHappening:
+          "A seasonal stream traces the east boundary, and one test well on the central plateau yields 4 gpm. There is no surface storage on the parcel, and no rainwater capture is currently designed.",
+        whatsWrong:
+          "The full grazing plan needs ~8 gpm to stock four paddocks year-round; the well alone is half that. Drinking water for the teaching center is not yet sourced at all.",
+        whatNext:
+          "Either deepen the existing well, drill a second, or pair the well with a 20–40 m³ rainwater + tank system. Confirm potable plan before any built structures are sited.",
+        metrics: [
+          { label: "Well yield", value: "4 gpm", hint: "tested Mar 2026" },
+          { label: "Required for full herd", value: "8 gpm", hint: "1.2 AU/ha × 4 paddocks" },
+          { label: "Surface storage", value: "0 m³", hint: "no ponds or tanks" },
+          { label: "Annual precipitation", value: "870 mm", hint: "evenly distributed" },
+        ],
+        mapHint:
+          "On the site map, the seasonal stream sits along the east boundary line; the test well marker is near the central plateau.",
+      },
+      terrain: {
+        whatsHappening:
+          "Slope ranges from 2–6% across the central plateau and opens to a 9% south-facing slope on the southern third. Aspect is broadly south to south-southwest. The south basin shows mild cold-air drainage on still nights.",
+        whatsWrong:
+          "The 9% south slope is a strong solar/orchard asset, but the lower band is a frost pocket two springs in five. East two-track is seasonally impassable through spring thaw.",
+        whatNext:
+          "Place orchard and solar on the upper south slope (above the frost band); preserve the central plateau for buildings and rotational grazing. Plan rotations to avoid east-only stocking in March.",
+        metrics: [
+          { label: "Plateau slope", value: "2–6%", hint: "central footprint" },
+          { label: "South slope", value: "9%", hint: "orchard + solar candidate" },
+          { label: "Aspect", value: "S / SSW", hint: "ideal for sun-loving systems" },
+          { label: "Frost risk band", value: "Lower south", hint: "2 of 5 years" },
+        ],
+        mapHint:
+          "On the site map, the topography overlay shows the gentle plateau in the north and the steeper south slope opening toward the parcel boundary.",
+      },
+    },
   },
 
   prove: {

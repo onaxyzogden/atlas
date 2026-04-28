@@ -15,7 +15,8 @@ import { useParams } from "@tanstack/react-router";
 import StageHero from "../components/StageHero.js";
 import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
-import { useMemo } from "react";
+import DiagnoseCategoryDrawer from "../components/DiagnoseCategoryDrawer.js";
+import { useMemo, useState } from "react";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
@@ -23,6 +24,7 @@ import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
 import { computeConcentricZones } from "../../lib/zones/concentric.js";
 import { useV3Project } from "../data/useV3Project.js";
+import type { DiagnoseCategoryId } from "../types.js";
 import css from "./DiagnosePage.module.css";
 
 // Fallback center used only when the project carries no boundary polygon.
@@ -46,6 +48,14 @@ export default function DiagnosePage() {
   const risks = brief.insights.filter((i) => i.kind === "risk");
   const opportunities = brief.insights.filter((i) => i.kind === "opportunity");
   const limitations = brief.insights.filter((i) => i.kind === "limitation");
+
+  const [openCategoryId, setOpenCategoryId] = useState<DiagnoseCategoryId | null>(null);
+  const categoryDetails = brief.categoryDetails ?? {};
+  const openCategory = openCategoryId ? brief.categories.find((c) => c.id === openCategoryId) : null;
+  const openDetail = openCategoryId ? categoryDetails[openCategoryId] : undefined;
+  const openInsights = openCategoryId
+    ? brief.insights.filter((i) => i.categoryIds?.includes(openCategoryId))
+    : [];
 
   return (
     <div className={css.page}>
@@ -91,7 +101,12 @@ export default function DiagnosePage() {
         </header>
         <div className={css.grid}>
           {brief.categories.map((c) => (
-            <CategoryCard key={c.id} category={c} onView={() => {}} />
+            <CategoryCard
+              key={c.id}
+              category={c}
+              hasDetail={!!categoryDetails[c.id]}
+              onView={(id) => setOpenCategoryId(id)}
+            />
           ))}
         </div>
       </section>
@@ -109,6 +124,15 @@ export default function DiagnosePage() {
           <InsightPanel kind="limitation" items={limitations} />
         </div>
       </section>
+
+      {openCategory && openDetail && (
+        <DiagnoseCategoryDrawer
+          category={openCategory}
+          detail={openDetail}
+          insights={openInsights}
+          onClose={() => setOpenCategoryId(null)}
+        />
+      )}
     </div>
   );
 }

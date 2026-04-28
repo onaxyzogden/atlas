@@ -173,6 +173,32 @@ export interface Insight {
   kind: InsightKind;
   title: string;
   detail: string;
+  /**
+   * Optional category tags. Untagged insights still appear in the R/O/L row;
+   * tagged insights are additionally surfaced in the matching CategoryDetail
+   * drawer (Water, Terrain, etc.). v3.2 only consumes this in the drawer.
+   */
+  categoryIds?: DiagnoseCategoryId[];
+}
+
+/** Supporting metric row inside a CategoryDetail drawer. */
+export interface CategoryMetric {
+  label: string;
+  value: string;
+  hint?: string; // optional sub-label, e.g. "tested Apr 2026"
+}
+
+/**
+ * Drill-down content for a Diagnose category. Authored only for categories
+ * that have a real story to tell (v3.2: water + terrain). Categories without
+ * a CategoryDetail render their card with the View → button disabled.
+ */
+export interface CategoryDetail {
+  whatsHappening: string; // 2-3 sentences — the raw observation
+  whatsWrong: string;     // 1-2 sentences — what's load-bearing or at risk
+  whatNext: string;       // 1-2 sentences — recommended action
+  metrics?: CategoryMetric[];
+  mapHint?: string;       // 1 sentence — what to look for on the site map
 }
 
 export interface DiagnoseBrief {
@@ -180,6 +206,11 @@ export interface DiagnoseBrief {
   parcelCaption?: string; // e.g. "Lot 42 · Wellington County"
   categories: DiagnoseCategory[];
   insights: Insight[];
+  /**
+   * Per-category drill-down content, keyed by DiagnoseCategoryId. Sparse —
+   * only authored categories render the View → drawer in v3.2.
+   */
+  categoryDetails?: Partial<Record<DiagnoseCategoryId, CategoryDetail>>;
 }
 
 /** A candidate land use scored against the project vision. */

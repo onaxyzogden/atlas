@@ -114,4 +114,9 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
-.viewBtn:hover { text-decoration: underline; }
+.viewBtn:hover:not(:disabled) { text-decoration: underline; }
+.viewBtn:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  font-style: italic;
+}

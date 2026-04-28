@@ -20,9 +20,11 @@ const STATUS_TONE: Record<CategoryStatus, "good" | "watch" | "warning" | "blocke
 export interface CategoryCardProps {
   category: DiagnoseCategory;
   onView?: (id: DiagnoseCategory["id"]) => void;
+  /** When false, the View → button renders disabled with "Detail soon". */
+  hasDetail?: boolean;
 }
 
-export default function CategoryCard({ category, onView }: CategoryCardProps) {
+export default function CategoryCard({ category, onView, hasDetail = true }: CategoryCardProps) {
   const tone = STATUS_TONE[category.status];
   return (
     <article className={`${css.card} ${css[`tone-${tone}`]}`}>
@@ -46,8 +48,14 @@ export default function CategoryCard({ category, onView }: CategoryCardProps) {
       </div>
 
       <footer className={css.footer}>
-        <button type="button" className={css.viewBtn} onClick={() => onView?.(category.id)}>
-          View →
+        <button
+          type="button"
+          className={css.viewBtn}
+          onClick={() => hasDetail && onView?.(category.id)}
+          disabled={!hasDetail}
+          title={hasDetail ? undefined : "Detail coming soon"}
+        >
+          {hasDetail ? "View →" : "Detail soon"}
         </button>
       </footer>
     </article>
