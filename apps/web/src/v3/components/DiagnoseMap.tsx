@@ -148,8 +148,24 @@ export default function DiagnoseMap({
       });
     };
 
-    if (map.isStyleLoaded()) ensure();
-    else map.once("load", ensure);
+    // `isStyleLoaded()` stays false until raster tile sources finish, and
+    // `once("load")` may have already fired by the time this effect mounts.
+    // Gate on the presence of style layers via `styledata` instead — it fires
+    // as soon as the style spec is parsed, which is all we need to add ours.
+    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
+    if (ready()) {
+      ensure();
+      return;
+    }
+    const onStyle = () => {
+      if (!ready()) return;
+      ensure();
+      map.off("styledata", onStyle);
+    };
+    map.on("styledata", onStyle);
+    return () => {
+      map.off("styledata", onStyle);
+    };
   }, [map, boundary]);
 
   if (!hasMapToken) {
