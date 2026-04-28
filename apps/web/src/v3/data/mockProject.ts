@@ -593,4 +593,55 @@ export const MTC_PROJECT: Project = {
       { id: "f5", kind: "team", x: 50, y: 22, label: "Crew · Orchard", tone: "neutral" },
     ],
   },
+
+  build: {
+    phases: [
+      {
+        id: "p1",
+        number: 1,
+        title: "Site Preparation & Water Infrastructure",
+        summary: "Clear access, install primary water lines, establish staging yard.",
+        status: "in-progress",
+        window: "Q3 2026",
+        blockerCount: 2,
+        tasks: [
+          { id: "p1t1", title: "Conservation Authority permit (wetland buffer)", status: "blocked", owner: "Yousef", dueLabel: "Due Wed" },
+          { id: "p1t2", title: "Survey & flag access road centerline", status: "in-progress", owner: "Crew A", dueLabel: "This week" },
+          { id: "p1t3", title: "Trench primary water main to Paddock B", status: "in-progress", owner: "Contractor", dueLabel: "Next week" },
+          { id: "p1t4", title: "Install 5,000 L holding tank", status: "todo", owner: "Contractor", dueLabel: "Aug 12" },
+          { id: "p1t5", title: "Sediment & erosion control plan filed", status: "done", owner: "Yousef" },
+          { id: "p1t6", title: "Re-route eastern runoff swale", status: "blocked", owner: "TBD", dueLabel: "Pending permit" },
+        ],
+      },
+      {
+        id: "p2",
+        number: 2,
+        title: "Structures & Paddock Buildout",
+        summary: "Erect barn, fence rotation paddocks, install perimeter gates.",
+        status: "upcoming",
+        window: "Q4 2026",
+        blockerCount: 1,
+        tasks: [
+          { id: "p2t1", title: "Barn foundation pour", status: "todo", dueLabel: "Oct" },
+          { id: "p2t2", title: "Fence Paddocks A–D (4-strand high-tensile)", status: "todo", dueLabel: "Oct" },
+          { id: "p2t3", title: "Pre-fab teaching shelter delivery", status: "todo", dueLabel: "Nov" },
+          { id: "p2t4", title: "Cabin cluster — access path approval", status: "blocked", dueLabel: "Pending §3.2 review" },
+        ],
+      },
+      {
+        id: "p3",
+        number: 3,
+        title: "Programs & Operations Launch",
+        summary: "Onboard livestock, open education program, first cohort intake.",
+        status: "upcoming",
+        window: "Q1–Q2 2027",
+        blockerCount: 0,
+        tasks: [
+          { id: "p3t1", title: "Initial herd procurement (24 head)", status: "todo", dueLabel: "Spring 2027" },
+          { id: "p3t2", title: "Education curriculum — Year 1 modules", status: "todo", dueLabel: "Mar 2027" },
+          { id: "p3t3", title: "Open day & community launch", status: "todo", dueLabel: "May 2027" },
+        ],
+      },
+    ],
+  },
 };

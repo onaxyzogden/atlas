@@ -259,6 +259,31 @@ export interface OperateBrief {
   fieldFlags: FieldFlag[];
 }
 
+export type BuildTaskStatus = "todo" | "in-progress" | "done" | "blocked";
+export interface BuildTask {
+  id: string;
+  title: string;
+  status: BuildTaskStatus;
+  owner?: string;
+  dueLabel?: string;
+}
+
+export type BuildPhaseStatus = "complete" | "in-progress" | "upcoming";
+export interface BuildPhase {
+  id: string;
+  number: number;
+  title: string;
+  summary: string;
+  status: BuildPhaseStatus;
+  window?: string; // e.g. "Q3 2026"
+  tasks: BuildTask[];
+  blockerCount: number;
+}
+
+export interface BuildBrief {
+  phases: BuildPhase[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -281,4 +306,6 @@ export interface Project {
   prove?: ProveBrief;
   /** Daily operating data for /v3/project/:id/operate. */
   operate?: OperateBrief;
+  /** Phased task plan for /v3/project/:id/build. */
+  build?: BuildBrief;
 }
