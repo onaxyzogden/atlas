@@ -23,6 +23,7 @@ export default defineConfig({
       // More-specific subpath aliases MUST come first — Vite tests prefix match in order.
       '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
+      '@ogden/shared/relationships': resolve(__dirname, '../../packages/shared/src/relationships/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
   },

@@ -62,6 +62,9 @@ const SplitScreenToggle = lazy(() => import('./SplitScreenCompare.js').then((m) 
 const OsmVectorOverlay = lazy(() => import('./OsmVectorOverlay.js'));
 const OsmVectorControls = lazy(() => import('./OsmVectorOverlay.js').then((m) => ({ default: m.OsmVectorControls })));
 const LeftToolSpine = lazy(() => import('./LeftToolSpine.js'));
+const RelationshipsOverlay = lazy(() => import('./RelationshipsOverlay.js').then((m) => ({ default: m.RelationshipsOverlay })));
+const RelationshipsToggle = lazy(() => import('./RelationshipsOverlay.js').then((m) => ({ default: m.RelationshipsToggle })));
+const RelationshipsRail = lazy(() => import('./RelationshipsRail.js'));
 const MapStyleSwitcher = lazy(() => import('./MapStyleSwitcher.js'));
 
 // Lazy-loaded panels
@@ -393,6 +396,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <OsmVectorControls compact disabled={!project.parcelBoundaryGeojson} />
               </Suspense>
             }
+            relationshipsSlot={
+              <Suspense fallback={null}>
+                <RelationshipsToggle compact />
+              </Suspense>
+            }
           />
         </Suspense>
 
@@ -490,6 +498,17 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         <ErrorBoundary>
           <SoilOverlay map={mapRef} />
           <SoilMapControls />
+        </ErrorBoundary>
+
+        {/* Phase 2 — Needs & Yields canvas socket/edge overlay. Gated by
+         * FEATURE_RELATIONSHIPS flag; toggle lives on the LeftToolSpine. */}
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <RelationshipsOverlay map={mapRef} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <RelationshipsRail />
+          </Suspense>
         </ErrorBoundary>
 
         {/* Typing indicator for real-time collaboration */}

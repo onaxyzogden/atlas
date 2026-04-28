@@ -42,6 +42,7 @@ interface LeftToolSpineProps {
   biodiversityCorridorSlot: ReactNode;
   pollinatorHabitatStateSlot: ReactNode;
   osmSlot: ReactNode;
+  relationshipsSlot: ReactNode;
 }
 
 /** Horizontal separator line used inside the spine between tool groups. */
@@ -74,6 +75,7 @@ export default function LeftToolSpine({
   biodiversityCorridorSlot,
   pollinatorHabitatStateSlot,
   osmSlot,
+  relationshipsSlot,
 }: LeftToolSpineProps) {
   return (
     <div
@@ -109,6 +111,7 @@ export default function LeftToolSpine({
       {pollinatorOpportunitySlot}
       {biodiversityCorridorSlot}
       {pollinatorHabitatStateSlot}
+      {relationshipsSlot}
       <Suspense fallback={null}>
         <MeasureTools projectId={projectId} map={map} draw={draw} compact />
       </Suspense>
