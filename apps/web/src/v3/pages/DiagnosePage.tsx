@@ -34,6 +34,7 @@ import { useV3Project } from "../data/useV3Project.js";
 import { useWindClimatology } from "../data/useWindClimatology.js";
 import { downloadDiagnoseBrief } from "../lib/exportDiagnoseBrief.js";
 import type { DiagnoseCategoryId } from "../types.js";
+import "../styles/chrome.css";
 import css from "./DiagnosePage.module.css";
 
 // Fallback center used only when the project carries no boundary polygon.
@@ -105,6 +106,7 @@ export default function DiagnosePage() {
 
       <section className={css.section} aria-label="Site analysis map">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Observe · Map</p>
           <h2 className={css.sectionTitle}>Site analysis</h2>
           <p className={css.sectionSub}>
             Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
@@ -116,6 +118,7 @@ export default function DiagnosePage() {
 
       <section className={css.section} aria-label="Land categories">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Observe · Categories</p>
           <h2 className={css.sectionTitle}>What the land is telling us</h2>
           <p className={css.sectionSub}>
             Seven plain-language categories. Each card translates raw data into a recommendation you can act on.
@@ -135,6 +138,7 @@ export default function DiagnosePage() {
 
       <section className={css.section} aria-label="Risks, opportunities, and limitations">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Observe · Synthesis</p>
           <h2 className={css.sectionTitle}>Risks · Opportunities · Limitations</h2>
           <p className={css.sectionSub}>
             The headline read of the parcel — what could go wrong, what to lean into, what to plan around.

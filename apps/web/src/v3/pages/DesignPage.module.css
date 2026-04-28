@@ -114,7 +114,8 @@
   min-width: 0;
 }
 
-.canvasToolbar {
+.canvasToolbar,
+.bottomToolbar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
@@ -123,6 +124,17 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+}
+
+/* Bottom toolbar — Figma-like control strip below the canvas + metrics.
+   Reordered from above-canvas in 2026-04-28 concept-polish pass per
+   Permaculture Scholar "Design from Patterns to Details": flow first. */
+.bottomToolbar {
+  margin-top: var(--space-1);
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  box-shadow: var(--shadow-sm);
 }
 
 .toolbarGroup {

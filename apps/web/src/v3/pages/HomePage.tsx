@@ -16,8 +16,10 @@ import { useParams } from "@tanstack/react-router";
 import HomeHero from "../components/HomeHero.js";
 import ActivityList from "../components/ActivityList.js";
 import ActionList from "../components/ActionList.js";
+import ObservedStamp from "../components/ObservedStamp.js";
 import { useV3Project } from "../data/useV3Project.js";
 import type { ProjectScores } from "../types.js";
+import "../styles/chrome.css";
 import css from "./HomePage.module.css";
 
 const SCORE_ORDER: ReadonlyArray<keyof ProjectScores> = [
@@ -29,7 +31,7 @@ const SCORE_ORDER: ReadonlyArray<keyof ProjectScores> = [
   "financial",
 ];
 
-const LAST_UPDATED = "May 1, 2026, 12:53 PM";
+const LAST_OBSERVED = "April 27, 2026, 4:12 PM";
 
 export default function HomePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -61,11 +63,11 @@ export default function HomePage() {
 
       <section className={css.section}>
         <div className={css.sectionHeader}>
-          <h2 className={css.sectionTitle}>Project Health</h2>
-          <span className={css.liveBadge}>
-            <span className={css.liveDot} aria-hidden="true" />
-            Live
-          </span>
+          <div>
+            <p className="eyebrow">Pulse</p>
+            <h2 className={css.sectionTitle}>Project Health</h2>
+          </div>
+          <ObservedStamp at={LAST_OBSERVED} verb="observed" />
         </div>
         <div className={css.healthStrip}>
           {SCORE_ORDER.map((key) => {
@@ -82,13 +84,15 @@ export default function HomePage() {
             );
           })}
         </div>
-        <span className={css.lastUpdated}>Last updated: {LAST_UPDATED}</span>
       </section>
 
       <section className={css.threeCol}>
         <div className={css.col}>
           <header className={css.colHeader}>
-            <h2 className={css.colTitle}>Recent Activity</h2>
+            <div>
+              <p className="eyebrow">Stewardship</p>
+              <h2 className={css.colTitle}>Recent Activity</h2>
+            </div>
             <button type="button" className={css.viewAll}>View all</button>
           </header>
           <ActivityList entries={project.activity} limit={5} />
@@ -96,7 +100,10 @@ export default function HomePage() {
 
         <div className={css.col}>
           <header className={css.colHeader}>
-            <h2 className={css.colTitle}>Top Decisions Needed</h2>
+            <div>
+              <p className="eyebrow">Evaluate</p>
+              <h2 className={css.colTitle}>Top Decisions Needed</h2>
+            </div>
             <button type="button" className={css.viewAll}>View all</button>
           </header>
           <ActionList actions={decisions} emptyMessage="No open decisions." />
@@ -104,7 +111,10 @@ export default function HomePage() {
 
         <div className={css.col}>
           <header className={css.colHeader}>
-            <h2 className={css.colTitle}>Next Actions</h2>
+            <div>
+              <p className="eyebrow">Next steps</p>
+              <h2 className={css.colTitle}>Next Actions</h2>
+            </div>
             <button type="button" className={css.viewAll}>View all</button>
           </header>
           <ActionList actions={nextActions} emptyMessage="Nothing queued." />

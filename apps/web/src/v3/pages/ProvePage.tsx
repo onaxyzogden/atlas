@@ -20,6 +20,7 @@ import ScoreBar from "../components/ScoreBar.js";
 import MetricCard from "../components/MetricCard.js";
 import DesignRulesGrid from "../components/DesignRulesGrid.js";
 import { useV3Project } from "../data/useV3Project.js";
+import "../styles/chrome.css";
 import css from "./ProvePage.module.css";
 
 export default function ProvePage() {
@@ -50,8 +51,9 @@ export default function ProvePage() {
         ]}
       />
 
-      <section className={css.section} aria-label="Blocking issues">
+      <section id="prove-blockers" className={css.section} aria-label="Blocking issues">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Test · Blockers</p>
           <h2 className={css.sectionTitle}>Blocking Issues</h2>
           <p className={css.sectionSub}>What's standing between this design and a green light.</p>
         </header>
@@ -62,16 +64,18 @@ export default function ProvePage() {
         </div>
       </section>
 
-      <section className={css.section} aria-label="Best uses">
+      <section id="prove-best-uses" className={css.section} aria-label="Best uses">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Test · Land Fit</p>
           <h2 className={css.sectionTitle}>Best Uses for this Parcel</h2>
           <p className={css.sectionSub}>Land uses ranked by alignment with the project vision.</p>
         </header>
         <BestUsesTable uses={brief.bestUses} />
       </section>
 
-      <section className={css.section} aria-label="Vision fit analysis">
+      <section id="prove-vision-fit" className={css.section} aria-label="Vision fit analysis">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Test · Vision</p>
           <h2 className={css.sectionTitle}>Vision Fit Analysis</h2>
           <p className={css.sectionSub}>Six lenses scored against the vision baseline (tick marker).</p>
         </header>
@@ -82,8 +86,9 @@ export default function ProvePage() {
         </div>
       </section>
 
-      <section className={css.section} aria-label="Execution reality">
+      <section id="prove-execution" className={css.section} aria-label="Execution reality">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Test · Cost</p>
           <h2 className={css.sectionTitle}>Execution Reality</h2>
           <p className={css.sectionSub}>The cost of building this design — labor, capital, cash.</p>
         </header>
@@ -100,8 +105,9 @@ export default function ProvePage() {
         </div>
       </section>
 
-      <section className={css.section} aria-label="Design rules and safety checks">
+      <section id="prove-rules" className={css.section} aria-label="Design rules and safety checks">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Test · Safety</p>
           <h2 className={css.sectionTitle}>Design Rules & Safety Checks</h2>
           <p className={css.sectionSub}>What the design satisfies, where it's marginal, and where it's blocked.</p>
         </header>

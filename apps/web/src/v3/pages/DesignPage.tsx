@@ -160,38 +160,6 @@ export default function DesignPage() {
       </aside>
 
       <div className={css.canvasColumn}>
-        <header className={css.canvasToolbar} aria-label="Map controls">
-          <div className={css.toolbarGroup}>
-            <label className={css.toolbarLabel} htmlFor="basemap">Base Map</label>
-            <select
-              id="basemap"
-              className={css.select}
-              value={baseMap}
-              onChange={(e) => setBaseMap(e.target.value)}
-            >
-              {BASE_MAPS.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
-          <div className={css.toolbarGroup}>
-            <span className={css.toolbarLabel}>Overlays</span>
-            <div className={css.overlayChips}>
-              {OVERLAYS.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  className={`${css.chip} ${overlays[o.id] ? css.chipOn : ""}`}
-                  onClick={() => toggleOverlay(o.id)}
-                  aria-pressed={overlays[o.id]}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
-
         <div className={css.canvasFrame} aria-label="Design canvas (placeholder)">
           <svg
             className={css.canvas}
@@ -311,6 +279,38 @@ export default function DesignPage() {
             status={{ label: "In progress", tone: "good" }}
           />
         </div>
+
+        <footer className={css.bottomToolbar} aria-label="Map controls">
+          <div className={css.toolbarGroup}>
+            <label className={css.toolbarLabel} htmlFor="basemap">Base Map</label>
+            <select
+              id="basemap"
+              className={css.select}
+              value={baseMap}
+              onChange={(e) => setBaseMap(e.target.value)}
+            >
+              {BASE_MAPS.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+          <div className={css.toolbarGroup}>
+            <span className={css.toolbarLabel}>Overlays</span>
+            <div className={css.overlayChips}>
+              {OVERLAYS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`${css.chip} ${overlays[o.id] ? css.chipOn : ""}`}
+                  onClick={() => toggleOverlay(o.id)}
+                  aria-pressed={overlays[o.id]}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@
  */
 
 import type { ReactNode } from "react";
+import "../styles/chrome.css";
 import css from "./MetricCard.module.css";
 
 export type MetricStatus =
@@ -37,6 +38,10 @@ export interface MetricCardProps {
   score?: number;
   /** Optional click target (renders as button). */
   onClick?: () => void;
+  /** Quiet 1px ring + inset shadow for hero KPI emphasis (no glow). */
+  accent?: "quiet-ring";
+  /** Optional sparkline rendered above the subtext. */
+  trend?: ReactNode;
 }
 
 export default function MetricCard({
@@ -47,12 +52,15 @@ export default function MetricCard({
   status,
   score,
   onClick,
+  accent,
+  trend,
 }: MetricCardProps) {
   const Tag = onClick ? "button" : "div";
+  const accentClass = accent === "quiet-ring" ? "verdict-ring-quiet" : "";
   return (
     <Tag
       type={onClick ? "button" : undefined}
-      className={`${css.tile} ${onClick ? css.clickable : ""}`}
+      className={`${css.tile} ${onClick ? css.clickable : ""} ${accentClass}`.trim()}
       onClick={onClick}
     >
       <header className={css.header}>
@@ -74,6 +82,7 @@ export default function MetricCard({
           />
         </div>
       )}
+      {trend && <div className={css.trend}>{trend}</div>}
       {subtext && <p className={css.subtext}>{subtext}</p>}
     </Tag>
   );

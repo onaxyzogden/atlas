@@ -2,15 +2,20 @@
  * V3ProjectLayout — route-level layout for /v3/project/$projectId/*.
  *
  * Mounts LandOsShell with the v3 sidebar + rail. The active stage is derived
- * from the matched child route's pathname suffix.
+ * from the matched child route's pathname suffix. A thin sticky header above
+ * the Outlet hosts LifecycleProgressRing (added 2026-04-28 concept-polish
+ * pass — replaces the rejected per-stage backdrop tints with one unifying
+ * indicator per Permaculture Scholar "Integrate Rather Than Segregate").
  */
 
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
 import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
 import DecisionRail from "./components/DecisionRail.js";
+import LifecycleProgressRing from "./components/LifecycleProgressRing.js";
 import { useV3Project } from "./data/useV3Project.js";
 import type { LifecycleStage } from "./types.js";
+import css from "./V3ProjectLayout.module.css";
 
 const STAGE_IDS: readonly (LifecycleStage | "home")[] = [
   "home",
@@ -42,7 +47,14 @@ export default function V3ProjectLayout() {
       sidebar={<V3LifecycleSidebar activeStage={activeStage} />}
       rail={<DecisionRail stage={activeStage} project={project} />}
     >
-      <Outlet />
+      <div className={css.frame}>
+        <header className={css.header} aria-label="Lifecycle position">
+          <LifecycleProgressRing activeStage={activeStage} />
+        </header>
+        <div className={css.outletHost}>
+          <Outlet />
+        </div>
+      </div>
     </LandOsShell>
   );
 }

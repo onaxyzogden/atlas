@@ -97,3 +97,9 @@
   line-height: 1.4;
   color: var(--color-text-muted);
 }
+
+.trend {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}

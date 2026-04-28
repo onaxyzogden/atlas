@@ -15,9 +15,13 @@ import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import MetricCard from "../components/MetricCard.js";
 import FieldMapPlaceholder from "../components/FieldMapPlaceholder.js";
+import ObservedStamp from "../components/ObservedStamp.js";
 import { useV3Project } from "../data/useV3Project.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
+import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
+
+const TODAY_OBSERVED = new Date(Date.now() - 18 * 60_000).toISOString();
 
 export default function OperatePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -48,8 +52,10 @@ export default function OperatePage() {
 
       <section className={css.section} aria-label="Today on the land">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Steward · Today</p>
           <h2 className={css.sectionTitle}>Today on the Land</h2>
           <p className={css.sectionSub}>What's happening across the operation right now.</p>
+          <ObservedStamp at={TODAY_OBSERVED} verb="last observed" />
         </header>
         <div className={css.tileGrid}>
           {brief.today.map((tile) => (
@@ -59,6 +65,7 @@ export default function OperatePage() {
               value={tile.headline}
               subtext={tile.detail}
               status={{ label: tile.status.label, tone: toMetricTone(tile.status.tone) }}
+              accent="quiet-ring"
             />
           ))}
         </div>
@@ -66,6 +73,7 @@ export default function OperatePage() {
 
       <section className={css.section} aria-label="Field activity map">
         <header className={css.sectionHeader}>
+          <p className="eyebrow">Steward · Map</p>
           <h2 className={css.sectionTitle}>Field Activity</h2>
           <p className={css.sectionSub}>Where today's flags fall on the parcel — illustrative until the live map arrives.</p>
         </header>
@@ -75,6 +83,7 @@ export default function OperatePage() {
       <section className={css.split} aria-label="Alerts and upcoming">
         <article className={css.panel}>
           <header className={css.panelHeader}>
+            <p className="eyebrow">Steward · Alerts</p>
             <h2 className={css.sectionTitle}>Animal &amp; Water Alerts</h2>
             <p className={css.sectionSub}>Things needing attention beyond today's checklist.</p>
           </header>
@@ -90,6 +99,7 @@ export default function OperatePage() {
 
         <article className={css.panel}>
           <header className={css.panelHeader}>
+            <p className="eyebrow">Steward · Calendar</p>
             <h2 className={css.sectionTitle}>Upcoming This Week</h2>
             <p className={css.sectionSub}>Events on the calendar that change today's plan.</p>
           </header>

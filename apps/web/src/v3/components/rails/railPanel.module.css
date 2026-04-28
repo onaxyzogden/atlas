@@ -125,3 +125,31 @@
 }
 .scoreLabel { color: var(--color-text-muted); }
 .scoreValue { font-weight: 600; }
+
+/* Scrollspy anchors (ProveRail) — quiet active state, no fill, no glow.
+   UX Scholar: chrome stays neutral; Permaculture: slow-stewardship pace. */
+.anchorBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--duration-base) var(--ease-default),
+              background var(--duration-base) var(--ease-default);
+}
+.anchorBtn:hover { color: var(--color-text); background: rgba(var(--color-earth-600-rgb), 0.06); }
+.anchorBtn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.listItemActive .anchorBtn { color: var(--color-text); font-weight: 600; }
+.anchorBtn .dot { margin-top: 0; }
+.dotActive { background: var(--color-earth-600); transform: scale(1.15); }
