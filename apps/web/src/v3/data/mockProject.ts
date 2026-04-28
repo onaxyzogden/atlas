@@ -498,4 +498,99 @@ export const MTC_PROJECT: Project = {
       },
     ],
   },
+
+  operate: {
+    today: [
+      {
+        id: "t1",
+        title: "Livestock Rotation",
+        headline: "Paddock B → C",
+        detail: "Move 24 head at first feed. Rest period for B begins today.",
+        status: { label: "On schedule", tone: "good" },
+        due: "By 09:00",
+      },
+      {
+        id: "t2",
+        title: "Water Checks",
+        headline: "2 of 4 tanks",
+        detail: "Tank 2 at 35% — refill before the afternoon shift.",
+        status: { label: "Action", tone: "warning" },
+        due: "Before 14:00",
+      },
+      {
+        id: "t3",
+        title: "Pasture Recovery",
+        headline: "Paddock A · Day 14",
+        detail: "On track for 30-day rest. Re-test sward height on day 21.",
+        status: { label: "Healthy", tone: "good" },
+      },
+      {
+        id: "t4",
+        title: "Planting / Harvest",
+        headline: "Orchard pruning",
+        detail: "Block 1 pruning continues. Block 2 starts Thursday.",
+        status: { label: "In progress", tone: "neutral" },
+        due: "All day",
+      },
+      {
+        id: "t5",
+        title: "Maintenance",
+        headline: "East fence inspection",
+        detail: "Two posts loose near gate 3 — schedule reseat.",
+        status: { label: "Watch", tone: "watch" },
+        due: "By end of week",
+      },
+      {
+        id: "t6",
+        title: "Weather-Sensitive",
+        headline: "Frost risk · Tue night",
+        detail: "Lower south slope vulnerable. Ready frost cover for orchard block 2.",
+        status: { label: "Risk", tone: "warning" },
+        due: "Prep Mon",
+      },
+      {
+        id: "t7",
+        title: "Team Assignments",
+        headline: "4 of 5 staffed",
+        detail: "Saturday education shift unfilled — confirm volunteer by Friday.",
+        status: { label: "Watch", tone: "watch" },
+      },
+    ],
+
+    alerts: [
+      {
+        id: "al1",
+        title: "Tank 2 at 35%",
+        detail: "Below the 40% reorder threshold. Refill window: 11:00–14:00.",
+        tone: "warning",
+      },
+      {
+        id: "al2",
+        title: "Heifer #14 due for vet check",
+        detail: "Routine pregnancy check overdue by 2 days.",
+        tone: "watch",
+      },
+      {
+        id: "al3",
+        title: "Soil moisture sensors offline (Block 3)",
+        detail: "Last reading 38h ago — battery or signal issue likely.",
+        tone: "watch",
+      },
+    ],
+
+    upcoming: [
+      { id: "ev1", title: "Frost cover deployment", when: "Tue 19:00", category: "weather" },
+      { id: "ev2", title: "Conservation Authority site visit", when: "Wed 10:00", category: "regulation" },
+      { id: "ev3", title: "Education group — soil workshop", when: "Sat 09:30", category: "education" },
+      { id: "ev4", title: "Hay delivery", when: "Mon 14:00", category: "ops" },
+    ],
+
+    fieldFlags: [
+      { id: "f1", kind: "livestock", x: 38, y: 42, label: "Herd · Paddock B", tone: "good" },
+      { id: "f2", kind: "water", x: 22, y: 65, label: "Tank 2 · low", tone: "warning" },
+      { id: "f3", kind: "fence", x: 78, y: 30, label: "East fence · maint.", tone: "watch" },
+      { id: "f4", kind: "weather", x: 64, y: 78, label: "Frost zone", tone: "warning" },
+      { id: "f5", kind: "team", x: 50, y: 22, label: "Crew · Orchard", tone: "neutral" },
+    ],
+  },
 };

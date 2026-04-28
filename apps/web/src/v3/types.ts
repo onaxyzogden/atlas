@@ -216,6 +216,49 @@ export interface ProveBrief {
   designRules: DesignRule[];
 }
 
+/** A "Today on the Land" tile on /v3/.../operate. */
+export type OpsTone = "neutral" | "good" | "watch" | "warning";
+export interface TodayTile {
+  id: string;
+  title: string; // "Livestock Rotation", "Water Checks", etc.
+  headline: string; // primary metric or status, e.g. "Paddock B → C", "2 of 4 tanks"
+  detail: string; // 1-line context
+  status: { label: string; tone: OpsTone };
+  due?: string; // "By 11:00", "This afternoon"
+}
+
+export interface FieldAlert {
+  id: string;
+  title: string;
+  detail: string;
+  tone: OpsTone;
+}
+
+export interface UpcomingEvent {
+  id: string;
+  title: string;
+  when: string; // human label, e.g. "Tomorrow 06:30", "Sat 14:00"
+  category: "ops" | "weather" | "regulation" | "team" | "education";
+}
+
+export type FieldFlagKind = "livestock" | "water" | "fence" | "weather" | "team";
+export interface FieldFlag {
+  id: string;
+  kind: FieldFlagKind;
+  /** Pseudo-coordinate within a 100×100 placeholder canvas. */
+  x: number;
+  y: number;
+  label: string;
+  tone: OpsTone;
+}
+
+export interface OperateBrief {
+  today: TodayTile[];
+  alerts: FieldAlert[];
+  upcoming: UpcomingEvent[];
+  fieldFlags: FieldFlag[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -236,4 +279,6 @@ export interface Project {
   diagnose?: DiagnoseBrief;
   /** Feasibility brief for /v3/project/:id/prove. */
   prove?: ProveBrief;
+  /** Daily operating data for /v3/project/:id/operate. */
+  operate?: OperateBrief;
 }
