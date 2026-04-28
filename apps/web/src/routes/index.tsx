@@ -21,7 +21,7 @@ import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
 import { semantic } from '../lib/tokens.js';
 import NewProjectPage from '../pages/NewProjectPage.js';
-import ProjectPage from '../pages/ProjectPage.js';
+import LifecycleProjectPage from '../pages/LifecycleProjectPage.js';
 import CompareCandidatesPage from '../features/project/compare/CompareCandidatesPage.js';
 import PortalPage from '../pages/PortalPage.js';
 import LoginPage from '../pages/LoginPage.js';
@@ -71,7 +71,7 @@ const newProjectRoute = createRoute({
 const projectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/project/$projectId',
-  component: ProjectPage,
+  component: LifecycleProjectPage,
 });
 
 const compareCandidatesRoute = createRoute({
