@@ -25,6 +25,7 @@ Read this first at the start of every session.
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
 - [Feature Manifest](concepts/feature-manifest.md) — 30-section source-of-truth for features, phase gating, scaffolding generator
 - [Permaculture Alignment](concepts/permaculture-alignment.md) — 3 ethics + 12 Holmgren principles assessment from 2026-04-28 Permaculture Scholar dialogue; 4 represented / 6 partial / 3 missing; six prioritised recommendations
+- [Atlas Sidebar — Permaculture-Grounded IA](concepts/atlas-sidebar-permaculture.md) — 2026-04-28 Permaculture Scholar synthesis on lifecycle sidebar IA; 4 of 7 verbs renamed (Observe/Test/Steward/Evaluate), Steward-as-loop, 4 utility nav items prioritised
 
 ## Decisions
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
