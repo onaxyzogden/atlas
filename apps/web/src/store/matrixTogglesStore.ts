@@ -33,7 +33,18 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
-      version: 1,
+      // v2 (2026-04-28): Sectors and Zones have no data layer yet — force
+      // false so any persisted-true state from the v1 mock-overlay build
+      // does not paint phantom overlays on Diagnose.
+      version: 2,
+      migrate: (persisted) => {
+        const s = (persisted ?? {}) as Partial<MatrixTogglesState>;
+        return {
+          ...s,
+          sectors: false,
+          zones: false,
+        } as MatrixTogglesState;
+      },
     },
   ),
 );

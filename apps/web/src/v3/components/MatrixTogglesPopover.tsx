@@ -17,7 +17,7 @@ export interface MatrixTogglesPopoverProps {
 
 export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { topography, sectors, zones, toggle, setAll } = useMatrixTogglesStore();
+  const { topography, toggle } = useMatrixTogglesStore();
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -36,8 +36,6 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
     };
   }, [onClose]);
 
-  const allOn = topography && sectors && zones;
-
   return (
     <div ref={ref} className={css.popover} role="dialog" aria-label="Matrix overlays">
       <h3 className={css.title}>Matrix Overlays</h3>
@@ -54,26 +52,22 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         </span>
       </label>
 
-      <label className={css.row}>
-        <input
-          type="checkbox"
-          checked={sectors}
-          onChange={() => toggle("sectors")}
-        />
+      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.2">
+        <input type="checkbox" checked={false} disabled readOnly />
         <span className={css.rowBody}>
-          <span className={css.rowLabel}>Sectors</span>
+          <span className={css.rowLabel}>
+            Sectors <span className={css.soonBadge}>v3.2</span>
+          </span>
           <span className={css.rowDesc}>Sun, wind, fire, water flows</span>
         </span>
       </label>
 
-      <label className={css.row}>
-        <input
-          type="checkbox"
-          checked={zones}
-          onChange={() => toggle("zones")}
-        />
+      <label className={`${css.row} ${css.rowDisabled}`} title="Data layer not yet available — v3.2">
+        <input type="checkbox" checked={false} disabled readOnly />
         <span className={css.rowBody}>
-          <span className={css.rowLabel}>Zones</span>
+          <span className={css.rowLabel}>
+            Zones <span className={css.soonBadge}>v3.2</span>
+          </span>
           <span className={css.rowDesc}>Use-frequency rings (0–5)</span>
         </span>
       </label>
@@ -82,11 +76,11 @@ export default function MatrixTogglesPopover({ onClose }: MatrixTogglesPopoverPr
         <button
           type="button"
           className={css.linkBtn}
-          onClick={() => setAll(!allOn)}
+          onClick={() => toggle("topography")}
         >
-          {allOn ? "Hide all" : "Show all"}
+          {topography ? "Hide topography" : "Show topography"}
         </button>
-        <span className={css.note}>Overlay layer ships in v3.1</span>
+        <span className={css.note}>Topography live · Sectors &amp; Zones in v3.2</span>
       </div>
     </div>
   );

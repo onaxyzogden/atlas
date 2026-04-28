@@ -17,8 +17,6 @@ import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
-import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
-import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DiagnosePage.module.css";
 
@@ -65,13 +63,7 @@ export default function DiagnosePage() {
           </p>
         </header>
         <DiagnoseMap centroid={MTC_CENTROID}>
-          {({ map, centroid }) => (
-            <>
-              <TopographyOverlay map={map} />
-              <SectorsOverlay map={map} centroid={centroid} />
-              <ZonesOverlay map={map} centroid={centroid} />
-            </>
-          )}
+          {({ map }) => <TopographyOverlay map={map} />}
         </DiagnoseMap>
       </section>
 

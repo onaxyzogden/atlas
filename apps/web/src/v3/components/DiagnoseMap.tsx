@@ -36,8 +36,7 @@ export default function DiagnoseMap({ centroid, zoom = 14, children }: DiagnoseM
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
 
-  const { topography, sectors, zones } = useMatrixTogglesStore();
-  const anyOn = topography || sectors || zones;
+  const topography = useMatrixTogglesStore((s) => s.topography);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -69,27 +68,13 @@ export default function DiagnoseMap({ centroid, zoom = 14, children }: DiagnoseM
     <div className={css.wrap}>
       <div ref={containerRef} className={css.map} />
       {map && children?.({ map, centroid })}
-      {anyOn && (
+      {topography && (
         <div className={css.legend} aria-hidden="true">
           <span className={css.legendTitle}>Active overlays</span>
-          {topography && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#7a6a3f" }} />
-              Topography (contours)
-            </span>
-          )}
-          {sectors && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#c4a265" }} />
-              Sectors (sun · wind · flows)
-            </span>
-          )}
-          {zones && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#d3b884" }} />
-              Zones 0–5 (use frequency)
-            </span>
-          )}
+          <span className={css.legendRow}>
+            <span className={css.swatch} style={{ background: "#7a6a3f" }} />
+            Topography (contours)
+          </span>
         </div>
       )}
     </div>
