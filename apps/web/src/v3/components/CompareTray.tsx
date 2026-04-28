@@ -7,6 +7,7 @@
  */
 
 import type { Candidate } from "../types.js";
+import { MAX_COMPARE } from "../data/discoverStore.js";
 import css from "./CompareTray.module.css";
 
 export interface CompareTrayProps {
@@ -23,7 +24,7 @@ export default function CompareTray({ selected, onRemove, onClear, onCompare }: 
       <div className={css.trayBody}>
         <div className={css.header}>
           <span className={css.title}>Compare</span>
-          <span className={css.count}>{selected.length} selected · max 4</span>
+          <span className={css.count}>{selected.length} selected · max {MAX_COMPARE}</span>
         </div>
         <ul className={css.chips}>
           {selected.map((c) => (

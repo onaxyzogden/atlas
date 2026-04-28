@@ -109,20 +109,25 @@ export interface Candidate {
   acreage: number;
   acreageUnit: "ac" | "ha";
   priceUsd: number;
+  /** Optional per-acre price (display only). */
+  pricePerAcre?: number;
   isNew?: boolean;
+  /** Headline overall fit score (0–100) shown in the card ring. */
+  fitScore?: number;
   /** Coarse verdict shown as the headline pill. */
   verdict: VerdictStatus;
   verdictLabel: string;
   /** "Education", "Conservation", "Mixed Use", etc. */
   fitTags: string[];
   /** Headline blocker shown front-of-card. */
-  topBlocker: { title: string; severity: BlockerSeverity };
-  /** Four headline sub-scores (0–100). */
+  topBlocker: { title: string; severity: BlockerSeverity; impact?: "high" | "medium" | "low" };
+  /** Headline sub-scores (0–100). Reference design surfaces three on-card. */
   subScores: {
-    landFit: number;
+    landFit?: number;
     water: number;
-    regulation: number;
+    regulation?: number;
     access: number;
+    infrastructure?: number;
   };
 }
 
