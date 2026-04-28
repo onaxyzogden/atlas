@@ -15,8 +15,16 @@ import { useParams } from "@tanstack/react-router";
 import StageHero from "../components/StageHero.js";
 import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
+import DiagnoseMap from "../components/DiagnoseMap.js";
+import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
+import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
+import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DiagnosePage.module.css";
+
+// MTC centroid — mockProject lacks lat/lng for v3.1. Real parcel geometry
+// will swap in when the project store gains a boundary feature.
+const MTC_CENTROID: [number, number] = [-78.20, 44.50];
 
 export default function DiagnosePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -48,6 +56,24 @@ export default function DiagnosePage() {
         ]}
         aside={<ParcelPlaceholder caption={brief.parcelCaption} />}
       />
+
+      <section className={css.section} aria-label="Site analysis map">
+        <header className={css.sectionHeader}>
+          <h2 className={css.sectionTitle}>Site analysis</h2>
+          <p className={css.sectionSub}>
+            Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
+          </p>
+        </header>
+        <DiagnoseMap centroid={MTC_CENTROID}>
+          {({ map, centroid }) => (
+            <>
+              <TopographyOverlay map={map} />
+              <SectorsOverlay map={map} centroid={centroid} />
+              <ZonesOverlay map={map} centroid={centroid} />
+            </>
+          )}
+        </DiagnoseMap>
+      </section>
 
       <section className={css.section} aria-label="Land categories">
         <header className={css.sectionHeader}>
