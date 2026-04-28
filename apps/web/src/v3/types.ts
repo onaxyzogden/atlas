@@ -199,6 +199,12 @@ export interface CategoryDetail {
   whatNext: string;       // 1-2 sentences — recommended action
   metrics?: CategoryMetric[];
   mapHint?: string;       // 1 sentence — what to look for on the site map
+  /**
+   * Optional fly-to target for the drawer's "Open on map" action. Centre is
+   * [lng, lat]; zoom defaults to 16 if omitted. When present, the action is
+   * enabled and the drawer closes after triggering the fly.
+   */
+  mapTarget?: { center: [number, number]; zoom?: number };
 }
 
 export interface DiagnoseBrief {

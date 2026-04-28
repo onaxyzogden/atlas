@@ -399,6 +399,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the seasonal stream sits along the east boundary line; the test well marker is near the central plateau.",
+        mapTarget: { center: [-78.190, 44.500], zoom: 16 },
       },
       terrain: {
         whatsHappening:
@@ -415,6 +416,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the topography overlay shows the gentle plateau in the north and the steeper south slope opening toward the parcel boundary.",
+        mapTarget: { center: [-78.200, 44.4975], zoom: 16 },
       },
       soil: {
         whatsHappening:
@@ -431,6 +433,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the loam-to-sandy-loam transition runs roughly along the north edge of the central plateau.",
+        mapTarget: { center: [-78.200, 44.5020], zoom: 16 },
       },
       climate: {
         whatsHappening:
@@ -447,6 +450,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the frost-risk band aligns with the lower south slope visible under the topography overlay.",
+        mapTarget: { center: [-78.200, 44.4970], zoom: 16 },
       },
       regulatory: {
         whatsHappening:
@@ -463,6 +467,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the regulated band traces the south marsh; the planned barn marker sits inside the buffer ring.",
+        mapTarget: { center: [-78.200, 44.4975], zoom: 16 },
       },
       ecology: {
         whatsHappening:
@@ -479,6 +484,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the hedgerow polygons trace the north and west boundary; the SAR observation pins cluster on the central plateau.",
+        mapTarget: { center: [-78.205, 44.5025], zoom: 16 },
       },
       infrastructure: {
         whatsHappening:
@@ -495,6 +501,7 @@ export const MTC_PROJECT: Project = {
         ],
         mapHint:
           "On the site map, the power extension would run east from the west road frontage; the south basin (cell-weak zone) sits below the frost band.",
+        mapTarget: { center: [-78.210, 44.500], zoom: 16 },
       },
     },
   },

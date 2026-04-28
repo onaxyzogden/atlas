@@ -30,6 +30,11 @@ export interface DiagnoseCategoryDrawerProps {
   detail: CategoryDetail;
   insights: Insight[];
   onClose: () => void;
+  /**
+   * Optional fly-to handler for the "Open on map" footer action. When omitted
+   * (or when the category has no `mapTarget`), the button renders disabled.
+   */
+  onOpenOnMap?: () => void;
 }
 
 export default function DiagnoseCategoryDrawer({
@@ -37,6 +42,7 @@ export default function DiagnoseCategoryDrawer({
   detail,
   insights,
   onClose,
+  onOpenOnMap,
 }: DiagnoseCategoryDrawerProps) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
@@ -126,7 +132,13 @@ export default function DiagnoseCategoryDrawer({
           <button type="button" className={css.secondaryBtn} onClick={onClose}>
             Close
           </button>
-          <button type="button" className={css.primaryBtn} disabled title="Coming in v3.3">
+          <button
+            type="button"
+            className={css.primaryBtn}
+            onClick={onOpenOnMap}
+            disabled={!onOpenOnMap}
+            title={onOpenOnMap ? undefined : "No map target for this category"}
+          >
             Open on map
           </button>
         </footer>

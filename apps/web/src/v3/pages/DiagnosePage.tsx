@@ -16,7 +16,8 @@ import StageHero from "../components/StageHero.js";
 import CategoryCard from "../components/CategoryCard.js";
 import InsightPanel from "../components/InsightPanel.js";
 import DiagnoseCategoryDrawer from "../components/DiagnoseCategoryDrawer.js";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { Map as MaplibreMap } from "maplibre-gl";
 import DiagnoseMap from "../components/DiagnoseMap.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
@@ -61,6 +62,17 @@ export default function DiagnosePage() {
     ? brief.insights.filter((i) => i.categoryIds?.includes(openCategoryId))
     : [];
 
+  const mapRef = useRef<MaplibreMap | null>(null);
+  const mapTarget = openDetail?.mapTarget;
+  const onOpenOnMap = mapTarget
+    ? () => {
+        const map = mapRef.current;
+        if (!map) return;
+        map.flyTo({ center: mapTarget.center, zoom: mapTarget.zoom ?? 16, essential: true });
+        setOpenCategoryId(null);
+      }
+    : undefined;
+
   return (
     <div className={css.page}>
       <StageHero
@@ -87,7 +99,7 @@ export default function DiagnosePage() {
             Topography, sectors, and zones are the permaculture designer&rsquo;s reading of the parcel. Toggle overlays from the sidebar&rsquo;s Matrix Toggles.
           </p>
         </header>
-        <DiagnosePageMap project={project} />
+        <DiagnosePageMap project={project} mapRef={mapRef} />
 
       </section>
 
@@ -130,13 +142,20 @@ export default function DiagnosePage() {
           detail={openDetail}
           insights={openInsights}
           onClose={() => setOpenCategoryId(null)}
+          onOpenOnMap={onOpenOnMap}
         />
       )}
     </div>
   );
 }
 
-function DiagnosePageMap({ project }: { project: import("../types.js").Project }) {
+function DiagnosePageMap({
+  project,
+  mapRef,
+}: {
+  project: import("../types.js").Project;
+  mapRef: React.MutableRefObject<MaplibreMap | null>;
+}) {
   const homestead = useHomesteadStore((s) => s.byProject[project.id]);
   const setHomestead = useHomesteadStore((s) => s.set);
   const clearHomestead = useHomesteadStore((s) => s.clear);
@@ -156,15 +175,18 @@ function DiagnosePageMap({ project }: { project: import("../types.js").Project }
           : "Anchored at parcel centroid",
       }}
     >
-      {({ map, centroid }) => (
-        <DiagnoseOverlays
-          map={map}
-          centroid={centroid}
-          boundary={boundary}
-          projectId={project.id}
-          homestead={homestead}
-        />
-      )}
+      {({ map, centroid }) => {
+        mapRef.current = map;
+        return (
+          <DiagnoseOverlays
+            map={map}
+            centroid={centroid}
+            boundary={boundary}
+            projectId={project.id}
+            homestead={homestead}
+          />
+        );
+      }}
     </DiagnoseMap>
   );
 }
