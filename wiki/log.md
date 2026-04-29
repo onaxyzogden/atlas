@@ -911,6 +911,75 @@ authoring time.
 
 ---
 
+## 2026-04-26 — Sweep: hoist 59 in-selector `.filter()` calls into `useMemo` (commit `68b6811`)
+
+Follow-up to the EnterpriseRevenueMixCard fix below. A multiline
+grep across `apps/web/src/features/` revealed the same anti-pattern
+in 15 additional files — Zustand selectors returning a fresh
+`.filter()` array per call, all latent infinite-loop hazards.
+
+**Files (15):** `stewardship/PunchListCard`, `portal/InternalVsPublicViewCard`,
+`fieldwork/WalkChecklistCard`, `economics/RevenueRampProjectionCard`,
+`economics/OverbuiltForRevenueWarningCard`, `crops/ClimateShiftScenarioCard`,
+and 9 cards under `ai-design-support/` (WhyHerePanels, PhasedBuildStrategy,
+NeedsSiteVisit, FeaturePlacementSuggestions, EducationalExplainer,
+EcologicalRiskWarnings, DesignBriefPitch, AssumptionGapDetector,
+AlternativeLayoutRationale).
+
+**Approach.** One-shot codemod at
+[`scripts/fix-store-filter-loops.mjs`](scripts/fix-store-filter-loops.mjs)
+— regex-driven hoist of `useXStore((s) => s.field.filter(...))` into
+`const allField = useXStore((s) => s.field); const name = useMemo(() => allField.filter(...), [allField, owner])`.
+59 sites rewritten across 15 files; all 15 already imported `useMemo`
+so no import edits needed.
+
+**Codemod gotcha (preserved as a comment in the script).** Initial
+regex used `^(\s*)` with `gm` flag. With CRLF line endings, JS regex
+`^` can position itself between `\r` and `\n`, letting `\s*` consume
+the `\n` and re-emit it inside the indent capture — corrupting line
+structure. Switched indent capture to `(?<=^|\r?\n)([ \t]*)` (strict
+horizontal whitespace, lookbehind for line start). Worth remembering
+for any future codemod against this CRLF codebase.
+
+**Verification.** `apps/web` `tsc --noEmit` reports zero new errors
+in the 15 touched files (pre-existing breakage in
+`AiSiteSynthesisCard.tsx` and `components/panels/*` is unrelated and
+predates this branch). Preview reload — console clean of "Maximum
+update depth"; only pre-existing axe-core a11y warnings and a
+zustand "no migrate function" notice remain.
+
+**Pattern note.** Codebase still has no `useShallow` / `zustand/shallow`
+adoption. Established convention is now firmly "select primitive arrays,
+filter via `useMemo`" — applies to any future card that needs a
+project-scoped slice. Consider adding an ESLint rule that flags
+`use\w+Store\(\(\w+\)\s*=>[^)]*\.filter` to prevent regressions.
+
+---
+
+## 2026-04-26 — Fix: EnterpriseRevenueMixCard infinite render loop
+
+Bug → Economics panel's `EnterpriseRevenueMixCard` crashed the
+ErrorBoundary on mount with "Maximum update depth exceeded". Root
+cause: three Zustand selectors at lines 102-110 each returned a
+fresh `.filter()` array per call, so referential equality failed
+on every subscribe tick → infinite re-render.
+
+**Files:**
+- [`apps/web/src/features/economics/EnterpriseRevenueMixCard.tsx`](apps/web/src/features/economics/EnterpriseRevenueMixCard.tsx) — selectors now pull raw `structures` / `paddocks` / `cropAreas` arrays; project-id filtering moved into three `useMemo` blocks.
+
+**Verification.** Console clean (no "Maximum update depth"); only
+pre-existing axe-core color-contrast warnings remained. `tsc
+--noEmit` for `apps/web` clean for the file.
+
+**Pattern note.** Codebase has no `useShallow` / `zustand/shallow`
+usage — the established convention is "select primitive arrays,
+filter via `useMemo`". Other cards using the same anti-pattern
+(in-selector `.filter`) are likely lurking; sibling
+`StageRevealNarrativeCard` already had a similar fix earlier
+(commit `844a3e5`).
+
+---
+
 ## 2026-04-25 — §11 PredatorRiskHotspotsCard shipped (commit `48025c5`)
 
 Feature → per-paddock predator-pressure breakdown mounted on
@@ -5536,3 +5605,34 @@ User feedback flagged the legacy Feasibility view (DecisionSupportPanel rendered
 - Visual verification of both the brief CTA (download triggers, markdown matches expected sections) and the Planting cockpit (band rendering, blocker rows, sticky rail).
 - Template the cockpit recipe onto a third Dashboard page — Hydrology and Ecological are next-most-cluttered candidates.
 - Pre-existing `src/v3/...` typecheck errors remain — separate cleanup task.
+
+---
+
+## 2026-04-26 — Portal render-loop fix + Zustand selector ADR
+
+**Trigger.** `PortalConfigPanel` ErrorBoundary caught "Maximum update depth exceeded" on mount; stack pointed at [`StakeholderReviewModeCard.tsx`](apps/web/src/features/portal/StakeholderReviewModeCard.tsx) — same anti-pattern as `EnterpriseRevenueMixCard` (commit `5f8e245`) and the prior `phases` fix in `3b7ef6c`.
+
+**Root cause.** `usePortalStore((s) => s.getConfig(project.id))` — getter-in-selector. `getConfig` does `get().configs.find(...)`. Under cascading updates (parent's `useMemo` calls `createConfig` while child is subscribed to `configs`), the find result identity churns and re-enters subscribe before settling.
+
+**Fix.** Five files in `features/portal/`:
+
+- [`StakeholderReviewModeCard.tsx`](apps/web/src/features/portal/StakeholderReviewModeCard.tsx) — replaced `getConfig` selector with `(s) => s.configs` + `useMemo` find; also moved 5 `.length` selectors to the hoist+useMemo pattern for consistency.
+- [`PortalConfigPanel.tsx`](apps/web/src/features/portal/PortalConfigPanel.tsx) — same selector swap; preserved auto-create `useMemo` calling `createConfig` when no config exists.
+- [`PortalShareSnapshotCard.tsx`](apps/web/src/features/portal/PortalShareSnapshotCard.tsx) — same selector swap.
+- [`ServiceStewardshipFramingCard.tsx`](apps/web/src/features/portal/ServiceStewardshipFramingCard.tsx) — same selector swap.
+- [`ShareLinkReadinessCard.tsx`](apps/web/src/features/portal/ShareLinkReadinessCard.tsx) — selector swap + 5 `.length` hoists.
+
+**ADR.** Third recurrence; codified the rule in [`decisions/2026-04-26-zustand-selector-discipline.md`](decisions/2026-04-26-zustand-selector-discipline.md). Selectors must return primitives, raw store fields, or action refs only — no getter calls, no inline `.filter()/.map()/.sort()`. Includes a grep predicate for manual audit and flags two outstanding `getVisionData(...)` sites in `features/vision/` and `features/export/` as deferred low-risk follow-ups.
+
+**Verification.** Preview reload → Public Portal panel → `section[aria-label="Stakeholder review mode"]` mounts; no "Maximum update depth" string in body; `apps/web` tsc clean for all 5 files. Console errors limited to pre-existing axe a11y contrast warnings + persist-middleware migration warnings (unrelated).
+
+### Deferred
+
+- **Sweep `features/vision/` and `features/export/`** for `s.getVisionData(...)` getter-in-selector at `StageRevealNarrativeCard.tsx:62` and `InvestorSummaryExport.tsx:24`. Not currently looping but matches the ADR anti-pattern.
+- **Repo-wide grep audit** beyond `portal` + `economics` to confirm no other `s.getX(id)` selectors remain.
+- **ESLint rule `no-derived-zustand-selector`** — codify the ADR mechanically if a fourth incident occurs.
+
+### Recommended next session
+
+- Knock out the two vision/export `getVisionData` sites under the new ADR (~10 min, mechanical).
+- Or: pick up the deferred `StickyMiniScore` add-and-commit from 2026-04-25.

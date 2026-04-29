@@ -133,7 +133,11 @@ const ALL_SECTIONS: PortalSection[] = [
 ];
 
 export default function ServiceStewardshipFramingCard({ project }: Props) {
-  const config = usePortalStore((s) => s.getConfig(project.id));
+  const allConfigs = usePortalStore((s) => s.configs);
+  const config = useMemo(
+    () => allConfigs.find((c) => c.projectId === project.id),
+    [allConfigs, project.id],
+  );
   const [expanded, setExpanded] = useState<PortalSection | null>(null);
 
   const enabledSet = useMemo(

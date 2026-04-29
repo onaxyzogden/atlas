@@ -32,7 +32,11 @@ const SECTION_LABELS: Record<PortalSection, string> = {
 
 export default function PortalConfigPanel({ project }: Props) {
   const { isOffline } = useOfflineGate();
-  const config = usePortalStore((s) => s.getConfig(project.id));
+  const allConfigs = usePortalStore((s) => s.configs);
+  const config = useMemo(
+    () => allConfigs.find((c) => c.projectId === project.id),
+    [allConfigs, project.id],
+  );
   const createConfig = usePortalStore((s) => s.createConfig);
   const updateConfig = usePortalStore((s) => s.updateConfig);
   const loadFromBackend = usePortalStore((s) => s.loadFromBackend);

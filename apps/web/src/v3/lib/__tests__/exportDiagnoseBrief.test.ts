@@ -109,7 +109,7 @@ describe("downloadDiagnoseBrief", () => {
     try {
       downloadDiagnoseBrief(MTC_PROJECT);
       expect(createObjectURL).toHaveBeenCalledTimes(1);
-      const blob = createObjectURL.mock.calls[0]?.[0] as Blob;
+      const blob = (createObjectURL.mock.calls[0] as unknown as [Blob])[0];
       expect(blob.type).toBe("text/markdown;charset=utf-8");
       expect(clickSpy).toHaveBeenCalledTimes(1);
       vi.runAllTimers();
