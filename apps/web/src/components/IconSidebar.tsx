@@ -22,13 +22,17 @@ import {
   DOMAIN_ORDER,
   STAGE_META,
   STAGE_ORDER,
+  STAGE3_META,
+  STAGE3_ORDER,
   groupByPhase,
   groupByDomain,
   groupByStage,
+  groupByStage3,
   type NavItem,
   type PhaseKey,
   type DomainGroupKey,
   type StageKey,
+  type Stage3Key,
 } from '../features/navigation/taxonomy.js';
 import s from './IconSidebar.module.css';
 
@@ -118,7 +122,7 @@ const isItemActive = (
   return true;
 };
 
-type GroupKey = StageKey | PhaseKey | DomainGroupKey;
+type GroupKey = Stage3Key | StageKey | PhaseKey | DomainGroupKey;
 
 const LS_OPEN_GROUP = 'ogden-sidebar-open-group';
 const LS_LEGACY_OPEN_PHASE = 'ogden-sidebar-open-phase';
@@ -168,7 +172,19 @@ export default function IconSidebar({
   }
 
   const groups: DisplayGroup[] =
-    grouping === 'stage'
+    grouping === 'stage3'
+      ? (() => {
+          const byStage3 = groupByStage3(MAP_ITEMS);
+          return STAGE3_ORDER.map((s, idx) => ({
+            key: s,
+            badge: String(idx + 1),
+            name: STAGE3_META[s].name,
+            desc: STAGE3_META[s].desc,
+            color: STAGE3_META[s].color,
+            items: byStage3[s],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : grouping === 'stage'
       ? (() => {
           const byStage = groupByStage(MAP_ITEMS);
           return STAGE_ORDER.map((s, idx) => ({

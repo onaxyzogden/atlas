@@ -15,9 +15,12 @@ import {
   DOMAIN_ORDER,
   STAGE_META,
   STAGE_ORDER,
+  STAGE3_META,
+  STAGE3_ORDER,
   groupByPhase,
   groupByDomain,
   groupByStage,
+  groupByStage3,
   type NavItem,
 } from '../navigation/taxonomy.js';
 import css from './DashboardSidebar.module.css';
@@ -43,7 +46,17 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
 
   // Group into ordered [header, items] tuples according to preference.
   const sections: Array<{ key: string; name: string; color: string; items: NavItem[] }> =
-    grouping === 'stage'
+    grouping === 'stage3'
+      ? (() => {
+          const byStage3 = groupByStage3(ACCORDION_ITEMS);
+          return STAGE3_ORDER.map((s, idx) => ({
+            key: s,
+            name: `${idx + 1}. ${STAGE3_META[s].name}`,
+            color: STAGE3_META[s].color,
+            items: byStage3[s],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : grouping === 'stage'
       ? (() => {
           const byStage = groupByStage(ACCORDION_ITEMS);
           return STAGE_ORDER.map((s, idx) => ({
