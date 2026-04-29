@@ -1,7 +1,7 @@
 # ADR: OBSERVE Stage — IA Restructure (3-Stage Lens + Observe Hub + 8 Gap Surfaces)
 **Date:** 2026-04-29
 **Status:** accepted
-**Branch:** `feat/atlas-permaculture` (4 commits: `74b45a2`, `e2986db`, `103ce10`, `4c17d97`)
+**Branch:** `feat/atlas-permaculture` (8 commits: `74b45a2`, `e2986db`, `103ce10`, `4c17d97`, `4ecd5a1` wiki, `48a7990` live elevation, `20d9b79` SectorOverlay, `e726001` map-drawn save-as-transect)
 **Plan:** `~/.claude/plans/few-concerns-shiny-quokka.md`
 
 ## Context
@@ -96,10 +96,13 @@ Other store extensions (additive, optional fields, no migration):
 - 4 local commits on `feat/atlas-permaculture`; not yet pushed.
 
 ## Deferred
-- Real elevation API → `CrossSectionTool` (currently `syntheticProfile`).
-- `SectorOverlay` for `MapView` (sector arrows projected from project
-  centroid).
-- Map-drawn A→B picking via `DomainFloatingToolbar` draw-mode.
+- ~~Real elevation API → `CrossSectionTool`~~ — closed `48a7990`
+  (`api.elevation.profile` primary, synthetic is fallback only).
+- ~~`SectorOverlay` for `MapView`~~ — closed `20d9b79`
+  (`features/map/SectorOverlay.tsx`, polygon wedges from parcel centroid).
+- ~~Map-drawn A→B picking~~ — closed `e726001` (map-side
+  `CrossSectionTool` profile panel "Save as transect" button persists into
+  `siteAnnotationsStore`).
 - Manual UI walkthrough + screenshots.
 - PLAN and ACT internal restructures (pending those spec docs).
 - True PDF generation library (print-to-PDF acceptable for v1).

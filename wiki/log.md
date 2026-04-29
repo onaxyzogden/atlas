@@ -5878,6 +5878,45 @@ record the rationale.
 - Manual end-to-end walkthrough on a fresh project (steward → hazards →
   transect → soil tests → sectors → SWOT → report). Capture screenshots
   for the LAUNCH-CHECKLIST.
-- Push `feat/atlas-permaculture` and open PR.
-- Wire real elevation API into `CrossSectionTool` once endpoint lands.
+- PLAN and ACT internal restructures (pending those spec docs).
+
+### Same-day follow-ups (closed in this sprint)
+
+After the initial 5 commits landed, all three deferred code items from the
+ADR were closed in the same session:
+
+- **`48a7990` — Live elevation API.** `CrossSectionTool` now POSTs to
+  `/api/v1/elevation/profile` (NRCan HRDEM / 3DEP via the existing reader)
+  with the A→B as a 2-vertex LineString and `sampleCount: 100`. Falls back
+  to `syntheticProfile` only when the call throws or DEM has no coverage.
+  `Transect` type extended with `sourceApi?`, `confidence?`,
+  `totalDistanceM?`. UI button shows "Sampling DEM…" while in flight; chart
+  footer chip shows source + confidence ("NRCan HRDEM Lidar DTM (1m) ·
+  confidence: high") and only marks "illustrative only" when synthetic.
+
+- **`20d9b79` — SectorOverlay for MapView.** New
+  `features/map/SectorOverlay.tsx` reads `siteAnnotationsStore.sectors`
+  filtered by `projectId`, builds polygon wedges via `turf.destination`
+  from the parcel centroid, paints with the same palette as
+  `SectorCompassCard`. Wedge radius scales with parcel diagonal
+  (`turf.bbox × 0.75`, min 500 m). `mapStore` gains `sectorOverlayVisible`
+  + setter; `LeftToolSpine` gets a Lucide-Compass spine button slot;
+  `MapView` mounts both the overlay and the toggle. Quietly no-ops when
+  no parcel boundary or no sectors. `style.load` re-sync survives basemap
+  swaps.
+
+- **`e726001` — Map-drawn A→B → observe transect.** The map-side
+  `features/map/CrossSectionTool.tsx` now exposes a "Save as transect"
+  button on its profile panel. After the user draws a line and the DEM
+  sample lands, first/last coord of the drawn LineString → `pointA`/
+  `pointB`; samples + sourceApi + confidence + totalDistanceM all carry
+  through into a persisted `Transect`, so the same data the user drew on
+  the map is immediately available in the hub-side observe surface (no
+  re-draw, no re-sample). Saved-state shows green "Saved ✓" so the same
+  line can't be persisted twice.
+
+Cumulative: 8 commits on `feat/atlas-permaculture`, PR
+[#6](https://github.com/onaxyzogden/atlas/pull/6) updated. Build green
+across all three follow-ups (last build 23.23 s, 511 PWA precache entries
+/ 13.6 MB).
 
