@@ -32,6 +32,7 @@ import {
   Ruler,
   Zap,
   Wrench,
+  Square,
   type LucideIcon,
 } from 'lucide-react';
 import type { DomainKey } from './domainMapping.js';
@@ -83,6 +84,10 @@ const DOMAIN_TINTS: Record<DomainKey, string> = {
   cartographic:       '#7a8a9a', // neutral slate
   energy:             '#E8A94A', // solar gold
   infrastructure:     '#6B6B6B', // utility gray
+  zones:              '#a08a5e', // zone amber
+  structures:         '#8a6a4a', // structure umber
+  crops:              '#7a8a3a', // crop olive
+  paths:              '#9a7a5a', // path tan
   default:            '#c4a265',
 };
 
@@ -101,6 +106,10 @@ const DOMAIN_LABELS: Record<DomainKey, string> = {
   cartographic:       'Map Tools',
   energy:             'Energy Tools',
   infrastructure:     'Infrastructure Tools',
+  zones:              'Zone Tools',
+  structures:         'Structure Tools',
+  crops:              'Crop Tools',
+  paths:              'Path Tools',
   default:            '',
 };
 
@@ -349,6 +358,77 @@ const DOMAIN_TOOLS: Record<Exclude<DomainKey, 'default'>, ToolDef[]> = {
         map?.fire('ogden:energy:focus' as unknown as keyof maplibregl.MapEventType);
       },
     },
+  ],
+
+  // Zones — land-use zoning. Single Draw Zone tool fires an event the
+  // DesignToolsPanel zones tab listens to; category is picked in the
+  // post-draw modal so the toolbar stays uncluttered.
+  zones: [
+    {
+      id: 'draw-zone',
+      label: 'Draw Zone',
+      icon: Square,
+      type: 'action',
+      onAction: ({ draw, map }) => {
+        if (!draw || !map) return;
+        draw.changeMode('draw_polygon');
+        map.fire('ogden:zones:start-draw' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+    LAND_COVER_TOOL,
+    SOILS_TOOL,
+  ],
+
+  // Structures — built-form placement. The rail's structure-template grid
+  // moved here, but rendering 30+ category buttons would crowd the toolbar,
+  // so a single "Place Structure" tool fires `ogden:structures:open-picker`;
+  // the panel listens and shows a modal picker.
+  structures: [
+    {
+      id: 'place-structure',
+      label: 'Place Structure',
+      icon: Square,
+      type: 'action',
+      onAction: ({ map }) => {
+        map?.fire('ogden:structures:open-picker' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+    LAND_COVER_TOOL,
+    SOILS_TOOL,
+  ],
+
+  // Crops — agroforestry / orchard / garden polygons. Single Plant Crop tool
+  // fires `ogden:crops:open-picker`; the rail's CropPanel listens and shows
+  // a modal with the crop-type grid.
+  crops: [
+    {
+      id: 'plant-crop',
+      label: 'Plant Crop',
+      icon: Sprout,
+      type: 'action',
+      onAction: ({ map }) => {
+        map?.fire('ogden:crops:open-picker' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+    SOILS_TOOL,
+    LAND_COVER_TOOL,
+  ],
+
+  // Paths — roads, paths, corridors. Single Draw Path tool fires
+  // `ogden:paths:open-picker`; the rail's AccessPanel listens and shows
+  // a modal with the path-type list.
+  paths: [
+    {
+      id: 'draw-path',
+      label: 'Draw Path',
+      icon: Spline,
+      type: 'action',
+      onAction: ({ map }) => {
+        map?.fire('ogden:paths:open-picker' as unknown as keyof maplibregl.MapEventType);
+      },
+    },
+    ELEVATION_TOOL,
+    MEASURE_TOOL,
   ],
 
   // Infrastructure — water / septic / tank siting. Soils drives septic

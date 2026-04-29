@@ -14,7 +14,7 @@ import { persist } from 'zustand/middleware';
 import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
-export type SidebarGrouping = 'phase' | 'domain';
+export type SidebarGrouping = 'stage3' | 'stage' | 'phase' | 'domain';
 
 interface UndoEntry {
   timestamp: number;
@@ -46,7 +46,9 @@ interface UIState {
   setRightPanelCollapsed: (v: boolean) => void;
 
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
-  // 'phase'  = workflow-oriented (P1–P4), onboarding-friendly (default)
+  // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
+  // 'stage'  = 5-step workflow lens (Understand → Constraints → Design → Feasibility → Report)
+  // 'phase'  = legacy workflow lens (P1–P4)
   // 'domain' = subject-oriented (hydrology, grazing, forestry…), matches GIS conventions
   sidebarGrouping: SidebarGrouping;
   setSidebarGrouping: (g: SidebarGrouping) => void;
@@ -105,8 +107,10 @@ export const useUIStore = create<UIState>()(
       toggleRightPanelCollapsed: () => set((s) => ({ rightPanelCollapsed: !s.rightPanelCollapsed })),
       setRightPanelCollapsed: (v) => set({ rightPanelCollapsed: v }),
 
-      // Sidebar grouping — default to phase (preserves onboarding narrative)
-      sidebarGrouping: 'phase' as SidebarGrouping,
+      // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
+      // per 2026-04-29 IA restructure). Existing users keep their persisted
+      // choice via the persist middleware.
+      sidebarGrouping: 'stage3' as SidebarGrouping,
       setSidebarGrouping: (g) => set({ sidebarGrouping: g }),
 
       // Navigation context

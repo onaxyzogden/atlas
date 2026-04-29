@@ -1,55 +1,93 @@
 /**
  * EnergyDemandRollup — §13 `energy-demand-notes`.
  *
- * Surfaces the steward-entered per-utility daily kWh placeholder as a total,
- * breaks it down by category (Energy · Water · Infrastructure), compares it
- * against an estimated solar supply derived from placed solar_panel count,
- * and flags the gap. Intentionally a placeholder model — not a forecast.
+ * Surfaces site-wide daily kWh load as a total, breaks it down by source
+ * (Energy · Water · Infrastructure · Structures), compares against an
+ * estimated solar supply derived from placed solar_panel count, and flags
+ * the gap.
  *
- * Assumes ~2.5 kWh/day per placed solar_panel at 4.5 kWh/m²/day irradiance
- * and 18% efficiency (2 m² per residential panel). Swap in a real irradiance
- * value when NASA POWER data is wired into the panel context.
+ * Loads come from per-type defaults in `@ogden/shared/demand` for both
+ * placed utilities (well_pump, lighting, laundry_station, …) and structures
+ * (cabin, bathhouse, greenhouse, …). Steward-entered `demandKwhPerDay`
+ * on a utility overrides its default. Solar generation uses NASA POWER
+ * `solar_radiation_kwh_m2_day` from the climate layer when the parent
+ * threads it through `solarIrradianceKwhM2Day`; falls back to a 4.5
+ * kWh/m²/day temperate-zone baseline otherwise.
  */
 
 import { useMemo } from 'react';
+import {
+  getStructureKwhPerDay,
+  getUtilityKwhPerDay,
+} from '@ogden/shared/demand';
 import type { Utility } from '../../store/utilityStore.js';
 import { UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
+import type { Structure } from '../../store/structureStore.js';
 import { estimateSolarOutput } from './utilityAnalysis.js';
 import p from '../../styles/panel.module.css';
 
 interface Props {
   utilities: Utility[];
+  /** Placed structures contributing to daily load (cabin, bathhouse, greenhouse, …). */
+  structures?: Structure[];
+  /** NASA POWER irradiance (kWh/m²/day) when the climate layer is loaded. */
+  solarIrradianceKwhM2Day?: number;
 }
 
-export default function EnergyDemandRollup({ utilities }: Props) {
+export default function EnergyDemandRollup({ utilities, structures = [], solarIrradianceKwhM2Day }: Props) {
   const rollup = useMemo(() => {
-    const withDemand = utilities.filter(
-      (u) => typeof u.demandKwhPerDay === 'number' && u.demandKwhPerDay > 0,
-    );
-    const total = withDemand.reduce((a, u) => a + (u.demandKwhPerDay ?? 0), 0);
+    // Per-utility load (default for the type, override when steward set demandKwhPerDay)
+    const utilLoads = utilities.map((u) => ({
+      utility: u,
+      kwh: getUtilityKwhPerDay(u),
+    }));
+    const utilityTotal = utilLoads.reduce((a, x) => a + x.kwh, 0);
+
+    // Per-structure load
+    const structLoads = structures.map((s) => ({
+      structure: s,
+      kwh: getStructureKwhPerDay(s),
+    }));
+    const structureTotal = structLoads.reduce((a, x) => a + x.kwh, 0);
+
+    const total = utilityTotal + structureTotal;
 
     const byCategory = new Map<string, { total: number; count: number }>();
-    for (const u of withDemand) {
+    for (const { utility: u, kwh } of utilLoads) {
+      if (kwh <= 0) continue;
       const cat = UTILITY_TYPE_CONFIG[u.type]?.category ?? 'Other';
       const prev = byCategory.get(cat) ?? { total: 0, count: 0 };
-      byCategory.set(cat, { total: prev.total + (u.demandKwhPerDay ?? 0), count: prev.count + 1 });
+      byCategory.set(cat, { total: prev.total + kwh, count: prev.count + 1 });
+    }
+    if (structureTotal > 0) {
+      const structCount = structLoads.filter((x) => x.kwh > 0).length;
+      byCategory.set('Structures', { total: structureTotal, count: structCount });
     }
 
+    const utilitiesWithLoadCount = utilLoads.filter((x) => x.kwh > 0).length;
+
     const solarPanelCount = utilities.filter((u) => u.type === 'solar_panel').length;
-    const solarEstimate = solarPanelCount > 0 ? estimateSolarOutput(solarPanelCount).dailyKwh : 0;
+    const solarSample = solarPanelCount > 0
+      ? estimateSolarOutput(solarPanelCount, solarIrradianceKwhM2Day)
+      : null;
+    const solarEstimate = solarSample?.dailyKwh ?? 0;
+    const irradianceUsed = solarSample?.avgIrradiance ?? (solarIrradianceKwhM2Day ?? 4.5);
     const gap = solarEstimate - total;
 
     return {
-      withDemandCount: withDemand.length,
+      withDemandCount: utilitiesWithLoadCount,
       totalUtilities: utilities.length,
+      structureLoadCount: structLoads.filter((x) => x.kwh > 0).length,
       total,
       byCategory,
       solarEstimate,
       gap,
+      irradianceUsed,
+      irradianceFromClimateLayer: typeof solarIrradianceKwhM2Day === 'number' && solarIrradianceKwhM2Day > 0,
     };
-  }, [utilities]);
+  }, [utilities, structures, solarIrradianceKwhM2Day]);
 
-  if (utilities.length === 0) return null;
+  if (utilities.length === 0 && structures.length === 0) return null;
 
   const gapColor =
     rollup.total === 0
@@ -60,7 +98,7 @@ export default function EnergyDemandRollup({ utilities }: Props) {
 
   const gapLabel =
     rollup.total === 0
-      ? 'Add demand values to see supply vs. load'
+      ? 'Place utilities or structures to see supply vs. load'
       : rollup.gap >= 0
         ? `+${rollup.gap.toFixed(1)} kWh/day surplus`
         : `${rollup.gap.toFixed(1)} kWh/day shortfall`;
@@ -86,7 +124,7 @@ export default function EnergyDemandRollup({ utilities }: Props) {
         </div>
         <div style={statCellStyle}>
           <div style={{ ...statValueStyle, color: gapColor }}>
-            {rollup.total === 0 ? '\u2014' : `${rollup.gap >= 0 ? '+' : ''}${rollup.gap.toFixed(1)}`}
+            {rollup.total === 0 ? '—' : `${rollup.gap >= 0 ? '+' : ''}${rollup.gap.toFixed(1)}`}
           </div>
           <div style={statLabelStyle}>net kWh/day</div>
         </div>
@@ -119,7 +157,8 @@ export default function EnergyDemandRollup({ utilities }: Props) {
       )}
 
       <div style={{ fontSize: 10, color: 'var(--color-panel-muted)', marginTop: 10, lineHeight: 1.5 }}>
-        {rollup.withDemandCount} of {rollup.totalUtilities} utilities have demand set. Solar estimate assumes {'\u224B'}2.5 kWh/day per placed solar panel at 4.5 kWh/m{'\u00B2'}/day irradiance. Update each utility's demand note in the placement modal.
+        {rollup.withDemandCount} of {rollup.totalUtilities} utilities and {rollup.structureLoadCount} of {structures.length} structures contributing load.
+        Loads use per-type defaults from <code>@ogden/shared/demand</code>; per-utility <em>demandKwhPerDay</em> overrides its default. Solar estimate assumes ~2 m{'²'} per placed panel at {rollup.irradianceUsed.toFixed(1)} kWh/m{'²'}/day irradiance{rollup.irradianceFromClimateLayer ? ' (NASA POWER).' : ' (temperate-zone default — load climate layer for site-specific value).'}
       </div>
     </div>
   );

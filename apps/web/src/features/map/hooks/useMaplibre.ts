@@ -117,11 +117,12 @@ export function useMaplibre({ containerRef, initialCenter, initialZoom }: UseMap
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // React to style changes
-  useEffect(() => {
-    if (!mapRef.current || !isLoaded) return;
-    mapRef.current.setStyle(MAP_STYLES[style] ?? MAP_STYLES['satellite']!);
-  }, [style, isLoaded]);
+  // Reactive style swaps live in MapCanvas (chrome audit, 2026-04-25).
+  // Owning the swap in the same component that owns `addAllLayers`
+  // guarantees the `style.load` re-hydration listener is registered
+  // before `setStyle` is invoked, eliminating a race where user-drawn
+  // boundaries / zones / structures could be lost across basemap
+  // switches.
 
   return { map: mapRef.current, draw: drawRef.current, isLoaded, mapError };
 }

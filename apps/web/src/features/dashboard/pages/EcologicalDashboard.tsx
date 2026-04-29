@@ -25,6 +25,7 @@ import EcologicalProtectionCard from '../../zones/EcologicalProtectionCard.js';
 import ProtectedAreasHabitatCard from '../../zones/ProtectedAreasHabitatCard.js';
 import CarryingCapacityCard from '../../scenarios/CarryingCapacityCard.js';
 import AiSiteSynthesisCard from '../../ai-design-support/AiSiteSynthesisCard.js';
+import AiSiteSummaryCard from '../../ai-design-support/AiSiteSummaryCard.js';
 import AssumptionGapDetectorCard from '../../ai-design-support/AssumptionGapDetectorCard.js';
 import NeedsSiteVisitCard from '../../ai-design-support/NeedsSiteVisitCard.js';
 import AlternativeLayoutRationaleCard from '../../ai-design-support/AlternativeLayoutRationaleCard.js';
@@ -376,6 +377,9 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
 
       {/* §18 AI design synthesis — deterministic constraint/opportunity rollup */}
       <AiSiteSynthesisCard project={project} />
+
+      {/* §18 AI site summary — narrative descriptor with attribution + confidence */}
+      <AiSiteSummaryCard project={project} />
 
       {/* §17 Assumption & open-question detector — pairs with the synthesis card */}
       <AssumptionGapDetectorCard project={project} />

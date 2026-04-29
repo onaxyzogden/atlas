@@ -9,4 +9,8 @@ export const FLAGS = {
   OFFLINE_MODE: process.env['FEATURE_OFFLINE'] === 'true',
   SCENARIO_MODELING: process.env['FEATURE_SCENARIOS'] === 'true',
   PUBLIC_PORTAL: process.env['FEATURE_PUBLIC_PORTAL'] === 'true',
+  // Phase 2 of the Needs & Yields rollout: canvas socket/edge UI behind a
+  // flag until the interaction model is validated. See ADR
+  // wiki/decisions/2026-04-28-needs-yields-dependency-graph.md.
+  RELATIONSHIPS: process.env['FEATURE_RELATIONSHIPS'] === 'true',
 } as const;

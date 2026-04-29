@@ -26,6 +26,10 @@ import PermitReadinessCard from '../../structures/PermitReadinessCard.js';
 import PathModesCard from './PathModesCard.js';
 import BeforeAfterMasterplanCard from '../../vision/BeforeAfterMasterplanCard.js';
 import StageRevealNarrativeCard from '../../vision/StageRevealNarrativeCard.js';
+import CurrentVsVisionToggleCard from '../../vision/CurrentVsVisionToggleCard.js';
+import TimelineYearModeCard from '../../phasing/TimelineYearModeCard.js';
+import ScenarioPhasingAlternativesCard from '../../phasing/ScenarioPhasingAlternativesCard.js';
+import PhaseLoadDistributionCard from '../../phasing/PhaseLoadDistributionCard.js';
 import css from './PhasingDashboard.module.css';
 
 interface PhasingDashboardProps {
@@ -453,11 +457,23 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
         )
       )}
 
+      {/* ── §14 Current land vs full vision toggle + gap quantification */}
+      <CurrentVsVisionToggleCard projectId={project.id} />
+
       {/* ── §14 Before / after masterplan overlay ───────────────────── */}
       <BeforeAfterMasterplanCard projectId={project.id} />
 
       {/* ── §14 Stage-by-stage reveal narrative ─────────────────────── */}
       <StageRevealNarrativeCard projectId={project.id} />
+
+      {/* ── §15 Phase load distribution (entities per phase) ────────── */}
+      <PhaseLoadDistributionCard projectId={project.id} />
+
+      {/* ── §19 Timeline year-mode scrubber ─────────────────────────── */}
+      <TimelineYearModeCard projectId={project.id} />
+
+      {/* ── §19 Scenario phasing alternatives ───────────────────────── */}
+      <ScenarioPhasingAlternativesCard projectId={project.id} />
 
       {/* ── §15 Per-phase permit readiness ──────────────────────────── */}
       <PermitReadinessCard projectId={project.id} />

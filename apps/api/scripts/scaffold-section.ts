@@ -120,9 +120,17 @@ function main() {
   writeNew(
     resolve(featureDir, `${pascal}Page.tsx`),
     `// Section ${id} — ${name} ([${phase}])\n` +
-      `// Generated stub from scaffold-section.ts.\n\n` +
+      `// Orphan scaffold — not routed. Real surface listed in SectionScaffold.\n` +
+      `import { SectionScaffold } from '../_scaffolds/SectionScaffold';\n\n` +
       `export default function ${pascal}Page() {\n` +
-      `  return <div data-section-id=\"${id}\">${name} — coming soon</div>;\n` +
+      `  return (\n` +
+      `    <SectionScaffold\n` +
+      `      section={${id}}\n` +
+      `      slug=\"${slug}\"\n` +
+      `      name=\"${name.replace(/"/g, '\\"')}\"\n` +
+      `      realSurface=\"(unmapped — fill in once the real surface ships)\"\n` +
+      `    />\n` +
+      `  );\n` +
       `}\n`,
   );
 

@@ -26,12 +26,14 @@ import AccessEfficiencyCard from '../rules/AccessEfficiencyCard.js';
 import SafetyBufferRulesCard from '../rules/SafetyBufferRulesCard.js';
 import GuestPrivacyCard from '../rules/GuestPrivacyCard.js';
 import MissingInformationChecklistCard from './MissingInformationChecklistCard.js';
+import WhatMustBeSolvedFirstCard from './WhatMustBeSolvedFirstCard.js';
 import DomainFeasibilityCard from './DomainFeasibilityCard.js';
 import MaintenanceComplexityCard from './MaintenanceComplexityCard.js';
 import SeasonalRealismCard from './SeasonalRealismCard.js';
 import CapitalIntensityCard from './CapitalIntensityCard.js';
 import TerrainConstructionDifficultyCard from './TerrainConstructionDifficultyCard.js';
 import HospitalityEducationEnergyCard from './HospitalityEducationEnergyCard.js';
+import BestUseSummaryCard from './BestUseSummaryCard.js';
 import p from '../../styles/panel.module.css';
 import s from './DecisionSupportPanel.module.css';
 
@@ -304,11 +306,18 @@ export default function DecisionSupportPanel({ project }: DecisionSupportPanelPr
         ))}
       </div>
 
+      {/* §21 Triage — what must be solved first / then / eventually */}
+      <WhatMustBeSolvedFirstCard project={project} />
+
       {/* Missing information checklist */}
       <MissingInformationChecklistCard project={project} />
 
       {/* §28 Domain feasibility — Access · Water · Agricultural · Livestock */}
       <DomainFeasibilityCard project={project} />
+
+      {/* §19 Best-use ranking across all project types
+          (good-fit-poor-fit-best-use). */}
+      <BestUseSummaryCard project={project} />
 
       {/* Vision fit analysis */}
       {fitResults.length > 0 && (

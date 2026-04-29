@@ -14,6 +14,7 @@ import InternalVsPublicViewCard from './InternalVsPublicViewCard.js';
 import ShareLinkReadinessCard from './ShareLinkReadinessCard.js';
 import StakeholderReviewModeCard from './StakeholderReviewModeCard.js';
 import ServiceStewardshipFramingCard from './ServiceStewardshipFramingCard.js';
+import PublicMaskingPreviewCard from './PublicMaskingPreviewCard.js';
 
 interface Props { project: LocalProject }
 
@@ -236,6 +237,9 @@ export default function PortalConfigPanel({ project }: Props) {
 
       {/* §20 Internal vs public view side-by-side audit */}
       <InternalVsPublicViewCard project={project} />
+
+      {/* §18 Public-safe masking leakage preview */}
+      <PublicMaskingPreviewCard project={project} />
 
       {/* §20 Share-link readiness audit */}
       <ShareLinkReadinessCard project={project} />

@@ -1,21 +1,35 @@
 /**
- * ProjectTabBar — thin top bar with project name + Dashboard / Map View tabs.
+ * ProjectTabBar — top bar with project name + the four project lenses.
+ *
+ * Tabs (per 2026-04-27 UI/UX upgrade brief §3):
+ *   Overview | Design Map | Intelligence | Report
  */
 
 import { Link } from '@tanstack/react-router';
+import { FileText } from 'lucide-react';
 import type { ProjectRole } from '@ogden/shared';
 import RoleBadge from './RoleBadge.js';
 import PresenceBar from './PresenceBar.js';
 import css from './ProjectTabBar.module.css';
 
+export type ProjectTab = 'overview' | 'design-map' | 'intelligence' | 'report';
+
 interface ProjectTabBarProps {
   projectName: string;
-  activeTab: 'dashboard' | 'map';
-  onTabChange: (tab: 'dashboard' | 'map') => void;
+  activeTab: ProjectTab;
+  onTabChange: (tab: ProjectTab) => void;
   projectRole?: ProjectRole | null;
+  onGenerateBrief?: () => void;
 }
 
-export default function ProjectTabBar({ projectName, activeTab, onTabChange, projectRole }: ProjectTabBarProps) {
+const TABS: Array<{ value: ProjectTab; label: string }> = [
+  { value: 'overview',     label: 'Overview' },
+  { value: 'design-map',   label: 'Design Map' },
+  { value: 'intelligence', label: 'Intelligence' },
+  { value: 'report',       label: 'Report' },
+];
+
+export default function ProjectTabBar({ projectName, activeTab, onTabChange, projectRole, onGenerateBrief }: ProjectTabBarProps) {
   return (
     <div className={css.bar}>
       <div className={css.left}>
@@ -29,25 +43,31 @@ export default function ProjectTabBar({ projectName, activeTab, onTabChange, pro
       </div>
 
       <div className={css.tabs} role="tablist">
-        <button
-          role="tab"
-          aria-selected={activeTab === 'dashboard'}
-          className={`${css.tab} ${activeTab === 'dashboard' ? css.tabActive : ''}`}
-          onClick={() => onTabChange('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTab === 'map'}
-          className={`${css.tab} ${activeTab === 'map' ? css.tabActive : ''}`}
-          onClick={() => onTabChange('map')}
-        >
-          Map View
-        </button>
+        {TABS.map((tab) => (
+          <button
+            key={tab.value}
+            role="tab"
+            aria-selected={activeTab === tab.value}
+            className={`${css.tab} ${activeTab === tab.value ? css.tabActive : ''}`}
+            onClick={() => onTabChange(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className={css.right}>
+        {onGenerateBrief && (
+          <button
+            type="button"
+            className={css.briefButton}
+            onClick={onGenerateBrief}
+            title="Generate Land Brief"
+          >
+            <FileText size={12} strokeWidth={2.2} aria-hidden="true" />
+            <span>Generate Brief</span>
+          </button>
+        )}
         <PresenceBar />
       </div>
     </div>

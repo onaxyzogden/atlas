@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type maplibregl from 'maplibre-gl';
 import { api } from '../../lib/apiClient.js';
 import type { ElevationProfileResponse } from '@ogden/shared';
 import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import {
+  useSiteAnnotationsStore,
+  newAnnotationId,
+  type Transect,
+} from '../../store/siteAnnotationsStore.js';
 
 interface CrossSectionToolProps {
   projectId: string;
@@ -26,6 +31,9 @@ export default function CrossSectionTool({ projectId, map, draw, compact = false
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<ElevationProfileResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Endpoints of the most recently drawn line, kept so "Save as transect"
+   *  can persist them to siteAnnotationsStore without re-drawing. */
+  const drawnLineRef = useRef<{ start: [number, number]; end: [number, number] } | null>(null);
 
   useEffect(() => {
     if (!active || !map || !draw) return;
@@ -34,13 +42,20 @@ export default function CrossSectionTool({ projectId, map, draw, compact = false
       const feature = e.features[0];
       if (!feature || feature.geometry.type !== 'LineString') return;
       const line = feature.geometry as GeoJSON.LineString;
+      const coords = line.coordinates as [number, number][];
+      if (coords.length >= 2) {
+        drawnLineRef.current = {
+          start: coords[0]!,
+          end: coords[coords.length - 1]!,
+        };
+      }
 
       setLoading(true);
       setError(null);
       api.elevation
         .profile({
           projectId,
-          geometry: { type: 'LineString', coordinates: line.coordinates as [number, number][] },
+          geometry: { type: 'LineString', coordinates: coords },
           sampleCount: 128,
         })
         .then(({ data }) => setProfile(data))
@@ -119,12 +134,15 @@ export default function CrossSectionTool({ projectId, map, draw, compact = false
 
       {(loading || profile || error) && (
         <ProfilePanel
+          projectId={projectId}
           loading={loading}
           profile={profile}
           error={error}
+          drawnLine={drawnLineRef.current}
           onClose={() => {
             setProfile(null);
             setError(null);
+            drawnLineRef.current = null;
           }}
         />
       )}
@@ -133,13 +151,42 @@ export default function CrossSectionTool({ projectId, map, draw, compact = false
 }
 
 interface ProfilePanelProps {
+  projectId: string;
   loading: boolean;
   profile: ElevationProfileResponse | null;
   error: string | null;
+  drawnLine: { start: [number, number]; end: [number, number] } | null;
   onClose: () => void;
 }
 
-function ProfilePanel({ loading, profile, error, onClose }: ProfilePanelProps) {
+function ProfilePanel({ projectId, loading, profile, error, drawnLine, onClose }: ProfilePanelProps) {
+  const addTransect = useSiteAnnotationsStore((s) => s.addTransect);
+  const [name, setName] = useState('');
+  const [savedId, setSavedId] = useState<string | null>(null);
+
+  const canSave = !!profile && !!drawnLine && savedId === null;
+
+  function saveAsTransect() {
+    if (!profile || !drawnLine) return;
+    const elevations = profile.samples
+      .map((s) => s.elevationM)
+      .filter((v): v is number => v !== null && isFinite(v));
+    const t: Transect = {
+      id: newAnnotationId('tr'),
+      projectId,
+      name: name.trim() || `Transect ${new Date().toISOString().slice(0, 10)}`,
+      pointA: drawnLine.start,
+      pointB: drawnLine.end,
+      sampledAt: new Date().toISOString(),
+      elevationProfileM: elevations,
+      sourceApi: profile.sourceApi,
+      confidence: profile.confidence,
+      totalDistanceM: profile.totalDistanceM,
+    };
+    addTransect(t);
+    setSavedId(t.id);
+  }
+
   return (
     <div
       style={{
@@ -172,6 +219,44 @@ function ProfilePanel({ loading, profile, error, onClose }: ProfilePanelProps) {
       {loading && <div style={{ color: '#c4b49a', fontSize: 12 }}>Sampling DEMâ€¦</div>}
       {error && <div style={{ color: '#d07b7b', fontSize: 12 }}>{error}</div>}
       {profile && <ProfileChart profile={profile} />}
+      {profile && drawnLine ? (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(196,180,154,0.18)' }}>
+          <input
+            type="text"
+            placeholder="Transect name (optional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={savedId !== null}
+            style={{
+              flex: 1,
+              background: 'rgba(0,0,0,0.25)',
+              border: '1px solid rgba(196,180,154,0.25)',
+              borderRadius: 4,
+              color: '#e9decb',
+              padding: '4px 8px',
+              fontSize: 12,
+            }}
+          />
+          <button
+            type="button"
+            onClick={saveAsTransect}
+            disabled={!canSave}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 4,
+              border: 'none',
+              cursor: canSave ? 'pointer' : 'default',
+              fontSize: 12,
+              fontWeight: 500,
+              background: savedId !== null ? 'rgba(120, 200, 130, 0.85)' : semantic.primary,
+              color: '#1a1a1a',
+              opacity: canSave ? 1 : 0.6,
+            }}
+          >
+            {savedId !== null ? 'Saved âœ“' : 'Save as transect'}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,266 @@
+.studio {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  height: 100%;
+  min-height: calc(100vh - 64px);
+}
+
+@media (max-width: 1100px) {
+  .studio { grid-template-columns: 200px 1fr; }
+}
+
+@media (max-width: 880px) {
+  .studio { grid-template-columns: 1fr; }
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.toolbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow-y: auto;
+}
+
+.toolboxHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand);
+}
+
+.toolboxTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.toolItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.toolItem:hover {
+  border-color: var(--color-gold-brand);
+  background: var(--color-surface-raised, var(--color-surface));
+}
+
+.toolGlyph {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-gold-brand);
+}
+
+.toolLabel {
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.canvasColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.canvasToolbar,
+.bottomToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* Bottom toolbar — Figma-like control strip below the canvas + metrics.
+   Reordered from above-canvas in 2026-04-28 concept-polish pass per
+   Permaculture Scholar "Design from Patterns to Details": flow first. */
+.bottomToolbar {
+  margin-top: var(--space-1);
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  box-shadow: var(--shadow-sm);
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toolbarLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.select {
+  font-size: 12px;
+  padding: 5px 8px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.overlayChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.chip:hover { border-color: var(--color-gold-brand); }
+.chipOn {
+  color: #2a2018;
+  background: var(--color-gold-brand);
+  border-color: var(--color-gold-brand);
+}
+
+.canvasFrame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 380px;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgb(118 156 91 / 0.10), transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgb(var(--color-gold-rgb) / 0.08), transparent 55%),
+    var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvasNotice {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px 6px 8px;
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  max-width: min(420px, calc(100% - 2 * var(--space-3)));
+}
+
+.canvasBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: var(--radius-full);
+  background: rgb(var(--color-gold-rgb) / 0.18);
+  color: #e6cf99;
+  border: 1px solid var(--color-gold-brand);
+  flex-shrink: 0;
+}
+
+.canvasNoticeText {
+  font-size: 11px;
+  color: #e2dccf;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.toast {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: 8px 14px;
+  background: var(--color-gold-brand);
+  color: #2a2018;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  animation: toastIn 180ms ease-out;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bottomStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2);
+}

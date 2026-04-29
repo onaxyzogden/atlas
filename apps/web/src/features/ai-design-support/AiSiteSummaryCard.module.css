@@ -1,0 +1,170 @@
+/* §18 AiSiteSummaryCard — narrative site descriptor with per-claim
+   attribution + confidence band. Same parchment palette as sibling cards. */
+
+.section { margin-bottom: 28px; }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.45);
+  margin: 0 0 12px;
+  display: block;
+}
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.6);
+  max-width: 600px;
+}
+
+.aiBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.9);
+  border: 1px solid rgba(196, 162, 101, 0.2);
+  white-space: nowrap;
+}
+
+/* ── Meta row (confidence band + layer count + live) ─────────────────── */
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.confBand {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.band_HIGH {
+  background: rgba(160, 195, 130, 0.12);
+  color: rgba(180, 215, 150, 0.95);
+  border-color: rgba(160, 195, 130, 0.28);
+}
+
+.band_MEDIUM {
+  background: rgba(196, 162, 101, 0.12);
+  color: rgba(232, 200, 130, 0.92);
+  border-color: rgba(196, 162, 101, 0.24);
+}
+
+.band_LOW {
+  background: rgba(180, 100, 90, 0.1);
+  color: rgba(220, 150, 130, 0.9);
+  border-color: rgba(180, 100, 90, 0.24);
+}
+
+.metaItem {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+  letter-spacing: 0.02em;
+}
+
+.liveBadge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(160, 195, 130, 0.1);
+  color: rgba(180, 215, 150, 0.92);
+  border: 1px solid rgba(160, 195, 130, 0.22);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 24px 16px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ── Paragraph list ──────────────────────────────────────────────────── */
+
+.paraList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.para {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.paraTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.paraBody {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(232, 220, 200, 0.82);
+}
+
+.sentence {
+  /* sentences flow inline */
+}
+
+.attr {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+}

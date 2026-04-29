@@ -1,0 +1,115 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tabPanel {
+  position: absolute;
+  inset: 0;
+}
+
+.tabPanelHidden {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-4);
+  color: var(--color-text);
+}
+
+.notFoundTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-normal);
+}
+
+.notFoundLink {
+  color: var(--color-earth-600);
+  font-size: var(--text-base);
+  text-decoration: underline;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editorModal {
+  width: min(500px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.deleteDialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+}
+
+.deleteTitle {
+  font-size: var(--space-4);
+  font-weight: var(--font-medium);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.deleteDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+  line-height: var(--leading-relaxed);
+}
+
+.deleteActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.btnDeleteConfirm {
+  padding: 10px var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-error-600);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+.btnDeleteConfirm:hover { background: var(--color-error-700); }
+
+.btnDeleteCancel {
+  padding: 10px var(--space-6);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default);
+}
+.btnDeleteCancel:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}

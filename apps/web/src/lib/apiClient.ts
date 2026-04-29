@@ -517,8 +517,60 @@ export const api = {
         'POST',
         `/api/v1/climate-analysis/${projectId}/comfort-grid/compute`,
       ),
+
+    /**
+     * Server-side proxy for Open-Meteo ERA5 hourly wind, returned as 8-bin
+     * compass frequencies. Maps the 502/WIND_ROSE_UNAVAILABLE silent-fail to
+     * null so callers can decide whether to fall back to defaults.
+     */
+    windRose: async (
+      lat: number,
+      lng: number,
+      signal?: AbortSignal,
+    ): Promise<WindRoseResponse | null> => {
+      try {
+        const env = await request<WindRoseResponse>(
+          'GET',
+          `/api/v1/climate-analysis/wind-rose?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`,
+          undefined,
+          signal,
+        );
+        return env.data;
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'WIND_ROSE_UNAVAILABLE') {
+          return null;
+        }
+        throw err;
+      }
+    },
+  },
+
+  relationships: {
+    list: (projectId: string) =>
+      request<RelationshipRecord[]>('GET', `/api/v1/projects/${projectId}/relationships`),
+
+    create: (projectId: string, edge: RelationshipEdgePayload) =>
+      request<RelationshipRecord>('POST', `/api/v1/projects/${projectId}/relationships`, edge),
+
+    delete: (projectId: string, edgeId: string) =>
+      request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
   },
 };
+
+export interface RelationshipEdgePayload {
+  fromId: string;
+  fromOutput: string;
+  toId: string;
+  toInput: string;
+  ratio?: number;
+}
+
+export interface RelationshipRecord extends RelationshipEdgePayload {
+  id: string;
+  createdAt: string;
+}
+
+export { ApiError };
 
 export interface SolarExposureResponse {
   geojson: GeoJSON.FeatureCollection;
@@ -534,6 +586,20 @@ export interface SolarExposureResponse {
     resolution_m: number;
     source_api: string;
   };
+}
+
+export type WindRoseCompassCode = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export interface WindRoseResponse {
+  frequencies: Record<WindRoseCompassCode, number>;
+  /**
+   * Per-bin mean wind speed in m/s. Optional — old cached payloads (pre-Beaufort)
+   * may not include it; null entries mean the bin had zero non-calm samples.
+   */
+  meanSpeedsMs?: Record<WindRoseCompassCode, number | null>;
+  source: string;
+  windowYears: { start: number; end: number };
+  sampleCount: number;
 }
 
 export interface ComfortGridResponse {

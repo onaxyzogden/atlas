@@ -3,7 +3,7 @@
 
 .toolbar {
   /* Tint fallback — overridden per-render via inline --domain-tint. */
-  --domain-tint: #c4a265;
+  --domain-tint: #d4af5f;
 
   position: absolute;
   bottom: 24px;

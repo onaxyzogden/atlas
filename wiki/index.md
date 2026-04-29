@@ -17,6 +17,7 @@ Read this first at the start of every session.
 - [Data Pipeline](entities/data-pipeline.md) — BullMQ orchestration, layer adapters, workers
 - [PDF Export Service](entities/pdf-export-service.md) — Puppeteer templates, S3 storage, 7 export types
 - [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
+- [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens
@@ -24,6 +25,8 @@ Read this first at the start of every session.
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
 - [Feature Manifest](concepts/feature-manifest.md) — 30-section source-of-truth for features, phase gating, scaffolding generator
+- [Permaculture Alignment](concepts/permaculture-alignment.md) — 3 ethics + 12 Holmgren principles assessment from 2026-04-28 Permaculture Scholar dialogue; 4 represented / 6 partial / 3 missing; six prioritised recommendations
+- [Atlas Sidebar — Permaculture-Grounded IA](concepts/atlas-sidebar-permaculture.md) — 2026-04-28 Permaculture Scholar synthesis on lifecycle sidebar IA; 4 of 7 verbs renamed (Observe/Test/Steward/Evaluate), Steward-as-loop, 4 utility nav items prioritised
 
 ## Decisions
 - [2026-04-11 PDF Export Architecture](decisions/2026-04-11-pdf-export-architecture.md) — Puppeteer, sync rendering, template literals, client payload
@@ -48,6 +51,15 @@ Read this first at the start of every session.
 - [2026-04-24 MapControlPopover + mapZIndex](decisions/2026-04-24-map-control-popover-and-mapzindex.md) — `<MapControlPopover variant="panel"|"dropdown">` extracts the five-consumer glass-chrome pattern; `mapZIndex` TS export + `--z-map-*` CSS mirror replace all 1–50 sub-scale literals in `features/map/**`; closes IA spec §5 deferred items
 - [2026-04-26 Zustand Selector Discipline](decisions/2026-04-26-zustand-selector-discipline.md) — Codified after third render-loop recurrence: selectors must return primitives, raw store fields, or action refs; no `s.getX(id)` getter-in-selector, no inline `.filter()/.map()/.sort()`. Hoist-then-useMemo pattern required. Patched 5 portal cards.
 - [2026-04-25 Pre-Flight Audit](decisions/2026-04-25-pre-flight-audit.md) — Five-phase P0+P1+mobile gate on `feat/shared-scoring`: Pivot B (orphan-stub `realSurface[]` annotations), tsc green × 3 packages, 18 dashboard CSS modules carry per-class `@media` rules, `landingRoute` at `/` outside AppShell with `beforeLoad` redirect to `/home`, `homeRoute` migrated `/` → `/home` across 8 call-sites; four new LAUNCH-CHECKLIST rows for deferred P2s
+- [2026-04-26 Zustand Selector Stability](decisions/2026-04-26-zustand-selector-stability.md) — Subscribe-then-derive pattern: read raw store array in selector, compute project-filtered slice in `useMemo`; closes infinite-render anti-pattern across 10 cards
+- [2026-04-27 Right Rail / Bottom Toolbar Split](decisions/2026-04-27-right-rail-bottom-toolbar-split.md) — Right rail = read-out only; bottom `DomainFloatingToolbar` = all action tools; both surfaces driven by `useUIStore.activeDashboardSection`; Biomass surfaces on map + dashboard via shared `BiomassDashboard` component
+- [2026-04-27 Demand Coefficient Tables](decisions/2026-04-27-demand-coefficient-tables.md) — New `@ogden/shared/demand` subpath: per-type water + electricity tables for structures/utilities/crops, additive `sumSiteDemand`, hydrology engine consumes placed entities (replaces 22%-of-rainfall placeholder)
+- [2026-04-27 Demand Model Round 2](decisions/2026-04-27-demand-model-round-2.md) — Closes round-1 deferrals: structure overrides + residential occupancy, livestock water module (FAO/NRCS coefficients + multi-species head splitting), NASA POWER irradiance threaded through solar rollup, PET-driven crop climate multiplier (clamped 0.7–1.5)
+- [2026-04-27 Project Intake Map Centering](decisions/2026-04-27-project-intake-map-centering.md) — Boundary > manual coords > scoped geocode priority for new-project map; `centerLat`/`centerLng` added to `ProjectMetadata` (jsonb, no migration); wizard adds lat/lng inputs + paste shortcut + Recenter button + failure banner
+- [2026-04-28 Needs & Yields Dependency Graph](decisions/2026-04-28-needs-yields-dependency-graph.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/relationships` subpath, output→input routing required for design completion, `integrationScore` added to scoring engine
+- [2026-04-28 Temporal Slider — Succession Modelling](decisions/2026-04-28-temporal-slider-succession-modeling.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/succession` subpath with species growth curves, Year 1-50 canvas slider, `temporalCoherenceScore` + `successionScore` sub-dimensions
+- [2026-04-28 Atlas Wind-Prevailing Sector Overlay](decisions/2026-04-28-atlas-wind-prevailing-overlay.md) — Fourth Diagnose matrix toggle (eight-direction compass-petal rose); mock Eastern-Ontario climatology; `matrixTogglesStore` v4 → v5
+- [2026-04-29 OBSERVE Stage IA Restructure](decisions/2026-04-29-observe-stage-ia-restructure.md) — Collapse 5-stage taxonomy to 3-stage Observe/Plan/Act lens; new `ObserveHub` landing surface + 17-item Observe accordion + 8 gap surfaces (steward survey, regional context, hazards log, A–B cross-section, soil tests, food-chain, sector compass, SWOT journal + diagnosis report); new persisted `siteAnnotationsStore` instead of extending fetch-driven `siteDataStore`
 
 ## Design System
 - [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)

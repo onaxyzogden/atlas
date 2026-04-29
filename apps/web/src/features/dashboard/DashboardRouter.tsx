@@ -39,11 +39,27 @@ const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPane
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
 const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
-const DecisionSupportPanel = lazy(() => import('../../features/decision/DecisionSupportPanel.js'));
+const FeasibilityCommandCenter = lazy(() => import('../../features/decision/FeasibilityCommandCenter.js'));
 const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
 const EducationalAtlasDashboard = lazy(() => import('./pages/EducationalAtlasDashboard.js'));
 const PhasingDashboard = lazy(() => import('./pages/PhasingDashboard.js'));
 const SiteDataLayersPage = lazy(() => import('../../features/site-data-layers/SiteDataLayersPage.js'));
+const ZoningDashboard = lazy(() => import('./pages/ZoningDashboard.js'));
+const CollaborationDashboard = lazy(() => import('./pages/CollaborationDashboard.js'));
+const TemplatesDashboard = lazy(() => import('./pages/TemplatesDashboard.js'));
+const FieldworkDashboard = lazy(() => import('./pages/FieldworkDashboard.js'));
+const VersionHistoryDashboard = lazy(() => import('./pages/VersionHistoryDashboard.js'));
+const BiomassDashboard = lazy(() => import('./pages/BiomassDashboard.js'));
+const ObserveHub = lazy(() => import('../observe/ObserveHub.js'));
+const StewardSurveyCard = lazy(() => import('../observe/StewardSurveyCard.js'));
+const IndigenousRegionalCard = lazy(() => import('../observe/IndigenousRegionalCard.js'));
+const HazardsLogCard = lazy(() => import('../observe/HazardsLogCard.js'));
+const CrossSectionTool = lazy(() => import('../observe/CrossSectionTool.js'));
+const SoilTestsCard = lazy(() => import('../observe/SoilTestsCard.js'));
+const FoodChainCard = lazy(() => import('../observe/FoodChainCard.js'));
+const SectorCompassCard = lazy(() => import('../observe/SectorCompassCard.js'));
+const SwotJournalCard = lazy(() => import('../observe/SwotJournalCard.js'));
+const DiagnosisReportExport = lazy(() => import('../observe/DiagnosisReportExport.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -52,13 +68,72 @@ interface DashboardRouterProps {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  'biomass': 'Biomass',
   'dashboard-settings': 'Settings',
   'archive': 'Archive',
 };
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
   switch (section) {
+    case 'dashboard-observe-hub':
+      return (
+        <PanelShell name="Observe Hub">
+          <ObserveHub project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-steward-survey':
+      return (
+        <PanelShell name="Steward Survey">
+          <StewardSurveyCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-indigenous-regional':
+      return (
+        <PanelShell name="Indigenous & Regional Context">
+          <IndigenousRegionalCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-hazards-log':
+      return (
+        <PanelShell name="Hazards Log">
+          <HazardsLogCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-cross-section':
+      return (
+        <PanelShell name="A–B Cross-Section">
+          <CrossSectionTool project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-soil-tests':
+      return (
+        <PanelShell name="Jar / Perc / Roof Catchment">
+          <SoilTestsCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-food-chain':
+      return (
+        <PanelShell name="Food-Chain & Succession">
+          <FoodChainCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-sector-compass':
+      return (
+        <PanelShell name="Sector Compass">
+          <SectorCompassCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-swot-journal':
+      return (
+        <PanelShell name="SWOT Journal">
+          <SwotJournalCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-diagnosis-report':
+      return (
+        <PanelShell name="Diagnosis Report">
+          <DiagnosisReportExport project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
     case 'site-intelligence':
       return (
         <PanelShell name="Site Intelligence">
@@ -156,6 +231,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
           <StewardshipDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
+    case 'biomass':
+      return (
+        <PanelShell name="Biomass">
+          <BiomassDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
     case 'climate':
       return (
         <PanelShell name="Climate">
@@ -213,7 +294,37 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
     case 'feasibility':
       return (
         <PanelShell name="Feasibility">
-          <DecisionSupportPanel project={project} />
+          <FeasibilityCommandCenter project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'zoning':
+      return (
+        <PanelShell name="Zoning">
+          <ZoningDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'collaboration':
+      return (
+        <PanelShell name="Collaboration">
+          <CollaborationDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'templates':
+      return (
+        <PanelShell name="Templates">
+          <TemplatesDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'fieldwork':
+      return (
+        <PanelShell name="Fieldwork">
+          <FieldworkDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'history':
+      return (
+        <PanelShell name="Version History">
+          <VersionHistoryDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     default:

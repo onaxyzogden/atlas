@@ -1,0 +1,96 @@
+.shortlistRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.shortlistRow:last-of-type { border-bottom: none; }
+.shortlistMain {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.shortlistName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.shortlistMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.shortlistRight {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.shortlistAcres {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.shortlistScore {
+  font-size: 13px; font-weight: 700;
+  color: #a8d39a;
+  min-width: 26px;
+  text-align: right;
+}
+.shortlistScoreWatch  { color: #d4af5f; }
+.shortlistScoreWarning { color: #e0a368; }
+.shortlistScoreBlocked { color: #e27272; }
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.count {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.linkBtn {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-gold-brand);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.linkBtn:hover { text-decoration: underline; }
+
+.filterRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.filterRow:last-of-type { border-bottom: none; }
+.filterLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.filterValue {
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.compareSub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}

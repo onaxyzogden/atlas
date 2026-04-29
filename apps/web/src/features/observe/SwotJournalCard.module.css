@@ -1,0 +1,192 @@
+/* SWOT Journal — 4-column board with add-entry inline. */
+
+.page { max-width: 1100px; }
+
+.hero {
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a2e1a 0%, #0f1a12 50%, #1a2a18 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.heroTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(var(--color-gold-rgb), 0.6);
+  display: block;
+  margin-bottom: 8px;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+.lede {
+  font-size: 13px;
+  color: rgba(232,220,200,0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 980px) { .board { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .board { grid-template-columns: 1fr; } }
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  min-height: 220px;
+}
+.colHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.colTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.92);
+  margin: 0;
+}
+.colCount {
+  font-size: 11px;
+  color: rgba(232,220,200,0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.colS .colTitle { color: rgba(120, 200, 130, 0.95); }
+.colW .colTitle { color: rgba(220, 130, 110, 0.95); }
+.colO .colTitle { color: rgba(120, 170, 220, 0.95); }
+.colT .colTitle { color: rgba(220, 180, 100, 0.95); }
+
+.entry {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.entryTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.92);
+}
+.entryBody {
+  font-size: 12px;
+  color: rgba(232,220,200,0.65);
+  line-height: 1.45;
+}
+.entryFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.entryDate {
+  font-size: 10px;
+  color: rgba(232,220,200,0.4);
+  font-variant-numeric: tabular-nums;
+}
+.removeBtn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(232,220,200,0.55);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.removeBtn:hover {
+  border-color: rgba(220,80,80,0.5);
+  color: rgba(220,80,80,0.9);
+}
+
+.addBox {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+}
+.addBox input,
+.addBox textarea {
+  appearance: none;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: rgba(232,220,200,0.92);
+  font-family: inherit;
+  width: 100%;
+}
+.addBox textarea { min-height: 50px; resize: vertical; }
+.addBtn {
+  appearance: none;
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(255,255,255,0.15);
+  color: rgba(232,220,200,0.7);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.addBtn:hover {
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+  color: rgba(var(--color-gold-rgb), 0.9);
+}
+.addBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Diagnosis Report Export */
+.report {
+  padding: 24px 28px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  white-space: pre-wrap;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: rgba(232,220,200,0.85);
+  line-height: 1.6;
+  max-height: 560px;
+  overflow-y: auto;
+}
+.actionBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.primaryBtn {
+  appearance: none;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.4);
+  color: rgba(var(--color-gold-rgb), 0.95);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.primaryBtn:hover { background: rgba(var(--color-gold-rgb), 0.2); }

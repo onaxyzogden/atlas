@@ -1,0 +1,151 @@
+/* LandVerdictCard — executive verdict hero block per 2026-04-27 brief §3 */
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scoreCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.scoreLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.verdictBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.verdict_strong {
+  background: rgba(76, 175, 80, 0.18);
+  color: #7fcf83;
+  border: 1px solid rgba(76, 175, 80, 0.35);
+}
+
+.verdict_conditional {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b97a;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+}
+
+.verdict_caution {
+  background: rgba(231, 142, 76, 0.18);
+  color: #e89967;
+  border: 1px solid rgba(231, 142, 76, 0.4);
+}
+
+.verdict_blocked {
+  background: rgba(214, 86, 76, 0.18);
+  color: #e08077;
+  border: 1px solid rgba(214, 86, 76, 0.4);
+}
+
+.interpretation {
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(232, 220, 200, 0.92);
+  margin: 0;
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  padding: 10px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+}
+
+.factLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+  margin-bottom: 2px;
+}
+
+.factValue {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(232, 220, 200, 0.88);
+}
+
+.factEmpty {
+  color: rgba(180, 165, 140, 0.45);
+  font-style: italic;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.35);
+  background: rgba(196, 162, 101, 0.1);
+  color: rgba(232, 220, 200, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+.cta:hover {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.ctaPrimary {
+  background: rgba(196, 162, 101, 0.22);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.ctaPrimary:hover {
+  background: rgba(196, 162, 101, 0.32);
+}
+
+@media (max-width: 720px) {
+  .card { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+  .scoreCol { flex-direction: row; align-items: center; gap: 12px; }
+  .factGrid { grid-template-columns: 1fr; gap: 10px; }
+}

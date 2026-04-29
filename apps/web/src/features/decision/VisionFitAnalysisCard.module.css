@@ -1,0 +1,109 @@
+/* VisionFitAnalysisCard — per-requirement fit rows. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.head { display: flex; flex-direction: column; gap: 4px; }
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(232, 220, 200, 0.96);
+}
+
+.hint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.empty {
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+  margin: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rowGood { border-left-color: #7fcf83; }
+.rowMid { border-left-color: #d4b97a; }
+.rowBad { border-left-color: #e08077; }
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rowName {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.rowStatus {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.85);
+}
+
+.rowMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rowScores {
+  font-size: 11px;
+  color: rgba(220, 210, 195, 0.8);
+}
+
+.weightBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.weight_critical { color: #e08077; background: rgba(214, 86, 76, 0.12); }
+.weight_important { color: #d4b97a; background: rgba(196, 162, 101, 0.12); }
+.weight_supportive { color: rgba(180, 165, 140, 0.7); }
+
+.conf {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.6);
+}

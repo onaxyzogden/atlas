@@ -50,6 +50,28 @@ function statusLabel(status: LayerCompletenessRow['status']): string {
   }
 }
 
+// Map a Tier-1 layer status to one of the legendStatus* chip modifiers.
+// CSS-module class lookups type as `string | undefined` under strict
+// settings, so the return type mirrors that and the JSX call sites
+// coalesce to '' when applying the class.
+function tier1ChipClass(status: LayerCompletenessRow['status']): string | undefined {
+  switch (status) {
+    case 'complete':    return s.legendStatusReady;
+    case 'pending':     return s.legendStatusComputing;
+    case 'failed':      return s.legendStatusFailed;
+    case 'unavailable': return s.legendStatusWaiting;
+  }
+}
+
+// Map a Tier-3 derived-analysis status to one of the legendStatus* chip
+// modifiers. The Tier-3 union is narrower (no failed/unavailable) so the
+// mapping is simpler.
+function tier3ChipClass(status: Tier3Row['status']): string | undefined {
+  if (status === 'complete') return s.legendStatusReady;
+  if (status === 'computing') return s.legendStatusComputing;
+  return s.legendStatusWaiting;
+}
+
 export const LayerLegendPopover = memo(function LayerLegendPopover({
   layerCompleteness,
   tier3Status,
@@ -143,7 +165,9 @@ export const LayerLegendPopover = memo(function LayerLegendPopover({
                   aria-hidden="true"
                 />
                 <span className={s.legendLabel}>{row.label}</span>
-                <span className={s.legendStatus}>{statusLabel(row.status)}</span>
+                <span className={`${s.legendStatus} ${tier1ChipClass(row.status) ?? ''}`}>
+                  {statusLabel(row.status)}
+                </span>
               </li>
             ))}
           </ul>
@@ -167,7 +191,7 @@ export const LayerLegendPopover = memo(function LayerLegendPopover({
                       aria-hidden="true"
                     />
                     <span className={s.legendLabel}>{t.label}</span>
-                    <span className={s.legendStatus}>
+                    <span className={`${s.legendStatus} ${tier3ChipClass(t.status) ?? ''}`}>
                       {t.status === 'complete'
                         ? 'Ready'
                         : t.status === 'computing'

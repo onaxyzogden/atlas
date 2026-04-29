@@ -19,6 +19,9 @@ import {
 } from './SitingRules.js';
 import p from '../../styles/panel.module.css';
 import s from './SitingPanel.module.css';
+import ConflictDensityRollupCard from './ConflictDensityRollupCard.js';
+import RulesLayerOverviewCard from './RulesLayerOverviewCard.js';
+import SitingRuleFamilyCoverageCard from './SitingRuleFamilyCoverageCard.js';
 
 /* ------------------------------------------------------------------ */
 /*  Props & tab type                                                   */
@@ -76,6 +79,15 @@ export default function SitingPanel({ project }: SitingPanelProps) {
       <div className={s.subtitle}>
         {evaluation.featureCount} features evaluated &middot; {evaluation.totalCount} alerts
       </div>
+
+      {/* §17 Per-feature conflict density rollup with explainable chains */}
+      <ConflictDensityRollupCard project={project} />
+
+      {/* §17 Rules-layer configuration snapshot (rules-layer-siting-logic) */}
+      <RulesLayerOverviewCard />
+
+      {/* §17 Siting-rule family coverage (structure / orchard / water / grazing / quiet / sacred) */}
+      <SitingRuleFamilyCoverageCard />
 
       <div className={p.tabBar}>
         <button className={`${p.tabBtn} ${activeTab === 'alerts' ? p.tabBtnActive : ''}`} onClick={() => setActiveTab('alerts')}>

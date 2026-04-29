@@ -63,6 +63,7 @@ const VIEW_LABELS: Record<Exclude<SidebarView, null>, string> = {
   forest: 'Forest Hub',
   carbon: 'Carbon Diagnostic',
   nursery: 'Nursery Ledger',
+  biomass: 'Biomass',
   paddockDesign: 'Paddock Design',
   herdRotation: 'Herd Rotation',
   grazingAnalysis: 'Grazing Analysis',
@@ -92,8 +93,10 @@ export const RailPanelShell: React.FC<RailPanelShellProps> = ({
       ? ({
           type: 'button' as const,
           onClick: onToggleCollapsed,
-          'aria-label': 'Expand panel',
-          title: 'Expand panel',
+          // Include section name so screen-reader users know which panel
+          // they are about to expand (chrome audit, 2026-04-25).
+          'aria-label': `Expand ${label} panel`,
+          title: `Expand ${label} panel`,
         })
       : {};
     return (
@@ -120,8 +123,12 @@ export const RailPanelShell: React.FC<RailPanelShellProps> = ({
     ? ({
         type: 'button' as const,
         onClick: onToggleCollapsed,
-        'aria-label': 'Collapse panel',
-        title: 'Collapse panel',
+        // Include section name in the accessible name — without it,
+        // screen-reader users hear "Collapse panel" with no context for
+        // which of the multiple rail panels is being collapsed
+        // (chrome audit, 2026-04-25).
+        'aria-label': `Collapse ${label} panel`,
+        title: `Collapse ${label} panel`,
       })
     : {};
 

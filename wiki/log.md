@@ -4,6 +4,1059 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-29 — Manitoba Schedule A subcategory picker (per-species AU)
+
+### Done
+
+Replaces the single representative AU factor per species (`AU_FACTORS[species]`) with an opt-in per-paddock-per-species Manitoba Schedule A subcategory picker, the last deferred item from the 2026-04-29 popup-fixes plan. AU rollups now compute against the precise subcategory factor when a paddock records a choice, falling back to the legacy single number when it does not — so existing data is unchanged.
+
+**Data layer**
+- New [`apps/web/src/features/livestock/scheduleA.ts`](../apps/web/src/features/livestock/scheduleA.ts) — typed `ScheduleASubcategory[]` catalog with 28 entries spanning the Manitoba Schedule A taxonomy plus four approximation rows for goats / ducks-geese / rabbits / bees (flagged `inScheduleA: false`). Exposes:
+  - `MANITOBA_SCHEDULE_A` — the catalog
+  - `getScheduleAOptions(species)` — filtered options for the picker
+  - `getSubcategoryById(id)` — reverse lookup
+  - `auFactorFor(species, subcategoryId?)` — resolves to the subcategory factor when valid, else the legacy `AU_FACTORS[species]`
+  - `DEFAULT_SUBCATEGORY_BY_SPECIES` — chosen so the resolved factor matches the legacy single-number table to within rounding
+- Coefficients to 3 decimals, sourced from Manitoba's Livestock Manure and Mortalities Management Regulation, Schedule A. Anchor: 1 AU = 73 kg N excreted/yr.
+
+**Store**
+- [`livestockStore.ts`](../apps/web/src/store/livestockStore.ts) — `Paddock.scheduleASubcategoryBySpecies?: Partial<Record<LivestockSpecies, string>>`. Optional, undefined for legacy paddocks.
+
+**Math**
+- [`speciesData.ts`](../apps/web/src/features/livestock/speciesData.ts) — `computeAnimalUnits` accepts an optional `subcategoryId` per row and routes through `auFactorFor`. Backward-compatible default.
+- [`livestockAnalysis.ts`](../apps/web/src/features/livestock/livestockAnalysis.ts) — `InventoryEntry` gained optional `bySubcategory[]`. `computeInventorySummary` reads `paddock.scheduleASubcategoryBySpecies[species]` and bins head counts per subcategory id when set.
+- [`HerdRotationDashboard.tsx`](../apps/web/src/features/dashboard/pages/HerdRotationDashboard.tsx) — `totalAU` useMemo now expands each species line into one row per subcategory (plus an "untagged" remainder when paddocks don't all record one) before calling `computeAnimalUnits`. Existing dashboard UI unchanged; AU number simply sharpens.
+
+**UI**
+- [`LivestockPanel.tsx`](../apps/web/src/features/livestock/LivestockPanel.tsx) — new `scheduleA` form state, seeded with `DEFAULT_SUBCATEGORY_BY_SPECIES[sp]` whenever a species is checked. The stocking-info hint box gains a small `<select>` per species (only when ≥2 options exist) showing `label — N.NNN AU/head` plus an "(approx.)" suffix for non-Schedule-A approximations. Save handler persists `scheduleASubcategoryBySpecies` only when at least one species has a non-empty pick.
+
+### Verified
+
+- `tsc --noEmit` clean across the entire web app.
+- Hand-checked: 100 head of `cattle` with no subcategory → 100 × 1.250 = 125 AU (legacy path). Same 100 head as `cattle:backgrounder` → 100 × 0.625 = 62.5 AU. Mixed paddock with explicit choice + a paddock without one bins correctly in the dashboard rollup (`bySubcategory` accounts for tagged head, "untagged" remainder uses default factor).
+
+### Files
+
+- `apps/web/src/features/livestock/scheduleA.ts` (new)
+- `apps/web/src/features/livestock/speciesData.ts`
+- `apps/web/src/features/livestock/livestockAnalysis.ts`
+- `apps/web/src/features/livestock/LivestockPanel.tsx`
+- `apps/web/src/features/dashboard/pages/HerdRotationDashboard.tsx`
+- `apps/web/src/store/livestockStore.ts`
+
+---
+
+## 2026-04-29 — v3 strict-null TS sweep + market-garden bed-length override
+
+### Done
+
+**Part 1 — v3 TypeScript strict-null sweep.** Cleared all 24 pre-existing TS errors in `apps/web/src/v3/**` so `tsc --noEmit` now reports zero errors across the entire web app.
+
+- [`v3/components/DiagnoseMap.tsx`](../apps/web/src/v3/components/DiagnoseMap.tsx): `polygonBounds()` now returns `LngLatBounds | null` after guarding empty rings + undefined coord components. Both call sites (initial-center derivation + `fitBounds`) handle the null case.
+- [`v3/components/FiltersBar.tsx`](../apps/web/src/v3/components/FiltersBar.tsx): `f.options[idx + 1] ?? null` to satisfy `noUncheckedIndexedAccess`.
+- [`v3/components/overlays/SpotlightPulse.tsx`](../apps/web/src/v3/components/overlays/SpotlightPulse.tsx) + [`v3/components/rails/DiagnoseRail.tsx`](../apps/web/src/v3/components/rails/DiagnoseRail.tsx) + [`v3/components/rails/OperateRail.tsx`](../apps/web/src/v3/components/rails/OperateRail.tsx): `css.foo ?? ""` for CSS-module string accesses (typed as `string | undefined` under the project's strict CSS-module typing).
+- [`v3/components/rails/HomeRail.tsx`](../apps/web/src/v3/components/rails/HomeRail.tsx): non-null assertion on `currentStage` after the `currentIdx >= 0 ? currentIdx : 0` guard makes the index always valid.
+- [`v3/components/rails/ProveRail.tsx`](../apps/web/src/v3/components/rails/ProveRail.tsx): added `&& visible[0]` to the IntersectionObserver callback before reading `.target.id`.
+- [`v3/components/Sparkline.tsx`](../apps/web/src/v3/components/Sparkline.tsx): `(values[values.length - 1] ?? 0)` for the last-point Y calc.
+
+**Part 2 — Market-garden bed-length override (deferred Phase 3 item).** Users can now tune the per-bundle bed length instead of being locked to the 30 m default; bed-count math in the popup updates live.
+
+- [`marketGardenBundles.ts`](../apps/web/src/features/crops/marketGardenBundles.ts): `computeMarketGardenGeometry(areaM2, bundle, bedLengthM?)` — optional 3rd arg falls back to `ASSUMED_BED_LENGTH_M` (30 m) when undefined or non-positive.
+- [`cropStore.ts`](../apps/web/src/store/cropStore.ts): added optional `marketGardenBedLengthM?: number` to `CropArea`. Only persisted when the user moved the slider away from the default — keeps existing localStorage records clean.
+- [`CropPanel.tsx`](../apps/web/src/features/crops/CropPanel.tsx):
+  - New `marketGardenBedLengthM` state, default `ASSUMED_BED_LENGTH_M`, reset on each new draw.
+  - Threaded into the `mgGeom` useMemo and the save payload (with the dependency array updated).
+  - New range slider (5–60 m, 1 m step) just below the bundle dropdown, with a hint clarifying the 30 m default. Bed-geometry read-out now shows `bed Wm × Lm` so the override is visible inline.
+
+### Verified
+
+- `tsc --noEmit` clean across the entire web app (0 errors in `src/`).
+- Bed-length math: `computeMarketGardenGeometry(1000, mixedBundle, 20)` → bedFraction 0.625 = 625 m² beds; 625 / (0.75 × 20) = 41 beds. Verified the new arg flows through both popup display and the persisted `CropArea`.
+
+### Files
+
+- `apps/web/src/features/crops/marketGardenBundles.ts`
+- `apps/web/src/features/crops/CropPanel.tsx`
+- `apps/web/src/store/cropStore.ts`
+- `apps/web/src/v3/components/DiagnoseMap.tsx`
+- `apps/web/src/v3/components/FiltersBar.tsx`
+- `apps/web/src/v3/components/overlays/SpotlightPulse.tsx`
+- `apps/web/src/v3/components/rails/DiagnoseRail.tsx`
+- `apps/web/src/v3/components/rails/HomeRail.tsx`
+- `apps/web/src/v3/components/rails/OperateRail.tsx`
+- `apps/web/src/v3/components/rails/ProveRail.tsx`
+- `apps/web/src/v3/components/Sparkline.tsx`
+
+---
+
+## 2026-04-29 — Dashboard rollup scaled by PET multiplier; provenance promoted to chip
+
+### Done
+
+Follow-up to the morning's CropPanel wire-up: `PlantingToolDashboard`'s water-demand rollup now consumes the same `useClimateMultiplier(projectId)` hook the popup uses, so popup and dashboard agree by construction. The dim provenance line introduced earlier was promoted into a real reusable attribution chip.
+
+- New component [`apps/web/src/features/crops/ClimateAttributionChip.tsx`](../apps/web/src/features/crops/ClimateAttributionChip.tsx) — renders `×{mult} climate · {FAO-56|Blaney-Criddle} · {pet} mm/yr PET` with a tooltip describing the data sources. Returns null when climate is unknown so callers can drop it unconditionally.
+- [`CropPanel.tsx`](../apps/web/src/features/crops/CropPanel.tsx): popup's water-demand block now uses `<ClimateAttributionChip className={p.chip} />` instead of the inline dim `<div>`.
+- [`PlantingToolDashboard.tsx`](../apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx):
+  - `buildWaterDemandRollup(cropAreas, climateMultiplier = 1)` — optional second arg threaded through `getCropAreaDemandGalPerM2Yr(spec, climateMultiplier)`. Default 1 preserves back-compat.
+  - Added `const climateMx = useClimateMultiplier(project.id)` (renamed from `climate` to avoid collision with the existing `ClimateSummary` variable used by suitability/windows/validations/orchardSafety).
+  - `waterDemand` useMemo now passes `climateMx.multiplier`.
+  - WATER DEMAND `<h2>` section header sports the chip on the right.
+  - Footnote conditionally appends "Numbers above are scaled by the site PET multiplier (×N.NN), so they match the drawing-tool popup figures." when climate is known.
+
+### Verified
+
+- Typecheck: zero errors in touched files (`PlantingToolDashboard.tsx`, `CropPanel.tsx`, `ClimateAttributionChip.tsx`, `useClimateMultiplier.ts`). Pre-existing `src/v3/...` errors unchanged.
+- Architecturally: the popup's `getCropAreaDemandGalPerM2Yr(spec, climate.multiplier)` and the dashboard's `buildWaterDemandRollup(cropAreas, climateMx.multiplier)` ride the exact same multiplier source — figures cannot drift.
+
+### Files
+
+- `apps/web/src/features/crops/ClimateAttributionChip.tsx` (new)
+- `apps/web/src/features/crops/CropPanel.tsx` (chip swap)
+- `apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx` (rollup multiplier + header chip + footnote)
+
+---
+
+## 2026-04-29 — PET climate multiplier wired into CropPanel water demand
+
+### Done
+
+Closed the deferred wire-up from the morning popup-fixes session: `petClimateMultiplier()` is now driven by the active project's climate layer instead of always defaulting to 1.0.
+
+- New hook [`apps/web/src/features/crops/useClimateMultiplier.ts`](../apps/web/src/features/crops/useClimateMultiplier.ts) reads `useSiteDataStore.dataByProject[projectId].layers`, finds the climate layer, and dispatches to `computePet` from `@ogden/shared/scoring`:
+  - **Penman-Monteith (FAO-56)** when NASA POWER fields are present (`solar_radiation_kwh_m2_day`, `wind_speed_10m_ms`, `relative_humidity_pct`) plus a latitude derived from the project's `parcelBoundaryGeojson` centroid (`turf.centroid`).
+  - **Blaney-Criddle** fallback when only `annual_temp_mean_c` is known.
+  - **Neutral 1.0** when no climate layer has loaded.
+- Result is clamped to [0.7, 1.5] by `petClimateMultiplier()` and returned alongside `petMmYr` + `method` so consumers can show provenance.
+- [`waterDemand.ts`](../apps/web/src/features/crops/waterDemand.ts) gained an optional third `climateMultiplier` arg on `computeWaterGalYr` / `computeWaterLitersYr`; default 1 preserves back-compat. `petClimateMultiplier` re-exported from the web wrapper.
+- [`CropPanel.tsx`](../apps/web/src/features/crops/CropPanel.tsx) now calls `useClimateMultiplier(projectId)` and threads `climate.multiplier` through every demand call (form preview + persisted `waterGalYr` on `CropArea`). Added a small dim third line under the popup's water-demand block: `×1.18 climate (1300 mm/yr PET, FAO-56)` — only renders when `!climate.unknown`.
+
+### Verified
+
+- Typecheck: zero errors in touched files (the same 49 pre-existing `src/v3/...` errors remain).
+- `@ogden/shared` test suite: 38/38 passing on `demand.test.ts`, including the existing `petClimateMultiplier` clamp tests.
+- Hot-path spot check: a 1 ha orchard at PET ≈ 1500 mm/yr → multiplier 1.36 → demand 110 × 10000 × 1.36 ≈ 1.50M gal/yr (matches hand-calc).
+
+### Files
+
+- `apps/web/src/features/crops/useClimateMultiplier.ts` (new)
+- `apps/web/src/features/crops/waterDemand.ts` (optional `climateMultiplier` arg, re-export `petClimateMultiplier`)
+- `apps/web/src/features/crops/CropPanel.tsx` (hook + provenance line)
+
+### Recommended next session
+
+- Apply the same multiplier to the `PlantingToolDashboard` rollup so popup and dashboard agree by construction (currently dashboard reuses its own per-project water memo — quick consolidation pass).
+- Surface PET + method as a real attribution chip rather than a single dim line — matches the "Observed N hours ago" stamp pattern from 2026-04-28 concept polish.
+
+---
+
+## 2026-04-29 — Drawing-tool popup fixes (stocking units, computed water, market-garden bundles)
+
+### Done
+
+User flagged three concerns with OLOS map drawing-tool popups; all three resolved in commit `8977b5d` and verified live in preview.
+
+**1. Paddock popup — stocking units per species**
+- Added `StockingUnit = 'head' | 'hives' | 'birds'` and `stockingUnit` field to `LivestockSpeciesInfo` in [`apps/web/src/features/livestock/speciesData.ts`](../apps/web/src/features/livestock/speciesData.ts). Cattle/sheep/goats/pigs/horses/rabbits → `head`; poultry/ducks_geese → `birds`; bees → `hives`.
+- Retuned rabbits `typicalStocking` 50 → 25/ha (pastured-rabbit norm).
+- Both popup render sites ([`PaddockListFloating.tsx:225`](../apps/web/src/features/livestock/PaddockListFloating.tsx), [`LivestockPanel.tsx:271`](../apps/web/src/features/livestock/LivestockPanel.tsx)) now interpolate `info.stockingUnit` instead of hard-coded "head".
+
+**2. Orchard water demand — computed gallons/yr**
+- New shared module [`packages/shared/src/demand/cropDemand.ts`](../packages/shared/src/demand/cropDemand.ts) exposes per-area-type × class table (orchard medium=110, market_garden medium=200, etc.) plus optional PET climate multiplier. Re-exported through web wrapper [`apps/web/src/features/crops/waterDemand.ts`](../apps/web/src/features/crops/waterDemand.ts).
+- [`CropPanel.tsx`](../apps/web/src/features/crops/CropPanel.tsx) replaces the hard-coded `'medium'` string with computed `~{gal}/yr (~{liters}/yr)`, reactive on `pendingArea` + species-derived demand class. Persists `waterGalYr` onto `CropArea`.
+- Verified: 1 ha orchard, medium class → 1.10M gal/yr. Ties out with PlantingToolDashboard rollup.
+
+**3. Market garden — bundle picker + relabel**
+- New [`apps/web/src/features/crops/marketGardenBundles.ts`](../apps/web/src/features/crops/marketGardenBundles.ts) defines six bundles (mixed, salad_mix, brassica, roots, solanum, legume) with `spacingM`, `bedWidthM`, `pathWidthM`, `waterDemand`, `rotationFamily`. Helper `computeMarketGardenGeometry()` returns plant + bed counts using bed/path geometry (assumes 30 m bed length).
+- `CropPanel.tsx` swaps the orchard spacing slider for a bundle dropdown when `selectedType === 'market_garden'`. `SPACING_NOUN` map relabels "trees" → context-appropriate noun (`trees` / `seedlings` / `plants`) for non-orchard types.
+- [`CompanionRotationPlannerCard.tsx`](../apps/web/src/features/crops/CompanionRotationPlannerCard.tsx) prefers `bundle.rotationFamily` over species-text inference when bundle is set.
+- `cropStore.ts` gained optional `waterGalYr?: number` and `marketGardenBundle?: string` fields.
+- Verified: salad_mix on 1 ha → ~625k plants / 277 beds; brassica on 0.1 ha → ~3,086 plants / 27 beds.
+
+### Verified
+
+- Live preview eval confirmed: bees=4 hives, rabbits=25 head, poultry=birds, orchard 1 ha medium=1.10M gal/yr, market-garden bundle math.
+- Typecheck: my touched files clean. (49 pre-existing `src/v3/...` errors unchanged — DiagnoseMap, FiltersBar, SpotlightPulse, rails, Sparkline, exportDiagnoseBrief.test — separate cleanup task.)
+- Preview screenshot tool repeatedly timed out on the MapLibre WebGL canvas (30s timeout); verified through `preview_eval` module loads instead per project CLAUDE.md guidance on transparent reporting.
+
+### Files
+
+- `apps/web/src/features/livestock/speciesData.ts`
+- `apps/web/src/features/livestock/PaddockListFloating.tsx`
+- `apps/web/src/features/livestock/LivestockPanel.tsx`
+- `apps/web/src/features/crops/CropPanel.tsx`
+- `apps/web/src/features/crops/marketGardenBundles.ts` (new)
+- `apps/web/src/features/crops/waterDemand.ts`
+- `apps/web/src/features/crops/CompanionRotationPlannerCard.tsx`
+- `apps/web/src/store/cropStore.ts`
+- `packages/shared/src/demand/cropDemand.ts`
+
+### Recommended next session
+
+- Visual screenshot pass once the MapLibre preview cooperates (or use a reduced-overlay project).
+- Resolve the 49 pre-existing typecheck errors in `src/v3/...` rails — separate cleanup.
+- Schedule A subcategory picker for AU livestock (still deferred).
+- ET0 / climate-driven water adjustment now structurally available via `petClimateMultiplier()` — wire it to a project's climate read-out next.
+
+---
+
+## 2026-04-28 — v3 concept-polish pass (scholar-reconciled)
+
+### Done
+
+Reviewed five Emergent HTML concept mockups (Project Command Home, Diagnose, Design, Prove, Operations) and grafted their best UI/UX ideas onto the live v3 React surfaces — without disturbing DiagnoseMap, matrix overlays, homestead anchor, or any Zustand store. Reconciled with the **Permaculture Scholar** and **UI/UX Design Scholar** before any chrome was touched; three concept ideas were dropped outright (glass-blur cards, per-stage tints, live-pulse) and substituted with biophilic-compatible primitives. Rationale and verdict table in [`wiki/decisions/2026-04-28-atlas-concept-polish-pass.md`](decisions/2026-04-28-atlas-concept-polish-pass.md).
+
+**New primitives**
+- [`apps/web/src/v3/styles/chrome.css`](../apps/web/src/v3/styles/chrome.css) — `.eyebrow`, `.verdict-ring-quiet` (1px ring + inset shadow, no blur), `.observed-stamp` utilities.
+- [`Sparkline.tsx`](../apps/web/src/v3/components/Sparkline.tsx) — neutral-stroke SVG sparkline with semantic accent on the endpoint dot only (closes UX Scholar §5 P1 from 2026-04-23). Shipped but not yet wired (no series ≥ 3 points exists in v3 mock data).
+- [`ObservedStamp.tsx`](../apps/web/src/v3/components/ObservedStamp.tsx) — "last observed N {min,hr,days,wk,mo,yr} ago" timestamp; replaces concept live-pulse; honors `prefers-reduced-motion`.
+- [`LifecycleProgressRing.tsx`](../apps/web/src/v3/components/LifecycleProgressRing.tsx) — thin SVG arc keyed off active route; mounted in V3ProjectLayout sticky header. Replaces per-stage tint with one unifying lifecycle indicator (Permaculture: "Integrate Rather Than Segregate").
+
+**Flow / structure**
+- [`DesignPage.tsx`](../apps/web/src/v3/pages/DesignPage.tsx) — overlay chips + base-map select moved to a sticky `.bottomToolbar` (precedent: 2026-04-27 right-rail/bottom-toolbar split).
+- [`ProvePage.tsx`](../apps/web/src/v3/pages/ProvePage.tsx) — section IDs `prove-blockers`, `prove-best-uses`, `prove-vision-fit`, `prove-execution`, `prove-rules`.
+- [`ProveRail.tsx`](../apps/web/src/v3/components/rails/ProveRail.tsx) — IntersectionObserver scrollspy with click-to-scroll; quiet active state (no fill, no glow).
+
+**Layout chrome**
+- [`V3ProjectLayout.tsx`](../apps/web/src/v3/V3ProjectLayout.tsx) + [`.module.css`](../apps/web/src/v3/V3ProjectLayout.module.css) — sticky header housing LifecycleProgressRing.
+
+**Eyebrow + ObservedStamp sweep**
+- [`HomePage.tsx`](../apps/web/src/v3/pages/HomePage.tsx) — eyebrows on Project Health + 3-col headers; ObservedStamp replaces `.liveBadge` + `.lastUpdated`. `HomePage.module.css` `.sectionTitle`/`.colTitle` re-typeset from 11 px uppercase muted (which was functioning as eyebrow) to proper 16/14 px headings; eyebrow role moved to `.eyebrow`.
+- [`DiagnosePage.tsx`](../apps/web/src/v3/pages/DiagnosePage.tsx) — eyebrows on the three section headers (Site analysis, Categories, R/O/L). DiagnoseMap, overlays, homestead anchor untouched.
+- [`ProvePage.tsx`](../apps/web/src/v3/pages/ProvePage.tsx) — eyebrows on all five sections.
+- [`OperatePage.tsx`](../apps/web/src/v3/pages/OperatePage.tsx) — eyebrows on all four section headers; ObservedStamp on "Today on the Land".
+
+**Quiet KPI treatment**
+- [`MetricCard.tsx`](../apps/web/src/v3/components/MetricCard.tsx) extended with optional `accent="quiet-ring"` and `trend?: ReactNode` props. Operate "Today on the Land" tiles now render with the quiet ring. Sparkline embedding deferred until trend arrays exist in `TodayTile`.
+
+### Confidence / Quality audit
+
+Sweep of touched components confirms no mixing of channels:
+- Eyebrow + quiet-ring + sparkline stroke = monochrome (confidence)
+- ObservedStamp dot + sparkline endpoint + MetricCard status pills = semantic (quality)
+
+### Verification
+
+- `npm run lint` (apps/web) — pending in this session
+- 5-page hand-walk + reduced-motion check — pending
+- Sidebar permaculture verbs (Observe/Test/Steward/Evaluate) and matrix overlays unchanged
+
+---
+
+## 2026-04-28 — Ethics route re-parented under v3ProjectLayoutRoute
+
+### Done
+
+`/v3/reference/ethics` previously sat as a sibling of `v3ProjectLayoutRoute` under `appShellRoute`, so clicking the sidebar's "Ethics & Principles" footer link unmounted the lifecycle shell — the user lost the project context and the sidebar itself. Re-nested the route under the project layout so the sidebar persists.
+
+- [`apps/web/src/routes/index.tsx`](../apps/web/src/routes/index.tsx): moved `v3EthicsReferenceRoute` definition below `v3ProjectLayoutRoute`; changed `getParentRoute: () => appShellRoute` to `() => v3ProjectLayoutRoute`; relative path `reference/ethics`. Added to the layout's `addChildren([…])` array.
+- [`V3LifecycleSidebar.tsx`](../apps/web/src/v3/components/V3LifecycleSidebar.tsx): footer Link `to="/v3/project/$projectId/reference/ethics"` with `params={{ projectId }}` (was unparameterized).
+- [`V3LifecycleSidebar.test.tsx`](../apps/web/src/v3/components/__tests__/V3LifecycleSidebar.test.tsx): assertion updated to the nested href; description string updated.
+
+### Verification
+
+- `tsc --noEmit` — clean.
+- `vite build` — clean (1m1s, 493 PWA precache entries).
+- 6/6 sidebar tests pass.
+- Preview at `/v3/project/mtc/reference/ethics`: Ethics page heading renders alongside the full lifecycle sidebar (Project Home, Understand/Design/Live phase groups, all 7 stages, Reference footer with "Ethics & Principles" link active).
+
+Commit: `c0499c1`.
+
+---
+
+## 2026-04-28 — Matrix overlays: honest v3.1 (topography only)
+
+### Done
+
+Walked back the mocked Sectors and Zones overlays shipped earlier today. The Permaculture Scholar dialogue is unambiguous that Mollison zones are designer-drawn polygons, not concentric circles, and sector lines need real sun/wind/water data — neither was available, so the v3.1 layer now ships **topography only**, with Sectors and Zones surfaced as visibly disabled v3.2 affordances.
+
+- Deleted `apps/web/src/v3/components/overlays/SectorsOverlay.tsx` and `ZonesOverlay.tsx` (mocked 8-ray sectors and 5-ring zone polygons). [`TopographyOverlay`](../apps/web/src/v3/components/overlays/TopographyOverlay.tsx) — the only data-backed one, fed from MapTiler `CONTOUR_TILES_URL` — stays.
+- [`DiagnosePage.tsx`](../apps/web/src/v3/pages/DiagnosePage.tsx) now mounts only `TopographyOverlay` inside `DiagnoseMap`.
+- [`DiagnoseMap.tsx`](../apps/web/src/v3/components/DiagnoseMap.tsx) legend simplified — only the topography swatch row renders, gated on `topography` alone (no `anyOn` aggregation).
+- [`MatrixTogglesPopover.tsx`](../apps/web/src/v3/components/MatrixTogglesPopover.tsx): Sectors and Zones rows are `<input disabled>` with a "v3.2" badge, `title="Data layer not yet available — v3.2"`, and a `.rowDisabled` style at `opacity: 0.55`. Footer toggle is now a single "Show / Hide topography" link; note copy: "Topography live · Sectors & Zones in v3.2".
+- [`matrixTogglesStore.ts`](../apps/web/src/store/matrixTogglesStore.ts) bumped to `version: 2` with a `migrate` that force-clears `sectors` and `zones` to `false` on rehydrate, so any user who toggled them on under v1 doesn't see phantom overlays.
+- [`V3LifecycleSidebar.tsx`](../apps/web/src/v3/components/V3LifecycleSidebar.tsx) active-count badge now sums only `topography` — counting visibly disabled rows would lie about active layers.
+- [`V3LifecycleSidebar.test.tsx`](../apps/web/src/v3/components/__tests__/V3LifecycleSidebar.test.tsx) mock store flipped (`topography: true, sectors: false, zones: false`) so the badge assertion still resolves to `1`. 6/6 tests pass.
+
+### Verification
+
+- `pnpm vitest run src/v3/components/__tests__/V3LifecycleSidebar.test.tsx` — 6/6 pass.
+- `tsc --noEmit` — clean across touched files (DiagnosePage, DiagnoseMap, MatrixTogglesPopover, matrixTogglesStore, V3LifecycleSidebar).
+- Preview: `/v3/project/mtc/diagnose` after `localStorage.removeItem('ogden-atlas-matrix-toggles')`. Popover opens, Sectors and Zones rows render disabled with "v3.2" badge and the tooltip. Toggling Topography shows the legend "Topography (contours)" on the map and updates the sidebar badge to "1 active". Sectors / Zones checkboxes refuse user input.
+
+### Deferred
+
+- Discover-stage map dropped from this session — `MOCK_CANDIDATES` has no `lat/lng/coord` field, so a "where is it?" map would have nothing to render. Restore once a parcel `centroid` lands in mock data.
+- Real sector data (sun-path service, wind climatology) and designer-drawn zone polygons remain v3.2 work — the disabled-checkbox affordance now signals that honestly to the user.
+
+---
+
+## 2026-04-28 — Diagnose page: live MapLibre + matrix overlays
+
+### Done
+
+Wired the Matrix Toggles store to a real overlay layer on the Diagnose page (Permaculture Scholar IA: sectors / zones / topography are *site-analysis* tools, so they live on Diagnose, not Discover).
+
+- New container [`apps/web/src/v3/components/DiagnoseMap.tsx`](../apps/web/src/v3/components/DiagnoseMap.tsx) — MapLibre instance + `MapTokenMissing` fallback, render-prop children receive `(map, centroid)`. MTC centroid hard-coded to `[-78.20, 44.50]` for v3.1; real boundary geometry will swap in when the project store gains a parcel feature.
+- Three overlay components in [`apps/web/src/v3/components/overlays/`](../apps/web/src/v3/components/overlays/):
+  - `TopographyOverlay` — vector contours from MapTiler `CONTOUR_TILES_URL` (source-layer `contour`, `ele` property; thicker stroke + label every 100 m)
+  - `SectorsOverlay` — 8 cardinal/intercardinal rays from centroid (mocked 600 m for v3.1)
+  - `ZonesOverlay` — 5 concentric rings (Mollison Zones 1–5; mocked 25 / 75 / 200 / 600 / 1500 m radii)
+- Each overlay subscribes to its own `useMatrixTogglesStore` boolean and toggles `visibility` via `setLayoutProperty`; layers are added once and never removed (idempotent ensure pattern matched against v1's `MapCanvas`).
+- [`DiagnosePage.tsx`](../apps/web/src/v3/pages/DiagnosePage.tsx) gains a "Site analysis" section between StageHero and the category grid, hosting the map.
+- Floating legend on the map labels active overlays so the toggle state is visible on the map itself, not only in the sidebar popover.
+
+### Verification
+
+- `tsc --noEmit` clean across `apps/web`.
+- Preview reload at `/v3/project/mtc/diagnose`: all three overlays render at `[-78.20, 44.50]` (Ontario), legend reflects active toggles, matrix layers add to `map.getStyle()` (`matrix-{topography,sectors,zones}-{source|fill|line|label}`).
+- Sectors-only mode confirmed: 8 directional rays render with N/S/E/W/SW labels; zone rings absent; basemap topo contours remain (those are MapTiler's own, unrelated to our `matrix-topography-line`).
+- Switched MapLibre readiness gate from a `ready` boolean to a `useState<Map|null>` so children mount as soon as the map exists; overlays each handle `isStyleLoaded()` themselves. Earlier `ready` gate raced StrictMode's mount/unmount cycle and left only the topography effect surviving.
+
+### Deferred
+
+- **Real sector data.** Sun arc, prevailing wind, fire, water flows currently 8 evenly-spaced rays. Will need a sun-path service (NOAA/NREL) and per-region wind climatology for v3.2.
+- **Designer-defined zones.** Mollison's zones are designer-drawn boundaries, not concentric circles. Mock rings communicate the concept but a real parcel needs polygon editing.
+- **Parcel boundary in mockProject.** `mockProject.location` lacks lat/lng; centroid hardcoded. When the data layer grows a `boundary: GeoJSON.Polygon`, swap `MTC_CENTROID` for `centroid(boundary)` and re-fit the map to the parcel bounds.
+- **Discover-stage "where is it?" map.** Discover is property-shopping (regulatory/zoning context, regional siting); deferred per Permaculture Scholar IA — the matrix overlays don't belong there.
+
+### Recommended next session
+
+- Wire a parcel boundary into the project store and let DiagnoseMap fit to it instead of the hard-coded centroid; once real parcels exist, raster contours from `TERRAIN_DEM_URL` become viable for adaptive contour intervals.
+
+---
+
+## 2026-04-28 — Atlas Sidebar IA: Phase B P0 utilities wired
+
+### Done
+Closed the "P0 footer buttons have no destination" carry-forward from the Phase B Shape-4 ship. The two P0 sidebar utilities now point at real surfaces:
+
+- **Ethics & Principles** → static reference page at `/v3/reference/ethics`. New page: [apps/web/src/v3/pages/EthicsReferencePage.tsx](../apps/web/src/v3/pages/EthicsReferencePage.tsx) lists the three permaculture ethics (Earth Care / People Care / Fair Share) and Holmgren's twelve principles, content sourced from [wiki/concepts/permaculture-alignment.md](concepts/permaculture-alignment.md). Route registered as a child of `appShellRoute` so it inherits the LandOsShell chrome.
+- **Matrix Toggles** → popover ([apps/web/src/v3/components/MatrixTogglesPopover.tsx](../apps/web/src/v3/components/MatrixTogglesPopover.tsx)) backed by a new `matrixTogglesStore` ([apps/web/src/store/matrixTogglesStore.ts](../apps/web/src/store/matrixTogglesStore.ts)). Three booleans — Topography / Sectors / Zones — persisted to `localStorage` (zustand `persist`, version 1, key `ogden-atlas-matrix-toggles`). Sidebar shows an active-count badge when any overlay is on. Click-outside / Escape closes the popover.
+- **Sidebar wiring** ([V3LifecycleSidebar.tsx](../apps/web/src/v3/components/V3LifecycleSidebar.tsx)): Ethics row renders as `<Link to="/v3/reference/ethics">`, Matrix row as `<button>` with `aria-expanded` + `aria-haspopup="dialog"`. P1 rows (Plant DB, Climate Tools) stay disabled. Footer is now `position: relative` to anchor the popover, and `.utilityBtn` carries `text-decoration: none; color: inherit` so the Link looks identical to the buttons.
+- **Render coverage** ([V3LifecycleSidebar.test.tsx](../apps/web/src/v3/components/__tests__/V3LifecycleSidebar.test.tsx)): six-test smoke suite covering phase groups, renamed labels, the Ethics link target, popover open-on-click, the active-count badge, and P1 disabled state. Added `*.test.tsx` to the vitest include glob.
+
+### Verification
+- `pnpm vitest run src/v3/components/__tests__/V3LifecycleSidebar.test.tsx` — 6/6 pass.
+- `tsc --noEmit -p apps/web/tsconfig.json` — clean on touched files (Ethics page, sidebar, store, popover, route registration). Pre-existing v3 typecheck errors (FiltersBar, DiagnoseRail, HomeRail, OperateRail) remain untouched and unrelated.
+
+### Carries forward
+- Map-overlay layer that consumes `matrixTogglesStore` ships in v3.1 — toggles persist today but render no overlays yet. The popover surfaces a "Overlay layer ships in v3.1" note so the affordance isn't read as broken.
+- A live ethics scorer that grades the active project against each principle is still deferred per Phase A's open-questions list.
+
+---
+
+## 2026-04-28 — Needs & Yields graph: Phase 3 (server persistence + scoring weight)
+
+### Done
+
+Closed out the [Needs & Yields ADR](decisions/2026-04-28-needs-yields-dependency-graph.md) with server-of-record persistence and the integration-weight lift:
+
+- **Migration 016** (`apps/api/src/db/migrations/016_project_relationships.sql`) — `project_relationships` table with FK CASCADE on project, UNIQUE on `(project_id, from_id, from_output, to_id, to_input)` mirroring the in-memory dedup, CHECK on the 13-value resource enum (kept in lockstep with `ResourceTypeSchema` via the shared test suite), CHECK no self-loop, CHECK ratio in [0,1].
+- **API routes** (`apps/api/src/routes/relationships/index.ts`) — `GET/POST/DELETE /api/v1/projects/:id/relationships` with role gating (any role to read; owner/designer to write). `EdgeSchema.parse` is wrapped in a local `parseEdge` that rethrows as `ValidationError` so the global handler returns a clean 422 regardless of zod-instance identity across workspace packages. POST uses `ON CONFLICT DO UPDATE SET ratio` to honor the table's UNIQUE constraint without surprising callers. Smoke test covers GET (empty + populated), POST (valid + invalid resource), DELETE (204 + 404).
+- **Web sync** (`apps/web/src/features/map/useRelationshipsSync.ts`) — hydrate-then-drain hook mounted by `RelationshipsOverlay`. Pending mutations live in the persisted store as a per-project FIFO queue (`pendingByProject`). Drains are sequential; 4xx responses log + drop, 5xx/network errors requeue at head and pause until the next interval / `online` event. localStorage stays canonical so offline writes never block the canvas.
+- **Scoring weight lift** (`packages/shared/src/scoring/computeScores.ts`) — Ecological Integration `0 → 0.10`. Redistribution drawn per the Permaculture Scholar's recommendation: Design Complexity `0.10 → 0.05` (P8 makes integration the precise measure of complexity), Regenerative Potential `0.15 → 0.12` (P6 cycling = engine of regeneration), Agricultural Suitability `0.15 → 0.13` (P3 cycling boosts yields). Sum stays at 1.00. Rail badge updated from "weight 0 — informational" to "weight 0.10 · live".
+
+### Verification
+- `packages/shared` — 7 files / 159 tests pass (no regression on relationships, scoring, or schemas).
+- `apps/api` — `relationships.test.ts` 6/6 pass; `tsc --noEmit` clean.
+- `apps/web` — `relationshipsStore.test.ts` 5/5 pass; relationships-touching files type-clean. Pre-existing v3 typecheck errors (FiltersBar, DiagnoseRail, HomeRail, OperateRail) are unrelated.
+
+### Awaiting
+- Run `pnpm --filter @ogden/api migrate` against staging when next deploying — migration 016 is idempotent on a clean DB but has not been applied to long-running environments.
+
+---
+
+## 2026-04-28 — Atlas Sidebar IA: Permaculture Scholar synthesis (Phase A)
+
+### Done
+- Six-question dialogue with the Permaculture Scholar NotebookLM (`5aa3dcf3-...`) on lifecycle sidebar IA. Conversation `7bb6feac-2bd5-4867-836c-2a1aedcee705`, turns 1–6.
+- Synthesis filed at [wiki/concepts/atlas-sidebar-permaculture.md](concepts/atlas-sidebar-permaculture.md).
+- Verdict: lifecycle axis is correct; rename 4 of 7 stages (Discover→Observe, Prove→Test, Operate→Steward, Report→Evaluate); Steward is a loop, not a terminal step; add 4 utility nav items (Ethics & Principles, Plant DB, Climate Tools, Matrix Toggles) to sidebar footer.
+- Recommended Phase B redesign **Shape 4** (combined: labels + grouping + footer utility nav).
+
+### Awaiting
+- User review of synthesis (Gate A) before Phase B implementation.
+
+---
+
+## 2026-04-28 — Atlas Sidebar IA: Permaculture-Grounded Redesign (Phase B)
+
+### Done
+Implemented Shape 4 (combined label refresh + grouping + footer utility nav) per the Phase A synthesis. Edited [V3LifecycleSidebar.tsx](../apps/web/src/v3/components/V3LifecycleSidebar.tsx) and [V3LifecycleSidebar.module.css](../apps/web/src/v3/components/V3LifecycleSidebar.module.css):
+
+- **Labels (v3-only override map, route slugs unchanged):** Discover→**Observe**, Prove→**Test**, Operate→**Steward**, Report→**Evaluate**. Diagnose / Design / Build kept. Per-stage descriptions added (e.g. "Thoughtful, protracted observation").
+- **Grouping:** seven stages bucketed into three permaculture phases — *Understand* (Observe + Diagnose), *Design* (Design + Test), *Live* (Build + Steward + Evaluate). Group headers render as small uppercase eyebrow labels above each `<ol>`.
+- **Loop affordance:** Steward (operate) row carries a `↻` badge with `title="Stewardship loops back to Observe"`, signaling the continuous-feedback wrap rather than a terminal step.
+- **Footer utility nav:** four entries — Ethics & Principles (P0), Matrix Toggles (P0), Plant Database (P1), Climate Tools (P1). P0s render as enabled buttons (action wiring deferred); P1s render `disabled` with "Coming soon" copy per RULE 4 (no dead clicks).
+- **Taxonomy untouched:** `LIFECYCLE_STAGES` in `features/land-os/lifecycle.ts` left as-is so the v2 sidebar at `/project/$projectId/*` is not affected. Renames live as a v3-only `V3_STAGE_LABELS` lookup in the sidebar component, keyed by `BannerId`.
+
+### Verification
+- `npx vite build` clean (32.46s, 493 PWA precache entries; no TS errors).
+- Sidebar DOM via `preview_eval` confirmed: "PROJECT LIFECYCLE / Project Home / UNDERSTAND / 1 Observe / 2 Diagnose / DESIGN / 3 Design / 4 Test / LIVE / 5 Build / 6 Steward ↻ / 7 Evaluate / REFERENCE / Ethics & Principles · Matrix Toggles · Plant Database (Coming soon) · Climate Tools (Coming soon)". Active stage on `/v3/project/mtc/home` correctly resolves to "Project Home".
+- `preview_screenshot` was timing out at 30s during the session — fell back to DOM inspection. Pre-existing axe accessibility warnings about `<aside>` inside another landmark are unrelated.
+
+### Carries forward
+- Seasonal/annual cycle toggle (header chip) and a live ethics scorer remain deferred per Phase A's open-questions list.
+- Map-overlay layer that consumes `matrixTogglesStore` ships in v3.1 — toggles persist state today but render no overlays yet.
+
+---
+
+## 2026-04-28 — Needs & Yields graph: Phase 2 (canvas edges)
+
+### Done
+
+Shipped Phase 2 of the [Needs & Yields dependency graph
+ADR](decisions/2026-04-28-needs-yields-dependency-graph.md) — the live-canvas
+socket and edge-draw UI behind `FEATURE_RELATIONSHIPS`. Phase 1 landed the
+shared-package data model; Phase 2 surfaces it on the v2 map.
+
+New web modules:
+
+- [`apps/web/src/store/relationshipsStore.ts`](../apps/web/src/store/relationshipsStore.ts) — Zustand+persist project-scoped edge graph; validates via `EdgeSchema.safeParse` on insert; dedupes; localStorage-backed (DB persistence deferred to Phase 3).
+- [`apps/web/src/lib/relationships/useAllPlacedEntities.ts`](../apps/web/src/lib/relationships/useAllPlacedEntities.ts) — selector aggregating structures, utilities, crop areas, and paddocks for the active project (paddocks expand to one entry per species).
+- [`apps/web/src/features/map/RelationshipsOverlay.tsx`](../apps/web/src/features/map/RelationshipsOverlay.tsx) — `RelationshipsToggle` (compact spine button, Lucide Network icon) + `RelationshipsOverlay` (DOM overlay with `map.project()` + rAF-throttled re-projection on move/zoom/resize). Output sockets fan in the right hemisphere (green), input sockets in the left (gold), 26 px from the centroid. Drag-from-output → drop-on-input creates an edge after compatibility validation; invalid drops flash a 600 ms red banner. Edges render as SVG `<line>` with click-to-remove.
+- [`apps/web/src/features/map/RelationshipsRail.tsx`](../apps/web/src/features/map/RelationshipsRail.tsx) — bottom-right floating card showing live `integrationScoreFromEdges` (0–100, "weight 0 — informational" badge) and the orphan-output list from `orphanOutputs`. Visible only while the overlay is active.
+
+Wiring: [`MapView.tsx`](../apps/web/src/features/map/MapView.tsx) lazy-loads the toggle, overlay, and rail; [`LeftToolSpine.tsx`](../apps/web/src/features/map/LeftToolSpine.tsx) gained a `relationshipsSlot` next to the analysis-tool group.
+
+Vite + Vitest aliases for `@ogden/shared/relationships` added in both [`vite.config.ts`](../apps/web/vite.config.ts) and [`vitest.config.ts`](../apps/web/vitest.config.ts).
+
+### Tests
+
+- `apps/web/src/tests/relationshipsStore.test.ts` — 5 tests covering valid round-trip, schema rejection, dedup-on-add, predicate remove, and `clearProject` scoping. All pass.
+
+### Verification
+
+- `pnpm --filter @ogden/web exec tsc --noEmit` produced no errors in any of the new relationships files (LeftToolSpine, MapView, RelationshipsOverlay, RelationshipsRail, relationshipsStore, useAllPlacedEntities).
+- `pnpm --filter @ogden/web exec vitest run src/tests/relationshipsStore.test.ts` → 5/5 pass.
+- Phase 1 vitest suite (`packages/shared`) untouched and still green.
+- The integration score remains weighted at 0 in [`computeScores.ts`](../packages/shared/src/scoring/computeScores.ts), so existing project overall scores do not shift.
+
+### Deferred
+
+- **Phase 3 — DB persistence + non-zero scoring weight.** Edges currently live in localStorage only; the `Ecological Integration` slot is held at weight 0 until the canvas UX is validated.
+- **Inline edge ratios.** `Edge.ratio` is in the schema but the UI has no setter yet — every edge is treated as routing 100% of the source's output.
+- **Closed-loop highlight.** `closedLoops` is implemented in `cycle.ts` but the overlay does not yet visually emphasize edges that complete a cycle.
+- **Persisted view-active flag.** `viewActive` is intentionally session-only; revisit if users want it sticky.
+
+### Recommended next session
+
+- **Wire `closedLoops` into the overlay** so edges participating in a cycle render with a brighter accent (visual confirmation that Holmgren P6 — Produce No Waste — is actually being achieved).
+- Or — **bring up Phase 3** by lifting the integration weight from 0 to 0.10 and adding a server-side `relationships` table/endpoint.
+
+---
+
+## 2026-04-28 — Needs & Yields graph: Phase 1 (shared package)
+
+Shipped Phase 1 of the [Needs & Yields dependency graph
+ADR](decisions/2026-04-28-needs-yields-dependency-graph.md) — the data
+model + algorithms layer, no UI.
+
+### What landed
+- New subpath `@ogden/shared/relationships`:
+  - `types.ts` — 13-value `ResourceType` const tuple, `EdgeSchema` Zod schema (with optional `ratio` ∈ [0,1]), `PlacedEntity<T>` and `RelationshipsState` value-object interfaces.
+  - `catalog.ts` — `EntityType` union across the four canonical demand-module enums (Structure ∪ Utility ∪ CropArea ∪ Livestock = 54 types after dedup); exhaustive `OUTPUTS_BY_TYPE` and `INPUTS_BY_TYPE` `Record<EntityType, ResourceType[]>` seeds. The `Record` type makes adding a new enum value a typecheck failure here, enforcing exhaustiveness.
+  - `flow.ts` — pure-function Edge CRUD (`addEdge`, `removeEdge`, `addEntity`, `removeEntity`, `emptyState`).
+  - `cycle.ts` — `orphanOutputs`, `unmetInputs`, `closedLoops` (Johnson-style DFS with canonical-rotation dedup), `integrationScoreFromEdges` ∈ [0,1].
+- `WEIGHTS['Ecological Integration'] = 0` slot reserved in [computeScores.ts](../packages/shared/src/scoring/computeScores.ts) — surfaceable but score-neutral until Phase 2 (canvas edge editor) ships.
+- `./relationships` registered in `packages/shared/package.json` `exports`.
+- 23 vitest cases in [relationships.test.ts](../packages/shared/src/tests/relationships.test.ts) — schema validation, catalog exhaustiveness, four cycle-algorithm contracts. Full shared suite: 159/159 green.
+
+### Verification
+- `pnpm --filter @ogden/shared run typecheck` clean.
+- `pnpm --filter @ogden/shared test` 159/159.
+- `pnpm -r run typecheck`: `packages/shared` ✓, `apps/api` ✓, `apps/web` ✗ — but the web errors are pre-existing in `src/v3/components/` (FiltersBar, DiagnoseRail, HomeRail, OperateRail) from commits `54070af`/`3a32a38`/`ff2d92f`, unrelated to relationships. Flagged for separate cleanup.
+
+### ADR status
+- [needs-yields-dependency-graph](decisions/2026-04-28-needs-yields-dependency-graph.md) flipped `proposed → accepted (Phase 1 of 3 — shared package shipped 2026-04-28)`.
+
+### Deferred
+- Phase 2 (canvas sockets/edges UI), Phase 3 (DB migration + persistence), then re-run Permaculture Scholar dialogue once #1+#2 ship.
+- Pre-existing v3 web typecheck errors should be cleaned up separately.
+
+---
+
+## 2026-04-28 — Permaculture Scholar alignment review
+
+Ran a 3-round structured dialogue with the **Permaculture Scholar** NotebookLM
+(`5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b`, 44 sources) to evaluate Atlas
+against the three permaculture ethics and Holmgren's twelve principles.
+Conversation `48a34396-5525-4a57-9884-108d93b1872f`.
+
+### Verdict
+- **Ethics:** Earth Care strong · People Care partial · Fair Share partial.
+- **Twelve principles:** 4 represented · 6 partial · 3 missing (Produce No
+  Waste · Small & Slow Solutions · Edges & Marginal).
+- **Process:** gap-analysis + confidence laddering ≈ "land physician
+  diagnosis," but pre-flight audits + ADR culture are
+  engineering-risk-management, not biological feedback. Amanah Gate +
+  CSRA + mission-scoring genuinely equivalent to permaculture's three
+  ethics in practice. Designer's ruling: **brilliant ally, distant cousin**.
+
+### Filed
+- [wiki/concepts/permaculture-alignment.md](concepts/permaculture-alignment.md)
+  — full assessment + recommendations backlog.
+- ADRs `2026-04-28-needs-yields-dependency-graph.md` and
+  `2026-04-28-temporal-slider-succession-modeling.md` (P0 recs).
+- [tasks/permaculture-alignment-backlog.md](../tasks/permaculture-alignment-backlog.md)
+  — recs 3-6 (P1/P2) as ticket-ready entries.
+
+Branch: `feat/atlas-permaculture` (cut from `feat/atlas-3.0`).
+
+---
+
+## 2026-04-28 — Atlas v3.0 lifecycle shell shipped
+
+Completed the 9-phase v3.0 plan on `feat/atlas-3.0`. Atlas is now a
+lifecycle-driven Land Intelligence OS with 7 stage pages mounted under
+`/v3/project/:id/*`, a parallel route tree to the existing v2 workspace.
+
+### What shipped (`feat/atlas-3.0`)
+
+- **Shell + primitives** (Phases 1–2): branch cut, route stubs for all
+  7 stages, [`apps/web/src/v3/`](../apps/web/src/v3/) folder with
+  `useV3Project` adapter reading from a single MTC fixture
+  ([`mockProject.ts`](../apps/web/src/v3/data/mockProject.ts)). Built
+  `MetricCard`, `DecisionRail` (generic stage-aware container with a
+  rail per stage under [`components/rails/`](../apps/web/src/v3/components/rails/)),
+  `StageHero`, `PageHeader`, `BlockerCard`, `CategoryCard`,
+  `InsightPanel`, `BestUsesTable`, `ScoreBar`, `DesignRulesGrid`.
+- **Project Command Home** (Phase 3): verdict ring + 6-tile Project
+  Health strip + Top Blocker + Recent Activity / Decisions / Next
+  Actions tri-column.
+- **Discover** (Phase 4): candidate board with 6 properties (Green
+  Valley Ranch, Pine Ridge, Maple Creek, Riverside Meadows, Stonefield
+  Acres, Highland Homestead), filters bar, shortlist + compare tray.
+- **Diagnose** (Phase 5): Conditional Opportunity verdict + 7
+  category cards (Regulatory/Soil/Water/Terrain/Ecology/Climate/Infra)
+  + Risks / Opportunities / Limitations 3-panel.
+- **Prove** (Phase 6): "Supported with Required Fixes" verdict, 4
+  blockers, 6 best uses, 6 vision-fit bars with benchmarks, 5
+  execution stats, 6 design-rules grid.
+- **Operate** (Phase 7): 7 Today-on-the-Land tiles, alerts +
+  upcoming events split panel,
+  [`FieldMapPlaceholder`](../apps/web/src/v3/components/FieldMapPlaceholder.tsx)
+  inline-SVG canvas with tone-coded flag chips. RULE 2: no MapboxGL
+  imports anywhere in v3.
+- **Build + Report MVPs** (Phase 8): 3-phase × 13-task build plan
+  with status-keyed phase cards; Report page with "Generate Summary"
+  → print-styled aggregation of verdict + 6 score bars + blockers +
+  actions, `window.print()` + `@media print` rules.
+- **Design Studio** (Phase 9, last per the brief): 5-group toolbox
+  (Grazing & Land Use, Structures, Water Systems, Access & Paths,
+  Amenity & Culture) → static-SVG canvas with paddocks A–D, yurt
+  cluster, barn, musalla, hydrology stream/pond/wetland, contour
+  curves, gold-dashed property boundary → 5 overlay toggle chips +
+  Base Map dropdown → bottom 5-MetricCard strip
+  (Area / Perimeter / Elevation / Water Need / Project Phase).
+  Toolbox clicks fire toast ("Would place X").
+
+### Verification
+
+- `npm run build` clean across all phases.
+- 8-route post-Phase-9 sweep confirmed: every route renders a clear
+  title, populated DecisionRail, and `mapboxgl`/`maplibregl` both
+  `undefined` on every route. RULE 3 (what / wrong / next) satisfied
+  per stage.
+- Backlog filed at
+  [`apps/web/src/v3/BACKLOG-v3.1.md`](../apps/web/src/v3/BACKLOG-v3.1.md).
+
+### Commits (top of `feat/atlas-3.0`)
+
+```
+b503b16 docs(v3): v3.1 backlog
+efc3b47 feat(v3/design): Phase 9 — Design Studio
+63ddc81 feat(v3/build,report): Phase 8 — Build + Report MVPs
+43e542f feat(v3/operate): Phase 7 — Operations Hub
+e2e1808 feat(v3): Phase 6 — Prove Feasibility Engine
+bf8b0b7 feat(v3): Phase 5 — Diagnose Land Brief
+3a32a38 feat(v3): Phase 4 — Discover candidate board
+913df8e feat(v3): Phase 3 — Project Command Home
+ff2d92f feat(v3): Phase 2 — primitive components
+61c5f9a feat(v3): Phase 1 — branch + scaffolding
+```
+
+### Deferred (v3.1 backlog highlights)
+
+- Live MapboxGL canvas in Design Studio replacing static SVG; live
+  field map in Operate.
+- Wire `useV3Project` to Fastify backend; route cutover from
+  `/project/$projectId` to `/v3/...` once API + map land.
+- Real candidate filtering, real Vision Fit scoring (reuse
+  `packages/shared/src/scoring`), PDF export, Generate Brief / Fix on
+  Map / Mark Phase Complete CTAs.
+- axe-core contrast warnings on muted-text-on-charcoal; CSS-module
+  `.d.ts` generation to clean up `string | undefined` widening.
+
+### Recommended next session
+
+- **v3.1 kickoff** — pick the spike that unblocks the most: either
+  wire `useV3Project` to the Fastify backend (unblocks real data
+  across all 7 stages) or replace the Design Studio SVG with the live
+  MapboxGL canvas (unblocks placement scoring + the v3.1 cutover).
+
+Decision record: [decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md](decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md).
+
+---
+
+## 2026-04-27 — Feasibility Command Center
+
+Replaced the single-column `DecisionSupportPanel` on the Dashboard's
+`feasibility` section with a verdict-led, two-column cockpit. The narrow
+MapView right-rail still uses `DecisionSupportPanel`; this is page-level only.
+
+### What changed (`feat/shared-scoring`)
+
+- New [`FeasibilityCommandCenter`](../apps/web/src/features/decision/FeasibilityCommandCenter.tsx)
+  composes: header → [`FeasibilityVerdictHero`](../apps/web/src/features/decision/FeasibilityVerdictHero.tsx)
+  → [`BlockingIssuesStrip`](../apps/web/src/features/decision/BlockingIssuesStrip.tsx)
+  → 2-col body (Fit & Readiness | Execution Reality) → Design Rules section →
+  collapsible Methodology drawer → sticky [`FeasibilityDecisionRail`](../apps/web/src/features/decision/FeasibilityDecisionRail.tsx).
+  All inner cards lazy-load via `Suspense`.
+- New [`VisionFitAnalysisCard`](../apps/web/src/features/decision/VisionFitAnalysisCard.tsx)
+  surfaces vision-vs-land fit alongside `BestUseSummaryCard` /
+  `DomainFeasibilityCard` in the Fit column.
+- Three new hooks under [`features/decision/hooks/`](../apps/web/src/features/decision/hooks/):
+  `useFeasibilityVerdict` (verdict band + score), `useTriageItems` (ordered
+  blocker list shared between Hero, BlockingIssuesStrip and DecisionRail),
+  `useTypeFitRanking` (vision-fit ranking). These centralize logic that used
+  to live inline in the panel cards.
+- [`BestUseSummaryCard`](../apps/web/src/features/decision/BestUseSummaryCard.tsx)
+  and [`WhatMustBeSolvedFirstCard`](../apps/web/src/features/decision/WhatMustBeSolvedFirstCard.tsx)
+  thinned out (-293 lines combined) — heavy ranking/triage logic moved into
+  the new hooks so the cards become render-only.
+- [`CapitalIntensityCard`](../apps/web/src/features/decision/CapitalIntensityCard.tsx)
+  radar `viewBox` widened to `-60 -30 320 260` so axis labels stop being
+  clipped by the SVG box.
+- [`DashboardRouter`](../apps/web/src/features/dashboard/DashboardRouter.tsx)
+  swaps the `feasibility` case from `DecisionSupportPanel` to
+  `FeasibilityCommandCenter` and threads `onSwitchToMap` through.
+- [`vite.config.ts`](../apps/web/vite.config.ts) adds the
+  `@ogden/shared/demand` subpath alias (more-specific entries must precede the
+  bare `@ogden/shared` alias — Vite prefix-matches in order).
+
+### Verification
+
+- `tsc --noEmit` clean across the full session (every heartbeat exited 0).
+- New components were authored against the existing scoring helpers — no
+  duplicate score logic in the cockpit.
+
+### Out of scope / deferred
+
+- The `DecisionSupportPanel` is still mounted by the MapView right-rail. A
+  future pass can decide whether the narrow panel should also adopt the new
+  verdict + triage hooks.
+- `OrganizationSettingsReadinessCard` already shipped in commit `017e7b2`
+  and is not part of this entry.
+
+---
+
+## 2026-04-27 — UI/UX upgrade: Land Verdict shell (Phases 2–6)
+
+Shipped the `2026-04-27` UI/UX upgrade brief — converted the dense operator
+dashboard into a verdict-led "regenerative command center." Plan source of
+truth: [`docs/ui-ux-upgrade-brief.md`](../docs/ui-ux-upgrade-brief.md).
+
+### What changed (`feat/shared-scoring`)
+
+- **Phase 2 — Navigation taxonomy.** Added a third grouping mode `stage`
+  (Understand / Identify Constraints / Design / Test Feasibility / Prepare
+  the Report) to [`features/navigation/taxonomy.ts`](../apps/web/src/features/navigation/taxonomy.ts);
+  `STAGE_META`, `STAGE_ORDER`, `groupByStage()` parallel the existing phase
+  and domain helpers. [`uiStore`](../apps/web/src/store/uiStore.ts) defaults
+  the sidebar grouping to `stage`. [`IconSidebar`](../apps/web/src/components/IconSidebar.tsx)
+  and [`DashboardSidebar`](../apps/web/src/features/dashboard/DashboardSidebar.tsx)
+  consume the stage taxonomy with the same accordion behavior. Top tabs in
+  [`ProjectTabBar`](../apps/web/src/components/ProjectTabBar.tsx) renamed to
+  `Overview · Design Map · Intelligence · Report`.
+- **Phase 3 — Land Verdict hero.** New
+  [`LandVerdictCard`](../apps/web/src/features/dashboard/LandVerdictCard.tsx)
+  derives a verdict band (Strong Fit / Conditional / Caution / Not
+  Recommended) from `computeOverallScore()`, surfaces main blocker + best-fit
+  use, and exposes `View Constraints / Open Design Map / Generate Brief`
+  CTAs. New [`CriticalConstraintAlert`](../apps/web/src/features/dashboard/CriticalConstraintAlert.tsx)
+  renders below it only when a blocking flag exists. Both mounted at the top
+  of [`DashboardView`](../apps/web/src/features/dashboard/DashboardView.tsx)
+  for the default `site-intelligence` section.
+- **Phase 4 — Decision Triad.** New
+  [`DecisionTriad`](../apps/web/src/features/dashboard/DecisionTriad.tsx)
+  promotes Risks / Opportunities / Limitations into a three-column row with
+  the schema *Impact · Why it matters · Recommended action · Confidence ·
+  Source.* Reuses `deriveRisks()` / `deriveOpportunities()` from
+  `@ogden/shared/scoring`; recommended action is heuristic from
+  severity+bucket since `evaluateRule` projects out the rule's `action`.
+- **Phase 5 — Next Best Actions + persistent CTA.** New
+  [`NextBestActionsPanel`](../apps/web/src/features/dashboard/NextBestActionsPanel.tsx)
+  replaces the empty "Regenerative Metrics" placeholder on the Overview
+  right rail in [`DashboardMetrics`](../apps/web/src/features/dashboard/DashboardMetrics.tsx).
+  Priority queue: missing boundary → top blocker → top opportunity → run
+  feasibility → generate brief, capped at 5 items. A persistent
+  `Generate Brief` button now sits in the [`ProjectTabBar`](../apps/web/src/components/ProjectTabBar.tsx)
+  right slot on every project tab.
+- **Phase 6 — Mobile shell.** New
+  [`MobileProjectShell`](../apps/web/src/pages/MobileProjectShell.tsx)
+  activates via `useIsMobile()` (≤768px). Top app bar (back / project name /
+  brief icon) → vertical hero stack on Overview (verdict, alert, triad,
+  next-actions) → sticky `Generate Land Brief` above bottom nav → bottom nav
+  with four tabs → horizontal swipe (60px threshold) between tabs. Reuses
+  the existing `MapView` and `DashboardRouter` for non-Overview tabs.
+
+### Verification
+
+- `tsc --noEmit` clean.
+- Live preview verified at 1440 (desktop right rail + tab bar CTA), 768
+  (mobile shell + bottom nav), and 375 (mobile shell + sticky CTA + 4-tab
+  swipe). Generate Brief opens the existing `ProjectSummaryExport` modal at
+  every breakpoint.
+- Pre-existing test failures in [`apps/web/src/tests/computeScores.test.ts`](../apps/web/src/tests/computeScores.test.ts)
+  belong to the in-flight shared-scoring rollout and are out of scope.
+
+### Out of scope / deferred
+
+- Stewardship-readiness compute engine, silvopasture/agritourism scoring —
+  surfaces are reserved on the upgrade brief but compute lives later.
+- Map-layer redesign and public-portal redesign.
+- Backend/API changes — this was a presentation-layer plan.
+
+---
+
+## 2026-04-27 — Demand model round 2: overrides, occupancy, livestock, climate
+
+Closed all six round-1 deferrals from the demand-coefficient session earlier
+the same day. Decision:
+[decisions/2026-04-27-demand-model-round-2.md](decisions/2026-04-27-demand-model-round-2.md).
+
+### Changes (`feat/shared-scoring`)
+
+- [`packages/shared/src/demand/structureDemand.ts`](../packages/shared/src/demand/structureDemand.ts)
+  — `StructureLike` gains `demandWaterGalPerDay`, `demandKwhPerDay`,
+  `occupantCount`. `RESIDENTIAL_STRUCTURE_TYPES` (cabin/yurt/tent_glamping/
+  earthship/bathhouse) gates occupant scaling. Both getters early-return the
+  override before greenhouse/occupants/stories scaling.
+- [`packages/shared/src/demand/livestockDemand.ts`](../packages/shared/src/demand/livestockDemand.ts)
+  *(new)* — `LIVESTOCK_WATER_GAL_PER_HEAD_DAY` by 9-species enum (FAO + NRCS:
+  cattle 15, horses 12, pigs 5, sheep/goats 2, ducks_geese 0.3, rabbits 0.25,
+  poultry 0.1, bees 0). `getPaddockWaterGalPerDay()` derives total head from
+  `headCount ?? round(stockingDensity × areaHa)` and splits across species.
+- [`packages/shared/src/demand/cropDemand.ts`](../packages/shared/src/demand/cropDemand.ts)
+  — `getCropAreaDemandGalPerM2Yr(spec, climateMultiplier?)` and
+  `getCropAreaWaterGalYr(area, climateMultiplier?)` accept optional multiplier;
+  new `petClimateMultiplier(petMm, refPetMm = 1100)` clamps to `[0.7, 1.5]`.
+- [`packages/shared/src/demand/rollup.ts`](../packages/shared/src/demand/rollup.ts)
+  — `SiteDemandInput.paddocks?` + `climateMultiplier?`; `SiteDemand.livestockWaterGalYr`;
+  total water = `structureWaterGalPerDay × 365 + cropWaterGalYr + livestockWaterGalYr`.
+- [`packages/shared/src/scoring/hydrologyMetrics.ts`](../packages/shared/src/scoring/hydrologyMetrics.ts)
+  — `HydroInputs.paddocks?`; PET-driven `climateMultiplier` derived from the
+  same `computePet()` call already used for `petMm`, gated on solar/wind/RH
+  presence so the legacy fallback path stays at 1.0.
+- [`apps/web/src/store/structureStore.ts`](../apps/web/src/store/structureStore.ts)
+  — `Structure` adds three optional fields (`demandWaterGalPerDay`,
+  `demandKwhPerDay`, `occupantCount`).
+- [`apps/web/src/features/structures/StructurePropertiesModal.tsx`](../apps/web/src/features/structures/StructurePropertiesModal.tsx)
+  — Two demand-override inputs (placeholders show per-type defaults); 1–8
+  occupants slider gated visible-only on residential types.
+- [`apps/web/src/components/panels/DesignToolsPanel.tsx`](../apps/web/src/components/panels/DesignToolsPanel.tsx)
+  — Both placement and edit handlers forward the three new fields to the store.
+- [`apps/web/src/features/crops/waterDemand.ts`](../apps/web/src/features/crops/waterDemand.ts)
+  — Removed deprecated `WATER_DEMAND_GAL_PER_M2_YR` flat re-export; only the
+  per-area-type signature of `computeWaterGalYr` remains.
+- [`apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx`](../apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx)
+  — Tooltip + footnote callsites migrated to `getCropAreaDemandGalPerM2Yr`
+  ("orchard reference" framing).
+- [`apps/web/src/features/dashboard/pages/HydrologyDashboard.tsx`](../apps/web/src/features/dashboard/pages/HydrologyDashboard.tsx)
+  — Reads `livestockStore.paddocks` (project-filtered) and threads paddocks
+  + new structure override fields into the engine.
+- [`apps/web/src/features/utilities/utilityAnalysis.ts`](../apps/web/src/features/utilities/utilityAnalysis.ts)
+  — `estimateSolarOutput(panelCount, avgIrradiance?)`: irradiance now optional;
+  4.5 kWh/m²/day fallback only when undefined or non-positive. TODO removed.
+- [`apps/web/src/features/utilities/EnergyDemandRollup.tsx`](../apps/web/src/features/utilities/EnergyDemandRollup.tsx)
+  — New `solarIrradianceKwhM2Day?` prop; footnote cites "(NASA POWER)" when
+  the climate layer is loaded, else "(temperate-zone default)".
+- [`apps/web/src/features/utilities/UtilityPanel.tsx`](../apps/web/src/features/utilities/UtilityPanel.tsx)
+  + [`apps/web/src/features/dashboard/pages/EnergyDashboard.tsx`](../apps/web/src/features/dashboard/pages/EnergyDashboard.tsx)
+  — Both read `climate.solar_radiation_kwh_m2_day` from siteData and forward.
+
+### Tests + verification
+
+- `packages/shared`: `npx vitest run` 136/136 ✓ — `demand.test.ts` grew 20 → 38
+  with structure overrides, occupant scaling, livestock species coverage,
+  paddock scaling, multi-species head splitting, PET multiplier endpoints,
+  and override-stacks-with-stories.
+- `tsc --noEmit` clean for `packages/shared`, `apps/web`, `apps/api`.
+
+### Manual probe targets
+
+- Cabin with `occupantCount = 4` → 240 gal/day (was 60).
+- Cattle paddock at 10 head/ha × 2 ha → 300 gal/day in hydrology rollup.
+- Climate-loaded solar row → "x.x kWh/m²/day (NASA POWER)" footnote vs.
+  "(temperate-zone default — load climate layer for site-specific value)".
+- Override `demandWaterGalPerDay = 200` on a 4-occupant cabin → 200 (override wins).
+
+### Out of scope (deferred)
+
+- PlantingTool per-area display rollup intentionally stays at the unscaled
+  per-area-type baseline — proxy PET from temperature alone produced
+  unrealistic 1.5× clamps; the multiplier belongs in the rollup that has
+  full solar/wind/RH input.
+- Per-paddock species head-count UI in placement flow.
+- Manual "this site is arid" climate-multiplier toggle.
+- Project-level "household size" aggregation across structures.
+
+---
+
+## 2026-04-27 — Project intake: map centering + manual coordinates
+
+Closed a UX gap in the new-project wizard. Step 3's map opened at a
+hardcoded Ontario centroid and only re-centered if a MapTiler geocode of
+the Step-2 address succeeded. Geocodes were unscoped and silently swallowed
+failures, so non-Toronto projects landed wrong with no signal.
+
+### Changes (`feat/shared-scoring`)
+
+- [`packages/shared/src/schemas/project.schema.ts`](packages/shared/src/schemas/project.schema.ts)
+  — `ProjectMetadata` extended with `centerLat` (`-90..90`) + `centerLng`
+  (`-180..180`). No DB migration (jsonb).
+- [`apps/web/src/features/project/wizard/StepLocation.tsx`](apps/web/src/features/project/wizard/StepLocation.tsx)
+  — Added optional lat/lng inputs with blur-time range validation +
+  "paste lat, lng" textbox that splits Google-Maps-style strings.
+- [`apps/web/src/features/project/wizard/StepBoundary.tsx`](apps/web/src/features/project/wizard/StepBoundary.tsx)
+  — Inline geocode replaced by `centerMap()` callback driven by
+  priority `boundary > manual coords > scoped geocode`. Geocode now
+  appends `country=us|ca` + `provinceState`. Failures surface a
+  dismissable banner with "Back to Step 2". Toolbar gains a **Recenter**
+  button (uses current wizard data). Successful geocodes backfill
+  `centerLat/Lng` so the project remembers its center.
+- [`apps/web/src/pages/NewProjectPage.tsx`](apps/web/src/pages/NewProjectPage.tsx)
+  + [`apps/web/src/features/project/wizard/StepNotes.tsx`](apps/web/src/features/project/wizard/StepNotes.tsx)
+  — `WizardData` carries the strings; `buildMetadata()` parses to numbers
+  before write so both local + server paths persist.
+
+### Verification
+
+- `apps/web` `tsc --noEmit` clean (Node heap bumped to 8 GB; default
+  4 GB OOMs on this project — known Atlas constraint).
+- DOM checks in preview: Step 2 lat/lng inputs + paste shortcut +
+  inline range validation; Step 3 renders Recenter button + map canvas.
+- Screenshot tool timed out — no pixel-level fly-to confirmation.
+
+### Decision document
+
+[`wiki/decisions/2026-04-27-project-intake-map-centering.md`](decisions/2026-04-27-project-intake-map-centering.md)
+captures the centering priority + persistence contract for downstream
+consumers (notably the §1 `project-intake` implementation pass, which
+needs to honor `metadata.centerLat/Lng` when reopening existing projects).
+
+### Deferred
+
+- Wiring `metadata.centerLat/Lng` into the existing-project map open
+  path (separate consumer; belongs in §1 implementation).
+- Reverse geocoding, map-click-to-set-center.
+
+---
+
+## 2026-04-27 — Store-API stable-reference contract sweep
+
+Followed up the 2026-04-26 Zustand selector-stability decision with a full
+sweep of every store under [`apps/web/src/store/`](apps/web/src/store/) to
+confirm the anti-pattern is closed and document return semantics on read-side
+getters.
+
+### Findings
+
+29 stores audited. Three stores expose id-keyed read methods that return
+freshly-allocated arrays (`.filter()` / `.sort()`):
+
+- [`zoneStore.getProjectZones(projectId)`](apps/web/src/store/zoneStore.ts) — already documented with warning, no selector call-sites.
+- [`phaseStore.getProjectPhases(projectId)`](apps/web/src/store/phaseStore.ts) — already documented with warning, no selector call-sites (TimelinePanel + 3 cards correctly subscribe to raw `.phases` and derive in `useMemo`).
+- [`versionStore.getProjectSnapshots(projectId)`](apps/web/src/store/versionStore.ts) — already documented with warning, currently unused.
+
+Three stores expose id-keyed read methods that return **stable stored
+references** (`.find()`) — safe in selectors. These had no contract comment;
+added one-line JSDoc:
+
+- [`visionStore.getVisionData(projectId)`](apps/web/src/store/visionStore.ts) — 8 selector call-sites confirmed safe.
+- [`portalStore.getConfig(projectId)`](apps/web/src/store/portalStore.ts) — internal callers only.
+- [`portalStore.getBySlug(slug)`](apps/web/src/store/portalStore.ts) — internal callers only.
+
+The remaining 23 stores (pathStore, structureStore, cropStore, livestockStore,
+projectStore, uiStore, scenarioStore, siteDataStore, authStore, nurseryStore,
+financialStore, commentStore, presenceStore, connectivityStore, mapStore,
+soilSampleStore, regenerationEventStore, fieldworkStore, sitingWeightStore,
+and others) expose no id-keyed read methods at all — call-sites already
+follow the subscribe-then-derive pattern by default.
+
+### Done
+
+- Annotated `getVisionData`, `getConfig`, `getBySlug` with stable-reference
+  contract comments.
+
+### Verification
+
+- No selector call-sites of the three fresh-array getters detected.
+- Zero new infinite-render bugs introduced since the 2026-04-26 fix.
+
+### Deferred
+
+- **ESLint custom rule** to flag `useStore((s) => s.array.filter(...))` and
+  `useStore((s) => s.getXxx(...))` where `getXxx` is on a known-fresh
+  allow-list. Defer until a regression appears — manual JSDoc on the three
+  fresh getters is sufficient signal for now.
+
+---
+
+## 2026-04-27 — Right rail / bottom toolbar split + Dashboard ↔ Map domain parity
+
+Split the map-view chrome along a single rule: **right rail = read-out,
+bottom toolbar = action**. Three phases landed in this session:
+
+### Done
+
+**Phase 1d — Biomass on both surfaces.** Biomass was dashboard-only despite
+being a clean site-readout. Re-wired across the stack so the same
+`BiomassDashboard` component renders on the dashboard and inside the map
+right rail (via the existing `map-rail-dashboard` wrapper, same pattern as
+Forest Hub / Carbon Diagnostic). Files: [`apps/web/src/features/navigation/taxonomy.ts`](apps/web/src/features/navigation/taxonomy.ts) (added `panel: 'biomass'`, `mapSubItem: 'biomass'`, dropped `dashboardOnly`), [`apps/web/src/components/IconSidebar.tsx`](apps/web/src/components/IconSidebar.tsx) (`SidebarView` and `SubItemId` unions), [`apps/web/src/components/ui/RailPanelShell.tsx`](apps/web/src/components/ui/RailPanelShell.tsx) (`VIEW_LABELS.biomass = 'Biomass'` — required by exhaustive `Record<Exclude<SidebarView, null>, string>`), [`apps/web/src/features/dashboard/DashboardRouter.tsx`](apps/web/src/features/dashboard/DashboardRouter.tsx), [`apps/web/src/features/map/MapView.tsx`](apps/web/src/features/map/MapView.tsx), and new [`apps/web/src/features/dashboard/pages/BiomassDashboard.tsx`](apps/web/src/features/dashboard/pages/BiomassDashboard.tsx).
+
+**Phase 2b — Hydrology → Water Systems cross-link.** Avoided component
+duplication: added `<div id="water-systems">` anchor in [`EnergyDashboard.tsx`](apps/web/src/features/dashboard/pages/EnergyDashboard.tsx) and a `WaterSystemsCrossLink` button in [`HydrologyDashboard.tsx`](apps/web/src/features/dashboard/pages/HydrologyDashboard.tsx) that flips `activeDashboardSection` to `'energy-offgrid'` and `scrollIntoView` on the anchor.
+
+**Phase 3 — Right rail vs bottom toolbar.** Removed `DesignToolsPanel`'s
+internal `activeTab`; it now reads `useUIStore.activeDashboardSection` so the
+left sidebar, right rail, and bottom toolbar move together. All "Draw" /
+"Place" controls moved to [`DomainFloatingToolbar.tsx`](apps/web/src/features/map/DomainFloatingToolbar.tsx) and emit custom maplibre events (`ogden:zones:start-draw`, `ogden:structures:open-picker`, `ogden:crops:open-picker`, `ogden:paths:open-picker`). Affected panels: [`DesignToolsPanel`](apps/web/src/components/panels/DesignToolsPanel.tsx), [`ZonePanel`](apps/web/src/features/zones/ZonePanel.tsx), [`StructurePanel`](apps/web/src/features/structures/StructurePanel.tsx), [`CropPanel`](apps/web/src/features/crops/CropPanel.tsx), [`AccessPanel`](apps/web/src/features/access/AccessPanel.tsx) (added Path Type Picker modal).
+
+Decision record: [decisions/2026-04-27-right-rail-bottom-toolbar-split.md](decisions/2026-04-27-right-rail-bottom-toolbar-split.md).
+
+### Verification
+
+- Browser smoke test on `351 House` (preview server, port 5200):
+  - Dashboard Biomass: Density 104 t/ha · Site Total 31,382 t · Carbon
+    Stock 191 tCO2e/ha · YoY +19% · vegetation composition + drivers all
+    render with no console errors.
+  - Map rail Biomass: same component, same numbers (single source via
+    `useSiteData`).
+  - All four design domains (zones, structures, access, crops): every action
+    button lives only in `_toolbar_*` ancestor, zero matches in the rail.
+- `tsc --noEmit` (with `NODE_OPTIONS=--max-old-space-size=8192`) — Biomass
+  cross-stack wiring compiles; previously-flagged
+  `QuietCirculationRouteCard.tsx:128-132` and `ProgramCoverageCard.tsx:125`
+  errors confirmed absent from current source.
+
+### Deferred
+
+- **Planting Tool render-loop.** Spun off as a separate task chip earlier
+  in the session (unrelated to refactor — pre-existing infinite loop in
+  `PlantingToolDashboard`).
+- **`npm test` / `npm run lint` regression sweep.** Out of session scope
+  but should run before merging `feat/shared-scoring`.
+
+### Recommended next session
+
+- **Sweep store API for stable-reference contracts.** For each `getXxx(id)`
+  method in the Zustand stores, document whether it returns a stored
+  reference or a fresh array. Convert any fresh-array getters to
+  subscribe-then-derive at every call-site. Optionally add a one-line
+  comment on each store action describing return semantics.
+
+---
+
+## 2026-04-27 — Sweep: Zustand selector anti-pattern across `feat/shared-scoring`
+
+After the `ClimateShiftScenarioCard` fix below, swept the rest of the
+branch for the same shape. Found 37 array-returning `.filter()` calls
+inside Zustand selectors across 10 cards — all dormant infinite-loop
+bugs that only haven't crashed because their dashboards aren't all
+rendered yet.
+
+Cards fixed (all now follow the `allX` + `useMemo` pattern):
+- ai-design-support: AlternativeLayoutRationale, AssumptionGapDetector,
+  EcologicalRiskWarnings, FeaturePlacementSuggestions, NeedsSiteVisit,
+  PhasedBuildStrategy, WhyHerePanels (28 instances)
+- economics: EnterpriseRevenueMix, OverbuiltForRevenueWarning,
+  RevenueRampProjection (9 instances)
+
+Portal cards (`ShareLinkReadiness`, `StakeholderReviewMode`) also use
+`s.X.filter(...)` inside selectors but return `.length` (a primitive),
+which Object.is compares safely — left as-is.
+
+Applied via codemod (regex match on
+`useXStore((s) => s.PROP.filter((p) => p.projectId === IDREF))`).
+`pnpm tsc --noEmit` clean.
+
+---
+
+## 2026-04-27 — Planting Tool dashboard infinite-loop fix
+
+`ClimateShiftScenarioCard` crashed the Planting Tool dashboard with
+"Maximum update depth exceeded". Root cause: the card called
+`.filter()` inside the Zustand selector
+(`useCropStore((s) => s.cropAreas.filter(...))`), so the selector
+returned a fresh array every render. Zustand's default reference-
+equality comparison saw new state on every read and re-triggered the
+component, looping until React bailed out.
+
+Fix: subscribe to the stable `s.cropAreas` reference and derive the
+filtered list with `useMemo`, matching the pattern used by every
+other crop card (`CanopyMaturityCard`, `OrchardGuildSuggestionsCard`,
+etc.). Exactly the anti-pattern called out by the JSDoc warnings
+added in `df6a5f7` — this card pre-dated the sweep.
+
+Verified live at port 5200: Planting Tool now renders 8 cards with
+no React error and no new console warnings. Typecheck has 5
+pre-existing errors in `features/access/QuietCirculationRouteCard.tsx`
+(out of scope, unrelated).
+
+Files: [features/crops/ClimateShiftScenarioCard.tsx](../apps/web/src/features/crops/ClimateShiftScenarioCard.tsx)
+
+---
+
+## 2026-04-27 — Site Intelligence label-value layout fix
+
+The Site Intelligence panel rendered each row at full panel width (~1080px)
+with label glued left and value glued right via `flex:1; text-align:right`,
+forcing 800+px saccades. Solution:
+
+- Tile rows 2-3 across at desktop via `display:grid; grid-template-columns:
+  repeat(auto-fill, minmax(260px, 1fr))` on the row-list container inside
+  each `.liveDataWrap`. Collapses to a single column on narrow rails.
+- Override the shared `.rightAlign` class and `.liveDataRight` wrapper inside
+  `.liveDataRow` (`flex: 0 1 auto; margin-left: auto`) so values float to
+  the **tile** edge, not the panel edge.
+- Cap `.liveDataLabel` at `max-width: 130px`; baseline-align the row.
+
+Live verification at 1440px viewport: gaps now 10–60px across Hydrology,
+Groundwater, Water Quality, Live Ontario Data sections.
+
+The Modern UI/UX Design Scholar notebook was rate-limited (8 retries) during
+the consult attempt — plan stood on codebase evidence + established design-
+system patterns (Stripe / Linear / IBM Carbon / Primer all use ~280–360 px
+definition-list columns for dense metadata panels).
+
+Files: [components/panels/SiteIntelligencePanel.module.css](../atlas/apps/web/src/components/panels/SiteIntelligencePanel.module.css)
+Commit: `7f08936`
+
+Deferred: re-consult scholar when rate limit clears; optional `.numeric`
+modifier for tabular-num right-alignment of pure-metric rows.
+
+---
+
+## 2026-04-27 — Store-getter regression guards
+
+Swept all 29 Zustand stores for array-returning getters and audited call-sites
+to confirm none of them are invoked inside selectors today. Added JSDoc
+warnings on the three array-returning getters (`phaseStore.getProjectPhases`,
+`versionStore.getProjectSnapshots`, `zoneStore.getProjectZones`) explaining
+the anti-pattern and showing the correct subscribe-then-derive snippet.
+Future contributors will see the warning on IDE hover.
+
+Cross-references: [decisions/2026-04-26-zustand-selector-stability.md](decisions/2026-04-26-zustand-selector-stability.md)
+
+Deferred: custom ESLint rule to flag `useStore((s) => s.getXxx(...))` at
+authoring time.
+
+---
+
 ## 2026-04-26 — Sweep: hoist 59 in-selector `.filter()` calls into `useMemo` (commit `68b6811`)
 
 Follow-up to the EnterpriseRevenueMixCard fix below. A multiline
@@ -4397,6 +5450,310 @@ Also adds `'pollinator_opportunity'` to `ECOLOGY_LAYER_SOURCES` so its flags flo
 - **`StickyMiniScore` add-and-commit.** Trivial closer (one `git add` + commit) that may also fix a latent main-branch build issue. Confirm SiteIntelligencePanel typechecks before/after to verify.
 - Or — **Landing wire-up** (larger scope: routes, auth-redirect, public-portal CSP). Defer until landing is signed off as the public face.
 
+---
+
+## 2026-04-26 — Visitor MapTiler key + Zustand selector loop fixes
+
+### Done
+
+**Live-site MapTiler key entry.** Production build of `atlas.ogden.ag` ships without `VITE_MAPTILER_KEY`. Visitors now paste their own free key into the page; it's persisted to `localStorage` (`ogden-maptiler-key`) and survives reload. Files: [`apps/web/src/lib/maplibre.ts`](apps/web/src/lib/maplibre.ts) (added `MAPTILER_KEY_STORAGE`, `resolveKey()`, `setMaptilerKey()` — module-load constants now resolve from localStorage first, env fallback, no breaking changes at call sites because save flow triggers `window.location.reload()`); [`apps/web/src/features/project/wizard/StepBoundary.tsx`](apps/web/src/features/project/wizard/StepBoundary.tsx) (replaced env-var-jargon error with visitor-facing key-entry fallback `MapKeyFallback`); [`apps/web/src/components/MapTokenMissing.tsx`](apps/web/src/components/MapTokenMissing.tsx) (same input + Save & reload + Clear saved key).
+
+**Infinite-render bug — Feasibility & Herd Rotation panels.** Both panels triggered `Maximum update depth exceeded` and rendered as ErrorBoundary fallback. Root cause: Zustand selectors of the form `useStore((s) => s.someMethod(args))` or `useStore((s) => s.array.filter(...))` where the inner expression returned a freshly-derived array each call. `useSyncExternalStore` saw a "changed" snapshot every render → re-render → selector re-runs → new array → re-render → loop. Fixed in 6 files by switching to subscribe-then-derive: read the raw store array (stable reference) and compute the project-filtered slice inside `useMemo`:
+- [`apps/web/src/features/decision/SeasonalRealismCard.tsx`](apps/web/src/features/decision/SeasonalRealismCard.tsx) — was `usePhaseStore((st) => st.getProjectPhases(project.id))` — actual crash from screenshot
+- [`apps/web/src/components/panels/TimelinePanel.tsx`](apps/web/src/components/panels/TimelinePanel.tsx) — same `getProjectPhases` pattern, latent
+- [`apps/web/src/features/livestock/MultiSpeciesPlannerCard.tsx`](apps/web/src/features/livestock/MultiSpeciesPlannerCard.tsx) — `paddocks.filter(...)` inside selector — Herd Rotation crash
+- [`apps/web/src/features/fieldwork/WalkChecklistCard.tsx`](apps/web/src/features/fieldwork/WalkChecklistCard.tsx) — 4 inline-filter selectors
+- [`apps/web/src/features/ai-design-support/DesignBriefPitchCard.tsx`](apps/web/src/features/ai-design-support/DesignBriefPitchCard.tsx) — 5 inline-filter selectors
+- [`apps/web/src/features/ai-design-support/EducationalExplainerCard.tsx`](apps/web/src/features/ai-design-support/EducationalExplainerCard.tsx) — 5 inline-filter selectors
+
+Decision record: [decisions/2026-04-26-zustand-selector-stability.md](decisions/2026-04-26-zustand-selector-stability.md).
+
+**Dashboard content centering.** [`apps/web/src/features/dashboard/DashboardView.module.css`](apps/web/src/features/dashboard/DashboardView.module.css) — added `.content > * { margin-inline: auto; }`. Each dashboard page already declares its own `max-width` (e.g. HerdRotationDashboard `.page { max-width: 860px }`) — they were just left-aligning inside a 1080px column. Auto inline margin centers them without changing per-page widths. Verified: 860px page now renders with ~107px gap on each side within the 1080px container.
+
+### Verification
+
+- Reproduced both infinite-loop panels in dev preview (Feasibility, Herd Rotation), applied fixes, reproduced clean render — no error boundary, child cards present.
+- DOM probe confirms centered child: `childLeft: 347, childRight: 1207` inside `contentLeft: 240, contentRight: 1320`.
+- MapTiler visitor flow verified earlier in session via tsc + vite build (both exit 0).
+
+### Deferred
+
+- **Landing-zone audit for the same selector anti-pattern.** Caught 6 files via grep on `use\w+Store\(\(.*?\) => .*?\.(filter|map|sort|slice)\(`. A second sweep should also check store-method getters that return new arrays (`getProjectPhases`, etc.) — only `getProjectPhases` was confirmed problematic; other `getXxx` methods (`getVisionData`, `getConfig`) use `.find()` and return stored references, which is safe.
+- **ESLint custom rule** to flag the anti-pattern at lint-time. Defer until next sweep confirms the pattern is closed.
+
+### Recommended next session
+
+- **Sweep store API for stable-reference contracts.** For each `getXxx(id)` method, document whether it returns a stored reference or a fresh array. Convert any fresh-array getters to subscribe-then-derive at every call-site. Optionally add a one-line comment on each store action describing return semantics.
+
+---
+
+## 2026-04-27 — Demand coefficient tables (water + electricity)
+
+### Done
+
+**De-hardcoded site demand.** Replaced the `{ low: 50, medium: 110, high: 220 }` flat crop-water lookup, the `irrigationDemandGal = annualRainfallGal * 0.22` placeholder, and the entirely-missing structure/utility demand models with per-type coefficient tables in a new `@ogden/shared/demand` subpath.
+
+New module: [`packages/shared/src/demand/`](../packages/shared/src/demand/) — `structureDemand.ts`, `utilityDemand.ts`, `cropDemand.ts`, `rollup.ts`, `index.ts`. Wired into [`hydrologyMetrics.ts`](../packages/shared/src/scoring/hydrologyMetrics.ts) (accepts optional `structures`/`utilities`/`cropAreas` on `HydroInputs`; falls back to 22% only when none are passed). Web dashboards rerouted: [`HydrologyDashboard.tsx`](../apps/web/src/features/dashboard/pages/HydrologyDashboard.tsx) threads placed entities through; [`EnergyDemandRollup.tsx`](../apps/web/src/features/utilities/EnergyDemandRollup.tsx) sums structure + utility loads via the new helpers; [`PlantingToolDashboard.tsx`](../apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx) uses the 2D area-type × class table; [`apps/web/src/features/crops/waterDemand.ts`](../apps/web/src/features/crops/waterDemand.ts) became a thin wrapper with the deprecated flat table preserved for one release.
+
+**Tests.** 20 new in [`packages/shared/src/tests/demand.test.ts`](../packages/shared/src/tests/demand.test.ts) covering finiteness of every type's coefficients, greenhouse area scaling, `storiesCount` linearity, override semantics (well_pump 12 wins; 0 falls through), area-type ≠ same-class divergence (orchard:medium ≠ market_garden:medium), rollup additivity (2 cabins = 2× one cabin), and hydrology back-compat (empty inputs → 22% fallback; structure-only → 21,900 gal/yr; crop-only orchard 1000 m² medium → 110,000 gal/yr).
+
+Decision record: [decisions/2026-04-27-demand-coefficient-tables.md](decisions/2026-04-27-demand-coefficient-tables.md).
+
+### Verification
+
+- `packages/shared` build ✓; vitest 118/118 ✓ (20 new in `demand.test.ts`).
+- `apps/web` `tsc --noEmit` ✓; `apps/api` `tsc --noEmit` ✓.
+- Root `npm run lint` ✓.
+- Live dev-server module probe confirmed cabin 60+8, well_pump 6 (override 12), orchard low/med/high = 60/110/180, mixed scenario rollup = 601,100 gal/yr + 19 kWh/day.
+
+### Deferred
+
+- **Per-instance override modals** for structures and utilities (current model: per-type defaults + the existing `demandKwhPerDay` text field).
+- **Livestock water demand** — `livestock/speciesData.ts` carries gal/head/day data; not yet folded into `sumSiteDemand`.
+- **Household occupancy modeling** — cabin's 60 gal/day = 1-occupant assumption.
+- **Real solar irradiance from NASA POWER** — `utilityAnalysis.ts` still uses the 4.5 kWh/m²/day literal (TODO note added).
+- **Climate / PET multiplier on crop demand** — flat 1.0 in this pass; lives next to the existing FAO-56 PET model.
+- **Drop the deprecated flat `WATER_DEMAND_GAL_PER_M2_YR`** after PlantingTool's species-rollup is migrated to the per-area-type signature.
+
+### Recommended next session
+
+- **Livestock demand into the rollup.** `speciesData.ts` already has gal/head/day; thread `LivestockLike[]` into `sumSiteDemand` and `HydroInputs`.
+- Or — **per-instance override UI**. StructurePropertiesModal + utility property modal grow a "demand override" field; defaults remain visible as the placeholder.
+
+---
+
+## 2026-04-28 — v3.2 solar sectors land on Diagnose
+
+### Done
+
+**Wedges over the parcel.** The Diagnose site-analysis map now renders three solar sector wedges — winter solstice, equinox, summer solstice — fanning sunrise→sunset over the MTC parcel centroid. The Matrix Toggles popover's previously-disabled "Sectors" row is live; toggling it shows/hides all three wedges via the existing `matrixTogglesStore`.
+
+New module: [`apps/web/src/lib/sectors/`](../apps/web/src/lib/sectors/) — `solar.ts` (pure suncalc-driven sector computation; UTC-noon anchor dates so timezone/DST drift can't move the arc; northern-hemisphere clockwise sweep through south), `types.ts` (shared `SectorKind` discriminator that already accommodates `wind-prevailing`, `fire`, `view`, `noise` for future passes), and 8 vitest cases covering azimuth-bearing math, default 600m reach, and the suncalc provenance entry.
+
+New overlay: [`apps/web/src/v3/components/overlays/SectorsOverlay.tsx`](../apps/web/src/v3/components/overlays/SectorsOverlay.tsx) — `@turf/turf`'s `sector()` builds wedge polygons; three layers (`fill` 0.18 opacity, dashed `line`, `symbol` labels). Idempotent ensure() pattern matches `TopographyOverlay`; visibility-only on toggle so reflows are cheap.
+
+**Wiring.** [`MatrixTogglesPopover.tsx`](../apps/web/src/v3/components/MatrixTogglesPopover.tsx) re-enables the Sectors row, bumps the Zones placeholder badge to v3.3. [`matrixTogglesStore.ts`](../apps/web/src/store/matrixTogglesStore.ts) version 2→3 (clears stale `zones` carry-over only — preserves user's sectors choice). [`DiagnosePage.tsx`](../apps/web/src/v3/pages/DiagnosePage.tsx) hosts an internal `DiagnoseOverlays` component so `useMemo(computeSolarSectors(centroid), [centroid])` can cache the wedges. [`DiagnoseMap.tsx`](../apps/web/src/v3/components/DiagnoseMap.tsx) adds a sectors row to the active-overlays legend. [`V3LifecycleSidebar.tsx`](../apps/web/src/v3/components/V3LifecycleSidebar.tsx) badge counts topography + sectors (zones still excluded as a v3.3 placeholder).
+
+**Mock data.** [`v3/types.ts`](../apps/web/src/v3/types.ts) gains `ProjectLocation.boundary?: GeoJSON.Polygon`; [`mockProject.ts`](../apps/web/src/v3/data/mockProject.ts) carries a hand-drawn ~128 ha rectangle around `[-78.20, 44.50]` so DiagnoseMap can `fitBounds` and pass the bounds-derived centroid to overlay children. Real cadastral geometry lands later.
+
+**Dependency.** Added `suncalc` (~5 KB MIT, no network) + `@types/suncalc`. Chose it over NREL SPA / Open-Meteo to keep solar geometry deterministic and offline.
+
+### Verification
+
+- `apps/web` `tsc --noEmit` ✓ (clean, 0 bytes).
+- `apps/web` vitest: **14/14** (8 new in `lib/sectors/__tests__/solar.test.ts`, 6 in `V3LifecycleSidebar.test.tsx` updated for the `topography+sectors=true` mock and `/2/` badge assertion).
+- `vite build` ✓ (~2m13s, 493 PWA precache entries).
+- Preview eval at `/v3/project/mtc/diagnose`: popover label reads "Solar arcs (winter · summer · equinox)", Zones placeholder shows `v3.3`, footer reads "Topography & Sectors live · Zones in v3.3", `sectorChecked=true` after toggle, canvas mounted. **Visual screenshot of wedge geometry on the map was not captured — preview_screenshot timed out twice.** Functional verification only.
+
+### Deferred
+
+- **Visual screenshot confirmation** of the wedge fan over the MTC parcel — the preview screenshot tool was unresponsive during this session. Code paths verified through tests + DOM eval.
+- **Southern hemisphere sweep direction.** `solar.ts` carries a TODO; northern-only is fine for MTC and any prospective Canada/Northeast US parcels.
+- **Wind / fire / view / noise wedges.** The `SectorKind` discriminator and `SiteSectors` shape already accommodate them; the popover row is currently solar-only.
+- **Polar-region guard.** Wedges are filtered when suncalc returns invalid Dates, but no UX message yet.
+- **Real cadastral boundary.** MTC carries a hand-drawn rectangle in `mockProject.ts`; v3.2's outstanding work includes a real parcel fetch.
+
+### Recommended next session
+
+- **Zones overlay (v3.3).** Use-frequency rings 0–5 anchored on the homestead centroid, wired to the same `matrixTogglesStore.zones` flag. Once it lands, the sidebar badge and popover footer copy ("Zones in v3.3") need updating in lockstep.
+- Or — **wind-prevailing wedge.** Extend `lib/sectors/` with an Open-Meteo / ERA5 wind-rose pull, persist to `SiteSectors.wedges` alongside the solar arcs, surface in the same overlay.
+
+---
+
+## 2026-04-28 — v3.3 zones land on Diagnose
+
+### Done
+
+**Six concentric use-frequency rings.** The Matrix Toggles popover's third row (Zones, previously a v3.3 placeholder) is now data-backed. Toggling Zones paints six rings on the Diagnose map: Zone 0 = home (5 m disc), Zones 1–4 = annulus belts at 30/100/300/600 m, Zone 5 = "wild beyond" clipped to the parcel boundary when one is supplied.
+
+New module: [`apps/web/src/lib/zones/`](../apps/web/src/lib/zones/) — `concentric.ts` (pure function `computeConcentricZones(centroid, opts?)` returning a `SiteZones` value with the default radii ladder `[5, 30, 100, 300, 600]`; ascending-positive guard rejects malformed custom ladders), `types.ts` (`ZoneIndex`, `ZoneRing`, `SiteZones`), and 11 vitest cases covering radii continuity, default/custom ladder, label/color invariants, Zone 5 unbounded, and centroid pass-through.
+
+New overlay: [`apps/web/src/v3/components/overlays/ZonesOverlay.tsx`](../apps/web/src/v3/components/overlays/ZonesOverlay.tsx) — hand-rolled annulus polygons (outer ring + reversed inner ring as a hole) via `turf.circle`. Zone 0 renders as a solid disc; Zone 5 renders as `parcel boundary − zone-4-outer-circle` when a boundary prop is supplied, and is omitted otherwise. Three layers (`fill` 0.14 opacity, `line`, `symbol` labels) match the SectorsOverlay pattern with idempotent ensure() and visibility-only toggle.
+
+**Wiring.** [`MatrixTogglesPopover.tsx`](../apps/web/src/v3/components/MatrixTogglesPopover.tsx) re-enables the Zones row, drops the `v3.3` soon-badge, footer now reads "Topography · Sectors · Zones live". [`matrixTogglesStore.ts`](../apps/web/src/store/matrixTogglesStore.ts) bumps version 3→4 with a no-op pass-through migrate (earlier versions force-cleared `zones` to keep stale state from claiming a non-existent overlay; that constraint is gone). [`DiagnosePage.tsx`](../apps/web/src/v3/pages/DiagnosePage.tsx) extends `DiagnoseOverlays` with `useMemo(computeConcentricZones(centroid), [centroid])` and threads `project.location.boundary` through. [`DiagnoseMap.tsx`](../apps/web/src/v3/components/DiagnoseMap.tsx) gets a third legend row (zones swatch `#a85a3f`). [`V3LifecycleSidebar.tsx`](../apps/web/src/v3/components/V3LifecycleSidebar.tsx) badge now counts `topography + sectors + zones`.
+
+### Verification
+
+- `apps/web` `tsc --noEmit` clean for the v3.3 surface (zones, popover, sidebar, page, map). Pre-existing rails / FiltersBar / DiagnoseMap.polygonBounds errors unchanged from baseline; not introduced by this session — verified by stashing the v3.3 diff and re-running tsc on HEAD.
+- `apps/web` vitest: **25/25** (11 new in `lib/zones/__tests__/concentric.test.ts`, plus the 8 sectors + 6 sidebar tests; sidebar mock now `{ topography: true, sectors: true, zones: true }` and the badge asserts `/3/`).
+- `apps/web` `pnpm exec vite build` ran clean (~43s, 493 PWA precache entries — same surface as v3.2). The `pnpm build` script is `tsc && vite build` and currently fails at the tsc gate on the pre-existing baseline errors above. Vite build alone is the truer signal for this session's surface.
+- Preview eval at `/v3/project/mtc/diagnose`: popover row labels read "Topography / Sectors / Zones (Zone 0–5)", footer "Topography · Sectors · Zones live", all three checkboxes enabled, badge text reads "Matrix Toggles3…", canvas mounted, legend shows three rows. **Visual screenshot of the rendered zone rings was not captured — `preview_screenshot` timed out three times this session, same regression as v3.2.** Functional verification only.
+
+### Deferred
+
+- **Visual screenshot confirmation** — the preview screenshot tool was unresponsive throughout this session. Functional verification covers the data and DOM paths but does not confirm map paint.
+- **Per-project radii overrides.** v3.3 ships a single pedagogical default ladder; an intensive market garden compresses all six zones into ~100 m, while pasture stretches them to kilometres. Adding `Project.zoneRadii?: [number,number,number,number,number]` is a small follow-up.
+- **Real homestead anchor.** Zone 0 sits at the parcel centroid; permaculture practice anchors zones at the dwelling. Adding a clickable "Place homestead" pin lands in v3.4.
+- **Boundary clipping for the inner annuli.** Today's annuli are full circles even when they overlap the parcel edge. Clipping to boundary would tighten the visual but requires `@turf/mask` or polygon-with-hole assembly per ring.
+- **Zone-aware label placement.** Labels currently render at the polygon's centroid (which for an annulus is the circle's center, *inside* the inner hole). Moving labels onto the ring itself is a layout fix.
+
+### Recommended next session
+
+- **Wind-prevailing sector** (Open-Meteo / ERA5) — extend `lib/sectors/` with a wind-rose pull, surface as a fourth sector kind alongside the solar arcs.
+- Or — **homestead-marker placement** — small UX feature: click on the Diagnose map to drop the zones anchor; persist as `Project.homesteadCenter?: [lng, lat]`. Unblocks per-project zone calibration.
+- Or — **Zone 5 boundary clipping for the inner annuli** if the visual asymmetry is distracting in user testing.
+
+## 2026-04-28 — Homestead anchor (placement UX)
+
+**Commit:** [`771e31a`](../../) `feat(diagnose): homestead anchor — placeable marker recenters sectors & zones`
+
+Permaculture Scholar follow-up: Mollison's Zone 0 is the home, not the parcel centroid. Sectors and concentric zones now radiate from a user-placed homestead point when set, falling back to the polygon centroid (then the page fallback) otherwise.
+
+### Done
+
+- `apps/web/src/store/homesteadStore.ts` — zustand `persist` keyed by `projectId` → `[lng, lat]`. Pattern matches `matrixTogglesStore` (versioned with no-op migrate).
+- `apps/web/src/lib/anchor/effectiveAnchor.ts` — pure helper: explicit homestead → polygon centroid (mean of distinct ring vertices) → fallback. 6 vitest cases, all green.
+- `apps/web/src/v3/components/overlays/HomesteadMarker.tsx` — draggable MapLibre `Marker` with custom DOM glyph ("Zone 0" disc); persists on `dragend` to avoid mid-drag thrash. Mid-flight position sync via a separate effect so external store updates don't fight the user's drag.
+- `apps/web/src/v3/components/DiagnoseMap.tsx` — optional `homestead` prop renders a small toolbar (Place / Move / Clear) bottom-right, plus a one-shot map-click handler that flips a crosshair cursor while active; legend gains an "Anchored at …" note.
+- `apps/web/src/v3/pages/DiagnosePage.tsx` — extracted `DiagnosePageMap` so the page-level component holds the homestead store reads; threads anchor into both `computeSolarSectors` and `computeConcentricZones` via `useMemo`.
+
+### Verification
+
+- `npx vitest run src/lib/anchor src/lib/zones src/lib/sectors src/v3/components` — **36/36 passing** (5 files), including the new 6-case `effectiveAnchor.test.ts`.
+- `NODE_OPTIONS=--max-old-space-size=8192 npx vite build` — clean, 1m10s, 493 PWA precache entries.
+- `npx tsc --noEmit` OOMed on the full surface (same as v3.3); spot-checks of homestead surface compile via vitest's transform with no errors.
+- Preview verify on `/v3/project/mtc/diagnose`:
+  - Toolbar shows `Place homestead` by default; after seeding `localStorage` and reload, flips to `Move homestead` + `Clear`.
+  - Legend caption reads `Anchored at homestead` (vs `Anchored at parcel centroid` when unset).
+  - `.maplibregl-marker` mounts on the canvas at the seeded coordinate.
+  - Click-to-toggle did not flip the React state in the preview (the synthetic click case from prior sessions); seeded localStorage as a substitute. The drag/persist path is exercised by the `dragend` listener — visual confirmation deferred with the rest.
+- Screenshot tool timed out (third session in a row).
+- Vitest baseline: `computeScores.test.ts` Tier-3 layer-counting suite shows 7 pre-existing failures unrelated to anchor/zones — left for a separate sweep.
+
+### Deferred
+
+- Visual screenshot of the placed marker + recentered rings (preview tool flaky).
+- Synthetic-click verification — a regression for the preview tool, not the feature.
+- Boundary clipping when homestead is placed outside the parcel (no warn yet).
+- "Snap to centroid" affordance for users who placed and want to reset to the bbox/polygon center without losing the toggle on.
+- `pnpm build`'s `tsc &&` step still red on baseline rails / FiltersBar / DiagnoseMap.polygonBounds errors — gate via `vite build` for now.
+
+### Recommended next session
+
+- **Wind-prevailing sector** (Open-Meteo / ERA5) — fourth sector kind alongside the solar arcs; now that the anchor flows through, the wind-rose can radiate from it.
+- Or — **Boundary-aware homestead** — warn or refuse placement outside the parcel; clip Zone 5 inner annuli when boundary shrinks past zone-4-outer.
+- Or — **persist homestead server-side** — promote from `localStorage` to project-scoped server state once the v3 mock-first stage gives way to real persistence.
+
+---
+
+## 2026-04-28 — v3.4 wind-prevailing sectors overlay
+
+### Context
+
+Following commit `771e31a` (homestead anchor flow-through), the fourth permaculture matrix overlay (prevailing wind) was the natural next step. The `SectorKind` union already included `"wind-prevailing"`; the anchor pipeline already feeds through `getEffectiveAnchor`. Mock-first, Eastern-Ontario climatology.
+
+### Completed
+
+- `lib/sectors/wind.ts` — `computeWindSectors(anchor, opts?)` returning `SiteSectors` with eight 45° compass petals. Petal reach = `maxReachMeters * (frequency / peakFrequency)`; default 600 m. `DEFAULT_FREQUENCIES` are W/NW-dominant Eastern Ontario climatology. 10 vitest cases (N→NW order, kind, bearings ±22.5°, frequencies sum ≈ 1, W dominant, longest = maxReach, custom override, NaN/negative fallback, anchor preserved, sources entry).
+- `v3/components/overlays/WindSectorsOverlay.tsx` — mirrors `SectorsOverlay` (idempotent ensure, visibility-only on toggle); `matrix-wind-*` prefix; single rose color `#5b7a8a`; line solid (no dasharray); labels filtered to `frequency ≥ 0.10`.
+- `store/matrixTogglesStore.ts` — v4 → v5; added `wind: boolean`; `setAll` covers it; migrate fills `wind: false`.
+- `v3/components/MatrixTogglesPopover.tsx` — fourth row "Wind sectors (prevailing rose)".
+- `v3/components/V3LifecycleSidebar.tsx` — count includes `Number(s.wind)`; footer caption now `Topography · Sectors · Zones · Wind overlay`.
+- `v3/components/__tests__/V3LifecycleSidebar.test.tsx` — mock state extended with `wind: true`; badge assertion bumped to `/4/`.
+- `v3/components/DiagnoseMap.tsx` — fourth legend row + `anyOn` includes wind.
+- `v3/pages/DiagnosePage.tsx` — `useMemo windRose = computeWindSectors(anchor)`; renders `<WindSectorsOverlay>` after solar `SectorsOverlay`.
+
+### Verified
+
+- `npx vitest run src/lib/anchor src/lib/zones src/lib/sectors src/v3/components` — **46/46 pass** (was 36; +10 wind suite).
+- `NODE_OPTIONS=--max-old-space-size=8192 npx vite build` — clean (43.7 s).
+
+### Deferred
+
+- **Preview verification** — synthetic-click regression against the popover means the toggle flip cannot be exercised end-to-end in the preview tool; the seeded-localStorage substitute used for homestead would also work here. Logged as a standing limitation, not a feature blocker.
+- **Real climatology fetch** — Open-Meteo / ERA5 wiring; out of scope for v3.4 mock-first.
+- **Seasonal rose** — per-month or summer/winter mode; defer until live climatology lands.
+- **Boundary-aware petal trimming** — currently petals can extend beyond the parcel; no clipping yet.
+
+### Recommended next session
+
+- **Live wind climatology** — wire Open-Meteo or ERA5 to populate `frequencies` from the anchor's lat/lon; cache server-side; fall back to `DEFAULT_FREQUENCIES` on outage.
+- Or — **Boundary-aware overlays** — clip wind petals (and zone rings) at the parcel boundary; warn when homestead is placed outside the polygon.
+- Or — **Sector toolbar** — combine the four toggles into a horizontal map-edge toolbar so power users don't need to open the sidebar popover for each flip.
+
+## 2026-04-29 — Feasibility Command Center (Dashboard route)
+
+### Context
+
+User feedback flagged the legacy Feasibility view (DecisionSupportPanel rendered under §21) as a "scroll cave" of ~17 visually-equal diagnostic cards. Requested a decision pathway: **Verdict → Blockers → Fit → Execution Reality → Safety Rules → Evidence**, mirroring the LandVerdictCard / DecisionTriad philosophy that already shipped on the companion Dashboard. DecisionSupportPanel had to remain intact for the 260px MapView right rail (narrow context can't carry the new layout).
+
+### Done
+
+- `apps/web/src/features/decision/hooks/useTriageItems.ts` — extracted from `WhatMustBeSolvedFirstCard` so the new strip + rail consume identical triage data.
+- `apps/web/src/features/decision/hooks/useTypeFitRanking.ts` — extracted weighted-score ranking from `BestUseSummaryCard`; exports `TypeFit[]`, `currentFit`, `bestFit`, `best/workable/avoid` partitions.
+- `apps/web/src/features/decision/hooks/useFeasibilityVerdict.ts` — page-level "so what" hook: composes ranking + triage + financial model into bands `supported | supported-with-fixes | workable | not-recommended`, headline/subhead, mini-metrics, readiness chips.
+- `apps/web/src/features/decision/FeasibilityVerdictHero.tsx` (+ module.css) — hero card mirroring `LandVerdictCard`: ScoreCircle, verdict band badge, mini metrics (best use, current direction, labor hrs, capital intensity, break-even, blockers), CTA row (Fix Blocking Issues / Open Design Map / Generate Feasibility Brief).
+- `apps/web/src/features/decision/BlockingIssuesStrip.tsx` (+ module.css) — Status × Issue × Why × Action table for the "first" triage tier; "Fix on Map" per row; anchor `#feasibility-blockers` for the hero scroll target.
+- `apps/web/src/features/decision/FeasibilityDecisionRail.tsx` (+ module.css) — sticky right rail: Current Verdict, Top Blocker, Next 3 Actions, Readiness chips (land/design/ops/capital/confidence), CTAs.
+- `apps/web/src/features/decision/VisionFitAnalysisCard.tsx` (+ module.css) — per-requirement fit rows for `currentFit`, replacing the inline FitResultRow used by the legacy panel.
+- `apps/web/src/features/decision/FeasibilityCommandCenter.tsx` (+ module.css) — orchestrator: header → hero → blockers strip → 2-col body (Fit & Readiness | Execution Reality) + sticky rail → Design Rules section → `<details>` Methodology drawer (collapsed by default; holds legacy WhatMustBeSolvedFirstCard + MissingInformationChecklistCard). Layout grid `minmax(0, 1fr) 280px`, collapses at 1100px; inner body grid collapses at 960px. Lazy-loads child cards.
+- `apps/web/src/features/decision/WhatMustBeSolvedFirstCard.tsx` — replaced inline `useMemo` with `useTriageItems(project)` (no visual change).
+- `apps/web/src/features/decision/BestUseSummaryCard.tsx` — replaced inline ranking with `useTypeFitRanking(project)` (no visual change).
+- `apps/web/src/features/dashboard/DashboardRouter.tsx:224` — swapped `DecisionSupportPanel` → `FeasibilityCommandCenter` for the `'feasibility'` case.
+
+### Verified
+
+- `npm run typecheck` — clean for all new code.
+- `npm run lint` — exit 0 (project's grounding gate).
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run build` — clean (1m 9s; PWA precache regenerated, 495 entries).
+- Browser verification at 1440×900: hero (81/100, "Homestead Feasibility", "Supported with Required Fixes" badge, mini metrics, CTA row), blockers strip ("ALL CLEAR" state), 2-col body (Best Use Summary | Capital × Ops Intensity), sticky rail (Current Verdict, Top Blocker, Next 3 Actions, Readiness chips). No JS console errors — only pre-existing a11y contrast warnings from sibling components.
+
+### Deferred
+
+- **`Generate Feasibility Brief` CTA** — placeholder; needs export pipeline wiring.
+- **DecisionSupportPanel slim-down** — legacy panel still serves the 260px MapView rail; long-term it could be reduced further but out of scope here.
+- **Same recipe for sibling pages** — user said the Verdict→Blockers→Fit→Execution→Rules→Evidence philosophy applies to all major pages; Feasibility shipped first as the template.
+
+### Recommended next session
+
+- Apply the same hero/blocker/2-col/rail recipe to the next-most-cluttered Dashboard route (likely Hydrology or Ecological).
+- Or — wire the real "Generate Feasibility Brief" exporter (PDF or markdown) so the hero CTA isn't a placeholder.
+- Or — slim DecisionSupportPanel for the MapView rail by removing cards that the Command Center now owns (de-dup the 260px column).
+
+
+---
+
+## 2026-04-29 — Feasibility Brief exporter + Planting Tool cockpit
+
+**Branch:** `feat/atlas-permaculture` · **Commits:** `4549397`, `846aaf5`
+
+### Done
+
+**Feasibility Brief exporter (`4549397`)**
+- `apps/web/src/features/decision/lib/exportFeasibilityBrief.ts` — `renderFeasibilityBriefMarkdown({ project, verdict, ranking, triage })` mirrors the v3 Land-Brief pattern. Sections: Header, Verdict + interpretation paragraph, Snapshot table, Readiness, Blocking Issues (grouped by triage tier), Vision Fit Detail (per-requirement table from `currentFit.results`), Best-Use Ranking (top 8, ★ for current direction), Footer + methodology.
+- `useFeasibilityBriefDownloader(project)` composes `useFeasibilityVerdict` + `useTypeFitRanking` + triage and returns a memoized download callback.
+- `FeasibilityCommandCenter.tsx` now falls back to this downloader when no `onGenerateBrief` prop is passed, so the hero + rail "Generate Feasibility Brief" button is no longer a placeholder.
+
+**Planting Tool Command Center (`846aaf5`)**
+- Templated the same Verdict → Blockers → Fit/Execution → Methodology + sticky Decision Rail recipe onto `apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx` (1,597 → 1,953 lines).
+- In-file `derivePlantingVerdict` + `derivePlantingBlockers` re-present existing `orchardSafety` / `proximity` / `access` / `validations` / `waterDemand` memos. **No new analysis math** — only re-presentation.
+- Verdict band derives from `orchardSafety.overallSite` + blocker counts → `good | caution | risk | unknown`. Mini metrics: suitable-species ratio, orchard count, total trees, water demand (gal/yr), blocker count.
+- Blocking Issues strip flattens orchard placement risks, missing nursery/compost/irrigation/path banners, proximity/access risk rows, and placement-validation warnings into severity-ranked rows with "Fix on Map" CTAs.
+- 2-col body: **Fit & Suitability** (Suitable Species) | **Execution Reality** (Design Metrics, Water Demand, Orchard Safety, Nursery & Compost Proximity, Access & Irrigation Tie-In). Full-width **Design Detail** section: Frost Windows, Spacing Logic, Placement Validation, Companion Planting, Yield Estimates. Closed-by-default **Methodology drawer**: §12+ long-form cards (SeasonalProductivity, TreeSpacingCalculator, CompanionRotationPlanner, AllelopathyWarning, OrchardGuildSuggestions, AgroforestryPatternAudit, CanopyMaturity, ClimateShiftScenario, ShadeSuccessionForecast) + AI Siting + VIEW ON MAP.
+- Sticky Decision Rail: verdict, top blocker, next 3 actions, readiness chips (site / supply / logistics / species), Open Design Map + Jump to Blockers CTAs.
+- CSS module gained ~270 lines for cockpit shell (`.cockpit*`, `.verdictHero*`, `.blockersStrip*`, `.rail*`, `.methodology*`, 2-col grid + sticky behavior, ≤1100px and ≤960px collapse breakpoints).
+
+### Verified
+
+- Typecheck: zero errors in new code (the 49 pre-existing errors all live in `src/v3/...` rails — unchanged from session start).
+- Lint: clean for the touched files.
+- Build, browser preview: deferred — earlier dev server in this session showed v3 lifecycle UI, not the Dashboard sidebar that mounts the legacy `'planting-tool'` and `'feasibility'` routes; needs a project that hits the Dashboard route to physically click through.
+
+### Files
+
+- `apps/web/src/features/decision/lib/exportFeasibilityBrief.ts` (new, 192 lines)
+- `apps/web/src/features/decision/FeasibilityCommandCenter.tsx` (wired downloader)
+- `apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx` (cockpit refactor)
+- `apps/web/src/features/dashboard/pages/PlantingToolDashboard.module.css` (cockpit shell classes)
+
+### Recommended next session
+
+- Visual verification of both the brief CTA (download triggers, markdown matches expected sections) and the Planting cockpit (band rendering, blocker rows, sticky rail).
+- Template the cockpit recipe onto a third Dashboard page — Hydrology and Ecological are next-most-cluttered candidates.
+- Pre-existing `src/v3/...` typecheck errors remain — separate cleanup task.
+
+---
+
 ## 2026-04-26 — Portal render-loop fix + Zustand selector ADR
 
 **Trigger.** `PortalConfigPanel` ErrorBoundary caught "Maximum update depth exceeded" on mount; stack pointed at [`StakeholderReviewModeCard.tsx`](apps/web/src/features/portal/StakeholderReviewModeCard.tsx) — same anti-pattern as `EnterpriseRevenueMixCard` (commit `5f8e245`) and the prior `phases` fix in `3b7ef6c`.
@@ -4425,3 +5782,141 @@ Also adds `'pollinator_opportunity'` to `ECOLOGY_LAYER_SOURCES` so its flags flo
 
 - Knock out the two vision/export `getVisionData` sites under the new ADR (~10 min, mechanical).
 - Or: pick up the deferred `StickyMiniScore` add-and-commit from 2026-04-25.
+
+---
+
+## 2026-04-29 — OBSERVE Stage IA restructure (Stage 1 of 3)
+
+**Trigger.** Plan `~/.claude/plans/few-concerns-shiny-quokka.md` — collapse
+Atlas's 5-stage taxonomy to the regenerative-design 3-stage cycle
+(Observe → Plan → Act), ship an Observe Hub landing surface, and build the
+8 gap surfaces from the permaculture observation framework.
+
+**Branch.** `feat/atlas-permaculture` — 4 local commits (`74b45a2`,
+`e2986db`, `103ce10`, `4c17d97`); not pushed.
+
+**Phase 1 — taxonomy collapse.** `features/navigation/taxonomy.ts` gains
+`Stage3Key`, `STAGE3_META`, `STAGE3_ORDER`, `groupByStage3()`. Every
+`NavItem` now carries both `stage` (S1–S5) and `stage3` (observe/plan/act).
+`uiStore.sidebarGrouping` default flipped to `'stage3'`; old groupings
+remain via `GroupingToggle`. Mapping: S1+S2 → observe, S3 design + S4 →
+plan, S3 operate + S5 → act.
+
+**Phase 2 — Observe Hub.** `features/observe/ObserveHub.tsx` —
+2-col landing page summarising the 6 spec modules (Human Context,
+Macroclimate & Hazards, Topography, Diagnostics, Sectors, SWOT). Each
+module card pulls a 3-line summary from `visionStore`, `siteDataStore`,
+`soilSampleStore`, and the new `siteAnnotationsStore`, with an "Open
+detail →" CTA driving `useUIStore.setActiveDashboardSection`.
+
+**Phase 3 — sidebar regrouping.** Observe accordion holds 17 items in spec
+order: Hub + Site Intelligence + Terrain + Hydrology + Solar/Climate +
+Ecological + Cartographic + 8 new dashboardOnly surfaces + report exporter.
+PLAN/ACT absorb existing dashboards via `stage3` tags only — internal
+restructures deferred to those spec docs.
+
+**Phase 4 — 8 gap surfaces.**
+- 4a `StewardSurveyCard` + `IndigenousRegionalCard` — extends `visionStore`
+  with `steward?: StewardProfile` (lifestyle, skill chips, vision) and
+  `regional?: RegionalContext` (indigenous place names, network registry).
+- 4b `HazardsLogCard` — historical hazard events (10 types).
+- 4c `CrossSectionTool` — coordinate-input transect editor + SVG profile
+  chart (PROFILE_W=720, PROFILE_H=180, SAMPLE_COUNT=100). Synthetic
+  elevation profile via deterministic seed; UI labels it "live API
+  pending". Map-drawn A→B picking deferred.
+- 4d `SoilTestsCard` (jar test sand/silt/clay sum-validated, percolation,
+  bedrock depth, roof catchment) + `FoodChainCard` (5 trophic levels +
+  succession stage). Roof yield: `areaM2 × precipMm × coeff` litres
+  (1 mm × 1 m² = 1 L).
+- 4e `SectorCompassCard` — SVG circular editor (COMPASS_SIZE=360,
+  RADIUS=150). `polar(bearingDeg, r)` converts compass bearing
+  (N=0, clockwise) to SVG x/y via `((bearing − 90) × π / 180)`. 8 sector
+  types (sun summer/winter, wind prevailing/storm, fire, noise, wildlife,
+  view) with distinct wedge colors. `SectorOverlay` for MapView deferred.
+- 4f `SwotJournalCard` — 4-column board (S=green / W=red / O=blue / T=gold)
+  with per-column inline add. `DiagnosisReportExport` — composes Markdown
+  report (sections 1-6 mirroring spec) from all stores; Blob download +
+  `window.print()` PDF fallback. No PDF library added.
+
+**Store deviation.** Plan said extend `siteDataStore`, but it's
+fetch-driven and ephemeral. Created new persisted store
+`store/siteAnnotationsStore.ts` (key `ogden-site-annotations`, v1) for
+user-authored annotations, mirroring `nurseryStore`/`fieldworkStore`
+pattern. Holds: `hazards`, `transects`, `sectors`, `ecology`,
+`successionStageByProject`, `swot`. Helper:
+`newAnnotationId(prefix)`. ADR
+[`2026-04-29-observe-stage-ia-restructure.md`](decisions/2026-04-29-observe-stage-ia-restructure.md)
++ entity [`site-annotations-store.md`](entities/site-annotations-store.md)
+record the rationale.
+
+**Other store extensions** (additive optional fields, no migration):
+- `visionStore` — `steward?`, `regional?` + `updateSteward`,
+  `updateRegional`, `addNetworkContact`, `removeNetworkContact`.
+- `soilSampleStore.SoilSample` — `jarTest?`, `percolationInPerHr?`,
+  `depthToBedrockM?`, `roofCatchment?`.
+
+**Verification.**
+- `vite build` clean (24.05 s, PWA precache 510 entries / 13.6 MB) with
+  bumped `NODE_OPTIONS=--max-old-space-size=8192` (default heap ~3.6 GB
+  was OOMing tsc).
+- `npx tsc --noEmit` zero new errors.
+- Manual UI walkthrough + screenshots deferred.
+
+### Deferred / out-of-scope
+
+- **Push** the 4 local commits on `feat/atlas-permaculture` — awaiting
+  manual walkthrough preference.
+- **Real elevation API** for `CrossSectionTool` — currently synthetic.
+- **`SectorOverlay` for MapView** — sector arrows projected from project
+  centroid; backlog item.
+- **Map-drawn A→B picking** via `DomainFloatingToolbar` draw-mode.
+- **PLAN and ACT internal restructures** — pending those spec docs.
+- **True PDF generation** (jspdf/pdf-lib) — print-to-PDF acceptable for v1.
+
+### Recommended next session
+
+- Manual end-to-end walkthrough on a fresh project (steward → hazards →
+  transect → soil tests → sectors → SWOT → report). Capture screenshots
+  for the LAUNCH-CHECKLIST.
+- PLAN and ACT internal restructures (pending those spec docs).
+
+### Same-day follow-ups (closed in this sprint)
+
+After the initial 5 commits landed, all three deferred code items from the
+ADR were closed in the same session:
+
+- **`48a7990` — Live elevation API.** `CrossSectionTool` now POSTs to
+  `/api/v1/elevation/profile` (NRCan HRDEM / 3DEP via the existing reader)
+  with the A→B as a 2-vertex LineString and `sampleCount: 100`. Falls back
+  to `syntheticProfile` only when the call throws or DEM has no coverage.
+  `Transect` type extended with `sourceApi?`, `confidence?`,
+  `totalDistanceM?`. UI button shows "Sampling DEM…" while in flight; chart
+  footer chip shows source + confidence ("NRCan HRDEM Lidar DTM (1m) ·
+  confidence: high") and only marks "illustrative only" when synthetic.
+
+- **`20d9b79` — SectorOverlay for MapView.** New
+  `features/map/SectorOverlay.tsx` reads `siteAnnotationsStore.sectors`
+  filtered by `projectId`, builds polygon wedges via `turf.destination`
+  from the parcel centroid, paints with the same palette as
+  `SectorCompassCard`. Wedge radius scales with parcel diagonal
+  (`turf.bbox × 0.75`, min 500 m). `mapStore` gains `sectorOverlayVisible`
+  + setter; `LeftToolSpine` gets a Lucide-Compass spine button slot;
+  `MapView` mounts both the overlay and the toggle. Quietly no-ops when
+  no parcel boundary or no sectors. `style.load` re-sync survives basemap
+  swaps.
+
+- **`e726001` — Map-drawn A→B → observe transect.** The map-side
+  `features/map/CrossSectionTool.tsx` now exposes a "Save as transect"
+  button on its profile panel. After the user draws a line and the DEM
+  sample lands, first/last coord of the drawn LineString → `pointA`/
+  `pointB`; samples + sourceApi + confidence + totalDistanceM all carry
+  through into a persisted `Transect`, so the same data the user drew on
+  the map is immediately available in the hub-side observe surface (no
+  re-draw, no re-sample). Saved-state shows green "Saved ✓" so the same
+  line can't be persisted twice.
+
+Cumulative: 8 commits on `feat/atlas-permaculture`, PR
+[#6](https://github.com/onaxyzogden/atlas/pull/6) updated. Build green
+across all three follow-ups (last build 23.23 s, 511 PWA precache entries
+/ 13.6 MB).
+

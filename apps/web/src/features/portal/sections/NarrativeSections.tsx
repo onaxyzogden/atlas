@@ -29,8 +29,8 @@ export default function NarrativeSections({ config, project }: Props) {
           ].map((phase) => (
             <div key={phase.label} style={{
               padding: 20, borderRadius: 10,
-              background: 'rgba(196,162,101,0.04)',
-              border: '1px solid rgba(196,162,101,0.1)',
+              background: 'rgba(212, 175, 95, 0.04)',
+              border: '1px solid rgba(212, 175, 95, 0.1)',
             }}>
               <div style={{ fontSize: 10, color: zone.spiritual, fontWeight: 600, letterSpacing: '0.08em', marginBottom: 6 }}>
                 {phase.label}
@@ -69,7 +69,7 @@ export default function NarrativeSections({ config, project }: Props) {
           ].map((item) => (
             <div key={item.label} style={{
               padding: 16, borderRadius: 8,
-              border: '1px solid rgba(196,162,101,0.1)',
+              border: '1px solid rgba(212, 175, 95, 0.1)',
               textAlign: 'center',
             }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>

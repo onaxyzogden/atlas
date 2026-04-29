@@ -32,7 +32,11 @@ export default function TimelinePanel({ project }: TimelinePanelProps) {
   const [activeTab, setActiveTab] = useState<TimelineTab>('phases');
 
   // Store subscriptions
-  const phases = usePhaseStore((st) => st.getProjectPhases(project.id));
+  const allPhases = usePhaseStore((st) => st.phases);
+  const phases = useMemo(
+    () => allPhases.filter((ph) => ph.projectId === project.id).sort((a, b) => a.order - b.order),
+    [allPhases, project.id],
+  );
   const setActivePhaseFilter = useMapStore((ms) => ms.setActivePhaseFilter);
 
   const visionData = useVisionStore((st) => st.getVisionData(project.id));

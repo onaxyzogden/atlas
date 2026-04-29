@@ -9,7 +9,11 @@ import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import { useStructureStore, type Structure } from '../../../store/structureStore.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
+import { useCropStore } from '../../../store/cropStore.js';
+import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useUIStore } from '../../../store/uiStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS, type HydroMetrics } from '../../../lib/hydrologyMetrics.js';
+import type { StructureLike } from '@ogden/shared/demand';
 import css from './HydrologyDashboard.module.css';
 import { status as statusToken, group } from '../../../lib/tokens.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
@@ -47,6 +51,27 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
   const [activeTab, setActiveTab] = useState<SubTab>('overview');
   const siteData = useSiteData(project.id);
 
+  const allStructures = useStructureStore((s) => s.structures);
+  const projectStructures = useMemo(
+    () => allStructures.filter((s) => s.projectId === project.id),
+    [allStructures, project.id],
+  );
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const projectUtilities = useMemo(
+    () => allUtilities.filter((u) => u.projectId === project.id),
+    [allUtilities, project.id],
+  );
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const projectCropAreas = useMemo(
+    () => allCropAreas.filter((c) => c.projectId === project.id),
+    [allCropAreas, project.id],
+  );
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const projectPaddocks = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === project.id),
+    [allPaddocks, project.id],
+  );
+
   const metrics = useMemo(() => {
     const climate   = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate')         : null;
     const watershed = siteData ? getLayerSummary<WatershedSummary>(siteData, 'watershed')     : null;
@@ -76,8 +101,31 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
       rhPct:            climate?.relative_humidity_pct,
       latitudeDeg,
       elevationM,
+      structures: projectStructures.map<StructureLike>((s) => ({
+        type: s.type,
+        widthM: s.widthM,
+        depthM: s.depthM,
+        storiesCount: s.storiesCount,
+        demandWaterGalPerDay: s.demandWaterGalPerDay,
+        demandKwhPerDay: s.demandKwhPerDay,
+        occupantCount: s.occupantCount,
+      })),
+      utilities: projectUtilities.map((u) => ({
+        type: u.type,
+        demandKwhPerDay: u.demandKwhPerDay,
+      })),
+      cropAreas: projectCropAreas.map((c) => ({
+        type: c.type,
+        areaM2: c.areaM2,
+        waterDemandClass: c.waterDemand,
+      })),
+      paddocks: projectPaddocks.map((p) => ({
+        species: p.species,
+        stockingDensity: p.stockingDensity,
+        areaM2: p.areaM2,
+      })),
     });
-  }, [siteData, project.acreage, project.parcelBoundaryGeojson]);
+  }, [siteData, project.acreage, project.parcelBoundaryGeojson, projectStructures, projectUtilities, projectCropAreas, projectPaddocks]);
 
   const climateSummary = siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null;
   const precipMm    = climateSummary?.annual_precip_mm ?? HYDRO_DEFAULTS.precipMm;
@@ -306,6 +354,9 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
         </div>
       </div>
 
+      {/* Cross-link to EnergyDashboard's Water Systems read-out (Phase 2b). */}
+      <WaterSystemsCrossLink />
+
       <button className={css.reportBtn} onClick={onSwitchToMap}>
         GENERATE REPORT
         <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -313,6 +364,55 @@ function OverviewTab({ metrics, precipMm, onSwitchToMap }: {
         </svg>
       </button>
     </>
+  );
+}
+
+// ─── Cross-link to EnergyDashboard ▸ Water Systems ────────────────────────────
+// The WaterSystemPlanning read-out lives canonically inside the Energy & Water
+// dashboard page. Hydrology users land here looking for water infra, so we
+// route them rather than duplicate the component tree.
+function WaterSystemsCrossLink() {
+  const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
+  const goToWaterSystems = () => {
+    setActiveDashboardSection('energy-offgrid');
+    // Wait for the EnergyDashboard to mount before scrolling its anchor.
+    setTimeout(() => {
+      document.getElementById('water-systems')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
+  return (
+    <button
+      type="button"
+      onClick={goToWaterSystems}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        width: '100%',
+        marginTop: 16,
+        padding: '14px 16px',
+        borderRadius: 10,
+        border: '1px solid rgba(120, 170, 200, 0.25)',
+        background: 'rgba(80, 130, 170, 0.08)',
+        color: 'rgba(232,220,200,0.9)',
+        textAlign: 'left',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+      }}
+    >
+      <span>
+        <span style={{ display: 'block', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(120, 170, 200, 0.85)', marginBottom: 4 }}>
+          Water Systems
+        </span>
+        <span style={{ display: 'block', fontSize: 13, color: 'rgba(180,165,140,0.7)' }}>
+          Open the Energy &amp; Off-Grid dashboard to see placed cisterns, swales, and detention coverage.
+        </span>
+      </span>
+      <svg width={16} height={16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'rgba(120, 170, 200, 0.85)' }}>
+        <path d="M3 8H13M9 4L13 8L9 12"/>
+      </svg>
+    </button>
   );
 }
 

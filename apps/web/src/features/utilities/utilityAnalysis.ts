@@ -18,16 +18,21 @@ export interface SolarEstimate {
   avgIrradiance: number;
 }
 
-export function estimateSolarOutput(panelCount: number, avgIrradiance = 4.5): SolarEstimate {
+export function estimateSolarOutput(panelCount: number, avgIrradiance?: number): SolarEstimate {
+  // Caller threads NASA POWER `solar_radiation_kwh_m2_day` from the climate
+  // layer when available; falls back to a temperate-zone 4.5 kWh/m²/day baseline.
+  const irradiance = typeof avgIrradiance === 'number' && avgIrradiance > 0
+    ? avgIrradiance
+    : 4.5;
   const panelAreaM2 = panelCount * 2.0; // ~2m2 per residential panel
   const efficiency = 0.18;
-  const dailyKwh = panelAreaM2 * avgIrradiance * efficiency;
+  const dailyKwh = panelAreaM2 * irradiance * efficiency;
   return {
     panelCount,
     panelAreaM2,
     dailyKwh,
     annualKwh: dailyKwh * 365,
-    avgIrradiance,
+    avgIrradiance: irradiance,
   };
 }
 

@@ -39,6 +39,8 @@ export const ProjectMetadata = z.object({
   restrictionsCovenants: z.string().max(2000).optional(),
   mapProjection: z.string().max(50).optional(),
   soilNotes: SoilNotes.optional(),
+  centerLat: z.number().min(-90).max(90).optional(),
+  centerLng: z.number().min(-180).max(180).optional(),
 }).strict();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

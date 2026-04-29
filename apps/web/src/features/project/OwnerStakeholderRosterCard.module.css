@@ -1,0 +1,297 @@
+/* §3 OwnerStakeholderRosterCard — owner narrative + roster cross-ref. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.verdictPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.verdictLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verdictBlurb {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.verdictDone {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.verdictDone .verdictLabel { color: rgba(180, 200, 150, 0.95); }
+
+.verdictWork {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.verdictWork .verdictLabel { color: rgba(220, 180, 100, 0.95); }
+
+.verdictBlock {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.verdictBlock .verdictLabel { color: rgba(220, 130, 110, 0.95); }
+
+.verdictUnknown {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+}
+.verdictUnknown .verdictLabel { color: rgba(180, 165, 140, 0.7); }
+
+.field {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+  margin: 0 0 12px;
+}
+
+.fieldHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+  flex: 1;
+  min-width: 0;
+}
+
+.tierPill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+}
+
+.tierDetailed {
+  background: rgba(180, 200, 150, 0.1);
+  border-color: rgba(180, 200, 150, 0.3);
+  color: rgba(180, 200, 150, 0.95);
+}
+.tierOutline {
+  background: rgba(220, 180, 100, 0.1);
+  border-color: rgba(220, 180, 100, 0.3);
+  color: rgba(220, 180, 100, 0.95);
+}
+.tierSparse {
+  background: rgba(220, 130, 110, 0.1);
+  border-color: rgba(220, 130, 110, 0.3);
+  color: rgba(220, 130, 110, 0.95);
+}
+.tierEmpty {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.fieldMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.fieldHintRow {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.fieldText {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(220, 210, 185, 0.88);
+  white-space: pre-wrap;
+}
+
+.fieldEmpty {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.cueRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.cueLabel {
+  color: rgba(180, 165, 140, 0.65);
+  font-weight: 600;
+}
+
+.cueChip {
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.05);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.cueChipPass {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+  color: rgba(180, 200, 150, 0.95);
+}
+
+.support {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin: 0 0 12px;
+}
+
+.supportHead {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin-bottom: 8px;
+}
+
+.supportGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.supportCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.supportCellFilled {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.25);
+}
+
+.supportCellExpected {
+  background: rgba(220, 180, 100, 0.06);
+  border-color: rgba(220, 180, 100, 0.25);
+}
+
+.supportCellEmpty {
+  background: rgba(232, 220, 200, 0.025);
+  border-color: rgba(232, 220, 200, 0.06);
+}
+
+.supportLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.supportValue {
+  font-size: 11.5px;
+  color: rgba(232, 220, 200, 0.88);
+  font-weight: 500;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.supportNote {
+  margin: 8px 0 0;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

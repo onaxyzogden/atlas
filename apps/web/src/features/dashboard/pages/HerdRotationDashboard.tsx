@@ -25,6 +25,7 @@ import {
   type RecoveryStatus,
 } from '../../livestock/livestockAnalysis.js';
 import { LIVESTOCK_SPECIES, computeAnimalUnits } from '../../livestock/speciesData.js';
+import { getSubcategoryById, auFactorFor } from '../../livestock/scheduleA.js';
 import ProgressBar from '../components/ProgressBar.js';
 import RotationScheduleCard from '../../livestock/RotationScheduleCard.js';
 import PaddockCellDesignCard from '../../livestock/PaddockCellDesignCard.js';
@@ -160,7 +161,23 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
     [paddocks],
   );
 
-  const totalAU = useMemo(() => computeAnimalUnits(inventory), [inventory]);
+  // Expand each species line into one entry per Schedule A subcategory (when
+  // recorded) so AU uses the precise factor; species without a subcategory
+  // choice contribute via the legacy single-factor path.
+  const totalAU = useMemo(() => {
+    const expanded = inventory.flatMap((e) => {
+      if (!e.bySubcategory || e.bySubcategory.length === 0) {
+        return [{ species: e.species, totalHead: e.totalHead }];
+      }
+      const taggedHead = e.bySubcategory.reduce((s, b) => s + b.totalHead, 0);
+      const untagged = Math.max(0, e.totalHead - taggedHead);
+      const rows: Array<{ species: typeof e.species; totalHead: number; subcategoryId?: string }> =
+        e.bySubcategory.map((b) => ({ species: e.species, totalHead: b.totalHead, subcategoryId: b.subcategoryId }));
+      if (untagged > 0) rows.push({ species: e.species, totalHead: untagged });
+      return rows;
+    });
+    return computeAnimalUnits(expanded);
+  }, [inventory]);
 
   /* ---------- Hero: dominant group & species ---------- */
   const heroInfo = useMemo(() => {
@@ -434,6 +451,67 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
           </div>
         </div>
       </div>
+
+      {/* Livestock Inventory — with Schedule A subcategory breakdown */}
+      {inventory.length > 0 && (
+        <div className={css.healthCard}>
+          <h2 className={css.healthTitle}>Livestock Inventory</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {inventory.map((entry) => {
+              const info = LIVESTOCK_SPECIES[entry.species];
+              const taggedHead = entry.bySubcategory
+                ? entry.bySubcategory.reduce((s, b) => s + b.totalHead, 0)
+                : 0;
+              const untagged = Math.max(0, entry.totalHead - taggedHead);
+              const speciesAU = entry.bySubcategory && entry.bySubcategory.length > 0
+                ? entry.bySubcategory.reduce(
+                    (s, b) => s + b.totalHead * auFactorFor(entry.species, b.subcategoryId),
+                    0,
+                  ) + untagged * auFactorFor(entry.species)
+                : entry.totalHead * auFactorFor(entry.species);
+              return (
+                <div key={entry.species}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ color: 'rgba(232,220,200,0.95)', fontSize: 14 }}>
+                      {info.icon} {info.label}
+                    </span>
+                    <span style={{ color: 'rgba(232,220,200,0.7)', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+                      {entry.totalHead.toLocaleString()} {info.stockingUnit} · {entry.paddockCount} paddock{entry.paddockCount === 1 ? '' : 's'} · {speciesAU.toFixed(2)} AU
+                    </span>
+                  </div>
+                  {entry.bySubcategory && entry.bySubcategory.length > 0 && (
+                    <div style={{ marginTop: 4, paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {entry.bySubcategory.map((b) => {
+                        const sub = getSubcategoryById(b.subcategoryId);
+                        const factor = auFactorFor(entry.species, b.subcategoryId);
+                        return (
+                          <div
+                            key={b.subcategoryId}
+                            style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(232,220,200,0.6)' }}
+                          >
+                            <span>↳ {sub?.label ?? b.subcategoryId}</span>
+                            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                              {b.totalHead.toLocaleString()} × {factor.toFixed(3)} = {(b.totalHead * factor).toFixed(2)} AU
+                            </span>
+                          </div>
+                        );
+                      })}
+                      {untagged > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(232,220,200,0.5)', fontStyle: 'italic' }}>
+                          <span>↳ Unassigned (default)</span>
+                          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            {untagged.toLocaleString()} × {auFactorFor(entry.species).toFixed(3)} = {(untagged * auFactorFor(entry.species)).toFixed(2)} AU
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recovery Tracking */}
       <div className={css.healthCard}>

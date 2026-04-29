@@ -1,5 +1,11 @@
 /* EnergyDashboard — P1 entry point for §13 Utilities, Energy & Support Systems */
 
+.readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .page {
   padding: 32px 40px 48px;
   max-width: 960px;

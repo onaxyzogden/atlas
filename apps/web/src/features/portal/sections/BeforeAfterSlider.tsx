@@ -26,7 +26,7 @@ export default function BeforeAfterSlider({ pair }: Props) {
   const onTouchMove = (e: React.TouchEvent) => { if (e.touches[0]) handleMove(e.touches[0].clientX); };
 
   // Placeholder images if none provided
-  const beforeSrc = pair.beforeUrl || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect fill="#2a2117" width="800" height="400"/><text x="400" y="200" text-anchor="middle" fill="#6b5b4a" font-size="20">Before</text></svg>');
+  const beforeSrc = pair.beforeUrl || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect fill="#2a2117" width="800" height="400"/><text x="400" y="200" text-anchor="middle" fill="#7d7864" font-size="20">Before</text></svg>');
   const afterSrc = pair.afterUrl || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect fill="#1a3020" width="800" height="400"/><text x="400" y="200" text-anchor="middle" fill="#4A7C3F" font-size="20">After</text></svg>');
 
   return (
@@ -49,7 +49,7 @@ export default function BeforeAfterSlider({ pair }: Props) {
         style={{
           position: 'relative', width: '100%', height: 400,
           borderRadius: 12, overflow: 'hidden', cursor: 'col-resize',
-          border: '1px solid rgba(196,162,101,0.15)',
+          border: '1px solid rgba(212, 175, 95, 0.15)',
           userSelect: 'none',
         }}
       >

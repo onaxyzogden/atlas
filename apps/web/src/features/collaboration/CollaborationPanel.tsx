@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import MembersTab from './MembersTab.js';
 import CommentsByFeatureCard from './CommentsByFeatureCard.js';
+import TeamActivityDigestCard from './TeamActivityDigestCard.js';
 import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
@@ -105,6 +106,9 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
         Collaboration
       </h2>
 
+      {/* §20 Team activity digest + sign-off readiness */}
+      <TeamActivityDigestCard project={project} />
+
       {/* Tab switcher */}
       <div className={p.tabBar}>
         {(['comments', 'members', 'activity'] as Tab[]).map((tab) => (
@@ -133,8 +137,8 @@ export default function CollaborationPanel({ project, map, onAddCommentMode, isA
             />
             <button onClick={handleQuickComment} disabled={!quickText.trim()} className={`${p.btnSmall} ${p.fontSemibold}`} style={{
               padding: '8px 12px',
-              background: quickText.trim() ? 'rgba(196,162,101,0.2)' : 'var(--color-panel-subtle)',
-              color: quickText.trim() ? '#c4a265' : 'var(--color-panel-muted)',
+              background: quickText.trim() ? 'rgba(212,175,95,0.20)' : 'var(--color-panel-subtle)',
+              color: quickText.trim() ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
               cursor: quickText.trim() ? 'pointer' : 'not-allowed',
               border: 'none', borderRadius: 6,
             }}>

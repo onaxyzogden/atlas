@@ -15,7 +15,7 @@
 .label {
   font-size: var(--text-sm, 0.8125rem);
   font-weight: var(--font-medium, 500);
-  color: var(--color-text, #312617);
+  color: var(--color-text, #1f231e);
   line-height: var(--leading-normal, 1.5);
 }
 
@@ -46,7 +46,7 @@
 }
 
 .helperText {
-  color: var(--color-text-muted, #7d6140);
+  color: var(--color-text-muted, #5a5443);
 }
 
 .errorText {

@@ -1,0 +1,178 @@
+/* StewardSurveyCard + IndigenousRegionalCard — shared layout. */
+
+.page { max-width: 720px; }
+
+.hero {
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a2e1a 0%, #0f1a12 50%, #1a2a18 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.heroTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(var(--color-gold-rgb), 0.6);
+  display: block;
+  margin-bottom: 8px;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 8px;
+  line-height: 1.2;
+  font-style: italic;
+}
+.lede {
+  font-size: 13px;
+  color: rgba(232,220,200,0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.section {
+  padding: 20px 22px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 16px;
+}
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.92);
+  margin: 0 0 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(232,220,200,0.55);
+}
+.field input,
+.field select,
+.field textarea {
+  appearance: none;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: rgba(232,220,200,0.92);
+  font-family: inherit;
+  width: 100%;
+}
+.field textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: rgba(var(--color-gold-rgb), 0.45);
+  background: rgba(0,0,0,0.35);
+}
+
+.full { grid-column: 1 / -1; }
+
+/* List row (network contacts, indigenous names, etc.) */
+.listRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.listRow:last-child { border-bottom: none; }
+.listRow input { padding: 6px 8px; font-size: 12px; }
+
+.removeBtn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(232,220,200,0.6);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.removeBtn:hover {
+  border-color: rgba(220,80,80,0.5);
+  color: rgba(220,80,80,0.9);
+}
+
+.addBtn {
+  margin-top: 10px;
+  appearance: none;
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(255,255,255,0.15);
+  color: rgba(232,220,200,0.7);
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+.addBtn:hover {
+  border-color: rgba(var(--color-gold-rgb), 0.4);
+  color: rgba(var(--color-gold-rgb), 0.9);
+  background: rgba(var(--color-gold-rgb), 0.04);
+}
+
+.tagInput {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 10px;
+  border-radius: 4px;
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.2);
+  color: rgba(var(--color-gold-rgb), 0.9);
+  font-size: 12px;
+}
+.tag button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.tagInput input {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(232,220,200,0.92);
+  font-size: 12px;
+}
