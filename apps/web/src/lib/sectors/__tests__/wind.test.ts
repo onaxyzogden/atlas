@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  beaufortColor,
   computeWindSectors,
   DEFAULT_FREQUENCIES,
   type CompassCode,
@@ -85,5 +86,64 @@ describe("computeWindSectors", () => {
   it("includes a sources[] entry naming the climatology", () => {
     const rose = computeWindSectors(ANCHOR);
     expect(rose.sources.some((s) => s.kind === "wind")).toBe(true);
+  });
+});
+
+describe("beaufortColor", () => {
+  it("light air / light breeze (< 3.4 m/s) → light teal", () => {
+    expect(beaufortColor(0)).toBe("#7aa3b8");
+    expect(beaufortColor(3.39)).toBe("#7aa3b8");
+  });
+
+  it("gentle breeze (3.4–5.4 m/s) → mid teal", () => {
+    expect(beaufortColor(3.4)).toBe("#5b7a8a");
+    expect(beaufortColor(5.39)).toBe("#5b7a8a");
+  });
+
+  it("moderate breeze (5.4–7.9 m/s) → estate gold", () => {
+    expect(beaufortColor(5.4)).toBe("#b08a3a");
+    expect(beaufortColor(7.89)).toBe("#b08a3a");
+  });
+
+  it("fresh+ breeze (≥ 7.9 m/s) → fired clay", () => {
+    expect(beaufortColor(7.9)).toBe("#8a4f3a");
+    expect(beaufortColor(20)).toBe("#8a4f3a");
+  });
+
+  it("missing or non-finite speed falls back to neutral mid teal", () => {
+    expect(beaufortColor(null)).toBe("#5b7a8a");
+    expect(beaufortColor(undefined)).toBe("#5b7a8a");
+    expect(beaufortColor(Number.NaN)).toBe("#5b7a8a");
+  });
+});
+
+describe("computeWindSectors — Beaufort shading", () => {
+  it("tints each petal by its bin's mean speed", () => {
+    const rose = computeWindSectors(ANCHOR, {
+      meanSpeedsMs: { W: 4.5, N: 8.2, E: 2.0, S: 6.5 },
+    });
+    const byDir = (code: CompassCode) =>
+      rose.wedges.find((w) => w.meta?.direction === code)!;
+    expect(byDir("W").color).toBe("#5b7a8a"); // gentle
+    expect(byDir("N").color).toBe("#8a4f3a"); // fresh+
+    expect(byDir("E").color).toBe("#7aa3b8"); // light
+    expect(byDir("S").color).toBe("#b08a3a"); // moderate
+  });
+
+  it("missing meanSpeedsMs entry falls back to neutral color and null meta", () => {
+    const rose = computeWindSectors(ANCHOR, {
+      meanSpeedsMs: { W: 5 },
+    });
+    const ne = rose.wedges.find((w) => w.meta?.direction === "NE")!;
+    expect(ne.color).toBe("#5b7a8a");
+    expect(ne.meta?.meanSpeedMs).toBeNull();
+  });
+
+  it("threads meanSpeedMs onto wedge.meta", () => {
+    const rose = computeWindSectors(ANCHOR, {
+      meanSpeedsMs: { W: 5.5 },
+    });
+    const w = rose.wedges.find((wd) => wd.meta?.direction === "W")!;
+    expect(w.meta?.meanSpeedMs).toBe(5.5);
   });
 });

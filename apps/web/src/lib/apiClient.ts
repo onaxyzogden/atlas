@@ -592,8 +592,13 @@ export type WindRoseCompassCode = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | '
 
 export interface WindRoseResponse {
   frequencies: Record<WindRoseCompassCode, number>;
+  /**
+   * Per-bin mean wind speed in m/s. Optional — old cached payloads (pre-Beaufort)
+   * may not include it; null entries mean the bin had zero non-calm samples.
+   */
+  meanSpeedsMs?: Record<WindRoseCompassCode, number | null>;
   source: string;
-  windowYear: number;
+  windowYears: { start: number; end: number };
   sampleCount: number;
 }
 

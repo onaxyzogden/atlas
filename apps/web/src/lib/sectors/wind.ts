@@ -47,11 +47,41 @@ export const DEFAULT_FREQUENCIES: Readonly<Record<CompassCode, number>> = {
 
 const HALF_WEDGE_DEG = 22.5;
 const DEFAULT_MAX_REACH_METERS = 600;
-const COLOR = "#5b7a8a";
+
+/**
+ * Beaufort-tinted color ramp for petals — encodes mean wind speed in m/s
+ * alongside the frequency-driven petal length. Buckets follow Beaufort
+ * boundaries at 3.4 / 5.4 / 7.9 m/s (gentle / moderate / fresh / strong).
+ * `BEAUFORT_FALLBACK` is used when meanSpeedMs is missing/null and matches
+ * the prior single-color rose so existing screenshots stay coherent.
+ */
+const BEAUFORT_FALLBACK = "#5b7a8a";
+const BEAUFORT_RAMP: ReadonlyArray<{ maxMs: number; color: string }> = [
+  { maxMs: 3.4, color: "#7aa3b8" }, // light air → light breeze
+  { maxMs: 5.4, color: "#5b7a8a" }, // gentle breeze
+  { maxMs: 7.9, color: "#b08a3a" }, // moderate breeze
+  { maxMs: Infinity, color: "#8a4f3a" }, // fresh+ breeze
+];
+
+export function beaufortColor(meanSpeedMs: number | null | undefined): string {
+  if (typeof meanSpeedMs !== "number" || !Number.isFinite(meanSpeedMs)) {
+    return BEAUFORT_FALLBACK;
+  }
+  for (const band of BEAUFORT_RAMP) {
+    if (meanSpeedMs < band.maxMs) return band.color;
+  }
+  return BEAUFORT_FALLBACK;
+}
 
 export interface ComputeWindSectorsOptions {
   /** Override the default frequency table. Non-finite or negative entries fall back. */
   frequencies?: Partial<Record<CompassCode, number>>;
+  /**
+   * Per-bin mean wind speed in m/s. When provided, each petal is tinted by
+   * Beaufort band (length stays frequency-driven). Missing or null entries
+   * fall back to the neutral `BEAUFORT_FALLBACK` color.
+   */
+  meanSpeedsMs?: Partial<Record<CompassCode, number | null>>;
   /** Outermost petal radius (the most-prevalent direction). Default 600m. */
   maxReachMeters?: number;
   /** Provenance label stamped onto sources[]. Defaults to the pedagogical mock. */
@@ -90,6 +120,7 @@ export function computeWindSectors(
   const wedges: SectorWedge[] = DIRECTIONS.map((dir) => {
     const f = freqs[dir.code];
     const reach = maxReach * (f / safePeak);
+    const meanSpeedMs = opts.meanSpeedsMs?.[dir.code] ?? null;
     return {
       id: `wind-${dir.code.toLowerCase()}`,
       kind: "wind-prevailing",
@@ -97,11 +128,12 @@ export function computeWindSectors(
       startBearingDeg: normalizeBearing(dir.centerBearingDeg - HALF_WEDGE_DEG),
       endBearingDeg: normalizeBearing(dir.centerBearingDeg + HALF_WEDGE_DEG),
       reachMeters: reach,
-      color: COLOR,
+      color: beaufortColor(meanSpeedMs),
       meta: {
         direction: dir.code,
         centerBearingDeg: dir.centerBearingDeg,
         frequency: f,
+        meanSpeedMs,
       },
     };
   });

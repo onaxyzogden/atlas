@@ -75,6 +75,46 @@ describe('fetchOpenMeteoWind', () => {
     expect(result!.sampleCount).toBe(1000); // calm filtering happens inside binning, not before
   });
 
+  it('emits meanSpeedsMs per bin — W=5 m/s (non-calm samples), other bins null', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => buildHourlyPayload(1000),
+    });
+    const result = await fetchOpenMeteoWind(44.5, -78.2);
+    expect(result).not.toBeNull();
+    expect(result!.meanSpeedsMs.W).toBeCloseTo(5, 5);
+    expect(result!.meanSpeedsMs.N).toBeNull();
+    expect(result!.meanSpeedsMs.E).toBeNull();
+  });
+
+  it('mixes directions: per-bin mean speeds are independent', async () => {
+    // 500 hours W at 4 m/s + 500 hours E at 8 m/s — distinct mean speeds per bin
+    const time: number[] = [];
+    const dirs: number[] = [];
+    const speeds: number[] = [];
+    for (let i = 0; i < 1000; i++) {
+      time.push(i * 3600);
+      if (i < 500) {
+        dirs.push(270);
+        speeds.push(4);
+      } else {
+        dirs.push(90);
+        speeds.push(8);
+      }
+    }
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        hourly: { time, wind_direction_10m: dirs, wind_speed_10m: speeds },
+      }),
+    });
+    const result = await fetchOpenMeteoWind(44.5, -78.2);
+    expect(result).not.toBeNull();
+    expect(result!.meanSpeedsMs.W).toBeCloseTo(4, 5);
+    expect(result!.meanSpeedsMs.E).toBeCloseTo(8, 5);
+    expect(result!.meanSpeedsMs.N).toBeNull();
+  });
+
   it('retries once on 5xx then succeeds', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: false, status: 503 })

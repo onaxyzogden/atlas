@@ -28,6 +28,7 @@ function makeStubRedis() {
 
 const SAMPLE: OpenMeteoWindResult = {
   frequencies: { N: 0.1, NE: 0.1, E: 0.1, SE: 0.1, S: 0.1, SW: 0.1, W: 0.3, NW: 0.1 },
+  meanSpeedsMs: { N: 4, NE: 4, E: 4, SE: 4, S: 4, SW: 4, W: 6, NW: 4 },
   source: 'Open-Meteo ERA5 (hourly, 3 most recent complete years)',
   windowYears: { start: 2023, end: 2025 },
   sampleCount: 26_280,

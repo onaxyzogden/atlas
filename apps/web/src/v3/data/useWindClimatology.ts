@@ -23,12 +23,18 @@ import {
   anchorCacheKey,
   quantizeAnchor,
 } from "../../lib/wind-climatology/quantizeAnchor.js";
-import { getCached, setCached, type WindFrequencies } from "../../lib/wind-climatology/cache.js";
+import {
+  getCached,
+  setCached,
+  type WindFrequencies,
+  type WindMeanSpeeds,
+} from "../../lib/wind-climatology/cache.js";
 
 export type WindClimatologyStatus = "loading" | "live" | "fallback";
 
 export interface UseWindClimatologyResult {
   frequencies: WindFrequencies | undefined;
+  meanSpeedsMs: WindMeanSpeeds | undefined;
   source: string | undefined;
   status: WindClimatologyStatus;
 }
@@ -42,37 +48,68 @@ export function useWindClimatology(
   const [state, setState] = useState<UseWindClimatologyResult>(() => {
     const cached = getCached(key);
     if (cached) {
-      return { frequencies: cached.frequencies, source: cached.source, status: "live" };
+      return {
+        frequencies: cached.frequencies,
+        meanSpeedsMs: cached.meanSpeedsMs,
+        source: cached.source,
+        status: "live",
+      };
     }
-    return { frequencies: undefined, source: undefined, status: "loading" };
+    return {
+      frequencies: undefined,
+      meanSpeedsMs: undefined,
+      source: undefined,
+      status: "loading",
+    };
   });
 
   useEffect(() => {
     const cached = getCached(key);
     if (cached) {
-      setState({ frequencies: cached.frequencies, source: cached.source, status: "live" });
+      setState({
+        frequencies: cached.frequencies,
+        meanSpeedsMs: cached.meanSpeedsMs,
+        source: cached.source,
+        status: "live",
+      });
       return;
     }
 
     const controller = new AbortController();
-    setState({ frequencies: undefined, source: undefined, status: "loading" });
+    setState({
+      frequencies: undefined,
+      meanSpeedsMs: undefined,
+      source: undefined,
+      status: "loading",
+    });
 
     (async () => {
       const result = await api.climateAnalysis.windRose(qLat, qLng, controller.signal);
       if (controller.signal.aborted) return;
       if (result) {
-        setCached(key, result.frequencies, result.source);
+        setCached(key, result.frequencies, result.source, result.meanSpeedsMs);
         setState({
           frequencies: result.frequencies,
+          meanSpeedsMs: result.meanSpeedsMs,
           source: result.source,
           status: "live",
         });
       } else {
-        setState({ frequencies: undefined, source: undefined, status: "fallback" });
+        setState({
+          frequencies: undefined,
+          meanSpeedsMs: undefined,
+          source: undefined,
+          status: "fallback",
+        });
       }
     })().catch(() => {
       if (controller.signal.aborted) return;
-      setState({ frequencies: undefined, source: undefined, status: "fallback" });
+      setState({
+        frequencies: undefined,
+        meanSpeedsMs: undefined,
+        source: undefined,
+        status: "fallback",
+      });
     });
 
     return () => controller.abort();

@@ -10,12 +10,15 @@
 import type { CompassCode } from "../sectors/wind.js";
 
 export type WindFrequencies = Record<CompassCode, number>;
+export type WindMeanSpeeds = Record<CompassCode, number | null>;
 
 const KEY_PREFIX = "ogden-atlas-wind-clim-v2:";
 const DEFAULT_TTL_DAYS = 30;
 
 interface CacheEntry {
   frequencies: WindFrequencies;
+  /** Optional — entries cached before Beaufort shading (2026-04-29) lack this. */
+  meanSpeedsMs?: WindMeanSpeeds;
   fetchedAt: number;
   source: string;
 }
@@ -64,11 +67,13 @@ export function setCached(
   key: string,
   frequencies: WindFrequencies,
   source: string,
+  meanSpeedsMs?: WindMeanSpeeds,
 ): void {
   const ls = storage();
   if (!ls) return;
   const entry: CacheEntry = {
     frequencies,
+    meanSpeedsMs,
     fetchedAt: Date.now(),
     source,
   };

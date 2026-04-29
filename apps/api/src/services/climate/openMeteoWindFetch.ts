@@ -34,8 +34,16 @@ const ORDER: readonly CompassCode[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW
 
 export type WindFrequencies = Record<CompassCode, number>;
 
+/**
+ * Per-bin mean wind speed in m/s. `null` when the bin had zero non-calm
+ * samples — distinguishes "no data" from "0 m/s" so renderers can fall back
+ * to a neutral color rather than the lowest-Beaufort tint.
+ */
+export type WindMeanSpeeds = Record<CompassCode, number | null>;
+
 export interface OpenMeteoWindResult {
   frequencies: WindFrequencies;
+  meanSpeedsMs: WindMeanSpeeds;
   source: string;
   windowYears: { start: number; end: number };
   sampleCount: number;
@@ -85,19 +93,30 @@ interface HourlySample {
   speedMs: number;
 }
 
-function binHourlyToFrequencies(samples: readonly HourlySample[]): WindFrequencies {
+function binHourlyToFrequencies(
+  samples: readonly HourlySample[],
+): { frequencies: WindFrequencies; meanSpeedsMs: WindMeanSpeeds } {
   const counts: WindFrequencies = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
+  const speedSums: WindFrequencies = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
   let total = 0;
   for (const s of samples) {
     if (!Number.isFinite(s.dirDeg) || !Number.isFinite(s.speedMs)) continue;
     if (s.speedMs < CALM_THRESHOLD_MS) continue;
-    counts[bearingToCompass(s.dirDeg)] += 1;
+    const code = bearingToCompass(s.dirDeg);
+    counts[code] += 1;
+    speedSums[code] += s.speedMs;
     total += 1;
   }
-  if (total === 0) return counts;
-  const out: WindFrequencies = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
-  for (const code of ORDER) out[code] = counts[code] / total;
-  return out;
+  const frequencies: WindFrequencies = { N: 0, NE: 0, E: 0, SE: 0, S: 0, SW: 0, W: 0, NW: 0 };
+  const meanSpeedsMs: WindMeanSpeeds = {
+    N: null, NE: null, E: null, SE: null, S: null, SW: null, W: null, NW: null,
+  };
+  if (total === 0) return { frequencies, meanSpeedsMs };
+  for (const code of ORDER) {
+    frequencies[code] = counts[code] / total;
+    meanSpeedsMs[code] = counts[code] > 0 ? speedSums[code] / counts[code] : null;
+  }
+  return { frequencies, meanSpeedsMs };
 }
 
 async function fetchOnce(url: string): Promise<OpenMeteoResponse> {
@@ -201,12 +220,13 @@ export async function fetchOpenMeteoWind(
   }
   if (samples.length === 0) return null;
 
-  const frequencies = binHourlyToFrequencies(samples);
+  const { frequencies, meanSpeedsMs } = binHourlyToFrequencies(samples);
   const sum = (Object.values(frequencies) as number[]).reduce((a, b) => a + b, 0);
   if (sum < 0.99) return null; // every sample was calm or otherwise dropped
 
   return {
     frequencies,
+    meanSpeedsMs,
     source: OPEN_METEO_SOURCE_LABEL,
     windowYears: { start: win.startYear, end: win.endYear },
     sampleCount: samples.length,

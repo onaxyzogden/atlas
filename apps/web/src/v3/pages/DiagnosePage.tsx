@@ -185,6 +185,7 @@ function DiagnosePageMap({
   );
   const {
     frequencies: liveWindFreqs,
+    meanSpeedsMs: liveWindMeanSpeedsMs,
     source: windSource,
     status: windStatus,
   } = useWindClimatology(anchor);
@@ -215,6 +216,7 @@ function DiagnosePageMap({
               projectId={project.id}
               homestead={homestead}
               liveWindFreqs={liveWindFreqs}
+              liveWindMeanSpeedsMs={liveWindMeanSpeedsMs}
               windSource={windSource}
             />
             {pulse && (
@@ -234,6 +236,7 @@ function DiagnoseOverlays({
   projectId,
   homestead,
   liveWindFreqs,
+  liveWindMeanSpeedsMs,
   windSource,
 }: {
   map: import("maplibre-gl").Map;
@@ -242,6 +245,9 @@ function DiagnoseOverlays({
   projectId: string;
   homestead: [number, number] | undefined;
   liveWindFreqs: import("../../lib/wind-climatology/cache.js").WindFrequencies | undefined;
+  liveWindMeanSpeedsMs:
+    | import("../../lib/wind-climatology/cache.js").WindMeanSpeeds
+    | undefined;
   windSource: string | undefined;
 }) {
   const sectors = useMemo(() => computeSolarSectors(anchor), [anchor]);
@@ -249,9 +255,15 @@ function DiagnoseOverlays({
     () =>
       computeWindSectors(
         anchor,
-        liveWindFreqs ? { frequencies: liveWindFreqs, sourceLabel: windSource } : undefined,
+        liveWindFreqs
+          ? {
+              frequencies: liveWindFreqs,
+              meanSpeedsMs: liveWindMeanSpeedsMs,
+              sourceLabel: windSource,
+            }
+          : undefined,
       ),
-    [anchor, liveWindFreqs, windSource],
+    [anchor, liveWindFreqs, liveWindMeanSpeedsMs, windSource],
   );
   const zones = useMemo(() => computeConcentricZones(anchor), [anchor]);
   return (
