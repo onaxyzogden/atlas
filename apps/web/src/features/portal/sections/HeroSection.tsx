@@ -78,7 +78,7 @@ export default function HeroSection({ config, project }: Props) {
           cursor: 'pointer',
           transition: 'background 200ms',
         }}
-        onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(196,162,101,0.1)'; }}
+        onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(212, 175, 95, 0.1)'; }}
         onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
       >
         Explore the Land

@@ -6,7 +6,7 @@ import { useRef, useEffect } from 'react';
 import { maplibregl, MAP_STYLES, hasMapToken, maptilerTransformRequest } from '../../../lib/maplibre.js';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { group, semantic } from '../../../lib/tokens.js';
+import { semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -61,7 +61,7 @@ export default function InteractiveMapView({ config, project }: Props) {
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <h2 style={{
           fontSize: 11, fontWeight: 600, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: group.livestock, marginBottom: 8,
+          textTransform: 'uppercase', color: semantic.sidebarActive, marginBottom: 8,
         }}>
           Explore the Land
         </h2>
@@ -75,13 +75,13 @@ export default function InteractiveMapView({ config, project }: Props) {
         style={{
           width: '100%', maxWidth: 1200, height: 500,
           margin: '0 auto', borderRadius: 12,
-          border: '1px solid rgba(196,162,101,0.15)',
+          border: '1px solid rgba(212, 175, 95, 0.15)',
           overflow: 'hidden',
         }}
       />
 
       {config.dataMaskingLevel === 'minimal' && (
-        <p style={{ fontSize: 10, color: '#6b5b4a', textAlign: 'center', marginTop: 12 }}>
+        <p style={{ fontSize: 10, color: '#7d7864', textAlign: 'center', marginTop: 12 }}>
           Approximate location shown for privacy. Contact the owner for precise details.
         </p>
       )}
