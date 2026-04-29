@@ -1,17 +1,17 @@
 /**
  * cache — TTL'd localStorage cache for wind climatology.
  *
- * Keys are namespaced under `ogden-atlas-wind-clim-v1:` so a future schema
- * change (different binning, multi-year window) can bump the version
- * without colliding with stale entries. SSR-safe: no-ops when `window` is
- * undefined.
+ * Keys are namespaced under `ogden-atlas-wind-clim-v2:`. v2 was introduced
+ * on 2026-04-28 when the adapter window grew from 1 yr to 3 yr — old v1
+ * entries hold a noisier 1-year payload and must not be reused. SSR-safe:
+ * no-ops when `window` is undefined.
  */
 
 import type { CompassCode } from "../sectors/wind.js";
 
 export type WindFrequencies = Record<CompassCode, number>;
 
-const KEY_PREFIX = "ogden-atlas-wind-clim-v1:";
+const KEY_PREFIX = "ogden-atlas-wind-clim-v2:";
 const DEFAULT_TTL_DAYS = 30;
 
 interface CacheEntry {

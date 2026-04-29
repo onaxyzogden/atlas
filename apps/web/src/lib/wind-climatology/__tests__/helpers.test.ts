@@ -60,15 +60,15 @@ describe("cache (localStorage)", () => {
     const freq = { N: 0.5, NE: 0.0, E: 0.0, SE: 0.0, S: 0.5, SW: 0.0, W: 0.0, NW: 0.0 };
     setCached("aged", freq, "test");
     // Manually rewrite the entry with an expired timestamp.
-    const raw = window.localStorage.getItem("ogden-atlas-wind-clim-v1:aged")!;
+    const raw = window.localStorage.getItem("ogden-atlas-wind-clim-v2:aged")!;
     const parsed = JSON.parse(raw);
     parsed.fetchedAt = Date.now() - 1000 * 60 * 60 * 24 * 60; // 60 days old
-    window.localStorage.setItem("ogden-atlas-wind-clim-v1:aged", JSON.stringify(parsed));
+    window.localStorage.setItem("ogden-atlas-wind-clim-v2:aged", JSON.stringify(parsed));
     expect(getCached("aged", 30)).toBeNull();
   });
 
   it("returns null on malformed JSON", () => {
-    window.localStorage.setItem("ogden-atlas-wind-clim-v1:bad", "{not json");
+    window.localStorage.setItem("ogden-atlas-wind-clim-v2:bad", "{not json");
     expect(getCached("bad")).toBeNull();
   });
 });

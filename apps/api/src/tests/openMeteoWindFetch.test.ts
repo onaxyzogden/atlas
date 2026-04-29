@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   fetchOpenMeteoWind,
-  mostRecentCompleteYear,
+  mostRecentCompleteYears,
   OPEN_METEO_SOURCE_LABEL,
 } from '../services/climate/openMeteoWindFetch.js';
 
@@ -40,10 +40,19 @@ function buildHourlyPayload(hours = 1000) {
   };
 }
 
-describe('mostRecentCompleteYear', () => {
-  it('returns last calendar year as ISO bounds', () => {
-    const win = mostRecentCompleteYear(new Date('2026-04-28T00:00:00Z'));
-    expect(win.year).toBe(2025);
+describe('mostRecentCompleteYears', () => {
+  it('default 3-yr window ends on last complete calendar year', () => {
+    const win = mostRecentCompleteYears(3, new Date('2026-04-28T00:00:00Z'));
+    expect(win.startYear).toBe(2023);
+    expect(win.endYear).toBe(2025);
+    expect(win.start).toBe('2023-01-01');
+    expect(win.end).toBe('2025-12-31');
+  });
+
+  it('honors explicit n=1 (1-yr fallback for testing)', () => {
+    const win = mostRecentCompleteYears(1, new Date('2026-04-28T00:00:00Z'));
+    expect(win.startYear).toBe(2025);
+    expect(win.endYear).toBe(2025);
     expect(win.start).toBe('2025-01-01');
     expect(win.end).toBe('2025-12-31');
   });

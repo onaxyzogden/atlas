@@ -5,8 +5,9 @@
  *   keyless · ERA5 reanalysis hourly
  *   docs: https://open-meteo.com/en/docs/historical-weather-api
  *
- * Window: most-recent complete calendar year. ~8760 hourly samples — enough
- * for a pedagogical rose, light enough for a single fetch.
+ * Window: 3 most-recent complete calendar years (rolling). ~26 280 hourly
+ * samples — smooths year-to-year noise so the rose reflects regime, not the
+ * latest jet-stream wobble.
  *
  * Failure policy mirrors `nasaPowerFetch.ts`: single retry on 5xx, then silent
  * return-null. Callers must not propagate.
@@ -22,9 +23,10 @@ const logger = pino({ name: 'openMeteoWindFetch' });
 const ARCHIVE_BASE = 'https://archive-api.open-meteo.com/v1/archive';
 const TIMEOUT_MS = 12_000;
 const CALM_THRESHOLD_MS = 0.5;
+const WINDOW_YEARS = 3;
 
 export const OPEN_METEO_SOURCE_LABEL =
-  'Open-Meteo ERA5 (hourly, most recent complete year)';
+  'Open-Meteo ERA5 (hourly, 3 most recent complete years)';
 
 export type CompassCode = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
 
@@ -35,7 +37,7 @@ export type WindFrequencies = Record<CompassCode, number>;
 export interface OpenMeteoWindResult {
   frequencies: WindFrequencies;
   source: string;
-  windowYear: number;
+  windowYears: { start: number; end: number };
   sampleCount: number;
 }
 
@@ -47,13 +49,23 @@ interface OpenMeteoResponse {
   };
 }
 
-export function mostRecentCompleteYear(now: Date = new Date()): {
-  year: number;
+export function mostRecentCompleteYears(
+  n: number = WINDOW_YEARS,
+  now: Date = new Date(),
+): {
+  startYear: number;
+  endYear: number;
   start: string;
   end: string;
 } {
-  const year = now.getUTCFullYear() - 1;
-  return { year, start: `${year}-01-01`, end: `${year}-12-31` };
+  const endYear = now.getUTCFullYear() - 1;
+  const startYear = endYear - (n - 1);
+  return {
+    startYear,
+    endYear,
+    start: `${startYear}-01-01`,
+    end: `${endYear}-12-31`,
+  };
 }
 
 function normalizeBearing(deg: number): number {
@@ -105,10 +117,10 @@ async function fetchOnce(url: string): Promise<OpenMeteoResponse> {
 }
 
 export interface FetchOpenMeteoWindOptions {
-  /** Override the year window (testing). */
+  /** Override the date window (testing). */
   start?: string;
   end?: string;
-  /** Override `Date.now()` for `mostRecentCompleteYear`. */
+  /** Override `Date.now()` for `mostRecentCompleteYears`. */
   now?: Date;
 }
 
@@ -124,8 +136,13 @@ export async function fetchOpenMeteoWind(
   opts: FetchOpenMeteoWindOptions = {},
 ): Promise<OpenMeteoWindResult | null> {
   const win = opts.start && opts.end
-    ? { year: Number(opts.start.slice(0, 4)), start: opts.start, end: opts.end }
-    : mostRecentCompleteYear(opts.now);
+    ? {
+        startYear: Number(opts.start.slice(0, 4)),
+        endYear: Number(opts.end.slice(0, 4)),
+        start: opts.start,
+        end: opts.end,
+      }
+    : mostRecentCompleteYears(WINDOW_YEARS, opts.now);
 
   const params = new URLSearchParams({
     latitude: lat.toFixed(4),
@@ -191,7 +208,7 @@ export async function fetchOpenMeteoWind(
   return {
     frequencies,
     source: OPEN_METEO_SOURCE_LABEL,
-    windowYear: win.year,
+    windowYears: { start: win.startYear, end: win.endYear },
     sampleCount: samples.length,
   };
 }

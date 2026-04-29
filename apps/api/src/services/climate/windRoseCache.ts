@@ -1,10 +1,14 @@
 /**
  * windRoseCache — Redis cache for the Open-Meteo wind-rose adapter.
  *
- * Key shape: `wind-rose:v1:${qLat}:${qLng}` where (qLat, qLng) are the anchor
+ * Key shape: `wind-rose:v2:${qLat}:${qLng}` where (qLat, qLng) are the anchor
  * quantized to 0.1° (~11 km), matching the web-side localStorage policy. TTL
  * is 30 days — climatology shifts on decadal scales, so anything fresher
  * wastes upstream calls.
+ *
+ * Version bumped to v2 on 2026-04-28 when the adapter window grew from 1 yr
+ * to 3 yr — old v1 entries hold a different (noisier) frequency payload and
+ * must not be served to v2 callers.
  *
  * Best-effort: every Redis call is wrapped in a 200 ms timeout + try/catch and
  * returns null/void on any failure. Callers must tolerate a `get` returning
@@ -18,7 +22,7 @@
 import type { Redis } from 'ioredis';
 import type { OpenMeteoWindResult } from './openMeteoWindFetch.js';
 
-const KEY_PREFIX = 'wind-rose:v1';
+const KEY_PREFIX = 'wind-rose:v2';
 const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const QUANTUM_DEG = 0.1;
 const TIMEOUT_MS = 200;

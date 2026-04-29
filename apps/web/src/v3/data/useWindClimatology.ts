@@ -25,9 +25,6 @@ import {
 } from "../../lib/wind-climatology/quantizeAnchor.js";
 import { getCached, setCached, type WindFrequencies } from "../../lib/wind-climatology/cache.js";
 
-export const OPEN_METEO_SOURCE_LABEL =
-  "Open-Meteo ERA5 (hourly, most recent complete year)";
-
 export type WindClimatologyStatus = "loading" | "live" | "fallback";
 
 export interface UseWindClimatologyResult {

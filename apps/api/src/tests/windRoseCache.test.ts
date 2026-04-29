@@ -28,24 +28,24 @@ function makeStubRedis() {
 
 const SAMPLE: OpenMeteoWindResult = {
   frequencies: { N: 0.1, NE: 0.1, E: 0.1, SE: 0.1, S: 0.1, SW: 0.1, W: 0.3, NW: 0.1 },
-  source: 'Open-Meteo ERA5 (hourly, most recent complete year)',
-  windowYear: 2025,
-  sampleCount: 8760,
+  source: 'Open-Meteo ERA5 (hourly, 3 most recent complete years)',
+  windowYears: { start: 2023, end: 2025 },
+  sampleCount: 26_280,
 };
 
 describe('windRoseCacheKey', () => {
   it('quantizes to 0.1° and produces a versioned canonical key', () => {
-    expect(windRoseCacheKey(44.567, -78.234)).toBe('wind-rose:v1:44.6:-78.2');
-    expect(windRoseCacheKey(44.5, -78.2)).toBe('wind-rose:v1:44.5:-78.2');
+    expect(windRoseCacheKey(44.567, -78.234)).toBe('wind-rose:v2:44.6:-78.2');
+    expect(windRoseCacheKey(44.5, -78.2)).toBe('wind-rose:v2:44.5:-78.2');
   });
 
   it('rounds floating-point noise to a stable string', () => {
-    expect(windRoseCacheKey(44.49999999, -78.20000001)).toBe('wind-rose:v1:44.5:-78.2');
+    expect(windRoseCacheKey(44.49999999, -78.20000001)).toBe('wind-rose:v2:44.5:-78.2');
   });
 
   it('handles negative bands and the prime meridian', () => {
-    expect(windRoseCacheKey(-33.86, 151.21)).toBe('wind-rose:v1:-33.9:151.2');
-    expect(windRoseCacheKey(0, 0)).toBe('wind-rose:v1:0.0:0.0');
+    expect(windRoseCacheKey(-33.86, 151.21)).toBe('wind-rose:v2:-33.9:151.2');
+    expect(windRoseCacheKey(0, 0)).toBe('wind-rose:v2:0.0:0.0');
   });
 });
 
@@ -59,7 +59,7 @@ describe('getCachedWindRose / setCachedWindRose', () => {
   it('round-trips a value through set → get', async () => {
     await setCachedWindRose(stub.redis, 44.5, -78.2, SAMPLE);
     expect(stub.setexMock).toHaveBeenCalledWith(
-      'wind-rose:v1:44.5:-78.2',
+      'wind-rose:v2:44.5:-78.2',
       60 * 60 * 24 * 30,
       JSON.stringify(SAMPLE),
     );
@@ -101,7 +101,7 @@ describe('getCachedWindRose / setCachedWindRose', () => {
   });
 
   it('returns null on malformed JSON in the cache', async () => {
-    stub.store.set('wind-rose:v1:44.5:-78.2', '{not json');
+    stub.store.set('wind-rose:v2:44.5:-78.2', '{not json');
     const got = await getCachedWindRose(stub.redis, 44.5, -78.2);
     expect(got).toBeNull();
   });
