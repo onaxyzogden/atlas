@@ -16,6 +16,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import FeasibilityVerdictHero from './FeasibilityVerdictHero.js';
 import BlockingIssuesStrip from './BlockingIssuesStrip.js';
 import FeasibilityDecisionRail from './FeasibilityDecisionRail.js';
+import { useFeasibilityBriefDownloader } from './lib/exportFeasibilityBrief.js';
 import css from './FeasibilityCommandCenter.module.css';
 
 const BestUseSummaryCard = lazy(() => import('./BestUseSummaryCard.js'));
@@ -46,6 +47,11 @@ export default function FeasibilityCommandCenter({ project, onSwitchToMap, onGen
     blockersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  // Default brief handler — caller can override via prop, otherwise
+  // wire the local markdown downloader.
+  const localGenerateBrief = useFeasibilityBriefDownloader(project);
+  const handleGenerateBrief = onGenerateBrief ?? localGenerateBrief;
+
   return (
     <div className={css.page}>
       <header className={css.pageHeader}>
@@ -61,7 +67,7 @@ export default function FeasibilityCommandCenter({ project, onSwitchToMap, onGen
         project={project}
         onFixBlockers={scrollToBlockers}
         onOpenDesignMap={onSwitchToMap}
-        onGenerateBrief={onGenerateBrief}
+        onGenerateBrief={handleGenerateBrief}
       />
 
       <div ref={blockersRef}>
@@ -120,7 +126,7 @@ export default function FeasibilityCommandCenter({ project, onSwitchToMap, onGen
           <FeasibilityDecisionRail
             project={project}
             onFixOnMap={onSwitchToMap}
-            onGenerateBrief={onGenerateBrief}
+            onGenerateBrief={handleGenerateBrief}
             onScrollToBlockers={scrollToBlockers}
           />
         </div>
