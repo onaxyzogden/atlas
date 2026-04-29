@@ -53,6 +53,13 @@ const BiomassDashboard = lazy(() => import('./pages/BiomassDashboard.js'));
 const ObserveHub = lazy(() => import('../observe/ObserveHub.js'));
 const StewardSurveyCard = lazy(() => import('../observe/StewardSurveyCard.js'));
 const IndigenousRegionalCard = lazy(() => import('../observe/IndigenousRegionalCard.js'));
+const HazardsLogCard = lazy(() => import('../observe/HazardsLogCard.js'));
+const CrossSectionTool = lazy(() => import('../observe/CrossSectionTool.js'));
+const SoilTestsCard = lazy(() => import('../observe/SoilTestsCard.js'));
+const FoodChainCard = lazy(() => import('../observe/FoodChainCard.js'));
+const SectorCompassCard = lazy(() => import('../observe/SectorCompassCard.js'));
+const SwotJournalCard = lazy(() => import('../observe/SwotJournalCard.js'));
+const DiagnosisReportExport = lazy(() => import('../observe/DiagnosisReportExport.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -83,6 +90,48 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Indigenous & Regional Context">
           <IndigenousRegionalCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-hazards-log':
+      return (
+        <PanelShell name="Hazards Log">
+          <HazardsLogCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-cross-section':
+      return (
+        <PanelShell name="A–B Cross-Section">
+          <CrossSectionTool project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-soil-tests':
+      return (
+        <PanelShell name="Jar / Perc / Roof Catchment">
+          <SoilTestsCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-food-chain':
+      return (
+        <PanelShell name="Food-Chain & Succession">
+          <FoodChainCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-sector-compass':
+      return (
+        <PanelShell name="Sector Compass">
+          <SectorCompassCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-swot-journal':
+      return (
+        <PanelShell name="SWOT Journal">
+          <SwotJournalCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-diagnosis-report':
+      return (
+        <PanelShell name="Diagnosis Report">
+          <DiagnosisReportExport project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'site-intelligence':

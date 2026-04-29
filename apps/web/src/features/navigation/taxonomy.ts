@@ -233,6 +233,46 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
     dashboardOnly: true,
   },
+  // Phase 4b — Macroclimate & Hazards (Module 2).
+  {
+    id: 'observe-hazards-log', label: 'Hazards Log',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  // Phase 4c — Topography (Module 3).
+  {
+    id: 'observe-cross-section', label: 'A–B Cross-Section',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  // Phase 4d — Earth/Water/Ecology Diagnostics (Module 4).
+  {
+    id: 'observe-soil-tests', label: 'Jar / Perc / Roof Catchment',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  {
+    id: 'observe-food-chain', label: 'Food-Chain & Succession',
+    phase: 'P1', domainGroup: 'hydrology-terrain', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  // Phase 4e — Sectors & Microclimates (Module 5).
+  {
+    id: 'observe-sector-compass', label: 'Sector Compass',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  // Phase 4f — SWOT Synthesis (Module 6).
+  {
+    id: 'observe-swot-journal', label: 'SWOT Journal',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  {
+    id: 'observe-diagnosis-report', label: 'Diagnosis Report',
+    phase: 'P1', domainGroup: 'reporting-portal', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
 
   // ── Site Overview ──────────────────────────────────────────────────────────
   // Regulatory lives at the top of Site Overview — regulatory posture is

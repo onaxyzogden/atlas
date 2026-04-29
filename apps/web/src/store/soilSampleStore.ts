@@ -85,6 +85,22 @@ export interface SoilSample {
   lab: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Phase 4d — Jar test result (volumetric proportions, sums to ~100). */
+  jarTest?: { sandPct: number; siltPct: number; clayPct: number };
+  /** Phase 4d — Percolation rate (inches per hour). */
+  percolationInPerHr?: number;
+  /** Phase 4d — Depth to bedrock or refusal (metres). */
+  depthToBedrockM?: number;
+  /**
+   * Phase 4d — Roof catchment context. Optional sub-object so a steward can
+   * record harvested-rainwater-potential alongside the soil sample taken
+   * downslope of a catchment.
+   */
+  roofCatchment?: {
+    roofAreaM2: number;
+    runoffCoeff?: number;
+    annualPrecipMm?: number;
+  };
 }
 
 interface SoilSampleState {

@@ -28,6 +28,7 @@ import { useUIStore } from '../../store/uiStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { useSiteDataStore, getLayerSummary, type SiteData } from '../../store/siteDataStore.js';
 import { useSoilSampleStore } from '../../store/soilSampleStore.js';
+import { useSiteAnnotationsStore } from '../../store/siteAnnotationsStore.js';
 import styles from './ObserveHub.module.css';
 
 interface Props {
@@ -84,6 +85,20 @@ export default function ObserveHub({ project }: Props) {
   const siteData = useProjectSiteData(project.id);
   const soilSamples = useProjectSoilSamples(project.id);
 
+  // Phase 4b–4f: persisted steward annotations (hazards, transects,
+  // sectors, ecology, swot). Each filtered to the active project.
+  const allHazards   = useSiteAnnotationsStore((s) => s.hazards);
+  const allTransects = useSiteAnnotationsStore((s) => s.transects);
+  const allSectors   = useSiteAnnotationsStore((s) => s.sectors);
+  const allEcology   = useSiteAnnotationsStore((s) => s.ecology);
+  const allSwot      = useSiteAnnotationsStore((s) => s.swot);
+
+  const projectHazards   = useMemo(() => allHazards.filter((h)   => h.projectId === project.id), [allHazards, project.id]);
+  const projectTransects = useMemo(() => allTransects.filter((t) => t.projectId === project.id), [allTransects, project.id]);
+  const projectSectors   = useMemo(() => allSectors.filter((x)   => x.projectId === project.id), [allSectors, project.id]);
+  const projectEcology   = useMemo(() => allEcology.filter((o)   => o.projectId === project.id), [allEcology, project.id]);
+  const projectSwot      = useMemo(() => allSwot.filter((e)      => e.projectId === project.id), [allSwot, project.id]);
+
   const modules: ModuleSpec[] = useMemo(() => {
     // ── 1. Human Context ──────────────────────────────────────────────────
     // Steward survey + indigenous/regional context land in Phase 4a; for
@@ -115,22 +130,19 @@ export default function ObserveHub({ project }: Props) {
           growingSeasonDays?: number;
         }>(siteData, 'climate')
       : null;
-    const hazardsLog =
-      (siteData as unknown as { hazardsLog?: unknown[] } | undefined)?.hazardsLog ?? [];
-
     const macroclimate: ModuleSpec = {
       number: '2',
       title: 'Macroclimate & Hazards',
       rows: [
         { label: 'Hardiness zone', value: nonEmpty(climate?.hardinessZone ?? null) },
         { label: 'Annual precip', value: fmtNum(climate?.annualPrecipMm, ' mm', 0) },
-        { label: 'Logged hazards', value: `${hazardsLog.length}` },
+        { label: 'Logged hazards', value: `${projectHazards.length}` },
       ],
       actions: [
         { label: 'Solar & Climate detail →', sectionId: 'climate' },
         { label: 'Hazards log →', sectionId: 'observe-hazards-log' },
       ],
-      empty: !climate && hazardsLog.length === 0,
+      empty: !climate && projectHazards.length === 0,
     };
 
     // ── 3. Topography & Base Map ──────────────────────────────────────────
@@ -141,9 +153,6 @@ export default function ObserveHub({ project }: Props) {
           maxElevationM?: number;
         }>(siteData, 'elevation')
       : null;
-    const transects =
-      (siteData as unknown as { transects?: unknown[] } | undefined)?.transects ?? [];
-
     const elevRange =
       elevation?.minElevationM !== undefined && elevation?.maxElevationM !== undefined
         ? `${Math.round(elevation.minElevationM)}–${Math.round(elevation.maxElevationM)} m`
@@ -155,13 +164,13 @@ export default function ObserveHub({ project }: Props) {
       rows: [
         { label: 'Mean slope', value: fmtNum(elevation?.meanSlopeDeg, '°', 1) },
         { label: 'Elevation range', value: elevRange },
-        { label: 'A–B transects', value: `${transects.length}` },
+        { label: 'A–B transects', value: `${projectTransects.length}` },
       ],
       actions: [
         { label: 'Terrain detail →', sectionId: 'terrain-dashboard' },
         { label: 'Cross-section tool →', sectionId: 'observe-cross-section' },
       ],
-      empty: !elevation && transects.length === 0,
+      empty: !elevation && projectTransects.length === 0,
     };
 
     // ── 4. Earth, Water & Ecology Diagnostics ─────────────────────────────
@@ -169,11 +178,6 @@ export default function ObserveHub({ project }: Props) {
     const groundwater = siteData
       ? getLayerSummary<{ depthClass?: string; depthM?: number }>(siteData, 'groundwater')
       : null;
-    const ecology =
-      (siteData as unknown as {
-        ecology?: { observations?: unknown[]; successionStage?: string };
-      } | undefined)?.ecology;
-
     const diagnostics: ModuleSpec = {
       number: '4',
       title: 'Earth, Water & Ecology Diagnostics',
@@ -183,44 +187,33 @@ export default function ObserveHub({ project }: Props) {
           label: 'Groundwater',
           value: nonEmpty(groundwater?.depthClass ?? (groundwater?.depthM ? `${groundwater.depthM} m` : null)),
         },
-        { label: 'Ecology obs.', value: `${ecology?.observations?.length ?? 0}` },
+        { label: 'Ecology obs.', value: `${projectEcology.length}` },
       ],
       actions: [
         { label: 'Hydrology detail →', sectionId: 'hydrology-dashboard' },
         { label: 'Ecological detail →', sectionId: 'ecological' },
         { label: 'Jar / Perc / Roof →', sectionId: 'observe-soil-tests' },
       ],
-      empty: soilSamples.length === 0 && !groundwater && !ecology,
+      empty: soilSamples.length === 0 && !groundwater && projectEcology.length === 0,
     };
 
     // ── 5. Sectors, Microclimates & Current Zones ─────────────────────────
-    const sectors =
-      (siteData as unknown as { sectors?: unknown[] } | undefined)?.sectors ?? [];
-    const zones =
-      (siteData as unknown as { zones?: unknown[] } | undefined)?.zones ?? [];
-
     const sectorsZones: ModuleSpec = {
       number: '5',
       title: 'Sectors, Microclimates & Zones',
       rows: [
-        { label: 'Sector arrows placed', value: `${sectors.length}` },
-        { label: 'Zones covered', value: `${zones.length} / 6` },
+        { label: 'Sector arrows placed', value: `${projectSectors.length}` },
       ],
       actions: [
         { label: 'Sector compass →', sectionId: 'observe-sector-compass' },
         { label: 'Cartographic detail →', sectionId: 'cartographic' },
       ],
-      empty: sectors.length === 0 && zones.length === 0,
+      empty: projectSectors.length === 0,
     };
 
     // ── 6. SWOT Synthesis ─────────────────────────────────────────────────
-    const swot =
-      (siteData as unknown as {
-        swotJournal?: Array<{ bucket: 'S' | 'W' | 'O' | 'T' }>;
-      } | undefined)?.swotJournal ?? [];
-
     const counts = { S: 0, W: 0, O: 0, T: 0 };
-    for (const entry of swot) counts[entry.bucket] += 1;
+    for (const entry of projectSwot) counts[entry.bucket] += 1;
 
     const synthesis: ModuleSpec = {
       number: '6',
@@ -235,11 +228,11 @@ export default function ObserveHub({ project }: Props) {
         { label: 'SWOT journal →', sectionId: 'observe-swot-journal' },
         { label: 'Diagnosis report →', sectionId: 'observe-diagnosis-report' },
       ],
-      empty: swot.length === 0,
+      empty: projectSwot.length === 0,
     };
 
     return [humanContext, macroclimate, topography, diagnostics, sectorsZones, synthesis];
-  }, [visionData, siteData, soilSamples]);
+  }, [visionData, siteData, soilSamples, projectHazards, projectTransects, projectSectors, projectEcology, projectSwot]);
 
   return (
     <div className={styles.page}>
