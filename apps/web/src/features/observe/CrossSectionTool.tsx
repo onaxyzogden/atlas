@@ -1,20 +1,19 @@
 /**
  * CrossSectionTool — Phase 4c OBSERVE surface (Module 3).
  *
- * v1 ships a coordinate-entry transect editor and an SVG profile chart
- * driven by a cached elevation profile (sampled when the steward presses
- * "Sample elevation"). Map-drawn A→B picking is deferred to a follow-up
- * that wires `DomainFloatingToolbar` draw-mode into MapView; the v1
- * surface still produces a usable profile from manually entered lat/lng
- * pairs and persists every transect via useSiteAnnotationsStore.
+ * Coordinate-entry transect editor + SVG profile chart. Map-drawn A→B
+ * picking is deferred (the map-side `features/map/CrossSectionTool` covers
+ * draw-on-map; this surface is the hub-side authored list).
  *
- * Sampling: if `apps/web/src/api/elevation.ts` exists at runtime, we'll
- * call it; otherwise we fall back to a deterministic synthetic profile so
- * the visual works in development before the API lands. The fallback is
- * clearly marked in the UI.
+ * Sampling calls `api.elevation.profile` (NRCan HRDEM / 3DEP) and falls
+ * back to a deterministic synthetic profile only if the call fails or the
+ * DEM has no coverage. The UI labels the source ("NRCan HRDEM Lidar DTM
+ * (1m)" vs "Synthetic (no DEM coverage)") and shows the reader's
+ * confidence chip.
  */
 
 import { useMemo, useState } from 'react';
+import { api } from '../../lib/apiClient.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
   useSiteAnnotationsStore,
@@ -102,10 +101,45 @@ export default function CrossSectionTool({ project }: Props) {
     setActiveId(t.id);
   }
 
-  function sampleElevation(t: Transect) {
-    // v1: synthetic profile. Replace with real API call once `apps/web/src/api/elevation.ts` lands.
-    const profile = syntheticProfile(t.pointA, t.pointB);
-    updateTransect(t.id, { elevationProfileM: profile, sampledAt: new Date().toISOString() });
+  const [sampling, setSampling] = useState<string | null>(null);
+  const [sampleError, setSampleError] = useState<string | null>(null);
+
+  async function sampleElevation(t: Transect) {
+    setSampling(t.id);
+    setSampleError(null);
+    try {
+      const { data } = await api.elevation.profile({
+        projectId: project.id,
+        geometry: {
+          type: 'LineString',
+          coordinates: [t.pointA, t.pointB],
+        },
+        sampleCount: SAMPLE_COUNT,
+      });
+      // Reader returns null cells where DEM has gaps; coerce to NaN-safe interpolation.
+      const profile = data.samples.map((s) => (s.elevationM ?? 0));
+      updateTransect(t.id, {
+        elevationProfileM: profile,
+        sampledAt: new Date().toISOString(),
+        sourceApi: data.sourceApi,
+        confidence: data.confidence,
+        totalDistanceM: data.totalDistanceM,
+      });
+    } catch (err) {
+      // DEM unavailable / auth / network — fall back to synthetic so the surface
+      // remains usable in dev and on parcels outside HRDEM coverage.
+      const profile = syntheticProfile(t.pointA, t.pointB);
+      updateTransect(t.id, {
+        elevationProfileM: profile,
+        sampledAt: new Date().toISOString(),
+        sourceApi: 'Synthetic (no DEM coverage)',
+        confidence: 'low',
+        totalDistanceM: undefined,
+      });
+      setSampleError(err instanceof Error ? err.message : 'DEM unavailable — using synthetic profile.');
+    } finally {
+      setSampling(null);
+    }
   }
 
   return (
@@ -190,16 +224,34 @@ export default function CrossSectionTool({ project }: Props) {
           {active ? (
             <>
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                <button type="button" className={shared.addBtn} style={{ width: 'auto' }} onClick={() => sampleElevation(active)}>
-                  ⌗ Sample elevation
+                <button
+                  type="button"
+                  className={shared.addBtn}
+                  style={{ width: 'auto' }}
+                  onClick={() => sampleElevation(active)}
+                  disabled={sampling === active.id}
+                >
+                  {sampling === active.id ? '⌗ Sampling DEM…' : '⌗ Sample elevation'}
                 </button>
                 <button type="button" className={shared.removeBtn} onClick={() => removeTransect(active.id)}>
                   Delete
                 </button>
               </div>
 
+              {sampleError ? (
+                <p style={{ fontSize: 11, color: 'rgba(208,123,123,0.85)', marginBottom: 8 }}>
+                  {sampleError}
+                </p>
+              ) : null}
+
               {active.elevationProfileM ? (
-                <ProfileChart profile={active.elevationProfileM} sampledAt={active.sampledAt} />
+                <ProfileChart
+                  profile={active.elevationProfileM}
+                  sampledAt={active.sampledAt}
+                  sourceApi={active.sourceApi ?? null}
+                  confidence={active.confidence}
+                  totalDistanceM={active.totalDistanceM}
+                />
               ) : (
                 <p style={{ fontSize: 12, color: 'rgba(232,220,200,0.5)', fontStyle: 'italic' }}>
                   Profile not sampled yet.
@@ -213,8 +265,23 @@ export default function CrossSectionTool({ project }: Props) {
   );
 }
 
-function ProfileChart({ profile, sampledAt }: { profile: number[]; sampledAt?: string }) {
+interface ProfileChartProps {
+  profile: number[];
+  sampledAt?: string;
+  sourceApi: string | null;
+  confidence?: 'high' | 'medium' | 'low';
+  totalDistanceM?: number;
+}
+
+function ProfileChart({ profile, sampledAt, sourceApi, confidence, totalDistanceM }: ProfileChartProps) {
   const { path, min, max } = useMemo(() => profilePath(profile), [profile]);
+  const isSynthetic = !sourceApi || sourceApi.toLowerCase().startsWith('synthetic');
+  const distanceLabel =
+    typeof totalDistanceM === 'number' && totalDistanceM > 0
+      ? totalDistanceM >= 1000
+        ? `${(totalDistanceM / 1000).toFixed(2)} km`
+        : `${totalDistanceM.toFixed(0)} m`
+      : null;
   return (
     <div>
       <svg viewBox={`0 0 ${PROFILE_W} ${PROFILE_H}`} style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.25)', borderRadius: 6 }}>
@@ -222,11 +289,15 @@ function ProfileChart({ profile, sampledAt }: { profile: number[]; sampledAt?: s
       </svg>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(232,220,200,0.55)', marginTop: 6 }}>
         <span>A · {min.toFixed(1)} m (low)</span>
+        {distanceLabel ? <span style={{ opacity: 0.7 }}>{distanceLabel}</span> : null}
         <span>{max.toFixed(1)} m (high) · B</span>
       </div>
       {sampledAt ? (
         <p style={{ fontSize: 10, color: 'rgba(232,220,200,0.4)', marginTop: 4 }}>
-          Sampled {sampledAt.slice(0, 10)} · synthetic profile (live API pending)
+          Sampled {sampledAt.slice(0, 10)}
+          {sourceApi ? ` · ${sourceApi}` : ''}
+          {confidence ? ` · confidence: ${confidence}` : ''}
+          {isSynthetic ? ' · illustrative only' : ''}
         </p>
       ) : null}
     </div>

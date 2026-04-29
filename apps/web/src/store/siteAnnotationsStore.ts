@@ -59,6 +59,12 @@ export interface Transect {
   sampledAt?: string;
   /** Cached sampled elevation profile (metres). */
   elevationProfileM?: number[];
+  /** Source label for the cached profile — "synthetic" or e.g. "NRCan HRDEM Lidar DTM (1m)". */
+  sourceApi?: string | null;
+  /** Confidence reported by the elevation reader; absent for synthetic. */
+  confidence?: 'high' | 'medium' | 'low';
+  /** Total profile distance in metres (live API only — synthetic profiles are unitless). */
+  totalDistanceM?: number;
   notes?: string;
 }
 
