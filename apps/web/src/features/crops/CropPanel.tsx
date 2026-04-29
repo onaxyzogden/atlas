@@ -19,6 +19,7 @@ import {
   formatGalYr,
   formatLitersYr,
 } from './waterDemand.js';
+import { useClimateMultiplier } from './useClimateMultiplier.js';
 import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
@@ -47,6 +48,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   const crops = useMemo(() => allCrops.filter((c) => c.projectId === projectId), [allCrops, projectId]);
   const addCropArea = useCropStore((s) => s.addCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);
+  const climate = useClimateMultiplier(projectId);
 
   const [selectedType, setSelectedType] = useState<CropAreaType>('orchard');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -147,7 +149,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
       irrigationType: 'rain_fed',
       phase,
       notes,
-      waterGalYr: computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass: resolvedWaterDemand }),
+      waterGalYr: computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass: resolvedWaterDemand }, climate.multiplier),
       ...(isMarketGarden && bundle ? { marketGardenBundle: bundle.id } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -158,7 +160,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
     draw?.deleteAll();
     setShowModal(false);
     setPendingGeometry(null);
-  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw, marketGardenBundleId]);
+  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw, marketGardenBundleId, climate.multiplier]);
 
   const areaHa = pendingArea / 10000;
   const info = CROP_TYPES[selectedType];
@@ -174,12 +176,12 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   );
   const waterDemandClass = activeBundle?.waterDemand ?? info.waterDemand;
   const waterGalYr = useMemo(
-    () => computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass }),
-    [pendingArea, selectedType, waterDemandClass],
+    () => computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass }, climate.multiplier),
+    [pendingArea, selectedType, waterDemandClass, climate.multiplier],
   );
   const waterLitersYr = useMemo(
-    () => computeWaterLitersYr(pendingArea, { areaType: selectedType, waterDemandClass }),
-    [pendingArea, selectedType, waterDemandClass],
+    () => computeWaterLitersYr(pendingArea, { areaType: selectedType, waterDemandClass }, climate.multiplier),
+    [pendingArea, selectedType, waterDemandClass, climate.multiplier],
   );
   const spacingNoun = SPACING_NOUN[selectedType] ?? 'plants';
 
@@ -332,6 +334,12 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
                   <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
                     ~{formatGalYr(waterGalYr)} ({formatLitersYr(waterLitersYr)})
                   </div>
+                  {!climate.unknown && climate.petMmYr !== null && (
+                    <div style={{ fontSize: 10, opacity: 0.55, marginTop: 2 }}>
+                      ×{climate.multiplier.toFixed(2)} climate
+                      {' '}({Math.round(climate.petMmYr)} mm/yr PET, {climate.method === 'penman-monteith' ? 'FAO-56' : 'Blaney-Criddle'})
+                    </div>
+                  )}
                 </div>
               </div>
               <div className={p.flex1}>

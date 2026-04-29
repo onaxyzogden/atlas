@@ -5,6 +5,12 @@
  * Orchard rates differ from food-forest, silvopasture, market-garden, etc.,
  * and within an orchard the species-derived class steps the rate up or down
  * (see `cropDemand.ts` in the shared package).
+ *
+ * `climateMultiplier` is optional — pass the value returned by
+ * `useClimateMultiplier(projectId)` to scale demand by site PET (FAO-56
+ * Penman-Monteith when NASA POWER is loaded, Blaney-Criddle fallback when
+ * only annual temperature is known). Callers that don't pass it get the
+ * temperate-baseline rate (1.0×), preserving back-compat.
  */
 
 export type { WaterDemandClass, CropAreaType } from '@ogden/shared/demand';
@@ -13,6 +19,7 @@ export {
   getCropAreaWaterGalYr,
   CROP_AREA_TYPICAL_GAL_PER_M2_YR,
   CROP_AREA_GAL_PER_M2_YR,
+  petClimateMultiplier,
 } from '@ogden/shared/demand';
 
 import type { CropAreaType, WaterDemandClass } from '@ogden/shared/demand';
@@ -24,15 +31,17 @@ const GAL_TO_L = 3.78541;
 export function computeWaterGalYr(
   areaM2: number,
   spec: { areaType: CropAreaType; waterDemandClass?: WaterDemandClass },
+  climateMultiplier: number = 1,
 ): number {
-  return Math.round(areaM2 * getCropAreaDemandGalPerM2Yr(spec));
+  return Math.round(areaM2 * getCropAreaDemandGalPerM2Yr(spec, climateMultiplier));
 }
 
 export function computeWaterLitersYr(
   areaM2: number,
   spec: { areaType: CropAreaType; waterDemandClass?: WaterDemandClass },
+  climateMultiplier: number = 1,
 ): number {
-  return Math.round(computeWaterGalYr(areaM2, spec) * GAL_TO_L);
+  return Math.round(computeWaterGalYr(areaM2, spec, climateMultiplier) * GAL_TO_L);
 }
 
 /** "1,100,000 gal/yr" or "1.1M gal/yr" — picks the friendlier form. */
