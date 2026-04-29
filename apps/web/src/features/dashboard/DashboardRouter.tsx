@@ -51,6 +51,8 @@ const FieldworkDashboard = lazy(() => import('./pages/FieldworkDashboard.js'));
 const VersionHistoryDashboard = lazy(() => import('./pages/VersionHistoryDashboard.js'));
 const BiomassDashboard = lazy(() => import('./pages/BiomassDashboard.js'));
 const ObserveHub = lazy(() => import('../observe/ObserveHub.js'));
+const StewardSurveyCard = lazy(() => import('../observe/StewardSurveyCard.js'));
+const IndigenousRegionalCard = lazy(() => import('../observe/IndigenousRegionalCard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -69,6 +71,18 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Observe Hub">
           <ObserveHub project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-steward-survey':
+      return (
+        <PanelShell name="Steward Survey">
+          <StewardSurveyCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'observe-indigenous-regional':
+      return (
+        <PanelShell name="Indigenous & Regional Context">
+          <IndigenousRegionalCard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'site-intelligence':

@@ -90,10 +90,7 @@ export default function ObserveHub({ project }: Props) {
     // now we surface vision phase notes as the closest existing signal.
     const phaseNotesFilled =
       visionData?.phaseNotes?.filter((p) => p.notes.trim().length > 0).length ?? 0;
-    const stewardName =
-      // Forward-compat: read optional steward field once Phase 4a lands.
-      ((visionData as unknown as { steward?: { name?: string } } | undefined)?.steward?.name) ??
-      null;
+    const stewardName = visionData?.steward?.name ?? null;
 
     const humanContext: ModuleSpec = {
       number: '1',

@@ -222,6 +222,17 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
     dashboardOnly: true,
   },
+  // Phase 4a — Human Context surfaces (Module 1 of the Observe spec).
+  {
+    id: 'observe-steward-survey', label: 'Steward Survey',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+  {
+    id: 'observe-indigenous-regional', label: 'Indigenous & Regional Context',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
 
   // ── Site Overview ──────────────────────────────────────────────────────────
   // Regulatory lives at the top of Site Overview — regulatory posture is
