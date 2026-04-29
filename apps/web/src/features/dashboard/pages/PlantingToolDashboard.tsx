@@ -31,6 +31,8 @@ import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
 import ShadeSuccessionForecastCard from '../../crops/ShadeSuccessionForecastCard.js';
 import TreeSpacingCalculatorCard from '../../crops/TreeSpacingCalculatorCard.js';
 import AgroforestryPatternAuditCard from '../../crops/AgroforestryPatternAuditCard.js';
+import { useClimateMultiplier } from '../../crops/useClimateMultiplier.js';
+import { ClimateAttributionChip } from '../../crops/ClimateAttributionChip.js';
 import css from './PlantingToolDashboard.module.css';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 
@@ -72,10 +74,19 @@ interface WaterDemandRollup {
  *
  * Strategy: for each area, resolve the species IDs against the catalog and
  * take the MAX water-demand class (conservative sizing — a mixed bed defers
- * to its thirstiest member). Multiply the class's per-m² rate by the area.
- * Areas with no known species fall through to `unknown` and contribute zero.
+ * to its thirstiest member). Multiply the class's per-m² rate by the area
+ * and the optional `climateMultiplier` (PET-driven, clamped 0.7–1.5 — see
+ * `useClimateMultiplier`). Areas with no known species fall through to
+ * `unknown` and contribute zero.
+ *
+ * Passing `climateMultiplier = 1` (the default) preserves the unscaled
+ * temperate-baseline behaviour for callers that don't have site climate
+ * loaded yet.
  */
-function buildWaterDemandRollup(cropAreas: CropArea[]): WaterDemandRollup {
+function buildWaterDemandRollup(
+  cropAreas: CropArea[],
+  climateMultiplier: number = 1,
+): WaterDemandRollup {
   const classOrder: Record<'low' | 'medium' | 'high', number> = { low: 1, medium: 2, high: 3 };
 
   const rows: CropAreaWaterRow[] = [];
@@ -92,10 +103,13 @@ function buildWaterDemandRollup(cropAreas: CropArea[]): WaterDemandRollup {
         dominant = sp.waterDemand;
       }
     }
-    const rate = getCropAreaDemandGalPerM2Yr({
-      areaType: area.type as CropAreaType,
-      waterDemandClass: dominant === 'unknown' ? undefined : dominant,
-    });
+    const rate = getCropAreaDemandGalPerM2Yr(
+      {
+        areaType: area.type as CropAreaType,
+        waterDemandClass: dominant === 'unknown' ? undefined : dominant,
+      },
+      climateMultiplier,
+    );
     const gallonsPerYear = Math.round(area.areaM2 * rate);
     rows.push({
       areaId: area.id,
@@ -1134,11 +1148,15 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
   // Yield estimates
   const yields = useMemo(() => computeYieldEstimates(cropAreas), [cropAreas]);
 
-  // §11 Water-demand rollup across placed crop areas. Climate / PET multiplier
-  // is applied in `computeHydrologyMetrics` (Hydrology dashboard), where full
-  // solar/wind/RH inputs are available. PlantingTool's display rollup stays at
-  // the unscaled per-area-type baseline so per-area numbers remain comparable.
-  const waterDemand = useMemo(() => buildWaterDemandRollup(cropAreas), [cropAreas]);
+  // §11 Water-demand rollup across placed crop areas, scaled by the same
+  // PET-driven climate multiplier the CropPanel popup uses (clamped 0.7–1.5,
+  // FAO-56 Penman-Monteith when NASA POWER fields are loaded, Blaney-Criddle
+  // fallback). Keeps the popup and dashboard agreed by construction.
+  const climateMx = useClimateMultiplier(project.id);
+  const waterDemand = useMemo(
+    () => buildWaterDemandRollup(cropAreas, climateMx.multiplier),
+    [cropAreas, climateMx.multiplier],
+  );
 
   // §11 Orchard safety — site-level frost/drainage/slope verdict + per-area risk
   const orchardSafety = useMemo(
@@ -1391,7 +1409,14 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
       {/* ── Water Demand Rollup (§11 species water-demand coupling) ─ */}
       {cropAreas.length > 0 && (
         <div className={css.section}>
-          <h2 className={css.sectionLabel}>WATER DEMAND</h2>
+          <h2 className={css.sectionLabel}>
+            WATER DEMAND
+            <ClimateAttributionChip
+              climate={climateMx}
+              className={css.railChip}
+              style={{ marginLeft: 8, cursor: 'help' }}
+            />
+          </h2>
 
           {/* Summary tiles */}
           <div className={css.waterSummary}>
@@ -1463,8 +1488,15 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
             <div>
               Compare this figure against the site&apos;s annual catchment potential in the
               <strong> Hydrology &rarr; Water Budget </strong>
-              tab. Planning-grade only &mdash; actual irrigation depends on climate,
+              tab. Planning-grade only &mdash; actual irrigation also depends on
               mulching, species maturity, and establishment vs. bearing phase.
+              {!climateMx.unknown && climateMx.petMmYr !== null && (
+                <>
+                  {' '}Numbers above are scaled by the site PET multiplier
+                  (×{climateMx.multiplier.toFixed(2)}), so they match the
+                  drawing-tool popup figures.
+                </>
+              )}
             </div>
           </div>
         </div>

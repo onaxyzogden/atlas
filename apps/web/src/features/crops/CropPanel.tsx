@@ -20,6 +20,7 @@ import {
   formatLitersYr,
 } from './waterDemand.js';
 import { useClimateMultiplier } from './useClimateMultiplier.js';
+import { ClimateAttributionChip } from './ClimateAttributionChip.js';
 import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
@@ -334,12 +335,11 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
                   <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
                     ~{formatGalYr(waterGalYr)} ({formatLitersYr(waterLitersYr)})
                   </div>
-                  {!climate.unknown && climate.petMmYr !== null && (
-                    <div style={{ fontSize: 10, opacity: 0.55, marginTop: 2 }}>
-                      ×{climate.multiplier.toFixed(2)} climate
-                      {' '}({Math.round(climate.petMmYr)} mm/yr PET, {climate.method === 'penman-monteith' ? 'FAO-56' : 'Blaney-Criddle'})
-                    </div>
-                  )}
+                  <ClimateAttributionChip
+                    climate={climate}
+                    className={p.chip}
+                    style={{ marginTop: 6, display: 'inline-block', cursor: 'help' }}
+                  />
                 </div>
               </div>
               <div className={p.flex1}>
