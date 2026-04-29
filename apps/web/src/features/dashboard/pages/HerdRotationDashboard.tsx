@@ -160,7 +160,23 @@ export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRo
     [paddocks],
   );
 
-  const totalAU = useMemo(() => computeAnimalUnits(inventory), [inventory]);
+  // Expand each species line into one entry per Schedule A subcategory (when
+  // recorded) so AU uses the precise factor; species without a subcategory
+  // choice contribute via the legacy single-factor path.
+  const totalAU = useMemo(() => {
+    const expanded = inventory.flatMap((e) => {
+      if (!e.bySubcategory || e.bySubcategory.length === 0) {
+        return [{ species: e.species, totalHead: e.totalHead }];
+      }
+      const taggedHead = e.bySubcategory.reduce((s, b) => s + b.totalHead, 0);
+      const untagged = Math.max(0, e.totalHead - taggedHead);
+      const rows: Array<{ species: typeof e.species; totalHead: number; subcategoryId?: string }> =
+        e.bySubcategory.map((b) => ({ species: e.species, totalHead: b.totalHead, subcategoryId: b.subcategoryId }));
+      if (untagged > 0) rows.push({ species: e.species, totalHead: untagged });
+      return rows;
+    });
+    return computeAnimalUnits(expanded);
+  }, [inventory]);
 
   /* ---------- Hero: dominant group & species ---------- */
   const heroInfo = useMemo(() => {

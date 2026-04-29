@@ -14,6 +14,7 @@ import {
   type FenceType,
 } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
+import { DEFAULT_SUBCATEGORY_BY_SPECIES, getScheduleAOptions } from './scheduleA.js';
 import { zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
@@ -60,6 +61,11 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   const [phase, setPhase] = useState('Phase 1');
   const [guestSafe, setGuestSafe] = useState(false);
   const [notes, setNotes] = useState('');
+  // Per-species Manitoba Schedule A subcategory picks. An entry of '' (empty
+  // string) means the user has explicitly opted out of a subcategory, falling
+  // back to the legacy single-factor AU. Missing keys are populated lazily
+  // from DEFAULT_SUBCATEGORY_BY_SPECIES when the species is first selected.
+  const [scheduleA, setScheduleA] = useState<Partial<Record<LivestockSpecies, string>>>({});
 
   // Paddock-draw intent is driven by the DomainFloatingToolbar's Paddock button.
   // When the toolbar fires `ogden:paddock:start`, we flip the intent flag so the
@@ -92,6 +98,7 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
         setFencing('electric');
         setGuestSafe(false);
         setNotes('');
+        setScheduleA({});
         setShowModal(true);
       }
     };
@@ -116,6 +123,14 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
       );
     }
 
+    // Persist only Schedule A picks for currently-selected species and only
+    // when the user picked a non-empty subcategory id.
+    const scheduleASubcategoryBySpecies: Partial<Record<LivestockSpecies, string>> = {};
+    for (const sp of selectedSpecies) {
+      const id = scheduleA[sp];
+      if (id) scheduleASubcategoryBySpecies[sp] = id;
+    }
+
     const paddock: Paddock = {
       id: crypto.randomUUID(),
       projectId,
@@ -132,6 +147,9 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
       shelterNote: '',
       phase,
       notes,
+      ...(Object.keys(scheduleASubcategoryBySpecies).length > 0
+        ? { scheduleASubcategoryBySpecies }
+        : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -141,12 +159,18 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
     draw?.deleteAll();
     setShowModal(false);
     setPendingGeometry(null);
-  }, [pendingGeometry, name, selectedSpecies, fencing, guestSafe, phase, notes, pendingArea, projectId, addPaddock, map, draw]);
+  }, [pendingGeometry, name, selectedSpecies, fencing, guestSafe, phase, notes, pendingArea, projectId, addPaddock, map, draw, scheduleA]);
 
   const toggleSpecies = (sp: LivestockSpecies) => {
-    setSelectedSpecies((prev) =>
-      prev.includes(sp) ? prev.filter((s) => s !== sp) : [...prev, sp],
-    );
+    setSelectedSpecies((prev) => {
+      if (prev.includes(sp)) return prev.filter((s) => s !== sp);
+      // Newly selected — seed a Schedule A default so the picker shows
+      // a sensible choice without forcing the user to interact.
+      setScheduleA((scA) =>
+        scA[sp] === undefined ? { ...scA, [sp]: DEFAULT_SUBCATEGORY_BY_SPECIES[sp] } : scA,
+      );
+      return [...prev, sp];
+    });
   };
 
   const areaHa = pendingArea / 10000;
@@ -260,17 +284,40 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
               ))}
             </div>
 
-            {/* Stocking info */}
+            {/* Stocking info + Manitoba Schedule A subcategory picker */}
             {selectedSpecies.length > 0 && (
               <div className={p.hintBox}>
                 {selectedSpecies.map((sp) => {
                   const info = LIVESTOCK_SPECIES[sp];
                   const capacity = Math.floor(areaHa * info.typicalStocking);
+                  const opts = getScheduleAOptions(sp);
+                  const currentSubId = scheduleA[sp] ?? DEFAULT_SUBCATEGORY_BY_SPECIES[sp];
                   return (
-                    <div key={sp} style={{ marginBottom: 4 }}>
+                    <div key={sp} style={{ marginBottom: 8 }}>
                       {info.icon} <strong>{info.label}:</strong> ~{capacity} {info.stockingUnit} at typical stocking ({info.typicalStocking}/ha)
                       <br />
                       <span className={p.opacity70}>{info.fencingNote}</span>
+                      {opts.length > 1 && (
+                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span className={p.opacity70} style={{ fontSize: 11 }}>Schedule A:</span>
+                          <select
+                            value={currentSubId ?? ''}
+                            onChange={(e) =>
+                              setScheduleA((prev) => ({ ...prev, [sp]: e.target.value }))
+                            }
+                            className={p.formInput}
+                            style={{ flex: 1, fontSize: 12, padding: '4px 6px' }}
+                            aria-label={`Manitoba Schedule A subcategory for ${info.label}`}
+                          >
+                            {opts.map((o) => (
+                              <option key={o.id} value={o.id}>
+                                {o.label} — {o.auFactorPerHead.toFixed(3)} AU/head
+                                {o.inScheduleA ? '' : ' (approx.)'}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

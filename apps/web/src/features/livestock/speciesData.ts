@@ -5,6 +5,7 @@
 import type { LivestockSpecies } from '../../store/livestockStore.js';
 import type { CropAreaType } from '../../store/cropStore.js';
 import { crop } from '../../lib/tokens';
+import { auFactorFor } from './scheduleA.js';
 
 export type StockingUnit = 'head' | 'hives' | 'birds';
 
@@ -127,13 +128,20 @@ export const AU_FACTORS: Record<LivestockSpecies, number> = {
 
 /**
  * Sum Animal Units across a livestock inventory.
+ *
+ * Each entry may optionally carry a Manitoba Schedule A subcategory id
+ * (see `scheduleA.ts`). When set and recognised, the subcategory's specific
+ * AU factor is used; otherwise the legacy `AU_FACTORS[species]`
+ * representative value is applied. This keeps existing data valid while
+ * letting projects refine to subcategory granularity.
+ *
  * Safe to call with an empty array or unknown species (defaults to 0).
  */
 export function computeAnimalUnits(
-  inventory: Array<{ species: LivestockSpecies; totalHead: number }>,
+  inventory: Array<{ species: LivestockSpecies; totalHead: number; subcategoryId?: string }>,
 ): number {
   return inventory.reduce(
-    (sum, e) => sum + e.totalHead * (AU_FACTORS[e.species] ?? 0),
+    (sum, e) => sum + e.totalHead * auFactorFor(e.species, e.subcategoryId),
     0,
   );
 }
