@@ -43,6 +43,8 @@ const ViewshedOverlay = lazy(() => import('./ViewshedOverlay.js'));
 const ViewshedToggle = lazy(() => import('./ViewshedOverlay.js').then((m) => ({ default: m.ViewshedToggle })));
 const MicroclimateOverlay = lazy(() => import('./MicroclimateOverlay.js'));
 const MicroclimateToggle = lazy(() => import('./MicroclimateOverlay.js').then((m) => ({ default: m.MicroclimateToggle })));
+const SectorOverlay = lazy(() => import('./SectorOverlay.js'));
+const SectorOverlayToggle = lazy(() => import('./SectorOverlay.js').then((m) => ({ default: m.SectorOverlayToggle })));
 const WindbreakOverlay = lazy(() => import('./WindbreakOverlay.js'));
 const WindbreakToggle = lazy(() => import('./WindbreakOverlay.js').then((m) => ({ default: m.WindbreakToggle })));
 const RestorationPriorityOverlay = lazy(() => import('./RestorationPriorityOverlay.js'));
@@ -356,6 +358,11 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
                 <MicroclimateToggle compact />
               </Suspense>
             }
+            sectorOverlaySlot={
+              <Suspense fallback={null}>
+                <SectorOverlayToggle compact />
+              </Suspense>
+            }
             windbreakSlot={
               <Suspense fallback={null}>
                 <WindbreakToggle compact />
@@ -451,6 +458,13 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         </Suspense>
         <Suspense fallback={null}>
           <MicroclimateOverlay projectId={apiProjectId} map={mapRef} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SectorOverlay
+            projectId={apiProjectId}
+            map={mapRef}
+            boundaryGeojson={project.parcelBoundaryGeojson}
+          />
         </Suspense>
         <Suspense fallback={null}>
           <WindbreakOverlay

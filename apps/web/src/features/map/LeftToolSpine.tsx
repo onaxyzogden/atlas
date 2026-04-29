@@ -34,6 +34,7 @@ interface LeftToolSpineProps {
    *  keeps Suspense boundaries stable. */
   viewshedSlot: ReactNode;
   microclimateSlot: ReactNode;
+  sectorOverlaySlot: ReactNode;
   windbreakSlot: ReactNode;
   restorationSlot: ReactNode;
   mulchCovercropSlot: ReactNode;
@@ -67,6 +68,7 @@ export default function LeftToolSpine({
   boundaryGeojson,
   viewshedSlot,
   microclimateSlot,
+  sectorOverlaySlot,
   windbreakSlot,
   restorationSlot,
   mulchCovercropSlot,
@@ -104,6 +106,7 @@ export default function LeftToolSpine({
       </Suspense>
       {viewshedSlot}
       {microclimateSlot}
+      {sectorOverlaySlot}
       {windbreakSlot}
       {restorationSlot}
       {mulchCovercropSlot}

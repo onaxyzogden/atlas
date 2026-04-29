@@ -66,6 +66,12 @@ interface MapState {
   microclimateVisible: boolean;
   setMicroclimateVisible: (v: boolean) => void;
 
+  // OBSERVE §5 sector overlay — when on, SectorOverlay reads user-authored
+  // sector arrows from siteAnnotationsStore and projects them as polygon
+  // wedges from the parcel centroid (sun, wind, fire, noise, wildlife, view).
+  sectorOverlayVisible: boolean;
+  setSectorOverlayVisible: (v: boolean) => void;
+
   // §6 windbreak opportunity overlay — when on, WindbreakOverlay computes
   // candidate windbreak lines client-side from the parcel bbox + climate
   // prevailing-wind direction and paints them as a dashed Mapbox line layer.
@@ -196,6 +202,9 @@ export const useMapStore = create<MapState>((set) => ({
 
   microclimateVisible: false,
   setMicroclimateVisible: (microclimateVisible) => set({ microclimateVisible }),
+
+  sectorOverlayVisible: false,
+  setSectorOverlayVisible: (sectorOverlayVisible) => set({ sectorOverlayVisible }),
 
   windbreakVisible: false,
   setWindbreakVisible: (windbreakVisible) => set({ windbreakVisible }),
