@@ -220,3 +220,19 @@ Replaced the legacy `DecisionSupportPanel` (single-column stack of ~17 cards) fo
 **Dual-context split.** `DecisionSupportPanel` is unchanged and still serves the 260px MapView right rail (narrow contexts cannot host a 2-col + sticky-rail layout). `DashboardRouter.tsx:224` is the only mount swap.
 
 Verification: typecheck clean, lint exit 0, build clean (1m 9s, PWA precache regenerated). Browser-verified at 1440×900: hero score circle, verdict badge, mini metrics, CTAs; blockers strip; 2-col body; sticky rail with verdict + readiness chips; no JS console errors.
+
+### Feasibility Brief exporter (2026-04-29)
+
+`apps/web/src/features/decision/lib/exportFeasibilityBrief.ts` mirrors the v3 Land-Brief pattern. `renderFeasibilityBriefMarkdown({ project, verdict, ranking, triage })` is a pure renderer; `useFeasibilityBriefDownloader(project)` composes `useFeasibilityVerdict` + `useTypeFitRanking` + triage into a memoized download callback. `FeasibilityCommandCenter` falls back to this downloader when no `onGenerateBrief` prop is supplied — hero + rail "Generate Feasibility Brief" CTA is now wired end-to-end. Sections: Header, Verdict + interpretation, Snapshot table, Readiness, Blocking Issues (grouped by triage tier), Vision Fit Detail (per-requirement table), Best-Use Ranking (top 8 with ★ for current direction), Methodology footer.
+
+### Planting Tool Command Center (2026-04-29)
+
+Templated the §21 cockpit recipe onto the second-most-cluttered Dashboard page: `apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx` (legacy single-column flow of 17+ sections → cockpit shell with verdict-first layout).
+
+**Layout.** Page header → verdict hero (band derived from `orchardSafety.overallSite` + blocker counts) → Blocking Issues strip → 2-col body (**Fit & Suitability**: Suitable Species — **Execution Reality**: Design Metrics, Water Demand, Orchard Safety, Nursery & Compost Proximity, Access & Irrigation Tie-In) → full-width **Design Detail** section (Frost Windows, Spacing Logic, Placement Validation, Companion Planting, Yield Estimates) → closed-by-default **Methodology drawer** (§12+ long-form cards: SeasonalProductivity, TreeSpacingCalculator, CompanionRotationPlanner, AllelopathyWarning, OrchardGuildSuggestions, AgroforestryPatternAudit, CanopyMaturity, ClimateShiftScenario, ShadeSuccessionForecast + AI Siting + VIEW ON MAP) + sticky **Decision Rail** (verdict, top blocker, next 3 actions, readiness chips for site / supply / logistics / species, CTAs).
+
+**No new analysis math.** `derivePlantingVerdict` + `derivePlantingBlockers` re-present the existing `orchardSafety`, `proximity`, `access`, `validations`, and `waterDemand` memos as a page-level "so what" + flat blocker list. Mini metrics: suitable-species ratio, orchard count, total trees, water demand gal/yr, blocker count. Blocker sources: orchard placement (risk + caution), missing nursery/compost/irrigation/path, proximity rows ≥ risk, access rows ≥ risk, placement-validation failures.
+
+**Single-file refactor.** Helpers, types, and CSS classes live alongside the existing `buildOrchardSafety` / `buildProximityChecks` / `buildAccessChecks` / `buildWaterDemandRollup` functions. `.module.css` gained ~270 lines for cockpit shell (`.cockpit*`, `.verdictHero*`, `.blockersStrip*`, `.rail*`, `.methodology*`); outer grid `minmax(0, 1fr) 280px` collapses at 1100px, inner body grid collapses at 960px.
+
+Verification: typecheck clean for new code (only pre-existing v3 errors remain); lint clean. Browser preview deferred to next session.
