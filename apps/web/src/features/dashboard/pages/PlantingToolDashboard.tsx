@@ -6,7 +6,7 @@
  * No hardcoded species or phenology.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
@@ -815,6 +815,267 @@ function buildAccessChecks(
   };
 }
 
+// ─── Cockpit verdict + blockers (templated from FeasibilityCommandCenter) ─────
+//
+// `derivePlantingVerdict` composes the existing site/orchard/proximity/access
+// memos into a single "so what" — site band, headline, subhead, and the metrics
+// row that anchors the hero. `derivePlantingBlockers` flattens the same memos
+// into an action-oriented list (severity-ranked) for the Blocking Issues strip.
+// No new analysis math — this only re-presents already-computed signals.
+
+type PlantingBand = 'good' | 'caution' | 'risk' | 'unknown';
+
+interface PlantingBlocker {
+  id: string;
+  label: string;
+  detail: string;
+  severity: 'risk' | 'caution';
+  source: 'site' | 'orchard' | 'proximity' | 'access' | 'placement';
+}
+
+interface PlantingVerdict {
+  band: PlantingBand;
+  bandLabel: string;
+  headline: string;
+  subhead: string;
+  body: string;
+  metrics: {
+    suitableSpecies: { suitable: number; total: number };
+    orchardCount: number;
+    totalTrees: number;
+    waterDemandGalYr: number;
+    riskCount: number;
+    cautionCount: number;
+  };
+  readiness: {
+    site: PlantingBand;
+    supply: PlantingBand;
+    logistics: PlantingBand;
+    suitability: PlantingBand;
+  };
+}
+
+function bandLabel(b: PlantingBand): string {
+  switch (b) {
+    case 'good': return 'Site Supports Planting';
+    case 'caution': return 'Workable with Adjustments';
+    case 'risk': return 'Material Risks Present';
+    case 'unknown': return 'Insufficient Data';
+  }
+}
+
+function maxBand(...bands: PlantingBand[]): PlantingBand {
+  let worst: PlantingBand = 'good';
+  for (const b of bands) if (STATUS_RANK[b] > STATUS_RANK[worst]) worst = b;
+  return worst;
+}
+
+function derivePlantingBlockers(
+  orchardSafety: OrchardSafety,
+  proximity: ProximityChecks,
+  access: AccessChecks,
+  validations: ReturnType<typeof validatePlacement>[],
+): PlantingBlocker[] {
+  const blockers: PlantingBlocker[] = [];
+
+  // Orchard placement — risk + caution
+  for (const p of orchardSafety.placements) {
+    if (p.status === 'risk' || p.status === 'caution') {
+      blockers.push({
+        id: `orchard-${p.areaId}`,
+        label: `${p.areaName} — orchard ${p.status === 'risk' ? 'risk' : 'caution'}`,
+        detail: p.reasons[0] ?? `Site-level ${p.status} on ${p.areaType.replace(/_/g, ' ')}.`,
+        severity: p.status === 'risk' ? 'risk' : 'caution',
+        source: 'orchard',
+      });
+    }
+  }
+
+  // Site-level missing layers
+  if (orchardSafety.site.drainage.status === 'risk') {
+    blockers.push({
+      id: 'site-drainage',
+      label: 'Site drainage is unsuitable for orchard trees',
+      detail: orchardSafety.site.drainage.detail,
+      severity: 'risk',
+      source: 'site',
+    });
+  }
+
+  // Proximity — missing source = risk; per-row risk → blocker
+  if (proximity.missingNursery && proximity.orchardCount > 0) {
+    blockers.push({
+      id: 'missing-nursery',
+      label: 'No nursery crop area placed',
+      detail: 'Sapling supply route unresolved — orchards have no propagation anchor.',
+      severity: 'risk',
+      source: 'proximity',
+    });
+  }
+  if (proximity.missingCompost && proximity.orchardCount > 0) {
+    blockers.push({
+      id: 'missing-compost',
+      label: 'No compost station placed',
+      detail: 'Mulch & amendment haul distances cannot be evaluated.',
+      severity: 'risk',
+      source: 'proximity',
+    });
+  }
+  for (const r of proximity.rows) {
+    if (r.overall === 'risk') {
+      blockers.push({
+        id: `prox-${r.areaId}`,
+        label: `${r.areaName} — supply route too long`,
+        detail: `Nursery: ${r.nursery.detail} Compost: ${r.compost.detail}`,
+        severity: 'risk',
+        source: 'proximity',
+      });
+    }
+  }
+
+  // Access — missing infra = risk; per-row risk → blocker
+  if (access.missingIrrigation && access.orchardCount > 0) {
+    blockers.push({
+      id: 'missing-irrigation',
+      label: 'No irrigation source placed',
+      detail: 'Tie-in distances cannot be sized — orchards have no water plan.',
+      severity: 'risk',
+      source: 'access',
+    });
+  }
+  if (access.missingHarvestPath && access.orchardCount > 0) {
+    blockers.push({
+      id: 'missing-path',
+      label: 'No drivable path placed',
+      detail: 'Harvest vehicle access is unresolved.',
+      severity: 'risk',
+      source: 'access',
+    });
+  }
+  for (const r of access.rows) {
+    if (r.overall === 'risk') {
+      blockers.push({
+        id: `acc-${r.areaId}`,
+        label: `${r.areaName} — access logistics`,
+        detail: `Irrigation: ${r.irrigation.detail} Harvest: ${r.harvest.detail}`,
+        severity: 'risk',
+        source: 'access',
+      });
+    }
+  }
+
+  // Placement validation failures
+  for (const v of validations) {
+    if (!v.valid && v.warnings.length > 0) {
+      blockers.push({
+        id: `place-${v.cropAreaId}`,
+        label: `${v.cropAreaName} — placement warning`,
+        detail: v.warnings[0] ?? 'Placement check failed.',
+        severity: 'caution',
+        source: 'placement',
+      });
+    }
+  }
+
+  // Sort: risks first, then cautions
+  blockers.sort((a, b) =>
+    a.severity === b.severity ? 0 : a.severity === 'risk' ? -1 : 1,
+  );
+
+  return blockers;
+}
+
+function derivePlantingVerdict(
+  suitability: { suitable: { id: string }[]; excluded: { species: { id: string } }[] },
+  orchardSafety: OrchardSafety,
+  proximity: ProximityChecks,
+  access: AccessChecks,
+  cropAreas: CropArea[],
+  metrics: { totalTrees: number },
+  waterDemand: WaterDemandRollup,
+  blockers: PlantingBlocker[],
+): PlantingVerdict {
+  const totalSpecies = suitability.suitable.length + suitability.excluded.length;
+  const suitablePct = totalSpecies > 0 ? suitability.suitable.length / totalSpecies : 0;
+
+  // Readiness chips
+  const site = orchardSafety.overallSite;
+  const supply = proximity.orchardCount === 0
+    ? 'unknown'
+    : proximity.rows.reduce<PlantingBand>(
+        (acc, r) => maxBand(acc, r.overall as PlantingBand),
+        'good',
+      );
+  const logistics = access.orchardCount === 0
+    ? 'unknown'
+    : access.rows.reduce<PlantingBand>(
+        (acc, r) => maxBand(acc, r.overall as PlantingBand),
+        'good',
+      );
+  const suitabilityBand: PlantingBand =
+    totalSpecies === 0 ? 'unknown'
+      : suitablePct >= 0.6 ? 'good'
+      : suitablePct >= 0.3 ? 'caution'
+      : 'risk';
+
+  // Aggregate band
+  const riskCount = blockers.filter((b) => b.severity === 'risk').length;
+  const cautionCount = blockers.filter((b) => b.severity === 'caution').length;
+
+  let band: PlantingBand;
+  if (riskCount > 0 || site === 'risk' || supply === 'risk' || logistics === 'risk') {
+    band = 'risk';
+  } else if (cautionCount > 0 || site === 'caution' || supply === 'caution' || logistics === 'caution') {
+    band = 'caution';
+  } else if (site === 'unknown' || (cropAreas.length === 0 && totalSpecies === 0)) {
+    band = 'unknown';
+  } else {
+    band = 'good';
+  }
+
+  const orchardCount = orchardSafety.placements.length;
+  const headline = orchardCount > 0
+    ? `Orchard Feasibility — ${orchardCount} placement${orchardCount === 1 ? '' : 's'}`
+    : 'Planting Plan — Site Suitability';
+
+  const subhead = `${bandLabel(band)} · ${suitability.suitable.length}/${totalSpecies || 0} species fit · ${riskCount} blocker${riskCount === 1 ? '' : 's'}`;
+
+  let body: string;
+  switch (band) {
+    case 'good':
+      body = orchardCount > 0
+        ? 'Site, supply, and access checks pass for placed orchards. Move into species selection and detailed spacing.'
+        : 'Site supports planting. Draw orchard, food-forest, or silvopasture areas to surface placement-grade checks.';
+      break;
+    case 'caution':
+      body = `${cautionCount} caution${cautionCount === 1 ? '' : 's'} flagged across site, supply, or logistics. Resolve before sizing the irrigation tie-in or finalizing nursery contracts.`;
+      break;
+    case 'risk':
+      body = `${riskCount} blocker${riskCount === 1 ? '' : 's'} prevent reliable placement. Address them before treating downstream water + yield numbers as final.`;
+      break;
+    case 'unknown':
+      body = 'Site layers (climate, soils, elevation) or crop areas are missing. Load layers and place orchards/gardens to run checks.';
+      break;
+  }
+
+  return {
+    band,
+    bandLabel: bandLabel(band),
+    headline,
+    subhead,
+    body,
+    metrics: {
+      suitableSpecies: { suitable: suitability.suitable.length, total: totalSpecies },
+      orchardCount,
+      totalTrees: metrics.totalTrees,
+      waterDemandGalYr: waterDemand.totalGallonsPerYear,
+      riskCount,
+      cautionCount,
+    },
+    readiness: { site, supply, logistics, suitability: suitabilityBand },
+  };
+}
+
 interface PlantingToolDashboardProps {
   project: LocalProject;
   onSwitchToMap: () => void;
@@ -939,16 +1200,121 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
     return { orientation, inRowLabel, inRowFt, inRowPct, betweenRowFt, btRowPct, zone };
   }, [elevation, climate]);
 
+  // ── Cockpit verdict + blockers (re-presents existing memos) ─────────
+  const blockers = useMemo(
+    () => derivePlantingBlockers(orchardSafety, proximity, access, validations),
+    [orchardSafety, proximity, access, validations],
+  );
+  const verdict = useMemo(
+    () => derivePlantingVerdict(suitability, orchardSafety, proximity, access, cropAreas, metrics, waterDemand, blockers),
+    [suitability, orchardSafety, proximity, access, cropAreas, metrics, waterDemand, blockers],
+  );
+  const blockersRef = useRef<HTMLDivElement | null>(null);
+  const scrollToBlockers = useCallback(() => {
+    blockersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   return (
-    <div className={css.page}>
-      {/* Hero */}
-      <div className={css.terrainHero}>
-        <div className={css.terrainOverlay}>
-          <span className={css.terrainTag}>PLANTING TOOL</span>
-          <h1 className={css.title}>Design Parameters</h1>
-          <span className={css.terrainSub}>SITE-FILTERED SPECIES &middot; ZONE {siting.zone}</span>
+    <div className={css.cockpit}>
+      <header className={css.cockpitHeader}>
+        <h1 className={css.cockpitTitle}>Planting Tool Command Center</h1>
+        <p className={css.cockpitSubtitle}>
+          Evaluate species fit, orchard placement, and supply-chain logistics for the planted design.
+        </p>
+      </header>
+
+      {/* ── Verdict hero ──────────────────────────────────────────── */}
+      <section className={`${css.verdictHero} ${css[`verdictBand_${verdict.band}`]}`}>
+        <div className={css.verdictTopRow}>
+          <span className={css.verdictTag}>PLANTING TOOL · ZONE {siting.zone}</span>
+          <span className={`${css.verdictBandPill} ${css[`verdictBandPill_${verdict.band}`]}`}>
+            {verdict.bandLabel}
+          </span>
         </div>
-      </div>
+        <h2 className={css.verdictHeadline}>{verdict.headline}</h2>
+        <p className={css.verdictSubhead}>{verdict.subhead}</p>
+        <p className={css.verdictBody}>{verdict.body}</p>
+        <div className={css.verdictMetrics}>
+          <div className={css.verdictMetric}>
+            <span className={css.verdictMetricLabel}>Suitable Species</span>
+            <span className={css.verdictMetricValue}>
+              {verdict.metrics.suitableSpecies.suitable}/{verdict.metrics.suitableSpecies.total || '—'}
+            </span>
+          </div>
+          <div className={css.verdictMetric}>
+            <span className={css.verdictMetricLabel}>Orchard Areas</span>
+            <span className={css.verdictMetricValue}>{verdict.metrics.orchardCount}</span>
+          </div>
+          <div className={css.verdictMetric}>
+            <span className={css.verdictMetricLabel}>Total Trees</span>
+            <span className={css.verdictMetricValue}>{verdict.metrics.totalTrees.toLocaleString()}</span>
+          </div>
+          <div className={css.verdictMetric}>
+            <span className={css.verdictMetricLabel}>Water Demand</span>
+            <span className={css.verdictMetricValue}>{formatGal(verdict.metrics.waterDemandGalYr)} gal/yr</span>
+          </div>
+          <div className={css.verdictMetric}>
+            <span className={css.verdictMetricLabel}>Blockers</span>
+            <span className={css.verdictMetricValue}>{verdict.metrics.riskCount}</span>
+          </div>
+        </div>
+        <div className={css.verdictCtaRow}>
+          {blockers.length > 0 && (
+            <button type="button" className={css.verdictCta} onClick={scrollToBlockers}>
+              Fix Blocking Issues
+            </button>
+          )}
+          <button type="button" className={`${css.verdictCta} ${css.verdictCta_primary}`} onClick={onSwitchToMap}>
+            Open Design Map →
+          </button>
+        </div>
+      </section>
+
+      {/* ── Blocking Issues strip ─────────────────────────────────── */}
+      <section
+        ref={blockersRef}
+        className={`${css.blockersStrip} ${blockers.length === 0 ? css.blockersStrip_clear : ''}`}
+      >
+        <div className={css.blockersStripHead}>
+          <h3 className={css.blockersStripTitle}>
+            {blockers.length === 0
+              ? '✓ No blocking issues detected'
+              : `Blocking Issues (${blockers.length})`}
+          </h3>
+          <p className={css.blockersStripHint}>
+            {blockers.length === 0
+              ? 'Site, supply, and logistics checks all clear.'
+              : 'Resolve risks first; cautions improve confidence.'}
+          </p>
+        </div>
+        {blockers.slice(0, 8).map((b) => (
+          <div key={b.id} className={css.blockerRow}>
+            <span className={`${css.blockerSeverity} ${css[`blockerSeverity_${b.severity}`]}`}>
+              {b.severity}
+            </span>
+            <span>
+              <span className={css.blockerLabel}>{b.label}</span>
+              <span className={css.blockerDetail}> — {b.detail}</span>
+            </span>
+            <button
+              type="button"
+              className={css.verdictCta}
+              style={{ padding: '4px 10px', fontSize: 11 }}
+              onClick={onSwitchToMap}
+            >
+              Fix on Map
+            </button>
+          </div>
+        ))}
+      </section>
+
+      {/* ── 2-col body + sticky rail ──────────────────────────────── */}
+      <div className={css.cockpitLayout}>
+        <div className={css.cockpitBody}>
+          <div className={css.bodyGrid}>
+            <section className={css.column}>
+              <h2 className={css.columnTitle}>Fit &amp; Suitability</h2>
+              <p className={css.columnHint}>Does the site match the chosen species and form?</p>
 
       {/* ── Suitable Species ─────────────────────────────────────── */}
       <div className={css.section}>
@@ -993,6 +1359,11 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
           </div>
         )}
       </div>
+            </section>
+
+            <section className={css.column}>
+              <h2 className={css.columnTitle}>Execution Reality</h2>
+              <p className={css.columnHint}>What will it take to plant, water, and harvest?</p>
 
       {/* ── Design Metrics ───────────────────────────────────────── */}
       <div className={css.section}>
@@ -1431,6 +1802,15 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
           </div>
         )}
       </div>
+            </section>
+          </div>
+
+          {/* ── Design Detail (full-width) ──────────────────────────── */}
+          <section className={css.cockpitSection}>
+            <h2 className={css.cockpitSectionTitle}>Design Detail</h2>
+            <p className={css.cockpitSectionHint}>
+              Frost windows, spacing logic, placement validation, companions, and yield estimates.
+            </p>
 
       {/* ── Frost-Safe Planting Windows ──────────────────────────── */}
       <div className={css.section}>
@@ -1542,6 +1922,12 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
           ))}
         </div>
       )}
+          </section>
+
+          {/* ── Methodology drawer ───────────────────────────────────── */}
+          <details className={css.methodology}>
+            <summary className={css.methodologySummary}>Methodology &amp; Long-Form Cards</summary>
+            <div className={css.methodologyBody}>
 
       {/* ── §12 Seasonal Productivity ────────────────────────────── */}
       <SeasonalProductivityCard project={project} />
@@ -1592,6 +1978,69 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
           <path d="M3 7H11M8 4L11 7L8 10" />
         </svg>
       </button>
+            </div>
+          </details>
+        </div>
+
+        {/* ── Sticky decision rail ──────────────────────────────────── */}
+        <aside className={css.cockpitRailWrap}>
+          <div className={css.rail}>
+            <div className={css.railSection}>
+              <span className={css.railLabel}>Verdict</span>
+              <span className={css.railValue}>{verdict.bandLabel}</span>
+              <span className={css.railDetail}>{verdict.subhead}</span>
+            </div>
+            {blockers.length > 0 && (
+              <div className={css.railSection}>
+                <span className={css.railLabel}>Top Blocker</span>
+                <span className={css.railValue}>{blockers[0]?.label}</span>
+                <span className={css.railDetail}>{blockers[0]?.detail}</span>
+              </div>
+            )}
+            {blockers.length > 1 && (
+              <div className={css.railSection}>
+                <span className={css.railLabel}>Next Actions</span>
+                <ul className={css.railList}>
+                  {blockers.slice(1, 4).map((b) => (
+                    <li key={b.id}>{b.label}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className={css.railSection}>
+              <span className={css.railLabel}>Readiness</span>
+              <div className={css.railChips}>
+                <span className={`${css.railChip} ${css[`railChip_${verdict.readiness.site}`] ?? ''}`}>
+                  Site: {verdict.readiness.site}
+                </span>
+                <span className={`${css.railChip} ${css[`railChip_${verdict.readiness.supply}`] ?? ''}`}>
+                  Supply: {verdict.readiness.supply}
+                </span>
+                <span className={`${css.railChip} ${css[`railChip_${verdict.readiness.logistics}`] ?? ''}`}>
+                  Logistics: {verdict.readiness.logistics}
+                </span>
+                <span className={`${css.railChip} ${css[`railChip_${verdict.readiness.suitability}`] ?? ''}`}>
+                  Species: {verdict.readiness.suitability}
+                </span>
+              </div>
+            </div>
+            <div className={css.railSection}>
+              <button
+                type="button"
+                className={`${css.verdictCta} ${css.verdictCta_primary}`}
+                onClick={onSwitchToMap}
+              >
+                Open Design Map →
+              </button>
+              {blockers.length > 0 && (
+                <button type="button" className={css.verdictCta} onClick={scrollToBlockers}>
+                  Jump to Blockers
+                </button>
+              )}
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
