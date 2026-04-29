@@ -50,6 +50,7 @@ const TemplatesDashboard = lazy(() => import('./pages/TemplatesDashboard.js'));
 const FieldworkDashboard = lazy(() => import('./pages/FieldworkDashboard.js'));
 const VersionHistoryDashboard = lazy(() => import('./pages/VersionHistoryDashboard.js'));
 const BiomassDashboard = lazy(() => import('./pages/BiomassDashboard.js'));
+const ObserveHub = lazy(() => import('../observe/ObserveHub.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -64,6 +65,12 @@ const SECTION_LABELS: Record<string, string> = {
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
   switch (section) {
+    case 'dashboard-observe-hub':
+      return (
+        <PanelShell name="Observe Hub">
+          <ObserveHub project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
     case 'site-intelligence':
       return (
         <PanelShell name="Site Intelligence">

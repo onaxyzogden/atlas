@@ -213,6 +213,16 @@ export const DOMAIN_ORDER: DomainGroupKey[] = [
 // ── NAV_ITEMS ────────────────────────────────────────────────────────────────
 
 export const NAV_ITEMS: NavItem[] = [
+  // ── Observe Hub ────────────────────────────────────────────────────────────
+  // Pinned first under the OBSERVE accordion (stage3 grouping). Hybrid landing
+  // page that summarises the six observation modules and links to detail
+  // dashboards. Dashboard-only — there is no map-rail equivalent.
+  {
+    id: 'dashboard-observe-hub', label: 'Observe Hub',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
+
   // ── Site Overview ──────────────────────────────────────────────────────────
   // Regulatory lives at the top of Site Overview — regulatory posture is
   // part of "what is this site" more than a separate compliance workflow.
