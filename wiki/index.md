@@ -17,6 +17,7 @@ Read this first at the start of every session.
 - [Data Pipeline](entities/data-pipeline.md) — BullMQ orchestration, layer adapters, workers
 - [PDF Export Service](entities/pdf-export-service.md) — Puppeteer templates, S3 storage, 7 export types
 - [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
+- [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens
@@ -58,6 +59,7 @@ Read this first at the start of every session.
 - [2026-04-28 Needs & Yields Dependency Graph](decisions/2026-04-28-needs-yields-dependency-graph.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/relationships` subpath, output→input routing required for design completion, `integrationScore` added to scoring engine
 - [2026-04-28 Temporal Slider — Succession Modelling](decisions/2026-04-28-temporal-slider-succession-modeling.md) — *(proposed)* P0 from Permaculture Scholar review; new `@ogden/shared/succession` subpath with species growth curves, Year 1-50 canvas slider, `temporalCoherenceScore` + `successionScore` sub-dimensions
 - [2026-04-28 Atlas Wind-Prevailing Sector Overlay](decisions/2026-04-28-atlas-wind-prevailing-overlay.md) — Fourth Diagnose matrix toggle (eight-direction compass-petal rose); mock Eastern-Ontario climatology; `matrixTogglesStore` v4 → v5
+- [2026-04-29 OBSERVE Stage IA Restructure](decisions/2026-04-29-observe-stage-ia-restructure.md) — Collapse 5-stage taxonomy to 3-stage Observe/Plan/Act lens; new `ObserveHub` landing surface + 17-item Observe accordion + 8 gap surfaces (steward survey, regional context, hazards log, A–B cross-section, soil tests, food-chain, sector compass, SWOT journal + diagnosis report); new persisted `siteAnnotationsStore` instead of extending fetch-driven `siteDataStore`
 
 ## Design System
 - [IA & Panel Conventions](../design-system/ogden-atlas/ia-and-panel-conventions.md) — Perimeter strategy, z-index scales, rail/popover/modal decision matrix, map-floating inventory; codifies UX Scholar audit §§1 + 3 (P2)

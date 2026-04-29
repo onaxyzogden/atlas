@@ -23,6 +23,10 @@ src/
     export/         — InvestorSummaryExport, ProjectSummaryExport, EducationalBookletExport
     fieldwork/      — FieldworkPanel, FieldNoteExport
     map/            — Map view, drawing tools, layer controls
+    observe/        — OBSERVE-stage hub + 8 gap surfaces (steward, regional,
+                      hazards, cross-section, soil tests, food-chain, sector
+                      compass, SWOT journal, diagnosis report) — see
+                      [[2026-04-29-observe-stage-ia-restructure]]
     <slug>/         — 28 scaffolded §§2-29 feature folders (CONTEXT.md + Page.tsx + index.ts)
                       driven by [[feature-manifest]]. §1 uses legacy project/ folder.
   store/            — 26 Zustand stores
@@ -43,7 +47,18 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
 | Reporting & Portal | `--color-group-reporting` | Reports & Export, Public Portal, Educational Atlas |
 | General | `--color-group-general` | Biomass, Siting Rules, Settings, Archive |
 
-## Zustand Stores (18)
+## Sidebar Stage Lens (3-stage Observe/Plan/Act — 2026-04-29)
+- `features/navigation/taxonomy.ts` carries both `stage: StageKey` (S1–S5)
+  and `stage3: Stage3Key` (`observe | plan | act`) on every NavItem.
+- `uiStore.sidebarGrouping` defaults to `'stage3'`; `'stage' | 'phase' |
+  'domainGroup'` remain available via `GroupingToggle` for power users.
+- Mapping: S1 + S2 → observe · S3 design + S4 → plan · S3 operate + S5 →
+  act. Decision: [[2026-04-29-observe-stage-ia-restructure]].
+- Observe accordion is a 17-item flat list (Hub + 6 existing dashboards + 9
+  new dashboardOnly observe surfaces + report exporter); `ObserveHub` is
+  the default landing surface for the stage.
+
+## Zustand Stores (19)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection
 - `zoneStore` — land zones (13 categories)
@@ -55,7 +70,10 @@ All use `persist` middleware with localStorage. Key stores:
 - `scenarioStore` — design scenario snapshots (v2, full dollars)
 - `financialStore` — region, mission weights, overrides
 - `fieldworkStore` — field notes, walk routes, punch lists
-- `siteDataStore` — cached layer data
+- `siteDataStore` — cached layer data (fetch-driven, ephemeral)
+- `siteAnnotationsStore` — user-authored OBSERVE annotations (hazards,
+  transects, sectors, ecology, succession, SWOT) — see
+  [[site-annotations-store]]
 - `commentStore` — design comments
 
 ## Map / Geocoding
