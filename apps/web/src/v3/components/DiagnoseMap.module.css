@@ -117,9 +117,9 @@
 }
 
 .toolBtn[data-active="true"] {
-  background: #c4a265;
-  color: #1f1d1a;
-  border-color: #c4a265;
+  background: var(--color-gold-brand, #d4af5f);
+  color: var(--color-on-primary, #2a2018);
+  border-color: var(--color-gold-brand, #d4af5f);
 }
 
 .empty {

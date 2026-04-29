@@ -50,10 +50,15 @@
   gap: 2px;
 }
 .ringValue {
-  font-size: 40px; font-weight: 700; color: var(--color-text);
+  /* Hero photoWrap is always the dark estate gradient regardless of theme,
+     so the ring text is palette-locked to the dark-mode parchment scale. */
+  font-family: var(--font-display);
+  font-size: 48px; font-weight: 500;
+  color: #f3ecd7;
+  letter-spacing: 0.01em;
   line-height: 1;
 }
-.ringDenom { font-size: 11px; color: var(--color-text-muted); }
+.ringDenom { font-size: 11px; color: #cfc9b8; }
 .ringLabel {
   margin-top: 6px;
   font-size: 9px; font-weight: 600;
@@ -73,8 +78,10 @@
 }
 .verdictHeadline {
   margin: 0;
-  font-size: 30px; font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 500;
   color: var(--color-text);
+  letter-spacing: 0.01em;
   line-height: 1.15;
 }
 .divider {
@@ -84,8 +91,10 @@
 }
 .title {
   margin: 0;
-  font-size: 22px; font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 500;
   color: var(--color-text);
+  letter-spacing: 0.01em;
   line-height: 1.2;
 }
 .meta {

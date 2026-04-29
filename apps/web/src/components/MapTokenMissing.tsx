@@ -35,7 +35,7 @@ export default function MapTokenMissing() {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        background: 'var(--color-bg, #1a1611)',
+        background: 'var(--color-bg, #f6f4ee)',
         color: 'var(--color-text, #f2ede3)',
         padding: 40,
         textAlign: 'center',

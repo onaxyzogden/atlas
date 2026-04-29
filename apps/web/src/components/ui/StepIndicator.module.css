@@ -163,8 +163,8 @@
 
 /* Current */
 .current .circle {
-  background-color: var(--color-primary, #7d6140);
-  border-color: var(--color-primary, #7d6140);
+  background-color: var(--color-primary, #d4af5f);
+  border-color: var(--color-primary, #d4af5f);
   color: #fff;
   box-shadow: 0 0 0 3px rgba(var(--color-gold-rgb), 0.25);
 }

@@ -32,7 +32,7 @@ const ACCENT_VAR: Record<SparklineAccent, string> = {
   success: 'var(--color-success, #7fb98a)',
   warning: 'var(--color-warning, #d4a847)',
   error:   'var(--color-error, #d07b7b)',
-  primary: 'var(--color-primary, #c4a265)',
+  primary: 'var(--color-primary, #d4af5f)',
 };
 
 export const Sparkline: React.FC<SparklineProps> = ({

@@ -62,9 +62,9 @@ const PRESETS: Preset[] = [
     intent: 'Bold, projector-friendly palette with strong figure-ground separation. Optimized for slide decks, investor pitches, and stakeholder workshops.',
     palette: [
       { label: 'Background', color: '#1a1a1a' },
-      { label: 'Primary line', color: '#e8dcc8' },
+      { label: 'Primary line', color: '#f3ecd7' },
       { label: 'Secondary', color: '#b4a58c' },
-      { label: 'Accent', color: '#c4a265' },
+      { label: 'Accent', color: '#d4af5f' },
       { label: 'Annotation', color: '#96c8aa' },
     ],
     recommendedExport: 'PNG @ 2× · 16:9 (1920 × 1080)',

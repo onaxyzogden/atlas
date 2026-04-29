@@ -35,7 +35,7 @@
 .row input {
   margin: 2px 0 0;
   cursor: pointer;
-  accent-color: var(--color-brand, #c4a265);
+  accent-color: var(--color-brand, #d4af5f);
 }
 
 .rowBody {
@@ -96,7 +96,7 @@
   border: 0;
   padding: 2px 0;
   font-size: 11px;
-  color: var(--color-brand, #c4a265);
+  color: var(--color-brand, #d4af5f);
   cursor: pointer;
   font-family: inherit;
 }

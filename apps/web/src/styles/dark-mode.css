@@ -1,183 +1,200 @@
 /* ============================================================================
    OGDEN Atlas - Dark Mode Token Overrides
-   A warm-evening palette: deep browns, warm golds, and muted sage.
+   Estate palette (2026-04-28): near-black green-tinted base, gold accent,
+   sage active state, parchment text. Replaces the prior warm-brown palette.
    ============================================================================ */
 
 /* ── Shared dark-mode overrides (used by both auto and manual toggle) ─────── */
 :root[data-theme="dark"],
 :root:not([data-theme="light"]):is(.prefers-dark) {
 
-  /* -- Background & Surface (elevation tiers, UX Scholar 2026-04-23) ------
-   * Surfaces get lighter as they rise to mimic natural light-from-above.
-   * Base → surface → raised = +6L per step in warm-neutral space. */
-  --color-bg:              #1a1611;
-  --color-surface:         #2a2420;
-  --color-surface-raised:  #342d26;
+  /* -- Background & Surface (elevation tiers) -----------------------------
+   * Surfaces get lighter as they rise. Estate base reads as near-black with
+   * a faint forest-green cast; surfaces are translucent-ready cards. */
+  --color-bg:              #0b0e0c;
+  --color-surface:         #14181a;
+  --color-surface-raised:  #1c2120;
 
-  /* Chrome neutrals override (slightly lifted off pure bg for depth) */
-  --color-chrome-bg:             #1f1d1a;
-  --color-chrome-bg-translucent: rgba(31, 29, 26, 0.95);
-  --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+  /* Chrome neutrals override (slightly darker than bg for sidebar contrast) */
+  --color-chrome-bg:             #0a0d0b;
+  --color-chrome-bg-translucent: rgba(10, 13, 11, 0.95);
+  --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
   --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
-  /* -- Borders ------------------------------------------------------------- */
-  --color-border:          #3d3328;
-  --color-border-subtle:   #332a1f;
+  /* -- Borders (gold-tinted, very low alpha) ------------------------------- */
+  --color-border:          rgba(212, 175, 95, 0.18);
+  --color-border-subtle:   rgba(212, 175, 95, 0.10);
 
-  /* -- Text ---------------------------------------------------------------- */
-  --color-text:            #f2ede3;
-  --color-text-muted:      #9a8a74;
-  --color-text-subtle:     #7d6e5a;
+  /* -- Text (parchment ladder) --------------------------------------------- */
+  --color-text:            #f3ecd7;
+  --color-text-muted:      #cfc9b8;
+  --color-text-subtle:     #a59f8c;
 
-  /* -- Primary (warm gold) ------------------------------------------------- */
-  --color-primary:         #c4a265;
-  --color-primary-hover:   #d4b478;
+  /* -- Primary (estate gold) ----------------------------------------------- */
+  --color-primary:         #d4af5f;
+  --color-primary-hover:   #e0b56d;
+  --color-on-primary:      #2a2018;
 
-  /* -- Accent (sage green) ------------------------------------------------- */
-  --color-accent:          #6b8f6b;
-  --color-accent-hover:    #7da17d;
+  /* -- Accent (sage green active) ------------------------------------------ */
+  --color-accent:          #8fc89a;
+  --color-accent-hover:    #a8d39a;
+  --color-on-accent:       #1a2418;
 
   /* -- Focus --------------------------------------------------------------- */
-  --color-focus-ring:      rgba(196, 162, 101, 0.5);
+  --color-focus-ring:      rgba(212, 175, 95, 0.5);
 
   /* -- Panel / Sidebar ----------------------------------------------------- */
-  --color-panel-bg:          #1a1611;
-  --color-panel-text:        #f2ede3;
-  --color-panel-muted:       #9a8a74;
-  --color-panel-card:        rgba(255, 255, 255, 0.03);
-  --color-panel-card-border: rgba(255, 255, 255, 0.06);
-  --color-panel-title:       #c4a265;
-  --color-panel-section:     #9a8a74;
-  --color-panel-subtle:      rgba(255, 255, 255, 0.04);
+  --color-panel-bg:          #0a0d0b;
+  --color-panel-text:        #f3ecd7;
+  --color-panel-muted:       #cfc9b8;
+  --color-panel-card:        rgba(20, 24, 22, 0.75);
+  --color-panel-card-border: rgba(212, 175, 95, 0.12);
+  --color-panel-title:       #d4af5f;
+  --color-panel-section:     #a59f8c;
+  --color-panel-subtle:      rgba(212, 175, 95, 0.04);
+
+  /* -- Sidebar (overrides; chrome already estate-dark) -------------------- */
+  --color-sidebar-bg:        #0a0d0b;
+  --color-sidebar-icon:      #cfc9b8;
+  --color-sidebar-active:    #d4af5f;
+  --color-sidebar-text:      #e8e2d1;
 
   /* -- Map Header ---------------------------------------------------------- */
-  --color-map-header-bg:     rgba(26, 22, 17, 0.95);
-  --color-map-header-text:   #f2ede3;
-  --color-map-header-muted:  #9a8a74;
+  --color-map-header-bg:     rgba(10, 13, 11, 0.95);
+  --color-map-header-text:   #f3ecd7;
+  --color-map-header-muted:  #cfc9b8;
 
-  /* -- Status (semantic) --------------------------------------------------- */
-  --color-success:         #5a9e6f;
-  --color-success-muted:   rgba(90, 158, 111, 0.15);
-  --color-warning:         #c4a044;
-  --color-warning-muted:   rgba(196, 160, 68, 0.15);
-  --color-error:           #c45a4a;
-  --color-error-muted:     rgba(196, 90, 74, 0.15);
-  --color-info:            #6ea0bf;
-  --color-info-muted:      rgba(110, 160, 191, 0.15);
+  /* -- Status (semantic) — sage success, gold warn, terracotta error ------- */
+  --color-success:         #8fc89a;
+  --color-success-muted:   rgba(143, 200, 154, 0.15);
+  --color-warning:         #d4af5f;
+  --color-warning-muted:   rgba(212, 175, 95, 0.15);
+  --color-error:           #d27a6a;
+  --color-error-muted:     rgba(210, 122, 106, 0.15);
+  --color-info:            #8ab4c9;
+  --color-info-muted:      rgba(138, 180, 201, 0.15);
 
   /* -- Confidence ---------------------------------------------------------- */
-  --color-confidence-high:   #5a9e6f;
-  --color-confidence-medium: #c4a044;
-  --color-confidence-low:    #c45a4a;
+  --color-confidence-high:   #8fc89a;
+  --color-confidence-medium: #d4af5f;
+  --color-confidence-low:    #d27a6a;
 
   /* -- Status indicators (dashboard) --------------------------------------- */
-  --color-status-good:     #7a9a6a;
-  --color-status-moderate:  #c4a265;
-  --color-status-poor:     #c45a4a;
+  --color-status-good:     #8fc89a;
+  --color-status-moderate: #d4af5f;
+  --color-status-poor:     #d27a6a;
 
   /* -- RGB channel variants (dark mode) ------------------------------------ */
-  --color-primary-rgb:         196, 162, 101;
-  --color-accent-rgb:          107, 143, 107;
-  --color-success-rgb:         90, 158, 111;
-  --color-warning-rgb:         196, 160, 68;
-  --color-error-rgb:           196, 90, 74;
-  --color-info-rgb:            90, 148, 184;
-  --color-confidence-high-rgb: 90, 158, 111;
-  --color-confidence-med-rgb:  196, 160, 68;
-  --color-confidence-low-rgb:  196, 90, 74;
-  --color-gold-rgb:            196, 162, 101;
-  --color-sage-rgb:            107, 143, 107;
+  --color-primary-rgb:         212, 175, 95;
+  --color-accent-rgb:          143, 200, 154;
+  --color-success-rgb:         143, 200, 154;
+  --color-warning-rgb:         212, 175, 95;
+  --color-error-rgb:           210, 122, 106;
+  --color-info-rgb:            138, 180, 201;
+  --color-confidence-high-rgb: 143, 200, 154;
+  --color-confidence-med-rgb:  212, 175, 95;
+  --color-confidence-low-rgb:  210, 122, 106;
+  --color-gold-rgb:            212, 175, 95;
+  --color-sage-rgb:            143, 200, 154;
+  --color-text-muted-rgb:      207, 201, 184;
 
   /* -- Shadows ------------------------------------------------------------- */
-  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
-  --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.45);
+  --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.5);
 }
 
 /* ── System preference (auto) — applies shared overrides ──────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
 
-    --color-bg:              #1a1611;
-    --color-surface:         #2a2420;
-    --color-surface-raised:  #342d26;
+    --color-bg:              #0b0e0c;
+    --color-surface:         #14181a;
+    --color-surface-raised:  #1c2120;
 
-    --color-chrome-bg:             #1f1d1a;
-    --color-chrome-bg-translucent: rgba(31, 29, 26, 0.95);
-    --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+    --color-chrome-bg:             #0a0d0b;
+    --color-chrome-bg-translucent: rgba(10, 13, 11, 0.95);
+    --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
     --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
-    --color-border:          #3d3328;
-    --color-border-subtle:   #332a1f;
+    --color-border:          rgba(212, 175, 95, 0.18);
+    --color-border-subtle:   rgba(212, 175, 95, 0.10);
 
-    --color-text:            #f2ede3;
-    --color-text-muted:      #9a8a74;
-    --color-text-subtle:     #7d6e5a;
+    --color-text:            #f3ecd7;
+    --color-text-muted:      #cfc9b8;
+    --color-text-subtle:     #a59f8c;
 
-    --color-primary:         #c4a265;
-    --color-primary-hover:   #d4b478;
+    --color-primary:         #d4af5f;
+    --color-primary-hover:   #e0b56d;
+    --color-on-primary:      #2a2018;
 
-    --color-accent:          #6b8f6b;
-    --color-accent-hover:    #7da17d;
+    --color-accent:          #8fc89a;
+    --color-accent-hover:    #a8d39a;
+    --color-on-accent:       #1a2418;
 
-    --color-focus-ring:      rgba(196, 162, 101, 0.5);
+    --color-focus-ring:      rgba(212, 175, 95, 0.5);
 
-    --color-panel-bg:          #1a1611;
-    --color-panel-text:        #f2ede3;
-    --color-panel-muted:       #9a8a74;
-    --color-panel-card:        rgba(255, 255, 255, 0.03);
-    --color-panel-card-border: rgba(255, 255, 255, 0.06);
-    --color-panel-title:       #c4a265;
-    --color-panel-section:     #9a8a74;
-    --color-panel-subtle:      rgba(255, 255, 255, 0.04);
+    --color-panel-bg:          #0a0d0b;
+    --color-panel-text:        #f3ecd7;
+    --color-panel-muted:       #cfc9b8;
+    --color-panel-card:        rgba(20, 24, 22, 0.75);
+    --color-panel-card-border: rgba(212, 175, 95, 0.12);
+    --color-panel-title:       #d4af5f;
+    --color-panel-section:     #a59f8c;
+    --color-panel-subtle:      rgba(212, 175, 95, 0.04);
 
-    --color-map-header-bg:     rgba(26, 22, 17, 0.95);
-    --color-map-header-text:   #f2ede3;
-    --color-map-header-muted:  #9a8a74;
+    --color-sidebar-bg:        #0a0d0b;
+    --color-sidebar-icon:      #cfc9b8;
+    --color-sidebar-active:    #d4af5f;
+    --color-sidebar-text:      #e8e2d1;
 
-    --color-success:         #5a9e6f;
-    --color-success-muted:   rgba(90, 158, 111, 0.15);
-    --color-warning:         #c4a044;
-    --color-warning-muted:   rgba(196, 160, 68, 0.15);
-    --color-error:           #c45a4a;
-    --color-error-muted:     rgba(196, 90, 74, 0.15);
-    --color-info:            #6ea0bf;
-    --color-info-muted:      rgba(110, 160, 191, 0.15);
+    --color-map-header-bg:     rgba(10, 13, 11, 0.95);
+    --color-map-header-text:   #f3ecd7;
+    --color-map-header-muted:  #cfc9b8;
 
-    --color-confidence-high:   #5a9e6f;
-    --color-confidence-medium: #c4a044;
-    --color-confidence-low:    #c45a4a;
+    --color-success:         #8fc89a;
+    --color-success-muted:   rgba(143, 200, 154, 0.15);
+    --color-warning:         #d4af5f;
+    --color-warning-muted:   rgba(212, 175, 95, 0.15);
+    --color-error:           #d27a6a;
+    --color-error-muted:     rgba(210, 122, 106, 0.15);
+    --color-info:            #8ab4c9;
+    --color-info-muted:      rgba(138, 180, 201, 0.15);
 
-    --color-status-good:     #7a9a6a;
-    --color-status-moderate:  #c4a265;
-    --color-status-poor:     #c45a4a;
+    --color-confidence-high:   #8fc89a;
+    --color-confidence-medium: #d4af5f;
+    --color-confidence-low:    #d27a6a;
 
-    --color-primary-rgb:         196, 162, 101;
-    --color-accent-rgb:          107, 143, 107;
-    --color-success-rgb:         90, 158, 111;
-    --color-warning-rgb:         196, 160, 68;
-    --color-error-rgb:           196, 90, 74;
-    --color-info-rgb:            90, 148, 184;
-    --color-confidence-high-rgb: 90, 158, 111;
-    --color-confidence-med-rgb:  196, 160, 68;
-    --color-confidence-low-rgb:  196, 90, 74;
-    --color-gold-rgb:            196, 162, 101;
-    --color-sage-rgb:            107, 143, 107;
+    --color-status-good:     #8fc89a;
+    --color-status-moderate: #d4af5f;
+    --color-status-poor:     #d27a6a;
 
-    --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.3);
-    --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.3);
-    --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.3);
+    --color-primary-rgb:         212, 175, 95;
+    --color-accent-rgb:          143, 200, 154;
+    --color-success-rgb:         143, 200, 154;
+    --color-warning-rgb:         212, 175, 95;
+    --color-error-rgb:           210, 122, 106;
+    --color-info-rgb:            138, 180, 201;
+    --color-confidence-high-rgb: 143, 200, 154;
+    --color-confidence-med-rgb:  212, 175, 95;
+    --color-confidence-low-rgb:  210, 122, 106;
+    --color-gold-rgb:            212, 175, 95;
+    --color-sage-rgb:            143, 200, 154;
+    --color-text-muted-rgb:      207, 201, 184;
+
+    --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg:  0 10px 15px rgba(0, 0, 0, 0.45);
+    --shadow-xl:  0 20px 25px rgba(0, 0, 0, 0.5);
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
- * OKLCH overrides (UX Scholar 2026-04-23, §2 + §4)
- * Gated on browser support so older engines fall through to the hex
- * declarations above. Reverse-computed from existing hex for visual
- * parity; future pass can tighten L values for perceived-brightness
- * uniformity across overlay hues.
+ * OKLCH overrides — gated on browser support so older engines fall through
+ * to the hex declarations above. Reverse-computed from the estate palette
+ * (2026-04-28) so OKLCH-capable browsers get the same dark-forest base and
+ * gold/sage hues as the hex fallback.
  * ───────────────────────────────────────────────────────────────────────── */
 @supports (color: oklch(0 0 0)) {
   :root[data-theme="dark"],

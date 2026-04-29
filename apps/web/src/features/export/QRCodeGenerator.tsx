@@ -100,7 +100,7 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
         padding: 24, textAlign: 'center', maxWidth: 320,
         border: '1px solid rgba(196,162,101,0.15)',
       }}>
-        <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-panel-title, #c4a265)', marginBottom: 16 }}>
+        <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-panel-title, #d4af5f)', marginBottom: 16 }}>
           Portal QR Code
         </h3>
 

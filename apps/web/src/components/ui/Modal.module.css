@@ -91,7 +91,7 @@
   border: none;
   border-radius: var(--radius-md, 8px);
   background: transparent;
-  color: var(--color-text-muted, #7d6140);
+  color: var(--color-text-muted, #5a5443);
   cursor: pointer;
   transition:
     background-color var(--duration-fast, 100ms) ease,
@@ -100,7 +100,7 @@
 
 .closeButton:hover {
   background-color: rgba(0, 0, 0, 0.06);
-  color: var(--color-text, #312617);
+  color: var(--color-text, #1f231e);
 }
 
 .closeButton:focus-visible {
@@ -120,14 +120,14 @@
   font-size: var(--text-lg, 1.125rem);
   font-weight: var(--font-semibold, 600);
   line-height: var(--leading-tight, 1.25);
-  color: var(--color-text, #312617);
+  color: var(--color-text, #1f231e);
 }
 
 .description {
   margin: var(--space-1, 4px) 0 0;
   font-size: var(--text-sm, 0.8125rem);
   line-height: var(--leading-normal, 1.5);
-  color: var(--color-text-muted, #7d6140);
+  color: var(--color-text-muted, #5a5443);
 }
 
 /* --- Body ----------------------------------------------------------------- */

@@ -75,7 +75,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-brand, #c4a265);
+  color: var(--color-brand, #d4af5f);
 }
 
 .ethicBody {
@@ -112,8 +112,8 @@
   justify-content: center;
   font-size: 13px;
   font-weight: 700;
-  background: var(--color-brand, #c4a265);
-  color: #1f1d1a;
+  background: var(--color-brand, #d4af5f);
+  color: #0b0e0c;
 }
 
 .principleBody {

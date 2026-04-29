@@ -606,8 +606,8 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
             style={{
               flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 600,
               border: 'none', borderRadius: 8, letterSpacing: '0.02em',
-              background: name.trim() ? 'rgba(196, 162, 101, 0.2)' : 'var(--color-panel-subtle)',
-              color: name.trim() ? '#c4a265' : 'var(--color-panel-muted)',
+              background: name.trim() ? 'rgba(212, 175, 95, 0.20)' : 'var(--color-panel-subtle)',
+              color: name.trim() ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
               cursor: name.trim() ? 'pointer' : 'not-allowed',
             }}
           >

@@ -4,19 +4,29 @@
   gap: var(--space-5);
   padding: var(--space-6);
   max-width: 1240px;
+  /* Estate-palette ambient texture: faint gold + sage radial washes layered
+     over the base bg. Reads as candle-warm parchment in light mode and as
+     deep-forest near-black in dark — both modes share the same texture
+     formula so the chrome feels continuous across the toggle. */
+  background:
+    radial-gradient(ellipse at top left, rgba(212, 175, 95, 0.06), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(143, 200, 154, 0.05), transparent 55%);
 }
 
 .pageHeader {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  padding-bottom: var(--space-2);
 }
 .pageTitle {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 500;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
 }
 .pageSubtitle {
   font-size: 14px;
@@ -34,9 +44,10 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
 }
 
 .sectionHeader {
@@ -48,10 +59,12 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
   color: var(--color-text);
-  letter-spacing: -0.005em;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .liveBadge {
@@ -102,8 +115,10 @@
   display: flex; align-items: baseline; gap: 4px;
 }
 .healthScore {
-  font-size: 28px; font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 500;
   color: var(--color-text);
+  letter-spacing: 0.01em;
   line-height: 1;
 }
 .healthDenom {
@@ -134,9 +149,10 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--color-panel-card);
+  border: 1px solid var(--color-panel-card-border);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
 }
 
 .colHeader {
@@ -150,10 +166,12 @@
 
 .colTitle {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
   color: var(--color-text);
-  letter-spacing: -0.005em;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .viewAll {
@@ -180,7 +198,14 @@
   flex-wrap: wrap;
 }
 .helpText { display: flex; flex-direction: column; gap: 4px; }
-.helpTitle { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text); }
+.helpTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
 .helpSub { font-size: 13px; color: var(--color-text-muted); }
 .helpActions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .helpBtn {

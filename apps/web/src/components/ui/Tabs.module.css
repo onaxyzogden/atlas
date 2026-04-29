@@ -55,8 +55,8 @@
 
 /* Active state */
 .tabActive {
-  color: var(--color-primary, #7d6140);
-  border-bottom-color: var(--color-primary, #7d6140);
+  color: var(--color-primary, #d4af5f);
+  border-bottom-color: var(--color-primary, #d4af5f);
   font-weight: var(--font-semibold, 600);
 }
 

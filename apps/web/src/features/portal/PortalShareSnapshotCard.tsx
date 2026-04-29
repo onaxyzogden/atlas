@@ -82,9 +82,9 @@ const PRESET_PALETTES: Record<string, { label: string; palette: { name: string; 
     label: 'Presentation',
     palette: [
       { name: 'Background', color: '#1a1a1a' },
-      { name: 'Primary', color: '#e8dcc8' },
+      { name: 'Primary', color: '#f3ecd7' },
       { name: 'Secondary', color: '#b4a58c' },
-      { name: 'Accent', color: '#c4a265' },
+      { name: 'Accent', color: '#d4af5f' },
       { name: 'Annotation', color: '#96c8aa' },
     ],
   },

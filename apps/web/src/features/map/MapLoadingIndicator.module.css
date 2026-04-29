@@ -47,7 +47,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #c4a265;
+  background: var(--color-gold-brand, #d4af5f);
   animation: dotPulse 1.2s ease-in-out infinite;
 }
 
