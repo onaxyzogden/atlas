@@ -11,10 +11,10 @@ import type { OpsTone, Project, TodayTile } from "../../types.js";
 import css from "./railPanel.module.css";
 
 const TONE_DOT: Record<OpsTone, string> = {
-  good: css.dotGood,
-  watch: css.dotWarning,
-  warning: css.dotBlocking,
-  neutral: css.dotInfo,
+  good: css.dotGood ?? "",
+  watch: css.dotWarning ?? "",
+  warning: css.dotBlocking ?? "",
+  neutral: css.dotInfo ?? "",
 };
 
 function priorityRank(t: TodayTile): number {

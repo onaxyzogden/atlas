@@ -31,7 +31,7 @@ function readinessLabel(value: string): string {
 export default function HomeRail({ project }: { project: Project }) {
   const stages = LIFECYCLE_STAGES;
   const currentIdx = stages.findIndex((s) => s.id === project.stage);
-  const currentStage = stages[currentIdx >= 0 ? currentIdx : 0];
+  const currentStage = stages[currentIdx >= 0 ? currentIdx : 0]!;
   // Stage progress is currently a fixture value (mock-only) rather than derived
   // from completed actions. Reference design shows 60% on Discover.
   const progressPct = 60;

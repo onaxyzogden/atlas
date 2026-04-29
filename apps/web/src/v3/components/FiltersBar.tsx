@@ -33,7 +33,7 @@ export default function FiltersBar({ resultCount }: FiltersBarProps) {
             onClick={() => {
               setActive((prev) => {
                 const idx = f.options.indexOf((prev[f.id] ?? "") as never);
-                const next = idx + 1 < f.options.length ? f.options[idx + 1] : null;
+                const next = idx + 1 < f.options.length ? (f.options[idx + 1] ?? null) : null;
                 return { ...prev, [f.id]: next };
               });
             }}

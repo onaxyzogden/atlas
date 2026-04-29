@@ -57,7 +57,7 @@ export default function Sparkline({
   });
 
   const lastX = (values.length - 1) * stepX;
-  const lastY = height - ((values[values.length - 1] - min) / range) * height;
+  const lastY = height - (((values[values.length - 1] ?? 0) - min) / range) * height;
 
   return (
     <svg

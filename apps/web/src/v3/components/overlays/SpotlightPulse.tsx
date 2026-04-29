@@ -20,7 +20,7 @@ export default function SpotlightPulse({ map, point }: SpotlightPulseProps) {
   useEffect(() => {
     if (!map) return;
     const el = document.createElement("div");
-    el.className = css.pulse;
+    el.className = css.pulse ?? "";
     el.setAttribute("aria-hidden", "true");
     el.innerHTML = `<span class="${css.ring}"></span><span class="${css.ring} ${css.ringDelay}"></span><span class="${css.dot}"></span>`;
     const marker = new maplibregl.Marker({ element: el, anchor: "center" })

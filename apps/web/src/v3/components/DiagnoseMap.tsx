@@ -61,13 +61,21 @@ export interface DiagnoseMapProps {
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
-function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds {
+function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
   const ring = poly.coordinates[0];
+  if (!ring || ring.length === 0) return null;
+  const first = ring[0];
+  if (!first || first[0] === undefined || first[1] === undefined) return null;
   const b = new maplibregl.LngLatBounds(
-    [ring[0][0], ring[0][1]],
-    [ring[0][0], ring[0][1]],
+    [first[0], first[1]],
+    [first[0], first[1]],
   );
-  for (const [lng, lat] of ring) b.extend([lng, lat]);
+  for (const pt of ring) {
+    const lng = pt[0];
+    const lat = pt[1];
+    if (lng === undefined || lat === undefined) continue;
+    b.extend([lng, lat]);
+  }
   return b;
 }
 
@@ -94,11 +102,13 @@ export default function DiagnoseMap({
   const { initialCenter, effectiveCentroid } = useMemo(() => {
     if (boundary) {
       const b = polygonBounds(boundary);
-      const c = b.getCenter();
-      return {
-        initialCenter: [c.lng, c.lat] as [number, number],
-        effectiveCentroid: [c.lng, c.lat] as [number, number],
-      };
+      if (b) {
+        const c = b.getCenter();
+        return {
+          initialCenter: [c.lng, c.lat] as [number, number],
+          effectiveCentroid: [c.lng, c.lat] as [number, number],
+        };
+      }
     }
     return { initialCenter: centroid, effectiveCentroid: centroid };
   }, [boundary, centroid]);
@@ -166,10 +176,13 @@ export default function DiagnoseMap({
           },
         });
       }
-      map.fitBounds(polygonBounds(boundary), {
-        padding: FIT_PADDING,
-        animate: false,
-      });
+      const fb = polygonBounds(boundary);
+      if (fb) {
+        map.fitBounds(fb, {
+          padding: FIT_PADDING,
+          animate: false,
+        });
+      }
     };
 
     // `isStyleLoaded()` stays false until raster tile sources finish, and

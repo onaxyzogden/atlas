@@ -110,11 +110,13 @@ export interface MarketGardenGeometry {
  *
  * Beds occupy `bedWidth / (bedWidth + pathWidth)` of the polygon footprint;
  * the rest is walking paths. Plants are placed on a square grid at
- * `bundle.spacingM`. Bed count assumes a nominal 30 m bed length.
+ * `bundle.spacingM`. Bed count uses `bedLengthM` when provided, otherwise
+ * falls back to the nominal `ASSUMED_BED_LENGTH_M` (30 m).
  */
 export function computeMarketGardenGeometry(
   areaM2: number,
   bundle: MarketGardenBundle,
+  bedLengthM?: number,
 ): MarketGardenGeometry {
   if (areaM2 <= 0 || bundle.spacingM <= 0) {
     return { plantCount: 0, bedCount: 0, bedAreaM2: 0 };
@@ -123,6 +125,7 @@ export function computeMarketGardenGeometry(
   const bedAreaM2 = areaM2 * bedFraction;
   const plantsPerM2 = 1 / (bundle.spacingM * bundle.spacingM);
   const plantCount = Math.floor(bedAreaM2 * plantsPerM2);
-  const bedCount = Math.floor(bedAreaM2 / (bundle.bedWidthM * ASSUMED_BED_LENGTH_M));
+  const effectiveBedLength = bedLengthM && bedLengthM > 0 ? bedLengthM : ASSUMED_BED_LENGTH_M;
+  const bedCount = Math.floor(bedAreaM2 / (bundle.bedWidthM * effectiveBedLength));
   return { plantCount, bedCount, bedAreaM2 };
 }

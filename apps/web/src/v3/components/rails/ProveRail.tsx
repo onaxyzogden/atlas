@@ -23,7 +23,7 @@ function useScrollSpy(ids: readonly string[]): string | null {
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        if (visible.length > 0) {
+        if (visible.length > 0 && visible[0]) {
           setActive(visible[0].target.id);
         }
       },

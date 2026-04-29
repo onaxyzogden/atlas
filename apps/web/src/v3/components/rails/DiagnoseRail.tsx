@@ -82,11 +82,11 @@ function dotForStatus(status: CategoryStatus): string {
   switch (status) {
     case "blocked":
     case "at-risk":
-      return css.dotBlocking;
+      return css.dotBlocking ?? "";
     case "conditional":
-      return css.dotWarning;
+      return css.dotWarning ?? "";
     default:
-      return css.dotInfo;
+      return css.dotInfo ?? "";
   }
 }
 

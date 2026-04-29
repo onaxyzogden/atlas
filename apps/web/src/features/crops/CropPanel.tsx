@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../livestock/speciesData.js';
 import {
+  ASSUMED_BED_LENGTH_M,
   MARKET_GARDEN_BUNDLES,
   MARKET_GARDEN_BUNDLES_BY_ID,
   computeMarketGardenGeometry,
@@ -93,6 +94,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   const [phase, setPhase] = useState('Phase 2');
   const [notes, setNotes] = useState('');
   const [marketGardenBundleId, setMarketGardenBundleId] = useState<string>('mixed');
+  const [marketGardenBedLengthM, setMarketGardenBedLengthM] = useState<number>(ASSUMED_BED_LENGTH_M);
 
   const startDraw = useCallback(() => {
     if (!draw || !map) return;
@@ -115,6 +117,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
         setSpeciesText('');
         setNotes('');
         setMarketGardenBundleId('mixed');
+        setMarketGardenBedLengthM(ASSUMED_BED_LENGTH_M);
         setShowModal(true);
       }
       setIsDrawing(false);
@@ -151,7 +154,14 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
       phase,
       notes,
       waterGalYr: computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass: resolvedWaterDemand }, climate.multiplier),
-      ...(isMarketGarden && bundle ? { marketGardenBundle: bundle.id } : {}),
+      ...(isMarketGarden && bundle
+        ? {
+            marketGardenBundle: bundle.id,
+            ...(marketGardenBedLengthM !== ASSUMED_BED_LENGTH_M
+              ? { marketGardenBedLengthM }
+              : {}),
+          }
+        : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -161,7 +171,7 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
     draw?.deleteAll();
     setShowModal(false);
     setPendingGeometry(null);
-  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw, marketGardenBundleId, climate.multiplier]);
+  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw, marketGardenBundleId, marketGardenBedLengthM, climate.multiplier]);
 
   const areaHa = pendingArea / 10000;
   const info = CROP_TYPES[selectedType];
@@ -172,8 +182,8 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
     [isMarketGarden, marketGardenBundleId],
   );
   const mgGeom = useMemo(
-    () => (activeBundle ? computeMarketGardenGeometry(pendingArea, activeBundle) : null),
-    [activeBundle, pendingArea],
+    () => (activeBundle ? computeMarketGardenGeometry(pendingArea, activeBundle, marketGardenBedLengthM) : null),
+    [activeBundle, pendingArea, marketGardenBedLengthM],
   );
   const waterDemandClass = activeBundle?.waterDemand ?? info.waterDemand;
   const waterGalYr = useMemo(
@@ -304,10 +314,20 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
                   ))}
                 </select>
                 <div className={p.text11} style={{ color: info.color, marginTop: 4 }}>
-                  ~{mgGeom.plantCount.toLocaleString()} plants in ~{mgGeom.bedCount} beds — bed {activeBundle.bedWidthM}m, path {activeBundle.pathWidthM}m, {activeBundle.spacingM}m spacing
+                  ~{mgGeom.plantCount.toLocaleString()} plants in ~{mgGeom.bedCount} beds — bed {activeBundle.bedWidthM}m × {marketGardenBedLengthM}m, path {activeBundle.pathWidthM}m, {activeBundle.spacingM}m spacing
                 </div>
                 <div className={p.text11} style={{ opacity: 0.7, marginTop: 2 }}>
                   {activeBundle.description}
+                </div>
+                <label className={p.formLabel} style={{ marginTop: 8 }}>Bed length: {marketGardenBedLengthM}m</label>
+                <input
+                  type="range" min={5} max={60} step={1} value={marketGardenBedLengthM}
+                  onChange={(e) => setMarketGardenBedLengthM(parseFloat(e.target.value))}
+                  style={{ width: '100%', accentColor: info.color }}
+                  aria-label="Bed length in meters"
+                />
+                <div className={p.text11} style={{ opacity: 0.55, marginTop: 2 }}>
+                  Default 30m matches a standard market-garden bed; tune for your actual rows.
                 </div>
               </div>
             )}
