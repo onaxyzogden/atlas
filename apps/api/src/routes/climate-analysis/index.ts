@@ -6,6 +6,7 @@ import {
   computeComfortExposure,
   type ComfortExposureNormal,
 } from '../../services/terrain/ComfortExposureService.js';
+import { fetchOpenMeteoWind } from '../../services/climate/openMeteoWindFetch.js';
 
 /**
  * Section 6 — Solar, Wind & Climate Analysis ([P1])
@@ -22,6 +23,40 @@ export default async function climate_analysisRoutes(fastify: FastifyInstance) {
   fastify.get('/', { preHandler: [authenticate, fastify.requirePhase('P1')] }, async () => {
     return { data: [], meta: { total: 0 }, error: null };
   });
+
+  /**
+   * GET /wind-rose?lat=..&lng=..
+   *   Server-side proxy for Open-Meteo ERA5 hourly wind, returned as 8-bin
+   *   compass frequencies. Unauthenticated — used by the Diagnose-page rose
+   *   on mock projects without a session. Rate-limited globally by the app.
+   *   Returns 502 + WIND_ROSE_UNAVAILABLE when the upstream is silent.
+   */
+  fastify.get<{ Querystring: { lat?: string; lng?: string } }>(
+    '/wind-rose',
+    { preHandler: [fastify.requirePhase('P1')] },
+    async (req, reply) => {
+      const lat = Number(req.query.lat);
+      const lng = Number(req.query.lng);
+      if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+        throw new AppError('INVALID_LAT', 'lat must be a number in [-90, 90]', 400);
+      }
+      if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+        throw new AppError('INVALID_LNG', 'lng must be a number in [-180, 180]', 400);
+      }
+      const result = await fetchOpenMeteoWind(lat, lng);
+      if (!result) {
+        reply.code(502);
+        return {
+          data: null,
+          error: {
+            code: 'WIND_ROSE_UNAVAILABLE',
+            message: 'Open-Meteo upstream did not return wind data for this point',
+          },
+        };
+      }
+      return { data: result, error: null };
+    },
+  );
 
   fastify.post<{ Params: { projectId: string } }>(
     '/:projectId/solar-exposure/compute',

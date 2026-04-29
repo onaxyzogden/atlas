@@ -1,28 +1,32 @@
 /**
- * useWindClimatology — fetch Open-Meteo ERA5 wind frequencies for an anchor.
+ * useWindClimatology — fetch ERA5 wind frequencies for an anchor via the API.
+ *
+ * The fetch goes through `/api/v1/climate-analysis/wind-rose` (server-side
+ * Open-Meteo proxy); the browser no longer talks to archive-api.open-meteo.com
+ * directly. The server returns binned 8-bin frequencies, so the client just
+ * caches and renders.
  *
  * Behavior:
  *   1. Quantize the anchor to ~0.1° to keep the cache hit-rate high.
  *   2. Read localStorage; on hit, return the cached frequencies (status 'live').
- *   3. On miss, fire one Open-Meteo fetch. While in flight, return
+ *   3. On miss, fire one API call. While in flight, return
  *      `frequencies: undefined` and `status: 'loading'`.
  *   4. On success, cache + return live frequencies.
- *   5. On failure, return `status: 'fallback'` so the caller falls back
- *      to `DEFAULT_FREQUENCIES` (no override passed to computeWindSectors).
+ *   5. On failure (502/network), return `status: 'fallback'`.
  *
  * Aborts the in-flight request on unmount or anchor-quantum change.
  */
 
 import { useEffect, useState } from "react";
-import {
-  fetchOpenMeteoWind,
-  OPEN_METEO_SOURCE_LABEL,
-} from "../../lib/wind-climatology/fetchOpenMeteoWind.js";
+import { api } from "../../lib/apiClient.js";
 import {
   anchorCacheKey,
   quantizeAnchor,
 } from "../../lib/wind-climatology/quantizeAnchor.js";
 import { getCached, setCached, type WindFrequencies } from "../../lib/wind-climatology/cache.js";
+
+export const OPEN_METEO_SOURCE_LABEL =
+  "Open-Meteo ERA5 (hourly, most recent complete year)";
 
 export type WindClimatologyStatus = "loading" | "live" | "fallback";
 
@@ -57,7 +61,7 @@ export function useWindClimatology(
     setState({ frequencies: undefined, source: undefined, status: "loading" });
 
     (async () => {
-      const result = await fetchOpenMeteoWind(qLat, qLng, { signal: controller.signal });
+      const result = await api.climateAnalysis.windRose(qLat, qLng, controller.signal);
       if (controller.signal.aborted) return;
       if (result) {
         setCached(key, result.frequencies, result.source);
@@ -81,5 +85,3 @@ export function useWindClimatology(
 
   return state;
 }
-
-export { OPEN_METEO_SOURCE_LABEL };

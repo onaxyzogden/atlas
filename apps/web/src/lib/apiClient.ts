@@ -517,6 +517,32 @@ export const api = {
         'POST',
         `/api/v1/climate-analysis/${projectId}/comfort-grid/compute`,
       ),
+
+    /**
+     * Server-side proxy for Open-Meteo ERA5 hourly wind, returned as 8-bin
+     * compass frequencies. Maps the 502/WIND_ROSE_UNAVAILABLE silent-fail to
+     * null so callers can decide whether to fall back to defaults.
+     */
+    windRose: async (
+      lat: number,
+      lng: number,
+      signal?: AbortSignal,
+    ): Promise<WindRoseResponse | null> => {
+      try {
+        const env = await request<WindRoseResponse>(
+          'GET',
+          `/api/v1/climate-analysis/wind-rose?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`,
+          undefined,
+          signal,
+        );
+        return env.data;
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'WIND_ROSE_UNAVAILABLE') {
+          return null;
+        }
+        throw err;
+      }
+    },
   },
 
   relationships: {
@@ -560,6 +586,15 @@ export interface SolarExposureResponse {
     resolution_m: number;
     source_api: string;
   };
+}
+
+export type WindRoseCompassCode = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export interface WindRoseResponse {
+  frequencies: Record<WindRoseCompassCode, number>;
+  source: string;
+  windowYear: number;
+  sampleCount: number;
 }
 
 export interface ComfortGridResponse {
