@@ -32,27 +32,50 @@ function fmt(n: number | null | undefined, suffix = '', digits = 1): string {
 }
 
 export default function DiagnosisReportExport({ project }: Props) {
-  const visionData = useVisionStore((s) => s.getVisionData(project.id));
+  // Subscribe-then-derive (ADR 2026-04-26-zustand-selector-stability):
+  // selectors return raw store fields only; project-scoped slices are
+  // computed in useMemo so identity is stable between renders.
+  const visions = useVisionStore((s) => s.visions);
   const siteData = useSiteDataStore((s) => s.dataByProject[project.id]);
-  const soilSamples = useSoilSampleStore((s) =>
-    s.samples.filter((x) => x.projectId === project.id),
+  const allSoilSamples = useSoilSampleStore((s) => s.samples);
+  const allHazards = useSiteAnnotationsStore((s) => s.hazards);
+  const allTransects = useSiteAnnotationsStore((s) => s.transects);
+  const allSectors = useSiteAnnotationsStore((s) => s.sectors);
+  const allEcology = useSiteAnnotationsStore((s) => s.ecology);
+  const successionStageByProject = useSiteAnnotationsStore(
+    (s) => s.successionStageByProject,
   );
-  const hazards = useSiteAnnotationsStore((s) =>
-    s.hazards.filter((h) => h.projectId === project.id),
+  const allSwot = useSiteAnnotationsStore((s) => s.swot);
+
+  const visionData = useMemo(
+    () => visions.find((v) => v.projectId === project.id),
+    [visions, project.id],
   );
-  const transects = useSiteAnnotationsStore((s) =>
-    s.transects.filter((t) => t.projectId === project.id),
+  const soilSamples = useMemo(
+    () => allSoilSamples.filter((x) => x.projectId === project.id),
+    [allSoilSamples, project.id],
   );
-  const sectors = useSiteAnnotationsStore((s) =>
-    s.sectors.filter((x) => x.projectId === project.id),
+  const hazards = useMemo(
+    () => allHazards.filter((h) => h.projectId === project.id),
+    [allHazards, project.id],
   );
-  const ecology = useSiteAnnotationsStore((s) =>
-    s.ecology.filter((o) => o.projectId === project.id),
+  const transects = useMemo(
+    () => allTransects.filter((t) => t.projectId === project.id),
+    [allTransects, project.id],
   );
-  const successionStage = useSiteAnnotationsStore(
-    (s) => s.successionStageByProject[project.id],
+  const sectors = useMemo(
+    () => allSectors.filter((x) => x.projectId === project.id),
+    [allSectors, project.id],
   );
-  const swot = useSiteAnnotationsStore((s) => s.swot.filter((e) => e.projectId === project.id));
+  const ecology = useMemo(
+    () => allEcology.filter((o) => o.projectId === project.id),
+    [allEcology, project.id],
+  );
+  const successionStage = successionStageByProject[project.id];
+  const swot = useMemo(
+    () => allSwot.filter((e) => e.projectId === project.id),
+    [allSwot, project.id],
+  );
 
   const markdown = useMemo(() => {
     const lines: string[] = [];
