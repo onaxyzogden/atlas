@@ -207,3 +207,16 @@ Design-system primitives + token architecture driven by `design-system/ogden-atl
 - `DelayedTooltip.tsx` — 800 ms preset over existing `<Tooltip>`. Replaces native `title=` across icon-only chrome (`IconSidebar`, map tool spine, overlay toggles). ADR `2026-04-23-delayed-tooltip-primitive.md`.
 - `Sparkline.tsx` — zero-dep SVG micro-chart for inline trend display. Neutral stroke, semantic accent on endpoint dot only. First consumer: Climate row in `ScoresAndFlagsSection` renders monthly precipitation from `climate.summary._monthly_normals`. `LiveDataRow.sparkline?: number[]` is the transport — plumbed in `packages/shared/src/scoring/computeScores.ts::deriveLiveDataRows` and mirrored on the local `LiveDataRow` type in `apps/web/src/components/panels/sections/ScoresAndFlagsSection.tsx`.
 - `.signifier-shimmer` utility in `apps/web/src/styles/utilities.css` — `@property`-driven conic-gradient border, masked to outline only, with `prefers-reduced-motion` guard. Applied to active overlay toggles + active tool buttons.
+
+
+## Feasibility Command Center (2026-04-29)
+
+Replaced the legacy `DecisionSupportPanel` (single-column stack of ~17 cards) for the Dashboard `feasibility` route with a decision-pathway cockpit.
+
+**Layout.** `FeasibilityCommandCenter.tsx` orchestrates: header → `FeasibilityVerdictHero` (full-width, mirrors `LandVerdictCard`) → `BlockingIssuesStrip` (anchor `#feasibility-blockers`) → 2-col body (Fit & Readiness | Execution Reality) + sticky `FeasibilityDecisionRail` → Design Rules section → `<details>` Methodology drawer (closed by default; holds `WhatMustBeSolvedFirstCard` + `MissingInformationChecklistCard` + legacy methodology). Outer grid `minmax(0, 1fr) 280px` collapses at 1100px; inner body grid collapses at 960px.
+
+**Shared hooks.** `hooks/useTriageItems.ts`, `hooks/useTypeFitRanking.ts`, `hooks/useFeasibilityVerdict.ts` — extracted from the prior inline `useMemo` blocks in `WhatMustBeSolvedFirstCard` and `BestUseSummaryCard` so the strip + rail + hero share identical triage / ranking data. `useFeasibilityVerdict` composes ranking + triage + financial model into bands `supported | supported-with-fixes | workable | not-recommended`, headline/subhead, mini-metrics, readiness chips.
+
+**Dual-context split.** `DecisionSupportPanel` is unchanged and still serves the 260px MapView right rail (narrow contexts cannot host a 2-col + sticky-rail layout). `DashboardRouter.tsx:224` is the only mount swap.
+
+Verification: typecheck clean, lint exit 0, build clean (1m 9s, PWA precache regenerated). Browser-verified at 1440×900: hero score circle, verdict badge, mini metrics, CTAs; blockers strip; 2-col body; sticky rail with verdict + readiness chips; no JS console errors.
