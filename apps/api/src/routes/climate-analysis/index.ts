@@ -7,6 +7,10 @@ import {
   type ComfortExposureNormal,
 } from '../../services/terrain/ComfortExposureService.js';
 import { fetchOpenMeteoWind } from '../../services/climate/openMeteoWindFetch.js';
+import {
+  getCachedWindRose,
+  setCachedWindRose,
+} from '../../services/climate/windRoseCache.js';
 
 /**
  * Section 6 — Solar, Wind & Climate Analysis ([P1])
@@ -43,6 +47,10 @@ export default async function climate_analysisRoutes(fastify: FastifyInstance) {
       if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
         throw new AppError('INVALID_LNG', 'lng must be a number in [-180, 180]', 400);
       }
+      const cached = await getCachedWindRose(fastify.redis, lat, lng);
+      if (cached) {
+        return { data: cached, meta: { cached: true }, error: null };
+      }
       const result = await fetchOpenMeteoWind(lat, lng);
       if (!result) {
         reply.code(502);
@@ -54,7 +62,9 @@ export default async function climate_analysisRoutes(fastify: FastifyInstance) {
           },
         };
       }
-      return { data: result, error: null };
+      // Fire-and-forget cache write — don't block the response on Redis.
+      void setCachedWindRose(fastify.redis, lat, lng, result);
+      return { data: result, meta: { cached: false }, error: null };
     },
   );
 
