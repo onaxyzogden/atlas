@@ -5,6 +5,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
+import '@ogden/ui-components/style.css';
 import './app/index.css';
 
 // Dev-only: axe-core a11y audit runs on every render and logs violations to
