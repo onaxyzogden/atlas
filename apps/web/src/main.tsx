@@ -8,14 +8,6 @@ import { ToastContainer } from './components/Toast.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
-// Dev-only: axe-core a11y audit runs on every render and logs violations to
-// the console. Tree-shaken out of prod bundles via the DEV gate.
-if (import.meta.env.DEV) {
-  void import('@axe-core/react').then(({ default: axe }) => {
-    console.info('[axe] dev-mode a11y audit armed (1s debounce)');
-    axe(React, ReactDOM, 1000);
-  });
-}
 // One-time migrator: legacy `ogden-site-annotations` v3 blob → 7
 // Scholar-aligned namespace stores. Must run BEFORE any of the new stores
 // rehydrate (they live under `apps/web/src/store/` and are reached via
