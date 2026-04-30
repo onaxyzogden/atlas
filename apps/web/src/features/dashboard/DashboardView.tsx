@@ -75,7 +75,7 @@ export default function DashboardView({ project, onSwitchToMap, onGenerateBrief 
               onCreateChecklist={() => setActiveSection('regulatory')}
             />
             <DecisionTriad project={project} />
-            <OPAComparisonWheel levelColor="#8b7355" />
+            <OPAComparisonWheel project={project} levelColor="#8b7355" />
           </>
         )}
 
