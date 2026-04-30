@@ -3,17 +3,13 @@
  *
  * Continuous, free-form journal: every observation gets tagged Strength,
  * Weakness, Opportunity, or Threat as it accumulates. Persists via
- * useSiteAnnotationsStore.
+ * useSwotStore.
  */
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type SwotBucket,
-  type SwotEntry,
-} from '../../store/siteAnnotationsStore.js';
+import { useSwotStore } from '../../store/swotStore.js';
+import { newAnnotationId, type SwotBucket, type SwotEntry } from '../../store/site-annotations.js';
 import styles from './SwotJournalCard.module.css';
 
 interface Props {
@@ -43,9 +39,9 @@ const EMPTY_DRAFT: DraftMap = {
 };
 
 export default function SwotJournalCard({ project }: Props) {
-  const allEntries = useSiteAnnotationsStore((s) => s.swot);
-  const addSwot = useSiteAnnotationsStore((s) => s.addSwot);
-  const removeSwot = useSiteAnnotationsStore((s) => s.removeSwot);
+  const allEntries = useSwotStore((s) => s.swot);
+  const addSwot = useSwotStore((s) => s.addSwot);
+  const removeSwot = useSwotStore((s) => s.removeSwot);
 
   const entries = useMemo(
     () => allEntries.filter((e) => e.projectId === project.id),

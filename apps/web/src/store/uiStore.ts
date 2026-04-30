@@ -78,6 +78,30 @@ interface UIState {
   canRedo: boolean;
 }
 
+/**
+ * 2026-04-30 — coerce returning users' stale `sidebarGrouping` to
+ * `'stage3'` once. The 2026-04-29 IA restructure made stage3 the default,
+ * but persisted preferences kept the old `'stage'` / `'phase'` / `'domain'`
+ * value, hiding the new ACT stage header. After this one-time bump, users
+ * can re-pick a different grouping and it sticks. See ADR
+ * wiki/decisions/2026-04-30-uistore-stage3-grouping-migration.md.
+ *
+ * Exported for direct unit testing — the persist middleware calls this
+ * during rehydration when the stored `version` is below the current one.
+ */
+export function migrateUIPersistedState(
+  persistedState: unknown,
+  fromVersion: number,
+): unknown {
+  if (fromVersion < 2) {
+    const s = persistedState as { sidebarGrouping?: SidebarGrouping } | null;
+    if (s && s.sidebarGrouping !== undefined && s.sidebarGrouping !== 'stage3') {
+      return { ...s, sidebarGrouping: 'stage3' as SidebarGrouping };
+    }
+  }
+  return persistedState;
+}
+
 export const useUIStore = create<UIState>()(
   persist(
     (set, get) => ({
@@ -164,19 +188,22 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ogden-ui',
-      version: 1,
+      version: 2,
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
         sidebarGrouping: state.sidebarGrouping,
         rightPanelCollapsed: state.rightPanelCollapsed,
       }),
+      migrate: migrateUIPersistedState,
     },
   ),
 );
 
-// Hydrate from localStorage (Zustand v5)
-useUIStore.persist.rehydrate();
+// Hydrate from localStorage (Zustand v5). Guarded for SSR / vitest.
+if (typeof window !== 'undefined') {
+  useUIStore.persist.rehydrate();
+}
 
 function applyColorScheme(isDark: boolean) {
   if (typeof document === 'undefined') return;

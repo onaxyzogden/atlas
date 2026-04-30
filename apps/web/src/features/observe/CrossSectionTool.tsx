@@ -15,11 +15,8 @@
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/apiClient.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type Transect,
-} from '../../store/siteAnnotationsStore.js';
+import { useTopographyStore } from '../../store/topographyStore.js';
+import { newAnnotationId, type Transect } from '../../store/site-annotations.js';
 import shared from './StewardSurveyCard.module.css';
 
 interface Props {
@@ -71,10 +68,10 @@ function profilePath(elevations: number[]): { path: string; min: number; max: nu
 }
 
 export default function CrossSectionTool({ project }: Props) {
-  const allTransects = useSiteAnnotationsStore((s) => s.transects);
-  const addTransect = useSiteAnnotationsStore((s) => s.addTransect);
-  const updateTransect = useSiteAnnotationsStore((s) => s.updateTransect);
-  const removeTransect = useSiteAnnotationsStore((s) => s.removeTransect);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const addTransect = useTopographyStore((s) => s.addTransect);
+  const updateTransect = useTopographyStore((s) => s.updateTransect);
+  const removeTransect = useTopographyStore((s) => s.removeTransect);
 
   const transects = useMemo(
     () => allTransects.filter((t) => t.projectId === project.id),

@@ -5,11 +5,8 @@ import { api } from '../../lib/apiClient.js';
 import type { ElevationProfileResponse } from '@ogden/shared';
 import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type Transect,
-} from '../../store/siteAnnotationsStore.js';
+import { useTopographyStore } from '../../store/topographyStore.js';
+import { newAnnotationId, type Transect } from '../../store/site-annotations.js';
 
 interface CrossSectionToolProps {
   projectId: string;
@@ -160,7 +157,7 @@ interface ProfilePanelProps {
 }
 
 function ProfilePanel({ projectId, loading, profile, error, drawnLine, onClose }: ProfilePanelProps) {
-  const addTransect = useSiteAnnotationsStore((s) => s.addTransect);
+  const addTransect = useTopographyStore((s) => s.addTransect);
   const [name, setName] = useState('');
   const [savedId, setSavedId] = useState<string | null>(null);
 

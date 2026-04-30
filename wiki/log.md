@@ -4,6 +4,114 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-04-30 — `ogden-site-annotations.archived-v3` rollback hatch closed
+
+### Done
+
+Closed the final deferred item from the morning's namespace-consolidation ADR. The legacy v3 blob's archive copy (`ogden-site-annotations.archived-v3`) was the manual-rollback hatch; with the migrator + 7 namespace stores + the resolver follow-up all landed clean and no steward escalation, the hatch is now obsolete.
+
+**Implementation:**
+- `apps/web/src/store/site-annotations-migrate.ts` — new `cleanupArchivedV3(storage = localStorage): boolean` export. Reuses the existing `ARCHIVE_KEY` constant. Returns `true` if removed, `false` if absent. Independent of `migrateLegacyBlob()` — both functions are pure localStorage operations.
+- `apps/web/src/main.tsx` — `cleanupArchivedV3()` called immediately after `migrateLegacyBlob()` at boot. On the very first post-deploy boot, the migrator writes the archive and the cleanup removes it in one shot. On every subsequent boot both are no-ops.
+- `apps/web/src/tests/siteAnnotationsMigrate.test.ts` — new `describe('cleanupArchivedV3', …)` block with 5 specs: removes-and-returns-true, no-op-returns-false, idempotency, does-not-touch-7-namespace-keys, does-not-touch-still-present-legacy-key (defensive).
+
+**Verification:** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` clean; `npx vitest run src/tests/siteAnnotationsMigrate.test.ts` 13/13 green (8 prior + 5 new). No vite build run — only tests + types changed; no consumer surfaces touched.
+
+### Risks accepted
+- No further localStorage rollback path for the namespace consolidation. Mitigation: git-revert path remains documented in the namespace ADR's "Rollback plan" section.
+
+ADR: [`wiki/decisions/2026-04-30-archive-v3-blob-cleanup.md`](decisions/2026-04-30-archive-v3-blob-cleanup.md). Closes the final deferred item from [`2026-04-30-site-annotations-store-scholar-aligned-namespaces.md`](decisions/2026-04-30-site-annotations-store-scholar-aligned-namespaces.md).
+
+---
+
+## 2026-04-30 — TransectVerticalRef non-standalone resolution + "Link to existing element"
+
+### Done
+
+Closed the only deferred follow-up from the morning's namespace-consolidation ADR. `TransectVerticalEditorCard` (PLAN Module 6) now resolves all four non-standalone `TransectVerticalRefKind` values (`water-system | polyculture | closed-loop | structure`) against their domain stores at render time, and the add-element form gains a "Link to existing element" mode alongside the existing standalone-sketch flow.
+
+**Resolver (memoized over the 5 underlying project-filtered arrays):**
+- `water-system` → `useWaterSystemsStore` (earthworks ∪ storageInfra); height via type-default lookup (swale 0.5 m / diversion 0.5 m / french_drain 0.3 m / cistern 2.5 m / pond 1.0 m / rain_garden 0.5 m); label = `notes ?? type`.
+- `polyculture` → `usePolycultureStore` (guilds ∪ species); guild height = anchor species `matureHeightM` from `PLANT_DATABASE`; species height = species `matureHeightM`; label = `Guild.name` or species `commonName`.
+- `closed-loop` → `useClosedLoopStore.fertilityInfra`; type-default lookup (composter 1.5 m / hugelkultur 1.2 m / biochar 0.8 m / worm_bin 0.5 m).
+- `structure` → `useStructureStore`; height = `Structure.heightM ?? 3 m`; label = `name ?? type`.
+
+**Render path:** SVG triangles get per-kind colour (amber/blue/green/brown/grey); resolved label printed above each triangle. Missing refs (orphaned `refId`s) render at a kind-default height with `(missing X)` label and an amber `⚠` warning in the elements list — no auto-remove (audit-trail convention, same as `actualsStore` ↔ `phaseStore.tasks`).
+
+**Add-form:** Mode radio toggle. Standalone mode unchanged. Link mode: `Namespace` dropdown → kind-keyed `Element` dropdown populated from project-filtered store contents; per-kind empty-state messaging when the project has no candidates; Add disabled until `linkRefId` is selected.
+
+**Verification:** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` clean; `npx vite build` clean (24.58 s, 565 PWA precache entries). Single file modified, no schema/migration changes.
+
+### Risks accepted
+- Card now imports 5 stores (topography + waterSystems + polyculture + closedLoop + structure). Selector discipline preserved — each contributes one raw-array selector + one project-filter `useMemo`.
+- Default heights are type-keyed constants, not per-instance fields. Override via standalone pin until/unless a steward requests per-instance `heightM` on `Earthwork` / `StorageInfra` / `FertilityInfra`.
+
+ADR: [`wiki/decisions/2026-04-30-transect-vertical-ref-resolver.md`](decisions/2026-04-30-transect-vertical-ref-resolver.md). Closes the deferred follow-up from [`2026-04-30-site-annotations-store-scholar-aligned-namespaces.md`](decisions/2026-04-30-site-annotations-store-scholar-aligned-namespaces.md).
+
+---
+
+## 2026-04-30 — Site-annotations store consolidated into 7 Scholar-aligned namespace stores
+
+### Done
+
+Decomposed the 13-family `siteAnnotationsStore.ts` v3 god-store (flagged in the PLAN ADR; made real by ACT) into **7 Scholar-aligned namespace Zustand stores** under `apps/web/src/store/`. Permaculture Scholar review redirected the originally-proposed 13-per-family split (proposed ADR `2026-04-29-site-annotations-store-extract-per-family.md`) toward Holmgren P8 (*Integrate Rather Than Segregate*): hazards+sectors merge (Mollison sectors), earthworks+storageInfra merge (Yeomans water scale), guilds+species merge (PDC W7), wasteVectors+wasteVectorRuns+fertilityInfra merge (Holmgren P4+P6 closed loop), ecology+successionStage merge (PDC W8-10 succession-as-temporal-ecology). SWOT remains its own namespace (strategic-reflection, not a permaculture domain entity).
+
+**New (10):** `externalForcesStore.ts`, `topographyStore.ts`, `ecologyStore.ts`, `waterSystemsStore.ts`, `polycultureStore.ts`, `closedLoopStore.ts`, `swotStore.ts` — 7 Zustand+persist stores, keys `ogden-{external-forces,topography,ecology,water-systems,polyculture,closed-loop,swot}` v1; `site-annotations.ts` type-only barrel + `newAnnotationId(prefix)` helper relocated verbatim; `site-annotations-migrate.ts` exporting `migrateLegacyBlob(storage = localStorage)`; `tests/siteAnnotationsMigrate.test.ts` — 8/8 green (full v3 → 7-namespace seeding, `verticalElements` → `verticalRefs` shape transform, archive-rename, idempotency, partial-rollout protection, non-v3 left alone, missing-key silent return, corrupt-blob silent return).
+
+**Schema change:** `Transect.verticalElements?: VerticalElement[]` → `Transect.verticalRefs?: TransectVerticalRef[]`, a discriminated union over `kind: 'standalone' | 'water-system' | 'polyculture' | 'closed-loop' | 'structure'` with optional `refId` (domain-store id) and optional `standalone: { type, heightM, label? }` fallback. Migrator transforms every legacy element into a `kind: 'standalone'` ref — lossless. `TransectVerticalEditorCard` continues to create `kind: 'standalone'` pins via its existing form; render path is `kind === 'standalone'`-only and falls through for non-standalone refs (a follow-up ADR adds the "Link to existing element" affordance and resolves refs against the appropriate domain store).
+
+**Migrator wiring:** `apps/web/src/main.tsx` calls `migrateLegacyBlob()` at the top, **before** any store side-effect import. Synchronous, single-pass, idempotent — re-running is a no-op because the legacy key is gone. The legacy blob is **archived as `ogden-site-annotations.archived-v3`** (rename, not delete) for manual rollback. `seed()` never overwrites a key that has already rehydrated, so partial-rollout is safe.
+
+**24 consumer files migrated (mechanical import-swap):**
+- `features/act/`: `ActHub`, `HazardPlansCard`, `OngoingSwotCard`, `WasteRoutingChecklistCard`
+- `features/observe/`: `ObserveHub`, `CrossSectionTool`, `DiagnosisReportExport`, `FoodChainCard`, `HazardsLogCard`, `SectorCompassCard`, `SwotJournalCard`
+- `features/plan/`: `PlanHub`, `CanopySimulatorCard`, `GuildBuilderCard`, `HolmgrenChecklistCard`, `PermanenceScalesCard`, `PlantDatabaseCard`, `SoilFertilityDesignerCard`, `StorageInfraTool`, `SwaleDrainTool`, `TransectVerticalEditorCard` (+ schema swap to `verticalRefs`), `WasteVectorTool`
+- `features/map/`: `CrossSectionTool`, `SectorOverlay`
+
+Hub views (`ActHub` / `ObserveHub` / `PlanHub`) and `PermanenceScalesCard` (Yeomans Keyline, inherently cross-namespace) import 3-7 stores; single-purpose cards each touch one namespace. Selector discipline (subscribe-then-derive, ADR `2026-04-26-zustand-selector-stability`) carried over unchanged.
+
+**Retired:** `apps/web/src/store/siteAnnotationsStore.ts` deleted (476 lines). tsc serves as the regression guard against re-introducing the old import path (TS2307 on the deleted module).
+
+**Verification:** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` clean (twice — once after Phase A scaffolding, once after Phase C consumer migration); `npx vite build` clean (22.68 s, 565 PWA precache entries); `npx vitest run src/tests/siteAnnotationsMigrate.test.ts` 8/8 green. Pre-existing 7 `computeScores.test.ts` failures verified unrelated via `git status` (untouched files).
+
+### Risks accepted
+- One-time migration risk on every steward's next session — mitigated by archive-not-delete + `seed()` idempotency + explicit `parsed.version !== 3` guard + corrupt-blob try/catch + 8-test vitest coverage.
+- 24 consumer files touched in one pass — mitigated by tsc compile-error as regression guard (no project-level ESLint config exists; `npm run lint` runs `tsc --noEmit`).
+- `TransectVerticalRef.refId` introduces explicit cross-store refs — surfaced via discriminated `kind` field, not implicit; render today is `kind === 'standalone'`-only, resolution deferred.
+
+ADR: [`wiki/decisions/2026-04-30-site-annotations-store-scholar-aligned-namespaces.md`](decisions/2026-04-30-site-annotations-store-scholar-aligned-namespaces.md) (status accepted). Supersedes: [`wiki/decisions/2026-04-29-site-annotations-store-extract-per-family.md`](decisions/2026-04-29-site-annotations-store-extract-per-family.md) (proposed → superseded; never landed).
+
+---
+
+## 2026-04-29 — ACT-stage IA restructure (Stage 3 of 3)
+
+### Done
+
+Final stage of the OBSERVE/PLAN/ACT IA restructure. Adds an Act Hub landing surface and 13 spec-aligned client-only dashboard surfaces grouping the 11 already-tagged ACT NavItems under the 5 modules of the ACT spec (`~/Downloads/Regenerative Design Act Stage.md`): §2 Phasing & Budgeting, §3 Maintenance & Operations, §4 Monitoring & Yield, §5 Social Permaculture, §6 Disaster Preparedness.
+
+**New (`apps/web/src/features/act/`):** `ActHub.tsx` (5-card violet-bronze grid) + 13 cards — `BuildGanttCard` (5y×4q SVG Gantt), `BudgetActualsCard` (est-vs-actual ledger w/ orphan handling), `PilotPlotsCard`, `MaintenanceScheduleCard` (5 cadence buckets), `IrrigationManagerCard` (active/transitioning/passive on `cropStore`), `WasteRoutingChecklistCard` (per-cycle log + 30d histogram), `OngoingSwotCard` (continuous SWOT, quarter-grouped), `HarvestLogCard` (per-area unit totals), `SuccessionTrackerCard` (zone × year × pioneer/mid/climax), `NetworkCrmCard`, `CommunityEventCard`, `HazardPlansCard` (mitigation steps + linked features overlaid on OBSERVE hazards), `AppropriateTechLogCard`. Shared `actCard.module.css` violet-bronze theme distinguishes ACT from OBSERVE forest-green / PLAN bronze-amber.
+
+**8 new stores (Zustand persist, key `ogden-act-<slug>`, all v1):** `actualsStore`, `pilotPlotStore`, `maintenanceStore`, `harvestLogStore`, `successionStore`, `networkStore` (distinct from `memberStore` — external CRM, not project ACL), `communityEventStore`, `appropriateTechStore`.
+
+**1 additive store extension:** `cropStore.CropArea` gained `irrigationMode?: 'active' | 'transitioning' | 'passive'` and `transitionStartDate?: string`. Legacy areas treated as `active` by `IrrigationManagerCard`.
+
+**1 v3 migration on `siteAnnotationsStore`:** added `mitigationSteps?: string[]` + `linkedFeatureIds?: string[]` on `HazardEvent`, plus a new `wasteVectorRuns: WasteVectorRun[]` family. v2→v3 backfills `wasteVectorRuns: []`. v1→v2 path preserved.
+
+**Wiring:** `taxonomy.ts` registered 14 new NavItems (`stage3: 'act'`, `dashboardOnly: true`, `phase: 'P3'`); `dashboard-act-hub` pinned first under ACT. `DashboardRouter` got 14 lazy imports + 14 case branches.
+
+**Selector discipline:** every new card follows the subscribe-then-derive rule from ADR `2026-04-26-zustand-selector-stability` — raw `state.x` selectors + `useMemo` for filter/sort. No inline `.filter()` in selectors.
+
+**Verification:** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` clean (after fixing 4 TS2532 `noUncheckedIndexedAccess` regex-capture guards in `BuildGanttCard.parseTimeframe`); `npx vite build` clean (24.15 s, 558 PWA precache entries).
+
+### Risks accepted
+- `siteAnnotationsStore` now holds 12+ families (the "god-store" risk flagged in the PLAN ADR is now real). Follow-up plan: extract per-family files in a separate ADR after ACT lands.
+- `actualsStore` orphans on PhaseTask deletion (intentional — audit trail). `BudgetActualsCard` surfaces orphans with explicit remove; no cascade.
+- Build-Gantt SVG read-only, 5-year horizon hardcoded. Future ADR if 10y or drag-resize needed.
+
+ADR: [`wiki/decisions/2026-04-29-act-stage-ia-restructure.md`](decisions/2026-04-29-act-stage-ia-restructure.md). Predecessors: OBSERVE + PLAN ADRs (same date).
+
+---
+
 ## 2026-04-29 — Manitoba Schedule A subcategory picker (per-species AU)
 
 ### Done
@@ -5919,4 +6027,108 @@ Cumulative: 8 commits on `feat/atlas-permaculture`, PR
 [#6](https://github.com/onaxyzogden/atlas/pull/6) updated. Build green
 across all three follow-ups (last build 23.23 s, 511 PWA precache entries
 / 13.6 MB).
+
+## 2026-04-29 — PLAN Stage IA restructure (Stage 2 of 3)
+
+Plan: `~/.claude/plans/few-concerns-shiny-quokka.md`
+ADR: `wiki/decisions/2026-04-29-plan-stage-ia-restructure.md`
+
+Stage 2 mirrors the OBSERVE precedent. Built the Plan Hub landing surface
+plus 16 dashboard-only spec-module surfaces under
+`apps/web/src/features/plan/`, all reachable from both the hub and the
+PLAN sidebar accordion:
+
+- **Module 1 — Layering:** `PermanenceScalesCard` (9-scale rollup of
+  Yeomans permanence with feature counts).
+- **Module 2 — Water:** `RunoffCalculatorCard` (UI on shared
+  `hydrologyMetrics.runoffVolumeL`, auto-pulls `annualPrecipMm`),
+  `SwaleDrainTool`, `StorageInfraTool` (cisterns/ponds/rain_gardens).
+- **Module 3 — Zone & Circulation:** `ZoneLevelLayer` (Z0–Z5 picker on
+  existing zones), `PathFrequencyEditor` (daily/weekly/occasional/rare).
+- **Module 4 — Plant Systems:** `PlantDatabaseCard` (filterable browser
+  over ~37-species starter DB), `GuildBuilderCard` (anchor + 7-layer
+  members), `CanopySimulatorCard` (Year 1–50 SVG scrubber).
+- **Module 5 — Soil Fertility:** `SoilFertilityDesignerCard`
+  (composter / hugelkultur / biochar / worm_bin), `WasteVectorTool`
+  (kitchen→chickens→orchard directed edges).
+- **Module 6 — Cross-section + Solar:** `TransectVerticalEditorCard`
+  with integrated solstice solar overlay (latitude derived from
+  `Transect.pointA[1]`, altitude = `90 - lat ± 23.44`).
+- **Module 7 — Phasing:** `PhasingMatrixCard` (phase × season grid),
+  `SeasonalTaskCard` (per-phase task editor on
+  `BuildPhase.tasks?: PhaseTask[]`), `LaborBudgetSummaryCard`
+  (totals / per-phase / per-season rollup).
+- **Module 8 — Principles:** `HolmgrenChecklistCard` (12 principles ×
+  justification + linked-feature multi-pick + status pill).
+
+**Store extensions (additive, no API changes):**
+- `siteAnnotationsStore` v1→v2 with backfill migration. Added 5 new
+  families (`earthworks`, `storageInfra`, `fertilityInfra`, `guilds`,
+  `wasteVectors`, `species`); extended `Transect` with
+  `verticalElements?`. The store now holds 11 families — flagged in the
+  ADR as approaching god-store.
+- `zoneStore.LandZone.permacultureZone?: 0|1|2|3|4|5` (additive).
+- `pathStore.DesignPath.usageFrequency?: 'daily'|'weekly'|'occasional'|'rare'`.
+- `phaseStore.BuildPhase.tasks?: PhaseTask[]` (new exported `PhaseTask`).
+- New `principleCheckStore.ts` (zustand persist, key
+  `ogden-principle-checks`).
+- `structureStore` was deliberately NOT extended — the 7 new structure
+  types attempted in scratch broke ~15 `Record<StructureType, T>` lookup
+  tables; we kept the buildings registry pure and put the new families
+  in `siteAnnotationsStore` instead.
+
+**Data assets:** `data/plantDatabase.ts` (~37 species, layered) and
+`data/holmgrenPrinciples.ts` (12 principles, stable ids `p1`–`p12`).
+
+**Routing:** 17 new dashboardOnly NavItems registered in
+`features/navigation/taxonomy.ts` (one per surface plus
+`plan-solar-overlay` aliasing `plan-transect-vertical`); 16 lazy imports
++ 17 case branches added to `DashboardRouter.tsx`.
+
+**Selector discipline:** every new card uses subscribe-then-derive
+(`wiki/decisions/2026-04-26-zustand-selector-stability.md`); no inline
+`.filter()`/`.map()` in selector callbacks.
+
+**Verification:** `tsc --noEmit` clean, `vite build` green (22.25 s,
+533 PWA precache entries). All 16 new sections reachable from Plan Hub
+and the PLAN sidebar accordion. DiagnosisReportExport still mounts
+cleanly under the extended stores.
+
+---
+
+## 2026-04-30 — uiStore `sidebarGrouping` stage3 coercion migration
+
+**Branch:** `feat/atlas-permaculture`
+
+**Trigger:** Steward report — *"ACT stage is not visible in the UI."*
+
+**Root cause:** Returning browsers persisted `sidebarGrouping` at value
+`'stage'` (or `'phase'` / `'domain'`) from before the 2026-04-29 IA
+restructure flipped the default to `'stage3'`. The persist middleware
+faithfully restored the stale value on every boot, leaving ACT items
+sprinkled across non-stage3 group labels with no explicit "Act" header.
+Every other surface verified correctly wired (taxonomy, DashboardSidebar,
+IconSidebar, dashboardOnly filter on `MAP_ITEMS`).
+
+**Fix:** Bumped `apps/web/src/store/uiStore.ts` persist `version` 1→2
+and added an exported `migrateUIPersistedState(persistedState,
+fromVersion)` that coerces non-`'stage3'` values to `'stage3'` exactly
+once on `fromVersion < 2`. Idempotent on subsequent boots; users can
+re-pick a different grouping manually after.
+
+**Secondary fix:** Module-load `useUIStore.persist.rehydrate()` now
+guards on `typeof window !== 'undefined'` so vitest can import the
+module without crashing on the missing persist API.
+
+**Verification:**
+- `npx tsc --noEmit` — clean (exit 0).
+- `npx vite build` — clean (40.99 s, 565 PWA precache entries).
+- `npx vitest run src/tests/uiStoreMigrate.test.ts` — 7/7 green
+  (`'stage' | 'phase' | 'domain'` → `'stage3'`; already-stage3
+  unchanged; missing key unchanged; `fromVersion >= 2` no-op; null
+  defensive).
+- Full vitest run: 482 passed; 7 pre-existing failures in
+  `computeScores.test.ts` (scoring layer count, predates this change).
+
+**ADR:** [`wiki/decisions/2026-04-30-uistore-stage3-grouping-migration.md`](decisions/2026-04-30-uistore-stage3-grouping-migration.md).
 

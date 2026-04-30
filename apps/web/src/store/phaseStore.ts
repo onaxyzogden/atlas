@@ -32,6 +32,22 @@ export interface BuildPhase {
   notes: string;
   /** ISO timestamp when `completed` last flipped to true. */
   completedAt: string | null;
+  /**
+   * PLAN-stage Module 7 — optional seasonal task list. Drives
+   * SeasonalTaskCard + LaborBudgetSummaryCard rollups. Optional, no
+   * migration; legacy phases load with `tasks` undefined.
+   */
+  tasks?: PhaseTask[];
+}
+
+/** A single seasonal build / maintenance task on a phase. */
+export interface PhaseTask {
+  id: string;
+  season: 'winter' | 'spring' | 'summer' | 'fall';
+  title: string;
+  laborHrs: number;
+  costUSD: number;
+  notes?: string;
 }
 
 interface PhaseState {

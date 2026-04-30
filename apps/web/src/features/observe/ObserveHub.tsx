@@ -28,7 +28,10 @@ import { useUIStore } from '../../store/uiStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { useSiteDataStore, getLayerSummary, type SiteData } from '../../store/siteDataStore.js';
 import { useSoilSampleStore } from '../../store/soilSampleStore.js';
-import { useSiteAnnotationsStore } from '../../store/siteAnnotationsStore.js';
+import { useEcologyStore } from '../../store/ecologyStore.js';
+import { useExternalForcesStore } from '../../store/externalForcesStore.js';
+import { useSwotStore } from '../../store/swotStore.js';
+import { useTopographyStore } from '../../store/topographyStore.js';
 import styles from './ObserveHub.module.css';
 
 interface Props {
@@ -87,11 +90,11 @@ export default function ObserveHub({ project }: Props) {
 
   // Phase 4b–4f: persisted steward annotations (hazards, transects,
   // sectors, ecology, swot). Each filtered to the active project.
-  const allHazards   = useSiteAnnotationsStore((s) => s.hazards);
-  const allTransects = useSiteAnnotationsStore((s) => s.transects);
-  const allSectors   = useSiteAnnotationsStore((s) => s.sectors);
-  const allEcology   = useSiteAnnotationsStore((s) => s.ecology);
-  const allSwot      = useSiteAnnotationsStore((s) => s.swot);
+  const allHazards   = useExternalForcesStore((s) => s.hazards);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allSectors   = useExternalForcesStore((s) => s.sectors);
+  const allEcology   = useEcologyStore((s) => s.ecology);
+  const allSwot      = useSwotStore((s) => s.swot);
 
   const projectHazards   = useMemo(() => allHazards.filter((h)   => h.projectId === project.id), [allHazards, project.id]);
   const projectTransects = useMemo(() => allTransects.filter((t) => t.projectId === project.id), [allTransects, project.id]);

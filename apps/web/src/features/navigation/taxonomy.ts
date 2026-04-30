@@ -302,6 +302,204 @@ export const NAV_ITEMS: NavItem[] = [
     phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
     dashboardOnly: true,
   },
+  // ── Plan Hub ──────────────────────────────────────────────────────────────
+  // Pinned first under the PLAN accordion (stage3 grouping). Hybrid landing
+  // page summarising the eight Planning-spec modules and linking into both
+  // the existing detail dashboards and the new PLAN-stage gap surfaces
+  // (registered in subsequent phases). Dashboard-only — there is no
+  // map-rail equivalent.
+  {
+    id: 'dashboard-plan-hub', label: 'Plan Hub',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+
+  // ── PLAN-stage spec modules (Stage 2 IA restructure, 2026-04-29) ──────────
+  // 17 dashboard-only surfaces realising the eight Planning-spec modules.
+  // All client-only state, persisted via zustand stores; no server-side schema.
+  // See `wiki/decisions/2026-04-29-plan-stage-ia-restructure.md`.
+
+  // Module 1 — Dynamic Layering
+  {
+    id: 'plan-permanence-scales', label: 'Permanence Scales',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 2 — Water Management
+  {
+    id: 'plan-runoff-calculator', label: 'Runoff Calculator',
+    phase: 'P2', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-swale-drain', label: 'Swale / Drain Tool',
+    phase: 'P2', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-storage-infra', label: 'Cisterns / Ponds',
+    phase: 'P2', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 3 — Zone & Circulation
+  {
+    id: 'plan-zone-level', label: 'Zone Level Layer',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-path-frequency', label: 'Path Frequency',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 4 — Plant System & Polyculture
+  {
+    id: 'plan-plant-database', label: 'Plant Database',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-guild-builder', label: 'Guild Builder',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-canopy-simulator', label: 'Canopy Simulator',
+    phase: 'P2', domainGroup: 'forestry', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 5 — Soil Fertility & Closed-Loop
+  {
+    id: 'plan-soil-fertility', label: 'Soil Fertility Designer',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-waste-vectors', label: 'Waste-to-Resource Vectors',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 6 — Cross-Section + Solar
+  {
+    id: 'plan-transect-vertical', label: 'Transect Vertical Editor',
+    phase: 'P2', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-solar-overlay', label: 'Solar Overlay',
+    phase: 'P2', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 7 — Phasing & Budgeting
+  {
+    id: 'plan-phasing-matrix', label: 'Phasing Matrix',
+    phase: 'P2', domainGroup: 'finance', stage: 'S4', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-seasonal-tasks', label: 'Seasonal Tasks',
+    phase: 'P2', domainGroup: 'finance', stage: 'S4', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  {
+    id: 'plan-labor-budget', label: 'Labor & Budget Rollup',
+    phase: 'P2', domainGroup: 'finance', stage: 'S4', stage3: 'plan',
+    dashboardOnly: true,
+  },
+  // Module 8 — Principle Verification
+  {
+    id: 'plan-holmgren-checklist', label: 'Holmgren Checklist',
+    phase: 'P2', domainGroup: 'site-overview', stage: 'S4', stage3: 'plan',
+    dashboardOnly: true,
+  },
+
+  // ── Act Hub ────────────────────────────────────────────────────────────────
+  // Pinned first under the ACT accordion (stage3 grouping). Hybrid landing
+  // page summarising the five Act-spec modules and linking into both the
+  // existing detail dashboards and the new ACT-stage gap surfaces below.
+  // Dashboard-only — there is no map-rail equivalent.
+  {
+    id: 'dashboard-act-hub', label: 'Act Hub',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+
+  // ── ACT-stage spec modules (Stage 3 IA restructure, 2026-04-29) ───────────
+  // 13 dashboard-only surfaces realising the five Act-stage modules. All
+  // client-only state, persisted via zustand stores; no server-side schema.
+  // See `wiki/decisions/2026-04-29-act-stage-ia-restructure.md`.
+
+  // Module 1 — Phased Implementation & Budgeting
+  {
+    id: 'act-build-gantt', label: 'Build Gantt (5-yr)',
+    phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-budget-actuals', label: 'Budget Actuals',
+    phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-pilot-plots', label: 'Pilot Plots',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  // Module 2 — Maintenance & Operations
+  {
+    id: 'act-maintenance-schedule', label: 'Maintenance Schedule',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-irrigation-manager', label: 'Irrigation Manager',
+    phase: 'P3', domainGroup: 'hydrology-terrain', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-waste-routing', label: 'Waste Routing Checklist',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  // Module 3 — Ecological Monitoring & Yield
+  {
+    id: 'act-ongoing-swot', label: 'Ongoing SWOT',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-harvest-log', label: 'Harvest Log',
+    phase: 'P3', domainGroup: 'forestry', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-succession-tracker', label: 'Succession Tracker',
+    phase: 'P3', domainGroup: 'forestry', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  // Module 4 — Social Permaculture
+  {
+    id: 'act-network-crm', label: 'Network CRM',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-community-events', label: 'Community Events',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  // Module 5 — Disaster Preparedness
+  {
+    id: 'act-hazard-plans', label: 'Hazard Action Plans',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
+    id: 'act-appropriate-tech', label: 'Appropriate-Tech Log',
+    phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
+    dashboardOnly: true,
+  },
+
   {
     id: 'feasibility', label: 'Feasibility',
     phase: 'P2', domainGroup: 'site-overview', stage: 'S4', stage3: 'plan',

@@ -15,6 +15,18 @@ if (import.meta.env.DEV) {
     axe(React, ReactDOM, 1000);
   });
 }
+// One-time migrator: legacy `ogden-site-annotations` v3 blob → 7
+// Scholar-aligned namespace stores. Must run BEFORE any of the new stores
+// rehydrate (they live under `apps/web/src/store/` and are reached via
+// the side-effect imports below). Idempotent.
+// See ADR 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md.
+import { migrateLegacyBlob, cleanupArchivedV3 } from './store/site-annotations-migrate.js';
+migrateLegacyBlob();
+// Remove the `ogden-site-annotations.archived-v3` rollback hatch on every
+// boot — obsolete now that the namespace consolidation has shipped.
+// See ADR 2026-04-30-archive-v3-blob-cleanup.md.
+cleanupArchivedV3();
+
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
 // Import connectivityStore to register online/offline listeners (side-effect import)

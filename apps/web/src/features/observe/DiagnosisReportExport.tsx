@@ -18,7 +18,10 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { useSiteDataStore, getLayerSummary } from '../../store/siteDataStore.js';
 import { useSoilSampleStore } from '../../store/soilSampleStore.js';
-import { useSiteAnnotationsStore } from '../../store/siteAnnotationsStore.js';
+import { useEcologyStore } from '../../store/ecologyStore.js';
+import { useExternalForcesStore } from '../../store/externalForcesStore.js';
+import { useSwotStore } from '../../store/swotStore.js';
+import { useTopographyStore } from '../../store/topographyStore.js';
 import styles from './SwotJournalCard.module.css';
 
 interface Props {
@@ -38,14 +41,13 @@ export default function DiagnosisReportExport({ project }: Props) {
   const visions = useVisionStore((s) => s.visions);
   const siteData = useSiteDataStore((s) => s.dataByProject[project.id]);
   const allSoilSamples = useSoilSampleStore((s) => s.samples);
-  const allHazards = useSiteAnnotationsStore((s) => s.hazards);
-  const allTransects = useSiteAnnotationsStore((s) => s.transects);
-  const allSectors = useSiteAnnotationsStore((s) => s.sectors);
-  const allEcology = useSiteAnnotationsStore((s) => s.ecology);
-  const successionStageByProject = useSiteAnnotationsStore(
-    (s) => s.successionStageByProject,
+  const allHazards = useExternalForcesStore((s) => s.hazards);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allSectors = useExternalForcesStore((s) => s.sectors);
+  const allEcology = useEcologyStore((s) => s.ecology);
+  const successionStageByProject = useEcologyStore((s) => s.successionStageByProject,
   );
-  const allSwot = useSiteAnnotationsStore((s) => s.swot);
+  const allSwot = useSwotStore((s) => s.swot);
 
   const visionData = useMemo(
     () => visions.find((v) => v.projectId === project.id),

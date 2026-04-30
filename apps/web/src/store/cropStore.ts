@@ -30,6 +30,16 @@ export interface CropArea {
   marketGardenBundle?: string;
   /** Optional bed length override (m) for market-garden bed-count math; falls back to ASSUMED_BED_LENGTH_M (30 m) when undefined. */
   marketGardenBedLengthM?: number;
+  /**
+   * ACT-stage Module 2 — current irrigation operating mode. Tracks the
+   * transition from active watering at install time to passive
+   * (rain-fed / swale-fed) operation as perennial systems establish.
+   * Optional, additive; legacy crop areas load with `irrigationMode`
+   * undefined (treated as `active` by `IrrigationManagerCard`).
+   */
+  irrigationMode?: 'active' | 'transitioning' | 'passive';
+  /** ISO date when the steward began the active→passive transition. */
+  transitionStartDate?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -3,19 +3,14 @@
  *
  * Circular SVG editor for off-site influence vectors (sun summer/winter,
  * prevailing wind, storm wind, fire approach, noise, wildlife corridors,
- * key views). Persists arrows via useSiteAnnotationsStore. Map overlay is
+ * key views). Persists arrows via useExternalForcesStore. Map overlay is
  * deferred — v1 ships the standalone compass only.
  */
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type SectorArrow,
-  type SectorType,
-  type SectorIntensity,
-} from '../../store/siteAnnotationsStore.js';
+import { useExternalForcesStore } from '../../store/externalForcesStore.js';
+import { newAnnotationId, type SectorArrow, type SectorType, type SectorIntensity } from '../../store/site-annotations.js';
 import compassStyles from './SectorCompassCard.module.css';
 import shared from './StewardSurveyCard.module.css';
 
@@ -60,10 +55,10 @@ function wedgePath(bearingDeg: number, arcDeg: number): string {
 }
 
 export default function SectorCompassCard({ project }: Props) {
-  const allSectors = useSiteAnnotationsStore((s) => s.sectors);
-  const addSector = useSiteAnnotationsStore((s) => s.addSector);
-  const updateSector = useSiteAnnotationsStore((s) => s.updateSector);
-  const removeSector = useSiteAnnotationsStore((s) => s.removeSector);
+  const allSectors = useExternalForcesStore((s) => s.sectors);
+  const addSector = useExternalForcesStore((s) => s.addSector);
+  const updateSector = useExternalForcesStore((s) => s.updateSector);
+  const removeSector = useExternalForcesStore((s) => s.removeSector);
 
   const sectors = useMemo(
     () => allSectors.filter((s) => s.projectId === project.id),

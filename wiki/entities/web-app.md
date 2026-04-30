@@ -27,9 +27,20 @@ src/
                       hazards, cross-section, soil tests, food-chain, sector
                       compass, SWOT journal, diagnosis report) — see
                       [[2026-04-29-observe-stage-ia-restructure]]
+    plan/           — PLAN-stage hub + 16 spec-module surfaces (permanence,
+                      runoff, swale/storage, zone layer, paths, plant DB +
+                      guild + canopy, soil/waste, transect+solar, phasing +
+                      seasonal tasks + budget, Holmgren checklist) — see
+                      [[2026-04-29-plan-stage-ia-restructure]]
+    act/            — ACT-stage hub (violet-bronze) + 13 spec-module surfaces
+                      (BuildGantt, BudgetActuals, PilotPlots, Maintenance,
+                      Irrigation, WasteRouting, OngoingSwot, HarvestLog,
+                      Succession, NetworkCrm, CommunityEvents, HazardPlans,
+                      AppropriateTech) — see
+                      [[2026-04-29-act-stage-ia-restructure]]
     <slug>/         — 28 scaffolded §§2-29 feature folders (CONTEXT.md + Page.tsx + index.ts)
                       driven by [[feature-manifest]]. §1 uses legacy project/ folder.
-  store/            — 26 Zustand stores
+  store/            — 32 Zustand stores
   lib/              — layerFetcher, geoParsers, scoring engine, tokens.ts (TS token bridge)
   pages/            — Top-level route pages
 ```
@@ -57,8 +68,16 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
 - Observe accordion is a 17-item flat list (Hub + 6 existing dashboards + 9
   new dashboardOnly observe surfaces + report exporter); `ObserveHub` is
   the default landing surface for the stage.
+- Plan accordion adds `PlanHub` + 16 spec-module surfaces; see
+  [[2026-04-29-plan-stage-ia-restructure]].
+- Act accordion adds `ActHub` (pinned first, violet-bronze theme) + 13 new
+  ACT spec-module surfaces; the 11 already-tagged ACT NavItems
+  (`herd-rotation`, `livestock-inventory`, `nursery-ledger`,
+  `investor-summary`, `reporting`, `portal`, `educational`, `moontrance`,
+  `templates`, `fieldwork`, `history`) remain in place. See
+  [[2026-04-29-act-stage-ia-restructure]].
 
-## Zustand Stores (19)
+## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection
 - `zoneStore` — land zones (13 categories)
@@ -71,10 +90,24 @@ All use `persist` middleware with localStorage. Key stores:
 - `financialStore` — region, mission weights, overrides
 - `fieldworkStore` — field notes, walk routes, punch lists
 - `siteDataStore` — cached layer data (fetch-driven, ephemeral)
-- `siteAnnotationsStore` — user-authored OBSERVE annotations (hazards,
-  transects, sectors, ecology, succession, SWOT) — see
-  [[site-annotations-store]]
+- **Site-annotations namespace stores (2026-04-30, 7 stores):**
+  `externalForcesStore` (hazards + sectors), `topographyStore` (transects
+  with `verticalRefs` discriminated union), `ecologyStore` (ecology +
+  succession), `waterSystemsStore` (earthworks + storageInfra),
+  `polycultureStore` (guilds + species), `closedLoopStore` (wasteVectors
+  + wasteVectorRuns + fertilityInfra), `swotStore`. Replaces the legacy
+  `siteAnnotationsStore` v3 god-store via Permaculture-Scholar-aligned
+  consolidation (Holmgren P8) — see [[site-annotations-store]] and
+  [[2026-04-30-site-annotations-store-scholar-aligned-namespaces]].
+  One-time `migrateLegacyBlob()` runs at boot in `main.tsx`.
 - `commentStore` — design comments
+- **PLAN-stage stores (2026-04-29):** `principleCheckStore` — Holmgren
+  12-principle checks per project.
+- **ACT-stage stores (2026-04-29):** `actualsStore` (per-task est-vs-actual
+  ledger), `pilotPlotStore`, `maintenanceStore` (5-cadence tasks),
+  `harvestLogStore`, `successionStore`, `networkStore` (external CRM —
+  distinct from `memberStore`), `communityEventStore`,
+  `appropriateTechStore`. All `ogden-act-<slug>` v1.
 
 ## Map / Geocoding
 - Tile renderer: MapLibre GL (open-source)

@@ -3,18 +3,13 @@
  *
  * Logs species observations tagged by trophic level (producer →
  * decomposer) and a per-project succession-stage label. Persists via
- * useSiteAnnotationsStore.
+ * useEcologyStore.
  */
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type EcologyObservation,
-  type TrophicLevel,
-  type SuccessionStage,
-} from '../../store/siteAnnotationsStore.js';
+import { useEcologyStore } from '../../store/ecologyStore.js';
+import { newAnnotationId, type EcologyObservation, type TrophicLevel, type SuccessionStage } from '../../store/site-annotations.js';
 import styles from './StewardSurveyCard.module.css';
 
 interface Props {
@@ -47,11 +42,11 @@ interface DraftObs {
 const EMPTY: DraftObs = { species: '', trophicLevel: 'producer', notes: '' };
 
 export default function FoodChainCard({ project }: Props) {
-  const allObs = useSiteAnnotationsStore((s) => s.ecology);
-  const addObs = useSiteAnnotationsStore((s) => s.addObservation);
-  const removeObs = useSiteAnnotationsStore((s) => s.removeObservation);
-  const successionStage = useSiteAnnotationsStore((s) => s.successionStageByProject[project.id]);
-  const setSuccession = useSiteAnnotationsStore((s) => s.setSuccessionStage);
+  const allObs = useEcologyStore((s) => s.ecology);
+  const addObs = useEcologyStore((s) => s.addObservation);
+  const removeObs = useEcologyStore((s) => s.removeObservation);
+  const successionStage = useEcologyStore((s) => s.successionStageByProject[project.id]);
+  const setSuccession = useEcologyStore((s) => s.setSuccessionStage);
 
   const observations = useMemo(
     () => allObs.filter((o) => o.projectId === project.id),

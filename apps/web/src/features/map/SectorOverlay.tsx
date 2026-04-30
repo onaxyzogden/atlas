@@ -2,7 +2,8 @@ import { useEffect, useMemo } from 'react';
 import type maplibregl from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useMapStore } from '../../store/mapStore.js';
-import { useSiteAnnotationsStore, type SectorArrow } from '../../store/siteAnnotationsStore.js';
+import { useExternalForcesStore } from '../../store/externalForcesStore.js';
+import { type SectorArrow } from '../../store/site-annotations.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 interface SectorOverlayProps {
@@ -67,7 +68,7 @@ function wedgeFeature(
 export default function SectorOverlay({ projectId, map, boundaryGeojson }: SectorOverlayProps) {
   const visible = useMapStore((s) => s.sectorOverlayVisible);
   const overlayOpacity = useMapStore((s) => s.overlayOpacity);
-  const allSectors = useSiteAnnotationsStore((s) => s.sectors);
+  const allSectors = useExternalForcesStore((s) => s.sectors);
 
   const sectors = useMemo(
     () => allSectors.filter((arrow) => arrow.projectId === projectId),

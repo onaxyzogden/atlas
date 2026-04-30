@@ -3,18 +3,13 @@
  *
  * Steward-captured historical hazard events that complement the FEMA / climate
  * layer reads on the SolarClimateDashboard. Persists via
- * useSiteAnnotationsStore.
+ * useExternalForcesStore.
  */
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useSiteAnnotationsStore,
-  newAnnotationId,
-  type HazardEvent,
-  type HazardType,
-  type HazardSeverity,
-} from '../../store/siteAnnotationsStore.js';
+import { useExternalForcesStore } from '../../store/externalForcesStore.js';
+import { newAnnotationId, type HazardEvent, type HazardType, type HazardSeverity } from '../../store/site-annotations.js';
 import styles from './StewardSurveyCard.module.css';
 
 interface Props {
@@ -52,9 +47,9 @@ interface DraftHazard {
 const EMPTY_DRAFT: DraftHazard = { type: 'flood', date: '', severity: '', description: '' };
 
 export default function HazardsLogCard({ project }: Props) {
-  const allHazards = useSiteAnnotationsStore((s) => s.hazards);
-  const addHazard = useSiteAnnotationsStore((s) => s.addHazard);
-  const removeHazard = useSiteAnnotationsStore((s) => s.removeHazard);
+  const allHazards = useExternalForcesStore((s) => s.hazards);
+  const addHazard = useExternalForcesStore((s) => s.addHazard);
+  const removeHazard = useExternalForcesStore((s) => s.removeHazard);
 
   const hazards = useMemo(
     () =>
