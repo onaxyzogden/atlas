@@ -20,6 +20,7 @@ function PanelShell({ name, children }: { name: string; children: ReactNode }) {
 }
 
 const SiteIntelligenceDashboard = lazy(() => import('./pages/SiteIntelligenceDashboard.js'));
+const WorkflowWheelDashboard = lazy(() => import('./pages/WorkflowWheelDashboard.js'));
 const MapLayersDashboard = lazy(() => import('./pages/MapLayersDashboard.js'));
 const GrazingDashboard = lazy(() => import('./pages/GrazingDashboard.js'));
 const HerdRotationDashboard = lazy(() => import('./pages/HerdRotationDashboard.js'));
@@ -364,6 +365,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Site Intelligence">
           <SiteIntelligenceDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'workflow-wheel':
+      return (
+        <PanelShell name="Workflow">
+          <WorkflowWheelDashboard project={project} />
         </PanelShell>
       );
     case 'map-layers':

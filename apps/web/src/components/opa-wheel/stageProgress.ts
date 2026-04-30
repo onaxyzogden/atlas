@@ -50,7 +50,13 @@ export function computeStageProgress(
 
   for (const stage of STAGE3_ORDER) {
     const items = DASHBOARD_ITEMS.filter(
-      (item) => item.stage3 === stage && item.dashboardOnly === true,
+      (item) =>
+        item.stage3 === stage &&
+        item.dashboardOnly === true &&
+        // The workflow-wheel page itself lives in the taxonomy (so it is
+        // reachable from the sidebar) but is not a stage activity — exclude
+        // it so it does not inflate Observe's denominator.
+        item.id !== 'workflow-wheel',
     );
 
     let populated = 0;

@@ -41,7 +41,10 @@ describe('computeStageProgress', () => {
     // "next" since taxonomy order is preserved and the first item is
     // unpopulated.
     const observeItems = DASHBOARD_ITEMS.filter(
-      (i) => i.stage3 === 'observe' && i.dashboardOnly === true,
+      (i) =>
+        i.stage3 === 'observe' &&
+        i.dashboardOnly === true &&
+        i.id !== 'workflow-wheel',
     );
     expect(observeItems.length).toBeGreaterThanOrEqual(2);
     const firstObserve = observeItems[0]!;

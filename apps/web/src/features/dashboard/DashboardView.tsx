@@ -10,7 +10,6 @@ import DashboardMetrics from './DashboardMetrics.js';
 import LandVerdictCard from './LandVerdictCard.js';
 import CriticalConstraintAlert from './CriticalConstraintAlert.js';
 import DecisionTriad from './DecisionTriad.js';
-import OPAComparisonWheel from '../../components/opa-wheel/OPAComparisonWheel.js';
 import { useIsMobile } from '../../hooks/useMediaQuery.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { DASHBOARD_ITEMS } from '../navigation/taxonomy.js';
@@ -75,7 +74,6 @@ export default function DashboardView({ project, onSwitchToMap, onGenerateBrief 
               onCreateChecklist={() => setActiveSection('regulatory')}
             />
             <DecisionTriad project={project} />
-            <OPAComparisonWheel project={project} levelColor="#8b7355" />
           </>
         )}
 

@@ -213,6 +213,16 @@ export const DOMAIN_ORDER: DomainGroupKey[] = [
 // ── NAV_ITEMS ────────────────────────────────────────────────────────────────
 
 export const NAV_ITEMS: NavItem[] = [
+  // ── Workflow Wheel ─────────────────────────────────────────────────────────
+  // Cross-cutting overview surface hosting the Observe → Plan → Act radial.
+  // Pinned at the top of the Observe accordion as the workflow's entry point;
+  // explicitly excluded from `computeStageProgress` so it does not inflate
+  // Observe's denominator (it has no per-item store of its own).
+  {
+    id: 'workflow-wheel', label: 'Workflow Wheel',
+    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
+    dashboardOnly: true,
+  },
   // ── Observe Hub ────────────────────────────────────────────────────────────
   // Pinned first under the OBSERVE accordion (stage3 grouping). Hybrid landing
   // page that summarises the six observation modules and links to detail
