@@ -1,4 +1,5 @@
 import { MaqasidComparisonWheel } from '@ogden/ui-components';
+import { MemoryRouter } from 'react-router-dom';
 import { Eye, Lightbulb, Hammer } from 'lucide-react';
 import styles from './OPAComparisonWheel.module.css';
 
@@ -47,18 +48,26 @@ export default function OPAComparisonWheel({
     }
   };
 
+  // MaqasidComparisonWheel from @ogden/ui-components calls
+  // react-router-dom's useNavigate internally. The host app uses
+  // @tanstack/react-router and has no react-router-dom Router context,
+  // so we wrap the wheel in a MemoryRouter to satisfy the hook
+  // without affecting host navigation. Our onSegmentSelect prop catches
+  // the click before any internal navigate would matter.
   return (
     <div className={styles.container}>
       <div className={styles.wheelWrapper}>
-        <MaqasidComparisonWheel
-          centerLabel="WORKFLOW"
-          levelColor={levelColor}
-          segments={segments}
-          nextActions={nextActions}
-          showNextCard={true}
-          showDiacritics={false}
-          onSegmentSelect={handleSegmentSelect}
-        />
+        <MemoryRouter>
+          <MaqasidComparisonWheel
+            centerLabel="WORKFLOW"
+            levelColor={levelColor}
+            segments={segments}
+            nextActions={nextActions}
+            showNextCard={true}
+            showDiacritics={false}
+            onSegmentSelect={handleSegmentSelect}
+          />
+        </MemoryRouter>
       </div>
     </div>
   );
