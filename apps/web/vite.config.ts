@@ -13,6 +13,11 @@ const cesiumBuild = join(cesiumRoot, 'Build', 'Cesium');
 export default defineConfig({
   optimizeDeps: {
     exclude: ['@ogden/ui-components'],
+    // react-router 7 pulls in cookie@1 (CJS, no `exports` field). Without
+    // forcing pre-bundle, Vite serves dist/index.js raw and the ESM
+    // `import { parse } from 'cookie'` throws "no export named 'parse'"
+    // at module-eval time, leaving #root empty. Same for set-cookie-parser.
+    include: ['cookie', 'set-cookie-parser'],
   },
   plugins: [
     react(),
