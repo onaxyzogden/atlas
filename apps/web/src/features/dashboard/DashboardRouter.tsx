@@ -370,7 +370,7 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
     case 'workflow-wheel':
       return (
         <PanelShell name="Workflow">
-          <WorkflowWheelDashboard project={project} />
+          <WorkflowWheelDashboard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'map-layers':

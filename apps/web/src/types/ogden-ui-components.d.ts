@@ -69,4 +69,43 @@ declare module '@ogden/ui-components' {
   export function useWheelHoverStore<T = WheelHoverState>(
     selector?: (state: WheelHoverState) => T,
   ): T;
+
+  // ── LevelNavigator ────────────────────────────────────────────────────────
+  // 3-level carousel (left/center/right) with arrow chevrons. The default
+  // levels are the Maqasid tiers (Daruriyyat / Hajiyyat / Tahsiniyyat); we
+  // override via the `levels` prop to show STAGE 1/2/3 (Observe/Plan/Act).
+  // The component calls `useNavigate` at render so a Router context (e.g.
+  // MemoryRouter) must wrap it; with `onSegmentClick` provided and `route`
+  // omitted on pillars, the hook is never *invoked*.
+
+  export interface LevelDef {
+    key: string;
+    label: string;
+    subtitle?: string;
+    title: string;
+    desc?: string;
+    color?: string;
+    routeSuffix?: string;
+  }
+
+  export interface LevelNavigatorPillar {
+    id: string;
+    label: string;
+    route?: string;
+  }
+
+  export interface LevelNavigatorProps {
+    pillars?: LevelNavigatorPillar[];
+    levels?: LevelDef[];
+    controlledLevel?: string;
+    onLevelChange?: (levelKey: string) => void;
+    onSegmentClick?: (pillarId: string, levelKey: string) => void;
+    compact?: boolean;
+    tooltipsEnabled?: boolean;
+    showDiacritics?: boolean;
+    storageKey?: string;
+    currentPillarId?: string;
+  }
+
+  export const LevelNavigator: FC<LevelNavigatorProps>;
 }
