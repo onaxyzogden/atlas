@@ -94,12 +94,30 @@ declare module '@ogden/ui-components' {
     route?: string;
   }
 
+  /**
+   * Per-pillar task entry shown as a coloured sub-segment bar inside the
+   * pillar column. The default colouring rule (built into the upstream
+   * package): green when `completedAt` is set or `columnId` ends with
+   * `_done`; grey when `columnId` ends with `_to_do` / `_todo`; amber
+   * otherwise.
+   */
+  export interface LevelNavigatorTask {
+    id: string;
+    title: string;
+    columnId?: string;
+    completedAt?: string | number | null;
+    priority?: string | number;
+  }
+
   export interface LevelNavigatorProps {
     pillars?: LevelNavigatorPillar[];
+    pillarTasks?: Record<string, LevelNavigatorTask[]>;
     levels?: LevelDef[];
     controlledLevel?: string;
     onLevelChange?: (levelKey: string) => void;
     onSegmentClick?: (pillarId: string, levelKey: string) => void;
+    onSubsegClick?: (taskId: string, pillarId: string) => void;
+    taskColorFn?: (task: LevelNavigatorTask) => string;
     compact?: boolean;
     tooltipsEnabled?: boolean;
     showDiacritics?: boolean;
