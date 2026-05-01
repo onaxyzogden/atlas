@@ -19,6 +19,7 @@ import DiagnoseCategoryDrawer from "../components/DiagnoseCategoryDrawer.js";
 import { useMemo, useRef, useState } from "react";
 import type { Map as MaplibreMap } from "maplibre-gl";
 import DiagnoseMap from "../components/DiagnoseMap.js";
+import ParcelSatelliteSnapshot from "../components/ParcelSatelliteSnapshot.js";
 import TopographyOverlay from "../components/overlays/TopographyOverlay.js";
 import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
 import WindSectorsOverlay from "../components/overlays/WindSectorsOverlay.js";
@@ -102,7 +103,12 @@ export default function DiagnosePage() {
             onClick: () => downloadDiagnoseBrief(project),
           },
         ]}
-        aside={<ParcelPlaceholder caption={brief.parcelCaption} />}
+        aside={
+          <ParcelSatelliteSnapshot
+            boundary={project.location.boundary}
+            caption={brief.parcelCaption}
+          />
+        }
       />
 
       <section className={css.section} aria-label="Site analysis map">
@@ -280,13 +286,3 @@ function DiagnoseOverlays({
   );
 }
 
-function ParcelPlaceholder({ caption }: { caption?: string }) {
-  return (
-    <div className={css.parcel} aria-hidden="true">
-      <div className={css.parcelArt}>
-        <span className={css.parcelGlyph}>◊</span>
-      </div>
-      {caption && <span className={css.parcelCaption}>{caption}</span>}
-    </div>
-  );
-}
