@@ -18,6 +18,7 @@ import OperateMap from "../components/OperateMap.js";
 import FieldFlagOverlay from "../components/overlays/FieldFlagOverlay.js";
 import ObservedStamp from "../components/ObservedStamp.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { useFieldFlags } from "../data/useFieldFlags.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
 import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
@@ -27,12 +28,15 @@ const TODAY_OBSERVED = new Date(Date.now() - 18 * 60_000).toISOString();
 export default function OperatePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
+  const brief = project?.operate;
+  // Phase 5.2 PR3: live flags from livestock + water stores, with the
+  // brief's hand-authored flags as fallback for the MTC dev fixture.
+  const fieldFlags = useFieldFlags(project?.id, { briefFlags: brief?.fieldFlags });
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
   }
 
-  const brief = project.operate;
   if (!brief) {
     return <div className={css.page}>Operations data is not yet available for this project.</div>;
   }
@@ -77,7 +81,7 @@ export default function OperatePage() {
           <p className="eyebrow">Steward · Map</p>
           <h2 className={css.sectionTitle}>Field Activity</h2>
           <p className={css.sectionSub}>
-            {brief.fieldFlags.length === 0
+            {fieldFlags.length === 0
               ? "Nothing happening on the land right now."
               : "Live flags from livestock, water, and weather signals on the parcel."}
           </p>
@@ -87,9 +91,9 @@ export default function OperatePage() {
           // polygon — every real project does, so this is the dev-mock path.
           centroid={[-78.20, 44.50]}
           boundary={project.location.boundary}
-          legendNote={`${brief.fieldFlags.length} active flag${brief.fieldFlags.length === 1 ? "" : "s"}`}
+          legendNote={`${fieldFlags.length} active flag${fieldFlags.length === 1 ? "" : "s"}`}
         >
-          {({ map }) => <FieldFlagOverlay map={map} flags={brief.fieldFlags} />}
+          {({ map }) => <FieldFlagOverlay map={map} flags={fieldFlags} />}
         </OperateMap>
       </section>
 
