@@ -118,11 +118,18 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
 
   const modules: ModuleSpec[] = useMemo(() => {
     // ── 1. Human Context ──────────────────────────────────────────────────
-    // Steward survey + indigenous/regional context land in Phase 4a; for
-    // now we surface vision phase notes as the closest existing signal.
+    // Steward survey + indigenous/regional context are surfaced as summary
+    // rows below; full edit UIs live in the linked detail views (sectionId
+    // observe-steward-survey + observe-indigenous-regional).
     const phaseNotesFilled =
       visionData?.phaseNotes?.filter((p) => p.notes.trim().length > 0).length ?? 0;
     const stewardName = visionData?.steward?.name ?? null;
+    const regional = visionData?.regional;
+    const regionalItems =
+      (regional?.indigenousNames?.length ?? 0) +
+      (regional?.culturalStrengths?.length ?? 0) +
+      (regional?.culturalChallenges?.length ?? 0) +
+      (regional?.localNetwork?.length ?? 0);
 
     const humanContext: ModuleSpec = {
       number: '1',
@@ -131,12 +138,14 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
         { label: 'Steward', value: nonEmpty(stewardName) },
         { label: 'Vision phases captured', value: `${phaseNotesFilled} / 3` },
         { label: 'Milestones', value: `${visionData?.milestones?.length ?? 0}` },
+        { label: 'Regional context', value: regionalItems > 0 ? `${regionalItems} captured` : '—' },
       ],
       actions: [
         { label: 'Open Steward Survey →', sectionId: 'observe-steward-survey' },
+        { label: 'Indigenous & regional →', sectionId: 'observe-indigenous-regional' },
         { label: 'Vision detail →', sectionId: 'vision' },
       ],
-      empty: phaseNotesFilled === 0 && !stewardName,
+      empty: phaseNotesFilled === 0 && !stewardName && regionalItems === 0,
     };
 
     // ── 2. Macroclimate & Hazards ─────────────────────────────────────────
@@ -193,7 +202,7 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
     // ── 4. Earth, Water & Ecology Diagnostics ─────────────────────────────
     const latestSample = soilSamples[soilSamples.length - 1];
     const groundwater = siteData
-      ? getLayerSummary<{ depthClass?: string; depthM?: number }>(siteData, 'groundwater')
+      ? getLayerSummary<{ groundwater_depth_m?: number | null }>(siteData, 'groundwater')
       : null;
     const diagnostics: ModuleSpec = {
       number: '4',
@@ -202,7 +211,9 @@ export default function ObserveHub({ project, onSwitchToMap }: Props) {
         { label: 'Latest soil pH', value: fmtNum(latestSample?.ph ?? null, '', 1) },
         {
           label: 'Groundwater',
-          value: nonEmpty(groundwater?.depthClass ?? (groundwater?.depthM ? `${groundwater.depthM} m` : null)),
+          value: groundwater?.groundwater_depth_m != null
+            ? `${groundwater.groundwater_depth_m.toFixed(1)} m`
+            : '—',
         },
         { label: 'Ecology obs.', value: `${projectEcology.length}` },
       ],

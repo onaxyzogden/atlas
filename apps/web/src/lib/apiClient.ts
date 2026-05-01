@@ -137,8 +137,26 @@ export const api = {
 
     // Public — returns only is_builtin = true rows. No auth required so
     // unauthenticated visitors see the canonical sample on the home page.
+    // Each row is a ProjectSummary plus `parcelBoundaryGeojson` (raw
+    // PostGIS geometry) and `layers` (project_layers Tier-1 summaries
+    // with snake_case `summary` jsonb preserved end-to-end).
     listBuiltins: () =>
-      request<ProjectSummary[]>('GET', '/api/v1/projects/builtins'),
+      request<
+        Array<
+          ProjectSummary & {
+            parcelBoundaryGeojson: unknown | null;
+            layers: Array<{
+              layerType: string;
+              sourceApi: string | null;
+              fetchStatus: string;
+              confidence: string | null;
+              dataDate: string | null;
+              attribution: string | null;
+              summary: Record<string, unknown>;
+            }>;
+          }
+        >
+      >('GET', '/api/v1/projects/builtins'),
 
     get: (id: string) =>
       request<ProjectSummary>('GET', `/api/v1/projects/${id}`),

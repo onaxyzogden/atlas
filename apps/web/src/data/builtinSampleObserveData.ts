@@ -38,8 +38,6 @@ import {
   useSwotStore,
   type SwotEntry,
 } from '../store/swotStore.js';
-import { useSiteDataStore } from '../store/siteDataStore.js';
-import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Project narrative ──────────────────────────────────────────────────
 // Spread onto the LocalProject from `applyBuiltinsToStore` for any builtin
@@ -64,74 +62,16 @@ export const BUILTIN_PROJECT_NARRATIVE = {
 
 export function seedBuiltinObserveData(localProjectId: string): void {
   seedVision(localProjectId);
+  seedRegional(localProjectId);
   seedHazardsAndSectors(localProjectId);
   seedTopography(localProjectId);
   seedSoilSamples(localProjectId);
   seedEcology(localProjectId);
   seedSwot(localProjectId);
-  seedSiteDataLayers(localProjectId);
-}
-
-// ─── Module 2/3 numeric rows: synthesized site-data layers ─────────────
-// Module 2 (Hardiness zone, Annual precip) and Module 3 (Mean slope,
-// Elevation range) read `useSiteDataStore.dataByProject[projectId]`,
-// which is normally populated by the authenticated layer fetcher. The
-// builtin must work signed-out and offline, so we hydrate matching
-// climate + elevation summaries directly from migration 017 values.
-
-function seedSiteDataLayers(projectId: string): void {
-  const existing = useSiteDataStore.getState().dataByProject[projectId];
-  if (existing?.status === 'complete') return;
-
-  const today = new Date().toISOString().split('T')[0]!;
-  const layers: MockLayerResult[] = [
-    {
-      layerType: 'elevation',
-      fetchStatus: 'complete',
-      confidence: 'high',
-      dataDate: today,
-      sourceApi: 'NRCan HRDEM',
-      attribution: 'Natural Resources Canada (migration 017 seed)',
-      summary: {
-        min_elevation_m: 240.1,
-        max_elevation_m: 268.4,
-        mean_elevation_m: 254.3,
-        mean_slope_deg: 4.2,
-        max_slope_deg: 11.6,
-        predominant_aspect: 'SW',
-      },
-    },
-    {
-      layerType: 'climate',
-      fetchStatus: 'complete',
-      confidence: 'high',
-      dataDate: today,
-      sourceApi: 'ECCC normals 1991–2020',
-      attribution: 'Environment and Climate Change Canada (sample)',
-      summary: {
-        annual_precip_mm: 875,
-        annual_temp_mean_c: 7.8,
-        growing_season_days: 165,
-        hardiness_zone: '6a',
-        koppen_classification: 'Dfb',
-        first_frost_date: '2025-10-12',
-        last_frost_date: '2025-05-08',
-      },
-    },
-  ];
-
-  useSiteDataStore.setState((s) => ({
-    dataByProject: {
-      ...s.dataByProject,
-      [projectId]: {
-        layers,
-        isLive: false,
-        liveCount: 0,
-        fetchedAt: Date.now(),
-        status: 'complete',
-      },
-    },
-  }));
+  // siteDataStore (Tier-1 climate/elevation summaries) is now populated
+  // by `applyBuiltinsToStore` directly from the public /projects/builtins
+  // payload (or LOCAL_BUILTIN_FALLBACK_LAYERS when offline) — no fixture
+  // duplication here. See projectStore.ts.
 }
 
 // ─── Module 1: Human Context ───────────────────────────────────────────
@@ -170,6 +110,60 @@ function seedVision(projectId: string): void {
     'years4plus',
     'Plant 2 ac mixed orchard (pawpaw, persimmon, heritage apple). Begin rotational poultry on lower field. Build outdoor musalla pavilion at east overlook. Open hosting season for retreat days.',
   );
+}
+
+// ─── Module 1 (regional): Indigenous & Regional Context ───────────────
+
+function seedRegional(projectId: string): void {
+  const store = useVisionStore.getState();
+  store.ensureDefaults(projectId);
+  const existing = store.getVisionData(projectId);
+  // Idempotency: if any regional content is already populated, leave it.
+  if (
+    existing?.regional?.indigenousNames?.length ||
+    existing?.regional?.culturalStrengths?.length ||
+    existing?.regional?.culturalChallenges?.length ||
+    existing?.regional?.localNetwork?.length
+  ) {
+    return;
+  }
+
+  store.updateRegional(projectId, {
+    indigenousNames: [
+      'Mississaugas of the Credit First Nation — Treaty 19 (1818) lands',
+      'Haudenosaunee Confederacy — historical territory under the Dish With One Spoon wampum',
+      'Anishinaabe / Wendat — pre-contact seasonal use of the Sixteen Mile Creek corridor',
+    ],
+    culturalStrengths: [
+      'Active Halton Hills agricultural community — long-running farmer cooperatives and seed exchanges',
+      'Conservation Halton stewardship programs (riparian planting, well-decommissioning grants)',
+      'Active Muslim community in Mississauga / Brampton (~25 min drive) — supports retreat hosting and weekend gatherings',
+    ],
+    culturalChallenges: [
+      'Land-acknowledgement protocols still maturing in rural Halton; consult Mississaugas of the Credit Department of Consultation & Accommodation before any earthworks',
+      'Seasonal creek setback corridor overlaps with potentially significant pre-contact archaeological sites — Stage 1 archaeological assessment recommended before excavation',
+    ],
+    localNetwork: [
+      {
+        id: crypto.randomUUID(),
+        name: 'Conservation Halton — Stewardship Services',
+        type: 'regulator',
+        contact: 'stewardship@hrca.on.ca',
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Mississaugas of the Credit — Department of Consultation & Accommodation',
+        type: 'first_nation',
+        contact: 'consultation@mncfn.ca',
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Halton Region Federation of Agriculture',
+        type: 'community',
+        contact: 'info@haltonfa.com',
+      },
+    ],
+  });
 }
 
 // ─── Module 2 + 5: Hazards & Sectors ──────────────────────────────────

@@ -3,8 +3,10 @@
  *
  * Circular SVG editor for off-site influence vectors (sun summer/winter,
  * prevailing wind, storm wind, fire approach, noise, wildlife corridors,
- * key views). Persists arrows via useExternalForcesStore. Map overlay is
- * deferred — v1 ships the standalone compass only.
+ * key views). Persists arrows via useExternalForcesStore. The same store
+ * drives `features/map/SectorOverlay`, which projects each wedge onto the
+ * MapView canvas — this surface is the editor; the map shows the overlay
+ * read-only via `SectorOverlayToggle`.
  */
 
 import { useMemo, useState } from 'react';

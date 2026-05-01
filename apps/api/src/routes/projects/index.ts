@@ -23,6 +23,9 @@ export default async function projectRoutes(fastify: FastifyInstance) {
   // GET /projects/builtins — public list of system-owned sample projects.
   // No auth required. Powers the unauthenticated home page so every visitor
   // can browse the canonical "351 House — Atlas Sample" before signing in.
+  // Each row also embeds its `project_layers` summaries so `siteDataStore`
+  // can hydrate the Stage 1 numeric rows (hardiness zone, annual precip,
+  // mean slope, elevation range) without a second authenticated round-trip.
   fastify.get('/builtins', async () => {
     const rows = await db`
       SELECT
@@ -38,14 +41,45 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       WHERE p.is_builtin = true
       ORDER BY p.created_at
     `;
+
+    // Fetch project_layers summaries for every builtin row in a single
+    // round-trip, then group by project_id below. Shape the rows by hand
+    // so summary_data passes through untouched (snake_case canonical) —
+    // toCamelCase() would recursively re-key the jsonb and break consumers.
+    const layerRows = rows.length
+      ? await db`
+        SELECT project_id, layer_type, source_api, fetch_status, confidence,
+               data_date, attribution_text, summary_data
+        FROM project_layers
+        WHERE project_id IN ${db(rows.map((r) => r.id))}
+        ORDER BY project_id, layer_type
+      `
+      : [];
+
+    const layersByProject = new Map<string, Array<Record<string, unknown>>>();
+    for (const l of layerRows) {
+      const list = layersByProject.get(l.project_id) ?? [];
+      list.push({
+        layerType: l.layer_type,
+        sourceApi: l.source_api,
+        fetchStatus: l.fetch_status,
+        confidence: l.confidence,
+        dataDate: l.data_date,
+        attribution: l.attribution_text,
+        summary: l.summary_data ?? {},
+      });
+      layersByProject.set(l.project_id, list);
+    }
+
     // ProjectSummary doesn't include the geometry; emit the summary +
-    // attach `parcelBoundaryGeojson` separately so the public sample
-    // ships its polygon to unauthenticated visitors. Payload is small
-    // (a few-point MultiPolygon) and the data is non-sensitive.
+    // attach `parcelBoundaryGeojson` and `layers` separately so the public
+    // sample ships its polygon and Tier-1 layer summaries to
+    // unauthenticated visitors. Payload is small and non-sensitive.
     return {
       data: rows.map((r) => ({
         ...ProjectSummary.parse(toCamelCase(r)),
         parcelBoundaryGeojson: r.parcel_boundary_geojson ?? null,
+        layers: layersByProject.get(r.id) ?? [],
       })),
       meta: { total: rows.length },
       error: null,

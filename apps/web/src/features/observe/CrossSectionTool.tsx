@@ -1,9 +1,11 @@
 /**
  * CrossSectionTool — Phase 4c OBSERVE surface (Module 3).
  *
- * Coordinate-entry transect editor + SVG profile chart. Map-drawn A→B
- * picking is deferred (the map-side `features/map/CrossSectionTool` covers
- * draw-on-map; this surface is the hub-side authored list).
+ * Coordinate-entry transect editor + SVG profile chart. The hub-side surface
+ * authors transects by lng/lat entry; for map-drawn A→B picking the
+ * "Pick on map" button hands off to the design-map's
+ * `features/map/CrossSectionTool`, which draws + samples + persists via
+ * the same `useTopographyStore.addTransect` so both surfaces edit one list.
  *
  * Sampling calls `api.elevation.profile` (NRCan HRDEM / 3DEP) and falls
  * back to a deterministic synthetic profile only if the call fails or the
@@ -67,7 +69,7 @@ function profilePath(elevations: number[]): { path: string; min: number; max: nu
   return { path, min, max };
 }
 
-export default function CrossSectionTool({ project }: Props) {
+export default function CrossSectionTool({ project, onSwitchToMap }: Props) {
   const allTransects = useTopographyStore((s) => s.transects);
   const addTransect = useTopographyStore((s) => s.addTransect);
   const updateTransect = useTopographyStore((s) => s.updateTransect);
@@ -146,9 +148,18 @@ export default function CrossSectionTool({ project }: Props) {
         <h1 className={shared.title}>A–B Cross-Section Tool</h1>
         <p className={shared.lede}>
           Draw a transect by entering A and B coordinates (lng, lat), then sample
-          the elevation profile. v1 uses a synthetic profile while the live
-          elevation API is being wired — values are illustrative only.
+          the elevation profile. Samples come from NRCan HRDEM (CA) or USGS 3DEP
+          (US) where coverage exists; outside those regions the chart falls back
+          to a synthetic profile and is labelled accordingly.
         </p>
+        <button
+          type="button"
+          className={shared.addBtn}
+          style={{ width: 'auto', marginTop: 8 }}
+          onClick={onSwitchToMap}
+        >
+          ⌗ Pick on map →
+        </button>
       </header>
 
       <section className={shared.section}>

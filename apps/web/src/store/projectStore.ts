@@ -13,6 +13,8 @@ import {
   seedBuiltinObserveData,
   BUILTIN_PROJECT_NARRATIVE,
 } from '../data/builtinSampleObserveData.js';
+import { useSiteDataStore } from './siteDataStore.js';
+import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
 
@@ -304,6 +306,46 @@ const LOCAL_BUILTIN_BOUNDARY: GeoJSON.FeatureCollection = {
   ],
 };
 
+// Snake_case summaries — mirror migration 018's canonical jsonb keys.
+// Used only when /projects/builtins is unreachable (e.g. signed-out user
+// with the API stopped); the API path always wins when available.
+const LOCAL_BUILTIN_FALLBACK_LAYERS: MockLayerResult[] = [
+  {
+    layerType: 'elevation',
+    fetchStatus: 'complete',
+    confidence: 'high',
+    dataDate: '2024-08-15',
+    sourceApi: 'NRCan HRDEM',
+    attribution: 'Natural Resources Canada (offline fallback)',
+    summary: {
+      min_elevation_m: 240.1,
+      max_elevation_m: 268.4,
+      mean_elevation_m: 254.7,
+      mean_slope_deg: 4.2,
+      max_slope_deg: 11.6,
+      predominant_aspect: 'SW',
+    },
+  },
+  {
+    layerType: 'climate',
+    fetchStatus: 'complete',
+    confidence: 'high',
+    dataDate: '2021-12-31',
+    sourceApi: 'ECCC normals 1991–2020',
+    attribution: 'Environment and Climate Change Canada (offline fallback)',
+    summary: {
+      annual_precip_mm: 870,
+      growing_season_days: 156,
+      growing_degree_days: 2860,
+      hardiness_zone: '5b',
+      annual_temp_mean_c: 7.8,
+      koppen_classification: 'Dfb',
+      first_frost_date: '2025-10-15',
+      last_frost_date: '2025-05-05',
+    },
+  },
+];
+
 const LOCAL_BUILTIN_FALLBACK = {
   id: '00000000-0000-0000-0000-0000005a3791',
   name: '351 House — Atlas Sample',
@@ -320,6 +362,7 @@ const LOCAL_BUILTIN_FALLBACK = {
   hasParcelBoundary: true,
   parcelBoundaryGeojson: LOCAL_BUILTIN_BOUNDARY,
   isBuiltin: true,
+  layers: LOCAL_BUILTIN_FALLBACK_LAYERS,
 };
 
 interface BuiltinRow {
@@ -349,6 +392,14 @@ interface BuiltinRow {
   isBuiltin: boolean;
   createdAt?: string;
   updatedAt?: string;
+  /**
+   * Tier-1 layer summaries for this builtin. Populated by the public
+   * `/projects/builtins` endpoint (migration 018 canonical snake_case
+   * keys preserved by hand-mapping in the API handler — *not* routed
+   * through `toCamelCase`). Falls back to `LOCAL_BUILTIN_FALLBACK_LAYERS`
+   * when the API is unreachable.
+   */
+  layers?: MockLayerResult[];
 }
 
 function asFeatureCollection(
@@ -425,12 +476,37 @@ function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
   // populated content, and persist the parcel boundary to IndexedDB so
   // map components on subsequent loads pick it up via `geodataCache`
   // — same path used for user-drawn boundaries. Both are idempotent.
-  for (const lp of incoming) {
+  for (let i = 0; i < incoming.length; i++) {
+    const lp = incoming[i];
+    const sp = builtins[i];
+    if (!lp || !sp) continue;
     if (lp.isBuiltin) seedBuiltinObserveData(lp.id);
     if (lp.parcelBoundaryGeojson) {
       geodataCache.put(`boundary:${lp.id}`, lp.parcelBoundaryGeojson).catch((err) => {
         console.warn('[OGDEN] Failed to cache builtin boundary:', err);
       });
+    }
+    // Stream Tier-1 layer summaries (climate, elevation, etc.) into
+    // siteDataStore keyed by the local project id, so Stage 1 modules
+    // and the diagnosis report read DB-canonical snake_case values
+    // instead of a hand-coded fixture. Falls back to the offline
+    // LOCAL_BUILTIN_FALLBACK_LAYERS when the API didn't ship `layers`.
+    if (lp.isBuiltin) {
+      const apiLayers = sp.layers && sp.layers.length > 0
+        ? sp.layers
+        : LOCAL_BUILTIN_FALLBACK_LAYERS;
+      useSiteDataStore.setState((s) => ({
+        dataByProject: {
+          ...s.dataByProject,
+          [lp.id]: {
+            layers: apiLayers,
+            isLive: false,
+            liveCount: 0,
+            fetchedAt: Date.now(),
+            status: 'complete',
+          },
+        },
+      }));
     }
   }
 }
@@ -460,6 +536,8 @@ async function hydrateBuiltins(): Promise<void> {
         isBuiltin: boolean;
         createdAt: string;
         updatedAt: string;
+        parcelBoundaryGeojson?: GeoJSON.Geometry | GeoJSON.FeatureCollection | null;
+        layers?: MockLayerResult[];
       }>;
     };
     applyBuiltinsToStore(envelope.data);

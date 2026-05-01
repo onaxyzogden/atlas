@@ -138,14 +138,14 @@ export default function DiagnosisReportExport({ project }: Props) {
     lines.push('');
     const climate = siteData
       ? getLayerSummary<{
-          hardinessZone?: string;
-          annualPrecipMm?: number;
-          growingSeasonDays?: number;
+          hardiness_zone?: string | null;
+          annual_precip_mm?: number | null;
+          growing_season_days?: number | null;
         }>(siteData, 'climate')
       : null;
-    lines.push(`- Hardiness zone: ${climate?.hardinessZone ?? '—'}`);
-    lines.push(`- Annual precipitation: ${fmt(climate?.annualPrecipMm, ' mm', 0)}`);
-    lines.push(`- Growing season: ${fmt(climate?.growingSeasonDays, ' days', 0)}`);
+    lines.push(`- Hardiness zone: ${climate?.hardiness_zone ?? '—'}`);
+    lines.push(`- Annual precipitation: ${fmt(climate?.annual_precip_mm, ' mm', 0)}`);
+    lines.push(`- Growing season: ${fmt(climate?.growing_season_days, ' days', 0)}`);
     if (hazards.length) {
       lines.push('');
       lines.push(`### Logged hazards (${hazards.length})`);
@@ -165,16 +165,16 @@ export default function DiagnosisReportExport({ project }: Props) {
     lines.push('');
     const elevation = siteData
       ? getLayerSummary<{
-          meanSlopeDeg?: number;
-          minElevationM?: number;
-          maxElevationM?: number;
+          mean_slope_deg?: number | null;
+          min_elevation_m?: number | null;
+          max_elevation_m?: number | null;
         }>(siteData, 'elevation')
       : null;
-    lines.push(`- Mean slope: ${fmt(elevation?.meanSlopeDeg, '°', 1)}`);
+    lines.push(`- Mean slope: ${fmt(elevation?.mean_slope_deg, '°', 1)}`);
     lines.push(
       `- Elevation range: ${
-        elevation?.minElevationM !== undefined && elevation?.maxElevationM !== undefined
-          ? `${Math.round(elevation.minElevationM)}–${Math.round(elevation.maxElevationM)} m`
+        elevation?.min_elevation_m != null && elevation?.max_elevation_m != null
+          ? `${Math.round(elevation.min_elevation_m)}–${Math.round(elevation.max_elevation_m)} m`
           : '—'
       }`,
     );

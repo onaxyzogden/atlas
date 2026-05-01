@@ -77,7 +77,9 @@ export default async function aiRoutes(fastify: FastifyInstance) {
     };
   });
 
-  // POST /ai/enrich-assessment — Phase 3 stub for AI-enriched assessment flags
+  // POST /ai/enrich-assessment — AI-enriched assessment flags. Wired to
+  // claudeClient.enrichAssessmentFlags(); returns 503 when ANTHROPIC_API_KEY
+  // is not configured so the caller can degrade gracefully.
   fastify.post('/enrich-assessment', { preHandler: [authenticate] }, async (req) => {
     if (!config.ANTHROPIC_API_KEY) {
       throw new AppError('AI_NOT_CONFIGURED', 'AI features are not configured. Set ANTHROPIC_API_KEY in the server environment.', 503);

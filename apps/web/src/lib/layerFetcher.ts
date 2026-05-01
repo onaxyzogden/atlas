@@ -22,7 +22,9 @@
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
 import { toNum, type SpatialLayerPayload } from '@ogden/shared/scoring';
+import type { LayerType } from '@ogden/shared';
 import { geodataCache } from './geodataCache.js';
+import { api } from './apiClient.js';
 import {
   US_WATER_DOCTRINE,
   US_WATER_RIGHTS_ENDPOINTS,
@@ -231,6 +233,11 @@ export interface FetchLayerOptions {
    * In-flight HTTP requests are not individually cancelled (they will complete
    * silently in the background and their results are simply ignored). */
   signal?: AbortSignal;
+  /** Phase 2.2: when set, attempt the authenticated
+   * `/layers/project/:projectId` endpoint first. Authoritative DB rows take
+   * precedence over the client-side multi-source fallback path. Mock layers
+   * remain the last-resort fallback when the DB is empty or auth is absent. */
+  projectId?: string;
 }
 
 export interface FetchLayerResults {
@@ -245,6 +252,66 @@ export interface FetchLayerResults {
 // In-flight promise map for request deduplication
 const inFlight = new Map<string, Promise<FetchLayerResults>>();
 
+// ── Phase 2.2: API-first path ─────────────────────────────────────────────
+
+/** Shape returned by `/layers/project/:id` after `camelCaseLayerRow` in the
+ *  API runs (top-level camelCased; `summaryData` jsonb passes through with
+ *  canonical snake_case keys per `LayerSummaryMap`). */
+interface ApiLayerRow {
+  layerType: LayerType;
+  sourceApi: string | null;
+  fetchStatus: string | null;
+  confidence: string | null;
+  dataDate: string | null;
+  attributionText: string | null;
+  summaryData: Record<string, unknown> | null;
+}
+
+function normalizeFetchStatus(s: string | null): MockLayerResult['fetchStatus'] {
+  if (s === 'complete' || s === 'pending' || s === 'failed' || s === 'unavailable') return s;
+  return 'unavailable';
+}
+
+function normalizeConfidence(c: string | null): MockLayerResult['confidence'] {
+  if (c === 'high' || c === 'medium' || c === 'low') return c;
+  return 'low';
+}
+
+/** Adapter: API row → MockLayerResult. Mirrors the server-side
+ *  `layerRowsToMockLayers` in apps/api/src/services/assessments/
+ *  SiteAssessmentWriter.ts so the scorer & UI see the same shape regardless
+ *  of which path produced the result. */
+function apiRowToMockLayer(r: ApiLayerRow): MockLayerResult {
+  return {
+    layerType: r.layerType,
+    fetchStatus: normalizeFetchStatus(r.fetchStatus),
+    confidence: normalizeConfidence(r.confidence),
+    dataDate: r.dataDate ?? '',
+    sourceApi: r.sourceApi ?? '',
+    attribution: r.attributionText ?? '',
+    summary: (r.summaryData ?? {}) as MockLayerResult['summary'],
+  } as MockLayerResult;
+}
+
+/** Attempt the authenticated `/layers/project/:id` endpoint. Returns the
+ *  mapped result when the DB has at least one `complete` layer; returns
+ *  `null` (so the caller falls through to the client-side path) on auth
+ *  failure, network failure, or empty/all-pending DB. */
+async function tryFetchFromApi(projectId: string): Promise<FetchLayerResults | null> {
+  try {
+    const env = await api.layers.list(projectId);
+    const rows = (env.data ?? []) as ApiLayerRow[];
+    if (rows.length === 0) return null;
+    const layers = rows.map(apiRowToMockLayer);
+    const liveCount = layers.filter((l) => l.fetchStatus === 'complete').length;
+    if (liveCount === 0) return null;
+    return { layers, isLive: true, liveCount, totalCount: layers.length };
+  } catch {
+    // 401/403 (unauthenticated) / 404 (no rows yet) / network — fall through.
+    return null;
+  }
+}
+
 export async function fetchAllLayers(options: FetchLayerOptions): Promise<FetchLayerResults> {
   const [lng, lat] = options.center;
   const cacheKey = getCacheKey(lat, lng, options.country);
@@ -256,6 +323,18 @@ export async function fetchAllLayers(options: FetchLayerOptions): Promise<FetchL
     // Spatial payloads live in IndexedDB; rehydrate before returning.
     await hydrateSpatial(cached.layers, cacheKey);
     return { layers: cached.layers, isLive: cached.isLive, liveCount: cached.isLive ? 7 : 0, totalCount: 7 };
+  }
+
+  // Phase 2.2: prefer the authoritative DB-backed `/layers/project/:id`
+  // endpoint when a projectId + auth token are available. Returning early
+  // here leaves the client-side multi-source fetch as the offline / no-DB
+  // fallback (mock layers remain the last-resort fallback below that).
+  if (options.projectId) {
+    const apiResult = await tryFetchFromApi(options.projectId);
+    if (apiResult) {
+      setCache(cacheKey, apiResult.layers, apiResult.isLive);
+      return apiResult;
+    }
   }
 
   // Deduplicate: return existing in-flight promise if same location is being
