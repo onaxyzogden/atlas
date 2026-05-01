@@ -199,11 +199,51 @@ export default function ProjectPage() {
 
   return (
     <div className={css.layout}>
+      {project.isBuiltin && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '8px 16px',
+            background: 'rgba(196, 162, 101, 0.10)',
+            borderBottom: '1px solid rgba(196, 162, 101, 0.35)',
+            color: 'var(--color-text)',
+            fontSize: 13,
+          }}
+        >
+          <span>
+            <strong>Atlas sample project.</strong>{' '}
+            Browse every detail surface — boundary, layers, design features,
+            regen timeline, and integration graph. This project is read-only;
+            duplicate it to start your own.
+          </span>
+          <button
+            type="button"
+            onClick={handleDuplicate}
+            style={{
+              border: '1px solid rgba(196, 162, 101, 0.55)',
+              background: 'transparent',
+              color: 'var(--color-text)',
+              padding: '4px 12px',
+              borderRadius: 4,
+              cursor: 'pointer',
+              fontSize: 12,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Duplicate as template
+          </button>
+        </div>
+      )}
       <ProjectTabBar
         projectName={project.name}
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        projectRole={projectRole}
+        projectRole={project.isBuiltin ? 'viewer' : projectRole}
         onGenerateBrief={() => setShowExport(true)}
       />
 

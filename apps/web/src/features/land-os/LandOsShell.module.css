@@ -1,14 +1,17 @@
 .shell {
   flex: 1;
+  /* Static columns are an SSR/initial fallback; live layout comes from the
+   * inline `gridTemplateColumns` driven by drag state in LandOsShell.tsx.
+   * Five tracks: sidebar | col-edge | content | col-edge | rail. */
   display: grid;
-  grid-template-columns: minmax(220px, 260px) 1fr minmax(280px, 340px);
+  grid-template-columns: minmax(220px, 260px) 28px 1fr 28px minmax(280px, 340px);
   min-height: 0;
   height: 100%;
   overflow: hidden;
 }
 
 .sidebar {
-  border-right: 1px solid var(--color-border);
+  position: relative;
   background: var(--color-surface);
   overflow: hidden;
   display: flex;
@@ -26,19 +29,94 @@
 }
 
 .rail {
-  border-left: 1px solid var(--color-border);
+  position: relative;
   background: var(--color-surface);
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  padding: var(--space-3);
   display: flex;
   flex-direction: column;
+}
+
+/* Body wrapper holds the actual sidebar / rail content. The col-edge
+ * lives outside as a sibling so it stays clickable in both states. The
+ * rail re-applies its original padding here so the content keeps its
+ * breathing room. */
+.paneBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.rail .paneBody {
+  padding: var(--space-3);
   gap: var(--space-3);
 }
 
-@media (max-width: 1280px) {
-  .shell {
-    grid-template-columns: minmax(200px, 240px) 1fr minmax(260px, 300px);
-  }
+/* Collapsed pane: hide the body entirely; the 28 px col-edge alone holds
+ * the column open. */
+.collapsed .paneBody {
+  display: none;
+}
+
+/* ── MILOS-style col-edge ─────────────────────────────────────────────
+ * Dedicated 28 px-wide grid column with a 1 px guideline at left:13px
+ * and a 20 × 28 toggle button centred vertically. The whole column is
+ * the click + drag target; the toggle button is decorative. */
+
+.colEdge {
+  position: relative;
+  background: var(--color-surface);
+  cursor: col-resize;
+  z-index: 2;
+  touch-action: none;
+  user-select: none;
+}
+.colEdge:focus {
+  outline: none;
+}
+
+.colEdgeLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 13px;
+  width: 1px;
+  background: var(--color-border);
+  transition: background 120ms ease;
+  pointer-events: none;
+}
+.colEdge:hover .colEdgeLine,
+.colEdge:focus-visible .colEdgeLine {
+  background: rgba(196, 162, 101, 0.55);
+}
+
+.colEdgeToggle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 28px;
+  /* Solid base + subtle highlight overlay → line never shows through. */
+  background-color: var(--color-surface);
+  background-image: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(232, 220, 200, 0.7);
+  pointer-events: none;
+  transition: color 120ms ease, border-color 120ms ease, background-image 120ms ease;
+  padding: 0;
+  z-index: 1;
+}
+.colEdge:hover .colEdgeToggle,
+.colEdge:focus-visible .colEdgeToggle {
+  color: rgba(232, 220, 200, 0.95);
+  border-color: rgba(196, 162, 101, 0.55);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04));
 }

@@ -135,6 +135,11 @@ export const api = {
     list: () =>
       request<ProjectSummary[]>('GET', '/api/v1/projects'),
 
+    // Public — returns only is_builtin = true rows. No auth required so
+    // unauthenticated visitors see the canonical sample on the home page.
+    listBuiltins: () =>
+      request<ProjectSummary[]>('GET', '/api/v1/projects/builtins'),
+
     get: (id: string) =>
       request<ProjectSummary>('GET', `/api/v1/projects/${id}`),
 

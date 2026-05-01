@@ -92,6 +92,9 @@ export const ProjectSummary = z.object({
   dataCompletenessScore: z.number().nullable(),
   hasParcelBoundary: z.boolean(),
   candidateOf: z.string().uuid().nullable().optional(),
+  // Builtin sample project flag (migration 017). Read-only for every
+  // account; the system user is the sole owner.
+  isBuiltin: z.boolean().default(false),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

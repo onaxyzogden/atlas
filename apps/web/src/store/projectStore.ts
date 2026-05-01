@@ -9,6 +9,10 @@ import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
+import {
+  seedBuiltinObserveData,
+  BUILTIN_PROJECT_NARRATIVE,
+} from '../data/builtinSampleObserveData.js';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
 
@@ -26,6 +30,8 @@ export interface LocalProject {
   acreage: number | null;
   dataCompletenessScore: number | null;
   hasParcelBoundary: boolean;
+  /** True for system-owned builtin sample projects (migration 017). Read-only. */
+  isBuiltin?: boolean;
   createdAt: string;
   updatedAt: string;
   // Sprint 2 additions
@@ -127,6 +133,9 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       updateProject: (id, updates) => {
+        // Builtin sample projects are read-only — silently no-op on writes.
+        const target = get().projects.find((p) => p.id === id);
+        if (target?.isBuiltin) return;
         // Persist large GeoJSON to IndexedDB if boundary is being updated
         if (updates.parcelBoundaryGeojson) {
           geodataCache.put(`boundary:${id}`, updates.parcelBoundaryGeojson).catch((err) => {
@@ -141,6 +150,9 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       deleteProject: (id) => {
+        // Builtin sample projects are read-only — silently no-op on delete.
+        const target = get().projects.find((p) => p.id === id);
+        if (target?.isBuiltin) return;
         cascadeDeleteProject(id);
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
@@ -256,35 +268,206 @@ export const useProjectStore = create<ProjectState>()(
   ),
 );
 
-// Register seed callback BEFORE rehydrate so it fires when hydration completes
+// On hydration, fetch the public builtin sample(s) from the API and merge
+// into the local store. This runs for every visitor — authenticated or not
+// — so the home page always shows the canonical "351 House — Atlas Sample"
+// even before sign-in. The legacy hard-coded local seed has been removed in
+// favour of this single source of truth.
 useProjectStore.persist.onFinishHydration(() => {
-  const { projects, createProject, updateProject } = useProjectStore.getState();
-  if (projects.length > 0) return; // Already has projects — don't overwrite
-
-  // Skip seed if user is authenticated — initial sync will populate from server
-  try {
-    const token = localStorage.getItem('ogden-auth-token');
-    if (token) return;
-  } catch { /* localStorage unavailable — proceed with seed */ }
-
-  const p = createProject({
-    name: '351 House',
-    description: 'Halton Hills homestead — regenerative land design for a 12-acre parcel on the Niagara Escarpment edge. Mixed Carolinian forest, agricultural fields, and seasonal creek.',
-    address: '351 Glenashton Dr, Oakville, ON',
-    projectType: 'homestead',
-    country: 'CA',
-    provinceState: 'ON',
-    units: 'metric',
-  });
-
-  updateProject(p.id, {
-    acreage: 12,
-    ownerNotes: 'Family property since 2019. Previous use: cash crop (corn/soy rotation). Tile-drained. Remnant hedgerow on north boundary. Seasonal creek runs SW to NE through lower field.',
-    zoningNotes: 'A (Agricultural) zone — Town of Halton Hills. Permitted: single dwelling, farm operation, home occupation. Conditional: B&B, agritourism, farm winery.',
-    waterRightsNotes: 'Conservation Halton regulated area. No water-taking permit currently held. Seasonal creek is mapped watercourse — 30m development setback applies.',
-    accessNotes: 'Single access from Glenashton Dr (municipal road). 150m gravel lane to building envelope. Second emergency access possible from north boundary.',
-  });
+  void hydrateBuiltins();
 });
+
+// Local fallback used when the API is unreachable (e.g. dev server not
+// running, offline). Mirrors the canonical builtin from migration 017 so
+// every visitor — including unauthenticated ones with no API — sees a
+// populated sample on the home page. Kept in sync by hand.
+// Sample parcel polygon — same coordinates as migration 017, wrapped in a
+// FeatureCollection so it matches the shape MapView and the rest of the
+// app expect from `LocalProject.parcelBoundaryGeojson`.
+const LOCAL_BUILTIN_BOUNDARY: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-79.70636, 43.50401],
+          [-79.70364, 43.50401],
+          [-79.70364, 43.50599],
+          [-79.70636, 43.50599],
+          [-79.70636, 43.50401],
+        ]],
+      },
+    },
+  ],
+};
+
+const LOCAL_BUILTIN_FALLBACK = {
+  id: '00000000-0000-0000-0000-0000005a3791',
+  name: '351 House — Atlas Sample',
+  description: 'Halton Hills homestead — regenerative land design for a 12-acre parcel on the Niagara Escarpment edge. Mixed Carolinian forest, agricultural fields, and seasonal creek.',
+  status: 'active' as const,
+  projectType: 'homestead',
+  country: 'CA',
+  provinceState: 'ON',
+  conservationAuthId: null,
+  address: '351 Glenashton Dr, Oakville, ON',
+  parcelId: null,
+  acreage: 12,
+  dataCompletenessScore: null,
+  hasParcelBoundary: true,
+  parcelBoundaryGeojson: LOCAL_BUILTIN_BOUNDARY,
+  isBuiltin: true,
+};
+
+interface BuiltinRow {
+  id: string;
+  name: string;
+  description: string | null;
+  status: 'active' | 'archived' | 'shared' | 'candidate';
+  projectType: string | null;
+  country: string;
+  provinceState: string | null;
+  conservationAuthId: string | null;
+  address: string | null;
+  parcelId: string | null;
+  acreage: number | null;
+  dataCompletenessScore: number | null;
+  hasParcelBoundary: boolean;
+  /**
+   * Parcel boundary. The API returns a raw GeoJSON geometry (from
+   * `ST_AsGeoJSON`); the local fallback ships a FeatureCollection. We
+   * normalize to FeatureCollection inside `applyBuiltinsToStore` before
+   * writing into the store.
+   */
+  parcelBoundaryGeojson?:
+    | GeoJSON.FeatureCollection
+    | GeoJSON.Geometry
+    | null;
+  isBuiltin: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+function asFeatureCollection(
+  raw: GeoJSON.FeatureCollection | GeoJSON.Geometry | null | undefined,
+): GeoJSON.FeatureCollection | null {
+  if (!raw) return null;
+  if ((raw as GeoJSON.FeatureCollection).type === 'FeatureCollection') {
+    return raw as GeoJSON.FeatureCollection;
+  }
+  return {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', properties: {}, geometry: raw as GeoJSON.Geometry }],
+  };
+}
+
+function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
+  const now = new Date().toISOString();
+  // Build the LocalProject list outside setState so we can re-use the
+  // generated local ids when seeding the per-project observe stores.
+  const incoming: LocalProject[] = builtins.map((sp) => {
+    const boundary = asFeatureCollection(sp.parcelBoundaryGeojson);
+    return {
+    id: crypto.randomUUID(),
+    name: sp.name,
+    description: sp.description,
+    status: sp.status,
+    projectType: sp.projectType,
+    country: sp.country,
+    provinceState: sp.provinceState,
+    conservationAuthId: sp.conservationAuthId,
+    address: sp.address,
+    parcelId: sp.parcelId,
+    acreage: sp.acreage,
+    dataCompletenessScore: sp.dataCompletenessScore,
+    hasParcelBoundary: sp.hasParcelBoundary || boundary !== null,
+    isBuiltin: sp.isBuiltin,
+    createdAt: sp.createdAt ?? now,
+    updatedAt: sp.updatedAt ?? now,
+    // Boundary is normalized to FeatureCollection above; ride alongside
+    // the in-memory project so MapView and other consumers can render
+    // immediately. We also persist to IndexedDB below so subsequent
+    // reloads pick it up via `geodataCache` like a user-drawn boundary.
+    parcelBoundaryGeojson: boundary,
+    // Builtins ship with a hand-authored narrative — the public
+    // /projects/builtins endpoint strips notes/visionStatement, so we
+    // splice them in client-side. Non-builtin rows (none today via this
+    // path, defence-in-depth) keep the previous null behaviour.
+    ownerNotes: sp.isBuiltin ? BUILTIN_PROJECT_NARRATIVE.ownerNotes : null,
+    zoningNotes: sp.isBuiltin ? BUILTIN_PROJECT_NARRATIVE.zoningNotes : null,
+    accessNotes: sp.isBuiltin ? BUILTIN_PROJECT_NARRATIVE.accessNotes : null,
+    waterRightsNotes: sp.isBuiltin ? BUILTIN_PROJECT_NARRATIVE.waterRightsNotes : null,
+    visionStatement: sp.isBuiltin ? BUILTIN_PROJECT_NARRATIVE.visionStatement : null,
+    units: 'metric',
+    attachments: [],
+    serverId: sp.id,
+  };
+  });
+
+  useProjectStore.setState((state) => {
+    // Drop (a) any previous local copy keyed by serverId so server is
+    // authoritative, and (b) the legacy hard-coded "351 House" seed that
+    // earlier builds wrote on first run — it had no serverId and no
+    // isBuiltin flag and would otherwise duplicate the builtin sample.
+    const filtered = state.projects.filter((p) => {
+      if (builtins.some((sp) => sp.id === p.serverId)) return false;
+      if (!p.serverId && !p.isBuiltin && p.name === '351 House') return false;
+      return true;
+    });
+    return { projects: [...filtered, ...incoming] };
+  });
+
+  // Hydrate the per-project observe stores (vision, hazards, sectors,
+  // transects, soil samples, ecology, SWOT) so Stage 1 modules render
+  // populated content, and persist the parcel boundary to IndexedDB so
+  // map components on subsequent loads pick it up via `geodataCache`
+  // — same path used for user-drawn boundaries. Both are idempotent.
+  for (const lp of incoming) {
+    if (lp.isBuiltin) seedBuiltinObserveData(lp.id);
+    if (lp.parcelBoundaryGeojson) {
+      geodataCache.put(`boundary:${lp.id}`, lp.parcelBoundaryGeojson).catch((err) => {
+        console.warn('[OGDEN] Failed to cache builtin boundary:', err);
+      });
+    }
+  }
+}
+
+async function hydrateBuiltins(): Promise<void> {
+  try {
+    const res = await fetch('/api/v1/projects/builtins');
+    if (!res.ok) {
+      applyBuiltinsToStore([LOCAL_BUILTIN_FALLBACK]);
+      return;
+    }
+    const envelope = (await res.json()) as {
+      data: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        status: 'active' | 'archived' | 'shared' | 'candidate';
+        projectType: string | null;
+        country: string;
+        provinceState: string | null;
+        conservationAuthId: string | null;
+        address: string | null;
+        parcelId: string | null;
+        acreage: number | null;
+        dataCompletenessScore: number | null;
+        hasParcelBoundary: boolean;
+        isBuiltin: boolean;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+    };
+    applyBuiltinsToStore(envelope.data);
+  } catch (err) {
+    console.warn('[OGDEN] Failed to fetch builtin samples — using local fallback:', err);
+    applyBuiltinsToStore([LOCAL_BUILTIN_FALLBACK]);
+  }
+}
 
 // Restore boundary GeoJSON from IndexedDB after hydration
 useProjectStore.persist.onFinishHydration(() => {

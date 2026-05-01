@@ -6,7 +6,6 @@
 
 import type { LocalProject } from '../../store/projectStore.js';
 import DashboardRouter from './DashboardRouter.js';
-import DashboardMetrics from './DashboardMetrics.js';
 import LandVerdictCard from './LandVerdictCard.js';
 import CriticalConstraintAlert from './CriticalConstraintAlert.js';
 import DecisionTriad from './DecisionTriad.js';
@@ -79,15 +78,6 @@ export default function DashboardView({ project, onSwitchToMap, onGenerateBrief 
 
         <DashboardRouter section={activeSection} project={project} onSwitchToMap={onSwitchToMap} />
       </div>
-
-      {!isMobile && (
-        <DashboardMetrics
-          section={activeSection}
-          project={project}
-          onGenerateBrief={onGenerateBrief}
-          onSwitchToMap={onSwitchToMap}
-        />
-      )}
     </div>
   );
 }

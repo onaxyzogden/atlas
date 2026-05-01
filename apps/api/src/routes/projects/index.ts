@@ -7,7 +7,54 @@ import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.j
 export default async function projectRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
 
-  // GET /projects — list current user's projects (owned + shared)
+  // Builtin sample projects (migration 017) are read-only for everyone.
+  // RBAC already collapses them to the 'viewer' role so requireRole()
+  // gates them out of mutating routes — but the explicit 403 here is a
+  // belt-and-suspenders defence in case RBAC is ever reworked.
+  const refuseIfBuiltin = async (projectId: string) => {
+    const [row] = await db`
+      SELECT is_builtin FROM projects WHERE id = ${projectId}
+    `;
+    if (row?.is_builtin) {
+      throw new ForbiddenError('Builtin sample projects are read-only.');
+    }
+  };
+
+  // GET /projects/builtins — public list of system-owned sample projects.
+  // No auth required. Powers the unauthenticated home page so every visitor
+  // can browse the canonical "351 House — Atlas Sample" before signing in.
+  fastify.get('/builtins', async () => {
+    const rows = await db`
+      SELECT
+        p.id, p.name, p.description, p.status, p.project_type,
+        p.country, p.province_state, p.conservation_auth_id,
+        p.address, p.parcel_id, p.acreage,
+        p.data_completeness_score,
+        (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+        ST_AsGeoJSON(p.parcel_boundary)::jsonb AS parcel_boundary_geojson,
+        p.is_builtin,
+        p.created_at, p.updated_at
+      FROM projects p
+      WHERE p.is_builtin = true
+      ORDER BY p.created_at
+    `;
+    // ProjectSummary doesn't include the geometry; emit the summary +
+    // attach `parcelBoundaryGeojson` separately so the public sample
+    // ships its polygon to unauthenticated visitors. Payload is small
+    // (a few-point MultiPolygon) and the data is non-sensitive.
+    return {
+      data: rows.map((r) => ({
+        ...ProjectSummary.parse(toCamelCase(r)),
+        parcelBoundaryGeojson: r.parcel_boundary_geojson ?? null,
+      })),
+      meta: { total: rows.length },
+      error: null,
+    };
+  });
+
+  // GET /projects — list current user's projects (owned + shared) plus
+  // any system-owned builtin samples (visible to every authenticated user
+  // — see migration 017_builtin_sample_project.sql).
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
       SELECT DISTINCT ON (p.id)
@@ -16,10 +63,11 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         p.address, p.parcel_id, p.acreage,
         p.data_completeness_score,
         (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+        p.is_builtin,
         p.created_at, p.updated_at
       FROM projects p
       LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
-      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL)
+      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
         AND p.status != 'archived'
       ORDER BY p.id, p.updated_at DESC
     `;
@@ -70,6 +118,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           p.address, p.parcel_id, p.acreage,
           p.data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          p.is_builtin,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
           p.metadata,
           p.created_at, p.updated_at
@@ -86,6 +135,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req) => {
+      await refuseIfBuiltin(req.projectId);
       const body = UpdateProjectInput.parse(req.body);
 
       const [updated] = await db`
@@ -118,6 +168,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id/boundary',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req) => {
+      await refuseIfBuiltin(req.projectId);
       const body = z.object({ geojson: z.unknown() }).parse(req.body);
       const geojsonStr = JSON.stringify(body.geojson);
 
@@ -245,6 +296,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req, reply) => {
+      await refuseIfBuiltin(req.projectId);
       await db`DELETE FROM projects WHERE id = ${req.projectId}`;
       reply.code(204);
       return '';

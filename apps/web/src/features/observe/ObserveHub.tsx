@@ -22,9 +22,8 @@
  *   6. SWOT Synthesis             → siteDataStore (swotJournal[])
  */
 
-import { useMemo } from 'react';
+import { lazy, useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useUIStore } from '../../store/uiStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { useSiteDataStore, getLayerSummary, type SiteData } from '../../store/siteDataStore.js';
 import { useSoilSampleStore } from '../../store/soilSampleStore.js';
@@ -32,11 +31,16 @@ import { useEcologyStore } from '../../store/ecologyStore.js';
 import { useExternalForcesStore } from '../../store/externalForcesStore.js';
 import { useSwotStore } from '../../store/swotStore.js';
 import { useTopographyStore } from '../../store/topographyStore.js';
+import { DASHBOARD_ITEMS } from '../navigation/taxonomy.js';
+import SlideUpPanel from '../../components/SlideUpPanel.js';
 import styles from './ObserveHub.module.css';
+
+// Lazy-imported to break the static cycle (DashboardRouter → ObserveHub).
+const DashboardRouter = lazy(() => import('../dashboard/DashboardRouter.js'));
 
 interface Props {
   project: LocalProject;
-  onSwitchToMap: () => void; // contract-compliance — unused by this page
+  onSwitchToMap: () => void;
 }
 
 interface ModuleAction {
@@ -81,8 +85,18 @@ function useProjectSiteData(projectId: string): SiteData | undefined {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function ObserveHub({ project }: Props) {
-  const setSection = useUIStore((s) => s.setActiveDashboardSection);
+export default function ObserveHub({ project, onSwitchToMap }: Props) {
+  // Module-card buttons open the matching dashboard section in a slide-up
+  // panel instead of replacing the hub view. Title resolves from the
+  // canonical taxonomy when available; falls back to the button label.
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [openTitle, setOpenTitle] = useState<string>('');
+
+  const openModule = (sectionId: string, fallbackLabel: string) => {
+    const item = DASHBOARD_ITEMS.find((i) => (i.dashboardRoute ?? i.id) === sectionId);
+    setOpenSection(sectionId);
+    setOpenTitle(item?.label ?? fallbackLabel.replace(/\s*→\s*$/, ''));
+  };
 
   const visionData = useVisionStore((s) => s.getVisionData(project.id));
   const siteData = useProjectSiteData(project.id);
@@ -128,17 +142,17 @@ export default function ObserveHub({ project }: Props) {
     // ── 2. Macroclimate & Hazards ─────────────────────────────────────────
     const climate = siteData
       ? getLayerSummary<{
-          hardinessZone?: string;
-          annualPrecipMm?: number;
-          growingSeasonDays?: number;
+          hardiness_zone?: string | null;
+          annual_precip_mm?: number | null;
+          growing_season_days?: number | null;
         }>(siteData, 'climate')
       : null;
     const macroclimate: ModuleSpec = {
       number: '2',
       title: 'Macroclimate & Hazards',
       rows: [
-        { label: 'Hardiness zone', value: nonEmpty(climate?.hardinessZone ?? null) },
-        { label: 'Annual precip', value: fmtNum(climate?.annualPrecipMm, ' mm', 0) },
+        { label: 'Hardiness zone', value: nonEmpty(climate?.hardiness_zone ?? null) },
+        { label: 'Annual precip', value: fmtNum(climate?.annual_precip_mm ?? null, ' mm', 0) },
         { label: 'Logged hazards', value: `${projectHazards.length}` },
       ],
       actions: [
@@ -151,21 +165,21 @@ export default function ObserveHub({ project }: Props) {
     // ── 3. Topography & Base Map ──────────────────────────────────────────
     const elevation = siteData
       ? getLayerSummary<{
-          meanSlopeDeg?: number;
-          minElevationM?: number;
-          maxElevationM?: number;
+          mean_slope_deg?: number | null;
+          min_elevation_m?: number | null;
+          max_elevation_m?: number | null;
         }>(siteData, 'elevation')
       : null;
     const elevRange =
-      elevation?.minElevationM !== undefined && elevation?.maxElevationM !== undefined
-        ? `${Math.round(elevation.minElevationM)}–${Math.round(elevation.maxElevationM)} m`
+      elevation?.min_elevation_m != null && elevation?.max_elevation_m != null
+        ? `${Math.round(elevation.min_elevation_m)}–${Math.round(elevation.max_elevation_m)} m`
         : '—';
 
     const topography: ModuleSpec = {
       number: '3',
       title: 'Topography & Base Map',
       rows: [
-        { label: 'Mean slope', value: fmtNum(elevation?.meanSlopeDeg, '°', 1) },
+        { label: 'Mean slope', value: fmtNum(elevation?.mean_slope_deg ?? null, '°', 1) },
         { label: 'Elevation range', value: elevRange },
         { label: 'A–B transects', value: `${projectTransects.length}` },
       ],
@@ -278,7 +292,7 @@ export default function ObserveHub({ project }: Props) {
                   key={a.sectionId}
                   type="button"
                   className={styles.linkBtn}
-                  onClick={() => setSection(a.sectionId)}
+                  onClick={() => openModule(a.sectionId, a.label)}
                 >
                   {a.label}
                 </button>
@@ -287,6 +301,21 @@ export default function ObserveHub({ project }: Props) {
           </section>
         ))}
       </div>
+
+      <SlideUpPanel
+        isOpen={openSection !== null}
+        onClose={() => setOpenSection(null)}
+        title={openTitle}
+        initialHeight="full"
+      >
+        {openSection && (
+          <DashboardRouter
+            section={openSection}
+            project={project}
+            onSwitchToMap={onSwitchToMap}
+          />
+        )}
+      </SlideUpPanel>
     </div>
   );
 }
