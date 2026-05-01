@@ -11,12 +11,14 @@
  * Right rail is mounted by V3ProjectLayout → DecisionRail → OperateRail.
  */
 
+import { useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import MetricCard from "../components/MetricCard.js";
 import OperateMap from "../components/OperateMap.js";
 import FieldFlagOverlay from "../components/overlays/FieldFlagOverlay.js";
 import ObservedStamp from "../components/ObservedStamp.js";
+import LogObservationDialog from "../components/LogObservationDialog.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useFieldFlags } from "../data/useFieldFlags.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
@@ -32,6 +34,10 @@ export default function OperatePage() {
   // Phase 5.2 PR3: live flags from livestock + water stores, with the
   // brief's hand-authored flags as fallback for the MTC dev fixture.
   const fieldFlags = useFieldFlags(project?.id, { briefFlags: brief?.fieldFlags });
+  // Phase 5.2 PR4: "Log Observation" CTA opens a modal that writes into
+  // useFieldworkStore. Map-click placement defers to Phase 5.1 PR3's
+  // shared drop affordance.
+  const [logOpen, setLogOpen] = useState(false);
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
@@ -50,7 +56,9 @@ export default function OperatePage() {
         actions={
           <div className={css.headerActions}>
             <button type="button" className={`${css.btn} ${css.btnPrimary}`}>Create Field Task</button>
-            <button type="button" className={css.btn}>Log Observation</button>
+            <button type="button" className={css.btn} onClick={() => setLogOpen(true)}>
+              Log Observation
+            </button>
           </div>
         }
       />
@@ -131,6 +139,15 @@ export default function OperatePage() {
           </ul>
         </article>
       </section>
+
+      {logOpen && (
+        <LogObservationDialog
+          projectId={project.id}
+          boundary={project.location.boundary}
+          fallbackCenter={[-78.20, 44.50]}
+          onClose={() => setLogOpen(false)}
+        />
+      )}
     </div>
   );
 }
