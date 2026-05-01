@@ -4,17 +4,18 @@
  * Layout (top to bottom):
  *   [PageHeader]                 Daily framing + primary action
  *   [Today on the Land]          7 MetricCards (livestock, water, pasture, etc.)
- *   [Field Activity Map]         FieldMapPlaceholder — live MapboxGL deferred to v3.1
+ *   [Field Activity Map]         OperateMap (MapLibre) + FieldFlagOverlay
  *   [Alerts + Upcoming]          Two side-by-side panels (animal/water + this week)
  *
- * RULE 2: no MapboxGL imports in v3.0 — placeholder only.
+ * Phase 5.2 PR2: live `OperateMap` (MapLibre) replaces `FieldMapPlaceholder`.
  * Right rail is mounted by V3ProjectLayout → DecisionRail → OperateRail.
  */
 
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import MetricCard from "../components/MetricCard.js";
-import FieldMapPlaceholder from "../components/FieldMapPlaceholder.js";
+import OperateMap from "../components/OperateMap.js";
+import FieldFlagOverlay from "../components/overlays/FieldFlagOverlay.js";
 import ObservedStamp from "../components/ObservedStamp.js";
 import { useV3Project } from "../data/useV3Project.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
@@ -75,9 +76,21 @@ export default function OperatePage() {
         <header className={css.sectionHeader}>
           <p className="eyebrow">Steward · Map</p>
           <h2 className={css.sectionTitle}>Field Activity</h2>
-          <p className={css.sectionSub}>Where today's flags fall on the parcel — illustrative until the live map arrives.</p>
+          <p className={css.sectionSub}>
+            {brief.fieldFlags.length === 0
+              ? "Nothing happening on the land right now."
+              : "Live flags from livestock, water, and weather signals on the parcel."}
+          </p>
         </header>
-        <FieldMapPlaceholder flags={brief.fieldFlags} />
+        <OperateMap
+          // Fallback centroid only used when the project carries no boundary
+          // polygon — every real project does, so this is the dev-mock path.
+          centroid={[-78.20, 44.50]}
+          boundary={project.location.boundary}
+          legendNote={`${brief.fieldFlags.length} active flag${brief.fieldFlags.length === 1 ? "" : "s"}`}
+        >
+          {({ map }) => <FieldFlagOverlay map={map} flags={brief.fieldFlags} />}
+        </OperateMap>
       </section>
 
       <section className={css.split} aria-label="Alerts and upcoming">

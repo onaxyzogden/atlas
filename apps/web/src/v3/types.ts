@@ -291,14 +291,34 @@ export interface UpcomingEvent {
 }
 
 export type FieldFlagKind = "livestock" | "water" | "fence" | "weather" | "team";
+export type FieldFlagSourceStore =
+  | "livestock"
+  | "waterSystems"
+  | "sectors"
+  | "team"
+  | "weather"
+  | "brief";
 export interface FieldFlag {
   id: string;
   kind: FieldFlagKind;
-  /** Pseudo-coordinate within a 100×100 placeholder canvas. */
-  x: number;
-  y: number;
+  /**
+   * WGS84 [lng, lat]. Phase 5.2 promoted FieldFlag from 0–100 pseudo-canvas
+   * coords to real coordinates so the same record drives the SVG fallback
+   * (`FieldMapPlaceholder` projects against the parcel boundary) and the
+   * live OperateMap MapLibre symbol layer (Phase 5.2 PR2).
+   */
+  position: [number, number];
   label: string;
+  detail?: string;
   tone: OpsTone;
+  /**
+   * Origin store + ref so click-to-edit can route to the right surface and
+   * `useFieldFlags` (Phase 5.2 PR3) can de-dupe brief fallbacks against
+   * derived flags. `'brief'` marks a mock-fixture entry.
+   */
+  source?: { store: FieldFlagSourceStore; refId?: string };
+  /** ISO timestamp of the last underlying observation. Drives "stale" UI. */
+  observedAt?: string;
 }
 
 export interface OperateBrief {

@@ -730,12 +730,15 @@ export const MTC_PROJECT: Project = {
       { id: "ev4", title: "Hay delivery", when: "Mon 14:00", category: "ops" },
     ],
 
+    // Positions hand-projected from the prior 0–100 canvas coords against
+    // the MTC boundary [-78.211, 44.4965] → [-78.189, 44.5035] (canvas-y is
+    // top-down, so lat = maxLat − (y/100)·spanLat; lng = minLng + (x/100)·spanLng).
     fieldFlags: [
-      { id: "f1", kind: "livestock", x: 38, y: 42, label: "Herd · Paddock B", tone: "good" },
-      { id: "f2", kind: "water", x: 22, y: 65, label: "Tank 2 · low", tone: "warning" },
-      { id: "f3", kind: "fence", x: 78, y: 30, label: "East fence · maint.", tone: "watch" },
-      { id: "f4", kind: "weather", x: 64, y: 78, label: "Frost zone", tone: "warning" },
-      { id: "f5", kind: "team", x: 50, y: 22, label: "Crew · Orchard", tone: "neutral" },
+      { id: "f1", kind: "livestock", position: [-78.20264, 44.50056], label: "Herd · Paddock B", tone: "good", source: { store: "brief" } },
+      { id: "f2", kind: "water", position: [-78.20616, 44.49895], label: "Tank 2 · low", tone: "warning", source: { store: "brief" } },
+      { id: "f3", kind: "fence", position: [-78.19384, 44.50140], label: "East fence · maint.", tone: "watch", source: { store: "brief" } },
+      { id: "f4", kind: "weather", position: [-78.19692, 44.49804], label: "Frost zone", tone: "warning", source: { store: "brief" } },
+      { id: "f5", kind: "team", position: [-78.20000, 44.50196], label: "Crew · Orchard", tone: "neutral", source: { store: "brief" } },
     ],
   },
 
