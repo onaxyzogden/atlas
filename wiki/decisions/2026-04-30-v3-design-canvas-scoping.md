@@ -1,6 +1,9 @@
 # 2026-04-30 — V3 DesignPage live MapLibre canvas (Phase 5.1 scoping)
 
-**Status:** Proposed (scoping ADR — implementation gated on review)
+**Status:** Accepted — implemented in 4 PRs, commits 7412b03..9937629
+(2026-05-02). RULE 2 lifted on Design. Score-delta callout deferred to
+v3.2 / Phase 7.3 because `computeAssessmentScores` doesn't yet consume
+placement geometry — see PR4 commit message for details.
 **Branch:** `feat/atlas-permaculture` (implementation lands on a follow-up branch)
 **Phase:** 5.1 (V3 MapboxGL integration — Design Studio canvas)
 **Implementing files (proposed):**

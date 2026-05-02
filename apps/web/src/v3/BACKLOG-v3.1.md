@@ -32,7 +32,10 @@ order it should land in v3.1.
 - **Live field map** in
   [FieldMapPlaceholder.tsx](apps/web/src/v3/components/FieldMapPlaceholder.tsx)
   — should render real parcel geometry with flag overlays, replacing
-  the static SVG canvas. RULE 2 lifts in v3.1.
+  the static SVG canvas. ~~RULE 2 lifts in v3.1~~ — **lifted 2026-05-02
+  (Phase 5.1 + 5.2)**: DesignMap and OperateMap (MapLibre) now ship with
+  drop mode, 5 overlays, live metrics, and live field-flag overlay. v2
+  stores remain the persistence layer per the scoping ADR §2.
 - **Real-time field alerts** wired to backend telemetry / sensor feeds
   (currently three hand-authored fixture entries).
 - **Create Field Task / Log Observation** CTAs — wire to a task store.
