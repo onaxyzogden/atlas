@@ -1,23 +1,20 @@
 /**
  * /v3/project/:projectId/discover — Candidate Property Board.
- * Pixel-aligned with the Property Candidates reference design.
  *
- * Layout:
- *   [PageHeader]                title + subtitle + "How scoring works" link
- *   [FiltersBar]                chip filters + result count + sort + view toggle
- *   [Card grid]                 6 candidates, 1–3 columns responsive
- *   [CompareTray]               bottom drawer (sticky), shown when selected.size > 0
- *
- * RULE 1: filtering is mock-only — chips toggle UI state but the grid is the
- * full fixture list. Selection is shared with DiscoverRail via the discover
- * store so the rail's Shortlisted panel and Compare CTA stay in sync.
+ * Phase 6.1 (per `.claude/plans/few-concerns-shiny-quokka.md`): the
+ * filter chips now actually filter the grid (RULE 1 lifted) and the
+ * Compare Selected CTA opens a side-by-side comparison modal. Result
+ * count and tray remain in sync as filters narrow.
  */
 
+import { useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader.js";
-import FiltersBar from "../components/FiltersBar.js";
+import FiltersBar, { type FilterState } from "../components/FiltersBar.js";
 import CandidateCard from "../components/CandidateCard.js";
 import CompareTray from "../components/CompareTray.js";
+import CompareModal from "../components/CompareModal.js";
 import { MOCK_CANDIDATES } from "../data/mockCandidates.js";
+import { applyCandidateFilters } from "../data/candidateFilter.js";
 import { useDiscoverSelection } from "../data/discoverStore.js";
 import css from "./DiscoverPage.module.css";
 
@@ -25,6 +22,15 @@ export default function DiscoverPage() {
   const selected = useDiscoverSelection((s) => s.selected);
   const toggle = useDiscoverSelection((s) => s.toggle);
   const clear = useDiscoverSelection((s) => s.clear);
+
+  const [filters, setFilters] = useState<FilterState>({});
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  const filtered = useMemo(
+    () => applyCandidateFilters(MOCK_CANDIDATES, filters),
+    [filters],
+  );
 
   const selectedCandidates = MOCK_CANDIDATES.filter((c) => selected.has(c.id));
 
@@ -37,26 +43,48 @@ export default function DiscoverPage() {
         actions={<button type="button" className={css.helpLink}>How scoring works →</button>}
       />
 
-      <FiltersBar resultCount={MOCK_CANDIDATES.length} />
+      <FiltersBar
+        resultCount={filtered.length}
+        active={filters}
+        onChange={setFilters}
+        moreOpen={moreOpen}
+        onToggleMore={() => setMoreOpen((v) => !v)}
+      />
 
-      <div className={css.grid}>
-        {MOCK_CANDIDATES.map((c) => (
-          <CandidateCard
-            key={c.id}
-            candidate={c}
-            selected={selected.has(c.id)}
-            onToggleSelect={toggle}
-            onOpen={() => {}}
-          />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className={css.emptyState}>
+          <p>No properties match the current filters.</p>
+          <button type="button" className={css.helpLink} onClick={() => setFilters({})}>
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <div className={css.grid}>
+          {filtered.map((c) => (
+            <CandidateCard
+              key={c.id}
+              candidate={c}
+              selected={selected.has(c.id)}
+              onToggleSelect={toggle}
+              onOpen={() => {}}
+            />
+          ))}
+        </div>
+      )}
 
       <CompareTray
         selected={selectedCandidates}
         onRemove={toggle}
         onClear={clear}
-        onCompare={() => {}}
+        onCompare={() => setCompareOpen(true)}
       />
+
+      {compareOpen && selectedCandidates.length >= 2 && (
+        <CompareModal
+          candidates={selectedCandidates}
+          onClose={() => setCompareOpen(false)}
+        />
+      )}
     </div>
   );
 }
