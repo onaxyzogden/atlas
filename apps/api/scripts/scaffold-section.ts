@@ -76,38 +76,66 @@ function main() {
 
   const pascal = toPascal(slug);
 
-  // 1. Schema stub
+  // 1. Schema stub — typed Summary + sectionResponse envelope
+  // (per ADR 2026-05-02-section-response-envelope: every section's
+  // GET /:projectId returns the same `'ready' | 'not_ready'`
+  // discriminated union, parameterised by a section-specific Summary).
   const schemaPath = resolve(
     repoRoot,
     `packages/shared/src/schemas/section${id}.schema.ts`,
   );
   writeNew(
     schemaPath,
-    `import { z } from 'zod';\n\n` +
+    `import { z } from 'zod';\n` +
+      `import { sectionResponse } from './sectionResponse.js';\n\n` +
       `// Section ${id} — ${name}\n` +
-      `// Generated stub. Replace with the real Zod types as this section\n` +
-      `// takes shape. Keep input/output types colocated.\n\n` +
-      `export const ${pascal}Placeholder = z.object({});\n` +
-      `export type ${pascal}Placeholder = z.infer<typeof ${pascal}Placeholder>;\n`,
+      `//\n` +
+      `// Lean summary the V3 read-path consumes for this section.\n` +
+      `// Widen the Summary fields as the matching processor lands;\n` +
+      `// the response envelope shape is fixed by sectionResponse().\n\n` +
+      `export const ${pascal}Summary = z.object({\n` +
+      `  // TODO: replace with real domain fields as the processor lands.\n` +
+      `  placeholder: z.boolean().optional(),\n` +
+      `});\n` +
+      `export type ${pascal}Summary = z.infer<typeof ${pascal}Summary>;\n\n` +
+      `export const ${pascal}Response = sectionResponse(${pascal}Summary);\n` +
+      `export type ${pascal}Response = z.infer<typeof ${pascal}Response>;\n`,
   );
 
-  // 2. API route skeleton
+  // 2. API route skeleton — typed not_ready envelope until processor ships
   const routePath = resolve(
     repoRoot,
     `apps/api/src/routes/${slug}/index.ts`,
   );
   writeNew(
     routePath,
-    `import type { FastifyInstance } from 'fastify';\n\n` +
+    `import type { FastifyInstance } from 'fastify';\n` +
+      `import { ${pascal}Response } from '@ogden/shared';\n\n` +
       `/**\n` +
       ` * Section ${id} — ${name} ([${phase}])\n` +
-      ` * Generated stub from scaffold-section.ts. Add handlers inline.\n` +
+      ` *\n` +
+      ` * Read-path returns the typed ${pascal}Response envelope. Until the\n` +
+      ` * matching processor lands this returns \`status: 'not_ready'\` /\n` +
+      ` * \`reason: 'not_implemented'\` so the V3 UI can render a placeholder\n` +
+      ` * uniformly across sections.\n` +
       ` */\n` +
       `export default async function ${slug.replace(/-/g, '_')}Routes(fastify: FastifyInstance) {\n` +
-      `  const { authenticate } = fastify;\n\n` +
-      `  fastify.get('/', { preHandler: [authenticate, fastify.requirePhase('${phase}')] }, async () => {\n` +
-      `    return { data: [], meta: { total: 0 }, error: null };\n` +
-      `  });\n` +
+      `  const { authenticate, resolveProjectRole } = fastify;\n\n` +
+      `  fastify.get<{ Params: { projectId: string } }>(\n` +
+      `    '/:projectId',\n` +
+      `    { preHandler: [authenticate, fastify.requirePhase('${phase}'), resolveProjectRole] },\n` +
+      `    async (req) => {\n` +
+      `      return {\n` +
+      `        data: ${pascal}Response.parse({\n` +
+      `          status: 'not_ready',\n` +
+      `          projectId: req.projectId,\n` +
+      `          reason: 'not_implemented',\n` +
+      `        }),\n` +
+      `        meta: undefined,\n` +
+      `        error: null,\n` +
+      `      };\n` +
+      `    },\n` +
+      `  );\n` +
       `}\n`,
   );
 
