@@ -27,6 +27,11 @@ import { useState, useEffect } from "react";
 import { useParams } from "@tanstack/react-router";
 import MetricCard from "../components/MetricCard.js";
 import DesignMap, { type DesignMapStyleKey } from "../components/DesignMap.js";
+import DesignContoursOverlay from "../components/overlays/design/DesignContoursOverlay.js";
+import DesignHydrologyOverlay from "../components/overlays/design/DesignHydrologyOverlay.js";
+import DesignPropertyOverlay from "../components/overlays/design/DesignPropertyOverlay.js";
+import DesignSoilsOverlay from "../components/overlays/design/DesignSoilsOverlay.js";
+import DesignWetlandsOverlay from "../components/overlays/design/DesignWetlandsOverlay.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DesignPage.module.css";
 
@@ -180,7 +185,19 @@ export default function DesignPage() {
             styleKey={baseMap}
             notice="Click-to-drop placement lands in PR3"
           >
-            {() => null}
+            {({ map }) => (
+              <>
+                <DesignContoursOverlay map={map} visible={!!overlays.contours} />
+                <DesignHydrologyOverlay map={map} visible={!!overlays.hydrology} />
+                <DesignPropertyOverlay
+                  map={map}
+                  visible={!!overlays.property}
+                  boundary={project.location.boundary}
+                />
+                <DesignSoilsOverlay visible={!!overlays.soils} projectId={project.id} />
+                <DesignWetlandsOverlay visible={!!overlays.wetlands} projectId={project.id} />
+              </>
+            )}
           </DesignMap>
 
           {toast && <div className={css.toast} role="status">{toast}</div>}
