@@ -32,9 +32,14 @@ export default function HomeRail({ project }: { project: Project }) {
   const stages = LIFECYCLE_STAGES;
   const currentIdx = stages.findIndex((s) => s.id === project.stage);
   const currentStage = stages[currentIdx >= 0 ? currentIdx : 0]!;
-  // Stage progress is currently a fixture value (mock-only) rather than derived
-  // from completed actions. Reference design shows 60% on Discover.
-  const progressPct = 60;
+  // Phase 6.6: derive stage progress from `project.actions` completion
+  // rather than the previous 60% fixture value. Counts actions with
+  // status "done" against the total. Falls back to 0% when the project
+  // ships no actions yet (better signal than a fictional 60%).
+  const totalActions = project.actions.length;
+  const doneActions = project.actions.filter((a) => a.status === "done").length;
+  const progressPct =
+    totalActions > 0 ? Math.round((doneActions / totalActions) * 100) : 0;
   const segments = 5;
   const filledSegments = Math.round((progressPct / 100) * segments);
 
