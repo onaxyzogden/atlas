@@ -1,8 +1,19 @@
 import { z } from 'zod';
+import { sectionResponse } from './sectionResponse.js';
 
 // Section 7 — Soil, Ecology & Regeneration Diagnostics
-// Generated stub. Replace with the real Zod types as this section
-// takes shape. Keep input/output types colocated.
+//
+// Roll-up of dominant soil texture, organic-matter signal, and an
+// ecological-integrity score the regen processor derives from the
+// soil + land-cover layers.
 
-export const SoilEcologyPlaceholder = z.object({});
-export type SoilEcologyPlaceholder = z.infer<typeof SoilEcologyPlaceholder>;
+export const SoilEcologySummary = z.object({
+  dominantTexture: z.string().nullable(),
+  organicMatterPct: z.number().nullable(),
+  ecologicalIntegrityScore: z.number().min(0).max(100).nullable(),
+  observationCount: z.number().int().nonnegative(),
+});
+export type SoilEcologySummary = z.infer<typeof SoilEcologySummary>;
+
+export const SoilEcologyResponse = sectionResponse(SoilEcologySummary);
+export type SoilEcologyResponse = z.infer<typeof SoilEcologyResponse>;

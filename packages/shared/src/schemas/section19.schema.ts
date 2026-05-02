@@ -1,8 +1,17 @@
 import { z } from 'zod';
+import { sectionResponse } from './sectionResponse.js';
 
 // Section 19 — Educational & Interpretive Layer
-// Generated stub. Replace with the real Zod types as this section
-// takes shape. Keep input/output types colocated.
+//
+// Counts of interpretive stops and educational artifacts authored
+// for visitor experience.
 
-export const EducationInterpretivePlaceholder = z.object({});
-export type EducationInterpretivePlaceholder = z.infer<typeof EducationInterpretivePlaceholder>;
+export const EducationInterpretiveSummary = z.object({
+  stopCount: z.number().int().nonnegative(),
+  artifactCount: z.number().int().nonnegative(),
+  topicTags: z.array(z.string()),
+});
+export type EducationInterpretiveSummary = z.infer<typeof EducationInterpretiveSummary>;
+
+export const EducationInterpretiveResponse = sectionResponse(EducationInterpretiveSummary);
+export type EducationInterpretiveResponse = z.infer<typeof EducationInterpretiveResponse>;
