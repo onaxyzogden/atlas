@@ -225,6 +225,7 @@ export default function DesignPage() {
             boundary={project.location.boundary}
             styleKey={baseMap}
             notice={notice}
+            projectId={project.id}
           >
             {({ map }) => (
               <>

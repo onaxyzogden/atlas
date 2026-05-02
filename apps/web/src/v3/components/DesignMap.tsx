@@ -28,6 +28,7 @@ import {
   maptilerTransformRequest,
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
+import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import css from "./DesignMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "design-parcel-boundary";
@@ -62,6 +63,8 @@ export interface DesignMapProps {
   notice?: string;
   /** Render-prop overlays. Receives the live map instance. */
   children?: (ctx: DesignMapChildProps) => ReactNode;
+  /** When set, DesignMap consumes Map Focus requests scoped to this project. */
+  projectId?: string;
 }
 
 function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
@@ -89,6 +92,7 @@ export default function DesignMap({
   styleKey = "satellite",
   notice,
   children,
+  projectId,
 }: DesignMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
@@ -208,6 +212,24 @@ export default function DesignMap({
       map.off("styledata", onStyle);
     };
   }, [map, boundary]);
+
+  // Phase 6.2: consume Map Focus requests targeting this project. Fires
+  // a flyTo when ProvePage's "Fix on Map" lands the user on Design.
+  // requestedAt is monotonic so re-clicking the CTA refires even when
+  // the camera is already centred on the parcel.
+  const focusRequest = useMapFocusStore((s) => s.request);
+  const clearFocus = useMapFocusStore((s) => s.clear);
+  useEffect(() => {
+    if (!map || !focusRequest) return;
+    if (projectId && focusRequest.projectId !== projectId) return;
+    map.flyTo({
+      center: focusRequest.center,
+      zoom: focusRequest.zoom ?? Math.max(map.getZoom(), 15),
+      duration: 1200,
+      essential: true,
+    });
+    clearFocus();
+  }, [map, focusRequest, projectId, clearFocus]);
 
   if (!hasMapToken) {
     return (

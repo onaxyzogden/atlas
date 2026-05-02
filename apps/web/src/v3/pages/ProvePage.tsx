@@ -1,5 +1,5 @@
 /**
- * /v3/project/:projectId/prove — Feasibility Engine (Phase 6).
+ * /v3/project/:projectId/prove — Feasibility Engine.
  *
  * Layout (top to bottom):
  *   [StageHero]                  Vision Fit verdict + actions
@@ -10,9 +10,20 @@
  *   [Design Rules & Safety]      Pass / Warning / Blocked grid
  *
  * Right rail is mounted by V3ProjectLayout → DecisionRail → ProveRail.
+ *
+ * Phase 6.2 (per `.claude/plans/few-concerns-shiny-quokka.md`): the
+ * StageHero CTAs are now wired:
+ *   - Fix on Map: pushes a request to `useMapFocusStore` and routes
+ *     the user to the Design canvas. DesignMap consumes the request
+ *     once mounted and flies to the parcel centroid. Re-clicking the
+ *     CTA re-fires (requestedAt is monotonic).
+ *   - Generate Brief: builds a Markdown feasibility brief from
+ *     `project.prove` and triggers a client-side download. A future
+ *     server-side render can replace `downloadProveBrief` without
+ *     changing this call site.
  */
 
-import { useParams } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import StageHero from "../components/StageHero.js";
 import BlockerCard from "../components/BlockerCard.js";
 import BestUsesTable from "../components/BestUsesTable.js";
@@ -20,12 +31,34 @@ import ScoreBar from "../components/ScoreBar.js";
 import MetricCard from "../components/MetricCard.js";
 import DesignRulesGrid from "../components/DesignRulesGrid.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { useMapFocusStore } from "../../store/mapFocusStore.js";
+import { downloadProveBrief } from "../data/generateProveBrief.js";
 import "../styles/chrome.css";
 import css from "./ProvePage.module.css";
+
+function polygonCentroid(poly: GeoJSON.Polygon): [number, number] | null {
+  const ring = poly.coordinates[0];
+  if (!ring || ring.length === 0) return null;
+  let lng = 0;
+  let lat = 0;
+  let n = 0;
+  for (const pt of ring) {
+    const x = pt[0];
+    const y = pt[1];
+    if (x === undefined || y === undefined) continue;
+    lng += x;
+    lat += y;
+    n += 1;
+  }
+  if (n === 0) return null;
+  return [lng / n, lat / n];
+}
 
 export default function ProvePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
+  const navigate = useNavigate();
+  const focus = useMapFocusStore((s) => s.focus);
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
@@ -38,6 +71,23 @@ export default function ProvePage() {
 
   const verdict = brief.verdict ?? project.verdict;
 
+  const onFixOnMap = () => {
+    const centroid = project.location.boundary
+      ? polygonCentroid(project.location.boundary)
+      : null;
+    if (centroid) {
+      focus({ projectId: project.id, center: centroid, zoom: 16 });
+    }
+    void navigate({
+      to: "/v3/project/$projectId/design",
+      params: { projectId: project.id },
+    });
+  };
+
+  const onGenerateBrief = () => {
+    downloadProveBrief(project);
+  };
+
   return (
     <div className={css.page}>
       <StageHero
@@ -46,8 +96,8 @@ export default function ProvePage() {
         verdict={verdict}
         meta={`${project.location.region} · ${project.location.acreage} ${project.location.acreageUnit}`}
         actions={[
-          { label: "Fix on Map", variant: "primary", onClick: () => {} },
-          { label: "Generate Brief", variant: "secondary", onClick: () => {} },
+          { label: "Fix on Map", variant: "primary", onClick: onFixOnMap },
+          { label: "Generate Brief", variant: "secondary", onClick: onGenerateBrief },
         ]}
       />
 
@@ -59,7 +109,7 @@ export default function ProvePage() {
         </header>
         <div className={css.blockerGrid}>
           {brief.blockers.map((b) => (
-            <BlockerCard key={b.id} blocker={b} />
+            <BlockerCard key={b.id} blocker={b} onAction={onFixOnMap} />
           ))}
         </div>
       </section>
