@@ -19,8 +19,10 @@ import OperateMap from "../components/OperateMap.js";
 import FieldFlagOverlay from "../components/overlays/FieldFlagOverlay.js";
 import ObservedStamp from "../components/ObservedStamp.js";
 import LogObservationDialog from "../components/LogObservationDialog.js";
+import CreateFieldTaskDialog from "../components/CreateFieldTaskDialog.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useFieldFlags } from "../data/useFieldFlags.js";
+import { useFieldTaskStore, type FieldTask } from "../../store/fieldTaskStore.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
 import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
@@ -38,6 +40,14 @@ export default function OperatePage() {
   // useFieldworkStore. Map-click placement defers to Phase 5.1 PR3's
   // shared drop affordance.
   const [logOpen, setLogOpen] = useState(false);
+  // Phase 6.4: "Create Field Task" CTA opens a modal that writes into
+  // useFieldTaskStore. The Upcoming panel surfaces live tasks alongside
+  // the brief's hand-authored fixture rows so a created task lands on
+  // the calendar within the same render tick.
+  const [taskOpen, setTaskOpen] = useState(false);
+  const projectTasks = useFieldTaskStore((s) =>
+    project ? s.tasks.filter((t) => t.projectId === project.id) : [],
+  );
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
@@ -55,7 +65,13 @@ export default function OperatePage() {
         subtitle="Run the land well today. Small daily actions, lasting impact."
         actions={
           <div className={css.headerActions}>
-            <button type="button" className={`${css.btn} ${css.btnPrimary}`}>Create Field Task</button>
+            <button
+              type="button"
+              className={`${css.btn} ${css.btnPrimary}`}
+              onClick={() => setTaskOpen(true)}
+            >
+              Create Field Task
+            </button>
             <button type="button" className={css.btn} onClick={() => setLogOpen(true)}>
               Log Observation
             </button>
@@ -129,6 +145,15 @@ export default function OperatePage() {
             <p className={css.sectionSub}>Events on the calendar that change today's plan.</p>
           </header>
           <ul className={css.upcomingList}>
+            {projectTasks.map((t) => (
+              <li key={t.id} className={css.upcomingItem}>
+                <span className={css.upcomingWhen}>{formatTaskWhen(t)}</span>
+                <span className={css.upcomingTitle}>{t.title}</span>
+                <span className={`${css.upcomingCat} ${css[`cat-${t.category}`]}`}>
+                  {categoryLabel(t.category)}
+                </span>
+              </li>
+            ))}
             {brief.upcoming.map((e) => (
               <li key={e.id} className={css.upcomingItem}>
                 <span className={css.upcomingWhen}>{e.when}</span>
@@ -148,8 +173,32 @@ export default function OperatePage() {
           onClose={() => setLogOpen(false)}
         />
       )}
+
+      {taskOpen && (
+        <CreateFieldTaskDialog
+          projectId={project.id}
+          boundary={project.location.boundary}
+          fallbackCenter={[-78.20, 44.50]}
+          onClose={() => setTaskOpen(false)}
+        />
+      )}
     </div>
   );
+}
+
+function formatTaskWhen(task: FieldTask): string {
+  const due = new Date(task.dueAt);
+  if (Number.isNaN(due.getTime())) return "—";
+  const now = new Date();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime();
+  const diffDays = Math.round((dueDay - startOfToday) / dayMs);
+  if (diffDays < 0) return `Overdue · ${due.toLocaleDateString()}`;
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
+  if (diffDays < 7) return due.toLocaleDateString(undefined, { weekday: "long" });
+  return due.toLocaleDateString();
 }
 
 function toMetricTone(tone: OpsTone): "neutral" | "good" | "watch" | "warning" {
