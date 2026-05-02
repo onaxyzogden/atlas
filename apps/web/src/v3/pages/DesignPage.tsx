@@ -7,8 +7,8 @@
  *   │         │   DesignMap (MapLibre satellite/topo +    │
  *   │  (5     │   parcel boundary). PR2 mounts the 5      │
  *   │  groups)│   overlay components; PR3 wires toolbox   │
- *   │         │   click-to-drop; PR4 lights up live       │
- *   │         │   metrics + score-delta callouts.         │
+ *   │         │   click-to-drop with snap pass; PR4       │
+ *   │         │   lights up live metrics + score-delta.   │
  *   │         ├───────────────────────────────────────────┤
  *   │         │ Bottom strip: Area / Perimeter / Elev /   │
  *   │         │  Water Need / Project Phase MetricCards   │
@@ -16,11 +16,15 @@
  *   │         │ Bottom toolbar: Base Map · Overlays       │
  *   └─────────┴───────────────────────────────────────────┘
  *
- * Phase 5.1 PR1: live MapLibre canvas (DesignMap) replaces the static SVG.
- * RULE 2 ("no MapboxGL in v3.0") is now lifted on Design as well.
- *
- * Clicking a toolbox item still fires the in-page "would place X" toast —
- * actual store mutation lands in PR3.
+ * Phase 5.1 PR1: live MapLibre canvas via DesignMap.
+ * Phase 5.1 PR2: 5 toggleable overlays (contours / hydrology / property /
+ *                soils / wetlands).
+ * Phase 5.1 PR3: toolbox arms a drop tool; click on the canvas runs the
+ *                snap pass (boundary edge / structure corner / paddock
+ *                corner at 8 px) and writes through the corresponding v2
+ *                store (useStructureStore, useLivestockStore). Tools
+ *                without a v2 store mapping yet still emit a "Would
+ *                place X" toast.
  */
 
 import { useState, useEffect } from "react";
@@ -32,6 +36,8 @@ import DesignHydrologyOverlay from "../components/overlays/design/DesignHydrolog
 import DesignPropertyOverlay from "../components/overlays/design/DesignPropertyOverlay.js";
 import DesignSoilsOverlay from "../components/overlays/design/DesignSoilsOverlay.js";
 import DesignWetlandsOverlay from "../components/overlays/design/DesignWetlandsOverlay.js";
+import DesignPlacementsOverlay from "../components/overlays/design/DesignPlacementsOverlay.js";
+import DesignDropController from "../components/DesignDropController.js";
 import { useV3Project } from "../data/useV3Project.js";
 import css from "./DesignPage.module.css";
 
@@ -114,6 +120,8 @@ const OVERLAYS = [
   { id: "wetlands", label: "Wetlands" },
 ];
 
+interface ArmedTool { groupId: string; itemId: string; label: string }
+
 export default function DesignPage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
@@ -127,6 +135,7 @@ export default function DesignPage() {
     wetlands: true,
   });
   const [toast, setToast] = useState<string | null>(null);
+  const [armed, setArmed] = useState<ArmedTool | null>(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -134,17 +143,35 @@ export default function DesignPage() {
     return () => window.clearTimeout(t);
   }, [toast]);
 
+  // Esc cancels arming.
+  useEffect(() => {
+    if (!armed) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setArmed(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [armed]);
+
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
   }
 
-  function placeItem(group: ToolGroup, item: ToolItem) {
-    setToast(`Would place ${item.label} (${group.label})`);
+  function armItem(group: ToolGroup, item: ToolItem) {
+    setArmed((prev) =>
+      prev && prev.itemId === item.id
+        ? null
+        : { groupId: group.id, itemId: item.id, label: item.label },
+    );
   }
 
   function toggleOverlay(id: string) {
     setOverlays((prev) => ({ ...prev, [id]: !prev[id] }));
   }
+
+  const notice = armed
+    ? `Click on the canvas to drop ${armed.label} · Esc to cancel`
+    : "Click a tool, then click on the canvas to drop";
 
   return (
     <div className={css.studio}>
@@ -157,18 +184,22 @@ export default function DesignPage() {
           <section key={g.id} className={css.group}>
             <span className={css.groupLabel}>{g.label}</span>
             <div className={css.itemGrid}>
-              {g.items.map((it) => (
-                <button
-                  key={it.id}
-                  type="button"
-                  className={css.toolItem}
-                  onClick={() => placeItem(g, it)}
-                  aria-label={`Place ${it.label}`}
-                >
-                  <span className={css.toolGlyph} aria-hidden="true">{it.glyph}</span>
-                  <span className={css.toolLabel}>{it.label}</span>
-                </button>
-              ))}
+              {g.items.map((it) => {
+                const isArmed = armed?.itemId === it.id;
+                return (
+                  <button
+                    key={it.id}
+                    type="button"
+                    className={`${css.toolItem} ${isArmed ? css.toolItemArmed : ""}`}
+                    onClick={() => armItem(g, it)}
+                    aria-pressed={isArmed}
+                    aria-label={isArmed ? `Cancel ${it.label}` : `Place ${it.label}`}
+                  >
+                    <span className={css.toolGlyph} aria-hidden="true">{it.glyph}</span>
+                    <span className={css.toolLabel}>{it.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         ))}
@@ -183,7 +214,7 @@ export default function DesignPage() {
             centroid={[-78.20, 44.50]}
             boundary={project.location.boundary}
             styleKey={baseMap}
-            notice="Click-to-drop placement lands in PR3"
+            notice={notice}
           >
             {({ map }) => (
               <>
@@ -196,6 +227,22 @@ export default function DesignPage() {
                 />
                 <DesignSoilsOverlay visible={!!overlays.soils} projectId={project.id} />
                 <DesignWetlandsOverlay visible={!!overlays.wetlands} projectId={project.id} />
+                <DesignPlacementsOverlay map={map} projectId={project.id} />
+                <DesignDropController
+                  map={map}
+                  projectId={project.id}
+                  armed={armed}
+                  boundary={project.location.boundary}
+                  onUnhandled={(label) => setToast(`Would place ${label}`)}
+                  onPlaced={(label, snappedTo) => {
+                    setToast(
+                      snappedTo
+                        ? `Placed ${label} · snapped to ${snappedTo}`
+                        : `Placed ${label}`,
+                    );
+                    setArmed(null);
+                  }}
+                />
               </>
             )}
           </DesignMap>

@@ -95,6 +95,16 @@
   background: var(--color-surface-raised, var(--color-surface));
 }
 
+.toolItemArmed {
+  border-color: var(--color-gold-brand);
+  background: rgba(196, 162, 101, 0.18);
+  box-shadow: 0 0 0 2px rgba(196, 162, 101, 0.35);
+}
+
+.toolItemArmed .toolGlyph {
+  color: var(--color-gold-brand);
+}
+
 .toolGlyph {
   font-size: 16px;
   line-height: 1;
