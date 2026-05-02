@@ -1,13 +1,34 @@
 import type { FastifyInstance } from 'fastify';
+import { ZoningAllocationResponse } from '@ogden/shared';
 
 /**
  * Section 8 — Land Use Zoning & Functional Allocation ([P1])
- * Generated stub from scaffold-section.ts. Add handlers inline.
+ *
+ * Read-path returns the typed ZoningAllocationResponse envelope. The matching
+ * section processor has not landed yet, so this responds with
+ * `status: 'not_ready'` / `reason: 'not_implemented'` — the V3
+ * UI consumes the envelope uniformly across all sections and
+ * renders a placeholder until the processor populates real data.
+ *
+ * Replaces the scaffold-section.ts stub as part of Phase 7.1
+ * (.claude/plans/few-concerns-shiny-quokka.md).
  */
 export default async function zoning_allocationRoutes(fastify: FastifyInstance) {
-  const { authenticate } = fastify;
+  const { authenticate, resolveProjectRole } = fastify;
 
-  fastify.get('/', { preHandler: [authenticate, fastify.requirePhase('P1')] }, async () => {
-    return { data: [], meta: { total: 0 }, error: null };
-  });
+  fastify.get<{ Params: { projectId: string } }>(
+    '/:projectId',
+    { preHandler: [authenticate, fastify.requirePhase('P1'), resolveProjectRole] },
+    async (req) => {
+      return {
+        data: ZoningAllocationResponse.parse({
+          status: 'not_ready',
+          projectId: req.projectId,
+          reason: 'not_implemented',
+        }),
+        meta: undefined,
+        error: null,
+      };
+    },
+  );
 }
