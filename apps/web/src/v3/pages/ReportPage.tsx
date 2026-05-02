@@ -1,14 +1,30 @@
 /**
- * /v3/project/:projectId/report — Project Report (Phase 8 MVP).
+ * /v3/project/:projectId/report — Project Report.
  *
- * "Generate Summary" reveals a print-styled summary that aggregates
- * verdict + scores + blockers + actions. PDF export deferred to v3.1.
+ * "Generate Summary" reveals an on-screen summary that aggregates
+ * verdict + scores + blockers + actions.
+ *
+ * Phase 6.5 (per `.claude/plans/few-concerns-shiny-quokka.md`):
+ *   - Print path is preserved (browser print-to-PDF is the "PDF
+ *     export" until a server-side renderer lands in Phase 7 backend).
+ *   - New "Download Markdown" CTA exports the same payload as a `.md`
+ *     file via `downloadProjectReport`, mirroring the Phase 6.2 brief
+ *     download pattern.
+ *   - New "Copy share link" CTA copies the deep-link URL to the
+ *     clipboard. Today this is just the report route — Phase 7
+ *     backend swaps in a tokenized link with auth/permissions.
+ *   - react-pdf was rejected for v3.1 (~3MB runtime cost without
+ *     enough lift over print-to-PDF + markdown export).
  */
 
 import { useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import { useV3Project } from "../data/useV3Project.js";
+import {
+  downloadProjectReport,
+  getProjectShareUrl,
+} from "../data/generateProjectReport.js";
 import type { ProjectScores } from "../types.js";
 import css from "./ReportPage.module.css";
 
@@ -25,10 +41,26 @@ export default function ReportPage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
   const [generated, setGenerated] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
   }
+
+  const onCopyShare = async () => {
+    const url = getProjectShareUrl(project);
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareToast("Link copied to clipboard");
+      } else {
+        setShareToast(url);
+      }
+    } catch {
+      setShareToast(url);
+    }
+    window.setTimeout(() => setShareToast(null), 2500);
+  };
 
   return (
     <div className={css.page}>
@@ -48,10 +80,29 @@ export default function ReportPage() {
             <button
               type="button"
               className={css.btn}
+              onClick={() => downloadProjectReport(project)}
+              disabled={!generated}
+              title="Download a Markdown copy of this report"
+            >
+              Download Markdown
+            </button>
+            <button
+              type="button"
+              className={css.btn}
               onClick={() => window.print()}
               disabled={!generated}
+              title="Browser print dialog — choose 'Save as PDF' to export"
             >
-              Print
+              Print / PDF
+            </button>
+            <button
+              type="button"
+              className={css.btn}
+              onClick={onCopyShare}
+              disabled={!generated}
+              title="Copy a shareable link to this report"
+            >
+              {shareToast ?? "Copy share link"}
             </button>
           </div>
         }
@@ -62,8 +113,8 @@ export default function ReportPage() {
           <p className={css.placeholderTitle}>Ready to generate.</p>
           <p className={css.placeholderText}>
             Click <strong>Generate Summary</strong> to compile the verdict, six scores,
-            blocking issues, and next actions into a print-ready brief.
-            PDF export ships in v3.1.
+            blocking issues, and next actions. Once generated you can download the
+            report as Markdown, print to PDF, or copy a shareable link.
           </p>
         </section>
       ) : (
@@ -145,7 +196,7 @@ export default function ReportPage() {
 
           <footer className={css.summaryFooter}>
             <span>OGDEN Atlas · {project.shortLabel}</span>
-            <span>Mock summary · Live PDF export in v3.1</span>
+            <span>Use Print / PDF or Download Markdown to export</span>
           </footer>
         </article>
       )}
