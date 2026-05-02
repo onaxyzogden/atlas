@@ -39,6 +39,7 @@ import DesignWetlandsOverlay from "../components/overlays/design/DesignWetlandsO
 import DesignPlacementsOverlay from "../components/overlays/design/DesignPlacementsOverlay.js";
 import DesignDropController from "../components/DesignDropController.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { useDesignMetrics } from "../data/useDesignMetrics.js";
 import css from "./DesignPage.module.css";
 
 interface ToolItem {
@@ -153,6 +154,15 @@ export default function DesignPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [armed]);
 
+  // Hook *must* run unconditionally — if `project` is null we still pass
+  // a stable placeholder id so the rules-of-hooks invariant holds across
+  // the early-return below.
+  const metrics = useDesignMetrics(
+    project?.id ?? "__unloaded__",
+    project?.location.boundary,
+    project?.stage,
+  );
+
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
   }
@@ -251,21 +261,53 @@ export default function DesignPage() {
         </div>
 
         <div className={css.bottomStrip} aria-label="Design metrics">
-          <MetricCard label="Area" value="128" unit="ha" subtext="Property total" />
-          <MetricCard label="Perimeter" value="4.6" unit="km" subtext="Designed boundary" />
-          <MetricCard label="Elevation Range" value="38 m" subtext="218 m – 256 m" />
           <MetricCard
-            label="Estimated Water Need"
-            value="9,200"
-            unit="L/d"
-            subtext="Livestock + irrigation"
-            status={{ label: "Watch", tone: "watch" }}
+            label="Area"
+            value={metrics.areaHa !== null ? metrics.areaHa.toFixed(1) : "—"}
+            unit={metrics.areaHa !== null ? "ha" : undefined}
+            subtext="From parcel boundary"
           />
           <MetricCard
-            label="Project Phase"
-            value="1 of 3"
-            subtext="Site Prep + Water"
-            status={{ label: "In progress", tone: "good" }}
+            label="Perimeter"
+            value={metrics.perimeterKm !== null ? metrics.perimeterKm.toFixed(2) : "—"}
+            unit={metrics.perimeterKm !== null ? "km" : undefined}
+            subtext="Boundary length"
+          />
+          <MetricCard
+            label="Elevation Range"
+            value={metrics.elevationRange ? `${Math.round(metrics.elevationRange.spanM)} m` : "—"}
+            subtext={
+              metrics.elevationRange
+                ? `${Math.round(metrics.elevationRange.minM)} m – ${Math.round(metrics.elevationRange.maxM)} m`
+                : "Awaiting elevation layer"
+            }
+          />
+          <MetricCard
+            label="Estimated Water Need"
+            value={metrics.waterNeedLpd !== null ? metrics.waterNeedLpd.toLocaleString() : "—"}
+            unit={metrics.waterNeedLpd !== null ? "L/d" : undefined}
+            subtext={
+              metrics.placementCount === 0
+                ? "Place structures or paddocks to estimate"
+                : `${metrics.structureCount} structure${metrics.structureCount === 1 ? "" : "s"} · ${metrics.paddockCount} paddock${metrics.paddockCount === 1 ? "" : "s"}`
+            }
+            {...(metrics.waterNeedLpd !== null && metrics.waterNeedLpd > 8000
+              ? { status: { label: "Watch", tone: "watch" as const } }
+              : {})}
+          />
+          <MetricCard
+            label="Placements"
+            value={metrics.placementCount.toString()}
+            subtext={
+              metrics.placementCount === 0
+                ? "Click a tool, then click the canvas"
+                : "Designed elements on the canvas"
+            }
+            status={
+              metrics.placementCount > 0
+                ? { label: "Live", tone: "good" as const }
+                : { label: "Empty", tone: "neutral" as const }
+            }
           />
         </div>
 
