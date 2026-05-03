@@ -29,7 +29,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     return { data: [ProjectSummary.parse(toCamelCase(project))], meta: { total: 1 }, error: null };
   });
 
-  // GET /projects/builtins/assessment — public; returns the 351 House site assessment (no auth).
+  // GET /projects/builtins/assessment — public; returns the 351 House site assessment + terrain (no auth).
   fastify.get('/builtins/assessment', async () => {
     const [assessment] = await db`
       SELECT
@@ -45,7 +45,76 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       WHERE sa.project_id = ${BUILTIN_PROJECT_ID} AND sa.is_current = true
     `;
     if (!assessment) return { data: null, error: null };
-    return { data: toCamelCase(assessment), error: null };
+
+    const [terrain] = await db`
+      SELECT * FROM terrain_analysis
+      WHERE project_id = ${BUILTIN_PROJECT_ID}
+    `;
+
+    const terrainAnalysis = terrain ? {
+      curvature: {
+        profileMean: terrain.curvature_profile_mean,
+        planMean: terrain.curvature_plan_mean,
+        classification: terrain.curvature_classification,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      viewshed: {
+        visiblePct: terrain.viewshed_visible_pct,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      frostPocket: {
+        areaPct: terrain.frost_pocket_area_pct,
+        severity: terrain.frost_pocket_severity,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      coldAirDrainage: {
+        riskRating: terrain.cold_air_risk_rating,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      tpi: {
+        classification: terrain.tpi_classification,
+        dominantClass: terrain.tpi_dominant_class,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      twi: {
+        mean: terrain.twi_mean,
+        dominantClass: terrain.twi_dominant_class,
+        classification: terrain.twi_classification,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      elevation: {
+        minM: terrain.elevation_min_m,
+        maxM: terrain.elevation_max_m,
+        meanM: terrain.elevation_mean_m,
+      },
+      slope: {
+        minDeg: terrain.slope_min_deg,
+        maxDeg: terrain.slope_max_deg,
+        meanDeg: terrain.slope_mean_deg,
+      },
+      aspectDominant: terrain.aspect_dominant,
+      erosion: {
+        meanTHaYr: terrain.erosion_mean_t_ha_yr,
+        maxTHaYr: terrain.erosion_max_t_ha_yr,
+        dominantClass: terrain.erosion_dominant_class,
+        confidence: terrain.erosion_confidence,
+      },
+      sourceApi: terrain.source_api,
+    } : null;
+
+    return { data: { ...toCamelCase(assessment), terrainAnalysis }, error: null };
   });
 
   // GET /projects — list current user's projects (owned + shared)

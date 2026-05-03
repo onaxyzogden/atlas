@@ -34,14 +34,40 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/topog
 
 const terrainIconMap = { triangle: Triangle, mountain: Mountain, sliders: SlidersHorizontal, waves: Waves, mapPin: MapPin };
 
+function slopeBand(deg) {
+  if (deg < 5) return "Gentle";
+  if (deg < 10) return "Moderate";
+  if (deg < 15) return "Steep";
+  return "Very steep";
+}
+
+function tpiLabel(cls) {
+  const map = {
+    ridge: "Ridges & upper slopes",
+    upper_slope: "Upper slopes",
+    mid_slope: "Mid-slopes & lower rises",
+    flat: "Flat plains",
+    lower_slope: "Lower slopes",
+    valley: "Valley floors",
+  };
+  return map[cls] ?? cls ?? "—";
+}
+
+function aspectBearing(dir) {
+  const map = { N: "0°", NE: "45°", E: "90°", SE: "135°", S: "180°", SW: "225°", W: "270°", NW: "315°" };
+  return map[dir] ?? "—";
+}
+
 export function TerrainDetailPage() {
+  const { assessment } = useBuiltinProject();
+  const terrain = assessment?.terrainAnalysis ?? null;
   return (
     <AppShell className="observe-dashboard-shell">
       <SideRail active="Map" />
       <main className="detail-page terrain-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
         <TerrainHeader />
-        <TerrainMetrics />
+        <TerrainMetrics terrain={terrain} />
         <section className="terrain-workspace">
           <div className="terrain-main-column">
             <TerrainMapPanel />
@@ -50,7 +76,7 @@ export function TerrainDetailPage() {
               <DetectedFeaturesPanel />
             </section>
           </div>
-          <TerrainSidebar />
+          <TerrainSidebar terrain={terrain} />
         </section>
         <TerrainFooter />
       </main>
@@ -77,10 +103,25 @@ function TerrainHeader() {
   );
 }
 
-function TerrainMetrics() {
+function TerrainMetrics({ terrain }) {
+  const slopeMean = parseFloat(terrain?.slope?.meanDeg ?? vm.metrics[0][2]);
+  const elevMin   = Math.round(parseFloat(terrain?.elevation?.minM ?? 240));
+  const elevMax   = Math.round(parseFloat(terrain?.elevation?.maxM ?? 268));
+  const elevRange = elevMax - elevMin;
+  const aspect    = terrain?.aspectDominant ?? "SE";
+  const tpiClass  = terrain?.tpi?.dominantClass ?? "mid_slope";
+
+  const metrics = [
+    ["triangle", "Mean slope",       `${slopeMean.toFixed(1)} degrees`, slopeBand(slopeMean),       "Predominantly gentle slopes."],
+    ["mountain", "Elevation range",  `${elevMin}–${elevMax} m`,         `${elevRange} m total range`, "Lowest to highest point on site."],
+    ["sliders",  "Aspect tendency",  aspect,                            aspectBearing(aspect),        `Slopes face mainly ${aspect}.`],
+    ["waves",    "Dominant landforms", tpiLabel(tpiClass),              "",                           "Rolling terrain with gentle benches."],
+    ["mapPin",   vm.metrics[4][1],   vm.metrics[4][2],                  vm.metrics[4][3],             vm.metrics[4][4]],
+  ];
+
   return (
     <section className="terrain-metric-grid">
-      {vm.metrics.map(([iconKey, label, value, pill, note]) => {
+      {metrics.map(([iconKey, label, value, pill, note]) => {
         const Icon = terrainIconMap[iconKey];
         return (
           <SurfaceCard className="terrain-metric-card" key={label}>
@@ -150,7 +191,10 @@ function DetectedFeaturesPanel() {
   );
 }
 
-function TerrainSidebar() {
+function TerrainSidebar({ terrain }) {
+  const elevMin   = Math.round(parseFloat(terrain?.elevation?.minM ?? 240));
+  const elevMax   = Math.round(parseFloat(terrain?.elevation?.maxM ?? 268));
+  const elevRange = elevMax - elevMin;
   return (
     <aside className="terrain-sidebar">
       <SurfaceCard className="terrain-side-panel slope-panel">
@@ -160,7 +204,7 @@ function TerrainSidebar() {
       <SurfaceCard className="terrain-side-panel histogram-panel">
         <header>
           <h2>Elevation distribution</h2>
-          <span>28 m range</span>
+          <span>{elevRange} m range</span>
         </header>
         <CroppedArt src={elevationHistogram} className="terrain-histogram" />
       </SurfaceCard>
