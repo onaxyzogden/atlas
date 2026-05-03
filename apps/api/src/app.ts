@@ -108,7 +108,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   // ─── Plugins ────────────────────────────────────────────────────────────────
 
   await app.register(cors, {
-    origin: config.CORS_ORIGIN,
+    origin: config.CORS_ORIGIN.split(',').map((o) => o.trim()),
     credentials: true,
   });
 

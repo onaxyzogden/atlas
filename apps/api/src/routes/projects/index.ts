@@ -4,8 +4,29 @@ import { CreateProjectInput, UpdateProjectInput, ProjectSummary, toCamelCase } f
 import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
 import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.js';
 
+const BUILTIN_PROJECT_ID = '00000000-0000-0000-0000-0000005a3791';
+
 export default async function projectRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
+
+  // GET /projects/builtins — public; returns the 351 House demo project (no auth required).
+  // Must be registered before /:id to prevent Fastify matching "builtins" as a param value.
+  fastify.get('/builtins', async () => {
+    const [project] = await db`
+      SELECT
+        p.id, p.name, p.description, p.status, p.project_type,
+        p.country, p.province_state, p.conservation_auth_id,
+        p.address, p.parcel_id,
+        p.acreage::float8                   AS acreage,
+        p.data_completeness_score::float8   AS data_completeness_score,
+        (p.parcel_boundary IS NOT NULL)     AS has_parcel_boundary,
+        p.created_at, p.updated_at
+      FROM projects p
+      WHERE p.id = ${BUILTIN_PROJECT_ID}
+    `;
+    if (!project) throw new NotFoundError('Project', BUILTIN_PROJECT_ID);
+    return { data: [ProjectSummary.parse(toCamelCase(project))], meta: { total: 1 }, error: null };
+  });
 
   // GET /projects — list current user's projects (owned + shared)
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
