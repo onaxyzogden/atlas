@@ -20,6 +20,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         p.acreage::float8                   AS acreage,
         p.data_completeness_score::float8   AS data_completeness_score,
         (p.parcel_boundary IS NOT NULL)     AS has_parcel_boundary,
+        p.metadata,
         p.created_at, p.updated_at
       FROM projects p
       WHERE p.id = ${BUILTIN_PROJECT_ID}

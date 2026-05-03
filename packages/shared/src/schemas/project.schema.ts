@@ -37,9 +37,11 @@ export const ProjectMetadata = z.object({
   legalDescription: z.string().max(2000).optional(),
   fieldObservations: z.string().max(5000).optional(),
   restrictionsCovenants: z.string().max(2000).optional(),
-  mapProjection: z.string().max(50).optional(),
+  mapProjection: z.string().max(200).optional(),
+  centerLat: z.number().optional(),
+  centerLng: z.number().optional(),
   soilNotes: SoilNotes.optional(),
-}).strict();
+}).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
 export const ProjectType = z.enum([
@@ -90,6 +92,7 @@ export const ProjectSummary = z.object({
   dataCompletenessScore: z.number().nullable(),
   hasParcelBoundary: z.boolean(),
   candidateOf: z.string().uuid().nullable().optional(),
+  metadata: ProjectMetadata.nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
