@@ -21,6 +21,7 @@ import {
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { macroclimateDashboard as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import monthlyClimate from "../assets/generated/macroclimate-dashboard/monthly-climate.png";
 import sunPath from "../assets/generated/macroclimate-dashboard/sun-path.png";
 import hazardMatrix from "../assets/generated/macroclimate-dashboard/hazard-risk-matrix.png";
@@ -31,6 +32,8 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/macro
 const macroIconMap = { snowflake: Snowflake, droplet: Droplet, alert: TriangleAlert, calendar: CalendarDays, sun: Sun, wind: Wind };
 
 export function MacroclimateDashboardPage() {
+  const { project } = useBuiltinProject();
+  const meta = project?.metadata ?? {};
   return (
     <AppShell className="observe-dashboard-shell">
       <SideRail active="Data" />
@@ -38,8 +41,8 @@ export function MacroclimateDashboardPage() {
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
         <section className="macroclimate-layout">
           <div className="macroclimate-main">
-            <MacroHeader />
-            <MacroKpis />
+            <MacroHeader meta={meta} />
+            <MacroKpis meta={meta} />
             <SolarClimateCard />
             <HazardsCard />
           </div>
@@ -53,21 +56,31 @@ export function MacroclimateDashboardPage() {
   );
 }
 
-function MacroHeader() {
+function MacroHeader({ meta }) {
+  const badge = meta.climateRegion ?? vm.hero.badge;
   return (
     <header className="macro-header">
       <span>{vm.hero.moduleNumber}</span>
       <h1>{vm.hero.title}</h1>
       <p>{vm.hero.copy}</p>
-      <b>{vm.hero.badge}</b>
+      <b>{badge}</b>
     </header>
   );
 }
 
-function MacroKpis() {
+function MacroKpis({ meta }) {
+  const kpis = [
+    ["snowflake", "Hardiness zone",    meta.hardinessZone ?? vm.kpis[0][2],                          "USDA",          "blue"],
+    ["droplet",   "Annual precip",     meta.annualPrecipMm ? `${meta.annualPrecipMm} mm` : vm.kpis[1][2], "Average",  "blue"],
+    ["alert",     "Logged hazards",    vm.kpis[2][2],                                                 "Active",        "gold"],
+    ["calendar",  "Frost-free days",   meta.frostFreeDays ? String(meta.frostFreeDays) : vm.kpis[3][2],
+                                       meta.lastFrostAvg ? `Last: ${meta.lastFrostAvg}` : vm.kpis[3][3], "green"],
+    ["sun",       "Avg. solar",        meta.avgDailySolarKwhM2 ? `${meta.avgDailySolarKwhM2} kWh/m²/day` : vm.kpis[4][2], "Annual avg.", "gold"],
+    ["wind",      "Prevailing wind",   meta.prevailingWindDir ?? vm.kpis[5]?.[2] ?? "W / SW",         "10-18 km/h",   "green"],
+  ];
   return (
     <section className="macro-kpi-grid">
-      {vm.kpis.map(([iconKey, label, value, note, tone]) => {
+      {kpis.map(([iconKey, label, value, note, tone]) => {
         const Icon = macroIconMap[iconKey];
         return (
           <SurfaceCard className={`macro-kpi-card ${tone}`} key={label}>

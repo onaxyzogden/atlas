@@ -41,6 +41,15 @@ export const ProjectMetadata = z.object({
   centerLat: z.number().optional(),
   centerLng: z.number().optional(),
   soilNotes: SoilNotes.optional(),
+  // Climate characterisation (Tier 1 pipeline / ECCC normals)
+  hardinessZone: z.string().max(10).optional(),
+  annualPrecipMm: z.number().optional(),
+  frostFreeDays: z.number().optional(),
+  lastFrostAvg: z.string().max(20).optional(),
+  firstFallFrostAvg: z.string().max(20).optional(),
+  avgDailySolarKwhM2: z.number().optional(),
+  prevailingWindDir: z.string().max(20).optional(),
+  climateNormals: z.string().max(100).optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
