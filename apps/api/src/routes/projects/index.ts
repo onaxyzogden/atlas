@@ -29,6 +29,25 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     return { data: [ProjectSummary.parse(toCamelCase(project))], meta: { total: 1 }, error: null };
   });
 
+  // GET /projects/builtins/assessment — public; returns the 351 House site assessment (no auth).
+  fastify.get('/builtins/assessment', async () => {
+    const [assessment] = await db`
+      SELECT
+        sa.id, sa.project_id, sa.version, sa.is_current,
+        sa.confidence,
+        sa.overall_score::float8  AS overall_score,
+        sa.score_breakdown,
+        sa.flags,
+        sa.needs_site_visit,
+        sa.data_sources_used,
+        sa.computed_at
+      FROM site_assessments sa
+      WHERE sa.project_id = ${BUILTIN_PROJECT_ID} AND sa.is_current = true
+    `;
+    if (!assessment) return { data: null, error: null };
+    return { data: toCamelCase(assessment), error: null };
+  });
+
   // GET /projects — list current user's projects (owned + shared)
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
