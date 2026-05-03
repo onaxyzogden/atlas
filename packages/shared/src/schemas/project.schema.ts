@@ -37,9 +37,20 @@ export const ProjectMetadata = z.object({
   legalDescription: z.string().max(2000).optional(),
   fieldObservations: z.string().max(5000).optional(),
   restrictionsCovenants: z.string().max(2000).optional(),
-  mapProjection: z.string().max(50).optional(),
+  mapProjection: z.string().max(200).optional(),
+  centerLat: z.number().optional(),
+  centerLng: z.number().optional(),
   soilNotes: SoilNotes.optional(),
-}).strict();
+  // Climate characterisation (Tier 1 pipeline / ECCC normals)
+  hardinessZone: z.string().max(10).optional(),
+  annualPrecipMm: z.number().optional(),
+  frostFreeDays: z.number().optional(),
+  lastFrostAvg: z.string().max(20).optional(),
+  firstFallFrostAvg: z.string().max(20).optional(),
+  avgDailySolarKwhM2: z.number().optional(),
+  prevailingWindDir: z.string().max(20).optional(),
+  climateNormals: z.string().max(100).optional(),
+}).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
 export const ProjectType = z.enum([
@@ -90,6 +101,7 @@ export const ProjectSummary = z.object({
   dataCompletenessScore: z.number().nullable(),
   hasParcelBoundary: z.boolean(),
   candidateOf: z.string().uuid().nullable().optional(),
+  metadata: ProjectMetadata.nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

@@ -4,15 +4,16 @@ import { siteBanner as staticBanner, breadcrumbStem as staticStem } from "../dat
 const BuiltinProjectContext = createContext(null);
 
 function deriveProjectBanner(project) {
-  const location = [project.provinceState, project.country === "CA" ? "Canada" : project.country]
+  const countryLabel = project.country === "CA" ? "Canada" : project.country;
+  const location = [project.metadata?.county, project.provinceState, countryLabel]
     .filter(Boolean)
     .join(", ");
   return {
     siteName: project.name,
     location,
     elevationRange: staticBanner.elevationRange,
-    projectStart: staticBanner.projectStart,
-    lastUpdatedAbsolute: staticBanner.lastUpdatedAbsolute,
+    projectStart: new Date(project.createdAt).toLocaleDateString("en-CA", { day: "numeric", month: "short", year: "numeric" }),
+    lastUpdatedAbsolute: new Date(project.updatedAt).toLocaleDateString("en-CA", { day: "numeric", month: "short", year: "numeric" }),
     lastUpdatedBy: staticBanner.lastUpdatedBy,
     syncStatus: staticBanner.syncStatus
   };
@@ -20,11 +21,17 @@ function deriveProjectBanner(project) {
 
 export function BuiltinProjectProvider({ children }) {
   const [project, setProject] = useState(null);
+  const [assessment, setAssessment] = useState(null);
 
   useEffect(() => {
     fetch("/api/v1/projects/builtins")
       .then((r) => r.ok ? r.json() : Promise.reject(r.status))
       .then((body) => setProject(body.data?.[0] ?? null))
+      .catch(() => {});
+
+    fetch("/api/v1/projects/builtins/assessment")
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .then((body) => setAssessment(body.data ?? null))
       .catch(() => {});
   }, []);
 
@@ -34,7 +41,7 @@ export function BuiltinProjectProvider({ children }) {
     : staticStem;
 
   return (
-    <BuiltinProjectContext.Provider value={{ project, siteBanner, breadcrumbStem }}>
+    <BuiltinProjectContext.Provider value={{ project, assessment, siteBanner, breadcrumbStem }}>
       {children}
     </BuiltinProjectContext.Provider>
   );

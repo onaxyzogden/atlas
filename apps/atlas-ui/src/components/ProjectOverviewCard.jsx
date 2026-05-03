@@ -1,18 +1,22 @@
 import { CalendarDays, MapPin, Maximize2, Mountain } from "lucide-react";
 import { CroppedArt } from "./CroppedArt.jsx";
-
-const rows = [
-  { icon: MapPin, label: "Location", value: "Nimbin, NSW, Australia" },
-  { icon: Maximize2, label: "Size", value: "12.4 ha" },
-  { icon: Mountain, label: "Elevation", value: "240–268 m" },
-  { icon: CalendarDays, label: "Project start", value: "12 Apr 2025" }
-];
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 
 export function ProjectOverviewCard({ mapSrc }) {
+  const { project, siteBanner } = useBuiltinProject();
+
+  const haHa = project?.acreage ? (project.acreage * 0.404686).toFixed(1) : "25.7";
+  const rows = [
+    { icon: MapPin,       label: "Location",      value: siteBanner.location },
+    { icon: Maximize2,    label: "Size",           value: `${haHa} ha` },
+    { icon: Mountain,     label: "Elevation",      value: siteBanner.elevationRange },
+    { icon: CalendarDays, label: "Project start",  value: siteBanner.projectStart },
+  ];
+
   return (
     <aside className="project-overview-card">
       <h2>Project Overview</h2>
-      <div className="project-overview-card__name">Green Valley Homestead</div>
+      <div className="project-overview-card__name">{project?.name ?? siteBanner.siteName}</div>
       <div className="project-overview-card__grid">
         <dl>
           {rows.map((row) => (

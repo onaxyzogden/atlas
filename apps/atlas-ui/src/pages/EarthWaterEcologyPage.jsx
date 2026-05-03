@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ArrowRight,
@@ -35,7 +36,44 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/earth
 
 const ecologyIconMap = { sprout: Sprout, settings: Settings, leaf: Leaf, droplet: Droplet, binoculars: Binoculars, flask: FlaskConical };
 
+function phBand(ph) {
+  if (ph < 5.5) return ["Very acidic",      "Low",      30];
+  if (ph < 6.0) return ["Acidic",           "Moderate", 45];
+  if (ph < 6.5) return ["Slightly acidic",  "Good",     65];
+  if (ph < 7.0) return ["Slightly acidic",  "Good",     72];
+  if (ph < 7.5) return ["Neutral",          "Good",     80];
+  return              ["Alkaline",          "Moderate", 60];
+}
+
+function omBand(pct) {
+  if (pct >= 5)   return ["High — excellent for biology", "Good",     85];
+  if (pct >= 3)   return ["Moderate",                     "Moderate", 58];
+  return               ["Low — add amendments",           "Low",      30];
+}
+
+function scoreNote(n) {
+  if (n >= 80) return "Good";
+  if (n >= 60) return "Moderate";
+  return "Low";
+}
+
 export function EarthWaterEcologyPage() {
+  const { project, assessment } = useBuiltinProject();
+  const meta   = project?.metadata  ?? {};
+  const sb     = assessment?.scoreBreakdown ?? {};
+
+  const rawPh  = parseFloat(meta.soilNotes?.ph ?? "6.8");
+  const rawOm  = parseFloat(meta.soilNotes?.organicMatter ?? "3.2");
+  const soilHealthScore = sb.agPotential
+    ? Math.round((sb.agPotential.om + sb.agPotential.capability) / 2)
+    : 65;
+  const bioScore = (sb.suitability && sb.agPotential)
+    ? Math.round((sb.suitability.soilDrainage + sb.agPotential.capability) / 2)
+    : 62;
+  const waterScore = sb.waterResilience
+    ? Math.round((sb.waterResilience.baseflow + sb.waterResilience.storagePotential + sb.waterResilience.regulatoryConstraint) / 3)
+    : null;
+
   return (
     <AppShell className="observe-dashboard-shell">
       <SideRail active="Overview" />
@@ -46,12 +84,12 @@ export function EarthWaterEcologyPage() {
           actionLabel="Module settings"
         />
         <ModuleHeader />
-        <KpiStrip />
+        <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
         <TabsAndActions />
         <section className="diagnostic-grid">
           <SiteMapCard />
-          <SoilDiagnosticsCard />
-          <HydrologyCard />
+          <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
+          <HydrologyCard fieldObservations={meta.fieldObservations} />
           <EcologyCard />
           <RecentObservationsCard />
           <RecommendedActionsCard />
@@ -73,7 +111,7 @@ function ModuleHeader() {
   return (
     <header className="module-header">
       <div className="module-title-block">
-        <button className="back-link" type="button"><ArrowLeft aria-hidden="true" /> Back to overview</button>
+        <Link to="/observe/dashboard" className="back-link"><ArrowLeft aria-hidden="true" /> Back to overview</Link>
         <div className="module-title-row">
           <b>4</b>
           <div>
@@ -94,10 +132,20 @@ function ModuleHeader() {
   );
 }
 
-function KpiStrip() {
+function KpiStrip({ rawPh, soilHealthScore, bioScore, waterScore }) {
+  const [phNote] = phBand(rawPh);
+  const kpis = [
+    ["sprout",    "Latest soil pH",     rawPh.toFixed(1),                              phNote,                        "green"],
+    ["settings",  "Soil health score",  `${soilHealthScore} /100`,                    scoreNote(soilHealthScore),    "gold" ],
+    ["leaf",      "Biodiversity score", `${bioScore} /100`,                            scoreNote(bioScore),           "gold" ],
+    ["droplet",   "Water security",     waterScore ? `${waterScore} /100` : vm.kpis[3][2],
+                                        waterScore ? scoreNote(waterScore)             : vm.kpis[3][3],               "blue" ],
+    ["binoculars","Field observations", vm.kpis[4][2], vm.kpis[4][3], "gold"],
+    ["flask",     "Tests & samples",    vm.kpis[5][2], vm.kpis[5][3], "gold"],
+  ];
   return (
     <SurfaceCard className="diagnostic-kpi-strip">
-      {vm.kpis.map(([iconKey, label, value, note, tone]) => {
+      {kpis.map(([iconKey, label, value, note, tone]) => {
         const Icon = ecologyIconMap[iconKey];
         return (
           <div className={`diagnostic-kpi ${tone}`} key={label}>
@@ -155,12 +203,27 @@ function SiteMapCard() {
   );
 }
 
-function SoilDiagnosticsCard() {
+function SoilDiagnosticsCard({ rawPh, rawOm, soilNotes }) {
+  const [phNote, phRating, phPos] = phBand(rawPh);
+  const [omNote, omRating, omPos] = omBand(rawOm);
+
+  const soilRows = [
+    ["pH (H2O)",        `${rawPh.toFixed(1)}`,  phNote,                               phRating, phPos],
+    ["Infiltration rate", vm.soilRows[1][1],     vm.soilRows[1][2],                    vm.soilRows[1][3], vm.soilRows[1][4]],
+    ["Compaction",       vm.soilRows[2][1],      soilNotes?.compaction?.split(".")[0] ?? vm.soilRows[2][2], vm.soilRows[2][3], vm.soilRows[2][4]],
+    ["Organic matter",  `${rawOm.toFixed(1)}%`,  omNote,                               omRating, omPos],
+    ["Soil texture",     vm.soilRows[4][1],      vm.soilRows[4][2],                    vm.soilRows[4][3], vm.soilRows[4][4]],
+  ];
+
+  const interpretation = soilNotes?.biologicalActivity
+    ? soilNotes.biologicalActivity.split(".")[0] + "."
+    : vm.soilInterpretation;
+
   return (
     <SurfaceCard className="diagnostic-panel soil-panel">
       <PanelHeader title="Soil diagnostics" action="View all tests" />
       <div className="soil-row-list">
-        {vm.soilRows.map(([name, value, note, rating, position]) => (
+        {soilRows.map(([name, value, note, rating, position]) => (
           <div className="soil-row" key={name}>
             <Beaker aria-hidden="true" />
             <div><strong>{name}</strong><span>{value} · {note}</span></div>
@@ -169,12 +232,15 @@ function SoilDiagnosticsCard() {
           </div>
         ))}
       </div>
-      <p className="interpretation"><Sprout aria-hidden="true" /> <b>Interpretation:</b> {vm.soilInterpretation}</p>
+      <p className="interpretation"><Sprout aria-hidden="true" /> <b>Interpretation:</b> {interpretation}</p>
     </SurfaceCard>
   );
 }
 
-function HydrologyCard() {
+function HydrologyCard({ fieldObservations }) {
+  const insight = fieldObservations
+    ? fieldObservations.split(";")[0].trim() + "."
+    : vm.hydrologyInsight;
   return (
     <SurfaceCard className="diagnostic-panel hydrology-panel">
       <PanelHeader title="Hydrology overview" action="Details" />
@@ -189,7 +255,7 @@ function HydrologyCard() {
       <div className="flow-legend">
         <span>Surface flow</span><span>Intermittent flow</span><span>Watershed divide</span>
       </div>
-      <p className="warning-note"><TriangleAlert aria-hidden="true" /> <b>Insight:</b> {vm.hydrologyInsight}</p>
+      <p className="warning-note"><TriangleAlert aria-hidden="true" /> <b>Insight:</b> {insight}</p>
     </SurfaceCard>
   );
 }

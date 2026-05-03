@@ -89,6 +89,7 @@ export function ObservePage() {
             icon={<BookOpen />}
             title="Open Stage Dashboard"
             action
+            to="/observe/dashboard"
           />
           <ActionCard icon={<BookOpen />} title="View Stage Guide" />
           <ActionCard

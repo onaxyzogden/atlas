@@ -13,6 +13,7 @@ import {
   Sun,
   Triangle
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
@@ -135,7 +136,7 @@ function TerrainToolCard() {
         <CroppedArt src={terrainPreview} className="topography-tool-image" />
       </div>
       <div className="tool-card-actions">
-        <button className="green-button" type="button">Open terrain detail <ArrowRight aria-hidden="true" /></button>
+        <Link to="/observe/topography/terrain-detail" className="green-button">Open terrain detail <ArrowRight aria-hidden="true" /></Link>
         <small>Best for: Detailed analysis of slope, aspect, elevation and landforms.</small>
       </div>
     </SurfaceCard>
@@ -159,7 +160,7 @@ function CrossSectionToolCard() {
         <CroppedArt src={crossSectionPreview} className="topography-tool-image" />
       </div>
       <div className="tool-card-actions">
-        <button className="green-button" type="button">Open cross-section tool <ArrowRight aria-hidden="true" /></button>
+        <Link to="/observe/topography/cross-section-tool" className="green-button">Open cross-section tool <ArrowRight aria-hidden="true" /></Link>
         <small>Best for: Understanding elevation change, solar exposure, drainage swales, dams, buildings and cut/fill balance.</small>
       </div>
     </SurfaceCard>
