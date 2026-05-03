@@ -28,6 +28,7 @@ import {
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { crossSectionTool as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import crossSectionChart from "../assets/generated/cross-section-tool/cross-section-chart.png";
 import transectMap from "../assets/generated/cross-section-tool/transect-map.png";
 import seasonalChart from "../assets/generated/cross-section-tool/seasonal-chart.png";
@@ -80,9 +81,24 @@ function CrossHeader() {
 }
 
 function CrossKpis() {
+  const { assessment } = useBuiltinProject();
+  const terrain = assessment?.terrainAnalysis ?? null;
+  const elevMin = Math.round(parseFloat(terrain?.elevation?.minM ?? 240));
+  const elevMax = Math.round(parseFloat(terrain?.elevation?.maxM ?? 268));
+  const elevChange = (elevMax - elevMin).toFixed(1);
+  const slopeMean = parseFloat(terrain?.slope?.meanDeg ?? vm.kpis[2][2]).toFixed(1);
+
+  const kpis = [
+    [vm.kpis[0][0], vm.kpis[0][1], vm.kpis[0][2], vm.kpis[0][3]],
+    ["mountain",    "Elevation change", `${elevChange} m`,           "High to low"],
+    ["triangle",    "Average slope",    `${slopeMean}°`,              "Overall grade"],
+    [vm.kpis[3][0], vm.kpis[3][1], vm.kpis[3][2], vm.kpis[3][3]],
+    [vm.kpis[4][0], vm.kpis[4][1], vm.kpis[4][2], vm.kpis[4][3]],
+  ];
+
   return (
     <SurfaceCard className="cross-kpi-strip">
-      {vm.kpis.map(([iconKey, label, value, note]) => {
+      {kpis.map(([iconKey, label, value, note]) => {
         const Icon = crossIconMap[iconKey];
         return (
           <div className="cross-kpi" key={label}>

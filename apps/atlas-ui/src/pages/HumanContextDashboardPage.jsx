@@ -19,6 +19,7 @@ import {
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { humanContextDashboard as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroLandscape from "../assets/generated/human-context-dashboard/hero-landscape.png";
 import regionalSnapshot from "../assets/generated/human-context-dashboard/regional-snapshot.png";
 
@@ -173,12 +174,14 @@ function RegionalCard() {
 }
 
 function VisionSummaryCard() {
+  const { project } = useBuiltinProject();
+  const visionStatement = project?.metadata?.visionStatement ?? null;
   const v = vm.vision;
   return (
     <ModuleCardShell number="3" title="Vision Detail" icon={Leaf} action="Open Vision Detail" actionTo="/observe/human-context/vision">
       <p>Where we're going and what success looks like.</p>
       <div className="vision-summary-grid">
-        <blockquote>{v.quote}</blockquote>
+        <blockquote>{visionStatement ?? v.quote}</blockquote>
         <div>
           {v.themes.map((item) => <span key={item}>{item}</span>)}
         </div>
@@ -200,12 +203,14 @@ function FooterTabs({ items }) {
 }
 
 function HealthStrip() {
+  const { siteBanner } = useBuiltinProject();
   const h = vm.health;
+  const lastUpdated = siteBanner?.lastUpdatedAbsolute ?? h.lastUpdated;
   return (
     <SurfaceCard className="human-health-strip">
       <span><Leaf /> <b>Overall Module Health</b>{h.summary}</span>
       {h.strips.map(([label, value]) => <span key={label}>{label} <b>{value}</b></span>)}
-      <span>Last updated<br />{h.lastUpdated}</span>
+      <span>Last updated<br />{lastUpdated}</span>
     </SurfaceCard>
   );
 }

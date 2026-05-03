@@ -23,6 +23,7 @@ import {
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { indigenousRegionalContext as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroTerrain from "../assets/generated/indigenous-regional-context/hero-terrain.png";
 import regionalMap from "../assets/generated/indigenous-regional-context/regional-map.png";
 
@@ -143,10 +144,14 @@ function LocalNetworkCard() {
 }
 
 function RegionalSidebar() {
+  const { project } = useBuiltinProject();
+  const county = project?.metadata?.county ?? null;
+  const bioregion = project?.metadata?.bioregion ?? null;
+  const snapshotLabel = county ?? bioregion ?? "Regional Snapshot";
   return (
     <aside className="regional-sidebar">
       <SurfaceCard className="regional-map-card">
-        <h2><Sun aria-hidden="true" /> Regional Snapshot</h2>
+        <h2><Sun aria-hidden="true" /> {snapshotLabel}</h2>
         <CroppedArt src={regionalMap} className="regional-map-image" />
       </SurfaceCard>
       <div className="regional-stat-grid">

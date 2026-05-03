@@ -23,6 +23,7 @@ import {
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { visionPage as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import conceptLandscape from "../assets/generated/vision/concept-landscape.png";
 import moodboardGrid from "../assets/generated/vision/moodboard-grid.png";
 
@@ -89,10 +90,12 @@ function ConceptPanel() {
 }
 
 function QuotePanel() {
+  const { project } = useBuiltinProject();
+  const oneSentence = project?.metadata?.visionStatement ?? vm.oneSentence;
   return (
     <SurfaceCard className="quote-panel">
       <h2>Vision in one sentence <Sun aria-hidden="true" /></h2>
-      <blockquote>{vm.oneSentence}</blockquote>
+      <blockquote>{oneSentence}</blockquote>
       <button className="outlined-button" type="button"><Edit3 aria-hidden="true" /> Edit vision statement</button>
     </SurfaceCard>
   );
