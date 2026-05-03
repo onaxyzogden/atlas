@@ -1337,7 +1337,7 @@ img.footprint-art {
   margin-top: 14px;
   padding: 13px 17px;
   display: grid;
-  grid-template-columns: 390px repeat(5, 1fr);
+  grid-template-columns: 390px repeat(6, 1fr);
   border: 1px solid rgba(101, 146, 62, 0.3);
   border-radius: 8px;
   background: linear-gradient(90deg, rgba(16, 31, 20, 0.74), rgba(12, 20, 16, 0.9));
@@ -1436,6 +1436,96 @@ img.footprint-art {
 .dashboard-progress-metric small {
   color: #cbb991;
   font-size: 12px;
+}
+
+.dashboard-site-flags {
+  margin-top: 10px;
+  padding: 12px 17px 14px;
+  border: 1px solid rgba(220, 170, 50, 0.25);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(24, 20, 10, 0.8), rgba(12, 14, 10, 0.9));
+}
+
+.dashboard-site-flags__heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  color: #c9a84c;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.dashboard-site-flags__heading svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.dashboard-site-flags__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.site-flag {
+  padding: 10px 13px;
+  border-radius: 6px;
+  border-left: 3px solid currentColor;
+}
+
+.site-flag--low {
+  color: #7fac43;
+  background: rgba(127, 172, 67, 0.07);
+  border-color: rgba(127, 172, 67, 0.5);
+}
+
+.site-flag--medium {
+  color: #c9a84c;
+  background: rgba(201, 168, 76, 0.07);
+  border-color: rgba(201, 168, 76, 0.5);
+}
+
+.site-flag--high {
+  color: #c96a4c;
+  background: rgba(201, 106, 76, 0.07);
+  border-color: rgba(201, 106, 76, 0.5);
+}
+
+.site-flag__meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.site-flag__category,
+.site-flag__severity {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.site-flag__severity {
+  opacity: 1;
+}
+
+.site-flag__title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8dfc8;
+  margin-bottom: 3px;
+}
+
+.site-flag__body {
+  margin: 0;
+  font-size: 12px;
+  color: #9b9080;
+  line-height: 1.45;
 }
 
 .dashboard-card-grid {

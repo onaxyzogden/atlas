@@ -1,10 +1,12 @@
 import {
+  AlertTriangle,
   ArrowRight,
   BookOpen,
   CalendarDays,
   CircleCheck,
   Clock3,
   Droplet,
+  Gauge,
   Leaf,
   Sprout,
   Timer,
@@ -26,6 +28,7 @@ import {
   observeStageProgress,
   observeDashboardModules
 } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroLandscape from "../assets/generated/observe-dashboard/hero-landscape.png";
 import siteMapThumb from "../assets/generated/observe-dashboard/site-map-thumb.png";
 import topographyMap from "../assets/generated/observe-dashboard/topography-map.png";
@@ -34,6 +37,7 @@ import sectorMap from "../assets/generated/observe-dashboard/sector-map.png";
 const dashboardMetadata = screenCatalog.find((screen) => screen.route === "/observe/dashboard");
 
 export function ObserveDashboardPage() {
+  const { assessment, siteBanner } = useBuiltinProject();
   return (
     <AppShell className="observe-dashboard-shell">
       <SideRail active="Overview" />
@@ -43,7 +47,8 @@ export function ObserveDashboardPage() {
           <DashboardHero />
           <ProjectOverviewCard mapSrc={siteMapThumb} />
         </section>
-        <DashboardProgress />
+        <DashboardProgress assessment={assessment} siteBanner={siteBanner} />
+        {assessment?.flags?.length > 0 && <SiteFlags flags={assessment.flags} />}
         <DashboardCards />
       </main>
       {import.meta.env.DEV ? (
@@ -78,8 +83,10 @@ function DashboardHero() {
   );
 }
 
-function DashboardProgress() {
+function DashboardProgress({ assessment, siteBanner }) {
   const p = observeStageProgress;
+  const lastUpdated = siteBanner?.lastUpdatedAbsolute ?? p.lastUpdatedAbsolute;
+  const lastUpdatedBy = siteBanner?.lastUpdatedBy ?? p.lastUpdatedBy;
   return (
     <section className="dashboard-progress-band" aria-label="Stage progress">
       <div className="dashboard-progress-band__main">
@@ -94,8 +101,11 @@ function DashboardProgress() {
       <ProgressMetric icon={<CircleCheck />} label="Complete" value={String(p.doneTasks - p.inProgressTasks)} note="Tasks done" />
       <ProgressMetric icon={<Timer />} label="In progress" value={String(p.inProgressTasks)} note="Tasks active" />
       <ProgressMetric icon={<Sprout />} label="Needs input" value={String(p.needsInputTasks)} note="Tasks waiting" tone="gold" />
-      <ProgressMetric icon={<CalendarDays />} label="Last updated" value={p.lastUpdatedAbsolute} note={`By ${p.lastUpdatedBy}`} />
+      <ProgressMetric icon={<CalendarDays />} label="Last updated" value={lastUpdated} note={`By ${lastUpdatedBy}`} />
       <ProgressMetric icon={<BookOpen />} label="Journal entries" value={String(p.journalEntriesThisWeek)} note="This week" />
+      {assessment?.overallScore != null && (
+        <ProgressMetric icon={<Gauge />} label="Site score" value={`${Math.round(assessment.overallScore)}`} note={`/ 100 · ${assessment.confidence ?? "medium"}`} />
+      )}
     </section>
   );
 }
@@ -209,6 +219,31 @@ function SwotGrid({ quadrants }) {
       <span><b>Opportunities</b>{quadrants.opportunities}</span>
       <span><b>Threats</b>{quadrants.threats}</span>
     </div>
+  );
+}
+
+const FLAG_CSS_TONE = { info: "low", warning: "medium", error: "high" };
+
+function SiteFlags({ flags }) {
+  return (
+    <section className="dashboard-site-flags" aria-label="Site flags">
+      <h3 className="dashboard-site-flags__heading"><AlertTriangle aria-hidden="true" /> Site Flags</h3>
+      <div className="dashboard-site-flags__list">
+        {flags.map((f) => {
+          const tone = FLAG_CSS_TONE[f.severity] ?? "low";
+          const label = f.flag.replace(/_/g, " ");
+          return (
+            <div key={f.flag} className={`site-flag site-flag--${tone}`}>
+              <div className="site-flag__meta">
+                <span className="site-flag__severity">{f.severity}</span>
+              </div>
+              <strong className="site-flag__title">{label}</strong>
+              <p className="site-flag__body">{f.message}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
