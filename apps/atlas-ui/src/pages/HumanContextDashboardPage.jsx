@@ -8,6 +8,7 @@ import {
   Sprout,
   Users
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
@@ -106,7 +107,8 @@ function MetricBlock({ icon: Icon, label, value, note, compact = false }) {
   );
 }
 
-function ModuleCardShell({ number, title, icon: Icon, children, action, tone = "green" }) {
+function ModuleCardShell({ number, title, icon: Icon, children, action, actionTo, tone = "green" }) {
+  const cls = tone === "gold" ? "gold-button" : "green-button";
   return (
     <SurfaceCard className={`human-module-card ${tone}`}>
       <header>
@@ -115,9 +117,9 @@ function ModuleCardShell({ number, title, icon: Icon, children, action, tone = "
         {Icon ? <Icon aria-hidden="true" /> : null}
       </header>
       {children}
-      <button className={tone === "gold" ? "gold-button" : "green-button"} type="button">
-        {action} <ArrowRight aria-hidden="true" />
-      </button>
+      {actionTo
+        ? <Link to={actionTo} className={cls}>{action} <ArrowRight aria-hidden="true" /></Link>
+        : <button className={cls} type="button">{action} <ArrowRight aria-hidden="true" /></button>}
     </SurfaceCard>
   );
 }
@@ -125,7 +127,7 @@ function ModuleCardShell({ number, title, icon: Icon, children, action, tone = "
 function StewardCard() {
   const s = vm.steward;
   return (
-    <ModuleCardShell number="1" title="Steward Survey" icon={Users} action="Open Steward Survey">
+    <ModuleCardShell number="1" title="Steward Survey" icon={Users} action="Open Steward Survey" actionTo="/observe/human-context/steward-survey">
       <p>Who is stewarding this land and what they bring.</p>
       <div className="steward-summary-grid">
         <div className="mini-profile">
@@ -154,7 +156,7 @@ function StewardCard() {
 function RegionalCard() {
   const r = vm.regional;
   return (
-    <ModuleCardShell number="2" title="Indigenous & Regional Context" icon={Sprout} action="Open Indigenous & Regional Context" tone="gold">
+    <ModuleCardShell number="2" title="Indigenous & Regional Context" icon={Sprout} action="Open Indigenous & Regional Context" actionTo="/observe/human-context/indigenous-regional-context" tone="gold">
       <p>Honour the land's story, culture, and regional systems.</p>
       <div className="regional-summary-grid">
         <CroppedArt src={regionalSnapshot} className="regional-summary-image" />
@@ -173,7 +175,7 @@ function RegionalCard() {
 function VisionSummaryCard() {
   const v = vm.vision;
   return (
-    <ModuleCardShell number="3" title="Vision Detail" icon={Leaf} action="Open Vision Detail">
+    <ModuleCardShell number="3" title="Vision Detail" icon={Leaf} action="Open Vision Detail" actionTo="/observe/human-context/vision">
       <p>Where we're going and what success looks like.</p>
       <div className="vision-summary-grid">
         <blockquote>{v.quote}</blockquote>

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ArrowRight,
@@ -73,7 +74,7 @@ function ModuleHeader() {
   return (
     <header className="module-header">
       <div className="module-title-block">
-        <button className="back-link" type="button"><ArrowLeft aria-hidden="true" /> Back to overview</button>
+        <Link to="/observe/dashboard" className="back-link"><ArrowLeft aria-hidden="true" /> Back to overview</Link>
         <div className="module-title-row">
           <b>4</b>
           <div>

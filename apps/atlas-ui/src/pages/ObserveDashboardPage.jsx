@@ -10,6 +10,7 @@ import {
   Timer,
   Users
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
@@ -114,24 +115,24 @@ function DashboardCards() {
   const m = observeDashboardModules;
   return (
     <section className="dashboard-card-grid" aria-label="Observation modules">
-      <ModuleSummaryCard number="1" title="Human Context" footer={<CardActions primary="Open Steward Survey" secondary="Regional detail" tertiary="Vision detail" />}>
+      <ModuleSummaryCard number="1" title="Human Context" footer={<CardActions primary="Open Steward Survey" primaryTo="/observe/human-context/steward-survey" secondary="Regional detail" secondaryTo="/observe/human-context/indigenous-regional-context" tertiary="Vision detail" tertiaryTo="/observe/human-context/vision" />}>
         <FactList rows={m.humanContext.facts} />
         <PeopleOrbit />
         <MiniStats items={m.humanContext.miniStats} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="2" title="Macroclimate & Hazards" footer={<CardActions primary="Solar & Climate detail" secondary="Hazards log" />}>
+      <ModuleSummaryCard number="2" title="Macroclimate & Hazards" footer={<CardActions primary="Solar & Climate detail" primaryTo="/observe/macroclimate-hazards/solar-climate" secondary="Hazards log" secondaryTo="/observe/macroclimate-hazards" />}>
         <FactList rows={m.macroclimate.facts} />
         <RainChart bars={m.macroclimate.monthlyRainPct} />
         <BadgeRow items={m.macroclimate.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="3" title="Topography & Base Map" mediaSrc={topographyMap} footer={<CardActions primary="Terrain detail" secondary="Cross-section tool" />}>
+      <ModuleSummaryCard number="3" title="Topography & Base Map" mediaSrc={topographyMap} footer={<CardActions primary="Terrain detail" primaryTo="/observe/topography/terrain-detail" secondary="Cross-section tool" secondaryTo="/observe/topography/cross-section-tool" />}>
         <FactList rows={m.topography.facts} />
         <BadgeRow items={m.topography.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="4" title="Earth, Water & Ecology Diagnostics" footer={<CardActions primary="Hydrology detail" secondary="Ecological detail" tertiary="Jar / Perc / Roof" />}>
+      <ModuleSummaryCard number="4" title="Earth, Water & Ecology Diagnostics" footer={<CardActions primary="Hydrology detail" primaryTo="/observe/earth-water-ecology" secondary="Ecological detail" tertiary="Jar / Perc / Roof" />}>
         <FactList rows={m.earthWaterEcology.facts} />
         <ScoreRings scores={m.earthWaterEcology.scores} />
         <BadgeRow items={m.earthWaterEcology.badges} />
@@ -211,12 +212,20 @@ function SwotGrid({ quadrants }) {
   );
 }
 
-function CardActions({ primary, secondary, tertiary }) {
+function CardActions({ primary, primaryTo, secondary, secondaryTo, tertiary, tertiaryTo }) {
   return (
     <div className="dashboard-card-actions">
-      <button className="green-button" type="button">{primary}</button>
-      <button className="outlined-button" type="button">{secondary}</button>
-      {tertiary ? <button className="outlined-button" type="button">{tertiary}</button> : null}
+      {primaryTo
+        ? <Link to={primaryTo} className="green-button">{primary}</Link>
+        : <button className="green-button" type="button">{primary}</button>}
+      {secondaryTo
+        ? <Link to={secondaryTo} className="outlined-button">{secondary}</Link>
+        : <button className="outlined-button" type="button">{secondary}</button>}
+      {tertiary
+        ? tertiaryTo
+          ? <Link to={tertiaryTo} className="outlined-button">{tertiary}</Link>
+          : <button className="outlined-button" type="button">{tertiary}</button>
+        : null}
     </div>
   );
 }

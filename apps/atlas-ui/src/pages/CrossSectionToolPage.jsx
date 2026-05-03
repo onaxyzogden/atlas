@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Beaker,
@@ -66,7 +67,7 @@ export function CrossSectionToolPage() {
 function CrossHeader() {
   return (
     <header className="cross-header">
-      <button className="back-link" type="button"><ArrowLeft /> Back to module overview</button>
+      <Link to="/observe/topography" className="back-link"><ArrowLeft /> Back to module overview</Link>
       <div className="module-title-row">
         <b>3</b>
         <div>

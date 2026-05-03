@@ -10,6 +10,7 @@ import {
   TriangleAlert,
   Wind
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
@@ -89,7 +90,7 @@ function SolarClimateCard() {
           <h2><Sun aria-hidden="true" /> Solar & Climate detail</h2>
           <p>Deep dive into sun, temperature, precipitation, and seasonality to identify opportunities for passive design and productivity.</p>
         </div>
-        <button className="green-button" type="button">Open page <ArrowRight aria-hidden="true" /></button>
+        <Link to="/observe/macroclimate-hazards/solar-climate" className="green-button">Open page <ArrowRight aria-hidden="true" /></Link>
       </header>
       <div className="solar-grid">
         <div>
