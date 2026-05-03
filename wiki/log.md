@@ -4,6 +4,63 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-03 — TanStack Router migration (atlas-ui)
+
+Replaced the 12-way `window.location.pathname` switch in `apps/atlas-ui/src/main.jsx`
+with TanStack Router v1.79.0.
+
+**Files changed:**
+- `apps/atlas-ui/package.json` — added `@tanstack/react-router: ^1.79.0`
+- `apps/atlas-ui/src/routes/index.jsx` (new) — full route tree: `rootRoute`,
+  `indexRoute` (/ → /observe redirect via `beforeLoad`), 11 leaf routes,
+  `notFoundComponent` on the root for 404 handling
+- `apps/atlas-ui/src/main.jsx` — replaced pathname switch with `<RouterProvider router={router} />`
+- `apps/atlas-ui/vite.config.js` — added `resolve.dedupe: ["react", "react-dom"]`
+
+**Duplicate React fix** — workspace root `node_modules` contains React 18.3.1 (used by
+`apps/web`); `apps/atlas-ui/node_modules` has React 19.2.5. TanStack Router was
+resolving React 18, causing "Invalid hook call" errors. `resolve.dedupe` in Vite pins
+all React imports to the atlas-ui local copy (React 19).
+
+**404 handling** — TanStack Router v1 does not match `path: "*"` the same way other
+routers do. Custom 404 uses `notFoundComponent` on `createRootRoute` instead.
+
+**Smoke test** — all 12 routes return HTTP 200 from Vite dev server; no console errors;
+custom 404 renders correctly for unknown paths.
+
+---
+
+## 2026-05-03 — `GET /projects/builtins` API endpoint + migration 016
+
+New public (unauthenticated) endpoint in `apps/api/src/routes/projects/index.ts`
+returns the 351 House demo project by sentinel UUID
+(`00000000-0000-0000-0000-0000005a3791`).
+
+**Migration `016_builtin_sample_project.sql`** — inserts a sentinel service
+user (`00000000-0000-0000-0000-000000000001`, `auth_provider = 'system'`) and
+the 351 House project row with `ON CONFLICT DO NOTHING`. Applied against
+local dev DB (row already existed from earlier manual seed — idempotent).
+
+**Route** — `GET /projects/builtins` registered before `/:id` (avoids
+Fastify matching `"builtins"` as a param). No `preHandler` — fully public.
+`acreage` and `data_completeness_score` cast to `float8` in the SELECT to
+prevent Zod `invalid_type` errors (PostgreSQL `numeric` columns are returned
+as strings by the postgres.js driver).
+
+**CORS** — `CORS_ORIGIN` changed from a single string to a comma-separated
+list; `app.ts` splits it into an array. Default now includes both
+`http://localhost:5200` (apps/web) and `http://localhost:5300` (apps/atlas-ui).
+Production deployments set `CORS_ORIGIN` explicitly as a single value.
+
+**Smoke test** — `atlas-ui` browser context (`localhost:5300`) fetches the
+endpoint cross-origin: `status 200 · name "351 House — Atlas Sample" · CA/ON ·
+11.95 ha · hasParcelBoundary true`.
+
+Next: replace `builtin-sample.js` static `project`/`siteBanner` top-level
+constants with a `useBuiltinProject()` hook that reads from this endpoint.
+
+---
+
 ## 2026-05-03 — `apps/atlas-ui` lifted; 11 OBSERVE pages on typed `builtin-sample.js` adapter
 
 New app `apps/atlas-ui` (React 19 + Vite 7, port 5300) added to the

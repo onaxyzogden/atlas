@@ -19,7 +19,8 @@ import {
   TopStageBar
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
-import { solarClimateDetail as vm, siteBanner } from "../data/builtin-sample.js";
+import { solarClimateDetail as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroSunscape from "../assets/generated/solar-climate-detail/hero-sunscape.png";
 import monthlyClimate from "../assets/generated/solar-climate-detail/monthly-climate-overview.png";
 import solarPath from "../assets/generated/solar-climate-detail/solar-path-angles.png";
@@ -30,6 +31,7 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/macro
 const solarIconMap = { sun: Sun, droplet: Droplet, leaf: Leaf, wind: Wind, snowflake: Snowflake, sprout: Sprout };
 
 export function SolarClimateDetailPage() {
+  const { siteBanner } = useBuiltinProject();
   return (
     <AppShell className="observe-dashboard-shell">
       <SideRail active="Data" />

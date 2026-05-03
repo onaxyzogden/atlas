@@ -23,7 +23,8 @@ import {
   TopStageBar
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
-import { terrainDetail as vm, siteBanner } from "../data/builtin-sample.js";
+import { terrainDetail as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import mainTerrainMap from "../assets/generated/terrain-detail/main-terrain-map.png";
 import slopeMap from "../assets/generated/terrain-detail/slope-map.png";
 import elevationHistogram from "../assets/generated/terrain-detail/elevation-histogram.png";
@@ -178,6 +179,7 @@ function TerrainSidebar() {
 }
 
 function TerrainFooter() {
+  const { siteBanner } = useBuiltinProject();
   return (
     <footer className="diagnostics-footer terrain-footer">
       <span><b>Site:</b> {siteBanner.siteName}</span>
