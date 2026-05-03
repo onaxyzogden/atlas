@@ -76,10 +76,10 @@ export const observeStageMetrics = {
 };
 
 export const observeModules = [
-  { number: "1", title: "Human Context", status: "In progress", active: true, art: "people" },
-  { number: "2", title: "Macroclimate &\nHazards", status: "In progress", active: true, art: "weather" },
-  { number: "3", title: "Topography &\nBase Map", status: "In progress", active: true, art: "topo" },
-  { number: "4", title: "Earth, Water &\nEcology Diagnostics", status: "Not started", active: false, art: "soil" },
+  { number: "1", title: "Human Context", status: "In progress", active: true, art: "people", to: "/observe/human-context" },
+  { number: "2", title: "Macroclimate &\nHazards", status: "In progress", active: true, art: "weather", to: "/observe/macroclimate-hazards" },
+  { number: "3", title: "Topography &\nBase Map", status: "In progress", active: true, art: "topo", to: "/observe/topography" },
+  { number: "4", title: "Earth, Water &\nEcology Diagnostics", status: "Not started", active: false, art: "soil", to: "/observe/earth-water-ecology" },
   { number: "5", title: "Sectors, Microclimates\n& Zones", status: "Not started", active: false, art: "sector" },
   { number: "6", title: "SWOT\nSynthesis", status: "Not started", active: false, art: "swot" }
 ];

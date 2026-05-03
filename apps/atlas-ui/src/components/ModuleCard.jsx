@@ -1,8 +1,9 @@
+import { Link } from "@tanstack/react-router";
 import { CroppedArt } from "./CroppedArt.jsx";
 
-export function ModuleCard({ number, title, status, active, artSrc, artClassName = "" }) {
-  return (
-    <button className="module-card-handbuilt" type="button">
+export function ModuleCard({ number, title, status, active, artSrc, artClassName = "", to }) {
+  const inner = (
+    <>
       <span className="module-number">{number}</span>
       <CroppedArt className={`module-art ${artClassName}`} src={artSrc} />
       <span className="module-copy">
@@ -13,6 +14,8 @@ export function ModuleCard({ number, title, status, active, artSrc, artClassName
         </strong>
         <em className={active ? "is-active" : ""}>{status}</em>
       </span>
-    </button>
+    </>
   );
+  if (to) return <Link to={to} className="module-card-handbuilt">{inner}</Link>;
+  return <button className="module-card-handbuilt" type="button">{inner}</button>;
 }
