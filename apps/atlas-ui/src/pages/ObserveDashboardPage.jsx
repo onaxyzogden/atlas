@@ -121,8 +121,36 @@ function ProgressMetric({ icon, label, value, note, tone = "green" }) {
   );
 }
 
+function scoreBand(n) {
+  if (n >= 80) return "Good";
+  if (n >= 60) return "Moderate";
+  return "Low";
+}
+
+function deriveEweScores(sb) {
+  const soilHealth = sb.agPotential
+    ? Math.round((sb.agPotential.om + sb.agPotential.capability) / 2)
+    : null;
+  const waterSecurity = sb.waterResilience
+    ? Math.round((sb.waterResilience.baseflow + sb.waterResilience.storagePotential + sb.waterResilience.regulatoryConstraint) / 3)
+    : null;
+  const biodiversity = sb.suitability && sb.agPotential
+    ? Math.round((sb.suitability.soilDrainage + sb.agPotential.capability) / 2)
+    : null;
+  return [
+    { label: "Soil Health",    band: soilHealth    ? scoreBand(soilHealth)    : "Good"     },
+    { label: "Biodiversity",   band: biodiversity  ? scoreBand(biodiversity)  : "Moderate" },
+    { label: "Water Security", band: waterSecurity ? scoreBand(waterSecurity) : "Low"      },
+  ];
+}
+
 function DashboardCards() {
   const m = observeDashboardModules;
+  const { assessment } = useBuiltinProject();
+  const eweScores = assessment?.scoreBreakdown
+    ? deriveEweScores(assessment.scoreBreakdown)
+    : m.earthWaterEcology.scores;
+
   return (
     <section className="dashboard-card-grid" aria-label="Observation modules">
       <ModuleSummaryCard number="1" title="Human Context" footer={<CardActions primary="Open Steward Survey" primaryTo="/observe/human-context/steward-survey" secondary="Regional detail" secondaryTo="/observe/human-context/indigenous-regional-context" tertiary="Vision detail" tertiaryTo="/observe/human-context/vision" />}>
@@ -144,7 +172,7 @@ function DashboardCards() {
 
       <ModuleSummaryCard number="4" title="Earth, Water & Ecology Diagnostics" footer={<CardActions primary="Hydrology detail" primaryTo="/observe/earth-water-ecology" secondary="Ecological detail" tertiary="Jar / Perc / Roof" />}>
         <FactList rows={m.earthWaterEcology.facts} />
-        <ScoreRings scores={m.earthWaterEcology.scores} />
+        <ScoreRings scores={eweScores} />
         <BadgeRow items={m.earthWaterEcology.badges} />
       </ModuleSummaryCard>
 
