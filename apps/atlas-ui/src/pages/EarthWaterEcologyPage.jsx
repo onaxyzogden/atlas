@@ -25,7 +25,8 @@ import {
   TopStageBar
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
-import { earthWaterEcologyPage as vm, siteBanner } from "../data/builtin-sample.js";
+import { earthWaterEcologyPage as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import siteMap from "../assets/generated/earth-water-ecology/site-observations-map.png";
 import hydrologyMap from "../assets/generated/earth-water-ecology/hydrology-map.png";
 import speciesThumbs from "../assets/generated/earth-water-ecology/species-thumbnails.png";
@@ -209,6 +210,7 @@ function EcologyCard() {
 }
 
 function RecentObservationsCard() {
+  const { siteBanner } = useBuiltinProject();
   return (
     <SurfaceCard className="diagnostic-panel recent-panel">
       <PanelHeader title="Recent observations" action="View journal" />
@@ -247,6 +249,7 @@ function RecommendedActionsCard() {
 }
 
 function StatusFooter() {
+  const { siteBanner } = useBuiltinProject();
   return (
     <footer className="diagnostic-footer">
       <span><b>Site:</b> {siteBanner.siteName}</span>

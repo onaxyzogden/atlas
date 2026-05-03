@@ -23,7 +23,8 @@ import {
   TopStageBar
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
-import { topographyDashboard as vm, siteBanner } from "../data/builtin-sample.js";
+import { topographyDashboard as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroTerrain from "../assets/generated/topography-dashboard/hero-terrain.png";
 import terrainPreview from "../assets/generated/topography-dashboard/terrain-preview.png";
 import crossSectionPreview from "../assets/generated/topography-dashboard/cross-section-preview.png";
@@ -198,6 +199,7 @@ function TopographySidebar() {
 }
 
 function TopographyFooter() {
+  const { siteBanner } = useBuiltinProject();
   return (
     <footer className="diagnostics-footer topography-footer">
       <span><b>Site:</b> {siteBanner.siteName}</span>

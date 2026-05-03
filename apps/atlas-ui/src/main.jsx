@@ -12,6 +12,7 @@ import { TopographyDashboardPage } from "./pages/TopographyDashboardPage.jsx";
 import { TerrainDetailPage } from "./pages/TerrainDetailPage.jsx";
 import { MacroclimateDashboardPage } from "./pages/MacroclimateDashboardPage.jsx";
 import { SolarClimateDetailPage } from "./pages/SolarClimateDetailPage.jsx";
+import { BuiltinProjectProvider } from "./context/BuiltinProjectContext.jsx";
 import "./styles.css";
 
 function App() {
@@ -76,6 +77,8 @@ function App() {
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <BuiltinProjectProvider>
+      <App />
+    </BuiltinProjectProvider>
   </React.StrictMode>
 );
