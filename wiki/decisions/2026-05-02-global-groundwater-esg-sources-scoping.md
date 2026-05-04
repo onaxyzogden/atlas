@@ -1,7 +1,7 @@
 # ADR: Global Groundwater + ESG Source Heuristics — Scoping
 
 **Date:** 2026-05-02
-**Status:** Partially Accepted 2026-05-04 — D3 (drop state mining registry scrape, retain federal BLM + BC MTO only) landed in `apps/web/src/lib/layerFetcher.ts`. D1 (IGRAC global groundwater) and D2 (WDPA + NCED + ECCC tiered overlay) remain deferred to a later session — see [`wiki/concepts/external-data-sources.md`](../concepts/external-data-sources.md) for licence + verification-checklist baseline.
+**Status:** Accepted 2026-05-04 — D1 promoted to [`2026-05-04-igrac-global-groundwater-fallback.md`](2026-05-04-igrac-global-groundwater-fallback.md); D2 promoted to [`2026-05-04-tiered-conservation-overlay.md`](2026-05-04-tiered-conservation-overlay.md); D3 landed earlier the same day in `apps/web/src/lib/layerFetcher.ts`. Both new accepted ADRs ship under an R&D-phase posture; commercial-use clearances for IGRAC + WDPA tracked as launch-gate inquiries under `wiki/inquiries/`.
 **Scope:** `apps/web/src/lib/layerFetcher.ts`
 (Sprint BG groundwater fallback ~line 4641, Sprint BH ESG fallback
 ~line 4691, Sprint BR mineral/state-registry fallback ~line 8271),

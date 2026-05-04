@@ -4,6 +4,30 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — Phase 8.2 D1 + D2 promoted to accepted ADRs
+
+Wrote two accepted ADRs locking the scoping ADR's recommendations
+under the R&D-phase posture confirmed earlier in the session:
+
+- [`2026-05-04-igrac-global-groundwater-fallback.md`](decisions/2026-05-04-igrac-global-groundwater-fallback.md)
+  — server-side adapter + quarterly ingest + per-source provenance
+  + vintage caveat. Implementation slicing 8.2-A.1 → 8.2-A.4.
+- [`2026-05-04-tiered-conservation-overlay.md`](decisions/2026-05-04-tiered-conservation-overlay.md)
+  — three adapters (WDPA monthly, NCED quarterly, ECCC ESG static)
+  feeding one display layer with per-feature `source` provenance.
+  Implementation slicing 8.2-B.1 → 8.2-B.5; 8.2-B.1 first task is
+  capturing NCED terms-of-use.
+
+Both commercial-use clearances (IGRAC, WDPA) are launch-gate items,
+not ship blockers — outbound inquiries already drafted under
+`wiki/inquiries/`.
+
+Scoping ADR `2026-05-02-global-groundwater-esg-sources-scoping.md`
+status promoted from "Partially Accepted" to "Accepted" with
+forward-references to the two new ADRs. Index entries added.
+
+---
+
 ## 2026-05-04 — External-data verification: WDPA + Theobald resolved, R&D-phase stance
 
 Parallel WebSearch on the two non-IGRAC verification items in
