@@ -4,6 +4,38 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — First engineering slice of 8.2-A: migration 023
+
+After the 8.2-A accepted ADR landed earlier the same day,
+`apps/api/src/db/migrations/023_groundwater_wells_global.sql` ships
+the first sub-slice (8.2-A.1).
+
+Schema choices worth recording:
+
+- **`(source, station_id)` composite primary key.** The ADR
+  describes IGRAC GGIS as the only source for this table now, but
+  the open follow-up notes a per-country adapter expansion (UK BGS,
+  AU BoM, EU EGDI) is on the table for launch-tier customers in
+  countries needing higher freshness than IGRAC's quarterly cadence.
+  Composite PK lets a future ingest job populate the same table
+  with a different `source` value without a schema migration.
+- **`geom(Point, 4326)` + GIST index** rather than separate
+  `lat`/`lon` numeric columns. Matches the migration-003 PostGIS
+  pattern (`viewshed_observer_point`); the adapter's first query
+  shape is a parcel-bbox containment check, which GIST hits cheaply.
+- **`ingest_vintage` column + index** so the refresh job can load a
+  new vintage alongside the live one and flip reads via a constant
+  on the adapter side. Cleaner than a delete-and-replace cut-over.
+- **`raw_attributes JSONB`** pass-through for upstream fields not
+  normalised. Avoids dropping signal we may want later (e.g. aquifer
+  type, well purpose) without committing to a schema for it now.
+
+Commit: d1cecd0. 8.2-A.2 (adapter) + 8.2-A.3 (quarterly ingest job)
+ride on this in follow-up commits — left for the next session to
+keep this one shippable.
+
+---
+
 ## 2026-05-04 — Phase 8.1-B + 8.1-C promoted to accepted ADRs
 
 Wrote two accepted ADRs locking the remaining substantive decisions
