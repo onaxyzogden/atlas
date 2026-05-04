@@ -22,7 +22,8 @@ import {
   ProgressRing,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -82,6 +83,7 @@ export function EarthWaterEcologyPage() {
           module="Roots & Diagnosis · Module 4"
           actionLabel="Module settings"
         />
+        <ProjectDataStatus />
         <ModuleHeader />
         <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
         <TabsAndActions />

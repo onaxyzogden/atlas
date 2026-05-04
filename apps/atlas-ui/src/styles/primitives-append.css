@@ -319,3 +319,54 @@
 @media (prefers-reduced-motion: reduce) {
   .prim-empty-state__icon { animation: none; }
 }
+
+/* ProjectDataStatus — inline live-data error banner */
+.project-data-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 var(--space-3);
+  background: hsla(0, 60%, 50%, 0.08);
+  border: 1px solid hsla(0, 60%, 50%, 0.32);
+  border-radius: var(--radius-sm);
+  color: var(--olos-cream);
+  font-family: var(--olos-font-ui);
+  font-size: var(--text-sm);
+}
+.project-data-status > svg:first-child {
+  width: 18px; height: 18px;
+  color: var(--olos-error, hsl(0, 70%, 65%));
+  flex-shrink: 0;
+}
+.project-data-status > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.project-data-status strong { font-weight: 600; }
+.project-data-status small {
+  font-size: var(--text-xs);
+  color: var(--olos-text-label);
+}
+.project-data-status button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--olos-line-soft);
+  border-radius: var(--radius-xs);
+  color: var(--olos-cream);
+  font-family: var(--olos-font-ui);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+.project-data-status button:hover { background: hsla(40, 30%, 85%, 0.08); }
+.project-data-status button:focus-visible { outline: var(--olos-focus-ring); outline-offset: 2px; }
+.project-data-status button > svg { width: 14px; height: 14px; }

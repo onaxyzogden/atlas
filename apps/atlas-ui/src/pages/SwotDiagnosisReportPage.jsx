@@ -19,7 +19,9 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { AppShell, QaOverlay, SurfaceCard } from "../components/index.js";
+import { AppShell, QaOverlay, SurfaceCard,
+  ProjectDataStatus
+} from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotSynthesis as vm } from "../data/builtin-sample.js";
@@ -37,6 +39,7 @@ export function SwotDiagnosisReportPage() {
       <div className="diagnosis-report-page">
         <ReportTopbar siteName={siteName} />
         <ReportStageBar />
+        <ProjectDataStatus />
         <section className="diagnosis-report-frame">
           <header className="diagnosis-report-hero">
             <div>

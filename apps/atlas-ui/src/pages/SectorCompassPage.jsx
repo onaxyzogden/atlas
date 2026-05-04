@@ -22,6 +22,7 @@ import {
   QaOverlay,
   SurfaceCard,
   TopStageBar,
+  ProjectDataStatus,
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -59,6 +60,7 @@ export function SectorCompassPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page sc-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
+        <ProjectDataStatus />
         <div className="sc-breadcrumb">
           <Link to="/observe/sectors-zones" className="sc-back-link">
             <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones

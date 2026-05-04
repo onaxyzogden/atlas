@@ -20,7 +20,8 @@ import {
   ProgressRing,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -39,6 +40,7 @@ export function TopographyDashboardPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page topography-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+        <ProjectDataStatus />
         <section className="topography-layout">
           <div className="topography-main">
             <TopographyHeader />

@@ -16,7 +16,8 @@ import {
   CroppedArt,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -38,6 +39,7 @@ export function MacroclimateDashboardPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page macroclimate-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+        <ProjectDataStatus />
         <section className="macroclimate-layout">
           <div className="macroclimate-main">
             <MacroHeader meta={meta} />

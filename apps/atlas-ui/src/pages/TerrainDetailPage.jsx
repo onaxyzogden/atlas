@@ -19,7 +19,8 @@ import {
   CroppedArt,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -65,6 +66,7 @@ export function TerrainDetailPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page terrain-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+        <ProjectDataStatus />
         <TerrainHeader />
         <TerrainMetrics terrain={terrain} />
         <section className="terrain-workspace">

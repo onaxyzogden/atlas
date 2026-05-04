@@ -18,6 +18,7 @@ import {
   QaOverlay,
   SurfaceCard,
   TopStageBar,
+  ProjectDataStatus,
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -43,6 +44,7 @@ export function CartographicDetailPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page cd-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
+        <ProjectDataStatus />
         <div className="cd-breadcrumb">
           <Link to="/observe/sectors-zones" className="cd-back-link">
             <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones

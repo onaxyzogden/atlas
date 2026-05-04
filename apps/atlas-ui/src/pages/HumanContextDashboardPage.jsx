@@ -14,7 +14,8 @@ import {
   CroppedArt,
   ProgressRing,
   QaOverlay,
-  SurfaceCard
+  SurfaceCard,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -32,6 +33,7 @@ export function HumanContextDashboardPage() {
     <AppShell navConfig={observeNav}>
       <div className="human-context-page">
         <HumanBreadcrumb />
+        <ProjectDataStatus />
         <div className="human-context-layout">
           <div className="human-context-main">
             <HumanHero />

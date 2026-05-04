@@ -18,7 +18,8 @@ import {
   NextStepsPanel,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -37,6 +38,7 @@ export function IndigenousRegionalContextPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page regional-page">
         <TopStageBar />
+        <ProjectDataStatus />
         <div className="detail-layout">
           <div className="detail-main">
             <RegionalHero />

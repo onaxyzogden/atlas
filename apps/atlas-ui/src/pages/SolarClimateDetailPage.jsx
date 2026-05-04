@@ -15,7 +15,8 @@ import {
   CroppedArt,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -37,6 +38,7 @@ export function SolarClimateDetailPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page solar-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+        <ProjectDataStatus />
         <section className="solar-detail-layout">
           <div className="solar-detail-main">
             <SolarHero />

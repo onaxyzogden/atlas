@@ -11,6 +11,7 @@ export { ModuleCard } from "./ModuleCard.jsx";
 export { NextStepsPanel } from "./NextStepsPanel.jsx";
 export { ProgressRing } from "./ProgressRing.jsx";
 export { ProjectOverviewCard } from "./ProjectOverviewCard.jsx";
+export { ProjectDataStatus } from "./ProjectDataStatus.jsx";
 export { QaOverlay } from "./QaOverlay.jsx";
 export { ModuleSummaryCard } from "./ModuleSummaryCard.jsx";
 export { SurfaceCard } from "./SurfaceCard.jsx";

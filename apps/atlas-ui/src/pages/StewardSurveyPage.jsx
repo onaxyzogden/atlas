@@ -16,7 +16,8 @@ import {
   InsightSidebar,
   ProgressRing,
   QaOverlay,
-  SurfaceCard
+  SurfaceCard,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { SelectField, TextAreaField, TextInput } from "../components/FormFields.jsx";
@@ -35,6 +36,7 @@ export function StewardSurveyPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page steward-page">
         <BreadcrumbBar items={vm.breadcrumb} />
+        <ProjectDataStatus />
         <div className="detail-layout">
           <div className="detail-main">
             <ModuleHero

@@ -23,7 +23,8 @@ import {
   CroppedArt,
   QaOverlay,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -42,6 +43,7 @@ export function CrossSectionToolPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page cross-section-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis · Module 3" />
+        <ProjectDataStatus />
         <section className="cross-layout">
           <div className="cross-main">
             <CrossHeader />

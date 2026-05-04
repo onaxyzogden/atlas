@@ -16,6 +16,7 @@ import {
   QaOverlay,
   SurfaceCard,
   TopStageBar,
+  ProjectDataStatus,
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -42,6 +43,7 @@ export function SectorsMicroclimatesDashboardPage() {
     <AppShell navConfig={observeNav}>
       <div className="detail-page sectors-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
+        <ProjectDataStatus />
         <section className="sectors-layout">
           <div className="sectors-main">
             <SectorsHeader meta={meta} />
