@@ -4,6 +4,34 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — Phase 8.1-B + 8.1-C promoted to accepted ADRs
+
+Wrote two accepted ADRs locking the remaining substantive decisions
+from the pollinator-corridor scoping ADR:
+
+- [`2026-05-04-pollinator-corridor-polygonize-friction.md`](decisions/2026-05-04-pollinator-corridor-polygonize-friction.md)
+  — D2 + D3 locked: `polygonizeBbox(parcel, bufferKm = 2)` runs
+  on-demand inside Tier-3 BullMQ; class-table friction derived from
+  existing `POLLINATOR_SUPPORTIVE_WEIGHTS` / `POLLINATOR_LIMITING_WEIGHTS`
+  (no new parameter table). 60 s timeout falls back to the legacy
+  synthesised-grid path. WorldCover's `crop_unspecified` bucket gets
+  a moderate-friction midpoint = 1.0. Implementation slicing
+  8.1-B.1 → 8.1-B.4.
+- [`2026-05-04-pollinator-corridor-patch-graph-lcp.md`](decisions/2026-05-04-pollinator-corridor-patch-graph-lcp.md)
+  — D4 + D5 locked: graph-theoretic Dijkstra on the polygonised
+  patch graph; `connectivityRole` becomes a real graph property;
+  `summary_data.geojson_data.corridorGeometries` adds LineStrings
+  for stepping_stone→core shortest-path edges. Constants locked
+  (`MIN_GAP_M = 50`, `CORE_AREA_HA = 1.0`, `MAX_FORAGING_M = 3000`);
+  raster Dijkstra deferred to optional 8.1-E. Implementation
+  slicing 8.1-C.1 → 8.1-C.5.
+
+Pollinator-corridor scoping ADR `2026-05-02-raster-pollinator-corridor-scoping.md`
+status promoted from "Partially Accepted" to "Accepted". Only
+8.1-D (methodology page) remains as a doc-only follow-up.
+
+---
+
 ## 2026-05-04 — Phase 8.1-A promoted to accepted ADR
 
 Wrote `2026-05-04-pollinator-corridor-hybrid-landcover.md` locking
