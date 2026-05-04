@@ -12,6 +12,7 @@ import { TerrainDetailPage } from "../pages/TerrainDetailPage.jsx";
 import { CrossSectionToolPage } from "../pages/CrossSectionToolPage.jsx";
 import { EarthWaterEcologyPage } from "../pages/EarthWaterEcologyPage.jsx";
 import { SectorsMicroclimatesDashboardPage } from "../pages/SectorsMicroclimatesDashboardPage.jsx";
+import { SectorCompassPage } from "../pages/SectorCompassPage.jsx";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -108,6 +109,12 @@ const sectorsZonesRoute = createRoute({
   component: SectorsMicroclimatesDashboardPage,
 });
 
+const sectorCompassRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/sectors-zones/sector-compass",
+  component: SectorCompassPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   observeRoute,
@@ -123,6 +130,7 @@ const routeTree = rootRoute.addChildren([
   crossSectionRoute,
   earthWaterEcologyRoute,
   sectorsZonesRoute,
+  sectorCompassRoute,
 ]);
 
 export const router = createRouter({ routeTree });

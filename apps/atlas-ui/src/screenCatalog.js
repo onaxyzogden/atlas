@@ -251,6 +251,32 @@ export const screenCatalog = [
     dependencies: ["app shell", "stage tracker", "KPI cards", "preview panels", "insight sidebar"]
   },
   {
+    id: "observe-m5-sector-compass",
+    route: "/observe/sectors-zones/sector-compass",
+    title: "Sector Compass",
+    reference: "OLOS_OBSERVE_M5_SectorCompass.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "terrain tool",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "breadcrumb nav",
+      "page header",
+      "five KPI cards",
+      "large sector compass SVG",
+      "site map with sector overlay",
+      "sector observations list",
+      "3x2 recommended placements grid",
+      "design alignment checklist",
+      "priority actions list"
+    ],
+    interactions: ["back nav", "sector overlays", "export report", "add placement", "view design log"],
+    cropCategories: ["sector compass SVG", "site map SVG"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "SVG art", "data table"]
+  },
+  {
     id: "observe-m5-sectors-zones-dashboard",
     route: "/observe/sectors-zones",
     title: "Sectors, Microclimates & Zones",

@@ -723,6 +723,60 @@ export const earthWaterEcologyPage = {
   ]
 };
 
+// SectorCompassPage (`/observe/sectors-zones/sector-compass`).
+export const sectorCompassPage = {
+  hero: {
+    title: "Sector compass",
+    copy: "Explore the full spatial survey of your site. Toggle layers, interrogate patterns, and understand how sectors, microclimates and zones work together.",
+  },
+  kpis: [
+    { label: "Best sun sector",    value: "E–SE",  note: "Primary insolation",   tone: "gold",  iconKey: "sun"     },
+    { label: "Dominant wind",      value: "SW",    note: "Prevailing",           tone: "blue",  iconKey: "wind"    },
+    { label: "High-risk sector",   value: "NW",    note: "Frost / cold pocket",  tone: "dim",   iconKey: "alert"   },
+    { label: "Beneficial eco zone",value: "SE",    note: "Riparian corridor",    tone: "green", iconKey: "leaf"    },
+    { label: "Sectors active",     value: "5",     note: "Of 8 mapped",          tone: "cream", iconKey: "compass" },
+  ],
+  sectors: [
+    { dir: "N",  label: "Cold exposure",   subLabel: "Minimal activity",   tone: "dim",   forces: ["cold"],         arrowLen: 0.35 },
+    { dir: "NE", label: "Morning sun",     subLabel: "Seasonal warmth",    tone: "gold",  forces: ["solar"],        arrowLen: 0.55 },
+    { dir: "E",  label: "Shelter belt",    subLabel: "Tree windbreak",     tone: "green", forces: ["shelter"],      arrowLen: 0.50 },
+    { dir: "SE", label: "Prime solar",     subLabel: "Summer / winter sun",tone: "gold",  forces: ["solar","warm"], arrowLen: 0.80 },
+    { dir: "S",  label: "Main access",     subLabel: "Entry & circulation",tone: "green", forces: ["access"],       arrowLen: 0.60 },
+    { dir: "SW", label: "Prevailing wind", subLabel: "W-SW cold wind flow",tone: "blue",  forces: ["wind","cold"],  arrowLen: 0.70 },
+    { dir: "W",  label: "Winter wind",     subLabel: "Cold & dry sector",  tone: "blue",  forces: ["wind"],         arrowLen: 0.60 },
+    { dir: "NW", label: "Frost pocket",    subLabel: "Avoid frost-sens.",  tone: "dim",   forces: ["frost","cold"], arrowLen: 0.40 },
+  ],
+  observations: [
+    { icon: "sun",     label: "Peak solar window",       value: "9.2 hrs/day",   tone: "gold",  score: 88 },
+    { icon: "wind",    label: "SW wind frequency",        value: "68% of days",   tone: "blue",  score: 68 },
+    { icon: "droplet", label: "Prevailing rain bearing",  value: "W-SW",          tone: "blue",  score: null },
+    { icon: "leaf",    label: "Frost-free SE microclimate",value: "152 days/yr",  tone: "green", score: 76 },
+    { icon: "alert",   label: "NW frost risk",            value: "High",          tone: "dim",   score: 34 },
+    { icon: "sprout",  label: "Biodiversity corridor",    value: "E boundary",    tone: "green", score: 72 },
+  ],
+  placements: [
+    { icon: "home",    title: "Main dwelling",      zone: "Zone 1 — SE bench",   note: "Max solar + sheltered from SW wind" },
+    { icon: "sprout",  title: "Orchard rows",       zone: "Zone 2 — N slope",    note: "E-SE orientation captures full sun arc" },
+    { icon: "leaf",    title: "Annual garden",      zone: "Zone 1 — S front",    note: "South-facing, sheltered, close access" },
+    { icon: "wind",    title: "Windbreak planting", zone: "Zone 3 — W boundary", note: "Mixed native hedge deflects SW cold wind" },
+    { icon: "droplet", title: "Water harvesting",   zone: "Zone 2 — SW swale",   note: "Intercepts W-SW runoff from slope" },
+    { icon: "sun",     title: "Solar infrastructure",zone: "Zone 1 — E-SE roof", note: "Unobstructed E-SE exposure, 9+ hrs sun" },
+  ],
+  designAlignment: [
+    { label: "Dwelling oriented to E-SE solar corridor",  status: "done"    },
+    { label: "Windbreak buffer on W boundary planned",    status: "done"    },
+    { label: "Water features intercept SW runoff",        status: "in-progress" },
+    { label: "NW frost pocket excluded from planting",    status: "done"    },
+    { label: "Access corridor from S entry confirmed",    status: "pending" },
+  ],
+  priorityActions: [
+    "Finalise windbreak species selection for W-SW boundary",
+    "Place Zone 1 dwelling footprint on SE bench using solar overlay",
+    "Install contour swale across SW sector for water harvesting",
+    "Validate NW frost pocket boundary with winter observation data",
+  ],
+};
+
 // SectorsMicroclimatesDashboardPage (`/observe/sectors-zones`).
 export const sectorsMicroclimatesDashboard = {
   hero: {
