@@ -723,6 +723,58 @@ export const earthWaterEcologyPage = {
   ]
 };
 
+// CartographicDetailPage (`/observe/sectors-zones/cartographic-detail`).
+export const cartographicDetailPage = {
+  hero: {
+    title: "Cartographic detail",
+    copy: "Explore the full spatial survey of your site. Toggle layers, interrogate patterns, and understand how sectors, microclimates and zones work together.",
+  },
+  kpis: [
+    { label: "Sectors mapped",       value: "5",  note: "Of 8 directions",    tone: "green", iconKey: "compass" },
+    { label: "Zones defined",        value: "5",  note: "Across site",         tone: "gold",  iconKey: "map"     },
+    { label: "Zone allocations",     value: "12", note: "Design elements",     tone: "green", iconKey: "sprout"  },
+    { label: "Identified features",  value: "9",  note: "Points of interest",  tone: "gold",  iconKey: "mapPin"  },
+    { label: "Observation progress", value: "4/4",note: "All zones visited",   tone: "cream", iconKey: "check"   },
+  ],
+  mapLayers: [
+    { key: "sectors",      label: "Sectors",       color: "#b7832d", active: true,  sub: []                                      },
+    { key: "microclimates",label: "Microclimates", color: "#6ab4d4", active: true,  sub: ["Frost pockets","Wind shadows","Solar traps"] },
+    { key: "zones",        label: "Zones",         color: "#a5c736", active: true,
+      sub: ["Zone 1 — Home","Zone 2 — Productive","Zone 3 — Orchard","Zone 4 — Semi-wild","Zone 5 — Wilderness"] },
+    { key: "circulation",  label: "Circulation",   color: "#e8c87a", active: true,  sub: ["Paths, tracks & access points"]       },
+    { key: "contours",     label: "Contours",      color: "#6a8a6a", active: false, sub: []                                      },
+    { key: "water",        label: "Water features",color: "#4a9ad4", active: true,
+      sub: ["Ponds & streams","Drainage & storage","Seasonal overflow"]                                                          },
+  ],
+  zones: [
+    { id: "1", label: "Zone 1",    detail: "Home & intensive",   color: "#c9902a", fillOp: 0.28 },
+    { id: "2", label: "Zone 2",    detail: "Productive",          color: "#7aaa30", fillOp: 0.22 },
+    { id: "3", label: "Zone 3",    detail: "Orchard",             color: "#6ab4d4", fillOp: 0.18 },
+    { id: "4", label: "Zone 4",    detail: "Semi-wild",           color: "#8a7a3a", fillOp: 0.18 },
+    { id: "5", label: "Zone 5",    detail: "Wilderness margin",   color: "#3a5a2a", fillOp: 0.22 },
+  ],
+  detectedPatterns: [
+    { title: "Solar gradient",         body: "Strong SE-to-NW gradient. Buildings on SE bench receive full winter insolation, NW remains shaded." },
+    { title: "Shelter zones",          body: "Tanh of N creates natural windbreak acting against dominant W-SW wind flow across zone 2 and 3." },
+    { title: "Water flow convergence", body: "Multiple surface flows converge toward the pond. Ideal placement for primary water harvesting system." },
+    { title: "Access efficiency",      body: "S-entry corridor allows direct access to zones 1–3 without crossing productive planting areas." },
+    { title: "Ridge lines",            body: "Two parallel ridges create rain shadow on leeward side. Plan water-retentive species in these corridors." },
+  ],
+  nextActions: [
+    "Finalise Zone 1 footprint and building setback from zone boundary",
+    "Design water systems along SW-NE contour alignment",
+    "Set northern boundary plantings on zone 3-4 edge",
+    "Add biodiversity corridors at zone 2-3 interface",
+    "Validate species placement for zone 5 wilderness pathways",
+  ],
+  mapInfo: {
+    area: "2.4 ha (5.9 acres)",
+    projection: "UTM Zone 17N",
+    mapDate: "15 Apr 2026",
+    dataSource: "LIDAR + Field Survey",
+  },
+};
+
 // SectorCompassPage (`/observe/sectors-zones/sector-compass`).
 export const sectorCompassPage = {
   hero: {

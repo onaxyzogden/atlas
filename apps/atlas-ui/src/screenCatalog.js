@@ -251,6 +251,33 @@ export const screenCatalog = [
     dependencies: ["app shell", "stage tracker", "KPI cards", "preview panels", "insight sidebar"]
   },
   {
+    id: "observe-m5-cartographic-detail",
+    route: "/observe/sectors-zones/cartographic-detail",
+    title: "Cartographic Detail",
+    reference: "OLOS_OBSERVE_M5_Cartograph.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "terrain tool",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "breadcrumb nav",
+      "page header",
+      "five KPI cards",
+      "map layers toggle panel",
+      "large cartographic SVG with zone overlays and sector lines",
+      "map controls overlay",
+      "legend panel",
+      "detected patterns sidebar",
+      "next actions sidebar",
+      "map information sidebar"
+    ],
+    interactions: ["back nav", "layer toggles", "map controls", "export page", "view patterns", "view recommendations"],
+    cropCategories: ["cartographic zone map SVG", "layer panel"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "SVG art", "layer list"]
+  },
+  {
     id: "observe-m5-sector-compass",
     route: "/observe/sectors-zones/sector-compass",
     title: "Sector Compass",
