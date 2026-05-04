@@ -215,7 +215,7 @@ button {
 
 .observe-screen {
   min-height: 100vh;
-  padding: clamp(4px, 0.4vw, 16px);
+  padding: clamp(var(--space-1), 0.4vw, var(--space-4));
 }
 
 .observe-frame {
@@ -270,7 +270,7 @@ button {
   min-height: 302px;
   display: grid;
   grid-template-columns: 78px minmax(456px, 520px) 1fr;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 .brand-mark {
@@ -492,7 +492,7 @@ button {
 
 .metric-cell strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   font-family: var(--olos-font-display);
   font-size: 29px;
   font-weight: 600;
@@ -539,7 +539,7 @@ button {
 
 .modules-section h2 {
   margin-left: 17px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   font-size: 14px;
   letter-spacing: 0.18em;
 }
@@ -553,7 +553,7 @@ button {
 .module-card-handbuilt {
   position: relative;
   min-height: 128px;
-  padding: 18px 26px 16px 52%;
+  padding: 18px 26px var(--space-4) 52%;
   display: flex;
   align-items: center;
   border: 1px solid rgba(151, 105, 35, 0.52);
@@ -736,7 +736,7 @@ button {
 }
 
 .action-grid {
-  margin-top: 20px;
+  margin-top: var(--space-5);
   display: grid;
   grid-template-columns: 1.35fr 0.92fr 1.06fr 1.22fr;
   gap: 15px;
@@ -773,7 +773,7 @@ button {
 
 .action-copy {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
@@ -924,7 +924,7 @@ img.footprint-art {
 
 .qa-panel.is-open {
   width: 210px;
-  padding: 12px;
+  padding: var(--space-3);
 }
 
 .qa-toggle {
@@ -946,7 +946,7 @@ img.footprint-art {
 .qa-panel label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: #eadbc1;
   font-size: 13px;
 }
@@ -964,7 +964,7 @@ img.footprint-art {
 
 @media (max-width: 1100px) {
   .observe-frame {
-    padding: 24px;
+    padding: var(--space-6);
   }
 
   .hero-panel-handbuilt {
@@ -1002,7 +1002,7 @@ img.footprint-art {
 
   .observe-frame {
     min-height: 100vh;
-    padding: 20px 16px;
+    padding: var(--space-5) var(--space-4);
     border-radius: 0;
     border-inline: 0;
   }
@@ -1053,7 +1053,7 @@ img.footprint-art {
 
   .metric-band {
     grid-template-columns: 1fr;
-    padding: 10px 16px;
+    padding: 10px var(--space-4);
   }
 
   .metric-cell {
@@ -1152,7 +1152,7 @@ img.footprint-art {
 .side-rail__avatar {
   width: 42px;
   height: 42px;
-  margin: 10px auto 24px;
+  margin: 10px auto var(--space-6);
   border: 1px solid rgba(220, 190, 117, 0.35);
   border-radius: 50%;
   background:
@@ -1182,11 +1182,11 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 320px 1fr 160px;
   align-items: start;
-  gap: 28px;
+  gap: var(--space-7);
 }
 
 .stage-title {
-  padding-top: 12px;
+  padding-top: var(--space-3);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1269,7 +1269,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   background: rgba(9, 13, 11, 0.72);
   color: #fff2d8;
   cursor: pointer;
@@ -1320,7 +1320,7 @@ img.footprint-art {
   position: relative;
   z-index: 1;
   max-width: 850px;
-  padding: 25px 0 0 4px;
+  padding: 25px 0 0 var(--space-1);
 }
 
 .dashboard-hero h1 {
@@ -1375,7 +1375,7 @@ img.footprint-art {
 }
 
 .project-overview-card h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   color: #b9872b;
   font-size: 12px;
   font-weight: 800;
@@ -1392,7 +1392,7 @@ img.footprint-art {
 .project-overview-card__grid {
   display: grid;
   grid-template-columns: 1fr 106px;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .project-overview-card dl,
@@ -1464,7 +1464,7 @@ img.footprint-art {
 
 .dashboard-progress-band__main > span {
   grid-column: 1 / -1;
-  margin-left: 4px;
+  margin-left: var(--space-1);
   color: #7fac43;
   font-size: 12px;
   font-weight: 800;
@@ -1489,7 +1489,7 @@ img.footprint-art {
 .thin-progress {
   width: 220px;
   height: 8px;
-  margin: 10px 0 8px;
+  margin: 10px 0 var(--space-2);
   overflow: hidden;
   border-radius: 8px;
   background: rgba(222, 217, 190, 0.25);
@@ -1511,7 +1511,7 @@ img.footprint-art {
 
 .dashboard-progress-metric {
   border-left: 1px solid rgba(220, 201, 148, 0.2);
-  padding: 6px 20px;
+  padding: 6px var(--space-5);
   display: grid;
   grid-template-columns: 26px 1fr;
   grid-template-rows: 20px 30px 18px;
@@ -1553,7 +1553,7 @@ img.footprint-art {
 
 .dashboard-site-flags {
   margin-top: 10px;
-  padding: 12px 17px 14px;
+  padding: var(--space-3) 17px 14px;
   border: 1px solid rgba(220, 170, 50, 0.25);
   border-radius: 8px;
   background: linear-gradient(90deg, rgba(24, 20, 10, 0.8), rgba(12, 14, 10, 0.9));
@@ -1609,8 +1609,8 @@ img.footprint-art {
 
 .site-flag__meta {
   display: flex;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .site-flag__category,
@@ -1645,7 +1645,7 @@ img.footprint-art {
   margin-top: 13px;
   display: grid;
   grid-template-columns: repeat(3, minmax(300px, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .dashboard-module-card {
@@ -1662,7 +1662,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   margin-bottom: 13px;
 }
 
@@ -1670,7 +1670,7 @@ img.footprint-art {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 21px;
   line-height: 1;
@@ -1743,7 +1743,7 @@ img.footprint-art {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .dashboard-card-actions button {
@@ -1795,7 +1795,7 @@ img.footprint-art {
   top: 0;
   width: 220px;
   height: 115px;
-  padding: 26px 12px 10px;
+  padding: 26px var(--space-3) 10px;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   align-items: end;
@@ -1815,7 +1815,7 @@ img.footprint-art {
   right: 5px;
   top: 8px;
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .score-rings span {
@@ -1843,7 +1843,7 @@ img.footprint-art {
 .swot-mini-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 10px;
 }
 
@@ -1875,7 +1875,7 @@ img.footprint-art {
   .dashboard-progress-band {
     height: auto;
     grid-template-columns: repeat(3, 1fr);
-    row-gap: 12px;
+    row-gap: var(--space-3);
   }
 
   .dashboard-progress-band__main {
@@ -1961,7 +1961,7 @@ img.footprint-art {
 .cross-main {
   min-width: 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   align-content: start;
 }
 
@@ -1995,7 +1995,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 44px 1fr;
   gap: 3px 14px;
-  padding: 0 16px;
+  padding: 0 var(--space-4);
   border-right: 1px solid rgba(182, 170, 152, 0.14);
 }
 
@@ -2057,7 +2057,7 @@ img.footprint-art {
   min-height: 42px;
   display: grid;
   align-content: center;
-  padding: 0 12px;
+  padding: 0 var(--space-3);
   border-left: 1px solid rgba(182, 170, 152, 0.12);
   color: #d3c7b7;
   font-size: 12px;
@@ -2075,7 +2075,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1fr 0.92fr 1.2fr;
   grid-template-rows: 268px;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .cross-panel,
@@ -2094,7 +2094,7 @@ img.footprint-art {
 .transect-map-card h2,
 .tools-panel h2,
 .earthworks-panel h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   color: #d6a43a;
   font-size: 13px;
   font-weight: 800;
@@ -2144,7 +2144,7 @@ img.footprint-art {
   grid-template-columns: 28px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: var(--space-2) 10px;
   border-radius: 6px;
   color: #d7cab6;
 }
@@ -2165,7 +2165,7 @@ img.footprint-art {
 }
 
 .transect-row em {
-  padding: 5px 8px;
+  padding: 5px var(--space-2);
   border-radius: 5px;
   background: rgba(67, 102, 35, 0.48);
   color: #a4d45b;
@@ -2176,8 +2176,8 @@ img.footprint-art {
 .season-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .season-tabs button {
@@ -2209,7 +2209,7 @@ img.footprint-art {
 .transect-map-card,
 .tools-panel,
 .earthworks-panel {
-  padding: 10px 12px;
+  padding: 10px var(--space-3);
 }
 
 .transect-map-image {
@@ -2222,7 +2222,7 @@ img.footprint-art {
 .transect-map-card .outlined-button {
   width: 100%;
   min-height: 29px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 
 .toggle-row,
@@ -2267,7 +2267,7 @@ img.footprint-art {
   display: block;
   width: 14px;
   height: 14px;
-  margin-left: 16px;
+  margin-left: var(--space-4);
   border-radius: 50%;
   background: #d8e8c7;
 }
@@ -2281,7 +2281,7 @@ img.footprint-art {
 }
 
 .analysis-panel button b {
-  padding: 5px 8px;
+  padding: 5px var(--space-2);
   border: 1px solid rgba(209, 186, 127, 0.22);
   border-radius: 5px;
   font-weight: 500;
@@ -2325,7 +2325,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.1fr 1.15fr 1.1fr 0.9fr 0.7fr 44px;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   margin-top: 10px;
   padding: 0 13px;
 }
@@ -2335,7 +2335,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   border: 1px solid rgba(209, 186, 127, 0.18);
   border-radius: 5px;
   background: rgba(8, 14, 13, 0.62);
@@ -2384,7 +2384,7 @@ img.footprint-art {
   .cross-kpi {
     border-right: 0;
     border-bottom: 1px solid rgba(182, 170, 152, 0.12);
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .cross-chart-image {
@@ -2404,7 +2404,7 @@ img.footprint-art {
 
 .topography-page .top-stage-bar {
   grid-template-columns: 410px 1fr 160px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .topography-page .stage-title {
@@ -2420,7 +2420,7 @@ img.footprint-art {
 .topography-main {
   min-width: 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   align-content: start;
 }
 
@@ -2467,8 +2467,8 @@ img.footprint-art {
   height: 151px;
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
-  gap: 8px 13px;
-  padding: 20px 14px 14px;
+  gap: var(--space-2) 13px;
+  padding: var(--space-5) 14px 14px;
   overflow: hidden;
 }
 
@@ -2540,7 +2540,7 @@ img.footprint-art {
 
 .topography-synthesis-copy h2 {
   max-width: 560px;
-  margin: 12px 0 10px;
+  margin: var(--space-3) 0 10px;
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 25px;
@@ -2578,7 +2578,7 @@ img.footprint-art {
 .topography-tool-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .topography-tool-card {
@@ -2613,7 +2613,7 @@ img.footprint-art {
 
 .topography-tool-card > p {
   max-width: 460px;
-  margin: 9px 0 12px;
+  margin: 9px 0 var(--space-3);
   color: #c8bca8;
   line-height: 1.35;
 }
@@ -2621,7 +2621,7 @@ img.footprint-art {
 .tool-card-body {
   display: grid;
   grid-template-columns: minmax(150px, 0.65fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
   align-items: stretch;
 }
 
@@ -2634,7 +2634,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
   color: #d5c7b4;
 }
@@ -2679,12 +2679,12 @@ img.footprint-art {
 
 .topography-sidebar {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   align-content: start;
 }
 
 .topography-side-card {
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
   overflow: hidden;
 }
 
@@ -2740,7 +2740,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 24px 1fr auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   color: #d8cbb8;
 }
@@ -2764,7 +2764,7 @@ img.footprint-art {
 
 .actions-list em {
   min-width: 55px;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   border-radius: 6px;
   background: rgba(149, 72, 34, 0.34);
   color: #ff9b65;
@@ -2788,7 +2788,7 @@ img.footprint-art {
   position: relative;
   height: 112px;
   min-height: 112px;
-  padding: 12px 88px 12px 14px;
+  padding: var(--space-3) 88px var(--space-3) 14px;
   overflow: hidden;
 }
 
@@ -2830,7 +2830,7 @@ img.footprint-art {
 }
 
 .topography-footer {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 @media (max-width: 1180px) {
@@ -2910,7 +2910,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .terrain-header h1 {
@@ -2936,13 +2936,13 @@ img.footprint-art {
 
 .terrain-header-actions button {
   min-height: 48px;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
 }
 
 .terrain-metric-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
   margin-bottom: 13px;
 }
 
@@ -2950,7 +2950,7 @@ img.footprint-art {
   height: 130px;
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
-  gap: 8px 14px;
+  gap: var(--space-2) 14px;
   padding: 18px 14px 13px;
   overflow: hidden;
 }
@@ -2976,7 +2976,7 @@ img.footprint-art {
 
 .terrain-metric-card strong {
   display: block;
-  margin-top: 4px;
+  margin-top: var(--space-1);
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 29px;
@@ -3075,7 +3075,7 @@ img.footprint-art {
   align-items: center;
   gap: 7px;
   margin: 0;
-  padding: 4px 0;
+  padding: var(--space-1) 0;
   color: #d9ccb8;
   font-size: 12px;
 }
@@ -3164,7 +3164,7 @@ img.footprint-art {
   min-height: 36px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 0 14px;
   border-radius: 5px;
 }
@@ -3172,7 +3172,7 @@ img.footprint-art {
 .terrain-lower-grid {
   display: grid;
   grid-template-columns: 1fr 0.96fr;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .terrain-panel {
@@ -3186,7 +3186,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   margin-bottom: 11px;
 }
 
@@ -3249,7 +3249,7 @@ img.footprint-art {
 
 .terrain-side-panel {
   overflow: hidden;
-  padding: 14px 16px;
+  padding: 14px var(--space-4);
 }
 
 .slope-panel {
@@ -3282,7 +3282,7 @@ img.footprint-art {
 .insights-panel p {
   display: grid;
   grid-template-columns: 21px 1fr;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   padding: 3px 0;
   color: #cfc2b0;
@@ -3305,7 +3305,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 24px 1fr auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.1);
 }
@@ -3329,7 +3329,7 @@ img.footprint-art {
 
 .next-actions-panel em {
   min-width: 54px;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   border-radius: 6px;
   background: rgba(149, 72, 34, 0.34);
   color: #ff9b65;
@@ -3350,7 +3350,7 @@ img.footprint-art {
 }
 
 .terrain-footer {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 @media (max-width: 1180px) {
@@ -3450,7 +3450,7 @@ img.footprint-art {
 .macro-header {
   position: relative;
   min-height: 154px;
-  padding: 16px 0 0 16px;
+  padding: var(--space-4) 0 0 var(--space-4);
   overflow: hidden;
 }
 
@@ -3479,7 +3479,7 @@ img.footprint-art {
 
 .macro-header h1 {
   max-width: 650px;
-  margin: 8px 0 8px;
+  margin: var(--space-2) 0 var(--space-2);
   color: #f2dec2;
   font-family: var(--olos-font-display);
   font-size: 41px;
@@ -3498,7 +3498,7 @@ img.footprint-art {
   position: absolute;
   top: 2px;
   right: 0;
-  padding: 9px 16px;
+  padding: 9px var(--space-4);
   border: 1px solid rgba(135, 184, 54, 0.3);
   border-radius: 8px;
   color: #a8d85a;
@@ -3509,7 +3509,7 @@ img.footprint-art {
 .macro-kpi-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .macro-kpi-card {
@@ -3519,7 +3519,7 @@ img.footprint-art {
   grid-template-rows: auto auto auto;
   gap: 0 10px;
   align-content: center;
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
   overflow: hidden;
 }
 
@@ -3557,7 +3557,7 @@ img.footprint-art {
 
 .macro-section-card {
   position: relative;
-  padding: 17px 18px 48px;
+  padding: 17px 18px var(--space-12);
   overflow: hidden;
 }
 
@@ -3573,7 +3573,7 @@ img.footprint-art {
   display: flex;
   align-items: start;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
 }
@@ -3637,7 +3637,7 @@ img.footprint-art {
 .climate-opportunities,
 .active-hazards-table {
   height: 172px;
-  padding: 10px 12px;
+  padding: 10px var(--space-3);
   background: rgba(9, 17, 15, 0.48);
 }
 
@@ -3646,7 +3646,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 22px 1fr auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.1);
   color: #d7cab7;
@@ -3702,7 +3702,7 @@ img.footprint-art {
 }
 
 .active-hazards-table i {
-  padding: 4px 7px;
+  padding: var(--space-1) 7px;
   border-radius: 5px;
   background: rgba(92, 133, 44, 0.33);
   color: #a7d965;
@@ -3724,7 +3724,7 @@ img.footprint-art {
 
 .macro-insights-card {
   height: 668px;
-  padding: 20px 22px;
+  padding: var(--space-5) 22px;
   overflow: hidden;
 }
 
@@ -3747,7 +3747,7 @@ img.footprint-art {
   grid-template-columns: 24px 1fr;
   gap: 9px;
   margin: 0;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
   color: #d3c6b4;
   line-height: 1.34;
 }
@@ -3770,7 +3770,7 @@ img.footprint-art {
 }
 
 .risk-priorities {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   padding: 14px;
   border: 1px solid rgba(216, 166, 59, 0.2);
   border-radius: 8px;
@@ -3779,7 +3779,7 @@ img.footprint-art {
 
 .risk-priorities ol {
   margin: 0;
-  padding-left: 24px;
+  padding-left: var(--space-6);
   color: #d7a236;
   line-height: 1.8;
 }
@@ -3902,7 +3902,7 @@ img.footprint-art {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   margin-top: 18px;
 }
 
@@ -3934,7 +3934,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   align-content: center;
-  gap: 0 8px;
+  gap: 0 var(--space-2);
   padding: 10px 11px;
   overflow: hidden;
 }
@@ -4065,7 +4065,7 @@ img.footprint-art {
 .daylight-hours strong {
   display: block;
   margin-top: 14px;
-  padding: 12px 7px;
+  padding: var(--space-3) 7px;
   border-radius: 7px;
   background: rgba(48, 70, 29, 0.44);
   color: #f2dec2;
@@ -4136,7 +4136,7 @@ img.footprint-art {
 .exposure-panel em,
 .recommended-climate-actions em {
   min-width: 56px;
-  padding: 5px 8px;
+  padding: 5px var(--space-2);
   border: 1px solid rgba(216, 166, 59, 0.25);
   border-radius: 6px;
   color: #e6b64a;
@@ -4176,15 +4176,15 @@ img.footprint-art {
   height: 108px;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  padding: 14px 12px;
+  padding: 14px var(--space-3);
 }
 
 .seasonal-summary-strip div {
   display: grid;
   grid-template-columns: 34px 1fr;
-  gap: 0 8px;
+  gap: 0 var(--space-2);
   align-content: center;
-  padding: 0 12px;
+  padding: 0 var(--space-3);
   border-right: 1px solid rgba(182, 170, 152, 0.14);
 }
 
@@ -4228,19 +4228,19 @@ img.footprint-art {
 
 .climate-priorities-card {
   height: 470px;
-  padding: 17px 20px;
+  padding: 17px var(--space-5);
   overflow: hidden;
 }
 
 .recommended-climate-actions {
   height: 360px;
-  padding: 15px 16px;
+  padding: 15px var(--space-4);
   overflow: hidden;
 }
 
 .climate-priorities-card h2,
 .recommended-climate-actions h2 {
-  margin: 0 0 20px;
+  margin: 0 0 var(--space-5);
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 21px;
@@ -4261,7 +4261,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 28px 1fr 18px;
   align-items: start;
-  gap: 12px;
+  gap: var(--space-3);
   margin: 0;
   padding: 10px 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
@@ -4383,27 +4383,27 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
   color: #d8ccbb;
 }
 
 .human-breadcrumb nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--space-5);
   font-size: 15px;
 }
 
 .human-breadcrumb nav span:not(:last-child)::after {
   content: ">";
-  margin-left: 20px;
+  margin-left: var(--space-5);
   color: #817b70;
 }
 
 .human-breadcrumb > div {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .human-breadcrumb > div span {
@@ -4414,7 +4414,7 @@ img.footprint-art {
 .human-context-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 365px;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .human-context-main {
@@ -4456,7 +4456,7 @@ img.footprint-art {
 }
 
 .human-hero-copy {
-  padding: 23px 30px 8px;
+  padding: 23px 30px var(--space-2);
 }
 
 .human-hero-copy span {
@@ -4471,7 +4471,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: 18px;
-  margin: 12px 0 12px;
+  margin: var(--space-3) 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 58px;
   font-weight: 600;
@@ -4610,7 +4610,7 @@ img.footprint-art {
 .regional-summary-grid,
 .vision-summary-grid {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .steward-summary-grid {
@@ -4672,13 +4672,13 @@ img.footprint-art {
 
 .capacity-mini {
   min-height: 68px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
   padding: 10px;
 }
 
 .capacity-mini strong {
   display: inline-block;
-  margin-right: 8px;
+  margin-right: var(--space-2);
   font-family: var(--olos-font-display);
   font-size: 30px;
   font-weight: 500;
@@ -4709,7 +4709,7 @@ img.footprint-art {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 
 .human-footer-tabs {
@@ -4757,7 +4757,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   border: 1px solid rgba(208, 146, 37, 0.4);
   border-radius: 6px;
   background: linear-gradient(180deg, rgba(108, 65, 11, 0.62), rgba(65, 39, 9, 0.74));
@@ -4820,7 +4820,7 @@ img.footprint-art {
 .vision-counts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   margin-top: 9px;
 }
 
@@ -4841,7 +4841,7 @@ img.footprint-art {
   grid-template-columns: 1.8fr repeat(4, 1fr) 1.2fr;
   align-items: center;
   gap: 10px;
-  padding: 11px 16px;
+  padding: 11px var(--space-4);
 }
 
 .human-health-strip span {
@@ -4849,7 +4849,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 0 12px;
+  padding: 0 var(--space-3);
   border-right: 1px solid rgba(182, 170, 152, 0.13);
   color: #beb3a5;
   font-size: 12px;
@@ -4874,7 +4874,7 @@ img.footprint-art {
 .human-synthesis-panel {
   position: relative;
   height: 851px;
-  padding: 24px 23px 72px;
+  padding: var(--space-6) 23px 72px;
   overflow: hidden;
 }
 
@@ -4887,7 +4887,7 @@ img.footprint-art {
 .synthesis-score {
   display: grid;
   grid-template-columns: 88px 1fr;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
   padding-bottom: 18px;
   border-bottom: 1px solid rgba(182, 170, 152, 0.16);
@@ -4989,11 +4989,11 @@ img.footprint-art {
 
   .human-breadcrumb nav {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .human-breadcrumb nav span:not(:last-child)::after {
-    margin-left: 8px;
+    margin-left: var(--space-2);
   }
 
   .human-hero-card {
@@ -5012,7 +5012,7 @@ img.footprint-art {
   }
 
   .human-hero-copy {
-    padding: 24px;
+    padding: var(--space-6);
   }
 
   .human-hero-copy h1 {
@@ -5031,7 +5031,7 @@ img.footprint-art {
   .human-hero-metrics {
     width: auto;
     height: auto;
-    margin: 0 24px 24px;
+    margin: 0 var(--space-6) var(--space-6);
     padding: 14px;
   }
 
@@ -5063,8 +5063,8 @@ img.footprint-art {
 .module-header {
   display: grid;
   grid-template-columns: 1fr 344px;
-  gap: 24px;
-  margin-bottom: 12px;
+  gap: var(--space-6);
+  margin-bottom: var(--space-3);
 }
 
 .module-title-block {
@@ -5075,7 +5075,7 @@ img.footprint-art {
 .text-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   border: 0;
   background: transparent;
   color: #9dca51;
@@ -5083,7 +5083,7 @@ img.footprint-art {
 }
 
 .back-link {
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   font-size: 15px;
 }
 
@@ -5134,7 +5134,7 @@ img.footprint-art {
 
 .module-progress-card span {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   color: #d9b878;
 }
 
@@ -5172,7 +5172,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 52px 1fr;
   grid-template-rows: auto auto auto;
-  gap: 3px 12px;
+  gap: 3px var(--space-3);
   padding: 0 18px;
   border-right: 1px solid rgba(182, 170, 152, 0.13);
 }
@@ -5222,7 +5222,7 @@ img.footprint-art {
   align-items: start;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .diagnostic-tabs {
@@ -5239,7 +5239,7 @@ img.footprint-art {
 }
 
 .diagnostic-tabs button {
-  padding: 7px 1px 12px;
+  padding: 7px 1px var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 18px;
 }
@@ -5271,11 +5271,11 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.06fr 1fr 0.98fr;
   grid-template-rows: 318px 284px;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .diagnostic-panel {
-  padding: 10px 12px;
+  padding: 10px var(--space-3);
   overflow: hidden;
 }
 
@@ -5360,7 +5360,7 @@ img.footprint-art {
 .soil-row-list {
   display: grid;
   gap: 5px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .soil-row {
@@ -5374,7 +5374,7 @@ img.footprint-art {
 .soil-row svg {
   width: 22px;
   height: 22px;
-  padding: 4px;
+  padding: var(--space-1);
   border-radius: 5px;
   background: rgba(84, 113, 35, 0.3);
   color: #9bc951;
@@ -5394,7 +5394,7 @@ img.footprint-art {
 .soil-row b {
   justify-self: center;
   min-width: 54px;
-  padding: 5px 8px;
+  padding: 5px var(--space-2);
   border-radius: 5px;
   text-align: center;
   font-size: 11px;
@@ -5428,7 +5428,7 @@ img.footprint-art {
 .interpretation,
 .warning-note,
 .biodiversity-note {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   padding: 7px 10px;
   border: 1px solid rgba(135, 189, 64, 0.34);
   border-radius: 5px;
@@ -5442,7 +5442,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 96px 1fr;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .hydrology-layout dl {
@@ -5480,7 +5480,7 @@ img.footprint-art {
 .flow-legend {
   display: flex;
   gap: 15px;
-  margin: 8px 0 0 137px;
+  margin: var(--space-2) 0 0 137px;
   color: #b9ad9c;
   font-size: 11px;
 }
@@ -5497,7 +5497,7 @@ img.footprint-art {
 .species-tabs {
   display: flex;
   gap: 21px;
-  margin: 4px 0 9px;
+  margin: var(--space-1) 0 9px;
 }
 
 .species-tabs button {
@@ -5520,13 +5520,13 @@ img.footprint-art {
 }
 
 .biodiversity-note {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .timeline-list {
   position: relative;
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 7px 0 10px;
 }
 
@@ -5551,7 +5551,7 @@ img.footprint-art {
 .timeline-item i {
   width: 14px;
   height: 14px;
-  margin-left: 4px;
+  margin-left: var(--space-1);
   border: 2px solid rgba(135, 189, 64, 0.7);
   border-radius: 50%;
   background: #1c2e16;
@@ -5572,7 +5572,7 @@ img.footprint-art {
 .action-item em {
   justify-self: end;
   min-width: 45px;
-  padding: 5px 8px;
+  padding: 5px var(--space-2);
   border-radius: 5px;
   background: rgba(83, 121, 37, 0.42);
   color: #a9d75d;
@@ -5614,8 +5614,8 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 22px 1fr 54px 78px;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
   border: 1px solid rgba(183, 131, 45, 0.18);
   border-radius: 5px;
   background: rgba(24, 33, 24, 0.4);
@@ -5665,7 +5665,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.1fr 1.25fr 1fr 1.05fr 1.65fr auto;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   margin: 10px -22px 0;
   padding: 0 34px;
   border-top: 1px solid rgba(182, 170, 152, 0.1);
@@ -5693,7 +5693,7 @@ img.footprint-art {
   display: inline-block;
   width: 8px;
   height: 8px;
-  margin-right: 8px;
+  margin-right: var(--space-2);
   border-radius: 50%;
   background: #83bd35;
 }
@@ -5708,7 +5708,7 @@ img.footprint-art {
   .diagnostic-kpi-strip {
     height: auto;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px 0;
+    gap: var(--space-3) 0;
     padding: 14px;
   }
 
@@ -5789,7 +5789,7 @@ img.footprint-art {
   .map-legend {
     height: auto;
     grid-template-columns: repeat(2, 1fr);
-    padding: 8px 0;
+    padding: var(--space-2) 0;
   }
 
   .map-legend button {
@@ -5816,14 +5816,14 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
   color: #ded1bc;
 }
 
 .breadcrumb-bar nav {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
   font-size: 14px;
 }
@@ -5875,7 +5875,7 @@ img.footprint-art {
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(720px, 1fr) 335px;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .detail-main {
@@ -5949,7 +5949,7 @@ img.footprint-art {
 .content-card__header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   margin-bottom: 14px;
 }
 
@@ -5983,7 +5983,7 @@ img.footprint-art {
 
 .field-grid {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .identity-grid {
@@ -6026,7 +6026,7 @@ img.footprint-art {
 .form-field textarea {
   min-height: 128px;
   resize: vertical;
-  padding-top: 12px;
+  padding-top: var(--space-3);
   line-height: 1.5;
 }
 
@@ -6061,7 +6061,7 @@ img.footprint-art {
 
 .capacity-overview {
   min-height: 78px;
-  padding: 12px;
+  padding: var(--space-3);
   display: block;
 }
 
@@ -6072,7 +6072,7 @@ img.footprint-art {
 
 .capacity-overview strong {
   display: inline-block;
-  margin: 10px 12px 6px 0;
+  margin: 10px var(--space-3) 6px 0;
   font-family: var(--olos-font-display);
   font-size: 31px;
   font-weight: 600;
@@ -6107,7 +6107,7 @@ img.footprint-art {
 
 .capacity-overview em {
   display: inline-block;
-  margin: 8px 14px 0 0;
+  margin: var(--space-2) 14px 0 0;
 }
 
 .budget-card {
@@ -6121,7 +6121,7 @@ img.footprint-art {
 
 .budget-card span {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
   justify-items: center;
   text-align: center;
 }
@@ -6150,7 +6150,7 @@ img.footprint-art {
   min-height: 31px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 6px 11px;
   border: 1px solid rgba(184, 133, 39, 0.45);
   border-radius: 5px;
@@ -6192,7 +6192,7 @@ img.footprint-art {
   min-height: 31px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 0 11px;
   border: 1px solid rgba(182, 170, 152, 0.2);
   border-radius: 5px;
@@ -6208,7 +6208,7 @@ img.footprint-art {
 .vision-grid {
   display: grid;
   grid-template-columns: 1fr 315px;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .theme-box {
@@ -6216,7 +6216,7 @@ img.footprint-art {
 }
 
 .theme-box .chip-list {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .detail-note {
@@ -6238,7 +6238,7 @@ img.footprint-art {
 .insight-sidebar header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .insight-sidebar header svg {
@@ -6263,15 +6263,15 @@ img.footprint-art {
 }
 
 .snapshot-metric {
-  margin-bottom: 28px;
+  margin-bottom: var(--space-7);
 }
 
 .snapshot-metric > div {
   display: grid;
   grid-template-columns: 78px 1fr;
   align-items: center;
-  gap: 16px;
-  margin-top: 12px;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
 }
 
 .snapshot-metric strong {
@@ -6311,7 +6311,7 @@ img.footprint-art {
 
 .design-tip {
   margin-top: 18px;
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .design-tip b {
@@ -6331,7 +6331,7 @@ img.footprint-art {
 .design-tip button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   border: 0;
   background: transparent;
   color: #d6a83d;
@@ -6353,13 +6353,13 @@ img.footprint-art {
 
 .content-card__header {
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .content-card__header div {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .content-card .outlined-button,
@@ -6368,7 +6368,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 0 13px;
   border: 1px solid rgba(209, 186, 127, 0.24);
   border-radius: 5px;
@@ -6377,8 +6377,8 @@ img.footprint-art {
 }
 
 .place-chip-list {
-  margin-top: 8px;
-  padding: 12px;
+  margin-top: var(--space-2);
+  padding: var(--space-3);
   border: 1px solid rgba(182, 170, 152, 0.14);
   border-radius: 7px;
 }
@@ -6408,7 +6408,7 @@ img.footprint-art {
 }
 
 .knowledge-card li {
-  margin: 12px 0;
+  margin: var(--space-3) 0;
   line-height: 1.45;
 }
 
@@ -6440,7 +6440,7 @@ img.footprint-art {
 
 .data-table th,
 .data-table td {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid rgba(182, 170, 152, 0.1);
   text-align: left;
 }
@@ -6459,20 +6459,20 @@ img.footprint-art {
 
 .regional-sidebar {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   align-content: start;
 }
 
 .regional-map-card,
 .toolkit-card,
 .next-steps-panel {
-  padding: 20px;
+  padding: var(--space-5);
 }
 
 .regional-map-card h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 18px;
 }
 
@@ -6498,7 +6498,7 @@ img.footprint-art {
   min-height: 114px;
   display: grid;
   place-items: center;
-  padding: 14px 8px;
+  padding: 14px var(--space-2);
   text-align: center;
 }
 
@@ -6537,7 +6537,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) 16px;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 10px 0;
   border: 0;
   border-top: 1px solid rgba(182, 170, 152, 0.12);
@@ -6569,7 +6569,7 @@ img.footprint-art {
 .toolkit-card .green-button {
   width: 100%;
   min-height: 38px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 
 @media (max-width: 1180px) {
@@ -6585,7 +6585,7 @@ img.footprint-art {
 
 @media (max-width: 760px) {
   .detail-page {
-    padding: 16px 14px;
+    padding: var(--space-4) 14px;
   }
 
   .breadcrumb-bar,
@@ -6623,7 +6623,7 @@ img.footprint-art {
   .module-hero-copy,
   .regional-hero .module-hero-copy {
     width: 100%;
-    padding: 24px;
+    padding: var(--space-6);
   }
 
   .module-hero-copy h1,
@@ -6667,7 +6667,7 @@ img.footprint-art {
 
 /* Batch 3: Vision page */
 .vision-page {
-  padding-bottom: 12px;
+  padding-bottom: var(--space-3);
 }
 
 .vision-page .top-stage-bar {
@@ -6678,7 +6678,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 514px 1fr;
   grid-template-rows: 200px 195px;
-  gap: 14px 16px;
+  gap: 14px var(--space-4);
 }
 
 .vision-intro-card {
@@ -6706,7 +6706,7 @@ img.footprint-art {
 }
 
 .vision-intro-card h1 {
-  margin: 15px 0 12px;
+  margin: 15px 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 51px;
   font-weight: 600;
@@ -6742,8 +6742,8 @@ img.footprint-art {
 .vision-panel h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 12px;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 21px;
   line-height: 1.1;
@@ -6795,7 +6795,7 @@ img.footprint-art {
   min-height: 31px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 0 11px;
   border: 1px solid rgba(209, 166, 62, 0.4);
   border-radius: 4px;
@@ -6808,14 +6808,14 @@ img.footprint-art {
   grid-template-columns: 1.22fr 0.86fr 0.98fr 1.05fr;
   grid-template-rows: 264px;
   gap: 14px;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .vision-bottom-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.76fr 0.98fr 1.42fr;
-  gap: 12px;
-  margin-top: 12px;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 
 .vision-panel {
@@ -6872,7 +6872,7 @@ img.footprint-art {
 }
 
 .experience-goals .chip-list {
-  margin: 8px 0 51px;
+  margin: var(--space-2) 0 51px;
 }
 
 .experience-goals p {
@@ -6880,7 +6880,7 @@ img.footprint-art {
   align-items: center;
   gap: 9px;
   margin: 0;
-  padding-top: 16px;
+  padding-top: var(--space-4);
   border-top: 1px solid rgba(182, 170, 152, 0.12);
   color: #c8b99f;
 }
@@ -6907,7 +6907,7 @@ img.footprint-art {
 .success-panel p {
   display: grid;
   grid-template-columns: 19px 1fr;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 7px 0;
   color: #cfc0aa;
   font-size: 12px;
@@ -6923,7 +6923,7 @@ img.footprint-art {
 .success-panel .green-button {
   width: calc(100% - 36px);
   min-height: 32px;
-  margin: 8px 18px 0;
+  margin: var(--space-2) 18px 0;
 }
 
 .list-panel {
@@ -6974,7 +6974,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--space-4);
   color: #8fb43e;
   font-family: var(--olos-font-display);
   font-size: 16px;
@@ -7049,7 +7049,7 @@ img.footprint-art {
   .vision-proverb {
     height: auto;
     flex-wrap: wrap;
-    padding: 16px 0 6px;
+    padding: var(--space-4) 0 6px;
     text-align: center;
   }
 }
@@ -7059,14 +7059,14 @@ img.footprint-art {
 .sectors-page {
   display: flex;
   flex-direction: column;
-  padding: 0 24px 24px;
+  padding: 0 var(--space-6) var(--space-6);
   gap: 0;
 }
 
 .sectors-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 16px;
+  gap: var(--space-4);
   flex: 1;
   min-width: 0;
 }
@@ -7080,11 +7080,11 @@ img.footprint-art {
 
 /* Header */
 .sectors-header {
-  padding: 14px 0 4px;
+  padding: 14px 0 var(--space-1);
 }
 
 .sectors-header h1 {
-  margin: 10px 0 8px;
+  margin: 10px 0 var(--space-2);
   font-family: var(--olos-font-display);
   font-size: clamp(32px, 2.8vw, 44px);
   font-weight: 600;
@@ -7104,7 +7104,7 @@ img.footprint-art {
 .sectors-location-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   margin-top: 10px;
   padding: 3px 10px;
   border-radius: 20px;
@@ -7128,14 +7128,14 @@ img.footprint-art {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  padding: 14px 16px;
+  gap: var(--space-1);
+  padding: 14px var(--space-4);
 }
 
 .sectors-kpi-card svg:first-child {
   width: 18px;
   height: 18px;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 .sectors-kpi-card span {
@@ -7163,13 +7163,13 @@ img.footprint-art {
 
 /* Synthesis card */
 .sectors-synthesis-card {
-  padding: 18px 20px;
+  padding: 18px var(--space-5);
 }
 
 .sectors-synthesis-card h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0 0 10px;
   font-family: var(--olos-font-ui);
   font-size: 12px;
@@ -7207,15 +7207,15 @@ img.footprint-art {
 .sectors-tool-card {
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  gap: 12px;
+  padding: var(--space-4);
+  gap: var(--space-3);
   min-height: 260px;
 }
 
 .sectors-tool-card__header h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0 0 5px;
   font-family: var(--olos-font-ui);
   font-size: 14px;
@@ -7264,7 +7264,7 @@ img.footprint-art {
 .sectors-open-btn {
   align-self: flex-start;
   font-size: 12px;
-  padding: 6px 12px;
+  padding: 6px var(--space-3);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -7280,11 +7280,11 @@ img.footprint-art {
 }
 
 .sectors-sidebar-card {
-  padding: 16px 18px;
+  padding: var(--space-4) 18px;
 }
 
 .sectors-sidebar-card h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
   font-size: 11px;
   font-weight: 800;
@@ -7298,7 +7298,7 @@ img.footprint-art {
 .sectors-next-action {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0 0 9px;
   font-size: 12.5px;
   line-height: 1.45;
@@ -7347,12 +7347,12 @@ img.footprint-art {
 .sc-page {
   display: flex;
   flex-direction: column;
-  padding: 0 22px 28px;
+  padding: 0 22px var(--space-7);
   gap: 0;
 }
 
 .sc-breadcrumb {
-  padding: 8px 0 4px;
+  padding: var(--space-2) 0 var(--space-1);
 }
 
 .sc-back-link {
@@ -7394,7 +7394,7 @@ img.footprint-art {
 .sc-kpi-strip {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 10px;
 }
 
@@ -7402,7 +7402,7 @@ img.footprint-art {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
 }
 
 .sc-kpi-card span {
@@ -7445,7 +7445,7 @@ img.footprint-art {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .sc-compass-panel > h2 {
@@ -7479,8 +7479,8 @@ img.footprint-art {
 .sc-compass-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
-  padding-top: 4px;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-1);
   border-top: 1px solid var(--olos-line-soft);
 }
 
@@ -7502,14 +7502,14 @@ img.footprint-art {
 
 /* Site map */
 .sc-map-panel {
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
 }
 
 .sc-map-panel h3 {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 10.5px;
   font-weight: 700;
@@ -7531,7 +7531,7 @@ img.footprint-art {
 
 /* Observations */
 .sc-observations-panel {
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
   flex: 1;
 }
 
@@ -7607,11 +7607,11 @@ img.footprint-art {
 
 /* Placements */
 .sc-placements-card {
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .sc-placements-card > h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
   font-size: 11px;
   font-weight: 800;
@@ -7623,18 +7623,18 @@ img.footprint-art {
 .sc-placements-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .sc-placement-item {
   background: var(--olos-surface-0);
   border: 1px solid var(--olos-line-soft);
   border-radius: 8px;
-  padding: 12px;
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .sc-placement-icon {
@@ -7645,7 +7645,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   color: var(--olos-green);
 }
 
@@ -7670,12 +7670,12 @@ img.footprint-art {
 
 .sc-placements-footer {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 /* Design alignment */
 .sc-alignment-card {
-  padding: 14px 16px;
+  padding: 14px var(--space-4);
 }
 
 .sc-alignment-card h3 {
@@ -7692,7 +7692,7 @@ img.footprint-art {
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   font-size: 12px;
   color: var(--olos-text-body);
   line-height: 1.4;
@@ -7702,7 +7702,7 @@ img.footprint-art {
 
 /* Priority actions */
 .sc-priority-card {
-  padding: 14px 16px;
+  padding: 14px var(--space-4);
   flex: 1;
 }
 
@@ -7719,7 +7719,7 @@ img.footprint-art {
 .sc-priority-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 9px;
   font-size: 12px;
   color: var(--olos-text-body);
@@ -7755,11 +7755,11 @@ img.footprint-art {
 .cd-page {
   display: flex;
   flex-direction: column;
-  padding: 0 22px 28px;
+  padding: 0 22px var(--space-7);
   gap: 0;
 }
 
-.cd-breadcrumb { padding: 8px 0 4px; }
+.cd-breadcrumb { padding: var(--space-2) 0 var(--space-1); }
 
 .cd-back-link {
   display: inline-flex;
@@ -7796,7 +7796,7 @@ img.footprint-art {
 .cd-kpi-strip {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 10px;
 }
 
@@ -7804,7 +7804,7 @@ img.footprint-art {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 12px 14px;
+  padding: var(--space-3) 14px;
 }
 
 .cd-kpi-card span {
@@ -7848,7 +7848,7 @@ img.footprint-art {
 
 /* Layers panel */
 .cd-layers-panel {
-  padding: 14px 12px;
+  padding: 14px var(--space-3);
   border-right: 1px solid var(--olos-line-soft);
   display: flex;
   flex-direction: column;
@@ -7860,7 +7860,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
   font-size: 10px;
   font-weight: 800;
@@ -7934,7 +7934,7 @@ img.footprint-art {
   font-size: 10px;
   color: var(--olos-dim);
   line-height: 1.7;
-  padding-left: 8px;
+  padding-left: var(--space-2);
   position: relative;
 }
 
@@ -7956,7 +7956,7 @@ img.footprint-art {
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   text-align: left;
 }
 
@@ -7978,7 +7978,7 @@ img.footprint-art {
   right: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .cd-map-btn {
@@ -8001,7 +8001,7 @@ img.footprint-art {
 
 /* Legend panel */
 .cd-legend-panel {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
 }
 
 .cd-legend-panel h3 {
@@ -8017,10 +8017,10 @@ img.footprint-art {
 .cd-legend-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 24px;
+  gap: 14px var(--space-6);
 }
 
-.cd-legend-group { display: flex; flex-direction: column; gap: 4px; }
+.cd-legend-group { display: flex; flex-direction: column; gap: var(--space-1); }
 
 .cd-legend-group-label {
   font-size: 10px;
@@ -8057,7 +8057,7 @@ img.footprint-art {
 }
 
 .cd-sidebar-card {
-  padding: 14px 16px;
+  padding: 14px var(--space-4);
 }
 
 .cd-sidebar-card h2 {
@@ -8081,7 +8081,7 @@ img.footprint-art {
   border-bottom: 1px solid rgba(157,121,55,0.12);
 }
 
-.cd-pattern-item:last-of-type { border-bottom: none; margin-bottom: 4px; }
+.cd-pattern-item:last-of-type { border-bottom: none; margin-bottom: var(--space-1); }
 
 .cd-pattern-item strong {
   display: block;
@@ -8105,13 +8105,13 @@ img.footprint-art {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .cd-action-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 9px;
   font-size: 12px;
   color: var(--olos-text-body);
@@ -8136,8 +8136,8 @@ img.footprint-art {
 .cd-map-info-dl {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 12px;
-  margin: 0 0 12px;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-3);
   font-size: 11.5px;
 }
 
@@ -8169,8 +8169,8 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 120px repeat(7, minmax(96px, 1fr)) 28px 28px 34px;
   align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-7);
   border-bottom: 1px solid rgba(189, 143, 55, 0.16);
   background: rgba(5, 8, 8, 0.66);
 }
@@ -8245,7 +8245,7 @@ img.footprint-art {
 
 .journal-frame {
   min-height: calc(100vh - 70px);
-  padding: 28px 32px 14px;
+  padding: var(--space-7) var(--space-8) 14px;
   background:
     radial-gradient(circle at 85% 6%, rgba(180, 128, 40, 0.14), transparent 22%),
     radial-gradient(circle at 18% 14%, rgba(64, 102, 44, 0.18), transparent 28%),
@@ -8261,7 +8261,7 @@ img.footprint-art {
 }
 
 .journal-header h1 {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   color: #f0e4ce;
   font-family: var(--olos-font-display);
   font-size: clamp(42px, 4.6vw, 62px);
@@ -8273,7 +8273,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   max-width: 660px;
   margin: 0;
   color: #bdb19d;
@@ -8287,7 +8287,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: 36px;
   padding: 0 14px;
   border: 1px solid rgba(207, 190, 151, 0.22);
@@ -8330,8 +8330,8 @@ img.footprint-art {
   grid-template-columns: 54px 1fr auto;
   grid-template-rows: 1fr 1fr;
   align-items: center;
-  gap: 0 12px;
-  padding: 14px 16px;
+  gap: 0 var(--space-3);
+  padding: 14px var(--space-4);
 }
 
 .journal-metric svg {
@@ -8388,9 +8388,9 @@ img.footprint-art {
   min-height: 56px;
   display: grid;
   grid-template-columns: minmax(180px, 1.35fr) repeat(6, max-content);
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   padding: 10px;
 }
 
@@ -8399,7 +8399,7 @@ img.footprint-art {
   min-height: 36px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 0 11px;
   border: 1px solid rgba(207, 190, 151, 0.18);
   border-radius: 7px;
@@ -8524,7 +8524,7 @@ img.footprint-art {
 }
 
 .entry-row i {
-  padding: 4px 7px;
+  padding: var(--space-1) 7px;
   border: 1px solid rgba(189, 143, 55, 0.26);
   border-radius: 999px;
   color: #c6b68f;
@@ -8614,7 +8614,7 @@ img.footprint-art {
 
 .journal-side-card button {
   width: 100%;
-  margin-top: 12px;
+  margin-top: var(--space-3);
   color: #d9c587;
 }
 
@@ -8636,21 +8636,21 @@ img.footprint-art {
 @media (min-width: 1500px) {
   .journal-process {
     min-height: 58px;
-    padding-block: 8px;
+    padding-block: var(--space-2);
   }
 
   .journal-frame {
     min-height: calc(100vh - 58px);
-    padding: 18px 28px 6px;
+    padding: 18px var(--space-7) 6px;
   }
 
   .journal-header {
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
   }
 
   .journal-header h1 {
     font-size: 50px;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
 
   .journal-header p {
@@ -8670,7 +8670,7 @@ img.footprint-art {
   .journal-metric {
     min-height: 68px;
     grid-template-columns: 44px 1fr auto;
-    padding: 10px 12px;
+    padding: 10px var(--space-3);
   }
 
   .journal-metric svg {
@@ -8684,7 +8684,7 @@ img.footprint-art {
   }
 
   .journal-layout {
-    gap: 12px;
+    gap: var(--space-3);
   }
 
   .journal-filters {
@@ -8713,7 +8713,7 @@ img.footprint-art {
   }
 
   .entry-row em {
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     font-size: 10px;
   }
 
@@ -8734,11 +8734,11 @@ img.footprint-art {
   }
 
   .journal-side-card {
-    padding: 12px 14px;
+    padding: var(--space-3) 14px;
   }
 
   .journal-side-card h2 {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
     font-size: 19px;
   }
 
@@ -8750,7 +8750,7 @@ img.footprint-art {
 
   .journal-side-card button {
     min-height: 30px;
-    margin-top: 8px;
+    margin-top: var(--space-2);
   }
 }
 
@@ -8758,7 +8758,7 @@ img.footprint-art {
 
   .journal-process {
     grid-template-columns: 96px repeat(7, minmax(74px, 1fr)) 24px 24px 30px;
-    padding-inline: 20px;
+    padding-inline: var(--space-5);
   }
 
   .journal-frame {
@@ -8804,11 +8804,11 @@ img.footprint-art {
   .journal-process {
     min-height: auto;
     grid-template-columns: 1fr 1fr;
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .journal-frame {
-    padding: 18px 12px 12px;
+    padding: 18px var(--space-3) var(--space-3);
   }
 
   .journal-header h1 {
@@ -8836,7 +8836,7 @@ img.footprint-art {
 
 .swot-page {
   min-width: 0;
-  padding: 18px 22px 8px 38px;
+  padding: 18px 22px var(--space-2) 38px;
   border: 1px solid rgba(199, 165, 89, 0.14);
   border-radius: 12px;
   background:
@@ -8855,7 +8855,7 @@ img.footprint-art {
 .swot-topbar p {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 6px 0 0;
   color: #a99e8e;
   font-size: 12px;
@@ -8874,7 +8874,7 @@ img.footprint-art {
 .swot-topbar nav span {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: #a99e8e;
   font-size: 12px;
 }
@@ -8902,7 +8902,7 @@ img.footprint-art {
 .swot-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 368px;
-  gap: 24px;
+  gap: var(--space-6);
   padding-top: 26px;
 }
 
@@ -8919,13 +8919,13 @@ img.footprint-art {
   display: block;
   width: 32px;
   height: 2px;
-  margin: 16px 0;
+  margin: var(--space-4) 0;
   background: #8fca4e;
 }
 
 .swot-hero p {
   max-width: 720px;
-  margin: 0 0 20px;
+  margin: 0 0 var(--space-5);
   color: #d7c8ad;
   font-size: 15px;
   line-height: 1.45;
@@ -8935,7 +8935,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .swot-quadrant {
@@ -8943,7 +8943,7 @@ img.footprint-art {
   min-height: 124px;
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 18px;
-  gap: 8px 14px;
+  gap: var(--space-2) 14px;
   align-content: center;
   padding: 18px;
 }
@@ -8952,7 +8952,7 @@ img.footprint-art {
   grid-row: 1 / span 3;
   width: 50px;
   height: 50px;
-  padding: 12px;
+  padding: var(--space-3);
   color: #9bd64a;
   border-radius: 999px;
   background: rgba(87, 128, 56, 0.35);
@@ -9001,8 +9001,8 @@ img.footprint-art {
   grid-template-columns: 72px minmax(0, 1fr) 292px;
   gap: 18px;
   align-items: center;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .swot-venn {
@@ -9027,7 +9027,7 @@ img.footprint-art {
 .swot-how-card h2,
 .swot-panel-card h2,
 .swot-implications-card h2 {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   color: #d8b44e;
   font-size: 13px;
   font-weight: 800;
@@ -9066,14 +9066,14 @@ img.footprint-art {
 }
 
 .swot-panel-card {
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .swot-panel-card header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .swot-panel-card h2 {
@@ -9106,7 +9106,7 @@ img.footprint-art {
   grid-template-columns: minmax(0, 1fr) 92px 96px;
   gap: 10px;
   margin: 0;
-  padding: 8px 10px;
+  padding: var(--space-2) 10px;
   color: #d2c3aa;
   font-size: 12px;
   border-bottom: 1px solid rgba(199, 165, 89, 0.12);
@@ -9119,7 +9119,7 @@ img.footprint-art {
 
 .swot-journal-rows b {
   justify-self: start;
-  padding: 2px 8px;
+  padding: 2px var(--space-2);
   border-radius: 5px;
   background: rgba(68, 112, 39, 0.38);
   font-size: 10px;
@@ -9129,11 +9129,11 @@ img.footprint-art {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 12px 0 18px;
+  margin: var(--space-3) 0 18px;
 }
 
 .swot-tags span {
-  padding: 4px 9px;
+  padding: var(--space-1) 9px;
   color: #bfb29c;
   font-size: 10px;
   border: 1px solid rgba(199, 165, 89, 0.18);
@@ -9150,13 +9150,13 @@ img.footprint-art {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 92px;
   gap: 14px;
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid rgba(199, 165, 89, 0.16);
   border-radius: 7px;
 }
 
 .diagnosis-card h3 {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   color: #d8b44e;
   font-size: 11px;
   text-transform: uppercase;
@@ -9187,7 +9187,7 @@ img.footprint-art {
 }
 
 .swot-score span {
-  margin-top: 4px;
+  margin-top: var(--space-1);
   color: #a99e8e;
   font-size: 9px;
 }
@@ -9196,12 +9196,12 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
-  margin: 12px 0 16px;
+  margin: var(--space-3) 0 var(--space-4);
 }
 
 .diagnosis-lists b {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   color: #d8b44e;
   font-size: 11px;
   text-transform: uppercase;
@@ -9209,16 +9209,16 @@ img.footprint-art {
 
 .diagnosis-lists span {
   display: block;
-  margin: 4px 0;
+  margin: var(--space-1) 0;
 }
 
 .diagnosis-lists span::before {
   content: "•";
-  margin-right: 8px;
+  margin-right: var(--space-2);
 }
 
 .swot-implications-card {
-  padding: 22px 16px 16px;
+  padding: 22px var(--space-4) var(--space-4);
   border-color: rgba(209, 157, 58, 0.48);
 }
 
@@ -9230,7 +9230,7 @@ img.footprint-art {
 }
 
 .swot-implications-card section {
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid rgba(199, 165, 89, 0.18);
   border-radius: 8px;
   background: rgba(90, 65, 24, 0.16);
@@ -9281,7 +9281,7 @@ img.footprint-art {
 
 .swot-implications-card .green-button {
   min-height: 38px;
-  margin: 14px 0 8px;
+  margin: 14px 0 var(--space-2);
   border: 0;
   border-radius: 999px;
   color: white;
@@ -9293,15 +9293,15 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.35fr 1fr 1fr 1fr 1fr 1.35fr;
   gap: 0;
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: var(--space-5);
+  padding: var(--space-4);
 }
 
 .swot-health-strip div {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
   align-content: center;
-  gap: 5px 12px;
+  gap: 5px var(--space-3);
   padding: 0 14px;
   border-right: 1px solid rgba(199, 165, 89, 0.16);
 }
@@ -9353,7 +9353,7 @@ img.footprint-art {
 
 @media (min-width: 1181px) {
   .swot-page {
-    padding: 14px 22px 8px 38px;
+    padding: 14px 22px var(--space-2) 38px;
   }
 
   .swot-topbar {
@@ -9400,7 +9400,7 @@ img.footprint-art {
   .swot-how-card {
     min-height: 78px;
     grid-template-columns: 62px minmax(0, 1fr) 284px;
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .swot-how-card p {
@@ -9409,20 +9409,20 @@ img.footprint-art {
   }
 
   .swot-panel-card {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .swot-panel-card header {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
 
   .swot-journal-rows p {
-    padding: 6px 8px;
+    padding: 6px var(--space-2);
     font-size: 11px;
   }
 
   .swot-tags {
-    margin: 9px 0 12px;
+    margin: 9px 0 var(--space-3);
   }
 
   .diagnosis-card section {
@@ -9454,7 +9454,7 @@ img.footprint-art {
   .swot-health-strip {
     min-height: 110px;
     margin-top: 13px;
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .swot-health-strip div {
@@ -9481,7 +9481,7 @@ img.footprint-art {
 
   .swot-topbar nav {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .swot-journal-rows p,
@@ -9493,7 +9493,7 @@ img.footprint-art {
 
 .diagnosis-report-page {
   min-width: 0;
-  padding: 16px 18px 5px 28px;
+  padding: var(--space-4) 18px 5px var(--space-7);
 }
 
 .report-topbar {
@@ -9501,13 +9501,13 @@ img.footprint-art {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: start;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .report-topbar p {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 6px 0 0;
   color: #b9ad98;
   font-size: 12px;
@@ -9519,7 +9519,7 @@ img.footprint-art {
 
 .report-topbar nav {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .report-topbar button,
@@ -9528,8 +9528,8 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
   color: #e6d4b7;
   border: 1px solid rgba(199, 165, 89, 0.28);
   border-radius: 6px;
@@ -9546,7 +9546,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
   margin-bottom: 10px;
 }
 
@@ -9578,7 +9578,7 @@ img.footprint-art {
 }
 
 .diagnosis-report-frame {
-  padding: 22px 28px 14px;
+  padding: 22px var(--space-7) 14px;
   border: 1px solid rgba(199, 165, 89, 0.18);
   border-radius: 10px;
   background:
@@ -9590,7 +9590,7 @@ img.footprint-art {
   min-height: 92px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 204px;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: start;
 }
 
@@ -9623,7 +9623,7 @@ img.footprint-art {
 .report-generated-card small {
   display: block;
   color: #a99e8e;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .diagnosis-top-grid {
@@ -9674,8 +9674,8 @@ img.footprint-art {
 .summary-facts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 24px;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
   padding-top: 14px;
   border-top: 1px solid rgba(199, 165, 89, 0.18);
 }
@@ -9688,7 +9688,7 @@ img.footprint-art {
 .radar-wrap {
   display: grid;
   grid-template-columns: 1fr 180px 1fr;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 
@@ -9757,7 +9757,7 @@ img.footprint-art {
 .top-insights p {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--space-3);
   margin: 18px 0;
   color: #9bd64a;
 }
@@ -9765,7 +9765,7 @@ img.footprint-art {
 .top-insights p svg {
   width: 34px;
   height: 34px;
-  padding: 8px;
+  padding: var(--space-2);
   border-radius: 999px;
   background: rgba(88, 125, 47, 0.2);
 }
@@ -9827,7 +9827,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 66px minmax(0, 1fr);
   gap: 10px;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   color: #d2c3aa;
 }
 
@@ -9839,8 +9839,8 @@ img.footprint-art {
 .evidence-card p {
   display: grid;
   grid-template-columns: 50px minmax(0, 1fr) 42px;
-  gap: 8px;
-  margin: 8px 0;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
   color: #d2c3aa;
 }
 
@@ -9873,7 +9873,7 @@ img.footprint-art {
 }
 
 .diagnosis-report-quote {
-  margin: 24px auto 0;
+  margin: var(--space-6) auto 0;
   color: #9d8541;
   font-family: var(--olos-font-display);
   font-size: 14px;
@@ -9883,7 +9883,7 @@ img.footprint-art {
 @media (max-width: 720px) {
 
   .diagnosis-report-page {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .report-topbar nav,
@@ -9904,7 +9904,7 @@ img.footprint-art {
 
 @media (min-width: 1181px) {
   .diagnosis-report-page {
-    padding: 12px 18px 4px 28px;
+    padding: var(--space-3) 18px var(--space-1) var(--space-7);
   }
 
   .report-topbar {
@@ -9913,11 +9913,11 @@ img.footprint-art {
 
   .report-stage-bar {
     height: 38px;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
 
   .diagnosis-report-frame {
-    padding: 16px 28px 10px;
+    padding: var(--space-4) var(--space-7) 10px;
   }
 
   .diagnosis-report-hero {
@@ -9940,19 +9940,19 @@ img.footprint-art {
   .diagnosis-top-grid,
   .diagnosis-lower-grid,
   .diagnosis-stack {
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .diagnosis-top-grid {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
 
   .report-card {
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .report-card h2 {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
     font-size: 16px;
   }
 
@@ -9962,7 +9962,7 @@ img.footprint-art {
   }
 
   .summary-facts {
-    margin-top: 12px;
+    margin-top: var(--space-3);
     padding-top: 9px;
   }
 
@@ -10047,14 +10047,14 @@ img.footprint-art {
   }
 
   .diagnosis-report-quote {
-    margin-top: 12px;
+    margin-top: var(--space-3);
   }
 }
 
 .swot-mini-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 10px;
 }
 
