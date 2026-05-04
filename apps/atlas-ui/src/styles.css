@@ -223,7 +223,7 @@ button {
   width: min(100%, var(--native-width));
   min-height: min(var(--native-height), calc(100vh - 8px));
   margin: 0 auto;
-  padding: 30px var(--space-8) var(--space-8);
+  padding: var(--space-7) var(--space-8) var(--space-8);
   overflow: hidden;
   border: 1.5px solid rgba(176, 120, 36, 0.76);
   border-radius: var(--olos-radius-frame);
@@ -292,7 +292,7 @@ button {
 }
 
 .hero-copy-block {
-  padding-top: 18px;
+  padding-top: var(--space-4);
 }
 
 .stage-kicker,
@@ -308,7 +308,7 @@ button {
 
 .hero-copy-block h1 {
   max-width: 620px;
-  margin: 18px 0 var(--space-4);
+  margin: var(--space-4) 0 var(--space-4);
   font-family: var(--olos-font-display);
   font-size: clamp(45px, 4.05vw, 58px);
   font-weight: 600;
@@ -451,7 +451,7 @@ button {
 .metric-band {
   height: 141px;
   margin-top: var(--space-2);
-  padding: 14px var(--space-6);
+  padding: var(--space-3) var(--space-6);
   display: grid;
   grid-template-columns: 1.18fr 1fr 0.9fr 1fr;
   align-items: center;
@@ -467,7 +467,7 @@ button {
   display: grid;
   grid-template-columns: 74px 1fr;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-4);
   padding: 0 var(--space-7);
   border-left: 1px solid rgba(142, 111, 57, 0.44);
 }
@@ -547,13 +547,13 @@ button {
 .module-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px 14px;
+  gap: var(--space-2) var(--space-3);
 }
 
 .module-card-handbuilt {
   position: relative;
   min-height: 128px;
-  padding: 18px 26px var(--space-4) 52%;
+  padding: var(--space-4) var(--space-6) var(--space-4) 52%;
   display: flex;
   align-items: center;
   border: 1px solid rgba(151, 105, 35, 0.52);
@@ -691,7 +691,7 @@ button {
 
 .module-copy {
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .module-copy strong {
@@ -739,16 +739,16 @@ button {
   margin-top: var(--space-5);
   display: grid;
   grid-template-columns: 1.35fr 0.92fr 1.06fr 1.22fr;
-  gap: 15px;
+  gap: var(--space-4);
 }
 
 .action-card {
   position: relative;
   min-height: 90px;
-  padding: 18px var(--space-7);
+  padding: var(--space-4) var(--space-7);
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-4);
   border: 1px solid rgba(151, 105, 35, 0.55);
   border-radius: 10px;
   background: rgba(7, 19, 17, 0.84);
@@ -915,7 +915,7 @@ img.footprint-art {
   width: auto;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
   border: 1px solid rgba(213, 164, 58, 0.5);
   border-radius: 10px;
   background: rgba(4, 11, 10, 0.88);
@@ -974,7 +974,7 @@ img.footprint-art {
   .landscape-art {
     grid-column: 1 / -1;
     min-height: 260px;
-    margin: 6px 0 0;
+    margin: var(--space-1) 0 0;
     border-radius: 16px;
   }
 
@@ -1010,7 +1010,7 @@ img.footprint-art {
   .hero-panel-handbuilt {
     min-height: auto;
     grid-template-columns: 54px 1fr;
-    gap: 14px;
+    gap: var(--space-3);
   }
 
   .brand-mark {
@@ -1053,13 +1053,13 @@ img.footprint-art {
 
   .metric-band {
     grid-template-columns: 1fr;
-    padding: 10px var(--space-4);
+    padding: var(--space-2) var(--space-4);
   }
 
   .metric-cell {
     min-height: 86px;
     grid-template-columns: 62px 1fr;
-    padding: 14px 0;
+    padding: var(--space-3) 0;
     border-left: 0;
     border-top: 1px solid rgba(142, 111, 57, 0.38);
   }
@@ -1152,7 +1152,7 @@ img.footprint-art {
 .side-rail__avatar {
   width: 42px;
   height: 42px;
-  margin: 10px auto var(--space-6);
+  margin: var(--space-2) auto var(--space-6);
   border: 1px solid rgba(220, 190, 117, 0.35);
   border-radius: 50%;
   background:
@@ -1174,7 +1174,7 @@ img.footprint-art {
 
 .dashboard-page {
   min-width: 0;
-  padding: var(--space-7) 30px var(--space-8);
+  padding: var(--space-7) var(--space-7) var(--space-8);
 }
 
 .top-stage-bar {
@@ -1189,7 +1189,7 @@ img.footprint-art {
   padding-top: var(--space-3);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   color: #86a744;
   font-size: 13px;
   font-weight: 800;
@@ -1211,7 +1211,7 @@ img.footprint-art {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, 230px);
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .stage-steps li {
@@ -1277,7 +1277,7 @@ img.footprint-art {
 
 .stage-settings {
   justify-self: end;
-  padding: 0 15px;
+  padding: 0 var(--space-4);
   font-weight: 700;
   font-size: 13px;
 }
@@ -1298,7 +1298,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1fr 368px;
   gap: var(--space-4);
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .dashboard-hero {
@@ -1348,12 +1348,12 @@ img.footprint-art {
 
 .dashboard-hero__actions {
   display: flex;
-  gap: 15px;
-  margin-top: 22px;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .dashboard-hero__actions button {
-  padding-inline: 18px;
+  padding-inline: var(--space-4);
 }
 
 .dashboard-hero__image {
@@ -1368,7 +1368,7 @@ img.footprint-art {
 
 .project-overview-card {
   min-height: 230px;
-  padding: var(--space-4) 15px;
+  padding: var(--space-4) var(--space-4);
   border: 1px solid rgba(201, 177, 112, 0.16);
   border-radius: 8px;
   background: linear-gradient(135deg, rgba(16, 22, 20, 0.96), rgba(10, 14, 13, 0.92));
@@ -1384,7 +1384,7 @@ img.footprint-art {
 }
 
 .project-overview-card__name {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 22px;
 }
@@ -1404,9 +1404,9 @@ img.footprint-art {
 .dashboard-facts div {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: baseline;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .project-overview-card dt,
@@ -1418,7 +1418,7 @@ img.footprint-art {
 .project-overview-card dt svg {
   width: 13px;
   height: 13px;
-  margin-right: 6px;
+  margin-right: var(--space-1);
   vertical-align: -2px;
   color: #dfc483;
 }
@@ -1440,14 +1440,14 @@ img.footprint-art {
 
 .project-overview-card .outlined-button {
   margin-top: -31px;
-  padding-inline: 14px;
+  padding-inline: var(--space-3);
   min-height: 34px;
   font-size: 12px;
 }
 
 .dashboard-progress-band {
   height: 111px;
-  margin-top: 14px;
+  margin-top: var(--space-3);
   padding: var(--space-3) var(--space-4);
   display: grid;
   grid-template-columns: 390px repeat(6, 1fr);
@@ -1489,7 +1489,7 @@ img.footprint-art {
 .thin-progress {
   width: 220px;
   height: 8px;
-  margin: 10px 0 var(--space-2);
+  margin: var(--space-2) 0 var(--space-2);
   overflow: hidden;
   border-radius: 8px;
   background: rgba(222, 217, 190, 0.25);
@@ -1511,7 +1511,7 @@ img.footprint-art {
 
 .dashboard-progress-metric {
   border-left: 1px solid rgba(220, 201, 148, 0.2);
-  padding: 6px var(--space-5);
+  padding: var(--space-1) var(--space-5);
   display: grid;
   grid-template-columns: 26px 1fr;
   grid-template-rows: 20px 30px 18px;
@@ -1552,8 +1552,8 @@ img.footprint-art {
 }
 
 .dashboard-site-flags {
-  margin-top: 10px;
-  padding: var(--space-3) var(--space-4) 14px;
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-3);
   border: 1px solid rgba(220, 170, 50, 0.25);
   border-radius: 8px;
   background: linear-gradient(90deg, rgba(24, 20, 10, 0.8), rgba(12, 14, 10, 0.9));
@@ -1563,7 +1563,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   color: #c9a84c;
   font-size: 11px;
   font-weight: 800;
@@ -1580,11 +1580,11 @@ img.footprint-art {
 .dashboard-site-flags__list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .site-flag {
-  padding: 10px var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border-radius: 6px;
   border-left: 3px solid currentColor;
 }
@@ -1650,7 +1650,7 @@ img.footprint-art {
 
 .dashboard-module-card {
   min-height: 275px;
-  padding: 14px var(--space-3) 10px;
+  padding: var(--space-3) var(--space-3) var(--space-2);
   border: 1px solid rgba(193, 169, 112, 0.2);
   border-radius: 8px;
   background:
@@ -1725,13 +1725,13 @@ img.footprint-art {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .dashboard-badge-row span,
 .mini-stat-row span {
   min-height: 28px;
-  padding: var(--space-2) 10px;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid rgba(209, 186, 127, 0.18);
   border-radius: 5px;
   background: rgba(18, 24, 20, 0.74);
@@ -1748,7 +1748,7 @@ img.footprint-art {
 
 .dashboard-card-actions button {
   min-height: 34px;
-  padding: 0 10px;
+  padding: 0 var(--space-2);
   font-size: 12px;
 }
 
@@ -1768,7 +1768,7 @@ img.footprint-art {
 .people-orbit-small svg {
   width: 42px;
   height: 42px;
-  padding: 10px;
+  padding: var(--space-2);
   border-radius: 50%;
   background: #33451e;
 }
@@ -1795,11 +1795,11 @@ img.footprint-art {
   top: 0;
   width: 220px;
   height: 115px;
-  padding: 26px var(--space-3) 10px;
+  padding: var(--space-6) var(--space-3) var(--space-2);
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   align-items: end;
-  gap: 6px;
+  gap: var(--space-1);
   border: 1px solid rgba(203, 178, 112, 0.2);
   border-radius: 5px;
   background: repeating-linear-gradient(to top, rgba(209, 190, 134, 0.11), rgba(209, 190, 134, 0.11) 1px, transparent 1px, transparent 24px);
@@ -1844,12 +1844,12 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .swot-mini-grid span {
   min-height: 72px;
-  padding: 10px;
+  padding: var(--space-2);
   border: 1px solid rgba(116, 168, 77, 0.35);
   border-radius: 5px;
   background: rgba(29, 55, 25, 0.28);
@@ -1892,7 +1892,7 @@ img.footprint-art {
   .dashboard-page {
     width: 100%;
     min-width: 0;
-    padding: 18px 14px;
+    padding: var(--space-4) var(--space-3);
   }
 
   .top-stage-bar {
@@ -1920,7 +1920,7 @@ img.footprint-art {
   }
 
   .dashboard-hero__copy {
-    padding: 18px;
+    padding: var(--space-4);
   }
 
   .dashboard-hero h1 {
@@ -1940,12 +1940,12 @@ img.footprint-art {
 
 /* Batch 7: Cross-section tool */
 .cross-section-page {
-  padding-bottom: 10px;
+  padding-bottom: var(--space-2);
 }
 
 .cross-section-page .top-stage-bar {
   grid-template-columns: 390px 1fr 160px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .cross-section-page .stage-title {
@@ -1955,7 +1955,7 @@ img.footprint-art {
 .cross-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 299px;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .cross-main {
@@ -1966,7 +1966,7 @@ img.footprint-art {
 }
 
 .cross-header .back-link {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .cross-header .module-title-row {
@@ -1979,7 +1979,7 @@ img.footprint-art {
 
 .cross-header .module-title-row p {
   max-width: 690px;
-  margin-top: 6px;
+  margin-top: var(--space-1);
   line-height: 1.35;
 }
 
@@ -1994,7 +1994,7 @@ img.footprint-art {
   min-width: 0;
   display: grid;
   grid-template-columns: 44px 1fr;
-  gap: var(--space-1) 14px;
+  gap: var(--space-1) var(--space-3);
   padding: 0 var(--space-4);
   border-right: 1px solid rgba(182, 170, 152, 0.14);
 }
@@ -2048,8 +2048,8 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 170px repeat(4, 1fr);
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
   border-top: 1px solid rgba(182, 170, 152, 0.12);
 }
 
@@ -2082,7 +2082,7 @@ img.footprint-art {
 .transect-map-card,
 .tools-panel,
 .earthworks-panel {
-  padding: 14px;
+  padding: var(--space-3);
 }
 
 .cross-panel {
@@ -2105,7 +2105,7 @@ img.footprint-art {
 .cross-panel p {
   display: grid;
   grid-template-columns: 24px 1fr 12px;
-  gap: 10px;
+  gap: var(--space-2);
   margin: 0;
   padding: var(--space-2) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
@@ -2135,7 +2135,7 @@ img.footprint-art {
 .cross-panel .outlined-button {
   width: 100%;
   min-height: 32px;
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .transect-row {
@@ -2143,8 +2143,8 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 28px 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: var(--space-2) 10px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
   border-radius: 6px;
   color: #d7cab6;
 }
@@ -2202,14 +2202,14 @@ img.footprint-art {
 
 .cross-sidebar {
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
   align-content: start;
 }
 
 .transect-map-card,
 .tools-panel,
 .earthworks-panel {
-  padding: 10px var(--space-3);
+  padding: var(--space-2) var(--space-3);
 }
 
 .transect-map-image {
@@ -2231,7 +2231,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 31px 1fr 39px;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   border-bottom: 1px solid rgba(182, 170, 152, 0.11);
 }
 
@@ -2294,7 +2294,7 @@ img.footprint-art {
 .earthworks-panel dl div {
   display: flex;
   justify-content: space-between;
-  padding: 6px 0;
+  padding: var(--space-1) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.11);
 }
 
@@ -2326,7 +2326,7 @@ img.footprint-art {
   grid-template-columns: 1.1fr 1.15fr 1.1fr 0.9fr 0.7fr 44px;
   align-items: center;
   gap: var(--space-3);
-  margin-top: 10px;
+  margin-top: var(--space-2);
   padding: 0 var(--space-3);
 }
 
@@ -2392,7 +2392,7 @@ img.footprint-art {
   }
 
   .segment-strip {
-    padding: 10px;
+    padding: var(--space-2);
   }
 }
 
@@ -2414,7 +2414,7 @@ img.footprint-art {
 .topography-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 310px;
-  gap: 15px;
+  gap: var(--space-4);
 }
 
 .topography-main {
@@ -2460,7 +2460,7 @@ img.footprint-art {
 .topography-metric-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .topography-metric-card {
@@ -2468,7 +2468,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
   gap: var(--space-2) var(--space-3);
-  padding: var(--space-5) 14px 14px;
+  padding: var(--space-5) var(--space-3) var(--space-3);
   overflow: hidden;
 }
 
@@ -2504,7 +2504,7 @@ img.footprint-art {
 .topography-metric-card em {
   display: inline-flex;
   margin-top: var(--space-2);
-  padding: var(--space-1) 10px;
+  padding: var(--space-1) var(--space-2);
   border: 1px solid rgba(135, 184, 54, 0.36);
   border-radius: 999px;
   color: #9bd64a;
@@ -2523,8 +2523,8 @@ img.footprint-art {
   height: 190px;
   display: grid;
   grid-template-columns: minmax(0, 1.75fr) repeat(3, minmax(0, 0.88fr));
-  gap: 18px;
-  padding: 22px 18px;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
   overflow: hidden;
 }
 
@@ -2540,7 +2540,7 @@ img.footprint-art {
 
 .topography-synthesis-copy h2 {
   max-width: 560px;
-  margin: var(--space-3) 0 10px;
+  margin: var(--space-3) 0 var(--space-2);
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 25px;
@@ -2556,7 +2556,7 @@ img.footprint-art {
 }
 
 .topography-synthesis article {
-  padding-left: 18px;
+  padding-left: var(--space-4);
   border-left: 1px solid rgba(182, 170, 152, 0.16);
 }
 
@@ -2591,7 +2591,7 @@ img.footprint-art {
   display: flex;
   align-items: start;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .topography-tool-card h2 {
@@ -2603,7 +2603,7 @@ img.footprint-art {
 }
 
 .topography-tool-card header span {
-  padding: var(--space-1) 10px;
+  padding: var(--space-1) var(--space-2);
   border: 1px solid rgba(135, 184, 54, 0.26);
   border-radius: 999px;
   color: #9bd64a;
@@ -2659,7 +2659,7 @@ img.footprint-art {
 .tool-card-actions {
   display: grid;
   grid-template-columns: minmax(180px, 0.42fr) 1fr;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   margin-top: var(--space-3);
 }
@@ -2669,7 +2669,7 @@ img.footprint-art {
 }
 
 .tool-card-actions small {
-  padding: var(--space-2) 10px;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid rgba(209, 186, 127, 0.12);
   border-radius: 6px;
   color: #d1c2ad;
@@ -2684,7 +2684,7 @@ img.footprint-art {
 }
 
 .topography-side-card {
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
   overflow: hidden;
 }
 
@@ -2788,7 +2788,7 @@ img.footprint-art {
   position: relative;
   height: 112px;
   min-height: 112px;
-  padding: var(--space-3) 88px var(--space-3) 14px;
+  padding: var(--space-3) 88px var(--space-3) var(--space-3);
   overflow: hidden;
 }
 
@@ -2879,7 +2879,7 @@ img.footprint-art {
     position: relative;
     width: 100%;
     height: 150px;
-    margin-top: 14px;
+    margin-top: var(--space-3);
   }
 
   .topography-tool-card {
@@ -2898,7 +2898,7 @@ img.footprint-art {
 
 .terrain-detail-page .top-stage-bar {
   grid-template-columns: 410px 1fr 160px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .terrain-detail-page .stage-title {
@@ -2930,7 +2930,7 @@ img.footprint-art {
 
 .terrain-header-actions {
   display: flex;
-  gap: 14px;
+  gap: var(--space-3);
   padding-top: var(--space-5);
 }
 
@@ -2950,8 +2950,8 @@ img.footprint-art {
   height: 130px;
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
-  gap: var(--space-2) 14px;
-  padding: 18px 14px var(--space-3);
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-3) var(--space-3);
   overflow: hidden;
 }
 
@@ -2986,7 +2986,7 @@ img.footprint-art {
 
 .terrain-metric-card em {
   display: inline-flex;
-  margin-top: 6px;
+  margin-top: var(--space-1);
   padding: var(--space-1) var(--space-2);
   border: 1px solid rgba(135, 184, 54, 0.36);
   border-radius: 999px;
@@ -3005,13 +3005,13 @@ img.footprint-art {
 .terrain-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 429px;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .terrain-main-column {
   min-width: 0;
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .terrain-map-panel {
@@ -3061,7 +3061,7 @@ img.footprint-art {
 
 .terrain-layer-card h2,
 .terrain-legend-card h2 {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
   color: #e3d4bb;
   font-size: 12px;
   font-weight: 800;
@@ -3103,7 +3103,7 @@ img.footprint-art {
 }
 
 .terrain-legend-card p {
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1);
   color: #d8ccbb;
   font-size: 12px;
 }
@@ -3165,7 +3165,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0 14px;
+  padding: 0 var(--space-3);
   border-radius: 5px;
 }
 
@@ -3177,7 +3177,7 @@ img.footprint-art {
 
 .terrain-panel {
   height: 238px;
-  padding: 15px 14px;
+  padding: var(--space-4) var(--space-3);
   overflow: hidden;
 }
 
@@ -3192,7 +3192,7 @@ img.footprint-art {
 
 .terrain-panel header span,
 .histogram-panel header span {
-  padding: 6px var(--space-3);
+  padding: var(--space-1) var(--space-3);
   border: 1px solid rgba(135, 184, 54, 0.3);
   border-radius: 7px;
   color: #9bd64a;
@@ -3243,13 +3243,13 @@ img.footprint-art {
 
 .terrain-sidebar {
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
   align-content: start;
 }
 
 .terrain-side-panel {
   overflow: hidden;
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .slope-panel {
@@ -3423,12 +3423,12 @@ img.footprint-art {
 
 /* Batch 10: Macroclimate & Hazards dashboard */
 .macroclimate-page {
-  padding-bottom: 18px;
+  padding-bottom: var(--space-4);
 }
 
 .macroclimate-page .top-stage-bar {
   grid-template-columns: 430px minmax(0, 1fr) 150px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .macroclimate-page .stage-title {
@@ -3438,7 +3438,7 @@ img.footprint-art {
 .macroclimate-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .macroclimate-main {
@@ -3517,9 +3517,9 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: auto auto auto;
-  gap: 0 10px;
+  gap: 0 var(--space-2);
   align-content: center;
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
   overflow: hidden;
 }
 
@@ -3557,7 +3557,7 @@ img.footprint-art {
 
 .macro-section-card {
   position: relative;
-  padding: var(--space-4) 18px var(--space-12);
+  padding: var(--space-4) var(--space-4) var(--space-12);
   overflow: hidden;
 }
 
@@ -3574,7 +3574,7 @@ img.footprint-art {
   align-items: start;
   justify-content: space-between;
   gap: var(--space-5);
-  padding-bottom: 10px;
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
 }
 
@@ -3612,12 +3612,12 @@ img.footprint-art {
 .hazards-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.95fr 0.9fr;
-  gap: 14px;
-  padding-top: 10px;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
 }
 
 .macro-section-card h3 {
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1);
   color: #f0dfc5;
   font-size: 13px;
   font-weight: 600;
@@ -3637,7 +3637,7 @@ img.footprint-art {
 .climate-opportunities,
 .active-hazards-table {
   height: 172px;
-  padding: 10px var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: rgba(9, 17, 15, 0.48);
 }
 
@@ -3724,12 +3724,12 @@ img.footprint-art {
 
 .macro-insights-card {
   height: 668px;
-  padding: var(--space-5) 22px;
+  padding: var(--space-5) var(--space-5);
   overflow: hidden;
 }
 
 .macro-insights-card h2 {
-  margin: 0 0 22px;
+  margin: 0 0 var(--space-5);
   color: #d7a236;
   font-family: var(--olos-font-display);
   font-size: 24px;
@@ -3737,7 +3737,7 @@ img.footprint-art {
 }
 
 .macro-insights-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   color: #f2dec2;
   font-size: 14px;
 }
@@ -3771,7 +3771,7 @@ img.footprint-art {
 
 .risk-priorities {
   margin-top: var(--space-3);
-  padding: 14px;
+  padding: var(--space-3);
   border: 1px solid rgba(216, 166, 59, 0.2);
   border-radius: 8px;
   background: rgba(20, 25, 16, 0.45);
@@ -3792,7 +3792,7 @@ img.footprint-art {
 .macro-insights-card .green-button {
   width: 100%;
   min-height: 38px;
-  margin-top: 14px;
+  margin-top: var(--space-3);
 }
 
 @media (max-width: 1180px) {
@@ -3832,7 +3832,7 @@ img.footprint-art {
   .macro-header b {
     position: static;
     display: inline-flex;
-    margin-top: 14px;
+    margin-top: var(--space-3);
   }
 
   .macro-kpi-grid {
@@ -3854,7 +3854,7 @@ img.footprint-art {
 
 .solar-detail-page .top-stage-bar {
   grid-template-columns: 420px minmax(0, 1fr) 160px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .solar-detail-page .stage-title {
@@ -3864,13 +3864,13 @@ img.footprint-art {
 .solar-detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 314px;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .solar-detail-main {
   min-width: 0;
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .solar-hero {
@@ -3903,7 +3903,7 @@ img.footprint-art {
   z-index: 2;
   display: flex;
   gap: var(--space-4);
-  margin-top: 18px;
+  margin-top: var(--space-4);
 }
 
 .solar-hero-actions button {
@@ -3935,7 +3935,7 @@ img.footprint-art {
   grid-template-columns: 34px minmax(0, 1fr);
   align-content: center;
   gap: 0 var(--space-2);
-  padding: 10px var(--space-3);
+  padding: var(--space-2) var(--space-3);
   overflow: hidden;
 }
 
@@ -3975,12 +3975,12 @@ img.footprint-art {
 .solar-chart-grid {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .solar-panel {
   overflow: hidden;
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
 }
 
 .climate-overview-panel,
@@ -4021,7 +4021,7 @@ img.footprint-art {
 .solar-path-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 118px;
-  gap: 10px;
+  gap: var(--space-2);
   margin-top: var(--space-2);
 }
 
@@ -4039,7 +4039,7 @@ img.footprint-art {
 }
 
 .daylight-hours h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 17px;
@@ -4051,7 +4051,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 20px 1fr auto;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   margin: 0;
   color: #d8cbb8;
 }
@@ -4064,7 +4064,7 @@ img.footprint-art {
 
 .daylight-hours strong {
   display: block;
-  margin-top: 14px;
+  margin-top: var(--space-3);
   padding: var(--space-3) var(--space-2);
   border-radius: 7px;
   background: rgba(48, 70, 29, 0.44);
@@ -4085,7 +4085,7 @@ img.footprint-art {
 .solar-bottom-grid {
   display: grid;
   grid-template-columns: 0.75fr 0.8fr 1.15fr;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .wind-panel,
@@ -4097,7 +4097,7 @@ img.footprint-art {
 .wind-rose-image {
   width: 100%;
   height: 178px;
-  margin-top: 10px;
+  margin-top: var(--space-2);
   object-fit: cover;
   border-radius: 4px;
 }
@@ -4109,7 +4109,7 @@ img.footprint-art {
   align-items: center;
   gap: var(--space-2);
   margin: 0;
-  padding: 10px 0;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.11);
 }
 
@@ -4149,7 +4149,7 @@ img.footprint-art {
   min-height: 39px;
   display: grid;
   grid-template-columns: 28px 1fr;
-  gap: 6px var(--space-2);
+  gap: var(--space-1) var(--space-2);
   margin: 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.1);
 }
@@ -4176,7 +4176,7 @@ img.footprint-art {
   height: 108px;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  padding: 14px var(--space-3);
+  padding: var(--space-3) var(--space-3);
 }
 
 .seasonal-summary-strip div {
@@ -4222,7 +4222,7 @@ img.footprint-art {
 
 .solar-action-rail {
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
   align-content: start;
 }
 
@@ -4234,7 +4234,7 @@ img.footprint-art {
 
 .recommended-climate-actions {
   height: 360px;
-  padding: 15px var(--space-4);
+  padding: var(--space-4) var(--space-4);
   overflow: hidden;
 }
 
@@ -4248,7 +4248,7 @@ img.footprint-art {
 }
 
 .climate-priorities-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   color: #d8a63b;
   font-size: 12px;
   font-weight: 800;
@@ -4263,7 +4263,7 @@ img.footprint-art {
   align-items: start;
   gap: var(--space-3);
   margin: 0;
-  padding: 10px 0;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
 }
 
@@ -4308,7 +4308,7 @@ img.footprint-art {
 }
 
 .solar-footer {
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 @media (max-width: 1180px) {
@@ -4358,7 +4358,7 @@ img.footprint-art {
     position: relative;
     width: 100%;
     height: 150px;
-    margin-top: 14px;
+    margin-top: var(--space-3);
   }
 
   .climate-overview-image,
@@ -4420,7 +4420,7 @@ img.footprint-art {
 .human-context-main {
   min-width: 0;
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
   align-content: start;
 }
 
@@ -4456,7 +4456,7 @@ img.footprint-art {
 }
 
 .human-hero-copy {
-  padding: var(--space-6) 30px var(--space-2);
+  padding: var(--space-6) var(--space-7) var(--space-2);
 }
 
 .human-hero-copy span {
@@ -4470,7 +4470,7 @@ img.footprint-art {
 .human-hero-copy h1 {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-4);
   margin: var(--space-3) 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 58px;
@@ -4498,9 +4498,9 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 74px 1.25fr repeat(3, 1fr);
   align-items: center;
-  gap: 14px;
-  margin: 10px 30px 0;
-  padding: 0 14px;
+  gap: var(--space-3);
+  margin: var(--space-2) var(--space-7) 0;
+  padding: 0 var(--space-3);
   border: 1px solid rgba(182, 170, 152, 0.17);
   border-radius: 6px;
   background: rgba(14, 22, 19, 0.72);
@@ -4556,13 +4556,13 @@ img.footprint-art {
 .human-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .human-module-card {
   position: relative;
   height: 462px;
-  padding: 15px 14px 96px;
+  padding: var(--space-4) var(--space-3) 96px;
   overflow: hidden;
 }
 
@@ -4602,7 +4602,7 @@ img.footprint-art {
 }
 
 .human-module-card > p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   color: #beb2a2;
 }
 
@@ -4673,7 +4673,7 @@ img.footprint-art {
 .capacity-mini {
   min-height: 68px;
   margin-top: var(--space-2);
-  padding: 10px;
+  padding: var(--space-2);
 }
 
 .capacity-mini strong {
@@ -4750,7 +4750,7 @@ img.footprint-art {
   width: 100%;
   width: calc(100% - 28px);
   min-height: 38px;
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .gold-button {
@@ -4778,14 +4778,14 @@ img.footprint-art {
 
 .regional-summary-grid dl {
   margin: 0;
-  padding: 10px;
+  padding: var(--space-2);
 }
 
 .regional-summary-grid dl div {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 6px 0;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.09);
 }
 
@@ -4805,7 +4805,7 @@ img.footprint-art {
 
 .vision-summary-grid blockquote {
   margin: 0;
-  padding: 18px;
+  padding: var(--space-4);
   color: #e9d7ba;
   font-family: var(--olos-font-display);
   font-size: 16px;
@@ -4814,7 +4814,7 @@ img.footprint-art {
 
 .vision-summary-grid > div {
   display: grid;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .vision-counts {
@@ -4825,7 +4825,7 @@ img.footprint-art {
 }
 
 .vision-counts span {
-  padding: 10px;
+  padding: var(--space-2);
   color: #cebfa7;
 }
 
@@ -4840,7 +4840,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.8fr repeat(4, 1fr) 1.2fr;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
 }
 
@@ -4879,7 +4879,7 @@ img.footprint-art {
 }
 
 .human-synthesis-panel h2 {
-  margin: 0 0 18px;
+  margin: 0 0 var(--space-4);
   font-family: var(--olos-font-display);
   font-size: 24px;
 }
@@ -4889,7 +4889,7 @@ img.footprint-art {
   grid-template-columns: 88px 1fr;
   gap: var(--space-4);
   align-items: center;
-  padding-bottom: 18px;
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid rgba(182, 170, 152, 0.16);
 }
 
@@ -4911,7 +4911,7 @@ img.footprint-art {
 }
 
 .synthesis-section {
-  padding: 15px 0;
+  padding: var(--space-4) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.16);
 }
 
@@ -4926,8 +4926,8 @@ img.footprint-art {
 .synthesis-section p {
   display: grid;
   grid-template-columns: 22px 1fr;
-  gap: 10px;
-  margin: 10px 0;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
   color: #cfc2b3;
   font-size: 14px;
   line-height: 1.35;
@@ -4958,7 +4958,7 @@ img.footprint-art {
   width: 100%;
   width: calc(100% - 46px);
   min-height: 38px;
-  margin-top: 18px;
+  margin-top: var(--space-4);
 }
 
 @media (max-width: 1250px) {
@@ -4978,7 +4978,7 @@ img.footprint-art {
 
 @media (max-width: 760px) {
   .human-context-page {
-    padding: 18px 14px;
+    padding: var(--space-4) var(--space-3);
   }
 
   .human-breadcrumb {
@@ -5032,13 +5032,13 @@ img.footprint-art {
     width: auto;
     height: auto;
     margin: 0 var(--space-6) var(--space-6);
-    padding: 14px;
+    padding: var(--space-3);
   }
 
   .human-metric-block {
     border-right: 0;
     border-bottom: 1px solid rgba(182, 170, 152, 0.14);
-    padding-bottom: 10px;
+    padding-bottom: var(--space-2);
   }
 
   .regional-summary-image {
@@ -5053,7 +5053,7 @@ img.footprint-art {
 
 .diagnostics-page .top-stage-bar {
   grid-template-columns: 410px 1fr 160px;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
 }
 
 .diagnostics-page .stage-title {
@@ -5091,7 +5091,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 45px minmax(0, 1fr) auto;
   align-items: start;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .module-title-row > b {
@@ -5129,7 +5129,7 @@ img.footprint-art {
   position: relative;
   align-self: start;
   min-height: 128px;
-  padding: 14px;
+  padding: var(--space-3);
 }
 
 .module-progress-card span {
@@ -5140,7 +5140,7 @@ img.footprint-art {
 
 .module-progress-card strong {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
   font-weight: 500;
 }
 
@@ -5155,7 +5155,7 @@ img.footprint-art {
 .module-progress-card .outlined-button {
   min-height: 35px;
   margin-top: var(--space-3);
-  padding: 0 15px;
+  padding: 0 var(--space-4);
 }
 
 .diagnostic-kpi-strip {
@@ -5163,8 +5163,8 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   align-items: center;
-  margin-bottom: 10px;
-  padding: 0 14px;
+  margin-bottom: var(--space-2);
+  padding: 0 var(--space-3);
 }
 
 .diagnostic-kpi {
@@ -5173,7 +5173,7 @@ img.footprint-art {
   grid-template-columns: 52px 1fr;
   grid-template-rows: auto auto auto;
   gap: var(--space-1) var(--space-3);
-  padding: 0 18px;
+  padding: 0 var(--space-4);
   border-right: 1px solid rgba(182, 170, 152, 0.13);
 }
 
@@ -5221,13 +5221,13 @@ img.footprint-art {
   display: flex;
   align-items: start;
   justify-content: space-between;
-  gap: 18px;
+  gap: var(--space-4);
   margin-bottom: var(--space-2);
 }
 
 .diagnostic-tabs {
   display: flex;
-  gap: 30px;
+  gap: var(--space-7);
 }
 
 .diagnostic-tabs button,
@@ -5251,7 +5251,7 @@ img.footprint-art {
 
 .diagnostic-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .diagnostic-actions .outlined-button,
@@ -5275,7 +5275,7 @@ img.footprint-art {
 }
 
 .diagnostic-panel {
-  padding: 10px var(--space-3);
+  padding: var(--space-2) var(--space-3);
   overflow: hidden;
 }
 
@@ -5284,7 +5284,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .panel-header h2 {
@@ -5323,7 +5323,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(4, auto) 1fr;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-3);
   padding: 0 var(--space-1);
   color: #b8ad9c;
   font-size: 11px;
@@ -5336,7 +5336,7 @@ img.footprint-art {
 .warning-note {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .map-legend svg {
@@ -5367,7 +5367,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 24px 1fr 64px 142px;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   min-height: 31px;
 }
 
@@ -5429,7 +5429,7 @@ img.footprint-art {
 .warning-note,
 .biodiversity-note {
   margin: var(--space-2) 0 0;
-  padding: var(--space-2) 10px;
+  padding: var(--space-2) var(--space-2);
   border: 1px solid rgba(135, 189, 64, 0.34);
   border-radius: 5px;
   background: rgba(48, 78, 31, 0.2);
@@ -5441,7 +5441,7 @@ img.footprint-art {
 .hydrology-layout {
   display: grid;
   grid-template-columns: 96px 1fr;
-  gap: 10px;
+  gap: var(--space-2);
   margin-top: var(--space-1);
 }
 
@@ -5479,7 +5479,7 @@ img.footprint-art {
 
 .flow-legend {
   display: flex;
-  gap: 15px;
+  gap: var(--space-4);
   margin: var(--space-2) 0 0 137px;
   color: #b9ad9c;
   font-size: 11px;
@@ -5527,7 +5527,7 @@ img.footprint-art {
   position: relative;
   display: grid;
   gap: var(--space-2);
-  margin: var(--space-2) 0 10px;
+  margin: var(--space-2) 0 var(--space-2);
 }
 
 .timeline-list::before {
@@ -5544,7 +5544,7 @@ img.footprint-art {
   position: relative;
   display: grid;
   grid-template-columns: 24px 1fr 48px;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
 }
 
@@ -5656,7 +5656,7 @@ img.footprint-art {
 }
 
 .actions-panel .text-link {
-  margin-top: 10px;
+  margin-top: var(--space-2);
   color: #d8c8ae;
 }
 
@@ -5666,8 +5666,8 @@ img.footprint-art {
   grid-template-columns: 1.1fr 1.25fr 1fr 1.05fr 1.65fr auto;
   align-items: center;
   gap: var(--space-4);
-  margin: 10px -22px 0;
-  padding: 0 34px;
+  margin: var(--space-2) -22px 0;
+  padding: 0 var(--space-8);
   border-top: 1px solid rgba(182, 170, 152, 0.1);
   background: rgba(9, 18, 17, 0.92);
   color: #c5b9a8;
@@ -5709,13 +5709,13 @@ img.footprint-art {
     height: auto;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-3) 0;
-    padding: 14px;
+    padding: var(--space-3);
   }
 
   .diagnostic-footer {
     grid-template-columns: repeat(2, 1fr);
     height: auto;
-    padding: 14px 22px;
+    padding: var(--space-3) var(--space-5);
   }
 }
 
@@ -5749,7 +5749,7 @@ img.footprint-art {
   .diagnostic-kpi {
     border-right: 0;
     border-bottom: 1px solid rgba(182, 170, 152, 0.13);
-    padding: 10px 0;
+    padding: var(--space-2) 0;
   }
 
   .diagnostic-tabs-row {
@@ -5763,7 +5763,7 @@ img.footprint-art {
     width: 100%;
     min-width: 0;
     overflow-x: auto;
-    gap: 22px;
+    gap: var(--space-5);
   }
 
   .diagnostic-tabs button {
@@ -5807,7 +5807,7 @@ img.footprint-art {
 /* Batch 2: module detail pages */
 .detail-page {
   min-width: 0;
-  padding: 18px 22px 22px;
+  padding: var(--space-4) var(--space-5) var(--space-5);
   font-size: 14px;
 }
 
@@ -5831,7 +5831,7 @@ img.footprint-art {
 .breadcrumb-bar nav span {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   white-space: nowrap;
 }
 
@@ -5844,7 +5844,7 @@ img.footprint-art {
 .breadcrumb-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .text-action,
@@ -5866,7 +5866,7 @@ img.footprint-art {
 }
 
 .save-button {
-  padding: 0 22px;
+  padding: 0 var(--space-5);
   background: linear-gradient(#e7b950, #d39a35);
   color: #151007;
   font-weight: 800;
@@ -5880,7 +5880,7 @@ img.footprint-art {
 
 .detail-main {
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -5917,7 +5917,7 @@ img.footprint-art {
 }
 
 .module-hero-copy h1 {
-  margin: 18px 0 18px;
+  margin: var(--space-4) 0 var(--space-4);
   font-family: var(--olos-font-display);
   font-size: clamp(44px, 3.75vw, 56px);
   font-weight: 600;
@@ -5942,7 +5942,7 @@ img.footprint-art {
 
 .form-card,
 .content-card {
-  padding: 18px 22px;
+  padding: var(--space-4) var(--space-5);
 }
 
 .form-card__header,
@@ -5950,7 +5950,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
 }
 
 .form-card__header svg,
@@ -6033,7 +6033,7 @@ img.footprint-art {
 .form-field small {
   justify-self: end;
   margin-top: -28px;
-  padding-right: 10px;
+  padding-right: var(--space-2);
   color: #8f877a;
   font-size: 12px;
 }
@@ -6041,7 +6041,7 @@ img.footprint-art {
 .capacity-grid {
   display: grid;
   grid-template-columns: 1fr 250px;
-  gap: 18px;
+  gap: var(--space-4);
   align-items: center;
 }
 
@@ -6072,7 +6072,7 @@ img.footprint-art {
 
 .capacity-overview strong {
   display: inline-block;
-  margin: 10px var(--space-3) 6px 0;
+  margin: var(--space-2) var(--space-3) var(--space-1) 0;
   font-family: var(--olos-font-display);
   font-size: 31px;
   font-weight: 600;
@@ -6107,7 +6107,7 @@ img.footprint-art {
 
 .capacity-overview em {
   display: inline-block;
-  margin: var(--space-2) 14px 0 0;
+  margin: var(--space-2) var(--space-3) 0 0;
 }
 
 .budget-card {
@@ -6151,7 +6151,7 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 6px var(--space-3);
+  padding: var(--space-1) var(--space-3);
   border: 1px solid rgba(184, 133, 39, 0.45);
   border-radius: 5px;
   background: rgba(86, 59, 12, 0.36);
@@ -6212,7 +6212,7 @@ img.footprint-art {
 }
 
 .theme-box {
-  padding: 14px;
+  padding: var(--space-3);
 }
 
 .theme-box .chip-list {
@@ -6223,7 +6223,7 @@ img.footprint-art {
   min-height: 35px;
   display: flex;
   align-items: center;
-  padding: 0 18px;
+  padding: 0 var(--space-4);
   border: 1px solid rgba(182, 170, 152, 0.18);
   border-radius: 6px;
   color: #aaa194;
@@ -6231,7 +6231,7 @@ img.footprint-art {
 }
 
 .insight-sidebar {
-  padding: 30px var(--space-7);
+  padding: var(--space-7) var(--space-7);
   border-color: rgba(183, 131, 45, 0.55);
 }
 
@@ -6257,7 +6257,7 @@ img.footprint-art {
 }
 
 .insight-sidebar__intro {
-  margin: 18px 0 30px;
+  margin: var(--space-4) 0 var(--space-7);
   color: #c8bba7;
   line-height: 1.55;
 }
@@ -6297,8 +6297,8 @@ img.footprint-art {
 }
 
 .sidebar-list {
-  margin-top: 18px;
-  padding-top: 22px;
+  margin-top: var(--space-4);
+  padding-top: var(--space-5);
   border-top: 1px solid rgba(182, 170, 152, 0.16);
 }
 
@@ -6310,7 +6310,7 @@ img.footprint-art {
 }
 
 .design-tip {
-  margin-top: 18px;
+  margin-top: var(--space-4);
   padding: var(--space-4);
 }
 
@@ -6348,7 +6348,7 @@ img.footprint-art {
 }
 
 .regional-hero .chip-list {
-  margin-top: 18px;
+  margin-top: var(--space-4);
 }
 
 .content-card__header {
@@ -6392,7 +6392,7 @@ img.footprint-art {
 .two-card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .knowledge-card {
@@ -6402,7 +6402,7 @@ img.footprint-art {
 }
 
 .knowledge-card ul {
-  margin: var(--space-1) 0 18px;
+  margin: var(--space-1) 0 var(--space-4);
   padding-left: var(--space-5);
   color: #d8cbb5;
 }
@@ -6473,7 +6473,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: 18px;
+  margin-bottom: var(--space-4);
 }
 
 .regional-map-card h2 svg {
@@ -6498,7 +6498,7 @@ img.footprint-art {
   min-height: 114px;
   display: grid;
   place-items: center;
-  padding: 14px var(--space-2);
+  padding: var(--space-3) var(--space-2);
   text-align: center;
 }
 
@@ -6525,7 +6525,7 @@ img.footprint-art {
 }
 
 .next-steps-panel h3 {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 21px;
 }
@@ -6538,7 +6538,7 @@ img.footprint-art {
   grid-template-columns: 22px minmax(0, 1fr) 16px;
   align-items: center;
   gap: var(--space-2);
-  padding: 10px 0;
+  padding: var(--space-2) 0;
   border: 0;
   border-top: 1px solid rgba(182, 170, 152, 0.12);
   background: transparent;
@@ -6585,7 +6585,7 @@ img.footprint-art {
 
 @media (max-width: 760px) {
   .detail-page {
-    padding: var(--space-4) 14px;
+    padding: var(--space-4) var(--space-3);
   }
 
   .breadcrumb-bar,
@@ -6671,20 +6671,20 @@ img.footprint-art {
 }
 
 .vision-page .top-stage-bar {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
 }
 
 .vision-top-grid {
   display: grid;
   grid-template-columns: 514px 1fr;
   grid-template-rows: 200px 195px;
-  gap: 14px var(--space-4);
+  gap: var(--space-3) var(--space-4);
 }
 
 .vision-intro-card {
   position: relative;
   overflow: hidden;
-  padding: var(--space-7) 26px;
+  padding: var(--space-7) var(--space-6);
   background:
     radial-gradient(circle at 85% 27%, rgba(110, 151, 70, 0.14), transparent 13rem),
     linear-gradient(135deg, rgba(30, 70, 37, 0.78), rgba(10, 20, 18, 0.94));
@@ -6706,7 +6706,7 @@ img.footprint-art {
 }
 
 .vision-intro-card h1 {
-  margin: 15px 0 var(--space-3);
+  margin: var(--space-4) 0 var(--space-3);
   font-family: var(--olos-font-display);
   font-size: 51px;
   font-weight: 600;
@@ -6735,7 +6735,7 @@ img.footprint-art {
 }
 
 .quote-panel {
-  padding: 18px var(--space-5);
+  padding: var(--space-4) var(--space-5);
 }
 
 .quote-panel h2,
@@ -6758,9 +6758,9 @@ img.footprint-art {
 
 .quote-panel blockquote {
   position: relative;
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   min-height: 94px;
-  padding: 14px 50px;
+  padding: var(--space-3) var(--space-12);
   border: 1px solid rgba(182, 170, 152, 0.16);
   border-radius: 6px;
   background: rgba(8, 14, 13, 0.55);
@@ -6807,7 +6807,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 1.22fr 0.86fr 0.98fr 1.05fr;
   grid-template-rows: 264px;
-  gap: 14px;
+  gap: var(--space-3);
   margin-top: var(--space-3);
 }
 
@@ -6819,7 +6819,7 @@ img.footprint-art {
 }
 
 .vision-panel {
-  padding: var(--space-4) 18px;
+  padding: var(--space-4) var(--space-4);
   min-height: 0;
   overflow: hidden;
 }
@@ -6851,7 +6851,7 @@ img.footprint-art {
 .list-panel-row svg {
   width: 30px;
   height: 30px;
-  padding: 6px;
+  padding: var(--space-1);
   border: 1px solid rgba(160, 203, 70, 0.45);
   border-radius: 50%;
   color: #a7cf53;
@@ -6923,7 +6923,7 @@ img.footprint-art {
 .success-panel .green-button {
   width: calc(100% - 36px);
   min-height: 32px;
-  margin: var(--space-2) 18px 0;
+  margin: var(--space-2) var(--space-4) 0;
 }
 
 .list-panel {
@@ -6966,7 +6966,7 @@ img.footprint-art {
 .moodboard-panel .green-button {
   width: 58%;
   min-height: 34px;
-  margin: 14px auto -6px;
+  margin: var(--space-3) auto -6px;
 }
 
 .vision-proverb {
@@ -7039,7 +7039,7 @@ img.footprint-art {
   }
 
   .quote-panel blockquote {
-    padding: 18px 30px;
+    padding: var(--space-4) var(--space-7);
   }
 
   .moodboard-panel .green-button {
@@ -7049,7 +7049,7 @@ img.footprint-art {
   .vision-proverb {
     height: auto;
     flex-wrap: wrap;
-    padding: var(--space-4) 0 6px;
+    padding: var(--space-4) 0 var(--space-1);
     text-align: center;
   }
 }
@@ -7075,16 +7075,16 @@ img.footprint-art {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 /* Header */
 .sectors-header {
-  padding: 14px 0 var(--space-1);
+  padding: var(--space-3) 0 var(--space-1);
 }
 
 .sectors-header h1 {
-  margin: 10px 0 var(--space-2);
+  margin: var(--space-2) 0 var(--space-2);
   font-family: var(--olos-font-display);
   font-size: clamp(32px, 2.8vw, 44px);
   font-weight: 600;
@@ -7105,8 +7105,8 @@ img.footprint-art {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  margin-top: 10px;
-  padding: var(--space-1) 10px;
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border-radius: 20px;
   background: rgba(165, 199, 54, 0.1);
   border: 1px solid rgba(165, 199, 54, 0.22);
@@ -7121,7 +7121,7 @@ img.footprint-art {
 .sectors-kpi-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .sectors-kpi-card {
@@ -7129,7 +7129,7 @@ img.footprint-art {
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .sectors-kpi-card svg:first-child {
@@ -7163,14 +7163,14 @@ img.footprint-art {
 
 /* Synthesis card */
 .sectors-synthesis-card {
-  padding: 18px var(--space-5);
+  padding: var(--space-4) var(--space-5);
 }
 
 .sectors-synthesis-card h2 {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 12px;
   font-weight: 800;
@@ -7185,7 +7185,7 @@ img.footprint-art {
 }
 
 .sectors-synthesis-card > p {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-3);
   color: var(--olos-text-body);
   font-size: 14px;
   line-height: 1.6;
@@ -7193,14 +7193,14 @@ img.footprint-art {
 
 .sectors-synthesis-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 /* Tool grid (compass + cartographic) */
 .sectors-tool-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: var(--space-2);
   flex: 1;
 }
 
@@ -7264,7 +7264,7 @@ img.footprint-art {
 .sectors-open-btn {
   align-self: flex-start;
   font-size: 12px;
-  padding: 6px var(--space-3);
+  padding: var(--space-1) var(--space-3);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -7274,13 +7274,13 @@ img.footprint-art {
 .sectors-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   min-width: 0;
   padding-top: 0;
 }
 
 .sectors-sidebar-card {
-  padding: var(--space-4) 18px;
+  padding: var(--space-4) var(--space-4);
 }
 
 .sectors-sidebar-card h2 {
@@ -7333,7 +7333,7 @@ img.footprint-art {
 }
 
 .sectors-cta {
-  margin-top: 14px;
+  margin-top: var(--space-3);
   width: 100%;
   display: flex;
   align-items: center;
@@ -7347,7 +7347,7 @@ img.footprint-art {
 .sc-page {
   display: flex;
   flex-direction: column;
-  padding: 0 22px var(--space-7);
+  padding: 0 var(--space-5) var(--space-7);
   gap: 0;
 }
 
@@ -7369,11 +7369,11 @@ img.footprint-art {
 .sc-back-link:hover { color: var(--olos-cream); }
 
 .sc-header {
-  padding: 6px 0 10px;
+  padding: var(--space-1) 0 var(--space-2);
 }
 
 .sc-header h1 {
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1);
   font-family: var(--olos-font-display);
   font-size: clamp(30px, 2.6vw, 42px);
   font-weight: 600;
@@ -7395,14 +7395,14 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .sc-kpi-card {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
 }
 
 .sc-kpi-card span {
@@ -7429,14 +7429,14 @@ img.footprint-art {
 .sc-main-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .sc-right-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -7444,7 +7444,7 @@ img.footprint-art {
 .sc-compass-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   padding: var(--space-4);
 }
 
@@ -7502,7 +7502,7 @@ img.footprint-art {
 
 /* Site map */
 .sc-map-panel {
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
 }
 
 .sc-map-panel h3 {
@@ -7531,12 +7531,12 @@ img.footprint-art {
 
 /* Observations */
 .sc-observations-panel {
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
   flex: 1;
 }
 
 .sc-observations-panel h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 10.5px;
   font-weight: 700;
@@ -7596,13 +7596,13 @@ img.footprint-art {
 .sc-bottom-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .sc-analysis-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 /* Placements */
@@ -7675,11 +7675,11 @@ img.footprint-art {
 
 /* Design alignment */
 .sc-alignment-card {
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .sc-alignment-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 10.5px;
   font-weight: 800;
@@ -7702,12 +7702,12 @@ img.footprint-art {
 
 /* Priority actions */
 .sc-priority-card {
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
   flex: 1;
 }
 
 .sc-priority-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 10.5px;
   font-weight: 800;
@@ -7741,12 +7741,12 @@ img.footprint-art {
 }
 
 .sc-back-btn {
-  margin-top: 10px;
+  margin-top: var(--space-2);
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-1);
   font-size: 12px;
 }
 
@@ -7755,7 +7755,7 @@ img.footprint-art {
 .cd-page {
   display: flex;
   flex-direction: column;
-  padding: 0 22px var(--space-7);
+  padding: 0 var(--space-5) var(--space-7);
   gap: 0;
 }
 
@@ -7772,10 +7772,10 @@ img.footprint-art {
 }
 .cd-back-link:hover { color: var(--olos-cream); }
 
-.cd-header { padding: 6px 0 10px; }
+.cd-header { padding: var(--space-1) 0 var(--space-2); }
 
 .cd-header h1 {
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1);
   font-family: var(--olos-font-display);
   font-size: clamp(30px, 2.6vw, 42px);
   font-weight: 600;
@@ -7797,14 +7797,14 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .cd-kpi-card {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-3) 14px;
+  padding: var(--space-3) var(--space-3);
 }
 
 .cd-kpi-card span {
@@ -7823,14 +7823,14 @@ img.footprint-art {
 .cd-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 268px;
-  gap: 10px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .cd-map-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -7848,7 +7848,7 @@ img.footprint-art {
 
 /* Layers panel */
 .cd-layers-panel {
-  padding: 14px var(--space-3);
+  padding: var(--space-3) var(--space-3);
   border-right: 1px solid var(--olos-line-soft);
   display: flex;
   flex-direction: column;
@@ -7869,12 +7869,12 @@ img.footprint-art {
   color: var(--olos-gold);
 }
 
-.cd-layer-item { margin-bottom: 6px; }
+.cd-layer-item { margin-bottom: var(--space-1); }
 
 .cd-layer-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .cd-layer-dot {
@@ -7947,7 +7947,7 @@ img.footprint-art {
 
 .cd-edit-layers {
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: var(--space-2);
   background: none;
   border: none;
   cursor: pointer;
@@ -8005,7 +8005,7 @@ img.footprint-art {
 }
 
 .cd-legend-panel h3 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
   font-size: 10px;
   font-weight: 800;
@@ -8017,7 +8017,7 @@ img.footprint-art {
 .cd-legend-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px var(--space-6);
+  gap: var(--space-3) var(--space-6);
 }
 
 .cd-legend-group { display: flex; flex-direction: column; gap: var(--space-1); }
@@ -8034,7 +8034,7 @@ img.footprint-art {
 .cd-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   font-size: 11px;
   color: var(--olos-text-body);
 }
@@ -8052,18 +8052,18 @@ img.footprint-art {
 .cd-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .cd-sidebar-card {
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .cd-sidebar-card h2 {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1);
   margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
   font-size: 10.5px;
@@ -8076,8 +8076,8 @@ img.footprint-art {
 .cd-sidebar-card h2 svg { color: var(--olos-gold); flex-shrink: 0; }
 
 .cd-pattern-item {
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid rgba(157,121,55,0.12);
 }
 
@@ -8156,7 +8156,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-1);
   font-size: 12.5px;
 }
 
@@ -8245,7 +8245,7 @@ img.footprint-art {
 
 .journal-frame {
   min-height: calc(100vh - 70px);
-  padding: var(--space-7) var(--space-8) 14px;
+  padding: var(--space-7) var(--space-8) var(--space-3);
   background:
     radial-gradient(circle at 85% 6%, rgba(180, 128, 40, 0.14), transparent 22%),
     radial-gradient(circle at 18% 14%, rgba(64, 102, 44, 0.18), transparent 28%),
@@ -8255,9 +8255,9 @@ img.footprint-art {
 .journal-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
-  gap: 18px;
+  gap: var(--space-4);
   align-items: end;
-  margin-bottom: 18px;
+  margin-bottom: var(--space-4);
 }
 
 .journal-header h1 {
@@ -8289,7 +8289,7 @@ img.footprint-art {
   justify-content: center;
   gap: var(--space-2);
   min-height: 36px;
-  padding: 0 14px;
+  padding: 0 var(--space-3);
   border: 1px solid rgba(207, 190, 151, 0.22);
   border-radius: 7px;
   color: #e7d8bd;
@@ -8306,7 +8306,7 @@ img.footprint-art {
 
 .journal-header nav {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
 }
 
@@ -8320,8 +8320,8 @@ img.footprint-art {
 .journal-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 14px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .journal-metric {
@@ -8331,14 +8331,14 @@ img.footprint-art {
   grid-template-rows: 1fr 1fr;
   align-items: center;
   gap: 0 var(--space-3);
-  padding: 14px var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .journal-metric svg {
   grid-row: 1 / span 2;
   width: 44px;
   height: 44px;
-  padding: 10px;
+  padding: var(--space-2);
   border-radius: 50%;
   color: #a7cf53;
   background: rgba(77, 112, 38, 0.2);
@@ -8376,7 +8376,7 @@ img.footprint-art {
 .journal-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 308px;
-  gap: 14px;
+  gap: var(--space-3);
   align-items: start;
 }
 
@@ -8391,7 +8391,7 @@ img.footprint-art {
   gap: var(--space-2);
   align-items: center;
   margin-bottom: var(--space-3);
-  padding: 10px;
+  padding: var(--space-2);
 }
 
 .journal-filters label,
@@ -8435,12 +8435,12 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 108px 220px minmax(210px, 1fr) 126px 170px 128px 116px 32px;
   align-items: center;
-  column-gap: 14px;
+  column-gap: var(--space-3);
 }
 
 .entries-head {
   min-height: 42px;
-  padding: 0 14px;
+  padding: 0 var(--space-3);
   border-bottom: 1px solid rgba(207, 190, 151, 0.12);
   color: #9f927f;
   font-size: 10px;
@@ -8451,7 +8451,7 @@ img.footprint-art {
 
 .entry-row {
   min-height: 65px;
-  padding: var(--space-2) 14px;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid rgba(207, 190, 151, 0.1);
   color: #bfb4a2;
   font-size: 12px;
@@ -8477,7 +8477,7 @@ img.footprint-art {
 
 .entry-row em {
   justify-self: start;
-  padding: 6px 10px;
+  padding: var(--space-1) var(--space-2);
   border-radius: 999px;
   font-size: 11px;
   font-style: normal;
@@ -8550,20 +8550,20 @@ img.footprint-art {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 var(--space-3);
   color: #a99e8d;
   font-size: 12px;
 }
 
 .entries-table-card footer nav {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .entries-table-card footer button {
   min-width: 34px;
   min-height: 32px;
-  padding: 0 10px;
+  padding: 0 var(--space-2);
 }
 
 .entries-table-card footer button.is-active {
@@ -8574,12 +8574,12 @@ img.footprint-art {
 
 .journal-sidebar {
   display: grid;
-  gap: 14px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
 .journal-side-card {
-  padding: var(--space-4) 18px;
+  padding: var(--space-4) var(--space-4);
 }
 
 .journal-side-card h2 {
@@ -8641,7 +8641,7 @@ img.footprint-art {
 
   .journal-frame {
     min-height: calc(100vh - 58px);
-    padding: 18px var(--space-7) 6px;
+    padding: var(--space-4) var(--space-7) var(--space-1);
   }
 
   .journal-header {
@@ -8663,14 +8663,14 @@ img.footprint-art {
   }
 
   .journal-metrics {
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
   }
 
   .journal-metric {
     min-height: 68px;
     grid-template-columns: 44px 1fr auto;
-    padding: 10px var(--space-3);
+    padding: var(--space-2) var(--space-3);
   }
 
   .journal-metric svg {
@@ -8718,7 +8718,7 @@ img.footprint-art {
   }
 
   .entry-row i {
-    padding: var(--space-1) 6px;
+    padding: var(--space-1) var(--space-1);
   }
 
   .entries-table-card footer {
@@ -8730,11 +8730,11 @@ img.footprint-art {
   }
 
   .journal-sidebar {
-    gap: 10px;
+    gap: var(--space-2);
   }
 
   .journal-side-card {
-    padding: var(--space-3) 14px;
+    padding: var(--space-3) var(--space-3);
   }
 
   .journal-side-card h2 {
@@ -8743,7 +8743,7 @@ img.footprint-art {
   }
 
   .journal-side-card p {
-    padding: 6px 0;
+    padding: var(--space-1) 0;
     font-size: 11px;
     line-height: 1.27;
   }
@@ -8762,7 +8762,7 @@ img.footprint-art {
   }
 
   .journal-frame {
-    padding-inline: 22px;
+    padding-inline: var(--space-5);
   }
 
   .journal-header {
@@ -8808,7 +8808,7 @@ img.footprint-art {
   }
 
   .journal-frame {
-    padding: 18px var(--space-3) var(--space-3);
+    padding: var(--space-4) var(--space-3) var(--space-3);
   }
 
   .journal-header h1 {
@@ -8836,7 +8836,7 @@ img.footprint-art {
 
 .swot-page {
   min-width: 0;
-  padding: 18px 22px var(--space-2) 38px;
+  padding: var(--space-4) var(--space-5) var(--space-2) var(--space-9);
   border: 1px solid rgba(199, 165, 89, 0.14);
   border-radius: 12px;
   background:
@@ -8856,7 +8856,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 6px 0 0;
+  margin: var(--space-1) 0 0;
   color: #a99e8e;
   font-size: 12px;
 }
@@ -8868,7 +8868,7 @@ img.footprint-art {
 
 .swot-topbar nav {
   display: flex;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .swot-topbar nav span {
@@ -8903,7 +8903,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 368px;
   gap: var(--space-6);
-  padding-top: 26px;
+  padding-top: var(--space-6);
 }
 
 .swot-hero h1 {
@@ -8934,7 +8934,7 @@ img.footprint-art {
 .swot-quadrants {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--space-2);
   margin-bottom: var(--space-3);
 }
 
@@ -8943,9 +8943,9 @@ img.footprint-art {
   min-height: 124px;
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 18px;
-  gap: var(--space-2) 14px;
+  gap: var(--space-2) var(--space-3);
   align-content: center;
-  padding: 18px;
+  padding: var(--space-4);
 }
 
 .swot-quadrant > svg:first-child {
@@ -8999,7 +8999,7 @@ img.footprint-art {
   min-height: 90px;
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr) 292px;
-  gap: 18px;
+  gap: var(--space-4);
   align-items: center;
   padding: var(--space-4);
   margin-bottom: var(--space-3);
@@ -9045,7 +9045,7 @@ img.footprint-art {
 .swot-equations p {
   display: grid;
   grid-template-columns: 28px 18px 28px 34px minmax(0, 1fr);
-  gap: 6px;
+  gap: var(--space-1);
   align-items: center;
   margin: var(--space-2) 0;
 }
@@ -9062,7 +9062,7 @@ img.footprint-art {
 .swot-middle-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .swot-panel-card {
@@ -9104,9 +9104,9 @@ img.footprint-art {
 .swot-journal-rows p {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 92px 96px;
-  gap: 10px;
+  gap: var(--space-2);
   margin: 0;
-  padding: var(--space-2) 10px;
+  padding: var(--space-2) var(--space-2);
   color: #d2c3aa;
   font-size: 12px;
   border-bottom: 1px solid rgba(199, 165, 89, 0.12);
@@ -9128,8 +9128,8 @@ img.footprint-art {
 .swot-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: var(--space-3) 0 18px;
+  gap: var(--space-1);
+  margin: var(--space-3) 0 var(--space-4);
 }
 
 .swot-tags span {
@@ -9149,7 +9149,7 @@ img.footprint-art {
 .diagnosis-card section {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 92px;
-  gap: 14px;
+  gap: var(--space-3);
   padding: var(--space-3);
   border: 1px solid rgba(199, 165, 89, 0.16);
   border-radius: 7px;
@@ -9195,7 +9195,7 @@ img.footprint-art {
 .diagnosis-lists {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: var(--space-4);
   margin: var(--space-3) 0 var(--space-4);
 }
 
@@ -9218,14 +9218,14 @@ img.footprint-art {
 }
 
 .swot-implications-card {
-  padding: 22px var(--space-4) var(--space-4);
+  padding: var(--space-5) var(--space-4) var(--space-4);
   border-color: rgba(209, 157, 58, 0.48);
 }
 
 .swot-implications-card h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   font-size: 16px;
 }
 
@@ -9239,7 +9239,7 @@ img.footprint-art {
 .swot-implications-card p {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr) 32px;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   margin: 0;
   padding: var(--space-3) 0;
@@ -9281,7 +9281,7 @@ img.footprint-art {
 
 .swot-implications-card .green-button {
   min-height: 38px;
-  margin: 14px 0 var(--space-2);
+  margin: var(--space-3) 0 var(--space-2);
   border: 0;
   border-radius: 999px;
   color: white;
@@ -9302,7 +9302,7 @@ img.footprint-art {
   grid-template-columns: 48px minmax(0, 1fr);
   align-content: center;
   gap: var(--space-1) var(--space-3);
-  padding: 0 14px;
+  padding: 0 var(--space-3);
   border-right: 1px solid rgba(199, 165, 89, 0.16);
 }
 
@@ -9353,7 +9353,7 @@ img.footprint-art {
 
 @media (min-width: 1181px) {
   .swot-page {
-    padding: 14px 22px var(--space-2) 38px;
+    padding: var(--space-3) var(--space-5) var(--space-2) var(--space-9);
   }
 
   .swot-topbar {
@@ -9361,8 +9361,8 @@ img.footprint-art {
   }
 
   .swot-content {
-    gap: 22px;
-    padding-top: 18px;
+    gap: var(--space-5);
+    padding-top: var(--space-4);
   }
 
   .swot-hero h1 {
@@ -9374,14 +9374,14 @@ img.footprint-art {
   }
 
   .swot-hero p {
-    margin-bottom: 15px;
+    margin-bottom: var(--space-4);
     font-size: 13px;
     line-height: 1.35;
   }
 
   .swot-quadrant {
     min-height: 108px;
-    padding: 14px;
+    padding: var(--space-3);
   }
 
   .swot-quadrant > svg:first-child {
@@ -9417,7 +9417,7 @@ img.footprint-art {
   }
 
   .swot-journal-rows p {
-    padding: 6px var(--space-2);
+    padding: var(--space-1) var(--space-2);
     font-size: 11px;
   }
 
@@ -9440,7 +9440,7 @@ img.footprint-art {
   }
 
   .swot-implications-card {
-    padding: 18px 14px 14px;
+    padding: var(--space-4) var(--space-3) var(--space-3);
   }
 
   .swot-implications-card p {
@@ -9459,7 +9459,7 @@ img.footprint-art {
 
   .swot-health-strip div {
     grid-template-columns: 40px minmax(0, 1fr);
-    padding: 0 10px;
+    padding: 0 var(--space-2);
   }
 
   .swot-health-strip svg {
@@ -9476,7 +9476,7 @@ img.footprint-art {
 @media (max-width: 720px) {
 
   .swot-page {
-    padding: 18px 14px;
+    padding: var(--space-4) var(--space-3);
   }
 
   .swot-topbar nav {
@@ -9493,7 +9493,7 @@ img.footprint-art {
 
 .diagnosis-report-page {
   min-width: 0;
-  padding: var(--space-4) 18px var(--space-1) var(--space-7);
+  padding: var(--space-4) var(--space-4) var(--space-1) var(--space-7);
 }
 
 .report-topbar {
@@ -9508,7 +9508,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 6px 0 0;
+  margin: var(--space-1) 0 0;
   color: #b9ad98;
   font-size: 12px;
 }
@@ -9547,13 +9547,13 @@ img.footprint-art {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: center;
   padding: 0 var(--space-5);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .report-stage-bar span {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   color: #a99e8e;
 }
 
@@ -9578,7 +9578,7 @@ img.footprint-art {
 }
 
 .diagnosis-report-frame {
-  padding: 22px var(--space-7) 14px;
+  padding: var(--space-5) var(--space-7) var(--space-3);
   border: 1px solid rgba(199, 165, 89, 0.18);
   border-radius: 10px;
   background:
@@ -9603,7 +9603,7 @@ img.footprint-art {
 }
 
 .diagnosis-report-hero p {
-  margin: 6px 0 0;
+  margin: var(--space-1) 0 0;
   color: #d2c3aa;
   font-style: italic;
 }
@@ -9611,9 +9611,9 @@ img.footprint-art {
 .report-generated-card {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
-  padding: 14px;
+  padding: var(--space-3);
 }
 
 .report-generated-card svg {
@@ -9629,30 +9629,30 @@ img.footprint-art {
 .diagnosis-top-grid {
   display: grid;
   grid-template-columns: 0.84fr 1.18fr 0.98fr;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .diagnosis-lower-grid {
   display: grid;
   grid-template-columns: 1.16fr 0.88fr 1.08fr;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .diagnosis-stack {
   display: grid;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .report-card {
-  padding: 18px;
+  padding: var(--space-4);
 }
 
 .report-card h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 14px;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
   color: #f0dfc5;
   font-family: var(--olos-font-display);
   font-size: 18px;
@@ -9676,7 +9676,7 @@ img.footprint-art {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-2);
   margin-top: var(--space-6);
-  padding-top: 14px;
+  padding-top: var(--space-3);
   border-top: 1px solid rgba(199, 165, 89, 0.18);
 }
 
@@ -9713,7 +9713,7 @@ img.footprint-art {
 
 .radar-wrap strong {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--space-1);
   color: #d8b44e;
   font-size: 18px;
 }
@@ -9758,7 +9758,7 @@ img.footprint-art {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
   gap: var(--space-3);
-  margin: 18px 0;
+  margin: var(--space-4) 0;
   color: #9bd64a;
 }
 
@@ -9782,7 +9782,7 @@ img.footprint-art {
 .report-actions-card p {
   display: grid;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .findings-card header {
@@ -9794,7 +9794,7 @@ img.footprint-art {
 .findings-card p {
   grid-template-columns: 36px minmax(0, 1fr) 70px 78px 16px;
   margin: 0;
-  padding: 10px 0;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid rgba(199, 165, 89, 0.12);
 }
 
@@ -9826,7 +9826,7 @@ img.footprint-art {
 .risk-flags-report p {
   display: grid;
   grid-template-columns: 66px minmax(0, 1fr);
-  gap: 10px;
+  gap: var(--space-2);
   margin: var(--space-2) 0;
   color: #d2c3aa;
 }
@@ -9904,7 +9904,7 @@ img.footprint-art {
 
 @media (min-width: 1181px) {
   .diagnosis-report-page {
-    padding: var(--space-3) 18px var(--space-1) var(--space-7);
+    padding: var(--space-3) var(--space-4) var(--space-1) var(--space-7);
   }
 
   .report-topbar {
@@ -9917,7 +9917,7 @@ img.footprint-art {
   }
 
   .diagnosis-report-frame {
-    padding: var(--space-4) var(--space-7) 10px;
+    padding: var(--space-4) var(--space-7) var(--space-2);
   }
 
   .diagnosis-report-hero {
@@ -9934,7 +9934,7 @@ img.footprint-art {
   }
 
   .report-generated-card {
-    padding: 10px;
+    padding: var(--space-2);
   }
 
   .diagnosis-top-grid,
@@ -9989,7 +9989,7 @@ img.footprint-art {
   }
 
   .report-swot-overview > p {
-    margin: 6px 0 0;
+    margin: var(--space-1) 0 0;
     font-size: 10px;
   }
 
@@ -10003,7 +10003,7 @@ img.footprint-art {
   .top-insights p svg {
     width: 28px;
     height: 28px;
-    padding: 6px;
+    padding: var(--space-1);
   }
 
   .top-insights small {
@@ -10023,7 +10023,7 @@ img.footprint-art {
   .findings-card p svg {
     width: 26px;
     height: 26px;
-    padding: 6px;
+    padding: var(--space-1);
   }
 
   .findings-card small {
@@ -10055,12 +10055,12 @@ img.footprint-art {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .swot-mini-grid span {
   min-height: 72px;
-  padding: 10px;
+  padding: var(--space-2);
   border: 1px solid rgba(116, 168, 77, 0.35);
   border-radius: 5px;
   background: rgba(29, 55, 25, 0.28);
