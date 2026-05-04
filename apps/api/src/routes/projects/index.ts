@@ -4,13 +4,12 @@ import { CreateProjectInput, UpdateProjectInput, ProjectSummary, toCamelCase } f
 import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
 import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.js';
 
+const BUILTIN_PROJECT_ID = '00000000-0000-0000-0000-0000005a3791';
+
 export default async function projectRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
 
   // Builtin sample projects (migration 017) are read-only for everyone.
-  // RBAC already collapses them to the 'viewer' role so requireRole()
-  // gates them out of mutating routes — but the explicit 403 here is a
-  // belt-and-suspenders defence in case RBAC is ever reworked.
   const refuseIfBuiltin = async (projectId: string) => {
     const [row] = await db`
       SELECT is_builtin FROM projects WHERE id = ${projectId}
@@ -21,11 +20,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
   };
 
   // GET /projects/builtins — public list of system-owned sample projects.
-  // No auth required. Powers the unauthenticated home page so every visitor
-  // can browse the canonical "351 House — Atlas Sample" before signing in.
-  // Each row also embeds its `project_layers` summaries so `siteDataStore`
-  // can hydrate the Stage 1 numeric rows (hardiness zone, annual precip,
-  // mean slope, elevation range) without a second authenticated round-trip.
+  // No auth required. Each row embeds its `project_layers` summaries.
   fastify.get('/builtins', async () => {
     const rows = await db`
       SELECT
@@ -42,10 +37,6 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       ORDER BY p.created_at
     `;
 
-    // Fetch project_layers summaries for every builtin row in a single
-    // round-trip, then group by project_id below. Shape the rows by hand
-    // so summary_data passes through untouched (snake_case canonical) —
-    // toCamelCase() would recursively re-key the jsonb and break consumers.
     const layerRows = rows.length
       ? await db`
         SELECT project_id, layer_type, source_api, fetch_status, confidence,
@@ -71,10 +62,6 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       layersByProject.set(l.project_id, list);
     }
 
-    // ProjectSummary doesn't include the geometry; emit the summary +
-    // attach `parcelBoundaryGeojson` and `layers` separately so the public
-    // sample ships its polygon and Tier-1 layer summaries to
-    // unauthenticated visitors. Payload is small and non-sensitive.
     return {
       data: rows.map((r) => ({
         ...ProjectSummary.parse(toCamelCase(r)),
@@ -86,9 +73,95 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     };
   });
 
-  // GET /projects — list current user's projects (owned + shared) plus
-  // any system-owned builtin samples (visible to every authenticated user
-  // — see migration 017_builtin_sample_project.sql).
+  // GET /projects/builtins/assessment — public; returns the 351 House site assessment + terrain.
+  fastify.get('/builtins/assessment', async () => {
+    const [assessment] = await db`
+      SELECT
+        sa.id, sa.project_id, sa.version, sa.is_current,
+        sa.confidence,
+        sa.overall_score::float8  AS overall_score,
+        sa.score_breakdown,
+        sa.flags,
+        sa.needs_site_visit,
+        sa.data_sources_used,
+        sa.computed_at
+      FROM site_assessments sa
+      WHERE sa.project_id = ${BUILTIN_PROJECT_ID} AND sa.is_current = true
+    `;
+    if (!assessment) return { data: null, error: null };
+
+    const [terrain] = await db`
+      SELECT * FROM terrain_analysis
+      WHERE project_id = ${BUILTIN_PROJECT_ID}
+    `;
+
+    const terrainAnalysis = terrain ? {
+      curvature: {
+        profileMean: terrain.curvature_profile_mean,
+        planMean: terrain.curvature_plan_mean,
+        classification: terrain.curvature_classification,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      viewshed: {
+        visiblePct: terrain.viewshed_visible_pct,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      frostPocket: {
+        areaPct: terrain.frost_pocket_area_pct,
+        severity: terrain.frost_pocket_severity,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      coldAirDrainage: {
+        riskRating: terrain.cold_air_risk_rating,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      tpi: {
+        classification: terrain.tpi_classification,
+        dominantClass: terrain.tpi_dominant_class,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      twi: {
+        mean: terrain.twi_mean,
+        dominantClass: terrain.twi_dominant_class,
+        classification: terrain.twi_classification,
+        confidence: terrain.confidence,
+        dataSources: terrain.data_sources ?? [],
+        computedAt: terrain.computed_at,
+      },
+      elevation: {
+        minM: terrain.elevation_min_m,
+        maxM: terrain.elevation_max_m,
+        meanM: terrain.elevation_mean_m,
+      },
+      slope: {
+        minDeg: terrain.slope_min_deg,
+        maxDeg: terrain.slope_max_deg,
+        meanDeg: terrain.slope_mean_deg,
+      },
+      aspectDominant: terrain.aspect_dominant,
+      erosion: {
+        meanTHaYr: terrain.erosion_mean_t_ha_yr,
+        maxTHaYr: terrain.erosion_max_t_ha_yr,
+        dominantClass: terrain.erosion_dominant_class,
+        confidence: terrain.erosion_confidence,
+      },
+      sourceApi: terrain.source_api,
+    } : null;
+
+    return { data: { ...(toCamelCase(assessment) as Record<string, unknown>), terrainAnalysis }, error: null };
+  });
+
+  // GET /projects — list current user's projects (owned + shared) plus builtin samples.
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
       SELECT DISTINCT ON (p.id)

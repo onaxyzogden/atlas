@@ -37,11 +37,23 @@ export const ProjectMetadata = z.object({
   legalDescription: z.string().max(2000).optional(),
   fieldObservations: z.string().max(5000).optional(),
   restrictionsCovenants: z.string().max(2000).optional(),
-  mapProjection: z.string().max(50).optional(),
-  soilNotes: SoilNotes.optional(),
+  mapProjection: z.string().max(200).optional(),
   centerLat: z.number().min(-90).max(90).optional(),
   centerLng: z.number().min(-180).max(180).optional(),
-}).strict();
+  soilNotes: SoilNotes.optional(),
+  // Climate characterisation (Tier 1 pipeline / ECCC normals)
+  hardinessZone: z.string().max(10).optional(),
+  annualPrecipMm: z.number().optional(),
+  frostFreeDays: z.number().optional(),
+  lastFrostAvg: z.string().max(20).optional(),
+  firstFallFrostAvg: z.string().max(20).optional(),
+  avgDailySolarKwhM2: z.number().optional(),
+  prevailingWindDir: z.string().max(20).optional(),
+  climateNormals: z.string().max(100).optional(),
+  // Human-context fields captured by intake wizard / steward survey
+  stewardName: z.string().max(200).optional(),
+  visionStatement: z.string().max(2000).optional(),
+}).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
 export const ProjectType = z.enum([
@@ -95,6 +107,7 @@ export const ProjectSummary = z.object({
   // Builtin sample project flag (migration 017). Read-only for every
   // account; the system user is the sole owner.
   isBuiltin: z.boolean().default(false),
+  metadata: ProjectMetadata.nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

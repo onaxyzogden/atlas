@@ -6,7 +6,8 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   JWT_SECRET: z.string().min(32),
-  CORS_ORIGIN: z.string().default('http://localhost:5200'), // Must be set explicitly in production
+  // Comma-separated list of allowed origins. Set exactly in production; defaults cover both local dev apps.
+  CORS_ORIGIN: z.string().default('http://localhost:5200,http://localhost:5300'),
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
   SUPABASE_URL: z.string().url().optional().or(z.literal('')).transform((v) => v || undefined),

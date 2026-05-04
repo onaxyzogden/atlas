@@ -4,6 +4,112 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-03 — TanStack Router migration (atlas-ui)
+
+Replaced the 12-way `window.location.pathname` switch in `apps/atlas-ui/src/main.jsx`
+with TanStack Router v1.79.0.
+
+**Files changed:**
+- `apps/atlas-ui/package.json` — added `@tanstack/react-router: ^1.79.0`
+- `apps/atlas-ui/src/routes/index.jsx` (new) — full route tree: `rootRoute`,
+  `indexRoute` (/ → /observe redirect via `beforeLoad`), 11 leaf routes,
+  `notFoundComponent` on the root for 404 handling
+- `apps/atlas-ui/src/main.jsx` — replaced pathname switch with `<RouterProvider router={router} />`
+- `apps/atlas-ui/vite.config.js` — added `resolve.dedupe: ["react", "react-dom"]`
+
+**Duplicate React fix** — workspace root `node_modules` contains React 18.3.1 (used by
+`apps/web`); `apps/atlas-ui/node_modules` has React 19.2.5. TanStack Router was
+resolving React 18, causing "Invalid hook call" errors. `resolve.dedupe` in Vite pins
+all React imports to the atlas-ui local copy (React 19).
+
+**404 handling** — TanStack Router v1 does not match `path: "*"` the same way other
+routers do. Custom 404 uses `notFoundComponent` on `createRootRoute` instead.
+
+**Smoke test** — all 12 routes return HTTP 200 from Vite dev server; no console errors;
+custom 404 renders correctly for unknown paths.
+
+---
+
+## 2026-05-03 — `GET /projects/builtins` API endpoint + migration 016
+
+New public (unauthenticated) endpoint in `apps/api/src/routes/projects/index.ts`
+returns the 351 House demo project by sentinel UUID
+(`00000000-0000-0000-0000-0000005a3791`).
+
+**Migration `016_builtin_sample_project.sql`** — inserts a sentinel service
+user (`00000000-0000-0000-0000-000000000001`, `auth_provider = 'system'`) and
+the 351 House project row with `ON CONFLICT DO NOTHING`. Applied against
+local dev DB (row already existed from earlier manual seed — idempotent).
+
+**Route** — `GET /projects/builtins` registered before `/:id` (avoids
+Fastify matching `"builtins"` as a param). No `preHandler` — fully public.
+`acreage` and `data_completeness_score` cast to `float8` in the SELECT to
+prevent Zod `invalid_type` errors (PostgreSQL `numeric` columns are returned
+as strings by the postgres.js driver).
+
+**CORS** — `CORS_ORIGIN` changed from a single string to a comma-separated
+list; `app.ts` splits it into an array. Default now includes both
+`http://localhost:5200` (apps/web) and `http://localhost:5300` (apps/atlas-ui).
+Production deployments set `CORS_ORIGIN` explicitly as a single value.
+
+**Smoke test** — `atlas-ui` browser context (`localhost:5300`) fetches the
+endpoint cross-origin: `status 200 · name "351 House — Atlas Sample" · CA/ON ·
+11.95 ha · hasParcelBoundary true`.
+
+Next: replace `builtin-sample.js` static `project`/`siteBanner` top-level
+constants with a `useBuiltinProject()` hook that reads from this endpoint.
+
+---
+
+## 2026-05-03 — `apps/atlas-ui` lifted; 11 OBSERVE pages on typed `builtin-sample.js` adapter
+
+New app `apps/atlas-ui` (React 19 + Vite 7, port 5300) added to the
+pnpm + Turborepo workspace alongside `apps/web`. The OGDEN Land
+Operating System prototype was lifted verbatim into the monorepo
+(Phase 1A), QaOverlay-toggled to visual fidelity (Phase 1B), then
+all 11 OBSERVE routes refactored onto a single-source-of-truth typed
+view-model module at
+[`apps/atlas-ui/src/data/builtin-sample.js`](../apps/atlas-ui/src/data/builtin-sample.js)
+(Phase 1C).
+
+**Pages refactored (11):** ObservePage, ObserveDashboardPage,
+HumanContextDashboardPage, StewardSurveyPage,
+IndigenousRegionalContextPage, VisionPage, MacroclimateDashboardPage,
+SolarClimateDetailPage, TopographyDashboardPage, TerrainDetailPage,
+CrossSectionToolPage, EarthWaterEcologyPage.
+
+**Pattern.** Each page imports a named view-model from
+`builtin-sample.js` as `vm` plus optional `siteBanner` /
+`breadcrumbStem`. Icons in data are **string keys**
+(`"sun"`, `"droplet"`, `"triangle"`); per-page `iconMap` resolves
+to `lucide-react` components at render time. Keeps the data file a
+pure-value module that `/projects/builtins` can replace one-to-one.
+
+**351 House — Halton, ON** is the sample project (sentinel UUID
+`00000000-0000-0000-0000-0000005a3791`). Prototype's hardcoded
+"Green Valley Homestead / Nimbin, NSW" strings replaced with
+`siteBanner.siteName` / `siteBanner.location` across detail-page
+footers.
+
+**Forward-reference TDZ caught.** Initial `siteBanner.lastUpdatedAbsolute`
+referenced `observeStageProgress` (declared later in the module)
+→ `ReferenceError: Cannot access 'observeStageProgress' before
+initialization` on every reload. Fixed by inlining the literal
+`"Today, 9:42 AM"`. Rule: never reference a later `const` from an
+earlier `export const` in module scope.
+
+**Verification.** Smoke-test on port 5300 — all 11 routes load, no
+console errors. terrain-detail / cross-section-tool /
+earth-water-ecology spot-checked: footer reads from `siteBanner`,
+KPI / soil / overlay counts match adapter shape (5 KPIs + 4 segments
++ 7 overlays / 6 KPIs + 5 soil rows respectively). `apps/web` runs
+unchanged on its own port.
+
+ADR: [decisions/2026-05-03-atlas-ui-prototype-lift.md](decisions/2026-05-03-atlas-ui-prototype-lift.md).
+
+Out of scope this phase: routing migration (prototype's pathname
+switch retained), auth (Supabase deferred), PLAN/ACT stages
+(spec PNGs only), replacing `apps/web`.
 ## 2026-04-30 — V3 Phase 5.1 + 5.2 scoping ADRs
 
 ### Done
@@ -6288,3 +6394,112 @@ an autonomous-loop session arc. Phases 0 (interactive verification) and
 
 **ADR:** [`wiki/decisions/2026-05-02-section-response-envelope.md`](decisions/2026-05-02-section-response-envelope.md).
 
+## 2026-05-03 — M6 SWOT conform to OGDEN reference
+
+**Trigger.** Static audit of `apps/atlas-ui` M6 SWOT pages (commit `e1930b4`) against the OGDEN prototype at `C:\Users\MY OWN AXIS\Documents\OGDEN Land Operating System\src\pages\` — initial port had drifted: missing `.swot-hero` wrapper, dropped `.is-active` modifier on `.verdean-subnav`, hardcoded copy substituted with vm strings where unnecessary, prioritized-findings dot math removed.
+
+**Decision.** Treat OGDEN's `src/pages/` as canonical. Re-port verbatim, surgically reintroduce four atlas-ui-specific concerns: vm imports (`swotDashboard`/`swotJournal`/`swotSynthesis` + `useBuiltinProject`), vm injection at data-only points (with `KPI_BY_LABEL`/`KPI_LABEL_DISPLAY` translation maps for UPPERCASE labels), TanStack Router `Link` (Lucide `Link` icon aliased to `LinkIcon`), and "351 House"/"Yousef A." labels. One approved deviation: dynamic `ReportRadar` polygon driven by `vm.swotDiamond`. ADR: [`decisions/2026-05-03-m6-swot-conform-to-ogden.md`](decisions/2026-05-03-m6-swot-conform-to-ogden.md).
+
+**CSS audit conclusion.** Re-grep confirmed atlas-ui's M6 SWOT block (`styles.css` 8101–10507) already contains every OGDEN selector — `.swot-hero h1`, `.swot-equations`, `.swot-journal-rows p`, `.swot-panel-card button`, `.diagnosis-card section`, `.verdean-subnav .is-active`, full report-card family — and `.green-button` base at line 1195 matches OGDEN's line 7055 byte-for-byte. **No CSS backfill needed**; the visual drift was entirely structural (JSX), not stylistic.
+
+**Files.** Three pages rewritten, net +145/−292:
+- [`SwotDashboardPage.jsx`](apps/atlas-ui/src/pages/SwotDashboardPage.jsx)
+- [`SwotJournalPage.jsx`](apps/atlas-ui/src/pages/SwotJournalPage.jsx)
+- [`SwotDiagnosisReportPage.jsx`](apps/atlas-ui/src/pages/SwotDiagnosisReportPage.jsx)
+
+**Verification.** `pnpm --filter atlas-ui build` clean (4.14s, 142 KB CSS / 481 KB JS). `preview_console_logs --level error` empty across all three SWOT routes. DOM eval on each route confirms expected `<h1>` text. `preview_screenshot` timed out repeatedly during this session — visual side-by-side diff against OGDEN deferred until tool recovers.
+
+**Commit.** `ba32fc7`.
+
+### Deferred
+
+- **Visual side-by-side diff** against OGDEN once `preview_screenshot` is responsive — register OGDEN at port 4173 in `.claude/launch.json`, navigate both servers to `/observe/swot`, `/observe/swot/journal`, `/observe/swot/diagnosis-report` at viewport 1672×941, screenshot pair-wise.
+- **`preview_inspect`** on six previously-broken selectors (`.swot-hero h1`, `.swot-equations`, `.swot-journal-rows`, `.diagnosis-card section`, `.verdean-subnav .is-active`, `.green-button`) to confirm computed values match OGDEN.
+
+### Recommended next session
+
+- Pair the M6 SWOT conform with the deferred visual side-by-side once screenshot tool recovers.
+- Or — pivot to PLAN/ACT stage: 100+ reference PNGs in `C:\Users\MY OWN AXIS\Documents\OGDEN Land Operating System\src\assets\reference\` are spec-only and not yet built into pages.
+- Or — pick up the deferred follow-ups from 2026-04-26 (Zustand selector sweep on `features/vision/` + `features/export/` `getVisionData` sites).
+
+## 2026-05-04 — atlas-ui ← MILOS UI/UX lift (Phases 1–4)
+
+Bottom-up phased lift of `apps/atlas-ui` against the MILOS reference SPA
+(`C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\src\`). Decision recorded
+at [2026-05-04 atlas-ui ← MILOS UI/UX Lift](decisions/2026-05-04-atlas-ui-milos-lift.md).
+
+**Phase 1 — Foundation tokens.** Extended `apps/atlas-ui/src/styles.css`
+with spacing/text/motion/elevation/radius scales mirroring MILOS, plus
+global `prefers-reduced-motion` zeroing. Tokens additive — zero visual
+diff on the 14 wired OBSERVE pages.
+
+**Phase 2 — Primitives + a11y.** Built
+`apps/atlas-ui/src/components/primitives/` (Button, IconButton, TextInput,
+Textarea, Select, Modal, Tooltip, Toast, Skeleton). Hooks: `useFocusTrap`,
+`useKeyboard`, `useReducedMotion`. Dev-only `/dev/primitives` route for
+visual QA.
+
+**Phase 3 — Unified AppShell + icon registry.** New `AppShellV2` with
+3-column grid, 56px topbar with portal slot, `layout="contained"|"fullscreen"`
+prop, `navConfig` driven sidebar with progressive disclosure, `mod+k`
+SearchPalette. Migrated all 18 routes one shell at a time across 4
+commits. Stripped four bespoke shell CSS blocks (~527 lines, 9659 chars)
+via brace-balanced Python parser handling `@media` nesting. Renamed
+`AppShellV2` → `AppShell`; deleted legacy `AppShell` + `SideRail`.
+
+**Phase 4 — Feedback wired into real flows.** Added `EmptyState`
+primitive. Rewrote `BuiltinProjectContext` to expose `{status, error,
+retry}` and call `toast.error(...)` on fetch failure (was previously
+silent). Flipped provider order in `main.jsx` so `ToastProvider` wraps
+`BuiltinProjectProvider`. `ObserveDashboardPage` consumes the contract
+fully (Skeleton + `EmptyState variant="error"`). For the other 13
+data-bearing pages, audit showed pervasive `?? staticFallback` patterns
+making full skeletons more churn than value — built reusable
+`<ProjectDataStatus />` inline alert (renders only when `status ===
+"error"`, with Retry button) and dropped it into all 14 pages.
+
+**Files changed (high-level):**
+- New: `src/hooks/useFocusTrap.js`, `useKeyboard.js`, `useReducedMotion.js`
+- New: `src/components/primitives/{Button,IconButton,TextInput,Textarea,Select,Modal,Tooltip,Toast,Skeleton,EmptyState}.jsx` + index
+- New: `src/components/AppShell.jsx` (was `AppShellV2`), `src/styles/appshell.css`, `src/icons.js`
+- New: `src/components/ProjectDataStatus.jsx`, `src/routes/devPrimitives.jsx`
+- Edited: `src/styles.css` (token block), `src/main.jsx` (provider order), `src/context/BuiltinProjectContext.jsx` (status/error/retry), `src/components/index.js`
+- Edited: 18 page files (shell wrapper migration); 14 data-bearing pages (ProjectDataStatus drop-in)
+- Deleted: legacy `AppShell.jsx`, `SideRail.jsx`, four bespoke shell CSS blocks
+
+**Verified:** `pnpm --filter atlas-ui build` clean after each phase.
+
+**Deferred:** grid-alignment audit (walking the 14 presentational
+components with `preview_inspect` to snap internal margins to `--space-*`
+tokens); light-mode elevation parity.
+
+**Commits:** `e1ec94e` (Phase 1–3 tokens/primitives/shell) →
+`33fa3cf` (page migration) → `d20cbb5` (legacy shell removal) →
+`7951596` (rename + dead-CSS strip) → `05b14a8` (Phase 4 feedback) →
+`5029ca3` (ProjectDataStatus 14-page wiring).
+
+---
+
+## 2026-05-04 — Observe dashboard Human Context card visual restoration
+
+**Trigger.** User flagged drift between live `/observe/dashboard` Human Context card and the legacy static reference (`apps/atlas-ui/legacy/index-static.html`). Three regressions: empty-dot people-orbit, flat-text mini-stats, and underlined `<Link>`-as-button labels.
+
+**Fix.** Three files in `apps/atlas-ui/`:
+
+- [`src/pages/ObserveDashboardPage.jsx`](apps/atlas-ui/src/pages/ObserveDashboardPage.jsx) — `PeopleOrbit` now renders a center node with `<User />` and 6 satellite nodes each containing a `<User />`; `MiniStats` consumes structured `{icon,label,value,tone}` items via a local lucide lookup (`users`, `newspaper`); `CardActions` appends `<ArrowRight />` to the primary button label. Removed the now-redundant inline `→` from the SWOT card's primary label.
+- [`src/data/builtin-sample.js`](apps/atlas-ui/src/data/builtin-sample.js) — `observeDashboardModules.humanContext.miniStats` migrated from string array to `[{icon,label,value,tone?}]`. Stakeholders carries `tone: "amber"`.
+- [`src/styles.css`](apps/atlas-ui/src/styles.css) — added `text-decoration: none` to `.stage-settings/.outlined-button/.green-button` base so router `<Link>` instances don't underline; split `.mini-stat-row` from `.dashboard-badge-row` (now a 3-column grid with stacked icon/label/`<b>` and `.amber b` modifier mapped to `--olos-gold-bright`); rebuilt `.people-orbit-small` with `::before/::after` concentric inner rings, `.people-orbit-small__center` element (44×44, bg `#33451e`), and per-node icon styling (27×27, 15px svg). Legacy CSS at `apps/atlas-ui/legacy/styles-static.css:510-569` was the reference.
+
+**Verification.** `pnpm install --filter atlas-ui...` (worktree fresh-install). Vite at `http://127.0.0.1:5300/observe/dashboard`. `preview_inspect` confirmed: 6 orbit nodes each with svg + center svg, 3 mini-stat cells each with icon + `<b>`, `.amber b` color `rgb(213, 164, 58)` vs default `rgb(255, 242, 214)`, all three card buttons computed `text-decoration: none`. **Screenshot tool was unresponsive** (preview_screenshot timed out at 30s repeatedly) — verification rests on DOM/computed-style inspection, not visual diff.
+
+**Note.** Mid-session, an external HEAD switch wiped uncommitted edits; changes were re-applied cleanly from the conversation context. Working tree was reverified post-restore.
+
+### Deferred
+
+- Other module cards (Macroclimate, Topography, EWE, Sectors, SWOT) still use the legacy `BadgeRow` pattern; user only requested Human Context parity. If the same icon+label+value treatment is desired elsewhere, the structured `miniStats` shape and `MINI_STAT_ICONS` lookup can be extended.
+- Manual eyeball at `/observe/dashboard` recommended since screenshot tool timed out.
+
+### Recommended next session
+
+- Visual sweep across the remaining 5 dashboard module cards to check for similar drift from the legacy static reference.
+- Or: pick up the still-deferred `getVisionData` selector cleanup from 2026-04-26.
