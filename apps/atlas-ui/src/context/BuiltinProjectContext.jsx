@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { siteBanner as staticBanner, breadcrumbStem as staticStem } from "../data/builtin-sample.js";
+import { useToast } from "../components/primitives/index.js";
 
 const BuiltinProjectContext = createContext(null);
 
@@ -19,21 +20,39 @@ function deriveProjectBanner(project) {
   };
 }
 
+async function fetchJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url} ${r.status}`);
+  const body = await r.json();
+  return body.data ?? null;
+}
+
 export function BuiltinProjectProvider({ children }) {
+  const toast = useToast();
   const [project, setProject] = useState(null);
   const [assessment, setAssessment] = useState(null);
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetch("/api/v1/projects/builtins")
-      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
-      .then((body) => setProject(body.data?.[0] ?? null))
-      .catch(() => {});
+  const load = useCallback(async () => {
+    setStatus("loading");
+    setError(null);
+    try {
+      const [projectsData, assessmentData] = await Promise.all([
+        fetchJson("/api/v1/projects/builtins"),
+        fetchJson("/api/v1/projects/builtins/assessment"),
+      ]);
+      setProject(projectsData?.[0] ?? null);
+      setAssessment(assessmentData ?? null);
+      setStatus("ready");
+    } catch (err) {
+      setError(err);
+      setStatus("error");
+      toast.error("Could not load project data — using sample fallback.");
+    }
+  }, [toast]);
 
-    fetch("/api/v1/projects/builtins/assessment")
-      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
-      .then((body) => setAssessment(body.data ?? null))
-      .catch(() => {});
-  }, []);
+  useEffect(() => { load(); }, [load]);
 
   const siteBanner = project ? deriveProjectBanner(project) : staticBanner;
   const breadcrumbStem = project
@@ -41,7 +60,15 @@ export function BuiltinProjectProvider({ children }) {
     : staticStem;
 
   return (
-    <BuiltinProjectContext.Provider value={{ project, assessment, siteBanner, breadcrumbStem }}>
+    <BuiltinProjectContext.Provider value={{
+      project,
+      assessment,
+      siteBanner,
+      breadcrumbStem,
+      status,
+      error,
+      retry: load,
+    }}>
       {children}
     </BuiltinProjectContext.Provider>
   );

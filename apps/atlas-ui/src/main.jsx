@@ -8,10 +8,10 @@ import "./styles.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BuiltinProjectProvider>
-      <ToastProvider>
+    <ToastProvider>
+      <BuiltinProjectProvider>
         <RouterProvider router={router} />
-      </ToastProvider>
-    </BuiltinProjectProvider>
+      </BuiltinProjectProvider>
+    </ToastProvider>
   </React.StrictMode>
 );

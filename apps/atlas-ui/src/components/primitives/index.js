@@ -5,3 +5,4 @@ export { Modal } from "./Modal.jsx";
 export { Tooltip } from "./Tooltip.jsx";
 export { ToastProvider, useToast } from "./Toast.jsx";
 export { Skeleton } from "./Skeleton.jsx";
+export { EmptyState } from "./EmptyState.jsx";

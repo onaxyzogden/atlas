@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Settings } from "lucide-react";
+import { Search, Plus, Settings, Inbox } from "lucide-react";
 import {
   Button,
   IconButton,
@@ -9,6 +9,7 @@ import {
   Modal,
   Tooltip,
   Skeleton,
+  EmptyState,
   useToast,
 } from "../components/primitives/index.js";
 
@@ -145,6 +146,25 @@ export function DevPrimitivesPage() {
         <p style={{ color: "var(--olos-text-label)", fontSize: "var(--text-sm)" }}>
           Toggle OS-level "Reduce motion" — shimmer should freeze.
         </p>
+      </section>
+
+      <section style={section}>
+        <h2 style={h2}>EmptyState</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--space-4)" }}>
+          <EmptyState
+            icon={Inbox}
+            title="No entries yet"
+            description="Start capturing observations to see them collected here."
+            action={{ label: "+ Add entry", onClick: () => toast.success("Pretend a panel opened.") }}
+          />
+          <EmptyState
+            variant="error"
+            icon={Inbox}
+            title="Something went wrong"
+            description="The data service didn't respond. Try again or use the static fallback."
+            action={{ label: "Retry", onClick: () => toast.warning("Retried.") }}
+          />
+        </div>
       </section>
     </main>
   );
