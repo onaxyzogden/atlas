@@ -107,7 +107,11 @@ export const observeDashboardModules = {
       ["Milestones", "0"],
       ["Regional context", "11 captured"]
     ],
-    miniStats: ["People 5", "Stakeholders 8", "Sources 11"]
+    miniStats: [
+      { icon: "users", label: "People", value: "5" },
+      { icon: "users", label: "Stakeholders", value: "8", tone: "amber" },
+      { icon: "newspaper", label: "Sources", value: "11" }
+    ]
   },
   macroclimate: {
     facts: [

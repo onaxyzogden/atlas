@@ -8,8 +8,10 @@ import {
   Droplet,
   Gauge,
   Leaf,
+  Newspaper,
   Sprout,
   Timer,
+  User,
   Users
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -219,7 +221,7 @@ function DashboardCards() {
         <BadgeRow items={m.sectors.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="6" title="SWOT Synthesis" footer={<CardActions primary="SWOT journal →" secondary="Diagnosis report" />}>
+      <ModuleSummaryCard number="6" title="SWOT Synthesis" footer={<CardActions primary="SWOT journal" secondary="Diagnosis report" />}>
         <SwotGrid quadrants={m.swot.quadrants} />
         <BadgeRow items={m.swot.badges} />
       </ModuleSummaryCard>
@@ -243,14 +245,29 @@ function FactList({ rows }) {
 function PeopleOrbit() {
   return (
     <div className="people-orbit-small" aria-hidden="true">
-      <Users />
-      {Array.from({ length: 6 }).map((_, index) => <i key={index} />)}
+      <span className="people-orbit-small__center"><User /></span>
+      {Array.from({ length: 6 }).map((_, index) => <i key={index}><User /></i>)}
     </div>
   );
 }
 
+const MINI_STAT_ICONS = { users: Users, newspaper: Newspaper };
+
 function MiniStats({ items }) {
-  return <div className="mini-stat-row">{items.map((item) => <span key={item}>{item}</span>)}</div>;
+  return (
+    <div className="mini-stat-row">
+      {items.map((item) => {
+        const Icon = MINI_STAT_ICONS[item.icon] ?? Users;
+        return (
+          <span key={item.label} className={item.tone === "amber" ? "amber" : undefined}>
+            <Icon />
+            {item.label}
+            <b>{item.value}</b>
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function RainChart({ bars }) {
@@ -317,8 +334,8 @@ function CardActions({ primary, primaryTo, secondary, secondaryTo, tertiary, ter
   return (
     <div className="dashboard-card-actions">
       {primaryTo
-        ? <Link to={primaryTo} className="green-button">{primary}</Link>
-        : <button className="green-button" type="button">{primary}</button>}
+        ? <Link to={primaryTo} className="green-button">{primary} <ArrowRight /></Link>
+        : <button className="green-button" type="button">{primary} <ArrowRight /></button>}
       {secondaryTo
         ? <Link to={secondaryTo} className="outlined-button">{secondary}</Link>
         : <button className="outlined-button" type="button">{secondary}</button>}
