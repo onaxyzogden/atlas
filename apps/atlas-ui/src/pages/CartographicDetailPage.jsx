@@ -14,9 +14,8 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
@@ -40,9 +39,8 @@ const TONE_CSS = {
 
 export function CartographicDetailPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Data" />
-      <main className="detail-page cd-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page cd-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <div className="cd-breadcrumb">
           <Link to="/observe/sectors-zones" className="cd-back-link">
@@ -65,7 +63,7 @@ export function CartographicDetailPage() {
             <MapInfoCard />
           </aside>
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -73,7 +71,7 @@ export function CartographicDetailPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

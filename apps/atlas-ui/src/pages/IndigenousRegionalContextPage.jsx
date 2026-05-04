@@ -11,13 +11,12 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   ChipList,
   CroppedArt,
   DataTable,
   NextStepsPanel,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -34,9 +33,8 @@ const statIconMap = { alert: AlertTriangle, sprout: Sprout, users: Users };
 
 export function IndigenousRegionalContextPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page regional-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page regional-page">
         <TopStageBar />
         <div className="detail-layout">
           <div className="detail-main">
@@ -65,7 +63,7 @@ export function IndigenousRegionalContextPage() {
           </div>
           <RegionalSidebar />
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -73,7 +71,7 @@ export function IndigenousRegionalContextPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

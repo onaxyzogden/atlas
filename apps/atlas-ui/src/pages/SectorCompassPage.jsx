@@ -18,9 +18,8 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
@@ -56,9 +55,8 @@ const FORCE_COLOR = {
 
 export function SectorCompassPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Data" />
-      <main className="detail-page sc-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page sc-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <div className="sc-breadcrumb">
           <Link to="/observe/sectors-zones" className="sc-back-link">
@@ -84,7 +82,7 @@ export function SectorCompassPage() {
             <PriorityActionsCard />
           </div>
         </section>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -92,7 +90,7 @@ export function SectorCompassPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

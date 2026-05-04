@@ -11,10 +11,9 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
@@ -39,9 +38,8 @@ export function SectorsMicroclimatesDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Data" />
-      <main className="detail-page sectors-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page sectors-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <section className="sectors-layout">
           <div className="sectors-main">
@@ -55,7 +53,7 @@ export function SectorsMicroclimatesDashboardPage() {
           </div>
           <SectorsSidebar />
         </section>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -63,7 +61,7 @@ export function SectorsMicroclimatesDashboardPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

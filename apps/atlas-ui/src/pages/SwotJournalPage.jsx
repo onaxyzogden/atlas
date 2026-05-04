@@ -61,9 +61,8 @@ const STATUS_FOR_IMPACT = {
 
 export function SwotJournalPage() {
   return (
-    <div className="terralens-shell">
-      <TerraLensRail />
-      <main className="swot-journal-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="swot-journal-page">
         <JournalTopProcess />
         <section className="journal-frame">
           <JournalHeader />
@@ -76,11 +75,11 @@ export function SwotJournalPage() {
             <JournalSidebar />
           </section>
         </section>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </div>
+    </AppShellV2>
   );
 }
 

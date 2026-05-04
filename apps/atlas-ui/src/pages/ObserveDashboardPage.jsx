@@ -14,15 +14,15 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   ModuleSummaryCard,
   ProjectOverviewCard,
   QaOverlay,
-  SideRail,
   TopStageBar
 } from "../components/index.js";
 import { ProgressRing } from "../components/ProgressRing.jsx";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import {
   observeStageProgress,
@@ -39,9 +39,8 @@ const dashboardMetadata = screenCatalog.find((screen) => screen.route === "/obse
 export function ObserveDashboardPage() {
   const { assessment, siteBanner } = useBuiltinProject();
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="dashboard-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="dashboard-page">
         <TopStageBar />
         <section className="dashboard-hero-row">
           <DashboardHero />
@@ -50,7 +49,7 @@ export function ObserveDashboardPage() {
         <DashboardProgress assessment={assessment} siteBanner={siteBanner} />
         {assessment?.flags?.length > 0 && <SiteFlags flags={assessment.flags} />}
         <DashboardCards />
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={dashboardMetadata.reference}
@@ -58,7 +57,7 @@ export function ObserveDashboardPage() {
           nativeHeight={dashboardMetadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

@@ -10,11 +10,10 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard
 } from "../components/index.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -29,9 +28,8 @@ const heroIconMap = { eye: Eye, flag: Flag, mapPin: MapPin };
 
 export function HumanContextDashboardPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="human-context-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="human-context-page">
         <HumanBreadcrumb />
         <div className="human-context-layout">
           <div className="human-context-main">
@@ -45,7 +43,7 @@ export function HumanContextDashboardPage() {
           </div>
           <SynthesisPanel />
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -53,7 +51,7 @@ export function HumanContextDashboardPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

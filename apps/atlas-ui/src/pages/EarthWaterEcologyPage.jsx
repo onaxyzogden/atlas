@@ -17,11 +17,10 @@ import {
   TriangleAlert
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -75,9 +74,8 @@ export function EarthWaterEcologyPage() {
     : null;
 
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page diagnostics-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page diagnostics-page">
         <TopStageBar
           stage="Stage 1 of 3"
           module="Roots & Diagnosis · Module 4"
@@ -95,7 +93,7 @@ export function EarthWaterEcologyPage() {
           <RecommendedActionsCard />
         </section>
         <StatusFooter />
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -103,7 +101,7 @@ export function EarthWaterEcologyPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

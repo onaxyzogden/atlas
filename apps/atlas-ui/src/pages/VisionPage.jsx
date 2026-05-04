@@ -13,11 +13,10 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   ChipList,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -33,9 +32,8 @@ const iconMap = { sprout: Sprout, users: Users, leaf: Leaf, droplet: Droplet, he
 
 export function VisionPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page vision-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page vision-page">
         <TopStageBar />
         <section className="vision-top-grid">
           <VisionIntro />
@@ -59,7 +57,7 @@ export function VisionPage() {
           <span>{vm.proverb}</span>
           <b>- Indigenous proverb</b>
         </footer>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -67,7 +65,7 @@ export function VisionPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

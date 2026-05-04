@@ -15,10 +15,9 @@ import {
   Waves
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -62,9 +61,8 @@ export function TerrainDetailPage() {
   const { assessment } = useBuiltinProject();
   const terrain = assessment?.terrainAnalysis ?? null;
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Map" />
-      <main className="detail-page terrain-detail-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page terrain-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
         <TerrainHeader />
         <TerrainMetrics terrain={terrain} />
@@ -79,11 +77,11 @@ export function TerrainDetailPage() {
           <TerrainSidebar terrain={terrain} />
         </section>
         <TerrainFooter />
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

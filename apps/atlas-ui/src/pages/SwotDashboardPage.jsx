@@ -31,9 +31,8 @@ const KPI_BY_LABEL = Object.fromEntries(vm.kpis.map((k) => [k.label, k.value]));
 
 export function SwotDashboardPage() {
   return (
-    <div className="swot-suite-shell">
-      <SwotSuiteRail />
-      <main className="swot-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="swot-page">
         <SwotTopBar />
         <section className="swot-content">
           <div className="swot-main">
@@ -48,11 +47,11 @@ export function SwotDashboardPage() {
           <DesignImplications />
         </section>
         <SwotHealthStrip />
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </div>
+    </AppShellV2>
   );
 }
 

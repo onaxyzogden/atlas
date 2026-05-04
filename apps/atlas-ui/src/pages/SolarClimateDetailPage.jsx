@@ -11,10 +11,9 @@ import {
   Wind
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -34,9 +33,8 @@ export function SolarClimateDetailPage() {
   const { project, siteBanner } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Data" />
-      <main className="detail-page solar-detail-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page solar-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
         <section className="solar-detail-layout">
           <div className="solar-detail-main">
@@ -63,11 +61,11 @@ export function SolarClimateDetailPage() {
           <span><b>Last updated:</b> {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
           <span className="synced-dot">{siteBanner.syncStatus}</span>
         </footer>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

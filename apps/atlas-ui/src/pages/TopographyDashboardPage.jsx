@@ -15,11 +15,10 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShell,
+  AppShellV2,
   CroppedArt,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
@@ -36,9 +35,8 @@ const topoIconMap = { triangle: Triangle, mountain: Mountain, ruler: Ruler, slid
 
 export function TopographyDashboardPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page topography-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page topography-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
         <section className="topography-layout">
           <div className="topography-main">
@@ -53,11 +51,11 @@ export function TopographyDashboardPage() {
           <TopographySidebar />
         </section>
         <TopographyFooter />
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 

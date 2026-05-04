@@ -32,9 +32,9 @@ export function SwotDiagnosisReportPage() {
   const siteName = siteBanner?.title ?? "351 House";
   const siteAreaHa = meta.siteAreaHa ?? siteBanner?.areaHa;
   return (
-    <div className="verdean-shell">
+    <AppShellV2 navConfig={observeNav}>
       <VerdeanRail siteName={siteName} siteAreaHa={siteAreaHa} />
-      <main className="diagnosis-report-page">
+      <div className="diagnosis-report-page">
         <ReportTopbar siteName={siteName} />
         <ReportStageBar />
         <section className="diagnosis-report-frame">
@@ -60,11 +60,11 @@ export function SwotDiagnosisReportPage() {
           </section>
           <p className="diagnosis-report-quote">A clear diagnosis today leads to a regenerative design tomorrow.</p>
         </section>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </div>
+    </AppShellV2>
   );
 }
 

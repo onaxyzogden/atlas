@@ -9,14 +9,13 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShell,
+  AppShellV2,
   BreadcrumbBar,
   ChipList,
   CroppedArt,
   InsightSidebar,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard
 } from "../components/index.js";
 import { SelectField, TextAreaField, TextInput } from "../components/FormFields.jsx";
@@ -32,9 +31,8 @@ const themeIconMap = { leaf: Leaf, users: Users, clock: Clock3 };
 
 export function StewardSurveyPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page steward-page">
+    <AppShellV2 navConfig={observeNav}>
+      <div className="detail-page steward-page">
         <BreadcrumbBar items={vm.breadcrumb} />
         <div className="detail-layout">
           <div className="detail-main">
@@ -51,7 +49,7 @@ export function StewardSurveyPage() {
           </div>
           <StewardSnapshot />
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -59,7 +57,7 @@ export function StewardSurveyPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShell>
+    </AppShellV2>
   );
 }
 
