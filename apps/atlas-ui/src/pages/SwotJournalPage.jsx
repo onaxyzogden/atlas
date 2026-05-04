@@ -83,19 +83,6 @@ export function SwotJournalPage() {
   );
 }
 
-function TerraLensRail() {
-  const nav = [[Home, "Dashboard"], [Grid2X2, "Site & Context"], [Layers, "Zones & Sectors"], [Eye, "Observations"], [BookOpen, "SWOT journal"], [BarChart3, "Analysis"], [Lightbulb, "Vision"], [Grid2X2, "Design"], [BookOpen, "Plans"], [Sun, "Implementation"], [Settings, "Monitoring"]];
-  return (
-    <aside className="terralens-rail">
-      <div className="terralens-logo"><Sun aria-hidden="true" /><span>Terralens<small>Permaculture Design</small></span></div>
-      <button className="terralens-project" type="button"><span>Project</span><b>351 House</b><ChevronDown aria-hidden="true" /></button>
-      <nav>{nav.map(([Icon, label]) => <button className={label === "SWOT journal" ? "is-active" : ""} type="button" key={label}><Icon aria-hidden="true" />{label}</button>)}</nav>
-      <div className="terralens-utility"><button type="button"><BookOpen aria-hidden="true" />Resources</button><button type="button"><Settings aria-hidden="true" />Settings</button></div>
-      <button className="terralens-collapse" type="button"><CircleHelp aria-hidden="true" /> Collapse</button>
-    </aside>
-  );
-}
-
 function JournalTopProcess() {
   return (
     <header className="journal-process">

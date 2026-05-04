@@ -33,7 +33,6 @@ export function SwotDiagnosisReportPage() {
   const siteAreaHa = meta.siteAreaHa ?? siteBanner?.areaHa;
   return (
     <AppShellV2 navConfig={observeNav}>
-      <VerdeanRail siteName={siteName} siteAreaHa={siteAreaHa} />
       <div className="diagnosis-report-page">
         <ReportTopbar siteName={siteName} />
         <ReportStageBar />
@@ -65,33 +64,6 @@ export function SwotDiagnosisReportPage() {
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
     </AppShellV2>
-  );
-}
-
-function VerdeanRail({ siteName, siteAreaHa }) {
-  const process = [["1", "Observe", true], ["2", "Record", true], ["3", "Analyse", true], ["6", "SWOT Synthesis", false]];
-  const design = [["7", "Concepts"], ["8", "Design plan"], ["9", "Implementation"]];
-  return (
-    <aside className="verdean-rail">
-      <div className="verdean-logo"><Target aria-hidden="true" /><span>Verdean<br />Design</span></div>
-      <button className="verdean-project" type="button"><b>{siteName}</b><span>{siteAreaHa ? `${siteAreaHa} ha` : "Atlas Sample"}</span><ChevronDown aria-hidden="true" /></button>
-      <nav className="verdean-main-nav">
-        <button type="button"><Home aria-hidden="true" /> Home</button>
-        <button type="button"><MapPin aria-hidden="true" /> Site dashboard</button>
-      </nav>
-      <h2>Design process</h2>
-      {process.map(([num, label, done]) => <button className={label === "SWOT Synthesis" ? "is-active" : ""} type="button" key={label}><span>{num}</span>{label}{done ? <Check aria-hidden="true" /> : <i />}</button>)}
-      <div className="verdean-subnav"><Link to="/observe/swot/journal">SWOT journal</Link><span className="is-active">Diagnosis report</span></div>
-      <h2>Design</h2>
-      {design.map(([num, label]) => <button type="button" key={label}><span>{num}</span>{label}</button>)}
-      <nav className="verdean-main-nav utility">
-        <button type="button"><Layers aria-hidden="true" /> Layers</button>
-        <button type="button"><BookOpen aria-hidden="true" /> Resources</button>
-        <button type="button"><Users aria-hidden="true" /> Team</button>
-        <button type="button"><Settings aria-hidden="true" /> Settings</button>
-      </nav>
-      <div className="verdean-user"><b>YA</b><span>Yousef A.<small>Steward</small></span></div>
-    </aside>
   );
 }
 

@@ -55,38 +55,6 @@ export function SwotDashboardPage() {
   );
 }
 
-function SwotSuiteRail() {
-  const nav = [
-    [Home, "Dashboard"],
-    [MapPin, "Site & Context"],
-    [Compass, "Observations"],
-    [Leaf, "Analysis"],
-    [PenLine, "Design"],
-    [Layers, "Plans"],
-    [Settings, "Implementation"],
-    [BarChart3, "Monitoring"],
-    [BookOpen, "Library"],
-    [Settings, "Settings"],
-  ];
-  return (
-    <aside className="swot-suite-rail">
-      <div className="swot-suite-logo"><Target aria-hidden="true" /><span>Permaculture<br />Design Suite</span></div>
-      <nav>
-        {nav.map(([Icon, label]) => (
-          <button className={label === "Analysis" ? "is-active" : ""} type="button" key={label}><Icon aria-hidden="true" />{label}<ArrowRight aria-hidden="true" /></button>
-        ))}
-      </nav>
-      <div className="swot-analysis-subnav">
-        <span>Zones & Sectors</span>
-        <span>Patterns & Relationships</span>
-        <span className="is-active">SWOT Synthesis</span>
-        <span>Needs & Resources</span>
-      </div>
-      <div className="swot-user-card"><b>YA</b><span>Yousef A.<small>351 House Sample</small></span></div>
-    </aside>
-  );
-}
-
 function SwotTopBar() {
   return (
     <header className="swot-topbar">
