@@ -1,7 +1,7 @@
-# ADR: Phase-Gated Future Routes (`MT`, `FUTURE`, `P4`) — Scoping
+# ADR: Phase-Gated Future Routes (`MT`, `LATENT`, `P4`) — Scoping
 
 **Date:** 2026-05-02
-**Status:** Proposed (scoping — not yet accepted)
+**Status:** Accepted 2026-05-04 — D1 (MT per-project gating + `project_moontrance_identity` migration 022) and D2 (FUTURE → LATENT rename) landed. D3 (P4 public portal) accepted via [`2026-05-04-p4-public-portal-section27-consolidation.md`](2026-05-04-p4-public-portal-section27-consolidation.md), which superseded the proposed fresh build with a consolidation onto the existing `portal/*` stack (share_token + `is_published`); cache + rate-limit gaps deferred to a launch-readiness ADR.
 **Scope:** `apps/api/src/routes/{moontrance-identity,future-geospatial,
 public-portal}/index.ts`, the matching V3 surfaces, and the
 `requirePhase()` gate that today returns the typed `not_ready` /

@@ -4,6 +4,97 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — External-data-sources reference doc (Phase 8 deferred-slice prep)
+
+Of the four remaining Phase 8 deferred items, three (8.1, 8.2-A, 8.2-B) are
+gated on external-data ingest infrastructure that can't honestly be set up
+in a single session, and one (8.4) is hard-blocked because the OBSERVE/SWOT
+substrate doesn't exist on this branch. Rather than scaffold empty adapters
+and call them "implementations" (the failure mode from this morning's
+fabricated compaction summary), wrote the small piece that *is* shippable:
+the licensing + attribution + refresh-cadence reference for every external
+source the deferred slices touch, in one place.
+
+[`wiki/concepts/external-data-sources.md`](concepts/external-data-sources.md)
+covers ESA WorldCover, USGS NLCD, AAFC ACI, Theobald HM (with verification
+note on canonical raster source), IGRAC GGIS (with the unresolved
+CC-BY-vs-CC-BY-NC contradiction in the scoping ADR flagged explicitly),
+WDPA (CC-BY-NC + offline-bundle exclusion path), NCED, ECCC Ecological
+Gifts. Each entry has attribution string + URL + open question carried
+from its source ADR. Verification checklist at the bottom enumerates the
+six unresolved items that block any of these from entering an accepted ADR.
+
+The next ingest session opens with this doc instead of re-deriving licence
+terms from the scoping ADRs.
+
+---
+
+## 2026-05-04 — Phase 8.3-A: P4 public-portal Section 27 consolidation
+
+Picked up the deferred 8.3-A item from this morning's Phase 8 batch. The
+Phase 8.3 scoping ADR proposed a fresh P4 build (new `project.published_at`
+column, visitor token, `PublicPortalContent` schema, cache layer). Survey of
+the actual code surface showed all of that intent is already implemented under
+a different prefix:
+
+- `apps/api/src/routes/portal/public.ts` — share-token-keyed unauthenticated read, filters on `is_published = true`
+- `apps/api/src/routes/portal/index.ts` — RBAC-gated steward CRUD
+- `apps/api/src/db/migrations/004_project_portals.sql` — `is_published` + `published_at` + per-portal `share_token` UUID
+- `packages/shared/src/schemas/portal.schema.ts` — `PortalRecord` covers hero, mission, sections, story scenes, before/after pairs, donation CTA, brand colour, data masking level
+- `apps/web/src/features/portal/PublicPortalShell.tsx` — front-end render
+
+Section 27's `apps/api/src/routes/public-portal/index.ts` and
+`apps/web/src/features/public-portal/PublicPortalPage.tsx` were the no-op
+scaffold-section stubs returning `{ data: [], meta: { total: 0 } }` and a
+placeholder div — dead duplication of the working stack.
+
+**Action.** Deleted both stub directories; removed the import + `app.register`
+line at `apps/api/src/app.ts` (renamed Batch 7 comment to §§24, 28, 29 with a
+pointer to portal/*); added a TODO block at the top of
+`apps/api/src/routes/portal/public.ts` capturing the cache + rate-limit gaps
+(D2 + D4) for the launch-readiness sprint.
+
+ADRs:
+- [`wiki/decisions/2026-05-04-p4-public-portal-section27-consolidation.md`](decisions/2026-05-04-p4-public-portal-section27-consolidation.md) — Accepted
+- [`wiki/decisions/2026-05-02-phase-gated-future-routes-scoping.md`](decisions/2026-05-02-phase-gated-future-routes-scoping.md) — Status promoted to Accepted (D3 closed via the consolidation ADR above)
+
+**Build verify.** `apps/api` tsc clean except the pre-existing
+`projects/index.ts:117` spread error documented this morning. `apps/web` shows
+no errors involving public-portal — clean delete.
+
+**Deferred to launch-readiness sprint:**
+- Cache layer in front of `portal/public.ts` (CDN/ISR/blob render).
+- Visitor rate-limit (`@fastify/rate-limit` plugin scope, not portal-specific).
+- Steward UI audit: whether `PortalConfigPanel` exposes every `CreatePortalInput` field.
+
+---
+
+## 2026-05-04 — OLOS Phase 8 partial implementation (8.2-C, 8.3-B, 8.3-C)
+
+Three of four scoped Phase 8 ADRs landed; 8.4 deferred because the OBSERVE/SWOT substrate it rolls up doesn't exist on this branch.
+
+**8.2-C — Drop state mining registry scrape** (per ADR `2026-05-02-global-groundwater-esg-sources-scoping` D3). Removed `StateMineralRegistry`, `US_STATE_MINERAL_REGISTRIES` (TX/ND/WY/CO/OK/MT), `US_STATE_MINERAL_INFORMATIONAL` (PA/KY/WV/LA/CA/NM/AK), and `queryStateMineralRegistry` from `apps/web/src/lib/layerFetcher.ts`. `fetchMineralRightsComposite` retains federal BLM + BC MTO only; emits a generic legal-checklist note when a US state code resolves. `pickField` retained for water-rights fetcher.
+
+**8.3-C — Rename FUTURE → LATENT** (per ADR `2026-05-02-phase-gated-future-routes-scoping` D2). `PhaseTag` union, `PHASE_ORDER`, Section 28 entries, and `phaseAtMost` branch updated in `packages/shared/src/featureManifest.ts`. `apps/api/src/plugins/featureGate.ts`: `futureEnabled` → `latentEnabled`, reads `ATLAS_LATENT ?? ATLAS_FUTURE` (legacy env honoured for transition). Route doc + `requirePhase('LATENT')` updated in `apps/api/src/routes/future-geospatial/index.ts`; `apps/web/src/features/future-geospatial/FutureGeospatialPage.tsx` doc updated; `apps/api/scripts/scaffold-section.ts` `Phase` type + `VALID_PHASES` updated.
+
+**8.3-B — Moontrance per-project gate** (per ADR `2026-05-02-phase-gated-future-routes-scoping` D1). New migration `apps/api/src/db/migrations/022_project_moontrance_identity.sql` — table keyed by `project_id` with `enabled` flag, `summary` jsonb, FK CASCADE on projects, partial index on enabled rows. Route `apps/api/src/routes/moontrance-identity/index.ts` rewritten: `GET /:projectId` with preHandler chain `authenticate → requirePhase('MT') → resolveProjectRole → requireMoontranceProject` (custom inline gate that 404s if no opt-in row; `NotFoundError` not Forbidden so route existence isn't leaked).
+
+**Build verify.** `tsc --noEmit` clean for `packages/shared`. `apps/api` fails only on the pre-existing `src/routes/projects/index.ts:117` spread error (verified by stashing changes — same failure before my edits). `apps/web` reports no errors in any file I touched (only pre-existing failures in `QuietCirculationRouteCard` and `HerdRotationDashboard` imports). No new tsc errors introduced.
+
+**Deferred this session (multi-session scope):**
+- 8.1 — raster pollinator-corridor (NLCD/ACI/WorldCover hybrid + LCP)
+- 8.2-A — IGRAC global groundwater adapter
+- 8.2-B — WDPA + NCED + ECCC ESG tiered overlay
+- 8.4 (A–D) — OBSERVE Phase 4b–4f rollup. The `apps/web/src/features/observe/` directory and `store/site-annotations.ts` referenced by the ADR don't exist on this branch; the rollup substrate landed (or didn't) in a different lineage. Revisit after locating the OBSERVE work.
+
+ADRs:
+- [`wiki/decisions/2026-05-02-global-groundwater-esg-sources-scoping.md`](decisions/2026-05-02-global-groundwater-esg-sources-scoping.md) — Partially Accepted (D3 only)
+- [`wiki/decisions/2026-05-02-phase-gated-future-routes-scoping.md`](decisions/2026-05-02-phase-gated-future-routes-scoping.md) — Partially Accepted (D1 + D2; title FUTURE→LATENT)
+
+Note: a prior compaction summary reported these phases as fully-shipped on this branch. They were not — git history confirms zero implementation commits prior to this entry. The summary was reconstructed from this fresh implementation against the restored ADRs.
+
+---
+
 ## 2026-05-03 — TanStack Router migration (atlas-ui)
 
 Replaced the 12-way `window.location.pathname` switch in `apps/atlas-ui/src/main.jsx`
