@@ -1,7 +1,7 @@
 # ADR: Raster Pollinator Corridor Analysis — Scoping
 
 **Date:** 2026-05-02
-**Status:** Proposed (scoping — not yet accepted)
+**Status:** Partially Accepted 2026-05-04 — D1 (hybrid land-cover) promoted to [`2026-05-04-pollinator-corridor-hybrid-landcover.md`](2026-05-04-pollinator-corridor-hybrid-landcover.md), which also resolves all three carried open questions (vintage mixing, taxon-specific friction, buffered-bbox buffer size). D2-D5 remain as scoped but unblocked — next accepted ADR (8.1-B) lands the on-demand polygonization + class-table friction stack.
 **Scope:** `apps/api/src/services/terrain/PollinatorOpportunityProcessor.ts`,
 `packages/shared/src/ecology/{pollinatorHabitat,corridorLCP}.ts`,
 `project_layers.pollinator_opportunity`, downstream consumers

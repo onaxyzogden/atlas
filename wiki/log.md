@@ -4,6 +4,34 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — Phase 8.1-A promoted to accepted ADR
+
+Wrote `2026-05-04-pollinator-corridor-hybrid-landcover.md` locking
+the three-adapter hybrid (NLCD US + AAFC ACI Canada + ESA WorldCover
+global fallback) with country-resolver routing and per-feature
+provenance. Resolved all three scoping-ADR open questions in the
+same pass:
+
+- **Vintage mixing.** Per-feature `vintage` + diagnosis-report
+  footnote; no ecoregion-level `dataDateMin` gate. The pollinator
+  layer is advisory (not part of `computeScores.ts`), so honest
+  disclosure beats coverage gating.
+- **Taxon-specific friction.** Out of scope for Phase 8.1.
+  Universal class-table friction in 8.1-B; taxon-specific rides on
+  as a P2 follow-on if stakeholder review surfaces a gap.
+- **Buffered bbox.** Default 2 km (mid-range native bee foraging
+  per Sponsler & Johnson 2017), locked as `POLLINATOR_BUFFER_KM`
+  in `corridorFriction.ts`.
+
+Scoping ADR status: "Partially Accepted" — D1 + open questions
+done; D2-D5 stay scoped but now unblocked.
+
+External-data verification checklist in
+`wiki/concepts/external-data-sources.md` updated: pollinator
+friction granularity + buffered polygonization both marked resolved.
+
+---
+
 ## 2026-05-04 — Phase 8.2 D1 + D2 promoted to accepted ADRs
 
 Wrote two accepted ADRs locking the scoping ADR's recommendations

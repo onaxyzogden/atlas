@@ -31,10 +31,12 @@ here — they're documented in their service files.
   modified Copernicus Sentinel data (2020, 2021) processed by ESA
   WorldCover consortium."
 - **URL.** <https://esa-worldcover.org>
-- **Open question (carried from 8.1 scoping ADR).** Mixing 2021-vintage
-  WorldCover with annual AAFC ACI in the same Atlas snapshot —
-  acceptable, or does the diagnosis report need a `dataDateMin`
-  ecoregion constraint?
+- **Vintage mixing — resolved 2026-05-04.** Per-source `dataDate`
+  surfaced per feature in `summary_data.dataSources` and the
+  diagnosis-report footnote — no ecoregion-level `dataDateMin`
+  constraint. Pollinator opportunity is an advisory layer, not part
+  of `computeScores.ts`; vintage drift between WorldCover (2021) and
+  ACI (annual) is honest disclosure rather than a coverage gate.
 
 ### USGS NLCD
 
@@ -102,10 +104,12 @@ here — they're documented in their service files.
   CC-BY 4.0). figshare dataset metadata should be confirmed at
   ingest time, but the headline paper is open-access CC-BY 4.0.
   Compatible with Atlas's commercial use given attribution.
-- **Open question (carried from 8.1 scoping ADR).** Universal vs.
-  taxon-specific friction (honeybee / native bee / butterfly differ
-  per Sponsler & Johnson 2017). Decision deferred to whichever
-  accepted ADR picks Theobald up.
+- **Taxon-specific friction — resolved 2026-05-04.** Out of scope
+  for Phase 8.1; deferred to P2. The first accepted slice ships a
+  universal class-table friction model. Taxon-specific friction
+  (honeybee / native bee / butterfly per Sponsler & Johnson 2017)
+  rides on as a follow-on ADR if/when stakeholder review of the
+  universal corridor surfaces a gap the universal model can't close.
 
 ---
 
@@ -225,11 +229,13 @@ here — they're documented in their service files.
   (CC-BY 4.0). figshare + Data Basin links captured in the friction-
   surface section above. Citation correction (2010/2013 vs the
   scoping ADR's "2014") also captured.
-- [ ] **Pollinator friction granularity.** Universal vs. taxon-specific —
-  decision needed before 8.1 D3 enters an accepted ADR.
-- [ ] **Buffered polygonization.** 8.1 open question — buffer size
-  for off-parcel land cover (default ~1.5-3 km native bee foraging
-  range) needs to land in the 8.1-B accepted ADR.
+- [x] **Pollinator friction granularity — resolved 2026-05-04.**
+  Universal class-table friction in 8.1; taxon-specific deferred
+  to P2 follow-on.
+- [x] **Buffered polygonization — resolved 2026-05-04.** Default
+  2 km buffer (mid-range native bee foraging). Locked as a named
+  constant in `corridorFriction.ts`; configurable in a later ADR
+  if stakeholder review surfaces a need.
 
 ---
 
