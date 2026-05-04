@@ -23,6 +23,7 @@ Read this first at the start of every session.
 - [Scoring Engine](concepts/scoring-engine.md) — 8 weighted dimensions + 2-3 classifications, ~140+ components, WithConfidence, Tier 3 integration
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage, no backend sync yet
+- [External Data Sources — Phase 8 Reference](concepts/external-data-sources.md) — Attribution, licence, refresh-cadence, and verification-checklist for the deferred-Phase-8 datasets (WorldCover, NLCD, ACI, Theobald HM, IGRAC, WDPA, NCED, ECCC ESG); flags the unresolved IGRAC CC-BY vs CC-BY-NC contradiction in the source ADR
 - [Feature Manifest](concepts/feature-manifest.md) — 30-section source-of-truth for features, phase gating, scaffolding generator
 
 ## Decisions
