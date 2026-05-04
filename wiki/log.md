@@ -4,6 +4,37 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — Merge origin/main into PR #12
+
+After pushing the 8.3-A + external-data-sources commits, PR #12 surfaced
+seven conflicts because `feat/atlas-permaculture` (PR #6) had already
+merged into main on top of the earlier PR #10 of this same branch.
+
+Resolution choices:
+- **public-portal stub** (`apps/api/src/routes/public-portal/index.ts`,
+  `apps/web/src/features/public-portal/PublicPortalPage.tsx`) — kept
+  deleted (Phase 8.3-A consolidation).
+- **future-geospatial route** — combined main's richer
+  `FutureGeospatialResponse.parse` envelope shape with this branch's
+  LATENT phase tag + ADR pointer.
+- **moontrance-identity route** — kept this branch's per-project gate
+  implementation (D1 from accepted ADR — `requireMoontranceProject`
+  custom gate that 404s if no opt-in row).
+- **FutureGeospatialPage.tsx** — combined main's `SectionScaffold`
+  import with this branch's LATENT comment + renamed name/notes copy.
+- **Two scoping ADRs** — kept this branch's Accepted /
+  Partially-Accepted statuses; the proposed-status main carried was
+  the pre-acceptance state.
+- **app.ts** — auto-merged (main's `relationshipRoutes` import +
+  this branch's §27 deletion both retained).
+
+API tsc clean after the merge — the pre-existing
+`projects/index.ts:117` spread error documented this morning appears
+to have been fixed on main during the permaculture sprint. Merge
+commit `7dd49c4`, pushed.
+
+---
+
 ## 2026-05-04 — External-data-sources reference doc (Phase 8 deferred-slice prep)
 
 Of the four remaining Phase 8 deferred items, three (8.1, 8.2-A, 8.2-B) are
