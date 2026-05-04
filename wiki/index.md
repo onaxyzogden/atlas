@@ -20,7 +20,8 @@ Read this first at the start of every session.
 - [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 
 ## Inquiries
-- [2026-05-04 IGRAC GGIS Licence Clarification](inquiries/2026-05-04-igrac-ggis-licence-clarification.md) — Outbound email draft to IGRAC contact resolving the CC-BY vs CC-BY-NC discrepancy + derivative-summary status; gates the Phase 8.2-A accepted ADR
+- [2026-05-04 IGRAC GGIS Licence Clarification](inquiries/2026-05-04-igrac-ggis-licence-clarification.md) — Outbound email draft to IGRAC contact resolving the CC-BY vs CC-BY-NC discrepancy + derivative-summary status; launch-gate for Phase 8.2-A
+- [2026-05-04 WDPA UNEP-WCMC Commercial Licence](inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md) — Outbound enquiry to UNEP-WCMC business support re commercial use of WDPA derivative summaries; launch-gate for Phase 8.2-B
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens

@@ -1,7 +1,10 @@
 # Outbound Inquiry: IGRAC GGIS Licence Clarification
 
 **Date:** 2026-05-04
-**Status:** Drafted — pending operator send
+**Status:** Drafted — pending operator send. **R&D-phase note
+(2026-05-04):** Atlas is pre-launch; this inquiry is a launch-gate,
+not a 8.2-A ship blocker. Send before opening paid diagnosis reports
+to external clients.
 **Recipient:** IGRAC general contact (verify address before sending —
 candidate: `info@un-igrac.org` per <https://www.un-igrac.org/contact>)
 **Subject line:** Licensing clarification — derivative-summary use of

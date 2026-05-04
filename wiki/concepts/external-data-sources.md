@@ -78,16 +78,30 @@ here — they're documented in their service files.
   `POLLINATOR_LIMITING_WEIGHTS` tables.
 - **Form.** Continuous 0-1 anthropogenic-modification index;
   per-pixel friction = `1 + α · HM`.
-- **Citation.** Theobald, D.M. (2014) "Estimating natural landscape
-  changes from 1992 to 2030 in conterminous US." *Landscape Ecology*
-  29, 1411-1424.
-- **Licence.** The 2014 paper does not redistribute the raster
-  itself; the scoping ADR notes the HM raster "is freely available"
-  but does not specify the host. **Verification needed before
-  ingest:** confirm whether the raster comes from the Conservation
-  Science Partners (CSP) group's "Human Modification Index"
-  successor product (different vintage, different licence) or from
-  a journal-supplemental archive.
+- **Citation correction (resolved 2026-05-04).** The scoping ADR's
+  "Theobald (2014)" citation matches the 2010 Springer paper
+  "Estimating natural landscape changes from 1992 to 2030 in
+  conterminous US," DOI `10.1007/s10980-010-9484-z`. A second
+  Theobald paper, "A general model to quantify ecological integrity
+  for landscape assessments and US application" (DOI
+  `10.1007/s10980-013-9941-6`, 2013), introduces the formal HM model.
+  Either paper is citation-acceptable; we should pick the 2013 paper
+  for the model attribution since that's where the gradient is
+  derived.
+- **Canonical raster source (resolved 2026-05-04).** The current
+  reference dataset is **Kennedy, Oakleaf & Theobald 2020 — "Earth
+  transformed: detailed mapping of global human modification from
+  1990 to 2017,"** *Earth System Science Data* 12, 1953
+  (<https://essd.copernicus.org/articles/12/1953/2020/>). The global
+  HMI raster is available on figshare
+  (<https://figshare.com/articles/dataset/Global_Human_Modification/7283087>);
+  a North-America extract is hosted on Data Basin
+  (<https://databasin.org/datasets/110a8b7e238444e2ad95b7c17e889b66/>).
+  Maintained by Conservation Science Partners (CSP).
+- **Licence.** Per the ESSD 2020 paper publication (Copernicus,
+  CC-BY 4.0). figshare dataset metadata should be confirmed at
+  ingest time, but the headline paper is open-access CC-BY 4.0.
+  Compatible with Atlas's commercial use given attribution.
 - **Open question (carried from 8.1 scoping ADR).** Universal vs.
   taxon-specific friction (honeybee / native bee / butterfly differ
   per Sponsler & Johnson 2017). Decision deferred to whichever
@@ -130,18 +144,38 @@ here — they're documented in their service files.
   detail on top.
 - **Coverage.** Global, monthly refresh.
 - **Steward.** UNEP-WCMC.
-- **Licence.** CC-BY-NC. Redistribution prohibited under the
-  non-commercial clause — incompatible with Atlas's default
-  commercial-export licence. Projects exporting full geospatial
-  bundles need a separate "WDPA tile excluded" path.
-- **Open question (carried from 8.2-B scoping ADR).** "On-demand
-  fetch at view time" vs. "ingest into PostGIS." On-demand sidesteps
-  redistribution; ingest gives faster reads. **Constraint:** the
-  diagnosis report is consumed *offline*. On-demand fetch breaks the
-  offline use case unless tiles are bundled into the report — which
-  *is* redistribution. Likely-resolution: ingest for online
-  diagnosis-report rendering, exclude from offline-bundle exports.
-  Confirm with UNEP-WCMC terms-of-use before the accepted ADR lands.
+- **Licence (clarified 2026-05-04).** UNEP-WCMC's terms-of-use are
+  **stricter than CC-BY-NC** as the scoping ADR characterised. Per
+  <https://www.unep-wcmc.org/en/policies/database-terms-and-conditions>:
+  **commercial use of WDPA Materials *or any work derived from them*
+  requires prior written permission from UNEP-WCMC.** A derivative
+  summary value (e.g. "parcel intersects WDPA polygon: yes/no") in a
+  paid Atlas diagnosis report is therefore not covered by the default
+  free-use terms. The "ingest + exclude raw tiles from export"
+  workaround proposed in the scoping ADR does **not** resolve this —
+  the derived intersection result is itself a derivative work.
+- **Commercial-licence path.** UNEP-WCMC offers a separate commercial
+  licence — applications go to `business-support@unep-wcmc.org`.
+  Cost / turnaround unknown; needs a parallel outbound inquiry
+  ([`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`](../inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md)).
+- **Implication for 8.2-B D2 — phased.**
+  - **R&D phase (now → launch).** Atlas is pre-launch and not yet
+    transacting commercially. WDPA's research/non-commercial terms
+    cover the current development workload — ingest, derive, render
+    in internal preview surfaces with attribution. 8.2-B can land on
+    WDPA + NCED + ECCC as the scoping ADR proposed.
+  - **Launch gate.** Before Atlas opens paid diagnosis reports to
+    external clients, resolve the commercial-use question. Three live
+    paths:
+    1. Negotiate a commercial licence with UNEP-WCMC (open inquiry —
+       [`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`](../inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md)).
+    2. Drop WDPA at launch; restrict the conservation overlay to
+       NCED (US) + ECCC ESG (CA) — coverage shrinks to NA-only.
+    3. Two-tier render: WDPA in free preview, NCED + ECCC only in
+       paid bundles.
+  - The launch-gate decision is **not** a Phase 8.2-B blocker — it's
+    a launch-readiness sprint item. Track it on the launch checklist,
+    not the 8.2-B ADR.
 - **Attribution string.** "© UNEP-WCMC and IUCN (2024), The World
   Database on Protected Areas (WDPA)" — date stamp updates monthly
   with the release vintage actually in use.
@@ -175,13 +209,22 @@ here — they're documented in their service files.
 
 - [ ] **IGRAC licence.** CC-BY vs. CC-BY-NC discrepancy in the
   scoping ADR resolved against GGIS portal terms. Derivative-summary
-  status confirmed.
-- [ ] **WDPA bundling.** UNEP-WCMC terms-of-use on tile inclusion in
-  offline reports. Default to "ingest + exclude-from-export"
-  unless terms permit otherwise.
+  status confirmed. **Outbound inquiry drafted —
+  [`wiki/inquiries/2026-05-04-igrac-ggis-licence-clarification.md`](../inquiries/2026-05-04-igrac-ggis-licence-clarification.md).**
+- [x] **WDPA bundling — resolved for R&D phase 2026-05-04.**
+  UNEP-WCMC terms permit research/non-commercial use with
+  attribution; Atlas is pre-launch, so 8.2-B can ship with WDPA
+  included as the scoping ADR proposed. **Launch gate (deferred to
+  launch-readiness, not 8.2-B):** commercial-licence inquiry drafted
+  for `business-support@unep-wcmc.org` —
+  [`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`](../inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md).
+  Send before opening paid diagnosis reports to external clients.
 - [ ] **NCED licence.** Terms-of-use captured in this doc.
-- [ ] **Theobald HM raster source.** Whether the canonical raster
-  is the 2014 paper supplement or the CSP-hosted successor product.
+- [x] **Theobald HM raster source — resolved 2026-05-04.** Canonical
+  raster is Kennedy, Oakleaf & Theobald 2020, ESSD 12, 1953
+  (CC-BY 4.0). figshare + Data Basin links captured in the friction-
+  surface section above. Citation correction (2010/2013 vs the
+  scoping ADR's "2014") also captured.
 - [ ] **Pollinator friction granularity.** Universal vs. taxon-specific —
   decision needed before 8.1 D3 enters an accepted ADR.
 - [ ] **Buffered polygonization.** 8.1 open question — buffer size

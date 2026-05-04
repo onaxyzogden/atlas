@@ -4,6 +4,36 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — External-data verification: WDPA + Theobald resolved, R&D-phase stance
+
+Parallel WebSearch on the two non-IGRAC verification items in
+`wiki/concepts/external-data-sources.md`:
+
+- **Theobald HM raster — resolved.** Canonical raster identified as
+  Kennedy, Oakleaf & Theobald 2020 (ESSD 12, 1953; CC-BY 4.0;
+  figshare + Data Basin distribution). Citation correction applied —
+  the scoping ADR's "Theobald (2014)" was a misdate of the 2010/2013
+  Springer papers.
+- **WDPA terms — clarified, but stricter than the scoping ADR
+  characterised.** UNEP-WCMC requires prior written permission for
+  commercial use of WDPA Materials *or any work derived from them*.
+  The scoping ADR's "ingest + exclude raw tiles from export"
+  workaround does not cover the derived intersection result.
+
+**Operator stance applied:** Atlas is in R&D phase. Research/non-
+commercial use of WDPA + IGRAC covers current development; the
+commercial licence question is a launch-readiness sprint item, not
+a 8.2-A/B ship blocker. Drafted parallel outbound inquiry
+`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`
+(to `business-support@unep-wcmc.org`) for the launch gate.
+
+Files touched: `wiki/concepts/external-data-sources.md` (Theobald
+section + WDPA section + verification checklist), new
+`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`,
+launch-gate notes added to the IGRAC inquiry, `wiki/index.md`.
+
+---
+
 ## 2026-05-04 — Merge origin/main into PR #12
 
 After pushing the 8.3-A + external-data-sources commits, PR #12 surfaced
