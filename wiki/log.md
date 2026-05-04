@@ -6804,3 +6804,98 @@ tokens); light-mode elevation parity.
 
 - Visual sweep across the remaining 5 dashboard module cards to check for similar drift from the legacy static reference.
 - Or: pick up the still-deferred `getVisionData` selector cleanup from 2026-04-26.
+
+---
+
+## 2026-05-04 — Phase 8 dump-format verification sweep + foundational scaffolding
+
+**Context.** Phase 8.2 engineering had landed up to the point where every
+remaining adapter slice was blocked on an external-data verification
+the agent could not complete offline (WDPA monthly dump format, NCED
+licence + dump, ECCC ESG static dump, IGRAC GGIS WFS layer name).
+Rather than fabricate format details and risk silent ingest-job
+breakage on first cron run, four parallel research tracks were
+collapsed into one operator-actionable verification note plus two
+foundational scaffolding commits that do not depend on external
+verification.
+
+### Engineering shipped
+
+**Commit `02258a4`** — `feat(web): drop INTL groundwater lat-heuristic in favour of server IGRAC` (Phase 8.2-A.4).
+Non-US/non-CA groundwater path in
+[`apps/web/src/lib/layerFetcher.ts`](apps/web/src/lib/layerFetcher.ts)
+now returns `null` so the orchestrator IGRAC result surfaces in the
+diagnosis report instead of the lat-based climatic-regime estimate.
+`fetchGroundwaterHeuristicGlobal` retained as a last-resort callable
+for paths that explicitly bypass the pipeline.
+
+**Commit `9c5032a`** — `feat(8.2-B.1, 8.1-A.1): conservation overlay schema + canonical land-cover classes`.
+Two foundational data-layer slices, one commit:
+- [`apps/api/src/db/migrations/024_conservation_overlay_features.sql`](apps/api/src/db/migrations/024_conservation_overlay_features.sql) —
+  one physical table, three logical sources (WDPA / NCED / ECCC_ESG),
+  `(source, source_record_id)` upstream stable key for vintage UPSERTs.
+  GIST + source + (source, ingest_vintage) indices.
+- [`packages/shared/src/ecology/landCoverClasses.ts`](packages/shared/src/ecology/landCoverClasses.ts) —
+  canonical Atlas class set + per-source mappings (NLCD 16, ACI ~70,
+  WorldCover 11) → canonical strings. Class names align with the
+  existing `pollinatorHabitat.ts` weight tables; three `(unspecified)`
+  buckets capture WorldCover honest information loss.
+
+### Research output
+
+**[`wiki/inquiries/2026-05-04-dump-format-verification-sweep.md`](inquiries/2026-05-04-dump-format-verification-sweep.md)** —
+single consolidated note covering all four upstream dumps. For each:
+URL convention, file format, schema column table mapping to the Atlas
+target table, ingest pattern (cron cadence + UPSERT key + atomic
+vintage swap), and an operator-checklist of click-verifications
+(download a sample, confirm column names, confirm CRS).
+[`wiki/concepts/external-data-sources.md`](concepts/external-data-sources.md)
+verification checklist updated with four new dump-format rows linking
+back to the sweep.
+
+Cross-cutting decisions locked in the sweep: EPSG:4326 for all
+geometries, atomic vintage-swap pattern across all four ingest jobs,
+`YYYY-MM | YYYY-Qn | <year>-static` vintage format convention.
+
+### Definition-of-done check
+
+`tsc --noEmit` clean on `@ogden/shared` and `apps/web` (with raised
+heap; default 4 GB OOMs the type-checker on `layerFetcher.ts` size —
+not a regression). Migration runner discovers 024 as a numeric-prefix
+file; SQL syntax sanity-checked manually against migration 015's
+trigger pattern.
+
+### Deferred (operator-blocking)
+
+- WDPA: download a current `WDPA_<MonthYYYY>_Public.zip`; confirm
+  `.gdb` vs `.shp` extension, column names (is `DESIG_ENG` still
+  stable?), CRS.
+- NCED: capture terms-of-use; download latest quarterly bundle; confirm
+  GDB schema columns.
+- ECCC ESG: locate canonical open.canada.ca dataset slug; download
+  shapefile + CSV; confirm column names + CRS.
+- IGRAC GGIS: confirm WFS endpoint live, capture wells layer name +
+  exact field schema via a 1-feature `getFeature` request.
+- WDPA + IGRAC outbound emails (launch-gate, not engineering blocker):
+  send `business-support@unep-wcmc.org` and the IGRAC `info@un-igrac.org`
+  inquiries already drafted.
+
+### Deferred (engineering, awaits verification)
+
+- 8.2-A.3 IGRAC quarterly ingest job at `apps/api/src/jobs/igrac-ingest.ts`.
+- 8.2-B.2 WDPA monthly ingest + adapter.
+- 8.2-B.3 NCED quarterly ingest + adapter (also blocks on licence).
+- 8.2-B.4 ECCC ESG static one-time import + adapter.
+- 8.2-B.5 conservation-overlay endpoint + diagnosis-report copy.
+- 8.1-A.1 raster path: NLCD/ACI/WorldCover adapters need a polygonization
+  toolchain ADR (rasterio + shapely vs PostGIS `ST_DumpAsPolygons`)
+  before adapter scaffolds can land.
+
+### Recommended next session
+
+Operator runs the four dump-format verifications (~30-60 min total of
+portal navigation + sample downloads); files deltas back into the sweep
+note; agent then drafts the four ingest jobs + four adapters in parallel
+against the now-verified schemas. Polygonization toolchain ADR is a
+small parallel scoping note that does not block the conservation arc
+but does block the pollinator-corridor raster adapters.

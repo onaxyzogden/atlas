@@ -22,6 +22,7 @@ Read this first at the start of every session.
 ## Inquiries
 - [2026-05-04 IGRAC GGIS Licence Clarification](inquiries/2026-05-04-igrac-ggis-licence-clarification.md) — Outbound email draft to IGRAC contact resolving the CC-BY vs CC-BY-NC discrepancy + derivative-summary status; launch-gate for Phase 8.2-A
 - [2026-05-04 WDPA UNEP-WCMC Commercial Licence](inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md) — Outbound enquiry to UNEP-WCMC business support re commercial use of WDPA derivative summaries; launch-gate for Phase 8.2-B
+- [2026-05-04 Dump-Format Verification Sweep](inquiries/2026-05-04-dump-format-verification-sweep.md) — Operator-actionable verification note for WDPA, NCED, ECCC ESG, and IGRAC GGIS dump formats (URL conventions, schema columns, ingest patterns); blocks 8.2-A.3 + 8.2-B.2/3/4 engineering
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens

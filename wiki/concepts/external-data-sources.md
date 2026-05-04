@@ -209,6 +209,18 @@ here — they're documented in their service files.
 
 ---
 
+## Dump-format verification sweep
+
+Engineering for 8.2-A.3 (IGRAC ingest), 8.2-B.2 (WDPA), 8.2-B.3 (NCED),
+and 8.2-B.4 (ECCC ESG static import) is gated on knowing each
+upstream's dump format, URL convention, schema columns, and refresh
+signal. Best-knowledge defaults + operator verification clicks are
+captured in
+[`wiki/inquiries/2026-05-04-dump-format-verification-sweep.md`](../inquiries/2026-05-04-dump-format-verification-sweep.md).
+Adapter and ingest code can be drafted against the assumed defaults
+in parallel; deltas land back in the inquiry note when the operator
+confirms the live dumps.
+
 ## Verification checklist (before any of these become accepted ADRs)
 
 - [ ] **IGRAC licence.** CC-BY vs. CC-BY-NC discrepancy in the
@@ -224,6 +236,18 @@ here — they're documented in their service files.
   [`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`](../inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md).
   Send before opening paid diagnosis reports to external clients.
 - [ ] **NCED licence.** Terms-of-use captured in this doc.
+- [ ] **WDPA dump format.** Verify `.gdb` URL pattern + column-name
+      stability per
+      [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#1-wdpa--protectedplanetnet-monthly-dump-82-b2).
+- [ ] **NCED dump format.** Verify quarterly bundle URL + GDB column
+      names per
+      [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#2-nced--national-conservation-easement-database-82-b3).
+- [ ] **ECCC ESG dump format.** Resolve open.canada.ca dataset slug +
+      verify shapefile schema per
+      [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#3-eccc-ecological-gifts-program--static-2023-82-b4).
+- [ ] **IGRAC GGIS dump format.** Confirm WFS layer name + paginated
+      query path per
+      [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#4-igrac-ggis--global-wells-dump-82-a3).
 - [x] **Theobald HM raster source — resolved 2026-05-04.** Canonical
   raster is Kennedy, Oakleaf & Theobald 2020, ESSD 12, 1953
   (CC-BY 4.0). figshare + Data Basin links captured in the friction-
