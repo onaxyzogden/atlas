@@ -7892,100 +7892,15 @@ async function fetchWaterRights(lat: number, lng: number, country: string): Prom
   };
 }
 
-// ── Phase 3: Mineral rights composite (federal + state + BC MTO) ───────────
-
-interface StateMineralRegistry {
-  state: string;
-  agency: string;
-  endpoint: string;
-  featureType: 'well' | 'permit' | 'lease';
-  /** Field to read for the type/status classification */
-  typeField: string[];
-}
-
-const US_STATE_MINERAL_REGISTRIES: Record<string, StateMineralRegistry> = {
-  TX: {
-    state: 'TX',
-    agency: 'Texas Railroad Commission',
-    endpoint: 'https://gis.rrc.texas.gov/arcgis/rest/services/Wells/Wells/MapServer/0/query',
-    featureType: 'well',
-    typeField: ['SYMNUM', 'STATUS', 'WELL_TYPE'],
-  },
-  ND: {
-    state: 'ND',
-    agency: 'North Dakota Industrial Commission',
-    endpoint: 'https://maps.dmr.nd.gov/arcgis/rest/services/OilGas/Wells/MapServer/0/query',
-    featureType: 'well',
-    typeField: ['WELL_TYPE', 'STATUS'],
-  },
-  WY: {
-    state: 'WY',
-    agency: 'Wyoming Oil & Gas Conservation Commission',
-    endpoint: 'https://pipeline.wyo.gov/arcgis/rest/services/WOGCC/Wells/MapServer/0/query',
-    featureType: 'well',
-    typeField: ['WellStatus', 'WellType'],
-  },
-  CO: {
-    state: 'CO',
-    agency: 'Colorado Energy & Carbon Management Commission',
-    endpoint: 'https://services.arcgis.com/hRUr1F8lE8Jq2uJo/arcgis/rest/services/Colorado_Oil_and_Gas_Wells/FeatureServer/0/query',
-    featureType: 'well',
-    typeField: ['facil_stat', 'FAC_STATUS', 'WELL_TYPE'],
-  },
-  OK: {
-    state: 'OK',
-    agency: 'Oklahoma Corporation Commission',
-    endpoint: 'https://gisservices.occ.ok.gov/arcgis/rest/services/OGCD/Wells/MapServer/0/query',
-    featureType: 'well',
-    typeField: ['WellType', 'WellStatus'],
-  },
-  MT: {
-    state: 'MT',
-    agency: 'Montana Bureau of Mines and Geology',
-    endpoint: 'https://mbmggis.mtech.edu/arcgis/rest/services/Public/OilGasWells/MapServer/0/query',
-    featureType: 'well',
-    typeField: ['WellType', 'Status'],
-  },
-};
-
-const US_STATE_MINERAL_INFORMATIONAL: Record<string, string> = {
-  PA: 'PA Department of Environmental Protection publishes oil & gas wells via the Oil and Gas Reporting System (no REST). Search at https://www.dep.pa.gov/',
-  KY: 'Kentucky Geological Survey provides well data via public map service (web viewer only).',
-  WV: 'WV DEP Oil & Gas Program publishes wells via the OGE Map Viewer.',
-  LA: 'Louisiana SONRIS system provides oil & gas well records (non-REST).',
-  CA: 'California CalGEM (WellSTAR) publishes well records via web viewer only.',
-  NM: 'NM Oil Conservation Division publishes wells via the OCD Imaging system.',
-  AK: 'Alaska AOGCC publishes well records via public portal (non-REST).',
-};
-
-async function queryStateMineralRegistry(
-  lat: number,
-  lng: number,
-  reg: StateMineralRegistry,
-): Promise<{ count: number; types: string[] } | null> {
-  const buf = 0.02;
-  const envelope = encodeURIComponent(JSON.stringify({
-    xmin: lng - buf, ymin: lat - buf,
-    xmax: lng + buf, ymax: lat + buf,
-    spatialReference: { wkid: 4326 },
-  }));
-  const url = `${reg.endpoint}?geometry=${envelope}&geometryType=esriGeometryEnvelope&inSR=4326` +
-    `&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json`;
-  try {
-    const resp = await fetchWithRetry(url, 10000);
-    const data = await resp.json() as { features?: { attributes?: Record<string, unknown> }[] };
-    const features = data?.features ?? [];
-    const typeSet = new Set<string>();
-    for (const f of features) {
-      const attrs = f.attributes ?? {};
-      const t = pickField(attrs, reg.typeField);
-      if (t) typeSet.add(t);
-    }
-    return { count: features.length, types: [...typeSet].slice(0, 6) };
-  } catch {
-    return null;
-  }
-}
+// ── Phase 3: Mineral rights composite (federal BLM + BC MTO) ──────────────
+//
+// Per ADR 2026-05-02-global-groundwater-esg-sources-scoping (D3, accepted
+// 2026-05-04), state-level mineral registry scraping was dropped. The
+// per-state ArcGIS schemas churned often enough that the maintenance
+// burden outpaced signal value. Federal BLM covers the CONUS public-land
+// case; private/state mineral severance is now a manual due-diligence
+// task surfaced through the legal-checklist note below, not a pipeline
+// output.
 
 async function queryBcMtoTenure(lat: number, lng: number): Promise<{ present: boolean; count: number } | null> {
   try {
@@ -8062,53 +7977,34 @@ async function fetchMineralRightsComposite(
     claims.map((c) => String(c.attributes?.['CLAIM_TYPE'] ?? 'Unknown')),
   ));
 
-  // Resolve state and try state registry
+  // Resolve state for the legal-checklist note (no per-state scrape — see ADR D3)
   let stateCode = '';
   try {
     const fips = await resolveCountyFips(lat, lng);
     stateCode = fips.stateCode;
   } catch { /* continue */ }
 
-  const stateReg = US_STATE_MINERAL_REGISTRIES[stateCode];
-  let stateResult: { count: number; types: string[] } | null = null;
-  let stateAgency: string | null = null;
-  let stateNote: string | null = null;
-  if (stateReg) {
-    stateResult = await queryStateMineralRegistry(lat, lng, stateReg);
-    stateAgency = stateReg.agency;
-    if (!stateResult) {
-      stateNote = `State registry (${stateReg.agency}) temporarily unavailable; federal data only.`;
-    }
-  } else if (stateCode && US_STATE_MINERAL_INFORMATIONAL[stateCode]) {
-    stateNote = US_STATE_MINERAL_INFORMATIONAL[stateCode]!;
-  } else if (stateCode) {
-    stateNote = `No public REST-queryable state mineral registry for ${stateCode}. Contact ${stateCode} oil & gas / mineral regulator for authoritative records.`;
-  }
-
   // Nothing interesting at all — skip
-  if (!federalMineralEstate && claims.length === 0 && !stateResult && !stateNote) {
+  if (!federalMineralEstate && claims.length === 0 && !stateCode) {
     return null;
   }
 
-  const hasLive = federalMineralEstate || claims.length > 0 || (stateResult != null && stateResult.count > 0);
-  const sourceParts: string[] = ['BLM Mineral & Mining Claims'];
-  if (stateResult) sourceParts.push(`${stateReg!.agency}`);
+  const hasLive = federalMineralEstate || claims.length > 0;
+  const stateNote = stateCode
+    ? `State-level oil & gas / mineral records for ${stateCode} are not pipeline outputs (ADR 2026-05-02-global-groundwater-esg-sources-scoping D3). Contact the ${stateCode} oil & gas / mineral regulator directly for authoritative records.`
+    : null;
 
   return {
     layerType: 'mineral_rights',
     fetchStatus: 'complete',
     confidence: hasLive ? 'medium' : 'low',
     dataDate: today,
-    sourceApi: hasLive ? sourceParts.join(' + ') : 'Estimated (federal minerals only; state registry unavailable)',
-    attribution: 'U.S. Bureau of Land Management' + (stateAgency ? ` + ${stateAgency}` : ''),
+    sourceApi: 'BLM Mineral & Mining Claims',
+    attribution: 'U.S. Bureau of Land Management',
     summary: {
       federal_mineral_estate: federalMineralEstate,
       mineral_claims_within_2km: claims.length,
       claim_types: claimTypes,
-      state_registry_checked: stateResult != null,
-      state_registry_agency: stateAgency,
-      state_wells_within_2km: stateResult?.count ?? null,
-      state_well_types: stateResult?.types ?? [],
       state_regulatory_note: stateNote,
       coverage_note: 'Federal minerals only; private/state mineral ownership requires title search.',
     },

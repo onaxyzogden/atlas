@@ -42,15 +42,17 @@ function moontranceEnabled(): boolean {
   return raw === '1' || raw === 'true';
 }
 
-function futureEnabled(): boolean {
-  const raw = process.env.ATLAS_FUTURE;
+function latentEnabled(): boolean {
+  // ATLAS_FUTURE is the legacy name (pre ADR 2026-05-02 D2); honour it
+  // until deployments migrate.
+  const raw = process.env.ATLAS_LATENT ?? process.env.ATLAS_FUTURE;
   return raw === '1' || raw === 'true';
 }
 
 export default fp(async (fastify: FastifyInstance) => {
   const phaseMax = resolvePhaseMax();
   const mtOn = moontranceEnabled();
-  const futureOn = futureEnabled();
+  const latentOn = latentEnabled();
 
   fastify.decorate('requirePhase', (tag: PhaseTag) => {
     return async (req: FastifyRequest, _reply: FastifyReply) => {
@@ -58,8 +60,8 @@ export default fp(async (fastify: FastifyInstance) => {
         if (!mtOn) throw new NotFoundError('Route', req.url);
         return;
       }
-      if (tag === 'FUTURE') {
-        if (!futureOn) throw new NotFoundError('Route', req.url);
+      if (tag === 'LATENT') {
+        if (!latentOn) throw new NotFoundError('Route', req.url);
         return;
       }
       if (!phaseAtMost(tag, phaseMax)) {
@@ -69,7 +71,7 @@ export default fp(async (fastify: FastifyInstance) => {
   });
 
   fastify.log.info(
-    { phaseMax, moontrance: mtOn, future: futureOn },
+    { phaseMax, moontrance: mtOn, latent: latentOn },
     'featureGate plugin loaded',
   );
 });
