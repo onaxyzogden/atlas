@@ -55,6 +55,7 @@ export * from './ecology/pollinatorHabitat.js';
 export * from './ecology/ecoregion.js';
 export * from './ecology/corridorLCP.js';
 export * from './ecology/pollinatorHabitatState.js';
+export * from './ecology/landCoverClasses.js';
 
 // Constants
 export * from './constants/dataSources.js';
