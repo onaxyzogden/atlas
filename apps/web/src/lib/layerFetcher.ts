@@ -4767,8 +4767,17 @@ async function fetchUSGSNWIS(lat: number, lng: number, country: string): Promise
     }
   }
   if (country !== 'US') {
-    // Sprint BG Phase 5 — global heuristic fallback (no free global water-table REST API)
-    return fetchGroundwaterHeuristicGlobal(lat, lng);
+    // Phase 8.2-A.4 (ADR 2026-05-04-igrac-global-groundwater-fallback):
+    // INTL groundwater is now served by IgracGroundwaterAdapter on the
+    // server-side pipeline (reads local PostGIS `groundwater_wells_global`
+    // populated by quarterly IGRAC GGIS ingest). The client preview path
+    // returns null here so the orchestrator's IGRAC result is what surfaces
+    // in the diagnosis report — no longer the lat-based heuristic.
+    //
+    // `fetchGroundwaterHeuristicGlobal` is retained below as a last-resort
+    // fallback for callers that explicitly bypass the pipeline; do not call
+    // it from the standard preview path.
+    return null;
   }
   try {
     const today = new Date();
