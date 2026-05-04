@@ -23,9 +23,24 @@ src/
     export/         — InvestorSummaryExport, ProjectSummaryExport, EducationalBookletExport
     fieldwork/      — FieldworkPanel, FieldNoteExport
     map/            — Map view, drawing tools, layer controls
+    observe/        — OBSERVE-stage hub + 8 gap surfaces (steward, regional,
+                      hazards, cross-section, soil tests, food-chain, sector
+                      compass, SWOT journal, diagnosis report) — see
+                      [[2026-04-29-observe-stage-ia-restructure]]
+    plan/           — PLAN-stage hub + 16 spec-module surfaces (permanence,
+                      runoff, swale/storage, zone layer, paths, plant DB +
+                      guild + canopy, soil/waste, transect+solar, phasing +
+                      seasonal tasks + budget, Holmgren checklist) — see
+                      [[2026-04-29-plan-stage-ia-restructure]]
+    act/            — ACT-stage hub (violet-bronze) + 13 spec-module surfaces
+                      (BuildGantt, BudgetActuals, PilotPlots, Maintenance,
+                      Irrigation, WasteRouting, OngoingSwot, HarvestLog,
+                      Succession, NetworkCrm, CommunityEvents, HazardPlans,
+                      AppropriateTech) — see
+                      [[2026-04-29-act-stage-ia-restructure]]
     <slug>/         — 28 scaffolded §§2-29 feature folders (CONTEXT.md + Page.tsx + index.ts)
                       driven by [[feature-manifest]]. §1 uses legacy project/ folder.
-  store/            — 26 Zustand stores
+  store/            — 32 Zustand stores
   lib/              — layerFetcher, geoParsers, scoring engine, tokens.ts (TS token bridge)
   pages/            — Top-level route pages
 ```
@@ -43,7 +58,26 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
 | Reporting & Portal | `--color-group-reporting` | Reports & Export, Public Portal, Educational Atlas |
 | General | `--color-group-general` | Biomass, Siting Rules, Settings, Archive |
 
-## Zustand Stores (18)
+## Sidebar Stage Lens (3-stage Observe/Plan/Act — 2026-04-29)
+- `features/navigation/taxonomy.ts` carries both `stage: StageKey` (S1–S5)
+  and `stage3: Stage3Key` (`observe | plan | act`) on every NavItem.
+- `uiStore.sidebarGrouping` defaults to `'stage3'`; `'stage' | 'phase' |
+  'domainGroup'` remain available via `GroupingToggle` for power users.
+- Mapping: S1 + S2 → observe · S3 design + S4 → plan · S3 operate + S5 →
+  act. Decision: [[2026-04-29-observe-stage-ia-restructure]].
+- Observe accordion is a 17-item flat list (Hub + 6 existing dashboards + 9
+  new dashboardOnly observe surfaces + report exporter); `ObserveHub` is
+  the default landing surface for the stage.
+- Plan accordion adds `PlanHub` + 16 spec-module surfaces; see
+  [[2026-04-29-plan-stage-ia-restructure]].
+- Act accordion adds `ActHub` (pinned first, violet-bronze theme) + 13 new
+  ACT spec-module surfaces; the 11 already-tagged ACT NavItems
+  (`herd-rotation`, `livestock-inventory`, `nursery-ledger`,
+  `investor-summary`, `reporting`, `portal`, `educational`, `moontrance`,
+  `templates`, `fieldwork`, `history`) remain in place. See
+  [[2026-04-29-act-stage-ia-restructure]].
+
+## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection
 - `zoneStore` — land zones (13 categories)
@@ -55,8 +89,25 @@ All use `persist` middleware with localStorage. Key stores:
 - `scenarioStore` — design scenario snapshots (v2, full dollars)
 - `financialStore` — region, mission weights, overrides
 - `fieldworkStore` — field notes, walk routes, punch lists
-- `siteDataStore` — cached layer data
+- `siteDataStore` — cached layer data (fetch-driven, ephemeral)
+- **Site-annotations namespace stores (2026-04-30, 7 stores):**
+  `externalForcesStore` (hazards + sectors), `topographyStore` (transects
+  with `verticalRefs` discriminated union), `ecologyStore` (ecology +
+  succession), `waterSystemsStore` (earthworks + storageInfra),
+  `polycultureStore` (guilds + species), `closedLoopStore` (wasteVectors
+  + wasteVectorRuns + fertilityInfra), `swotStore`. Replaces the legacy
+  `siteAnnotationsStore` v3 god-store via Permaculture-Scholar-aligned
+  consolidation (Holmgren P8) — see [[site-annotations-store]] and
+  [[2026-04-30-site-annotations-store-scholar-aligned-namespaces]].
+  One-time `migrateLegacyBlob()` runs at boot in `main.tsx`.
 - `commentStore` — design comments
+- **PLAN-stage stores (2026-04-29):** `principleCheckStore` — Holmgren
+  12-principle checks per project.
+- **ACT-stage stores (2026-04-29):** `actualsStore` (per-task est-vs-actual
+  ledger), `pilotPlotStore`, `maintenanceStore` (5-cadence tasks),
+  `harvestLogStore`, `successionStore`, `networkStore` (external CRM —
+  distinct from `memberStore`), `communityEventStore`,
+  `appropriateTechStore`. All `ogden-act-<slug>` v1.
 
 ## Map / Geocoding
 - Tile renderer: MapLibre GL (open-source)
@@ -73,6 +124,13 @@ All use `persist` middleware with localStorage. Key stores:
 - Branch coverage (`computeScores.ts`): **84.61%** (138 tests passing, target >80% met 2026-04-12)
 - All stores: **localStorage-only** (no backend sync — `serverId` field prepared but unused)
 - Auth guard: **commented out** for dev convenience
+- **Atlas v3.0 lifecycle shell** (parallel route tree, 2026-04-28) — all 7
+  stages live under `/v3/project/:id/{home,discover,diagnose,design,prove,build,operate,report}`.
+  Mock-only via [`useV3Project`](../../apps/web/src/v3/data/useV3Project.ts).
+  No MapboxGL imports anywhere in v3. v2 `/project/$projectId` workspace
+  remains mounted; cutover deferred to v3.1. See decision record
+  [`2026-04-28-atlas-v3-mock-first-lifecycle-shell.md`](../decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md)
+  and backlog [`apps/web/src/v3/BACKLOG-v3.1.md`](../../apps/web/src/v3/BACKLOG-v3.1.md).
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
@@ -200,3 +258,32 @@ Design-system primitives + token architecture driven by `design-system/ogden-atl
 - `DelayedTooltip.tsx` — 800 ms preset over existing `<Tooltip>`. Replaces native `title=` across icon-only chrome (`IconSidebar`, map tool spine, overlay toggles). ADR `2026-04-23-delayed-tooltip-primitive.md`.
 - `Sparkline.tsx` — zero-dep SVG micro-chart for inline trend display. Neutral stroke, semantic accent on endpoint dot only. First consumer: Climate row in `ScoresAndFlagsSection` renders monthly precipitation from `climate.summary._monthly_normals`. `LiveDataRow.sparkline?: number[]` is the transport — plumbed in `packages/shared/src/scoring/computeScores.ts::deriveLiveDataRows` and mirrored on the local `LiveDataRow` type in `apps/web/src/components/panels/sections/ScoresAndFlagsSection.tsx`.
 - `.signifier-shimmer` utility in `apps/web/src/styles/utilities.css` — `@property`-driven conic-gradient border, masked to outline only, with `prefers-reduced-motion` guard. Applied to active overlay toggles + active tool buttons.
+
+
+## Feasibility Command Center (2026-04-29)
+
+Replaced the legacy `DecisionSupportPanel` (single-column stack of ~17 cards) for the Dashboard `feasibility` route with a decision-pathway cockpit.
+
+**Layout.** `FeasibilityCommandCenter.tsx` orchestrates: header → `FeasibilityVerdictHero` (full-width, mirrors `LandVerdictCard`) → `BlockingIssuesStrip` (anchor `#feasibility-blockers`) → 2-col body (Fit & Readiness | Execution Reality) + sticky `FeasibilityDecisionRail` → Design Rules section → `<details>` Methodology drawer (closed by default; holds `WhatMustBeSolvedFirstCard` + `MissingInformationChecklistCard` + legacy methodology). Outer grid `minmax(0, 1fr) 280px` collapses at 1100px; inner body grid collapses at 960px.
+
+**Shared hooks.** `hooks/useTriageItems.ts`, `hooks/useTypeFitRanking.ts`, `hooks/useFeasibilityVerdict.ts` — extracted from the prior inline `useMemo` blocks in `WhatMustBeSolvedFirstCard` and `BestUseSummaryCard` so the strip + rail + hero share identical triage / ranking data. `useFeasibilityVerdict` composes ranking + triage + financial model into bands `supported | supported-with-fixes | workable | not-recommended`, headline/subhead, mini-metrics, readiness chips.
+
+**Dual-context split.** `DecisionSupportPanel` is unchanged and still serves the 260px MapView right rail (narrow contexts cannot host a 2-col + sticky-rail layout). `DashboardRouter.tsx:224` is the only mount swap.
+
+Verification: typecheck clean, lint exit 0, build clean (1m 9s, PWA precache regenerated). Browser-verified at 1440×900: hero score circle, verdict badge, mini metrics, CTAs; blockers strip; 2-col body; sticky rail with verdict + readiness chips; no JS console errors.
+
+### Feasibility Brief exporter (2026-04-29)
+
+`apps/web/src/features/decision/lib/exportFeasibilityBrief.ts` mirrors the v3 Land-Brief pattern. `renderFeasibilityBriefMarkdown({ project, verdict, ranking, triage })` is a pure renderer; `useFeasibilityBriefDownloader(project)` composes `useFeasibilityVerdict` + `useTypeFitRanking` + triage into a memoized download callback. `FeasibilityCommandCenter` falls back to this downloader when no `onGenerateBrief` prop is supplied — hero + rail "Generate Feasibility Brief" CTA is now wired end-to-end. Sections: Header, Verdict + interpretation, Snapshot table, Readiness, Blocking Issues (grouped by triage tier), Vision Fit Detail (per-requirement table), Best-Use Ranking (top 8 with ★ for current direction), Methodology footer.
+
+### Planting Tool Command Center (2026-04-29)
+
+Templated the §21 cockpit recipe onto the second-most-cluttered Dashboard page: `apps/web/src/features/dashboard/pages/PlantingToolDashboard.tsx` (legacy single-column flow of 17+ sections → cockpit shell with verdict-first layout).
+
+**Layout.** Page header → verdict hero (band derived from `orchardSafety.overallSite` + blocker counts) → Blocking Issues strip → 2-col body (**Fit & Suitability**: Suitable Species — **Execution Reality**: Design Metrics, Water Demand, Orchard Safety, Nursery & Compost Proximity, Access & Irrigation Tie-In) → full-width **Design Detail** section (Frost Windows, Spacing Logic, Placement Validation, Companion Planting, Yield Estimates) → closed-by-default **Methodology drawer** (§12+ long-form cards: SeasonalProductivity, TreeSpacingCalculator, CompanionRotationPlanner, AllelopathyWarning, OrchardGuildSuggestions, AgroforestryPatternAudit, CanopyMaturity, ClimateShiftScenario, ShadeSuccessionForecast + AI Siting + VIEW ON MAP) + sticky **Decision Rail** (verdict, top blocker, next 3 actions, readiness chips for site / supply / logistics / species, CTAs).
+
+**No new analysis math.** `derivePlantingVerdict` + `derivePlantingBlockers` re-present the existing `orchardSafety`, `proximity`, `access`, `validations`, and `waterDemand` memos as a page-level "so what" + flat blocker list. Mini metrics: suitable-species ratio, orchard count, total trees, water demand gal/yr, blocker count. Blocker sources: orchard placement (risk + caution), missing nursery/compost/irrigation/path, proximity rows ≥ risk, access rows ≥ risk, placement-validation failures.
+
+**Single-file refactor.** Helpers, types, and CSS classes live alongside the existing `buildOrchardSafety` / `buildProximityChecks` / `buildAccessChecks` / `buildWaterDemandRollup` functions. `.module.css` gained ~270 lines for cockpit shell (`.cockpit*`, `.verdictHero*`, `.blockersStrip*`, `.rail*`, `.methodology*`); outer grid `minmax(0, 1fr) 280px` collapses at 1100px, inner body grid collapses at 960px.
+
+Verification: typecheck clean for new code (only pre-existing v3 errors remain); lint clean. Browser preview deferred to next session.

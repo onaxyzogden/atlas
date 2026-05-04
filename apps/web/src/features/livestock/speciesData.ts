@@ -5,11 +5,15 @@
 import type { LivestockSpecies } from '../../store/livestockStore.js';
 import type { CropAreaType } from '../../store/cropStore.js';
 import { crop } from '../../lib/tokens';
+import { auFactorFor } from './scheduleA.js';
+
+export type StockingUnit = 'head' | 'hives' | 'birds';
 
 export interface LivestockSpeciesInfo {
   label: string;
   icon: string;
-  typicalStocking: number; // head per hectare
+  typicalStocking: number; // count per hectare (units defined by stockingUnit)
+  stockingUnit: StockingUnit;
   minPaddockHa: number;
   recoveryDays: number; // typical rotation recovery
   fencingNote: string;
@@ -20,63 +24,63 @@ export interface LivestockSpeciesInfo {
 export const LIVESTOCK_SPECIES: Record<LivestockSpecies, LivestockSpeciesInfo> = {
   sheep: {
     label: 'Sheep', icon: '\u{1F411}',
-    typicalStocking: 12, minPaddockHa: 0.1, recoveryDays: 30,
+    typicalStocking: 12, stockingUnit: 'head', minPaddockHa: 0.1, recoveryDays: 30,
     fencingNote: 'Woven wire or 5-strand electric',
     waterNote: '5-8 L/head/day',
     shelterNote: 'Run-in shelter for lambing; shade for summer',
   },
   cattle: {
     label: 'Cattle', icon: '\u{1F404}',
-    typicalStocking: 2, minPaddockHa: 0.5, recoveryDays: 45,
+    typicalStocking: 2, stockingUnit: 'head', minPaddockHa: 0.5, recoveryDays: 45,
     fencingNote: 'High-tensile electric (2-3 strand) or post-rail',
     waterNote: '40-80 L/head/day',
     shelterNote: 'Shade trees or run-in shelter',
   },
   goats: {
     label: 'Goats', icon: '\u{1F410}',
-    typicalStocking: 10, minPaddockHa: 0.1, recoveryDays: 30,
+    typicalStocking: 10, stockingUnit: 'head', minPaddockHa: 0.1, recoveryDays: 30,
     fencingNote: 'Woven wire essential — goats escape everything else',
     waterNote: '4-8 L/head/day',
     shelterNote: 'Enclosed shelter — goats hate rain',
   },
   poultry: {
     label: 'Poultry', icon: '\u{1F414}',
-    typicalStocking: 250, minPaddockHa: 0.05, recoveryDays: 14,
+    typicalStocking: 250, stockingUnit: 'birds', minPaddockHa: 0.05, recoveryDays: 14,
     fencingNote: 'Electronet portable fencing',
     waterNote: '0.5 L/bird/day',
     shelterNote: 'Mobile coop or chicken tractor',
   },
   pigs: {
     label: 'Pigs', icon: '\u{1F416}',
-    typicalStocking: 15, minPaddockHa: 0.1, recoveryDays: 60,
+    typicalStocking: 15, stockingUnit: 'head', minPaddockHa: 0.1, recoveryDays: 60,
     fencingNote: 'Strong electric — pigs are powerful',
     waterNote: '10-15 L/head/day',
     shelterNote: 'A-frame shelters or deep-bed housing',
   },
   horses: {
     label: 'Horses', icon: '\u{1F40E}',
-    typicalStocking: 2, minPaddockHa: 0.5, recoveryDays: 21,
+    typicalStocking: 2, stockingUnit: 'head', minPaddockHa: 0.5, recoveryDays: 21,
     fencingNote: 'Post-rail or electric tape (high visibility)',
     waterNote: '30-50 L/head/day',
     shelterNote: 'Three-sided run-in shelter minimum',
   },
   ducks_geese: {
     label: 'Ducks & Geese', icon: '\u{1F986}',
-    typicalStocking: 100, minPaddockHa: 0.05, recoveryDays: 14,
+    typicalStocking: 100, stockingUnit: 'birds', minPaddockHa: 0.05, recoveryDays: 14,
     fencingNote: 'Low electronet or poultry netting',
     waterNote: '1 L/bird/day + swimming water',
     shelterNote: 'Simple night shelter, predator-proof',
   },
   rabbits: {
     label: 'Rabbits', icon: '\u{1F407}',
-    typicalStocking: 50, minPaddockHa: 0.02, recoveryDays: 7,
+    typicalStocking: 25, stockingUnit: 'head', minPaddockHa: 0.02, recoveryDays: 7,
     fencingNote: 'Rabbit tractor or secure wire enclosure',
     waterNote: '0.5 L/head/day',
     shelterNote: 'Hutch or tractor with shade',
   },
   bees: {
     label: 'Bees', icon: '\u{1F41D}',
-    typicalStocking: 4, minPaddockHa: 0.01, recoveryDays: 0,
+    typicalStocking: 4, stockingUnit: 'hives', minPaddockHa: 0.01, recoveryDays: 0,
     fencingNote: 'Electric bear fence if in bear country',
     waterNote: 'Water source within 200m',
     shelterNote: 'Hives face south-east, wind-protected',
@@ -124,13 +128,20 @@ export const AU_FACTORS: Record<LivestockSpecies, number> = {
 
 /**
  * Sum Animal Units across a livestock inventory.
+ *
+ * Each entry may optionally carry a Manitoba Schedule A subcategory id
+ * (see `scheduleA.ts`). When set and recognised, the subcategory's specific
+ * AU factor is used; otherwise the legacy `AU_FACTORS[species]`
+ * representative value is applied. This keeps existing data valid while
+ * letting projects refine to subcategory granularity.
+ *
  * Safe to call with an empty array or unknown species (defaults to 0).
  */
 export function computeAnimalUnits(
-  inventory: Array<{ species: LivestockSpecies; totalHead: number }>,
+  inventory: Array<{ species: LivestockSpecies; totalHead: number; subcategoryId?: string }>,
 ): number {
   return inventory.reduce(
-    (sum, e) => sum + e.totalHead * (AU_FACTORS[e.species] ?? 0),
+    (sum, e) => sum + e.totalHead * auFactorFor(e.species, e.subcategoryId),
     0,
   );
 }

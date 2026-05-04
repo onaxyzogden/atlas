@@ -6,24 +6,36 @@
 import { useState, useRef, useCallback, type ReactNode } from 'react';
 import { zIndex } from '../lib/tokens.js';
 
+type PanelHeight = 'peek' | 'half' | 'full';
+
 interface SlideUpPanelProps {
   children: ReactNode;
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  /** Initial drag-state when the panel opens. Defaults to `half`. */
+  initialHeight?: PanelHeight;
 }
 
-type PanelHeight = 'peek' | 'half' | 'full';
-
-export default function SlideUpPanel({ children, isOpen, onClose, title }: SlideUpPanelProps) {
-  const [height, setHeight] = useState<PanelHeight>('half');
+export default function SlideUpPanel({
+  children,
+  isOpen,
+  onClose,
+  title,
+  initialHeight = 'half',
+}: SlideUpPanelProps) {
+  const [height, setHeight] = useState<PanelHeight>(initialHeight);
   const dragStartY = useRef(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // `full` is sized to clear the host page's top chrome only — by default
+  // the slide-up rises until just below the dashboard's top header (~120px
+  // of app chrome + hub hero is left visible). Tweak via `--slide-up-full`
+  // on a parent if a host wants a different ceiling.
   const heightValues: Record<PanelHeight, string> = {
     peek: '15vh',
     half: '50vh',
-    full: '85vh',
+    full: 'calc(100vh - 120px)',
   };
 
   const handleDragStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
@@ -68,8 +80,9 @@ export default function SlideUpPanel({ children, isOpen, onClose, title }: Slide
         style={{
           position: 'fixed',
           bottom: 0,
-          left: 0,
-          right: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'min(960px, 100vw)',
           height: heightValues[height],
           background: 'var(--color-panel-bg, #1a1611)',
           borderTopLeftRadius: 16,
@@ -106,7 +119,17 @@ export default function SlideUpPanel({ children, isOpen, onClose, title }: Slide
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            padding: '0 16px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           {children}
         </div>
       </div>

@@ -1,6 +1,20 @@
 // Section 29 — Moontrance-Specific Features ([MT])
-// Generated stub from scaffold-section.ts.
+// Orphan scaffold — not routed. Real surface listed in SectionScaffold.
+import { SectionScaffold } from '../_scaffolds/SectionScaffold';
 
 export default function MoontranceIdentityPage() {
-  return <div data-section-id="29">Moontrance-Specific Features — coming soon</div>;
+  return (
+    <SectionScaffold
+      section={29}
+      slug="moontrance-identity"
+      name="Moontrance-Specific Features"
+      realSurface={[
+        'apps/web/src/features/moontrance/MoontrancePanel.tsx',
+        'apps/web/src/features/spiritual/SpiritualPanel.tsx',
+        'apps/web/src/features/spiritual/PrayerSpaceAlignment.tsx',
+        'apps/web/src/features/spiritual/QuietZonePlanning.tsx',
+        'apps/web/src/features/spiritual/SignsInCreation.tsx',
+      ]}
+    />
+  );
 }

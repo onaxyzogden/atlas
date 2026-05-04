@@ -7,10 +7,9 @@
 import { useRef, useEffect, useMemo } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { useMaplibre } from './hooks/useMaplibre.js';
-import { maplibregl, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
+import { maplibregl, MAP_STYLES, hasMapToken, maptilerKey } from '../../lib/maplibre.js';
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import MapLoadingIndicator from './MapLoadingIndicator.js';
-import MapStyleSwitcher from './MapStyleSwitcher.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -251,6 +250,41 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       map.off('style.load', addAllLayers);
     };
   }, [map, isLoaded, boundaryGeojson, boundaryColor, zones, structures, paddocks, cropAreas, designPaths, designUtilities, mapComments]);
+
+  // ── Basemap swap — owned here, not in useMaplibre, so the
+  // `style.load` re-hydration listener registered above (line 245)
+  // is guaranteed to be live before `setStyle` is invoked. Effects in
+  // the same component fire in registration order, so this effect
+  // runs strictly AFTER the addAllLayers effect on every render —
+  // no timing window where the swap can fire without a handler.
+  //
+  // `{ diff: false }` forces a full style reload every time, which:
+  //   1. Guarantees `style.load` fires (diff-mode can elide it).
+  //   2. Wipes user-added sources/layers cleanly so addAllLayers
+  //      re-adds them at the top of the layer stack — the previous
+  //      diff-mode behaviour silently re-ordered them under opaque
+  //      basemap layers, hiding boundary/zone/structure renders.
+  // (Chrome audit, 2026-04-25.)
+  const activeStyle = useMapStore((s) => s.style);
+  const lastAppliedStyleRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+    // First post-load run: the map was constructed with `activeStyle`
+    // already (see useMaplibre.ts), so no swap is needed — just record
+    // the baseline. Without this guard, `{ diff: false }` would force
+    // a redundant full reload on initial mount, flickering the
+    // just-added boundary off and back on.
+    if (lastAppliedStyleRef.current === undefined) {
+      lastAppliedStyleRef.current = activeStyle;
+      return;
+    }
+    if (lastAppliedStyleRef.current === activeStyle) return;
+    lastAppliedStyleRef.current = activeStyle;
+    map.setStyle(
+      MAP_STYLES[activeStyle] ?? MAP_STYLES['satellite']!,
+      { diff: false },
+    );
+  }, [map, isLoaded, activeStyle]);
 
   // ── Phase filter — toggle layer visibility ──
   const activePhaseFilter = useMapStore((s) => s.activePhaseFilter);
@@ -601,10 +635,11 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
           style-load finishes (suppressed while the overlay above is showing). */}
       <MapLoadingIndicator map={map} suppressed={!isLoaded} />
 
-      {/* Basemap style switcher — satellite / terrain / topographic / street / hybrid */}
-      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, pointerEvents: 'none' }}>
-        <MapStyleSwitcher />
-      </div>
+      {/* Basemap style switcher is rendered by MapView's top-right
+          cluster (top:56 right:60), NOT here. A previous duplicate at
+          top:12 right:12 collided with the floatingControls row
+          (Draw Boundary + zones · structures) producing a visible
+          overlap — see chrome audit, 2026-04-25. */}
 
       {/* Map scale bar is added natively by Mapbox — no floating panels needed */}
     </div>

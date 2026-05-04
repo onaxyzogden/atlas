@@ -11,6 +11,14 @@ const cesiumRoot = dirname(require.resolve('cesium/package.json'));
 const cesiumBuild = join(cesiumRoot, 'Build', 'Cesium');
 
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ['@ogden/ui-components'],
+    // react-router 7 pulls in cookie@1 (CJS, no `exports` field). Without
+    // forcing pre-bundle, Vite serves dist/index.js raw and the ESM
+    // `import { parse } from 'cookie'` throws "no export named 'parse'"
+    // at module-eval time, leaving #root empty. Same for set-cookie-parser.
+    include: ['cookie', 'set-cookie-parser'],
+  },
   plugins: [
     react(),
     VitePWA({
@@ -99,8 +107,24 @@ export default defineConfig({
   resolve: {
     alias: {
       // More-specific subpath aliases MUST come first — Vite prefix-matches in order.
+      //
+      // @ogden/ui-components is installed at the monorepo root node_modules
+      // (apps/web/package.json does not declare it). Vite's dev-server resolves
+      // from apps/web/ and cannot traverse up to the root — explicit aliases
+      // fix the gap. The subpath export (/style.css) must appear before the
+      // bare-package alias to avoid the prefix swallowing it first.
+      '@ogden/ui-components/style.css': resolve(
+        __dirname,
+        '../../node_modules/@ogden/ui-components/dist/ogden-ui-components.css',
+      ),
+      '@ogden/ui-components': resolve(
+        __dirname,
+        '../../node_modules/@ogden/ui-components/dist/ogden-ui-components.es.js',
+      ),
       '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
+      '@ogden/shared/demand': resolve(__dirname, '../../packages/shared/src/demand/index.ts'),
+      '@ogden/shared/relationships': resolve(__dirname, '../../packages/shared/src/relationships/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
       'mapbox-gl': 'maplibre-gl',
     },

@@ -1,0 +1,257 @@
+/* §19 TimelineYearModeCard — year-mode scrubber. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.scrubber {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 10px;
+}
+
+.scrubberBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: rgba(220, 210, 185, 0.7);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.scrubberBtn:hover {
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.scrubberBtnActive {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.45);
+  color: rgba(232, 220, 200, 0.98);
+}
+
+.scrubberShort {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scrubberLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.scrubberBtnActive .scrubberLabel {
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.modeHint {
+  margin: 0 0 14px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.stat {
+  text-align: center;
+  min-width: 0;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.statVision {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.statLabel {
+  margin-top: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.empty {
+  padding: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.02);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.phaseList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phaseRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.phaseQueued {
+  opacity: 0.55;
+}
+
+.phaseLive {
+  background: rgba(160, 195, 130, 0.05);
+  border-color: rgba(160, 195, 130, 0.18);
+}
+
+.phaseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.phaseBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.phaseHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.phaseName {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.phaseTimeframe {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.phaseStatus {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: auto;
+}
+
+.phaseLive .phaseStatus {
+  color: rgba(160, 195, 130, 0.85);
+}
+
+.phaseCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.phaseEmpty {
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.footnote {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}

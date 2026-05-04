@@ -149,6 +149,21 @@ export function suggestionRow(overrides?: Record<string, unknown>) {
   };
 }
 
+export function relationshipRow(overrides?: Record<string, unknown>) {
+  return {
+    id: crypto.randomUUID(),
+    project_id: TEST_PROJ_ID,
+    created_by: TEST_USER_ID,
+    from_id: 'orchard-1',
+    from_output: 'biomass',
+    to_id: 'compost-1',
+    to_input: 'biomass',
+    ratio: null,
+    created_at: NOW_DATE,
+    ...overrides,
+  };
+}
+
 export function portalRow(overrides?: Record<string, unknown>) {
   return {
     id: crypto.randomUUID(),

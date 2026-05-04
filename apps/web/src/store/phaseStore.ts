@@ -32,6 +32,22 @@ export interface BuildPhase {
   notes: string;
   /** ISO timestamp when `completed` last flipped to true. */
   completedAt: string | null;
+  /**
+   * PLAN-stage Module 7 — optional seasonal task list. Drives
+   * SeasonalTaskCard + LaborBudgetSummaryCard rollups. Optional, no
+   * migration; legacy phases load with `tasks` undefined.
+   */
+  tasks?: PhaseTask[];
+}
+
+/** A single seasonal build / maintenance task on a phase. */
+export interface PhaseTask {
+  id: string;
+  season: 'winter' | 'spring' | 'summer' | 'fall';
+  title: string;
+  laborHrs: number;
+  costUSD: number;
+  notes?: string;
 }
 
 interface PhaseState {
@@ -43,6 +59,21 @@ interface PhaseState {
   deletePhase: (id: string) => void;
   togglePhaseCompleted: (id: string) => void;
   setActiveFilter: (filter: string) => void;
+  /**
+   * Returns a freshly-allocated, sorted array. **Do NOT call inside a
+   * Zustand selector** — it produces a new snapshot every render and
+   * triggers "Maximum update depth exceeded" via `useSyncExternalStore`.
+   *
+   * Correct usage: subscribe to `state.phases` raw, then derive in `useMemo`:
+   * ```ts
+   * const allPhases = usePhaseStore((s) => s.phases);
+   * const phases = useMemo(
+   *   () => allPhases.filter((p) => p.projectId === id).sort((a, b) => a.order - b.order),
+   *   [allPhases, id],
+   * );
+   * ```
+   * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
+   */
   getProjectPhases: (projectId: string) => BuildPhase[];
   ensureDefaults: (projectId: string) => void;
 }

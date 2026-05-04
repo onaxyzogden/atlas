@@ -1,0 +1,326 @@
+/* §14 CurrentVsVisionToggleCard — current land vs full vision quantification. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 580px;
+}
+
+.toggleBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.toggleBtn:hover {
+  background: rgba(232, 220, 200, 0.08);
+  color: rgba(232, 220, 200, 0.98);
+}
+
+.toggleBtnCurrent {
+  border-color: rgba(160, 195, 130, 0.4);
+  color: rgba(190, 215, 165, 0.95);
+}
+
+.toggleBtnVision {
+  border-color: rgba(196, 162, 101, 0.4);
+  color: rgba(232, 200, 145, 0.95);
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 26px;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(232, 220, 200, 0.08);
+}
+
+.toggleDot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(180, 205, 150, 0.95);
+  transition: transform 0.16s;
+}
+
+.toggleDotOn {
+  transform: translateX(12px);
+  background: rgba(232, 200, 145, 0.95);
+}
+
+.toggleLabel {
+  letter-spacing: 0.04em;
+}
+
+.empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 12px;
+}
+
+.headline {
+  text-align: center;
+  min-width: 0;
+}
+
+.headlineValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.headlineDenom {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: 2px;
+}
+
+.headlineLabel {
+  margin-top: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.scopeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .scopeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scope {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scopeCurrent {
+  border-color: rgba(160, 195, 130, 0.3);
+  background: rgba(160, 195, 130, 0.04);
+}
+
+.scopeVision {
+  border-color: rgba(196, 162, 101, 0.32);
+  background: rgba(196, 162, 101, 0.04);
+}
+
+.scopeHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.scopeTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.scopeCurrent .scopeTitle {
+  color: rgba(190, 215, 165, 0.95);
+}
+
+.scopeVision .scopeTitle {
+  color: rgba(232, 200, 145, 0.95);
+}
+
+.scopeSub {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.scopeTotal {
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.scopeTotalLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+  margin-bottom: 6px;
+}
+
+.scopeBreakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scopeBreakdown li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.78);
+}
+
+.scopeBreakdown li span:last-child {
+  color: rgba(220, 210, 185, 0.92);
+  font-weight: 700;
+}
+
+.phaseStrip {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+}
+
+.phaseChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+}
+
+.phaseChipUsed {
+  background: rgba(160, 195, 130, 0.05);
+  border-color: rgba(160, 195, 130, 0.2);
+}
+
+.phaseChipEmpty {
+  opacity: 0.55;
+}
+
+.phaseDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.phaseChipName {
+  font-weight: 700;
+  color: rgba(220, 210, 185, 0.88);
+  flex: 1;
+  min-width: 0;
+}
+
+.phaseChipState {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.visionNotesRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.visionNotesLabel {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.6);
+  align-self: center;
+}
+
+.visionNotesValue {
+  color: rgba(220, 210, 185, 0.85);
+  font-weight: 600;
+}
+
+.footnote {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}

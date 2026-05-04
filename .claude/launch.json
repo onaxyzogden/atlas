@@ -10,7 +10,7 @@
     {
       "name": "api",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd apps\\api && node --env-file=.env --import=tsx --watch src/index.ts"],
+      "runtimeArgs": ["/c", "cd apps\\api && npm run dev"],
       "port": 3001
     },
     {

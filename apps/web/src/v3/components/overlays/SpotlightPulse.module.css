@@ -1,0 +1,44 @@
+.pulse {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--color-gold-brand, #c9a13a);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ring {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid var(--color-gold-brand, #c9a13a);
+  opacity: 0.85;
+  transform: scale(0.4);
+  animation: spotlight-ring 2.4s ease-out forwards;
+}
+
+.ringDelay {
+  animation-delay: 0.6s;
+}
+
+@keyframes spotlight-ring {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  60%  { opacity: 0.45; }
+  100% { transform: scale(3.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring { animation-duration: 0.001s; }
+}

@@ -117,7 +117,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, signal: controller.signal });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, projectId, signal: controller.signal });
 
       // Sprint BJ: outer race saw an abort — bail without touching state.
       if (result.aborted) return;
@@ -188,7 +188,7 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     }));
 
     try {
-      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, signal: controller.signal });
+      const result: FetchLayerResults = await fetchAllLayers({ center, country, bbox, projectId, signal: controller.signal });
 
       if (result.aborted) return;
       if (isStale(projectId, gen)) return;

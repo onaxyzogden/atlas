@@ -3,7 +3,7 @@
    Organic Biophilic Design System
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
 
@@ -17,17 +17,20 @@
      identical; perceived-brightness uniformity is a follow-up pass.
      ======================================================================== */
 
-  /* Elevation ladder — hold chroma/hue constant so surfaces differ only in L */
-  --l-bg:            15.5%;
-  --l-surface:       21%;
-  --l-raised:        26.5%;
-  --l-popover:       33%;
-  --c-warm-neutral:  0.010;
-  --h-warm-neutral:  60;
+  /* Elevation ladder — hold chroma/hue constant so surfaces differ only in L.
+     Estate-palette retune (2026-04-28): hue shifted from warm yellow (60) to
+     near-neutral green (155) and chroma dropped to 0.005 so the dark-mode base
+     reads as deep-forest near-black rather than warm-brown. */
+  --l-bg:            9%;
+  --l-surface:       13%;
+  --l-raised:        18%;
+  --l-popover:       24%;
+  --c-warm-neutral:  0.005;
+  --h-warm-neutral:  155;
 
-  /* Semantic hue channels (dark-mode targets) */
-  --l-primary: 72%;   --c-primary: 0.08;   --h-primary: 80;
-  --l-accent:  60%;   --c-accent:  0.05;   --h-accent:  145;
+  /* Semantic hue channels (dark-mode targets) — gold + sage at full clarity */
+  --l-primary: 75%;   --c-primary: 0.10;   --h-primary: 82;
+  --l-accent:  77%;   --c-accent:  0.10;   --h-accent:  148;
   --l-success: 64%;   --c-success: 0.10;   --h-success: 150;
   --l-warning: 72%;   --c-warning: 0.13;   --h-warning: 85;
   --l-error:   59%;   --c-error:   0.15;   --h-error:   30;
@@ -129,28 +132,35 @@
      LIGHT MODE SEMANTIC TOKENS
      ======================================================================== */
 
-  --color-bg:              var(--color-sand-50);
+  /* Estate palette — light mode (2026-04-28): cool stone & parchment instead
+     of warm-brown. Gold primary darkened to #b08a3a for AA contrast on white;
+     sage accent at #5a8a5a. */
+  --color-bg:              #f6f4ee;
   --color-surface:         #ffffff;
-  --color-surface-raised:  #ffffff;
-  --color-border:          var(--color-earth-200);
-  --color-border-subtle:   var(--color-earth-100);
-  --color-text:            var(--color-earth-900);
-  /* a11y: --color-text-muted ≈4.8:1 on dark bg — passes WCAG AA for body text
-     (≥14px or bold ≥11px). Do NOT pair with font-size <14px non-bold. For
-     small labels/timestamps use --color-text instead. */
-  --color-text-muted:      var(--color-earth-600);
-  --color-text-subtle:     var(--color-earth-400);
-  --color-primary:         var(--color-earth-600);
-  --color-primary-hover:   var(--color-earth-700);
-  --color-accent:          var(--color-sage-600);
-  --color-accent-hover:    var(--color-sage-700);
-  --color-focus-ring:      rgba(82, 120, 82, 0.45);
+  --color-surface-raised:  #faf7ef;
+  --color-border:          rgba(82, 72, 52, 0.14);
+  --color-border-subtle:   rgba(82, 72, 52, 0.08);
+  --color-text:            #1f231e;
+  /* a11y: --color-text-muted ≈4.8:1 on light bg — passes WCAG AA for body
+     text (≥14px or bold ≥11px). For small labels/timestamps use --color-text. */
+  --color-text-muted:      #5a5443;
+  --color-text-subtle:     #7d7864;
+  --color-primary:         #b08a3a;
+  --color-primary-hover:   #9a771f;
+  --color-on-primary:      #2a2018;
+  --color-accent:          #5a8a5a;
+  --color-accent-hover:    #46703f;
+  --color-on-accent:       #1a2418;
+  --color-focus-ring:      rgba(176, 138, 58, 0.45);
 
-  /* Brand gold (brand moments) vs. active-state gold (higher chroma for
-   * contrast on dark chrome; per UX Scholar — #c4a265 fails WCAG AA on
-   * dark brown at small sizes, so #e0b56d is reserved for active UI). */
-  --color-gold-brand:      #c4a265;
+  /* Brand gold (brand moments) vs. active-state gold. Brand uses the rich
+   * estate gold; active reserved for UI states needing higher chroma. */
+  --color-gold-brand:      #d4af5f;
   --color-gold-active:     #e0b56d;
+  /* --color-brand alias: legacy token used by v3 sidebar / structure modal /
+   * a few card patterns that predate --color-primary. Always resolves to
+   * the brand gold so the estate identity stays consistent. */
+  --color-brand:           var(--color-gold-brand);
 
   /* --- Status (semantic — light mode) --- */
   --color-success:         var(--color-success-500);
@@ -162,34 +172,35 @@
   --color-info:            var(--color-info-500);
   --color-info-muted:      rgba(61, 127, 158, 0.15);
 
-  /* --- Chrome neutrals (UX Scholar 2026-04-23) -------------------------
-   * Earth-tinted neutral anchors the frame without competing with the
-   * biophilic map imagery. Keep brown hues for brand moments only. */
-  --color-chrome-bg:             #1f1d1a;
-  --color-chrome-bg-translucent: rgba(31, 29, 26, 0.97);
+  /* --- Chrome neutrals (estate palette 2026-04-28) ---------------------
+   * Near-black green-tinted chrome anchors the frame without competing with
+   * the biophilic map imagery. Chrome stays dark even in light mode so the
+   * sidebar/header read as a unified estate frame around the canvas. */
+  --color-chrome-bg:             #0a0d0b;
+  --color-chrome-bg-translucent: rgba(10, 13, 11, 0.97);
   /* Page-dimming overlay (loading states, modal scrims) — intentionally
    * lower opacity than chrome-bg-translucent so underlying map remains
    * partially legible during async loads. */
-  --color-chrome-bg-overlay:     rgba(31, 29, 26, 0.72);
+  --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
   --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       var(--color-chrome-bg-translucent);
   --color-sidebar-bg:      var(--color-chrome-bg-translucent);
-  --color-sidebar-icon:    #9a8a74;
-  --color-sidebar-active:  #c4a265;
-  --color-sidebar-text:    #e8dcc8;
-  --color-panel-bg:        var(--color-sand-50);
-  --color-panel-text:      var(--color-earth-900);
-  --color-panel-muted:     var(--color-earth-600);
-  --color-panel-card:      rgba(0, 0, 0, 0.03);
-  --color-panel-card-border: rgba(0, 0, 0, 0.06);
-  --color-panel-title:     #7d6140;
-  --color-panel-section:   #9a7a53;
-  --color-panel-subtle:    rgba(0, 0, 0, 0.04);
-  --color-map-header-bg:   rgba(49, 38, 23, 0.92);
-  --color-map-header-text: #f2ede3;
-  --color-map-header-muted: #9a8a74;
+  --color-sidebar-icon:    #cfc9b8;
+  --color-sidebar-active:  #d4af5f;
+  --color-sidebar-text:    #e8e2d1;
+  --color-panel-bg:        #ffffff;
+  --color-panel-text:      #1f231e;
+  --color-panel-muted:     #5a5443;
+  --color-panel-card:      rgba(0, 0, 0, 0.025);
+  --color-panel-card-border: rgba(82, 72, 52, 0.10);
+  --color-panel-title:     #1f231e;
+  --color-panel-section:   #5a5443;
+  --color-panel-subtle:    rgba(0, 0, 0, 0.03);
+  --color-map-header-bg:   rgba(10, 13, 11, 0.92);
+  --color-map-header-text: #e8e2d1;
+  --color-map-header-muted: #cfc9b8;
 
   /* ========================================================================
      ZONE CATEGORY IDENTITY
@@ -257,8 +268,8 @@
      RGB CHANNEL VARIANTS (for rgba() opacity manipulation)
      ======================================================================== */
 
-  --color-primary-rgb:         125, 97, 64;
-  --color-accent-rgb:          82, 120, 82;
+  --color-primary-rgb:         176, 138, 58;
+  --color-accent-rgb:          90, 138, 90;
   --color-success-rgb:         107, 143, 107;
   --color-warning-rgb:         202, 138, 4;
   --color-error-rgb:           196, 73, 58;
@@ -266,10 +277,10 @@
   --color-confidence-high-rgb: 45, 122, 79;
   --color-confidence-med-rgb:  138, 109, 30;
   --color-confidence-low-rgb:  155, 58, 42;
-  --color-gold-rgb:            196, 162, 101;
-  --color-sage-rgb:            107, 143, 107;
+  --color-gold-rgb:            212, 175, 95;
+  --color-sage-rgb:            143, 200, 154;
   --color-earth-600-rgb:       125, 97, 64;
-  --color-text-muted-rgb:      125, 97, 64;
+  --color-text-muted-rgb:      90, 84, 67;
   --color-water-rgb:           91, 157, 184;
   --color-water-400-rgb:       91, 157, 184;
   --color-group-reporting-rgb: 21, 128, 61;
@@ -283,11 +294,17 @@
      TYPOGRAPHY
      ======================================================================== */
 
-  /* --- Font Families --- */
-  --font-display: 'Fira Code', monospace;
-  --font-sans:    'Fira Sans', system-ui, -apple-system, sans-serif;
-  --font-serif:   'Fira Code', monospace;
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  /* --- Font Families ---
+   * Estate palette (2026-04-28): Cormorant Garamond for display moments
+   * (project titles, verdict heroes, card titles) layered over Inter for
+   * body text. Fira Sans/Code retained as fallbacks for legacy callers. */
+  --font-display: 'Cormorant Garamond', 'Playfair Display', 'Fira Sans', serif;
+  --font-sans:    'Inter', 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-serif:   'Cormorant Garamond', 'Playfair Display', serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Section-label tracking (uppercase eyebrows on dashboard cards) */
+  --tracking-section-label: 0.18em;
 
   /* --- Type Scale --- */
   --text-xs:  0.6875rem;  /* 11px */

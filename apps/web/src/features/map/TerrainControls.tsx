@@ -143,7 +143,7 @@ function TerrainToggle({
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: active ? semantic.primary : '#3d3328',
+          background: active ? semantic.primary : 'rgba(212, 175, 95, 0.18)',
           flexShrink: 0,
         }}
       />

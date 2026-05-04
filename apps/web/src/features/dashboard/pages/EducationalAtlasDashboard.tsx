@@ -15,6 +15,8 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
 import BuildOrderCard from '../../structures/BuildOrderCard.js';
+import StructureArchetypeAuditCard from '../../structures/StructureArchetypeAuditCard.js';
+import StructureFootprintLibraryCard from '../../structures/StructureFootprintLibraryCard.js';
 import SpiritualCommunalCard from '../../structures/SpiritualCommunalCard.js';
 import SitingWarningsCard from '../../rules/SitingWarningsCard.js';
 import SpatialRelationshipsCard from '../../rules/SpatialRelationshipsCard.js';
@@ -25,6 +27,8 @@ import SignsInCreationPanel from '../../education/SignsInCreationPanel.js';
 import EducationalRouteOverlaysCard from '../../education/EducationalRouteOverlaysCard.js';
 import GuidedWalkthroughCard from '../../education/GuidedWalkthroughCard.js';
 import WalkingTourScriptCard from '../../education/WalkingTourScriptCard.js';
+import SlideExportPreviewCard from '../../education/SlideExportPreviewCard.js';
+import ScriptDeckReadinessCard from '../../education/ScriptDeckReadinessCard.js';
 import EducationCoverageCard from '../../education/EducationCoverageCard.js';
 import VisionBoardCard from '../../education/VisionBoardCard.js';
 import css from './EducationalAtlasDashboard.module.css';
@@ -207,6 +211,12 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
       {/* ── §9 Structure dependency & build-order rollup ────────────── */}
       <BuildOrderCard projectId={project.id} />
 
+      {/* ── §7 Structure archetype audit vs project intent ──────────── */}
+      <StructureArchetypeAuditCard project={project} />
+
+      {/* ── §9 Structure type / footprint reference library ─────────── */}
+      <StructureFootprintLibraryCard project={project} />
+
       {/* ── §8 Family privacy & men's cohort program-design rollup ──── */}
       <PrivacyCohortPlanningCard projectId={project.id} />
 
@@ -227,6 +237,12 @@ export default function EducationalAtlasDashboard({ project, onSwitchToMap }: Ed
 
       {/* ── §19 Walking tour script — voiceable 5-stop narration ─────── */}
       <WalkingTourScriptCard project={project} />
+
+      {/* ── §19 Slide-presentation-mode preview deck ─────────────────── */}
+      <SlideExportPreviewCard project={project} />
+
+      {/* ── §19 Voiceover + slide export readiness audit ─────────────── */}
+      <ScriptDeckReadinessCard project={project} />
 
       {/* ── §13 Vision board — local reference imagery per slot ──────── */}
       <VisionBoardCard project={project} />

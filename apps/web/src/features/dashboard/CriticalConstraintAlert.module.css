@@ -1,0 +1,92 @@
+/* CriticalConstraintAlert — only mounts when a blocking flag exists. */
+
+.alert {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: rgba(214, 86, 76, 0.10);
+  border: 1px solid rgba(214, 86, 76, 0.35);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(214, 86, 76, 0.18);
+  color: #e08077;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.severity {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e08077;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(214, 86, 76, 0.18);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.message {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(232, 220, 200, 0.82);
+  margin: 0;
+}
+
+.source {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  margin-top: 2px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(214, 86, 76, 0.45);
+  background: rgba(214, 86, 76, 0.18);
+  color: #f0d9d4;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cta:hover {
+  background: rgba(214, 86, 76, 0.28);
+  border-color: rgba(214, 86, 76, 0.6);
+}
+
+@media (max-width: 720px) {
+  .alert { grid-template-columns: auto 1fr; }
+  .cta { grid-column: 1 / -1; justify-self: stretch; justify-content: center; }
+}

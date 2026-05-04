@@ -1,6 +1,17 @@
 // Section 25 — Template System & Reusable Design Frameworks ([P3])
-// Generated stub from scaffold-section.ts.
+// Orphan scaffold — not routed. Real surface listed in SectionScaffold.
+import { SectionScaffold } from '../_scaffolds/SectionScaffold';
 
 export default function ReusableFrameworksPage() {
-  return <div data-section-id="25">Template System & Reusable Design Frameworks — coming soon</div>;
+  return (
+    <SectionScaffold
+      section={25}
+      slug="reusable-frameworks"
+      name="Template System & Reusable Design Frameworks"
+      realSurface={[
+        'apps/web/src/features/templates/TemplatePanel.tsx',
+        'apps/web/src/features/templates/TemplateMarketplace.tsx',
+      ]}
+    />
+  );
 }

@@ -1,0 +1,92 @@
+/* SidebarBottomControls — shared between IconSidebar + DashboardSidebar.
+   Tokens lifted verbatim from the original IconSidebar.module.css block
+   (lines 258-344, see commit history) so the visual treatment is
+   unchanged on Map tab and now consistent on Dashboard tab. */
+
+.bottomSection {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.bottomBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  color: rgba(180, 165, 140, 0.5);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.bottomBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(200, 185, 160, 0.85);
+}
+
+.bottomBtnActive {
+  color: rgba(var(--color-gold-rgb), 0.9);
+}
+
+.bottomBtnLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ─── User account row ────────────────────────────────────────────────── */
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.userAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(var(--color-sage-rgb), 0.3);
+  border: 1px solid rgba(var(--color-sage-rgb), 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(200, 230, 200, 0.9);
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(220, 208, 188, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userSub {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.4);
+  white-space: nowrap;
+}

@@ -220,6 +220,11 @@ export default function HomePage() {
                       Candidate
                     </Badge>
                   )}
+                  {p.isBuiltin && (
+                    <Badge variant="info" size="sm" dot>
+                      Sample
+                    </Badge>
+                  )}
                 </div>
 
                 {p.description && (
@@ -264,7 +269,7 @@ export default function HomePage() {
                     {inner}
                   </Link>
                 )}
-                {!compareMode && (
+                {!compareMode && !p.isBuiltin && (
                   <div className={styles.cardActions}>
                     <button
                       type="button"

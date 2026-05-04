@@ -21,7 +21,10 @@
  */
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
-import { toNum } from '@ogden/shared/scoring';
+import { toNum, type SpatialLayerPayload } from '@ogden/shared/scoring';
+import type { LayerType } from '@ogden/shared';
+import { geodataCache } from './geodataCache.js';
+import { api } from './apiClient.js';
 import {
   US_WATER_DOCTRINE,
   US_WATER_RIGHTS_ENDPOINTS,
@@ -35,6 +38,119 @@ import {
 
 const CACHE_KEY = 'ogden-layer-cache';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Layer types whose results may carry a `spatial` vector payload. Persisted
+// in IndexedDB (not localStorage — too large) under `spatial:<cacheKey>:<layerType>`.
+// Extend this list as more fetchers retain geometry.
+const SPATIAL_LAYER_TYPES = ['watershed', 'wetlands_flood'] as const;
+
+function spatialKey(cacheKey: string, layerType: string): string {
+  return `spatial:${cacheKey}:${layerType}`;
+}
+
+/** Convert ESRI ArcGIS polygon rings (`{ rings: [[ [x,y], ... ], ...] }`) to a
+ *  GeoJSON Polygon. Each ring becomes its own polygon-without-holes — we
+ *  intentionally skip ESRI's hole-detection-by-winding-order, which is not
+ *  needed for v0 sampling (point-in-polygon and distance-to-boundary). If
+ *  there are no usable rings, returns null. Coordinates pass through. */
+function esriRingsToGeoJSONPolygons(
+  rings: number[][][],
+): GeoJSON.Polygon[] {
+  const polygons: GeoJSON.Polygon[] = [];
+  for (const ring of rings) {
+    if (!ring || ring.length < 4) continue; // ESRI requires closed ring (>=4 vertices)
+    polygons.push({ type: 'Polygon', coordinates: [ring as GeoJSON.Position[]] });
+  }
+  return polygons;
+}
+
+/** Convert ESRI polygon features into GeoJSON Polygon features (one feature
+ *  per ring, attributes copied across). Returns an empty collection when no
+ *  rings parse. */
+function esriPolygonFeaturesToGeoJSON(
+  features: Array<{ attributes: Record<string, unknown>; geometry?: { rings?: number[][][] } }>,
+): GeoJSON.FeatureCollection {
+  const out: GeoJSON.Feature[] = [];
+  for (const f of features) {
+    const polys = esriRingsToGeoJSONPolygons(f.geometry?.rings ?? []);
+    for (const poly of polys) {
+      out.push({ type: 'Feature', geometry: poly, properties: f.attributes });
+    }
+  }
+  return { type: 'FeatureCollection', features: out };
+}
+
+/** Convert ESRI ArcGIS polyline geometry (`{ paths: [[ [x,y], ... ], ...] }`)
+ *  to a GeoJSON FeatureCollection of LineString / MultiLineString features.
+ *  Coordinates are passed through (caller must ensure WGS84). */
+function esriPolylineFeaturesToGeoJSON(
+  features: Array<{ attributes: Record<string, unknown>; geometry?: { paths?: number[][][] } }>,
+): GeoJSON.FeatureCollection {
+  const out: GeoJSON.Feature[] = [];
+  for (const f of features) {
+    const paths = (f.geometry?.paths ?? []).filter((p) => p.length >= 2);
+    if (paths.length === 0) continue;
+    const geometry: GeoJSON.LineString | GeoJSON.MultiLineString =
+      paths.length === 1
+        ? { type: 'LineString', coordinates: paths[0] as GeoJSON.Position[] }
+        : { type: 'MultiLineString', coordinates: paths as GeoJSON.Position[][] };
+    out.push({ type: 'Feature', geometry, properties: f.attributes });
+  }
+  return { type: 'FeatureCollection', features: out };
+}
+
+/** Compute the [minX, minY, maxX, maxY] bbox of a FeatureCollection. Returns
+ *  a degenerate (0,0,0,0) bbox when the collection is empty. */
+function bboxOfFeatureCollection(fc: GeoJSON.FeatureCollection): [number, number, number, number] {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const visit = (c: number[]): void => {
+    const x = c[0]; const y = c[1];
+    if (typeof x === 'number' && typeof y === 'number') {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+  };
+  const walk = (c: unknown): void => {
+    if (!Array.isArray(c)) return;
+    if (c.length > 0 && typeof c[0] === 'number') visit(c as number[]);
+    else for (const sub of c) walk(sub);
+  };
+  for (const f of fc.features) {
+    const g = f.geometry;
+    if (g && 'coordinates' in g) walk(g.coordinates);
+  }
+  if (!isFinite(minX)) return [0, 0, 0, 0];
+  return [minX, minY, maxX, maxY];
+}
+
+/** Persist any `spatial` payloads on `layers` to IndexedDB. Errors are
+ *  swallowed — falling back to summary-only is acceptable. */
+async function persistSpatial(layers: MockLayerResult[], cacheKey: string): Promise<void> {
+  await Promise.all(
+    layers.map(async (l) => {
+      if (!l.spatial) return;
+      try {
+        await geodataCache.put(spatialKey(cacheKey, l.layerType), l.spatial);
+      } catch { /* IndexedDB unavailable — degrade silently */ }
+    }),
+  );
+}
+
+/** Re-attach `spatial` payloads from IndexedDB onto cached `layers` (mutates
+ *  in place). Looks up only `SPATIAL_LAYER_TYPES`. */
+async function hydrateSpatial(layers: MockLayerResult[], cacheKey: string): Promise<void> {
+  await Promise.all(
+    layers.map(async (l) => {
+      if (!(SPATIAL_LAYER_TYPES as readonly string[]).includes(l.layerType)) return;
+      try {
+        const payload = await geodataCache.get<SpatialLayerPayload>(
+          spatialKey(cacheKey, l.layerType),
+        );
+        if (payload) (l as { spatial?: SpatialLayerPayload }).spatial = payload;
+      } catch { /* miss — leave undefined */ }
+    }),
+  );
+}
 
 interface CacheEntry {
   layers: MockLayerResult[];
@@ -65,7 +181,16 @@ function setCache(key: string, layers: MockLayerResult[], isLive: boolean) {
   try {
     // Strip large arrays before caching to stay within localStorage limits.
     // Stats are preserved; raw payloads are re-fetched when needed.
-    const cacheable = layers.map((l) => {
+    // `spatial` payloads are persisted to IndexedDB (via persistSpatial) and
+    // stripped here so they don't blow the localStorage quota.
+    const cacheable = layers.map((original) => {
+      // Strip `spatial` (persisted separately to IndexedDB) before any
+      // per-layerType strip logic runs.
+      let l: MockLayerResult = original;
+      if (l.spatial) {
+        const { spatial: _spatial, ...rest } = l;
+        l = rest as MockLayerResult;
+      }
       if (l.layerType === 'elevation' && l.summary?.raster_tile) {
         const { raster_tile: _strip, ...rest } = l.summary;
         return { ...l, summary: rest };
@@ -108,6 +233,11 @@ export interface FetchLayerOptions {
    * In-flight HTTP requests are not individually cancelled (they will complete
    * silently in the background and their results are simply ignored). */
   signal?: AbortSignal;
+  /** Phase 2.2: when set, attempt the authenticated
+   * `/layers/project/:projectId` endpoint first. Authoritative DB rows take
+   * precedence over the client-side multi-source fallback path. Mock layers
+   * remain the last-resort fallback when the DB is empty or auth is absent. */
+  projectId?: string;
 }
 
 export interface FetchLayerResults {
@@ -122,7 +252,67 @@ export interface FetchLayerResults {
 // In-flight promise map for request deduplication
 const inFlight = new Map<string, Promise<FetchLayerResults>>();
 
-export function fetchAllLayers(options: FetchLayerOptions): Promise<FetchLayerResults> {
+// ── Phase 2.2: API-first path ─────────────────────────────────────────────
+
+/** Shape returned by `/layers/project/:id` after `camelCaseLayerRow` in the
+ *  API runs (top-level camelCased; `summaryData` jsonb passes through with
+ *  canonical snake_case keys per `LayerSummaryMap`). */
+interface ApiLayerRow {
+  layerType: LayerType;
+  sourceApi: string | null;
+  fetchStatus: string | null;
+  confidence: string | null;
+  dataDate: string | null;
+  attributionText: string | null;
+  summaryData: Record<string, unknown> | null;
+}
+
+function normalizeFetchStatus(s: string | null): MockLayerResult['fetchStatus'] {
+  if (s === 'complete' || s === 'pending' || s === 'failed' || s === 'unavailable') return s;
+  return 'unavailable';
+}
+
+function normalizeConfidence(c: string | null): MockLayerResult['confidence'] {
+  if (c === 'high' || c === 'medium' || c === 'low') return c;
+  return 'low';
+}
+
+/** Adapter: API row → MockLayerResult. Mirrors the server-side
+ *  `layerRowsToMockLayers` in apps/api/src/services/assessments/
+ *  SiteAssessmentWriter.ts so the scorer & UI see the same shape regardless
+ *  of which path produced the result. */
+function apiRowToMockLayer(r: ApiLayerRow): MockLayerResult {
+  return {
+    layerType: r.layerType,
+    fetchStatus: normalizeFetchStatus(r.fetchStatus),
+    confidence: normalizeConfidence(r.confidence),
+    dataDate: r.dataDate ?? '',
+    sourceApi: r.sourceApi ?? '',
+    attribution: r.attributionText ?? '',
+    summary: (r.summaryData ?? {}) as MockLayerResult['summary'],
+  } as MockLayerResult;
+}
+
+/** Attempt the authenticated `/layers/project/:id` endpoint. Returns the
+ *  mapped result when the DB has at least one `complete` layer; returns
+ *  `null` (so the caller falls through to the client-side path) on auth
+ *  failure, network failure, or empty/all-pending DB. */
+async function tryFetchFromApi(projectId: string): Promise<FetchLayerResults | null> {
+  try {
+    const env = await api.layers.list(projectId);
+    const rows = (env.data ?? []) as ApiLayerRow[];
+    if (rows.length === 0) return null;
+    const layers = rows.map(apiRowToMockLayer);
+    const liveCount = layers.filter((l) => l.fetchStatus === 'complete').length;
+    if (liveCount === 0) return null;
+    return { layers, isLive: true, liveCount, totalCount: layers.length };
+  } catch {
+    // 401/403 (unauthenticated) / 404 (no rows yet) / network — fall through.
+    return null;
+  }
+}
+
+export async function fetchAllLayers(options: FetchLayerOptions): Promise<FetchLayerResults> {
   const [lng, lat] = options.center;
   const cacheKey = getCacheKey(lat, lng, options.country);
 
@@ -130,7 +320,21 @@ export function fetchAllLayers(options: FetchLayerOptions): Promise<FetchLayerRe
   // so cache hits are unaffected by abort state).
   const cached = getCache(cacheKey);
   if (cached) {
-    return Promise.resolve({ layers: cached.layers, isLive: cached.isLive, liveCount: cached.isLive ? 7 : 0, totalCount: 7 });
+    // Spatial payloads live in IndexedDB; rehydrate before returning.
+    await hydrateSpatial(cached.layers, cacheKey);
+    return { layers: cached.layers, isLive: cached.isLive, liveCount: cached.isLive ? 7 : 0, totalCount: 7 };
+  }
+
+  // Phase 2.2: prefer the authoritative DB-backed `/layers/project/:id`
+  // endpoint when a projectId + auth token are available. Returning early
+  // here leaves the client-side multi-source fetch as the offline / no-DB
+  // fallback (mock layers remain the last-resort fallback below that).
+  if (options.projectId) {
+    const apiResult = await tryFetchFromApi(options.projectId);
+    if (apiResult) {
+      setCache(cacheKey, apiResult.layers, apiResult.isLive);
+      return apiResult;
+    }
   }
 
   // Deduplicate: return existing in-flight promise if same location is being
@@ -361,6 +565,9 @@ async function fetchAllLayersInternal(options: FetchLayerOptions, cacheKey: stri
   }
 
   const isLive = liveCount > 0;
+  // Persist any retained spatial payloads to IndexedDB before stripping for
+  // localStorage. Failures degrade silently to summary-only.
+  await persistSpatial(results, cacheKey);
   setCache(cacheKey, results, isLive);
 
   return { layers: results, isLive, liveCount, totalCount: 12 };
@@ -2017,6 +2224,14 @@ async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerR
     closestAttrs['STRAHLER'] ??
     deriveFallbackStreamOrder(features.length);
 
+  // Retain raw watercourse geometry so downstream features (auto-zoning,
+  // design rules, suitability) can sample distance-to-water at arbitrary
+  // points. The summary fields above are pre-computed for the query point only.
+  const featureCollection = esriPolylineFeaturesToGeoJSON(features);
+  const spatial: SpatialLayerPayload | undefined = featureCollection.features.length > 0
+    ? { kind: 'vector', features: featureCollection, bbox: bboxOfFeatureCollection(featureCollection) }
+    : undefined;
+
   return {
     layerType: 'watershed',
     fetchStatus: 'complete',
@@ -2024,6 +2239,7 @@ async function fetchOhnWatercourse(lat: number, lng: number): Promise<MockLayerR
     dataDate: new Date().toISOString().split('T')[0]!,
     sourceApi: 'Ontario Hydro Network (LIO)',
     attribution: 'Ontario Ministry of Natural Resources and Forestry',
+    ...(spatial ? { spatial } : {}),
     summary: {
       huc_code: null,
       watershed_name: String(watercourseNameRaw),
@@ -2447,6 +2663,9 @@ interface LioWetlandResult {
   types: string[];
   count: number;
   hasSignificant: boolean;
+  /** Retained polygon geometry for downstream sampling (auto-zoning, design
+   *  rules, suitability). Null when the upstream service returns no rings. */
+  features: GeoJSON.FeatureCollection | null;
 }
 
 /**
@@ -2510,6 +2729,13 @@ async function fetchLioFloodWetlands(
   if (reg) { sources.push('LIO CA Regulation Limits'); attributions.push('Ontario MNRF'); }
   if (wet) { sources.push('Ontario Wetland Inventory (LIO)'); attributions.push('Ontario NHIC / MNRF'); }
 
+  // Retained wetland polygon geometry → downstream sampling (point-in-wetland,
+  // distance-to-wetland-boundary). CA regulation polygons are not retained in
+  // this slice — only Ontario Wetland Inventory features.
+  const spatial: SpatialLayerPayload | undefined = wet?.features
+    ? { kind: 'vector', features: wet.features, bbox: bboxOfFeatureCollection(wet.features) }
+    : undefined;
+
   return {
     layerType: 'wetlands_flood',
     fetchStatus: 'complete',
@@ -2517,6 +2743,7 @@ async function fetchLioFloodWetlands(
     dataDate: new Date().toISOString().split('T')[0]!,
     sourceApi: sources.join(' + '),
     attribution: [...new Set(attributions)].join(', '),
+    ...(spatial ? { spatial } : {}),
     summary: {
       flood_zone: floodZone,
       flood_risk: isRegulated
@@ -2618,13 +2845,16 @@ async function fetchLioWetlands(envelope: string): Promise<LioWetlandResult | nu
 
   for (const baseUrl of layerUrls) {
     try {
+      // outSR=4326 normalizes ESRI geometries to WGS84 lng/lat for downstream sampling.
       const url =
         `${baseUrl}?geometry=${envelope}&geometryType=esriGeometryEnvelope` +
-        `&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false` +
+        `&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326` +
         `&resultRecordCount=50&f=json`;
 
       const resp = await fetchWithRetry(url, 10000);
-      const data = await resp.json() as { features?: { attributes: Record<string, unknown> }[] };
+      const data = await resp.json() as {
+        features?: { attributes: Record<string, unknown>; geometry?: { rings?: number[][][] } }[];
+      };
 
       const features = data?.features;
       if (!features || features.length === 0) continue;
@@ -2684,11 +2914,13 @@ async function fetchLioWetlands(envelope: string): Promise<LioWetlandResult | nu
         }
       }
 
+      const featureCollection = esriPolygonFeaturesToGeoJSON(features);
       return {
         totalAreaHa: +totalAreaHa.toFixed(2),
         types: [...typeSet].slice(0, 6),
         count: features.length,
         hasSignificant,
+        features: featureCollection.features.length > 0 ? featureCollection : null,
       };
     } catch {
       continue;

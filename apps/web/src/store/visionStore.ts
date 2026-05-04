@@ -35,12 +35,49 @@ export interface Milestone {
   targetDate: string | null;
 }
 
+/**
+ * Steward profile — Phase 4a of the OBSERVE-stage restructure
+ * (plan few-concerns-shiny-quokka.md). All fields optional so an in-flight
+ * survey can save mid-fill. Read by ObserveHub Module 1 (Human Context) and
+ * by the Diagnosis Report export.
+ */
+export interface StewardProfile {
+  name?: string;
+  age?: number;
+  occupation?: string;
+  lifestyle?: 'active' | 'sedentary';
+  /** Hours/week the steward expects to invest during initial establishment. */
+  maintenanceHrsInitial?: number;
+  /** Hours/week the steward expects to invest after establishment. */
+  maintenanceHrsOngoing?: number;
+  /** Free-form budget label (e.g. "$15k/yr", "self-funded"). */
+  budget?: string;
+  skills?: string[];
+  /** Steward's vision in their own words. */
+  vision?: string;
+}
+
+/**
+ * Indigenous + regional context — Phase 4a. Captures place-name history,
+ * cultural challenges/strengths, and the local network registry the Hub
+ * surfaces under Module 1.
+ */
+export interface RegionalContext {
+  indigenousNames?: string[];
+  culturalChallenges?: string[];
+  culturalStrengths?: string[];
+  localNetwork?: Array<{ id: string; name: string; type: string; contact?: string }>;
+}
+
 export interface VisionData {
   projectId: string;
   phaseNotes: VisionPhaseNote[];
   moontranceIdentity: MoontranceIdentity | null;
   conceptOverlayVisible: boolean;
   milestones: Milestone[];
+  /** Phase 4a additions — optional, populated by Steward Survey / Regional cards. */
+  steward?: StewardProfile;
+  regional?: RegionalContext;
 }
 
 const DEFAULT_PHASE_NOTES: Omit<VisionPhaseNote, 'notes'>[] = [
@@ -64,6 +101,8 @@ const EMPTY_MOONTRANCE: MoontranceIdentity = {
 interface VisionState {
   visions: VisionData[];
 
+  /** Returns a stable stored reference (`.find()` on `visions[]`) — SAFE to call
+   *  inside a Zustand selector. */
   getVisionData: (projectId: string) => VisionData | undefined;
   ensureDefaults: (projectId: string) => void;
   updatePhaseNote: (projectId: string, phaseKey: PhaseKey, notes: string) => void;
@@ -78,6 +117,12 @@ interface VisionState {
   addMilestone: (projectId: string, milestone: Milestone) => void;
   updateMilestone: (projectId: string, milestoneId: string, updates: Partial<Omit<Milestone, 'id'>>) => void;
   deleteMilestone: (projectId: string, milestoneId: string) => void;
+
+  // Phase 4a — steward & regional context
+  updateSteward: (projectId: string, patch: Partial<StewardProfile>) => void;
+  updateRegional: (projectId: string, patch: Partial<RegionalContext>) => void;
+  addNetworkContact: (projectId: string, contact: { id: string; name: string; type: string; contact?: string }) => void;
+  removeNetworkContact: (projectId: string, contactId: string) => void;
 }
 
 export const useVisionStore = create<VisionState>()(
@@ -183,6 +228,47 @@ export const useVisionStore = create<VisionState>()(
               ? { ...v, milestones: v.milestones.filter((m) => m.id !== milestoneId) }
               : v,
           ),
+        })),
+
+      updateSteward: (projectId, patch) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, steward: { ...(v.steward ?? {}), ...patch } }
+              : v,
+          ),
+        })),
+
+      updateRegional: (projectId, patch) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, regional: { ...(v.regional ?? {}), ...patch } }
+              : v,
+          ),
+        })),
+
+      addNetworkContact: (projectId, contact) =>
+        set((s) => ({
+          visions: s.visions.map((v) => {
+            if (v.projectId !== projectId) return v;
+            const list = v.regional?.localNetwork ?? [];
+            return { ...v, regional: { ...(v.regional ?? {}), localNetwork: [...list, contact] } };
+          }),
+        })),
+
+      removeNetworkContact: (projectId, contactId) =>
+        set((s) => ({
+          visions: s.visions.map((v) => {
+            if (v.projectId !== projectId || !v.regional?.localNetwork) return v;
+            return {
+              ...v,
+              regional: {
+                ...v.regional,
+                localNetwork: v.regional.localNetwork.filter((c) => c.id !== contactId),
+              },
+            };
+          }),
         })),
     }),
     {

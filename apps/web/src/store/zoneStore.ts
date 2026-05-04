@@ -150,6 +150,13 @@ export interface LandZone {
    * Spec: §8 `seasonal-temporary-phased-use-zones`.
    */
   seasonality?: Seasonality | null;
+  /**
+   * PLAN-stage Module 3 — Holmgren / Mollison permaculture zone level
+   * (Z0–Z5). Z0 = home, Z1 = daily-touch, …, Z5 = wilderness. Optional;
+   * unset zones render with their existing category color.
+   * Spec: PLAN spec §4 zone-and-circulation.
+   */
+  permacultureZone?: 0 | 1 | 2 | 3 | 4 | 5;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */
@@ -162,6 +169,12 @@ interface ZoneState {
   addZone: (zone: LandZone) => void;
   updateZone: (id: string, updates: Partial<LandZone>) => void;
   deleteZone: (id: string) => void;
+  /**
+   * Returns a freshly-allocated array. **Do NOT call inside a Zustand
+   * selector** — new snapshot every render → infinite loop.
+   * Subscribe to `state.zones` raw and derive in `useMemo`.
+   * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
+   */
   getProjectZones: (projectId: string) => LandZone[];
 }
 

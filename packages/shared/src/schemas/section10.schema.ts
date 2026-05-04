@@ -1,8 +1,18 @@
 import { z } from 'zod';
+import { sectionResponse } from './sectionResponse.js';
 
 // Section 10 — Access, Circulation & Movement Systems
-// Generated stub. Replace with the real Zod types as this section
-// takes shape. Keep input/output types colocated.
+//
+// Roll-up of the on-parcel path/road network length and the count
+// of named access points.
 
-export const AccessCirculationPlaceholder = z.object({});
-export type AccessCirculationPlaceholder = z.infer<typeof AccessCirculationPlaceholder>;
+export const AccessCirculationSummary = z.object({
+  pathLengthM: z.number().nonnegative(),
+  roadLengthM: z.number().nonnegative(),
+  accessPointCount: z.number().int().nonnegative(),
+  surfaceKinds: z.array(z.string()),
+});
+export type AccessCirculationSummary = z.infer<typeof AccessCirculationSummary>;
+
+export const AccessCirculationResponse = sectionResponse(AccessCirculationSummary);
+export type AccessCirculationResponse = z.infer<typeof AccessCirculationResponse>;

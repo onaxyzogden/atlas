@@ -8,6 +8,13 @@ import { useState } from 'react';
 import type { StructureType, Structure } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
 import { semantic, zIndex } from '../../lib/tokens.js';
+import {
+  RESIDENTIAL_STRUCTURE_TYPES,
+  STRUCTURE_WATER_GAL_PER_DAY,
+  STRUCTURE_KWH_PER_DAY,
+  GREENHOUSE_WATER_GAL_PER_M2_DAY,
+  GREENHOUSE_KWH_PER_M2_DAY,
+} from '@ogden/shared/demand';
 
 /**
  * Save payload for both new-placement and edit flows. Labor / material
@@ -37,6 +44,19 @@ export interface StructureModalSaveData {
    * Optional / absent = treat as 1.
    */
   storiesCount?: number;
+  /**
+   * Optional steward override for daily water demand (US gal/day). Wins over
+   * the per-type default in `@ogden/shared/demand` when `> 0`.
+   */
+  demandWaterGalPerDay?: number;
+  /** Optional steward override for daily electricity demand (kWh/day). */
+  demandKwhPerDay?: number;
+  /**
+   * Optional human-occupant count for residential structure types
+   * (cabin, yurt, tent_glamping, earthship, bathhouse). Multiplies the
+   * per-type default linearly. Ignored for non-residential types.
+   */
+  occupantCount?: number;
 }
 
 interface NewPlacementProps {
@@ -126,6 +146,33 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
     isEdit ? props.structure.storiesCount ?? 1 : 1,
   );
 
+  const isResidential = (RESIDENTIAL_STRUCTURE_TYPES as readonly StructureType[]).includes(structureType);
+  const [occupantCount, setOccupantCount] = useState<number>(
+    isEdit && typeof props.structure.occupantCount === 'number' && props.structure.occupantCount > 0
+      ? props.structure.occupantCount
+      : 1,
+  );
+  const [waterDemand, setWaterDemand] = useState<string>(
+    isEdit && typeof props.structure.demandWaterGalPerDay === 'number'
+      ? String(props.structure.demandWaterGalPerDay)
+      : '',
+  );
+  const [kwhDemand, setKwhDemand] = useState<string>(
+    isEdit && typeof props.structure.demandKwhPerDay === 'number'
+      ? String(props.structure.demandKwhPerDay)
+      : '',
+  );
+
+  // Per-type defaults shown as input placeholders so stewards see what they'd be overriding.
+  const defaultWaterGalPerDay =
+    structureType === 'greenhouse'
+      ? Math.round(widthM * depthM * GREENHOUSE_WATER_GAL_PER_M2_DAY * (isResidential ? occupantCount : 1) * storiesCount)
+      : Math.round(STRUCTURE_WATER_GAL_PER_DAY[structureType] * (isResidential ? occupantCount : 1) * storiesCount);
+  const defaultKwhPerDay =
+    structureType === 'greenhouse'
+      ? Number((widthM * depthM * GREENHOUSE_KWH_PER_M2_DAY * (isResidential ? occupantCount : 1) * storiesCount).toFixed(1))
+      : Number((STRUCTURE_KWH_PER_DAY[structureType] * (isResidential ? occupantCount : 1) * storiesCount).toFixed(1));
+
   /* §9 alternate-footprint-options — three preset sizes derived from the
      template. Clicking a preset snaps width / depth and updates cost
      proportional to area (linear approximation; foundation and plumbing
@@ -179,6 +226,9 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
       laborHoursEstimate: parseOptionalPositive(laborHours),
       materialTonnageEstimate: parseOptionalPositive(materialTons),
       storiesCount,
+      demandWaterGalPerDay: parseOptionalPositive(waterDemand),
+      demandKwhPerDay: parseOptionalPositive(kwhDemand),
+      occupantCount: isResidential ? occupantCount : undefined,
     });
   };
 
@@ -482,6 +532,60 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
           </div>
         </div>
 
+        {/* Occupants — residential structures only */}
+        {isResidential && (
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle} htmlFor="structure-occupants">
+              Occupants: {occupantCount}{' '}
+              <span style={{ opacity: 0.55 }}>multiplies water + electricity demand</span>
+            </label>
+            <input
+              id="structure-occupants"
+              type="range"
+              min={1}
+              max={8}
+              step={1}
+              value={occupantCount}
+              onChange={(e) => setOccupantCount(parseInt(e.target.value))}
+              style={{ width: '100%', accentColor: semantic.sidebarActive }}
+            />
+          </div>
+        )}
+
+        {/* Demand overrides — water + electricity */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle} htmlFor="structure-water-demand">
+              Water (gal/day) <span style={{ opacity: 0.55 }}>optional override</span>
+            </label>
+            <input
+              id="structure-water-demand"
+              type="number"
+              min={0}
+              step={1}
+              value={waterDemand}
+              onChange={(e) => setWaterDemand(e.target.value)}
+              placeholder={`default ${defaultWaterGalPerDay}`}
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle} htmlFor="structure-kwh-demand">
+              Energy (kWh/day) <span style={{ opacity: 0.55 }}>optional override</span>
+            </label>
+            <input
+              id="structure-kwh-demand"
+              type="number"
+              min={0}
+              step={0.1}
+              value={kwhDemand}
+              onChange={(e) => setKwhDemand(e.target.value)}
+              placeholder={`default ${defaultKwhPerDay}`}
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
         {/* Notes */}
         <label style={labelStyle} htmlFor="structure-notes">Notes</label>
         <textarea
@@ -502,8 +606,8 @@ export default function StructurePropertiesModal(props: StructurePropertiesModal
             style={{
               flex: 1, padding: '12px 0', fontSize: 13, fontWeight: 600,
               border: 'none', borderRadius: 8, letterSpacing: '0.02em',
-              background: name.trim() ? 'rgba(196, 162, 101, 0.2)' : 'var(--color-panel-subtle)',
-              color: name.trim() ? '#c4a265' : 'var(--color-panel-muted)',
+              background: name.trim() ? 'rgba(212, 175, 95, 0.20)' : 'var(--color-panel-subtle)',
+              color: name.trim() ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
               cursor: name.trim() ? 'pointer' : 'not-allowed',
             }}
           >

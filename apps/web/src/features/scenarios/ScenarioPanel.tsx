@@ -36,6 +36,9 @@ import s from './ScenarioPanel.module.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import BestBaseWorstCaseCard from './BestBaseWorstCaseCard.js';
 import BuildCostRevenueRangesCard from './BuildCostRevenueRangesCard.js';
+import LayoutOptionABCComparisonCard from './LayoutOptionABCComparisonCard.js';
+import VisitorEventOverflowSimCard from './VisitorEventOverflowSimCard.js';
+import EmergencyResilienceSimCard from './EmergencyResilienceSimCard.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -364,6 +367,15 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
 
       {/* ── §16 Build cost & revenue ranges (phase-by-phase) ──────────── */}
       <BuildCostRevenueRangesCard model={model} />
+
+      {/* ── §16 Layout options A / B / C comparison ───────────────────── */}
+      <LayoutOptionABCComparisonCard model={model} />
+
+      {/* ── §16 Visitor / event / parking overflow simulator ──────────── */}
+      <VisitorEventOverflowSimCard project={project} />
+
+      {/* ── §16 Fire / water / infrastructure resilience simulator ────── */}
+      <EmergencyResilienceSimCard project={project} />
 
       {/* ── Saved scenarios ──────────────────────────────────────────── */}
       {scenarios.length > 0 && (

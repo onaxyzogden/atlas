@@ -41,7 +41,7 @@ export default function StageRevealStory({ config }: Props) {
         {/* Vertical line */}
         <div style={{
           position: 'absolute', left: 15, top: 0, bottom: 0,
-          width: 2, background: 'rgba(196,162,101,0.15)',
+          width: 2, background: 'rgba(212, 175, 95, 0.15)',
         }} />
 
         {phases.map((phase) => (
@@ -87,8 +87,8 @@ export default function StageRevealStory({ config }: Props) {
             {expandedPhase === phase.num && (
               <div style={{
                 marginTop: 12, padding: 20,
-                background: 'rgba(196,162,101,0.04)',
-                border: '1px solid rgba(196,162,101,0.1)',
+                background: 'rgba(212, 175, 95, 0.04)',
+                border: '1px solid rgba(212, 175, 95, 0.1)',
                 borderRadius: 10, borderLeft: `3px solid ${phase.color}`,
               }}>
                 <p style={{

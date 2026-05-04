@@ -1,0 +1,75 @@
+/* ==========================================================================
+   v3 Chrome Utilities — Scholar-reconciled (2026-04-28)
+
+   Additive utilities born from the Emergent concept-mockup review.
+   Three concept grafts (glass-blur cards, per-stage tints, live-pulse) were
+   rejected after dialogue with the Permaculture Scholar + UI/UX Scholar:
+     • Permaculture: "Integrate Rather Than Segregate", "Use Small and Slow
+       Solutions", biophilic UI must read as organic material not tech-glossy
+     • UI/UX:        "Nothing screams so everything is heard"; chrome stays
+       neutral; Confidence (monochrome) ≠ Quality (semantic)
+
+   What survives here is structural / typographic only:
+     • .eyebrow             — uppercase tracked label *above* a heading
+     • .verdict-ring-quiet  — 1px ring + tokenized inset shadow on hero KPIs
+                              (NO blur, NO glow — biophilic register)
+     • .observed-stamp      — slow-stewardship "last observed N days ago"
+                              replaces the rejected live-pulse dot
+   ========================================================================== */
+
+/* ----- Eyebrow label --------------------------------------------------------
+   Sits above a heading as a quiet section signifier. <p> element styled —
+   does NOT replace any <h2>/<h3> (preserves WCAG heading hierarchy from
+   2026-04-24 a11y audit). */
+.eyebrow {
+  margin: 0 0 var(--space-2) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ----- Quiet verdict ring ---------------------------------------------------
+   For hero KPIs on Operate. 1px earth-toned ring + a soft inset shadow.
+   Explicitly NO backdrop-filter, NO glow blur, NO drop-shadow. The ring
+   reads as a quiet boundary, not an accent. */
+.verdict-ring-quiet {
+  border: 1px solid rgba(var(--color-earth-600-rgb), 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(var(--color-earth-600-rgb), 0.10),
+    var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}
+
+/* ----- Observed stamp -------------------------------------------------------
+   Slow-stewardship register. Replaces a "live" pulse dot with a quiet
+   timestamp. Static — no animation. */
+.observed-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+.observed-stamp::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(var(--color-sage-rgb), 0.55);
+  /* Single slow ease-in over 2s on mount, then static. Honors
+     prefers-reduced-motion. */
+  animation: observed-fade-in var(--duration-slower) var(--ease-out) 1;
+}
+@keyframes observed-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .observed-stamp::before { animation: none; }
+}

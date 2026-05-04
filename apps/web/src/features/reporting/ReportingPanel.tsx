@@ -21,6 +21,9 @@ import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
 import ClientHandoffPackageCard from './ClientHandoffPackageCard.js';
 import SiteAssessmentExportPreviewCard from './SiteAssessmentExportPreviewCard.js';
+import DesignBriefFeatureSchedulePreviewCard from './DesignBriefFeatureSchedulePreviewCard.js';
+import GisExportReadinessCard from './GisExportReadinessCard.js';
+import ImageExportReadinessCard from './ImageExportReadinessCard.js';
 import { useOfflineGate } from '../../hooks/useOfflineGate.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { group, warning, sage, error as errorToken, semantic } from '../../lib/tokens.js';
@@ -680,8 +683,17 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
         </div>
       </div>
 
+      {/* ── §18 GIS export readiness audit (KML / GeoJSON) ── */}
+      <GisExportReadinessCard project={project} />
+
+      {/* ── §23 Image export readiness audit (map screenshot) ── */}
+      <ImageExportReadinessCard project={project} />
+
       {/* ── §19 Site assessment export preview ── */}
       <SiteAssessmentExportPreviewCard project={project} />
+
+      {/* ── §23 Design brief / feature schedule preview ── */}
+      <DesignBriefFeatureSchedulePreviewCard project={project} />
 
       {/* ── §27 Client handoff package ── */}
       <ClientHandoffPackageCard project={project} />

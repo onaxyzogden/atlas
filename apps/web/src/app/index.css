@@ -128,7 +128,7 @@ body {
 }
 .spine-btn[data-active="true"] {
   /* Active state uses high-chroma gold (#e0b56d) per UX Scholar 2026-04-23 —
-   * the brand gold #c4a265 fails WCAG AA on dark chrome at small sizes. */
+   * the brand gold #d4af5f fails WCAG AA on dark chrome at small sizes. */
   background: rgba(224, 181, 109, 0.22);
   color: var(--color-gold-active, #e0b56d);
   border-color: rgba(224, 181, 109, 0.55);

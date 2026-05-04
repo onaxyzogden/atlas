@@ -58,10 +58,38 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
       pitch: primaryMap.getPitch(),
       bearing: primaryMap.getBearing(),
       transformRequest: maptilerTransformRequest,
+      // Right pane is a read-only mirror of the primary map. Disabling
+      // every interaction handler is what makes that contract real - the
+      // bare comment alone wasn't enough: any wheel/drag on the right
+      // pane was silently desyncing the views (chrome audit, 2026-04-25).
+      interactive: false,
     });
+    // Belt-and-braces: even with `interactive: false`, ensure each handler
+    // is off in case a future MapLibre upgrade changes the constructor
+    // semantics. These are no-ops if already disabled.
+    right.dragPan.disable();
+    right.scrollZoom.disable();
+    right.boxZoom.disable();
+    right.dragRotate.disable();
+    right.keyboard.disable();
+    right.doubleClickZoom.disable();
+    right.touchZoomRotate.disable();
     rightMapRef.current = right;
 
-    right.once('load', () => setReady(true));
+    right.once('load', () => {
+      // Snap to primary's CURRENT camera the moment the right pane is
+      // ready. Primary may have moved during the brief load window so
+      // the constructor-time center is already stale.
+      if (rightMapRef.current) {
+        rightMapRef.current.jumpTo({
+          center: primaryMap.getCenter(),
+          zoom: primaryMap.getZoom(),
+          pitch: primaryMap.getPitch(),
+          bearing: primaryMap.getBearing(),
+        });
+      }
+      setReady(true);
+    });
 
     // â”€â”€ Move sync â€” primary â†’ right only, rAF-throttled so fast pans stay
     // smooth instead of firing a jumpTo per 'move' tick. Right pane is
@@ -71,7 +99,9 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
       if (pending) return;
       pending = requestAnimationFrame(() => {
         pending = 0;
-        right.jumpTo({
+        const r = rightMapRef.current;
+        if (!r) return;
+        r.jumpTo({
           center: primaryMap.getCenter(),
           zoom: primaryMap.getZoom(),
           pitch: primaryMap.getPitch(),
@@ -79,11 +109,20 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
         });
       });
     };
+    // 'move' fires for pan/zoom/rotate/pitch on current MapLibre, but the
+    // dedicated events are also wired up so a future change in 'move'
+    // semantics can't silently regress sync.
     primaryMap.on('move', onPrimaryMove);
+    primaryMap.on('zoom', onPrimaryMove);
+    primaryMap.on('rotate', onPrimaryMove);
+    primaryMap.on('pitch', onPrimaryMove);
 
     return () => {
       if (pending) cancelAnimationFrame(pending);
       primaryMap.off('move', onPrimaryMove);
+      primaryMap.off('zoom', onPrimaryMove);
+      primaryMap.off('rotate', onPrimaryMove);
+      primaryMap.off('pitch', onPrimaryMove);
       right.remove();
       rightMapRef.current = null;
       setReady(false);
@@ -162,15 +201,15 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
     };
   }, [ready, boundaryGeojson, mirrorFeatures]);
 
-  // Resize handle drag.
+  // Resize handle drag. Both maps render at full viewport width and the
+  // right pane is just CSS-clipped, so dragging the divider only updates a
+  // clip-path inset — no map.resize() calls required.
   const draggingRef = useRef(false);
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!draggingRef.current) return;
       const pct = Math.min(85, Math.max(15, (e.clientX / window.innerWidth) * 100));
       setSplitPct(pct);
-      primaryMap?.resize();
-      rightMapRef.current?.resize();
     };
     const onUp = () => {
       draggingRef.current = false;
@@ -185,85 +224,91 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
-  }, [primaryMap]);
-
-  // Resize primary map when the split pane collapses/opens.
-  useEffect(() => {
-    primaryMap?.resize();
-    rightMapRef.current?.resize();
-  }, [active, splitPct, primaryMap]);
+  }, []);
 
   if (!active) return null;
 
   return (
     <>
+      {/*
+        Right-pane map clipper. Renders at FULL viewport width and is
+        CSS-clipped to the right portion. With both maps sharing identical
+        canvas geometry AND identical camera state, every world coordinate
+        lands at the same screen-x in both panes — true compare-slider
+        alignment, not just same-center-different-width offset
+        (chrome audit, 2026-04-25).
+
+        pointerEvents: 'none' lets clicks/wheel pass straight through to the
+        primary map underneath. The right pane is read-only (interactive:
+        false on the map itself), so it has no need to receive events.
+      */}
       <div
         style={{
           position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: `${100 - splitPct}%`,
-          borderLeft: '2px solid rgba(196,180,154,0.4)',
+          inset: 0,
+          clipPath: `inset(0 0 0 ${splitPct}%)`,
+          WebkitClipPath: `inset(0 0 0 ${splitPct}%)`,
           zIndex: mapZIndex.splitPane,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
         }}
       >
         <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-        <div
-          style={{
-            position: 'absolute',
-            // Anchored to the split pane's top-LEFT edge (just right of the
-            // divider) so it can't collide with the primary pane's
-            // .floatingControls (Redraw Boundary + stats) which occupy the
-            // map-area's top-right corner at a higher z-index. The old
-            // top:12 right:12 placement put the switcher directly under
-            // that chrome.
-            top: 12,
-            left: 12,
-            maxWidth: 'calc(100% - 24px)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'flex-start',
-            gap: 2,
-            background: 'var(--color-chrome-bg-translucent)',
-            borderRadius: 8,
-            padding: '3px 4px',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          {STYLES.map((s) => {
-            const Icon = s.icon;
-            const active = rightStyle === s.id;
-            return (
-              <DelayedTooltip key={s.id} label={s.label} position="bottom">
-                <button
-                  onClick={() => setRightStyle(s.id)}
-                  aria-pressed={active}
-                  aria-label={s.label}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                    borderRadius: 6,
-                    border: active
-                      ? '1px solid rgba(224, 181, 109, 0.55)'
-                      : '1px solid transparent',
-                    cursor: 'pointer',
-                    background: active ? 'rgba(224, 181, 109, 0.22)' : 'transparent',
-                    color: active ? 'var(--color-gold-active, #e0b56d)' : '#c4b49a',
-                    transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
-                  }}
-                >
-                  <Icon size={16} strokeWidth={2} aria-hidden="true" />
-                </button>
-              </DelayedTooltip>
-            );
-          })}
-        </div>
+      </div>
+
+      {/*
+        Right-pane basemap picker. Positioned outside the clipper so it can
+        receive pointer events and isn't subject to the clip-path. Anchored
+        just inside the visible right portion (splitPct% + 12px gutter).
+      */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 12,
+          left: `calc(${splitPct}% + 12px)`,
+          maxWidth: `calc(${100 - splitPct}% - 24px)`,
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-start',
+          gap: 2,
+          background: 'var(--color-chrome-bg-translucent)',
+          borderRadius: 8,
+          padding: '3px 4px',
+          backdropFilter: 'blur(8px)',
+          zIndex: mapZIndex.dropdown,
+          pointerEvents: 'auto',
+        }}
+      >
+        {STYLES.map((s) => {
+          const Icon = s.icon;
+          const active = rightStyle === s.id;
+          return (
+            <DelayedTooltip key={s.id} label={s.label} position="bottom">
+              <button
+                onClick={() => setRightStyle(s.id)}
+                aria-pressed={active}
+                aria-label={s.label}
+                style={{
+                  width: 28,
+                  height: 28,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  borderRadius: 6,
+                  border: active
+                    ? '1px solid rgba(224, 181, 109, 0.55)'
+                    : '1px solid transparent',
+                  cursor: 'pointer',
+                  background: active ? 'rgba(224, 181, 109, 0.22)' : 'transparent',
+                  color: active ? 'var(--color-gold-active, #e0b56d)' : '#c4b49a',
+                  transition: 'background 160ms ease, color 160ms ease, border-color 160ms ease',
+                }}
+              >
+                <Icon size={16} strokeWidth={2} aria-hidden="true" />
+              </button>
+            </DelayedTooltip>
+          );
+        })}
       </div>
 
       {/* Draggable divider */}

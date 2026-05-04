@@ -1,0 +1,28 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 2rem);
+  padding: var(--spacing-lg, 2rem);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text, #2a261f);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-muted, #6b6357);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

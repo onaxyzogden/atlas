@@ -14,7 +14,7 @@
   border: 1.5px solid var(--color-border, #e4d9c6);
   border-radius: var(--radius-md, 8px);
   background-color: var(--color-surface, #ffffff);
-  color: var(--color-text, #312617);
+  color: var(--color-text, #1f231e);
   font-family: inherit;
   font-size: var(--text-base, 0.875rem);
   line-height: var(--leading-normal, 1.5);
@@ -105,7 +105,7 @@
   display: inline-flex;
   align-items: center;
   pointer-events: none;
-  color: var(--color-text-muted, #7d6140);
+  color: var(--color-text-muted, #5a5443);
   font-size: 1em;
 }
 

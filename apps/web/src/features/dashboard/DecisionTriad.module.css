@@ -1,0 +1,143 @@
+/* DecisionTriad — three-column row of Risks / Opportunities / Limitations
+   Each card adopts the schema:
+     Impact level · Why it matters · Recommended action · Confidence · Source */
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 980px) {
+  .row { grid-template-columns: 1fr; }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.colHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.colTitle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.85);
+}
+
+.colCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.item:first-child { border-top: none; padding-top: 4px; }
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.severity {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.severity_critical {
+  background: rgba(214, 86, 76, 0.18);
+  color: #e08077;
+}
+.severity_warning {
+  background: rgba(231, 142, 76, 0.18);
+  color: #e89967;
+}
+.severity_info {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b97a;
+}
+.severity_opportunity {
+  background: rgba(76, 175, 80, 0.18);
+  color: #7fcf83;
+}
+
+.message {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  margin-top: 2px;
+}
+
+.metaLabel {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.5);
+  margin-right: 4px;
+}
+
+.metaValue {
+  color: rgba(232, 220, 200, 0.78);
+}
+
+.empty {
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.45);
+  padding: 8px 0 4px;
+}
+
+.expand {
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(196, 162, 101, 0.85);
+  text-align: left;
+  padding: 4px 0;
+}
+.expand:hover { color: rgba(196, 162, 101, 1); }

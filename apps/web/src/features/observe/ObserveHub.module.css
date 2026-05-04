@@ -1,0 +1,136 @@
+/* ObserveHub — landing surface for the OBSERVE stage of the 3-stage cycle. */
+
+.page { max-width: 1080px; }
+
+/* Hero */
+.hero {
+  margin-bottom: 24px;
+  padding: 28px 32px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a2e1a 0%, #0f1a12 50%, #1a2a18 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.heroTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(var(--color-gold-rgb), 0.6);
+  display: block;
+  margin-bottom: 8px;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0 0 10px;
+  line-height: 1.2;
+  font-style: italic;
+}
+.lede {
+  font-size: 14px;
+  color: rgba(232,220,200,0.65);
+  margin: 0;
+  max-width: 64ch;
+  line-height: 1.5;
+}
+.principle {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(var(--color-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--color-gold-rgb), 0.18);
+  color: rgba(var(--color-gold-rgb), 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Module grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  padding: 20px 22px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 180px;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cardNumber {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(var(--color-gold-rgb), 0.55);
+}
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232,220,200,0.95);
+  margin: 0;
+  line-height: 1.25;
+}
+.summaryList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(232,220,200,0.78);
+}
+.summaryRow > span:first-child { color: rgba(232,220,200,0.55); }
+.summaryRow > span:last-child  { color: rgba(232,220,200,0.92); font-variant-numeric: tabular-nums; }
+.empty {
+  font-size: 13px;
+  color: rgba(232,220,200,0.45);
+  font-style: italic;
+}
+
+.cardActions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+}
+.linkBtn {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: rgba(232,220,200,0.85);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.linkBtn:hover {
+  background: rgba(var(--color-gold-rgb), 0.06);
+  border-color: rgba(var(--color-gold-rgb), 0.25);
+  color: rgba(var(--color-gold-rgb), 0.95);
+}

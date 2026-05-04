@@ -327,26 +327,26 @@ const ALL_CROP_KEYS = Object.keys(CROP_EXPLAINERS);
 
 export default function EducationalExplainerCard({ project }: Props) {
   const allStructures = useStructureStore((s) => s.structures);
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const allZones = useZoneStore((s) => s.zones);
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],
   );
-  const allUtilities = useUtilityStore((s) => s.utilities);
   const utilities = useMemo(
     () => allUtilities.filter((u) => u.projectId === project.id),
     [allUtilities, project.id],
   );
-  const allCropAreas = useCropStore((s) => s.cropAreas);
   const cropAreas = useMemo(
     () => allCropAreas.filter((c) => c.projectId === project.id),
     [allCropAreas, project.id],
   );
-  const allPaddocks = useLivestockStore((s) => s.paddocks);
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === project.id),
     [allPaddocks, project.id],
   );
-  const allZones = useZoneStore((s) => s.zones);
   const zones = useMemo(
     () => allZones.filter((z) => z.projectId === project.id),
     [allZones, project.id],

@@ -1,0 +1,24 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  padding: var(--spacing-lg, 2rem);
+  background: var(--color-surface, #faf8f4);
+  border-radius: var(--radius-lg, 0.5rem);
+  margin: var(--spacing-md, 1.5rem) 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: var(--spacing-md, 1rem);
+    margin: var(--spacing-sm, 1rem) 0;
+  }
+}
+
+/* Dark mode parity with OPA wheel container */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: var(--color-surface-dark, #2a261f);
+  }
+}

@@ -68,9 +68,9 @@ export default function TemplateMarketplace() {
           onClick={() => setSelectedCategory(null)}
           style={{
             padding: '4px 10px', fontSize: 10, borderRadius: 12,
-            border: `1px solid ${!selectedCategory ? '#c4a265' : 'var(--color-panel-card-border)'}`,
-            background: !selectedCategory ? 'rgba(196,162,101,0.1)' : 'transparent',
-            color: !selectedCategory ? '#c4a265' : 'var(--color-panel-muted)',
+            border: `1px solid ${!selectedCategory ? 'var(--color-gold-brand)' : 'var(--color-panel-card-border)'}`,
+            background: !selectedCategory ? 'rgba(212,175,95,0.12)' : 'transparent',
+            color: !selectedCategory ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
             cursor: 'pointer',
           }}
         >
@@ -82,9 +82,9 @@ export default function TemplateMarketplace() {
             onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
             style={{
               padding: '4px 10px', fontSize: 10, borderRadius: 12,
-              border: `1px solid ${selectedCategory === cat ? '#c4a265' : 'var(--color-panel-card-border)'}`,
-              background: selectedCategory === cat ? 'rgba(196,162,101,0.1)' : 'transparent',
-              color: selectedCategory === cat ? '#c4a265' : 'var(--color-panel-muted)',
+              border: `1px solid ${selectedCategory === cat ? 'var(--color-gold-brand)' : 'var(--color-panel-card-border)'}`,
+              background: selectedCategory === cat ? 'rgba(212,175,95,0.12)' : 'transparent',
+              color: selectedCategory === cat ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
               cursor: 'pointer',
             }}
           >

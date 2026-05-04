@@ -14,6 +14,10 @@
   min-width: 0;
 }
 
+.content > * {
+  margin-inline: auto;
+}
+
 /* Custom scrollbar for dashboard content */
 .content::-webkit-scrollbar { width: 6px; }
 .content::-webkit-scrollbar-track { background: transparent; }

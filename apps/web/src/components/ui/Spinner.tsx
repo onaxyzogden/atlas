@@ -22,7 +22,7 @@ export interface SpinnerProps {
 
 export const Spinner: React.FC<SpinnerProps> = ({
   size = 'md',
-  color = 'var(--color-primary, #7d6140)',
+  color = 'var(--color-primary, #d4af5f)',
   className,
 }) => {
   const px = sizeMap[size];

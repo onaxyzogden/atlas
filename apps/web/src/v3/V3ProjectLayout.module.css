@@ -1,0 +1,25 @@
+/* V3ProjectLayout chrome — thin sticky header housing LifecycleProgressRing.
+   Stays inside the scrollable content column so it doesn't push into the
+   sidebar/rail grid. Quiet visuals only — no glass, no blur. */
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px var(--space-4);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.outletHost {
+  flex: 1 1 auto;
+  min-height: 0;
+}

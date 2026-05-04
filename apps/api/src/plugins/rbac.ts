@@ -49,11 +49,19 @@ export default fp(async (fastify: FastifyInstance) => {
 
       // Check project exists and get owner
       const [project] = await db`
-        SELECT id, owner_id FROM projects WHERE id = ${projectId}
+        SELECT id, owner_id, is_builtin FROM projects WHERE id = ${projectId}
       `;
       if (!project) throw new NotFoundError('Project', projectId);
 
       req.projectId = projectId;
+
+      // Builtin sample projects (migration 017) are readable by every
+      // authenticated user but never writable. Collapse to 'viewer' so
+      // requireRole('owner'|'designer') gates mutating routes correctly.
+      if (project.is_builtin) {
+        req.projectRole = 'viewer';
+        return;
+      }
 
       // Owner shortcut
       if (project.owner_id === req.userId) {

@@ -3,6 +3,25 @@ import { NotFoundError } from '../../lib/errors.js';
 import type { LayerType } from '@ogden/shared';
 import { toCamelCase } from '@ogden/shared';
 
+/**
+ * Camel-case a project_layers row's top-level columns while keeping
+ * `summary_data` opaque. The canonical LayerSummaryMap in
+ * `packages/shared/src/scoring/layerSummary.ts` is snake_case (matched
+ * in the DB by migrations 018/019). If we recursed `toCamelCase` into
+ * the jsonb, every Tier-1 reader (`getLayerSummary`,
+ * `useSiteIntelligenceMetrics`, `DiagnosisReportExport`, etc.) would
+ * receive mangled camelCase keys and silently render `—`. The same
+ * pattern is applied in /projects/builtins.
+ */
+function camelCaseLayerRow(row: Record<string, unknown>): Record<string, unknown> {
+  const { summary_data: summary, ...rest } = row;
+  const camel = toCamelCase<Record<string, unknown>>(rest);
+  // Re-attach under the camelCase name existing TS callers expect, but
+  // pass the value through untransformed.
+  camel.summaryData = summary ?? null;
+  return camel;
+}
+
 export default async function layerRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole } = fastify;
 
@@ -21,7 +40,11 @@ export default async function layerRoutes(fastify: FastifyInstance) {
         WHERE pl.project_id = ${req.projectId}
         ORDER BY pl.layer_type
       `;
-      return { data: toCamelCase(layers), meta: { total: layers.length }, error: null };
+      return {
+        data: layers.map((l) => camelCaseLayerRow(l as Record<string, unknown>)),
+        meta: { total: layers.length },
+        error: null,
+      };
     },
   );
 
@@ -37,7 +60,11 @@ export default async function layerRoutes(fastify: FastifyInstance) {
           AND pl.layer_type = ${req.params.layerType}
       `;
       if (!layer) throw new NotFoundError('Layer', req.params.layerType);
-      return { data: toCamelCase(layer), meta: undefined, error: null };
+      return {
+        data: camelCaseLayerRow(layer as Record<string, unknown>),
+        meta: undefined,
+        error: null,
+      };
     },
   );
 

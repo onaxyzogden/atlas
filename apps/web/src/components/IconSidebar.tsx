@@ -10,22 +10,29 @@
  */
 
 import { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '../store/authStore.js';
 import { useUIStore } from '../store/uiStore.js';
 import { GroupingToggle } from './ui/GroupingToggle.js';
 import { DelayedTooltip } from './ui/DelayedTooltip.js';
+import SidebarBottomControls from './SidebarBottomControls.js';
 import {
   MAP_ITEMS,
   PHASE_META,
   PHASE_ORDER,
   DOMAIN_META,
   DOMAIN_ORDER,
+  STAGE_META,
+  STAGE_ORDER,
+  STAGE3_META,
+  STAGE3_ORDER,
   groupByPhase,
   groupByDomain,
+  groupByStage,
+  groupByStage3,
   type NavItem,
   type PhaseKey,
   type DomainGroupKey,
+  type StageKey,
+  type Stage3Key,
 } from '../features/navigation/taxonomy.js';
 import s from './IconSidebar.module.css';
 
@@ -68,6 +75,7 @@ export type SidebarView =
   | 'forest'
   | 'carbon'
   | 'nursery'
+  | 'biomass'
   | 'paddockDesign'
   | 'herdRotation'
   | 'grazingAnalysis'
@@ -82,7 +90,7 @@ export type SubItemId =
   // Design Atlas livestock-systems sub-tool).
   | 'paddock' | 'rotation' | 'grazing' | 'herd'
   // Forestry dashboards — distinct from 'crops' (Design Atlas crops sub-tool).
-  | 'planting' | 'forest' | 'carbon' | 'nursery'
+  | 'planting' | 'forest' | 'carbon' | 'nursery' | 'biomass'
   // Energy / Infrastructure dashboards — distinct from 'utilities' (Design
   // Atlas utilities sub-tool).
   | 'energy' | 'infrastructure'
@@ -99,7 +107,22 @@ interface IconSidebarProps {
   onSubItemChange: (id: SubItemId, panel: SidebarView) => void;
 }
 
-type GroupKey = PhaseKey | DomainGroupKey;
+// Some nav items share the same `mapSubItem` (e.g. Site Intelligence and
+// Ecological both surface `site-assessment`). Disambiguate by also
+// comparing the panel — the route the click would open — so only one row
+// reads as active at a time.
+const isItemActive = (
+  item: NavItem,
+  activeSubItem: SubItemId | null,
+  activeView: SidebarView,
+): boolean => {
+  const subId = (item.mapSubItem ?? item.id) as SubItemId;
+  if (activeSubItem !== subId) return false;
+  if (item.panel) return activeView === (item.panel as SidebarView);
+  return true;
+};
+
+type GroupKey = Stage3Key | StageKey | PhaseKey | DomainGroupKey;
 
 const LS_OPEN_GROUP = 'ogden-sidebar-open-group';
 const LS_LEGACY_OPEN_PHASE = 'ogden-sidebar-open-phase';
@@ -110,8 +133,6 @@ export default function IconSidebar({
   activeSubItem,
   onSubItemChange,
 }: IconSidebarProps) {
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
   const grouping = useUIStore((st) => st.sidebarGrouping);
 
   // Collapsed sidebar state (unchanged)
@@ -126,7 +147,7 @@ export default function IconSidebar({
       const stored = localStorage.getItem(LS_OPEN_GROUP) ?? localStorage.getItem(LS_LEGACY_OPEN_PHASE);
       if (stored) return stored as GroupKey;
     } catch { /* noop */ }
-    return 'P1';
+    return 'S1';
   });
 
   const toggleCollapse = () => {
@@ -151,7 +172,31 @@ export default function IconSidebar({
   }
 
   const groups: DisplayGroup[] =
-    grouping === 'phase'
+    grouping === 'stage3'
+      ? (() => {
+          const byStage3 = groupByStage3(MAP_ITEMS);
+          return STAGE3_ORDER.map((s, idx) => ({
+            key: s,
+            badge: String(idx + 1),
+            name: STAGE3_META[s].name,
+            desc: STAGE3_META[s].desc,
+            color: STAGE3_META[s].color,
+            items: byStage3[s],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : grouping === 'stage'
+      ? (() => {
+          const byStage = groupByStage(MAP_ITEMS);
+          return STAGE_ORDER.map((s, idx) => ({
+            key: s,
+            badge: String(idx + 1),
+            name: STAGE_META[s].name,
+            desc: STAGE_META[s].desc,
+            color: STAGE_META[s].color,
+            items: byStage[s],
+          })).filter((g) => g.items.length > 0);
+        })()
+      : grouping === 'phase'
       ? (() => {
           const byPhase = groupByPhase(MAP_ITEMS);
           return PHASE_ORDER.map((p) => ({
@@ -176,25 +221,20 @@ export default function IconSidebar({
         })();
 
   // If the persisted openGroup doesn't exist in the current grouping, fall back
-  // to the first available group. This handles the phase↔domain toggle cleanly.
+  // to the first available group. This handles the stage↔phase↔domain toggle cleanly.
   const resolvedOpenGroup: GroupKey = groups.some((g) => g.key === openGroup)
     ? openGroup
-    : (groups[0]?.key ?? 'P1');
-
-  const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'User Account';
-  const displayInitial = (displayName[0] ?? 'U').toUpperCase();
+    : (groups[0]?.key ?? 'S1');
 
   return (
     <nav aria-label="Atlas domains" className={`${s.sidebar} ${collapsed ? s.sidebarCollapsed : s.sidebarExpanded}`}>
 
-      {/* ── Logo / Header ─────────────────────────────── */}
+      {/* ── Collapse toggle ────────────────────────────
+          The OGDEN logo Link previously rendered here was removed
+          (project-page chrome audit, 2026-04-25): `ProjectTabBar`
+          already owns back-to-home navigation, and `DashboardSidebar`
+          has no equivalent header — keeping the rails symmetric. */}
       <div className={s.logoRow}>
-        {!collapsed && (
-          <Link to="/" className={s.logoLink}>
-            <span className={s.logoMark}>OGDEN</span>
-            <span className={s.logoSub}>LAND DESIGN ATLAS</span>
-          </Link>
-        )}
         <DelayedTooltip
           label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           position="right"
@@ -230,7 +270,20 @@ export default function IconSidebar({
           return (
             <div key={group.key} className={s.phaseGroup}>
               <DelayedTooltip
-                label={`${group.badge} — ${group.name}`}
+                label={
+                  group.desc ? (
+                    // Two-line tooltip restores the description that
+                    // appears next to the name in expanded mode, so
+                    // collapsed-rail users get the same context
+                    // (chrome audit, 2026-04-25).
+                    <span className={s.tooltipMultiline}>
+                      <span className={s.tooltipTitle}>{group.badge} — {group.name}</span>
+                      <span className={s.tooltipDesc}>{group.desc}</span>
+                    </span>
+                  ) : (
+                    `${group.badge} — ${group.name}`
+                  )
+                }
                 position="right"
                 disabled={!collapsed}
               >
@@ -240,8 +293,12 @@ export default function IconSidebar({
                 aria-expanded={isOpen}
               >
                 <span
-                  className={s.phaseBadge}
-                  style={{ backgroundColor: group.color + '33', color: group.color, borderColor: group.color + '55' }}
+                  className={`${s.phaseBadge} ${collapsed ? s.phaseBadgeCollapsed : ''}`}
+                  style={
+                    collapsed
+                      ? { backgroundColor: group.color + '4D', color: group.color, borderColor: group.color + '99' }
+                      : { backgroundColor: group.color + '33', color: group.color, borderColor: group.color + '55' }
+                  }
                 >
                   {group.badge}
                 </span>
@@ -268,7 +325,7 @@ export default function IconSidebar({
                   {group.items.map((item) => {
                     const subId = (item.mapSubItem ?? item.id) as SubItemId;
                     const panel = item.panel as SidebarView;
-                    const isActive = activeSubItem === subId;
+                    const isActive = isItemActive(item, activeSubItem, activeView);
                     return (
                       <button
                         key={item.id}
@@ -285,55 +342,19 @@ export default function IconSidebar({
                 </div>
               )}
 
-              {collapsed && (
-                <div className={s.collapsedPhaseDivider} style={{ backgroundColor: group.color + '40' }} />
-              )}
+              {/* Collapsed-mode divider removed (chrome audit, 2026-04-25):
+                  the badge itself is now the phase color cue, so the
+                  redundant 3px stripe just added visual noise. */}
             </div>
           );
         })}
       </div>
 
-      {/* ── Bottom actions ────────────────────────────── */}
-      <div className={s.bottomSection}>
-        <DelayedTooltip label="New Project" position="right" disabled={!collapsed}>
-          <button
-            className={s.bottomBtn}
-            onClick={() => navigate({ to: '/new' })}
-            aria-label="New Project"
-          >
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-              <line x1="7" y1="1" x2="7" y2="13" />
-              <line x1="1" y1="7" x2="13" y2="7" />
-            </svg>
-            {!collapsed && <span className={s.bottomBtnLabel}>NEW PROJECT</span>}
-          </button>
-        </DelayedTooltip>
-
-        <DelayedTooltip label="Settings" position="right" disabled={!collapsed}>
-          <button
-            className={`${s.bottomBtn} ${activeView === 'settings' ? s.bottomBtnActive : ''}`}
-            onClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
-            aria-label="Settings"
-          >
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="7" cy="7" r="2" />
-              <path d="M7 1.5L7.9 3.2L9.9 2.4L9.5 4.5L11.5 5.1L10.2 6.7L11.5 8.3L9.5 8.9L9.9 11L7.9 10.2L7 11.9L6.1 10.2L4.1 11L4.5 8.9L2.5 8.3L3.8 6.7L2.5 5.1L4.5 4.5L4.1 2.4L6.1 3.2L7 1.5Z" />
-            </svg>
-            {!collapsed && <span className={s.bottomBtnLabel}>SETTINGS</span>}
-          </button>
-        </DelayedTooltip>
-      </div>
-
-      {/* ── User account ──────────────────────────────── */}
-      <div className={s.userRow} title={displayName}>
-        <div className={s.userAvatar}>{displayInitial}</div>
-        {!collapsed && (
-          <div className={s.userInfo}>
-            <span className={s.userName}>{displayName}</span>
-            <span className={s.userSub}>View Profile</span>
-          </div>
-        )}
-      </div>
+      <SidebarBottomControls
+        collapsed={collapsed}
+        settingsActive={activeView === 'settings'}
+        onSettingsClick={() => onViewChange(activeView === 'settings' ? null : 'settings')}
+      />
     </nav>
   );
 }

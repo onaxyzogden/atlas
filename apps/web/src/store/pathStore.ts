@@ -44,6 +44,12 @@ export interface DesignPath {
    * `true`. Empty / undefined = year-round when present.
    */
   seasonalMonths?: number[];
+  /**
+   * PLAN-stage Module 3 — usage frequency tag drives stroke-width scaling
+   * on the Plan-stage path-frequency layer and informs zone-of-use logic.
+   * Optional; unset paths render at the default width.
+   */
+  usageFrequency?: 'daily' | 'weekly' | 'occasional' | 'rare';
   createdAt: string;
   updatedAt: string;
 }

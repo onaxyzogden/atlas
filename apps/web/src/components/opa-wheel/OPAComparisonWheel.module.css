@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg, 2rem);
+  background: var(--color-surface, #faf8f4);
+  border-radius: var(--radius-lg, 0.5rem);
+  margin: var(--spacing-md, 1.5rem) 0;
+}
+
+.wheelWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Mobile responsive: scale down on smaller screens */
+@media (max-width: 640px) {
+  .container {
+    padding: var(--spacing-md, 1rem);
+    margin: var(--spacing-sm, 1rem) 0;
+  }
+
+  .wheelWrapper {
+    max-width: 100%;
+  }
+}
+
+/* Dark mode support: inherit from global dark-mode toggles */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: var(--color-surface-dark, #2a261f);
+  }
+}

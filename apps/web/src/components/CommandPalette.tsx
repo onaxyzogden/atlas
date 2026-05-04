@@ -145,14 +145,14 @@ export default function CommandPalette() {
           width: 480, maxWidth: '90vw',
           maxHeight: 400,
           background: 'var(--color-surface, var(--color-chrome-bg-translucent))',
-          border: '1px solid var(--color-border, #3d3328)',
+          border: '1px solid var(--color-border, rgba(82, 72, 52, 0.14))',
           borderRadius: 12,
           overflow: 'hidden',
           boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
         }}
       >
         {/* Search input */}
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border, #3d3328)' }}>
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border, rgba(82, 72, 52, 0.14))' }}>
           <input
             ref={inputRef}
             type="text"
@@ -174,7 +174,7 @@ export default function CommandPalette() {
         {/* Results */}
         <div style={{ maxHeight: 320, overflowY: 'auto', padding: '4px 0' }}>
           {filtered.length === 0 && (
-            <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-muted, #9a8a74)', fontSize: 13 }}>
+            <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-muted, #5a5443)', fontSize: 13 }}>
               No results
             </div>
           )}
@@ -200,7 +200,7 @@ export default function CommandPalette() {
               <div>
                 <div style={{ fontWeight: i === selectedIndex ? 500 : 400 }}>{item.label}</div>
                 {item.description && (
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted, #9a8a74)' }}>{item.description}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted, #5a5443)' }}>{item.description}</div>
                 )}
               </div>
               {item.shortcut && (
@@ -210,7 +210,7 @@ export default function CommandPalette() {
                     padding: '2px 6px',
                     borderRadius: 3,
                     background: 'rgba(0,0,0,0.2)',
-                    color: 'var(--color-text-muted, #9a8a74)',
+                    color: 'var(--color-text-muted, #5a5443)',
                     fontFamily: 'var(--font-mono)',
                   }}
                 >

@@ -231,7 +231,7 @@ export default function CapitalIntensityCard({ project }: Props) {
 
       <div className={css.body}>
         <div className={css.radarWrap}>
-          <svg className={css.radarSvg} viewBox="0 0 200 200" aria-label="Intensity radar">
+          <svg className={css.radarSvg} viewBox="-60 -30 320 260" aria-label="Intensity radar">
             {/* Concentric grid */}
             {[25, 50, 75, 100].map((r) => (
               <polygon

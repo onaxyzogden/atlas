@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, confidence, group, semantic } from '../../../lib/tokens.js';
+import { earth, confidence, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -35,7 +35,7 @@ export default function SupportCTA({ config, project }: Props) {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', fontSize: 13,
     background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(196,162,101,0.15)', borderRadius: 8,
+    border: '1px solid rgba(212, 175, 95, 0.15)', borderRadius: 8,
     color: earth[100], fontFamily: 'inherit', outline: 'none',
     boxSizing: 'border-box',
   };
@@ -43,7 +43,7 @@ export default function SupportCTA({ config, project }: Props) {
   return (
     <section style={{
       padding: '80px 24px',
-      background: 'linear-gradient(180deg, transparent, rgba(196,162,101,0.03), transparent)',
+      background: 'linear-gradient(180deg, transparent, rgba(212, 175, 95, 0.03), transparent)',
     }}>
       <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
         <h2 style={{
@@ -90,7 +90,7 @@ export default function SupportCTA({ config, project }: Props) {
               onClick={() => setSubmitted(false)}
               style={{
                 marginTop: 12, padding: '8px 20px', fontSize: 12,
-                border: '1px solid rgba(196,162,101,0.2)', borderRadius: 6,
+                border: '1px solid rgba(212, 175, 95, 0.2)', borderRadius: 6,
                 background: 'transparent', color: semantic.sidebarActive, cursor: 'pointer',
               }}
             >
@@ -100,7 +100,7 @@ export default function SupportCTA({ config, project }: Props) {
         ) : (
           <div style={{
             padding: 24, borderRadius: 10,
-            border: '1px solid rgba(196,162,101,0.1)',
+            border: '1px solid rgba(212, 175, 95, 0.1)',
             display: 'flex', flexDirection: 'column', gap: 12,
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -120,8 +120,8 @@ export default function SupportCTA({ config, project }: Props) {
               style={{
                 padding: '12px', fontSize: 13, fontWeight: 600,
                 border: 'none', borderRadius: 8,
-                background: name.trim() && email.trim() ? 'rgba(196,162,101,0.15)' : 'rgba(255,255,255,0.03)',
-                color: name.trim() && email.trim() ? group.livestock : '#6b5b4a',
+                background: name.trim() && email.trim() ? 'rgba(212, 175, 95, 0.15)' : 'rgba(255,255,255,0.03)',
+                color: name.trim() && email.trim() ? semantic.sidebarActive : '#7d7864',
                 cursor: name.trim() && email.trim() ? 'pointer' : 'not-allowed',
               }}
             >

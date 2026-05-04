@@ -1,0 +1,363 @@
+/* §17 ConflictDensityRollupCard — per-feature conflict density rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.bandPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 110px;
+}
+
+.bandLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.bandScore {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.bandGood {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.bandGood .bandLabel { color: rgba(180, 200, 150, 0.95); }
+
+.bandFair {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.bandFair .bandLabel { color: rgba(220, 180, 100, 0.95); }
+
+.bandPoor {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.bandPoor .bandLabel { color: rgba(220, 130, 110, 0.95); }
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 14px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.statDim {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.statBlocking {
+  color: rgba(220, 130, 110, 0.95);
+}
+
+.cleanNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(220, 230, 200, 0.88);
+  background: rgba(180, 200, 150, 0.05);
+  border: 1px solid rgba(180, 200, 150, 0.2);
+  margin: 0 0 12px;
+}
+
+.cleanIcon {
+  color: rgba(180, 200, 150, 0.95);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.groupList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group {
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+}
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.groupRank {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.groupName {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  flex: 1 1 auto;
+}
+
+.groupScore {
+  font-size: 11.5px;
+  color: rgba(220, 210, 185, 0.82);
+  font-weight: 600;
+}
+
+.groupShare {
+  color: rgba(180, 165, 140, 0.6);
+  font-weight: 400;
+}
+
+.groupCounts {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.countChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.chipBlocking {
+  color: rgba(220, 130, 110, 0.95);
+  background: rgba(220, 130, 110, 0.1);
+  border: 1px solid rgba(220, 130, 110, 0.25);
+}
+
+.chipWarning {
+  color: rgba(220, 180, 100, 0.95);
+  background: rgba(220, 180, 100, 0.1);
+  border: 1px solid rgba(220, 180, 100, 0.25);
+}
+
+.chipAdvisory {
+  color: rgba(140, 180, 220, 0.9);
+  background: rgba(140, 180, 220, 0.08);
+  border: 1px solid rgba(140, 180, 220, 0.22);
+}
+
+.chainList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chainItem {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.chainHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.sevBlock,
+.sevWarn,
+.sevAdv {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.sevBlock {
+  color: rgba(220, 130, 110, 0.95);
+  background: rgba(220, 130, 110, 0.1);
+}
+
+.sevWarn {
+  color: rgba(220, 180, 100, 0.95);
+  background: rgba(220, 180, 100, 0.1);
+}
+
+.sevAdv {
+  color: rgba(140, 180, 220, 0.9);
+  background: rgba(140, 180, 220, 0.08);
+}
+
+.chainTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+  flex: 1 1 auto;
+}
+
+.chainScore {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.chainCrumbs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  flex-wrap: wrap;
+}
+
+.crumb {
+  text-transform: capitalize;
+}
+
+.crumbSep {
+  color: rgba(180, 165, 140, 0.4);
+}
+
+.crumbSource {
+  font-style: italic;
+  color: rgba(196, 162, 101, 0.8);
+}
+
+.chainBecause,
+.chainSuggest {
+  margin: 0 0 3px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 188, 165, 0.78);
+}
+
+.chainBecause em,
+.chainSuggest em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.overflow {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.65);
+  background: rgba(232, 220, 200, 0.025);
+  border-radius: 6px;
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

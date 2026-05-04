@@ -19,7 +19,9 @@ export interface GroupingToggleProps {
 }
 
 const OPTIONS: Array<{ value: SidebarGrouping; label: string; title: string }> = [
-  { value: 'phase',  label: 'Phase',  title: 'Group by workflow phase (P1–P4)' },
+  { value: 'stage3', label: 'Cycle',  title: 'Group by 3-stage permaculture cycle (Observe → Plan → Act) — default' },
+  { value: 'stage',  label: 'Stage',  title: 'Group by 5-step workflow stage (Understand → Report)' },
+  { value: 'phase',  label: 'Phase',  title: 'Group by legacy workflow phase (P1–P4)' },
   { value: 'domain', label: 'Domain', title: 'Group by subject domain (hydrology, grazing, …)' },
 ];
 

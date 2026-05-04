@@ -1,0 +1,253 @@
+/* §17 SitingRuleFamilyCoverageCard — placement-family coverage. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.verdictPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.verdictLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verdictBlurb {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.verdictGood {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.verdictGood .verdictLabel { color: rgba(180, 200, 150, 0.95); }
+
+.verdictFair {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.verdictFair .verdictLabel { color: rgba(220, 180, 100, 0.95); }
+
+.verdictWork {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.verdictWork .verdictLabel { color: rgba(220, 130, 110, 0.95); }
+
+.verdictBlock {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+}
+.verdictBlock .verdictLabel { color: rgba(180, 165, 140, 0.7); }
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin: 0 0 14px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.statValue {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.familyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.familyRow {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+}
+
+.familyHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.familyLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.9);
+  flex: 1;
+  min-width: 0;
+}
+
+.tierPill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+}
+
+.tierStrong {
+  background: rgba(180, 200, 150, 0.1);
+  border-color: rgba(180, 200, 150, 0.3);
+  color: rgba(180, 200, 150, 0.95);
+}
+.tierAcceptable {
+  background: rgba(220, 180, 100, 0.1);
+  border-color: rgba(220, 180, 100, 0.3);
+  color: rgba(220, 180, 100, 0.95);
+}
+.tierSparse {
+  background: rgba(220, 130, 110, 0.1);
+  border-color: rgba(220, 130, 110, 0.3);
+  color: rgba(220, 130, 110, 0.95);
+}
+.tierGap {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.familyMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.familyHint {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.ruleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ruleChip {
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(180, 200, 150, 0.06);
+  border: 1px solid rgba(180, 200, 150, 0.2);
+  color: rgba(220, 230, 200, 0.9);
+  cursor: help;
+}
+
+.familyEmpty {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+}
+
+.footnote {
+  margin: 14px 0 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}

@@ -1,0 +1,280 @@
+/* §26 UserManagementReadinessCard — project user-management readiness audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.cardHint em {
+  color: rgba(220, 210, 185, 0.82);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.verdictPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.verdictLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verdictBlurb {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.verdictGood {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.verdictGood .verdictLabel { color: rgba(180, 200, 150, 0.95); }
+
+.verdictMixed {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.verdictMixed .verdictLabel { color: rgba(220, 180, 100, 0.95); }
+
+.verdictWarn {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.3);
+}
+.verdictWarn .verdictLabel { color: rgba(220, 130, 110, 0.95); }
+
+.verdictEmpty {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+}
+.verdictEmpty .verdictLabel { color: rgba(180, 165, 140, 0.7); }
+
+.empty {
+  margin: 0;
+  padding: 18px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin: 0 0 14px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.statValue {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.block {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+}
+
+.warnBlock {
+  background: rgba(220, 130, 110, 0.04);
+  border-color: rgba(220, 130, 110, 0.18);
+}
+
+.blockTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.9);
+}
+
+.roleList,
+.flagList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roleRow {
+  display: grid;
+  grid-template-columns: 130px 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.roleLabel {
+  font-size: 11.5px;
+  color: rgba(232, 220, 200, 0.88);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.youTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.95);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+}
+
+.roleCount {
+  font-size: 12px;
+  color: rgba(232, 220, 200, 0.95);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  text-align: right;
+}
+
+.roleBar {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.06);
+  overflow: hidden;
+}
+
+.barEmpty {
+  background: rgba(220, 130, 110, 0.06);
+}
+
+.roleBarFill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(196, 162, 101, 0.55), rgba(196, 162, 101, 0.85));
+  transition: width 0.2s ease-out;
+}
+
+.flagRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(220, 130, 110, 0.06);
+  border: 1px solid rgba(220, 130, 110, 0.18);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(220, 200, 180, 0.85);
+}
+
+.flagBadge {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(220, 130, 110, 0.2);
+  color: rgba(230, 180, 165, 0.95);
+  font-weight: 700;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footnote {
+  margin: 14px 0 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
