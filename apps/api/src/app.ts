@@ -85,9 +85,10 @@ import collaborationReviewRoutes from './routes/collaboration-review/index.js';
 import reportingExportRoutes from './routes/reporting-export/index.js';
 import reusableFrameworksRoutes from './routes/reusable-frameworks/index.js';
 
-// ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+// ── Scaffolded sections (Batch 7: §§24, 28, 29) ──
+// §27 (public portal) consolidated onto portal/* — see
+// wiki/decisions/2026-05-04-p4-public-portal-section27-consolidation.md
 import mobileFieldworkRoutes from './routes/mobile-fieldwork/index.js';
-import publicPortalSectionRoutes from './routes/public-portal/index.js';
 import futureGeospatialRoutes from './routes/future-geospatial/index.js';
 import moontranceIdentityRoutes from './routes/moontrance-identity/index.js';
 
@@ -218,9 +219,10 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(reportingExportRoutes,       { prefix: '/api/v1/reporting-export' });
   await app.register(reusableFrameworksRoutes,    { prefix: '/api/v1/reusable-frameworks' });
 
-  // ── Scaffolded sections (Batch 7: §§24, 27, 28, 29) ──
+  // ── Scaffolded sections (Batch 7: §§24, 28, 29) ──
+  // §27 served by portalRoutes + publicPortalRoutes above (mounted at
+  // /api/v1/projects/:projectId/portal and /api/v1/portal/:shareToken)
   await app.register(mobileFieldworkRoutes,       { prefix: '/api/v1/mobile-fieldwork' });
-  await app.register(publicPortalSectionRoutes,   { prefix: '/api/v1/public-portal' });
   await app.register(futureGeospatialRoutes,      { prefix: '/api/v1/future-geospatial' });
   await app.register(moontranceIdentityRoutes,    { prefix: '/api/v1/moontrance-identity' });
 
