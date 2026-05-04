@@ -81,7 +81,7 @@ export const observeModules = [
   { number: "3", title: "Topography &\nBase Map", status: "In progress", active: true, art: "topo", to: "/observe/topography" },
   { number: "4", title: "Earth, Water &\nEcology Diagnostics", status: "Not started", active: false, art: "soil", to: "/observe/earth-water-ecology" },
   { number: "5", title: "Sectors, Microclimates\n& Zones", status: "Not started", active: false, art: "sector", to: "/observe/sectors-zones" },
-  { number: "6", title: "SWOT\nSynthesis", status: "Not started", active: false, art: "swot" }
+  { number: "6", title: "SWOT\nSynthesis", status: "Not started", active: false, art: "swot", to: "/observe/swot" }
 ];
 
 // View-models for ObserveDashboardPage (`/observe/dashboard`).
@@ -877,5 +877,101 @@ export const sectorsMicroclimatesDashboard = {
     "Finalise tree placement using windbreak sector analysis",
     "Develop access and circulation plan between zones 1–3",
     "Plan water system routes across zones using sector flow data",
+  ],
+};
+
+// ── M6 SWOT Dashboard (/observe/swot) ────────────────────────────────────
+export const swotDashboard = {
+  kpis: [
+    { label: "STRENGTHS",     value: 12, sub: "+3 this week", tone: "success" },
+    { label: "WEAKNESSES",    value:  8, sub: "2 unresolved", tone: "warning" },
+    { label: "OPPORTUNITIES", value: 10, sub: "+5 this week", tone: "gold"    },
+    { label: "THREATS",       value:  6, sub: "1 critical",   tone: "error"   },
+  ],
+  journalPreview: [
+    { date: "May 16, 2026", category: "strength",    title: "Rich topsoil depth in valley floor",      score: 88 },
+    { date: "May 15, 2026", category: "opportunity", title: "Adjacent farm partnership potential",      score: 76 },
+    { date: "May 14, 2026", category: "weakness",    title: "Limited water storage capacity",          score: 42 },
+    { date: "May 13, 2026", category: "threat",      title: "Buckthorn encroachment from north edge",  score: 35 },
+  ],
+  diagnosticPreview: [
+    { title: "Slope and contour well-suited for passive water harvesting", rating: 5, category: "strength"    },
+    { title: "No grey-water reuse system currently in place",              rating: 2, category: "weakness"    },
+    { title: "Carolinian corridor creates wildlife habitat potential",      rating: 5, category: "opportunity" },
+    { title: "Frost pocket risk in NW hollow affects planting viability",  rating: 3, category: "threat"      },
+  ],
+  designImplications: [
+    "Prioritise water-harvesting earthworks on mid-slope",
+    "Integrate windbreak plantings along NW frost pocket edge",
+    "Develop partnership MOU with adjacent organic farm",
+    "Schedule buckthorn removal before fruiting season",
+  ],
+  moduleHealth: {
+    dataCompleteness: 72,
+    insightQuality: "High",
+    synthesisStrength: "Developing",
+    lastUpdated: "May 3, 2026",
+    nextRecommendation: "Complete threat assessment to unlock Diagnosis Report",
+  },
+};
+
+// ── M6 SWOT Journal (/observe/swot/journal) ──────────────────────────────
+export const swotJournal = {
+  kpis: [
+    { label: "STRENGTHS",     value: 24, sub: "11 new"    },
+    { label: "WEAKNESSES",    value: 18, sub: "4 items"   },
+    { label: "OPPORTUNITIES", value: 22, sub: "8 items"   },
+    { label: "THREATS",       value: 16, sub: "3 critical"},
+    { label: "TOTAL ENTRIES", value: 80, sub: "all time"  },
+  ],
+  entries: [
+    { date: "May 16", category: "strength",    title: "Rich topsoil depth in valley floor",    description: "Soil tests confirm 30+ cm of A-horizon with 4.2% organic matter.",          location: "Zone 2",     zone: "2", score: 88, impact: "High" },
+    { date: "May 15", category: "opportunity", title: "Adjacent farm partnership potential",   description: "Neighbouring organic operation seeking shared CSA infrastructure.",           location: "Off-site",   zone: "5", score: 76, impact: "High" },
+    { date: "May 14", category: "weakness",    title: "Limited water storage capacity",        description: "Current 5,000 L tank insufficient for dry-season Zone 1-2 irrigation.",     location: "Zone 1",     zone: "1", score: 42, impact: "Med"  },
+    { date: "May 13", category: "threat",      title: "Buckthorn encroachment from N edge",    description: "Common buckthorn advancing from northern hedge. Removal before Sept critical.", location: "North edge", zone: "4", score: 35, impact: "High" },
+    { date: "May 12", category: "strength",    title: "Deep water table — hand pump viable",   description: "Borehole log shows water table at 8.4 m. Hand pump feasible without grid.",  location: "Centre",     zone: "2", score: 82, impact: "High" },
+    { date: "May 11", category: "opportunity", title: "Conservation Halton stewardship grant", description: "Riparian restoration grant available — window open until Jun 30.",           location: "East third", zone: "5", score: 70, impact: "Med"  },
+    { date: "May 10", category: "weakness",    title: "No greywater reuse system in place",    description: "Household greywater to septic. Estimated 180 L/day reuse potential untapped.", location: "Zone 1",   zone: "1", score: 38, impact: "Med"  },
+    { date: "May 9",  category: "strength",    title: "Established orchard — 18 mature trees", description: "Heritage apple and pear varieties. Low input. Canopy buffers microclimate.",  location: "Zone 2-3",   zone: "2", score: 79, impact: "Med"  },
+  ],
+  featuredItems: [
+    { category: "strength",    title: "Rich topsoil depth",        score: 88 },
+    { category: "opportunity", title: "Conservation Halton grant", score: 70 },
+  ],
+  recurringThemes: ["Water management", "Soil health", "Partnerships", "Invasive species", "Microclimate"],
+};
+
+// ── M6 SWOT Synthesis / Diagnosis Report (/observe/swot/synthesis) ───────
+export const swotSynthesis = {
+  executiveSummary: "Ironwood Lane has strong natural assets — productive soils, accessible water table, and mature Carolinian cover — alongside an engaged steward with a long-term vision. Primary design leverage points are water storage, windbreak placement, and formalising the adjacent farm partnership. Threats are manageable with early-season action.",
+  provisionalFindings: [
+    { title: "Slope and contour are well-suited for passive water harvesting", rating: 5, category: "strength"    },
+    { title: "No grey-water reuse system currently in place",                  rating: 2, category: "weakness"    },
+    { title: "Carolinian corridor creates wildlife habitat corridor potential", rating: 5, category: "opportunity" },
+    { title: "Buckthorn pressure requires early-season removal programme",      rating: 3, category: "threat"      },
+    { title: "Access & circulation paths need formalising across Zone 3-4",    rating: 3, category: "weakness"    },
+  ],
+  swotDiamond: { strengths: 7.5, weaknesses: 4.2, opportunities: 6.8, threats: 3.9 },
+  riskFlags: [
+    { level: "high",   title: "Buckthorn fruiting before removal — seed spread risk",  due: "Aug 15, 2026"  },
+    { level: "medium", title: "Frost pocket threatens Zone 1 winter plantings",        due: "Oct 1, 2026"   },
+    { level: "low",    title: "Grant application deadline for riparian restoration",    due: "Jun 30, 2026"  },
+  ],
+  topInsights: [
+    "Soils are the single strongest asset — protect from compaction and leverage for rapid guild establishment.",
+    "Water storage is the binding constraint on Zone 1-2 food production. A 25,000 L earthworks system resolves it.",
+    "Engage with nearby organic farm before next planting season to align CSA scheduling.",
+    "Buckthorn removal is time-critical: act before late-August fruiting to prevent further spread.",
+  ],
+  evidenceFromJournal: [
+    { date: "May 12", category: "strength",    title: "Deep water table accessible",        score: 82 },
+    { date: "May 15", category: "opportunity", title: "Adjacent farm partnership potential", score: 76 },
+    { date: "May 13", category: "threat",      title: "Buckthorn encroachment from N edge",  score: 35 },
+  ],
+  recommendedActions: [
+    { title: "Design swale network for mid-slope Zone 2",       priority: "High", due: "Jun 2026"     },
+    { title: "Schedule buckthorn removal crew",                  priority: "High", due: "Jul 2026"     },
+    { title: "Draft partnership MOU with adjacent organic farm", priority: "Med",  due: "Jun 2026"     },
+    { title: "Apply for Conservation Halton riparian grant",     priority: "Med",  due: "Jun 30, 2026" },
   ],
 };
