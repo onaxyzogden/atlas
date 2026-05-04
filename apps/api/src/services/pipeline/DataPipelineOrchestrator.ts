@@ -37,6 +37,8 @@ import { UsCountyGisAdapter } from './adapters/UsCountyGisAdapter.js';
 import { OntarioMunicipalAdapter } from './adapters/OntarioMunicipalAdapter.js';
 import { NwisGroundwaterAdapter } from './adapters/NwisGroundwaterAdapter.js';
 import { PgmnGroundwaterAdapter } from './adapters/PgmnGroundwaterAdapter.js';
+import { IgracGroundwaterAdapter } from './adapters/IgracGroundwaterAdapter.js';
+import { AppError } from '../../lib/errors.js';
 import { NasaPowerAdapter } from './adapters/NasaPowerAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
 import { TerrainAnalysisProcessor } from '../terrain/TerrainAnalysisProcessor.js';
@@ -111,7 +113,11 @@ class ManualFlagAdapter implements DataSourceAdapter {
 }
 
 // Sprint 3: Replace each stub with a real implementation
-function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSourceAdapter {
+function resolveAdapter(
+  layerType: Tier1LayerType,
+  country: Country,
+  db?: postgres.Sql,
+): DataSourceAdapter {
   const config = ADAPTER_REGISTRY[layerType]?.[country];
   if (!config) return new ManualFlagAdapter(`unknown_${layerType}`, layerType);
 
@@ -163,6 +169,21 @@ function resolveAdapter(layerType: Tier1LayerType, country: Country): DataSource
   }
   if (config.adapter === 'PgmnGroundwaterAdapter') {
     return new PgmnGroundwaterAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'IgracGroundwaterAdapter') {
+    // Per ADR 2026-05-04-igrac-global-groundwater-fallback: this adapter
+    // reads from local PostGIS rather than calling an external API at
+    // request time, so it needs a `db` handle threaded from the
+    // orchestrator instance. Misconfiguration (db missing) is a
+    // pipeline wiring bug, not an adapter-runtime error — fail loud.
+    if (!db) {
+      throw new AppError(
+        'PIPELINE_MISCONFIGURED',
+        'IgracGroundwaterAdapter requires a db handle; resolveAdapter was called without one',
+        500,
+      );
+    }
+    return new IgracGroundwaterAdapter(config.source, layerType, db);
   }
   if (config.adapter === 'NasaPowerAdapter') {
     // INTL bucket for climate. Globally valid, grid-interpolated.
@@ -613,7 +634,7 @@ export class DataPipelineOrchestrator {
       ON CONFLICT (project_id, layer_type) DO UPDATE SET fetch_status = 'fetching'
     `;
 
-    const adapter = resolveAdapter(layerType, ctx.country);
+    const adapter = resolveAdapter(layerType, ctx.country, this.db);
     return adapter.fetchForBoundary(ctx.boundaryGeojson, ctx);
   }
 

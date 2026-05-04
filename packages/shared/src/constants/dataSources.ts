@@ -98,7 +98,11 @@ export const ADAPTER_REGISTRY: Record<Tier1LayerType, Partial<Record<Country, Ad
   groundwater: {
     US: { adapter: 'NwisGroundwaterAdapter', source: 'usgs_nwis' },
     CA: { adapter: 'PgmnGroundwaterAdapter', source: 'ontario_pgmn' },
-    // INTL: pending WHYMAP / IGRAC adapter
+    // Global fallback registered 2026-05-04 per ADR
+    // 2026-05-04-igrac-global-groundwater-fallback. Reads from local PostGIS
+    // table populated by quarterly ingest job; medium-confidence reflecting
+    // national-agency reporting cadence (1-3 year vintage drift).
+    INTL: { adapter: 'IgracGroundwaterAdapter', source: 'igrac_ggis' },
   },
 };
 
