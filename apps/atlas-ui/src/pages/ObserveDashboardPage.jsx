@@ -257,11 +257,11 @@ function SiteFlags({ flags }) {
     <section className="dashboard-site-flags" aria-label="Site flags">
       <h3 className="dashboard-site-flags__heading"><AlertTriangle aria-hidden="true" /> Site Flags</h3>
       <div className="dashboard-site-flags__list">
-        {flags.map((f) => {
+        {flags.map((f, i) => {
           const tone = FLAG_CSS_TONE[f.severity] ?? "low";
-          const label = f.flag.replace(/_/g, " ");
+          const label = (f.flag ?? "").replace(/_/g, " ");
           return (
-            <div key={f.flag} className={`site-flag site-flag--${tone}`}>
+            <div key={f.flag ?? i} className={`site-flag site-flag--${tone}`}>
               <div className="site-flag__meta">
                 <span className="site-flag__severity">{f.severity}</span>
               </div>

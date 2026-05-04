@@ -4,17 +4,43 @@
   /* OLOS design tokens */
   --olos-bg: #030807;
   --olos-ink: #07100f;
-  --olos-panel: rgba(8, 19, 17, 0.88);
-  --olos-panel-soft: rgba(13, 27, 23, 0.72);
+
+  /* Elevation ladder — each step is ~5% brighter than the layer beneath */
+  --olos-surface-0: rgba(5, 14, 12, 0.95);      /* flush with bg — inset wells */
+  --olos-surface-1: rgba(11, 25, 22, 0.90);     /* default card — ~5% above bg */
+  --olos-surface-2: rgba(17, 36, 31, 0.88);     /* raised card / hover state */
+  --olos-surface-glass: rgba(13, 28, 24, 0.72); /* frosted glass panels */
+
+  /* Legacy aliases — kept for backward compat */
+  --olos-panel: var(--olos-surface-1);
+  --olos-panel-soft: var(--olos-surface-glass);
+
   --olos-line: rgba(168, 125, 43, 0.46);
   --olos-line-soft: rgba(157, 121, 55, 0.24);
   --olos-gold: #b7832d;
   --olos-gold-bright: #d5a43a;
   --olos-green: #a5c736;
   --olos-green-deep: #638216;
-  --olos-cream: #f3e2c8;
-  --olos-muted: #b7aa9a;
-  --olos-dim: #827b70;
+
+  /* Text color hierarchy */
+  --olos-cream: #f3e2c8;         /* headings, active values — highest contrast */
+  --olos-text-body: #cec5b6;    /* body copy — one step below cream */
+  --olos-text-label: #9e9489;   /* labels, captions — two steps below */
+  --olos-muted: #b7aa9a;        /* secondary text — legacy alias */
+  --olos-dim: #827b70;          /* disabled / placeholder */
+
+  /* Semantic status colors */
+  --olos-error: #d95c5c;
+  --olos-error-soft: rgba(217, 92, 92, 0.15);
+  --olos-warning: #c9872a;
+  --olos-warning-soft: rgba(201, 135, 42, 0.15);
+  --olos-success: #6aaa28;
+  --olos-success-soft: rgba(106, 170, 40, 0.15);
+
+  /* Ambient glow tokens */
+  --olos-glow-gold: 0 0 28px rgba(181, 131, 45, 0.22);
+  --olos-glow-green: 0 0 24px rgba(165, 199, 54, 0.18);
+
   --olos-font-ui: Inter, system-ui, sans-serif;
   --olos-font-display: "Cormorant Garamond", serif;
   --olos-radius-frame: 25px;
@@ -33,6 +59,23 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Global Cormorant Garamond kerning — tighten at all display sizes */
+h1, h2, h3,
+.font-display {
+  font-family: var(--olos-font-display);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+/* Glass panel utility — dark frosted surface with border */
+.glass-panel {
+  background: var(--olos-surface-glass);
+  border: 1px solid rgba(168, 125, 43, 0.18);
+  border-radius: var(--olos-radius-card);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
 }
 
 html {
@@ -179,8 +222,8 @@ button {
   font-family: var(--olos-font-display);
   font-size: clamp(45px, 4.05vw, 58px);
   font-weight: 600;
-  line-height: 0.98;
-  letter-spacing: -0.01em;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
   color: #f3e3cb;
   text-wrap: balance;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.38);
@@ -189,7 +232,7 @@ button {
 .hero-copy-block > p:last-child {
   max-width: 505px;
   margin: 0;
-  color: var(--olos-muted);
+  color: var(--olos-text-body);
   font-size: 17px;
   line-height: 1.45;
 }
