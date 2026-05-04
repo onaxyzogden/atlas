@@ -411,7 +411,7 @@ button {
 
 .metric-cell p {
   margin: 0;
-  color: var(--olos-muted);
+  color: var(--olos-text-label);
   font-size: 13px;
   line-height: 1.28;
 }
@@ -695,7 +695,7 @@ button {
 }
 
 .action-copy span {
-  color: var(--olos-muted);
+  color: var(--olos-text-label);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -1341,7 +1341,7 @@ img.footprint-art {
 
 .project-overview-card dt,
 .dashboard-facts dt {
-  color: var(--olos-muted);
+  color: var(--olos-text-label);
   font-size: 12px;
 }
 
