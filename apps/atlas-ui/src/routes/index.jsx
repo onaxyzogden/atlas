@@ -17,6 +17,8 @@ import { CartographicDetailPage } from "../pages/CartographicDetailPage.jsx";
 import { SwotDashboardPage } from "../pages/SwotDashboardPage.jsx";
 import { SwotJournalPage } from "../pages/SwotJournalPage.jsx";
 import { SwotDiagnosisReportPage } from "../pages/SwotDiagnosisReportPage.jsx";
+import { DevPrimitivesPage } from "../pages/DevPrimitivesPage.jsx";
+import { DevShellPage } from "../pages/DevShellPage.jsx";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -143,7 +145,20 @@ const swotDiagnosisReportRoute = createRoute({
   component: SwotDiagnosisReportPage,
 });
 
+const devPrimitivesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dev/primitives",
+  component: DevPrimitivesPage,
+});
+
+const devShellRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dev/shell",
+  component: DevShellPage,
+});
+
 const routeTree = rootRoute.addChildren([
+  ...(import.meta.env.DEV ? [devPrimitivesRoute, devShellRoute] : []),
   indexRoute,
   observeRoute,
   dashboardRoute,

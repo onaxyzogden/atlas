@@ -1,4 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("./styles/primitives-append.css");
+@import url("./styles/appshell-v2.css");
 
 :root {
   /* OLOS design tokens */
@@ -47,6 +49,82 @@
   --olos-radius-card: 10px;
   --olos-shadow-frame: inset 0 0 0 1px rgba(180, 154, 71, 0.08), 0 24px 80px rgba(0, 0, 0, 0.45);
   --olos-focus-ring: 2px solid rgba(195, 208, 54, 0.95);
+
+  /* ── Foundation primitives (MILOS-aligned, 2026-05-04) ─────────────────
+     Spacing on a 4px base grid. Use everywhere — gaps, padding, margins.
+     Inner radius rule: nested-element radius = parent radius − parent padding.
+     Elevation on dark bg is conveyed by surface lift + 1px border, not shadow
+     (shadows disappear on #030807). Reserve --shadow-* for future light mode.
+     Reduced-motion zeros all --motion-* below at the global @media block. */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography scale — interface labels capped at --text-2xl (24px). Sizes
+     above are the display scale for hero numbers / page titles only. */
+  --text-2xs: 0.65rem;     /* 10.4px */
+  --text-xs:  0.7rem;      /* 11.2px */
+  --text-sm:  0.75rem;     /* 12px */
+  --text-base: 0.875rem;   /* 14px */
+  --text-md:  1rem;        /* 16px */
+  --text-lg:  1.125rem;    /* 18px */
+  --text-xl:  1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;      /* 24px — interface ceiling */
+  --display-1: 1.75rem;    /* 28px */
+  --display-2: 2rem;       /* 32px */
+  --display-3: 2.5rem;     /* 40px */
+  --display-4: 3rem;       /* 48px */
+  --display-5: 3.75rem;    /* 60px */
+
+  /* Motion scale */
+  --motion-fast:    150ms;
+  --motion-base:    250ms;
+  --motion-slow:    400ms;
+  --motion-slower:  500ms;
+  --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Radius scale — inner radius = outer radius − padding (Design Scholar).
+     Existing --olos-radius-card (10px) and --olos-radius-frame (25px) are
+     kept as legacy aliases above. */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Elevation — dark-mode adapted: surface lift + 1px hairline, no shadow. */
+  --elev-1-bg: rgba(11, 25, 22, 0.92);
+  --elev-1-border: 1px solid hsla(40, 30%, 85%, 0.08);
+  --elev-2-bg: rgba(17, 36, 31, 0.92);
+  --elev-2-border: 1px solid hsla(40, 30%, 85%, 0.10);
+  --elev-3-bg: rgba(23, 47, 41, 0.94);
+  --elev-3-border: 1px solid hsla(40, 30%, 85%, 0.12);
+  --elev-4-bg: rgba(28, 56, 49, 0.96);
+  --elev-4-border: 1px solid hsla(40, 30%, 85%, 0.14);
+  --elev-5-bg: rgba(33, 64, 56, 0.98);
+  --elev-5-border: 1px solid hsla(40, 30%, 85%, 0.18);
+
+  /* Layout */
+  --topbar-h: 56px;
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 64px;
+  --right-panel-w: 320px;
+
   --native-width: 1293px;
   --native-height: 963px;
   --qa-native-width: var(--native-width);
@@ -59,6 +137,23 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Reduced motion — zero out transition/animation tokens and disable any
+   in-flight animations. Components that opt into useReducedMotion() can
+   take additional action; this is the global safety net. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast:   0ms;
+    --motion-base:   0ms;
+    --motion-slow:   0ms;
+    --motion-slower: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Global Cormorant Garamond kerning — tighten at all display sizes */
