@@ -1,4 +1,4 @@
-// Sidebar nav for AppShellV2. Groups give progressive disclosure
+// Sidebar nav for AppShell. Groups give progressive disclosure
 // instead of a flat 18-item dump.
 
 export const observeNav = [

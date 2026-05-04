@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   QaOverlay,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorCompassPage as vm } from "../data/builtin-sample.js";
 
@@ -55,7 +56,7 @@ const FORCE_COLOR = {
 
 export function SectorCompassPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page sc-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <div className="sc-breadcrumb">
@@ -90,7 +91,7 @@ export function SectorCompassPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

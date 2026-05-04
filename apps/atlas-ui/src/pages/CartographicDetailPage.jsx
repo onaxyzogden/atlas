@@ -14,11 +14,12 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   QaOverlay,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { cartographicDetailPage as vm } from "../data/builtin-sample.js";
 
@@ -39,7 +40,7 @@ const TONE_CSS = {
 
 export function CartographicDetailPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page cd-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <div className="cd-breadcrumb">
@@ -71,7 +72,7 @@ export function CartographicDetailPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

@@ -19,7 +19,8 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { QaOverlay, SurfaceCard } from "../components/index.js";
+import { AppShell, QaOverlay, SurfaceCard } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotSynthesis as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -32,7 +33,7 @@ export function SwotDiagnosisReportPage() {
   const siteName = siteBanner?.title ?? "351 House";
   const siteAreaHa = meta.siteAreaHa ?? siteBanner?.areaHa;
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="diagnosis-report-page">
         <ReportTopbar siteName={siteName} />
         <ReportStageBar />
@@ -63,7 +64,7 @@ export function SwotDiagnosisReportPage() {
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

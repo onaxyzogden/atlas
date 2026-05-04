@@ -13,13 +13,14 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShellV2,
+  AppShell,
   ChipList,
   CroppedArt,
   QaOverlay,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { visionPage as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -32,7 +33,7 @@ const iconMap = { sprout: Sprout, users: Users, leaf: Leaf, droplet: Droplet, he
 
 export function VisionPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page vision-page">
         <TopStageBar />
         <section className="vision-top-grid">
@@ -65,7 +66,7 @@ export function VisionPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

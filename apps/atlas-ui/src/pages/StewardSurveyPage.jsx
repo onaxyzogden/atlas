@@ -9,7 +9,7 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShellV2,
+  AppShell,
   BreadcrumbBar,
   ChipList,
   CroppedArt,
@@ -18,6 +18,7 @@ import {
   QaOverlay,
   SurfaceCard
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { SelectField, TextAreaField, TextInput } from "../components/FormFields.jsx";
 import { screenCatalog } from "../screenCatalog.js";
 import { stewardSurvey as vm } from "../data/builtin-sample.js";
@@ -31,7 +32,7 @@ const themeIconMap = { leaf: Leaf, users: Users, clock: Clock3 };
 
 export function StewardSurveyPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page steward-page">
         <BreadcrumbBar items={vm.breadcrumb} />
         <div className="detail-layout">
@@ -57,7 +58,7 @@ export function StewardSurveyPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

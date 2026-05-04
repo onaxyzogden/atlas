@@ -24,7 +24,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { QaOverlay, SurfaceCard } from "../components/index.js";
+import { AppShell, QaOverlay, SurfaceCard } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotJournal as vm } from "../data/builtin-sample.js";
 
@@ -61,7 +62,7 @@ const STATUS_FOR_IMPACT = {
 
 export function SwotJournalPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="swot-journal-page">
         <JournalTopProcess />
         <section className="journal-frame">
@@ -79,7 +80,7 @@ export function SwotJournalPage() {
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

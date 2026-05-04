@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   CroppedArt,
   ModuleSummaryCard,
   ProjectOverviewCard,
@@ -39,7 +39,7 @@ const dashboardMetadata = screenCatalog.find((screen) => screen.route === "/obse
 export function ObserveDashboardPage() {
   const { assessment, siteBanner } = useBuiltinProject();
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="dashboard-page">
         <TopStageBar />
         <section className="dashboard-hero-row">
@@ -57,7 +57,7 @@ export function ObserveDashboardPage() {
           nativeHeight={dashboardMetadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

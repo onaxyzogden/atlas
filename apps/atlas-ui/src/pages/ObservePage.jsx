@@ -1,6 +1,6 @@
 import { BookOpen, CalendarDays, Leaf, Layers3, Sprout } from "lucide-react";
 import { ActionCard } from "../components/ActionCard.jsx";
-import { AppShellV2 } from "../components/AppShellV2.jsx";
+import { AppShell } from "../components/AppShell.jsx";
 import { CroppedArt } from "../components/CroppedArt.jsx";
 import { MetricStrip } from "../components/MetricStrip.jsx";
 import { ModuleCard } from "../components/ModuleCard.jsx";
@@ -66,7 +66,7 @@ const modules = observeModules;
 
 export function ObservePage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="observe-screen">
       <section className="observe-frame" aria-labelledby="observe-title">
         <HeroPanel />
@@ -118,7 +118,7 @@ export function ObservePage() {
         />
       ) : null}
       </div>
-    </AppShellV2>
+    </AppShell>
   );
 }
 

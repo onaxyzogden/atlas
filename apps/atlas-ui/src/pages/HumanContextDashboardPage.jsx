@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   CroppedArt,
   ProgressRing,
   QaOverlay,
   SurfaceCard
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { humanContextDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -28,7 +29,7 @@ const heroIconMap = { eye: Eye, flag: Flag, mapPin: MapPin };
 
 export function HumanContextDashboardPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="human-context-page">
         <HumanBreadcrumb />
         <div className="human-context-layout">
@@ -51,7 +52,7 @@ export function HumanContextDashboardPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

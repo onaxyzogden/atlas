@@ -11,7 +11,7 @@ import {
   Users
 } from "lucide-react";
 import {
-  AppShellV2,
+  AppShell,
   ChipList,
   CroppedArt,
   DataTable,
@@ -20,6 +20,7 @@ import {
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { indigenousRegionalContext as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -33,7 +34,7 @@ const statIconMap = { alert: AlertTriangle, sprout: Sprout, users: Users };
 
 export function IndigenousRegionalContextPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page regional-page">
         <TopStageBar />
         <div className="detail-layout">
@@ -71,7 +72,7 @@ export function IndigenousRegionalContextPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

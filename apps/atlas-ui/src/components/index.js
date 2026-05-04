@@ -1,5 +1,5 @@
 export { ActionCard } from "./ActionCard.jsx";
-export { AppShellV2, TopbarSlot, useShellShortcuts } from "./AppShellV2.jsx";
+export { AppShell, TopbarSlot, useShellShortcuts } from "./AppShell.jsx";
 export { SearchPalette } from "./SearchPalette.jsx";
 export { BreadcrumbBar } from "./BreadcrumbBar.jsx";
 export { ChipList } from "./ChipList.jsx";

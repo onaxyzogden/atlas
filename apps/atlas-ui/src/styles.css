@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
 @import url("./styles/primitives-append.css");
-@import url("./styles/appshell-v2.css");
+@import url("./styles/appshell.css");
 
 :root {
   /* OLOS design tokens */
@@ -245,11 +245,6 @@ button {
   min-height: 100vh;
   color: var(--olos-cream);
   background: var(--olos-bg);
-}
-
-.side-rail,
-.top-stage-bar {
-  color: var(--olos-cream);
 }
 
 .observe-frame::before {
@@ -1108,26 +1103,6 @@ img.footprint-art {
   }
 }
 
-/* Shared app shell and Observe dashboard */
-.olos-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 88px 1fr;
-  background:
-    radial-gradient(circle at 60% 0%, rgba(82, 104, 51, 0.1), transparent 34rem),
-    linear-gradient(135deg, #050b0a, #020706);
-}
-
-.side-rail {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid rgba(208, 178, 103, 0.14);
-  background: linear-gradient(180deg, #0b1211, #070c0b 75%);
-}
-
 .side-rail__mark {
   height: 88px;
   display: grid;
@@ -1913,13 +1888,6 @@ img.footprint-art {
 }
 
 @media (max-width: 760px) {
-  .olos-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .side-rail {
-    display: none;
-  }
 
   .dashboard-page {
     width: 100%;
@@ -8192,137 +8160,6 @@ img.footprint-art {
   font-size: 12.5px;
 }
 
-
-/* ── M6 SWOT (Dashboard, Journal, Diagnosis Report) ──────────────── */
-.terralens-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 234px minmax(0, 1fr);
-  background:
-    radial-gradient(circle at 55% -10%, rgba(78, 109, 53, 0.16), transparent 34%),
-    linear-gradient(135deg, #07100f 0%, #080c0c 46%, #090908 100%);
-  color: #e9dec8;
-}
-
-.terralens-rail {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 24px 16px 18px;
-  border-right: 1px solid rgba(189, 143, 55, 0.28);
-  background:
-    linear-gradient(180deg, rgba(13, 27, 24, 0.98), rgba(6, 11, 11, 0.98)),
-    repeating-linear-gradient(120deg, rgba(174, 126, 39, 0.05) 0 1px, transparent 1px 18px);
-}
-
-.terralens-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #f2bd42;
-  font-family: var(--olos-font-display);
-  font-size: 23px;
-}
-
-.terralens-logo svg {
-  width: 38px;
-  height: 38px;
-  padding: 8px;
-  border: 1px solid rgba(242, 189, 66, 0.35);
-  border-radius: 50%;
-  background: rgba(242, 189, 66, 0.08);
-}
-
-.terralens-logo small,
-.terralens-project span {
-  display: block;
-  color: #928875;
-  font-family: var(--olos-font-body);
-  font-size: 10px;
-  line-height: 1.1;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.terralens-project,
-.terralens-rail button {
-  color: #cfc1a8;
-  background: transparent;
-}
-
-.terralens-project {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 16px;
-  align-items: center;
-  gap: 4px;
-  padding: 12px;
-  border: 1px solid rgba(207, 190, 151, 0.16);
-  border-radius: 8px;
-  text-align: left;
-}
-
-.terralens-project b {
-  color: #ede0c8;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.terralens-project svg {
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  width: 15px;
-}
-
-.terralens-rail nav {
-  display: grid;
-  gap: 5px;
-}
-
-.terralens-rail nav button,
-.terralens-utility button,
-.terralens-collapse {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  font-size: 13px;
-  text-align: left;
-}
-
-.terralens-rail nav button svg,
-.terralens-utility button svg,
-.terralens-collapse svg {
-  width: 16px;
-  height: 16px;
-  color: #bd8f37;
-}
-
-.terralens-rail nav button.is-active {
-  border-color: rgba(146, 191, 67, 0.45);
-  background: linear-gradient(90deg, rgba(69, 107, 37, 0.58), rgba(69, 107, 37, 0.12));
-  color: #fbf1dc;
-}
-
-.terralens-utility {
-  display: grid;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid rgba(207, 190, 151, 0.12);
-}
-
-.terralens-collapse {
-  justify-content: center;
-  border-color: rgba(207, 190, 151, 0.16);
-}
-
 .swot-journal-page {
   min-width: 0;
 }
@@ -8918,9 +8755,6 @@ img.footprint-art {
 }
 
 @media (max-width: 1380px) {
-  .terralens-shell {
-    grid-template-columns: 210px minmax(0, 1fr);
-  }
 
   .journal-process {
     grid-template-columns: 96px repeat(7, minmax(74px, 1fr)) 24px 24px 30px;
@@ -8966,19 +8800,6 @@ img.footprint-art {
 }
 
 @media (max-width: 760px) {
-  .terralens-shell {
-    display: block;
-  }
-
-  .terralens-rail {
-    position: static;
-    height: auto;
-    padding: 14px;
-  }
-
-  .terralens-rail nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
   .journal-process {
     min-height: auto;
@@ -9011,140 +8832,6 @@ img.footprint-art {
   .entries-table-card footer {
     min-width: 960px;
   }
-}
-
-.swot-suite-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 218px minmax(0, 1fr);
-  color: #e9d9bd;
-  background:
-    radial-gradient(circle at 80% 0%, rgba(125, 95, 42, 0.14), transparent 30rem),
-    linear-gradient(135deg, #050908, #020504);
-}
-
-.swot-suite-rail {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid rgba(199, 165, 89, 0.18);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(13, 20, 17, 0.96), rgba(5, 9, 8, 0.98));
-}
-
-.swot-suite-logo {
-  height: 92px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 24px;
-  border-bottom: 1px solid rgba(199, 165, 89, 0.16);
-}
-
-.swot-suite-logo svg {
-  width: 44px;
-  height: 44px;
-  color: #d2a54b;
-}
-
-.swot-suite-logo span {
-  color: #f3e2ca;
-  font-family: var(--olos-font-display);
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  line-height: 1.15;
-  text-transform: uppercase;
-}
-
-.swot-suite-rail nav {
-  display: grid;
-  gap: 2px;
-  padding: 18px 14px 6px;
-}
-
-.swot-suite-rail button {
-  min-height: 42px;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 16px;
-  align-items: center;
-  gap: 10px;
-  color: #d7c8ad;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  text-align: left;
-}
-
-.swot-suite-rail button svg {
-  width: 19px;
-  height: 19px;
-  color: #d9c28e;
-}
-
-.swot-suite-rail button.is-active {
-  color: #9bd64a;
-  background: rgba(55, 95, 37, 0.46);
-}
-
-.swot-analysis-subnav {
-  display: grid;
-  gap: 13px;
-  margin-left: 34px;
-  padding: 2px 0 18px 26px;
-  border-left: 1px solid rgba(126, 178, 74, 0.25);
-}
-
-.swot-analysis-subnav span {
-  color: #a99e8e;
-  font-size: 12px;
-}
-
-.swot-analysis-subnav span.is-active {
-  position: relative;
-  color: #f3e2ca;
-}
-
-.swot-analysis-subnav span.is-active::before {
-  content: "";
-  position: absolute;
-  left: -29px;
-  top: 0.5em;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #8fca4e;
-}
-
-.swot-user-card {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  margin: auto 16px 34px;
-  padding: 12px;
-  border-top: 1px solid rgba(199, 165, 89, 0.15);
-}
-
-.swot-user-card b {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  color: white;
-  border-radius: 999px;
-  background: #5d8e4a;
-}
-
-.swot-user-card span {
-  color: #d8ccb5;
-  font-size: 11px;
-}
-
-.swot-user-card small {
-  display: block;
-  color: #9f9586;
 }
 
 .swot-page {
@@ -9644,17 +9331,6 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .swot-suite-shell,
-  .swot-content,
-  .swot-middle-grid,
-  .swot-health-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .swot-suite-rail {
-    position: static;
-    height: auto;
-  }
 
   .swot-quadrants {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9798,17 +9474,6 @@ img.footprint-art {
 }
 
 @media (max-width: 720px) {
-  .swot-suite-shell {
-    display: block;
-    overflow-x: hidden;
-  }
-
-  .swot-suite-rail,
-  .swot-page {
-    width: 100%;
-    min-width: 0;
-    border-radius: 0;
-  }
 
   .swot-page {
     padding: 18px 14px;
@@ -9824,163 +9489,6 @@ img.footprint-art {
   .swot-health-strip div {
     grid-template-columns: 1fr;
   }
-}
-
-.verdean-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 242px minmax(0, 1fr);
-  color: #e9d9bd;
-  background: linear-gradient(135deg, #050908, #020504);
-}
-
-.verdean-rail {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 18px 12px;
-  border: 1px solid rgba(199, 165, 89, 0.18);
-  border-radius: 10px;
-  background: linear-gradient(180deg, #101714, #070c0b);
-}
-
-.verdean-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 5px 10px 22px;
-}
-
-.verdean-logo svg {
-  width: 42px;
-  height: 42px;
-  color: #d2a54b;
-}
-
-.verdean-logo span {
-  color: #d8b44e;
-  font-family: var(--olos-font-display);
-  font-size: 18px;
-  letter-spacing: 0.16em;
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-
-.verdean-project {
-  min-height: 48px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 18px;
-  align-items: center;
-  padding: 9px 12px;
-  color: #f0dfc5;
-  text-align: left;
-  border: 1px solid rgba(199, 165, 89, 0.16);
-  border-radius: 8px;
-  background: rgba(255,255,255,0.04);
-}
-
-.verdean-project span {
-  display: block;
-  color: #a99e8e;
-  font-size: 11px;
-}
-
-.verdean-main-nav,
-.verdean-rail {
-  min-width: 0;
-}
-
-.verdean-main-nav {
-  display: grid;
-  gap: 4px;
-  margin: 20px 0;
-}
-
-.verdean-rail h2 {
-  margin: 10px 8px 8px;
-  color: #d8b44e;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.verdean-rail button {
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 18px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  color: #d5c7ad;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  text-align: left;
-}
-
-.verdean-rail button svg {
-  width: 17px;
-  height: 17px;
-  color: #d7c08c;
-}
-
-.verdean-rail button span {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(143, 202, 78, 0.5);
-  border-radius: 999px;
-  color: #9bd64a;
-  font-size: 10px;
-}
-
-.verdean-rail button.is-active {
-  color: #d8b44e;
-  background: rgba(213, 169, 62, 0.1);
-}
-
-.verdean-subnav {
-  display: grid;
-  gap: 14px;
-  padding: 8px 0 8px 58px;
-  color: #a99e8e;
-  font-size: 13px;
-}
-
-.verdean-subnav .is-active {
-  color: #d8b44e;
-}
-
-.verdean-user {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  margin-top: auto;
-  padding: 12px;
-  border: 1px solid rgba(199, 165, 89, 0.12);
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-}
-
-.verdean-user b {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #567c3e;
-}
-
-.verdean-user span {
-  font-size: 12px;
-}
-
-.verdean-user small {
-  display: block;
-  color: #a99e8e;
 }
 
 .diagnosis-report-page {
@@ -10372,26 +9880,7 @@ img.footprint-art {
   text-align: center;
 }
 
-@media (max-width: 1180px) {
-  .verdean-shell,
-  .report-topbar,
-  .diagnosis-report-hero,
-  .diagnosis-top-grid,
-  .diagnosis-lower-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .verdean-rail {
-    height: auto;
-    position: static;
-  }
-}
-
 @media (max-width: 720px) {
-  .verdean-shell {
-    display: block;
-    overflow-x: hidden;
-  }
 
   .diagnosis-report-page {
     padding: 12px;
@@ -10559,22 +10048,6 @@ img.footprint-art {
 
   .diagnosis-report-quote {
     margin-top: 12px;
-  }
-
-  .verdean-logo {
-    padding-bottom: 14px;
-  }
-
-  .verdean-main-nav {
-    margin: 12px 0;
-  }
-
-  .verdean-rail button {
-    min-height: 30px;
-  }
-
-  .verdean-subnav {
-    gap: 10px;
   }
 }
 

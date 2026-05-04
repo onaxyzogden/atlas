@@ -5,7 +5,7 @@ import { Icon } from "../icons.js";
 import { IconButton, Tooltip } from "./primitives/index.js";
 import { useKeyboard } from "../hooks/useKeyboard.js";
 
-// AppShellV2 — unified atlas-ui shell.
+// AppShell — unified atlas-ui shell.
 //
 // Layout (CSS grid):
 //   [sidebar] [main]                  → contained
@@ -21,7 +21,7 @@ import { useKeyboard } from "../hooks/useKeyboard.js";
 
 const TopbarPortalContext = createContext(null);
 
-export function AppShellV2({
+export function AppShell({
   navConfig = [],
   brand = "atlas",
   topbarChildren,
@@ -77,7 +77,7 @@ export function TopbarSlot({ children }) {
   return createPortal(children, ctx.element);
 }
 
-AppShellV2.TopbarSlot = TopbarSlot;
+AppShell.TopbarSlot = TopbarSlot;
 
 function Sidebar({ navConfig, brand, collapsed, onToggle }) {
   return (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  AppShellV2,
+  AppShell,
   SearchPalette,
   TopbarSlot,
   useShellShortcuts,
@@ -28,7 +28,7 @@ export function DevShellPage() {
 
   return (
     <>
-      <AppShellV2
+      <AppShell
         navConfig={observeNav}
         brand="atlas"
         layout={layout}
@@ -39,7 +39,7 @@ export function DevShellPage() {
               /dev/shell
             </strong>
             <span style={{ color: "var(--olos-text-label)", fontSize: "var(--text-sm)" }}>
-              AppShellV2 showcase
+              AppShell showcase
             </span>
             <span style={{ flex: 1 }} />
             <Button variant="ghost" size="sm" onClick={() => setPaletteOpen(true)}>
@@ -77,7 +77,7 @@ export function DevShellPage() {
 
           <PortalDemo />
         </div>
-      </AppShellV2>
+      </AppShell>
 
       <SearchPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>

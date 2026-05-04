@@ -12,12 +12,13 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   CroppedArt,
   QaOverlay,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { macroclimateDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -34,7 +35,7 @@ export function MacroclimateDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page macroclimate-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
         <section className="macroclimate-layout">
@@ -50,7 +51,7 @@ export function MacroclimateDashboardPage() {
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

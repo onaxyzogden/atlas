@@ -21,7 +21,8 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { QaOverlay, SurfaceCard } from "../components/index.js";
+import { AppShell, QaOverlay, SurfaceCard } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotDashboard as vm } from "../data/builtin-sample.js";
 
@@ -31,7 +32,7 @@ const KPI_BY_LABEL = Object.fromEntries(vm.kpis.map((k) => [k.label, k.value]));
 
 export function SwotDashboardPage() {
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="swot-page">
         <SwotTopBar />
         <section className="swot-content">
@@ -51,7 +52,7 @@ export function SwotDashboardPage() {
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

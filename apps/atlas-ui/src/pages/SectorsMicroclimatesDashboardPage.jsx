@@ -11,12 +11,13 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  AppShellV2,
+  AppShell,
   ProgressRing,
   QaOverlay,
   SurfaceCard,
   TopStageBar,
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorsMicroclimatesDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -38,7 +39,7 @@ export function SectorsMicroclimatesDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page sectors-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <section className="sectors-layout">
@@ -61,7 +62,7 @@ export function SectorsMicroclimatesDashboardPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 

@@ -17,13 +17,14 @@ import {
   TriangleAlert
 } from "lucide-react";
 import {
-  AppShellV2,
+  AppShell,
   CroppedArt,
   ProgressRing,
   QaOverlay,
   SurfaceCard,
   TopStageBar
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { earthWaterEcologyPage as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -74,7 +75,7 @@ export function EarthWaterEcologyPage() {
     : null;
 
   return (
-    <AppShellV2 navConfig={observeNav}>
+    <AppShell navConfig={observeNav}>
       <div className="detail-page diagnostics-page">
         <TopStageBar
           stage="Stage 1 of 3"
@@ -101,7 +102,7 @@ export function EarthWaterEcologyPage() {
           nativeHeight={metadata.viewport.height}
         />
       ) : null}
-    </AppShellV2>
+    </AppShell>
   );
 }
 
