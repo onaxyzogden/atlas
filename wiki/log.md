@@ -4,6 +4,43 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-04 — 8.2-A.2 — IgracGroundwaterAdapter shipped
+
+Second engineering slice of accepted ADR 8.2-A. The adapter reads
+from `groundwater_wells_global` (migration 023 from earlier today,
+commit d1cecd0) and is registered as the INTL slot under
+`ADAPTER_REGISTRY.groundwater` so non-US/CA parcels stop falling
+through to `ManualFlagAdapter`.
+
+Wiring choices worth recording:
+
+- **`resolveAdapter(layerType, country, db?)` — db-handle threaded
+  conditionally.** Most existing 16 adapters call external HTTP
+  APIs and need no DB. Adding `db` to the function signature as an
+  optional parameter keeps the existing branches untouched; the
+  IGRAC branch fails loud as `PIPELINE_MISCONFIGURED` if `db` is
+  missing rather than silently downgrading. Cleanest minimal change
+  vs. introducing an `AdapterContext` struct, which would mean
+  touching every adapter.
+- **Confidence pinned to `'medium'` on a hit.** ADR called this
+  out: even when the adapter finds a well, the national-agency
+  reporting cadence means the data may lag current conditions by
+  1-3 years. Caller-side scoring should be able to discriminate
+  between IGRAC (medium) and NWIS/PGMN (high). Surfaced via
+  `summaryData.vintage_caveat` for diagnosis-report copy.
+- **PostGIS query shape.** Bbox containment via `ST_MakeEnvelope`
+  + `&&` operator hits the GIST index; `ST_Distance(geom::geography,
+  ...)::geography` gives metres for the nearest-N sort. Limit 50
+  candidates is generous for 0.5° windows.
+
+Typecheck: `tsc --noEmit` clean across `@ogden/shared` and `apps/api`.
+
+Commit: d044e1b. 8.2-A.3 (quarterly ingest job) and 8.2-A.4
+(client-side fall-through in `layerFetcher.ts`) remain — left for
+the next session.
+
+---
+
 ## 2026-05-04 — First engineering slice of 8.2-A: migration 023
 
 After the 8.2-A accepted ADR landed earlier the same day,
