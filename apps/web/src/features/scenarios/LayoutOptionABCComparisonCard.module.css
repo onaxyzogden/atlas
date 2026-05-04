@@ -1,0 +1,199 @@
+/* §16 LayoutOptionABCComparisonCard — three derived layout variants. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.heuristicBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  margin: 0;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 720px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.optionA {
+  border-color: rgba(196, 162, 101, 0.4);
+  background: rgba(196, 162, 101, 0.06);
+}
+
+.optionB {
+  border-color: rgba(160, 195, 130, 0.3);
+  background: rgba(160, 195, 130, 0.04);
+}
+
+.optionC {
+  border-color: rgba(140, 175, 195, 0.3);
+  background: rgba(140, 175, 195, 0.04);
+}
+
+.optionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionKey {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.optionA .optionKey {
+  color: rgba(196, 162, 101, 0.95);
+}
+
+.optionB .optionKey {
+  color: rgba(180, 205, 150, 0.95);
+}
+
+.optionC .optionKey {
+  color: rgba(170, 200, 215, 0.95);
+}
+
+.optionLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.optionPhilosophy {
+  margin: 0;
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(180, 165, 140, 0.78);
+  min-height: 32px;
+}
+
+.optionStats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.statSub {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(220, 210, 185, 0.78);
+}
+
+.statDelta {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 200, 145, 0.95);
+}
+
+.deltaDown {
+  color: rgba(190, 215, 165, 0.95);
+}
+
+.optionRule {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.68);
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.02);
+}
+
+.footnote {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}

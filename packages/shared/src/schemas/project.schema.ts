@@ -38,8 +38,8 @@ export const ProjectMetadata = z.object({
   fieldObservations: z.string().max(5000).optional(),
   restrictionsCovenants: z.string().max(2000).optional(),
   mapProjection: z.string().max(200).optional(),
-  centerLat: z.number().optional(),
-  centerLng: z.number().optional(),
+  centerLat: z.number().min(-90).max(90).optional(),
+  centerLng: z.number().min(-180).max(180).optional(),
   soilNotes: SoilNotes.optional(),
   // Climate characterisation (Tier 1 pipeline / ECCC normals)
   hardinessZone: z.string().max(10).optional(),
@@ -104,6 +104,9 @@ export const ProjectSummary = z.object({
   dataCompletenessScore: z.number().nullable(),
   hasParcelBoundary: z.boolean(),
   candidateOf: z.string().uuid().nullable().optional(),
+  // Builtin sample project flag (migration 017). Read-only for every
+  // account; the system user is the sole owner.
+  isBuiltin: z.boolean().default(false),
   metadata: ProjectMetadata.nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

@@ -11,6 +11,7 @@ import { useZoneStore } from '../../store/zoneStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import AccessAnalysisCard from './AccessAnalysisCard.js';
+import AccessModeCoverageCard from './AccessModeCoverageCard.js';
 import AccessibleRouteCard from './AccessibleRouteCard.js';
 import AnimalCorridors from './AnimalCorridors.js';
 import ArrivalSequence from './ArrivalSequence.js';
@@ -59,6 +60,25 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
   const [selectedType, setSelectedType] = useState<PathType>('main_road');
   const [isDrawing, setIsDrawing] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+
+  // Toolbar's "Draw Path" action triggers the type-picker overlay.
+  useEffect(() => {
+    if (!map) return;
+    const onOpen = () => { setActiveTab('draw'); setShowPicker(true); };
+    map.on('ogden:paths:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    return () => {
+      map.off('ogden:paths:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    };
+  }, [map]);
+
+  // a11y: Escape closes the path picker
+  useEffect(() => {
+    if (!showPicker) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowPicker(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showPicker]);
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.LineString | null>(null);
   const [pendingLength, setPendingLength] = useState(0);
   const [name, setName] = useState('');
@@ -138,37 +158,11 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
       {activeTab === 'draw' && (
         <>
-          <div className={`${p.label} ${p.mb8}`}>Select Path Type</div>
-          <div className={`${p.flexCol} ${p.mb16}`} style={{ gap: 4 }}>
-            {(Object.entries(PATH_TYPE_CONFIG) as [PathType, typeof PATH_TYPE_CONFIG[PathType]][]).map(([key, cfg]) => {
-              const isSelected = selectedType === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setSelectedType(key)}
-                  className={p.selectorBtn}
-                  style={{
-                    padding: '7px 10px',
-                    background: isSelected ? `${cfg.color}15` : undefined,
-                    border: isSelected ? `1px solid ${cfg.color}40` : undefined,
-                    color: isSelected ? cfg.color : undefined,
-                  }}
-                >
-                  <span style={{ width: 20, height: 2, background: cfg.color, borderRadius: 1, flexShrink: 0, ...(cfg.dashArray.length > 0 ? { backgroundImage: `repeating-linear-gradient(90deg, ${cfg.color} 0px, ${cfg.color} ${cfg.dashArray[0]}px, transparent ${cfg.dashArray[0]}px, transparent ${(cfg.dashArray[0] ?? 0) + (cfg.dashArray[1] ?? 0)}px)`, background: 'none', height: cfg.width } : {}) }} />
-                  <span style={{ fontWeight: isSelected ? 500 : 400 }}>{cfg.label}</span>
-                  {isSelected && <span className={p.selectorCheck} style={{ color: cfg.color }}>{'\u2713'}</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={startDraw}
-            disabled={isDrawing || !draw}
-            className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
-          >
-            {isDrawing ? 'Drawing... double-click to finish' : `Draw ${PATH_TYPE_CONFIG[selectedType].label}`}
-          </button>
+          {isDrawing && (
+            <div className={p.empty} style={{ marginBottom: 10 }}>
+              Drawing — double-click on the map to finish the line.
+            </div>
+          )}
 
           <div className={p.sectionLabel}>
             Paths ({paths.length})
@@ -209,6 +203,8 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
 
       {activeTab === 'analysis' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* §10 Cross-mode coverage rollup against project intent. */}
+          {project && <AccessModeCoverageCard project={project} />}
           <AccessAnalysisCard paths={paths} />
           {/* §10 Main/secondary/emergency/service access continuity. */}
           <ServiceAccessContinuityCard projectId={projectId} />
@@ -231,6 +227,33 @@ export default function AccessPanel({ projectId, draw, map }: AccessPanelProps) 
           <ArrivalSequenceDesignCard projectId={projectId} />
           {/* §10 Quiet circulation acoustic-separation audit. */}
           <QuietCirculationRouteCard projectId={projectId} />
+        </div>
+      )}
+
+      {/* Path type picker — opened by toolbar's "Draw Path" action */}
+      {showPicker && (
+        <div className={p.modalOverlay} role="presentation" onClick={() => setShowPicker(false)}>
+          <div onClick={(e) => e.stopPropagation()} className={`${p.modalContent} ${p.modalContentMd}`} role="dialog" aria-modal="true">
+            <h2 className={p.modalTitle}>Choose Path Type</h2>
+            <p className={p.modalSubtitle}>Select a type, then draw a line on the map.</p>
+            <div className={p.flexCol} style={{ gap: 4 }}>
+              {(Object.entries(PATH_TYPE_CONFIG) as [PathType, typeof PATH_TYPE_CONFIG[PathType]][]).map(([key, cfg]) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setSelectedType(key);
+                    setShowPicker(false);
+                    setTimeout(() => startDraw(), 0);
+                  }}
+                  className={p.selectorBtn}
+                  style={{ padding: '7px 10px' }}
+                >
+                  <span style={{ width: 20, height: 2, background: cfg.color, borderRadius: 1, flexShrink: 0 }} />
+                  <span>{cfg.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

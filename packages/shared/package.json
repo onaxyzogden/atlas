@@ -16,6 +16,14 @@
     "./manifest": {
       "types": "./src/featureManifest.ts",
       "default": "./src/featureManifest.ts"
+    },
+    "./demand": {
+      "types": "./src/demand/index.ts",
+      "default": "./src/demand/index.ts"
+    },
+    "./relationships": {
+      "types": "./src/relationships/index.ts",
+      "default": "./src/relationships/index.ts"
     }
   },
   "scripts": {

@@ -8,6 +8,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
 import MetricCard from './components/MetricCard.js';
+import NextBestActionsPanel from './NextBestActionsPanel.js';
 import { semantic } from '../../lib/tokens.js';
 import css from './DashboardMetrics.module.css';
 
@@ -33,10 +34,13 @@ interface LandCoverSummary { tree_canopy_pct?: number | string; }
 interface DashboardMetricsProps {
   section: string;
   project: LocalProject;
+  onGenerateBrief?: () => void;
+  onSwitchToMap?: () => void;
 }
 
-export default function DashboardMetrics({ section, project }: DashboardMetricsProps) {
+export default function DashboardMetrics({ section, project, onGenerateBrief, onSwitchToMap }: DashboardMetricsProps) {
   const siteData = useSiteData(project.id);
+  const showNextActions = section === 'site-intelligence';
 
   const hydroCards = useMemo(() => {
     if (section !== 'hydrology-dashboard') return null;
@@ -235,14 +239,24 @@ export default function DashboardMetrics({ section, project }: DashboardMetricsP
 
   return (
     <aside className={css.sidebar}>
-      <h3 className={css.title}>
-        {SECTION_TITLES[section] ?? 'Regenerative Metrics'}
-      </h3>
-      <div className={css.cards}>
-        {(activeCards ?? getMetricsForSection(section)).map((m, i) => (
-          <MetricCard key={i} {...m} />
-        ))}
-      </div>
+      {showNextActions ? (
+        <NextBestActionsPanel
+          project={project}
+          onGenerateBrief={onGenerateBrief}
+          onSwitchToMap={onSwitchToMap}
+        />
+      ) : (
+        <>
+          <h3 className={css.title}>
+            {SECTION_TITLES[section] ?? 'Regenerative Metrics'}
+          </h3>
+          <div className={css.cards}>
+            {(activeCards ?? getMetricsForSection(section)).map((m, i) => (
+              <MetricCard key={i} {...m} />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Stewardship guidance card */}
       <div className={css.guidanceCard}>

@@ -4,6 +4,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType, type Utility } from '../../store/utilityStore.js';
+import { useStructureStore } from '../../store/structureStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import type maplibregl from 'maplibre-gl';
 import SolarPlacement from './SolarPlacement.js';
@@ -23,6 +24,8 @@ interface UtilityPanelProps {
 export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
   const allUtilities = useUtilityStore((st) => st.utilities);
   const utilities = useMemo(() => allUtilities.filter((u) => u.projectId === projectId), [allUtilities, projectId]);
+  const allStructures = useStructureStore((st) => st.structures);
+  const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
   const addUtility = useUtilityStore((st) => st.addUtility);
   const deleteUtility = useUtilityStore((st) => st.deleteUtility);
   const placementMode = useUtilityStore((st) => st.placementMode);
@@ -39,6 +42,8 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
 
   // Site intelligence data for systems tab
   const siteData = useSiteData(projectId);
+  const climate = useMemo(() => siteData ? getLayerSummary<{ solar_radiation_kwh_m2_day?: number }>(siteData, 'climate') : null, [siteData]);
+  const solarIrradianceKwhM2Day = climate?.solar_radiation_kwh_m2_day;
   const microclimate = useMemo(() => siteData ? getLayerSummary<{ sunTraps?: { areaPct?: number } }>(siteData, 'microclimate') : null, [siteData]);
   const watershed = useMemo(() => siteData ? getLayerSummary<{ detention_pct?: number }>(siteData, 'watershed_derived') : null, [siteData]);
   const soilRegen = useMemo(() => siteData ? getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration') : null, [siteData]);
@@ -198,7 +203,7 @@ export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
       {activeTab === 'systems' && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <OffGridReadiness utilities={utilities} sunTrapAreaPct={sunTrapPct} detentionAreaPct={detentionPct} />
-          <EnergyDemandRollup utilities={utilities} />
+          <EnergyDemandRollup utilities={utilities} structures={structures} solarIrradianceKwhM2Day={solarIrradianceKwhM2Day} />
           <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />
           <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
         </div>

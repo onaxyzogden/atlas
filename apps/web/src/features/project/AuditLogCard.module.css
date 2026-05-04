@@ -1,0 +1,375 @@
+/* §26 AuditLogCard — admin / governance audit-trail. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(196, 162, 101, 0.95);
+  background: rgba(196, 162, 101, 0.1);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 620px;
+}
+
+.verdictPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.1);
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.verdictLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.verdictBlurb {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.7);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.verdictCompliant {
+  background: rgba(180, 200, 150, 0.08);
+  border-color: rgba(180, 200, 150, 0.3);
+}
+.verdictCompliant .verdictLabel { color: rgba(180, 200, 150, 0.95); }
+
+.verdictMonitored {
+  background: rgba(140, 180, 220, 0.08);
+  border-color: rgba(140, 180, 220, 0.3);
+}
+.verdictMonitored .verdictLabel { color: rgba(140, 180, 220, 0.95); }
+
+.verdictSparse {
+  background: rgba(220, 180, 100, 0.08);
+  border-color: rgba(220, 180, 100, 0.3);
+}
+.verdictSparse .verdictLabel { color: rgba(220, 180, 100, 0.95); }
+
+.verdictUnknown {
+  background: rgba(180, 165, 140, 0.06);
+  border-color: rgba(180, 165, 140, 0.2);
+}
+.verdictUnknown .verdictLabel { color: rgba(180, 165, 140, 0.7); }
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.statCell {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.section {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin: 0 0 12px;
+}
+
+.sectionHead {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionMeta {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: rgba(180, 165, 140, 0.55);
+  margin-left: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.severityRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.severityCell {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.07);
+  background: rgba(232, 220, 200, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.severityHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.severityLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.severityCount {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+  font-variant-numeric: tabular-nums;
+}
+
+.severityBlurb {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.4;
+}
+
+.sevCritical {
+  background: rgba(220, 130, 110, 0.08);
+  border-color: rgba(220, 130, 110, 0.28);
+}
+
+.sevWarn {
+  background: rgba(220, 180, 100, 0.07);
+  border-color: rgba(220, 180, 100, 0.25);
+}
+
+.sevInfo {
+  background: rgba(140, 180, 220, 0.06);
+  border-color: rgba(140, 180, 220, 0.22);
+}
+
+.govGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.govCell {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.govLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.govValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(232, 220, 200, 0.025);
+}
+
+.timelineDot {
+  font-size: 10px;
+  text-align: center;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.sevCritical .timelineDot { color: rgba(220, 130, 110, 0.95); }
+.sevWarn .timelineDot { color: rgba(220, 180, 100, 0.95); }
+.sevInfo .timelineDot { color: rgba(140, 180, 220, 0.95); }
+
+.timelineBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.timelineTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.timelineDetail {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timelineMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.timelineActor {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.78);
+}
+
+.timelineAt {
+  font-size: 10px;
+  color: rgba(180, 165, 140, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.empty {
+  padding: 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px dashed rgba(232, 220, 200, 0.1);
+}
+
+.more {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: center;
+}
+
+.note {
+  margin: 0 0 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.03);
+  border: 1px dashed rgba(232, 220, 200, 0.12);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.55);
+  border-top: 1px solid rgba(232, 220, 200, 0.06);
+  padding-top: 10px;
+}
+
+.footnote em {
+  color: rgba(220, 210, 185, 0.78);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.footnote code {
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: rgba(220, 210, 185, 0.78);
+  background: rgba(232, 220, 200, 0.04);
+  padding: 1px 4px;
+  border-radius: 3px;
+}

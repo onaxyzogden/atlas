@@ -81,6 +81,13 @@ export interface InventoryEntry {
   totalHead: number;
   paddockCount: number;
   avgCompliance: number;
+  /**
+   * Optional per-Schedule-A-subcategory breakdown. When a paddock records
+   * a per-species subcategory choice, that choice's head share is binned
+   * here so AU rollups can use the precise factor (and so dashboards can
+   * show e.g. "120 head — 80 beef cow + 40 backgrounder").
+   */
+  bySubcategory?: Array<{ subcategoryId: string; totalHead: number }>;
 }
 
 export interface PredatorRisk {
@@ -413,11 +420,18 @@ export function computeSpeciesConflicts(paddocks: Paddock[]): SpeciesConflict[] 
 /* ================================================================== */
 
 export function computeInventorySummary(paddocks: Paddock[]): InventoryEntry[] {
-  const map = new Map<LivestockSpecies, { totalHead: number; paddockCount: number; complianceSum: number }>();
+  type Bucket = {
+    totalHead: number;
+    paddockCount: number;
+    complianceSum: number;
+    bySub: Map<string, number>;
+  };
+  const map = new Map<LivestockSpecies, Bucket>();
 
   for (const p of paddocks) {
     const recovery = computeRecoveryStatus(p);
     const areaHa = p.areaM2 / 10_000;
+    const subById = p.scheduleASubcategoryBySpecies ?? {};
 
     for (const sp of p.species) {
       const info = LIVESTOCK_SPECIES[sp];
@@ -426,10 +440,15 @@ export function computeInventorySummary(paddocks: Paddock[]): InventoryEntry[] {
         ? Math.round(p.stockingDensity * areaHa)
         : Math.round(info.typicalStocking * areaHa);
 
-      const existing = map.get(sp) ?? { totalHead: 0, paddockCount: 0, complianceSum: 0 };
+      const existing: Bucket =
+        map.get(sp) ?? { totalHead: 0, paddockCount: 0, complianceSum: 0, bySub: new Map() };
       existing.totalHead += headEstimate;
       existing.paddockCount += 1;
       existing.complianceSum += recovery.compliance;
+      const subId = subById[sp];
+      if (subId) {
+        existing.bySub.set(subId, (existing.bySub.get(subId) ?? 0) + headEstimate);
+      }
       map.set(sp, existing);
     }
   }
@@ -438,12 +457,18 @@ export function computeInventorySummary(paddocks: Paddock[]): InventoryEntry[] {
   for (const [species, data] of map) {
     const info = LIVESTOCK_SPECIES[species];
     if (!info) continue;
+    const bySubcategory = data.bySub.size > 0
+      ? Array.from(data.bySub.entries())
+          .map(([subcategoryId, totalHead]) => ({ subcategoryId, totalHead }))
+          .sort((a, b) => b.totalHead - a.totalHead)
+      : undefined;
     entries.push({
       species,
       info,
       totalHead: data.totalHead,
       paddockCount: data.paddockCount,
       avgCompliance: data.paddockCount > 0 ? Math.round(data.complianceSum / data.paddockCount) : 0,
+      ...(bySubcategory ? { bySubcategory } : {}),
     });
   }
 

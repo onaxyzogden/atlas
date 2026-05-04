@@ -42,9 +42,50 @@ Subpath export; not re-exported from the main barrel to avoid a cycle with
 | `petModel.ts` | FAO-56 Penman-Monteith + Blaney-Criddle PET dispatcher. |
 | `rules/` | Rule engine (`ruleEngine.ts`, `assessmentRules.ts`). |
 
+## Demand subpath (`@ogden/shared/demand`)
+**Added 2026-04-27.** Separate entry point — not re-exported from the main
+barrel. Source of truth for water + electricity demand coefficients used by
+the hydrology engine and the energy/utility/planting dashboards. Decision:
+[decisions/2026-04-27-demand-coefficient-tables.md](../decisions/2026-04-27-demand-coefficient-tables.md).
+
+| File | Purpose |
+|------|---------|
+| `structureDemand.ts` | `STRUCTURE_WATER_GAL_PER_DAY` + `STRUCTURE_KWH_PER_DAY` by `StructureType`; `GREENHOUSE_*_PER_M2_DAY` per-m² rates; `RESIDENTIAL_STRUCTURE_TYPES` set (cabin/yurt/tent_glamping/earthship/bathhouse). `getStructureWaterGalPerDay()` / `getStructureKwhPerDay()` honour `demandWaterGalPerDay` / `demandKwhPerDay` overrides first, then apply greenhouse area, occupants (residential only), and `storiesCount`. |
+| `utilityDemand.ts` | `UTILITY_KWH_PER_DAY` by `UtilityType` (loads only — generation/storage/passive = 0); `getUtilityKwhPerDay()` honors steward-entered `demandKwhPerDay > 0` override, else falls back to default. |
+| `cropDemand.ts` | Per-area-type × class table (`CROP_AREA_GAL_PER_M2_YR`) — orchard medium 110 ≠ market_garden medium 200; `CROP_AREA_TYPICAL_GAL_PER_M2_YR` typical fallback; `getCropAreaDemandGalPerM2Yr(spec, climateMultiplier?)` / `getCropAreaWaterGalYr(area, climateMultiplier?)` helpers; `petClimateMultiplier(petMm, refPetMm = 1100)` clamps to `[0.7, 1.5]`. |
+| `livestockDemand.ts` | **Added round 2.** `LIVESTOCK_WATER_GAL_PER_HEAD_DAY` (FAO + USDA NRCS) by 9-species enum; `getPaddockWaterGalPerDay({ species[], stockingDensity, areaM2, headCount? })` with multi-species head splitting. |
+| `rollup.ts` | `sumSiteDemand({ structures, utilities, cropAreas, paddocks, climateMultiplier? })` → `{ structureWaterGalPerDay, cropWaterGalYr, livestockWaterGalYr, waterGalYr, electricityKwhPerDay, electricityKwhYr }`. Additive across all four entity sets; PET multiplier applied inside the crop reducer. |
+
+`hydrologyMetrics.ts` accepts optional `structures`/`utilities`/`cropAreas`/`paddocks`
+on `HydroInputs`; when any are present, irrigation demand uses the rollup. PET-driven
+`climateMultiplier` is derived from `computePet()` and applied automatically when
+solar/wind/RH data is present (else 1.0 — preserves the 22%-of-rainfall fallback
+back-compat for callers without placed entities).
+
+## Relationships subpath (`@ogden/shared/relationships`)
+**Added 2026-04-28.** Separate entry point — not re-exported from the main
+barrel. Phase 1 of the Needs & Yields rollout: data model + algorithms only,
+no UI. Decision:
+[decisions/2026-04-28-needs-yields-dependency-graph.md](../decisions/2026-04-28-needs-yields-dependency-graph.md).
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | 13-value `ResourceType` const tuple (manure, greywater, compost, biomass, seed, forage, mulch, heat, shade, pollination, pest_predation, nutrient_uptake, surface_water); `ResourceTypeSchema` Zod enum; `EdgeSchema` (`fromId`, `fromOutput`, `toId`, `toInput`, optional `ratio` ∈ [0,1]); `PlacedEntity<T>` interface; `RelationshipsState` value object (`{ entities, edges }`). |
+| `catalog.ts` | `EntityType` union across the four demand-module enums (StructureType ∪ UtilityType ∪ CropAreaType ∪ LivestockSpecies); `OUTPUTS_BY_TYPE` and `INPUTS_BY_TYPE` `Record<EntityType, ResourceType[]>` seeds covering all 54 entity types. `Record<EntityType, …>` makes adding a new enum value a typecheck failure here, enforcing exhaustiveness. |
+| `flow.ts` | Pure-function Edge CRUD over `RelationshipsState` — `addEdge`, `removeEdge`, `addEntity`, `removeEntity`, `emptyState()`. `addEdge` validates via `EdgeSchema.parse`. |
+| `cycle.ts` | `orphanOutputs(entities, edges)` (catalog outputs no edge routes), `unmetInputs(entities, edges)` (catalog inputs no edge supplies), `closedLoops(entities, edges)` (Johnson-style DFS, returns canonical-rotation cycles deduplicated), `integrationScoreFromEdges(entities, edges)` ∈ [0,1] (vacuously 1 when no outputs declared). |
+| `index.ts` | Barrel re-export of all four modules. |
+
+Scoring engine slot: `WEIGHTS['Ecological Integration'] = 0` in
+[computeScores.ts](../../packages/shared/src/scoring/computeScores.ts) — the
+dimension is reserved at weight 0 in Phase 1 so existing project overall
+scores don't shift; weight is moved up when Phase 2 (canvas edge editor)
+ships and the dimension is computed for every project.
+
 ## Notes
 - All schemas use strict Zod validation
 - `WithConfidence` mixin applied to all analysis outputs
 - Export from barrel `src/index.ts` — always add new schemas here
 - The scoring subpath is a separate entry point (`./scoring`); consumers
   import from `@ogden/shared/scoring`, not the root.
+- Same convention for `./demand`, `./manifest`, and `./relationships`.

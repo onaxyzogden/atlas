@@ -19,6 +19,13 @@ export interface Paddock {
   areaM2: number;
   grazingCellGroup: string | null;
   species: LivestockSpecies[];
+  /**
+   * Optional per-species Manitoba Schedule A subcategory id (see
+   * `features/livestock/scheduleA.ts`). When undefined for a given species
+   * the AU rollup falls back to `AU_FACTORS[species]` so existing paddocks
+   * remain unchanged.
+   */
+  scheduleASubcategoryBySpecies?: Partial<Record<LivestockSpecies, string>>;
   stockingDensity: number | null; // head per hectare
   fencing: FenceType;
   guestSafeBuffer: boolean;

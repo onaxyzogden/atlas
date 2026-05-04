@@ -125,11 +125,11 @@ function formatLength(m: number): string {
 }
 
 const TIER_CLASS: Record<Tier, string> = {
-  excellent: css.tierExcellent,
-  good: css.tierGood,
-  compromised: css.tierCompromised,
-  noisy: css.tierNoisy,
-  no_neighbors: css.tierNeutral,
+  excellent: css.tierExcellent!,
+  good: css.tierGood!,
+  compromised: css.tierCompromised!,
+  noisy: css.tierNoisy!,
+  no_neighbors: css.tierNeutral!,
 };
 
 export const QuietCirculationRouteCard = memo(function QuietCirculationRouteCard({ projectId }: Props) {

@@ -8,6 +8,14 @@ import type { LocalProject } from '../../store/projectStore.js';
 import SiteAssessmentPanel from '../assessment/SiteAssessmentPanel.js';
 import DataCompletenessWidget from '../assessment/DataCompletenessWidget.js';
 import RegulatoryPanel from '../regulatory/RegulatoryPanel.js';
+import FieldObservationsLegalCard from './FieldObservationsLegalCard.js';
+import RestrictionsCovenantsCard from './RestrictionsCovenantsCard.js';
+import ZoningAccessUtilityCard from './ZoningAccessUtilityCard.js';
+import OwnerStakeholderRosterCard from './OwnerStakeholderRosterCard.js';
+import MetadataManagementCard from './MetadataManagementCard.js';
+import AuditLogCard from './AuditLogCard.js';
+import WorkspaceManagementReadinessCard from './WorkspaceManagementReadinessCard.js';
+import OrganizationSettingsReadinessCard from './OrganizationSettingsReadinessCard.js';
 import TerrainAnalysisFlags from '../assessment/TerrainAnalysisFlags.js';
 import VersionHistory from './VersionHistory.js';
 import FileList from './FileList.js';
@@ -206,6 +214,30 @@ export default function ProjectDashboard({ project }: Props) {
           localAttachments={project.attachments}
         />
       </Section>
+
+      {/* §3 Read-back of intake free-text fields */}
+      <FieldObservationsLegalCard project={project} />
+
+      {/* §3 Covenants + governance constraint picture */}
+      <RestrictionsCovenantsCard project={project} />
+
+      {/* §3 Zoning, access & utility envelope */}
+      <ZoningAccessUtilityCard project={project} />
+
+      {/* §3 Owner & stakeholder narrative + roster cross-ref */}
+      <OwnerStakeholderRosterCard project={project} />
+
+      {/* §26 Metadata coverage audit (5 buckets) */}
+      <MetadataManagementCard project={project} />
+
+      {/* §26 Audit log — governance-sensitive event trail */}
+      <AuditLogCard project={project} />
+
+      {/* §26 Workspace-wide project posture audit */}
+      <WorkspaceManagementReadinessCard project={project} />
+
+      {/* §26 Workspace-wide org-settings coherence audit */}
+      <OrganizationSettingsReadinessCard project={project} />
 
       {/* Enhanced Data Completeness */}
       <DataCompletenessWidget project={project} />

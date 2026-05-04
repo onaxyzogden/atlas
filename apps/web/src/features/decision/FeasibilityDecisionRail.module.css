@@ -1,0 +1,222 @@
+/* FeasibilityDecisionRail — sticky decision brain. */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 16px;
+  align-self: start;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+  margin: 0;
+}
+
+.verdictBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+.verdict_supported {
+  background: rgba(76, 175, 80, 0.18);
+  color: #7fcf83;
+  border: 1px solid rgba(76, 175, 80, 0.35);
+}
+.verdict_supported_with_fixes {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b97a;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+}
+.verdict_workable {
+  background: rgba(231, 142, 76, 0.18);
+  color: #e89967;
+  border: 1px solid rgba(231, 142, 76, 0.4);
+}
+.verdict_not_recommended {
+  background: rgba(214, 86, 76, 0.18);
+  color: #e08077;
+  border: 1px solid rgba(214, 86, 76, 0.4);
+}
+
+.verdictNote {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.85);
+  margin: 0;
+}
+
+.blockerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: rgba(232, 220, 200, 0.92);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.35;
+}
+.blockerLink:hover:not(:disabled) {
+  color: #e08077;
+}
+.blockerLink:disabled {
+  cursor: default;
+}
+
+.blockerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e08077;
+  flex-shrink: 0;
+}
+
+.blockerText {
+  flex: 1;
+}
+
+.empty {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  margin: 0;
+  font-style: italic;
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(232, 220, 200, 0.88);
+  line-height: 1.35;
+}
+
+.actionIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b97a;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.actionLabel { flex: 1; }
+
+.chipGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chip_good {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.25);
+}
+.chip_mid {
+  background: rgba(196, 162, 101, 0.1);
+  border-color: rgba(196, 162, 101, 0.25);
+}
+.chip_bad {
+  background: rgba(214, 86, 76, 0.1);
+  border-color: rgba(214, 86, 76, 0.25);
+}
+
+.chipLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.chipValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.ctaRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(196, 162, 101, 0.35);
+  background: rgba(196, 162, 101, 0.1);
+  color: rgba(232, 220, 200, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+.cta:hover:not(:disabled) {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ctaPrimary {
+  background: rgba(196, 162, 101, 0.22);
+  border-color: rgba(196, 162, 101, 0.55);
+}
+.ctaPrimary:hover:not(:disabled) {
+  background: rgba(196, 162, 101, 0.32);
+}

@@ -385,7 +385,7 @@ function ToggleRow({ label, on, onChange }: { label: string; on: boolean; onChan
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: on ? semantic.primary : '#3d3328',
+          background: on ? semantic.primary : 'rgba(212, 175, 95, 0.18)',
           flexShrink: 0,
         }}
       />

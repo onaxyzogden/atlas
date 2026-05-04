@@ -34,6 +34,7 @@ interface LeftToolSpineProps {
    *  keeps Suspense boundaries stable. */
   viewshedSlot: ReactNode;
   microclimateSlot: ReactNode;
+  sectorOverlaySlot: ReactNode;
   windbreakSlot: ReactNode;
   restorationSlot: ReactNode;
   mulchCovercropSlot: ReactNode;
@@ -42,6 +43,7 @@ interface LeftToolSpineProps {
   biodiversityCorridorSlot: ReactNode;
   pollinatorHabitatStateSlot: ReactNode;
   osmSlot: ReactNode;
+  relationshipsSlot: ReactNode;
 }
 
 /** Horizontal separator line used inside the spine between tool groups. */
@@ -66,6 +68,7 @@ export default function LeftToolSpine({
   boundaryGeojson,
   viewshedSlot,
   microclimateSlot,
+  sectorOverlaySlot,
   windbreakSlot,
   restorationSlot,
   mulchCovercropSlot,
@@ -74,6 +77,7 @@ export default function LeftToolSpine({
   biodiversityCorridorSlot,
   pollinatorHabitatStateSlot,
   osmSlot,
+  relationshipsSlot,
 }: LeftToolSpineProps) {
   return (
     <div
@@ -102,6 +106,7 @@ export default function LeftToolSpine({
       </Suspense>
       {viewshedSlot}
       {microclimateSlot}
+      {sectorOverlaySlot}
       {windbreakSlot}
       {restorationSlot}
       {mulchCovercropSlot}
@@ -109,6 +114,7 @@ export default function LeftToolSpine({
       {pollinatorOpportunitySlot}
       {biodiversityCorridorSlot}
       {pollinatorHabitatStateSlot}
+      {relationshipsSlot}
       <Suspense fallback={null}>
         <MeasureTools projectId={projectId} map={map} draw={draw} compact />
       </Suspense>

@@ -1,0 +1,132 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.legend {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(31, 29, 26, 0.78);
+  color: #f2ede3;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  max-width: 220px;
+}
+
+.legendTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.legendNote {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(242, 237, 227, 0.18);
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.windChip {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.windChip_live {
+  background: rgba(110, 168, 119, 0.22);
+  color: #a9d8b1;
+  border: 1px solid rgba(110, 168, 119, 0.45);
+}
+
+.windChip_fallback {
+  background: rgba(196, 162, 101, 0.18);
+  color: #d4b87a;
+  border: 1px solid rgba(196, 162, 101, 0.4);
+}
+
+.windChip_loading {
+  background: rgba(242, 237, 227, 0.10);
+  color: rgba(242, 237, 227, 0.7);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 28px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+
+.toolBtn {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(31, 29, 26, 0.85);
+  color: #f2ede3;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.toolBtn:hover {
+  background: rgba(31, 29, 26, 0.95);
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
+.toolBtn[data-active="true"] {
+  background: var(--color-gold-brand, #d4af5f);
+  color: var(--color-on-primary, #2a2018);
+  border-color: var(--color-gold-brand, #d4af5f);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

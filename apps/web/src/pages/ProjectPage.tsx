@@ -16,11 +16,12 @@ import { useProjectWebSocket } from '../hooks/useProjectWebSocket.js';
 import * as turf from '@turf/turf';
 import ProjectEditor from '../features/project/ProjectEditor.js';
 import ProjectSummaryExport from '../features/export/ProjectSummaryExport.js';
-import ProjectTabBar from '../components/ProjectTabBar.js';
+import ProjectTabBar, { type ProjectTab } from '../components/ProjectTabBar.js';
 import MapView from '../features/map/MapView.js';
 import DashboardView from '../features/dashboard/DashboardView.js';
 import DashboardSidebar from '../features/dashboard/DashboardSidebar.js';
 import IconSidebar from '../components/IconSidebar.js';
+import MobileProjectShell from './MobileProjectShell.js';
 import { resolveDashboardSectionFromRail } from '../features/navigation/taxonomy.js';
 import css from './ProjectPage.module.css';
 
@@ -38,7 +39,7 @@ export default function ProjectPage() {
   const allStructures = useStructureStore((s) => s.structures);
   const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'map'>('dashboard');
+  const [activeTab, setActiveTab] = useState<ProjectTab>('overview');
   const isMobile = useIsMobile();
   const activeDashboardSection = useUIStore((s) => s.activeDashboardSection);
   const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
@@ -143,28 +144,122 @@ export default function ProjectPage() {
     }
   };
 
+  // Intelligence and Report tabs are stubs (per 2026-04-27 upgrade brief §3):
+  // they ride on top of DashboardView but jump to a sensible default section.
+  // Overview leaves the persisted activeDashboardSection alone.
+  const handleTabChange = (tab: ProjectTab) => {
+    setActiveTab(tab);
+    if (tab === 'intelligence' && activeDashboardSection !== 'data-catalog') {
+      setActiveDashboardSection('data-catalog');
+    } else if (tab === 'report' && activeDashboardSection !== 'reporting') {
+      setActiveDashboardSection('reporting');
+    }
+  };
+
+  const isMapTab = activeTab === 'design-map';
+  const isDashboardTab = !isMapTab;
+
+  if (isMobile) {
+    return (
+      <>
+        <MobileProjectShell
+          project={project}
+          zones={zones}
+          structures={structures}
+          onEdit={() => setIsEditing(true)}
+          onExport={() => setShowExport(true)}
+          onDelete={() => setShowDeleteConfirm(true)}
+          onDuplicate={handleDuplicate}
+          onGenerateBrief={() => setShowExport(true)}
+        />
+
+        {isEditing && (
+          <div className={css.modalOverlay} onClick={() => setIsEditing(false)} role="presentation">
+            <div onClick={(e) => e.stopPropagation()} className={css.editorModal} role="dialog" aria-modal="true">
+              <ProjectEditor project={project} onClose={() => setIsEditing(false)} />
+            </div>
+          </div>
+        )}
+        {showExport && <ProjectSummaryExport project={project} onClose={() => setShowExport(false)} />}
+        {showDeleteConfirm && (
+          <div className={css.modalOverlay} onClick={() => setShowDeleteConfirm(false)} role="presentation">
+            <div onClick={(e) => e.stopPropagation()} className={css.deleteDialog} role="dialog" aria-modal="true">
+              <h3 className={css.deleteTitle}>Delete &ldquo;{project.name}&rdquo;?</h3>
+              <p className={css.deleteDesc}>This will permanently remove the project, all zones, and attachments.</p>
+              <div className={css.deleteActions}>
+                <button onClick={handleDelete} className={css.btnDeleteConfirm}>Delete Project</button>
+                <button onClick={() => setShowDeleteConfirm(false)} className={css.btnDeleteCancel}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className={css.layout}>
+      {project.isBuiltin && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '8px 16px',
+            background: 'rgba(196, 162, 101, 0.10)',
+            borderBottom: '1px solid rgba(196, 162, 101, 0.35)',
+            color: 'var(--color-text)',
+            fontSize: 13,
+          }}
+        >
+          <span>
+            <strong>Atlas sample project.</strong>{' '}
+            Browse every detail surface — boundary, layers, design features,
+            regen timeline, and integration graph. This project is read-only;
+            duplicate it to start your own.
+          </span>
+          <button
+            type="button"
+            onClick={handleDuplicate}
+            style={{
+              border: '1px solid rgba(196, 162, 101, 0.55)',
+              background: 'transparent',
+              color: 'var(--color-text)',
+              padding: '4px 12px',
+              borderRadius: 4,
+              cursor: 'pointer',
+              fontSize: 12,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Duplicate as template
+          </button>
+        </div>
+      )}
       <ProjectTabBar
         projectName={project.name}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
-        projectRole={projectRole}
+        onTabChange={handleTabChange}
+        projectRole={project.isBuiltin ? 'viewer' : projectRole}
+        onGenerateBrief={() => setShowExport(true)}
       />
 
       <div className={css.mainRow}>
         {/* Left sidebar — swap based on active tab.
-            Dashboard tab: domain-grouped dashboard rail (clickable sections).
-            Map tab: icon rail (phase/domain grouped, drives map panels).
+            Dashboard-style tabs (Overview / Intelligence / Report): domain-grouped dashboard rail.
+            Design Map tab: icon rail (stage/phase/domain grouped, drives map panels).
             Both read the same `sidebarGrouping` preference, so toggling
-            Phase ⇄ Domain in one view applies everywhere. */}
-        {!isMobile && activeTab === 'dashboard' && (
+            Stage ⇄ Phase ⇄ Domain in one view applies everywhere. */}
+        {!isMobile && isDashboardTab && (
           <DashboardSidebar
             activeSection={activeDashboardSection}
             onSectionChange={setActiveDashboardSection}
           />
         )}
-        {!isMobile && activeTab === 'map' && (
+        {!isMobile && isMapTab && (
           <IconSidebar
             activeView={activeMapView}
             onViewChange={setActiveMapView}
@@ -184,13 +279,21 @@ export default function ProjectPage() {
         )}
 
         <div className={css.contentArea}>
-          {/* Dashboard view */}
-          <div className={activeTab === 'dashboard' ? css.tabPanel : css.tabPanelHidden}>
-            <DashboardView project={project} onSwitchToMap={() => setActiveTab('map')} />
+          {/* Dashboard-style view (Overview / Intelligence / Report).
+              All three currently render the same DashboardView; the active
+              tab only controls which section the rail jumps to via
+              handleTabChange. The differentiation is reserved for Phase 3+
+              of the 2026-04-27 upgrade brief. */}
+          <div className={isDashboardTab ? css.tabPanel : css.tabPanelHidden}>
+            <DashboardView
+              project={project}
+              onSwitchToMap={() => handleTabChange('design-map')}
+              onGenerateBrief={() => setShowExport(true)}
+            />
           </div>
 
-          {/* Map view */}
-          <div className={activeTab === 'map' ? css.tabPanel : css.tabPanelHidden}>
+          {/* Design Map view */}
+          <div className={isMapTab ? css.tabPanel : css.tabPanelHidden}>
             <MapView
               project={project}
               zones={zones}

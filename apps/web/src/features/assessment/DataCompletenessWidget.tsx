@@ -105,7 +105,7 @@ function CompactRing({ score, size = 48 }: { score: number; size?: number }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--color-border, #3d3328)"
+          stroke="var(--color-border, rgba(82, 72, 52, 0.14))"
           strokeWidth={strokeWidth}
         />
         <circle

@@ -1,8 +1,17 @@
 import { z } from 'zod';
+import { sectionResponse } from './sectionResponse.js';
 
 // Section 23 — Reporting, Export & Presentation
-// Generated stub. Replace with the real Zod types as this section
-// takes shape. Keep input/output types colocated.
+//
+// Counts of generated reports + last export timestamp the Report
+// page surfaces in the header.
 
-export const ReportingExportPlaceholder = z.object({});
-export type ReportingExportPlaceholder = z.infer<typeof ReportingExportPlaceholder>;
+export const ReportingExportSummary = z.object({
+  reportCount: z.number().int().nonnegative(),
+  lastExportAt: z.string().datetime().nullable(),
+  exportFormats: z.array(z.string()),
+});
+export type ReportingExportSummary = z.infer<typeof ReportingExportSummary>;
+
+export const ReportingExportResponse = sectionResponse(ReportingExportSummary);
+export type ReportingExportResponse = z.infer<typeof ReportingExportResponse>;

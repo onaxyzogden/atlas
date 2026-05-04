@@ -62,6 +62,12 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
     if (data.soilCompaction) soilNotes.compaction = data.soilCompaction;
     if (data.soilBiologicalActivity) soilNotes.biologicalActivity = data.soilBiologicalActivity;
     if (Object.keys(soilNotes).length > 0) md.soilNotes = soilNotes;
+    const lat = parseFloat(data.centerLat);
+    const lng = parseFloat(data.centerLng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      md.centerLat = lat;
+      md.centerLng = lng;
+    }
     return Object.keys(md).length > 0 ? md : undefined;
   };
 

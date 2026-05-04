@@ -2,7 +2,6 @@
  * Portal store — public storytelling portal configuration per project.
  * Zustand persist (localStorage) + backend sync via api.portal.
  */
-import { group } from '../lib/tokens.js';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -63,7 +62,11 @@ export interface PortalConfig {
 interface PortalState {
   configs: PortalConfig[];
 
+  /** Returns a stable stored reference (`.find()` on `configs[]`) — SAFE to call
+   *  inside a Zustand selector. */
   getConfig: (projectId: string) => PortalConfig | undefined;
+  /** Returns a stable stored reference (`.find()` on `configs[]`, filtered to
+   *  `isPublished`) — SAFE to call inside a Zustand selector. */
   getBySlug: (slug: string) => PortalConfig | undefined;
   createConfig: (projectId: string, slug: string) => PortalConfig;
   updateConfig: (projectId: string, updates: Partial<PortalConfig>) => void;
@@ -114,7 +117,9 @@ export const usePortalStore = create<PortalState>()(
           inquiryEmail: null,
           dataMaskingLevel: 'curated',
           curatedHotspots: [],
-          brandColor: group.livestock,
+          // Estate gold default; per-portal override stays free-form. Was
+          // group.livestock (#c4a265) before the 2026-04-28 estate palette pass.
+          brandColor: '#d4af5f',
           beforeAfterPairs: [],
           storyScenes: [],
           createdAt: new Date().toISOString(),
@@ -244,7 +249,7 @@ export const usePortalStore = create<PortalState>()(
             inquiryEmail: (backendConfig.inquiryEmail as string | null) ?? null,
             dataMaskingLevel: (backendConfig.dataMaskingLevel as DataMaskingLevel) ?? 'curated',
             curatedHotspots: (backendConfig.curatedHotspots as string[]) ?? [],
-            brandColor: (backendConfig.brandColor as string) ?? '#c4a265',
+            brandColor: (backendConfig.brandColor as string) ?? '#d4af5f',
             beforeAfterPairs: (backendConfig.beforeAfterPairs as BeforeAfterPair[]) ?? [],
             storyScenes: (backendConfig.storyScenes as StoryScene[]) ?? [],
             createdAt: data.createdAt,

@@ -109,21 +109,21 @@ function saveObserved(projectId: string, observed: Record<string, ObservedEntry>
 export default function WalkChecklistCard({ projectId }: Props) {
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
   const allStructures = useStructureStore((s) => s.structures);
+  const allUtilities = useUtilityStore((s) => s.utilities);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === projectId),
     [allStructures, projectId],
   );
-  const allUtilities = useUtilityStore((s) => s.utilities);
   const utilities = useMemo(
     () => allUtilities.filter((u) => u.projectId === projectId),
     [allUtilities, projectId],
   );
-  const allCropAreas = useCropStore((s) => s.cropAreas);
   const cropAreas = useMemo(
     () => allCropAreas.filter((c) => c.projectId === projectId),
     [allCropAreas, projectId],
   );
-  const allPaddocks = useLivestockStore((s) => s.paddocks);
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],

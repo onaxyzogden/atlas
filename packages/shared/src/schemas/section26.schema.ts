@@ -1,8 +1,18 @@
 import { z } from 'zod';
+import { sectionResponse } from './sectionResponse.js';
 
 // Section 26 — Administration, Governance & Data Integrity
-// Generated stub. Replace with the real Zod types as this section
-// takes shape. Keep input/output types colocated.
+//
+// Roll-up of governance signals: collaborator counts, audit-log
+// activity, and integrity-check status.
 
-export const AdminGovernancePlaceholder = z.object({});
-export type AdminGovernancePlaceholder = z.infer<typeof AdminGovernancePlaceholder>;
+export const AdminGovernanceSummary = z.object({
+  memberCount: z.number().int().nonnegative(),
+  auditEventCount: z.number().int().nonnegative(),
+  integrityStatus: z.enum(['ok', 'warning', 'failed']),
+  lastCheckedAt: z.string().datetime().nullable(),
+});
+export type AdminGovernanceSummary = z.infer<typeof AdminGovernanceSummary>;
+
+export const AdminGovernanceResponse = sectionResponse(AdminGovernanceSummary);
+export type AdminGovernanceResponse = z.infer<typeof AdminGovernanceResponse>;

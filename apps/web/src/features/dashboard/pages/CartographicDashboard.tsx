@@ -5,6 +5,7 @@
 import type { LocalProject } from '../../../store/projectStore.js';
 import css from './CartographicDashboard.module.css';
 import CartographicStylePresetsCard from './CartographicStylePresetsCard.js';
+import RegionalContextCard from '../../project/RegionalContextCard.js';
 
 interface CartographicDashboardProps {
   project: LocalProject;
@@ -34,6 +35,9 @@ export default function CartographicDashboard({ project, onSwitchToMap }: Cartog
         Manage spatial data layers, coordinate reference systems, and survey baselines
         for the property.
       </p>
+
+      {/* §1 Regional context — entered vs derived intake metadata */}
+      <RegionalContextCard project={project} />
 
       {/* Coordinate info */}
       <div className={css.coordCard}>

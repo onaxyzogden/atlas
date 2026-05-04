@@ -32,12 +32,12 @@
 }
 
 .option:hover {
-  color: rgba(232, 220, 200, 0.9);
+  color: rgba(243, 236, 215, 0.9);
 }
 
 .optionActive {
-  background: rgba(196, 162, 101, 0.18);
-  color: #e8dcc8;
+  background: rgba(212, 175, 95, 0.18);
+  color: var(--color-text, #f3ecd7);
 }
 
 .optionActive:hover {

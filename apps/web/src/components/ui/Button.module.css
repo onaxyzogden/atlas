@@ -60,21 +60,23 @@
 /*  Variants                                                                  */
 /* -------------------------------------------------------------------------- */
 
-/* Primary — warm earth brown */
+/* Primary — estate gold (light text would fail AA on the gold fill, so we
+   pin a dark estate ink for foreground regardless of theme — same pattern
+   used by the HomeHero primary CTA). */
 .primary {
-  background-color: var(--color-primary, #7d6140);
-  color: #fff;
-  border-color: var(--color-primary, #7d6140);
+  background-color: var(--color-primary, #d4af5f);
+  color: var(--color-on-primary, #2a2018);
+  border-color: var(--color-primary, #d4af5f);
 }
 
 .primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover, #6a5236);
-  border-color: var(--color-primary-hover, #6a5236);
+  background-color: var(--color-primary-hover, #e0b56d);
+  border-color: var(--color-primary-hover, #e0b56d);
 }
 
 .primary:active:not(:disabled) {
-  background-color: var(--color-primary-active, #5a452e);
-  border-color: var(--color-primary-active, #5a452e);
+  background-color: var(--color-primary-active, #c49a4a);
+  border-color: var(--color-primary-active, #c49a4a);
 }
 
 /* Secondary — outlined, transparent fill */
@@ -126,21 +128,22 @@
   border-color: var(--color-error-800, #6e261b);
 }
 
-/* Accent — sage green */
+/* Accent — sage green; sage tints are too light to carry white text at AA,
+   so foreground pins to a deep estate ink. */
 .accent {
-  background-color: var(--color-accent, #5b8a72);
-  color: #fff;
-  border-color: var(--color-accent, #5b8a72);
+  background-color: var(--color-accent, #8fc89a);
+  color: var(--color-on-accent, #1a2418);
+  border-color: var(--color-accent, #8fc89a);
 }
 
 .accent:hover:not(:disabled) {
-  background-color: var(--color-accent-hover, #4d7661);
-  border-color: var(--color-accent-hover, #4d7661);
+  background-color: var(--color-accent-hover, #a8d39a);
+  border-color: var(--color-accent-hover, #a8d39a);
 }
 
 .accent:active:not(:disabled) {
-  background-color: var(--color-accent-active, #426653);
-  border-color: var(--color-accent-active, #426653);
+  background-color: var(--color-accent-active, #7ab487);
+  border-color: var(--color-accent-active, #7ab487);
 }
 
 /* -------------------------------------------------------------------------- */

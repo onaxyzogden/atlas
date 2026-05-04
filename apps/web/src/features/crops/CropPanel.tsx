@@ -8,8 +8,36 @@ import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { CROP_TYPES } from '../livestock/speciesData.js';
+import {
+  ASSUMED_BED_LENGTH_M,
+  MARKET_GARDEN_BUNDLES,
+  MARKET_GARDEN_BUNDLES_BY_ID,
+  computeMarketGardenGeometry,
+} from './marketGardenBundles.js';
+import {
+  computeWaterGalYr,
+  computeWaterLitersYr,
+  formatGalYr,
+  formatLitersYr,
+} from './waterDemand.js';
+import { useClimateMultiplier } from './useClimateMultiplier.js';
+import { ClimateAttributionChip } from './ClimateAttributionChip.js';
 import { earth, zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
+
+/** Per-crop-type label for the spacing-slider count read-out. */
+const SPACING_NOUN: Record<CropAreaType, string> = {
+  orchard: 'trees',
+  food_forest: 'trees',
+  silvopasture: 'trees',
+  windbreak: 'trees',
+  shelterbelt: 'trees',
+  nursery: 'seedlings',
+  row_crop: 'plants',
+  garden_bed: 'plants',
+  market_garden: 'plants',
+  pollinator_strip: 'plants',
+};
 
 interface CropPanelProps {
   projectId: string;
@@ -22,12 +50,32 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   const crops = useMemo(() => allCrops.filter((c) => c.projectId === projectId), [allCrops, projectId]);
   const addCropArea = useCropStore((s) => s.addCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);
+  const climate = useClimateMultiplier(projectId);
 
   const [selectedType, setSelectedType] = useState<CropAreaType>('orchard');
   const [isDrawing, setIsDrawing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
+  const [showPicker, setShowPicker] = useState(false);
+
+  // Toolbar's "Plant Crop" action triggers the type-picker overlay.
+  useEffect(() => {
+    if (!map) return;
+    const onOpen = () => setShowPicker(true);
+    map.on('ogden:crops:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    return () => {
+      map.off('ogden:crops:open-picker' as keyof maplibregl.MapEventType, onOpen);
+    };
+  }, [map]);
+
+  // a11y: Escape closes the crop picker
+  useEffect(() => {
+    if (!showPicker) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowPicker(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showPicker]);
 
   // a11y: Escape key dismisses the crop-naming modal when open
   useEffect(() => {
@@ -45,6 +93,8 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
   const [treeSpacing, setTreeSpacing] = useState(5);
   const [phase, setPhase] = useState('Phase 2');
   const [notes, setNotes] = useState('');
+  const [marketGardenBundleId, setMarketGardenBundleId] = useState<string>('mixed');
+  const [marketGardenBedLengthM, setMarketGardenBedLengthM] = useState<number>(ASSUMED_BED_LENGTH_M);
 
   const startDraw = useCallback(() => {
     if (!draw || !map) return;
@@ -66,6 +116,8 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
         setTreeSpacing(info.defaultSpacingM ?? 5);
         setSpeciesText('');
         setNotes('');
+        setMarketGardenBundleId('mixed');
+        setMarketGardenBedLengthM(ASSUMED_BED_LENGTH_M);
         setShowModal(true);
       }
       setIsDrawing(false);
@@ -78,22 +130,38 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
     if (!pendingGeometry || !name.trim()) return;
 
     const info = CROP_TYPES[selectedType];
-    const info2 = CROP_TYPES[selectedType];
+    const isMarketGarden = selectedType === 'market_garden';
+    const bundle = isMarketGarden ? MARKET_GARDEN_BUNDLES_BY_ID[marketGardenBundleId] : undefined;
+
+    const resolvedWaterDemand = bundle?.waterDemand ?? info.waterDemand;
+    const resolvedSpacingM = isMarketGarden
+      ? (bundle?.spacingM ?? info.defaultSpacingM)
+      : (info.defaultSpacingM !== null ? treeSpacing : null);
+
     const area: CropArea = {
       id: crypto.randomUUID(),
       projectId,
       name: name.trim(),
-      color: info2.color,
+      color: info.color,
       type: selectedType,
       geometry: pendingGeometry,
       areaM2: pendingArea,
       species: speciesText ? speciesText.split(',').map((s) => s.trim()).filter(Boolean) : [],
-      treeSpacingM: info.defaultSpacingM !== null ? treeSpacing : null,
+      treeSpacingM: resolvedSpacingM,
       rowSpacingM: null,
-      waterDemand: info.waterDemand,
+      waterDemand: resolvedWaterDemand,
       irrigationType: 'rain_fed',
       phase,
       notes,
+      waterGalYr: computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass: resolvedWaterDemand }, climate.multiplier),
+      ...(isMarketGarden && bundle
+        ? {
+            marketGardenBundle: bundle.id,
+            ...(marketGardenBedLengthM !== ASSUMED_BED_LENGTH_M
+              ? { marketGardenBedLengthM }
+              : {}),
+          }
+        : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -103,47 +171,38 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
     draw?.deleteAll();
     setShowModal(false);
     setPendingGeometry(null);
-  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw]);
+  }, [pendingGeometry, name, selectedType, speciesText, treeSpacing, phase, notes, pendingArea, projectId, addCropArea, map, draw, marketGardenBundleId, marketGardenBedLengthM, climate.multiplier]);
 
   const areaHa = pendingArea / 10000;
   const info = CROP_TYPES[selectedType];
   const treeCount = treeSpacing > 0 ? Math.floor(areaHa * 10000 / (treeSpacing * treeSpacing)) : 0;
+  const isMarketGarden = selectedType === 'market_garden';
+  const activeBundle = useMemo(
+    () => (isMarketGarden ? MARKET_GARDEN_BUNDLES_BY_ID[marketGardenBundleId] : undefined),
+    [isMarketGarden, marketGardenBundleId],
+  );
+  const mgGeom = useMemo(
+    () => (activeBundle ? computeMarketGardenGeometry(pendingArea, activeBundle, marketGardenBedLengthM) : null),
+    [activeBundle, pendingArea, marketGardenBedLengthM],
+  );
+  const waterDemandClass = activeBundle?.waterDemand ?? info.waterDemand;
+  const waterGalYr = useMemo(
+    () => computeWaterGalYr(pendingArea, { areaType: selectedType, waterDemandClass }, climate.multiplier),
+    [pendingArea, selectedType, waterDemandClass, climate.multiplier],
+  );
+  const waterLitersYr = useMemo(
+    () => computeWaterLitersYr(pendingArea, { areaType: selectedType, waterDemandClass }, climate.multiplier),
+    [pendingArea, selectedType, waterDemandClass, climate.multiplier],
+  );
+  const spacingNoun = SPACING_NOUN[selectedType] ?? 'plants';
 
   return (
     <>
-      {/* Crop type selector */}
-      <div className={`${p.label} ${p.mb8}`}>Select Crop Type</div>
-      <div className={p.selectorGrid2}>
-        {(Object.entries(CROP_TYPES) as [CropAreaType, typeof CROP_TYPES[CropAreaType]][]).map(([key, ct]) => {
-          const isSelected = selectedType === key;
-          return (
-            <button
-              key={key}
-              onClick={() => setSelectedType(key)}
-              className={p.selectorBtn}
-              style={{
-                background: isSelected ? `${ct.color}18` : 'transparent',
-                border: isSelected ? `1px solid ${ct.color}40` : undefined,
-                color: isSelected ? ct.color : undefined,
-              }}
-            >
-              <span className={p.selectorIcon}>{ct.icon}</span>
-              <span style={{ lineHeight: 1.2, fontWeight: isSelected ? 500 : 400 }}>{ct.label}</span>
-              {isSelected && <span className={p.selectorCheck} style={{ color: ct.color }}>{'\u2713'}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Draw button */}
-      <button
-        onClick={startDraw}
-        disabled={isDrawing || !draw}
-        className={`${p.drawBtn} ${isDrawing ? p.drawBtnDisabled : ''}`}
-        style={!isDrawing ? { background: `${info.color}20`, color: info.color } : undefined}
-      >
-        {isDrawing ? 'Drawing... double-click to finish' : `Draw ${info.label} Area`}
-      </button>
+      {isDrawing && (
+        <div className={p.empty} style={{ marginBottom: 10 }}>
+          Drawing — double-click on the map to finish the polygon.
+        </div>
+      )}
 
       {/* Crop areas list */}
       <div className={p.sectionLabel}>
@@ -188,6 +247,37 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
         </div>
       )}
 
+      {/* ── Crop Type Picker (opened by toolbar action) ── */}
+      {showPicker && (
+        <div
+          className={p.modalOverlay}
+          role="presentation"
+          onClick={() => setShowPicker(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent} role="dialog" aria-modal="true">
+            <h2 className={p.modalTitle}>Choose Crop Type</h2>
+            <p className={p.modalSubtitle}>Select a type, then draw a polygon on the map.</p>
+            <div className={p.selectorGrid2}>
+              {(Object.entries(CROP_TYPES) as [CropAreaType, typeof CROP_TYPES[CropAreaType]][]).map(([key, ct]) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setSelectedType(key);
+                    setShowPicker(false);
+                    setTimeout(() => startDraw(), 0);
+                  }}
+                  className={p.selectorBtn}
+                  style={{ background: 'transparent' }}
+                >
+                  <span className={p.selectorIcon}>{ct.icon}</span>
+                  <span style={{ lineHeight: 1.2 }}>{ct.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Crop Properties Modal ── */}
       {showModal && (
         /* a11y: backdrop click dismiss; Escape key handled in useEffect above */
@@ -210,17 +300,49 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
             <label className={p.formLabel}>Species (comma-separated)</label>
             <input type="text" value={speciesText} onChange={(e) => setSpeciesText(e.target.value)} className={p.formInput} placeholder="e.g. Apple, Pear, Plum" />
 
-            {/* Tree spacing calculator */}
-            {info.defaultSpacingM !== null && (
+            {/* Market-garden bundle picker — bed-based geometry */}
+            {isMarketGarden && activeBundle && mgGeom && (
               <div className={p.mb12}>
-                <label className={p.formLabel}>Tree Spacing: {treeSpacing}m</label>
+                <label className={p.formLabel}>Bundle</label>
+                <select
+                  value={marketGardenBundleId}
+                  onChange={(e) => setMarketGardenBundleId(e.target.value)}
+                  className={p.formInput}
+                >
+                  {MARKET_GARDEN_BUNDLES.map((b) => (
+                    <option key={b.id} value={b.id}>{b.icon} {b.label}</option>
+                  ))}
+                </select>
+                <div className={p.text11} style={{ color: info.color, marginTop: 4 }}>
+                  ~{mgGeom.plantCount.toLocaleString()} plants in ~{mgGeom.bedCount} beds — bed {activeBundle.bedWidthM}m × {marketGardenBedLengthM}m, path {activeBundle.pathWidthM}m, {activeBundle.spacingM}m spacing
+                </div>
+                <div className={p.text11} style={{ opacity: 0.7, marginTop: 2 }}>
+                  {activeBundle.description}
+                </div>
+                <label className={p.formLabel} style={{ marginTop: 8 }}>Bed length: {marketGardenBedLengthM}m</label>
+                <input
+                  type="range" min={5} max={60} step={1} value={marketGardenBedLengthM}
+                  onChange={(e) => setMarketGardenBedLengthM(parseFloat(e.target.value))}
+                  style={{ width: '100%', accentColor: info.color }}
+                  aria-label="Bed length in meters"
+                />
+                <div className={p.text11} style={{ opacity: 0.55, marginTop: 2 }}>
+                  Default 30m matches a standard market-garden bed; tune for your actual rows.
+                </div>
+              </div>
+            )}
+
+            {/* Tree/plant spacing slider — non-market-garden types with a default spacing */}
+            {!isMarketGarden && info.defaultSpacingM !== null && (
+              <div className={p.mb12}>
+                <label className={p.formLabel}>Spacing: {treeSpacing}m</label>
                 <input
                   type="range" min={1} max={15} step={0.5} value={treeSpacing}
                   onChange={(e) => setTreeSpacing(parseFloat(e.target.value))}
                   style={{ width: '100%', accentColor: info.color }}
                 />
                 <div className={p.text11} style={{ color: info.color, marginTop: 4 }}>
-                  ~{treeCount} trees at {treeSpacing}m spacing over {areaHa.toFixed(2)} ha
+                  ~{treeCount} {spacingNoun} at {treeSpacing}m spacing over {areaHa.toFixed(2)} ha
                 </div>
               </div>
             )}
@@ -229,7 +351,15 @@ export default function CropPanel({ projectId, draw, map }: CropPanelProps) {
               <div className={p.flex1}>
                 <label className={p.formLabel}>Water Demand</label>
                 <div style={{ padding: '8px 10px', background: 'var(--color-panel-subtle)', borderRadius: 6, fontSize: 12, color: 'var(--color-panel-text)' }}>
-                  {info.waterDemand.charAt(0).toUpperCase() + info.waterDemand.slice(1)}
+                  <div>{waterDemandClass.charAt(0).toUpperCase() + waterDemandClass.slice(1)}</div>
+                  <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
+                    ~{formatGalYr(waterGalYr)} ({formatLitersYr(waterLitersYr)})
+                  </div>
+                  <ClimateAttributionChip
+                    climate={climate}
+                    className={p.chip}
+                    style={{ marginTop: 6, display: 'inline-block', cursor: 'help' }}
+                  />
                 </div>
               </div>
               <div className={p.flex1}>

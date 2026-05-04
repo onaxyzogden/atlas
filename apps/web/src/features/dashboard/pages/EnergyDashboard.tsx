@@ -10,6 +10,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType } from '../../../store/utilityStore.js';
+import { useStructureStore } from '../../../store/structureStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
   computeOffGridReadiness,
@@ -17,6 +18,9 @@ import {
 } from '../../utilities/utilityAnalysis.js';
 import { confidence, error as errorToken, semantic, status as statusToken } from '../../../lib/tokens.js';
 import SupportInfrastructureCard from '../../structures/SupportInfrastructureCard.js';
+import EnergyDemandRollup from '../../utilities/EnergyDemandRollup.js';
+import SolarPlacement from '../../utilities/SolarPlacement.js';
+import WaterSystemPlanning from '../../utilities/WaterSystemPlanning.js';
 import css from './EnergyDashboard.module.css';
 
 interface EnergyDashboardProps {
@@ -33,6 +37,11 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
   const utilities = useMemo(
     () => allUtilities.filter((u) => u.projectId === project.id),
     [allUtilities, project.id],
+  );
+  const allStructures = useStructureStore((s) => s.structures);
+  const structures = useMemo(
+    () => allStructures.filter((st) => st.projectId === project.id),
+    [allStructures, project.id],
   );
   const energyUtilities = useMemo(
     () => utilities.filter((u) => ENERGY_TYPES.includes(u.type)),
@@ -54,6 +63,16 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
     if (!siteData) return null;
     const watershed = getLayerSummary<{ detention_pct?: number }>(siteData, 'watershed_derived');
     return watershed?.detention_pct ?? null;
+  }, [siteData]);
+  const swaleCount = useMemo(() => {
+    if (!siteData) return null;
+    const soilRegen = getLayerSummary<{ interventions?: { count?: number } }>(siteData, 'soil_regeneration');
+    return soilRegen?.interventions?.count ?? null;
+  }, [siteData]);
+  const solarIrradianceKwhM2Day = useMemo(() => {
+    if (!siteData) return undefined;
+    const climate = getLayerSummary<{ solar_radiation_kwh_m2_day?: number }>(siteData, 'climate');
+    return climate?.solar_radiation_kwh_m2_day;
   }, [siteData]);
 
   const readiness = useMemo(
@@ -124,6 +143,15 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
         })}
       </div>
       )}
+
+      {/* ── Energy & Water read-outs (parity with map rail's Utilities tab) ── */}
+      <div className={css.readouts}>
+        <EnergyDemandRollup utilities={utilities} structures={structures} solarIrradianceKwhM2Day={solarIrradianceKwhM2Day} />
+        {isEnergy && <SolarPlacement utilities={utilities} sunTrapAreaPct={sunTrapPct} />}
+        <div id="water-systems" style={{ scrollMarginTop: 16 }}>
+          <WaterSystemPlanning utilities={utilities} detentionAreaPct={detentionPct} swaleCount={swaleCount} />
+        </div>
+      </div>
 
       {/* ── Placed utilities ────────────────────────────────────────── */}
       <div className={css.card}>

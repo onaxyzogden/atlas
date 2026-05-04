@@ -1,0 +1,153 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderDiagnoseBriefMarkdown — MTC fixture > matches the pinned brief snapshot 1`] = `
+"# MTC Teaching Farm — Land Brief
+_Lot 42 · Wellington County · 128 ha_
+
+**Verdict:** Conditional Opportunity · 72/100
+
+This 128 ha parcel is suitable for the proposed teaching farm with several conditions. Soils, terrain, and climate are well matched; water reliability and wetland setbacks are the load-bearing constraints.
+
+## Categories
+
+### Regulatory — Conditional
+Conservation Authority jurisdiction covers 14% of the parcel. A wetland-setback variance will be required for any structure within 30 m of the south marsh.
+- **CA jurisdiction:** 14%
+> _What this means:_ Most of the design footprint is buildable, but the south marsh edge will need permits before any construction.
+
+**What's happening.** The Conservation Authority claims jurisdiction over 14% of the parcel — the south marsh and a 30 m buffer ring around it. The remaining 86% sits under standard rural-zoning rules with no overlay constraints.
+**What's wrong.** The proposed barn footprint sits 22 m from the marsh edge, inside the 30 m no-build buffer. Any structure within the buffer requires a setback variance, and the variance process adds 8–14 weeks before ground can be broken.
+**What next.** Either shift the barn 8 m north of the buffer line (cleanest path) or file the variance early so the permit clock runs in parallel with detailed design. Confirm wetland-program enrolment in the same filing — it qualifies the parcel for restoration cost-share.
+
+Supporting metrics:
+- **CA jurisdiction:** 14% _(south marsh + 30 m buffer)_
+- **Wetland setback:** 30 m _(no-build buffer)_
+- **Current barn offset:** 22 m _(8 m short of rule)_
+- **Variance lead time:** 8–14 weeks _(if filed)_
+
+_On the site map, the regulated band traces the south marsh; the planned barn marker sits inside the buffer ring._
+
+### Soil — Strong
+Predominantly Guelph loam (62%) with a band of Burford sandy loam to the north. Drainage is good; pH 6.4–6.9; organic matter 4.1%.
+- **Tilth:** Loam, OM 4.1%
+> _What this means:_ Soils support the full crop and pasture mix in the design without major amendment.
+
+**What's happening.** Predominantly Guelph loam (62%) across the central plateau and southern slope, with a band of Burford sandy loam tracing the north third. Drainage is good across both. Sample pH ranges 6.4–6.9 with 4.1% organic matter parcel-wide.
+**What's wrong.** Nothing load-bearing. The Burford band drains faster and dries out earlier in summer, so any annuals planted there will need either irrigation or a drought-tolerant rotation.
+**What next.** Treat the Guelph loam plateau as the primary cropping + intensive grazing footprint. Reserve the Burford band for perennial pasture or windbreak species that tolerate sandier soils. No amendment is required before year 1.
+
+Supporting metrics:
+- **Dominant soil:** Guelph loam _(62% of parcel)_
+- **Secondary band:** Burford sandy loam _(north third)_
+- **pH range:** 6.4 – 6.9 _(near-ideal for the planned mix)_
+- **Organic matter:** 4.1% _(above 3% baseline)_
+
+_On the site map, the loam-to-sandy-loam transition runs roughly along the north edge of the central plateau._
+
+### Water — At Risk
+Seasonal stream on the east boundary; groundwater test well yields 4 gpm — below the 8 gpm needed for full livestock load. No surface storage.
+- **Well yield:** 4 gpm
+> _What this means:_ Reliable year-round water for the planned herd is not yet proven; storage or a deeper well will be required.
+
+**What's happening.** A seasonal stream traces the east boundary, and one test well on the central plateau yields 4 gpm. There is no surface storage on the parcel, and no rainwater capture is currently designed.
+**What's wrong.** The full grazing plan needs ~8 gpm to stock four paddocks year-round; the well alone is half that. Drinking water for the teaching center is not yet sourced at all.
+**What next.** Either deepen the existing well, drill a second, or pair the well with a 20–40 m³ rainwater + tank system. Confirm potable plan before any built structures are sited.
+
+Supporting metrics:
+- **Well yield:** 4 gpm _(tested Mar 2026)_
+- **Required for full herd:** 8 gpm _(1.2 AU/ha × 4 paddocks)_
+- **Surface storage:** 0 m³ _(no ponds or tanks)_
+- **Annual precipitation:** 870 mm _(evenly distributed)_
+
+_On the site map, the seasonal stream sits along the east boundary line; the test well marker is near the central plateau._
+
+### Terrain — Workable
+Gentle 2–6% slope across the central plateau, opening to a 9% south-facing slope ideal for orchard and solar siting.
+- **Slope range:** 2–9%
+> _What this means:_ Terrain is friendly to grazing rotation and passive design; no slope work needed for primary uses.
+
+**What's happening.** Slope ranges from 2–6% across the central plateau and opens to a 9% south-facing slope on the southern third. Aspect is broadly south to south-southwest. The south basin shows mild cold-air drainage on still nights.
+**What's wrong.** The 9% south slope is a strong solar/orchard asset, but the lower band is a frost pocket two springs in five. East two-track is seasonally impassable through spring thaw.
+**What next.** Place orchard and solar on the upper south slope (above the frost band); preserve the central plateau for buildings and rotational grazing. Plan rotations to avoid east-only stocking in March.
+
+Supporting metrics:
+- **Plateau slope:** 2–6% _(central footprint)_
+- **South slope:** 9% _(orchard + solar candidate)_
+- **Aspect:** S / SSW _(ideal for sun-loving systems)_
+- **Frost risk band:** Lower south _(2 of 5 years)_
+
+_On the site map, the topography overlay shows the gentle plateau in the north and the steeper south slope opening toward the parcel boundary._
+
+### Ecology — Workable
+Mixed deciduous edge along the north and west boundaries provides shelter and biodiversity. Two SAR-listed bird species observed seasonally.
+- **Hedgerow:** 1.4 km
+> _What this means:_ Ecology is a net asset — preserve the hedgerows and stagger grazing to avoid disturbing nesting windows.
+
+**What's happening.** 1.4 km of mixed-deciduous hedgerow runs along the north and west boundaries, with a smaller patch along the east two-track. Two species-at-risk birds (Bobolink, Eastern Meadowlark) have been observed nesting in the central plateau grasses between mid-May and late July.
+**What's wrong.** Nothing structural — the ecology is a net asset. The only watch-out is grazing schedule: a tight rotation that hits the central plateau in June would disturb active nests and put SAR compliance at risk.
+**What next.** Preserve the existing hedgerows as windbreaks (no clearing required). Stagger the rotation so the central plateau is not grazed mid-May through late July, or fence a 4 ha nesting refuge inside that window. Document the SAR observation in the operations plan for traceability.
+
+Supporting metrics:
+- **Hedgerow length:** 1.4 km _(north + west boundaries)_
+- **SAR species:** 2 _(Bobolink, Eastern Meadowlark)_
+- **Nesting window:** Mid-May – Late July _(avoid central-plateau grazing)_
+- **Refuge needed:** ~4 ha _(if rotation cannot shift)_
+
+_On the site map, the hedgerow polygons trace the north and west boundary; the SAR observation pins cluster on the central plateau._
+
+### Climate — Strong
+USDA zone 5b. 165-day growing season, 870 mm annual precipitation evenly distributed. Late-spring frost risk is moderate.
+- **Growing days:** 165
+> _What this means:_ Climate fully supports the planned mix; only frost-sensitive species need siting consideration.
+
+**What's happening.** USDA hardiness zone 5b. ~165-day growing season with 870 mm annual precipitation evenly spread through the year. Late-spring frost remains a moderate risk on the lower south slope two years in five.
+**What's wrong.** The frost-pocket risk on the south basin is the only climate constraint that bites the design — frost-sensitive species (early-flowering fruit, tender annuals) shouldn't sit in the lower band.
+**What next.** Plant frost-sensitive perennials on the upper south slope above the cold-air drainage; reserve the basin for cold-tolerant rotations. Budget for frost cover or wind machines in years where bud-break tracks early.
+
+Supporting metrics:
+- **Hardiness zone:** 5b _(USDA reference)_
+- **Growing days:** 165 _(annual avg)_
+- **Precipitation:** 870 mm/yr _(evenly distributed)_
+- **Late-frost risk:** Moderate _(lower south slope, 2 of 5 years)_
+
+_On the site map, the frost-risk band aligns with the lower south slope visible under the topography overlay._
+
+### Infrastructure — Conditional
+Paved road frontage on the west; three-phase power within 200 m. No on-parcel septic or potable supply; cell signal weak in the south basin.
+- **Power:** 3-phase, 200 m
+> _What this means:_ Connection costs are reasonable for the main building zone; remote ops will need satellite or fixed-wireless backup.
+
+**What's happening.** Paved road frontage runs the full length of the west boundary. Three-phase power sits within 200 m of the planned building zone. There is no on-parcel septic, no potable supply, and cell signal drops to one bar in the south basin.
+**What's wrong.** Servicing is workable but not free. Power extension and a Class 4 septic together run $35–55K, and remote ops in the south basin will not have reliable cell — staff comms and IoT sensors there need a fallback link.
+**What next.** Budget the power extension and septic in the year-1 capital plan. Confirm a fixed-wireless or satellite backhaul for the south basin before placing field-staff stations there. Drinking water depends on the well decision in the Water category — keep the two plans in sync.
+
+Supporting metrics:
+- **Power:** 3-phase, 200 m _(extension required)_
+- **Road frontage:** Paved, west _(no upgrade needed)_
+- **On-parcel septic:** None _(Class 4 system needed)_
+- **Cell coverage:** Weak (south basin) _(satellite/fixed-wireless backup)_
+
+_On the site map, the power extension would run east from the west road frontage; the south basin (cell-weak zone) sits below the frost band._
+
+## Risks
+
+- **Water yield insufficient for full herd.** Existing well delivers 4 gpm; full livestock plan needs 8 gpm. Without storage or a second well, summer drawdown will throttle stocking.
+- **Wetland setback compresses south footprint.** 30 m no-build buffer along the south marsh removes ~3 ha from the usable building zone and shifts the planned barn north.
+- **Late-spring frost on south slope.** Cold-air drainage onto the lower south slope risks orchard bud loss in 2 of 5 years; consider higher placement or wind machines.
+
+## Opportunities
+
+- **South-facing slope ideal for orchard + solar.** 9% south slope is uncommon at this latitude — strong fit for fruit, nuts, and a 30 kW solar array sharing the same aspect.
+- **Hedgerows already provide shelter belts.** 1.4 km of established mixed-deciduous edge cuts the cost of windbreak planting and accelerates biodiversity targets.
+- **Conservation programs cosign wetland stewardship.** South marsh enrollment in the provincial wetland program qualifies for 60% setback-restoration cost share.
+
+## Limitations
+
+- **No on-parcel potable supply.** Drinking water for the teaching center will require either a deeper well or trucked supply until municipal connection is feasible.
+- **Cell coverage weak in south basin.** Field-staff comms and IoT sensors in the south third will need satellite or fixed-wireless backhaul.
+- **Seasonal access on east two-track.** Spring thaw renders the east access two-track impassable for 3–5 weeks; rotation plans must avoid east-only stocking in March.
+
+---
+_Generated by Atlas on YYYY-MM-DD._
+"
+`;

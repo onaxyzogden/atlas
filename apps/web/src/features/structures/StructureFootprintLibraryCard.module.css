@@ -1,0 +1,304 @@
+/* §9 StructureFootprintLibraryCard — reference catalog + deviation audit. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 580px;
+}
+
+.verdict {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.9);
+  white-space: nowrap;
+  max-width: 280px;
+  text-align: center;
+}
+
+.verdict_block { border-color: rgba(220, 140, 110, 0.4); color: rgba(232, 165, 130, 0.95); background: rgba(220, 140, 110, 0.08); }
+.verdict_work { border-color: rgba(196, 162, 101, 0.4); color: rgba(232, 200, 145, 0.95); background: rgba(196, 162, 101, 0.06); }
+.verdict_done { border-color: rgba(160, 195, 130, 0.4); color: rgba(190, 215, 165, 0.95); background: rgba(160, 195, 130, 0.06); }
+.verdict_unknown { border-color: rgba(140, 175, 195, 0.32); color: rgba(170, 200, 220, 0.92); background: rgba(140, 175, 195, 0.05); }
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 14px;
+}
+
+.headline {
+  text-align: center;
+  min-width: 0;
+  padding: 4px 0;
+  border-radius: 6px;
+}
+
+.headlineValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.headlineLabel {
+  margin-top: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.group {
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(232, 220, 200, 0.018);
+  padding: 12px 14px;
+}
+
+.group_dwelling { border-left: 3px solid rgba(196, 162, 101, 0.45); }
+.group_spiritual { border-left: 3px solid rgba(170, 195, 220, 0.45); }
+.group_gathering { border-left: 3px solid rgba(220, 175, 130, 0.45); }
+.group_agricultural { border-left: 3px solid rgba(160, 195, 130, 0.45); }
+.group_utility { border-left: 3px solid rgba(180, 165, 140, 0.45); }
+.group_infrastructure { border-left: 3px solid rgba(140, 175, 195, 0.45); }
+
+.groupTitle {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.85);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.groupCount {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(232, 220, 200, 0.06);
+  color: rgba(180, 165, 140, 0.75);
+  letter-spacing: 0.04em;
+}
+
+.libList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.libRow {
+  display: flex;
+  gap: 10px;
+  padding: 10px 11px;
+  border-radius: 7px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  align-items: flex-start;
+}
+
+.libRowPlaced {
+  background: rgba(196, 162, 101, 0.05);
+  border-color: rgba(196, 162, 101, 0.18);
+}
+
+.libIcon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+}
+
+.libBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.libNameRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.libName {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.placedPill {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.14);
+  border: 1px solid rgba(196, 162, 101, 0.32);
+  color: rgba(232, 200, 145, 0.95);
+  white-space: nowrap;
+}
+
+.libDesc {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.72);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.libMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 10.5px;
+  color: rgba(220, 210, 185, 0.82);
+  font-variant-numeric: tabular-nums;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.metaLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.deviationSection {
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.deviationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.deviationRow {
+  padding: 8px 11px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.dev_mild {
+  border-color: rgba(196, 162, 101, 0.3);
+  background: rgba(196, 162, 101, 0.05);
+}
+
+.dev_major {
+  border-color: rgba(220, 140, 110, 0.4);
+  background: rgba(220, 140, 110, 0.08);
+}
+
+.devName {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.92);
+  margin-bottom: 3px;
+}
+
+.devMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+
+.devRatio {
+  font-weight: 700;
+  color: rgba(232, 200, 145, 0.95);
+}
+
+.dev_major .devRatio {
+  color: rgba(232, 165, 130, 0.98);
+}
+
+.footnote {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}
+
+.footnote code {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-style: normal;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(232, 220, 200, 0.05);
+  color: rgba(220, 210, 185, 0.88);
+}

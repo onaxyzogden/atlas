@@ -1,0 +1,172 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.title {
+  padding: var(--space-3) var(--space-4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2) 0 var(--space-4);
+}
+
+.banner {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-border);
+  counter-reset: stage;
+}
+
+.bannerItem {
+  margin: 0;
+}
+
+.bannerPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 13px;
+  background: var(--color-surface-strong, var(--color-surface));
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default);
+}
+
+.bannerPill::before {
+  counter-increment: stage;
+  content: counter(stage);
+  font-size: 10px;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.bannerPill:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.bannerPillActive {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-sidebar-active, #4a90e2) 18%, transparent);
+  border-color: var(--color-sidebar-active, #4a90e2);
+}
+
+.bannerPillActive::before {
+  color: var(--color-sidebar-active, #4a90e2);
+  opacity: 1;
+}
+
+.stage {
+  padding: var(--space-3) 0 var(--space-2);
+}
+
+.stage + .stage {
+  border-top: 1px dashed var(--color-border);
+}
+
+.stageHeader {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-2);
+  align-items: flex-start;
+}
+
+.stageBadge {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.stageMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.stageName {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text);
+}
+
+.stageDesc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3) 6px calc(var(--space-3) + 4px);
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default);
+}
+
+.item:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.itemActive {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: var(--font-medium);
+}
+
+.itemDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.itemLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -9,27 +9,71 @@ const BUILTIN_PROJECT_ID = '00000000-0000-0000-0000-0000005a3791';
 export default async function projectRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
 
-  // GET /projects/builtins — public; returns the 351 House demo project (no auth required).
-  // Must be registered before /:id to prevent Fastify matching "builtins" as a param value.
+  // Builtin sample projects (migration 017) are read-only for everyone.
+  const refuseIfBuiltin = async (projectId: string) => {
+    const [row] = await db`
+      SELECT is_builtin FROM projects WHERE id = ${projectId}
+    `;
+    if (row?.is_builtin) {
+      throw new ForbiddenError('Builtin sample projects are read-only.');
+    }
+  };
+
+  // GET /projects/builtins — public list of system-owned sample projects.
+  // No auth required. Each row embeds its `project_layers` summaries.
   fastify.get('/builtins', async () => {
-    const [project] = await db`
+    const rows = await db`
       SELECT
         p.id, p.name, p.description, p.status, p.project_type,
         p.country, p.province_state, p.conservation_auth_id,
-        p.address, p.parcel_id,
-        p.acreage::float8                   AS acreage,
-        p.data_completeness_score::float8   AS data_completeness_score,
-        (p.parcel_boundary IS NOT NULL)     AS has_parcel_boundary,
-        p.metadata,
+        p.address, p.parcel_id, p.acreage,
+        p.data_completeness_score,
+        (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+        ST_AsGeoJSON(p.parcel_boundary)::jsonb AS parcel_boundary_geojson,
+        p.is_builtin,
         p.created_at, p.updated_at
       FROM projects p
-      WHERE p.id = ${BUILTIN_PROJECT_ID}
+      WHERE p.is_builtin = true
+      ORDER BY p.created_at
     `;
-    if (!project) throw new NotFoundError('Project', BUILTIN_PROJECT_ID);
-    return { data: [ProjectSummary.parse(toCamelCase(project))], meta: { total: 1 }, error: null };
+
+    const layerRows = rows.length
+      ? await db`
+        SELECT project_id, layer_type, source_api, fetch_status, confidence,
+               data_date, attribution_text, summary_data
+        FROM project_layers
+        WHERE project_id IN ${db(rows.map((r) => r.id))}
+        ORDER BY project_id, layer_type
+      `
+      : [];
+
+    const layersByProject = new Map<string, Array<Record<string, unknown>>>();
+    for (const l of layerRows) {
+      const list = layersByProject.get(l.project_id) ?? [];
+      list.push({
+        layerType: l.layer_type,
+        sourceApi: l.source_api,
+        fetchStatus: l.fetch_status,
+        confidence: l.confidence,
+        dataDate: l.data_date,
+        attribution: l.attribution_text,
+        summary: l.summary_data ?? {},
+      });
+      layersByProject.set(l.project_id, list);
+    }
+
+    return {
+      data: rows.map((r) => ({
+        ...ProjectSummary.parse(toCamelCase(r)),
+        parcelBoundaryGeojson: r.parcel_boundary_geojson ?? null,
+        layers: layersByProject.get(r.id) ?? [],
+      })),
+      meta: { total: rows.length },
+      error: null,
+    };
   });
 
-  // GET /projects/builtins/assessment — public; returns the 351 House site assessment + terrain (no auth).
+  // GET /projects/builtins/assessment — public; returns the 351 House site assessment + terrain.
   fastify.get('/builtins/assessment', async () => {
     const [assessment] = await db`
       SELECT
@@ -114,10 +158,10 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       sourceApi: terrain.source_api,
     } : null;
 
-    return { data: { ...toCamelCase(assessment), terrainAnalysis }, error: null };
+    return { data: { ...(toCamelCase(assessment) as Record<string, unknown>), terrainAnalysis }, error: null };
   });
 
-  // GET /projects — list current user's projects (owned + shared)
+  // GET /projects — list current user's projects (owned + shared) plus builtin samples.
   fastify.get('/', { preHandler: [authenticate] }, async (req) => {
     const rows = await db`
       SELECT DISTINCT ON (p.id)
@@ -126,10 +170,11 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         p.address, p.parcel_id, p.acreage,
         p.data_completeness_score,
         (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+        p.is_builtin,
         p.created_at, p.updated_at
       FROM projects p
       LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
-      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL)
+      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
         AND p.status != 'archived'
       ORDER BY p.id, p.updated_at DESC
     `;
@@ -180,6 +225,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           p.address, p.parcel_id, p.acreage,
           p.data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          p.is_builtin,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
           p.metadata,
           p.created_at, p.updated_at
@@ -196,6 +242,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req) => {
+      await refuseIfBuiltin(req.projectId);
       const body = UpdateProjectInput.parse(req.body);
 
       const [updated] = await db`
@@ -228,6 +275,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id/boundary',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req) => {
+      await refuseIfBuiltin(req.projectId);
       const body = z.object({ geojson: z.unknown() }).parse(req.body);
       const geojsonStr = JSON.stringify(body.geojson);
 
@@ -355,6 +403,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     '/:id',
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req, reply) => {
+      await refuseIfBuiltin(req.projectId);
       await db`DELETE FROM projects WHERE id = ${req.projectId}`;
       reply.code(204);
       return '';

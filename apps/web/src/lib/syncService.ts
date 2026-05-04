@@ -419,21 +419,33 @@ async function initialSync(): Promise<void> {
     for (const sp of serverProjects) {
       const existing = localByServerId.get(sp.id);
       if (existing) {
-        // Server wins — update local with server data
-        useProjectStore.getState().updateProject(existing.id, {
-          name: sp.name,
-          description: sp.description,
-          status: sp.status,
-          projectType: sp.projectType,
-          country: sp.country,
-          provinceState: sp.provinceState,
-          address: sp.address,
-          parcelId: sp.parcelId,
-          acreage: sp.acreage,
-          dataCompletenessScore: sp.dataCompletenessScore,
-          hasParcelBoundary: sp.hasParcelBoundary,
-          serverId: sp.id,
-        });
+        // Server wins — update local with server data. We write through
+        // `setState` directly (rather than `updateProject`) because
+        // builtin sample projects are gated read-only in the store, and
+        // we still want server-driven refreshes to land for them.
+        useProjectStore.setState((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === existing.id
+              ? {
+                  ...p,
+                  name: sp.name,
+                  description: sp.description,
+                  status: sp.status,
+                  projectType: sp.projectType,
+                  country: sp.country,
+                  provinceState: sp.provinceState,
+                  address: sp.address,
+                  parcelId: sp.parcelId,
+                  acreage: sp.acreage,
+                  dataCompletenessScore: sp.dataCompletenessScore,
+                  hasParcelBoundary: sp.hasParcelBoundary,
+                  isBuiltin: sp.isBuiltin,
+                  serverId: sp.id,
+                  updatedAt: new Date().toISOString(),
+                }
+              : p,
+          ),
+        }));
       } else {
         // New from server — create local entry
         const now = new Date().toISOString();
@@ -461,6 +473,7 @@ async function initialSync(): Promise<void> {
           visionStatement: null,
           units: 'metric',
           attachments: [],
+          isBuiltin: sp.isBuiltin,
           serverId: sp.id,
         };
         useProjectStore.setState((state) => ({

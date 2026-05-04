@@ -234,40 +234,48 @@ export const avatar = {
 } as const;
 
 // ── Chart / SVG Rendering ──────────────────────────────────────────────────
+// Wind rose / sun path / sparkline. Accent stays gold (battle-tested at this
+// chroma); grid + muted retuned to estate neutrals (2026-04-29 palette pass).
 
 export const chart = {
-  accent:  '#d4a843',   // gold stroke/fill for sun path, wind rose
-  grid:    '#3d3328',   // axis lines, concentric rings
-  muted:   '#6b5b4a',   // secondary labels (direction letters)
+  accent:  '#d4a843',                    // gold stroke/fill for sun path, wind rose
+  grid:    'rgba(82, 72, 52, 0.18)',     // axis lines, concentric rings
+  muted:   '#7d7864',                    // secondary labels (direction letters)
 } as const;
 
 // ── Map Rendering Defaults ──────────────────────────────────────────────────
+// `boundary` stays earth-700 deliberately — it's a property/parcel line color
+// and the earth palette is preserved per the UX-Scholar 2026-04-23 biophilic-
+// data rule. `popupBg` is chrome and follows the estate near-black-green.
 
 export const map = {
   label:      '#f2ede3',
-  labelHalo:  'rgba(26,22,17,0.8)',
+  labelHalo:  'rgba(11,14,12,0.80)',
   boundary:   '#7d6140',
-  popupBg:    '#312617',
+  popupBg:    '#0b0e0c',
 } as const;
 
 // ── Semantic Shorthands (light mode) ────────────────────────────────────────
+// Mirrors the LIGHT MODE root tokens in styles/tokens.css. Estate palette
+// 2026-04-28 (cool-stone bg, dark ink, darker gold for AA on white, sage
+// accent). Keep this in sync when tokens.css changes.
 
 export const semantic = {
-  primary:      '#7d6140',
-  primaryHover: '#634c31',
-  accent:       '#527852',
-  accentHover:  '#3e5c3e',
-  bg:           '#fdfbf7',
-  surface:      '#ffffff',
-  text:         '#312617',
-  textMuted:    '#7d6140',
-  textSubtle:   '#b49a74',
-  border:       '#e4d9c6',
-  borderSubtle: '#f2ede3',
-  panelBg:      '#fdfbf7',
-  sidebarIcon:  '#9a8a74',
-  sidebarActive: '#c4a265',
-  white:        '#ffffff',
+  primary:       '#b08a3a',
+  primaryHover:  '#9a771f',
+  accent:        '#5a8a5a',
+  accentHover:   '#46703f',
+  bg:            '#f6f4ee',
+  surface:       '#ffffff',
+  text:          '#1f231e',
+  textMuted:     '#5a5443',
+  textSubtle:    '#7d7864',
+  border:        'rgba(82, 72, 52, 0.14)',
+  borderSubtle:  'rgba(82, 72, 52, 0.08)',
+  panelBg:       '#faf7ef',
+  sidebarIcon:   '#7d7864',
+  sidebarActive: '#d4af5f',
+  white:         '#ffffff',
 } as const;
 
 // ── Unified export ──────────────────────────────────────────────────────────

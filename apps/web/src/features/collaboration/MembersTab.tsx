@@ -11,6 +11,7 @@ import type { ProjectRole } from '@ogden/shared';
 import p from '../../styles/panel.module.css';
 import { role as roleToken, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
+import UserManagementReadinessCard from './UserManagementReadinessCard.js';
 
 interface MembersTabProps {
   project: LocalProject;
@@ -91,6 +92,9 @@ export default function MembersTab({ project }: MembersTabProps) {
 
   return (
     <div>
+      {/* §26 user-management readiness audit (sibling of AuditLogCard) */}
+      <UserManagementReadinessCard project={project} />
+
       {/* Invite form (owner only) */}
       {isOwner && (
         <div className={p.mb16}>
@@ -125,10 +129,10 @@ export default function MembersTab({ project }: MembersTabProps) {
             className={`${p.btnSmall} ${p.fontSemibold}`}
             style={{
               padding: '8px 14px', width: '100%',
-              background: inviteEmail.trim() ? 'rgba(196,162,101,0.15)' : 'var(--color-panel-subtle)',
-              color: inviteEmail.trim() ? '#c4a265' : 'var(--color-panel-muted)',
+              background: inviteEmail.trim() ? 'rgba(212,175,95,0.15)' : 'var(--color-panel-subtle)',
+              color: inviteEmail.trim() ? 'var(--color-gold-brand)' : 'var(--color-panel-muted)',
               cursor: inviteEmail.trim() ? 'pointer' : 'not-allowed',
-              border: inviteEmail.trim() ? '1px solid rgba(196,162,101,0.2)' : '1px solid transparent',
+              border: inviteEmail.trim() ? '1px solid rgba(212,175,95,0.25)' : '1px solid transparent',
               borderRadius: 6,
             }}
           >

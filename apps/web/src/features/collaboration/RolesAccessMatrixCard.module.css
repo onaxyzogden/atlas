@@ -1,0 +1,282 @@
+/* §20 RolesAccessMatrixCard — RBAC posture rollup. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 0 0 18px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 580px;
+}
+
+.cardHint strong {
+  color: rgba(232, 220, 200, 0.88);
+  font-weight: 600;
+}
+
+.myRoleBadge {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  background: rgba(232, 220, 200, 0.04);
+  color: rgba(220, 210, 185, 0.9);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: rgba(180, 165, 140, 0.65);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+
+.headlineRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 12px;
+}
+
+.headline {
+  text-align: center;
+  min-width: 0;
+}
+
+.headlineValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.headlineLabel {
+  margin-top: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.roleStrip {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+.roleChip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.02);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 10.5px;
+}
+
+.roleCount {
+  grid-row: 1 / span 2;
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+}
+
+.roleName {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.88);
+}
+
+.roleBlurb {
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.65);
+  line-height: 1.4;
+}
+
+.role_owner { border-color: rgba(196, 162, 101, 0.32); background: rgba(196, 162, 101, 0.05); }
+.role_owner .roleName { color: rgba(232, 200, 145, 0.95); }
+.role_designer { border-color: rgba(160, 195, 130, 0.3); background: rgba(160, 195, 130, 0.04); }
+.role_designer .roleName { color: rgba(190, 215, 165, 0.95); }
+.role_reviewer { border-color: rgba(140, 175, 195, 0.3); background: rgba(140, 175, 195, 0.04); }
+.role_reviewer .roleName { color: rgba(170, 200, 220, 0.95); }
+.role_viewer { border-color: rgba(232, 220, 200, 0.08); }
+.role_viewer .roleName { color: rgba(200, 190, 170, 0.85); }
+
+.myRoleBadge.role_owner { border-color: rgba(196, 162, 101, 0.4); color: rgba(232, 200, 145, 0.95); }
+.myRoleBadge.role_designer { border-color: rgba(160, 195, 130, 0.4); color: rgba(190, 215, 165, 0.95); }
+.myRoleBadge.role_reviewer { border-color: rgba(140, 175, 195, 0.4); color: rgba(170, 200, 220, 0.95); }
+.myRoleBadge.role_viewer { border-color: rgba(232, 220, 200, 0.16); color: rgba(200, 190, 170, 0.9); }
+
+.matrixWrap {
+  border-radius: 8px;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(232, 220, 200, 0.018);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.matrix th {
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.thRole { text-align: left; }
+.thHeld { text-align: right; }
+
+.matrix td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.04);
+}
+
+.matrix tr:last-child td { border-bottom: none; }
+
+.tdRole {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tdRole.role_owner { color: rgba(232, 200, 145, 0.95); }
+.tdRole.role_designer { color: rgba(190, 215, 165, 0.95); }
+.tdRole.role_reviewer { color: rgba(170, 200, 220, 0.95); }
+.tdRole.role_viewer { color: rgba(200, 190, 170, 0.85); }
+
+.tdAction { text-align: center; }
+
+.cellYes {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 50%;
+  background: rgba(160, 195, 130, 0.18);
+  color: rgba(190, 215, 165, 0.95);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cellNo {
+  color: rgba(180, 165, 140, 0.35);
+  font-size: 12px;
+}
+
+.tdHeld {
+  text-align: right;
+  font-size: 11px;
+}
+
+.heldYes {
+  font-weight: 700;
+  color: rgba(220, 210, 185, 0.92);
+}
+
+.heldNo {
+  color: rgba(180, 165, 140, 0.45);
+  font-style: italic;
+  font-size: 10px;
+}
+
+.rowVacant td { opacity: 0.65; }
+
+.flagList {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(232, 220, 200, 0.02);
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.flagDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.flag_warn { border-color: rgba(220, 140, 110, 0.28); background: rgba(220, 140, 110, 0.05); }
+.flag_warn .flagDot { background: rgba(232, 165, 130, 0.95); }
+
+.flag_info { border-color: rgba(140, 175, 195, 0.28); background: rgba(140, 175, 195, 0.04); }
+.flag_info .flagDot { background: rgba(170, 200, 220, 0.95); }
+
+.flag_ok { border-color: rgba(160, 195, 130, 0.28); background: rgba(160, 195, 130, 0.04); }
+.flag_ok .flagDot { background: rgba(190, 215, 165, 0.95); }
+
+.footnote {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+}

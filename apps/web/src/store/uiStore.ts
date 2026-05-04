@@ -14,7 +14,7 @@ import { persist } from 'zustand/middleware';
 import type { SidebarView, SubItemId } from '../components/IconSidebar.js';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
-export type SidebarGrouping = 'phase' | 'domain';
+export type SidebarGrouping = 'stage3' | 'stage' | 'phase' | 'domain';
 
 interface UndoEntry {
   timestamp: number;
@@ -46,7 +46,9 @@ interface UIState {
   setRightPanelCollapsed: (v: boolean) => void;
 
   // Sidebar grouping preference — shared between IconSidebar and DashboardSidebar.
-  // 'phase'  = workflow-oriented (P1–P4), onboarding-friendly (default)
+  // 'stage3' = 3-stage permaculture cycle (Observe → Plan → Act) — default since 2026-04-29
+  // 'stage'  = 5-step workflow lens (Understand → Constraints → Design → Feasibility → Report)
+  // 'phase'  = legacy workflow lens (P1–P4)
   // 'domain' = subject-oriented (hydrology, grazing, forestry…), matches GIS conventions
   sidebarGrouping: SidebarGrouping;
   setSidebarGrouping: (g: SidebarGrouping) => void;
@@ -74,6 +76,30 @@ interface UIState {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+}
+
+/**
+ * 2026-04-30 — coerce returning users' stale `sidebarGrouping` to
+ * `'stage3'` once. The 2026-04-29 IA restructure made stage3 the default,
+ * but persisted preferences kept the old `'stage'` / `'phase'` / `'domain'`
+ * value, hiding the new ACT stage header. After this one-time bump, users
+ * can re-pick a different grouping and it sticks. See ADR
+ * wiki/decisions/2026-04-30-uistore-stage3-grouping-migration.md.
+ *
+ * Exported for direct unit testing — the persist middleware calls this
+ * during rehydration when the stored `version` is below the current one.
+ */
+export function migrateUIPersistedState(
+  persistedState: unknown,
+  fromVersion: number,
+): unknown {
+  if (fromVersion < 2) {
+    const s = persistedState as { sidebarGrouping?: SidebarGrouping } | null;
+    if (s && s.sidebarGrouping !== undefined && s.sidebarGrouping !== 'stage3') {
+      return { ...s, sidebarGrouping: 'stage3' as SidebarGrouping };
+    }
+  }
+  return persistedState;
 }
 
 export const useUIStore = create<UIState>()(
@@ -105,8 +131,10 @@ export const useUIStore = create<UIState>()(
       toggleRightPanelCollapsed: () => set((s) => ({ rightPanelCollapsed: !s.rightPanelCollapsed })),
       setRightPanelCollapsed: (v) => set({ rightPanelCollapsed: v }),
 
-      // Sidebar grouping — default to phase (preserves onboarding narrative)
-      sidebarGrouping: 'phase' as SidebarGrouping,
+      // Sidebar grouping — default to stage3 (3-stage Observe/Plan/Act cycle,
+      // per 2026-04-29 IA restructure). Existing users keep their persisted
+      // choice via the persist middleware.
+      sidebarGrouping: 'stage3' as SidebarGrouping,
       setSidebarGrouping: (g) => set({ sidebarGrouping: g }),
 
       // Navigation context
@@ -160,19 +188,22 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ogden-ui',
-      version: 1,
+      version: 2,
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,
         sidebarGrouping: state.sidebarGrouping,
         rightPanelCollapsed: state.rightPanelCollapsed,
       }),
+      migrate: migrateUIPersistedState,
     },
   ),
 );
 
-// Hydrate from localStorage (Zustand v5)
-useUIStore.persist.rehydrate();
+// Hydrate from localStorage (Zustand v5). Guarded for SSR / vitest.
+if (typeof window !== 'undefined') {
+  useUIStore.persist.rehydrate();
+}
 
 function applyColorScheme(isDark: boolean) {
   if (typeof document === 'undefined') return;
