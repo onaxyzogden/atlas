@@ -11,6 +11,14 @@ import { TopographyDashboardPage } from "../pages/TopographyDashboardPage.jsx";
 import { TerrainDetailPage } from "../pages/TerrainDetailPage.jsx";
 import { CrossSectionToolPage } from "../pages/CrossSectionToolPage.jsx";
 import { EarthWaterEcologyPage } from "../pages/EarthWaterEcologyPage.jsx";
+import { SectorsMicroclimatesDashboardPage } from "../pages/SectorsMicroclimatesDashboardPage.jsx";
+import { SectorCompassPage } from "../pages/SectorCompassPage.jsx";
+import { CartographicDetailPage } from "../pages/CartographicDetailPage.jsx";
+import { SwotDashboardPage } from "../pages/SwotDashboardPage.jsx";
+import { SwotJournalPage } from "../pages/SwotJournalPage.jsx";
+import { SwotDiagnosisReportPage } from "../pages/SwotDiagnosisReportPage.jsx";
+import { DevPrimitivesPage } from "../pages/DevPrimitivesPage.jsx";
+import { DevShellPage } from "../pages/DevShellPage.jsx";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -101,7 +109,56 @@ const earthWaterEcologyRoute = createRoute({
   component: EarthWaterEcologyPage,
 });
 
+const sectorsZonesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/sectors-zones",
+  component: SectorsMicroclimatesDashboardPage,
+});
+
+const sectorCompassRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/sectors-zones/sector-compass",
+  component: SectorCompassPage,
+});
+
+const cartographicDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/sectors-zones/cartographic-detail",
+  component: CartographicDetailPage,
+});
+
+const swotDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/swot",
+  component: SwotDashboardPage,
+});
+
+const swotJournalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/swot/journal",
+  component: SwotJournalPage,
+});
+
+const swotDiagnosisReportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/swot/diagnosis-report",
+  component: SwotDiagnosisReportPage,
+});
+
+const devPrimitivesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dev/primitives",
+  component: DevPrimitivesPage,
+});
+
+const devShellRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/dev/shell",
+  component: DevShellPage,
+});
+
 const routeTree = rootRoute.addChildren([
+  ...(import.meta.env.DEV ? [devPrimitivesRoute, devShellRoute] : []),
   indexRoute,
   observeRoute,
   dashboardRoute,
@@ -115,6 +172,12 @@ const routeTree = rootRoute.addChildren([
   terrainDetailRoute,
   crossSectionRoute,
   earthWaterEcologyRoute,
+  sectorsZonesRoute,
+  sectorCompassRoute,
+  cartographicDetailRoute,
+  swotDashboardRoute,
+  swotJournalRoute,
+  swotDiagnosisReportRoute,
 ]);
 
 export const router = createRouter({ routeTree });

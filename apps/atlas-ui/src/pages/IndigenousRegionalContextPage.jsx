@@ -17,12 +17,14 @@ import {
   DataTable,
   NextStepsPanel,
   QaOverlay,
-  SideRail,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { indigenousRegionalContext as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroTerrain from "../assets/generated/indigenous-regional-context/hero-terrain.png";
 import regionalMap from "../assets/generated/indigenous-regional-context/regional-map.png";
 
@@ -33,10 +35,10 @@ const statIconMap = { alert: AlertTriangle, sprout: Sprout, users: Users };
 
 export function IndigenousRegionalContextPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page regional-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page regional-page">
         <TopStageBar />
+        <ProjectDataStatus />
         <div className="detail-layout">
           <div className="detail-main">
             <RegionalHero />
@@ -64,7 +66,7 @@ export function IndigenousRegionalContextPage() {
           </div>
           <RegionalSidebar />
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -143,10 +145,14 @@ function LocalNetworkCard() {
 }
 
 function RegionalSidebar() {
+  const { project } = useBuiltinProject();
+  const county = project?.metadata?.county ?? null;
+  const bioregion = project?.metadata?.bioregion ?? null;
+  const snapshotLabel = county ?? bioregion ?? "Regional Snapshot";
   return (
     <aside className="regional-sidebar">
       <SurfaceCard className="regional-map-card">
-        <h2><Sun aria-hidden="true" /> Regional Snapshot</h2>
+        <h2><Sun aria-hidden="true" /> {snapshotLabel}</h2>
         <CroppedArt src={regionalMap} className="regional-map-image" />
       </SurfaceCard>
       <div className="regional-stat-grid">

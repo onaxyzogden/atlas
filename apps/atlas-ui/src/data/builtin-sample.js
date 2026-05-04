@@ -80,8 +80,8 @@ export const observeModules = [
   { number: "2", title: "Macroclimate &\nHazards", status: "In progress", active: true, art: "weather", to: "/observe/macroclimate-hazards" },
   { number: "3", title: "Topography &\nBase Map", status: "In progress", active: true, art: "topo", to: "/observe/topography" },
   { number: "4", title: "Earth, Water &\nEcology Diagnostics", status: "Not started", active: false, art: "soil", to: "/observe/earth-water-ecology" },
-  { number: "5", title: "Sectors, Microclimates\n& Zones", status: "Not started", active: false, art: "sector" },
-  { number: "6", title: "SWOT\nSynthesis", status: "Not started", active: false, art: "swot" }
+  { number: "5", title: "Sectors, Microclimates\n& Zones", status: "Not started", active: false, art: "sector", to: "/observe/sectors-zones" },
+  { number: "6", title: "SWOT\nSynthesis", status: "Not started", active: false, art: "swot", to: "/observe/swot" }
 ];
 
 // View-models for ObserveDashboardPage (`/observe/dashboard`).
@@ -725,4 +725,257 @@ export const earthWaterEcologyPage = {
     ["Protect riparian corridor", "Fence and revegetate with natives.", "High", "Due in 21 days"],
     ["Conduct biological aeration", "Reduce compaction, improve infiltration.", "Medium", "Due in 30 days"]
   ]
+};
+
+// CartographicDetailPage (`/observe/sectors-zones/cartographic-detail`).
+export const cartographicDetailPage = {
+  hero: {
+    title: "Cartographic detail",
+    copy: "Explore the full spatial survey of your site. Toggle layers, interrogate patterns, and understand how sectors, microclimates and zones work together.",
+  },
+  kpis: [
+    { label: "Sectors mapped",       value: "5",  note: "Of 8 directions",    tone: "green", iconKey: "compass" },
+    { label: "Zones defined",        value: "5",  note: "Across site",         tone: "gold",  iconKey: "map"     },
+    { label: "Zone allocations",     value: "12", note: "Design elements",     tone: "green", iconKey: "sprout"  },
+    { label: "Identified features",  value: "9",  note: "Points of interest",  tone: "gold",  iconKey: "mapPin"  },
+    { label: "Observation progress", value: "4/4",note: "All zones visited",   tone: "cream", iconKey: "check"   },
+  ],
+  mapLayers: [
+    { key: "sectors",      label: "Sectors",       color: "#b7832d", active: true,  sub: []                                      },
+    { key: "microclimates",label: "Microclimates", color: "#6ab4d4", active: true,  sub: ["Frost pockets","Wind shadows","Solar traps"] },
+    { key: "zones",        label: "Zones",         color: "#a5c736", active: true,
+      sub: ["Zone 1 — Home","Zone 2 — Productive","Zone 3 — Orchard","Zone 4 — Semi-wild","Zone 5 — Wilderness"] },
+    { key: "circulation",  label: "Circulation",   color: "#e8c87a", active: true,  sub: ["Paths, tracks & access points"]       },
+    { key: "contours",     label: "Contours",      color: "#6a8a6a", active: false, sub: []                                      },
+    { key: "water",        label: "Water features",color: "#4a9ad4", active: true,
+      sub: ["Ponds & streams","Drainage & storage","Seasonal overflow"]                                                          },
+  ],
+  zones: [
+    { id: "1", label: "Zone 1",    detail: "Home & intensive",   color: "#c9902a", fillOp: 0.28 },
+    { id: "2", label: "Zone 2",    detail: "Productive",          color: "#7aaa30", fillOp: 0.22 },
+    { id: "3", label: "Zone 3",    detail: "Orchard",             color: "#6ab4d4", fillOp: 0.18 },
+    { id: "4", label: "Zone 4",    detail: "Semi-wild",           color: "#8a7a3a", fillOp: 0.18 },
+    { id: "5", label: "Zone 5",    detail: "Wilderness margin",   color: "#3a5a2a", fillOp: 0.22 },
+  ],
+  detectedPatterns: [
+    { title: "Solar gradient",         body: "Strong SE-to-NW gradient. Buildings on SE bench receive full winter insolation, NW remains shaded." },
+    { title: "Shelter zones",          body: "Tanh of N creates natural windbreak acting against dominant W-SW wind flow across zone 2 and 3." },
+    { title: "Water flow convergence", body: "Multiple surface flows converge toward the pond. Ideal placement for primary water harvesting system." },
+    { title: "Access efficiency",      body: "S-entry corridor allows direct access to zones 1–3 without crossing productive planting areas." },
+    { title: "Ridge lines",            body: "Two parallel ridges create rain shadow on leeward side. Plan water-retentive species in these corridors." },
+  ],
+  nextActions: [
+    "Finalise Zone 1 footprint and building setback from zone boundary",
+    "Design water systems along SW-NE contour alignment",
+    "Set northern boundary plantings on zone 3-4 edge",
+    "Add biodiversity corridors at zone 2-3 interface",
+    "Validate species placement for zone 5 wilderness pathways",
+  ],
+  mapInfo: {
+    area: "2.4 ha (5.9 acres)",
+    projection: "UTM Zone 17N",
+    mapDate: "15 Apr 2026",
+    dataSource: "LIDAR + Field Survey",
+  },
+};
+
+// SectorCompassPage (`/observe/sectors-zones/sector-compass`).
+export const sectorCompassPage = {
+  hero: {
+    title: "Sector compass",
+    copy: "Explore the full spatial survey of your site. Toggle layers, interrogate patterns, and understand how sectors, microclimates and zones work together.",
+  },
+  kpis: [
+    { label: "Best sun sector",    value: "E–SE",  note: "Primary insolation",   tone: "gold",  iconKey: "sun"     },
+    { label: "Dominant wind",      value: "SW",    note: "Prevailing",           tone: "blue",  iconKey: "wind"    },
+    { label: "High-risk sector",   value: "NW",    note: "Frost / cold pocket",  tone: "dim",   iconKey: "alert"   },
+    { label: "Beneficial eco zone",value: "SE",    note: "Riparian corridor",    tone: "green", iconKey: "leaf"    },
+    { label: "Sectors active",     value: "5",     note: "Of 8 mapped",          tone: "cream", iconKey: "compass" },
+  ],
+  sectors: [
+    { dir: "N",  label: "Cold exposure",   subLabel: "Minimal activity",   tone: "dim",   forces: ["cold"],         arrowLen: 0.35 },
+    { dir: "NE", label: "Morning sun",     subLabel: "Seasonal warmth",    tone: "gold",  forces: ["solar"],        arrowLen: 0.55 },
+    { dir: "E",  label: "Shelter belt",    subLabel: "Tree windbreak",     tone: "green", forces: ["shelter"],      arrowLen: 0.50 },
+    { dir: "SE", label: "Prime solar",     subLabel: "Summer / winter sun",tone: "gold",  forces: ["solar","warm"], arrowLen: 0.80 },
+    { dir: "S",  label: "Main access",     subLabel: "Entry & circulation",tone: "green", forces: ["access"],       arrowLen: 0.60 },
+    { dir: "SW", label: "Prevailing wind", subLabel: "W-SW cold wind flow",tone: "blue",  forces: ["wind","cold"],  arrowLen: 0.70 },
+    { dir: "W",  label: "Winter wind",     subLabel: "Cold & dry sector",  tone: "blue",  forces: ["wind"],         arrowLen: 0.60 },
+    { dir: "NW", label: "Frost pocket",    subLabel: "Avoid frost-sens.",  tone: "dim",   forces: ["frost","cold"], arrowLen: 0.40 },
+  ],
+  observations: [
+    { icon: "sun",     label: "Peak solar window",       value: "9.2 hrs/day",   tone: "gold",  score: 88 },
+    { icon: "wind",    label: "SW wind frequency",        value: "68% of days",   tone: "blue",  score: 68 },
+    { icon: "droplet", label: "Prevailing rain bearing",  value: "W-SW",          tone: "blue",  score: null },
+    { icon: "leaf",    label: "Frost-free SE microclimate",value: "152 days/yr",  tone: "green", score: 76 },
+    { icon: "alert",   label: "NW frost risk",            value: "High",          tone: "dim",   score: 34 },
+    { icon: "sprout",  label: "Biodiversity corridor",    value: "E boundary",    tone: "green", score: 72 },
+  ],
+  placements: [
+    { icon: "home",    title: "Main dwelling",      zone: "Zone 1 — SE bench",   note: "Max solar + sheltered from SW wind" },
+    { icon: "sprout",  title: "Orchard rows",       zone: "Zone 2 — N slope",    note: "E-SE orientation captures full sun arc" },
+    { icon: "leaf",    title: "Annual garden",      zone: "Zone 1 — S front",    note: "South-facing, sheltered, close access" },
+    { icon: "wind",    title: "Windbreak planting", zone: "Zone 3 — W boundary", note: "Mixed native hedge deflects SW cold wind" },
+    { icon: "droplet", title: "Water harvesting",   zone: "Zone 2 — SW swale",   note: "Intercepts W-SW runoff from slope" },
+    { icon: "sun",     title: "Solar infrastructure",zone: "Zone 1 — E-SE roof", note: "Unobstructed E-SE exposure, 9+ hrs sun" },
+  ],
+  designAlignment: [
+    { label: "Dwelling oriented to E-SE solar corridor",  status: "done"    },
+    { label: "Windbreak buffer on W boundary planned",    status: "done"    },
+    { label: "Water features intercept SW runoff",        status: "in-progress" },
+    { label: "NW frost pocket excluded from planting",    status: "done"    },
+    { label: "Access corridor from S entry confirmed",    status: "pending" },
+  ],
+  priorityActions: [
+    "Finalise windbreak species selection for W-SW boundary",
+    "Place Zone 1 dwelling footprint on SE bench using solar overlay",
+    "Install contour swale across SW sector for water harvesting",
+    "Validate NW frost pocket boundary with winter observation data",
+  ],
+};
+
+// SectorsMicroclimatesDashboardPage (`/observe/sectors-zones`).
+export const sectorsMicroclimatesDashboard = {
+  hero: {
+    moduleNumber: "MODULE 5 · SECTORS, MICROCLIMATES & ZONES",
+    title: "Sectors, Microclimates & Zones",
+    copy: "Map the zones and sectors that inform where and why design elements belong on the land.",
+  },
+  kpis: {
+    sectorAnalysisPlans: 4,
+    microclimates: 6,
+    zonesOutlined: 5,
+    observationDepth: 72,
+  },
+  synthesis: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  sectorCompassSectors: [
+    { dir: "N",  label: "Cold exposure",    tone: "dim",  deg: 0   },
+    { dir: "NE", label: "Morning sun",      tone: "gold", deg: 45  },
+    { dir: "E",  label: "Shelter",          tone: "green",deg: 90  },
+    { dir: "SE", label: "Prime solar",      tone: "gold", deg: 135 },
+    { dir: "S",  label: "Main access",      tone: "green",deg: 180 },
+    { dir: "SW", label: "Prevailing wind",  tone: "blue", deg: 225 },
+    { dir: "W",  label: "Cold wind",        tone: "blue", deg: 270 },
+    { dir: "NW", label: "Frost pocket",     tone: "dim",  deg: 315 },
+  ],
+  cartographicZones: [
+    { id: "1", label: "Zone 1 — Home",         color: "gold"  },
+    { id: "2", label: "Zone 2 — Productive",   color: "green" },
+    { id: "3", label: "Zone 3 — Orchard",      color: "sage"  },
+    { id: "4", label: "Zone 4 — Semi-wild",    color: "moss"  },
+    { id: "5", label: "Zone 5 — Wilderness",   color: "dim"   },
+  ],
+  designImplications: [
+    "N-slope buildings capture morning sun and avoid southern competition",
+    "Dense canopy sectors planned for windbreak along western boundary",
+    "Water features positioned to intercept W-SW runoff flow paths",
+    "SE-facing microclimate ideal for warm-season annual production",
+  ],
+  detectedOpportunities: [
+    "Solar access corridor open on SE slope for winter passive gain",
+    "Strong windbreak opportunity along W boundary using sector analysis",
+    "Zoning allows productive zone 2 to expand toward northern swale",
+    "Identified four distinct microclimate niches for species diversification",
+  ],
+  nextActions: [
+    "Place key structures using zone map and sector overlays",
+    "Finalise tree placement using windbreak sector analysis",
+    "Develop access and circulation plan between zones 1–3",
+    "Plan water system routes across zones using sector flow data",
+  ],
+};
+
+// ── M6 SWOT Dashboard (/observe/swot) ────────────────────────────────────
+export const swotDashboard = {
+  kpis: [
+    { label: "STRENGTHS",     value: 12, sub: "+3 this week", tone: "success" },
+    { label: "WEAKNESSES",    value:  8, sub: "2 unresolved", tone: "warning" },
+    { label: "OPPORTUNITIES", value: 10, sub: "+5 this week", tone: "gold"    },
+    { label: "THREATS",       value:  6, sub: "1 critical",   tone: "error"   },
+  ],
+  journalPreview: [
+    { date: "May 16, 2026", category: "strength",    title: "Rich topsoil depth in valley floor",      score: 88 },
+    { date: "May 15, 2026", category: "opportunity", title: "Adjacent farm partnership potential",      score: 76 },
+    { date: "May 14, 2026", category: "weakness",    title: "Limited water storage capacity",          score: 42 },
+    { date: "May 13, 2026", category: "threat",      title: "Buckthorn encroachment from north edge",  score: 35 },
+  ],
+  diagnosticPreview: [
+    { title: "Slope and contour well-suited for passive water harvesting", rating: 5, category: "strength"    },
+    { title: "No grey-water reuse system currently in place",              rating: 2, category: "weakness"    },
+    { title: "Carolinian corridor creates wildlife habitat potential",      rating: 5, category: "opportunity" },
+    { title: "Frost pocket risk in NW hollow affects planting viability",  rating: 3, category: "threat"      },
+  ],
+  designImplications: [
+    "Prioritise water-harvesting earthworks on mid-slope",
+    "Integrate windbreak plantings along NW frost pocket edge",
+    "Develop partnership MOU with adjacent organic farm",
+    "Schedule buckthorn removal before fruiting season",
+  ],
+  moduleHealth: {
+    dataCompleteness: 72,
+    insightQuality: "High",
+    synthesisStrength: "Developing",
+    lastUpdated: "May 3, 2026",
+    nextRecommendation: "Complete threat assessment to unlock Diagnosis Report",
+  },
+};
+
+// ── M6 SWOT Journal (/observe/swot/journal) ──────────────────────────────
+export const swotJournal = {
+  kpis: [
+    { label: "STRENGTHS",     value: 24, sub: "11 new"    },
+    { label: "WEAKNESSES",    value: 18, sub: "4 items"   },
+    { label: "OPPORTUNITIES", value: 22, sub: "8 items"   },
+    { label: "THREATS",       value: 16, sub: "3 critical"},
+    { label: "TOTAL ENTRIES", value: 80, sub: "all time"  },
+  ],
+  entries: [
+    { date: "May 16", category: "strength",    title: "Rich topsoil depth in valley floor",    description: "Soil tests confirm 30+ cm of A-horizon with 4.2% organic matter.",          location: "Zone 2",     zone: "2", score: 88, impact: "High" },
+    { date: "May 15", category: "opportunity", title: "Adjacent farm partnership potential",   description: "Neighbouring organic operation seeking shared CSA infrastructure.",           location: "Off-site",   zone: "5", score: 76, impact: "High" },
+    { date: "May 14", category: "weakness",    title: "Limited water storage capacity",        description: "Current 5,000 L tank insufficient for dry-season Zone 1-2 irrigation.",     location: "Zone 1",     zone: "1", score: 42, impact: "Med"  },
+    { date: "May 13", category: "threat",      title: "Buckthorn encroachment from N edge",    description: "Common buckthorn advancing from northern hedge. Removal before Sept critical.", location: "North edge", zone: "4", score: 35, impact: "High" },
+    { date: "May 12", category: "strength",    title: "Deep water table — hand pump viable",   description: "Borehole log shows water table at 8.4 m. Hand pump feasible without grid.",  location: "Centre",     zone: "2", score: 82, impact: "High" },
+    { date: "May 11", category: "opportunity", title: "Conservation Halton stewardship grant", description: "Riparian restoration grant available — window open until Jun 30.",           location: "East third", zone: "5", score: 70, impact: "Med"  },
+    { date: "May 10", category: "weakness",    title: "No greywater reuse system in place",    description: "Household greywater to septic. Estimated 180 L/day reuse potential untapped.", location: "Zone 1",   zone: "1", score: 38, impact: "Med"  },
+    { date: "May 9",  category: "strength",    title: "Established orchard — 18 mature trees", description: "Heritage apple and pear varieties. Low input. Canopy buffers microclimate.",  location: "Zone 2-3",   zone: "2", score: 79, impact: "Med"  },
+  ],
+  featuredItems: [
+    { category: "strength",    title: "Rich topsoil depth",        score: 88 },
+    { category: "opportunity", title: "Conservation Halton grant", score: 70 },
+  ],
+  recurringThemes: ["Water management", "Soil health", "Partnerships", "Invasive species", "Microclimate"],
+};
+
+// ── M6 SWOT Synthesis / Diagnosis Report (/observe/swot/synthesis) ───────
+export const swotSynthesis = {
+  executiveSummary: "Ironwood Lane has strong natural assets — productive soils, accessible water table, and mature Carolinian cover — alongside an engaged steward with a long-term vision. Primary design leverage points are water storage, windbreak placement, and formalising the adjacent farm partnership. Threats are manageable with early-season action.",
+  provisionalFindings: [
+    { title: "Slope and contour are well-suited for passive water harvesting", rating: 5, category: "strength"    },
+    { title: "No grey-water reuse system currently in place",                  rating: 2, category: "weakness"    },
+    { title: "Carolinian corridor creates wildlife habitat corridor potential", rating: 5, category: "opportunity" },
+    { title: "Buckthorn pressure requires early-season removal programme",      rating: 3, category: "threat"      },
+    { title: "Access & circulation paths need formalising across Zone 3-4",    rating: 3, category: "weakness"    },
+  ],
+  swotDiamond: { strengths: 7.5, weaknesses: 4.2, opportunities: 6.8, threats: 3.9 },
+  riskFlags: [
+    { level: "high",   title: "Buckthorn fruiting before removal — seed spread risk",  due: "Aug 15, 2026"  },
+    { level: "medium", title: "Frost pocket threatens Zone 1 winter plantings",        due: "Oct 1, 2026"   },
+    { level: "low",    title: "Grant application deadline for riparian restoration",    due: "Jun 30, 2026"  },
+  ],
+  topInsights: [
+    "Soils are the single strongest asset — protect from compaction and leverage for rapid guild establishment.",
+    "Water storage is the binding constraint on Zone 1-2 food production. A 25,000 L earthworks system resolves it.",
+    "Engage with nearby organic farm before next planting season to align CSA scheduling.",
+    "Buckthorn removal is time-critical: act before late-August fruiting to prevent further spread.",
+  ],
+  evidenceFromJournal: [
+    { date: "May 12", category: "strength",    title: "Deep water table accessible",        score: 82 },
+    { date: "May 15", category: "opportunity", title: "Adjacent farm partnership potential", score: 76 },
+    { date: "May 13", category: "threat",      title: "Buckthorn encroachment from N edge",  score: 35 },
+  ],
+  recommendedActions: [
+    { title: "Design swale network for mid-slope Zone 2",       priority: "High", due: "Jun 2026"     },
+    { title: "Schedule buckthorn removal crew",                  priority: "High", due: "Jul 2026"     },
+    { title: "Draft partnership MOU with adjacent organic farm", priority: "Med",  due: "Jun 2026"     },
+    { title: "Apply for Conservation Halton riparian grant",     priority: "Med",  due: "Jun 30, 2026" },
+  ],
 };

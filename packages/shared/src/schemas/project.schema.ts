@@ -50,6 +50,9 @@ export const ProjectMetadata = z.object({
   avgDailySolarKwhM2: z.number().optional(),
   prevailingWindDir: z.string().max(20).optional(),
   climateNormals: z.string().max(100).optional(),
+  // Human-context fields captured by intake wizard / steward survey
+  stewardName: z.string().max(200).optional(),
+  visionStatement: z.string().max(2000).optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

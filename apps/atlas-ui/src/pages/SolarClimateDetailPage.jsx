@@ -14,10 +14,11 @@ import {
   AppShell,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { solarClimateDetail as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -31,16 +32,17 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/macro
 const solarIconMap = { sun: Sun, droplet: Droplet, leaf: Leaf, wind: Wind, snowflake: Snowflake, sprout: Sprout };
 
 export function SolarClimateDetailPage() {
-  const { siteBanner } = useBuiltinProject();
+  const { project, siteBanner } = useBuiltinProject();
+  const meta = project?.metadata ?? {};
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Data" />
-      <main className="detail-page solar-detail-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page solar-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+        <ProjectDataStatus />
         <section className="solar-detail-layout">
           <div className="solar-detail-main">
             <SolarHero />
-            <SolarKpis />
+            <SolarKpis meta={meta} />
             <section className="solar-chart-grid">
               <ClimateOverviewCard />
               <SolarPathCard />
@@ -62,7 +64,7 @@ export function SolarClimateDetailPage() {
           <span><b>Last updated:</b> {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
           <span className="synced-dot">{siteBanner.syncStatus}</span>
         </footer>
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
@@ -87,10 +89,19 @@ function SolarHero() {
   );
 }
 
-function SolarKpis() {
+function SolarKpis({ meta }) {
+  const kpis = [
+    ["sun",       "Hardiness zone",    meta.hardinessZone ?? vm.kpis[0][2],                                                    vm.kpis[0][3], "gold"],
+    ["droplet",   "Annual precip.",    meta.annualPrecipMm  ? `${meta.annualPrecipMm} mm`          : vm.kpis[1][2],             vm.kpis[1][3], "blue"],
+    ["leaf",      "Frost-free days",   meta.frostFreeDays   ? String(meta.frostFreeDays)            : vm.kpis[2][2],             vm.kpis[2][3], "green"],
+    ["sun",       "Avg daily solar",   meta.avgDailySolarKwhM2 ? `${meta.avgDailySolarKwhM2} kWh/m²/day` : vm.kpis[3][2],      vm.kpis[3][3], "gold"],
+    ["wind",      "Prevailing wind",   meta.prevailingWindDir ?? vm.kpis[4][2],                                                 vm.kpis[4][3], "green"],
+    ["sun",       "Last spring frost", meta.lastFrostAvg    ?? vm.kpis[5][2],                                                   vm.kpis[5][3], "dim"],
+    ["snowflake", "First fall frost",  meta.firstFallFrostAvg ?? vm.kpis[6][2],                                                 vm.kpis[6][3], "blue"],
+  ];
   return (
     <section className="solar-kpi-grid">
-      {vm.kpis.map(([iconKey, label, value, note, tone]) => {
+      {kpis.map(([iconKey, label, value, note, tone]) => {
         const Icon = solarIconMap[iconKey];
         return (
           <SurfaceCard className={`solar-kpi ${tone}`} key={label}>

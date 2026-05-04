@@ -1,9 +1,11 @@
 import { BookOpen, CalendarDays, Leaf, Layers3, Sprout } from "lucide-react";
 import { ActionCard } from "../components/ActionCard.jsx";
+import { AppShell } from "../components/AppShell.jsx";
 import { CroppedArt } from "../components/CroppedArt.jsx";
 import { MetricStrip } from "../components/MetricStrip.jsx";
 import { ModuleCard } from "../components/ModuleCard.jsx";
 import { QaOverlay } from "../components/QaOverlay.jsx";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import {
   observeStageMetrics,
@@ -64,7 +66,8 @@ const modules = observeModules;
 
 export function ObservePage() {
   return (
-    <main className="observe-screen">
+    <AppShell navConfig={observeNav}>
+      <div className="observe-screen">
       <section className="observe-frame" aria-labelledby="observe-title">
         <HeroPanel />
         <MetricStrip metrics={metrics} ariaLabel="Stage summary metrics" />
@@ -114,7 +117,8 @@ export function ObservePage() {
           nativeHeight={observeMetadata.viewport.height}
         />
       ) : null}
-    </main>
+      </div>
+    </AppShell>
   );
 }
 

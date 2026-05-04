@@ -21,10 +21,11 @@ import {
   ModuleSummaryCard,
   ProjectOverviewCard,
   QaOverlay,
-  SideRail,
   TopStageBar
 } from "../components/index.js";
+import { EmptyState, Skeleton } from "../components/primitives/index.js";
 import { ProgressRing } from "../components/ProgressRing.jsx";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import {
   observeStageProgress,
@@ -39,20 +40,33 @@ import sectorMap from "../assets/generated/observe-dashboard/sector-map.png";
 const dashboardMetadata = screenCatalog.find((screen) => screen.route === "/observe/dashboard");
 
 export function ObserveDashboardPage() {
-  const { assessment, siteBanner } = useBuiltinProject();
+  const { assessment, siteBanner, status, retry } = useBuiltinProject();
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="dashboard-page">
+    <AppShell navConfig={observeNav}>
+      <div className="dashboard-page">
         <TopStageBar />
         <section className="dashboard-hero-row">
           <DashboardHero />
           <ProjectOverviewCard mapSrc={siteMapThumb} />
         </section>
-        <DashboardProgress assessment={assessment} siteBanner={siteBanner} />
-        {assessment?.flags?.length > 0 && <SiteFlags flags={assessment.flags} />}
+        {status === "loading" && !assessment ? (
+          <DashboardProgressSkeleton />
+        ) : status === "error" && !assessment ? (
+          <EmptyState
+            variant="error"
+            icon={AlertTriangle}
+            title="Couldn't load site assessment"
+            description="The data service is unreachable. Showing static sample where possible."
+            action={{ label: "Retry", onClick: retry }}
+          />
+        ) : (
+          <>
+            <DashboardProgress assessment={assessment} siteBanner={siteBanner} />
+            {assessment?.flags?.length > 0 && <SiteFlags flags={assessment.flags} />}
+          </>
+        )}
         <DashboardCards />
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={dashboardMetadata.reference}
@@ -108,6 +122,30 @@ function DashboardProgress({ assessment, siteBanner }) {
       {assessment?.overallScore != null && (
         <ProgressMetric icon={<Gauge />} label="Site score" value={`${Math.round(assessment.overallScore)}`} note={`/ 100 · ${assessment.confidence ?? "medium"}`} />
       )}
+    </section>
+  );
+}
+
+function DashboardProgressSkeleton() {
+  return (
+    <section className="dashboard-progress-band" aria-busy="true" aria-label="Loading stage progress">
+      <div className="dashboard-progress-band__main">
+        <Skeleton width={120} height={14} />
+        <Skeleton width={88} height={88} radius={44} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+          <Skeleton width="60%" height={18} />
+          <Skeleton width="100%" height={6} radius={4} />
+          <Skeleton width="80%" height={12} />
+        </div>
+      </div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="dashboard-progress-metric green" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <Skeleton width={28} height={28} radius={6} />
+          <Skeleton width="60%" height={12} />
+          <Skeleton width="40%" height={20} />
+          <Skeleton width="80%" height={10} />
+        </div>
+      ))}
     </section>
   );
 }
@@ -274,11 +312,11 @@ function SiteFlags({ flags }) {
     <section className="dashboard-site-flags" aria-label="Site flags">
       <h3 className="dashboard-site-flags__heading"><AlertTriangle aria-hidden="true" /> Site Flags</h3>
       <div className="dashboard-site-flags__list">
-        {flags.map((f) => {
+        {flags.map((f, i) => {
           const tone = FLAG_CSS_TONE[f.severity] ?? "low";
-          const label = f.flag.replace(/_/g, " ");
+          const label = (f.flag ?? "").replace(/_/g, " ");
           return (
-            <div key={f.flag} className={`site-flag site-flag--${tone}`}>
+            <div key={f.flag ?? i} className={`site-flag site-flag--${tone}`}>
               <div className="site-flag__meta">
                 <span className="site-flag__severity">{f.severity}</span>
               </div>

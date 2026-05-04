@@ -16,12 +16,14 @@ import {
   InsightSidebar,
   ProgressRing,
   QaOverlay,
-  SideRail,
-  SurfaceCard
+  SurfaceCard,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { SelectField, TextAreaField, TextInput } from "../components/FormFields.jsx";
 import { screenCatalog } from "../screenCatalog.js";
 import { stewardSurvey as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import heroLandscape from "../assets/generated/steward-survey/hero-landscape.png";
 import capacityOrbit from "../assets/generated/steward-survey/capacity-orbit.png";
 
@@ -31,10 +33,10 @@ const themeIconMap = { leaf: Leaf, users: Users, clock: Clock3 };
 
 export function StewardSurveyPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page steward-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page steward-page">
         <BreadcrumbBar items={vm.breadcrumb} />
+        <ProjectDataStatus />
         <div className="detail-layout">
           <div className="detail-main">
             <ModuleHero
@@ -50,7 +52,7 @@ export function StewardSurveyPage() {
           </div>
           <StewardSnapshot />
         </div>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -89,11 +91,13 @@ function FormCard({ number, title, icon: Icon, children, className = "" }) {
 }
 
 function IdentityCard() {
+  const { project } = useBuiltinProject();
   const i = vm.identity;
+  const name = project?.metadata?.stewardName ?? i.name;
   return (
     <FormCard number="1" title="Identity" icon={UserRound}>
       <div className="field-grid identity-grid">
-        <TextInput label="Name" value={i.name} />
+        <TextInput label="Name" value={name} />
         <TextInput label="Age" value={i.age} />
         <TextInput label="Occupation" value={i.occupation} />
         <SelectField label="Lifestyle" value={i.lifestyle} options={i.lifestyleOptions} />
@@ -137,13 +141,15 @@ function CapacityCard() {
 }
 
 function VisionCard() {
+  const { project } = useBuiltinProject();
+  const statement = project?.metadata?.visionStatement ?? vm.vision.statement;
   const themeChips = vm.vision.themes.map((t) =>
     typeof t === "string" ? t : { label: t.label, icon: themeIconMap[t.iconKey] }
   );
   return (
     <FormCard number="3" title="Vision" icon={Sprout}>
       <div className="vision-grid">
-        <TextAreaField label="In your own words" value={vm.vision.statement} />
+        <TextAreaField label="In your own words" value={statement} />
         <div className="theme-box">
           <span>Vision themes detected</span>
           <ChipList items={themeChips} />

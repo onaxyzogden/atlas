@@ -251,6 +251,82 @@ export const screenCatalog = [
     dependencies: ["app shell", "stage tracker", "KPI cards", "preview panels", "insight sidebar"]
   },
   {
+    id: "observe-m5-cartographic-detail",
+    route: "/observe/sectors-zones/cartographic-detail",
+    title: "Cartographic Detail",
+    reference: "OLOS_OBSERVE_M5_Cartograph.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "terrain tool",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "breadcrumb nav",
+      "page header",
+      "five KPI cards",
+      "map layers toggle panel",
+      "large cartographic SVG with zone overlays and sector lines",
+      "map controls overlay",
+      "legend panel",
+      "detected patterns sidebar",
+      "next actions sidebar",
+      "map information sidebar"
+    ],
+    interactions: ["back nav", "layer toggles", "map controls", "export page", "view patterns", "view recommendations"],
+    cropCategories: ["cartographic zone map SVG", "layer panel"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "SVG art", "layer list"]
+  },
+  {
+    id: "observe-m5-sector-compass",
+    route: "/observe/sectors-zones/sector-compass",
+    title: "Sector Compass",
+    reference: "OLOS_OBSERVE_M5_SectorCompass.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "terrain tool",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "breadcrumb nav",
+      "page header",
+      "five KPI cards",
+      "large sector compass SVG",
+      "site map with sector overlay",
+      "sector observations list",
+      "3x2 recommended placements grid",
+      "design alignment checklist",
+      "priority actions list"
+    ],
+    interactions: ["back nav", "sector overlays", "export report", "add placement", "view design log"],
+    cropCategories: ["sector compass SVG", "site map SVG"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "SVG art", "data table"]
+  },
+  {
+    id: "observe-m5-sectors-zones-dashboard",
+    route: "/observe/sectors-zones",
+    title: "Sectors, Microclimates & Zones",
+    reference: "OLOS_OBSERVE_M5_dashboard.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "module dashboard",
+    complexity: "high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "module header",
+      "four KPI cards",
+      "synthesis card",
+      "sector compass preview",
+      "cartographic detail preview",
+      "right design implications sidebar"
+    ],
+    interactions: ["open sector compass", "open cartographic detail", "view sectors", "view zone map", "sector site analysis"],
+    cropCategories: ["sector compass SVG", "cartographic zone map SVG"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "progress ring", "SVG art"]
+  },
+  {
     id: "observe-m2-solar-climate-detail",
     route: "/observe/macroclimate-hazards/solar-climate",
     title: "Solar & Climate Detail",
@@ -275,6 +351,80 @@ export const screenCatalog = [
     interactions: ["export climate report", "compare seasons", "open climate sources", "add to design plan"],
     cropCategories: ["hero sunscape", "monthly climate chart", "solar path chart", "wind rose"],
     dependencies: ["app shell", "stage tracker", "KPI cards", "chart panels", "priority sidebar", "status footer"]
+  },
+  {
+    id: "observe-m6-swot-dashboard",
+    route: "/observe/swot",
+    title: "SWOT Synthesis",
+    reference: "OLOS_OBSERVE_M6_SwotDashboard.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "module dashboard",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left suite rail",
+      "top breadcrumb and stage tracker",
+      "module hero",
+      "four SWOT quadrant cards",
+      "synthesis-how card",
+      "journal preview card",
+      "diagnosis report preview card",
+      "design implications sidebar",
+      "module health strip"
+    ],
+    interactions: ["open journal", "open diagnosis report", "create action plan", "export synthesis"],
+    cropCategories: ["quadrant illustrations", "venn diagram"],
+    dependencies: ["app shell", "stage tracker", "quadrant cards", "preview cards", "implications sidebar", "health strip"]
+  },
+  {
+    id: "observe-m6-swot-journal",
+    route: "/observe/swot/journal",
+    title: "SWOT Journal",
+    reference: "OLOS_OBSERVE_M6_SwotJournal.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "journal table",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left terralens rail",
+      "top process tracker",
+      "journal header and actions",
+      "five KPI cards",
+      "filter bar",
+      "entries table",
+      "emerging patterns sidebar",
+      "recurring themes sidebar",
+      "recommended follow-ups sidebar"
+    ],
+    interactions: ["add entry", "export journal", "send to diagnosis report", "filter", "search", "pagination"],
+    cropCategories: ["KPI illustrations"],
+    dependencies: ["app shell", "process tracker", "KPI cards", "data table", "side panels"]
+  },
+  {
+    id: "observe-m6-swot-diagnosis-report",
+    route: "/observe/swot/diagnosis-report",
+    title: "Diagnosis Report",
+    reference: "OLOS_OBSERVE_M6_SwotSynthesis.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "synthesis report",
+    complexity: "very high",
+    status: "prototype-built",
+    majorRegions: [
+      "left verdean rail",
+      "top breadcrumb and report actions",
+      "stage bar",
+      "report hero with generated stamp",
+      "executive summary card",
+      "SWOT diamond radar overview",
+      "top insights",
+      "prioritized findings table",
+      "risk flags",
+      "evidence from journal",
+      "recommended actions"
+    ],
+    interactions: ["export report", "share summary", "add to design plan", "open journal"],
+    cropCategories: ["radar diamond SVG"],
+    dependencies: ["app shell", "report cards", "radar SVG", "data lists"]
   }
 ];
 

@@ -21,10 +21,11 @@ import {
   CroppedArt,
   ProgressRing,
   QaOverlay,
-  SideRail,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { earthWaterEcologyPage as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -75,14 +76,14 @@ export function EarthWaterEcologyPage() {
     : null;
 
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page diagnostics-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page diagnostics-page">
         <TopStageBar
           stage="Stage 1 of 3"
           module="Roots & Diagnosis · Module 4"
           actionLabel="Module settings"
         />
+        <ProjectDataStatus />
         <ModuleHeader />
         <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
         <TabsAndActions />
@@ -95,7 +96,7 @@ export function EarthWaterEcologyPage() {
           <RecommendedActionsCard />
         </section>
         <StatusFooter />
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}

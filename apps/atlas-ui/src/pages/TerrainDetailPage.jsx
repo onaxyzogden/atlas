@@ -18,10 +18,11 @@ import {
   AppShell,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { terrainDetail as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
@@ -62,10 +63,10 @@ export function TerrainDetailPage() {
   const { assessment } = useBuiltinProject();
   const terrain = assessment?.terrainAnalysis ?? null;
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Map" />
-      <main className="detail-page terrain-detail-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page terrain-detail-page">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+        <ProjectDataStatus />
         <TerrainHeader />
         <TerrainMetrics terrain={terrain} />
         <section className="terrain-workspace">
@@ -79,7 +80,7 @@ export function TerrainDetailPage() {
           <TerrainSidebar terrain={terrain} />
         </section>
         <TerrainFooter />
-      </main>
+      </div>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

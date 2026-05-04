@@ -17,12 +17,14 @@ import {
   ChipList,
   CroppedArt,
   QaOverlay,
-  SideRail,
   SurfaceCard,
-  TopStageBar
+  TopStageBar,
+  ProjectDataStatus
 } from "../components/index.js";
+import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { visionPage as vm } from "../data/builtin-sample.js";
+import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import conceptLandscape from "../assets/generated/vision/concept-landscape.png";
 import moodboardGrid from "../assets/generated/vision/moodboard-grid.png";
 
@@ -32,10 +34,10 @@ const iconMap = { sprout: Sprout, users: Users, leaf: Leaf, droplet: Droplet, he
 
 export function VisionPage() {
   return (
-    <AppShell className="observe-dashboard-shell">
-      <SideRail active="Overview" />
-      <main className="detail-page vision-page">
+    <AppShell navConfig={observeNav}>
+      <div className="detail-page vision-page">
         <TopStageBar />
+        <ProjectDataStatus />
         <section className="vision-top-grid">
           <VisionIntro />
           <ConceptPanel />
@@ -58,7 +60,7 @@ export function VisionPage() {
           <span>{vm.proverb}</span>
           <b>- Indigenous proverb</b>
         </footer>
-      </main>
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
@@ -89,10 +91,12 @@ function ConceptPanel() {
 }
 
 function QuotePanel() {
+  const { project } = useBuiltinProject();
+  const oneSentence = project?.metadata?.visionStatement ?? vm.oneSentence;
   return (
     <SurfaceCard className="quote-panel">
       <h2>Vision in one sentence <Sun aria-hidden="true" /></h2>
-      <blockquote>{vm.oneSentence}</blockquote>
+      <blockquote>{oneSentence}</blockquote>
       <button className="outlined-button" type="button"><Edit3 aria-hidden="true" /> Edit vision statement</button>
     </SurfaceCard>
   );
