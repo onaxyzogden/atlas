@@ -251,6 +251,29 @@ export const screenCatalog = [
     dependencies: ["app shell", "stage tracker", "KPI cards", "preview panels", "insight sidebar"]
   },
   {
+    id: "observe-m5-sectors-zones-dashboard",
+    route: "/observe/sectors-zones",
+    title: "Sectors, Microclimates & Zones",
+    reference: "OLOS_OBSERVE_M5_dashboard.png",
+    viewport: { width: 1672, height: 941 },
+    pageType: "module dashboard",
+    complexity: "high",
+    status: "prototype-built",
+    majorRegions: [
+      "left app rail",
+      "top stage tracker",
+      "module header",
+      "four KPI cards",
+      "synthesis card",
+      "sector compass preview",
+      "cartographic detail preview",
+      "right design implications sidebar"
+    ],
+    interactions: ["open sector compass", "open cartographic detail", "view sectors", "view zone map", "sector site analysis"],
+    cropCategories: ["sector compass SVG", "cartographic zone map SVG"],
+    dependencies: ["app shell", "stage tracker", "KPI cards", "progress ring", "SVG art"]
+  },
+  {
     id: "observe-m2-solar-climate-detail",
     route: "/observe/macroclimate-hazards/solar-climate",
     title: "Solar & Climate Detail",

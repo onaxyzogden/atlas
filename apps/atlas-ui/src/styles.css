@@ -6990,3 +6990,291 @@ img.footprint-art {
     text-align: center;
   }
 }
+
+/* ─── M5 Sectors, Microclimates & Zones Dashboard ────────────────────────── */
+
+.sectors-page {
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px 24px;
+  gap: 0;
+}
+
+.sectors-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sectors-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Header */
+.sectors-header {
+  padding: 14px 0 4px;
+}
+
+.sectors-header h1 {
+  margin: 10px 0 8px;
+  font-family: var(--olos-font-display);
+  font-size: clamp(32px, 2.8vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--olos-cream);
+}
+
+.sectors-header p {
+  margin: 0;
+  color: var(--olos-text-body);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+.sectors-location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(165, 199, 54, 0.1);
+  border: 1px solid rgba(165, 199, 54, 0.22);
+  color: var(--olos-green);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* KPI strip */
+.sectors-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.sectors-kpi-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.sectors-kpi-card svg:first-child {
+  width: 18px;
+  height: 18px;
+  margin-bottom: 4px;
+}
+
+.sectors-kpi-card span {
+  color: var(--olos-text-label);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sectors-kpi-card strong {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--olos-cream);
+  line-height: 1;
+}
+
+.sectors-kpi-card small {
+  color: var(--olos-text-label);
+  font-size: 11px;
+}
+
+.sectors-kpi-card.green svg:first-child { color: var(--olos-green); }
+.sectors-kpi-card.gold  svg:first-child { color: var(--olos-gold-bright); }
+
+/* Synthesis card */
+.sectors-synthesis-card {
+  padding: 18px 20px;
+}
+
+.sectors-synthesis-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-family: var(--olos-font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--olos-green);
+}
+
+.sectors-synthesis-card h2 svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sectors-synthesis-card > p {
+  margin: 0 0 14px;
+  color: var(--olos-text-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sectors-synthesis-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Tool grid (compass + cartographic) */
+.sectors-tool-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+}
+
+.sectors-tool-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  min-height: 260px;
+}
+
+.sectors-tool-card__header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 5px;
+  font-family: var(--olos-font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--olos-cream);
+  letter-spacing: normal;
+  line-height: 1.2;
+}
+
+.sectors-tool-card__header h2 svg {
+  width: 15px;
+  height: 15px;
+  color: var(--olos-gold);
+}
+
+.sectors-tool-card__header p {
+  margin: 0;
+  color: var(--olos-text-label);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.compass-art-wrap,
+.cartographic-art-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.compass-svg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+}
+
+.cartographic-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sectors-open-btn {
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Sidebar */
+.sectors-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 0;
+}
+
+.sectors-sidebar-card {
+  padding: 16px 18px;
+}
+
+.sectors-sidebar-card h2 {
+  margin: 0 0 12px;
+  font-family: var(--olos-font-ui);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--olos-gold);
+}
+
+.sectors-implication,
+.sectors-opportunity,
+.sectors-next-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 9px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--olos-text-body);
+}
+
+.sectors-implication:last-of-type,
+.sectors-opportunity:last-of-type,
+.sectors-next-action:last-of-type {
+  margin-bottom: 0;
+}
+
+.sectors-implication svg,
+.sectors-opportunity svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--olos-green);
+}
+
+.sectors-next-action b {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(183, 131, 45, 0.18);
+  color: var(--olos-gold-bright);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sectors-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13px;
+}

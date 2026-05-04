@@ -722,3 +722,54 @@ export const earthWaterEcologyPage = {
     ["Conduct biological aeration", "Reduce compaction, improve infiltration.", "Medium", "Due in 30 days"]
   ]
 };
+
+// SectorsMicroclimatesDashboardPage (`/observe/sectors-zones`).
+export const sectorsMicroclimatesDashboard = {
+  hero: {
+    moduleNumber: "MODULE 5 · SECTORS, MICROCLIMATES & ZONES",
+    title: "Sectors, Microclimates & Zones",
+    copy: "Map the zones and sectors that inform where and why design elements belong on the land.",
+  },
+  kpis: {
+    sectorAnalysisPlans: 4,
+    microclimates: 6,
+    zonesOutlined: 5,
+    observationDepth: 72,
+  },
+  synthesis: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  sectorCompassSectors: [
+    { dir: "N",  label: "Cold exposure",    tone: "dim",  deg: 0   },
+    { dir: "NE", label: "Morning sun",      tone: "gold", deg: 45  },
+    { dir: "E",  label: "Shelter",          tone: "green",deg: 90  },
+    { dir: "SE", label: "Prime solar",      tone: "gold", deg: 135 },
+    { dir: "S",  label: "Main access",      tone: "green",deg: 180 },
+    { dir: "SW", label: "Prevailing wind",  tone: "blue", deg: 225 },
+    { dir: "W",  label: "Cold wind",        tone: "blue", deg: 270 },
+    { dir: "NW", label: "Frost pocket",     tone: "dim",  deg: 315 },
+  ],
+  cartographicZones: [
+    { id: "1", label: "Zone 1 — Home",         color: "gold"  },
+    { id: "2", label: "Zone 2 — Productive",   color: "green" },
+    { id: "3", label: "Zone 3 — Orchard",      color: "sage"  },
+    { id: "4", label: "Zone 4 — Semi-wild",    color: "moss"  },
+    { id: "5", label: "Zone 5 — Wilderness",   color: "dim"   },
+  ],
+  designImplications: [
+    "N-slope buildings capture morning sun and avoid southern competition",
+    "Dense canopy sectors planned for windbreak along western boundary",
+    "Water features positioned to intercept W-SW runoff flow paths",
+    "SE-facing microclimate ideal for warm-season annual production",
+  ],
+  detectedOpportunities: [
+    "Solar access corridor open on SE slope for winter passive gain",
+    "Strong windbreak opportunity along W boundary using sector analysis",
+    "Zoning allows productive zone 2 to expand toward northern swale",
+    "Identified four distinct microclimate niches for species diversification",
+  ],
+  nextActions: [
+    "Place key structures using zone map and sector overlays",
+    "Finalise tree placement using windbreak sector analysis",
+    "Develop access and circulation plan between zones 1–3",
+    "Plan water system routes across zones using sector flow data",
+  ],
+};
