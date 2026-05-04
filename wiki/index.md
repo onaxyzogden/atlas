@@ -19,6 +19,9 @@ Read this first at the start of every session.
 - [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
 - [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 
+## Inquiries
+- [2026-05-04 IGRAC GGIS Licence Clarification](inquiries/2026-05-04-igrac-ggis-licence-clarification.md) — Outbound email draft to IGRAC contact resolving the CC-BY vs CC-BY-NC discrepancy + derivative-summary status; gates the Phase 8.2-A accepted ADR
+
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens
 - [Scoring Engine](concepts/scoring-engine.md) — 8 weighted dimensions + 2-3 classifications, ~140+ components, WithConfidence, Tier 3 integration
