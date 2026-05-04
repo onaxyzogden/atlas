@@ -27,8 +27,15 @@ External-data verification ([`wiki/concepts/external-data-sources.md`](../concep
   Atlas is in R&D phase, so research-tier use is in scope now;
   commercial-use clearance is a launch gate, tracked separately on
   [`wiki/inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md`](../inquiries/2026-05-04-wdpa-unep-wcmc-commercial-licence.md).
-- **ECCC ESG.** OGL-Canada 2.0; static dataset (last refresh 2023);
-  caveat copy must surface vintage honestly.
+- **CPCAD (2026-05-04 correction).** The CA-tier source is the
+  **Canadian Protected and Conserved Areas Database (CPCAD)**,
+  not the ECCC Ecological Gifts Program subset originally cited.
+  CPCAD contains all 22,438 legally-protected areas + OECMs in
+  Canada; OGL-Canada 2.0 licence; annual refresh. GDB schema
+  verified against the 2025 release (file geodatabase, Canada
+  Albers Equal Area Conic → reproject to EPSG:4326 on ingest).
+  Ecological Gifts features are a subset of CPCAD (TYPE_E =
+  "Ecological Gift"); no separate ECCC ESG import is needed.
 - **NCED.** Terms-of-use not yet captured. Verification before
   ingest is a 8.2-B.1 task.
 
@@ -51,9 +58,10 @@ development; commercial-use clearance is a launch-readiness gate,
      the protectedplanet.net dump.
    - **US.** NCED — voluntary easements layered on top of WDPA.
      Quarterly refresh; fall back to WDPA-only where NCED is empty.
-   - **CA.** ECCC ESG — voluntary ecological gifts layered on top
-     of WDPA. Static-import-once with a `vintage: 2023` stamp;
-     diagnosis-report copy surfaces the staleness explicitly.
+   - **CA.** CPCAD (Canadian Protected and Conserved Areas Database)
+     — all legally-protected areas + OECMs, layered on top of WDPA
+     for Canadian parcels. Annual refresh; diagnosis-report copy
+     surfaces per-feature designation type and IUCN category.
 3. **Display order.** When a parcel intersects features from
    multiple sources, the overlay renders all of them — voluntary
    easements aren't a substitute for legal designation, and the
@@ -63,9 +71,10 @@ development; commercial-use clearance is a launch-readiness gate,
    - WDPA: "© UNEP-WCMC and IUCN, World Database on Protected
      Areas (`<ingest_vintage>`)."
    - NCED: per-record source attribution; cite NCED as aggregator.
-   - ECCC ESG: "Contains information licensed under the Open
-     Government Licence — Canada. Source: ECCC Ecological Gifts
-     Program (vintage: 2023)."
+   - CPCAD: "Contains information licensed under the Open
+     Government Licence — Canada. Source: Canadian Protected and
+     Conserved Areas Database (CPCAD), Environment and Climate
+     Change Canada."
 
 ## Consequences
 
@@ -103,9 +112,14 @@ development; commercial-use clearance is a launch-readiness gate,
    metadata.
 3. **8.2-B.3 — NCED adapter + quarterly ingest.** New
    `NcedAdapter`; quarterly ingest from NCED's published bundle.
-4. **8.2-B.4 — ECCC ESG static import.** One-time import of the
-   2023 dump; tag with `vintage: 2023`. No refresh job needed
-   until ECCC publishes an update.
+4. **8.2-B.4 — CPCAD annual import.** Import GDB from
+   `ProtectedConservedArea_<YYYY>.gdb`; reproject from Canada Albers
+   Equal Area Conic to EPSG:4326 during ingest; filter to
+   `STATUS = 1` (established) + `BIOME = 'T'` (terrestrial).
+   Tag with `source = 'CPCAD'`, `ingest_vintage = '<YYYY>'`.
+   Annual refresh job re-runs each spring when ECCC publishes the
+   updated GDB. Local 2025 GDB already verified at
+   `C:\Users\...\Downloads\ProtectedConservedArea_2025`.
 5. **8.2-B.5 — Pipeline + diagnosis-report integration.**
    Conservation-overlay endpoint returns per-feature provenance;
    diagnosis-report template strings updated with per-source
@@ -118,8 +132,8 @@ development; commercial-use clearance is a launch-readiness gate,
   paid-diagnosis launch.
 - **NCED licence capture (8.2-B.1).** Block 8.2-B.2 only if NCED's
   terms forbid even research-tier ingest — unlikely, but verify.
-- **ECCC ESG refresh signal.** Watch for a new ECCC publication;
-  swap the static import for a refresh job when one lands.
+- **CPCAD annual refresh.** Watch ECCC's open.canada.ca page for the
+  updated GDB each spring; update ingest job constant and re-run.
 
 ## References
 

@@ -194,18 +194,45 @@ here — they're documented in their service files.
   scoping ADR. **Verification needed before ingest.**
 - **URL.** <https://www.conservationeasement.us>
 
-### ECCC Ecological Gifts Program
+### CPCAD — Canadian Protected and Conserved Areas Database
 
-- **Use.** Canada voluntary-easement detail in the 8.2-B tiered
-  overlay.
-- **Coverage.** Canada, gift-record level.
-- **Vintage.** Static dataset — last refresh 2023 (per the
-  groundwater-ESG scoping ADR's context section). Diagnosis reports
-  must surface this honestly; this is not a live feed.
+- **Use.** CA-tier source for the 8.2-B conservation overlay. Supersedes
+  the "ECCC Ecological Gifts Program" assumption in the original scoping
+  ADR — CPCAD is the authoritative national database that includes
+  Ecological Gifts as a `TYPE_E` subset.
+- **Coverage.** Canada; all legally-protected areas + OECMs at the
+  national/provincial/territorial level. **22,438 features** in the
+  2025 release (verified from local GDB).
+- **Vintage.** Annual refresh; 2025 release confirmed and available locally.
+  ECCC publishes updated GDB each spring on open.canada.ca.
 - **Licence.** Open Government Licence — Canada (OGL-Canada 2.0,
   same as AAFC ACI). Attribution required; redistribution and
   derivative works permitted.
-- **URL.** <https://www.canada.ca/en/environment-climate-change/services/environmental-funding/ecological-gifts-program.html>
+- **Attribution string.** "Contains information licensed under the
+  Open Government Licence — Canada. Source: Canadian Protected and
+  Conserved Areas Database (CPCAD), Environment and Climate Change Canada."
+- **URL.** <https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c>
+- **Local file (2025 release).** `C:\Users\...\Downloads\ProtectedConservedArea_2025\ProtectedConservedArea_2025.gdb`
+
+**Confirmed schema (2026-05-04, verified from ogrinfo on live GDB):**
+
+| GDB column | Type | Atlas `conservation_overlay_features` mapping |
+|---|---|---|
+| `ZONE_ID` | int | `source_record_id` (cast to text) |
+| `NAME_E` | string | `designation_name` |
+| `TYPE_E` | string | `designation_type` (e.g. "Provincial Park", "Ecological Gift") |
+| `MGMT_E` | string | `attribution` (managing authority) |
+| `IUCN_CAT` | int16 | `raw_attributes.iucn_cat` |
+| `PA_OECM_DF` | int16 | `raw_attributes.pa_oecm_df` (1=PA, 2=OECM) |
+| `QUALYEAR` or `ESTYEAR` | int16 | `last_updated` (as `YYYY-12-31`; prefer QUALYEAR when non-NULL) |
+| `O_AREA_HA` | real | `raw_attributes.area_ha` |
+| `JUR_ID` | string | `raw_attributes.jurisdiction` |
+| `IPCA` | int16 | `raw_attributes.ipca` (1=yes; Indigenous-led designation) |
+| geometry (Shape) | MultiPolygon | `geom` (**reproject: Canada Albers Equal Area Conic → EPSG:4326**) |
+
+**Ingest filters:** `STATUS = 1` (established) AND `BIOME = 'T'` (terrestrial only).
+**Source string in table:** `'CPCAD'` (migration 025 corrects the original `'ECCC_ESG'` constraint in migration 024).
+**Ingest vintage format:** `'<YYYY>'` e.g. `'2025'`.
 
 ---
 
@@ -242,9 +269,12 @@ confirms the live dumps.
 - [ ] **NCED dump format.** Verify quarterly bundle URL + GDB column
       names per
       [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#2-nced--national-conservation-easement-database-82-b3).
-- [ ] **ECCC ESG dump format.** Resolve open.canada.ca dataset slug +
-      verify shapefile schema per
-      [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#3-eccc-ecological-gifts-program--static-2023-82-b4).
+- [x] **CPCAD dump format — confirmed 2026-05-04.** Source upgraded from
+      "ECCC ESG" to CPCAD (22,438 features, annual refresh). Schema
+      verified from live GDB via ogrinfo. CRS: Canada Albers Equal Area
+      Conic → reproject to EPSG:4326 on ingest. Migration 025 corrects
+      the `ECCC_ESG` → `CPCAD` source constraint. Full confirmed schema
+      in [dump-format sweep §3](../inquiries/2026-05-04-dump-format-verification-sweep.md#3-cpcad--canadian-protected-and-conserved-areas-database-82-b4--confirmed-2026-05-04).
 - [ ] **IGRAC GGIS dump format.** Confirm WFS layer name + paginated
       query path per
       [dump-format sweep](../inquiries/2026-05-04-dump-format-verification-sweep.md#4-igrac-ggis--global-wells-dump-82-a3).

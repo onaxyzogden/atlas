@@ -140,53 +140,56 @@ v2:
 
 ---
 
-## 3. ECCC Ecological Gifts Program — static 2023 (8.2-B.4)
+## 3. CPCAD — Canadian Protected and Conserved Areas Database (8.2-B.4) ✅ CONFIRMED 2026-05-04
 
-**Canonical download URL.** <https://open.canada.ca/data/en/dataset/82a48efa-1f72-4c3f-8169-72d31ec02b67>
-*(operator verify the dataset slug on open.canada.ca; the
-human-facing landing page is the ESG program page in
-[`external-data-sources.md`](../concepts/external-data-sources.md)).*
+**Source correction.** The 8.2-B ADR originally cited the "ECCC Ecological
+Gifts Program" (ESG) as the CA-tier source. The operator provided the
+2025 CPCAD GDB on 2026-05-04; CPCAD is the correct and authoritative
+source — ESG features are a `TYPE_E` subset within it.
 
-**File format.** Best-knowledge from open.canada.ca conventions:
-- Shapefile bundle (`.shp` + supporting files) **and**
-- CSV with non-spatial attributes.
-- Both in a single ZIP, English + French resource entries on the
-  open.canada.ca page.
+**Canonical download URL.** <https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c>
+**Local file (2025 release, verified).** `ProtectedConservedArea_2025\ProtectedConservedArea_2025.gdb`
 
-**Schema (columns we need).** Best-knowledge — **all subject to
-operator verification**:
-| Column | Type | Atlas mapping |
+**File format.** Esri File Geodatabase (`.gdb`). Three layers; primary layer is `ProtectedConservedArea_2025`.
+
+**Schema (columns confirmed from ogrinfo 2026-05-04).**
+| GDB column | Type | Atlas `conservation_overlay_features` mapping |
 |---|---|---|
-| `gift_id` | string | `source_record_id` |
-| `recipient_org` | string | `attribution` |
-| `recipient_type` | string | persisted in `raw_attributes.recipient_type` (e.g. `Land Trust`, `Municipality`, `Crown`) |
-| `cert_year` | int | `last_updated` (cast as `<year>-12-31`) |
-| `area_ha` | float | persisted in `raw_attributes.area_ha` |
-| `province` | string | persisted in `raw_attributes.province` |
-| geometry | Polygon/MultiPolygon | `geom` |
+| `ZONE_ID` | int | `source_record_id` (cast to text) |
+| `NAME_E` | string(150) | `designation_name` |
+| `TYPE_E` | string(100) | `designation_type` (e.g. "Provincial Park", "National Park", "Ecological Gift") |
+| `MGMT_E` | string(150) | `attribution` (managing authority) |
+| `IUCN_CAT` | int16 | `raw_attributes.iucn_cat` |
+| `PA_OECM_DF` | int16 | `raw_attributes.pa_oecm_df` (1=PA, 2=OECM) |
+| `QUALYEAR` / `ESTYEAR` | int16 | `last_updated` (prefer QUALYEAR when non-NULL; cast as `YYYY-12-31`) |
+| `O_AREA_HA` | real | `raw_attributes.area_ha` |
+| `JUR_ID` | string | `raw_attributes.jurisdiction` |
+| `IPCA` | int16 | `raw_attributes.ipca` (1=Indigenous-led) |
+| `Shape` | MultiPolygon | `geom` |
 
-`designation_type` is constant: `'Ecological Gift'`.
-`designation_name` falls back to `recipient_org` when the upstream
-record has no per-gift name.
+**CRS.** Canada Albers Equal Area Conic (ESRI:102001) — ingest job must reproject to EPSG:4326.
+**Ingest filters.** `STATUS = 1` (established) AND `BIOME = 'T'` (terrestrial).
+**Feature count (2025 release).** 22,438 (terrestrial established subset will be smaller).
+
+**Source string in conservation_overlay_features.** `'CPCAD'`
+(migration 025 corrects the original `'ECCC_ESG'` CHECK constraint from migration 024).
 
 **Ingest pattern (8.2-B.4).**
-- One-time import (no cron). Run once; mark as
-  `ingest_vintage = '2023-static'`.
-- Re-run only if ECCC publishes a refresh; tracked as a launch-gate
-  follow-up in
-  [`wiki/decisions/2026-05-04-tiered-conservation-overlay.md`](../decisions/2026-05-04-tiered-conservation-overlay.md).
-- Upsert key `(source, source_record_id) = ('ECCC_ESG', '<gift_id>')`.
-- Diagnosis-report copy for ECCC_ESG features must surface the static
-  `vintage: 2023` honestly (per the tiered-overlay ADR §4).
+- Annual cron job; each spring when ECCC publishes the updated GDB.
+- `ogr2ogr` or `node-gdal-next` reads the local GDB, reprojects to EPSG:4326, applies
+  `STATUS = 1 AND BIOME = 'T'` filter, streams features into
+  `conservation_overlay_features` via UPSERT on
+  `(source, source_record_id) = ('CPCAD', '<ZONE_ID::text>')`.
+- After all features written, atomic vintage swap:
+  `DELETE WHERE source = 'CPCAD' AND ingest_vintage <> $current_vintage`.
+- Ingest vintage format: `'<YYYY>'` e.g. `'2025'`.
 
-**Operator verification.**
-- [ ] Find the canonical open.canada.ca dataset slug for the ESG
-      database (search "Ecological Gifts" on open.canada.ca; landing
-      page links to the data resource page).
-- [ ] Download the shapefile + CSV bundle; confirm:
-  - [ ] Column names + units.
-  - [ ] CRS (NAD83 likely; reproject to EPSG:4326 in ingest).
-  - [ ] Total record count (expected: ~1,500-2,000 gifts as of 2023).
+**Operator actions (completed).**
+- [x] Dataset slug confirmed: `6c343726-1e92-451a-876a-76e17d398a1c`
+- [x] File format confirmed: Esri File GDB
+- [x] Schema confirmed: ogrinfo on live file
+- [x] CRS confirmed: Canada Albers Equal Area Conic → reproject needed
+- [x] Feature count: 22,438 (2025 release)
 
 ---
 
