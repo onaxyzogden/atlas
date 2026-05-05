@@ -45,7 +45,9 @@ export type LayerType =
   | 'soil_properties';
 
 /** Tier 1 layer types fetched from external adapters. */
-export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'pollinator_opportunity' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data' | 'soilgrids_global' | 'biodiversity' | 'ust_lust' | 'brownfields' | 'landfills' | 'mine_hazards' | 'fuds' | 'conservation_easement' | 'heritage' | 'alr_status' | 'aquifer' | 'water_stress' | 'seasonal_flooding' | 'invasive_species' | 'native_species' | 'land_use_history' | 'mineral_rights' | 'water_rights' | 'gaez_suitability' | 'soil_properties'>;
+// conservation_easement promoted from deferred to Tier 1 on 2026-05-04 (Phase 8.2-B):
+// CpcadAdapter (CA), WdpaAdapter (INTL — pending), NcedAdapter (US — pending).
+export type Tier1LayerType = Exclude<LayerType, 'infrastructure' | 'watershed_derived' | 'microclimate' | 'soil_regeneration' | 'pollinator_opportunity' | 'water_quality' | 'superfund' | 'critical_habitat' | 'storm_events' | 'crop_validation' | 'air_quality' | 'earthquake_hazard' | 'census_demographics' | 'proximity_data' | 'soilgrids_global' | 'biodiversity' | 'ust_lust' | 'brownfields' | 'landfills' | 'mine_hazards' | 'fuds' | 'heritage' | 'alr_status' | 'aquifer' | 'water_stress' | 'seasonal_flooding' | 'invasive_species' | 'native_species' | 'land_use_history' | 'mineral_rights' | 'water_rights' | 'gaez_suitability' | 'soil_properties'>;
 
 export interface AdapterConfig {
   adapter: string;
@@ -103,6 +105,17 @@ export const ADAPTER_REGISTRY: Record<Tier1LayerType, Partial<Record<Country, Ad
     // table populated by quarterly ingest job; medium-confidence reflecting
     // national-agency reporting cadence (1-3 year vintage drift).
     INTL: { adapter: 'IgracGroundwaterAdapter', source: 'igrac_ggis' },
+  },
+  conservation_easement: {
+    // CA: CPCAD (Canadian Protected and Conserved Areas Database) — registered
+    // 2026-05-04 per ADR 2026-05-04-tiered-conservation-overlay (Phase 8.2-B.4).
+    // Reads from local PostGIS `conservation_overlay_features` WHERE source='CPCAD',
+    // populated by the annual cpcad-ingest job. Schema verified from
+    // ProtectedConservedArea_2025.gdb; CRS: Canada Albers → EPSG:4326 on ingest.
+    CA: { adapter: 'CpcadAdapter', source: 'cpcad' },
+    // INTL: pending WdpaAdapter (8.2-B.2 — protectedplanet.net dump format not yet verified)
+    // US: pending NcedAdapter (8.2-B.3 — NCED licence + dump format not yet verified)
+    // ManualFlagAdapter fallback for US/INTL until those land.
   },
 };
 

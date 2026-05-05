@@ -38,6 +38,7 @@ import { OntarioMunicipalAdapter } from './adapters/OntarioMunicipalAdapter.js';
 import { NwisGroundwaterAdapter } from './adapters/NwisGroundwaterAdapter.js';
 import { PgmnGroundwaterAdapter } from './adapters/PgmnGroundwaterAdapter.js';
 import { IgracGroundwaterAdapter } from './adapters/IgracGroundwaterAdapter.js';
+import { CpcadAdapter } from './adapters/CpcadAdapter.js';
 import { AppError } from '../../lib/errors.js';
 import { NasaPowerAdapter } from './adapters/NasaPowerAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
@@ -188,6 +189,20 @@ function resolveAdapter(
   if (config.adapter === 'NasaPowerAdapter') {
     // INTL bucket for climate. Globally valid, grid-interpolated.
     return new NasaPowerAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'CpcadAdapter') {
+    // Per ADR 2026-05-04-tiered-conservation-overlay (Phase 8.2-B.4):
+    // CA-tier conservation overlay reads from local PostGIS
+    // `conservation_overlay_features` WHERE source='CPCAD'. Requires
+    // db handle — same pattern as IgracGroundwaterAdapter.
+    if (!db) {
+      throw new AppError(
+        'PIPELINE_MISCONFIGURED',
+        'CpcadAdapter requires a db handle; resolveAdapter was called without one',
+        500,
+      );
+    }
+    return new CpcadAdapter(config.source, layerType, db);
   }
 
   // All Tier 1 adapters implemented — fallthrough should not occur in practice

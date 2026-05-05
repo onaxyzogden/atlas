@@ -30,6 +30,16 @@ const EnvSchema = z.object({
   // SOILGRIDS_S3_PREFIX — optional HTTPS/S3 base URL; overrides local FS when set.
   SOILGRIDS_DATA_DIR: z.string().default('./data/soilgrids/cog'),
   SOILGRIDS_S3_PREFIX: z.string().optional().or(z.literal('')).transform((v) => v || undefined),
+  // ── CPCAD annual ingest ────────────────────────────────────────────────────
+  // CPCAD_GDB_PATH — local filesystem path to the Esri File GDB published by
+  //   ECCC (e.g. /data/cpcad/ProtectedConservedArea_2025.gdb). Updated annually
+  //   when ECCC publishes the next year's release. Required only for the ingest
+  //   job (apps/api/src/jobs/cpcad-ingest.ts); not needed at API server start.
+  // GDAL_BIN_DIR — directory containing ogr2ogr / ogrinfo. Defaults to the
+  //   PATH-resolved location; override when GDAL is installed to a non-standard
+  //   path (e.g. on Windows with OSGeo4W).
+  CPCAD_GDB_PATH: z.string().optional().transform((v) => v || undefined),
+  GDAL_BIN_DIR: z.string().optional().transform((v) => v || undefined),
 });
 
 function loadConfig() {
