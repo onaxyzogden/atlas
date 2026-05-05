@@ -350,14 +350,25 @@ export abstract class LandCoverRasterServiceBase {
   }
 
   /**
+   * Maximum number of intersecting tiles supported by `clipToBbox`. Bounded to
+   * keep memory usage predictable and the stitch-loop trivially correct. Real
+   * parcels-near-tile-corners worst case is 4 (a 2D corner straddle); five or
+   * more means either a pathological manifest or an AOI larger than any
+   * realistic parcel.
+   */
+  private static readonly CLIP_MAX_TILES = 4;
+
+  /**
    * Clip the raster covering `parcelBbox` and return a `RasterClip` suitable
    * for `polygonizeBbox`. Per ADR D5/D8 — feeds the polygon-friction path
    * in PollinatorOpportunityProcessor.
    *
-   * v1 cut: single-tile only. Returns null when the parcel bbox spans
-   * multiple tiles — the caller falls back to the synthesized-grid path.
-   * Most parcel-scale bboxes hit a single tile; multi-tile stitching is
-   * deferred until profiling shows it's a real bottleneck.
+   * Stitches across up to {@link CLIP_MAX_TILES} aligned-grid tiles when the
+   * parcel straddles tile boundaries (common for WorldCover's 3°×3° tiles
+   * at any non-trivial AOI extent). All intersecting tiles must share the
+   * same pixel grid (xRes/yRes + origin modulo), the same NoData sentinel,
+   * and the same vintage; on any mismatch the method falls back to `null`
+   * and the orchestrator drops to the synthesized-grid path.
    */
   async clipToBbox(parcelBbox: ParcelBbox4326): Promise<RasterClip | null> {
     if (!this.manifest || !this.isEnabled()) return null;
@@ -368,50 +379,225 @@ export abstract class LandCoverRasterServiceBase {
       this.log.info({ srcBbox }, 'clipToBbox: no tiles intersect');
       return null;
     }
-    if (entries.length > 1) {
+    if (entries.length > LandCoverRasterServiceBase.CLIP_MAX_TILES) {
       this.log.warn(
-        { tileCount: entries.length, srcBbox },
-        'clipToBbox: multi-tile parcel — v1 returns null; caller falls back',
+        { tileCount: entries.length, max: LandCoverRasterServiceBase.CLIP_MAX_TILES, srcBbox },
+        'clipToBbox: too-many-tiles — falling back',
       );
       return null;
     }
 
-    const entry = entries[0]!;
-    let tiff: GeoTIFF;
-    try {
-      tiff = await this.openTiff(entry.filename);
-    } catch (err) {
-      this.log.warn({ err, filename: entry.filename }, 'clipToBbox: open failed');
-      return null;
+    // ── Open every intersecting tile and capture grid metadata ─────────────
+    interface TileMeta {
+      entry: LandCoverManifestEntry;
+      width: number;
+      height: number;
+      originX: number;
+      originY: number;
+      xRes: number;
+      yRes: number;
+      gdalNoData: number | null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      image: any;
+    }
+    const tiles: TileMeta[] = [];
+    for (const entry of entries) {
+      let tiff: GeoTIFF;
+      try {
+        tiff = await this.openTiff(entry.filename);
+      } catch (err) {
+        this.log.warn({ err, filename: entry.filename }, 'clipToBbox: open failed');
+        return null;
+      }
+      const image = await tiff.getImage();
+      const origin = image.getOrigin();
+      const resolution = image.getResolution();
+      const originX = origin[0];
+      const originY = origin[1];
+      const xRes = resolution[0];
+      const yRes = resolution[1];
+      if (originX === undefined || originY === undefined || xRes === undefined || yRes === undefined) {
+        return null;
+      }
+      const gdalNoData = (image as unknown as {
+        getGDALNoData: () => number | null;
+      }).getGDALNoData?.() ?? null;
+      tiles.push({
+        entry,
+        width: image.getWidth(),
+        height: image.getHeight(),
+        originX, originY, xRes, yRes, gdalNoData,
+        image,
+      });
     }
 
-    const image = await tiff.getImage();
-    const width = image.getWidth();
-    const height = image.getHeight();
-    const origin = image.getOrigin();
-    const resolution = image.getResolution();
-    const originX = origin[0];
-    const originY = origin[1];
-    const xRes = resolution[0];
-    const yRes = resolution[1];
-    if (originX === undefined || originY === undefined || xRes === undefined || yRes === undefined) {
-      return null;
+    // ── Single-tile fast path ─────────────────────────────────────────────
+    if (tiles.length === 1) {
+      return this.clipSingleTile(tiles[0]!, srcBbox);
     }
 
-    const tileBbox = entry.bbox;
-    const ix0 = Math.max(srcBbox.minX, tileBbox[0]);
-    const iy0 = Math.max(srcBbox.minY, tileBbox[1]);
-    const ix1 = Math.min(srcBbox.maxX, tileBbox[2]);
-    const iy1 = Math.min(srcBbox.maxY, tileBbox[3]);
+    // ── Multi-tile: validate grid alignment, NoData, vintage ──────────────
+    const ref = tiles[0]!;
+    const refVintage = ref.entry.vintage ?? this.manifest.vintage;
+    const EPS = 1e-9;
+    for (let t = 1; t < tiles.length; t++) {
+      const tile = tiles[t]!;
+      if (Math.abs(tile.xRes - ref.xRes) > EPS || Math.abs(tile.yRes - ref.yRes) > EPS) {
+        this.log.warn(
+          { tileCount: tiles.length },
+          'clipToBbox: multi-tile parcel — grid misalignment (resolution), falling back',
+        );
+        return null;
+      }
+      const colShift = (tile.originX - ref.originX) / ref.xRes;
+      const rowShift = (tile.originY - ref.originY) / ref.yRes;
+      if (Math.abs(colShift - Math.round(colShift)) > 1e-6
+          || Math.abs(rowShift - Math.round(rowShift)) > 1e-6) {
+        this.log.warn(
+          { tileCount: tiles.length },
+          'clipToBbox: multi-tile parcel — grid misalignment (origin offset), falling back',
+        );
+        return null;
+      }
+      if (tile.gdalNoData !== ref.gdalNoData) {
+        this.log.warn(
+          { tileCount: tiles.length, refNoData: ref.gdalNoData, tileNoData: tile.gdalNoData },
+          'clipToBbox: multi-tile parcel — mixed NoData, falling back',
+        );
+        return null;
+      }
+      const tileVintage = tile.entry.vintage ?? this.manifest.vintage;
+      if (tileVintage !== refVintage) {
+        this.log.warn(
+          { tileCount: tiles.length, refVintage, tileVintage },
+          'clipToBbox: multi-tile parcel — mixed vintage, falling back',
+        );
+        return null;
+      }
+    }
+
+    // ── Compute each tile's intersect-window in absolute (ref-grid) pixels ─
+    interface TileWindow {
+      tile: TileMeta;
+      // tile-local pixel window
+      px0: number; py0: number; px1: number; py1: number;
+      // absolute (ref-grid) pixel coordinates of (px0,py0)
+      absCol0: number; absRow0: number;
+    }
+    const windows: TileWindow[] = [];
+    for (const tile of tiles) {
+      const tb = tile.entry.bbox;
+      const ix0 = Math.max(srcBbox.minX, tb[0]);
+      const iy0 = Math.max(srcBbox.minY, tb[1]);
+      const ix1 = Math.min(srcBbox.maxX, tb[2]);
+      const iy1 = Math.min(srcBbox.maxY, tb[3]);
+      if (ix0 >= ix1 || iy0 >= iy1) continue;
+
+      const px0 = Math.max(0, Math.floor((ix0 - tile.originX) / tile.xRes));
+      const px1 = Math.min(tile.width, Math.ceil((ix1 - tile.originX) / tile.xRes));
+      const py0 = Math.max(0, Math.floor((iy1 - tile.originY) / tile.yRes));
+      const py1 = Math.min(tile.height, Math.ceil((iy0 - tile.originY) / tile.yRes));
+      if (px0 >= px1 || py0 >= py1) continue;
+
+      const colOffset = Math.round((tile.originX - ref.originX) / ref.xRes);
+      const rowOffset = Math.round((tile.originY - ref.originY) / ref.yRes);
+      windows.push({
+        tile,
+        px0, py0, px1, py1,
+        absCol0: colOffset + px0,
+        absRow0: rowOffset + py0,
+      });
+    }
+    if (windows.length === 0) return null;
+
+    // ── Union absolute window → stitched buffer ───────────────────────────
+    let absMinCol = Infinity, absMinRow = Infinity;
+    let absMaxCol = -Infinity, absMaxRow = -Infinity;
+    for (const w of windows) {
+      const cols = w.px1 - w.px0;
+      const rows = w.py1 - w.py0;
+      if (w.absCol0 < absMinCol) absMinCol = w.absCol0;
+      if (w.absRow0 < absMinRow) absMinRow = w.absRow0;
+      if (w.absCol0 + cols > absMaxCol) absMaxCol = w.absCol0 + cols;
+      if (w.absRow0 + rows > absMaxRow) absMaxRow = w.absRow0 + rows;
+    }
+    const W = absMaxCol - absMinCol;
+    const H = absMaxRow - absMinRow;
+    if (W <= 0 || H <= 0) return null;
+
+    const fill = ref.gdalNoData ?? 0;
+    const pixels = new Int32Array(W * H);
+    if (fill !== 0) pixels.fill(fill);
+
+    for (const w of windows) {
+      const tileW = w.px1 - w.px0;
+      const tileH = w.py1 - w.py0;
+      const rasters = await w.tile.image.readRasters({
+        window: [w.px0, w.py0, w.px1, w.py1],
+        interleave: false,
+      });
+      const band0 = (rasters as unknown as ArrayLike<ArrayLike<number>>)[0];
+      if (!band0) continue;
+      const dstCol0 = w.absCol0 - absMinCol;
+      const dstRow0 = w.absRow0 - absMinRow;
+      for (let r = 0; r < tileH; r++) {
+        const dstRow = dstRow0 + r;
+        const dstBase = dstRow * W + dstCol0;
+        const srcBase = r * tileW;
+        for (let c = 0; c < tileW; c++) {
+          const v = band0[srcBase + c];
+          pixels[dstBase + c] = typeof v === 'number' ? v : Number(v);
+        }
+      }
+    }
+
+    const stitchedBbox: [number, number, number, number] = [
+      ref.originX + absMinCol * ref.xRes,
+      ref.originY + absMaxRow * ref.yRes,  // yRes<0: largest row index → smallest Y
+      ref.originX + absMaxCol * ref.xRes,
+      ref.originY + absMinRow * ref.yRes,
+    ];
+
+    return {
+      pixels,
+      width: W,
+      height: H,
+      bboxSourceCrs: stitchedBbox,
+      sourceCrs: `EPSG:${this.sourceCRS}`,
+      pixelSize: [Math.abs(ref.xRes), Math.abs(ref.yRes)],
+      nodataValue: ref.gdalNoData ?? null,
+      vintage: refVintage,
+      source: this.sourceId,
+    };
+  }
+
+  /** Single-tile clip (fast path inlined from the pre-stitch implementation). */
+  private async clipSingleTile(
+    tile: {
+      entry: LandCoverManifestEntry;
+      width: number; height: number;
+      originX: number; originY: number;
+      xRes: number; yRes: number;
+      gdalNoData: number | null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      image: any;
+    },
+    srcBbox: { minX: number; minY: number; maxX: number; maxY: number },
+  ): Promise<RasterClip | null> {
+    const tb = tile.entry.bbox;
+    const ix0 = Math.max(srcBbox.minX, tb[0]);
+    const iy0 = Math.max(srcBbox.minY, tb[1]);
+    const ix1 = Math.min(srcBbox.maxX, tb[2]);
+    const iy1 = Math.min(srcBbox.maxY, tb[3]);
     if (ix0 >= ix1 || iy0 >= iy1) return null;
 
-    const px0 = Math.max(0, Math.floor((ix0 - originX) / xRes));
-    const px1 = Math.min(width, Math.ceil((ix1 - originX) / xRes));
-    const py0 = Math.max(0, Math.floor((iy1 - originY) / yRes));
-    const py1 = Math.min(height, Math.ceil((iy0 - originY) / yRes));
+    const px0 = Math.max(0, Math.floor((ix0 - tile.originX) / tile.xRes));
+    const px1 = Math.min(tile.width, Math.ceil((ix1 - tile.originX) / tile.xRes));
+    const py0 = Math.max(0, Math.floor((iy1 - tile.originY) / tile.yRes));
+    const py1 = Math.min(tile.height, Math.ceil((iy0 - tile.originY) / tile.yRes));
     if (px0 >= px1 || py0 >= py1) return null;
 
-    const rasters = await image.readRasters({
+    const rasters = await tile.image.readRasters({
       window: [px0, py0, px1, py1],
       interleave: false,
     });
@@ -420,10 +606,6 @@ export abstract class LandCoverRasterServiceBase {
 
     const w = px1 - px0;
     const h = py1 - py0;
-    // Coerce to a numeric typed array. We don't know the upstream typing
-    // precisely (Uint8Array for NLCD/ACI/WorldCover; Int16Array would be
-    // possible for other sources). Default to Int32Array since RasterClip
-    // accepts it and it covers all native class-id ranges.
     const len = (band0 as unknown as { length: number }).length;
     const pixels = new Int32Array(len);
     for (let i = 0; i < len; i++) {
@@ -431,18 +613,11 @@ export abstract class LandCoverRasterServiceBase {
       pixels[i] = typeof v === 'number' ? v : Number(v);
     }
 
-    const gdalNoData = (image as unknown as {
-      getGDALNoData: () => number | null;
-    }).getGDALNoData?.();
-
-    // Source-CRS bbox of the actual returned pixel window — may be
-    // slightly larger than the requested bbox due to integer pixel
-    // alignment. Critical for `polygonizePixelGrid`'s coordinate maths.
     const clipBboxSourceCrs: [number, number, number, number] = [
-      originX + px0 * xRes,
-      originY + py1 * yRes,  // yRes < 0; py1 is the larger row index → smaller Y
-      originX + px1 * xRes,
-      originY + py0 * yRes,
+      tile.originX + px0 * tile.xRes,
+      tile.originY + py1 * tile.yRes,
+      tile.originX + px1 * tile.xRes,
+      tile.originY + py0 * tile.yRes,
     ];
 
     return {
@@ -451,9 +626,9 @@ export abstract class LandCoverRasterServiceBase {
       height: h,
       bboxSourceCrs: clipBboxSourceCrs,
       sourceCrs: `EPSG:${this.sourceCRS}`,
-      pixelSize: [Math.abs(xRes), Math.abs(yRes)],
-      nodataValue: gdalNoData ?? null,
-      vintage: entry.vintage ?? this.manifest.vintage,
+      pixelSize: [Math.abs(tile.xRes), Math.abs(tile.yRes)],
+      nodataValue: tile.gdalNoData,
+      vintage: tile.entry.vintage ?? this.manifest!.vintage,
       source: this.sourceId,
     };
   }
