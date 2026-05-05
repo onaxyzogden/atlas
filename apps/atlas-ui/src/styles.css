@@ -3427,54 +3427,6 @@ img.footprint-art {
   font-size: 13px;
 }
 
-.macro-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.macro-kpi-card {
-  height: 88px;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
-  gap: 0 var(--space-2);
-  align-content: center;
-  padding: var(--space-3) var(--space-3);
-  overflow: hidden;
-}
-
-.macro-kpi-card svg {
-  grid-row: 1 / span 3;
-  align-self: center;
-  width: 30px;
-  height: 30px;
-}
-
-.macro-kpi-card.blue svg { color: #75c9e7; }
-.macro-kpi-card.gold svg { color: #d7a236; }
-.macro-kpi-card.green svg { color: var(--olos-green); }
-
-.macro-kpi-card span {
-  color: #d8c28f;
-  font-size: var(--text-sm);
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.macro-kpi-card strong {
-  color: #f0dfc5;
-  font-family: var(--olos-font-display);
-  font-size: 25px;
-  font-weight: 500;
-  line-height: 1.05;
-}
-
-.macro-kpi-card small {
-  color: #c7baa7;
-  font-size: var(--text-sm);
-}
 
 .macro-section-card {
   position: relative;
@@ -3651,10 +3603,6 @@ img.footprint-art {
     grid-template-columns: 1fr;
   }
 
-  .macro-kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .solar-card,
   .hazards-card {
     height: auto;
@@ -3671,10 +3619,6 @@ img.footprint-art {
     position: static;
     display: inline-flex;
     margin-top: var(--space-3);
-  }
-
-  .macro-kpi-grid {
-    grid-template-columns: 1fr;
   }
 
   .monthly-chart,
@@ -4975,16 +4919,16 @@ img.footprint-art {
   padding: 0 var(--space-4);
 }
 
-.diagnostic-kpi-strip {
+.module-kpi-strip {
+  display: flex;
   height: 92px;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
   align-items: center;
   margin-bottom: var(--space-2);
   padding: 0 var(--space-3);
 }
 
-.diagnostic-kpi {
+.module-kpi {
+  flex: 1 1 0;
   min-width: 0;
   display: grid;
   grid-template-columns: 52px 1fr;
@@ -4994,11 +4938,11 @@ img.footprint-art {
   border-right: 1px solid rgba(182, 170, 152, 0.13);
 }
 
-.diagnostic-kpi:last-child {
+.module-kpi:last-child {
   border-right: 0;
 }
 
-.diagnostic-kpi svg {
+.module-kpi svg {
   grid-row: 1 / span 3;
   align-self: center;
   width: 44px;
@@ -5006,30 +4950,30 @@ img.footprint-art {
   color: #d8a84b;
 }
 
-.diagnostic-kpi.green svg {
+.module-kpi.green svg {
   color: #8fc247;
 }
 
-.diagnostic-kpi.blue svg {
+.module-kpi.blue svg {
   color: #5fb8df;
 }
 
-.diagnostic-kpi span {
+.module-kpi span {
   color: #d5c7b1;
   font-size: 12px;
 }
 
-.diagnostic-kpi strong {
+.module-kpi strong {
   color: #f2dfc3;
   font-size: 24px;
   font-weight: 500;
 }
 
-.diagnostic-kpi small {
+.module-kpi small {
   color: #d9b55c;
 }
 
-.diagnostic-kpi.blue small {
+.module-kpi.blue small {
   color: #88bc54;
 }
 
@@ -5526,7 +5470,7 @@ img.footprint-art {
     grid-template-rows: auto;
   }
 
-  .diagnostic-kpi-strip {
+  .module-kpi-strip {
     height: auto;
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-3) 0;
@@ -5554,11 +5498,11 @@ img.footprint-art {
     font-size: 34px;
   }
 
-  .diagnostic-kpi-strip {
+  .module-kpi-strip {
     grid-template-columns: 1fr;
   }
 
-  .diagnostic-kpi {
+  .module-kpi {
     border-right: 0;
     border-bottom: 1px solid rgba(182, 170, 152, 0.13);
     padding: var(--space-2) 0;
@@ -6927,50 +6871,6 @@ img.footprint-art {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-
-/* KPI strip */
-.sectors-kpi-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
-}
-
-.sectors-kpi-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-}
-
-.sectors-kpi-card svg:first-child {
-  width: 18px;
-  height: 18px;
-  margin-bottom: var(--space-1);
-}
-
-.sectors-kpi-card span {
-  color: var(--olos-text-label);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.sectors-kpi-card strong {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--olos-cream);
-  line-height: 1;
-}
-
-.sectors-kpi-card small {
-  color: var(--olos-text-label);
-  font-size: var(--text-sm);
-}
-
-.sectors-kpi-card.green svg:first-child { color: var(--olos-green); }
-.sectors-kpi-card.gold  svg:first-child { color: var(--olos-gold-bright); }
 
 /* Synthesis card */
 .sectors-synthesis-card {
