@@ -10,11 +10,12 @@ import {
   TriangleAlert,
   Wind
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AppShell,
   CroppedArt,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus
@@ -23,6 +24,7 @@ import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { macroclimateDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { SolarClimateContent } from "./SolarClimateDetailPage.jsx";
 import monthlyClimate from "../assets/generated/macroclimate-dashboard/monthly-climate.png";
 import sunPath from "../assets/generated/macroclimate-dashboard/sun-path.png";
 import hazardMatrix from "../assets/generated/macroclimate-dashboard/hazard-risk-matrix.png";
@@ -35,6 +37,8 @@ const macroIconMap = { snowflake: Snowflake, droplet: Droplet, alert: TriangleAl
 export function MacroclimateDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
       <div className="detail-page macroclimate-page">
@@ -44,12 +48,15 @@ export function MacroclimateDashboardPage() {
           <div className="macroclimate-main">
             <MacroHeader meta={meta} />
             <MacroKpis meta={meta} />
-            <SolarClimateCard />
+            <SolarClimateCard onAction={() => setPane("solar")} />
             <HazardsCard />
           </div>
           <MacroSidebar />
         </section>
       </div>
+      <SlideUpPane open={pane === "solar"} title="Solar & Climate detail" onClose={close}>
+        <SolarClimateContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
@@ -96,7 +103,7 @@ function MacroKpis({ meta }) {
   );
 }
 
-function SolarClimateCard() {
+function SolarClimateCard({ onAction }) {
   return (
     <SurfaceCard className="macro-section-card solar-card">
       <header>
@@ -104,7 +111,7 @@ function SolarClimateCard() {
           <h2><Sun aria-hidden="true" /> Solar & Climate detail</h2>
           <p>Deep dive into sun, temperature, precipitation, and seasonality to identify opportunities for passive design and productivity.</p>
         </div>
-        <Link to="/observe/macroclimate-hazards/solar-climate" className="green-button">Open page <ArrowRight aria-hidden="true" /></Link>
+        <button className="green-button" type="button" onClick={onAction}>Open page <ArrowRight aria-hidden="true" /></button>
       </header>
       <div className="solar-grid">
         <div>

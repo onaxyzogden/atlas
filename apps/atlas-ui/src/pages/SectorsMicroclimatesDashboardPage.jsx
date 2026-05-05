@@ -9,11 +9,12 @@ import {
   Sun,
   Wind,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AppShell,
   ProgressRing,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus,
@@ -22,6 +23,8 @@ import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorsMicroclimatesDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { SectorCompassContent } from "./SectorCompassPage.jsx";
+import { CartographicDetailContent } from "./CartographicDetailPage.jsx";
 
 const metadata = screenCatalog.find(
   (s) => s.route === "/observe/sectors-zones"
@@ -39,6 +42,8 @@ const TONE_COLOR = {
 export function SectorsMicroclimatesDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
       <div className="detail-page sectors-page">
@@ -50,13 +55,19 @@ export function SectorsMicroclimatesDashboardPage() {
             <SectorsKpis />
             <SynthesisCard />
             <div className="sectors-tool-grid">
-              <SectorCompassCard />
-              <CartographicCard />
+              <SectorCompassCard onAction={() => setPane("sectorCompass")} />
+              <CartographicCard onAction={() => setPane("cartographic")} />
             </div>
           </div>
           <SectorsSidebar />
         </section>
       </div>
+      <SlideUpPane open={pane === "sectorCompass"} title="Sector compass" onClose={close}>
+        <SectorCompassContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "cartographic"} title="Cartographic detail" onClose={close}>
+        <CartographicDetailContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -125,7 +136,7 @@ function SynthesisCard() {
   );
 }
 
-function SectorCompassCard() {
+function SectorCompassCard({ onAction }) {
   return (
     <SurfaceCard className="sectors-tool-card compass-card">
       <header className="sectors-tool-card__header">
@@ -135,9 +146,9 @@ function SectorCompassCard() {
       <div className="compass-art-wrap">
         <CompassArt sectors={vm.sectorCompassSectors} />
       </div>
-      <Link to="/observe/sectors-zones/sector-compass" className="outlined-button sectors-open-btn">
+      <button className="outlined-button sectors-open-btn" type="button" onClick={onAction}>
         Open Sector compass <ArrowRight size={14} aria-hidden="true" />
-      </Link>
+      </button>
     </SurfaceCard>
   );
 }
@@ -210,7 +221,7 @@ function CompassArt({ sectors }) {
   );
 }
 
-function CartographicCard() {
+function CartographicCard({ onAction }) {
   return (
     <SurfaceCard className="sectors-tool-card cartographic-card">
       <header className="sectors-tool-card__header">
@@ -220,9 +231,9 @@ function CartographicCard() {
       <div className="cartographic-art-wrap">
         <CartographicArt zones={vm.cartographicZones} />
       </div>
-      <Link to="/observe/sectors-zones/cartographic-detail" className="outlined-button sectors-open-btn">
+      <button className="outlined-button sectors-open-btn" type="button" onClick={onAction}>
         Open Cartographic detail <ArrowRight size={14} aria-hidden="true" />
-      </Link>
+      </button>
     </SurfaceCard>
   );
 }

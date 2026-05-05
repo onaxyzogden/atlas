@@ -20,17 +20,21 @@ import {
   Target,
   Users,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { AppShell, QaOverlay, SurfaceCard } from "../components/index.js";
+import { useState } from "react";
+import { AppShell, QaOverlay, SlideUpPane, SurfaceCard } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotDashboard as vm } from "../data/builtin-sample.js";
+import { SwotJournalContent } from "./SwotJournalPage.jsx";
+import { SwotDiagnosisReportContent } from "./SwotDiagnosisReportPage.jsx";
 
 const metadata = screenCatalog.find((screen) => screen.route === "/observe/swot");
 
 const KPI_BY_LABEL = Object.fromEntries(vm.kpis.map((k) => [k.label, k.value]));
 
 export function SwotDashboardPage() {
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
       <div className="swot-page">
@@ -41,14 +45,20 @@ export function SwotDashboardPage() {
             <SwotQuadrants />
             <SynthesisHow />
             <section className="swot-middle-grid">
-              <SwotJournalCard />
-              <DiagnosisReportCard />
+              <SwotJournalCard onAction={() => setPane("journal")} />
+              <DiagnosisReportCard onAction={() => setPane("diagnosis")} />
             </section>
           </div>
           <DesignImplications />
         </section>
         <SwotHealthStrip />
       </div>
+      <SlideUpPane open={pane === "journal"} title="SWOT journal" onClose={close}>
+        <SwotJournalContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "diagnosis"} title="Diagnosis report" onClose={close}>
+        <SwotDiagnosisReportContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
@@ -110,26 +120,26 @@ const CATEGORY_LABEL = {
   threat: "Threat",
 };
 
-function SwotJournalCard() {
+function SwotJournalCard({ onAction }) {
   return (
     <SurfaceCard className="swot-panel-card">
-      <header><h2><BookOpen aria-hidden="true" /> SWOT Journal <span>Captured insights and field notes</span></h2><Link to="/observe/swot/journal">View all entries</Link></header>
+      <header><h2><BookOpen aria-hidden="true" /> SWOT Journal <span>Captured insights and field notes</span></h2><button type="button" className="text-link" onClick={onAction}>View all entries</button></header>
       <div className="swot-journal-rows">
         {vm.journalPreview.map((row) => (
           <p key={row.title}><span>{row.title}</span><b>{CATEGORY_LABEL[row.category]}</b><time>{row.date}</time></p>
         ))}
       </div>
       <div className="swot-tags">{["Soil", "Water", "Climate", "Access", "Community", "+4 more"].map((tag) => <span key={tag}>{tag}</span>)}</div>
-      <Link to="/observe/swot/journal" className="green-button">Open SWOT journal <ArrowRight aria-hidden="true" /></Link>
+      <button type="button" className="green-button" onClick={onAction}>Open SWOT journal <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }
 
-function DiagnosisReportCard() {
+function DiagnosisReportCard({ onAction }) {
   const score = Math.round(vm.moduleHealth.dataCompleteness);
   return (
     <SurfaceCard className="swot-panel-card diagnosis-card">
-      <header><h2><ClipboardList aria-hidden="true" /> Diagnosis Report <span>Summary of site diagnosis and analysis</span></h2><Link to="/observe/swot/diagnosis-report">View full report</Link></header>
+      <header><h2><ClipboardList aria-hidden="true" /> Diagnosis Report <span>Summary of site diagnosis and analysis</span></h2><button type="button" className="text-link" onClick={onAction}>View full report</button></header>
       <section><div><h3>Executive summary</h3><p>The site has strong intrinsic assets, particularly in soil fertility, water resources, and community support. Key constraints include access, erosion risk, and climate variability.</p></div><div className="swot-score"><b>{score}%</b><span>Overall Site Resilience Score</span></div></section>
       <div className="diagnosis-lists">
         <p>
@@ -141,7 +151,7 @@ function DiagnosisReportCard() {
           {vm.designImplications.slice(0, 4).map((it) => <span key={it}>{it}</span>)}
         </p>
       </div>
-      <Link to="/observe/swot/diagnosis-report" className="green-button">Open diagnosis report <ArrowRight aria-hidden="true" /></Link>
+      <button type="button" className="green-button" onClick={onAction}>Open diagnosis report <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }

@@ -29,41 +29,46 @@ import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 
 const metadata = screenCatalog.find((screen) => screen.route === "/observe/swot/diagnosis-report");
 
-export function SwotDiagnosisReportPage() {
+export function SwotDiagnosisReportContent() {
   const { project, siteBanner } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   const siteName = siteBanner?.title ?? "351 House";
-  const siteAreaHa = meta.siteAreaHa ?? siteBanner?.areaHa;
+  return (
+    <div className="diagnosis-report-page">
+      <ReportTopbar siteName={siteName} />
+      <ReportStageBar />
+      <section className="diagnosis-report-frame">
+        <header className="diagnosis-report-hero">
+          <div>
+            <h1>Diagnosis report</h1>
+            <p>Turning observations into a clear diagnosis to guide design decisions.</p>
+          </div>
+          <SurfaceCard className="report-generated-card"><CircleDot aria-hidden="true" /><span>Report generated<small>May 12, 2025 - 10:32 AM</small></span></SurfaceCard>
+        </header>
+        <section className="diagnosis-top-grid">
+          <ExecutiveSummary siteName={siteName} meta={meta} />
+          <SwotOverview />
+          <TopInsights />
+        </section>
+        <section className="diagnosis-lower-grid">
+          <PrioritizedFindings />
+          <div className="diagnosis-stack">
+            <RiskFlags />
+            <EvidenceCard />
+          </div>
+          <RecommendedReportActions />
+        </section>
+        <p className="diagnosis-report-quote">A clear diagnosis today leads to a regenerative design tomorrow.</p>
+      </section>
+    </div>
+  );
+}
+
+export function SwotDiagnosisReportPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="diagnosis-report-page">
-        <ReportTopbar siteName={siteName} />
-        <ReportStageBar />
-        <ProjectDataStatus />
-        <section className="diagnosis-report-frame">
-          <header className="diagnosis-report-hero">
-            <div>
-              <h1>Diagnosis report</h1>
-              <p>Turning observations into a clear diagnosis to guide design decisions.</p>
-            </div>
-            <SurfaceCard className="report-generated-card"><CircleDot aria-hidden="true" /><span>Report generated<small>May 12, 2025 - 10:32 AM</small></span></SurfaceCard>
-          </header>
-          <section className="diagnosis-top-grid">
-            <ExecutiveSummary siteName={siteName} meta={meta} />
-            <SwotOverview />
-            <TopInsights />
-          </section>
-          <section className="diagnosis-lower-grid">
-            <PrioritizedFindings />
-            <div className="diagnosis-stack">
-              <RiskFlags />
-              <EvidenceCard />
-            </div>
-            <RecommendedReportActions />
-          </section>
-          <p className="diagnosis-report-quote">A clear diagnosis today leads to a regenerative design tomorrow.</p>
-        </section>
-      </div>
+      <ProjectDataStatus />
+      <SwotDiagnosisReportContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

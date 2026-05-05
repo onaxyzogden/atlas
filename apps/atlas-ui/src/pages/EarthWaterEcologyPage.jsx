@@ -58,7 +58,7 @@ function scoreNote(n) {
   return "Low";
 }
 
-export function EarthWaterEcologyPage() {
+export function EarthWaterEcologyContent() {
   const { project, assessment } = useBuiltinProject();
   const meta   = project?.metadata  ?? {};
   const sb     = assessment?.scoreBreakdown ?? {};
@@ -76,27 +76,33 @@ export function EarthWaterEcologyPage() {
     : null;
 
   return (
+    <div className="detail-page diagnostics-page">
+      <ModuleHeader />
+      <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
+      <TabsAndActions />
+      <section className="diagnostic-grid">
+        <SiteMapCard />
+        <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
+        <HydrologyCard fieldObservations={meta.fieldObservations} />
+        <EcologyCard />
+        <RecentObservationsCard />
+        <RecommendedActionsCard />
+      </section>
+      <StatusFooter />
+    </div>
+  );
+}
+
+export function EarthWaterEcologyPage() {
+  return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page diagnostics-page">
-        <TopStageBar
-          stage="Stage 1 of 3"
-          module="Roots & Diagnosis · Module 4"
-          actionLabel="Module settings"
-        />
-        <ProjectDataStatus />
-        <ModuleHeader />
-        <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
-        <TabsAndActions />
-        <section className="diagnostic-grid">
-          <SiteMapCard />
-          <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
-          <HydrologyCard fieldObservations={meta.fieldObservations} />
-          <EcologyCard />
-          <RecentObservationsCard />
-          <RecommendedActionsCard />
-        </section>
-        <StatusFooter />
-      </div>
+      <TopStageBar
+        stage="Stage 1 of 3"
+        module="Roots & Diagnosis · Module 4"
+        actionLabel="Module settings"
+      />
+      <ProjectDataStatus />
+      <EarthWaterEcologyContent />
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}

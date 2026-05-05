@@ -32,35 +32,41 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/human
 
 const iconMap = { sprout: Sprout, users: Users, leaf: Leaf, droplet: Droplet, heart: Heart, sun: Sun, home: Home };
 
+export function VisionContent() {
+  return (
+    <div className="detail-page vision-page">
+      <section className="vision-top-grid">
+        <VisionIntro />
+        <ConceptPanel />
+        <QuotePanel />
+      </section>
+      <section className="vision-middle-grid">
+        <CoreFunctions />
+        <ExperienceGoals />
+        <AspirationPanel />
+        <SuccessPanel />
+      </section>
+      <section className="vision-bottom-grid">
+        <ListPanel title="Design principles" items={vm.designPrinciples} />
+        <ListPanel title="Guiding values" items={vm.guidingValues} />
+        <ListPanel title="Key constraints" tone="warning" items={vm.keyConstraints} />
+        <MoodboardPanel />
+      </section>
+      <footer className="vision-proverb">
+        <Sprout aria-hidden="true" />
+        <span>{vm.proverb}</span>
+        <b>- Indigenous proverb</b>
+      </footer>
+    </div>
+  );
+}
+
 export function VisionPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page vision-page">
-        <TopStageBar />
-        <ProjectDataStatus />
-        <section className="vision-top-grid">
-          <VisionIntro />
-          <ConceptPanel />
-          <QuotePanel />
-        </section>
-        <section className="vision-middle-grid">
-          <CoreFunctions />
-          <ExperienceGoals />
-          <AspirationPanel />
-          <SuccessPanel />
-        </section>
-        <section className="vision-bottom-grid">
-          <ListPanel title="Design principles" items={vm.designPrinciples} />
-          <ListPanel title="Guiding values" items={vm.guidingValues} />
-          <ListPanel title="Key constraints" tone="warning" items={vm.keyConstraints} />
-          <MoodboardPanel />
-        </section>
-        <footer className="vision-proverb">
-          <Sprout aria-hidden="true" />
-          <span>{vm.proverb}</span>
-          <b>- Indigenous proverb</b>
-        </footer>
-      </div>
+      <TopStageBar />
+      <ProjectDataStatus />
+      <VisionContent />
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}

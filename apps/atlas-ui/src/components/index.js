@@ -14,6 +14,7 @@ export { ProjectOverviewCard } from "./ProjectOverviewCard.jsx";
 export { ProjectDataStatus } from "./ProjectDataStatus.jsx";
 export { QaOverlay } from "./QaOverlay.jsx";
 export { ModuleSummaryCard } from "./ModuleSummaryCard.jsx";
+export { SlideUpPane } from "./SlideUpPane.jsx";
 export { SurfaceCard } from "./SurfaceCard.jsx";
 export { TopStageBar } from "./TopStageBar.jsx";
 

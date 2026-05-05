@@ -13,12 +13,13 @@ import {
   Sun,
   Triangle
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AppShell,
   CroppedArt,
   ProgressRing,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus
@@ -27,6 +28,8 @@ import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { topographyDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { TerrainDetailContent } from "./TerrainDetailPage.jsx";
+import { CrossSectionToolContent } from "./CrossSectionToolPage.jsx";
 import heroTerrain from "../assets/generated/topography-dashboard/hero-terrain.png";
 import terrainPreview from "../assets/generated/topography-dashboard/terrain-preview.png";
 import crossSectionPreview from "../assets/generated/topography-dashboard/cross-section-preview.png";
@@ -36,6 +39,8 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/topog
 const topoIconMap = { triangle: Triangle, mountain: Mountain, ruler: Ruler, sliders: SlidersHorizontal, layers: Layers, droplet: Droplet, leaf: Leaf, home: Home, shield: ShieldAlert, sun: Sun };
 
 export function TopographyDashboardPage() {
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
       <div className="detail-page topography-page">
@@ -47,14 +52,20 @@ export function TopographyDashboardPage() {
             <TopographyMetrics />
             <TopographySynthesis />
             <section className="topography-tool-grid">
-              <TerrainToolCard />
-              <CrossSectionToolCard />
+              <TerrainToolCard onAction={() => setPane("terrain")} />
+              <CrossSectionToolCard onAction={() => setPane("crossSection")} />
             </section>
           </div>
           <TopographySidebar />
         </section>
         <TopographyFooter />
       </div>
+      <SlideUpPane open={pane === "terrain"} title="Terrain detail" onClose={close}>
+        <TerrainDetailContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "crossSection"} title="Cross-section tool" onClose={close}>
+        <CrossSectionToolContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
@@ -120,7 +131,7 @@ function TopographySynthesis() {
   );
 }
 
-function TerrainToolCard() {
+function TerrainToolCard({ onAction }) {
   return (
     <SurfaceCard className="topography-tool-card">
       <header>
@@ -137,14 +148,14 @@ function TerrainToolCard() {
         <CroppedArt src={terrainPreview} className="topography-tool-image" />
       </div>
       <div className="tool-card-actions">
-        <Link to="/observe/topography/terrain-detail" className="green-button">Open terrain detail <ArrowRight aria-hidden="true" /></Link>
+        <button className="green-button" type="button" onClick={onAction}>Open terrain detail <ArrowRight aria-hidden="true" /></button>
         <small>Best for: Detailed analysis of slope, aspect, elevation and landforms.</small>
       </div>
     </SurfaceCard>
   );
 }
 
-function CrossSectionToolCard() {
+function CrossSectionToolCard({ onAction }) {
   return (
     <SurfaceCard className="topography-tool-card">
       <header>
@@ -161,7 +172,7 @@ function CrossSectionToolCard() {
         <CroppedArt src={crossSectionPreview} className="topography-tool-image" />
       </div>
       <div className="tool-card-actions">
-        <Link to="/observe/topography/cross-section-tool" className="green-button">Open cross-section tool <ArrowRight aria-hidden="true" /></Link>
+        <button className="green-button" type="button" onClick={onAction}>Open cross-section tool <ArrowRight aria-hidden="true" /></button>
         <small>Best for: Understanding elevation change, solar exposure, drainage swales, dams, buildings and cut/fill balance.</small>
       </div>
     </SurfaceCard>

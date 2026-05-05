@@ -59,28 +59,34 @@ function aspectBearing(dir) {
   return map[dir] ?? "—";
 }
 
-export function TerrainDetailPage() {
+export function TerrainDetailContent() {
   const { assessment } = useBuiltinProject();
   const terrain = assessment?.terrainAnalysis ?? null;
   return (
+    <div className="detail-page terrain-detail-page">
+      <TerrainHeader />
+      <TerrainMetrics terrain={terrain} />
+      <section className="terrain-workspace">
+        <div className="terrain-main-column">
+          <TerrainMapPanel />
+          <section className="terrain-lower-grid">
+            <ElevationProfilePanel />
+            <DetectedFeaturesPanel />
+          </section>
+        </div>
+        <TerrainSidebar terrain={terrain} />
+      </section>
+      <TerrainFooter />
+    </div>
+  );
+}
+
+export function TerrainDetailPage() {
+  return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page terrain-detail-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
-        <ProjectDataStatus />
-        <TerrainHeader />
-        <TerrainMetrics terrain={terrain} />
-        <section className="terrain-workspace">
-          <div className="terrain-main-column">
-            <TerrainMapPanel />
-            <section className="terrain-lower-grid">
-              <ElevationProfilePanel />
-              <DetectedFeaturesPanel />
-            </section>
-          </div>
-          <TerrainSidebar terrain={terrain} />
-        </section>
-        <TerrainFooter />
-      </div>
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+      <ProjectDataStatus />
+      <TerrainDetailContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
