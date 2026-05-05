@@ -49,6 +49,31 @@ Tests: 9 cases (3 single-tile preserved + 6 new — horizontal, vertical,
 unchanged: `POLLINATOR_USE_POLYGON_FRICTION` and `LANDCOVER_TILES_READY`
 stay default-off; `verify-scoring-parity` delta untouched.
 
+**Follow-up — `bufferBboxKm` helper extracted** (`2930aad`).
+Closes parked open question #1 from the follow-up plan. The inline
+cosine-of-latitude buffer math from Piece A is now an exported pure
+function at `apps/api/src/services/landcover/bufferBboxKm.ts` with 7
+direct unit tests (equator parity, 60° N 2× scaling, polar 10× cap,
+no input mutation, mean-lat reference, zero-buffer identity, lat-buf
+invariance). `apps/api` vitest: **530/530**.
+
+**Session close PR #12 (`claude/vigilant-elbakyan-2d16d9`)** — 5
+commits pushed this session:
+  - `456f112` Piece A — latitude-aware longitude buffer
+  - `5f5e33a` Piece B — triage 6 pre-existing test failures
+  - `33bb8fa` Piece C — multi-tile stitching in `clipToBbox`
+  - `6b4185f` wiki log for the three pieces
+  - `2930aad` `bufferBboxKm` helper extraction + unit tests
+
+**Outstanding parked items** (not started, await operator direction):
+  - Raise `CLIP_MAX_TILES` cap above 4 (only matters for AOIs larger
+    than realistic parcels at 3°×3° WorldCover spacing).
+  - Polygon-mask refinement of `sampleHistogram` (currently bbox-only
+    — counts pixels inside parcel bbox, not inside polygon; documented
+    limitation in the ADR).
+  - Real raster tile end-to-end exercise (`LANDCOVER_TILES_READY=true`)
+    — explicitly out of scope until a real tile lands.
+
 ---
 
 ## 2026-05-05 — 8.1-A + 8.1-B engineering burn-down (Phases 1–8)
