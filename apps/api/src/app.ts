@@ -37,6 +37,9 @@ import gaezRoutes from './routes/gaez/index.js';
 import { initGaezService } from './services/gaez/GaezRasterService.js';
 import soilgridsRoutes from './routes/soilgrids/index.js';
 import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterService.js';
+import { initNlcdService } from './services/landcover/NlcdRasterService.js';
+import { initAciService } from './services/landcover/AciRasterService.js';
+import { initWorldCoverService } from './services/landcover/WorldCoverRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
 import fileRoutes from './routes/files/index.js';
 import exportRoutes from './routes/exports/index.js';
@@ -248,6 +251,25 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
     } else {
       app.log.info('SoilGrids v2.0 raster service disabled (no manifest at data/soilgrids)');
     }
+  }
+
+  // ─── Land cover raster services (NLCD / ACI / WorldCover) ──────────────────
+  // Per ADR 2026-05-05-pollinator-corridor-raster-pipeline. Each service is
+  // independent — manifest absence means that source is disabled but the API
+  // still serves; the legacy land_cover adapters (NlcdAdapter, AafcLandCoverAdapter)
+  // remain wired in ADAPTER_REGISTRY until operator flips LANDCOVER_TILES_READY.
+
+  {
+    const s3 = config.LANDCOVER_S3_PREFIX ?? null;
+    const nlcd = initNlcdService(config.NLCD_DATA_DIR, s3);
+    const aci = initAciService(config.ACI_DATA_DIR, s3);
+    const wc = initWorldCoverService(config.WORLDCOVER_DATA_DIR, s3);
+    app.log.info({
+      nlcd: nlcd.isEnabled(),
+      aci: aci.isEnabled(),
+      worldcover: wc.isEnabled(),
+      tiles_ready: config.LANDCOVER_TILES_READY,
+    }, 'Land cover raster services initialised');
   }
 
   // ─── Migration check (warn only, does not block startup) ─────────────────────
