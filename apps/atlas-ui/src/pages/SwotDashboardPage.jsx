@@ -1,24 +1,30 @@
 import {
   ArrowRight,
-  BarChart3,
   BookOpen,
   CalendarDays,
   ClipboardList,
   CloudLightning,
   Compass,
-  Home,
   Leaf,
   Link as LinkIcon,
   Mountain,
-  PenLine,
   ShieldCheck,
   Sprout,
   Star,
   Target,
-  Users,
 } from "lucide-react";
 import { useState } from "react";
-import { AppShell, QaOverlay, SlideUpPane, SurfaceCard, TopStageBar, ProjectDataStatus } from "../components/index.js";
+import {
+  AppShell,
+  ModuleHeroCard,
+  ModuleKpiStrip,
+  ModuleSynthesisPanel,
+  QaOverlay,
+  SlideUpPane,
+  SurfaceCard,
+  TopStageBar,
+  ProjectDataStatus,
+} from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotDashboard as vm } from "../data/builtin-sample.js";
@@ -27,7 +33,7 @@ import { SwotDiagnosisReportContent } from "./SwotDiagnosisReportPage.jsx";
 
 const metadata = screenCatalog.find((screen) => screen.route === "/observe/swot");
 
-const KPI_BY_LABEL = Object.fromEntries(vm.kpis.map((k) => [k.label, k.value]));
+const swotIconMap = { leaf: Leaf, mountain: Mountain, sprout: Sprout, cloud: CloudLightning };
 
 export function SwotDashboardPage() {
   const [pane, setPane] = useState(null);
@@ -39,17 +45,28 @@ export function SwotDashboardPage() {
         <ProjectDataStatus />
         <section className="swot-content">
           <div className="swot-main">
-            <SwotHero />
-            <SwotQuadrants />
+            <ModuleHeroCard
+              moduleNumber="SWOT"
+              title="SWOT Synthesis"
+              icon={Target}
+              copy={vm.hero.copy}
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+            />
+            <SwotKpis />
             <SynthesisHow />
             <section className="swot-middle-grid">
               <SwotJournalCard onAction={() => setPane("journal")} />
               <DiagnosisReportCard onAction={() => setPane("diagnosis")} />
             </section>
+            <SwotHealthStrip />
           </div>
-          <DesignImplications />
+          <ModuleSynthesisPanel
+            title="SWOT Synthesis"
+            synthesis={vm.synthesis}
+            alignmentLabel="Synthesis Alignment"
+          />
         </section>
-        <SwotHealthStrip />
       </div>
       <SlideUpPane open={pane === "journal"} title="SWOT journal" onClose={close}>
         <SwotJournalContent />
@@ -64,32 +81,15 @@ export function SwotDashboardPage() {
   );
 }
 
-function SwotHero() {
-  return (
-    <header className="swot-hero">
-      <h1>SWOT Synthesis</h1>
-      <i />
-      <p>Synthesize insights from your journal and diagnosis to reveal strategic leverage points and inform robust, regenerative design decisions.</p>
-    </header>
-  );
-}
-
-function SwotQuadrants() {
-  const cards = [
-    [Leaf,           "Strengths",     KPI_BY_LABEL.STRENGTHS,     "Internal assets and positive factors you can build upon."],
-    [Mountain,       "Weaknesses",    KPI_BY_LABEL.WEAKNESSES,    "Internal limitations or gaps that may constrain success."],
-    [Sprout,         "Opportunities", KPI_BY_LABEL.OPPORTUNITIES, "External conditions and trends that can be leveraged."],
-    [CloudLightning, "Threats",       KPI_BY_LABEL.THREATS,       "External risks or pressures that could impact outcomes."],
+function SwotKpis() {
+  const byLabel = Object.fromEntries(vm.kpis.map((k) => [k.label, k]));
+  const items = [
+    ["leaf",     "Strengths",     String(byLabel.STRENGTHS.value),     byLabel.STRENGTHS.sub,     "green"],
+    ["mountain", "Weaknesses",    String(byLabel.WEAKNESSES.value),    byLabel.WEAKNESSES.sub,    "gold" ],
+    ["sprout",   "Opportunities", String(byLabel.OPPORTUNITIES.value), byLabel.OPPORTUNITIES.sub, "green"],
+    ["cloud",    "Threats",       String(byLabel.THREATS.value),       byLabel.THREATS.sub,       "gold" ],
   ];
-  return (
-    <section className="swot-quadrants">
-      {cards.map(([Icon, title, count, note]) => (
-        <SurfaceCard className={`swot-quadrant ${title.toLowerCase()}`} key={title}>
-          <Icon aria-hidden="true" /><span>{title}</span><strong>{count}</strong><p>{note}</p><ArrowRight aria-hidden="true" />
-        </SurfaceCard>
-      ))}
-    </section>
-  );
+  return <ModuleKpiStrip items={items} iconMap={swotIconMap} />;
 }
 
 function SynthesisHow() {
@@ -143,32 +143,6 @@ function DiagnosisReportCard({ onAction }) {
       <button type="button" className="green-button" onClick={onAction}>Open diagnosis report <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
-}
-
-function DesignImplications() {
-  const ICONS = [Leaf, RouteIcon, CloudLightning, Users];
-  const NOTES = [
-    "Design gardens and systems that maximize productive capacity while conserving water.",
-    "Improve year-round access for people, materials, and maintenance with low-impact solutions.",
-    "Incorporate frost protection, diversity, and microclimate design to increase system resilience.",
-    "Strengthen local partnerships and share knowledge to support long-term stewardship.",
-  ];
-  return (
-    <SurfaceCard className="swot-implications-card">
-      <h2><Target aria-hidden="true" /> Design implications <span>Recommended next actions</span></h2>
-      <section>{vm.designImplications.map((title, index) => {
-        const Icon = ICONS[index % ICONS.length];
-        const note = NOTES[index % NOTES.length];
-        return <p key={title}><b>{index + 1}</b><span>{title}<small>{note}</small></span><Icon aria-hidden="true" /></p>;
-      })}</section>
-      <button className="green-button" type="button">Create action plan from synthesis <ArrowRight aria-hidden="true" /></button>
-      <button type="button">Export synthesis summary</button>
-    </SurfaceCard>
-  );
-}
-
-function RouteIcon(props) {
-  return <ArrowRight {...props} />;
 }
 
 function SwotHealthStrip() {

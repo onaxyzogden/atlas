@@ -8501,7 +8501,7 @@ img.footprint-art {
 
 .swot-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 368px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-6);
   padding-top: var(--space-6);
 }

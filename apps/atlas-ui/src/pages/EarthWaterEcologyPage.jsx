@@ -78,17 +78,17 @@ export function EarthWaterEcologyContent() {
 
   return (
     <div className="detail-page diagnostics-page">
-      <ModuleHeroCard
-        moduleNumber="Module 4"
-        title="Earth, Water & Ecology"
-        icon={Leaf}
-        copy={vm.header.copy}
-        progressPct={vm.header.progressPct}
-        metrics={vm.header.metrics}
-      />
-      <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
       <div className="diagnostics-layout">
         <div className="diagnostics-main">
+          <ModuleHeroCard
+            moduleNumber="Module 4"
+            title="Earth, Water & Ecology"
+            icon={Leaf}
+            copy={vm.header.copy}
+            progressPct={vm.header.progressPct}
+            metrics={vm.header.metrics}
+          />
+          <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
           <TabsAndActions />
           <section className="diagnostic-grid">
             <SiteMapCard />
@@ -98,7 +98,6 @@ export function EarthWaterEcologyContent() {
             <RecentObservationsCard />
             <RecommendedActionsCard />
           </section>
-          <StatusFooter />
         </div>
         <aside className="diagnostics-sidebar">
           <ModuleSynthesisPanel
@@ -299,16 +298,3 @@ function RecommendedActionsCard() {
   );
 }
 
-function StatusFooter() {
-  const { siteBanner } = useBuiltinProject();
-  return (
-    <footer className="diagnostic-footer">
-      <span><b>Site:</b> {siteBanner.siteName}</span>
-      <span><b>Location:</b> {siteBanner.location}</span>
-      <span><b>Elevation:</b> {siteBanner.elevationRange}</span>
-      <span><b>Project start:</b> {siteBanner.projectStart}</span>
-      <span>Last updated: {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
-      <span className="synced">{siteBanner.syncStatus}</span>
-    </footer>
-  );
-}
