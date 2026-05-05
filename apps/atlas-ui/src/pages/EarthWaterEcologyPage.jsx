@@ -18,6 +18,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleSynthesisPanel,
   ProgressRing,
   QaOverlay,
   SurfaceCard,
@@ -85,16 +86,27 @@ export function EarthWaterEcologyContent() {
         metrics={vm.header.metrics}
       />
       <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
-      <TabsAndActions />
-      <section className="diagnostic-grid">
-        <SiteMapCard />
-        <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
-        <HydrologyCard fieldObservations={meta.fieldObservations} />
-        <EcologyCard />
-        <RecentObservationsCard />
-        <RecommendedActionsCard />
-      </section>
-      <StatusFooter />
+      <div className="diagnostics-layout">
+        <div className="diagnostics-main">
+          <TabsAndActions />
+          <section className="diagnostic-grid">
+            <SiteMapCard />
+            <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
+            <HydrologyCard fieldObservations={meta.fieldObservations} />
+            <EcologyCard />
+            <RecentObservationsCard />
+            <RecommendedActionsCard />
+          </section>
+          <StatusFooter />
+        </div>
+        <aside className="diagnostics-sidebar">
+          <ModuleSynthesisPanel
+            title="Earth & Water Synthesis"
+            synthesis={vm.synthesis}
+            alignmentLabel="Ecology Alignment"
+          />
+        </aside>
+      </div>
     </div>
   );
 }

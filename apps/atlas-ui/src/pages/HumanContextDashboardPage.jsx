@@ -10,6 +10,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleSynthesisPanel,
   ProgressRing,
   QaOverlay,
   SlideUpPane,
@@ -55,7 +56,12 @@ export function HumanContextDashboardPage() {
             </section>
             <HealthStrip />
           </div>
-          <SynthesisPanel onAction={() => setPane("implications")} />
+          <ModuleSynthesisPanel
+            title="Human Context Synthesis"
+            synthesis={vm.synthesis}
+            alignmentLabel="Context Alignment"
+            onAction={() => setPane("implications")}
+          />
         </div>
       </div>
       <SlideUpPane open={pane === "steward"} title="Steward Survey" onClose={close}>
@@ -188,35 +194,6 @@ function HealthStrip() {
   );
 }
 
-function SynthesisPanel({ onAction }) {
-  const s = vm.synthesis;
-  return (
-    <SurfaceCard className="human-synthesis-panel">
-      <h2>Human Context Synthesis</h2>
-      <div className="synthesis-score">
-        <ProgressRing value={s.alignmentPct} label={`${s.alignmentPct}%`} />
-        <p><b>Context Alignment</b>{s.alignmentNote}</p>
-      </div>
-      <SynthesisSection title="Key insights" items={s.keyInsights} />
-      <SynthesisSection title="Design implications" items={s.designImplications} />
-      <SynthesisSection title="Next steps" numbered items={s.nextSteps} />
-      <button className="green-button" type="button" onClick={onAction}>
-        View full design implications <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
-
-function SynthesisSection({ title, items, numbered = false }) {
-  return (
-    <section className="synthesis-section">
-      <h3>{title}</h3>
-      {items.map((item, index) => (
-        <p key={item}>{numbered ? <b>{index + 1}</b> : <CheckCircle2 aria-hidden="true" />} {item}</p>
-      ))}
-    </section>
-  );
-}
 
 function ImplicationsContent() {
   const s = vm.synthesis;

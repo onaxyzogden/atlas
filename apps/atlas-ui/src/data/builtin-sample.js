@@ -460,7 +460,28 @@ export const macroclimateDashboard = {
       "Integrate climate insights into Zone & Sector planning."
     ],
     riskPriorities: ["Late spring frost", "Intense storm / wind", "Summer drought"]
-  }
+  },
+  synthesis: {
+    alignmentPct: 85,
+    alignmentNote: "Climate patterns fully mapped. Ready to integrate into design.",
+    keyInsights: [
+      "Cool temperate climate with strong seasonality and good precipitation.",
+      "High winter solar access — design for passive solar gain.",
+      "NW winds and late frosts are primary design constraints.",
+      "Low-moderate summer water stress — prioritize water storage and soil moisture.",
+    ],
+    designImplications: [
+      "Orient buildings on SE-facing slopes to capture winter solar gain.",
+      "Plant dense evergreen windbreaks on NW boundary to reduce cold wind exposure.",
+      "Design water storage systems to capture Nov–Mar peak rainfall.",
+      "Extend growing season with frost protection on late-spring microclimate zones.",
+    ],
+    nextSteps: [
+      "Review Solar & Climate detail for passive design opportunities.",
+      "Open Hazards log to refine mitigation strategies and track progress.",
+      "Integrate climate insights into Zone & Sector planning.",
+    ],
+  },
 };
 
 // SolarClimateDetailPage (`/observe/macroclimate-hazards/solar-climate`).
@@ -554,7 +575,25 @@ export const topographyDashboard = {
       ["droplet", "Water", "Natural swales and gentle fall lines support harvesting, infiltration and ponding."],
       ["leaf", "Soil & stability", "Mostly stable slopes with low erosion risk. Protect exposed ridge lines and swales."],
       ["home", "Access & zones", "Multiple access points with buildable benches and productive lower slope zones."]
-    ]
+    ],
+    alignmentPct: 88,
+    alignmentNote: "Strong topographic data captured. Ready for design phase.",
+    keyInsights: [
+      "Gentle SE-facing slopes provide excellent passive solar conditions.",
+      "Natural swales and fall lines support water harvesting and infiltration.",
+      "Multiple buildable benches allow flexible placement of structures and zones.",
+    ],
+    designImplications: [
+      "Swales and lower slopes are ideal for capturing and slowing water movement.",
+      "Gentle slopes reduce erosion risk; protect exposed ridges and swale entry points.",
+      "Southeast aspect delivers strong morning sun and winter warmth.",
+      "Benches and lower rises offer flexible locations for buildings and zones.",
+    ],
+    nextSteps: [
+      "Map keyline candidates for water harvesting system design.",
+      "Identify building sites using terrain analysis and solar exposure data.",
+      "Plan access and internal routes between zones.",
+    ],
   },
   terrainTool: {
     rows: [
@@ -747,7 +786,27 @@ export const earthWaterEcologyPage = {
     ["Apply compost + mulch to garden beds", "Build organic matter and soil biology.", "Medium", "Due in 14 days"],
     ["Protect riparian corridor", "Fence and revegetate with natives.", "High", "Due in 21 days"],
     ["Conduct biological aeration", "Reduce compaction, improve infiltration.", "Medium", "Due in 30 days"]
-  ]
+  ],
+  synthesis: {
+    alignmentPct: 63,
+    alignmentNote: "Core diagnostics in progress. Key patterns emerging.",
+    keyInsights: [
+      "Moderate soil health with good pH — biological aeration will unlock full potential.",
+      "Water security is the primary constraint; prioritize capture and storage.",
+      "Moderate biodiversity with a valuable riparian corridor worth protecting.",
+    ],
+    designImplications: [
+      "Install contour swales to slow runoff and recharge soil moisture.",
+      "Protect and enhance the riparian corridor as a biodiversity keystone.",
+      "Apply compost amendments to build organic matter and soil biology.",
+      "Design irrigation systems to manage the Jun–Aug dry season deficit.",
+    ],
+    nextSteps: [
+      "Install contour swale on mid-slope to reduce erosion risk.",
+      "Fence and revegetate the riparian corridor with native species.",
+      "Submit soil sample for full biological analysis.",
+    ],
+  },
 };
 
 // CartographicDetailPage (`/observe/sectors-zones/cartographic-detail`).
@@ -876,7 +935,27 @@ export const sectorsMicroclimatesDashboard = {
     zonesOutlined: 5,
     observationDepth: 72,
   },
-  synthesis: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  synthesisText: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  synthesis: {
+    alignmentPct: 68,
+    alignmentNote: "Sector and zone mapping well underway. Placement decisions ready.",
+    keyInsights: [
+      "SE-facing microclimate provides the best conditions for warm-season production.",
+      "Western boundary is the primary wind exposure risk — windbreak design is critical.",
+      "Five distinct zones identified with clear spatial logic for element placement.",
+    ],
+    designImplications: [
+      "N-slope buildings capture morning sun and avoid southern competition.",
+      "Dense canopy sectors planned for windbreak along western boundary.",
+      "Water features positioned to intercept W-SW runoff flow paths.",
+      "SE-facing microclimate ideal for warm-season annual production.",
+    ],
+    nextSteps: [
+      "Place key structures using zone map and sector overlays.",
+      "Finalise tree placement using windbreak sector analysis.",
+      "Develop access and circulation plan between zones 1–3.",
+    ],
+  },
   sectorCompassSectors: [
     { dir: "N",  label: "Cold exposure",    tone: "dim",  deg: 0   },
     { dir: "NE", label: "Morning sun",      tone: "gold", deg: 45  },

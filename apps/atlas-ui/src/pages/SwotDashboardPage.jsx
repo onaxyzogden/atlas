@@ -7,13 +7,10 @@ import {
   CloudLightning,
   Compass,
   Home,
-  Layers,
   Leaf,
   Link as LinkIcon,
-  MapPin,
   Mountain,
   PenLine,
-  Settings,
   ShieldCheck,
   Sprout,
   Star,
@@ -21,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import { AppShell, QaOverlay, SlideUpPane, SurfaceCard } from "../components/index.js";
+import { AppShell, QaOverlay, SlideUpPane, SurfaceCard, TopStageBar, ProjectDataStatus } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { swotDashboard as vm } from "../data/builtin-sample.js";
@@ -38,7 +35,8 @@ export function SwotDashboardPage() {
   return (
     <AppShell navConfig={observeNav}>
       <div className="swot-page module-frame">
-        <SwotTopBar />
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — SWOT Synthesis" />
+        <ProjectDataStatus />
         <section className="swot-content">
           <div className="swot-main">
             <SwotHero />
@@ -63,15 +61,6 @@ export function SwotDashboardPage() {
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
     </AppShell>
-  );
-}
-
-function SwotTopBar() {
-  return (
-    <header className="swot-topbar">
-      <p>Home <ArrowRight aria-hidden="true" /> Analysis <ArrowRight aria-hidden="true" /> <b>SWOT Synthesis</b></p>
-      <nav>{["Observe", "Analyze", "Design", "Plan", "Implement", "Monitor"].map((item, index) => <span className={index === 1 ? "is-active" : ""} key={item}><b>{index + 1}</b>{item}</span>)}</nav>
-    </header>
   );
 }
 
