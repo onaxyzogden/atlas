@@ -11,14 +11,15 @@ import { useState } from "react";
 import {
   AppShell,
   ModuleHeroCard,
+  ModuleKpiStrip,
   ModuleSynthesisPanel,
-  ProgressRing,
   QaOverlay,
   SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus,
 } from "../components/index.js";
+
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorsMicroclimatesDashboard as vm } from "../data/builtin-sample.js";
@@ -86,36 +87,17 @@ export function SectorsMicroclimatesDashboardPage() {
   );
 }
 
+const sectorsIconMap = { leaf: Leaf, sun: Sun, home: Home, compass: Compass };
+
 function SectorsKpis() {
   const { kpis } = vm;
-  return (
-    <section className="sectors-kpi-strip">
-      <SurfaceCard className="sectors-kpi-card green">
-        <Leaf aria-hidden="true" />
-        <span>Sector analysis plans</span>
-        <strong>{kpis.sectorAnalysisPlans}</strong>
-        <small>Documented</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card gold">
-        <Sun aria-hidden="true" />
-        <span>Microclimate services</span>
-        <strong>{kpis.microclimates}</strong>
-        <small>Identified</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card green">
-        <Home aria-hidden="true" />
-        <span>Zones outlined</span>
-        <strong>{kpis.zonesOutlined}</strong>
-        <small>Across site</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card">
-        <ProgressRing value={kpis.observationDepth} label={`${kpis.observationDepth}%`} />
-        <span>Observation depth</span>
-        <strong>{kpis.observationDepth}%</strong>
-        <small>Module complete</small>
-      </SurfaceCard>
-    </section>
-  );
+  const items = [
+    ["leaf",    "Sector analysis plans", String(kpis.sectorAnalysisPlans), "Documented",  "green"],
+    ["sun",     "Microclimate services", String(kpis.microclimates),       "Identified",  "gold" ],
+    ["home",    "Zones outlined",        String(kpis.zonesOutlined),       "Across site", "green"],
+    ["compass", "Observation depth",     `${kpis.observationDepth}%`,      "Coverage",    "gold" ],
+  ];
+  return <ModuleKpiStrip items={items} iconMap={sectorsIconMap} />;
 }
 
 function SynthesisCard() {

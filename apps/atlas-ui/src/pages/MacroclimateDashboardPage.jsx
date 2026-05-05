@@ -14,6 +14,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleKpiStrip,
   ModuleSynthesisPanel,
   QaOverlay,
   SlideUpPane,
@@ -82,21 +83,7 @@ function MacroKpis({ meta }) {
     ["sun",       "Avg. solar",        meta.avgDailySolarKwhM2 ? `${meta.avgDailySolarKwhM2} kWh/m²/day` : vm.kpis[4][2], "Annual avg.", "gold"],
     ["wind",      "Prevailing wind",   meta.prevailingWindDir ?? vm.kpis[5]?.[2] ?? "W / SW",         "10-18 km/h",   "green"],
   ];
-  return (
-    <section className="macro-kpi-grid">
-      {kpis.map(([iconKey, label, value, note, tone]) => {
-        const Icon = macroIconMap[iconKey];
-        return (
-          <SurfaceCard className={`macro-kpi-card ${tone}`} key={label}>
-            <Icon aria-hidden="true" />
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{note}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
+  return <ModuleKpiStrip items={kpis} iconMap={macroIconMap} />;
 }
 
 function SolarClimateCard({ onAction }) {

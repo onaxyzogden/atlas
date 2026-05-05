@@ -18,6 +18,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleKpiStrip,
   ModuleSynthesisPanel,
   ProgressRing,
   QaOverlay,
@@ -141,21 +142,7 @@ function KpiStrip({ rawPh, soilHealthScore, bioScore, waterScore }) {
     ["binoculars","Field observations", vm.kpis[4][2], vm.kpis[4][3], "gold"],
     ["flask",     "Tests & samples",    vm.kpis[5][2], vm.kpis[5][3], "gold"],
   ];
-  return (
-    <SurfaceCard className="diagnostic-kpi-strip">
-      {kpis.map(([iconKey, label, value, note, tone]) => {
-        const Icon = ecologyIconMap[iconKey];
-        return (
-          <div className={`diagnostic-kpi ${tone}`} key={label}>
-            <Icon aria-hidden="true" />
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{note}</small>
-          </div>
-        );
-      })}
-    </SurfaceCard>
-  );
+  return <ModuleKpiStrip items={kpis} iconMap={ecologyIconMap} />;
 }
 
 function TabsAndActions() {

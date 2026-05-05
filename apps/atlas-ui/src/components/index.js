@@ -9,6 +9,7 @@ export { InsightSidebar } from "./InsightSidebar.jsx";
 export { MetricStrip } from "./MetricStrip.jsx";
 export { ModuleCard } from "./ModuleCard.jsx";
 export { ModuleHeroCard } from "./ModuleHeroCard.jsx";
+export { ModuleKpiStrip } from "./ModuleKpiStrip.jsx";
 export { ModuleSynthesisPanel } from "./ModuleSynthesisPanel.jsx";
 export { NextStepsPanel } from "./NextStepsPanel.jsx";
 export { ProgressRing } from "./ProgressRing.jsx";
