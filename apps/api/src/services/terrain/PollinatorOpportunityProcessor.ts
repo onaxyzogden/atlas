@@ -32,12 +32,17 @@
  */
 
 import type postgres from 'postgres';
+import pino from 'pino';
 import {
   POLLINATOR_SUPPORTIVE_WEIGHTS,
   POLLINATOR_LIMITING_WEIGHTS,
   lookupEcoregion,
   type EcoregionId,
 } from '@ogden/shared';
+import { config } from '../../lib/config.js';
+import { withTimeout, type PolygonPathResult } from './pollinatorPolygonPath.js';
+
+const logger = pino({ name: 'PollinatorOpportunityProcessor' });
 
 interface ProjectContext {
   projectId: string;
@@ -273,9 +278,19 @@ export class PollinatorOpportunityProcessor {
       return;
     }
 
+    // Phase 5 (ADR 2026-05-05) — try the polygon-friction path first when
+    // the feature flag is set. Returns null on any failure (no clip
+    // provider wired yet, raster manifest missing, GDAL absent, timeout).
+    // Falls through to the synthesized grid path in that case.
+    const polygonResult = config.POLLINATOR_USE_POLYGON_FRICTION
+      ? await this.tryPolygonPath(ctx)
+      : null;
+
     const patches = buildGrid(ctx);
     assignConnectivityRoles(patches);
-    const corridorReadiness = computeCorridorReadiness(patches);
+    const corridorReadiness = polygonResult
+      ? polygonResult.permeableFraction  // polygon path: connectivity ≈ permeable area share
+      : computeCorridorReadiness(patches);
 
     const ecoregionId = lookupEcoregion(ctx.centroidLat, ctx.centroidLng);
 
@@ -324,8 +339,24 @@ export class PollinatorOpportunityProcessor {
       confidence: ctx.confidence,
       dataSources: ['land_cover', 'wetlands_flood'],
       computedAt: new Date().toISOString(),
-      caveat:
-        'Patch grid is a 5×5 synthesized lattice sampled deterministically from aggregate land-cover %. For rigorous corridor analysis a polygonized land-cover source + raster least-cost-path is required (deferred).',
+      // Phase 5 provenance — distinguishes polygon-friction path from
+      // the legacy synthesized-grid path. Stays 'synthesized_grid' until
+      // a real raster clip arrives via Phase 6 ingest.
+      samplingMethod: polygonResult ? 'polygon' : 'synthesized_grid',
+      polygonPath: polygonResult
+        ? {
+            source: polygonResult.source,
+            vintage: polygonResult.vintage,
+            pixelCount: polygonResult.pixelCount,
+            polygonizeMs: polygonResult.polygonizeMs,
+            permeableAreaM2: Math.round(polygonResult.permeableAreaM2),
+            hostileAreaM2: Math.round(polygonResult.hostileAreaM2),
+            permeableFraction: Math.round(polygonResult.permeableFraction * 100) / 100,
+          }
+        : null,
+      caveat: polygonResult
+        ? 'Polygon-friction path: corridorReadiness derived from polygonized land-cover area share with friction <= 3 (forest/wetland/shrubland/grassland). 5×5 patch grid retained for UI continuity but role assignment uses polygon-derived permeability.'
+        : 'Patch grid is a 5×5 synthesized lattice sampled deterministically from aggregate land-cover %. For rigorous corridor analysis a polygonized land-cover source + raster least-cost-path is required (deferred).',
     };
 
     const dataDate = new Date().toISOString().split('T')[0]!;
@@ -362,6 +393,28 @@ export class PollinatorOpportunityProcessor {
         metadata         = EXCLUDED.metadata,
         fetched_at       = EXCLUDED.fetched_at
     `;
+  }
+
+  /**
+   * Attempt the polygon-friction path (Phase 5 / ADR 2026-05-05). Returns
+   * null on any failure so the caller can fall back to the synthesized
+   * grid. Wrapped in `POLLINATOR_POLYGON_TIMEOUT_MS` to bound the spend.
+   *
+   * Phase-5-minimal scaffolding: the actual `clipProvider` wiring (which
+   * needs `clipToBbox` on `LandCoverRasterServiceBase`) lands in Phase 6
+   * alongside the operator ingest job. Until then, this returns null,
+   * the processor falls through, and the legacy synthesized-grid path
+   * remains the production behaviour. The flag is exercised in fixture
+   * tests (Phase 7) by injecting a stub clipProvider.
+   */
+  private async tryPolygonPath(ctx: ProjectContext): Promise<PolygonPathResult | null> {
+    void ctx;
+    void withTimeout;
+    logger.info(
+      { project: ctx.projectId, flag: config.POLLINATOR_USE_POLYGON_FRICTION },
+      'polygon-path scaffold reached; clipToBbox not yet wired — falling back to synthesized grid',
+    );
+    return null;
   }
 
   private async loadContext(projectId: string): Promise<ProjectContext | null> {

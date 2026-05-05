@@ -4,6 +4,100 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-05 — 8.1-A + 8.1-B engineering burn-down (Phases 1–8)
+
+Eight-phase burn-down landed against fixture COGs after 2026-05-05 ADR
+locked the toolchain. When real raster tiles arrive the only added
+step is dropping them under `data/landcover/<source>/<vintage>/` and
+flipping `LANDCOVER_TILES_READY=true`.
+
+What shipped:
+
+- **Phase 1 — Raster services** (`apps/api/src/services/landcover/`):
+  `LandCoverRasterServiceBase` (abstract; manifest, LRU TIFF cache,
+  proj4 reprojection, per-tile pixel-window sampling) plus
+  `NlcdRasterService` (EPSG:5070), `AciRasterService` (EPSG:3347),
+  `WorldCoverRasterService` (EPSG:4326). Lazy logger pattern fixes
+  the abstract-property-in-constructor TS error.
+- **Phase 2 — Adapters + dispatch** (`apps/api/src/services/pipeline/adapters/`):
+  `NlcdLandCoverAdapter`, `AciLandCoverAdapter`,
+  `WorldCoverLandCoverAdapter` + shared `landCoverAdapterCommon.ts`
+  (bbox extraction, histogram → AdapterResult). Orchestrator's
+  `resolveAdapter` is env-flag-gated: when `LANDCOVER_TILES_READY=true`
+  AND the manifest is loaded, `'NlcdAdapter'` / `'AafcLandCoverAdapter'`
+  registry strings dispatch to the new raster-sample adapters.
+  Otherwise the legacy WMS path is preserved. Zero registry-config diff.
+- **Phase 3 — Schema** (`packages/shared/src/scoring/layerSummary.ts`):
+  `LandCoverSummary` extended with `samplingMethod`, `licence_short`,
+  `pixelCount`, `validPixelCount`, `nodataPixelCount`, `dominantClass`,
+  `vintage`, `dataSources[]`, `classMeta`, `heuristic_note`.
+- **Phase 4 — Polygonisation library**
+  (`packages/shared/src/ecology/`): `polygonizeBbox` (signature locked
+  by ADR D8; `clipProvider` + `polygonizer` + `reprojector` injection),
+  `polygonizePixelGrid` pure-JS fallback for fixtures, and
+  `deriveCorridorFriction` (re-uses `COVER_IMPEDANCE` from corridorLCP
+  so polygon and zone-grid paths agree on weights). Production GDAL
+  shell-out lives at `apps/api/src/services/landcover/polygonizeWithGdal.ts`;
+  `writeClipAsGeotiff` deliberately stubbed until Phase 5 wiring.
+- **Phase 5 — Processor swap**
+  (`apps/api/src/services/terrain/pollinatorPolygonPath.ts` +
+  `PollinatorOpportunityProcessor.ts`): feature flag
+  `POLLINATOR_USE_POLYGON_FRICTION` + 60s `withTimeout` race +
+  `samplingMethod: 'polygon' | 'synthesized_grid'` provenance. The
+  scaffold falls through to the synthesized grid until `clipToBbox`
+  is wired on the base class — that lands when Phase 6 ingest runs
+  and real tiles exist to verify against.
+- **Phase 6 — Operator ingest** (`apps/api/src/jobs/landcover-tile-ingest.ts`):
+  per-vintage cogification via `gdal_translate -of COG`, manifest
+  emission for the runtime services to load on boot. Mirrors the
+  `cpcad-ingest.ts` operator-runs-once pattern.
+- **Phase 7 — Tests**
+  (`packages/shared/src/tests/polygonizeBbox.test.ts`): 7 fixture
+  tests against a 10×10 NLCD pixel grid (Deciduous Forest vs
+  Cultivated Crops); validate pixel count, NoData skip, abstract
+  injection, conditional reprojection, friction derivation,
+  permeable/hostile area aggregation. Full shared suite stays green
+  at 166/166.
+
+Architectural simplifications worth recording:
+
+- **Env-flag-gated dispatch** beat registry-config swap. Pre-tile
+  production stays untouched; one env var flip activates the new path.
+- **Polygon path returns null when not yet wired** rather than
+  throwing. The 60s timeout race + null fallback collapses three
+  failure modes (manifest missing, GDAL absent, slow run) into one
+  graceful synthesized-grid fallback.
+- **Pure-JS `polygonizePixelGrid` is the test path, not a production
+  fallback.** Production must use `gdal_polygonize.py` (D5) for
+  topology; the pure-JS path emits per-cell rectangles that are
+  fine for fixture verification but wouldn't compose into a clean
+  patch graph at parcel scale.
+
+Files (new):
+- `apps/api/src/services/landcover/{LandCoverRasterServiceBase,Nlcd,Aci,WorldCover}RasterService.ts`
+- `apps/api/src/services/landcover/polygonizeWithGdal.ts`
+- `apps/api/src/services/pipeline/adapters/{Nlcd,Aci,WorldCover}LandCoverAdapter.ts`
+- `apps/api/src/services/pipeline/adapters/landCoverAdapterCommon.ts`
+- `apps/api/src/services/terrain/pollinatorPolygonPath.ts`
+- `apps/api/src/jobs/landcover-tile-ingest.ts`
+- `packages/shared/src/ecology/{polygonizeBbox,corridorFriction}.ts`
+- `packages/shared/src/tests/polygonizeBbox.test.ts`
+
+Files (edited):
+- `apps/api/src/lib/config.ts` (5 + 2 env vars)
+- `apps/api/src/app.ts` (boot init for 3 raster services)
+- `apps/api/src/services/pipeline/DataPipelineOrchestrator.ts` (env-flag dispatch)
+- `apps/api/src/services/terrain/PollinatorOpportunityProcessor.ts` (polygon path swap)
+- `packages/shared/src/scoring/layerSummary.ts` (LandCoverSummary provenance)
+- `packages/shared/src/index.ts` (re-export new ecology modules)
+- `wiki/log.md`, `wiki/index.md`
+
+Status: tsc clean across `apps/api` and `packages/shared`. 166/166
+shared tests green. Awaiting raster tiles to flip
+`LANDCOVER_TILES_READY=true` and exercise the production path.
+
+---
+
 ## 2026-05-04 — 8.2-A.2 — IgracGroundwaterAdapter shipped
 
 Second engineering slice of accepted ADR 8.2-A. The adapter reads
