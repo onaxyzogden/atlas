@@ -16,6 +16,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleKpiStrip,
   ModuleSynthesisPanel,
   QaOverlay,
   SlideUpPane,
@@ -26,7 +27,6 @@ import {
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { topographyDashboard as vm } from "../data/builtin-sample.js";
-import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import { TerrainDetailContent } from "./TerrainDetailPage.jsx";
 import { CrossSectionToolContent } from "./CrossSectionToolPage.jsx";
 import heroTerrain from "../assets/generated/topography-dashboard/hero-terrain.png";
@@ -65,7 +65,6 @@ export function TopographyDashboardPage() {
           </div>
           <TopographySidebar />
         </section>
-        <TopographyFooter />
       </div>
       <SlideUpPane open={pane === "terrain"} title="Terrain detail" onClose={close}>
         <TerrainDetailContent />
@@ -81,24 +80,15 @@ export function TopographyDashboardPage() {
 }
 
 function TopographyMetrics() {
-  return (
-    <section className="topography-metric-grid">
-      {vm.metrics.map(([iconKey, label, value, pill, note]) => {
-        const Icon = topoIconMap[iconKey];
-        return (
-          <SurfaceCard className="topography-metric-card" key={label}>
-            <Icon aria-hidden="true" />
-            <div>
-              <span>{label}</span>
-              <strong>{value}</strong>
-              {pill ? <em>{pill}</em> : null}
-            </div>
-            <p>{note}</p>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
+  const TONES = ["green", "gold", "green", "gold", "green"];
+  const items = vm.metrics.map(([iconKey, label, value, pill, note], i) => [
+    iconKey,
+    label,
+    value,
+    pill || note,
+    TONES[i % TONES.length],
+  ]);
+  return <ModuleKpiStrip items={items} iconMap={topoIconMap} />;
 }
 
 function TopographySynthesis() {
@@ -183,16 +173,3 @@ function TopographySidebar() {
   );
 }
 
-function TopographyFooter() {
-  const { siteBanner } = useBuiltinProject();
-  return (
-    <footer className="diagnostics-footer topography-footer">
-      <span><b>Site:</b> {siteBanner.siteName}</span>
-      <span><b>Location:</b> {siteBanner.location}</span>
-      <span><b>Elevation:</b> {siteBanner.elevationRange}</span>
-      <span><b>Project start:</b> {siteBanner.projectStart}</span>
-      <span><b>Last updated:</b> {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
-      <span className="synced-dot">{siteBanner.syncStatus}</span>
-    </footer>
-  );
-}

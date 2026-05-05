@@ -2559,68 +2559,6 @@ img.footprint-art {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 26%, #000 82%, transparent);
 }
 
-.topography-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.topography-metric-card {
-  height: 151px;
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-5) var(--space-3) var(--space-3);
-  overflow: hidden;
-}
-
-.topography-metric-card > svg {
-  grid-row: 1 / span 2;
-  width: 56px;
-  height: 56px;
-  padding: var(--space-3);
-  border: 1px solid rgba(135, 184, 54, 0.36);
-  border-radius: 50%;
-  color: var(--olos-green);
-  background: rgba(33, 52, 25, 0.25);
-}
-
-.topography-metric-card span {
-  color: var(--olos-green);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.topography-metric-card strong {
-  display: block;
-  margin-top: var(--space-1);
-  color: #f0dfc5;
-  font-family: var(--olos-font-display);
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 1.03;
-}
-
-.topography-metric-card em {
-  display: inline-flex;
-  margin-top: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid rgba(135, 184, 54, 0.36);
-  border-radius: 999px;
-  color: #9bd64a;
-  font-style: normal;
-  font-size: 12px;
-}
-
-.topography-metric-card p {
-  grid-column: 1 / -1;
-  margin: var(--space-1) 0 0;
-  color: #c8bca8;
-  line-height: 1.35;
-}
-
 .topography-synthesis {
   height: 190px;
   display: grid;
@@ -2784,10 +2722,6 @@ img.footprint-art {
 }
 
 
-.topography-footer {
-  margin-top: var(--space-3);
-}
-
 @media (max-width: 1180px) {
   .topography-layout,
   .topography-synthesis,
@@ -2798,14 +2732,9 @@ img.footprint-art {
   .topography-sidebar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .topography-metric-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 760px) {
-  .topography-metric-grid,
   .topography-sidebar,
   .tool-card-body,
   .tool-card-actions {
@@ -2825,10 +2754,6 @@ img.footprint-art {
 
   .topography-tool-card {
     min-height: auto;
-  }
-
-  .topography-footer {
-    display: none;
   }
 }
 
