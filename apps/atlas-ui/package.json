@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "inventory": "node scripts/generate-screen-inventory.mjs",
-    "lint": "echo \"(atlas-ui) lint not configured yet\"",
+    "lint": "node scripts/audit-typography.mjs",
     "typecheck": "echo \"(atlas-ui) typecheck not configured yet\"",
     "test": "echo \"(atlas-ui) tests not configured yet\""
   },

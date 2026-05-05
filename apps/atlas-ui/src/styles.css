@@ -71,21 +71,33 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Typography scale — interface labels capped at --text-2xl (24px). Sizes
-     above are the display scale for hero numbers / page titles only. */
-  --text-2xs: 0.65rem;     /* 10.4px */
-  --text-xs:  0.7rem;      /* 11.2px */
-  --text-sm:  0.75rem;     /* 12px */
-  --text-base: 0.875rem;   /* 14px */
-  --text-md:  1rem;        /* 16px */
-  --text-lg:  1.125rem;    /* 18px */
-  --text-xl:  1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;      /* 24px — interface ceiling */
+  /* Typography scale — six steps, interface ceiling 26px (Scholar cap).
+     Sub-12px sizes intentionally removed — use color + weight for hierarchy
+     instead of size. Display tokens reserved for hero numbers / page titles. */
+  --text-sm:  0.75rem;     /* 12px — micro-labels, tags, badges */
+  --text-base: 0.875rem;   /* 14px — body, table cells, buttons (default) */
+  --text-md:  1rem;        /* 16px — emphasised body */
+  --text-lg:  1.125rem;    /* 18px — card title */
+  --text-xl:  1.375rem;    /* 22px — section h2 / pane title */
+  --text-2xl: 1.625rem;    /* 26px — page h1 (interface ceiling) */
   --display-1: 1.75rem;    /* 28px */
   --display-2: 2rem;       /* 32px */
   --display-3: 2.5rem;     /* 40px */
   --display-4: 3rem;       /* 48px */
   --display-5: 3.75rem;    /* 60px */
+
+  /* Line-height tokens — pair with text-* tokens (Scholar: 110-120% headings,
+     match line-height to icon size next to icons). */
+  --lh-tight:  1.15;
+  --lh-snug:   1.3;
+  --lh-normal: 1.5;
+  --lh-loose:  1.7;
+
+  /* Weight tokens — never hardcode font-weight numerically again. */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
 
   /* Motion scale */
   --motion-fast:    150ms;
@@ -174,6 +186,7 @@ h1, h2, h3,
 }
 
 html {
+  font-size: 16px;
   background: var(--olos-bg);
 }
 
@@ -181,14 +194,54 @@ body {
   margin: 0;
   min-width: 320px;
   overflow-x: hidden;
+  font-family: var(--olos-font-ui);
+  font-size: var(--text-base);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--olos-text-body);
   background:
     radial-gradient(circle at 70% 3%, rgba(143, 103, 35, 0.14), transparent 27rem),
     linear-gradient(135deg, #020807 0%, #04110f 50%, #020807 100%);
 }
 
+/* Heading utility classes — apply across all dashboards instead of overriding
+   per-component. Reserve raw <h1>/<h2>/<h3> styling for legacy surfaces only. */
+.h-page {
+  font-family: var(--olos-font-display);
+  font-size: var(--text-2xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-semibold);
+  color: var(--olos-cream);
+  margin: 0;
+}
+.h-section {
+  font-size: var(--text-xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-semibold);
+  color: var(--olos-cream);
+  margin: 0;
+}
+.h-card {
+  font-size: var(--text-lg);
+  line-height: var(--lh-snug);
+  font-weight: var(--fw-semibold);
+  color: var(--olos-cream);
+  margin: 0;
+}
+
+/* Display tracking — Scholar: tighten letter-spacing on text >=48px. */
+.display-tight { letter-spacing: -0.02em; }
+
 button,
 a {
   font: inherit;
+}
+
+/* Floor any default-styled <small> at 12px — the UA stylesheet renders it at
+   ~0.83em which falls under the 12px legibility floor. */
+small {
+  font-size: var(--text-sm);
+  line-height: var(--lh-snug);
 }
 
 button {
@@ -685,7 +738,7 @@ button {
 .module-art text {
   fill: #d0b36b;
   font-family: Inter, sans-serif;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -1026,7 +1079,7 @@ img.footprint-art {
   .stage-kicker,
   .modules-section h2,
   .metric-cell h3 {
-    font-size: 11px;
+    font-size: var(--text-sm);
     letter-spacing: 0.14em;
   }
 
@@ -1531,7 +1584,7 @@ img.footprint-art {
 
 .dashboard-progress-metric > span:not(.dashboard-progress-metric__icon) {
   color: #91b34e;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1566,7 +1619,7 @@ img.footprint-art {
   gap: var(--space-2);
   margin: 0 0 var(--space-2);
   color: #c9a84c;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1616,7 +1669,7 @@ img.footprint-art {
 
 .site-flag__category,
 .site-flag__severity {
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1697,7 +1750,7 @@ img.footprint-art {
   border: 1px solid rgba(110, 151, 70, 0.34);
   background: rgba(55, 83, 39, 0.22);
   color: #9fce55;
-  font-size: 11px;
+  font-size: var(--text-sm);
   text-transform: uppercase;
 }
 
@@ -1742,7 +1795,7 @@ img.footprint-art {
   border-radius: 5px;
   background: rgba(18, 24, 20, 0.74);
   color: #d9c495;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .mini-stat-row span {
@@ -1756,7 +1809,7 @@ img.footprint-art {
   border-radius: 5px;
   background: rgba(18, 24, 20, 0.74);
   color: #dbcaa8;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .mini-stat-row span svg {
@@ -1895,7 +1948,7 @@ img.footprint-art {
   justify-items: center;
   gap: var(--space-1);
   color: #c9b793;
-  font-size: 11px;
+  font-size: var(--text-sm);
   text-align: center;
 }
 
@@ -2084,7 +2137,7 @@ img.footprint-art {
 
 .cross-kpi span {
   color: #c0b4a5;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2181,7 +2234,7 @@ img.footprint-art {
   padding: var(--space-2) 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.12);
   color: #cfc4b3;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .cross-panel p svg {
@@ -2241,7 +2294,7 @@ img.footprint-art {
   background: rgba(67, 102, 35, 0.48);
   color: #a4d45b;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .season-tabs {
@@ -2323,7 +2376,7 @@ img.footprint-art {
   display: block;
   margin-top: 1px;
   color: #9f9588;
-  font-size: 9.5px;
+  font-size: var(--text-sm);
 }
 
 .toggle-row button {
@@ -2841,7 +2894,7 @@ img.footprint-art {
   color: #ff9b65;
   text-align: center;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .actions-list p:nth-of-type(3) em,
@@ -3159,7 +3212,7 @@ img.footprint-art {
   border: 1px solid rgba(182, 170, 152, 0.35);
   border-radius: 3px;
   color: #071106;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .terrain-layer-card p b.on {
@@ -3169,7 +3222,7 @@ img.footprint-art {
 .terrain-layer-card p em {
   color: #9bd64a;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
   text-transform: uppercase;
 }
 
@@ -3304,7 +3357,7 @@ img.footprint-art {
   background: rgba(88, 130, 42, 0.35);
   color: #9bd64a;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .terrain-features-panel p span {
@@ -3406,7 +3459,7 @@ img.footprint-art {
   color: #ff9b65;
   text-align: center;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .next-actions-panel p:nth-of-type(2) em,
@@ -3607,7 +3660,7 @@ img.footprint-art {
 
 .macro-kpi-card span {
   color: #d8c28f;
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -3623,7 +3676,7 @@ img.footprint-art {
 
 .macro-kpi-card small {
   color: #c7baa7;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .macro-section-card {
@@ -3749,7 +3802,7 @@ img.footprint-art {
   margin: 0;
   border-bottom: 1px solid rgba(182, 170, 152, 0.1);
   color: #d7cab7;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .active-hazards-table p > b {
@@ -3837,7 +3890,7 @@ img.footprint-art {
   border: 1px solid rgba(216, 166, 59, 0.48);
   border-radius: 50%;
   color: #d8a63b;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .risk-priorities {
@@ -4024,7 +4077,7 @@ img.footprint-art {
 
 .solar-kpi span {
   color: #9bd64a;
-  font-size: 9px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4040,7 +4093,7 @@ img.footprint-art {
 
 .solar-kpi small {
   color: #c8bca8;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .solar-chart-grid {
@@ -4150,7 +4203,7 @@ img.footprint-art {
   display: block;
   color: #c8bca8;
   font-family: var(--olos-font-ui);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .solar-bottom-grid {
@@ -4213,7 +4266,7 @@ img.footprint-art {
   color: #e6b64a;
   text-align: center;
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .opportunities-panel p {
@@ -4239,7 +4292,7 @@ img.footprint-art {
 
 .opportunities-panel span {
   color: #b9ac9a;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.24;
 }
 
@@ -4273,7 +4326,7 @@ img.footprint-art {
 
 .seasonal-summary-strip span {
   color: #9bd64a;
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -4288,7 +4341,7 @@ img.footprint-art {
 
 .seasonal-summary-strip small {
   color: #c7baa7;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .solar-action-rail {
@@ -4606,7 +4659,7 @@ img.footprint-art {
 .human-metric-block span {
   grid-column: 2;
   color: #bfb3a4;
-  font-size: 11px;
+  font-size: var(--text-sm);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4795,7 +4848,7 @@ img.footprint-art {
   border-radius: 5px;
   background: rgba(11, 17, 15, 0.54);
   color: #cdbd9f;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .human-module-card.gold .human-chip-row {
@@ -4805,7 +4858,7 @@ img.footprint-art {
 .human-module-card.gold .human-chip-row span {
   min-height: 25px;
   padding: var(--space-1) var(--space-2);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .human-module-card .green-button,
@@ -4853,7 +4906,7 @@ img.footprint-art {
 
 .regional-summary-grid dt {
   color: #c7bba9;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .regional-summary-grid dd {
@@ -5385,7 +5438,7 @@ img.footprint-art {
   gap: var(--space-3);
   padding: 0 var(--space-1);
   color: #b8ad9c;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .map-legend span,
@@ -5447,7 +5500,7 @@ img.footprint-art {
 
 .soil-row span {
   color: #b4a897;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .soil-row b {
@@ -5456,7 +5509,7 @@ img.footprint-art {
   padding: var(--space-1) var(--space-2);
   border-radius: 5px;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .soil-row b.good {
@@ -5493,7 +5546,7 @@ img.footprint-art {
   border-radius: 5px;
   background: rgba(48, 78, 31, 0.2);
   color: #cbbfae;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.35;
 }
 
@@ -5527,7 +5580,7 @@ img.footprint-art {
   display: block;
   margin-top: 2px;
   color: #a99e8e;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .hydrology-image {
@@ -5541,7 +5594,7 @@ img.footprint-art {
   gap: var(--space-4);
   margin: var(--space-2) 0 0 137px;
   color: #b9ad9c;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .warning-note {
@@ -5618,7 +5671,7 @@ img.footprint-art {
 
 .timeline-item span {
   color: #c9b37f;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .timeline-item p {
@@ -5636,7 +5689,7 @@ img.footprint-art {
   background: rgba(83, 121, 37, 0.42);
   color: #a9d75d;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .recent-panel {
@@ -5688,7 +5741,7 @@ img.footprint-art {
   border-radius: 50%;
   background: rgba(114, 157, 45, 0.5);
   color: #d5e389;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .action-item strong {
@@ -5701,7 +5754,7 @@ img.footprint-art {
 .action-item span,
 .action-item small {
   color: #b9ad9c;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .action-item em.high {
@@ -6506,7 +6559,7 @@ img.footprint-art {
 
 .data-table th {
   color: #b99d70;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -6926,7 +6979,7 @@ img.footprint-art {
 }
 
 .function-row span {
-  font-size: 9px;
+  font-size: var(--text-sm);
   line-height: 1.35;
 }
 
@@ -7008,7 +7061,7 @@ img.footprint-art {
 
 .list-panel-row span {
   color: #aa9e8e;
-  font-size: 10px;
+  font-size: var(--text-sm);
   line-height: 1.25;
 }
 
@@ -7199,7 +7252,7 @@ img.footprint-art {
 
 .sectors-kpi-card span {
   color: var(--olos-text-label);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7214,7 +7267,7 @@ img.footprint-art {
 
 .sectors-kpi-card small {
   color: var(--olos-text-label);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .sectors-kpi-card.green svg:first-child { color: var(--olos-green); }
@@ -7345,7 +7398,7 @@ img.footprint-art {
 .sectors-sidebar-card h2 {
   margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7387,7 +7440,7 @@ img.footprint-art {
   border-radius: 50%;
   background: rgba(183, 131, 45, 0.18);
   color: var(--olos-gold-bright);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
@@ -7466,7 +7519,7 @@ img.footprint-art {
 
 .sc-kpi-card span {
   color: var(--olos-text-label);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7481,7 +7534,7 @@ img.footprint-art {
 
 .sc-kpi-card small {
   color: var(--olos-dim);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
 }
 
 /* Main 2-column: compass + right column */
@@ -7547,7 +7600,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--olos-text-label);
 }
 
@@ -7570,7 +7623,7 @@ img.footprint-art {
   gap: var(--space-1);
   margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7597,7 +7650,7 @@ img.footprint-art {
 .sc-observations-panel h3 {
   margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7672,7 +7725,7 @@ img.footprint-art {
 .sc-placements-card > h2 {
   margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7715,14 +7768,14 @@ img.footprint-art {
 }
 
 .sc-placement-zone {
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   color: var(--olos-gold);
   font-weight: 600;
 }
 
 .sc-placement-item p {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--olos-text-label);
   line-height: 1.4;
 }
@@ -7740,7 +7793,7 @@ img.footprint-art {
 .sc-alignment-card h3 {
   margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7768,7 +7821,7 @@ img.footprint-art {
 .sc-priority-card h3 {
   margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7792,7 +7845,7 @@ img.footprint-art {
   border-radius: 50%;
   background: rgba(183,131,45,0.18);
   color: var(--olos-gold-bright);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -7868,7 +7921,7 @@ img.footprint-art {
 
 .cd-kpi-card span {
   color: var(--olos-text-label);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7876,7 +7929,7 @@ img.footprint-art {
 }
 
 .cd-kpi-card strong { font-size: 22px; font-weight: 700; line-height: 1; }
-.cd-kpi-card small  { color: var(--olos-dim); font-size: 10.5px; }
+.cd-kpi-card small  { color: var(--olos-dim); font-size: var(--text-sm); }
 
 /* Body — map column + sidebar */
 .cd-body {
@@ -7921,7 +7974,7 @@ img.footprint-art {
   gap: var(--space-1);
   margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7945,7 +7998,7 @@ img.footprint-art {
 
 .cd-layer-label {
   flex: 1;
-  font-size: 11.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--olos-text-body);
   line-height: 1;
@@ -7990,7 +8043,7 @@ img.footprint-art {
 }
 
 .cd-layer-sub li {
-  font-size: 10px;
+  font-size: var(--text-sm);
   color: var(--olos-dim);
   line-height: 1.7;
   padding-left: var(--space-2);
@@ -8011,7 +8064,7 @@ img.footprint-art {
   border: none;
   cursor: pointer;
   color: var(--olos-green);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -8066,7 +8119,7 @@ img.footprint-art {
 .cd-legend-panel h3 {
   margin: 0 0 var(--space-2);
   font-family: var(--olos-font-ui);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -8082,7 +8135,7 @@ img.footprint-art {
 .cd-legend-group { display: flex; flex-direction: column; gap: var(--space-1); }
 
 .cd-legend-group-label {
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -8094,7 +8147,7 @@ img.footprint-art {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--olos-text-body);
 }
 
@@ -8125,7 +8178,7 @@ img.footprint-art {
   gap: var(--space-1);
   margin: 0 0 var(--space-3);
   font-family: var(--olos-font-ui);
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -8152,14 +8205,14 @@ img.footprint-art {
 
 .cd-pattern-item p {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--olos-text-label);
   line-height: 1.45;
 }
 
 .cd-view-all {
   width: 100%;
-  font-size: 11.5px;
+  font-size: var(--text-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8184,7 +8237,7 @@ img.footprint-art {
   border-radius: 50%;
   background: rgba(183,131,45,0.18);
   color: var(--olos-gold-bright);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -8197,7 +8250,7 @@ img.footprint-art {
   grid-template-columns: auto 1fr;
   gap: var(--space-1) var(--space-3);
   margin: 0 0 var(--space-3);
-  font-size: 11.5px;
+  font-size: var(--text-sm);
 }
 
 .cd-map-info-dl dt {
@@ -8406,7 +8459,7 @@ img.footprint-art {
 .journal-metric span {
   align-self: end;
   color: #9fab73;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -8502,7 +8555,7 @@ img.footprint-art {
   padding: 0 var(--space-3);
   border-bottom: 1px solid rgba(207, 190, 151, 0.12);
   color: #9f927f;
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -8538,7 +8591,7 @@ img.footprint-art {
   justify-self: start;
   padding: var(--space-1) var(--space-2);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-style: normal;
   font-weight: 700;
 }
@@ -8764,7 +8817,7 @@ img.footprint-art {
   .entry-row {
     min-height: 46px;
     padding-block: var(--space-1);
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .entry-row > b {
@@ -8773,7 +8826,7 @@ img.footprint-art {
 
   .entry-row em {
     padding: var(--space-1) var(--space-2);
-    font-size: 10px;
+    font-size: var(--text-sm);
   }
 
   .entry-row i {
@@ -8803,7 +8856,7 @@ img.footprint-art {
 
   .journal-side-card p {
     padding: var(--space-1) 0;
-    font-size: 11px;
+    font-size: var(--text-sm);
     line-height: 1.27;
   }
 
@@ -9145,7 +9198,7 @@ img.footprint-art {
 .swot-implications-card h2 span {
   display: block;
   color: #a99e8e;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -9181,7 +9234,7 @@ img.footprint-art {
   padding: 2px var(--space-2);
   border-radius: 5px;
   background: rgba(68, 112, 39, 0.38);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .swot-tags {
@@ -9194,7 +9247,7 @@ img.footprint-art {
 .swot-tags span {
   padding: var(--space-1) var(--space-2);
   color: #bfb29c;
-  font-size: 10px;
+  font-size: var(--text-sm);
   border: 1px solid rgba(199, 165, 89, 0.18);
   border-radius: 999px;
 }
@@ -9217,7 +9270,7 @@ img.footprint-art {
 .diagnosis-card h3 {
   margin: 0 0 var(--space-2);
   color: #d8b44e;
-  font-size: 11px;
+  font-size: var(--text-sm);
   text-transform: uppercase;
 }
 
@@ -9225,7 +9278,7 @@ img.footprint-art {
 .diagnosis-lists span {
   margin: 0;
   color: #d0c1a9;
-  font-size: 11px;
+  font-size: var(--text-sm);
   line-height: 1.32;
 }
 
@@ -9247,8 +9300,9 @@ img.footprint-art {
 
 .swot-score span {
   margin-top: var(--space-1);
-  color: #a99e8e;
-  font-size: 9px;
+  color: var(--olos-text-label);
+  font-size: var(--text-sm);
+  line-height: var(--lh-snug);
 }
 
 .diagnosis-lists {
@@ -9262,7 +9316,7 @@ img.footprint-art {
   display: block;
   margin-bottom: var(--space-2);
   color: #d8b44e;
-  font-size: 11px;
+  font-size: var(--text-sm);
   text-transform: uppercase;
 }
 
@@ -9453,7 +9507,7 @@ img.footprint-art {
   }
 
   .swot-quadrant p {
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .swot-how-card {
@@ -9463,7 +9517,7 @@ img.footprint-art {
   }
 
   .swot-how-card p {
-    font-size: 11px;
+    font-size: var(--text-sm);
     line-height: 1.28;
   }
 
@@ -9477,7 +9531,7 @@ img.footprint-art {
 
   .swot-journal-rows p {
     padding: var(--space-1) var(--space-2);
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .swot-tags {
@@ -9490,7 +9544,7 @@ img.footprint-art {
 
   .diagnosis-card p,
   .diagnosis-lists span {
-    font-size: 10px;
+    font-size: var(--text-sm);
     line-height: 1.24;
   }
 
@@ -9527,7 +9581,7 @@ img.footprint-art {
   }
 
   .swot-health-strip span {
-    font-size: 10px;
+    font-size: var(--text-sm);
     line-height: 1.25;
   }
 }
@@ -9624,7 +9678,7 @@ img.footprint-art {
   border: 1px solid rgba(199, 165, 89, 0.35);
   border-radius: 999px;
   color: #d8b44e;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .report-stage-bar .is-done b {
@@ -9741,7 +9795,7 @@ img.footprint-art {
 
 .summary-facts span {
   color: #f0dfc5;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .radar-wrap {
@@ -9847,7 +9901,7 @@ img.footprint-art {
 .findings-card header {
   grid-template-columns: minmax(0, 1fr) 70px 78px;
   color: #a99e8e;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .findings-card p {
@@ -9915,7 +9969,7 @@ img.footprint-art {
 .report-actions-card header {
   grid-template-columns: minmax(0, 1fr) 90px 70px;
   color: #a99e8e;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 
 .report-actions-card p {
@@ -10016,7 +10070,7 @@ img.footprint-art {
   }
 
   .executive-summary > p {
-    font-size: 11px;
+    font-size: var(--text-sm);
     line-height: 1.36;
   }
 
@@ -10026,7 +10080,7 @@ img.footprint-art {
   }
 
   .summary-facts span {
-    font-size: 9px;
+    font-size: var(--text-sm);
   }
 
   .radar-wrap {
@@ -10039,7 +10093,7 @@ img.footprint-art {
   }
 
   .radar-wrap div {
-    font-size: 10px;
+    font-size: var(--text-sm);
   }
 
   .radar-wrap strong {
@@ -10049,14 +10103,14 @@ img.footprint-art {
 
   .report-swot-overview > p {
     margin: var(--space-1) 0 0;
-    font-size: 10px;
+    font-size: var(--text-sm);
   }
 
   .top-insights p {
     grid-template-columns: 30px minmax(0, 1fr);
     gap: var(--space-2);
     margin: var(--space-3) 0;
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .top-insights p svg {
@@ -10076,7 +10130,7 @@ img.footprint-art {
   .findings-card p {
     grid-template-columns: 30px minmax(0, 1fr) 58px 64px 14px;
     padding: var(--space-2) 0;
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .findings-card p svg {
@@ -10092,7 +10146,7 @@ img.footprint-art {
   .risk-flags-report p,
   .evidence-card p {
     margin: var(--space-1) 0;
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .report-actions-card header {
@@ -10102,7 +10156,7 @@ img.footprint-art {
   .report-actions-card p {
     grid-template-columns: 20px minmax(0, 1fr) 70px 56px;
     padding: var(--space-2) 0;
-    font-size: 11px;
+    font-size: var(--text-sm);
   }
 
   .diagnosis-report-quote {
@@ -10173,9 +10227,10 @@ img.footprint-art {
 
 .slide-up-pane__header h2 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #f0ead6;
+  font-size: var(--text-xl);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-semibold);
+  color: var(--olos-cream);
 }
 
 .slide-up-pane__close {
