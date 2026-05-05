@@ -14,6 +14,7 @@ import { useState } from "react";
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
   QaOverlay,
   SlideUpPane,
   SurfaceCard,
@@ -46,7 +47,14 @@ export function MacroclimateDashboardPage() {
         <ProjectDataStatus />
         <section className="macroclimate-layout">
           <div className="macroclimate-main">
-            <MacroHeader meta={meta} />
+            <ModuleHeroCard
+              moduleNumber="Module 2"
+              title="Macroclimate & Hazards"
+              icon={Wind}
+              copy={vm.hero.copy}
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+            />
             <MacroKpis meta={meta} />
             <SolarClimateCard onAction={() => setPane("solar")} />
             <HazardsCard />
@@ -61,18 +69,6 @@ export function MacroclimateDashboardPage() {
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
     </AppShell>
-  );
-}
-
-function MacroHeader({ meta }) {
-  const badge = meta.climateRegion ?? vm.hero.badge;
-  return (
-    <header className="macro-header">
-      <span>{vm.hero.moduleNumber}</span>
-      <h1>{vm.hero.title}</h1>
-      <p>{vm.hero.copy}</p>
-      <b>{badge}</b>
-    </header>
   );
 }
 
