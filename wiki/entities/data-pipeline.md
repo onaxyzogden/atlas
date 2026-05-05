@@ -10,16 +10,18 @@ BullMQ-based job queue that fetches geospatial data layers for a project. Fan-ou
 - `DataPipelineOrchestrator.ts` — Queue management, worker startup, job processing
 - `apps/api/src/db/migrations/001_initial.sql` — `data_pipeline_jobs` table
 
-## Layers (7 types)
-| Layer | US Adapter | CA Adapter | Status |
-|-------|-----------|------------|--------|
-| Elevation | UsgsElevationAdapter (LIVE) | NrcanHrdemAdapter (LIVE) | **Live** |
-| Soils | SsurgoAdapter (LIVE) | OmafraCanSisAdapter (LIVE) | **Live** |
-| Watershed | NhdAdapter (LIVE) | OhnAdapter (LIVE) | **Live** |
-| Wetlands/Flood | NwiFemaAdapter (LIVE) | ConservationAuthorityAdapter (LIVE) | **Live** |
-| Land Cover | **NlcdAdapter (LIVE)** | **AafcLandCoverAdapter (LIVE)** | **Live** |
-| Climate | **NoaaClimateAdapter (LIVE)** | **EcccClimateAdapter (LIVE)** | **Live** |
-| Zoning | **UsCountyGisAdapter (LIVE)** | **OntarioMunicipalAdapter (LIVE)** | **Live** |
+## Layers (9 types)
+| Layer | US Adapter | CA Adapter | INTL Adapter | Status |
+|-------|-----------|------------|--------------|--------|
+| Elevation | UsgsElevationAdapter | NrcanHrdemAdapter | — | **Live** |
+| Soils | SsurgoAdapter | OmafraCanSisAdapter | — | **Live** |
+| Watershed | NhdAdapter | OhnAdapter | — | **Live** |
+| Wetlands/Flood | NwiFemaAdapter | ConservationAuthorityAdapter | — | **Live** |
+| Land Cover | NlcdAdapter | AafcLandCoverAdapter | — | **Live** |
+| Climate | NoaaClimateAdapter | EcccClimateAdapter | NasaPowerAdapter | **Live** |
+| Zoning | UsCountyGisAdapter | OntarioMunicipalAdapter | — | **Live** |
+| Groundwater | NwisGroundwaterAdapter | PgmnGroundwaterAdapter | IgracGroundwaterAdapter | **Live** (8.2-A.2, 2026-05-04) |
+| Conservation Easement | — (NCED pending 8.2-B.3) | CpcadAdapter | — (WDPA pending 8.2-B.2) | **CA Live** (8.2-B.4, 2026-05-04) |
 
 ## Workers
 - `tier1-data` — Main layer fetcher (all 7 layers)
@@ -33,6 +35,28 @@ All workers start automatically on app ready (if `redis.status === 'ready'`).
 ## Connection Pattern
 BullMQ requires dedicated connections — it cannot share the Fastify ioredis instance. The orchestrator extracts `ConnectionOptions` (host, port, password, family, `maxRetriesPerRequest: null`) from `redis.options` and passes them to each Queue/Worker constructor.
 
+## Phase 8 adapters (PostGIS-read pattern, 2026-05-04)
+
+Adapters for global/INTL fallback and specialty layers read from locally-hosted
+PostGIS tables rather than calling external APIs at request time. Ingest jobs
+populate the tables on a scheduled cadence; the adapter pattern stays identical
+(`fetchForBoundary` → bbox query → `AdapterResult`).
+
+| Adapter | PostGIS table | Ingest cadence | Vintage stamp |
+|---------|---------------|----------------|---------------|
+| IgracGroundwaterAdapter | `groundwater_wells_global` | Quarterly (`igrac-ingest.ts` pending) | `'YYYY-Qn'` |
+| CpcadAdapter | `conservation_overlay_features` WHERE `source='CPCAD'` | Annual (`cpcad-ingest.ts` live) | `'YYYY'` |
+| WdpaAdapter | `conservation_overlay_features` WHERE `source='WDPA'` | Monthly (pending 8.2-B.2) | `'YYYY-MM'` |
+| NcedAdapter | `conservation_overlay_features` WHERE `source='NCED'` | Quarterly (pending 8.2-B.3) | `'YYYY-Qn'` |
+
+`cpcad-ingest.ts` usage:
+```
+CPCAD_GDB_PATH=/path/to/ProtectedConservedArea_<YYYY>.gdb \
+GDAL_BIN_DIR=/path/to/gdal/bin \
+DATABASE_URL=postgres://... \
+tsx apps/api/src/jobs/cpcad-ingest.ts
+```
+
 ## Current State (as of 2026-04-19)
 - Orchestration: **working** (BullMQ + Redis, dedicated connections)
 - Fan-out pattern: **working**
@@ -42,7 +66,7 @@ BullMQ requires dedicated connections — it cannot share the Fastify ioredis in
 - Frontend layerFetcher: **19 live layer types** — 7 Tier 1 + infrastructure (Sprint K) + 11 extended layers added Sprints M–W: groundwater (USGS NWIS + Ontario PGMN), water_quality (EPA WQP + ECCC/PWQMN), superfund (EPA Envirofacts), critical_habitat (USFWS ArcGIS), storm_events (FEMA), crop_validation (USDA NASS CDL), air_quality (EPA EJSCREEN), earthquake_hazard (USGS Design Maps), census_demographics (US Census ACS), proximity_data (OSM Overpass)
 - Test coverage: 298/298 tests pass (14 adapter test files + integration tests)
 - **Scoring engine: complete** (Sprint M, 2026-04-16) — 8 weighted dimensions + 2-3 formal classifications, ~140+ components, all outputs use `ScoredResult` with `score_breakdown` + `WithConfidence` fields. Plan file `clever-enchanting-moler.md` is fully implemented.
-- **Next focus:** Groundwater + water quality UI surfacing in SiteIntelligencePanel (data already fetched + scored, no display section yet), or US county zoning registry expansion.
+- **Phase 8 progress (2026-05-04):** Groundwater INTL (IgracGroundwaterAdapter, 8.2-A); Conservation Easement CA (CpcadAdapter, 8.2-B.4); canonical land-cover class normalisation module (8.1-A.1); conservation_overlay_features schema (migration 024/025). Client-side INTL groundwater heuristic retired — server IGRAC result now surfaces. Next: WDPA (8.2-B.2) and NCED (8.2-B.3) after dump-format operator verification; IGRAC ingest job (8.2-A.3) after WFS layer-name verification.
 
 ## Pipeline Fixes (Tier-3 cleanup, 2026-04-21)
 - **Microclimate race eliminated:** microclimate enqueue moved from `processTier1Job` into `startTerrainWorker`'s `finally` clause. Fires on both terrain success and failure (preserving the "terrain failure must not silently suppress microclimate" invariant). First-attempt microclimate failures no longer occur; noise in worker logs reduced by ~1 `failed` row per pipeline run.

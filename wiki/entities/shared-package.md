@@ -23,7 +23,8 @@ Zod schemas, type utilities, and constants shared between API and web app. Singl
 - `lib/caseTransform.ts` — `toCamelCase()` for converting snake_case DB rows to camelCase
 
 ## Constants
-- `constants/dataSources.ts` — ADAPTER_REGISTRY (7 layers x 2 countries = 14 adapters)
+- `constants/dataSources.ts` — ADAPTER_REGISTRY (9 layers, up to 3 countries each). Phase 8.2-A added INTL groundwater (IgracGroundwaterAdapter); 8.2-B.4 promoted `conservation_easement` to Tier1 and registered CpcadAdapter for CA.
+- `ecology/landCoverClasses.ts` — Canonical Atlas land-cover class set (27 classes) + per-source code→class mappings for NLCD (16 codes), AAFC ACI (~70 codes), ESA WorldCover (11 codes). Per-source licence shorthand. `toCanonicalLandCoverClass(source, code)` normalisation function. Added Phase 8.1-A.1 (2026-05-04).
 - `constants/flags.ts` — 8 feature flags (gated by env vars)
 
 ## Dependencies

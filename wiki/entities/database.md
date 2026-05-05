@@ -6,7 +6,7 @@
 ## Purpose
 PostgreSQL 16 + PostGIS 3.4 schema for all persistent data. SRID 4326 throughout, GIST indexes on geometry columns, auto-update triggers on `updated_at`.
 
-## Tables (12)
+## Tables (14)
 | Table | Key Columns | Notes |
 |-------|-------------|-------|
 | `users` | id, email, password_hash | bcrypt hashed |
@@ -21,6 +21,8 @@ PostgreSQL 16 + PostGIS 3.4 schema for all persistent data. SRID 4326 throughout
 | `project_files` | file_type, storage_url, processing_status | Uploaded files |
 | `data_pipeline_jobs` | job_type, status, progress | BullMQ job tracking |
 | `project_exports` | export_type, storage_url, generated_at, generated_by | PDF exports |
+| `groundwater_wells_global` | station_id, source, geom, depth_m, last_observation, ingest_vintage | Migration 023 (2026-05-04). IGRAC GGIS global fallback; PostGIS read by IgracGroundwaterAdapter. Quarterly ingest. PK: (source, station_id). |
+| `conservation_overlay_features` | source, source_record_id, designation_type, designation_name, attribution, last_updated, ingest_vintage, geom | Migrations 024/025 (2026-05-04). Three sources (WDPA/NCED/CPCAD) in one table; spatial GIST index. CpcadAdapter live (CA); WdpaAdapter/NcedAdapter pending. PK: (source, source_record_id). |
 
 ## Connection Pattern
 ```typescript

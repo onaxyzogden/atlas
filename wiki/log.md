@@ -6899,3 +6899,65 @@ note; agent then drafts the four ingest jobs + four adapters in parallel
 against the now-verified schemas. Polygonization toolchain ADR is a
 small parallel scoping note that does not block the conservation arc
 but does block the pollinator-corridor raster adapters.
+
+---
+
+## 2026-05-05 — Session close: Phase 8.2-B.4 CpcadAdapter + ingest job
+
+**Session summary.** Continuation of the Phase 8 engineering arc.
+All work in this session was on the `claude/vigilant-elbakyan-2d16d9`
+branch (PR #12).
+
+### Commits shipped this session (oldest → newest)
+
+| Commit | Summary |
+|--------|---------|
+| `02258a4` | 8.2-A.4: retire INTL lat-heuristic in `layerFetcher.ts`; null fallthrough to server IGRAC |
+| `9c5032a` | 8.2-B.1 + 8.1-A.1: migration 024 `conservation_overlay_features`; `landCoverClasses.ts` canonical mapping |
+| `2ec2a56` | Dump-format verification sweep (WDPA/NCED/ECCC/IGRAC); cross-cutting ingest decisions locked |
+| `6c5a4f8` | Source correction: ECCC ESG → CPCAD (schema verified from live GDB via ogrinfo) |
+| `145ce36` | 8.2-B.4: `CpcadAdapter.ts` + `cpcad-ingest.ts` + registry wiring + config env vars |
+
+### State of Phase 8 arcs
+
+**Phase 8.2-A (IGRAC global groundwater fallback):**
+- ✅ 8.2-A.1 migration 023 (`groundwater_wells_global`)
+- ✅ 8.2-A.2 `IgracGroundwaterAdapter` + registry + orchestrator
+- ✅ 8.2-A.4 client-side INTL heuristic retired
+- ⏳ 8.2-A.3 `igrac-ingest.ts` — blocked on WFS layer-name verification
+  (see dump-format sweep §4)
+
+**Phase 8.2-B (Conservation overlay):**
+- ✅ 8.2-B.1 migration 024/025 (`conservation_overlay_features` + CPCAD constraint)
+- ✅ 8.2-B.4 `CpcadAdapter` + `cpcad-ingest.ts` (CA tier complete)
+- ⏳ 8.2-B.2 WDPA — blocked on protectedplanet.net dump verification
+- ⏳ 8.2-B.3 NCED — blocked on licence check + dump verification
+- ⏳ 8.2-B.5 overlay endpoint + diagnosis report copy (after 8.2-B.2/3)
+
+**Phase 8.1-A (Pollinator hybrid land cover):**
+- ✅ 8.1-A.1 `landCoverClasses.ts` canonical mapping + NLCD/ACI/WorldCover code tables
+- ⏳ 8.1-A.1 raster adapters — need polygonisation toolchain ADR first
+- ⏳ 8.1-A.2/3/4 pending adapters
+
+### Operator action items (non-engineering)
+
+1. **Run `cpcad-ingest.ts`** against the local 2025 GDB (command in
+   `data-pipeline.md` entity page) to populate `conservation_overlay_features`
+   with the CPCAD 2025 vintage.
+2. **Verify IGRAC WFS endpoint** — hit GetCapabilities, capture wells layer
+   name + 1-feature schema (see dump-format sweep §4). ~10 min.
+3. **Verify WDPA dump** — free account on protectedplanet.net, download
+   current month ZIP, confirm `.gdb` extension + column names (see sweep §1).
+4. **Verify NCED** — terms-of-use at `conservationeasement.us/about/legal/`;
+   download quarterly bundle; column names (see sweep §2).
+5. **Send outbound emails** (launch gates, not engineering blockers):
+   `business-support@unep-wcmc.org` (WDPA commercial) + `info@un-igrac.org`
+   (IGRAC licence). Drafts in `wiki/inquiries/`.
+
+### Recommended next session
+
+Either: operator files dump-format verifications back into
+`wiki/inquiries/2026-05-04-dump-format-verification-sweep.md` → agent drafts
+remaining ingest jobs + adapters (IGRAC ingest, WDPA adapter + ingest, NCED
+adapter + ingest) in one session. Or: land the polygonisation toolchain ADR
+for the 8.1 raster land-cover adapters so both 8.1 and 8.2 unblock in parallel.
