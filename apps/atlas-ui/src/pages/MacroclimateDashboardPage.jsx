@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   CalendarDays,
-  CheckCircle2,
   Droplet,
   Leaf,
   ShieldAlert,
@@ -15,6 +14,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
+  ModuleSynthesisPanel,
   QaOverlay,
   SlideUpPane,
   SurfaceCard,
@@ -171,20 +171,11 @@ function HazardsCard() {
 function MacroSidebar() {
   return (
     <aside className="macro-sidebar">
-      <SurfaceCard className="macro-insights-card">
-        <h2>Design insights & recommendations</h2>
-        <h3>Key takeaways</h3>
-        {vm.insights.keyTakeaways.map((item) => <p key={item}><CheckCircle2 aria-hidden="true" />{item}</p>)}
-        <h3>Next actions</h3>
-        {vm.insights.nextActions.map((item, index) => <p className="numbered" key={item}><b>{index + 1}</b>{item}</p>)}
-        <section className="risk-priorities">
-          <h3>Top risk priorities</h3>
-          <ol>
-            {vm.insights.riskPriorities.map((r) => <li key={r}>{r}</li>)}
-          </ol>
-        </section>
-        <button className="green-button" type="button">Go to next: Site Analysis <ArrowRight aria-hidden="true" /></button>
-      </SurfaceCard>
+      <ModuleSynthesisPanel
+        title="Macroclimate Synthesis"
+        synthesis={vm.synthesis}
+        alignmentLabel="Climate Alignment"
+      />
     </aside>
   );
 }

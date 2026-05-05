@@ -1,18 +1,17 @@
 import {
   ArrowRight,
-  CheckCircle2,
   Compass,
   Home,
   Leaf,
   MapPin,
   Sprout,
   Sun,
-  Wind,
 } from "lucide-react";
 import { useState } from "react";
 import {
   AppShell,
   ModuleHeroCard,
+  ModuleSynthesisPanel,
   ProgressRing,
   QaOverlay,
   SlideUpPane,
@@ -123,7 +122,7 @@ function SynthesisCard() {
   return (
     <SurfaceCard className="sectors-synthesis-card">
       <h2><Sprout aria-hidden="true" /> Synthesis</h2>
-      <p>{vm.synthesis}</p>
+      <p>{vm.synthesisText}</p>
       <div className="sectors-synthesis-actions">
         <button className="outlined-button" type="button">View all sectors <ArrowRight size={14} aria-hidden="true" /></button>
         <button className="outlined-button" type="button">View zone map <ArrowRight size={14} aria-hidden="true" /></button>
@@ -314,38 +313,11 @@ function CartographicArt({ zones }) {
 function SectorsSidebar() {
   return (
     <aside className="sectors-sidebar">
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Design implications</h2>
-        {vm.designImplications.map((item) => (
-          <p key={item} className="sectors-implication">
-            <CheckCircle2 size={14} aria-hidden="true" />
-            <span>{item}</span>
-          </p>
-        ))}
-      </SurfaceCard>
-
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Detected opportunities</h2>
-        {vm.detectedOpportunities.map((item) => (
-          <p key={item} className="sectors-opportunity">
-            <Leaf size={14} aria-hidden="true" />
-            <span>{item}</span>
-          </p>
-        ))}
-      </SurfaceCard>
-
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Recommended next actions</h2>
-        {vm.nextActions.map((item, i) => (
-          <p key={item} className="sectors-next-action">
-            <b>{i + 1}</b>
-            <span>{item}</span>
-          </p>
-        ))}
-        <button className="green-button sectors-cta" type="button">
-          <Wind size={14} aria-hidden="true" /> Do Sector Site Analysis
-        </button>
-      </SurfaceCard>
+      <ModuleSynthesisPanel
+        title="Sectors Synthesis"
+        synthesis={vm.synthesis}
+        alignmentLabel="Zone Alignment"
+      />
     </aside>
   );
 }

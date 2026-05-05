@@ -1,11 +1,9 @@
 import {
   ArrowRight,
-  CheckCircle2,
   Droplet,
   Home,
   Layers,
   Leaf,
-  Map,
   Mountain,
   Ruler,
   ShieldAlert,
@@ -18,7 +16,7 @@ import {
   AppShell,
   CroppedArt,
   ModuleHeroCard,
-  ProgressRing,
+  ModuleSynthesisPanel,
   QaOverlay,
   SlideUpPane,
   SurfaceCard,
@@ -176,31 +174,11 @@ function CrossSectionToolCard({ onAction }) {
 function TopographySidebar() {
   return (
     <aside className="topography-sidebar">
-      <SurfaceCard className="topography-side-card implications">
-        <h2>Design implications</h2>
-        {vm.implications.map(([iconKey, title, text]) => {
-          const Icon = topoIconMap[iconKey];
-          return <p key={title}><Icon aria-hidden="true" /><b>{title}</b><span>{text}</span></p>;
-        })}
-      </SurfaceCard>
-      <SurfaceCard className="topography-side-card feature-list">
-        <h2>Detected terrain features <b>{vm.detectedFeatures.length}</b></h2>
-        {vm.detectedFeatures.map(([label, value]) => (
-          <p key={label}><Map aria-hidden="true" /><span>{label}</span><b>{value}</b></p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="topography-side-card actions-list">
-        <h2>Recommended next actions</h2>
-        {vm.nextActions.map(([label, priority]) => (
-          <p key={label}><CheckCircle2 aria-hidden="true" /><span>{label}</span><em>{priority}</em></p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="topography-health-card">
-        <h2>Module health <strong>Good</strong></h2>
-        <i><b /></i>
-        <p>All key topographic data captured. You're ready to move into design.</p>
-        <ProgressRing value={vm.modulePct} label={`${vm.modulePct}%`} />
-      </SurfaceCard>
+      <ModuleSynthesisPanel
+        title="Topography Synthesis"
+        synthesis={vm.synthesis}
+        alignmentLabel="Terrain Alignment"
+      />
     </aside>
   );
 }
