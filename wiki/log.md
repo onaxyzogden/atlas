@@ -7127,3 +7127,78 @@ The four operator-blocking sweeps (8.2-A.3 IGRAC ingest,
 8.2-B.2 WDPA, 8.2-B.3 NCED, plus the WDPA + IGRAC outbound emails)
 remain in flight on the operator side; engineering side has no
 remaining blocker on either branch.
+
+## 2026-05-05 — 8.1-A & 8.1-B implementation landed (raster pipeline live behind flag)
+
+Implements the toolchain locked in the 2026-05-05 ADR. Five commits
+on `claude/vigilant-elbakyan-2d16d9` (PR #12):
+
+- `a6377f7` 8.1-A.1 — `LandCoverRasterServiceBase` + three
+  concrete services (NLCD, ACI, WorldCover) with manifest-on-boot,
+  geotiff.js byte-range reads, proj4 reprojection at sample time.
+- `0524a03` 8.1-A.2/A.3 — three raster-sample adapters
+  (`NlcdLandCoverAdapter`, `AciLandCoverAdapter`,
+  `WorldCoverLandCoverAdapter`) + shared
+  `landCoverAdapterCommon.ts` for native→canonical class mapping
+  and `LandCoverSummary` provenance fields.
+- `a556dd3` 8.1-B.1/B.2 — `polygonizeBbox` + `corridorFriction` in
+  `@ogden/shared` (signature locked per D8: `clipProvider`,
+  `polygonizer`, `reprojector` injection); pure-JS
+  `polygonizePixelGrid` fallback; `polygonizeWithGdal` shell-out in
+  apps/api wrapping the locked `gdal_polygonize.py` toolchain (D5).
+- `fd11cfc` 8.1-B.3/B.4 — `PollinatorOpportunityProcessor` swap
+  behind `POLLINATOR_USE_POLYGON_FRICTION` flag (default off),
+  60 s `withTimeout` race per `POLLINATOR_POLYGON_TIMEOUT_MS`,
+  legacy synthesized-grid path retained as fallback.
+  `landcover-tile-ingest.ts` operator job lands per D4.
+  `LANDCOVER_TILES_READY` env-flag-gated dispatch in
+  `DataPipelineOrchestrator.resolveAdapter`.
+- `7ec7056` 8.1-B.5 — `clipToBbox` on the base class returning
+  `RasterClip` (single-tile v1; multi-tile null + caller fallback);
+  `sourceId: LandCoverSourceId` declared on each concrete service so
+  clips carry provenance through `deriveCorridorFriction`.
+  `tryPolygonPath` fully wired: country resolver
+  (US→NLCD, CA→ACI, INTL→WorldCover), parcel bbox + degree-buffer
+  ClipProvider adapter, `runPolygonFrictionPath` inside the
+  withTimeout race. `loadContext` SQL extended with `p.country` +
+  `ST_AsGeoJSON(p.parcel_boundary)` (Polygon/MultiPolygon parsed,
+  first ring on MultiPolygon).
+
+Test coverage: fixture-COG test
+(`LandCoverRasterServiceBase.clipToBbox.test.ts`) mocks geotiff at
+the module boundary and asserts the four `clipToBbox` branches
+(unloaded manifest / no-tile-intersect / single-tile success /
+multi-tile null). 4/4 pass. tsc clean across `@ogden/api` and
+`@ogden/shared`. `polygonizeBbox.test.ts` covers the shared-package
+contract end-to-end with stub providers. Total: 166/166 shared +
+new clip tests passing; 7 unrelated pre-existing failures
+(smoke/projects/boundary/NASA POWER/SSURGO) confirmed on baseline
+via stash-and-rerun.
+
+Production gate is intentionally still off:
+`POLLINATOR_USE_POLYGON_FRICTION=false` and `LANDCOVER_TILES_READY=false`
+keep both the orchestrator's adapter dispatch and the processor's
+polygon path on the legacy synthesized-grid behaviour. Flipping
+them on requires real tiles in `data/landcover/<source>/<vintage>/`
++ a manifest produced by `landcover-tile-ingest`. `verify-scoring-parity`
+delta stays at 0.000 because pollinator_opportunity is never
+referenced by `computeScores.ts`.
+
+Known limitations carried forward:
+- `clipToBbox` is single-tile-only in v1; multi-tile parcels
+  fall back to the synthesized grid (logged at warn level).
+  Multi-tile stitching deferred until profiling justifies it.
+- ClipProvider's degree-buffer (bufferKm/111) ignores latitude
+  scaling — acceptable for v1; tighten when high-latitude parcels
+  become a real cohort.
+- Friction-surface persistence is still ephemeral per D7.
+
+### Next session
+
+End-to-end smoke test: stand up a real WorldCover tile in
+`data/landcover/worldcover/2021/`, run `landcover-tile-ingest`,
+flip `POLLINATOR_USE_POLYGON_FRICTION=true` +
+`LANDCOVER_TILES_READY=true` against a synthetic INTL project, and
+watch a `samplingMethod: 'polygon'` row land in `project_layers`.
+Triage the 7 pre-existing failing tests (separate session — they
+pre-date this work).
