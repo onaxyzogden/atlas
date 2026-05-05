@@ -17,6 +17,7 @@ import { useState } from "react";
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
   ProgressRing,
   QaOverlay,
   SlideUpPane,
@@ -48,7 +49,15 @@ export function TopographyDashboardPage() {
         <ProjectDataStatus />
         <section className="topography-layout">
           <div className="topography-main">
-            <TopographyHeader />
+            <ModuleHeroCard
+              moduleNumber="Module 3"
+              title="Topography & Base Map"
+              icon={Mountain}
+              copy={vm.header.copy}
+              progressPct={vm.header.progressPct}
+              metrics={vm.header.metrics}
+              heroImage={heroTerrain}
+            />
             <TopographyMetrics />
             <TopographySynthesis />
             <section className="topography-tool-grid">
@@ -70,21 +79,6 @@ export function TopographyDashboardPage() {
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
     </AppShell>
-  );
-}
-
-function TopographyHeader() {
-  return (
-    <header className="topography-header">
-      <div className="module-title-row">
-        <b>3</b>
-        <div>
-          <h1>{vm.header.title}</h1>
-          <p>{vm.header.copy}</p>
-        </div>
-      </div>
-      <CroppedArt src={heroTerrain} className="topography-hero-art" />
-    </header>
   );
 }
 

@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import {
   AppShell,
+  ModuleHeroCard,
   ProgressRing,
   QaOverlay,
   SlideUpPane,
@@ -51,7 +52,14 @@ export function SectorsMicroclimatesDashboardPage() {
         <ProjectDataStatus />
         <section className="sectors-layout">
           <div className="sectors-main">
-            <SectorsHeader meta={meta} />
+            <ModuleHeroCard
+              moduleNumber="Module 5"
+              title="Sectors, Microclimates & Zones"
+              icon={Compass}
+              copy={vm.hero.copy}
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+            />
             <SectorsKpis />
             <SynthesisCard />
             <div className="sectors-tool-grid">
@@ -76,18 +84,6 @@ export function SectorsMicroclimatesDashboardPage() {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function SectorsHeader({ meta }) {
-  const county = meta.county ?? meta.bioregion ?? null;
-  return (
-    <header className="sectors-header">
-      <span className="stage-kicker">{vm.hero.moduleNumber}</span>
-      <h1>{vm.hero.title}</h1>
-      <p>{vm.hero.copy}</p>
-      {county && <b className="sectors-location-badge"><MapPin size={13} /> {county}</b>}
-    </header>
   );
 }
 

@@ -2,16 +2,14 @@ import { useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
-  Eye,
-  Flag,
   Leaf,
-  MapPin,
   Sprout,
   Users
 } from "lucide-react";
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
   ProgressRing,
   QaOverlay,
   SlideUpPane,
@@ -31,8 +29,6 @@ import regionalSnapshot from "../assets/generated/human-context-dashboard/region
 
 const metadata = screenCatalog.find((screen) => screen.route === "/observe/human-context");
 
-const heroIconMap = { eye: Eye, flag: Flag, mapPin: MapPin };
-
 export function HumanContextDashboardPage() {
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
@@ -43,7 +39,15 @@ export function HumanContextDashboardPage() {
         <ProjectDataStatus />
         <div className="human-context-layout">
           <div className="human-context-main">
-            <HumanHero />
+            <ModuleHeroCard
+              moduleNumber="Module 1"
+              title="Human Context"
+              icon={Sprout}
+              copy="This module captures who is stewarding the land, the regional and cultural context that shapes it, and the long-horizon vision that guides decisions across time and generations."
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+              heroImage={heroLandscape}
+            />
             <section className="human-card-grid">
               <StewardCard onAction={() => setPane("steward")} />
               <RegionalCard onAction={() => setPane("regional")} />
@@ -74,41 +78,6 @@ export function HumanContextDashboardPage() {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function HumanHero() {
-  return (
-    <SurfaceCard className="human-hero-card">
-      <CroppedArt src={heroLandscape} className="human-hero-image" />
-      <div className="human-hero-copy">
-        <span>Module 1</span>
-        <h1>Human Context <Sprout aria-hidden="true" /></h1>
-        <p>
-          This module captures who is stewarding the land, the regional and cultural
-          context that shapes it, and the long-horizon vision that guides decisions
-          across time and generations.
-        </p>
-      </div>
-      <div className="human-hero-metrics">
-        <ProgressRing value={vm.hero.progressPct} label={`${vm.hero.progressPct}%`} />
-        <MetricBlock label="Module progress" value="9 / 11" note="Areas captured" />
-        {vm.hero.metrics.map((metric) => (
-          <MetricBlock key={metric.label} icon={heroIconMap[metric.iconKey]} label={metric.label} value={metric.value} note={metric.note} />
-        ))}
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function MetricBlock({ icon: Icon, label, value, note, compact = false }) {
-  return (
-    <div className={compact ? "human-metric-block compact" : "human-metric-block"}>
-      {Icon ? <Icon aria-hidden="true" /> : null}
-      <span>{label}</span>
-      {value ? <strong>{value}</strong> : null}
-      <small>{note}</small>
-    </div>
   );
 }
 

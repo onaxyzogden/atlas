@@ -1,6 +1,4 @@
-import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   ArrowRight,
   Beaker,
   Binoculars,
@@ -19,6 +17,7 @@ import {
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
   ProgressRing,
   QaOverlay,
   SurfaceCard,
@@ -77,7 +76,14 @@ export function EarthWaterEcologyContent() {
 
   return (
     <div className="detail-page diagnostics-page">
-      <ModuleHeader />
+      <ModuleHeroCard
+        moduleNumber="Module 4"
+        title="Earth, Water & Ecology"
+        icon={Leaf}
+        copy={vm.header.copy}
+        progressPct={vm.header.progressPct}
+        metrics={vm.header.metrics}
+      />
       <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
       <TabsAndActions />
       <section className="diagnostic-grid">
@@ -109,31 +115,6 @@ export function EarthWaterEcologyPage() {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function ModuleHeader() {
-  return (
-    <header className="module-header">
-      <div className="module-title-block">
-        <Link to="/observe/dashboard" className="back-link"><ArrowLeft aria-hidden="true" /> Back to overview</Link>
-        <div className="module-title-row">
-          <b>4</b>
-          <div>
-            <h1>{vm.header.title}</h1>
-            <p>{vm.header.copy}</p>
-          </div>
-          <span className="status-pill">{vm.header.statusPill}</span>
-        </div>
-      </div>
-      <SurfaceCard className="module-progress-card">
-        <span>Module progress</span>
-        <strong>{vm.header.progressLine}</strong>
-        <div className="thin-progress"><i style={{ width: `${vm.header.progressPct}%` }} /></div>
-        <em>{vm.header.progressPct}%</em>
-        <button className="outlined-button" type="button">View module guide</button>
-      </SurfaceCard>
-    </header>
   );
 }
 

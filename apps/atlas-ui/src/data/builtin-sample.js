@@ -174,6 +174,7 @@ export const humanContextDashboard = {
     progressLabel: "Well on your way",
     progressNote: "9 of 11 areas captured",
     metrics: [
+      { label: "Module progress", value: "9 / 11", note: "Areas captured" },
       { iconKey: "eye", label: "Vision phases", value: "3 / 3", note: "Captured" },
       { iconKey: "flag", label: "Milestones", value: "0", note: "Defined" },
       { iconKey: "mapPin", label: "Regional context", value: "11", note: "Captured" }
@@ -416,7 +417,14 @@ export const macroclimateDashboard = {
     title: "Macroclimate & Hazards",
     copy:
       "Understand the big-picture climate patterns and natural hazards that shape your site. Use this foundation to design resilient systems that work with your environment, not against it.",
-    badge: "Data complete"
+    badge: "Data complete",
+    progressPct: 100,
+    metrics: [
+      { iconKey: "snowflake", label: "Hardiness zone", value: "5b", note: "USDA" },
+      { iconKey: "droplet", label: "Annual precip", value: "870 mm", note: "Average" },
+      { iconKey: "calendar", label: "Frost-free days", value: "155", note: "Average" },
+      { iconKey: "alert", label: "Logged hazards", value: "3", note: "Active" }
+    ]
   },
   kpis: [
     ["snowflake", "Hardiness zone", "5b", "USDA", "blue"],
@@ -517,9 +525,17 @@ export const solarClimateDetail = {
 // TopographyDashboardPage (`/observe/topography`).
 export const topographyDashboard = {
   header: {
+    moduleNumber: "Module 3",
     title: "Topography & Base Map",
     copy:
-      "Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it."
+      "Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it.",
+    progressPct: 72,
+    metrics: [
+      { iconKey: "triangle", label: "Mean slope", value: "4.2°", note: "Gentle" },
+      { iconKey: "mountain", label: "Elevation range", value: "28 m", note: "240–268 m" },
+      { iconKey: "sliders", label: "Aspect tendency", value: "SE", note: "135 degrees" },
+      { iconKey: "layers", label: "Dominant landforms", value: "Mid-slopes", note: "Rolling terrain" }
+    ]
   },
   metrics: [
     ["triangle", "Mean slope", "4.2 degrees", "Gentle", "Predominantly gentle slopes."],
@@ -676,12 +692,19 @@ export const crossSectionTool = {
 // EarthWaterEcologyPage (`/observe/earth-water-ecology`).
 export const earthWaterEcologyPage = {
   header: {
+    moduleNumber: "Module 4",
     title: "Earth, Water & Ecology Diagnostics",
     copy:
       "Understand the living systems of your site. Diagnose soils, hydrology and ecology to reveal opportunities, risks and patterns that inform wise design.",
     statusPill: "In progress",
     progressLine: "18 of 28 tasks complete",
-    progressPct: 63
+    progressPct: 63,
+    metrics: [
+      { iconKey: "sprout", label: "Soil pH", value: "6.8", note: "Slightly acidic" },
+      { iconKey: "leaf", label: "Biodiversity", value: "62 /100", note: "Moderate" },
+      { iconKey: "droplet", label: "Water security", value: "Low", note: "Improve capture" },
+      { iconKey: "eye", label: "Field observations", value: "24", note: "This season" }
+    ]
   },
   kpis: [
     ["sprout", "Latest soil pH", "6.8", "Slightly acidic", "green"],
@@ -836,9 +859,16 @@ export const sectorCompassPage = {
 // SectorsMicroclimatesDashboardPage (`/observe/sectors-zones`).
 export const sectorsMicroclimatesDashboard = {
   hero: {
-    moduleNumber: "MODULE 5 · SECTORS, MICROCLIMATES & ZONES",
+    moduleNumber: "Module 5",
     title: "Sectors, Microclimates & Zones",
     copy: "Map the zones and sectors that inform where and why design elements belong on the land.",
+    progressPct: 68,
+    metrics: [
+      { iconKey: "leaf", label: "Sector plans", value: "4", note: "Documented" },
+      { iconKey: "sun", label: "Microclimates", value: "6", note: "Identified" },
+      { iconKey: "compass", label: "Zones", value: "5", note: "Outlined" },
+      { iconKey: "wind", label: "Observation depth", value: "72%", note: "Coverage" }
+    ]
   },
   kpis: {
     sectorAnalysisPlans: 4,
