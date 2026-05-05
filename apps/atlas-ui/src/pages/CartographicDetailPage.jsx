@@ -39,34 +39,40 @@ const TONE_CSS = {
   cream: "var(--olos-cream)",
 };
 
+export function CartographicDetailContent() {
+  return (
+    <div className="detail-page cd-page">
+      <div className="cd-breadcrumb">
+        <Link to="/observe/sectors-zones" className="cd-back-link">
+          <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones
+        </Link>
+      </div>
+      <header className="cd-header">
+        <h1>Cartographic detail</h1>
+        <p>{vm.hero.copy}</p>
+      </header>
+      <KpiStrip />
+      <div className="cd-body">
+        <div className="cd-map-col">
+          <MapPanel />
+          <LegendPanel />
+        </div>
+        <aside className="cd-sidebar">
+          <DetectedPatternsCard />
+          <NextActionsCard />
+          <MapInfoCard />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export function CartographicDetailPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page cd-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
-        <ProjectDataStatus />
-        <div className="cd-breadcrumb">
-          <Link to="/observe/sectors-zones" className="cd-back-link">
-            <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones
-          </Link>
-        </div>
-        <header className="cd-header">
-          <h1>Cartographic detail</h1>
-          <p>{vm.hero.copy}</p>
-        </header>
-        <KpiStrip />
-        <div className="cd-body">
-          <div className="cd-map-col">
-            <MapPanel />
-            <LegendPanel />
-          </div>
-          <aside className="cd-sidebar">
-            <DetectedPatternsCard />
-            <NextActionsCard />
-            <MapInfoCard />
-          </aside>
-        </div>
-      </div>
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
+      <ProjectDataStatus />
+      <CartographicDetailContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}

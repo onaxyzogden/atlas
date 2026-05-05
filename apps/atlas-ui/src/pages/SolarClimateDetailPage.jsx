@@ -31,40 +31,46 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/macro
 
 const solarIconMap = { sun: Sun, droplet: Droplet, leaf: Leaf, wind: Wind, snowflake: Snowflake, sprout: Sprout };
 
-export function SolarClimateDetailPage() {
+export function SolarClimateContent() {
   const { project, siteBanner } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   return (
+    <div className="detail-page solar-detail-page">
+      <section className="solar-detail-layout">
+        <div className="solar-detail-main">
+          <SolarHero />
+          <SolarKpis meta={meta} />
+          <section className="solar-chart-grid">
+            <ClimateOverviewCard />
+            <SolarPathCard />
+          </section>
+          <section className="solar-bottom-grid">
+            <WindExposureCard />
+            <ExposureShelterCard />
+            <ClimateOpportunitiesCard />
+          </section>
+          <SeasonalSummary />
+        </div>
+        <SolarActionRail />
+      </section>
+      <footer className="diagnostics-footer solar-footer">
+        <span><b>Site:</b> {siteBanner.siteName}</span>
+        <span><b>Location:</b> {siteBanner.location}</span>
+        <span><b>Elevation:</b> {siteBanner.elevationRange}</span>
+        <span><b>Project start:</b> {siteBanner.projectStart}</span>
+        <span><b>Last updated:</b> {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
+        <span className="synced-dot">{siteBanner.syncStatus}</span>
+      </footer>
+    </div>
+  );
+}
+
+export function SolarClimateDetailPage() {
+  return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page solar-detail-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
-        <ProjectDataStatus />
-        <section className="solar-detail-layout">
-          <div className="solar-detail-main">
-            <SolarHero />
-            <SolarKpis meta={meta} />
-            <section className="solar-chart-grid">
-              <ClimateOverviewCard />
-              <SolarPathCard />
-            </section>
-            <section className="solar-bottom-grid">
-              <WindExposureCard />
-              <ExposureShelterCard />
-              <ClimateOpportunitiesCard />
-            </section>
-            <SeasonalSummary />
-          </div>
-          <SolarActionRail />
-        </section>
-        <footer className="diagnostics-footer solar-footer">
-          <span><b>Site:</b> {siteBanner.siteName}</span>
-          <span><b>Location:</b> {siteBanner.location}</span>
-          <span><b>Elevation:</b> {siteBanner.elevationRange}</span>
-          <span><b>Project start:</b> {siteBanner.projectStart}</span>
-          <span><b>Last updated:</b> {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
-          <span className="synced-dot">{siteBanner.syncStatus}</span>
-        </footer>
-      </div>
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+      <ProjectDataStatus />
+      <SolarClimateContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

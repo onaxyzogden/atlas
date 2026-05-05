@@ -55,37 +55,43 @@ const FORCE_COLOR = {
   access:  "#8dba7c",
 };
 
+export function SectorCompassContent() {
+  return (
+    <div className="detail-page sc-page">
+      <div className="sc-breadcrumb">
+        <Link to="/observe/sectors-zones" className="sc-back-link">
+          <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones
+        </Link>
+      </div>
+      <header className="sc-header">
+        <h1>Sector compass</h1>
+        <p>{vm.hero.copy}</p>
+      </header>
+      <KpiStrip />
+      <section className="sc-main-grid">
+        <CompassPanel />
+        <div className="sc-right-col">
+          <SiteMapPanel />
+          <ObservationsPanel />
+        </div>
+      </section>
+      <section className="sc-bottom-grid">
+        <PlacementsPanel />
+        <div className="sc-analysis-col">
+          <DesignAlignmentCard />
+          <PriorityActionsCard />
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function SectorCompassPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page sc-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
-        <ProjectDataStatus />
-        <div className="sc-breadcrumb">
-          <Link to="/observe/sectors-zones" className="sc-back-link">
-            <ArrowLeft size={13} /> Back to Sectors, Microclimates &amp; Zones
-          </Link>
-        </div>
-        <header className="sc-header">
-          <h1>Sector compass</h1>
-          <p>{vm.hero.copy}</p>
-        </header>
-        <KpiStrip />
-        <section className="sc-main-grid">
-          <CompassPanel />
-          <div className="sc-right-col">
-            <SiteMapPanel />
-            <ObservationsPanel />
-          </div>
-        </section>
-        <section className="sc-bottom-grid">
-          <PlacementsPanel />
-          <div className="sc-analysis-col">
-            <DesignAlignmentCard />
-            <PriorityActionsCard />
-          </div>
-        </section>
-      </div>
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
+      <ProjectDataStatus />
+      <SectorCompassContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}

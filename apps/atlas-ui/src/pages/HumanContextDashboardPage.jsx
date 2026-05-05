@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -8,12 +9,12 @@ import {
   Sprout,
   Users
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
   ProgressRing,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   ProjectDataStatus
 } from "../components/index.js";
@@ -21,6 +22,9 @@ import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { humanContextDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { StewardSurveyContent } from "./StewardSurveyPage.jsx";
+import { IndigenousRegionalContextContent } from "./IndigenousRegionalContextPage.jsx";
+import { VisionContent } from "./VisionPage.jsx";
 import heroLandscape from "../assets/generated/human-context-dashboard/hero-landscape.png";
 import regionalSnapshot from "../assets/generated/human-context-dashboard/regional-snapshot.png";
 
@@ -29,6 +33,8 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/human
 const heroIconMap = { eye: Eye, flag: Flag, mapPin: MapPin };
 
 export function HumanContextDashboardPage() {
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
       <div className="human-context-page">
@@ -38,15 +44,27 @@ export function HumanContextDashboardPage() {
           <div className="human-context-main">
             <HumanHero />
             <section className="human-card-grid">
-              <StewardCard />
-              <RegionalCard />
-              <VisionSummaryCard />
+              <StewardCard onAction={() => setPane("steward")} />
+              <RegionalCard onAction={() => setPane("regional")} />
+              <VisionSummaryCard onAction={() => setPane("vision")} />
             </section>
             <HealthStrip />
           </div>
-          <SynthesisPanel />
+          <SynthesisPanel onAction={() => setPane("implications")} />
         </div>
       </div>
+      <SlideUpPane open={pane === "steward"} title="Steward Survey" onClose={close}>
+        <StewardSurveyContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "regional"} title="Indigenous & Regional Context" onClose={close}>
+        <IndigenousRegionalContextContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "vision"} title="Vision Detail" onClose={close}>
+        <VisionContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "implications"} title="Design implications" onClose={close}>
+        <ImplicationsContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -89,7 +107,7 @@ function HumanHero() {
       </div>
       <div className="human-hero-metrics">
         <ProgressRing value={vm.hero.progressPct} label={`${vm.hero.progressPct}%`} />
-        <MetricBlock label="Module progress" value={vm.hero.progressLabel} note={vm.hero.progressNote} compact />
+        <MetricBlock label="Module progress" value="9 / 11" note="Areas captured" />
         {vm.hero.metrics.map((metric) => (
           <MetricBlock key={metric.label} icon={heroIconMap[metric.iconKey]} label={metric.label} value={metric.value} note={metric.note} />
         ))}
@@ -103,13 +121,13 @@ function MetricBlock({ icon: Icon, label, value, note, compact = false }) {
     <div className={compact ? "human-metric-block compact" : "human-metric-block"}>
       {Icon ? <Icon aria-hidden="true" /> : null}
       <span>{label}</span>
-      <strong>{value}</strong>
+      {value ? <strong>{value}</strong> : null}
       <small>{note}</small>
     </div>
   );
 }
 
-function ModuleCardShell({ number, title, icon: Icon, children, action, actionTo, tone = "green" }) {
+function ModuleCardShell({ number, title, icon: Icon, children, action, onAction, tone = "green" }) {
   const cls = tone === "gold" ? "gold-button" : "green-button";
   return (
     <SurfaceCard className={`human-module-card ${tone}`}>
@@ -119,17 +137,17 @@ function ModuleCardShell({ number, title, icon: Icon, children, action, actionTo
         {Icon ? <Icon aria-hidden="true" /> : null}
       </header>
       {children}
-      {actionTo
-        ? <Link to={actionTo} className={cls}>{action} <ArrowRight aria-hidden="true" /></Link>
-        : <button className={cls} type="button">{action} <ArrowRight aria-hidden="true" /></button>}
+      <button className={cls} type="button" onClick={onAction}>
+        {action} <ArrowRight aria-hidden="true" />
+      </button>
     </SurfaceCard>
   );
 }
 
-function StewardCard() {
+function StewardCard({ onAction }) {
   const s = vm.steward;
   return (
-    <ModuleCardShell number="1" title="Steward Survey" icon={Users} action="Open Steward Survey" actionTo="/observe/human-context/steward-survey">
+    <ModuleCardShell number="1" title="Steward Survey" icon={Users} action="Open Steward Survey" onAction={onAction}>
       <p>Who is stewarding this land and what they bring.</p>
       <div className="steward-summary-grid">
         <div className="mini-profile">
@@ -155,10 +173,10 @@ function StewardCard() {
   );
 }
 
-function RegionalCard() {
+function RegionalCard({ onAction }) {
   const r = vm.regional;
   return (
-    <ModuleCardShell number="2" title="Indigenous & Regional Context" icon={Sprout} action="Open Indigenous & Regional Context" actionTo="/observe/human-context/indigenous-regional-context" tone="gold">
+    <ModuleCardShell number="2" title="Indigenous & Regional Context" icon={Sprout} action="Open Indigenous & Regional Context" onAction={onAction} tone="gold">
       <p>Honour the land's story, culture, and regional systems.</p>
       <div className="regional-summary-grid">
         <CroppedArt src={regionalSnapshot} className="regional-summary-image" />
@@ -174,12 +192,12 @@ function RegionalCard() {
   );
 }
 
-function VisionSummaryCard() {
+function VisionSummaryCard({ onAction }) {
   const { project } = useBuiltinProject();
   const visionStatement = project?.metadata?.visionStatement ?? null;
   const v = vm.vision;
   return (
-    <ModuleCardShell number="3" title="Vision Detail" icon={Leaf} action="Open Vision Detail" actionTo="/observe/human-context/vision">
+    <ModuleCardShell number="3" title="Vision Detail" icon={Leaf} action="Open Vision Detail" onAction={onAction}>
       <p>Where we're going and what success looks like.</p>
       <div className="vision-summary-grid">
         <blockquote>{visionStatement ?? v.quote}</blockquote>
@@ -216,7 +234,7 @@ function HealthStrip() {
   );
 }
 
-function SynthesisPanel() {
+function SynthesisPanel({ onAction }) {
   const s = vm.synthesis;
   return (
     <SurfaceCard className="human-synthesis-panel">
@@ -228,7 +246,9 @@ function SynthesisPanel() {
       <SynthesisSection title="Key insights" items={s.keyInsights} />
       <SynthesisSection title="Design implications" items={s.designImplications} />
       <SynthesisSection title="Next steps" numbered items={s.nextSteps} />
-      <button className="green-button" type="button">View full design implications <ArrowRight aria-hidden="true" /></button>
+      <button className="green-button" type="button" onClick={onAction}>
+        View full design implications <ArrowRight aria-hidden="true" />
+      </button>
     </SurfaceCard>
   );
 }
@@ -241,5 +261,38 @@ function SynthesisSection({ title, items, numbered = false }) {
         <p key={item}>{numbered ? <b>{index + 1}</b> : <CheckCircle2 aria-hidden="true" />} {item}</p>
       ))}
     </section>
+  );
+}
+
+function ImplicationsContent() {
+  const s = vm.synthesis;
+  return (
+    <div className="implications-content">
+      <SurfaceCard className="implications-summary">
+        <ProgressRing value={s.alignmentPct} label={`${s.alignmentPct}%`} />
+        <div>
+          <b>Context Alignment</b>
+          <p>{s.alignmentNote}</p>
+        </div>
+      </SurfaceCard>
+      <section className="synthesis-section">
+        <h3>Key insights</h3>
+        {s.keyInsights.map((item) => (
+          <p key={item}><CheckCircle2 aria-hidden="true" /> {item}</p>
+        ))}
+      </section>
+      <section className="synthesis-section">
+        <h3>Design implications</h3>
+        {s.designImplications.map((item) => (
+          <p key={item}><CheckCircle2 aria-hidden="true" /> {item}</p>
+        ))}
+      </section>
+      <section className="synthesis-section">
+        <h3>Next steps</h3>
+        {s.nextSteps.map((item, index) => (
+          <p key={item}><b>{index + 1}</b> {item}</p>
+        ))}
+      </section>
+    </div>
   );
 }

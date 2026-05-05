@@ -38,27 +38,33 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/topog
 
 const crossIconMap = { ruler: Ruler, mountain: Mountain, triangle: Triangle, sun: Sun, trees: Trees, droplet: Droplet, layers: Layers, eye: Eye, beaker: Beaker };
 
+export function CrossSectionToolContent() {
+  return (
+    <div className="detail-page cross-section-page">
+      <section className="cross-layout">
+        <div className="cross-main">
+          <CrossHeader />
+          <CrossKpis />
+          <CrossChartPanel />
+          <section className="cross-bottom-grid">
+            <ObservationPanel />
+            <TransectLibrary />
+            <SeasonalPanel />
+          </section>
+        </div>
+        <CrossSidebar />
+      </section>
+      <CrossActionBar />
+    </div>
+  );
+}
+
 export function CrossSectionToolPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page cross-section-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis · Module 3" />
-        <ProjectDataStatus />
-        <section className="cross-layout">
-          <div className="cross-main">
-            <CrossHeader />
-            <CrossKpis />
-            <CrossChartPanel />
-            <section className="cross-bottom-grid">
-              <ObservationPanel />
-              <TransectLibrary />
-              <SeasonalPanel />
-            </section>
-          </div>
-          <CrossSidebar />
-        </section>
-        <CrossActionBar />
-      </div>
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis · Module 3" />
+      <ProjectDataStatus />
+      <CrossSectionToolContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
