@@ -46,7 +46,7 @@ export function SectorsMicroclimatesDashboardPage() {
   const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page sectors-page">
+      <div className="detail-page sectors-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <ProjectDataStatus />
         <section className="sectors-layout">

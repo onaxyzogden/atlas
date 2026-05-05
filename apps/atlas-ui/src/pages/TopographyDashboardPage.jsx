@@ -43,8 +43,8 @@ export function TopographyDashboardPage() {
   const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page topography-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+      <div className="detail-page topography-page module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 3" />
         <ProjectDataStatus />
         <section className="topography-layout">
           <div className="topography-main">

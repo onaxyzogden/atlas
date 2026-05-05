@@ -96,13 +96,11 @@ export function EarthWaterEcologyContent() {
 export function EarthWaterEcologyPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <TopStageBar
-        stage="Stage 1 of 3"
-        module="Roots & Diagnosis · Module 4"
-        actionLabel="Module settings"
-      />
-      <ProjectDataStatus />
-      <EarthWaterEcologyContent />
+      <div className="module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 4" />
+        <ProjectDataStatus />
+        <EarthWaterEcologyContent />
+      </div>
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}

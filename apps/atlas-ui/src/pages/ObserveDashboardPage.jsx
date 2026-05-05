@@ -46,7 +46,7 @@ export function ObserveDashboardPage() {
   const { assessment, siteBanner, status, retry } = useBuiltinProject();
   return (
     <AppShell navConfig={observeNav}>
-      <div className="dashboard-page">
+      <div className="dashboard-page module-frame">
         <TopStageBar />
         <section className="dashboard-hero-row">
           <DashboardHero />

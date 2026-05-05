@@ -41,8 +41,8 @@ export function MacroclimateDashboardPage() {
   const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page macroclimate-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+      <div className="detail-page macroclimate-page module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 2" />
         <ProjectDataStatus />
         <section className="macroclimate-layout">
           <div className="macroclimate-main">

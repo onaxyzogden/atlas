@@ -68,7 +68,7 @@ export function SolarClimateContent() {
 export function SolarClimateDetailPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 2" />
       <ProjectDataStatus />
       <SolarClimateContent />
       {import.meta.env.DEV && metadata ? (

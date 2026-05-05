@@ -84,7 +84,7 @@ export function TerrainDetailContent() {
 export function TerrainDetailPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 3" />
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 3" />
       <ProjectDataStatus />
       <TerrainDetailContent />
       {import.meta.env.DEV && metadata ? (

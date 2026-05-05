@@ -37,7 +37,7 @@ export function SwotDashboardPage() {
   const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="swot-page">
+      <div className="swot-page module-frame">
         <SwotTopBar />
         <section className="swot-content">
           <div className="swot-main">
