@@ -6961,3 +6961,75 @@ Either: operator files dump-format verifications back into
 remaining ingest jobs + adapters (IGRAC ingest, WDPA adapter + ingest, NCED
 adapter + ingest) in one session. Or: land the polygonisation toolchain ADR
 for the 8.1 raster land-cover adapters so both 8.1 and 8.2 unblock in parallel.
+---
+
+## 2026-05-05 — Polygonisation toolchain ADR landed (unblocks 8.1-A)
+
+Locks the raster-sample + polygonisation toolchain decisions left
+implicit in the 8.1-A hybrid land-cover ADR and the 8.1-B
+polygonize-friction ADR. New decision file:
+`wiki/decisions/2026-05-05-pollinator-corridor-raster-pipeline.md`.
+
+Eight decisions locked (D1-D8):
+
+- **D1.** 8.1-A is raster-sample only. `LandCoverSummary.classes` is
+  derivable from a parcel-bbox raster sample; no polygonisation
+  required at the adapter layer. Polygonisation is exclusively an
+  8.1-B (friction surface) concern.
+- **D2.** Raster-sample toolchain = `geotiff.js` against per-vintage
+  COGs. Mirrors `SoilGridsRasterService` and `GaezRasterService`
+  exactly — no new architectural surface. Manifest-on-boot,
+  byte-range reads only.
+- **D3.** Source CRS reprojection happens at sample/polygonise time,
+  not at ingest. NLCD EPSG:5070, ACI EPSG:3347, WorldCover EPSG:4326
+  native; rasters stay in native CRS on disk; parcel polygon is
+  reprojected via `proj4` at sample time.
+- **D4.** Tile acquisition is an operator job
+  (`apps/api/src/jobs/landcover-tile-ingest.ts`, deferred), not an
+  API hot path. Runs once per vintage; tile layout
+  `data/landcover/<source>/<vintage>/<tile>.tif` with optional
+  `LANDCOVER_S3_PREFIX` env-var override (mirrors SOILGRIDS/GAEZ
+  prefix pattern).
+- **D5.** Production polygonisation = `gdal_polygonize.py`
+  shell-out from the Tier-3 worker. Mirrors `cpcad-ingest.ts`'s
+  `ogr2ogr` precedent. `rasterio` rejected (adds Python runtime),
+  PostGIS `ST_DumpAsPolygons` rejected (requires `postgis_raster`
+  extension we don't enable). Pure-JS contour tracing kept as
+  dev/test fallback only.
+- **D6.** Simplification = `ST_SimplifyPreserveTopology(geom, t)`
+  with t = native pixel resolution: 30m NLCD/ACI, 10m WorldCover.
+  PreserveTopology variant ensures shared edges stay shared, which
+  the 8.1-C patch-graph LCP depends on.
+- **D7.** Polygonised friction surfaces are ephemeral per-parcel.
+  Computed in-memory in 8.1-B's processor, dropped on job completion.
+  Persistence deferred until profiling shows polygonisation is the
+  Tier-3 bottleneck; can be added non-breakingly later as a
+  `pollinator_friction_cache` PostGIS table keyed by
+  `(parcel_id, source, vintage)`.
+- **D8.** `polygonizeBbox(parcel, options)` signature locked with
+  injected `rasterService` (testable via stub) and `db` handle for
+  the `ST_Transform` boundary.
+
+Implementation impact: 8.1-A.1-A.3 unblocked today on `geotiff.js`
+only; no GDAL runtime dependency required for the API server to
+serve land-cover summaries. GDAL becomes a Tier-3 *worker* runtime
+dependency (it was already a one-shot ingest dependency via
+`cpcad-ingest`), with the same `GDAL_BIN_DIR` env var pattern;
+worker-boot smoke check refuses to start if `gdal_polygonize.py`
+is missing.
+
+Wiki updates: index.md gets a new decisions row; this log entry.
+No code changes in this commit (ADR-only).
+
+### Next session
+
+8.1-A.1 implementation: three `LandCoverRasterService` classes +
+three adapters following the locked toolchain. Test fixtures
+inject stub services so no real COGs need to land first. Tile
+acquisition (`landcover-tile-ingest.ts`) lands as a follow-up
+operator job in the same phase.
+
+The four operator-blocking sweeps (8.2-A.3 IGRAC ingest,
+8.2-B.2 WDPA, 8.2-B.3 NCED, plus the WDPA + IGRAC outbound emails)
+remain in flight on the operator side; engineering side has no
+remaining blocker on either branch.
