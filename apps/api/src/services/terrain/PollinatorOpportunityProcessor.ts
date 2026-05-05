@@ -49,6 +49,7 @@ import {
 import { getNlcdService } from '../landcover/NlcdRasterService.js';
 import { getAciService } from '../landcover/AciRasterService.js';
 import { getWorldCoverService } from '../landcover/WorldCoverRasterService.js';
+import { bufferBboxKm } from '../landcover/bufferBboxKm.js';
 import type {
   LandCoverRasterServiceBase,
   ParcelBbox4326,
@@ -485,24 +486,13 @@ export class PollinatorOpportunityProcessor {
         }
       }
       void coords;
-      // Degree buffer derived from bufferKm. One degree of latitude is
-      // ≈111 km at all latitudes, but one degree of longitude shrinks
-      // with cos(lat) — at 60° N a degree of longitude is only ~55 km,
-      // so a flat bufferKm/111 under-buffers the longitude axis by 50%.
-      // Floor cosLat at 0.1 to cap buffer expansion near the poles
-      // (above ~84° latitude); beyond that the parcel falls into
-      // multi-tile-stitch territory where the synthesized-grid
-      // fallback is the correct answer anyway.
-      const latBuf = bufferKm / 111;
-      const meanLatRad = ((minLat + maxLat) / 2) * (Math.PI / 180);
-      const cosLat = Math.max(0.1, Math.cos(meanLatRad));
-      const lngBuf = bufferKm / (111 * cosLat);
-      const bbox: ParcelBbox4326 = {
-        minLng: minLng - lngBuf,
-        minLat: minLat - latBuf,
-        maxLng: maxLng + lngBuf,
-        maxLat: maxLat + latBuf,
-      };
+      // Latitude-aware degree buffer. See `bufferBboxKm` for the math
+      // (cosine-of-latitude correction on the longitude axis, floored
+      // at 0.1 to cap expansion near the poles).
+      const bbox: ParcelBbox4326 = bufferBboxKm(
+        { minLng, minLat, maxLng, maxLat },
+        bufferKm,
+      );
       const clip = await resolvedService.clipToBbox(bbox);
       if (!clip) {
         throw new Error('clipToBbox returned null');
