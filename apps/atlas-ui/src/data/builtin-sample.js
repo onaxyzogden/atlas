@@ -995,12 +995,42 @@ export const sectorsMicroclimatesDashboard = {
 
 // ── M6 SWOT Dashboard (/observe/swot) ────────────────────────────────────
 export const swotDashboard = {
+  hero: {
+    copy: "Synthesise insights from your journal and diagnosis to reveal strategic leverage points and inform robust, regenerative design decisions across the site.",
+    progressPct: 72,
+    metrics: [
+      { iconKey: "leaf",     label: "Insights captured",   value: "36",         note: "Across 4 categories" },
+      { iconKey: "sliders",  label: "Synthesis strength",  value: "Developing", note: "Connections firming up" },
+      { iconKey: "calendar", label: "Last updated",        value: "May 3",      note: "by Yousef A." },
+    ],
+  },
   kpis: [
     { label: "STRENGTHS",     value: 12, sub: "+3 this week", tone: "success" },
     { label: "WEAKNESSES",    value:  8, sub: "2 unresolved", tone: "warning" },
     { label: "OPPORTUNITIES", value: 10, sub: "+5 this week", tone: "gold"    },
     { label: "THREATS",       value:  6, sub: "1 critical",   tone: "error"   },
   ],
+  synthesis: {
+    alignmentPct: 72,
+    alignmentNote: "Strong site assets and an engaged steward; key leverage in water storage, windbreak placement, and partnership formalisation.",
+    keyInsights: [
+      "Soils are the single strongest asset — protect from compaction and leverage for rapid guild establishment.",
+      "Water storage is the binding constraint on Zone 1-2 food production.",
+      "Adjacent organic farm partnership ready to formalise before next planting season.",
+      "Buckthorn pressure is time-critical — act before late-August fruiting.",
+    ],
+    designImplications: [
+      "Prioritise water-harvesting earthworks on mid-slope",
+      "Integrate windbreak plantings along NW frost pocket edge",
+      "Develop partnership MOU with adjacent organic farm",
+      "Schedule buckthorn removal before fruiting season",
+    ],
+    nextSteps: [
+      "Complete threat assessment to unlock full Diagnosis Report",
+      "Draft swale network design for mid-slope Zone 2",
+      "Apply for Conservation Halton riparian grant before Jun 30",
+    ],
+  },
   journalPreview: [
     { date: "May 16, 2026", category: "strength",    title: "Rich topsoil depth in valley floor",      score: 88 },
     { date: "May 15, 2026", category: "opportunity", title: "Adjacent farm partnership potential",      score: 76 },
