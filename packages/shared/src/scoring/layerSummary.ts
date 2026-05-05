@@ -179,6 +179,41 @@ export interface LandCoverSummary {
   wetland_pct?: number | null;
   water_pct?: number | null;
   impervious_pct?: number | null;
+  // ── Provenance (added 2026-05-05 per ADR raster-pipeline) ──────────────
+  // Populated by the raster-sample adapters (NLCD/ACI/WorldCover) so
+  // downstream scoring + UI can distinguish histogram-derived results
+  // from the legacy WMS GetFeatureInfo single-pixel path.
+  /** 'raster' = COG byte-range histogram; 'vector' = legacy WMS/feature query. */
+  samplingMethod?: 'raster' | 'vector' | null;
+  /** Short human-readable licence tag (e.g. 'CC-BY 4.0', 'OGL-Canada'). */
+  licence_short?: string | null;
+  /** Total pixels sampled across the parcel bbox (raster path only). */
+  pixelCount?: number | null;
+  /** Pixels that were NoData / outside raster extent. */
+  noDataPixels?: number | null;
+  /** Canonical-class metadata for the dominant class (pollinator flags). */
+  classMeta?: {
+    pollinatorSupportive: boolean;
+    pollinatorLimiting: boolean;
+    unspecifiedBucket: boolean;
+  } | null;
+  /** Dominant canonical class from the histogram. */
+  dominantClass?: string | null;
+  /** Vintage year of the source raster. */
+  vintage?: number | null;
+  /** Pixel count of valid (non-NoData) cells inside the parcel bbox. */
+  validPixelCount?: number | null;
+  /** Pixel count of NoData cells inside the parcel bbox. */
+  nodataPixelCount?: number | null;
+  /** Multi-source provenance (raster-sample adapters write a single entry). */
+  dataSources?: Array<{
+    source: string;
+    vintage?: number | null;
+    licence_short?: string | null;
+    samplingMethod?: 'raster' | 'vector';
+  }>;
+  /** Reason emitted when the raster path is unavailable (manifest not loaded). */
+  heuristic_note?: string | null;
 }
 
 export interface ZoningSummary {

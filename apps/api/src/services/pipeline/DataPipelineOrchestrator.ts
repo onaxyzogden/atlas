@@ -39,6 +39,13 @@ import { NwisGroundwaterAdapter } from './adapters/NwisGroundwaterAdapter.js';
 import { PgmnGroundwaterAdapter } from './adapters/PgmnGroundwaterAdapter.js';
 import { IgracGroundwaterAdapter } from './adapters/IgracGroundwaterAdapter.js';
 import { CpcadAdapter } from './adapters/CpcadAdapter.js';
+import { NlcdLandCoverAdapter } from './adapters/NlcdLandCoverAdapter.js';
+import { AciLandCoverAdapter } from './adapters/AciLandCoverAdapter.js';
+import { WorldCoverLandCoverAdapter } from './adapters/WorldCoverLandCoverAdapter.js';
+import { getNlcdService } from '../landcover/NlcdRasterService.js';
+import { getAciService } from '../landcover/AciRasterService.js';
+import { getWorldCoverService } from '../landcover/WorldCoverRasterService.js';
+import { config as appConfig } from '../../lib/config.js';
 import { AppError } from '../../lib/errors.js';
 import { NasaPowerAdapter } from './adapters/NasaPowerAdapter.js';
 import { publishBroadcast } from '../../lib/broadcast.js';
@@ -154,10 +161,37 @@ function resolveAdapter(
     return new EcccClimateAdapter(config.source, layerType);
   }
   if (config.adapter === 'NlcdAdapter') {
+    // Per ADR 2026-05-05-pollinator-corridor-raster-pipeline: when operator
+    // has populated the NLCD tile dir AND flipped LANDCOVER_TILES_READY, the
+    // raster-sample NlcdLandCoverAdapter takes over. Pre-flip behaviour (and
+    // any boot where the manifest is empty) stays on the legacy WMS path.
+    if (appConfig.LANDCOVER_TILES_READY) {
+      const nlcd = getNlcdService();
+      if (nlcd && nlcd.isEnabled()) {
+        return new NlcdLandCoverAdapter(config.source, layerType, nlcd);
+      }
+    }
     return new NlcdAdapter(config.source, layerType);
   }
   if (config.adapter === 'AafcLandCoverAdapter') {
+    if (appConfig.LANDCOVER_TILES_READY) {
+      const aci = getAciService();
+      if (aci && aci.isEnabled()) {
+        return new AciLandCoverAdapter(config.source, layerType, aci);
+      }
+    }
     return new AafcLandCoverAdapter(config.source, layerType);
+  }
+  if (config.adapter === 'WorldCoverLandCoverAdapter') {
+    // INTL slot — has no legacy fallback; if disabled, ManualFlagAdapter
+    // (the bottom-of-function default) takes over.
+    if (appConfig.LANDCOVER_TILES_READY) {
+      const wc = getWorldCoverService();
+      if (wc && wc.isEnabled()) {
+        return new WorldCoverLandCoverAdapter(config.source, layerType, wc);
+      }
+    }
+    return new ManualFlagAdapter(config.source, layerType);
   }
   if (config.adapter === 'UsCountyGisAdapter') {
     return new UsCountyGisAdapter(config.source, layerType);
