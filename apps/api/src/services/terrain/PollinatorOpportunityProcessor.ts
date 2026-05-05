@@ -39,8 +39,21 @@ import {
   lookupEcoregion,
   type EcoregionId,
 } from '@ogden/shared';
+import type { Feature, Polygon } from 'geojson';
 import { config } from '../../lib/config.js';
-import { withTimeout, type PolygonPathResult } from './pollinatorPolygonPath.js';
+import {
+  runPolygonFrictionPath,
+  withTimeout,
+  type PolygonPathResult,
+} from './pollinatorPolygonPath.js';
+import { getNlcdService } from '../landcover/NlcdRasterService.js';
+import { getAciService } from '../landcover/AciRasterService.js';
+import { getWorldCoverService } from '../landcover/WorldCoverRasterService.js';
+import type {
+  LandCoverRasterServiceBase,
+  ParcelBbox4326,
+} from '../landcover/LandCoverRasterServiceBase.js';
+import type { LandCoverSourceId } from '@ogden/shared';
 
 const logger = pino({ name: 'PollinatorOpportunityProcessor' });
 
@@ -49,6 +62,10 @@ interface ProjectContext {
   bbox: [number, number, number, number];
   centroidLat: number;
   centroidLng: number;
+  /** ISO-2 country (or 'INTL' fallback) — drives polygon-path service selection. */
+  country: 'US' | 'CA' | 'INTL';
+  /** Parcel boundary as GeoJSON (for clipToBbox) or null when only bbox is known. */
+  parcelGeoJson: { type: 'Polygon'; coordinates: number[][][] } | null;
   classes: Record<string, number>;
   treeCanopyPct: number;
   wetlandPct: number;
@@ -408,25 +425,124 @@ export class PollinatorOpportunityProcessor {
    * tests (Phase 7) by injecting a stub clipProvider.
    */
   private async tryPolygonPath(ctx: ProjectContext): Promise<PolygonPathResult | null> {
-    void ctx;
-    void withTimeout;
+    if (!ctx.parcelGeoJson) {
+      logger.info(
+        { project: ctx.projectId },
+        'polygon-path: parcel_geojson missing — falling back to synthesized grid',
+      );
+      return null;
+    }
+
+    // Country → service resolver. US → NLCD, CA → ACI, INTL → WorldCover.
+    let service: LandCoverRasterServiceBase | null = null;
+    let source: LandCoverSourceId;
+    if (ctx.country === 'US') {
+      service = getNlcdService();
+      source = 'NLCD';
+    } else if (ctx.country === 'CA') {
+      service = getAciService();
+      source = 'ACI';
+    } else {
+      service = getWorldCoverService();
+      source = 'WorldCover';
+    }
+
+    if (!service) {
+      logger.info(
+        { project: ctx.projectId, country: ctx.country, source },
+        'polygon-path: raster service not initialised — falling back to synthesized grid',
+      );
+      return null;
+    }
+
+    const parcel: Feature<Polygon> = {
+      type: 'Feature',
+      properties: {},
+      geometry: ctx.parcelGeoJson,
+    };
+
+    // ClipProvider adapter — converts the shared-package signature
+    // (parcel + bufferKm) into the service's ParcelBbox4326 input. The
+    // service handles the buffer-aware bbox internally via its own
+    // bbox-of-feature + buffer logic when needed; for now we feed the
+    // parcel's bbox plus a coarse degree-buffer derived from bufferKm.
+    const resolvedService = service;
+    const clipProvider = async (
+      p: Feature<Polygon>,
+      bufferKm: number,
+    ): Promise<import('@ogden/shared').RasterClip> => {
+      const coords = p.geometry.coordinates[0] ?? [];
+      let minLng = Infinity;
+      let minLat = Infinity;
+      let maxLng = -Infinity;
+      let maxLat = -Infinity;
+      for (const ring of p.geometry.coordinates) {
+        for (const [lng, lat] of ring) {
+          if (lng! < minLng) minLng = lng!;
+          if (lat! < minLat) minLat = lat!;
+          if (lng! > maxLng) maxLng = lng!;
+          if (lat! > maxLat) maxLat = lat!;
+        }
+      }
+      void coords;
+      // Degree buffer ≈ bufferKm / 111. Latitude scaling is omitted —
+      // the polygon-path is bounded enough that the small extra width
+      // at high latitudes is acceptable for the v1 cut.
+      const degBuf = bufferKm / 111;
+      const bbox: ParcelBbox4326 = {
+        minLng: minLng - degBuf,
+        minLat: minLat - degBuf,
+        maxLng: maxLng + degBuf,
+        maxLat: maxLat + degBuf,
+      };
+      const clip = await resolvedService.clipToBbox(bbox);
+      if (!clip) {
+        throw new Error('clipToBbox returned null');
+      }
+      return clip;
+    };
+
+    const promise = runPolygonFrictionPath({
+      source,
+      parcel,
+      bufferKm: 2,
+      clipProvider,
+    });
+
+    const result = await withTimeout(promise, config.POLLINATOR_POLYGON_TIMEOUT_MS);
+    if (!result) {
+      logger.info(
+        { project: ctx.projectId, source },
+        'polygon-path: timed out or returned null — falling back to synthesized grid',
+      );
+      return null;
+    }
     logger.info(
-      { project: ctx.projectId, flag: config.POLLINATOR_USE_POLYGON_FRICTION },
-      'polygon-path scaffold reached; clipToBbox not yet wired — falling back to synthesized grid',
+      {
+        project: ctx.projectId,
+        source: result.source,
+        vintage: result.vintage,
+        pixelCount: result.pixelCount,
+        polygonizeMs: result.polygonizeMs,
+        permeableFraction: result.permeableFraction,
+      },
+      'polygon-path: success',
     );
-    return null;
+    return result;
   }
 
   private async loadContext(projectId: string): Promise<ProjectContext | null> {
     const [project] = await this.db`
       SELECT
         p.id,
+        p.country,
         ST_XMin(p.parcel_boundary::geometry) AS min_lon,
         ST_YMin(p.parcel_boundary::geometry) AS min_lat,
         ST_XMax(p.parcel_boundary::geometry) AS max_lon,
         ST_YMax(p.parcel_boundary::geometry) AS max_lat,
         ST_Y(p.centroid::geometry) AS centroid_lat,
-        ST_X(p.centroid::geometry) AS centroid_lng
+        ST_X(p.centroid::geometry) AS centroid_lng,
+        ST_AsGeoJSON(p.parcel_boundary::geometry) AS parcel_geojson
       FROM projects p
       WHERE p.id = ${projectId} AND p.parcel_boundary IS NOT NULL
     `;
@@ -475,11 +591,37 @@ export class PollinatorOpportunityProcessor {
           ? !/not detected|none|^\s*$/i.test(riparian)
           : false;
 
+    let parcelGeoJson: { type: 'Polygon'; coordinates: number[][][] } | null = null;
+    if (project.parcel_geojson) {
+      try {
+        const geo = JSON.parse(String(project.parcel_geojson)) as {
+          type: string;
+          coordinates: number[][][] | number[][][][];
+        };
+        if (geo.type === 'Polygon') {
+          parcelGeoJson = { type: 'Polygon', coordinates: geo.coordinates as number[][][] };
+        } else if (geo.type === 'MultiPolygon') {
+          // Take the first polygon ring — clipToBbox only needs the bbox so
+          // the simplification is acceptable for the polygon-path entry.
+          const first = (geo.coordinates as number[][][][])[0];
+          if (first) parcelGeoJson = { type: 'Polygon', coordinates: first };
+        }
+      } catch {
+        parcelGeoJson = null;
+      }
+    }
+
+    const rawCountry = String(project.country ?? '').toUpperCase();
+    const country: 'US' | 'CA' | 'INTL' =
+      rawCountry === 'US' ? 'US' : rawCountry === 'CA' ? 'CA' : 'INTL';
+
     return {
       projectId,
       bbox,
       centroidLat: Number(project.centroid_lat),
       centroidLng: Number(project.centroid_lng),
+      country,
+      parcelGeoJson,
       classes,
       treeCanopyPct,
       wetlandPct,

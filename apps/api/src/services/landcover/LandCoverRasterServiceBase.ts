@@ -27,6 +27,7 @@ import { join } from 'node:path';
 import { fromFile, fromUrl, type GeoTIFF } from 'geotiff';
 import proj4 from 'proj4';
 import pino from 'pino';
+import type { LandCoverSourceId, RasterClip } from '@ogden/shared';
 
 // ── Manifest types ─────────────────────────────────────────────────────────
 
@@ -94,6 +95,9 @@ export abstract class LandCoverRasterServiceBase {
 
   /** Log scope name (e.g. 'NlcdRasterService'). */
   protected abstract readonly serviceName: string;
+
+  /** Canonical source enum id for the polygon-path RasterClip output. */
+  protected abstract readonly sourceId: LandCoverSourceId;
 
   /**
    * proj4 definition for the source CRS. Subclass returns the proj4 string.
@@ -342,6 +346,115 @@ export abstract class LandCoverRasterServiceBase {
       nodataCount,
       pixelSizeX: Math.abs(xRes),
       pixelSizeY: Math.abs(yRes),
+    };
+  }
+
+  /**
+   * Clip the raster covering `parcelBbox` and return a `RasterClip` suitable
+   * for `polygonizeBbox`. Per ADR D5/D8 — feeds the polygon-friction path
+   * in PollinatorOpportunityProcessor.
+   *
+   * v1 cut: single-tile only. Returns null when the parcel bbox spans
+   * multiple tiles — the caller falls back to the synthesized-grid path.
+   * Most parcel-scale bboxes hit a single tile; multi-tile stitching is
+   * deferred until profiling shows it's a real bottleneck.
+   */
+  async clipToBbox(parcelBbox: ParcelBbox4326): Promise<RasterClip | null> {
+    if (!this.manifest || !this.isEnabled()) return null;
+
+    const srcBbox = this.reprojectBboxToSource(parcelBbox);
+    const entries = this.pickIntersectingEntries(srcBbox);
+    if (entries.length === 0) {
+      this.log.info({ srcBbox }, 'clipToBbox: no tiles intersect');
+      return null;
+    }
+    if (entries.length > 1) {
+      this.log.warn(
+        { tileCount: entries.length, srcBbox },
+        'clipToBbox: multi-tile parcel — v1 returns null; caller falls back',
+      );
+      return null;
+    }
+
+    const entry = entries[0]!;
+    let tiff: GeoTIFF;
+    try {
+      tiff = await this.openTiff(entry.filename);
+    } catch (err) {
+      this.log.warn({ err, filename: entry.filename }, 'clipToBbox: open failed');
+      return null;
+    }
+
+    const image = await tiff.getImage();
+    const width = image.getWidth();
+    const height = image.getHeight();
+    const origin = image.getOrigin();
+    const resolution = image.getResolution();
+    const originX = origin[0];
+    const originY = origin[1];
+    const xRes = resolution[0];
+    const yRes = resolution[1];
+    if (originX === undefined || originY === undefined || xRes === undefined || yRes === undefined) {
+      return null;
+    }
+
+    const tileBbox = entry.bbox;
+    const ix0 = Math.max(srcBbox.minX, tileBbox[0]);
+    const iy0 = Math.max(srcBbox.minY, tileBbox[1]);
+    const ix1 = Math.min(srcBbox.maxX, tileBbox[2]);
+    const iy1 = Math.min(srcBbox.maxY, tileBbox[3]);
+    if (ix0 >= ix1 || iy0 >= iy1) return null;
+
+    const px0 = Math.max(0, Math.floor((ix0 - originX) / xRes));
+    const px1 = Math.min(width, Math.ceil((ix1 - originX) / xRes));
+    const py0 = Math.max(0, Math.floor((iy1 - originY) / yRes));
+    const py1 = Math.min(height, Math.ceil((iy0 - originY) / yRes));
+    if (px0 >= px1 || py0 >= py1) return null;
+
+    const rasters = await image.readRasters({
+      window: [px0, py0, px1, py1],
+      interleave: false,
+    });
+    const band0 = (rasters as unknown as ArrayLike<ArrayLike<number>>)[0];
+    if (!band0) return null;
+
+    const w = px1 - px0;
+    const h = py1 - py0;
+    // Coerce to a numeric typed array. We don't know the upstream typing
+    // precisely (Uint8Array for NLCD/ACI/WorldCover; Int16Array would be
+    // possible for other sources). Default to Int32Array since RasterClip
+    // accepts it and it covers all native class-id ranges.
+    const len = (band0 as unknown as { length: number }).length;
+    const pixels = new Int32Array(len);
+    for (let i = 0; i < len; i++) {
+      const v = band0[i];
+      pixels[i] = typeof v === 'number' ? v : Number(v);
+    }
+
+    const gdalNoData = (image as unknown as {
+      getGDALNoData: () => number | null;
+    }).getGDALNoData?.();
+
+    // Source-CRS bbox of the actual returned pixel window — may be
+    // slightly larger than the requested bbox due to integer pixel
+    // alignment. Critical for `polygonizePixelGrid`'s coordinate maths.
+    const clipBboxSourceCrs: [number, number, number, number] = [
+      originX + px0 * xRes,
+      originY + py1 * yRes,  // yRes < 0; py1 is the larger row index → smaller Y
+      originX + px1 * xRes,
+      originY + py0 * yRes,
+    ];
+
+    return {
+      pixels,
+      width: w,
+      height: h,
+      bboxSourceCrs: clipBboxSourceCrs,
+      sourceCrs: `EPSG:${this.sourceCRS}`,
+      pixelSize: [Math.abs(xRes), Math.abs(yRes)],
+      nodataValue: gdalNoData ?? null,
+      vintage: entry.vintage ?? this.manifest.vintage,
+      source: this.sourceId,
     };
   }
 

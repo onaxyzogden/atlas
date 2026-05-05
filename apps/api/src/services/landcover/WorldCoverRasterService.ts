@@ -13,12 +13,14 @@
  * Operator ingest: see apps/api/src/jobs/landcover-tile-ingest.ts (Phase 6).
  */
 
+import type { LandCoverSourceId } from '@ogden/shared';
 import { LandCoverRasterServiceBase } from './LandCoverRasterServiceBase.js';
 
 export class WorldCoverRasterService extends LandCoverRasterServiceBase {
   protected readonly sourceCRS = 4326;
   protected readonly manifestFilename = 'worldcover-manifest.json';
   protected readonly serviceName = 'WorldCoverRasterService';
+  protected readonly sourceId: LandCoverSourceId = 'WorldCover';
   // EPSG:4326 ships with proj4 by default; this is a no-op identity but the
   // base class only consults it if it doesn't already know the EPSG code.
   protected get sourceCRSProj4(): string {

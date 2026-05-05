@@ -11,6 +11,7 @@
  * Operator ingest: see apps/api/src/jobs/landcover-tile-ingest.ts (Phase 6).
  */
 
+import type { LandCoverSourceId } from '@ogden/shared';
 import { LandCoverRasterServiceBase } from './LandCoverRasterServiceBase.js';
 
 const ACI_PROJ4 =
@@ -21,6 +22,7 @@ export class AciRasterService extends LandCoverRasterServiceBase {
   protected readonly sourceCRS = 3347;
   protected readonly manifestFilename = 'aci-manifest.json';
   protected readonly serviceName = 'AciRasterService';
+  protected readonly sourceId: LandCoverSourceId = 'ACI';
   protected get sourceCRSProj4(): string { return ACI_PROJ4; }
 }
 

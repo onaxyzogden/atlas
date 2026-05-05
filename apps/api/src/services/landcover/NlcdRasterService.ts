@@ -11,6 +11,7 @@
  * Operator ingest: see apps/api/src/jobs/landcover-tile-ingest.ts (Phase 6).
  */
 
+import type { LandCoverSourceId } from '@ogden/shared';
 import { LandCoverRasterServiceBase } from './LandCoverRasterServiceBase.js';
 
 const NLCD_PROJ4 =
@@ -21,6 +22,7 @@ export class NlcdRasterService extends LandCoverRasterServiceBase {
   protected readonly sourceCRS = 5070;
   protected readonly manifestFilename = 'nlcd-manifest.json';
   protected readonly serviceName = 'NlcdRasterService';
+  protected readonly sourceId: LandCoverSourceId = 'NLCD';
   protected get sourceCRSProj4(): string { return NLCD_PROJ4; }
 }
 
