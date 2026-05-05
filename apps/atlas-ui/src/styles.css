@@ -2515,7 +2515,7 @@ img.footprint-art {
 
 .topography-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-4);
 }
 
@@ -3358,7 +3358,7 @@ img.footprint-art {
 
 .macroclimate-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-4);
 }
 
@@ -4235,7 +4235,7 @@ img.footprint-art {
 
 .human-context-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 365px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-4);
 }
 
@@ -4863,7 +4863,7 @@ img.footprint-art {
 
 .diagnostics-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--space-4);
   align-items: start;
 }
