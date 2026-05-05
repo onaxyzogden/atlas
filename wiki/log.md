@@ -4,6 +4,53 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-05 — 8.1-B follow-ups: lat-buffer, test triage, multi-tile stitch
+
+Three independent commits on PR #12 (`claude/vigilant-elbakyan-2d16d9`)
+closing the follow-ups flagged in the 8.1-A/B debrief.
+
+**Piece A — Latitude-aware longitude buffer** (`456f112`).
+`PollinatorOpportunityProcessor.tryPolygonPath`'s inline ClipProvider now
+applies cosine-of-latitude correction: `latBuf = bufferKm/111`,
+`lngBuf = bufferKm / (111 * max(0.1, cos(meanLat)))`. The 0.1 cosine floor
+caps buffer expansion at 10× near the poles. Prior flat `bufferKm/111`
+under-buffered longitude by ~50 % at 60° N. Production posture unchanged.
+
+**Piece B — Pre-existing test triage** (`5f5e33a`). All six pre-existing
+failures fixed in a single commit; `apps/api` vitest 512/518 → 518/518
+(later 523/523 after Piece C).
+  - `NasaPowerIntlRouting.test.ts`: removed `'groundwater'` from
+    `layersWithoutIntl` (registered to `IgracGroundwaterAdapter` on
+    2026-05-04).
+  - `boundary.test.ts`: enqueued an extra `projectRow()` for the new
+    `refuseIfBuiltin` SELECT in POST `/projects/:id/boundary`.
+  - `smoke.test.ts` + `projects.test.ts` + `helpers/testApp.ts`: added a
+    `.json` passthrough on `mockDb` so the route's `db.json(metadata)`
+    call no longer throws — root cause of the cascading 500/404 failures.
+  - `siteAssessmentsPipeline.integration.test.ts`: enqueued
+    `{ present: '3' }` between completion check and debounce check for
+    the new derived-layer presence guard in `SiteAssessmentWriter`.
+
+**Piece C — Multi-tile stitching in `clipToBbox`** (`33bb8fa`).
+`LandCoverRasterServiceBase.clipToBbox` now stitches up to 4 aligned
+tiles. Validation gates: matching xRes/yRes, integer-multiple origin
+offsets, identical GDAL NoData, identical vintage, and
+`≤ CLIP_MAX_TILES (=4)` intersecting entries. On any mismatch the
+method returns `null` and the orchestrator falls back to the
+synthesized-grid path. Single-tile fast path preserved verbatim
+(extracted into `clipSingleTile`). Stitched buffer is a single
+`Int32Array` of size W×H, prefilled with NoData and filled by per-tile
+`readRasters` → memcpy at the absolute (ref-grid) pixel position.
+Tests: 9 cases (3 single-tile preserved + 6 new — horizontal, vertical,
+4-corner stitch, grid misalignment, mixed NoData, >4 tiles).
+
+**Verification:** `tsc --noEmit` clean across `@ogden/api`. Full
+`npx vitest run` reports **523/523 passing**. Production posture
+unchanged: `POLLINATOR_USE_POLYGON_FRICTION` and `LANDCOVER_TILES_READY`
+stay default-off; `verify-scoring-parity` delta untouched.
+
+---
+
 ## 2026-05-05 — 8.1-A + 8.1-B engineering burn-down (Phases 1–8)
 
 Eight-phase burn-down landed against fixture COGs after 2026-05-05 ADR
