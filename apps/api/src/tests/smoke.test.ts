@@ -19,8 +19,13 @@ const { mockDb, enqueue } = vi.hoisted(() => {
 
   // Tagged-template function that shifts the next row-set off the queue.
   // Called as: db`SELECT ...` → Promise<row[]>
-  const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) =>
-    Promise.resolve(queue.shift() ?? []);
+  // `.json` passthrough added 2026-05-05: route handlers call db.json(value)
+  // for jsonb columns; the mock never inspects values so this is safe.
+  const mockDb = Object.assign(
+    (_strings: TemplateStringsArray, ..._values: unknown[]) =>
+      Promise.resolve(queue.shift() ?? []),
+    { json: (v: unknown) => v },
+  );
 
   const enqueue = (...rows: unknown[]) => { queue.push(rows); };
 

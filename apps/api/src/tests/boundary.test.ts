@@ -55,6 +55,7 @@ beforeEach(() => { clearQueue(); });
 describe('POST /api/v1/projects/:id/boundary', () => {
   it('sets boundary and returns 200', async () => {
     enqueue(projectRow()); // resolveProjectRole
+    enqueue(projectRow()); // refuseIfBuiltin (added 2026-05-05: route now guards builtin sample projects)
     // UPDATE projects SET parcel_boundary, centroid, acreage RETURNING ...
     enqueue({
       id: TEST_PROJ_ID,

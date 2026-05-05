@@ -30,6 +30,9 @@ describe('INTL country routing — ADAPTER_REGISTRY', () => {
   });
 
   it('leaves non-climate Tier-1 layers without an INTL entry (ManualFlagAdapter fallback is expected)', () => {
+    // Note: 'groundwater' was removed 2026-05-05 — its INTL slot was filled
+    // by IgracGroundwaterAdapter on 2026-05-04 per
+    // wiki/decisions/2026-05-04-igrac-global-groundwater-fallback.md.
     const layersWithoutIntl: Array<keyof typeof ADAPTER_REGISTRY> = [
       'elevation',
       'soils',
@@ -37,7 +40,6 @@ describe('INTL country routing — ADAPTER_REGISTRY', () => {
       'wetlands_flood',
       'land_cover',
       'zoning',
-      'groundwater',
     ];
     for (const layer of layersWithoutIntl) {
       expect(ADAPTER_REGISTRY[layer].INTL).toBeUndefined();
