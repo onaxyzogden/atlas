@@ -16,6 +16,7 @@ import {
   QaOverlay,
   SlideUpPane,
   SurfaceCard,
+  TopStageBar,
   ProjectDataStatus
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
@@ -37,8 +38,8 @@ export function HumanContextDashboardPage() {
   const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="human-context-page">
-        <HumanBreadcrumb />
+      <div className="human-context-page module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 1" />
         <ProjectDataStatus />
         <div className="human-context-layout">
           <div className="human-context-main">
@@ -73,22 +74,6 @@ export function HumanContextDashboardPage() {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function HumanBreadcrumb() {
-  return (
-    <header className="human-breadcrumb">
-      <nav aria-label="Breadcrumb">
-        {vm.breadcrumb.map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-      </nav>
-      <div>
-        <span>{vm.saveStatus}</span>
-        <button className="save-button" type="button">Save</button>
-      </div>
-    </header>
   );
 }
 

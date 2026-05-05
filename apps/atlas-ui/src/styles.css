@@ -1227,19 +1227,18 @@ img.footprint-art {
 
 .dashboard-page {
   min-width: 0;
-  padding: var(--space-7) var(--space-7) var(--space-8);
 }
 
 .top-stage-bar {
-  height: 54px;
+  min-height: 54px;
   display: grid;
-  grid-template-columns: 320px 1fr 160px;
-  align-items: start;
-  gap: var(--space-7);
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-3) 0;
 }
 
 .stage-title {
-  padding-top: var(--space-3);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -1248,6 +1247,7 @@ img.footprint-art {
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .stage-title strong {
@@ -1263,7 +1263,7 @@ img.footprint-art {
   margin: 0 auto;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 230px);
+  grid-template-columns: repeat(3, minmax(180px, 230px));
   gap: var(--space-2);
 }
 
@@ -1334,6 +1334,7 @@ img.footprint-art {
   padding: 0 var(--space-4);
   font-weight: 700;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .stage-settings svg,
@@ -2068,12 +2069,7 @@ img.footprint-art {
 }
 
 .cross-section-page .top-stage-bar {
-  grid-template-columns: 390px 1fr 160px;
   margin-bottom: var(--space-2);
-}
-
-.cross-section-page .stage-title {
-  white-space: nowrap;
 }
 
 .cross-layout {
@@ -2472,19 +2468,6 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .cross-section-page .top-stage-bar {
-    height: auto;
-    grid-template-columns: 1fr;
-  }
-
-  .cross-section-page .stage-title {
-    white-space: normal;
-  }
-
-  .cross-section-page .stage-steps,
-  .cross-section-page .stage-settings {
-    display: none;
-  }
 
   .cross-layout,
   .cross-bottom-grid {
@@ -2527,12 +2510,7 @@ img.footprint-art {
 }
 
 .topography-page .top-stage-bar {
-  grid-template-columns: 410px 1fr 160px;
   margin-bottom: var(--space-3);
-}
-
-.topography-page .stage-title {
-  white-space: nowrap;
 }
 
 .topography-layout {
@@ -2958,20 +2936,6 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .topography-page .top-stage-bar {
-    height: auto;
-    grid-template-columns: 1fr;
-  }
-
-  .topography-page .stage-title {
-    white-space: normal;
-  }
-
-  .topography-page .stage-steps,
-  .topography-page .stage-settings {
-    display: none;
-  }
-
   .topography-layout,
   .topography-synthesis,
   .topography-tool-grid {
@@ -3021,12 +2985,7 @@ img.footprint-art {
 }
 
 .terrain-detail-page .top-stage-bar {
-  grid-template-columns: 410px 1fr 160px;
   margin-bottom: var(--space-2);
-}
-
-.terrain-detail-page .stage-title {
-  white-space: nowrap;
 }
 
 .terrain-header {
@@ -3478,20 +3437,10 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .terrain-detail-page .top-stage-bar,
   .terrain-header,
   .terrain-workspace,
   .terrain-lower-grid {
     grid-template-columns: 1fr;
-  }
-
-  .terrain-detail-page .stage-title {
-    white-space: normal;
-  }
-
-  .terrain-detail-page .stage-steps,
-  .terrain-detail-page .stage-settings {
-    display: none;
   }
 
   .terrain-metric-grid {
@@ -3551,12 +3500,7 @@ img.footprint-art {
 }
 
 .macroclimate-page .top-stage-bar {
-  grid-template-columns: 430px minmax(0, 1fr) 150px;
   margin-bottom: var(--space-2);
-}
-
-.macroclimate-page .stage-title {
-  white-space: nowrap;
 }
 
 .macroclimate-layout {
@@ -3920,20 +3864,10 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .macroclimate-page .top-stage-bar,
   .macroclimate-layout,
   .solar-grid,
   .hazards-grid {
     grid-template-columns: 1fr;
-  }
-
-  .macroclimate-page .stage-title {
-    white-space: normal;
-  }
-
-  .macroclimate-page .stage-steps,
-  .macroclimate-page .stage-settings {
-    display: none;
   }
 
   .macro-kpi-grid {
@@ -3977,12 +3911,7 @@ img.footprint-art {
 }
 
 .solar-detail-page .top-stage-bar {
-  grid-template-columns: 420px minmax(0, 1fr) 160px;
   margin-bottom: var(--space-2);
-}
-
-.solar-detail-page .stage-title {
-  white-space: nowrap;
 }
 
 .solar-detail-layout {
@@ -4436,21 +4365,11 @@ img.footprint-art {
 }
 
 @media (max-width: 1180px) {
-  .solar-detail-page .top-stage-bar,
   .solar-detail-layout,
   .solar-chart-grid,
   .solar-bottom-grid,
   .seasonal-summary-strip {
     grid-template-columns: 1fr;
-  }
-
-  .solar-detail-page .stage-title {
-    white-space: normal;
-  }
-
-  .solar-detail-page .stage-steps,
-  .solar-detail-page .stage-settings {
-    display: none;
   }
 
   .solar-kpi-grid {
@@ -4499,7 +4418,6 @@ img.footprint-art {
 /* Batch 6: Human Context module dashboard */
 .human-context-page {
   min-width: 0;
-  padding: var(--space-6) var(--space-7);
 }
 
 .human-breadcrumb {
@@ -5164,12 +5082,7 @@ img.footprint-art {
 }
 
 .diagnostics-page .top-stage-bar {
-  grid-template-columns: 410px 1fr 160px;
   margin-bottom: var(--space-3);
-}
-
-.diagnostics-page .stage-title {
-  white-space: nowrap;
 }
 
 .module-header {
@@ -5832,15 +5745,6 @@ img.footprint-art {
 }
 
 @media (max-width: 760px) {
-  .diagnostics-page .top-stage-bar {
-    grid-template-columns: 1fr;
-  }
-
-  .diagnostics-page .stage-title {
-    width: auto;
-    white-space: normal;
-  }
-
   .module-title-row {
     grid-template-columns: 43px 1fr;
   }
@@ -5919,7 +5823,6 @@ img.footprint-art {
 /* Batch 2: module detail pages */
 .detail-page {
   min-width: 0;
-  padding: var(--space-4) var(--space-5) var(--space-5);
   font-size: 14px;
 }
 
@@ -8946,14 +8849,19 @@ img.footprint-art {
   }
 }
 
-.swot-page {
-  min-width: 0;
-  padding: var(--space-4) var(--space-5) var(--space-2) var(--space-9);
+.module-frame {
+  --module-frame-padding-y: var(--space-5);
+  --module-frame-padding-x: var(--space-6);
+  padding: var(--module-frame-padding-y) var(--module-frame-padding-x);
   border: 1px solid rgba(199, 165, 89, 0.14);
   border-radius: 12px;
   background:
     radial-gradient(circle at 86% 18%, rgba(166, 125, 47, 0.07), transparent 24rem),
     linear-gradient(180deg, rgba(8, 13, 12, 0.98), rgba(3, 7, 6, 0.98));
+}
+
+.swot-page {
+  min-width: 0;
 }
 
 .swot-topbar {

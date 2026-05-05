@@ -62,7 +62,7 @@ export function CrossSectionToolContent() {
 export function CrossSectionToolPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis · Module 3" />
+      <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 3" />
       <ProjectDataStatus />
       <CrossSectionToolContent />
       {import.meta.env.DEV && metadata ? (
