@@ -1,58 +1,25 @@
 /**
- * V3LifecycleSidebar — permaculture-grounded lifecycle nav.
+ * V3LifecycleSidebar — slimmed project chrome.
  *
- * Stages grouped into three permaculture phases (Understand · Design · Live)
- * with renamed labels per the Permaculture Scholar dialogue
- * (wiki/concepts/atlas-sidebar-permaculture.md, 2026-04-28):
- *   Discover → Observe, Prove → Test, Operate → Steward, Report → Evaluate.
+ * Per-stage navigation list was removed when LevelNavigator (mounted inside
+ * ObserveLayout) became the level switcher for the new 3-stage Observe / Plan
+ * / Act model. The sidebar now hosts:
+ *   - Project Home link
+ *   - Reference utilities (Ethics & Principles, Matrix Toggles, disabled stubs)
  *
- * Route slugs in LIFECYCLE_STAGES are unchanged — labels are v3-only overrides.
- * Steward carries a "↻ loops to Observe" affordance because permaculture
- * stewardship is a continuous feedback loop, not a terminal step.
- *
- * Sidebar footer hosts four utility links (Ethics & Principles, Matrix
- * Toggles, Plant Database, Climate Tools); P0 entries are real navigation
- * stubs, P1 entries are disabled "Coming soon" placeholders.
+ * The 7-stage components and routes remain in the repo and are reachable via
+ * direct URL — they are candidates for reuse inside Plan and Act surfaces in
+ * Phase C. The original phase-grouped stage list (Understand / Design / Live)
+ * is intentionally omitted here, not deleted; restore from git history if
+ * Phase C reintroduces a per-stage sidebar.
  */
 
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
-import { LIFECYCLE_STAGES, type BannerId } from "../../features/land-os/lifecycle.js";
 import { useMatrixTogglesStore } from "../../store/matrixTogglesStore.js";
 import MatrixTogglesPopover from "./MatrixTogglesPopover.js";
+import type { RailStage } from "./DecisionRail.js";
 import css from "./V3LifecycleSidebar.module.css";
-
-const V3_STAGE_LABELS: Record<BannerId, string> = {
-  discover: "Observe",
-  diagnose: "Diagnose",
-  design: "Design",
-  prove: "Test",
-  build: "Build",
-  operate: "Steward",
-  report: "Evaluate",
-};
-
-const STAGE_DESCRIPTIONS: Record<BannerId, string> = {
-  discover: "Thoughtful, protracted observation",
-  diagnose: "Site analysis — flows and constraints",
-  design: "Arrange interconnected systems",
-  prove: "Pilot small and slow before scaling",
-  build: "Implement the designed systems",
-  operate: "Tend the living relationship",
-  report: "Continuous feedback and adaptation",
-};
-
-interface PhaseGroup {
-  id: "understand" | "design" | "live";
-  label: string;
-  stageIds: BannerId[];
-}
-
-const PHASE_GROUPS: PhaseGroup[] = [
-  { id: "understand", label: "Understand", stageIds: ["discover", "diagnose"] },
-  { id: "design", label: "Design", stageIds: ["design", "prove"] },
-  { id: "live", label: "Live", stageIds: ["build", "operate", "report"] },
-];
 
 interface DisabledLink {
   id: string;
@@ -66,7 +33,7 @@ const DISABLED_LINKS: DisabledLink[] = [
 ];
 
 export interface V3LifecycleSidebarProps {
-  activeStage: BannerId | "home";
+  activeStage: RailStage;
 }
 
 export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarProps) {
@@ -78,12 +45,10 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
     (s) => Number(s.topography) + Number(s.sectors) + Number(s.zones) + Number(s.wind),
   );
 
-  const stagesById = new Map(LIFECYCLE_STAGES.map((s) => [s.id, s]));
-
   return (
-    <nav aria-label="Project lifecycle" className={css.sidebar}>
+    <nav aria-label="Project chrome" className={css.sidebar}>
       <header className={css.header}>
-        <span className={css.eyebrow}>Project Lifecycle</span>
+        <span className={css.eyebrow}>Project</span>
       </header>
 
       <Link
@@ -93,44 +58,6 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
       >
         Project Home
       </Link>
-
-      <div className={css.groups}>
-        {PHASE_GROUPS.map((group) => (
-          <section key={group.id} className={css.group}>
-            <span className={css.groupLabel}>{group.label}</span>
-            <ol className={css.stages}>
-              {group.stageIds.map((stageId) => {
-                const stage = stagesById.get(stageId);
-                if (!stage) return null;
-                const active = activeStage === stage.id;
-                const isSteward = stage.id === "operate";
-                const overallIndex = LIFECYCLE_STAGES.findIndex((s) => s.id === stage.id) + 1;
-                return (
-                  <li key={stage.id} className={css.stageItem}>
-                    <Link
-                      to={"/v3/project/$projectId/" + stage.id}
-                      params={{ projectId }}
-                      className={`${css.stageLink} ${active ? css.active : ""}`}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      <span className={css.stageIndex}>{overallIndex}</span>
-                      <span className={css.stageBody}>
-                        <span className={css.stageLabel}>
-                          {V3_STAGE_LABELS[stage.id]}
-                          {isSteward && (
-                            <span className={css.loopBadge} title="Stewardship loops back to Observe">↻</span>
-                          )}
-                        </span>
-                        <span className={css.stageDesc}>{STAGE_DESCRIPTIONS[stage.id]}</span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))}
-      </div>
 
       <footer className={css.footer}>
         <span className={css.eyebrow}>Reference</span>
