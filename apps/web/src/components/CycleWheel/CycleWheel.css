@@ -1,0 +1,166 @@
+/* CycleWheel — ported from onaxyzogden/ogden-ui-components
+   MaqasidComparisonWheel/MaqasidComparisonWheel.css. Stripped of
+   mithaq/dormant/converged/igniting/wisdom/needle states. */
+
+.cw-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.cw-svg {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Sector entry choreography */
+.cw-sector {
+  opacity: 0;
+  transform: scale(0.85);
+  transform-origin: 200px 200px;
+  transform-box: fill-box;
+}
+
+.cw-sector.is-mounted {
+  animation: cw-sector-in 520ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes cw-sector-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.cw-seg-bg,
+.cw-seg-current,
+.cw-seg-pattern,
+.cw-band {
+  transition: opacity 360ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cw-svg:has(.cw-sector.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-current,
+.cw-svg:has(.cw-sector.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-pattern,
+.cw-svg:has(.cw-band.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-current,
+.cw-svg:has(.cw-band.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-pattern {
+  opacity: 0.5;
+}
+
+.cw-svg:has(.cw-sector.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-bg,
+.cw-svg:has(.cw-band.is-hovered) .cw-sector:not(.is-hovered) .cw-seg-bg {
+  fill-opacity: 0.55;
+}
+
+.cw-band.is-hovered {
+  filter: brightness(1.1) drop-shadow(0 0 6px var(--cw-level-color, #5a8a5a));
+}
+
+.cw-svg:has(.cw-band.is-hovered) .cw-band:not(.is-hovered),
+.cw-svg:has(.cw-sector.is-hovered) .cw-band:not(.is-hovered) {
+  opacity: 0.55;
+}
+
+.cw-seg-bg {
+  fill-opacity: 0.85;
+  transition: fill-opacity 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cw-seg-current {
+  fill-opacity: 0.95;
+  stroke: var(--cw-level-stroke, var(--cw-level-color, #5a8a5a));
+  stroke-width: 1.2;
+  stroke-opacity: 0.85;
+  transform-origin: 200px 200px;
+  transform-box: fill-box;
+  animation: cw-sweep 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition:
+    filter 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cw-seg-current.is-hovered {
+  filter: drop-shadow(0 0 10px var(--cw-level-color, #5a8a5a));
+  transform: scale(1.02);
+  transform-origin: 200px 200px;
+}
+
+@keyframes cw-sweep {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.cw-seg-pattern {
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.cw-outer-stroke {
+  fill: none;
+  stroke: rgba(10, 20, 24, 0.9);
+  stroke-width: 1;
+}
+
+.cw-band-icon {
+  color: #f3efe4;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+.cw-hub {
+  fill: var(--cw-level-hub-tint, #0c1a20);
+  stroke: var(--cw-level-stroke, var(--cw-level-color, #5a8a5a));
+  stroke-opacity: 0.85;
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cw-breathe 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 12px var(--cw-level-color, #5a8a5a));
+  transition:
+    stroke 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 640ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-opacity 240ms;
+}
+
+@keyframes cw-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+
+.cw-svg:has(.cw-sector.is-hovered) .cw-hub {
+  animation-play-state: paused;
+  filter: drop-shadow(0 0 16px var(--cw-level-color, #5a8a5a));
+}
+
+.cw-hub-inner {
+  fill: transparent;
+  stroke: rgba(243, 239, 228, 0.22);
+  stroke-width: 1;
+}
+
+.cw-hub-label {
+  fill: var(--cw-level-aura, #c9d6c0);
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cw-seg-current,
+  .cw-hub,
+  .cw-sector,
+  .cw-sector.is-mounted {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .cw-sector,
+  .cw-sector.is-mounted {
+    opacity: 1 !important;
+  }
+}

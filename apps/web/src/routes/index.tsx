@@ -5,6 +5,7 @@
  *   /              → Landing (public) — redirects to /home if authenticated
  *   /home          → Home (project list, authenticated)
  *   /new           → New project wizard
+ *   /cycle         → Cycle wheel (Observe / Plan / Act)
  *   /project/$id   → Project view (map + dashboard)
  *   /login         → Login / register (outside AppShell)
  *   /portal/$slug  → Public project portal (outside AppShell)
@@ -37,6 +38,7 @@ import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
+import CyclePage from '../pages/CyclePage.js';
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -77,6 +79,12 @@ const newProjectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/new',
   component: NewProjectPage,
+});
+
+const cycleRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/cycle',
+  component: CyclePage,
 });
 
 const projectRoute = createRoute({
@@ -208,6 +216,7 @@ const routeTree = rootRoute.addChildren([
   appShellRoute.addChildren([
     homeRoute,
     newProjectRoute,
+    cycleRoute,
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
