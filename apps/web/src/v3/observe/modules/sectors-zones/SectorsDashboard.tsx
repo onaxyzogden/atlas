@@ -11,13 +11,16 @@ import {
   Thermometer,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import sectorHero from '../../assets/sectors-dashboard/sector-hero.png';
 import sectorCompass from '../../assets/sectors-dashboard/sector-compass.png';
 import cartographicPreview from '../../assets/sectors-dashboard/cartographic-preview.png';
 
 export default function SectorsDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="detail-page sectors-page">
       <section className="sectors-layout">
@@ -25,6 +28,10 @@ export default function SectorsDashboard() {
           <SectorsHero />
           <SectorsMetrics />
           <SynthesisBand />
+          <SurfaceCard className="sector-radius-card">
+            <h2 style={{ margin: 0, fontSize: 14 }}>Sector wedge calibration</h2>
+            <SectorRadiusControl projectId={projectId ?? null} />
+          </SurfaceCard>
           <section className="sectors-tool-grid">
             <SectorCompassCard />
             <CartographicCard />

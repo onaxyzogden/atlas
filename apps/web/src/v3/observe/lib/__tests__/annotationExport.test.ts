@@ -8,6 +8,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import * as turf from '@turf/turf';
 import {
   collectProjectAnnotations,
   exportFilename,
@@ -15,6 +16,10 @@ import {
   toGeoJSON,
   toKML,
 } from '../annotationExport.js';
+import {
+  DEFAULT_SECTOR_RADIUS_M,
+  getSectorRadiusM,
+} from '../sectorRadius.js';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
@@ -22,6 +27,7 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useProjectStore } from '../../../../store/projectStore.js';
 
 const PROJECT = 'export-test-project';
 const OTHER = 'other-project';
@@ -48,6 +54,7 @@ function reset(): void {
   useEcologyStore.setState({ ecology: [], ecologyZones: [] });
   useSwotStore.setState({ swot: [] });
   useSoilSampleStore.setState({ samples: [] });
+  useProjectStore.setState({ projects: [] });
 }
 
 beforeEach(reset);
@@ -205,11 +212,10 @@ describe('annotationExport — sector wedge synthesis', () => {
     useExternalForcesStore.setState({
       hazards: [],
       sectors: [
-        // @ts-expect-error - minimal seed shape
         {
           id: 'sec1',
           projectId: PROJECT,
-          type: 'sun',
+          type: 'sun_summer',
           bearingDeg: 180,
           arcDeg: 60,
         },
@@ -241,11 +247,10 @@ describe('annotationExport — sector wedge synthesis', () => {
     useExternalForcesStore.setState({
       hazards: [],
       sectors: [
-        // @ts-expect-error - minimal seed shape
         {
           id: 'sec-orphan',
           projectId: PROJECT,
-          type: 'wind',
+          type: 'wind_prevailing',
           bearingDeg: 90,
           arcDeg: 45,
         },
@@ -268,6 +273,91 @@ describe('annotationExport — sector wedge synthesis', () => {
       .find((l) => l.startsWith('sec-orphan'));
     expect(sectorLine).toBeTruthy();
     expect(sectorLine!.endsWith(',')).toBe(true);
+  });
+});
+
+describe('annotationExport — configurable sector radius', () => {
+  it('honours metadata.sectorRadiusM when synthesising sector wedges', () => {
+    const anchor: [number, number] = [-78.2, 44.5];
+    useProjectStore.setState({
+      // @ts-expect-error - minimal seed shape; passthrough() metadata
+      projects: [
+        {
+          id: PROJECT,
+          name: 'Test',
+          metadata: { sectorRadiusM: 500 },
+          attachments: [],
+        },
+      ],
+    });
+    useHumanContextStore.setState({
+      // @ts-expect-error - minimal seed shape
+      households: [{ id: 'hh1', projectId: PROJECT, position: anchor }],
+      neighbours: [],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    useExternalForcesStore.setState({
+      hazards: [],
+      sectors: [
+        {
+          id: 'sec1',
+          projectId: PROJECT,
+          type: 'sun_summer',
+          bearingDeg: 180,
+          arcDeg: 60,
+        },
+      ],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const sectorFeature = fc.features.find(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'sector',
+    );
+    expect(sectorFeature).toBeTruthy();
+    const ring = (sectorFeature!.geometry as GeoJSON.Polygon).coordinates[0]!;
+    // ring[0] is the apex (anchor) — pick a non-apex vertex along the arc.
+    const arcVertex = ring[Math.floor(ring.length / 2)]!;
+    const distM =
+      turf.distance(turf.point(anchor), turf.point(arcVertex), {
+        units: 'kilometers',
+      }) * 1000;
+    expect(distM).toBeGreaterThanOrEqual(480);
+    expect(distM).toBeLessThanOrEqual(520);
+  });
+
+  it('getSectorRadiusM falls back to DEFAULT_SECTOR_RADIUS_M for invalid values', () => {
+    expect(DEFAULT_SECTOR_RADIUS_M).toBe(250);
+    // No project at all.
+    expect(getSectorRadiusM(null)).toBe(250);
+    expect(getSectorRadiusM(undefined)).toBe(250);
+    expect(getSectorRadiusM('missing-project')).toBe(250);
+
+    const cases: Array<unknown> = [
+      undefined,
+      Number.NaN,
+      0,
+      -100,
+      Number.POSITIVE_INFINITY,
+      'not a number',
+      null,
+    ];
+    for (const v of cases) {
+      useProjectStore.setState({
+        // @ts-expect-error - minimal seed shape; passthrough() metadata
+        projects: [
+          { id: PROJECT, name: 'Test', metadata: { sectorRadiusM: v }, attachments: [] },
+        ],
+      });
+      expect(getSectorRadiusM(PROJECT)).toBe(250);
+    }
+
+    // Missing metadata entirely.
+    useProjectStore.setState({
+      // @ts-expect-error - minimal seed shape
+      projects: [{ id: PROJECT, name: 'Test', attachments: [] }],
+    });
+    expect(getSectorRadiusM(PROJECT)).toBe(250);
   });
 });
 

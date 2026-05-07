@@ -27,12 +27,7 @@ import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
-
-/** Outer radius (metres) for synthesised sector wedges. Mirrors the
- *  hard-coded value used by the OBSERVE renderer in
- *  `ObserveAnnotationLayers.wedgePolygon` so an exported sector overlays
- *  the on-map wedge. Centralised here so a future change is one line. */
-const SECTOR_RADIUS_M = 250;
+import { getSectorRadiusM } from './sectorRadius.js';
 
 // ── Kind taxonomy ──────────────────────────────────────────────────────────────
 
@@ -174,6 +169,10 @@ interface ExportContext {
   /** Anchor point (`[lng, lat]`) for synthesising sector wedges, or
    *  `null` when no homestead and no parcel boundary are available. */
   sectorAnchor: [number, number] | null;
+  /** Outer radius (metres) for synthesised sector wedges. Resolved per
+   *  project from `metadata.sectorRadiusM` via `getSectorRadiusM`, with
+   *  a 250 m fallback. Single source of truth shared with the renderer. */
+  sectorRadiusM: number;
 }
 
 /** Build a wedge (sector) polygon anchored at `center`, opening along
@@ -247,7 +246,8 @@ function resolveSectorAnchor(
  *  has no spatial geometry available for export.
  *
  *  When `ctx.sectorAnchor` is non-null, `'sector'` synthesises a wedge
- *  `Polygon` at `SECTOR_RADIUS_M` metres, anchored at the project's
+ *  `Polygon` at `ctx.sectorRadiusM` metres (resolved from project
+ *  metadata, with a 250 m fallback), anchored at the project's
  *  homestead (or parcel-boundary centroid). Otherwise sectors return
  *  `null` and remain CSV-only. `permacultureZone` and `ecologyObservation`
  *  always return `null` — they have no geometry to synthesise from. */
@@ -302,7 +302,7 @@ function geometryFor(
       if (!Number.isFinite(bearingDeg) || !Number.isFinite(arcDeg)) {
         return null;
       }
-      return wedgePolygon(anchor, bearingDeg, arcDeg, SECTOR_RADIUS_M);
+      return wedgePolygon(anchor, bearingDeg, arcDeg, ctx.sectorRadiusM);
     }
     case 'permacultureZone':
     case 'ecologyObservation':
@@ -329,6 +329,7 @@ function propsFor(
 export function toGeoJSON(p: ProjectAnnotations): GeoJSON.FeatureCollection {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const features: GeoJSON.Feature[] = [];
   for (const kind of ALL_KINDS) {
@@ -413,6 +414,7 @@ function placemarkXml(
 export function toKML(p: ProjectAnnotations): string {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const folders: string[] = [];
   for (const kind of ALL_KINDS) {
@@ -511,6 +513,7 @@ function csvSection(
 export function toCSV(p: ProjectAnnotations): string {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const sections: string[] = [
     `# atlas-observe-export`,

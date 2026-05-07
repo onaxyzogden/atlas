@@ -29,6 +29,8 @@ import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
+import { useProjectStore } from '../../../../store/projectStore.js';
+import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
 import {
   registerObserveIcons,
   tryRegisterMissingObserveIcon,
@@ -180,6 +182,17 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const soilSamples = useSoilSampleStore((s) => s.samples);
   const homesteadByProject = useHomesteadStore((s) => s.byProject);
   const homestead = projectId ? homesteadByProject[projectId] : undefined;
+  // Per-project sector wedge outer radius (metres). Falls back to
+  // DEFAULT_SECTOR_RADIUS_M when unset / non-finite / non-positive.
+  // Subscribed directly so a metadata edit triggers a re-render.
+  const sectorRadiusM = useProjectStore((s) => {
+    if (!projectId) return DEFAULT_SECTOR_RADIUS_M;
+    const v = s.projects.find((p) => p.id === projectId)?.metadata
+      ?.sectorRadiusM;
+    return typeof v === 'number' && Number.isFinite(v) && v > 0
+      ? v
+      : DEFAULT_SECTOR_RADIUS_M;
+  });
 
   const layerSpecs = useMemo<LayerSpec[]>(() => {
     if (!projectId) return [];
@@ -383,7 +396,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
           kind: s.type,
           color: SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector,
         },
-        geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, 250),
+        geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, sectorRadiusM),
       }));
       result.push({
         id: 'sectors',
@@ -681,6 +694,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     swot,
     soilSamples,
     homestead,
+    sectorRadiusM,
     map,
   ]);
 

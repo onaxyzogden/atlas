@@ -226,9 +226,98 @@ so totals and folder presence assertions stay valid.
 26.81s, 626 PWA precache entries), 8 / 8 export specs pass.
 
 **Still deferred.** KML `<IconStyle>` for sector colour fidelity;
-configurable radius; per-record anchor on `SectorArrow` (would need a
-store-schema bump + draw-tool + renderer change in lockstep);
-`permacultureZone` and `ecologyObservation` in spatial exports.
+per-record anchor on `SectorArrow` (would need a store-schema bump +
+draw-tool + renderer change in lockstep); per-sector-type radius
+(sun vs wind vs fire); `permacultureZone` and `ecologyObservation` in
+spatial exports.
+
+## 2026-05-07 — Update — configurable sector wedge radius via project metadata
+
+The previous Update centralised the sector outer radius behind a single
+constant (`SECTOR_RADIUS_M = 250`) shared by the renderer and exporter.
+That value is now configurable per project via
+`LocalProject.metadata.sectorRadiusM`, with the same 250 m fallback for
+unset projects.
+
+**Schema** ([project.schema.ts](../../packages/shared/src/schemas/project.schema.ts)):
+one optional field added to `ProjectMetadata`:
+
+```ts
+sectorRadiusM: z.number().positive().max(5000).optional(),
+```
+
+`ProjectMetadata` is `z.object({...}).passthrough()`, so the API jsonb
+round-trip and the `projects.metadata` jsonb column accept the new key
+without a migration. 5 km cap is a sanity ceiling well past any plausible
+permaculture-scale parcel.
+
+**Helper**
+([sectorRadius.ts](../../apps/web/src/v3/observe/lib/sectorRadius.ts) — NEW):
+`DEFAULT_SECTOR_RADIUS_M = 250` and `getSectorRadiusM(projectId)`. The
+helper reads `useProjectStore.getState()` and returns the project's
+override only when it is a finite positive number; otherwise it falls
+back to the default. Mirrors the read-only store-access pattern already
+used by `resolveSectorAnchor`.
+
+**Renderer wire-up** ([ObserveAnnotationLayers.tsx](../../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)):
+the hard-coded `250` literal is replaced by a Zustand-subscribed
+selector that reads `metadata.sectorRadiusM` for the active project,
+falling back to `DEFAULT_SECTOR_RADIUS_M`. Subscribing directly means a
+metadata edit triggers a re-render without a reload. `sectorRadiusM`
+joins the `useMemo` dependency list so wedge polygons recompute when
+the value changes.
+
+**Exporter wire-up** ([annotationExport.ts](../../apps/web/src/v3/observe/lib/annotationExport.ts)):
+the module-level `SECTOR_RADIUS_M` constant is removed. `ExportContext`
+gains `sectorRadiusM: number`; `toGeoJSON`, `toKML`, and `toCSV` each
+resolve the value once per export pass via `getSectorRadiusM(p.projectId)`
+and thread it through. `geometryFor`'s sector arm now uses
+`ctx.sectorRadiusM`. JSDoc updated to note the metadata-driven value.
+
+**UI** ([SectorRadiusControl.tsx](../../apps/web/src/v3/observe/components/SectorRadiusControl.tsx) — NEW,
+mounted in [SectorsDashboard.tsx](../../apps/web/src/v3/observe/modules/sectors-zones/SectorsDashboard.tsx)):
+single labeled numeric input ("Sector wedge radius — m") inside the
+Sectors / Zones module slide-up. Debounced 300 ms commit via
+`useProjectStore.updateProject`. Bounds: `[10, 5000]`, clamped on
+commit. Empty input clears the override (writes `metadata` without the
+key) and the renderer falls back to 250 m. Helper text: "Default 250 m.
+Applied to all sun, wind, fire, noise, wildlife, and view sectors."
+
+**Tests.** Two new specs in
+[annotationExport.test.ts](../../apps/web/src/v3/observe/lib/__tests__/annotationExport.test.ts):
+
+1. *Configured radius round-trip* — seed a project with
+   `metadata.sectorRadiusM = 500`, a homestead, and one sector. The
+   resulting GeoJSON polygon's mid-arc vertex sits 500 m from the anchor
+   (`turf.distance` ∈ [480, 520] m).
+2. *`getSectorRadiusM` fallback table* — null/undefined projectId, missing
+   project, missing metadata, missing field, `NaN`, `0`, `-100`,
+   `Infinity`, non-numeric all return 250.
+
+The pre-existing 8 specs continue to pass — none of them seeds
+`metadata.sectorRadiusM`, so all existing fixtures resolve to the 250 m
+default and behaviour is preserved.
+
+**Verification.** `tsc --noEmit` clean, `vite build` clean (✓ built in
+57.91s), 10 / 10 export specs pass.
+
+**Why this design (not the alternatives).**
+- Not per-record `radiusM` on `SectorArrow` — would force a store-schema
+  bump + draw-tool + renderer change in lockstep with no current product
+  driver. Stays deferred.
+- Not a new dedicated metadata editor — none exists today and building
+  one is separate work.
+- Not extending dashboard `ProjectEditor` — that surface edits top-level
+  columns only; adding metadata there invites scope creep.
+- Not adding to the intake wizard — new stewards rarely know the right
+  radius before drawing a single sector. Setting it after first draw,
+  with the wedge live on the map, is the better UX.
+
+**Still deferred.** KML `<IconStyle>` for sector colour fidelity;
+per-record anchor on `SectorArrow`; per-sector-type radius
+(sun vs wind vs fire); `permacultureZone` and `ecologyObservation` in
+spatial exports; promoting `sectorRadiusM` to a dedicated DB column
+once query patterns demand it.
 
 ## References
 
