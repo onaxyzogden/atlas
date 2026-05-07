@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 (Phasing & Budgeting) · KEEP_ATLAS per Permaculture Scholar verdict
+
+Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's three-card phasing module (`PhasingMatrixCard` + `SeasonalTaskCard` + `LaborBudgetSummaryCard`) "perfectly mirrors the columns required by a professional permaculture phasing spreadsheet" — Phase × Season axis matches the OSU PDC Pro 5-year × 4-season template, and labor-hrs + cost-USD matches the official `$`/`Hrs` columns. OGDEN ships no phasing module, so PORT_OGDEN is impossible; BUILD_FRESH unnecessary. Verdict: KEEP_ATLAS, no code change. Three orthodox enhancements identified and logged as follow-ups in the ADR: (1) optional `designLayer`/`scaleOfPermanence` enum on `PhaseTask` (Earthworks/Water/Vegetation/Structures) with matrix regrouping by Yeomans Keyline category; (2) capacity-validation rollup against the project's Client Survey baselines (weekly hours, annual budget); (3) cumulative investment rollups (Yearly Running Total + 5-Year Total) Gantt-style. ADR: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`.
+
+---
+
 ## 2026-05-07 — Plan Module 6 (Cross-section & Solar Geometry) · KEEP_ATLAS per Permaculture Scholar verdict
 
 Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's `TransectVerticalEditorCard` (540L) "the correct holistic framing" — cross-section + winter/summer solstice altitude lines is exactly what OSU PDC Assignment 15 requires; OGDEN's swale-only embedded section "severely misunderstands the broad utility of the cross-section." Verdict: KEEP_ATLAS, no code change. Four orthodox enhancements identified and logged as follow-ups in the ADR: (1) microclimate bracket labels below the profile; (2) succession-stage bands; (3) explicit slope-% annotations; (4) sector-response wind / flow deflection callouts. ADR: `wiki/decisions/2026-05-07-atlas-plan-cross-section-scholar-keep-atlas.md`.
