@@ -14,13 +14,16 @@ import {
   Triangle,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { CroppedArt, ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
 import terrainPreview from '../../assets/topography-dashboard/terrain-preview.png';
 import crossSectionPreview from '../../assets/topography-dashboard/cross-section-preview.png';
 
 export default function TopographyDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="detail-page topography-page">
       <section className="topography-layout">
@@ -32,6 +35,12 @@ export default function TopographyDashboard() {
             <TerrainToolCard />
             <CrossSectionToolCard />
           </section>
+          <AnnotationListCard
+            title="Field annotations"
+            projectId={projectId ?? null}
+            kinds={['contourLine', 'highPoint', 'drainageLine']}
+            emptyHint="No contours, elevation points, or drainage lines yet — trace one with the tools panel."
+          />
         </div>
         <TopographySidebar />
       </section>

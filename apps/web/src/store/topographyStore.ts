@@ -73,25 +73,109 @@ export interface Transect {
   verticalRefs?: TransectVerticalRef[];
 }
 
+// ── Module 3 (Topography) annotations ───────────────────────────────────────
+
+export interface Contour {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.LineString;
+  /** Optional sampled elevation in metres (mean along the line). */
+  elevationM?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export type HighPointKind = 'high' | 'low';
+
+export interface HighPoint {
+  id: string;
+  projectId: string;
+  /** [lng, lat] */
+  position: [number, number];
+  kind: HighPointKind;
+  /** Optional sampled elevation in metres. */
+  elevationM?: number;
+  label?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface DrainageLine {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.LineString;
+  notes?: string;
+  createdAt: string;
+}
+
 interface TopographyState {
   transects: Transect[];
+  contours: Contour[];
+  highPoints: HighPoint[];
+  drainageLines: DrainageLine[];
 
   addTransect: (t: Transect) => void;
   updateTransect: (id: string, patch: Partial<Transect>) => void;
   removeTransect: (id: string) => void;
+
+  addContour: (c: Contour) => void;
+  updateContour: (id: string, patch: Partial<Contour>) => void;
+  removeContour: (id: string) => void;
+
+  addHighPoint: (h: HighPoint) => void;
+  updateHighPoint: (id: string, patch: Partial<HighPoint>) => void;
+  removeHighPoint: (id: string) => void;
+
+  addDrainageLine: (d: DrainageLine) => void;
+  updateDrainageLine: (id: string, patch: Partial<DrainageLine>) => void;
+  removeDrainageLine: (id: string) => void;
 }
 
 export const useTopographyStore = create<TopographyState>()(
   persist(
     (set) => ({
       transects: [],
+      contours: [],
+      highPoints: [],
+      drainageLines: [],
 
       addTransect: (t) => set((s) => ({ transects: [...s.transects, t] })),
       updateTransect: (id, patch) =>
         set((s) => ({ transects: s.transects.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
       removeTransect: (id) => set((s) => ({ transects: s.transects.filter((t) => t.id !== id) })),
+
+      addContour: (c) => set((s) => ({ contours: [...s.contours, c] })),
+      updateContour: (id, patch) =>
+        set((s) => ({ contours: s.contours.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+      removeContour: (id) => set((s) => ({ contours: s.contours.filter((c) => c.id !== id) })),
+
+      addHighPoint: (h) => set((s) => ({ highPoints: [...s.highPoints, h] })),
+      updateHighPoint: (id, patch) =>
+        set((s) => ({ highPoints: s.highPoints.map((h) => (h.id === id ? { ...h, ...patch } : h)) })),
+      removeHighPoint: (id) =>
+        set((s) => ({ highPoints: s.highPoints.filter((h) => h.id !== id) })),
+
+      addDrainageLine: (d) => set((s) => ({ drainageLines: [...s.drainageLines, d] })),
+      updateDrainageLine: (id, patch) =>
+        set((s) => ({
+          drainageLines: s.drainageLines.map((d) => (d.id === id ? { ...d, ...patch } : d)),
+        })),
+      removeDrainageLine: (id) =>
+        set((s) => ({ drainageLines: s.drainageLines.filter((d) => d.id !== id) })),
     }),
-    { name: 'ogden-topography', version: 1 },
+    {
+      name: 'ogden-topography',
+      version: 2,
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as Partial<TopographyState>;
+        return {
+          ...p,
+          contours: p.contours ?? [],
+          highPoints: p.highPoints ?? [],
+          drainageLines: p.drainageLines ?? [],
+        } as TopographyState;
+      },
+    },
   ),
 );
 

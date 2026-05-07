@@ -23,6 +23,7 @@ export type HazardType =
   | 'earthquake'
   | 'drought'
   | 'tornado'
+  | 'frost'
   | 'other';
 
 export type HazardSeverity = 'low' | 'med' | 'high' | 'catastrophic';
@@ -49,6 +50,12 @@ export interface HazardEvent {
    * items) that participate in the mitigation plan for this hazard.
    */
   linkedFeatureIds?: string[];
+  /**
+   * OBSERVE Module 2 — optional polygon outlining the hazard footprint on the
+   * site (frost pocket, flood plain, fire corridor, slide zone). Optional;
+   * historical tabular hazard entries persist with `geometry: undefined`.
+   */
+  geometry?: GeoJSON.Polygon;
 }
 
 // ── Sectors ──────────────────────────────────────────────────────────────────
@@ -106,7 +113,11 @@ export const useExternalForcesStore = create<ExternalForcesState>()(
         set((s) => ({ sectors: s.sectors.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeSector: (id) => set((s) => ({ sectors: s.sectors.filter((x) => x.id !== id) })),
     }),
-    { name: 'ogden-external-forces', version: 1 },
+    {
+      name: 'ogden-external-forces',
+      version: 2,
+      migrate: (persisted) => persisted as ExternalForcesState,
+    },
   ),
 );
 

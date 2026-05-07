@@ -3,7 +3,6 @@ import {
   Beaker,
   Binoculars,
   CalendarDays,
-  Camera,
   ChevronDown,
   Download,
   Droplet,
@@ -15,13 +14,16 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import AnnotationListCard from '../../components/AnnotationListCard.js';
 import siteMap from '../../assets/earth-water-ecology/site-observations-map.png';
 import hydrologyMap from '../../assets/earth-water-ecology/hydrology-map.png';
 import speciesThumbs from '../../assets/earth-water-ecology/species-thumbnails.png';
 
 export default function EarthWaterEcologyDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="detail-page diagnostics-page">
       <ModuleHeader />
@@ -32,7 +34,12 @@ export default function EarthWaterEcologyDashboard() {
         <SoilDiagnosticsCard />
         <HydrologyCard />
         <EcologyCard />
-        <RecentObservationsCard />
+        <AnnotationListCard
+          title="Field annotations"
+          projectId={projectId ?? null}
+          kinds={['soilSample', 'watercourse', 'ecologyZone']}
+          emptyHint="No soil samples, watercourses, or ecology zones recorded yet — drop one with the tools panel."
+        />
         <RecommendedActionsCard />
       </section>
     </div>
@@ -277,40 +284,6 @@ function EcologyCard() {
         <Leaf aria-hidden="true" /> <b>Biodiversity insight:</b> Moderate diversity for this
         landscape. Riparian corridor supports valuable habitat - worth protecting and enhancing.
       </p>
-    </SurfaceCard>
-  );
-}
-
-function RecentObservationsCard() {
-  const items: Array<[string, string, string]> = [
-    ['Today, 9:42 AM', 'Soil test: pH 6.8, infiltration 15 mm/hr', 'Soil'],
-    ['Yesterday, 4:15 PM', 'Noted surface runoff after 18mm rain.', 'Water'],
-    ['2 days ago, 11:08 AM', 'Observed Kangaroo Grass in upper paddock.', 'Ecology'],
-    ['3 days ago, 2:34 PM', 'Soil sample collected - Lab test submitted.', 'Lab'],
-    ['5 days ago, 8:10 AM', 'Erosion rill forming on lower slope.', 'Note'],
-  ];
-
-  return (
-    <SurfaceCard className="diagnostic-panel recent-panel">
-      <PanelHeader title="Recent observations" action="View journal" />
-      <div className="timeline-list">
-        {items.map(([time, text, tag]) => (
-          <div className="timeline-item" key={text}>
-            <i />
-            <div>
-              <span>{time} · Yousef A.</span>
-              <p>{text}</p>
-            </div>
-            <b>{tag}</b>
-          </div>
-        ))}
-      </div>
-      <button className="green-button" type="button">
-        + Add observation
-      </button>
-      <button className="camera-button" type="button" aria-label="Attach photo">
-        <Camera aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

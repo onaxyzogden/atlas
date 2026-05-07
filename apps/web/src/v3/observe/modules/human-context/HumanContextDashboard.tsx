@@ -9,16 +9,19 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import {
   CroppedArt,
   ProgressRing,
   SurfaceCard,
 } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
 import regionalSnapshot from '../../assets/human-context-dashboard/regional-snapshot.png';
 
 export default function HumanContextDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="human-context-page">
       <div className="human-context-layout">
@@ -30,6 +33,12 @@ export default function HumanContextDashboard() {
             <VisionSummaryCard />
           </section>
           <HealthStrip />
+          <AnnotationListCard
+            title="Field annotations"
+            projectId={projectId ?? null}
+            kinds={['neighbourPin', 'household', 'accessRoad']}
+            emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
+          />
         </div>
         <SynthesisPanel />
       </div>

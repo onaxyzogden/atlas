@@ -15,10 +15,13 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import AnnotationListCard from '../../components/AnnotationListCard.js';
 
 export default function SwotDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="detail-page swot-page">
       <section className="swot-content">
@@ -30,6 +33,12 @@ export default function SwotDashboard() {
             <SwotJournalCard />
             <DiagnosisReportCard />
           </section>
+          <AnnotationListCard
+            title="SWOT field tags"
+            projectId={projectId ?? null}
+            kinds={['swotTag']}
+            emptyHint="No SWOT tags pinned to the map yet — drop a strength, weakness, opportunity, or threat with the tools panel."
+          />
         </div>
         <DesignImplications />
       </section>

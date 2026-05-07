@@ -2,10 +2,11 @@
  * V3ProjectLayout — route-level layout for /v3/project/$projectId/*.
  *
  * Mounts LandOsShell with the v3 sidebar + rail. The active stage is derived
- * from the matched child route's pathname suffix. The LifecycleProgressRing
- * header was removed when LevelNavigator (mounted inside ObserveLayout)
- * supplanted it as the level switcher; the ring component itself remains in
- * the repo for potential reuse.
+ * from the matched child route's pathname suffix.
+ *
+ * The LevelNavigatorProvider that powers both the AppShell header bar and the
+ * in-page segments row lives in `V3LevelNavBridge` (mounted inside AppShell)
+ * so the header and main content tree both see the same context.
  */
 
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
@@ -35,10 +36,6 @@ interface ActiveRoute {
 
 function activeFromPath(pathname: string): ActiveRoute {
   const segments = pathname.split("/").filter(Boolean);
-
-  // Look for /v3/project/$id/<stage>[/<module>]
-  // We scan from the right because nested layouts may add suffixes; the
-  // stage segment is the one that matches a known stage id.
   for (let i = segments.length - 1; i >= 0; i--) {
     const seg = segments[i];
     if (!seg) continue;

@@ -6,8 +6,10 @@
  * is enforced by every stage panel having a non-empty default body.
  */
 
+import { lazy, Suspense } from "react";
 import type { Project, LifecycleStage } from "../types.js";
 import type { ObserveModule } from "../observe/types.js";
+import { useProjectStore } from "../../store/projectStore.js";
 import HomeRail from "./rails/HomeRail.js";
 import DiscoverRail from "./rails/DiscoverRail.js";
 import DiagnoseRail from "./rails/DiagnoseRail.js";
@@ -16,8 +18,11 @@ import ProveRail from "./rails/ProveRail.js";
 import BuildRail from "./rails/BuildRail.js";
 import OperateRail from "./rails/OperateRail.js";
 import ReportRail from "./rails/ReportRail.js";
-import ObserveRail from "../observe/rails/ObserveRail.js";
 import css from "./DecisionRail.module.css";
+
+const SiteIntelligencePanel = lazy(
+  () => import("../../components/panels/SiteIntelligencePanel.js"),
+);
 
 export type RailStage = LifecycleStage | "home" | "observe" | "plan" | "act";
 
@@ -44,13 +49,34 @@ const STAGE_TITLE: Record<RailStage, string> = {
 export default function DecisionRail({ stage, project, activeModule }: DecisionRailProps) {
   return (
     <div className={css.rail}>
-      <header className={css.header}>
-        <span className={css.eyebrow}>Decision Rail</span>
-        <h3 className={css.title}>{STAGE_TITLE[stage]}</h3>
-      </header>
+      {stage !== "observe" && (
+        <header className={css.header}>
+          <span className={css.eyebrow}>Decision Rail</span>
+          <h3 className={css.title}>{STAGE_TITLE[stage]}</h3>
+        </header>
+      )}
 
       <StagePanel stage={stage} project={project} activeModule={activeModule} />
     </div>
+  );
+}
+
+function ObserveSiteIntelligenceRail({ projectId }: { projectId?: string }) {
+  const local = useProjectStore((s) =>
+    projectId ? s.projects.find((p) => p.id === projectId) ?? null : null,
+  );
+  if (!local) {
+    return (
+      <p className={css.empty}>
+        Site Intelligence is available for real projects. The MTC sample ships
+        with mock data only.
+      </p>
+    );
+  }
+  return (
+    <Suspense fallback={<p className={css.empty}>Loading site intelligence…</p>}>
+      <SiteIntelligencePanel project={local} />
+    </Suspense>
   );
 }
 
@@ -64,7 +90,7 @@ function StagePanel({
   activeModule?: ObserveModule;
 }) {
   if (stage === "observe") {
-    return <ObserveRail project={project} activeModule={activeModule} />;
+    return <ObserveSiteIntelligenceRail projectId={project?.id} />;
   }
   if (stage === "plan" || stage === "act") {
     return <p className={css.empty}>{stage === "plan" ? "Plan" : "Act"} rail arrives in Phase C.</p>;

@@ -19,7 +19,7 @@ The alignment is tracked along three axes:
 ### 2. Holmgren's Twelve Principles
 | # | Principle | Status | Notes |
 |---|---|---|---|
-| 1 | Observe and interact | Represented | Rich data integrations support pre-design study. |
+| 1 | Observe and interact | Represented | Rich data integrations support pre-design study. Right-rail Scholar guidance (WHY/HOW/Pitfall) shipped 2026-05-06 — see [ADR](../decisions/2026-05-06-atlas-observe-tools-functional.md). |
 | 2 | Catch and store energy | Partial | Computes demand; doesn't design passive surplus capture (rainwater routing, biomass storage). |
 | 3 | Obtain a yield | Represented | Financial model + crop planning. |
 | 4 | Self-regulation & feedback | Partial | Scoring gives analytical feedback, not on-the-ground feedback loops. |

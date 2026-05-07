@@ -20,8 +20,7 @@ import {
   maptilerTransformRequest,
 } from "../../lib/maplibre.js";
 import MapTokenMissing from "../../components/MapTokenMissing.js";
-import { useMatrixTogglesStore } from "../../store/matrixTogglesStore.js";
-import type { WindClimatologyStatus } from "../data/useWindClimatology.js";
+import { useBasemapStore } from "../observe/components/measure/useMapToolStore.js";
 import css from "./DiagnoseMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
@@ -56,8 +55,6 @@ export interface DiagnoseMapProps {
   boundary?: GeoJSON.Polygon;
   /** Optional homestead-placement control rendered as a small map toolbar. */
   homestead?: HomesteadControl;
-  /** Provenance of the wind rose — drives a chip in the legend. */
-  windStatus?: WindClimatologyStatus;
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
@@ -84,19 +81,13 @@ export default function DiagnoseMap({
   zoom = 14,
   boundary,
   homestead,
-  windStatus,
   children,
 }: DiagnoseMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const [placing, setPlacing] = useState(false);
-
-  const topography = useMatrixTogglesStore((s) => s.topography);
-  const sectors = useMatrixTogglesStore((s) => s.sectors);
-  const zones = useMatrixTogglesStore((s) => s.zones);
-  const wind = useMatrixTogglesStore((s) => s.wind);
-  const water = useMatrixTogglesStore((s) => s.water);
-  const anyOn = topography || sectors || zones || wind || water;
+  const basemap = useBasemapStore((s) => s.basemap);
+  const initialBasemapRef = useRef(basemap);
 
   // Derive viewport from boundary when available; fall back to props otherwise.
   const { initialCenter, effectiveCentroid } = useMemo(() => {
@@ -117,7 +108,7 @@ export default function DiagnoseMap({
     if (!containerRef.current) return;
     const m = new maplibregl.Map({
       container: containerRef.current,
-      style: MAP_STYLES["topographic"],
+      style: MAP_STYLES[initialBasemapRef.current] ?? MAP_STYLES["topographic"],
       center: initialCenter,
       zoom,
       attributionControl: { compact: true },
@@ -135,7 +126,17 @@ export default function DiagnoseMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
 
-  // Paint boundary outline + fitBounds when boundary is present.
+  // Swap basemap style when the user picks a different basemap.
+  useEffect(() => {
+    if (!map) return;
+    const target = MAP_STYLES[basemap];
+    if (!target) return;
+    map.setStyle(target);
+  }, [map, basemap]);
+
+  // Paint boundary outline + fitBounds when boundary is present. Re-runs after
+  // every style.load so the polygon survives basemap switches (setStyle wipes
+  // app-added sources/layers).
   useEffect(() => {
     if (!map || !boundary) return;
     const data: GeoJSON.Feature<GeoJSON.Polygon> = {
@@ -176,6 +177,10 @@ export default function DiagnoseMap({
           },
         });
       }
+    };
+
+    const ensureAndFit = () => {
+      ensure();
       const fb = polygonBounds(boundary);
       if (fb) {
         map.fitBounds(fb, {
@@ -185,23 +190,22 @@ export default function DiagnoseMap({
       }
     };
 
-    // `isStyleLoaded()` stays false until raster tile sources finish, and
-    // `once("load")` may have already fired by the time this effect mounts.
-    // Gate on the presence of style layers via `styledata` instead — it fires
-    // as soon as the style spec is parsed, which is all we need to add ours.
     const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
     if (ready()) {
-      ensure();
-      return;
+      ensureAndFit();
+    } else {
+      const onFirst = () => {
+        if (!ready()) return;
+        ensureAndFit();
+        map.off("styledata", onFirst);
+      };
+      map.on("styledata", onFirst);
     }
-    const onStyle = () => {
-      if (!ready()) return;
-      ensure();
-      map.off("styledata", onStyle);
-    };
-    map.on("styledata", onStyle);
+    // Reapply (without refit) after every subsequent style swap.
+    const onStyleSwap = () => ensure();
+    map.on("style.load", onStyleSwap);
     return () => {
-      map.off("styledata", onStyle);
+      map.off("style.load", onStyleSwap);
     };
   }, [map, boundary]);
 
@@ -263,68 +267,6 @@ export default function DiagnoseMap({
           )}
         </div>
       )}
-      {anyOn && (
-        <div className={css.legend} aria-hidden="true">
-          <span className={css.legendTitle}>Active overlays</span>
-          {topography && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#7a6a3f" }} />
-              Topography (contours + hillshade)
-            </span>
-          )}
-          {sectors && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#c4a265" }} />
-              Solar sectors (sun arcs)
-            </span>
-          )}
-          {zones && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#a85a3f" }} />
-              Zones (use-frequency rings)
-            </span>
-          )}
-          {wind && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#5b7a8a" }} />
-              Wind (prevailing rose)
-              {windStatus && <WindStatusChip status={windStatus} />}
-            </span>
-          )}
-          {water && (
-            <span className={css.legendRow}>
-              <span className={css.swatch} style={{ background: "#5b8aa8" }} />
-              Water (streams · surface water)
-            </span>
-          )}
-          {homestead?.legendNote && (
-            <span className={css.legendNote}>{homestead.legendNote}</span>
-          )}
-        </div>
-      )}
     </div>
-  );
-}
-
-const CHIP_LABEL: Record<WindClimatologyStatus, string> = {
-  live: "Live ERA5",
-  fallback: "Defaults",
-  loading: "Loading…",
-};
-
-function WindStatusChip({ status }: { status: WindClimatologyStatus }) {
-  return (
-    <span
-      className={`${css.windChip} ${css[`windChip_${status}`]}`}
-      title={
-        status === "live"
-          ? "Open-Meteo ERA5 reanalysis for this anchor"
-          : status === "fallback"
-            ? "Pedagogical Eastern-Ontario climatology (live fetch unavailable)"
-            : "Fetching ERA5 climatology…"
-      }
-    >
-      {CHIP_LABEL[status]}
-    </span>
   );
 }

@@ -193,14 +193,12 @@ function DiagnosePageMap({
     frequencies: liveWindFreqs,
     meanSpeedsMs: liveWindMeanSpeedsMs,
     source: windSource,
-    status: windStatus,
   } = useWindClimatology(anchor);
 
   return (
     <DiagnoseMap
       centroid={FALLBACK_CENTROID}
       boundary={boundary}
-      windStatus={windStatus}
       homestead={{
         enabled: true,
         hasHomestead: !!homestead,

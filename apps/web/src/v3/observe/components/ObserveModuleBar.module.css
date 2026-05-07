@@ -1,0 +1,82 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 6px 8px 8px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 6px 6px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+  min-height: 44px;
+}
+
+.tile:hover {
+  border-color: var(--color-gold-brand);
+  transform: translateY(-1px);
+}
+
+.tileActive {
+  border-color: var(--color-gold-brand);
+  background: rgba(196, 162, 101, 0.14);
+  box-shadow: 0 0 0 1px var(--color-gold-brand);
+}
+
+.cardProgress {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  height: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.subseg {
+  flex: 1;
+  height: 100%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: filter 0.15s ease, background 0.4s ease;
+}
+
+.subseg:hover { filter: brightness(0.82); }
+
+.subsegEmpty {
+  cursor: default;
+  background: var(--bg3, rgba(255, 255, 255, 0.06));
+}
+
+.tileLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

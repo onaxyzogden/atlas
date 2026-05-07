@@ -167,14 +167,7 @@ const v3DiagnoseRoute = createRoute({
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
-  component: () => null,
-  beforeLoad: ({ params }) => {
-    const { projectId } = params as { projectId: string };
-    throw redirect({
-      to: '/v3/project/$projectId/observe/$module',
-      params: { projectId, module: 'human-context' },
-    });
-  },
+  component: ObserveLayout,
 });
 const v3ObserveModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,

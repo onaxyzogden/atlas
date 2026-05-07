@@ -10,14 +10,17 @@ import {
   Wind,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import AnnotationListCard from '../../components/AnnotationListCard.js';
 import monthlyClimate from '../../assets/macroclimate-dashboard/monthly-climate.png';
 import sunPath from '../../assets/macroclimate-dashboard/sun-path.png';
 import hazardMatrix from '../../assets/macroclimate-dashboard/hazard-risk-matrix.png';
 import hazardHotspots from '../../assets/macroclimate-dashboard/hazard-hotspots.png';
 
 export default function MacroclimateDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   return (
     <div className="detail-page macroclimate-page">
       <section className="macroclimate-layout">
@@ -26,6 +29,12 @@ export default function MacroclimateDashboard() {
           <MacroKpis />
           <SolarClimateCard />
           <HazardsCard />
+          <AnnotationListCard
+            title="Field annotations"
+            projectId={projectId ?? null}
+            kinds={['frostPocket', 'hazardZone']}
+            emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
+          />
         </div>
         <MacroSidebar />
       </section>

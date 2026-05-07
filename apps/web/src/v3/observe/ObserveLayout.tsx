@@ -1,58 +1,44 @@
 /**
- * ObserveLayout — route component for /v3/project/$projectId/observe/$module.
+ * ObserveLayout — route component for /v3/project/$projectId/observe[/$module].
  *
- * Composes the four scaffold pieces built earlier in Phase A:
- *   - LevelNavigator (top)        — switches between Observe / Plan / Act
- *   - ObserveTools  (left)        — module-aware tools panel
- *   - canvas placeholder (center) — Phase B will fill with real module surfaces
- *   - ObserveBottomRail + ModuleSlideUp (bottom) — module tile rail + sheet
+ * Composes the scaffold pieces:
+ *   - ObserveTools  (left)          — module-aware tools panel
+ *   - DiagnoseMap   (center)        — parcel-boundary-fit MapLibre canvas
+ *   - ObserveChecklistAside (right) — module-aware checklist toolbox
+ *   - ObserveModuleBar + ModuleSlideUp (bottom) — combined progress + tile
+ *     navigator and slide-up detail sheet
+ *
+ * The Observe/Plan/Act level switcher (title card + side peeks) lives in the
+ * AppShell header bar via LevelNavigatorBar; the navigator state is provided
+ * by V3LevelNavBridge mounted in AppShell.
  *
  * URL is the source of truth for the active module. Slide-up open/closed is
- * local state — closing the sheet does not navigate.
+ * local state — closing the sheet does not navigate. Clicking the active
+ * card while the slide-up is closed deselects (URL → /observe with no
+ * module).
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import LevelNavigator, {
-  type Level,
-  type LevelNavigatorProps,
-} from '../../components/LevelNavigator/index.js';
+import DiagnoseMap from '../components/DiagnoseMap.js';
+import { useV3Project } from '../data/useV3Project.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import ObserveTools from './tools/ObserveTools.js';
-import ObserveBottomRail from './components/ObserveBottomRail.js';
+import ObserveChecklistAside from './components/ObserveChecklistAside.js';
+import ObserveModuleBar from './components/ObserveModuleBar.js';
 import ModuleSlideUp from './components/ModuleSlideUp.js';
+import MapToolbar from './components/MapToolbar.js';
+import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
+import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
+import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
+import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import {
-  OBSERVE_MODULE_LABEL,
   isObserveModule,
   type ObserveModule,
 } from './types.js';
 import css from './ObserveLayout.module.css';
 
-const LEVELS: Level[] = [
-  {
-    key: 'observe',
-    label: 'Observe',
-    title: 'Observe',
-    subtitle: 'See the land',
-    desc: 'Map context, climate, terrain, water, ecology, and synthesis before designing.',
-    routeSuffix: 'observe/human-context',
-  },
-  {
-    key: 'plan',
-    label: 'Plan',
-    title: 'Plan',
-    subtitle: 'Design the response',
-    desc: 'Translate observation into a coherent design and proof plan.',
-    routeSuffix: 'plan',
-  },
-  {
-    key: 'act',
-    label: 'Act',
-    title: 'Act',
-    subtitle: 'Build and operate',
-    desc: 'Execute, run, and report on the design in the field.',
-    routeSuffix: 'act',
-  },
-];
+const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
 export default function ObserveLayout() {
   const params = useParams({ strict: false }) as {
@@ -66,95 +52,96 @@ export default function ObserveLayout() {
     ? moduleParam
     : null;
 
-  useEffect(() => {
-    if (!validModule && params.projectId) {
-      navigate({
-        to: '/v3/project/$projectId/observe/$module',
-        params: { projectId: params.projectId, module: 'human-context' },
-        replace: true,
-      });
-    }
-  }, [validModule, params.projectId, navigate]);
+  const project = useV3Project(params.projectId);
+  const updateProject = useProjectStore((s) => s.updateProject);
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
-  const handleSelectModule = (mod: ObserveModule) => {
-    if (params.projectId) {
-      navigate({
-        to: '/v3/project/$projectId/observe/$module',
-        params: { projectId: params.projectId, module: mod },
-      });
-    }
-    setSlideUpOpen(true);
-  };
-
-  const handleLevelChange: NonNullable<LevelNavigatorProps['onLevelChange']> = (
-    key,
-  ) => {
+  const handleSelectModule = (mod: ObserveModule | null) => {
     if (!params.projectId) return;
-    if (key === 'observe') {
+    if (mod === null) {
       navigate({
-        to: '/v3/project/$projectId/observe/$module',
-        params: {
-          projectId: params.projectId,
-          module: validModule ?? 'human-context',
-        },
-      });
-    } else if (key === 'plan') {
-      navigate({
-        to: '/v3/project/$projectId/plan',
+        to: '/v3/project/$projectId/observe',
         params: { projectId: params.projectId },
       });
-    } else if (key === 'act') {
-      navigate({
-        to: '/v3/project/$projectId/act',
-        params: { projectId: params.projectId },
-      });
+      setSlideUpOpen(false);
+      return;
     }
+    navigate({
+      to: '/v3/project/$projectId/observe/$module',
+      params: { projectId: params.projectId, module: mod },
+    });
+    setSlideUpOpen(false);
   };
-
-  if (!validModule) return null;
 
   return (
     <div className={css.layout}>
-      <div className={css.top}>
-        <LevelNavigator
-          levels={LEVELS}
-          controlledLevel="observe"
-          onLevelChange={handleLevelChange}
-          compact
-        />
-      </div>
-
       <div className={css.body}>
         <aside className={css.left} aria-label="Observe tools">
           <ObserveTools activeModule={validModule} />
         </aside>
         <main className={css.canvas} aria-label="Observe canvas">
-          <div className={css.canvasInner}>
-            <span className={css.canvasEyebrow}>Observe</span>
-            <h1 className={css.canvasTitle}>{OBSERVE_MODULE_LABEL[validModule]}</h1>
-            <p className={css.canvasHint}>
-              Module canvas placeholder. Click the module tile below to open the
-              detail page, or use the left tools panel for module-specific
-              actions. Real canvases arrive in Phase B.
-            </p>
-          </div>
+          <DiagnoseMap
+            centroid={FALLBACK_CENTROID}
+            boundary={project?.location.boundary}
+          >
+            {({ map }) => (
+              <>
+                <MapToolbar
+                  map={map}
+                  projectId={params.projectId ?? null}
+                  onBoundaryDrawn={(polygon) => {
+                    if (!params.projectId) return;
+                    updateProject(params.projectId, {
+                      parcelBoundaryGeojson: {
+                        type: 'FeatureCollection',
+                        features: [
+                          {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: polygon,
+                          },
+                        ],
+                      },
+                      hasParcelBoundary: true,
+                    });
+                  }}
+                />
+                <ObserveAnnotationLayers
+                  map={map}
+                  projectId={params.projectId ?? null}
+                />
+                <ObserveDrawHost
+                  map={map}
+                  projectId={params.projectId ?? null}
+                />
+              </>
+            )}
+          </DiagnoseMap>
         </main>
+        <aside className={css.right} aria-label="Observe checklist">
+          <ObserveChecklistAside activeModule={validModule} />
+        </aside>
       </div>
 
       <div className={css.bottom}>
-        <ObserveBottomRail
+        <ObserveModuleBar
           activeModule={validModule}
           onSelectModule={handleSelectModule}
+          slideUpOpen={slideUpOpen && validModule !== null}
+          onOpenSlideUp={() => setSlideUpOpen(true)}
+          onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       </div>
 
       <ModuleSlideUp
         module={validModule}
-        open={slideUpOpen}
+        open={slideUpOpen && validModule !== null}
         onClose={() => setSlideUpOpen(false)}
       />
+
+      <AnnotationFormSlideUp />
+      <AnnotationDetailPanel projectId={params.projectId ?? null} />
     </div>
   );
 }

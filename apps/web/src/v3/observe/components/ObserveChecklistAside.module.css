@@ -1,0 +1,118 @@
+.checklistBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  min-width: 240px;
+  max-width: 300px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  --group-dot: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.groupActive {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--group-dot) 25%, transparent);
+}
+
+.group[data-module='human-context']         { --group-dot: #5dd39e; }
+.group[data-module='macroclimate-hazards']  { --group-dot: #e6c34a; }
+.group[data-module='topography']            { --group-dot: #8bd16a; }
+.group[data-module='earth-water-ecology']   { --group-dot: #5fc7d4; }
+.group[data-module='sectors-zones']         { --group-dot: #d68bd0; }
+.group[data-module='swot-synthesis']        { --group-dot: #e88aa4; }
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--group-dot);
+  flex: 0 0 8px;
+}
+
+.groupLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.groupActive .groupLabel {
+  color: var(--color-text);
+}
+
+.why {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text);
+  font-style: italic;
+}
+
+.howBlock,
+.pitfall {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blockLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--group-dot);
+}
+
+.howList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.howItem {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.pitfall {
+  padding: 8px;
+  background: color-mix(in srgb, var(--group-dot) 10%, var(--color-bg));
+  border: 1px solid
+    color-mix(in srgb, var(--group-dot) 30%, var(--color-border));
+  border-radius: var(--radius-sm, 6px);
+}
+
+.pitfallText {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
