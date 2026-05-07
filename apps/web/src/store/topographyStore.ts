@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type VerticalElementType = 'structure' | 'tree' | 'shrub' | 'swale' | 'pond';
 
@@ -133,7 +134,7 @@ interface TopographyState {
 
 export const useTopographyStore = create<TopographyState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       transects: [],
       contours: [],
       highPoints: [],
@@ -162,7 +163,7 @@ export const useTopographyStore = create<TopographyState>()(
         })),
       removeDrainageLine: (id) =>
         set((s) => ({ drainageLines: s.drainageLines.filter((d) => d.id !== id) })),
-    }),
+    }), { limit: 200 }),
     {
       name: 'ogden-topography',
       version: 2,

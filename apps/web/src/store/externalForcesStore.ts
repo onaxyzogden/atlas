@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Hazards ──────────────────────────────────────────────────────────────────
 
@@ -99,7 +100,7 @@ interface ExternalForcesState {
 
 export const useExternalForcesStore = create<ExternalForcesState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       hazards: [],
       sectors: [],
 
@@ -112,7 +113,7 @@ export const useExternalForcesStore = create<ExternalForcesState>()(
       updateSector: (id, patch) =>
         set((s) => ({ sectors: s.sectors.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeSector: (id) => set((s) => ({ sectors: s.sectors.filter((x) => x.id !== id) })),
-    }),
+    }), { limit: 200 }),
     {
       name: 'ogden-external-forces',
       version: 2,

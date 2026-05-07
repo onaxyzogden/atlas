@@ -13,6 +13,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export interface NeighbourPin {
   id: string;
@@ -88,7 +89,7 @@ interface HumanContextState {
 
 export const useHumanContextStore = create<HumanContextState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       neighbours: [],
       households: [],
       accessRoads: [],
@@ -130,7 +131,7 @@ export const useHumanContextStore = create<HumanContextState>()(
         set((s) => ({
           permacultureZones: s.permacultureZones.filter((z) => z.id !== id),
         })),
-    }),
+    }), { limit: 200 }),
     { name: 'ogden-human-context', version: 1 },
   ),
 );

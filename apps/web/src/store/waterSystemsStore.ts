@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
 
@@ -75,7 +76,7 @@ interface WaterSystemsState {
 
 export const useWaterSystemsStore = create<WaterSystemsState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       earthworks: [],
       storageInfra: [],
       watercourses: [],
@@ -97,7 +98,7 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
         })),
       removeWatercourse: (id) =>
         set((s) => ({ watercourses: s.watercourses.filter((w) => w.id !== id) })),
-    }),
+    }), { limit: 200 }),
     {
       name: 'ogden-water-systems',
       version: 2,

@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type TrophicLevel =
   | 'producer'
@@ -68,7 +69,7 @@ interface EcologyState {
 
 export const useEcologyStore = create<EcologyState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       ecology: [],
       successionStageByProject: {},
       ecologyZones: [],
@@ -92,7 +93,7 @@ export const useEcologyStore = create<EcologyState>()(
         })),
       removeEcologyZone: (id) =>
         set((s) => ({ ecologyZones: s.ecologyZones.filter((z) => z.id !== id) })),
-    }),
+    }), { limit: 200 }),
     {
       name: 'ogden-ecology',
       version: 2,

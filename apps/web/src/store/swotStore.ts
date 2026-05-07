@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type SwotBucket = 'S' | 'W' | 'O' | 'T';
 
@@ -37,14 +38,14 @@ interface SwotState {
 
 export const useSwotStore = create<SwotState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       swot: [],
 
       addSwot: (e) => set((s) => ({ swot: [...s.swot, e] })),
       updateSwot: (id, patch) =>
         set((s) => ({ swot: s.swot.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeSwot: (id) => set((s) => ({ swot: s.swot.filter((e) => e.id !== id) })),
-    }),
+    }), { limit: 200 }),
     { name: 'ogden-swot', version: 1 },
   ),
 );

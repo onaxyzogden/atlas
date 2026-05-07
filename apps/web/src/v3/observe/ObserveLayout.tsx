@@ -35,6 +35,7 @@ import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import SelectionFloater from './components/SelectionFloater.js';
+import useGlobalAnnotationUndo from './hooks/useGlobalAnnotationUndo.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -59,6 +60,9 @@ export default function ObserveLayout() {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+
+  // Cmd-Z / Cmd-Shift-Z bound while OBSERVE is mounted.
+  useGlobalAnnotationUndo();
 
   const handleSelectModule = (mod: ObserveModule | null) => {
     if (!params.projectId) return;
