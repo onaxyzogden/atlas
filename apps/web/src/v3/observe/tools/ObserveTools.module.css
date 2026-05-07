@@ -1,15 +1,19 @@
 /*
- * Bento layout: the toolbox is a transparent column; each .group is its own
- * card with a discrete surface, border, and padding. The shared shell border
- * is dropped so each section reads as an independent module bento.
+ * Bento layout: the outer .toolbox is the panel shell (surface bg, hairline
+ * border, soft shadow, --radius-lg) and each inner .group is a quieter inset
+ * card on --color-bg with --radius-md. Mirrors the right-rail checklist
+ * (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
+ * so the two rails read as a matching bento pair.
  */
 .toolbox {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   min-width: 200px;
   max-width: 240px;
@@ -44,11 +48,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   --group-dot: var(--color-text-muted);
   transition: border-color 120ms ease, box-shadow 120ms ease,
     filter 150ms ease, opacity 150ms ease;
