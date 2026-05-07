@@ -79,6 +79,7 @@ const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenC
 // portfolio); this additive card rolls those checks up to the umbrella
 // 3 Ethics (Earth Care / People Care / Fair Share).
 const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
+const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verification/PrincipleCoverageMatrixCard.js'));
 
 function renderCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
@@ -107,6 +108,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
+    case 'plan-principle-coverage-matrix': return <PrincipleCoverageMatrixCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

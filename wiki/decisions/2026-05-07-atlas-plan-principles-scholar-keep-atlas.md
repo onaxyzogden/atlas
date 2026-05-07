@@ -29,6 +29,12 @@ Scholar identified three orthodox elements Atlas does not yet surface, all logge
 2. **Mission Statement / Goals cross-check.** OSU PDC's most critical verification step is "check back in with your mission statement and goals, and see if you accomplish your mission statement through the principles." Display the project's original goals at the top of the verification screen so the user can visually cross-reference them while filling in justifications.
 3. **Missing-principle warnings + feature-type coverage matrix.** Add a radar chart or simple coverage matrix highlighting under-evidenced principles — e.g. if 50 features are linked to *Obtain a Yield* but zero to *Catch and Store Energy*, the module should surface that gap as a feedback signal (Principle 4 — Apply Self-Regulation and Accept Feedback). Visualises which principles still need design choices behind them.
 
+### Follow-up status (2026-05-07)
+
+- ✅ #1 — Three-Ethics rollup landed as `plan-three-ethics-rollup` sub-tab (`apps/web/src/v3/plan/cards/principle-verification/ThreeEthicsRollupCard.tsx` + `PERMACULTURE_ETHICS` const in `holmgrenPrinciples.ts`); see `wiki/decisions/2026-05-07-atlas-plan-principles-three-ethics-rollup.md` for the standalone enhancement ADR.
+- ✅ #3 — Principle × feature-type coverage matrix landed as `plan-principle-coverage-matrix` sub-tab (`apps/web/src/v3/plan/cards/principle-verification/PrincipleCoverageMatrixCard.tsx`). 12 × 6 grid (rows = Holmgren's 12, columns = zone / path / structure / transect / guild / earthwork). Surfaces *uncovered principles* (zero linked features), *underweight* (one type), *well-integrated* (≥4 types). No new store; pivots existing `principleCheckStore.byProject[id]` linked-feature data.
+- ⏳ #2 — Mission Statement / project-goals cross-check still deferred (blocked on missing project-goals store).
+
 ## Decision
 
 No code change required for the verdict. The three enhancements above are filed as Module 8 follow-up tickets; the iteration ADR will list them. Atlas's `HolmgrenChecklistCard` remains as-is — twelve principles, free-text justification, linked-feature multi-pick, 3-state status, persisted per project.
