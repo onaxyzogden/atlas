@@ -10,16 +10,18 @@
  * limiting factors (e.g. "drains too fast", "low pH"), (c) suggests
  * permaculture-grounded next moves keyed off the limiting factors.
  *
- * v1: ephemeral form state — no persistence yet (steward re-enters each
- * session). A follow-up will add a `soilTestStore` so readings can be
- * stored alongside zones.
+ * v2 (2026-05-07): persists readings to a `soilTestStore`. The Scholar
+ * called these "soil management areas" — soil varies across zones, so
+ * each saved reading carries an optional `zoneId` and a free-text label.
  *
  * Sources: NotebookLM Permaculture Scholar (5aa3dcf3-…) 2026-05-07; OSU
  * PDC "Soil Building Goals & Plan"; USDA NRCS *Soil Texture Triangle*.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
+import { newSoilTestId, useSoilTestStore } from '../../../../store/soilTestStore.js';
+import { useZoneStore } from '../../../../store/zoneStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -62,13 +64,68 @@ function deriveLimits(sand: number, silt: number, clay: number, perc: number, pH
   return out;
 }
 
-export default function SoilBaselineCard({ project: _project }: Props) {
+export default function SoilBaselineCard({ project }: Props) {
+  // ── Store wiring ────────────────────────────────────────────────────────
+  const byProject = useSoilTestStore((s) => s.byProject);
+  const addTest = useSoilTestStore((s) => s.addTest);
+  const removeTest = useSoilTestStore((s) => s.removeTest);
+  const allZones = useZoneStore((s) => s.zones);
+
+  const tests = useMemo(() => byProject[project.id] ?? [], [byProject, project.id]);
+  const projectZones = useMemo(
+    () => allZones.filter((z) => z.projectId === project.id),
+    [allZones, project.id],
+  );
+
+  // ── Form state ──────────────────────────────────────────────────────────
+  const [labelStr, setLabelStr] = useState('');
+  const [zoneId, setZoneId] = useState<string>('');
   const [sandStr, setSandStr] = useState('40');
   const [siltStr, setSiltStr] = useState('40');
   const [clayStr, setClayStr] = useState('20');
   const [percStr, setPercStr] = useState(''); // inches/hr
   const [pHStr, setPHStr] = useState('');     // 0-14
+  const [notesStr, setNotesStr] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Auto-load the most recent reading on first render or project switch.
+  useEffect(() => {
+    if (activeId) return;
+    if (tests.length === 0) return;
+    const last = tests[tests.length - 1];
+    if (last) loadIntoForm(last.id);
+    // We intentionally only auto-load once per project change; activeId
+    // gates the effect from clobbering the user's in-progress edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id]);
+
+  function loadIntoForm(id: string) {
+    const t = tests.find((x) => x.id === id);
+    if (!t) return;
+    setActiveId(t.id);
+    setLabelStr(t.label ?? '');
+    setZoneId(t.zoneId ?? '');
+    setSandStr(String(t.sandPct));
+    setSiltStr(String(t.siltPct));
+    setClayStr(String(t.clayPct));
+    setPercStr(t.percolationInPerHr > 0 ? String(t.percolationInPerHr) : '');
+    setPHStr(t.pH > 0 ? String(t.pH) : '');
+    setNotesStr(t.notes ?? '');
+  }
+
+  function clearForm() {
+    setActiveId(null);
+    setLabelStr('');
+    setZoneId('');
+    setSandStr('40');
+    setSiltStr('40');
+    setClayStr('20');
+    setPercStr('');
+    setPHStr('');
+    setNotesStr('');
+  }
+
+  // ── Derived ────────────────────────────────────────────────────────────
   const sand = Math.max(0, Math.min(100, Number(sandStr) || 0));
   const silt = Math.max(0, Math.min(100, Number(siltStr) || 0));
   const clay = Math.max(0, Math.min(100, Number(clayStr) || 0));
@@ -78,7 +135,6 @@ export default function SoilBaselineCard({ project: _project }: Props) {
   const sum = sand + silt + clay;
   const sumOk = Math.abs(sum - 100) <= 2;
 
-  // Normalise for classifier even if sum drifts a bit.
   const norm = useMemo(() => {
     const t = sum > 0 ? sum : 1;
     return { sand: (sand / t) * 100, silt: (silt / t) * 100, clay: (clay / t) * 100 };
@@ -87,9 +143,31 @@ export default function SoilBaselineCard({ project: _project }: Props) {
   const texture = useMemo(() => classifyTexture(norm.sand, norm.silt, norm.clay), [norm]);
   const limits = useMemo(() => deriveLimits(norm.sand, norm.silt, norm.clay, perc, pH), [norm, perc, pH]);
 
-  // Simple SVG triangle: render an equilateral triangle with the user's
-  // sample point. Barycentric mapping: clay = top, sand = bottom-left,
-  // silt = bottom-right.
+  function handleSave() {
+    if (!sumOk) return;
+    const t = {
+      id: newSoilTestId(),
+      projectId: project.id,
+      label: labelStr.trim() || undefined,
+      zoneId: zoneId || undefined,
+      sandPct: sand,
+      siltPct: silt,
+      clayPct: clay,
+      percolationInPerHr: perc,
+      pH,
+      notes: notesStr.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+    addTest(t);
+    setActiveId(t.id);
+  }
+
+  function handleRemove(id: string) {
+    removeTest(id);
+    if (activeId === id) clearForm();
+  }
+
+  // ── Triangle SVG geometry ──────────────────────────────────────────────
   const W = 320, H = 280, pad = 18;
   const Ax = pad, Ay = H - pad;                 // sand vertex (bottom-left)
   const Bx = W - pad, By = H - pad;             // silt vertex (bottom-right)
@@ -105,9 +183,66 @@ export default function SoilBaselineCard({ project: _project }: Props) {
         <p className={styles.lede}>
           Jar test, percolation, pH. Three measurements is the OSU PDC
           minimum for a defensible soil-building plan — without them, any
-          amendment is a guess.
+          amendment is a guess. Save multiple readings (one per soil
+          management area) so the design responds to the variation.
         </p>
       </header>
+
+      {tests.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Saved readings ({tests.length})</h2>
+          <ul className={styles.list}>
+            {tests.map((t) => {
+              const zone = t.zoneId ? projectZones.find((z) => z.id === t.zoneId) : null;
+              const tex = classifyTexture(
+                (t.sandPct / Math.max(1, t.sandPct + t.siltPct + t.clayPct)) * 100,
+                (t.siltPct / Math.max(1, t.sandPct + t.siltPct + t.clayPct)) * 100,
+                (t.clayPct / Math.max(1, t.sandPct + t.siltPct + t.clayPct)) * 100,
+              );
+              return (
+                <li key={t.id} className={styles.listRow}>
+                  <div>
+                    <strong>{t.label || tex}{activeId === t.id ? ' · loaded' : ''}</strong>
+                    <div className={styles.listMeta}>
+                      {zone ? `Zone: ${zone.name} · ` : ''}
+                      {Math.round(t.sandPct)}/{Math.round(t.siltPct)}/{Math.round(t.clayPct)} S/Si/C ·
+                      {t.percolationInPerHr > 0 ? ` perc ${t.percolationInPerHr} in/hr ·` : ''}
+                      {t.pH > 0 ? ` pH ${t.pH}` : ''}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button type="button" className={styles.btn} onClick={() => loadIntoForm(t.id)}>Load</button>
+                    <button type="button" className={styles.removeBtn} onClick={() => handleRemove(t.id)}>Remove</button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Reading details</h2>
+        <div className={styles.grid}>
+          <label className={styles.field}>
+            <span>Label (optional)</span>
+            <input
+              value={labelStr}
+              onChange={(e) => setLabelStr(e.target.value)}
+              placeholder='e.g. "Front field jar test"'
+            />
+          </label>
+          <label className={styles.field}>
+            <span>Zone (optional)</span>
+            <select value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
+              <option value="">— project-wide —</option>
+              {projectZones.map((z) => (
+                <option key={z.id} value={z.id}>{z.name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Jar test (% by volume)</h2>
@@ -145,6 +280,15 @@ export default function SoilBaselineCard({ project: _project }: Props) {
             <input value={pHStr} onChange={(e) => setPHStr(e.target.value)} placeholder="e.g. 6.5" inputMode="decimal" />
           </label>
         </div>
+        <label className={styles.field} style={{ marginTop: 8 }}>
+          <span>Notes (optional)</span>
+          <textarea
+            value={notesStr}
+            onChange={(e) => setNotesStr(e.target.value)}
+            rows={2}
+            placeholder="Method, weather, sample depth…"
+          />
+        </label>
       </section>
 
       <section className={styles.section}>
@@ -162,6 +306,19 @@ export default function SoilBaselineCard({ project: _project }: Props) {
             <text x={Ax} y={Ay + 14} fontSize={10} fill="rgba(255,255,255,0.70)">Sand</text>
             <text x={Bx} y={By + 14} fontSize={10} fill="rgba(255,255,255,0.70)" textAnchor="end">Silt</text>
             <text x={Cx} y={Cy - 4} fontSize={10} fill="rgba(255,255,255,0.70)" textAnchor="middle">Clay</text>
+            {/* Saved readings as small ghost dots, current sample as the bright point. */}
+            {tests.map((t) => {
+              const ts = t.sandPct + t.siltPct + t.clayPct;
+              if (ts <= 0) return null;
+              const ns = (t.sandPct / ts) * 100;
+              const nsi = (t.siltPct / ts) * 100;
+              const nc = (t.clayPct / ts) * 100;
+              const tx = (ns / 100) * Ax + (nsi / 100) * Bx + (nc / 100) * Cx;
+              const ty = (ns / 100) * Ay + (nsi / 100) * By + (nc / 100) * Cy;
+              return (
+                <circle key={t.id} cx={tx} cy={ty} r={3} fill="rgba(220,180,80,0.35)" stroke="rgba(220,180,80,0.55)" strokeWidth={0.8} />
+              );
+            })}
             {sumOk && (
               <>
                 <circle cx={px} cy={py} r={5} fill="#e0a050" stroke="rgba(0,0,0,0.5)" strokeWidth={1.2} />
@@ -214,6 +371,23 @@ export default function SoilBaselineCard({ project: _project }: Props) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.btnRow}>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={handleSave}
+            disabled={!sumOk}
+            title={sumOk ? 'Save this reading to the project' : 'Sum must equal ~100% before saving'}
+          >
+            Save reading
+          </button>
+          <button type="button" className={styles.removeBtn} onClick={clearForm}>
+            New reading
+          </button>
+        </div>
       </section>
     </div>
   );

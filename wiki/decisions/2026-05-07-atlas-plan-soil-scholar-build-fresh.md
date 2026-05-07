@@ -41,7 +41,7 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
 
 ## Follow-ups (not in this commit)
 
-- **Persist soil baseline** to a `soilTestStore` keyed by zone (Scholar's "soil management areas" — multiple readings per site, not one global). Currently the form is ephemeral.
+- ✅ **Persist soil baseline** — landed 2026-05-07 as `apps/web/src/store/soilTestStore.ts` (Zustand+persist, byProject, optional zoneId per reading). `SoilBaselineCard` now lists saved readings (with auto-load of the most recent on project switch), a label + zone dropdown, save/load/remove buttons, ghost-dots for prior readings on the texture triangle, and a notes field. Multiple readings per project per the Scholar's "soil management areas" guidance.
 - **Resource inventory tab** (Scholar's tab 2): split-panel polygon-draw for soil-management areas + a Greens/Browns inventory checklist. Not built v1.
 - **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
 - **Expand fertility taxonomy** to include cover-cropping, chop-and-drop, dynamic accumulators, rotational grazing as first-class node kinds (currently only the 4 structural types).
