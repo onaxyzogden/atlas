@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 8 (Principle Verification) · KEEP_ATLAS per Permaculture Scholar verdict
+
+Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's `HolmgrenChecklistCard` (~187L: 12-principle prompt + free-text justification + 3-state status + linked-feature multi-pick across zone/path/structure/transect/guild/earthwork stores) "already architecturally aligned with orthodox permaculture pedagogy" — Holmgren's 12 is the OSU PDC standard ("for simplicity's sake," per Andrew Millison), and the free-text + linked-feature mechanic mirrors the PDC final-portfolio template (Application / Further Applied / Lessons Learned + photo-evidence rubric). Automated cross-checks explicitly rejected: they "run counter to the contextual, observation-heavy nature of permaculture." Yeomans Keyline Scales explicitly out of scope here (sequencing tool, not retrospective rubric — lives in Modules 4 & 7). Verdict: KEEP_ATLAS, no code change. Three orthodox enhancements logged as follow-ups: (1) three-Ethics (Earth Care / People Care / Fair Share) rollup wrapping the 12 principles; (2) Mission Statement / project-goals cross-check at the top of the verification screen; (3) missing-principle warnings + feature-type coverage matrix (radar / heatmap surfacing under-evidenced principles). ADR: `wiki/decisions/2026-05-07-atlas-plan-principles-scholar-keep-atlas.md`.
+
+---
+
 ## 2026-05-07 — Plan Module 7 (Phasing & Budgeting) · KEEP_ATLAS per Permaculture Scholar verdict
 
 Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's three-card phasing module (`PhasingMatrixCard` + `SeasonalTaskCard` + `LaborBudgetSummaryCard`) "perfectly mirrors the columns required by a professional permaculture phasing spreadsheet" — Phase × Season axis matches the OSU PDC Pro 5-year × 4-season template, and labor-hrs + cost-USD matches the official `$`/`Hrs` columns. OGDEN ships no phasing module, so PORT_OGDEN is impossible; BUILD_FRESH unnecessary. Verdict: KEEP_ATLAS, no code change. Three orthodox enhancements identified and logged as follow-ups in the ADR: (1) optional `designLayer`/`scaleOfPermanence` enum on `PhaseTask` (Earthworks/Water/Vegetation/Structures) with matrix regrouping by Yeomans Keyline category; (2) capacity-validation rollup against the project's Client Survey baselines (weekly hours, annual budget); (3) cumulative investment rollups (Yearly Running Total + 5-Year Total) Gantt-style. ADR: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`.
