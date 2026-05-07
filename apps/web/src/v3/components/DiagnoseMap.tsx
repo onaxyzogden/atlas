@@ -25,6 +25,7 @@ import css from "./DiagnoseMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
 const BOUNDARY_LINE_LAYER = "diagnose-parcel-boundary-line";
+const BOUNDARY_LINE_CASING_LAYER = "diagnose-parcel-boundary-line-casing";
 const BOUNDARY_FILL_LAYER = "diagnose-parcel-boundary-fill";
 const FIT_PADDING = 48;
 
@@ -161,7 +162,23 @@ export default function DiagnoseMap({
           source: BOUNDARY_SOURCE_ID,
           paint: {
             "fill-color": "#c4a265",
-            "fill-opacity": 0.06,
+            "fill-opacity": 0.08,
+          },
+        });
+      }
+      // Two-pass casing → main stroke. Dark casing underneath gives the
+      // line legibility on bright/satellite basemaps where a thin tan line
+      // disappears into terrain; the warm gold on top stays branded. This
+      // pattern is standard MapLibre cartography (cf. street casings).
+      if (!map.getLayer(BOUNDARY_LINE_CASING_LAYER)) {
+        map.addLayer({
+          id: BOUNDARY_LINE_CASING_LAYER,
+          type: "line",
+          source: BOUNDARY_SOURCE_ID,
+          paint: {
+            "line-color": "#1f1a14",
+            "line-width": 6,
+            "line-opacity": 0.6,
           },
         });
       }
@@ -171,9 +188,9 @@ export default function DiagnoseMap({
           type: "line",
           source: BOUNDARY_SOURCE_ID,
           paint: {
-            "line-color": "#7a6a3f",
-            "line-width": 2,
-            "line-opacity": 0.85,
+            "line-color": "#e6c34a",
+            "line-width": 3,
+            "line-opacity": 0.95,
           },
         });
       }

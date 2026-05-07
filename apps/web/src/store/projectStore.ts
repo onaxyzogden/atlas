@@ -447,12 +447,32 @@ function asFeatureCollection(
 
 function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
   const now = new Date().toISOString();
+  // Snapshot the current store BEFORE we filter/replace so we can preserve
+  // local-only state across re-seed: the existing local UUID (so IndexedDB
+  // boundary:<id> entries remain reachable) and any user-drawn parcel
+  // boundary that diverges from the canonical builtin geometry.
+  const existingByServerId = new Map<string, LocalProject>();
+  for (const p of useProjectStore.getState().projects) {
+    if (p.serverId) existingByServerId.set(p.serverId, p);
+  }
   // Build the LocalProject list outside setState so we can re-use the
   // generated local ids when seeding the per-project observe stores.
   const incoming: LocalProject[] = builtins.map((sp) => {
-    const boundary = asFeatureCollection(sp.parcelBoundaryGeojson);
+    const apiBoundary = asFeatureCollection(sp.parcelBoundaryGeojson);
+    const existing = existingByServerId.get(sp.id);
+    // Preserve a user-customized boundary across reloads. We treat ANY
+    // non-null in-store FC whose stringified geometry differs from the
+    // API's canonical FC as "user-drawn" — JSON equality is good enough
+    // (geometries originate from turf/MapboxDraw with stable coord order).
+    const userDrew =
+      existing?.parcelBoundaryGeojson != null &&
+      JSON.stringify(existing.parcelBoundaryGeojson) !== JSON.stringify(apiBoundary);
+    const boundary = userDrew ? existing!.parcelBoundaryGeojson : apiBoundary;
     return {
-    id: crypto.randomUUID(),
+    // Reuse the existing local id when one exists for this serverId so
+    // that boundary:<id> entries already in IndexedDB remain valid; only
+    // mint a fresh UUID for first-seen builtins.
+    id: existing?.id ?? crypto.randomUUID(),
     name: sp.name,
     description: sp.description,
     status: sp.status,
@@ -466,7 +486,7 @@ function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
     dataCompletenessScore: sp.dataCompletenessScore,
     hasParcelBoundary: sp.hasParcelBoundary || boundary !== null,
     isBuiltin: sp.isBuiltin,
-    createdAt: sp.createdAt ?? now,
+    createdAt: existing?.createdAt ?? sp.createdAt ?? now,
     updatedAt: sp.updatedAt ?? now,
     // Boundary is normalized to FeatureCollection above; ride alongside
     // the in-memory project so MapView and other consumers can render

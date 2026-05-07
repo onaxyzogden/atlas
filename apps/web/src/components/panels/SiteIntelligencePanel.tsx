@@ -19,6 +19,33 @@ import { SectionProfiler } from '../../lib/perfProfiler.js';
 // not change between renders (previously `siteData?.layers ?? []` minted a
 // new array every render, cascading through every useMemo keyed on layers).
 const EMPTY_LAYERS: MockLayerResult[] = [];
+
+/**
+ * Coarse US/CA disambiguation by lat/lng. Used in `handleRefresh` so that
+ * re-drawing a builtin sample's boundary into a different country routes
+ * to the right jurisdiction's endpoints in `layerFetcher` instead of
+ * sending a Michigan centroid through Canadian APIs (or vice versa).
+ *
+ * Returns null when the point falls outside both bounding boxes — caller
+ * falls back to the project's stored `country`.
+ *
+ * Bounds are intentionally generous (continental US + southern CA strip
+ * overlap is resolved by lat > 49 → CA). Alaska/Hawaii are not in scope
+ * here; both fall back to project.country.
+ */
+function inferCountryFromLngLat(lng: number, lat: number): string | null {
+  // Continental US: roughly 24°–49°N, 125°W–66.5°W
+  const inUS = lat >= 24 && lat <= 49 && lng >= -125 && lng <= -66.5;
+  // Continental CA south of 60°N: roughly 41.7°–60°N (excludes Yukon/NWT/NU
+  // headers), 141°W–52°W. North of 49°N is unambiguously CA.
+  const inCA =
+    lat > 49 && lat <= 83 && lng >= -141 && lng <= -52
+      ? true
+      : lat >= 41.7 && lat <= 49 && lng >= -141 && lng <= -52 && !inUS;
+  if (inUS && !inCA) return 'US';
+  if (inCA && !inUS) return 'CA';
+  return null;
+}
 import {
   computeAssessmentScores,
   computeOverallScore,
@@ -605,9 +632,17 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       const lat = coords[1] ?? 0;
       const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
       const bbox: [number, number, number, number] = [turfBbox[0], turfBbox[1], turfBbox[2], turfBbox[3]];
+      // If the user re-drew the boundary in a different country than the
+      // project was created in (e.g. builtin MTC sample is country='CA',
+      // user outlined a parcel in northern Michigan), the layer fetcher
+      // would otherwise call Canadian endpoints from a US centroid and
+      // return the wrong jurisdiction. Re-derive country from the centroid
+      // when it clearly falls outside the project's stated country bounds.
+      const inferred = inferCountryFromLngLat(lng, lat);
+      const country = inferred ?? project.country;
       setIsRefreshing(true);
       const minDelay = new Promise<void>((r) => setTimeout(r, 2000));
-      Promise.all([refreshProject(project.id, [lng, lat], project.country, bbox), minDelay])
+      Promise.all([refreshProject(project.id, [lng, lat], country, bbox), minDelay])
         .finally(() => setIsRefreshing(false));
     } catch { /* boundary may be invalid */ }
     // Depend on the whole `project` reference: an upstream re-memo (e.g.

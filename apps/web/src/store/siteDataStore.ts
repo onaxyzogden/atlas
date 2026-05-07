@@ -27,6 +27,32 @@ export interface SiteData {
   status: 'idle' | 'loading' | 'complete' | 'error';
   /** Phase 3: AI-enriched assessment data */
   enrichment?: AIEnrichmentState;
+  /**
+   * Centroid + country of the *last successful* fetch for this project.
+   * Used by `refreshProject` to detect "the parcel moved to a different
+   * area" — when it has, we clear `layers` instead of optimistically
+   * holding the prior jurisdiction's data while the new fetch runs (which
+   * would mislead the user into thinking Ontario data is for a Michigan
+   * parcel, etc.).
+   */
+  lastCenter?: [number, number];
+  lastCountry?: string;
+}
+
+/** Great-circle distance in km between two lng/lat points (Haversine). Used
+ * solely to decide whether a refresh targets the *same parcel* as the last
+ * successful fetch (≤1km tolerance) vs. a moved/redrawn boundary. */
+function lngLatDistanceKm(a: [number, number], b: [number, number]): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6371; // Earth radius, km
+  const dLat = toRad(b[1] - a[1]);
+  const dLng = toRad(b[0] - a[0]);
+  const lat1 = toRad(a[1]);
+  const lat2 = toRad(b[1]);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 export interface SiteDataState {
@@ -172,17 +198,34 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
     const gen = nextGen(projectId);
     const controller = takeController(projectId);
 
-    // Mark as loading but keep existing layers visible during refresh
+    // Mark as loading. If the parcel has *moved to a different area*
+    // (different country OR centroid shifted >1km), drop the prior
+    // jurisdiction's layers — holding Ontario data while the new fetch
+    // targets Michigan would mislabel the panel. For same-parcel
+    // refreshes we keep layers visible to avoid flicker.
     const existing = get().dataByProject[projectId];
+    const movedArea =
+      existing?.lastCountry !== undefined && existing.lastCountry !== country
+        ? true
+        : existing?.lastCenter !== undefined &&
+            lngLatDistanceKm(existing.lastCenter, center) > 1
+          ? true
+          : false;
     set((s) => ({
       dataByProject: {
         ...s.dataByProject,
         [projectId]: {
-          layers: existing?.layers ?? [],
-          isLive: existing?.isLive ?? false,
-          liveCount: existing?.liveCount ?? 0,
-          fetchedAt: existing?.fetchedAt ?? 0,
+          layers: movedArea ? [] : existing?.layers ?? [],
+          isLive: movedArea ? false : existing?.isLive ?? false,
+          liveCount: movedArea ? 0 : existing?.liveCount ?? 0,
+          fetchedAt: movedArea ? 0 : existing?.fetchedAt ?? 0,
           status: 'loading',
+          // Drop the prior enrichment when the area moved — it's keyed
+          // against the old layers and would otherwise narrate Ontario
+          // findings against a Michigan parcel.
+          ...(movedArea ? { enrichment: undefined } : { enrichment: existing?.enrichment }),
+          lastCenter: existing?.lastCenter,
+          lastCountry: existing?.lastCountry,
         },
       },
     }));
@@ -202,6 +245,8 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
             liveCount: result.liveCount,
             fetchedAt: Date.now(),
             status: 'complete',
+            lastCenter: center,
+            lastCountry: country,
           },
         },
       }));
@@ -227,11 +272,16 @@ export const useSiteDataStore = create<SiteDataState>((set, get) => ({
           dataByProject: {
             ...s.dataByProject,
             [projectId]: {
-              layers: existing?.layers ?? [],
-              isLive: existing?.isLive ?? false,
-              liveCount: existing?.liveCount ?? 0,
-              fetchedAt: existing?.fetchedAt ?? 0,
+              // On error after a moved-area refresh, do NOT fall back to
+              // the prior jurisdiction's layers — leave the panel empty
+              // so the user knows data for the new area is unavailable.
+              layers: movedArea ? [] : existing?.layers ?? [],
+              isLive: movedArea ? false : existing?.isLive ?? false,
+              liveCount: movedArea ? 0 : existing?.liveCount ?? 0,
+              fetchedAt: movedArea ? 0 : existing?.fetchedAt ?? 0,
               status: 'error' as const,
+              lastCenter: existing?.lastCenter,
+              lastCountry: existing?.lastCountry,
             },
           },
         };

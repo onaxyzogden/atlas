@@ -8,7 +8,7 @@
  *   [Alerts + Upcoming]          Two side-by-side panels (animal/water + this week)
  *
  * Phase 5.2 PR2: live `OperateMap` (MapLibre) replaces `FieldMapPlaceholder`.
- * Right rail is mounted by V3ProjectLayout → DecisionRail → OperateRail.
+ * Right rail is owned by this page and passed to StageShell.rightRail.
  */
 
 import { useState } from "react";
@@ -25,6 +25,7 @@ import { useFieldFlags } from "../data/useFieldFlags.js";
 import { useFieldTaskStore, type FieldTask } from "../../store/fieldTaskStore.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
 import StageShell from "../_shell/StageShell.js";
+import OperateRail from "../components/rails/OperateRail.js";
 import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
 
@@ -69,7 +70,10 @@ export default function OperatePage() {
   }
 
   return (
-    <StageShell canvasLabel="Operate canvas" canvas={
+    <StageShell
+      canvasLabel="Operate canvas"
+      rightRail={<OperateRail project={project} />}
+      canvas={
     <div className={css.page}>
       <PageHeader
         eyebrow="Operate"

@@ -24,7 +24,9 @@ import css from './LandOsShell.module.css';
 
 export interface LandOsShellProps {
   sidebar: ReactNode;
-  rail: ReactNode;
+  /** Right rail content. When undefined/null, the rail track is omitted
+   *  entirely so the page can own its right rail via StageShell.rightRail. */
+  rail?: ReactNode;
   children: ReactNode;
 }
 
@@ -52,10 +54,13 @@ export default function LandOsShell({ sidebar, rail, children }: LandOsShellProp
     stateRef.current = { sidebarW, railW, sidebarCollapsed, railCollapsed };
   }, [sidebarW, railW, sidebarCollapsed, railCollapsed]);
 
+  const hasRail = rail !== undefined && rail !== null;
   const left = sidebarCollapsed ? `${COLLAPSED_W}px` : `${sidebarW}px`;
   const right = railCollapsed ? `${COLLAPSED_W}px` : `${railW}px`;
   const shellStyle: CSSProperties = {
-    gridTemplateColumns: `${left} ${EDGE_W}px 1fr ${EDGE_W}px ${right}`,
+    gridTemplateColumns: hasRail
+      ? `${left} ${EDGE_W}px 1fr ${EDGE_W}px ${right}`
+      : `${left} ${EDGE_W}px 1fr`,
   };
 
   const onHandlePointerDown = (side: Side) => (e: React.PointerEvent<HTMLDivElement>) => {
@@ -185,32 +190,36 @@ export default function LandOsShell({ sidebar, rail, children }: LandOsShellProp
         {children}
       </section>
 
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={`Rail — drag to resize, click to ${railCollapsed ? 'expand' : 'collapse'}`}
-        className={css.colEdge}
-        tabIndex={0}
-        onPointerDown={onHandlePointerDown('right')}
-        onKeyDown={onHandleKeyDown('right')}
-      >
-        <div className={css.colEdgeLine} aria-hidden="true" />
-        <button
-          type="button"
-          className={css.colEdgeToggle}
-          tabIndex={-1}
-          aria-hidden="true"
-        >
-          {railChevron}
-        </button>
-      </div>
+      {hasRail && (
+        <>
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label={`Rail — drag to resize, click to ${railCollapsed ? 'expand' : 'collapse'}`}
+            className={css.colEdge}
+            tabIndex={0}
+            onPointerDown={onHandlePointerDown('right')}
+            onKeyDown={onHandleKeyDown('right')}
+          >
+            <div className={css.colEdgeLine} aria-hidden="true" />
+            <button
+              type="button"
+              className={css.colEdgeToggle}
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              {railChevron}
+            </button>
+          </div>
 
-      <aside
-        className={`${css.rail} ${railCollapsed ? css.collapsed : ''}`}
-        aria-label="Lifecycle decision rail"
-      >
-        {!railCollapsed && <div className={css.paneBody}>{rail}</div>}
-      </aside>
+          <aside
+            className={`${css.rail} ${railCollapsed ? css.collapsed : ''}`}
+            aria-label="Lifecycle decision rail"
+          >
+            {!railCollapsed && <div className={css.paneBody}>{rail}</div>}
+          </aside>
+        </>
+      )}
     </div>
   );
 }

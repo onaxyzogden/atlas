@@ -12,7 +12,7 @@ export default function SeasonalEcologyStrip({ observations, className }: Props)
   const counts = new Array<number>(12).fill(0);
   for (const o of observations) {
     const m = new Date(o.observedAt).getMonth();
-    if (m >= 0 && m < 12) counts[m]++;
+    if (m >= 0 && m < 12) counts[m]!++;
   }
   const maxCount = Math.max(...counts, 1);
 
@@ -27,14 +27,14 @@ export default function SeasonalEcologyStrip({ observations, className }: Props)
   return (
     <div className={`seasonal-ecology-strip ${className ?? ''}`} role="img" aria-label="Seasonal observation distribution">
       {MONTHS.map((month, i) => {
-        const pct = Math.round((counts[i] / maxCount) * 100);
+        const pct = Math.round((counts[i]! / maxCount) * 100);
         return (
           <div key={month} className="seasonal-cell">
             <div className="seasonal-bar-wrap">
               <div className="seasonal-bar" style={{ height: `${pct}%` }} />
             </div>
             <span className="seasonal-month">{month}</span>
-            {counts[i] > 0 && <em className="seasonal-count">{counts[i]}</em>}
+            {counts[i]! > 0 && <em className="seasonal-count">{counts[i]}</em>}
           </div>
         );
       })}

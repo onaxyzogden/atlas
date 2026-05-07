@@ -9,7 +9,7 @@
  *   [Execution Reality]          5 MetricCards (labor, FTE, $, peak cash, intensity)
  *   [Design Rules & Safety]      Pass / Warning / Blocked grid
  *
- * Right rail is mounted by V3ProjectLayout → DecisionRail → ProveRail.
+ * Right rail is owned by this page and passed to StageShell.rightRail.
  *
  * Phase 6.2 (per `.claude/plans/few-concerns-shiny-quokka.md`): the
  * StageHero CTAs are now wired:
@@ -34,6 +34,7 @@ import { useV3Project } from "../data/useV3Project.js";
 import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import { downloadProveBrief } from "../data/generateProveBrief.js";
 import StageShell from "../_shell/StageShell.js";
+import ProveRail from "../components/rails/ProveRail.js";
 import "../styles/chrome.css";
 import css from "./ProvePage.module.css";
 
@@ -100,7 +101,10 @@ export default function ProvePage() {
   };
 
   return (
-    <StageShell canvasLabel="Prove canvas" canvas={
+    <StageShell
+      canvasLabel="Prove canvas"
+      rightRail={<ProveRail project={project} />}
+      canvas={
     <div className={css.page}>
       <StageHero
         eyebrow="Prove"

@@ -66,7 +66,7 @@ const makeSample = (overrides: Partial<SoilSample> = {}): SoilSample => ({
   bulkDensityGCm3: null,
   npkPpm: null,
   biologicalActivity: 'moderate',
-  notes: null,
+  notes: '',
   lab: null,
   createdAt: '2026-01-15T00:00:00Z',
   updatedAt: '2026-01-15T00:00:00Z',
@@ -223,24 +223,24 @@ describe('earthwaterKpis', () => {
   it('returns 6 dashed items for empty stores and no layers', () => {
     const kpis = earthwaterKpis(undefined, [], [], [], [], []);
     expect(kpis).toHaveLength(6);
-    expect(kpis[2].value).toBe('0'); // observations
-    expect(kpis[3].value).toBe('—'); // water features
+    expect(kpis[2]!.value).toBe('0'); // observations
+    expect(kpis[3]!.value).toBe('—'); // water features
   });
 
   it('shows field sample ph when samples present', () => {
     const kpis = earthwaterKpis(undefined, [makeSample({ ph: 6.4 })], [], [], [], []);
-    expect(kpis[0].value).toBe('6.4');
-    expect(kpis[0].note).toContain('field samples');
+    expect(kpis[0]!.value).toBe('6.4');
+    expect(kpis[0]!.note).toContain('field samples');
   });
 
   it('falls back to layer ph_range when no samples', () => {
     const kpis = earthwaterKpis([SOIL_LAYER as any], [], [], [], [], []);
-    expect(kpis[0].value).toBe('6.1 - 6.8');
+    expect(kpis[0]!.value).toBe('6.1 - 6.8');
   });
 
   it('shows watershed name in note', () => {
     const kpis = earthwaterKpis([WATERSHED_LAYER as any], [], [], [], [], []);
-    expect(kpis[5].value).toBe('380 m');
-    expect(kpis[5].note).toContain('Sixteen Mile Creek');
+    expect(kpis[5]!.value).toBe('380 m');
+    expect(kpis[5]!.note).toContain('Sixteen Mile Creek');
   });
 });

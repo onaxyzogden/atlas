@@ -53,16 +53,24 @@ function activeFromPath(pathname: string): ActiveRoute {
   return { stage: "home" };
 }
 
+// Stages that own their own right rail via StageShell.rightRail. The outer
+// LandOsShell rail track is omitted entirely on these routes.
+const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate"]);
+
 export default function V3ProjectLayout() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { stage, module } = activeFromPath(pathname);
 
+  const rail = SELF_RAILED_STAGES.has(stage)
+    ? undefined
+    : <DecisionRail stage={stage} project={project} activeModule={module} />;
+
   return (
     <LandOsShell
       sidebar={<V3LifecycleSidebar activeStage={stage} />}
-      rail={<DecisionRail stage={stage} project={project} activeModule={module} />}
+      rail={rail}
     >
       <div className={css.frame}>
         <div className={css.outletHost}>

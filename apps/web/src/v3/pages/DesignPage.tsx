@@ -41,6 +41,7 @@ import DesignDropController from "../components/DesignDropController.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useDesignMetrics } from "../data/useDesignMetrics.js";
 import StageShell from "../_shell/StageShell.js";
+import DesignRail from "../components/rails/DesignRail.js";
 import css from "./DesignPage.module.css";
 
 interface ToolItem {
@@ -189,39 +190,45 @@ export default function DesignPage() {
     ? `Click on the canvas to drop ${armed.label} · Esc to cancel`
     : "Click a tool, then click on the canvas to drop";
 
-  return (
-    <StageShell canvasLabel="Design canvas" canvas={
-    <div className={css.studio}>
-      <aside className={css.toolbox} aria-label="Design toolbox">
-        <header className={css.toolboxHeader}>
-          <span className={css.eyebrow}>Toolbox</span>
-          <h2 className={css.toolboxTitle}>Place Elements</h2>
-        </header>
-        {TOOL_GROUPS.map((g) => (
-          <section key={g.id} className={css.group}>
-            <span className={css.groupLabel}>{g.label}</span>
-            <div className={css.itemGrid}>
-              {g.items.map((it) => {
-                const isArmed = armed?.itemId === it.id;
-                return (
-                  <button
-                    key={it.id}
-                    type="button"
-                    className={`${css.toolItem} ${isArmed ? css.toolItemArmed : ""}`}
-                    onClick={() => armItem(g, it)}
-                    aria-pressed={isArmed}
-                    aria-label={isArmed ? `Cancel ${it.label}` : `Place ${it.label}`}
-                  >
-                    <span className={css.toolGlyph} aria-hidden="true">{it.glyph}</span>
-                    <span className={css.toolLabel}>{it.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </aside>
+  const toolboxRail = (
+    <div className={css.toolbox}>
+      <header className={css.toolboxHeader}>
+        <span className={css.eyebrow}>Toolbox</span>
+        <h2 className={css.toolboxTitle}>Place Elements</h2>
+      </header>
+      {TOOL_GROUPS.map((g) => (
+        <section key={g.id} className={css.group}>
+          <span className={css.groupLabel}>{g.label}</span>
+          <div className={css.itemGrid}>
+            {g.items.map((it) => {
+              const isArmed = armed?.itemId === it.id;
+              return (
+                <button
+                  key={it.id}
+                  type="button"
+                  className={`${css.toolItem} ${isArmed ? css.toolItemArmed : ""}`}
+                  onClick={() => armItem(g, it)}
+                  aria-pressed={isArmed}
+                  aria-label={isArmed ? `Cancel ${it.label}` : `Place ${it.label}`}
+                >
+                  <span className={css.toolGlyph} aria-hidden="true">{it.glyph}</span>
+                  <span className={css.toolLabel}>{it.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
 
+  return (
+    <StageShell
+      canvasLabel="Design canvas"
+      leftRailLabel="Design toolbox"
+      leftRail={toolboxRail}
+      rightRail={<DesignRail project={project} />}
+      canvas={
       <div className={css.canvasColumn}>
         <div className={css.canvasFrame} aria-label="Design canvas">
           <DesignMap
@@ -351,7 +358,7 @@ export default function DesignPage() {
           </div>
         </footer>
       </div>
-    </div>
-    } />
+      }
+    />
   );
 }
