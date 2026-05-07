@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 4 · Permanence-ladder ordering-violation deep-links
+
+First Module 4 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The ordering-check warnings in `PermanenceLadderCard` previously listed missing prerequisite ranks as static text ("missing prerequisite: 3 Water"); they are now rendered as deep-link buttons that switch the slide-up to the Plan module where the prerequisite is authored — rank 2 Landform → `cross-section-solar`, rank 3 Water → `water-management`, rank 4 Access → `zone-circulation`, rank 7 Soil → `soil-fertility`, rank 8 Vegetation → `plant-systems`. Ranks without a dedicated module (1 Climate, 5 Structures, 6 Subsystems, 9 Fauna) still render as plain chips. Wired through a new optional `onSwitchModule?: (mod: PlanModule) => void` prop on both the card and `PlanModuleSlideUp`; `PlanLayout` passes a callback that calls `handleSelectModule(mod)` then re-opens the slide-up so the steward lands directly on the prerequisite module's first sub-tab. Atlas's `PermanenceScalesCard` is untouched. Typecheck clean (pre-existing unrelated `elementCatalog.ts` error from Vision-Layout WIP unchanged).
+
+---
+
 ## 2026-05-07 — Plan Module 5 · SoilBaselineCard persistence (soilTestStore)
 
 First Module 5 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). New `apps/web/src/store/soilTestStore.ts` (Zustand+persist, key `ogden-soil-tests`) holds `SoilTest[]` per project — id, optional `label`, optional `zoneId`, sand/silt/clay %, percolation in/hr, pH, notes, createdAt. `SoilBaselineCard` rewired: lists saved readings (Load / Remove buttons, auto-load of the most recent on project switch), label + zone dropdown above the jar-test inputs, ghost-dots on the USDA texture triangle for every saved reading (current sample remains the bright-amber dot), Save / New buttons in a footer section. Per the Scholar's "soil management areas" framing — soil varies across zones — multiple readings per project are first-class. Two Module 5 follow-ups remain deferred (resource-inventory tab; soil-building chronological plan); two more are quality-of-life (taxonomy expansion to cover-crop/chop-and-drop/grazing; spatial graph layout via lon/lat). Typecheck clean (pre-existing unrelated `elementCatalog.ts` error from Vision-Layout WIP unchanged).

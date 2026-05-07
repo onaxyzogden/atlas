@@ -87,11 +87,15 @@ const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenC
 const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
 const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verification/PrincipleCoverageMatrixCard.js'));
 
-function renderCard(sectionId: string, project: LocalProject) {
+function renderCard(
+  sectionId: string,
+  project: LocalProject,
+  onSwitchModule?: (mod: PlanModule) => void,
+) {
   const noop = () => {};
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
-    case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} />;
+    case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} onSwitchModule={onSwitchModule} />;
     case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
@@ -125,9 +129,16 @@ interface Props {
   open: boolean;
   onClose: () => void;
   project: LocalProject;
+  /**
+   * Optional deep-link callback. When provided, individual cards (e.g.
+   * PermanenceLadderCard's ordering-violation warnings) can switch the
+   * slide-up to a different module — the parent typically routes via
+   * the URL and the slide-up reopens on the new module.
+   */
+  onSwitchModule?: (mod: PlanModule) => void;
 }
 
-export default function PlanModuleSlideUp({ module, open, onClose, project }: Props) {
+export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule }: Props) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
   // Active sub-card within the module; reset when module changes.
@@ -207,7 +218,7 @@ export default function PlanModuleSlideUp({ module, open, onClose, project }: Pr
 
         <div className={css.body}>
           <Suspense fallback={<p className={css.loading}>Loading…</p>}>
-            {currentId ? renderCard(currentId, project) : null}
+            {currentId ? renderCard(currentId, project, onSwitchModule) : null}
           </Suspense>
         </div>
       </aside>

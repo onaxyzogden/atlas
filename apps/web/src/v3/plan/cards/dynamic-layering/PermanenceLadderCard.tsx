@@ -24,6 +24,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
+import type { PlanModule } from '../../types.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { usePathStore } from '../../../../store/pathStore.js';
 import { useStructureStore } from '../../../../store/structureStore.js';
@@ -38,6 +39,32 @@ import styles from '../../../../features/plan/planCard.module.css';
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
+  /**
+   * Optional deep-link callback. When provided, each missing-prerequisite
+   * warning becomes a button that switches the slide-up to the module
+   * where the steward should design that prerequisite (e.g. missing rank
+   * 3 Water → opens `water-management`). Per Module 4 follow-up
+   * `2026-05-07-atlas-plan-layering-scholar-keep-atlas.md` — surface the
+   * ordering check as a navigable next-action rather than a static lint.
+   */
+  onSwitchModule?: (mod: PlanModule) => void;
+}
+
+/**
+ * Maps a Yeomans rank to the Plan module where its prerequisite is
+ * authored. Ranks without a dedicated module (Climate, Structures,
+ * Subsystems standalone, Fauna) return undefined — the warning still
+ * lists them, just not as a clickable deep-link.
+ */
+function rankToModule(rank: number): PlanModule | undefined {
+  switch (rank) {
+    case 2: return 'cross-section-solar';   // Landform — transects
+    case 3: return 'water-management';
+    case 4: return 'zone-circulation';      // Access — paths
+    case 7: return 'soil-fertility';
+    case 8: return 'plant-systems';
+    default: return undefined;
+  }
 }
 
 // 9-rank Yeomans Scale of Permanence. Lower rank = more permanent.
@@ -74,7 +101,7 @@ interface Row {
   prereqs: number[];
 }
 
-export default function PermanenceLadderCard({ project }: Props) {
+export default function PermanenceLadderCard({ project, onSwitchModule }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allPaths = usePathStore((s) => s.paths);
   const allStructures = useStructureStore((s) => s.structures);
@@ -169,8 +196,52 @@ export default function PermanenceLadderCard({ project }: Props) {
               <li key={v.at.rank} className={styles.listRow}>
                 <div>
                   <strong>{v.at.rank}. {v.at.name}</strong>
-                  <div className={styles.listMeta}>
-                    {v.at.count} element(s) but missing prerequisite{v.missing.length > 1 ? 's' : ''}: {v.missing.map((m) => `${m.rank} ${m.name}`).join(', ')}
+                  <div className={styles.listMeta} style={{ marginTop: 2 }}>
+                    {v.at.count} element(s) but missing prerequisite
+                    {v.missing.length > 1 ? 's' : ''}:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                    {v.missing.map((m) => {
+                      const mod = rankToModule(m.rank);
+                      const linkable = mod !== undefined && onSwitchModule !== undefined;
+                      const labelText = `${m.rank}. ${m.name}`;
+                      if (!linkable) {
+                        return (
+                          <span
+                            key={m.rank}
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: 12,
+                              border: '1px solid rgba(255,255,255,0.15)',
+                              fontSize: '0.85em',
+                              opacity: 0.7,
+                            }}
+                          >
+                            {labelText}
+                          </span>
+                        );
+                      }
+                      return (
+                        <button
+                          key={m.rank}
+                          type="button"
+                          onClick={() => onSwitchModule!(mod!)}
+                          title={`Open ${m.name} module to design this prerequisite first`}
+                          style={{
+                            padding: '2px 10px',
+                            borderRadius: 12,
+                            border: '1px solid rgba(220,160,90,0.55)',
+                            background: 'rgba(220,160,90,0.12)',
+                            color: 'inherit',
+                            font: 'inherit',
+                            fontSize: '0.85em',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          → {labelText}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </li>

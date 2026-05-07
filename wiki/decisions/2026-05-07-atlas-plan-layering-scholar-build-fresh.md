@@ -38,7 +38,7 @@ Scholar explicitly endorsed Atlas's 9-rank data model as orthodox. The legacy `P
 
 - **Map overlay of anchors.** Scholar called for visualising anchors on a map (sectors / zones / topography). Pending: a sector-and-anchor overlay layer that draws each high-permanence element onto the live MapLibre map. Likely a Plan-stage map-overlay control rather than a card.
 - **Layer-relationship graph.** Scholar wanted relationships *between* ranks surfaced beyond ordering warnings. A small force-directed or Sankey-style visual ("water feeds soil feeds vegetation") could augment the ladder.
-- **Ordering-violation suggestions.** When a violation fires, the warning currently states the gap; a future iteration could deep-link to the Observe / Plan card that owns the missing layer (e.g. clicking "missing prerequisite 3 Water" jumps to Water Management module).
+- ✅ **Ordering-violation suggestions** — landed 2026-05-07. Each missing-prerequisite chip in the ordering-check panel is now a deep-link button that switches the slide-up to the Plan module where that rank is authored (rank 2 → `cross-section-solar`, 3 → `water-management`, 4 → `zone-circulation`, 7 → `soil-fertility`, 8 → `plant-systems`). Wired through a new `onSwitchModule?: (mod: PlanModule) => void` prop on `PermanenceLadderCard` + `PlanModuleSlideUp`; `PlanLayout` calls `handleSelectModule(mod)` then re-opens the sheet. Ranks without a Plan module home (Climate, Structures, Subsystems, Fauna) remain plain chips.
 - **Score weighting.** The ladder treats every element equally; mature designs would weight by area, age, or function-count.
 
 ## Verification

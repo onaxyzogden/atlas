@@ -195,6 +195,10 @@ export default function PlanLayout() {
           open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
+          onSwitchModule={(mod) => {
+            handleSelectModule(mod);
+            setSlideUpOpen(true);
+          }}
         />
       }
     />
