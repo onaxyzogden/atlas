@@ -1,0 +1,217 @@
+/**
+ * DesignElementLayers — renders Vision-Layout design elements as persistent
+ * MapLibre layers. Mirrors ObserveAnnotationLayers but reads from
+ * designElementsStore and is filtered by the active phase view.
+ *
+ * One source per geometry kind (point/line/polygon), labels rendered as a
+ * separate symbol layer driven by feature properties.
+ */
+
+import { useEffect, useMemo } from 'react';
+import type { Map as MaplibreMap } from 'maplibre-gl';
+import * as turf from '@turf/turf';
+import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import {
+  PHASE_VIEW_CAP,
+  phaseIndex,
+  type PlanView,
+} from '../../types.js';
+import { findElementSpec } from '../elementCatalog.js';
+import type { DesignElement } from '../../../../store/designElementsStore.js';
+
+interface Props {
+  map: MaplibreMap;
+  projectId: string;
+  view: PlanView;
+}
+
+const SOURCE_PREFIX = 'design-el-';
+const LAYER_PREFIX = 'design-el-';
+const EMPTY_ELEMENTS: DesignElement[] = [];
+
+export default function DesignElementLayers({ map, projectId, view }: Props) {
+  const elements = useDesignElementsStore(
+    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
+  );
+
+  const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
+    const cap =
+      view === 'phase-1' || view === 'phase-2'
+        ? phaseIndex(PHASE_VIEW_CAP[view])
+        : Infinity;
+
+    const visible = elements.filter((el) => phaseIndex(el.phase) <= cap);
+
+    const polys: GeoJSON.Feature[] = [];
+    const lines: GeoJSON.Feature[] = [];
+    const points: GeoJSON.Feature[] = [];
+    const labels: GeoJSON.Feature[] = [];
+
+    for (const el of visible) {
+      const spec = findElementSpec(el.kind);
+      const color = spec?.color ?? '#888';
+      const props = {
+        id: el.id,
+        kind: el.kind,
+        category: el.category,
+        color,
+        label:
+          el.label && el.acreage != null
+            ? `${el.label} — ${el.acreage.toFixed(1)} ac`
+            : (el.label ?? spec?.label ?? el.kind),
+      };
+      if (el.geometry.type === 'Polygon') {
+        polys.push({ type: 'Feature', properties: props, geometry: el.geometry });
+        try {
+          const c = turf.centroid(el.geometry).geometry;
+          labels.push({ type: 'Feature', properties: props, geometry: c });
+        } catch {
+          /* malformed polygon — skip label */
+        }
+      } else if (el.geometry.type === 'LineString') {
+        lines.push({ type: 'Feature', properties: props, geometry: el.geometry });
+      } else {
+        points.push({ type: 'Feature', properties: props, geometry: el.geometry });
+        labels.push({
+          type: 'Feature',
+          properties: props,
+          geometry: el.geometry,
+        });
+      }
+    }
+    return {
+      polyFC: { type: 'FeatureCollection' as const, features: polys },
+      lineFC: { type: 'FeatureCollection' as const, features: lines },
+      pointFC: { type: 'FeatureCollection' as const, features: points },
+      labelFC: { type: 'FeatureCollection' as const, features: labels },
+    };
+  }, [elements, view]);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const apply = () => {
+      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+
+      const ensureSource = (id: string, data: GeoJSON.FeatureCollection) => {
+        const sid = `${SOURCE_PREFIX}${id}`;
+        const existing = map.getSource(sid) as
+          | maplibregl.GeoJSONSource
+          | undefined;
+        if (existing) existing.setData(data);
+        else map.addSource(sid, { type: 'geojson', data });
+        return sid;
+      };
+
+      const polySid = ensureSource('poly', polyFC);
+      const lineSid = ensureSource('line', lineFC);
+      const pointSid = ensureSource('point', pointFC);
+      const labelSid = ensureSource('label', labelFC);
+
+      const ensureLayer = (spec: maplibregl.LayerSpecification) => {
+        if (!map.getLayer(spec.id)) map.addLayer(spec);
+      };
+
+      ensureLayer({
+        id: `${LAYER_PREFIX}poly-fill`,
+        type: 'fill',
+        source: polySid,
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': 0.28,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}poly-line`,
+        type: 'line',
+        source: polySid,
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 1.5,
+          'line-opacity': 0.9,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}line`,
+        type: 'line',
+        source: lineSid,
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 2,
+          'line-opacity': 0.9,
+          'line-dasharray': [2, 1],
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}point`,
+        type: 'circle',
+        source: pointSid,
+        paint: {
+          'circle-radius': 6,
+          'circle-color': ['get', 'color'],
+          'circle-stroke-color': '#1f1d1a',
+          'circle-stroke-width': 1.5,
+          'circle-opacity': 0.95,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}label`,
+        type: 'symbol',
+        source: labelSid,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-size': 11,
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+          'text-allow-overlap': false,
+        },
+        paint: {
+          'text-color': '#f2ede3',
+          'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+          'text-halo-width': 1.2,
+        },
+      });
+    };
+
+    apply();
+    const onStyle = () => apply();
+    map.on('style.load', onStyle);
+
+    return () => {
+      try {
+        map.off('style.load', onStyle);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, polyFC, lineFC, pointFC, labelFC]);
+
+  // Cleanup on unmount: remove our sources + layers so they don't bleed into
+  // the Current Land view.
+  useEffect(() => {
+    return () => {
+      if (!map) return;
+      try {
+        const allLayers = map.getStyle()?.layers ?? [];
+        for (const l of allLayers) {
+          if (l.id.startsWith(LAYER_PREFIX) && map.getLayer(l.id)) {
+            map.removeLayer(l.id);
+          }
+        }
+        const sources = (map.getStyle()?.sources ?? {}) as Record<
+          string,
+          unknown
+        >;
+        for (const sid of Object.keys(sources)) {
+          if (sid.startsWith(SOURCE_PREFIX) && map.getSource(sid)) {
+            map.removeSource(sid);
+          }
+        }
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map]);
+
+  return null;
+}

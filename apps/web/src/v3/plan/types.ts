@@ -160,5 +160,6 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },
     { label: 'Three Ethics',       sectionId: 'plan-three-ethics-rollup' },
+    { label: 'Coverage matrix',    sectionId: 'plan-principle-coverage-matrix' },
   ],
 };

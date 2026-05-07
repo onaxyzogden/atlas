@@ -1,15 +1,17 @@
 /**
  * PlanLayout — route component for /v3/project/$projectId/plan.
  *
- * Mirrors ObserveLayout structure:
- *   PlanTools (left) · DiagnoseMap (center) · PlanChecklistAside (right)
- *   PlanModuleBar (bottom) · PlanModuleSlideUp (overlay)
+ * Two surfaces, swapped by the `PlanPhaseTabs` top strip:
  *
- * The map is the same DiagnoseMap used in Observe; ObserveAnnotationLayers
- * is reused so steward-placed observation pins remain visible during planning.
+ * 1. `current` — legacy module-driven UI (PlanTools left, DiagnoseMap +
+ *    MapToolbar + ObserveAnnotationLayers, PlanModuleBar bottom).
  *
- * Project bridge: reads LocalProject from useProjectStore; falls back to an
- * MTC stub for the dev sentinel so smoke tests stay deterministic.
+ * 2. `vision` / `phase-1` / `phase-2` — Vision-Layout canvas: design-element
+ *    palette (left), VisionLayoutCanvas (centre, with DesignElementLayers +
+ *    DesignToolRail + BaseMapCard), no module bar. Phase tabs filter by
+ *    Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
+ *
+ * The PlanPhaseTabs strip itself overlays the canvas (absolute, top-centre).
  */
 
 import { useMemo, useState } from 'react';
@@ -24,7 +26,10 @@ import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
-import { isPlanModule, type PlanModule } from './types.js';
+import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
+import DesignElementPalette from './canvas/DesignElementPalette.js';
+import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
+import { isPlanModule, type PlanModule, type PlanView } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -78,11 +83,11 @@ export default function PlanLayout() {
     [projects, id],
   );
 
-  // Boundary read mirrors ObserveLayout — useV3Project special-cases the MTC
-  // sentinel and otherwise adapts the LocalProject's parcelBoundaryGeojson.
   const boundary = v3Project?.location.boundary;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+  const [activeView, setActiveView] = useState<PlanView>('current');
+  const [activeKind, setActiveKind] = useState<string | null>(null);
 
   const handleSelectModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
@@ -111,37 +116,58 @@ export default function PlanLayout() {
     });
   };
 
+  const isVisionCanvas =
+    activeView === 'vision' || activeView === 'phase-1' || activeView === 'phase-2';
+
+  // ── Canvas content ───────────────────────────────────────────────────────
+  const canvasContent = isVisionCanvas ? (
+    <VisionLayoutCanvas
+      projectId={id}
+      centroid={FALLBACK_CENTROID}
+      boundary={boundary}
+      view={activeView}
+      activeKind={activeKind}
+      onDrawComplete={() => setActiveKind(null)}
+    />
+  ) : (
+    <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
+      {({ map }) => (
+        <>
+          <MapToolbar
+            map={map}
+            projectId={id}
+            boundary={boundary ?? null}
+            onBoundaryDrawn={handleBoundaryDrawn}
+          />
+          <ObserveAnnotationLayers map={map} projectId={id} />
+        </>
+      )}
+    </DiagnoseMap>
+  );
+
   return (
     <StageShell
       canvasLabel="Plan canvas"
-      leftRailLabel="Plan tools"
+      leftRailLabel={isVisionCanvas ? 'Design elements' : 'Plan tools'}
       rightRailLabel="Plan checklist"
       leftRail={
-        <PlanTools
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-        />
+        isVisionCanvas ? (
+          <DesignElementPalette
+            activeKind={activeKind}
+            onSelect={(k) => setActiveKind(k)}
+          />
+        ) : (
+          <PlanTools
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+          />
+        )
       }
       canvas={
-        <DiagnoseMap
-          centroid={FALLBACK_CENTROID}
-          boundary={boundary}
-        >
-          {({ map }) => (
-            <>
-              <MapToolbar
-                map={map}
-                projectId={id}
-                boundary={boundary ?? null}
-                onBoundaryDrawn={handleBoundaryDrawn}
-              />
-              <ObserveAnnotationLayers
-                map={map}
-                projectId={id}
-              />
-            </>
-          )}
-        </DiagnoseMap>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          {canvasContent}
+          <PlanPhaseTabs active={activeView} onChange={setActiveView} />
+        </div>
       }
       rightRail={
         <PlanChecklistAside
@@ -153,13 +179,15 @@ export default function PlanLayout() {
         />
       }
       bottomTray={
-        <PlanModuleBar
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        isVisionCanvas ? null : (
+          <PlanModuleBar
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        )
       }
       overlay={
         <PlanModuleSlideUp
