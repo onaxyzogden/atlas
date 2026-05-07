@@ -14,6 +14,7 @@
  * home, so concentric rings have nothing to anchor on without one.
  */
 
+import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
@@ -125,6 +126,28 @@ export default function ObserveTools({
   );
   const homesteadPlaced = Boolean(homestead);
 
+  // Auto-scroll the active module's section into the rail's viewport on
+  // activeModule change. `block: 'nearest'` no-ops when the section is already
+  // visible — no jitter on already-visible picks. Honors reduced-motion.
+  const toolboxRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!activeModule) return;
+    const root = toolboxRef.current;
+    if (!root) return;
+    const section = root.querySelector<HTMLElement>(
+      `[data-module="${activeModule}"]`,
+    );
+    if (!section) return;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
+  }, [activeModule]);
+
   const onToolClick = (
     e: React.MouseEvent<HTMLButtonElement>,
     toolId: MapToolId,
@@ -139,7 +162,11 @@ export default function ObserveTools({
   const canSelectModules = Boolean(onSelectModule && projectId);
 
   return (
-    <aside className={css.toolbox} aria-label="Observe tools">
+    <aside
+      ref={toolboxRef}
+      className={css.toolbox}
+      aria-label="Observe tools"
+    >
       {OBSERVE_MODULES.map((mod) => {
         const items = TOOL_GROUPS[mod];
         const isActive = mod === activeModule;
