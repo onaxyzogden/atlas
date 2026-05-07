@@ -11,7 +11,7 @@
  * Right rail is owned by this page and passed to StageShell.rightRail.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import MetricCard from "../components/MetricCard.js";
@@ -47,8 +47,10 @@ export default function OperatePage() {
   // the brief's hand-authored fixture rows so a created task lands on
   // the calendar within the same render tick.
   const [taskOpen, setTaskOpen] = useState(false);
-  const projectTasks = useFieldTaskStore((s) =>
-    project ? s.tasks.filter((t) => t.projectId === project.id) : [],
+  const allTasks = useFieldTaskStore((s) => s.tasks);
+  const projectTasks = useMemo(
+    () => (project ? allTasks.filter((t) => t.projectId === project.id) : []),
+    [allTasks, project],
   );
 
   if (!project) {

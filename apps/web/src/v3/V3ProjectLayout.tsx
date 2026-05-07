@@ -55,7 +55,7 @@ function activeFromPath(pathname: string): ActiveRoute {
 
 // Stages that own their own right rail via StageShell.rightRail. The outer
 // LandOsShell rail track is omitted entirely on these routes.
-const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate"]);
+const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "act"]);
 
 export default function V3ProjectLayout() {
   const params = useParams({ strict: false }) as { projectId?: string };

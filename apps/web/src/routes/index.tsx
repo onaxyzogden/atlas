@@ -39,7 +39,12 @@ import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
+import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
+
+// ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
+// ActLayout but left importable for any future fallback need.
+void ActPlaceholderPage;
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -182,7 +187,12 @@ const v3PlanRoute = createRoute({
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act',
-  component: ActPlaceholderPage,
+  component: ActLayout,
+});
+const v3ActModuleRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/$module',
+  component: ActLayout,
 });
 const v3DesignRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -267,6 +277,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveModuleRoute,
       v3PlanRoute,
       v3ActRoute,
+      v3ActModuleRoute,
       v3DesignRoute,
       v3ProveRoute,
       v3BuildRoute,
