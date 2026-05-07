@@ -13,9 +13,10 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore } from '../../store/projectStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
@@ -23,7 +24,7 @@ import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
-import type { PlanModule } from './types.js';
+import { isPlanModule, type PlanModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -56,30 +57,48 @@ const MTC_FALLBACK: LocalProject = {
 };
 
 export default function PlanLayout() {
-  const params = useParams({ strict: false }) as { projectId?: string };
+  const params = useParams({ strict: false }) as {
+    projectId?: string;
+    module?: string;
+  };
+  const navigate = useNavigate();
+
   const id = params.projectId ?? 'mtc';
+  const moduleParam = params.module ?? '';
+  const validModule: PlanModule | null = isPlanModule(moduleParam)
+    ? moduleParam
+    : null;
 
   const projects = useProjectStore((s) => s.projects);
   const updateProject = useProjectStore((s) => s.updateProject);
+  const v3Project = useV3Project(params.projectId);
 
   const project = useMemo(
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_FALLBACK,
     [projects, id],
   );
 
-  // V3 Project for boundary — same as ObserveLayout uses useV3Project.
-  // We read the raw store here so we don't duplicate the v3 adapter overhead;
-  // only the boundary polygon is needed for the map viewport.
-  const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
-    | GeoJSON.Polygon
-    | undefined;
+  // Boundary read mirrors ObserveLayout — useV3Project special-cases the MTC
+  // sentinel and otherwise adapts the LocalProject's parcelBoundaryGeojson.
+  const boundary = v3Project?.location.boundary;
 
-  const [activeModule, setActiveModule] = useState<PlanModule | null>(null);
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
   const handleSelectModule = (mod: PlanModule | null) => {
-    setActiveModule(mod);
-    if (mod !== activeModule) setSlideUpOpen(false);
+    if (!params.projectId) return;
+    if (mod === null) {
+      navigate({
+        to: '/v3/project/$projectId/plan',
+        params: { projectId: params.projectId },
+      });
+      setSlideUpOpen(false);
+      return;
+    }
+    navigate({
+      to: '/v3/project/$projectId/plan/$module',
+      params: { projectId: params.projectId, module: mod },
+    });
+    setSlideUpOpen(false);
   };
 
   const handleBoundaryDrawn = (polygon: GeoJSON.Polygon) => {
@@ -99,7 +118,7 @@ export default function PlanLayout() {
       rightRailLabel="Plan checklist"
       leftRail={
         <PlanTools
-          activeModule={activeModule}
+          activeModule={validModule}
           onSelectModule={handleSelectModule}
         />
       }
@@ -126,26 +145,26 @@ export default function PlanLayout() {
       }
       rightRail={
         <PlanChecklistAside
-          activeModule={activeModule}
+          activeModule={validModule}
           onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && activeModule !== null}
+          slideUpOpen={slideUpOpen && validModule !== null}
           onOpenSlideUp={() => setSlideUpOpen(true)}
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       }
       bottomTray={
         <PlanModuleBar
-          activeModule={activeModule}
+          activeModule={validModule}
           onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && activeModule !== null}
+          slideUpOpen={slideUpOpen && validModule !== null}
           onOpenSlideUp={() => setSlideUpOpen(true)}
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       }
       overlay={
         <PlanModuleSlideUp
-          module={activeModule}
-          open={slideUpOpen && activeModule !== null}
+          module={validModule}
+          open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
         />

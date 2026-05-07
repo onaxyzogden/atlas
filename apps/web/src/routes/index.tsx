@@ -184,6 +184,11 @@ const v3PlanRoute = createRoute({
   path: 'plan',
   component: PlanLayout,
 });
+const v3PlanModuleRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/$module',
+  component: PlanLayout,
+});
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act',
@@ -276,6 +281,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanRoute,
+      v3PlanModuleRoute,
       v3ActRoute,
       v3ActModuleRoute,
       v3DesignRoute,

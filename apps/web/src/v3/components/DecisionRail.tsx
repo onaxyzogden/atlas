@@ -49,7 +49,7 @@ const STAGE_TITLE: Record<RailStage, string> = {
 // Stages that own their own right rail via StageShell.rightRail.
 // DecisionRail short-circuits on these so the outer LandOsShell rail stays empty
 // and only the page-owned rail renders.
-const SELF_RAILED_STAGES: readonly RailStage[] = ["design", "prove", "operate", "act"];
+const SELF_RAILED_STAGES: readonly RailStage[] = ["design", "prove", "operate", "plan", "act"];
 
 export default function DecisionRail({ stage, project, activeModule }: DecisionRailProps) {
   if (SELF_RAILED_STAGES.includes(stage)) {
