@@ -35,6 +35,7 @@ import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import SelectionFloater from './components/SelectionFloater.js';
+import ExportButton from './components/ExportButton.js';
 import useGlobalAnnotationUndo from './hooks/useGlobalAnnotationUndo.js';
 import {
   isObserveModule,
@@ -125,6 +126,7 @@ export default function ObserveLayout() {
                 <AnnotationDragHandler map={map} />
                 <AnnotationVertexEditHandler map={map} />
                 <SelectionFloater projectId={params.projectId ?? null} />
+                <ExportButton projectId={params.projectId ?? null} />
               </>
             )}
           </DiagnoseMap>

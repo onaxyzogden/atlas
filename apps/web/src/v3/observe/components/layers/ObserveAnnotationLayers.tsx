@@ -29,6 +29,10 @@ import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
+import {
+  registerObserveIcons,
+  tryRegisterMissingObserveIcon,
+} from '../../lib/lucideSprite.js';
 import type { AnnotationKind } from '../draw/annotationFieldSchemas.js';
 
 interface Props {
@@ -215,19 +219,16 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         layers: [
           {
             id: `${LAYER_PREFIX}human-points`,
-            type: 'circle',
+            type: 'symbol',
             source: `${SOURCE_PREFIX}human-points`,
-            paint: {
-              'circle-radius': [
-                'case',
-                ['==', ['get', 'kind'], 'household'],
-                7,
-                5,
-              ],
-              'circle-color': PALETTE.human,
-              'circle-stroke-color': '#3a2a1a',
-              'circle-stroke-width': 1.25,
-              'circle-opacity': 0.9,
+            layout: {
+              // Resolves to `observe-neighbourPin` or `observe-household`
+              // per feature; both keys registered by `lucideSprite.ts`.
+              'icon-image': ['concat', 'observe-', ['get', 'annoKind']],
+              'icon-size': 1.0,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              'icon-anchor': 'center',
             },
           },
         ],
@@ -486,14 +487,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         layers: [
           {
             id: `${LAYER_PREFIX}topography-points`,
-            type: 'circle',
+            type: 'symbol',
             source: `${SOURCE_PREFIX}topography-points`,
-            paint: {
-              'circle-radius': 5,
-              'circle-color': ['get', 'color'],
-              'circle-stroke-color': '#3a2a1a',
-              'circle-stroke-width': 1.25,
-              'circle-opacity': 0.9,
+            layout: {
+              'icon-image': 'observe-highPoint',
+              'icon-size': 1.0,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              'icon-anchor': 'center',
             },
           },
         ],
@@ -566,14 +567,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         layers: [
           {
             id: `${LAYER_PREFIX}soil-points`,
-            type: 'circle',
+            type: 'symbol',
             source: `${SOURCE_PREFIX}soil-points`,
-            paint: {
-              'circle-radius': 5,
-              'circle-color': PALETTE.soil,
-              'circle-stroke-color': '#1a1208',
-              'circle-stroke-width': 1.25,
-              'circle-opacity': 0.85,
+            layout: {
+              'icon-image': 'observe-soilSample',
+              'icon-size': 1.0,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              'icon-anchor': 'center',
             },
           },
         ],
@@ -644,14 +645,19 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         layers: [
           {
             id: `${LAYER_PREFIX}swot-points`,
-            type: 'circle',
+            type: 'symbol',
             source: `${SOURCE_PREFIX}swot`,
-            paint: {
-              'circle-radius': 6,
-              'circle-color': ['get', 'color'],
-              'circle-stroke-color': '#fff',
-              'circle-stroke-width': 1.5,
-              'circle-opacity': 0.9,
+            layout: {
+              // Resolves to `observe-swotTag-S/W/O/T` based on bucket.
+              'icon-image': [
+                'concat',
+                'observe-swotTag-',
+                ['get', 'bucket'],
+              ],
+              'icon-size': 1.0,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              'icon-anchor': 'center',
             },
           },
         ],
@@ -795,6 +801,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       // Bail if style isn't ready yet.
       if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
 
+      // Re-register Lucide sprite images. `registerObserveIcons` is
+      // idempotent (per-id `hasImage` guard) and safe to fire-and-forget;
+      // any layer referencing an icon before it's loaded is recovered via
+      // the `styleimagemissing` listener below.
+      void registerObserveIcons(map);
+
       // Compute desired ids.
       const desiredSourceIds = new Set([
         ...layerSpecs.map((spec) => `${SOURCE_PREFIX}${spec.id}`),
@@ -928,8 +940,19 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     const onStyle = () => apply();
     map.on('style.load', onStyle);
 
+    // styleimagemissing fires when a symbol layer references an icon-image
+    // that isn't (yet) in the sprite. Defensive: registerObserveIcons() is
+    // already called from apply(), but if the layer is added before the
+    // image-load promise resolves, MapLibre will hit this path and we
+    // backfill on demand.
+    const onImageMissing = (e: { id: string }) => {
+      void tryRegisterMissingObserveIcon(map, e.id);
+    };
+    map.on('styleimagemissing', onImageMissing);
+
     return () => {
       map.off('style.load', onStyle);
+      map.off('styleimagemissing', onImageMissing);
       map.off('click', onMapClick);
       // Remove click/hover handlers per layer id so a re-render or unmount
       // doesn't leave dangling listeners on stale layer ids.

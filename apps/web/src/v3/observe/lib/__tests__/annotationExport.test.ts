@@ -1,0 +1,204 @@
+// @vitest-environment happy-dom
+/**
+ * annotationExport — verifies that the OBSERVE export library can collect
+ * project records from every namespace store and serialise the result as
+ * GeoJSON, KML, and multi-section CSV without throwing. Each spec seeds a
+ * minimal record per kind directly into the relevant store via `setState`,
+ * filters by a project id, and asserts the cross-format invariants.
+ */
+
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  collectProjectAnnotations,
+  exportFilename,
+  toCSV,
+  toGeoJSON,
+  toKML,
+} from '../annotationExport.js';
+import { useHumanContextStore } from '../../../../store/humanContextStore.js';
+import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useSwotStore } from '../../../../store/swotStore.js';
+import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+
+const PROJECT = 'export-test-project';
+const OTHER = 'other-project';
+
+function reset(): void {
+  useHumanContextStore.setState({
+    neighbours: [],
+    households: [],
+    accessRoads: [],
+    permacultureZones: [],
+  });
+  useTopographyStore.setState({
+    contours: [],
+    highPoints: [],
+    drainageLines: [],
+    transects: [],
+  });
+  useExternalForcesStore.setState({ hazards: [], sectors: [] });
+  useWaterSystemsStore.setState({
+    earthworks: [],
+    storageInfra: [],
+    watercourses: [],
+  });
+  useEcologyStore.setState({ ecology: [], ecologyZones: [] });
+  useSwotStore.setState({ swot: [] });
+  useSoilSampleStore.setState({ samples: [] });
+}
+
+beforeEach(reset);
+afterEach(reset);
+
+describe('annotationExport — collection', () => {
+  it('only returns records belonging to the requested project', () => {
+    useHumanContextStore.setState({
+      neighbours: [
+        // @ts-expect-error - minimal seed shape for test
+        { id: 'n-here', projectId: PROJECT, position: [-78.2, 44.5], label: 'A' },
+        // @ts-expect-error - minimal seed shape for test
+        { id: 'n-other', projectId: OTHER, position: [-78.3, 44.6], label: 'B' },
+      ],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    const collected = collectProjectAnnotations(PROJECT);
+    expect(collected.totalCount).toBe(1);
+    expect(collected.byKind.neighbour?.[0]?.id).toBe('n-here');
+  });
+
+  it('collects across all seven namespace stores', () => {
+    // One record per store, all under PROJECT.
+    useHumanContextStore.setState({
+      // @ts-expect-error - minimal seed shapes
+      neighbours: [{ id: 'h1', projectId: PROJECT, position: [-78.2, 44.5] }],
+      // @ts-expect-error
+      households: [{ id: 'hh1', projectId: PROJECT, position: [-78.21, 44.51] }],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    useTopographyStore.setState({
+      contours: [],
+      // @ts-expect-error
+      highPoints: [{ id: 'hp1', projectId: PROJECT, position: [-78.22, 44.52] }],
+      drainageLines: [],
+      transects: [],
+    });
+    useExternalForcesStore.setState({
+      // @ts-expect-error
+      hazards: [{ id: 'hz1', projectId: PROJECT, type: 'flood' }],
+      sectors: [],
+    });
+    useWaterSystemsStore.setState({
+      earthworks: [],
+      // @ts-expect-error
+      storageInfra: [{ id: 'si1', projectId: PROJECT, center: [-78.23, 44.53], capacityL: 2000 }],
+      watercourses: [],
+    });
+    useEcologyStore.setState({
+      // @ts-expect-error
+      ecology: [{ id: 'eo1', projectId: PROJECT, species: 'oak' }],
+      ecologyZones: [],
+    });
+    useSwotStore.setState({
+      // @ts-expect-error
+      swot: [{ id: 'sw1', projectId: PROJECT, bucket: 'S', position: [-78.24, 44.54], body: 'good soil' }],
+    });
+    useSoilSampleStore.setState({
+      // @ts-expect-error
+      samples: [{ id: 'ss1', projectId: PROJECT, location: [-78.25, 44.55] }],
+    });
+
+    const collected = collectProjectAnnotations(PROJECT);
+    // 8 records: neighbour, household, highPoint, hazard, storageInfra,
+    // ecologyObservation, swot, soilSample.
+    expect(collected.totalCount).toBe(8);
+    expect(collected.byKind.neighbour?.length).toBe(1);
+    expect(collected.byKind.household?.length).toBe(1);
+    expect(collected.byKind.highPoint?.length).toBe(1);
+    expect(collected.byKind.hazard?.length).toBe(1);
+    expect(collected.byKind.storageInfra?.length).toBe(1);
+    expect(collected.byKind.ecologyObservation?.length).toBe(1);
+    expect(collected.byKind.swot?.length).toBe(1);
+    expect(collected.byKind.soilSample?.length).toBe(1);
+  });
+});
+
+describe('annotationExport — serialisation', () => {
+  beforeEach(() => {
+    useHumanContextStore.setState({
+      // @ts-expect-error
+      neighbours: [{ id: 'n1', projectId: PROJECT, position: [-78.2, 44.5], label: 'Neighbour A' }],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    useTopographyStore.setState({
+      contours: [],
+      // @ts-expect-error
+      highPoints: [{ id: 'hp1', projectId: PROJECT, position: [-78.22, 44.52], label: 'Hilltop' }],
+      drainageLines: [],
+      transects: [],
+    });
+    useSoilSampleStore.setState({
+      // @ts-expect-error
+      samples: [{ id: 'ss1', projectId: PROJECT, location: [-78.25, 44.55], notes: 'sandy loam' }],
+    });
+    useEcologyStore.setState({
+      // No geometry — should be CSV-only.
+      // @ts-expect-error
+      ecology: [{ id: 'eo1', projectId: PROJECT, species: 'oak' }],
+      ecologyZones: [],
+    });
+  });
+
+  it('toGeoJSON emits one Feature per record with geometry', () => {
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    expect(fc.type).toBe('FeatureCollection');
+    // 3 features: neighbour, highPoint, soilSample (ecology observation skipped).
+    expect(fc.features.length).toBe(3);
+    for (const f of fc.features) {
+      expect(f.geometry).toBeTruthy();
+      expect(f.properties).toHaveProperty('kind');
+    }
+  });
+
+  it('toKML produces a well-formed KML 2.2 document', () => {
+    const xml = toKML(collectProjectAnnotations(PROJECT));
+    expect(xml.startsWith('<?xml')).toBe(true);
+    expect(xml).toContain('<kml xmlns="http://www.opengis.net/kml/2.2">');
+    expect(xml).toContain('<Document>');
+    // At least one Placemark and one Folder.
+    expect(xml).toMatch(/<Folder>/);
+    expect(xml).toMatch(/<Placemark/);
+    expect(xml).toContain('</kml>');
+  });
+
+  it('toCSV produces a multi-section CSV with one block per kind', () => {
+    const csv = toCSV(collectProjectAnnotations(PROJECT));
+    expect(csv).toContain('# atlas-observe-export');
+    // Each emitted kind gets its own section header.
+    expect(csv).toContain('# kind: neighbour');
+    expect(csv).toContain('# kind: highPoint');
+    expect(csv).toContain('# kind: soilSample');
+    expect(csv).toContain('# kind: ecologyObservation');
+    // CSV has a geometryWkt column.
+    expect(csv).toContain('geometryWkt');
+    // Point WKT for the neighbour record.
+    expect(csv).toContain('POINT(-78.2 44.5)');
+  });
+});
+
+describe('annotationExport — filename', () => {
+  it('formats as atlas-observe-{shortId}-{YYYYMMDD}.{ext}', () => {
+    const fixed = new Date('2026-05-07T12:00:00Z');
+    const name = exportFilename('abcdef1234567890', 'geojson', fixed);
+    expect(name).toMatch(
+      /^atlas-observe-abcdef12-2026050[67]\.geojson$/,
+    );
+  });
+});
