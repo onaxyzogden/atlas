@@ -45,7 +45,7 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
 - **Resource inventory tab** (Scholar's tab 2): split-panel polygon-draw for soil-management areas + a Greens/Browns inventory checklist. Not built v1.
 - **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
 - **Expand fertility taxonomy** to include cover-cropping, chop-and-drop, dynamic accumulators, rotational grazing as first-class node kinds (currently only the 4 structural types).
-- **Spatial graph layout** (currently ring layout). When centroid coords are available per feature, switch to lon/lat projection so the graph maps physical location.
+- ✅ **Spatial graph layout** — landed 2026-05-07. `ClosedLoopGraphCard` now exposes a Ring / Spatial layout toggle. Spatial mode derives a `[lng, lat]` centroid for each node (zone/crop/structure-without-center → average of polygon vertices; structure → `center` field; fertility → `center` field), normalises the cloud into the SVG viewport with N up, and lays nodes that have no centroid on a small inner ring so they don't pile up at the origin. The Spatial button auto-disables when no node has a centroid. Vector length now reflects real haul distance, surfacing Holmgren P3 *Obtain a yield* (short haul = positive yield; long haul = energy debt).
 
 ## Verification
 

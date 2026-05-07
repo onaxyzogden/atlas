@@ -15,13 +15,28 @@
  * Waste*; OSU PDC, "Soil Building Goals & Plan."
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useStructureStore } from '../../../../store/structureStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
+
+/** Avg of all vertices across all rings — cheap centroid, fine for layout. */
+function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  for (const ring of geom.coordinates) {
+    for (const pt of ring) {
+      sx += pt[0]!;
+      sy += pt[1]!;
+      n++;
+    }
+  }
+  return n === 0 ? null : [sx / n, sy / n];
+}
 
 interface Props {
   project: LocalProject;
@@ -32,7 +47,11 @@ interface Node {
   id: string;
   label: string;
   kind: 'zone' | 'structure' | 'crop' | 'fertility';
+  /** [lng, lat] centroid when known, else null (e.g. structure without geometry). */
+  lngLat: [number, number] | null;
 }
+
+type LayoutMode = 'ring' | 'spatial';
 
 const KIND_COLOR: Record<Node['kind'], string> = {
   zone: '#7fb285',
@@ -51,10 +70,22 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   const { nodes, vectors } = useMemo(() => {
     const pId = project.id;
     const ns: Node[] = [];
-    for (const z of allZones) if (z.projectId === pId) ns.push({ id: z.id, label: z.name || z.category, kind: 'zone' });
-    for (const s of allStructures) if (s.projectId === pId) ns.push({ id: s.id, label: s.name || s.type, kind: 'structure' });
-    for (const c of allCrops) if (c.projectId === pId) ns.push({ id: c.id, label: (c as { name?: string }).name ?? 'crop area', kind: 'crop' });
-    for (const f of allFertility) if (f.projectId === pId) ns.push({ id: f.id, label: `${f.type}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility' });
+    for (const z of allZones) {
+      if (z.projectId !== pId) continue;
+      ns.push({ id: z.id, label: z.name || z.category, kind: 'zone', lngLat: polygonCentroid(z.geometry as GeoJSON.Polygon) });
+    }
+    for (const s of allStructures) {
+      if (s.projectId !== pId) continue;
+      ns.push({ id: s.id, label: s.name || s.type, kind: 'structure', lngLat: s.center ?? polygonCentroid(s.geometry) });
+    }
+    for (const c of allCrops) {
+      if (c.projectId !== pId) continue;
+      ns.push({ id: c.id, label: (c as { name?: string }).name ?? 'crop area', kind: 'crop', lngLat: polygonCentroid(c.geometry) });
+    }
+    for (const f of allFertility) {
+      if (f.projectId !== pId) continue;
+      ns.push({ id: f.id, label: `${f.type}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
+    }
     const vs = allVectors.filter((v) => v.projectId === pId);
     return { nodes: ns, vectors: vs };
   }, [project.id, allZones, allStructures, allCrops, allFertility, allVectors]);
@@ -98,19 +129,73 @@ export default function ClosedLoopGraphCard({ project }: Props) {
     [nodes, inDeg, outDeg],
   );
 
-  // SVG layout: ring layout — nodes spaced around a circle, edges as straight lines.
+  // SVG layout: two modes.
+  //  · 'ring' — nodes evenly spaced around a circle (original behaviour,
+  //    works even when no centroids are known).
+  //  · 'spatial' — nodes placed by lon/lat centroid, normalised into the
+  //    SVG viewport. Per Module 5 follow-up
+  //    `2026-05-07-atlas-plan-soil-scholar-build-fresh.md`: when centroid
+  //    coords exist, the graph maps physical location so vector lengths
+  //    reflect real haul distance (Holmgren P3 *Obtain a yield* — short
+  //    haul = positive yield; long haul = energy debt).
   const W = 560, H = 360;
   const cx = W / 2, cy = H / 2;
   const r = Math.min(W, H) * 0.36;
+  const PAD = 30;
+  const [layout, setLayout] = useState<LayoutMode>('ring');
+  const spatialReady = useMemo(
+    () => nodes.some((n) => n.lngLat !== null),
+    [nodes],
+  );
+
   const positions = useMemo(() => {
     const m = new Map<string, { x: number; y: number }>();
+    if (layout === 'spatial' && spatialReady) {
+      let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+      for (const n of nodes) {
+        if (!n.lngLat) continue;
+        const [lng, lat] = n.lngLat;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }
+      const dLng = maxLng - minLng || 1e-6;
+      const dLat = maxLat - minLat || 1e-6;
+      const sx = (W - 2 * PAD) / dLng;
+      const sy = (H - 2 * PAD) / dLat;
+      const s = Math.min(sx, sy);
+      // Centre the projected cloud in the viewport.
+      const offX = (W - s * dLng) / 2;
+      const offY = (H - s * dLat) / 2;
+      // Lay nodes without centroids on a fallback ring around the centre
+      // so they don't pile up at the origin.
+      const fallback: string[] = [];
+      for (const n of nodes) {
+        if (n.lngLat) {
+          const [lng, lat] = n.lngLat;
+          const x = offX + (lng - minLng) * s;
+          const y = H - (offY + (lat - minLat) * s); // flip y so north reads up
+          m.set(n.id, { x, y });
+        } else {
+          fallback.push(n.id);
+        }
+      }
+      const fr = Math.min(W, H) * 0.18;
+      fallback.forEach((id, i) => {
+        const a = (i / Math.max(fallback.length, 1)) * Math.PI * 2 - Math.PI / 2;
+        m.set(id, { x: cx + fr * Math.cos(a), y: cy + fr * Math.sin(a) });
+      });
+      return m;
+    }
+    // Ring fallback / default.
     const n = Math.max(nodes.length, 1);
     nodes.forEach((node, i) => {
       const a = (i / n) * Math.PI * 2 - Math.PI / 2;
       m.set(node.id, { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
     });
     return m;
-  }, [nodes, cx, cy, r]);
+  }, [nodes, cx, cy, r, layout, spatialReady]);
 
   const counts = useMemo(() => {
     const c = { zone: 0, structure: 0, crop: 0, fertility: 0 } as Record<Node['kind'], number>;
@@ -142,6 +227,39 @@ export default function ClosedLoopGraphCard({ project }: Props) {
         <>
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Graph</h2>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center', fontSize: '0.85em', opacity: 0.85 }}>
+              <span>Layout:</span>
+              {(['ring', 'spatial'] as const).map((m) => {
+                const disabled = m === 'spatial' && !spatialReady;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setLayout(m)}
+                    title={disabled ? 'No feature centroids available yet' : `Switch to ${m} layout`}
+                    style={{
+                      padding: '2px 10px',
+                      borderRadius: 12,
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      background: layout === m ? 'rgba(220,160,90,0.22)' : 'transparent',
+                      color: 'inherit',
+                      font: 'inherit',
+                      fontSize: '0.95em',
+                      cursor: disabled ? 'not-allowed' : 'pointer',
+                      opacity: disabled ? 0.4 : 1,
+                    }}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+              {layout === 'spatial' && (
+                <span style={{ marginLeft: 'auto', opacity: 0.6 }}>
+                  N is up · vector length ≈ haul distance
+                </span>
+              )}
+            </div>
             <svg
               role="img"
               aria-label="Closed-loop nutrient graph"
