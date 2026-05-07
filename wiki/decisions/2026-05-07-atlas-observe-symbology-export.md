@@ -319,6 +319,102 @@ per-record anchor on `SectorArrow`; per-sector-type radius
 spatial exports; promoting `sectorRadiusM` to a dedicated DB column
 once query patterns demand it.
 
+## 2026-05-07 — Update — permacultureZone + ecologyObservation spatial coverage
+
+This update closes the second deferred item from the original ADR:
+`permacultureZone` and `ecologyObservation` are no longer "geometry-less,
+CSV-only." Both kinds now flow through GeoJSON and KML alongside the
+other OBSERVE annotations, with `MULTIPOLYGON` WKT in CSV for zones.
+
+**Schema** ([ecologyStore.ts](../../apps/web/src/store/ecologyStore.ts)):
+one optional field added to `EcologyObservation`:
+
+```ts
+/** Optional [lng, lat] for map placement / spatial export. Existing
+ *  observations without a location remain CSV-only. */
+location?: [number, number];
+```
+
+No migration: the store is `persist`-backed, existing rows simply
+never set the field. Records with `location` set become Points in
+GeoJSON / KML; records without stay CSV-only (current behaviour
+preserved). `permacultureZone` requires no schema change — the existing
+`anchorPoint` + `ringRadiiM[6]` fields already carry everything needed
+to synthesise geometry.
+
+**Exporter rework** ([annotationExport.ts](../../apps/web/src/v3/observe/lib/annotationExport.ts)):
+the `geometryFor(kind, r, ctx): Geom | null` function is widened to
+`geometriesFor(kind, r, ctx): KindGeom[]`, where each `KindGeom` is
+`{ geom; extraProps? }`. Existing scalar arms become 0- or 1-element
+arrays. Two new arms:
+
+- `permacultureZone` — fans `anchorPoint` + `ringRadiiM` into up to
+  six `KindGeom`s, one per ring. `extraProps: { ring, radiusM }` flows
+  through into per-feature GeoJSON `properties` and per-placemark KML
+  names ("Permaculture zone — Zone 3 (40 m)"). Skips rings whose radius
+  is zero, negative, or non-finite. `circlePolygon` is lifted verbatim
+  from the renderer (`ObserveAnnotationLayers.tsx:129-136`) so the
+  exported ring overlays the on-map ring pixel-for-pixel (64-step).
+- `ecologyObservation` — emits one Point when `location` is set, zero
+  otherwise.
+
+`toGeoJSON` and `toKML` iterate the array and emit one Feature /
+Placemark per geometry. `csvSection` collapses the array into one cell
+via a new `geomsToWkt(arr)` helper: 0 → empty string, 1 → existing
+single-geom WKT, N same-typed → `MULTIPOINT` / `MULTILINESTRING` /
+`MULTIPOLYGON`. The CSV row contract stays 1:1 with records, so a
+permaculture zone with six rings emits one row whose `geometryWkt` cell
+is `MULTIPOLYGON((...),(...),(...),(...),(...),(...))`. KML placemark
+IDs for zones are disambiguated as `${id}-ring-${n}` so the per-ring
+placemarks stay unique within their folder.
+
+**Tests.** Six new specs in
+[annotationExport.test.ts](../../apps/web/src/v3/observe/lib/__tests__/annotationExport.test.ts):
+
+1. *Six-ring GeoJSON expansion* — seed a zone with `ringRadiiM = [10, 20, 30, 40, 50, 60]`,
+   assert six `permacultureZone` Features, each carrying its `ring` and
+   `radiusM` properties. Ring 5's mid-arc vertex sits ~60 m from the
+   anchor (`turf.distance` ∈ [55, 65] m).
+2. *MULTIPOLYGON CSV row* — one `pz1` row whose WKT cell contains
+   `MULTIPOLYGON(((` and exactly six `((` outer-ring tokens.
+3. *Six KML placemarks per folder* — the "Permaculture zone" folder
+   contains six `<Placemark>` elements with "Zone 0".."Zone 5" labels.
+4. *Located ecologyObservation → Point* — `location: [-78.2, 44.5]`
+   produces one Point Feature and a `POINT(-78.2 44.5)` WKT cell.
+5. *Locationless ecologyObservation* — zero Features in GeoJSON, no
+   "Ecology observation" folder in KML, but the row is still present in
+   CSV with an empty `geometryWkt` cell (legacy contract preserved).
+6. *Skip zero / negative ring radii* — a zone with `[10, 0, 30, 40, -50, 60]`
+   emits four Features with rings `[0, 2, 3, 5]`.
+
+The pre-existing 10 specs continue to pass — none of them seeds a
+`permacultureZone` or sets `location` on an observation.
+
+**Verification.** `tsc --noEmit` clean, `vite build` clean (✓ built in
+34.69s), 16 / 16 export specs pass.
+
+**Why this design (not the alternatives).**
+- *Six Polygon Features (not one MultiPolygon, not a holed donut).*
+  Per-ring `ring`/`radiusM` properties matter for QGIS styling. KML has
+  no native MultiPolygon (would force MultiGeometry XML); a holed donut
+  loses zone identity entirely. CSV uses MULTIPOLYGON only because the
+  CSV row contract is 1:1 with records and OGR / PostGIS round-trip it
+  losslessly.
+- *Optional `location` field, not homestead-anchor fallback.* A
+  fallback would stack every observation at one pixel — misleading on
+  the map. Optional field is honest about what we know.
+- *`geometriesFor` as a single source of truth.* All three serialisers
+  (GeoJSON, KML, CSV) call the same function, preventing drift.
+- *Capture UI for `EcologyObservation.location` deferred.* Out of scope
+  this turn — pure export plumbing keeps the diff reviewable. A future
+  turn adds map-pick to the Ecology detail editor.
+
+**Still deferred.** KML `<IconStyle>` for sector colour fidelity;
+per-record anchor on `SectorArrow`; per-sector-type radius
+(sun vs wind vs fire); map-pick capture UI for
+`EcologyObservation.location`; promoting `sectorRadiusM` to a dedicated
+DB column once query patterns demand it.
+
 ## References
 
 - Predecessor ADR: [2026-05-07 Atlas OBSERVE Touch-First Drag + Multi-Item Batch Edit + Per-Store Undo Specs](2026-05-07-atlas-observe-batch-edit-touch-drag.md)

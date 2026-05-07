@@ -31,6 +31,11 @@ export interface EcologyObservation {
   projectId: string;
   species: string;
   trophicLevel: TrophicLevel;
+  /** Optional [lng, lat] for map placement / spatial export. Existing
+   *  observations without a location remain CSV-only. Capture UI to set
+   *  this is a deferred follow-up (see 2026-05-07 symbology / export
+   *  ADR — permacultureZone + ecologyObservation update). */
+  location?: [number, number];
   notes?: string;
   observedAt: string;
 }
