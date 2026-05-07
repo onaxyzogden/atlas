@@ -59,6 +59,11 @@ export default function WaterNetworkCard({ project }: Props) {
     return summary?.annual_precip_mm ?? null;
   }, [siteData]);
   const [precipMm, setPrecipMm] = useState<number>(sitePrecipMm ?? 900);
+  // Peak-event sizing — Permaculture Scholar follow-up 2026-05-07.
+  // Default 100 mm / 24 hr is a rough 100-yr NOAA Atlas-14 figure for
+  // mid-latitude North America; the steward should tune to their own
+  // station's design storm.
+  const [stormDepthMm, setStormDepthMm] = useState<number>(100);
 
   const nodes = useMemo(
     () => all.filter((n) => n.projectId === project.id),
@@ -96,6 +101,27 @@ export default function WaterNetworkCard({ project }: Props) {
     () => Object.values(flow.retainedL).reduce((s, v) => s + v, 0),
     [flow],
   );
+
+  // Peak-event rollup. Catchment yield in m³ for an event of `stormDepthMm`
+  // is exactly the same V = A × P × C formula used annually — just with the
+  // storm depth as P. Total effective storage capacity is the sum of
+  // capacity-bearing nodes (storage cisterns + swale L×W×D + sinks if
+  // they declare capacity).
+  const peakEvent = useMemo(() => {
+    const peakInflowL = nodes
+      .filter((n) => n.kind === 'catchment')
+      .reduce((s, n) => s + catchmentYieldM3(n, stormDepthMm) * 1000, 0);
+    const totalCapacityL = nodes
+      .filter((n) => n.kind !== 'catchment')
+      .reduce((s, n) => s + effectiveCapacityL(n), 0);
+    const surplusL = peakInflowL - totalCapacityL;
+    return {
+      peakInflowL,
+      totalCapacityL,
+      surplusL,
+      undersized: peakInflowL > 0 && surplusL > 0,
+    };
+  }, [nodes, stormDepthMm]);
 
   const orphans = useMemo(
     () =>
@@ -166,6 +192,59 @@ export default function WaterNetworkCard({ project }: Props) {
             {formatLitres(flow.offsiteLossL)}
           </span>
         </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Peak-event sizing</h2>
+        <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
+          Annual yield sets the steady ration; one design storm decides
+          whether your spillways hold. Default 100 mm in 24 hr is a coarse
+          100-yr / 24-hr figure (NOAA Atlas-14 mid-latitude NA) — tune to
+          your own station. Mollison ch.7 + USDA NRCS TR-55.
+        </p>
+        <label className={styles.field}>
+          <span>Design storm depth (mm / 24 hr)</span>
+          <input
+            type="number"
+            min={0}
+            step={5}
+            value={stormDepthMm}
+            onChange={(e) => setStormDepthMm(Number(e.target.value) || 0)}
+          />
+        </label>
+        <div className={styles.statRow}>
+          <span>Peak inflow from catchments</span>
+          <span>{formatLitres(peakEvent.peakInflowL)}</span>
+        </div>
+        <div className={styles.statRow}>
+          <span>Total effective capacity</span>
+          <span>{formatLitres(peakEvent.totalCapacityL)}</span>
+        </div>
+        <div className={styles.statRow}>
+          <span>Storm balance</span>
+          <span
+            style={{
+              color: peakEvent.undersized
+                ? 'rgba(220,140,120,0.95)'
+                : 'rgba(160,200,140,0.95)',
+            }}
+          >
+            {peakEvent.undersized
+              ? `undersized — ${formatLitres(peakEvent.surplusL)} must spill to emergency overflow`
+              : `${formatLitres(-peakEvent.surplusL)} headroom`}
+          </span>
+        </div>
+        {peakEvent.undersized && (
+          <p
+            className={styles.empty}
+            style={{ textAlign: 'left', padding: '6px 0 0', color: 'rgba(220,140,120,0.85)' }}
+          >
+            Storm peak exceeds total capacity. Either expand capacity (longer
+            swales, deeper pond) or designate a non-erosive emergency
+            spillway / vegetated overflow path. Yeomans warns rework here is
+            an order of magnitude more costly than upfront sizing.
+          </p>
+        )}
       </section>
 
       <section className={styles.section}>

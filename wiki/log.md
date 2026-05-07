@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 2 · Water peak-event sizing (design-storm vs capacity)
+
+Module 2 (Water) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-water-scholar-build-fresh.md`). `WaterNetworkCard` gains a "Peak-event sizing" panel between Annual balance and Validation. Steward enters a design-storm depth (default 100 mm / 24 hr — coarse NOAA Atlas-14 100-yr mid-latitude NA figure); the card computes peak inflow as `Σ Area × stormDepth × C` over catchments and compares against the sum of effective storage capacities (`effectiveCapacityL` per non-catchment node, swales via `L × W × D`). When peak > capacity the balance row reads "undersized — N L must spill to emergency overflow" in warning red plus a Yeomans-grounded callout recommending capacity expansion or a non-erosive vegetated spillway. Reuses the existing `catchmentYieldM3` helper (V = A × P × C works for both annual yield and storm peak — only the depth changes). Cites Mollison ch.7 + USDA NRCS TR-55. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 3 · SectorOverlayCard (wind/fire/view/noise)
 
 Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). New card `apps/web/src/v3/plan/cards/zone-circulation/SectorOverlayCard.tsx` added as the 4th `zone-circulation` tab (`plan-sector-overlay`). Renders a 360×360 compass with: a prevailing-wind sector parsed from `climate.prevailing_wind` (8-point quantiser handles "W-SW", "WSW", "SW"), a downslope-water sector from `elevation.predominant_aspect`, and three editable compass-pickers for Fire / View / Noise (component-state v1; future `sectorStore` will persist). Wedges drawn via SVG `<path>` with N=0° / y-down geometry; site-data rows below the diagram echo raw + parsed values, with an Observe-fetch hint when layers absent. The "Why sectors" footer cites Mollison ch.3 + OSU PDC Week 2 (Sectors & Zones). Typecheck clean.

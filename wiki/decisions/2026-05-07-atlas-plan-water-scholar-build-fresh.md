@@ -120,8 +120,18 @@ Shared math helper `waterMath.ts`:
   "Observe fetch needed" prompt when the elevation layer isn't yet
   populated. Contour overlay + ridge/valley auto-trace remain
   deferred — those need raster work, not just summary fields.
-- **Peak-event sizing:** ingest 100-yr / 24-hr design storm to size
-  emergency overflows / spillways alongside annual yields.
+- ✅ **Peak-event sizing** — landed 2026-05-07. `WaterNetworkCard`
+  gains a "Peak-event sizing" panel between Annual balance and
+  Validation. Steward enters a design-storm depth (default 100 mm /
+  24 hr — coarse NOAA Atlas-14 100-yr mid-latitude NA figure); card
+  computes peak inflow as `Σ Area × stormDepth × C` over catchments
+  and compares against the sum of effective storage capacities
+  (`effectiveCapacityL` per non-catchment node, swales via L×W×D).
+  When peak > capacity the row reads "undersized — N L must spill to
+  emergency overflow" in warning red plus a Yeomans-grounded callout
+  recommending capacity expansion or a non-erosive vegetated
+  spillway. Reuses the existing `catchmentYieldM3` math — no new
+  helper. Cites Mollison ch.7 + USDA NRCS TR-55.
 - **Migrate legacy `earthworks` and `storageInfra` collections** into
   `waterNodes` once `V3PlanPage` and `DashboardRouter` no longer
   reference the old features/plan/* cards.
