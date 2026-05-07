@@ -185,6 +185,51 @@ renderer already does the math) and include them in the spatial exports.
 - `apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx` — four `circle` → `symbol` swaps, `registerObserveIcons` wire-up, `styleimagemissing` listener.
 - `apps/web/src/v3/observe/ObserveLayout.tsx` — mounts `<ExportButton>` next to `<SelectionFloater>`.
 
+## 2026-05-07 — Update — sector-wedge geometry now in spatial exports
+
+The first item under "Scope deferrals" (sector wedge synthesis) is closed.
+`geometryFor` now returns a `Polygon` for `'sector'` records when a
+project-resolved anchor is available; the wedge is built with the same
+`wedgePolygon(center, bearingDeg, arcDeg, radiusM)` math the renderer uses
+in `ObserveAnnotationLayers` (lifted verbatim into `annotationExport`),
+preserving pixel parity with the on-map wedge.
+
+**Anchor resolution order** (`resolveSectorAnchor(projectId)`):
+
+1. First household for the project that carries a `position` —
+   matches the renderer's homestead-first preference.
+2. Centroid of the project's `parcelBoundaryGeojson` FeatureCollection
+   via `turf.centroid(...)`.
+3. Otherwise `null` — sectors fall back to CSV-only, same as before.
+
+**Radius.** Hard-coded `SECTOR_RADIUS_M = 250` mirrors the renderer's
+literal in `ObserveAnnotationLayers.tsx:386`. A future change is one line.
+
+**Threading.** `geometryFor` widened from `(kind, r)` to
+`(kind, r, ctx)` where `ctx: { sectorAnchor: [number, number] | null }`.
+`toGeoJSON` / `toKML` / `toCSV` each compute the anchor once at entry and
+pass the same `ctx` to every `geometryFor` call so we don't re-walk the
+project store per record.
+
+**Tests.** Two new specs in `annotationExport.test.ts` (8 / 8 pass):
+
+- Sector + homestead → `toGeoJSON` emits one Polygon Feature with a
+  closed ring of > 4 vertices; CSV `# kind: sector` block contains a
+  `POLYGON((...))` WKT.
+- Sector with no homestead and no parcel boundary → spatial exports
+  skip the sector; CSV row still present with empty `geometryWkt`.
+
+The pre-existing 6 specs are unchanged — none of them seeds a sector,
+so totals and folder presence assertions stay valid.
+
+**Verification.** `tsc --noEmit` clean, `vite build` clean (✓ built in
+26.81s, 626 PWA precache entries), 8 / 8 export specs pass.
+
+**Still deferred.** KML `<IconStyle>` for sector colour fidelity;
+configurable radius; per-record anchor on `SectorArrow` (would need a
+store-schema bump + draw-tool + renderer change in lockstep);
+`permacultureZone` and `ecologyObservation` in spatial exports.
+
 ## References
 
 - Predecessor ADR: [2026-05-07 Atlas OBSERVE Touch-First Drag + Multi-Item Batch Edit + Per-Store Undo Specs](2026-05-07-atlas-observe-batch-edit-touch-drag.md)

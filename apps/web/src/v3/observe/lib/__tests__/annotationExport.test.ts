@@ -193,6 +193,84 @@ describe('annotationExport — serialisation', () => {
   });
 });
 
+describe('annotationExport — sector wedge synthesis', () => {
+  it('synthesises a Polygon for sectors when a homestead anchor exists', () => {
+    useHumanContextStore.setState({
+      // @ts-expect-error - minimal seed shape
+      households: [{ id: 'hh1', projectId: PROJECT, position: [-78.2, 44.5] }],
+      neighbours: [],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    useExternalForcesStore.setState({
+      hazards: [],
+      sectors: [
+        // @ts-expect-error - minimal seed shape
+        {
+          id: 'sec1',
+          projectId: PROJECT,
+          type: 'sun',
+          bearingDeg: 180,
+          arcDeg: 60,
+        },
+      ],
+    });
+
+    const collected = collectProjectAnnotations(PROJECT);
+    const fc = toGeoJSON(collected);
+    const sectorFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'sector',
+    );
+    expect(sectorFeatures.length).toBe(1);
+    const geom = sectorFeatures[0]!.geometry as GeoJSON.Polygon;
+    expect(geom.type).toBe('Polygon');
+    const ring = geom.coordinates[0]!;
+    // Closed ring + apex + arc steps → comfortably more than 4 vertices.
+    expect(ring.length).toBeGreaterThan(4);
+    const first = ring[0]!;
+    const last = ring[ring.length - 1]!;
+    expect(first[0]).toBe(last[0]);
+    expect(first[1]).toBe(last[1]);
+
+    const csv = toCSV(collected);
+    expect(csv).toContain('# kind: sector');
+    expect(csv).toContain('POLYGON((');
+  });
+
+  it('skips sectors from spatial exports when no anchor is available', () => {
+    useExternalForcesStore.setState({
+      hazards: [],
+      sectors: [
+        // @ts-expect-error - minimal seed shape
+        {
+          id: 'sec-orphan',
+          projectId: PROJECT,
+          type: 'wind',
+          bearingDeg: 90,
+          arcDeg: 45,
+        },
+      ],
+    });
+
+    const collected = collectProjectAnnotations(PROJECT);
+    const fc = toGeoJSON(collected);
+    const sectorFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'sector',
+    );
+    expect(sectorFeatures.length).toBe(0);
+
+    const csv = toCSV(collected);
+    expect(csv).toContain('# kind: sector');
+    // Sector row exists with empty geometryWkt — the trailing column is
+    // the WKT cell, so the sector line ends with a comma followed by nothing.
+    const sectorLine = csv
+      .split('\n')
+      .find((l) => l.startsWith('sec-orphan'));
+    expect(sectorLine).toBeTruthy();
+    expect(sectorLine!.endsWith(',')).toBe(true);
+  });
+});
+
 describe('annotationExport — filename', () => {
   it('formats as atlas-observe-{shortId}-{YYYYMMDD}.{ext}', () => {
     const fixed = new Date('2026-05-07T12:00:00Z');
