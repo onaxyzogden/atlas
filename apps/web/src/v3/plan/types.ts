@@ -123,6 +123,7 @@ export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
 export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: string }>> = {
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
+    { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
   ],
   'water-management': [
     { label: 'Catchments',     sectionId: 'plan-water-catchments' },

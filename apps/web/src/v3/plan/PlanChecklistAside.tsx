@@ -17,11 +17,11 @@ interface PlanModuleGuidance {
 
 const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
   'dynamic-layering': {
-    why: 'Mapping permanence scales first — from earthworks and buildings down to annual crops — ensures the most energy-intensive decisions are made before ephemeral ones (Holmgren P11: Use edges and value the marginal).',
+    why: 'Yeomans\' nine ranks decide order: Climate → Landform → Water → Access → Structures → Subsystems → Soil → Vegetation → Fauna. Per Permaculture Scholar (2026-05-07): collapsing Access + Structures is a Keyline violation; visualising ordering and warning when prerequisites are skipped is what the module must do (Mollison ch.5; Holmgren P8 Integrate rather than segregate).',
     how: [
-      'Toggle zone and sector overlays to confirm map layers are live.',
-      'Open Permanence Scales and categorise each element by its lifespan.',
-      'Sequence design decisions from most permanent to least permanent.',
+      'Open Permanence scales for the rank-by-rank rollup of element counts.',
+      'Open Permanence ladder to see proportional bars + any ordering warnings.',
+      'Resolve violations top-down: design the missing higher-rank layer before adding more elements below it.',
     ],
   },
   'water-management': {

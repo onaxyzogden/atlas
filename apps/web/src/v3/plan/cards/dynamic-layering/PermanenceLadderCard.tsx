@@ -1,0 +1,241 @@
+/**
+ * PermanenceLadderCard — Plan Module 1 (Dynamic Layering & Permanence), card 2/2.
+ *
+ * Per Permaculture Scholar verdict 2026-05-07: the existing rank+count
+ * banner (PermanenceScalesCard) is "an accounting exercise" — it misses
+ * the spatial-relational core of Yeomans / Mollison / Holmgren. A
+ * rigorous Layering module must (a) preserve the orthodox 9-rank Yeomans
+ * scale (collapsing Access+Structures violates Keyline ordering), (b)
+ * surface the *ordering relationship* between layers visually, and (c)
+ * warn the steward when lower-permanence elements have been placed
+ * before their higher-permanence prerequisites.
+ *
+ * This card is BUILD_FRESH and additive: it keeps the Atlas store
+ * wiring (9 Zustand stores → rank counts) and adds a vertical ladder
+ * with proportional bars + a "design-implication" warning panel that
+ * fires when ordering is violated (e.g. Vegetation populated before
+ * Water; Structures populated before Access).
+ *
+ * Sources: NotebookLM Permaculture Scholar (5aa3dcf3-…), turn 1
+ * 2026-05-07; Yeomans P.A. *The Keyline Plan*; Mollison B. *Permaculture
+ * Designer's Manual* ch.5; Holmgren D. *Principles & Pathways* P8
+ * (Integrate Rather Than Segregate).
+ */
+
+import { useMemo } from 'react';
+import type { LocalProject } from '../../../../store/projectStore.js';
+import { useZoneStore } from '../../../../store/zoneStore.js';
+import { usePathStore } from '../../../../store/pathStore.js';
+import { useStructureStore } from '../../../../store/structureStore.js';
+import { useCropStore } from '../../../../store/cropStore.js';
+import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
+import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { usePolycultureStore } from '../../../../store/polycultureStore.js';
+import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import styles from '../../../../features/plan/planCard.module.css';
+
+interface Props {
+  project: LocalProject;
+  onSwitchToMap: () => void;
+}
+
+// 9-rank Yeomans Scale of Permanence. Lower rank = more permanent.
+// `prereqs` lists the ranks that should be designed first; if the
+// current rank has elements but a prereq has zero, the steward has
+// likely jumped ahead.
+interface RankDef {
+  rank: number;
+  name: string;
+  timescale: string;
+  prereqs: number[];
+  blurb: string;
+}
+
+const RANKS: RankDef[] = [
+  { rank: 1, name: 'Climate',    timescale: 'centuries+',          prereqs: [],            blurb: 'The fixed envelope — hardiness, precip, season length.' },
+  { rank: 2, name: 'Landform',   timescale: 'millennia',           prereqs: [1],           blurb: 'Slope, aspect, ridges, valleys — read, never bulldozed.' },
+  { rank: 3, name: 'Water',      timescale: 'decades–centuries',   prereqs: [1, 2],        blurb: 'Swales, dams, drains. The first place the designer imposes will.' },
+  { rank: 4, name: 'Access',     timescale: 'years–decades',       prereqs: [1, 2, 3],     blurb: 'Roads & paths — must follow water, not cross it.' },
+  { rank: 5, name: 'Structures', timescale: 'years–decades',       prereqs: [1, 2, 3, 4],  blurb: 'Buildings & fences — placed only after water + access.' },
+  { rank: 6, name: 'Subsystems', timescale: 'years',               prereqs: [3, 4, 5],     blurb: 'Composters, energy, waste loops — service the structures.' },
+  { rank: 7, name: 'Soil',       timescale: 'years',               prereqs: [2, 3],        blurb: 'Beds, mulch, fertility — built atop landform + water.' },
+  { rank: 8, name: 'Vegetation', timescale: 'months–years',        prereqs: [3, 4, 7],     blurb: 'Crops, orchard, guilds — planted into prepared soil + access.' },
+  { rank: 9, name: 'Fauna',      timescale: 'days–years',          prereqs: [3, 4, 8],     blurb: 'Livestock & wildlife — last on, first off (most dynamic).' },
+];
+
+interface Row {
+  rank: number;
+  name: string;
+  timescale: string;
+  blurb: string;
+  count: number;
+  countLabel: string;
+  prereqs: number[];
+}
+
+export default function PermanenceLadderCard({ project }: Props) {
+  const allZones = useZoneStore((s) => s.zones);
+  const allPaths = usePathStore((s) => s.paths);
+  const allStructures = useStructureStore((s) => s.structures);
+  const allCrops = useCropStore((s) => s.cropAreas);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
+  const allEcology = useEcologyStore((s) => s.ecology);
+  const allGuilds = usePolycultureStore((s) => s.guilds);
+
+  const rows: Row[] = useMemo(() => {
+    const pId = project.id;
+    const zones = allZones.filter((z) => z.projectId === pId);
+    const paths = allPaths.filter((p) => p.projectId === pId);
+    const structures = allStructures.filter((s) => s.projectId === pId);
+    const crops = allCrops.filter((c) => c.projectId === pId);
+    const transects = allTransects.filter((t) => t.projectId === pId);
+    const earthworks = allEarthworks.filter((e) => e.projectId === pId);
+    const storage = allStorage.filter((s) => s.projectId === pId);
+    const fertility = allFertility.filter((f) => f.projectId === pId);
+    const ecology = allEcology.filter((e) => e.projectId === pId);
+    const guilds = allGuilds.filter((g) => g.projectId === pId);
+
+    const counts: Record<number, { count: number; label: string }> = {
+      1: { count: 1, label: 'site-level (Observe)' },
+      2: { count: transects.length, label: `${transects.length} transect(s)` },
+      3: { count: earthworks.length + storage.length, label: `${earthworks.length} earthworks · ${storage.length} storage` },
+      4: { count: paths.length, label: `${paths.length} path(s)` },
+      5: { count: structures.length, label: `${structures.length} structure(s)` },
+      6: { count: fertility.length, label: `${fertility.length} fertility unit(s)` },
+      7: { count: zones.filter((z) => z.category === 'food_production').length, label: `${zones.filter((z) => z.category === 'food_production').length} food-production zone(s)` },
+      8: { count: crops.length + guilds.length, label: `${crops.length} crop area(s) · ${guilds.length} guild(s)` },
+      9: { count: ecology.length, label: `${ecology.length} ecology obs.` },
+    };
+
+    return RANKS.map((r) => ({
+      rank: r.rank,
+      name: r.name,
+      timescale: r.timescale,
+      blurb: r.blurb,
+      count: counts[r.rank].count,
+      countLabel: counts[r.rank].label,
+      prereqs: r.prereqs,
+    }));
+  }, [project.id, allZones, allPaths, allStructures, allCrops, allTransects, allEarthworks, allStorage, allFertility, allEcology, allGuilds]);
+
+  // Detect ordering violations: any rank with count > 0 whose prereqs
+  // have count == 0. These are the "design-implication" warnings the
+  // Scholar called for.
+  const violations = useMemo(() => {
+    const byRank = new Map(rows.map((r) => [r.rank, r] as const));
+    const out: Array<{ at: Row; missing: Row[] }> = [];
+    for (const row of rows) {
+      if (row.count === 0) continue;
+      const missing = row.prereqs
+        .map((p) => byRank.get(p)!)
+        .filter((p) => p && p.count === 0);
+      if (missing.length > 0) out.push({ at: row, missing });
+    }
+    return out;
+  }, [rows]);
+
+  const maxCount = useMemo(
+    () => rows.reduce((m, r) => Math.max(m, r.count), 1),
+    [rows],
+  );
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <span className={styles.heroTag}>Plan · Module 1 · Layering</span>
+        <h1 className={styles.title}>Permanence ladder</h1>
+        <p className={styles.lede}>
+          Yeomans&rsquo; nine ranks, longest-lived at the top. Each rank is
+          designed *before* the ranks below it — water before paths, paths
+          before buildings, soil before plants. Bars show how many on-site
+          elements presently anchor each rank.
+        </p>
+      </header>
+
+      {violations.length > 0 && (
+        <section className={styles.section} style={{ borderLeft: '3px solid rgba(220,160,90,0.7)', paddingLeft: 12 }}>
+          <h2 className={styles.sectionTitle}>Ordering check</h2>
+          <p className={styles.lede} style={{ marginBottom: 8 }}>
+            Lower-permanence elements appear to be in place before their
+            higher-permanence prerequisites. Keyline practice (P.A. Yeomans)
+            warns this often forces costly rework.
+          </p>
+          <ul className={styles.list}>
+            {violations.map((v) => (
+              <li key={v.at.rank} className={styles.listRow}>
+                <div>
+                  <strong>{v.at.rank}. {v.at.name}</strong>
+                  <div className={styles.listMeta}>
+                    {v.at.count} element(s) but missing prerequisite{v.missing.length > 1 ? 's' : ''}: {v.missing.map((m) => `${m.rank} ${m.name}`).join(', ')}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Nine ranks · element counts</h2>
+        <ul className={styles.list}>
+          {rows.map((r) => {
+            const w = Math.max(2, Math.round((r.count / maxCount) * 100));
+            const filled = r.count > 0;
+            return (
+              <li key={r.rank} className={styles.listRow} style={{ display: 'block' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                  <strong>
+                    {r.rank}. {r.name}{' '}
+                    <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>
+                      ({r.timescale})
+                    </span>
+                  </strong>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', opacity: filled ? 1 : 0.5 }}>
+                    {r.count} · {r.countLabel}
+                  </span>
+                </div>
+                <div className={styles.listMeta} style={{ marginTop: 2 }}>{r.blurb}</div>
+                <div
+                  aria-hidden
+                  style={{
+                    height: 6,
+                    marginTop: 6,
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${w}%`,
+                      height: '100%',
+                      background: filled
+                        ? `hsl(${Math.round(40 + (r.rank - 1) * 18)}, 55%, 55%)`
+                        : 'rgba(255,255,255,0.08)',
+                      transition: 'width 250ms',
+                    }}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Why this ladder</h2>
+        <p className={styles.lede}>
+          Holmgren P8 — <em>Integrate rather than segregate</em>. Each rank
+          enables and constrains the rank below it. Designing top-down
+          (Climate → Fauna) preserves degrees of freedom; designing
+          bottom-up burns them. The ordering check above flags where the
+          current site state has run ahead of its prerequisites.
+        </p>
+      </section>
+    </div>
+  );
+}

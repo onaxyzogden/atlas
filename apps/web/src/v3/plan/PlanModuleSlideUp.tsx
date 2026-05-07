@@ -18,6 +18,12 @@ import css from './PlanModuleSlideUp.module.css';
 
 // All 16 plan cards lazy-loaded.
 const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
+// Dynamic Layering (Module 1) — additive ladder added per Permaculture Scholar
+// verdict 2026-05-07. Atlas's PermanenceScalesCard is preserved (it has the
+// store-wired 9-rank rollup the Scholar said was orthodox); the new card adds
+// the spatial/relational layer they said was missing — proportional bars +
+// ordering-violation warnings keyed off Yeomans/Keyline prerequisites.
+const PermanenceLadderCard    = lazy(() => import('./cards/dynamic-layering/PermanenceLadderCard.js'));
 // Water Management (Module 2) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's RunoffCalculatorCard / SwaleDrainTool / StorageInfraTool
 // remain at apps/web/src/features/plan/ as legacy and are still wired into
@@ -56,6 +62,7 @@ function renderCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
+    case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
