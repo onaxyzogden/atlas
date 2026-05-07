@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
 
@@ -41,9 +42,24 @@ export interface StorageInfra {
   createdAt: string;
 }
 
+// ── Watercourses (natural drainage — distinct from built earthworks) ────────
+
+export type WatercourseKind = 'stream' | 'creek' | 'ditch' | 'other';
+
+export interface Watercourse {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.LineString;
+  kind: WatercourseKind;
+  perennial?: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
 interface WaterSystemsState {
   earthworks: Earthwork[];
   storageInfra: StorageInfra[];
+  watercourses: Watercourse[];
 
   addEarthwork: (e: Earthwork) => void;
   updateEarthwork: (id: string, patch: Partial<Earthwork>) => void;
@@ -52,13 +68,18 @@ interface WaterSystemsState {
   addStorageInfra: (i: StorageInfra) => void;
   updateStorageInfra: (id: string, patch: Partial<StorageInfra>) => void;
   removeStorageInfra: (id: string) => void;
+
+  addWatercourse: (w: Watercourse) => void;
+  updateWatercourse: (id: string, patch: Partial<Watercourse>) => void;
+  removeWatercourse: (id: string) => void;
 }
 
 export const useWaterSystemsStore = create<WaterSystemsState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       earthworks: [],
       storageInfra: [],
+      watercourses: [],
 
       addEarthwork: (e) => set((s) => ({ earthworks: [...s.earthworks, e] })),
       updateEarthwork: (id, patch) =>
@@ -69,8 +90,23 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
       updateStorageInfra: (id, patch) =>
         set((s) => ({ storageInfra: s.storageInfra.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
       removeStorageInfra: (id) => set((s) => ({ storageInfra: s.storageInfra.filter((i) => i.id !== id) })),
-    }),
-    { name: 'ogden-water-systems', version: 1 },
+
+      addWatercourse: (w) => set((s) => ({ watercourses: [...s.watercourses, w] })),
+      updateWatercourse: (id, patch) =>
+        set((s) => ({
+          watercourses: s.watercourses.map((w) => (w.id === id ? { ...w, ...patch } : w)),
+        })),
+      removeWatercourse: (id) =>
+        set((s) => ({ watercourses: s.watercourses.filter((w) => w.id !== id) })),
+    }), { limit: 200 }),
+    {
+      name: 'ogden-water-systems',
+      version: 2,
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as Partial<WaterSystemsState>;
+        return { ...p, watercourses: p.watercourses ?? [] } as WaterSystemsState;
+      },
+    },
   ),
 );
 

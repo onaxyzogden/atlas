@@ -17,7 +17,7 @@
  * than reaching into a store.
  */
 
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
 import { DelayedTooltip } from './ui/DelayedTooltip.js';
 import s from './SidebarBottomControls.module.css';
@@ -38,12 +38,49 @@ export default function SidebarBottomControls({
 }: SidebarBottomControlsProps) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  // `strict: false` keeps this safe outside project routes (returns {}).
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const projectId = params.projectId;
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'User Account';
   const displayInitial = (displayName[0] ?? 'U').toUpperCase();
 
   return (
     <>
+      {projectId && (
+        <DelayedTooltip label="Open in OBSERVE (v3)" position="right" disabled={!collapsed}>
+          <Link
+            to="/v3/project/$projectId/observe"
+            params={{ projectId }}
+            className={s.bottomBtn}
+            aria-label="Open in OBSERVE (v3)"
+            style={{ textDecoration: 'none' }}
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="5" />
+              <path d="M7 4v6M4 7h6" />
+            </svg>
+            {!collapsed && (
+              <span className={s.bottomBtnLabel}>
+                OPEN IN OBSERVE
+                <span
+                  style={{
+                    marginLeft: 6,
+                    padding: '1px 4px',
+                    fontSize: '0.65em',
+                    border: '1px solid currentColor',
+                    borderRadius: 3,
+                    opacity: 0.7,
+                  }}
+                >
+                  v3
+                </span>
+              </span>
+            )}
+          </Link>
+        </DelayedTooltip>
+      )}
+
       <div className={s.bottomSection}>
         <DelayedTooltip label="New Project" position="right" disabled={!collapsed}>
           <button

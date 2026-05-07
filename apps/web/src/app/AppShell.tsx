@@ -12,6 +12,8 @@ import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import { Button } from '../components/ui/Button.js';
 import { FLAGS } from '@ogden/shared';
+import { LevelNavigatorBar } from '../components/LevelNavigator/index.js';
+import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -29,6 +31,7 @@ export default function AppShell({ children }: AppShellProps) {
   useKeyboardShortcuts();
 
   return (
+    <V3LevelNavBridge>
     <div className={styles.shell}>
       <a href="#main-content" className={styles.skipLink}>
         Skip to main content
@@ -40,7 +43,9 @@ export default function AppShell({ children }: AppShellProps) {
           <span className={styles.logoSub}>Land Design Atlas</span>
         </Link>
 
-        <div className={styles.spacer} />
+        <div className={styles.headerCenter}>
+          <LevelNavigatorBar />
+        </div>
 
         {/* Search / Command Palette trigger */}
         <button
@@ -113,5 +118,6 @@ export default function AppShell({ children }: AppShellProps) {
 
       <CommandPalette />
     </div>
+    </V3LevelNavBridge>
   );
 }

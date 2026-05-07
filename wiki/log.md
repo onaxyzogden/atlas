@@ -4,6 +4,432 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Atlas OBSERVE configurable sector wedge radius via project metadata
+
+Centralised the sector wedge outer radius behind a per-project setting.
+NEW
+[`apps/web/src/v3/observe/lib/sectorRadius.ts`](../apps/web/src/v3/observe/lib/sectorRadius.ts)
+exports `DEFAULT_SECTOR_RADIUS_M = 250` and
+`getSectorRadiusM(projectId)` — reads `useProjectStore.getState()` and
+falls back to the default for unset / non-finite / non-positive values.
+[`packages/shared/src/schemas/project.schema.ts`](../packages/shared/src/schemas/project.schema.ts)
+gains one optional Zod field on `ProjectMetadata`:
+`sectorRadiusM: z.number().positive().max(5000).optional()`. Because the
+schema is `.passthrough()` and the DB column is jsonb, no migration is
+required.
+
+The renderer
+([`ObserveAnnotationLayers.tsx`](../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx))
+now subscribes to `metadata.sectorRadiusM` via a Zustand selector and
+threads the resolved value into `wedgePolygon`. The exporter
+([`annotationExport.ts`](../apps/web/src/v3/observe/lib/annotationExport.ts))
+drops the module-level `SECTOR_RADIUS_M = 250` constant; `ExportContext`
+gains `sectorRadiusM: number`, computed once per export pass via
+`getSectorRadiusM(p.projectId)`.
+
+UI is one numeric input ("Sector wedge radius — m", debounced 300 ms,
+clamped `[10, 5000]`) inside the Sectors / Zones module slide-up
+([`SectorRadiusControl.tsx`](../apps/web/src/v3/observe/components/SectorRadiusControl.tsx)
+mounted in
+[`SectorsDashboard.tsx`](../apps/web/src/v3/observe/modules/sectors-zones/SectorsDashboard.tsx)).
+Empty input clears the override → fallback to 250 m.
+
+Two new vitest specs in
+[`annotationExport.test.ts`](../apps/web/src/v3/observe/lib/__tests__/annotationExport.test.ts):
+configured radius vertex distance via `turf.distance` (∈ [480, 520] m
+for `sectorRadiusM = 500`), plus a fallback table for invalid values.
+Pre-existing 8 specs unchanged. `tsc --noEmit` clean, `vite build` clean
+(57.91 s), 10 / 10 export specs pass.
+
+ADR amended in place: see
+[2026-05-07 OBSERVE symbology / export ADR](decisions/2026-05-07-atlas-observe-symbology-export.md)
+for the full update subsection.
+
+---
+
+## 2026-05-07 — Atlas OBSERVE sector wedges in GeoJSON / KML exports
+
+Closed the first "Scope deferral" from this morning's symbology / export
+ADR. `annotationExport.geometryFor('sector', …)` now synthesises a wedge
+`Polygon` (250 m radius, lifted from the renderer's `wedgePolygon` math)
+when a project anchor resolves: first household → parcel-boundary
+centroid → null fallback (CSV-only, same as before). `toGeoJSON`,
+`toKML`, and `toCSV` each compute the anchor once at entry and thread it
+through `geometryFor` via a small `ExportContext`.
+
+Two new vitest specs cover the with-anchor (Polygon + WKT) and no-anchor
+(skipped from spatial, present-but-empty in CSV) paths; pre-existing 6
+specs unchanged. `tsc --noEmit` clean, `vite build` clean (26.81 s),
+8 / 8 export specs pass.
+
+ADR amended in place (no new file): see
+[2026-05-07 OBSERVE symbology / export ADR](decisions/2026-05-07-atlas-observe-symbology-export.md)
+for the full update section.
+
+---
+
+## 2026-05-07 — Atlas OBSERVE Lucide point symbology + project-scope GeoJSON / KML / CSV export
+
+Closed two more items from the deferred list: at-a-glance symbology for
+the five OBSERVE point kinds and an off-device export path covering all
+seven namespace stores.
+
+### Symbology
+
+NEW [`lucideSprite.ts`](../apps/web/src/v3/observe/lib/lucideSprite.ts)
+registers eight images on the MapLibre sprite registry —
+`observe-{neighbourPin,household,highPoint,soilSample}` plus four SWOT
+bucket variants `observe-swotTag-{S,W,O,T}`. Each icon is rendered to an
+SVG string via `renderToStaticMarkup(<LucideIcon size=22 stroke=… />)`,
+wrapped inside a 40 × 40 SVG with a circular backdrop, encoded as
+`data:image/svg+xml;base64,…`, decoded via `Image.decode()`, and
+registered with `map.addImage(id, img, { pixelRatio: 2 })`. Idempotent
+(`map.hasImage` guard before and after `decode()`).
+
+[`ObserveAnnotationLayers`](../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)
+swaps four `circle` layers to `symbol`. `human-points` (mixed
+neighbour / household) and `swot-points` (mixed S/W/O/T) use a
+`['concat', 'observe-', ['get', 'annoKind' | 'bucket']]` icon-image
+expression so a single layer dispatches the correct image per feature;
+`topography-points` and `soil-points` are single-kind. All four use
+`'icon-allow-overlap': true`, `'icon-ignore-placement': true`,
+`'icon-anchor': 'center'`. The selection halo at lines 869-924 keeps
+working — its filter keys off `['==', ['geometry-type'], 'Point']`, not
+layer type.
+
+`registerObserveIcons(map)` is awaited at the top of `apply()` and
+re-runs on every `style.load`. A defensive `'styleimagemissing'`
+listener calls `tryRegisterMissingObserveIcon(map, id)` so a basemap
+swap that fires the event for any of the eight ids gets backfilled on
+demand.
+
+### Export library
+
+NEW [`annotationExport.ts`](../apps/web/src/v3/observe/lib/annotationExport.ts)
+— pure module (no React, no MapLibre) covering all 17 ExportKinds across
+the seven stores.
+
+- `collectProjectAnnotations(projectId)` — synchronous read of
+  `useStore.getState()` filtered by projectId, returning
+  `{ projectId, exportedAt, totalCount, byKind }`.
+- `toGeoJSON(p)` — RFC 7946 FeatureCollection, one Feature per
+  geometry-bearing record. Geometry-less kinds (`sector`,
+  `permacultureZone`, `ecologyObservation`) silently skipped.
+- `toKML(p)` — KML 2.2 hand-rolled XML, `<Folder>` per kind with
+  `<Placemark>`s using `<Point>`/`<LineString>`/`<Polygon>`. Custom
+  `escapeXml` covers `& < > " '`.
+- `toCSV(p)` — multi-section CSV: `# atlas-observe-export` header
+  block, then one section per kind with `# kind: <name>` separator,
+  union-of-columns header row, and a trailing `geometryWkt` column
+  (Well-Known Text). Geometry-less records appear in CSV with empty
+  `geometryWkt`.
+- `exportFilename(projectId, ext, now?)` — formats as
+  `atlas-observe-{shortId8}-{YYYYMMDD}.{ext}`.
+
+Per-kind geometry resolver handles the field heterogeneity: most points
+use `position`, soilSample uses `location`, storageInfra uses `center`,
+transect synthesises `LineString` from `pointA`/`pointB`, and
+LineString/Polygon kinds use the literal `geometry` property.
+
+### ExportButton UI
+
+NEW [`ExportButton.tsx`](../apps/web/src/v3/observe/components/ExportButton.tsx)
+— bottom-right floater on the OBSERVE map (mirrors bottom-left
+`MapToolbar`). Click → popover with three rows
+(`GeoJSON .geojson`, `KML .kml`, `CSV .csv`, each with a Lucide file
+icon). Picking builds a Blob, calls `URL.createObjectURL`, clicks an
+anchor with `download`, defers `revokeObjectURL` by 1 s for Safari.
+Disabled when `projectId === null`; popover closes on Esc /
+outside-click.
+
+Mounted from
+[`ObserveLayout`](../apps/web/src/v3/observe/ObserveLayout.tsx) next to
+`<SelectionFloater>` inside the `<DiagnoseMap>` render-prop.
+
+### Verification
+
+- `NODE_OPTIONS="--max-old-space-size=8192" npx tsc --noEmit` clean (exit 0).
+- `npx vite build` clean — ✓ built in 34.62s, 626 PWA precache entries.
+- `npx vitest run src/v3/observe/lib/__tests__/annotationExport.test.ts`
+  — **6 tests pass**: project-scoped collection, cross-store collection
+  (8 records, one per store), `toGeoJSON` skips geometry-less kinds,
+  `toKML` is well-formed, `toCSV` carries `# kind:` separators and a
+  literal `POINT(...)` for the neighbour record, `exportFilename`
+  matches the `atlas-observe-{8}-YYYYMMDD.{ext}` pattern.
+- Pre-existing test failures across 5 unrelated files unchanged.
+
+**ADR.** [`wiki/decisions/2026-05-07-atlas-observe-symbology-export.md`](decisions/2026-05-07-atlas-observe-symbology-export.md).
+
+### Deferred
+
+- Sector-as-wedge geometry synthesis for spatial exports.
+- KML `<IconStyle>` with hosted icon PNGs for Google Earth parity.
+- Per-kind sub-toggles in the export popover.
+- Worker offload for very large projects (sync builds are fine for
+  ≤ ~5,000 records).
+- PLAN / ACT stage tool symbology refresh (separate turn).
+
+### Recommended next session
+
+- Manual preview pass at `/v3/project/<id>/observe` — confirm icon
+  recognition under each basemap, verify GeoJSON loads in QGIS / Google
+  My Maps and KML in Google Earth at the right coordinates.
+- Or: pick up Plan-stage tool palette / sector-wedge geometry now that
+  the OBSERVE field-data path is closed end-to-end.
+
+---
+
+## 2026-05-07 — Atlas OBSERVE touch-first drag + multi-item batch edit + per-store undo specs
+
+Closed the three deferred items called out in the 2026-05-06
+selection/drag/vertex-edit/zundo ADR.
+
+**What landed:**
+- **Touch-first drag:** `AnnotationDragHandler.tsx` refactored from
+  mouse-only to pointer-agnostic (`onLayerPointerDown` /
+  `onPointerMove` / `onPointerUp`). Wires both `mousedown`+`touchstart`
+  on every point layer and `mouse{move,up}`+`touch{move,end}` on the
+  global map. Touch events gate by
+  `e.originalEvent.touches.length === 1` so pinch-zoom never engages
+  drag. A 4-pixel screen-space movement threshold prevents tap-to-select
+  from being hijacked. While dragging,
+  `map.touchZoomRotate.disableRotation()` keeps finger drift from
+  doubling as a rotate-pinch.
+- **Multi-item batch edit:** `annotationFormStore.Active` widens to
+  `mode: 'create' | 'edit' | 'edit-batch'` with
+  `existingIds?: string[]`; `AnnotationFormSlideUp` seeds values from
+  the first id and loops `schema.save()` once per id on Save; eyebrow
+  reads `Edit ${n} ${kind}s`. `SelectionFloater` Edit gate widens to
+  enable on same-kind multi-select (`selected.every((s) => s.kind ===
+  first.kind)`); mixed-kind selections still disable Edit with a
+  tooltip explanation. v1 batch undo is N-step (one zundo entry per
+  patched record) — `temporal.pause()`/`resume()` framing deferred.
+- **Per-store undo specs:** `temporal-undo.test.ts` extended with four
+  new `describe` blocks (topography / externalForces / waterSystems /
+  ecology) for 14 tests total. All seven OBSERVE namespace stores now
+  have at least one `add → undo` and one `add+update → undo` spec
+  passing under happy-dom.
+
+**Verification:** `npx tsc --noEmit` clean; `npx vite build` clean
+(29.37s, 626 PWA precache entries); `npx vitest run
+src/store/__tests__/temporal-undo.test.ts` 14/14 pass.
+
+**Scope deferrals (future):**
+- Single-undo for batch edits via `temporal.pause()`/`resume()`.
+- "(Mixed)" indicator on batch-edit form when items diverge on a field.
+- Project-level annotation export (CSV / GeoJSON / KML).
+- Lucide-style SVG sprite symbology for points.
+- PLAN and ACT stage tool palettes.
+
+ADR: [2026-05-07-atlas-observe-batch-edit-touch-drag.md](decisions/2026-05-07-atlas-observe-batch-edit-touch-drag.md)
+
+---
+
+## 2026-05-06 — Atlas OBSERVE annotation edit/delete loop + boundary persistence + v3 sidebar link
+
+Closed four follow-up gaps from the OBSERVE-tools-functional shipment that
+surfaced in field testing.
+
+**What landed:**
+- **Boundary persistence:** `ObserveLayout.onBoundaryDrawn` now writes the
+  closed polygon into `useProjectStore` as a single-feature
+  `FeatureCollection`; survives reload, basemap toggle, route swap.
+- **Per-kind Save/Cancel form:** new `AnnotationFormSlideUp` +
+  `annotationFieldSchemas` (12 kinds) + `annotationFormStore`; 12 draw
+  tools refactored to hand off to the form on draw-complete instead of
+  writing default-shape records.
+- **Live module dashboards:** new `AnnotationListCard` + `AnnotationRegistry`
+  wired into 5 module dashboards (EarthWaterEcology, HumanContext,
+  Macroclimate, Topography, SWOT); each row shows kind badge + edit + delete.
+- **Map-click → detail panel:** new `annotationDetailStore` +
+  `AnnotationDetailPanel`; `ObserveAnnotationLayers` injects `annoKind`/`annoId`
+  into every feature's properties and wires click + hover handlers per layer.
+  Clicking an annotation opens the detail panel with Edit + Delete.
+- **v3 sidebar link:** `SidebarBottomControls` exposes "Open in OBSERVE (v3)"
+  link to `/v3/project/$projectId/observe` from the production dashboard.
+
+**Scope deferrals (next session):**
+- Phase 4 SelectionFloater multi-select halo + drag-reposition for points +
+  vertex-edit via MapboxDraw `direct_select` for line/polygon.
+- Phase 5 zundo global Cmd-Z / Cmd-Shift-Z across the 7 namespace stores
+  with input-focus guard + per-store vitest specs.
+
+**Verification:** `npx tsc --noEmit` clean; `npm run build` clean (34s).
+
+ADR: [2026-05-06-atlas-observe-edit-delete-undo.md](decisions/2026-05-06-atlas-observe-edit-delete-undo.md)
+
+---
+
+## 2026-05-06 — Atlas OBSERVE tools functional + Scholar-grounded right rail
+
+Closed the OBSERVE-stage spec by making all 16 module-specific left-rail tools
+functional end-to-end and replacing the static right-rail checklist with a
+Permaculture-Scholar-grounded WHY/HOW/Pitfall card per module.
+
+Scholar consultation: notebook `5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b`,
+conversation `48a34396-...`, turn 1 (six modules × four-part response:
+purpose, WHY, HOW 2–3 steps, Pitfall, with citations to Holmgren P1/P2/P4/P7,
+Mollison Designer's Manual, OSU PDC).
+
+**What landed:**
+- Right rail (`ObserveChecklistAside.tsx`) renders Scholar guidance per module;
+  six-card stacked accordion at the OBSERVE landing.
+- Seven-namespace consolidation (ADR 2026-04-30) filled in: NEW
+  `humanContextStore` (neighbours/households/accessRoads/permacultureZones);
+  topography v1→v2 (contours/highPoints/drainageLines); externalForces v1→v2
+  (frost hazard + optional polygon geometry); waterSystems v1→v2
+  (watercourses); ecology v1→v2 (ecologyZones); swot (optional position).
+- Tool activation: `useMapToolStore.MapToolId` widened with 17
+  `'observe.<module>.<tool>'` ids; `ObserveTools.tsx` toggle + active-state
+  highlight; project-required gate; homestead-required gate for
+  `permaculture` zone tool.
+- 14 draw-tool components under `apps/web/src/v3/observe/components/draw/`
+  delegating to a shared `useMapboxDrawTool` lifecycle hook (~30–90 LOC each);
+  switchboard `ObserveDrawHost` mounts the appropriate tool based on
+  `activeTool`. Two non-MapboxDraw variants (SunWindWedgeTool,
+  PermacultureZoneTool) are popover-form-only because their geometries are
+  angular wedges or concentric rings.
+- Persistent annotation rendering: NEW `ObserveAnnotationLayers.tsx`
+  subscribes to all seven annotation namespaces + soilSamples + homesteadStore,
+  builds 8 sources / 11+ layers (Earth-Green palette, module-coded), re-applies
+  after every `style.load`. Master toggle `observeAnnotations` added to
+  `matrixTogglesStore` v6→v7 + Overlays popover.
+- MapLibre GL constraint: `line-dasharray` cannot be a data-driven expression
+  — split human-roads / topography-lines / water-lines into per-kind filtered
+  layers (footpath/drainage/ephemeral get static dasharray; perennial/contour
+  stay solid).
+
+**Verification:** typecheck clean (8 GB heap); preview at
+`/v3/project/.../observe/topography` showed 16 enabled tools + 1
+homestead-gated, Topography WHY/HOW/Pitfall card in the right rail, active-tool
+toggle + popover render confirmed via DOM. Seven persisted localStorage keys
+survive a hard reload.
+
+**ADR:** [wiki/decisions/2026-05-06-atlas-observe-tools-functional.md](decisions/2026-05-06-atlas-observe-tools-functional.md)
+
+**Files:** 12 edited, 18 created (humanContextStore + 14 draw tools +
+ObserveDrawHost + ObserveAnnotationLayers + ADR).
+
+**Deferred:** edit/delete UX for placed annotations beyond popover-active
+session, per-module sub-toggles, project-level annotation export, lucide-style
+SVG sprites, PLAN/ACT tool palettes.
+
+---
+
+## 2026-05-06 — Atlas Observe styling pass (option 1 — wholesale scoped port)
+
+Closed the open styling follow-up from the morning's Phase B ADR. Inspection
+of the working tree showed that a prior session had already authored a
+brace-walking CSS transformer at `scripts/scope-observe-styles.mjs` and
+generated `apps/web/src/v3/observe/styles/observe-port.css` from the OLOS
+reference `C:/Users/MY OWN AXIS/Documents/OGDEN Land Operating System/src/styles.css`
+— the work was sitting uncommitted and undocumented.
+
+**What the transformer does:**
+- Prefixes every top-level rule selector with `.observe-port` (4,091 rules
+  in the output).
+- Recurses into `@media` / `@supports` blocks; nested rules get the same
+  prefix.
+- Rewrites the leading `:root` block as `.observe-port` so `--olos-*` tokens
+  scope to the wrapper.
+- Strips 3 declarations (`font-family`, `color`, `background`) from the
+  rewritten root that would otherwise leak via cascade onto the wrapper
+  itself.
+- Drops 3 rule blocks with selectors `*` / `html` / `body` (atlas owns the
+  document root).
+- Preserves the leading Google Fonts `@import` (Cormorant Garamond + Inter)
+  untouched.
+
+**Wiring:** [ModuleSlideUp.tsx:34](apps/web/src/v3/observe/components/ModuleSlideUp.tsx)
+imports `observe-port.css` once; the sheet root carries `className={`${css.sheet} observe-port`}`.
+
+**Verification:** Dev preview confirms full OLOS visual fidelity (Cormorant
+Garamond display, gold/green accents, dark forest-green canvas) inside the
+sheet for Topography dashboard, Terrain Detail, and SWOT Synthesis
+dashboard. No leakage to atlas chrome (top app shell, decision rail, bottom
+tile rail) outside the sheet. Typecheck running concurrently.
+
+**ADR closure:** [wiki/decisions/2026-05-06-atlas-observe-port-styling.md](wiki/decisions/2026-05-06-atlas-observe-port-styling.md)
+status updated from "accepted (with open follow-up on styling)" to
+"accepted — closed (option 1 selected and shipped same day)".
+
+**Known follow-up:** Token reconciliation between OLOS and atlas is
+deferred. Option 3 (progressive token-swap from `--olos-*` to atlas
+equivalents) remains available if visual consistency between Observe and
+Plan/Act becomes a goal in later phases.
+
+---
+
+## 2026-05-06 — Atlas Observe Phase B port (18 pages, 6 modules)
+
+Filled the six Observe-stage module surfaces with real ported pages from the
+OLOS reference build (`C:\Users\MY OWN AXIS\Documents\OGDEN Land Operating
+System\src\pages`). Phase A had shipped placeholder panels reading "Module
+pages arrive in Phase B"; B replaces them with the substance.
+
+**Scope (confirmed before work began):**
+1. Port to TypeScript (no JSX-in-place).
+2. Slide-up hosts the dashboard (no separate route per module).
+3. Sub-navigation to details via `useDetailNav().push(key)` view-stack inside
+   the sheet — URL stays at `/observe/$module`, sheet header shows back chip.
+
+**What landed:**
+- B1 Human Context — `HumanContextDashboard` + `StewardSurveyDetail`,
+  `IndigenousRegionalContextDetail`, `VisionDetail`
+- B2 Macroclimate & Hazards — `MacroclimateDashboard` + `SolarClimateDetail`,
+  `HazardsLogDetail`
+- B3 Topography — `TopographyDashboard` + `TerrainDetail`,
+  `CartographicDetail`, `CrossSectionDetail`
+- B4 Earth, Water & Ecology — `EarthWaterEcologyDashboard` +
+  `HydrologyDetail`, `EcologicalDetail`, `JarPercRoofDetail`
+- B5 Sectors & Zones — `SectorsDashboard` + `SectorCompassDetail`
+  (and re-uses `topography/CartographicDetail`)
+- B6 SWOT Synthesis — `SwotDashboard` + `SwotJournal`,
+  `SwotDiagnosisReport`
+
+**What was stripped from each OLOS source page:** internal `AppShell`,
+`SideRail`, `TopStageBar`, `QaOverlay`, `screenCatalog` lookups, and the
+`<footer className="diagnostics-footer">` strip — all duplicate atlas chrome.
+Each dashboard root collapsed to `<div className="detail-page <module>-page">`
+with internal sections preserved. SWOT additionally had three invented
+shells (`swot-suite-shell`, `terralens-shell`, `verdean-shell`) plus
+stage-bar / breadcrumb / process navs — all stripped. Per-page back-links
+also dropped (sheet provides back chip via `nav.pop()`).
+
+**Cross-module sharing:** `topography/CartographicDetail` is referenced by
+both `TopographyPanel` and `SectorsZonesPanel` — collapses two near-identical
+OLOS source pages into one canonical TS implementation (~150 LOC saved).
+
+**Manifests:** Six `modules/<Module>Panel.tsx` entry points each export a
+`ModulePanel<DetailKey>` record. `ModuleSlideUp.tsx` lazy-imports them; the
+existing slide-up plumbing required no changes.
+
+**Verification:** `npx pnpm --filter @ogden/web typecheck` clean across three
+batches (B1+B2+B3, B4, B5+B6). No legacy components deleted or modified.
+
+**Open question — styling:** Markup is in place but unstyled. Ported
+components carry OLOS classnames (`.detail-page`, `.hydrology-layout`,
+`.swot-quadrants`, etc.); the matching CSS rules **were not ported**. Inside
+the slide-up the result is correct DOM, correct content, default browser
+typography. Three remediation options documented in the ADR:
+(1) port the OLOS stylesheet wholesale and scope under `.observe-slideup`,
+(2) rewrite from atlas tokens, (3) hybrid — scope ported sheet then
+progressively swap tokens. Recommendation: option 3 once a designer has
+stress-tested option 1 inside the sheet.
+
+**Files changed:**
+- 18 new `.tsx` files under `apps/web/src/v3/observe/modules/<module>/`
+- 6 manifest files under `apps/web/src/v3/observe/modules/*Panel.tsx`
+  rewritten to wire dashboards + details
+- `apps/web/src/v3/observe/README.md` — Phase B completion doc
+- `wiki/decisions/2026-05-06-atlas-observe-port-styling.md` — new ADR
+
+**Out of scope:** styling pass (deferred), wiring detail keys to URL segments
+(Phase C if deep-linking is required), Plan / Act stage content (still
+placeholders).
+
+---
+
 ## 2026-05-04 — External-data-sources reference doc (Phase 8 deferred-slice prep)
 
 Of the four remaining Phase 8 deferred items, three (8.1, 8.2-A, 8.2-B) are
@@ -6594,3 +7020,148 @@ tokens); light-mode elevation parity.
 
 - Visual sweep across the remaining 5 dashboard module cards to check for similar drift from the legacy static reference.
 - Or: pick up the still-deferred `getVisionData` selector cleanup from 2026-04-26.
+
+---
+
+## 2026-05-06 — `/cycle` page + CycleWheel (MaqasidComparisonWheel port to OLOS)
+
+**Trigger.** User asked for a top-level OLOS page with a 3-segment progress wheel labelled Observe / Plan / Act and **Cycle** in the centre, then refined: clone the source from `onaxyzogden/ogden-ui-components` rather than build a fresh primitive, and replace band labels with icons.
+
+**What landed.** New top-level route `/cycle` under `appShellRoute` in `apps/web/src/routes/index.tsx`; thin `CyclePage` host; new `apps/web/src/components/CycleWheel/` folder with three files ported from `MaqasidComparisonWheel`:
+
+- [`CycleWheel.tsx`](apps/web/src/components/CycleWheel/CycleWheel.tsx) — annular-sector geometry (`polar`, `annularSector`), mount-entry choreography (`is-mounted` + 90 ms cascade), label-band ring with Lucide icons (`Eye` / `Compass` / `Zap`) at the band midpoint, breathing hub with `CYCLE` text. Stripped: mithaq stores, milestone watcher, wisdom tooltip, next-action card, dormant/converged/igniting states, navigation, progress fills, needle.
+- [`CycleWheel.css`](apps/web/src/components/CycleWheel/CycleWheel.css) — port of `MaqasidComparisonWheel.css` reduced to the kept surfaces; class prefix `mcw-` → `cw-`; CSS custom props `--cw-level-*` driven by the OKLCH palette.
+- [`wheelColor.ts`](apps/web/src/components/CycleWheel/wheelColor.ts) — TypeScript port of `wheelColor.js` (sRGB → linear → OKLab → OKLCH lightness retargeting at 0.65 / 0.72 / 0.10 / 0.78).
+- [`index.ts`](apps/web/src/components/CycleWheel/index.ts) — barrel.
+
+Static decorative segments (each fully filled), default level colour `#5a8a5a` (sage green) per the user's "static decorative" answer earlier in the session. Page at [`apps/web/src/pages/CyclePage.tsx`](apps/web/src/pages/CyclePage.tsx) + [`CyclePage.module.css`](apps/web/src/pages/CyclePage.module.css) (centred flex column, wheel sized `min(360px, 70vw, 60vh)`).
+
+**Verification.** `npx pnpm --filter @ogden/web typecheck` clean (one false-start with a hand-rolled `IconComponent` type — fixed by typing the prop as `LucideIcon`). Vite preview at `http://localhost:5200/cycle` after stale-server restart (the existing dev server held a pre-edit module graph and served `Not Found` until stopped + restarted). DOM inspection: `svg.cw-svg` present, 3 `.cw-band-icon svg` children, `cw-hub-label` text `CYCLE`, aria-label `CYCLE cycle wheel`. Screenshot confirms layout: Eye top, Compass lower-right, Zap lower-left, breathing hub centred, sage palette.
+
+**Notes.**
+
+- Sidebar entry intentionally not wired — page is reachable by URL only. Adding a nav item touches `features/navigation/taxonomy.ts` + `IconSidebar.tsx` / `DashboardSidebar.tsx` and a `DashboardRouter.tsx` case; deferred until a consuming feature lands.
+- `@ogden/ui-components` is **not** an `apps/web` dependency, so importing the upstream `MaqasidComparisonWheel` was not an option — the port is the dependency-free path. Future shared usage (e.g. by `apps/atlas-ui`) can either lift this to `packages/ui` or pull `@ogden/ui-components` into the monorepo.
+- The original 7-segment wheel's progress / hover-wisdom / mithaq behaviours are intentionally absent in the port; if a future "iteration cycle" surface needs progress fills per stage, the dim → grad layering already in `CycleWheel.tsx` can be re-enabled by reading a `current` prop off `CycleSegment`.
+
+### Deferred
+
+- Sidebar / nav entry for `/cycle`.
+- Per-segment routing (e.g. `/cycle/observe`) — current segments have no `route` prop and no click handler.
+- Hub progress readout (avg %), mithaq covenant ring, wisdom tooltips — not ported.
+
+### Recommended next session
+
+- Either retire `/cycle` as a one-off demo or wire it into `taxonomy.ts` + give each segment a destination so the wheel becomes a real navigation surface.
+- If the latter: re-introduce the `seg.route` + click-to-activate path from the original `MaqasidComparisonWheel` (it was stripped in the port; re-adding is ~15 LOC).
+
+---
+
+## 2026-05-06 — v3 Observe rail polish + checkable How-step list + dropdown contrast (+ selection halo carry-over)
+
+**Trigger.** Multi-turn iterative pass on `/v3/project/<id>/observe` after the field-test loop landed in `99f30ba`. User worked through ten micro-asks: mount Site Intelligence in the right rail, restore the Earth/Water/Ecology guidance card at narrower viewports, give each tool group its own bento, uppercase + tighten the bottom module-bar tile labels, lift the right-rail surface to match the left, retire the "Hide modules" toggle, ring-circle the tool icons, increase native `<select>` option contrast, and turn the WHY/HOW/PITFALL "How" steps into a persisted checklist. The checklist work then crashed the page with `Maximum update depth exceeded` and was fixed in the same session.
+
+### What landed
+
+**1. Site Intelligence in the observe rail.** [apps/web/src/v3/components/DecisionRail.tsx](apps/web/src/v3/components/DecisionRail.tsx)
+
+- `lazy(() => import('../../components/panels/SiteIntelligencePanel.js'))` + a tiny inline `ObserveSiteIntelligenceRail` wrapper that looks up the `LocalProject` by id from `useProjectStore` and renders the panel inside `<Suspense>` (or a placeholder for the MTC fixture, which has no `LocalProject`). Mirrors the lazy-import pattern in `MapView.tsx:74,686`.
+- Outer `<header>` suppressed when `stage === 'observe'` so the panel's own `<h2>Site Intelligence</h2>` is the sole title (no stuttered "Observe" / "Site Intelligence" stack). Other stages' eyebrow + title untouched.
+
+**2. Layout breakpoints corrected.** [apps/web/src/v3/observe/ObserveLayout.module.css](apps/web/src/v3/observe/ObserveLayout.module.css)
+
+- Old rules hid `.right` at <1200 px and `.left` at <900 px via `display:none`. Replaced with a shrink-then-hide cascade: 1200 → `220/1fr/240`; 1000 → `200/1fr/220`; 820 → single column (both side rails hidden). Restores the EARTH, WATER & ECOLOGY guidance card on typical laptop viewports.
+
+**3. Tools rail bento + lifted surfaces.** [apps/web/src/v3/observe/tools/ObserveTools.module.css](apps/web/src/v3/observe/tools/ObserveTools.module.css), [apps/web/src/v3/observe/components/ObserveChecklistAside.module.css](apps/web/src/v3/observe/components/ObserveChecklistAside.module.css)
+
+- `.toolbox` is now a transparent column; each `.group` is a discrete card with surface, border, radius, padding, and a per-module `--group-dot` accent. After overshooting on contrast, the lift was dialed back to ~30%: `color-mix(... 96%, #fff)` background, 88/12 white-mixed border, `0 1px 2px rgba(0,0,0,0.10)` shadow.
+- `.toolItem` (the tool buttons): default opacity bumped 0.85 → 1, faint black-mix on the well bg (91/9), brighter border (85/15 white-mix), so each tile reads as a recessed surface inside its card.
+- New `.toolGlyph` ring: 28×28 circle, group-color tint at 12% over the page bg, 30%-opacity ring of the same dot color — Human Context green, Macroclimate yellow, Topography green-yellow, etc.
+- Right rail (`.checklistBox`) reuses the same 96/12/shadow treatment so the left and right columns read as the same elevation tier.
+
+**4. Module bar simplification + UPPERCASE tile labels.** [apps/web/src/v3/observe/components/ObserveModuleBar.tsx](apps/web/src/v3/observe/components/ObserveModuleBar.tsx) + [.module.css](apps/web/src/v3/observe/components/ObserveModuleBar.module.css)
+
+- Removed the "HIDE MODULES" collapse toggle entirely: dropped `useEffect`/`useState`, `ChevronUp`/`ChevronDown` imports, the `STORAGE_KEY` + `readCollapsed` / `writeCollapsed` helpers, the persisted collapsed state, and the `<button className={css.handle}>` row. Tile row renders unconditionally. Dead `.rail.collapsed`, `.handle`, `.handle:hover`, `.handleLabel` rules deleted.
+- `.tileLabel` uppercased with `text-transform: uppercase; letter-spacing: 0.06em`. Min-height 64 → 44, `justify-content: space-between` so progress bar pins to the top and label drops to the bottom of the (now shorter) bento.
+
+**5. Checkable How-step list + persistence store.** [apps/web/src/v3/observe/components/ObserveChecklistAside.tsx](apps/web/src/v3/observe/components/ObserveChecklistAside.tsx) + [.module.css](apps/web/src/v3/observe/components/ObserveChecklistAside.module.css), new [apps/web/src/store/observeHowChecksStore.ts](apps/web/src/store/observeHowChecksStore.ts)
+
+- `<ol>` replaced with `<ul>` of `<label>` rows wrapping `<input type="checkbox">` + step text. Custom 14×14 checkbox tinted with the per-module `--group-dot`; checked state fills with the dot color and draws a CSS pseudo-element checkmark; checked rows get strikethrough + muted color.
+- New `useObserveHowChecksStore` (zustand + persist) keyed `byProject[projectId][module] = number[]` of checked step indices. Pattern mirrors `homesteadStore.ts`. Persists under localStorage key `ogden-atlas-observe-how-checks`.
+
+**6. Render-loop fix (critical).** Same file as #5.
+
+- First version of the selector was `useObserveHowChecksStore((s) => projectId ? s.byProject[projectId]?.[module] ?? [] : [])`. The `?? []` returns a fresh literal each call → zustand v5's `Object.is` flagged it as a state change → infinite re-render → "Maximum update depth exceeded" overlay.
+- Fix: hoisted module-level `const EMPTY_CHECKS: readonly number[] = []`; selector now falls back to that stable reference. Doc-comment on the constant warns future editors not to inline `?? []` in selectors. This sits inside the precedent set by [`2026-04-26 Zustand Selector Discipline`](decisions/2026-04-26-zustand-selector-discipline.md) — same root cause, fourth recurrence — so no new ADR; the existing one already names the trap.
+
+**7. Dropdown contrast.** [apps/web/src/v3/observe/components/draw/ObserveDrawHost.module.css](apps/web/src/v3/observe/components/draw/ObserveDrawHost.module.css)
+
+- `.input,.select,.textarea` background tint 0.06 → 0.10, border opacity 0.2 → 0.4, color brightened to `#f8f4ea`. New hover (border 0.6) and focus (gold-brand border + 0.14 fill) states.
+- New `.select option` rules explicitly setting `background:#1a1a1a; color:#f8f4ea` so the native popup no longer inherits a low-contrast grey under the dark theme. Selected/hovered option uses `--color-gold-brand` with dark text. Used by SunWindWedgeTool's Type + Intensity selects; benefits any other tool form sharing the module.
+
+### Carry-over (pre-existing untracked work also committed)
+
+- New [apps/web/src/store/observeSelectionStore.ts](apps/web/src/store/observeSelectionStore.ts) — ephemeral, non-persisted multi-select store (kind+id pairs).
+- [apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx](apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx) — adds a halo source/layers (circle + line) driven by `useObserveSelectionStore.selected`, with `#c4a265` gold ring + dark outline; click toggles selection (cmd/ctrl-click extends), background click clears. Bridges the SelectionFloater / drag-reposition / vertex-edit follow-ups deferred from `2026-05-06 Atlas OBSERVE Edit/Delete Loop`.
+
+### Verification
+
+- `npx pnpm --filter @ogden/web typecheck` clean.
+- Live preview at `/v3/project/mtc/observe/topography`:
+  - No error overlay (was: "Maximum update depth exceeded" before the EMPTY_CHECKS fix).
+  - 3 checkboxes mount; clicking the first persists `{"mtc":{"topography":[0]}}` to localStorage and applies the strikethrough class.
+  - Landing state (no module) renders all 6 cards / 15 total checkboxes without looping.
+- Site Intelligence panel renders inside the rail for a real project; MTC shows the placeholder copy.
+
+### Deferred
+
+- The selection-halo carry-over ships the visual layer but the SelectionFloater action bar and AnnotationDragHandler are still TODO (the store + halo are in; the consumers from the 2026-05-06 ADR's deferred list are not).
+- `useShallow` migration across other stores — not warranted by this session; the EMPTY-fallback pattern is sufficient and matches existing precedent.
+- `/v3/project/mtc/observe` fixture has no `LocalProject`, so the Site Intelligence panel can't render for it; placeholder copy remains.
+
+### Recommended next session
+
+- Wire SelectionFloater + AnnotationDragHandler now that the selection store + halo layer are in.
+- Or pick up the broader Observe → Plan handoff: surface How-checklist progress inside the bottom `ObserveModuleBar` tile (e.g. count of checked steps next to the existing PillarTask sub-segments).
+
+## 2026-05-06 — OBSERVE selection floater + drag-reposition + vertex edit + zundo global undo
+
+**Trigger.** Close the four items deferred from the same-day OBSERVE Edit/Delete ADR: SelectionFloater action bar, point drag-reposition, line/polygon vertex editor via MapboxDraw `direct_select`, and zundo global Cmd-Z across the seven OBSERVE namespace stores. The "carry-over" pass earlier in the day had already shipped `useObserveSelectionStore` + halo layers; this session sat the action bar / drag handler / vertex editor / undo coordinator on top.
+
+### What landed
+
+**1. SelectionFloater.** [apps/web/src/v3/observe/components/SelectionFloater.tsx](apps/web/src/v3/observe/components/SelectionFloater.tsx) — pill-bar above the bottom rail. Edit (one-selection only — opens `useAnnotationFormStore.open({ kind, mode: 'edit', existingId, projectId })`), Delete (loops `selected` → `AnnotationRegistry.removeAnnotation`), Clear (also Esc). Returns null when `selected.length === 0`.
+
+**2. AnnotationDragHandler.** [apps/web/src/v3/observe/components/draw/AnnotationDragHandler.tsx](apps/web/src/v3/observe/components/draw/AnnotationDragHandler.tsx) — activates when one point annotation is selected. `mousedown` → `e.preventDefault()` + `map.dragPan.disable()`; `mousemove` writes a single-feature FC into a dedicated `observe-anno-drag-preview` source styled gold; `mouseup` commits via `writePointPosition(kind, id, position)` from the new geometry registry, then re-enables drag-pan.
+
+**3. annotationGeometryRegistry.** [apps/web/src/v3/observe/components/draw/annotationGeometryRegistry.ts](apps/web/src/v3/observe/components/draw/annotationGeometryRegistry.ts) — POINT_KINDS / LINESTRING_KINDS / POLYGON_KINDS sets + `writePointPosition` / `writeLineString` / `writePolygon` helpers. Centralises the kind→store-action routing because the seven stores are not uniform on point-position field name (most use `position`; soilSample uses `location`; swotTag uses optional `position`). `writeLineString` recomputes `lengthM` via `turf.length` for accessRoad records.
+
+**4. AnnotationVertexEditHandler.** [apps/web/src/v3/observe/components/draw/AnnotationVertexEditHandler.tsx](apps/web/src/v3/observe/components/draw/AnnotationVertexEditHandler.tsx) — activates when one line/polygon annotation is selected and no `observe.*` placement tool is active (gated via `useMapToolStore.activeTool` to avoid two-MapboxDraw collisions). Spins up a dedicated headless MapboxDraw, loads the feature via `draw.add(...)`, switches to `direct_select` (cast through `(draw.changeMode as ...)` because the typings are loose), and dispatches `draw.update` events back through `writeLineString` / `writePolygon`. Esc clears.
+
+**5. zundo wraps the seven OBSERVE namespace stores.** `pnpm add zundo --filter @ogden/web` (corepack pnpm shim was broken on this machine; invoked the cached pnpm `~/AppData/Local/pnpm/.tools/pnpm/10.32.1/bin/pnpm` directly). Each of [humanContextStore](apps/web/src/store/humanContextStore.ts), [topographyStore](apps/web/src/store/topographyStore.ts), [externalForcesStore](apps/web/src/store/externalForcesStore.ts), [waterSystemsStore](apps/web/src/store/waterSystemsStore.ts), [ecologyStore](apps/web/src/store/ecologyStore.ts), [swotStore](apps/web/src/store/swotStore.ts), and [soilSampleStore](apps/web/src/store/soilSampleStore.ts) now reads `persist(temporal(creator, { limit: 200 }), persistOpts)` — the order matters so the undo timeline is in-memory only while every forward action still hits localStorage.
+
+**6. undoCoordinatorStore.** [apps/web/src/store/undoCoordinatorStore.ts](apps/web/src/store/undoCoordinatorStore.ts) — global cross-store timeline. `setupUndoCoordinator()` (module-eval side effect, SSR-guarded) waits for each store's `persist.onFinishHydration`, calls `temporal.getState().clear()` so rehydration churn is not logged, then attaches `temporal.subscribe()`. The subscriber compares `pastStates.length` between snapshots — an increase means either a forward mutation OR a coordinator-driven redo. The coordinator's `inFlight` flag (set for the duration of `temporal.undo()` / `temporal.redo()` calls) lets the subscriber skip its push when the coordinator has already updated `history` / `redoHistory` itself. A forward mutation between an undo and a redo invalidates the redo timeline (`pushMutation` clears `redoHistory`).
+
+**7. useGlobalAnnotationUndo.** [apps/web/src/v3/observe/hooks/useGlobalAnnotationUndo.ts](apps/web/src/v3/observe/hooks/useGlobalAnnotationUndo.ts) — Cmd/Ctrl-Z → undo, Cmd/Ctrl-Shift-Z → redo, Cmd/Ctrl-Y → redo (Windows convention). Skips when `event.target` is INPUT / TEXTAREA / SELECT or `isContentEditable`, so typing inside the slide-up form's fields keeps using the browser's native undo. Mounted once from [ObserveLayout](apps/web/src/v3/observe/ObserveLayout.tsx).
+
+**8. Mounts in ObserveLayout.** Inside `<DiagnoseMap>` render-prop, after `<ObserveDrawHost>`: `<AnnotationDragHandler map={map} />`, `<AnnotationVertexEditHandler map={map} />`, `<SelectionFloater projectId={params.projectId ?? null} />`. Hook call `useGlobalAnnotationUndo();` after the slide-up state.
+
+### Verification
+
+- `NODE_OPTIONS="--max-old-space-size=8192" npx tsc --noEmit` clean (exit 0).
+- `npx vite build` clean — ✓ built in 34.95s, 626 PWA precache entries (25,443.67 KiB), no errors.
+- `npx vitest run src/store/__tests__/temporal-undo.test.ts` — **4 tests pass**: humanContext add → undo → redo, humanContext three-add LIFO undo, swot add → update → undo (title revert) → undo (record gone) → redo, soilSample add → delete → undo restores. Test file uses `// @vitest-environment happy-dom` so zustand `persist.rehydrate()` finds a real localStorage at module-load time.
+- Pre-existing test failures unchanged: 24 failures across 5 unrelated files (computeScores 7, useAssessment 3, useSiteIntelligenceMetrics 5, DiagnoseCategoryDrawer 5, V3LifecycleSidebar plus a few). Verified pre-existing by `git stash` → vitest → `git stash pop` on commit `20d7b6b` — failure count and file set unchanged.
+
+**ADR.** [`wiki/decisions/2026-05-06-atlas-observe-selection-drag-undo.md`](decisions/2026-05-06-atlas-observe-selection-drag-undo.md).
+
+### Deferred
+
+- Multi-store batch-edit form (Edit stays disabled when length > 1).
+- Touch-first drag affordances for mobile (desktop pointer events only).
+- Per-store vitest specs for the remaining four stores (topography, externalForces, waterSystems, ecology) — the three representative specs prove the uniform `persist(temporal(...))` pattern.
+
+### Recommended next session
+
+- Manual preview pass at `/v3/project/<id>/observe` exercising drag, vertex edit, multi-select, and Cmd-Z across kinds.
+- Or pick up Plan-stage tool palette now that the OBSERVE edit loop is closed.

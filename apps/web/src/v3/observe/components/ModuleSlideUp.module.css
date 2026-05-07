@@ -1,0 +1,110 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 16, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: stretch;
+  z-index: 100;
+  animation: fadeIn 200ms ease-out both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.sheet {
+  width: 100%;
+  max-height: 78vh;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  box-shadow: 0 -10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.titleBlock { display: flex; flex-direction: column; gap: 2px; }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 4px;
+  margin-left: -4px;
+  align-self: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+  background: var(--color-surface-raised, var(--color-surface));
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.close {
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.close:hover { color: var(--color-text); background: var(--color-surface-raised, var(--color-surface)); }
+
+.body {
+  padding: var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loading {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim, .sheet { animation: none; }
+}

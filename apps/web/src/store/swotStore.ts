@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type SwotBucket = 'S' | 'W' | 'O' | 'T';
 
@@ -19,6 +20,11 @@ export interface SwotEntry {
   title: string;
   body?: string;
   tags?: string[];
+  /**
+   * Optional [lng, lat] pin — present when the SWOT entry was tagged on the
+   * OBSERVE map (Module 6). Legacy text-only entries omit this field.
+   */
+  position?: [number, number];
   createdAt: string;
 }
 
@@ -32,14 +38,14 @@ interface SwotState {
 
 export const useSwotStore = create<SwotState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       swot: [],
 
       addSwot: (e) => set((s) => ({ swot: [...s.swot, e] })),
       updateSwot: (id, patch) =>
         set((s) => ({ swot: s.swot.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeSwot: (id) => set((s) => ({ swot: s.swot.filter((e) => e.id !== id) })),
-    }),
+    }), { limit: 200 }),
     { name: 'ogden-swot', version: 1 },
   ),
 );
