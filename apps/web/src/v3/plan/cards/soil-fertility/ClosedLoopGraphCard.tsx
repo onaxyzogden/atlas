@@ -84,7 +84,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
     }
     for (const f of allFertility) {
       if (f.projectId !== pId) continue;
-      ns.push({ id: f.id, label: `${f.type}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
+      ns.push({ id: f.id, label: `${f.type.replace(/_/g, ' ')}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
     }
     const vs = allVectors.filter((v) => v.projectId === pId);
     return { nodes: ns, vectors: vs };

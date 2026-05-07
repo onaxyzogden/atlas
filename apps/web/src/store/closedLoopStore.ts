@@ -41,7 +41,28 @@ export interface WasteVectorRun {
 
 // ── Fertility infrastructure (point placements) ─────────────────────────────
 
-export type FertilityInfraType = 'composter' | 'hugelkultur' | 'biochar' | 'worm_bin';
+/**
+ * Fertility-infrastructure node kinds. The four "structural" types
+ * (composter / hugelkultur / biochar / worm_bin) were the original v1
+ * set. Per Permaculture Scholar verdict 2026-05-07
+ * (`wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`)
+ * orthodox permaculture also frames soil fertility through three
+ * vegetative/biological practices — cover-cropping, chop-and-drop,
+ * dynamic accumulators (comfrey, persimmon, deep-rooted mineral
+ * cyclers) — and an animal-integration practice (rotational grazing).
+ * They join the union as additive members; legacy entries persist
+ * unchanged with their original `composter | hugelkultur | biochar |
+ * worm_bin` value, so no schema-version bump is required.
+ */
+export type FertilityInfraType =
+  | 'composter'
+  | 'hugelkultur'
+  | 'biochar'
+  | 'worm_bin'
+  | 'cover_crop'
+  | 'chop_and_drop'
+  | 'dynamic_accumulator'
+  | 'rotational_grazing';
 
 export interface FertilityInfra {
   id: string;

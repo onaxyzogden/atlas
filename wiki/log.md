@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 5 · Fertility taxonomy expansion
+
+Module 5 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). `FertilityInfraType` extended from four structural types to eight first-class node kinds, mirroring the Scholar's three-pillar framing of soil fertility — structural built objects (composter / hugelkultur / biochar / worm bin), vegetative & biological practices (cover crop / chop & drop / dynamic accumulator), animal integration (rotational grazing). Picker in `SoilFertilityDesignerCard` extended with permaculture-grounded taglines for all eight (e.g. "N-fixers / biomass between cash crops" for cover crop, "Deep-rooted mineral cyclers (comfrey, persimmon)" for dynamic accumulator). Cross-section vertical-stack defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so vegetative practices don't render phantom canopy (cover-crop 0.3 m, chop-and-drop 0.1 m, accumulator 1.0 m, grazing 0.1 m). `ClosedLoopGraphCard` collapses underscores to spaces in node labels. Additive union — no persist-version bump, legacy entries load unchanged. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 5 · ClosedLoopGraphCard spatial layout
 
 Module 5 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). `ClosedLoopGraphCard` adds a Ring / Spatial layout toggle. Spatial mode derives a `[lng, lat]` centroid for every feature node (zones/crops via vertex-mean polygon centroid, structures via `.center` falling back to polygon centroid, fertility infra via `.center`), normalises the bounding cloud into the 560 × 360 viewport with N up, and parks centroid-less nodes on a small fallback ring around the centre so they don't pile at the origin. The Spatial button auto-disables when no node has a centroid; the legacy ring layout stays the default. Vector length now reflects real haul distance — directly surfacing Holmgren P3 *Obtain a yield* (short haul = positive yield; long haul = energy debt). Typecheck clean.

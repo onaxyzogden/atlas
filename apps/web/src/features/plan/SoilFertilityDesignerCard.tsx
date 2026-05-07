@@ -17,11 +17,22 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
+// Fertility-infra picker. Original four are the structural / built
+// types; the lower four (cover-crop / chop-and-drop / dynamic
+// accumulator / rotational grazing) are vegetative + animal-integration
+// practices added per Permaculture Scholar verdict 2026-05-07. Each
+// represents a first-class node kind in the closed-loop graph so the
+// steward can wire feedstocks and outputs through them just like a
+// composter or worm bin.
 const TYPES: Array<{ value: FertilityInfraType; label: string; tagline: string }> = [
-  { value: 'composter',  label: 'Composter',   tagline: 'Aerobic kitchen + yard waste loop' },
-  { value: 'hugelkultur', label: 'Hugelkultur', tagline: 'Buried-wood mounded bed' },
-  { value: 'biochar',    label: 'Biochar kiln', tagline: 'Pyrolysed carbon for soil amendment' },
-  { value: 'worm_bin',   label: 'Worm bin',    tagline: 'Vermicompost loop' },
+  { value: 'composter',           label: 'Composter',         tagline: 'Aerobic kitchen + yard waste loop' },
+  { value: 'hugelkultur',         label: 'Hugelkultur',       tagline: 'Buried-wood mounded bed' },
+  { value: 'biochar',             label: 'Biochar kiln',      tagline: 'Pyrolysed carbon for soil amendment' },
+  { value: 'worm_bin',            label: 'Worm bin',          tagline: 'Vermicompost loop' },
+  { value: 'cover_crop',          label: 'Cover crop',        tagline: 'N-fixers / biomass between cash crops' },
+  { value: 'chop_and_drop',       label: 'Chop & drop',       tagline: 'In-place mulching from coppice / shrub layer' },
+  { value: 'dynamic_accumulator', label: 'Dynamic accumulator', tagline: 'Deep-rooted mineral cyclers (comfrey, persimmon)' },
+  { value: 'rotational_grazing',  label: 'Rotational grazing', tagline: 'Paddock-shift animal integration (manure-on-pasture)' },
 ];
 
 export default function SoilFertilityDesignerCard({ project }: Props) {
