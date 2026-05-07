@@ -37,7 +37,18 @@ Scholar explicitly endorsed Atlas's 9-rank data model as orthodox. The legacy `P
 ## Follow-ups (not in this commit)
 
 - **Map overlay of anchors.** Scholar called for visualising anchors on a map (sectors / zones / topography). Pending: a sector-and-anchor overlay layer that draws each high-permanence element onto the live MapLibre map. Likely a Plan-stage map-overlay control rather than a card.
-- **Layer-relationship graph.** Scholar wanted relationships *between* ranks surfaced beyond ordering warnings. A small force-directed or Sankey-style visual ("water feeds soil feeds vegetation") could augment the ladder.
+- ✅ **Layer-relationship graph** — landed 2026-05-07. New "Layer
+  relationships" section in `PermanenceLadderCard` renders a 360 × 280
+  SVG: nine rank nodes laid out top-to-bottom, with curved edges
+  arcing rightward from each rank to every prerequisite (e.g.
+  Vegetation → Water, Access, Soil). Nodes are coloured by the same
+  warm→cool ramp as the ladder bars when populated, dim grey when
+  empty; the right margin echoes the live count. Reuses the existing
+  `RANKS` array as the edge schema, so the graph is structurally
+  consistent with the ordering check above. Holmgren P8 (*Integrate
+  rather than segregate*) is now visualised, not just narrated.
+  A force-directed/Sankey variant remains possible but the curved
+  prereq-edge layout reads cleanly at this scale.
 - ✅ **Ordering-violation suggestions** — landed 2026-05-07. Each missing-prerequisite chip in the ordering-check panel is now a deep-link button that switches the slide-up to the Plan module where that rank is authored (rank 2 → `cross-section-solar`, 3 → `water-management`, 4 → `zone-circulation`, 7 → `soil-fertility`, 8 → `plant-systems`). Wired through a new `onSwitchModule?: (mod: PlanModule) => void` prop on `PermanenceLadderCard` + `PlanModuleSlideUp`; `PlanLayout` calls `handleSelectModule(mod)` then re-opens the sheet. Ranks without a Plan module home (Climate, Structures, Subsystems, Fauna) remain plain chips.
 - ✅ **Score weighting (extent dimension)** — landed 2026-05-07. Each ladder row now shows a per-rank extent metric alongside the count: rank 3 Water sums `earthwork.lengthM` (formatted as m / km), rank 4 Access sums `path.lengthM`, rank 7 Soil sums `areaM2` of food-production zones (m² / ha), rank 8 Vegetation sums `crop.areaM2`. Ranks without a natural extent metric (Climate, Landform, Structures, Subsystems, Fauna) display count only. The bar still uses count as the primary signal — the extent line gives stewards the magnitude, surfacing the "single 1-acre swale system out-weights five toy footprints" insight without conflating two metrics in one bar. Age and function-count weighting remain deferred.
 

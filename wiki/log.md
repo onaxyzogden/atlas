@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 1 · Layer-relationship graph in PermanenceLadderCard
+
+Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` adds a "Layer relationships" SVG (360 × 280) between the rank ledger and the "Why this ladder" footer. Nine rank nodes are laid out top-to-bottom; curved edges arc rightward from each rank to every prerequisite (e.g. Vegetation → Water, Access, Soil) using the same `prereqs` schema that already drives the ordering check. Nodes glow with the warm→cool ladder palette when populated and stay dim grey when empty; the right margin shows the live count. The Scholar's call to surface inter-rank relationships beyond ordering warnings — Holmgren P8 (*Integrate rather than segregate*) — is now drawn rather than narrated. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 2 · Water catchments topographic context
 
 Module 2 (Water) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-water-scholar-build-fresh.md`). `WaterCatchmentsCard` gains a "Topographic context" section above its precipitation block. Pulls `min/max/mean_elevation_m`, `mean_slope_deg` (+max), and `predominant_aspect` from the elevation layer summary in `siteDataStore` and renders one stat row per available field. Above the rows: a Yeomans-grounded callout ("Climate & Landform precede Water on the Scale of Permanence — read the slope & aspect before sizing catchments"). When the elevation layer isn't fetched, the panel renders an Observe-fetch hint instead of empty rows. Contour overlay + ridge/valley auto-trace remain deferred (those need raster work). Typecheck clean.

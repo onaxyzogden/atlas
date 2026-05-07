@@ -351,6 +351,111 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
       </section>
 
       <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Layer relationships</h2>
+        <p className={styles.lede} style={{ marginBottom: 8 }}>
+          Each rank inherits constraints from the ranks above it. Arrows point
+          from a rank to every prerequisite that must already be in place —
+          so e.g. Vegetation depends on Water, Access, and Soil. This is
+          Holmgren P8 (<em>Integrate rather than segregate</em>) drawn out as
+          a graph rather than narrated.
+        </p>
+        {(() => {
+          const W = 360;
+          const H = 280;
+          const PAD_TOP = 18;
+          const PAD_BOT = 18;
+          const STEP = (H - PAD_TOP - PAD_BOT) / (RANKS.length - 1);
+          const nodeX = 70;
+          const yOf = (rank: number) => PAD_TOP + (rank - 1) * STEP;
+          return (
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              style={{
+                width: '100%',
+                height: 'auto',
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 8,
+              }}
+            >
+              <defs>
+                <marker
+                  id="prereq-arrow"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="5"
+                  markerHeight="5"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(180,180,180,0.65)" />
+                </marker>
+              </defs>
+              {/* Edges: from each rank to each prerequisite. Curved out
+                  to the right so multi-prereq stacks read clearly. */}
+              {RANKS.flatMap((r) =>
+                r.prereqs.map((p) => {
+                  const y1 = yOf(r.rank);
+                  const y2 = yOf(p);
+                  const dy = Math.abs(y1 - y2);
+                  const ctrl = nodeX + 30 + dy * 0.35;
+                  return (
+                    <path
+                      key={`${r.rank}-${p}`}
+                      d={`M ${nodeX + 6} ${y1} C ${ctrl} ${y1}, ${ctrl} ${y2}, ${nodeX + 6} ${y2}`}
+                      stroke="rgba(180,180,180,0.55)"
+                      strokeWidth={1}
+                      fill="none"
+                      markerEnd="url(#prereq-arrow)"
+                    />
+                  );
+                }),
+              )}
+              {/* Nodes — coloured filled when count > 0, grey when empty. */}
+              {rows.map((r) => {
+                const cy = yOf(r.rank);
+                const filled = r.count > 0;
+                const colour = filled
+                  ? `hsl(${Math.round(40 + (r.rank - 1) * 18)}, 55%, 55%)`
+                  : 'rgba(255,255,255,0.18)';
+                return (
+                  <g key={r.rank}>
+                    <circle
+                      cx={nodeX}
+                      cy={cy}
+                      r={6}
+                      fill={colour}
+                      stroke="rgba(0,0,0,0.4)"
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={nodeX - 12}
+                      y={cy + 4}
+                      fontSize={11}
+                      textAnchor="end"
+                      fill={filled ? 'rgba(232,220,200,0.95)' : 'rgba(232,220,200,0.55)'}
+                    >
+                      {r.rank}. {r.name}
+                    </text>
+                    <text
+                      x={W - 14}
+                      y={cy + 4}
+                      fontSize={10}
+                      textAnchor="end"
+                      fill="rgba(232,220,200,0.55)"
+                      style={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {r.count}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          );
+        })()}
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Why this ladder</h2>
         <p className={styles.lede}>
           Holmgren P8 — <em>Integrate rather than segregate</em>. Each rank
