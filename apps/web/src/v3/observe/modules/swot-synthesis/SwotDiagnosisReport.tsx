@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -12,9 +13,17 @@ import {
   Sprout,
   Target,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSwotStore } from '../../../../store/swotStore.js';
 
 export default function SwotDiagnosisReport() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const allEntries = useSwotStore((s) => s.swot);
+  const entries = useMemo(() => allEntries.filter((e) => e.projectId === id), [allEntries, id]);
+
   return (
     <div className="detail-page diagnosis-report-page">
       <ReportTopbar />
@@ -28,13 +37,13 @@ export default function SwotDiagnosisReport() {
           <SurfaceCard className="report-generated-card">
             <CircleDot aria-hidden="true" />
             <span>
-              Report generated<small>May 12, 2025 - 10:32 AM</small>
+              Report generated<small>—</small>
             </span>
           </SurfaceCard>
         </header>
         <section className="diagnosis-top-grid">
           <ExecutiveSummary />
-          <SwotOverview />
+          <SwotOverview entryCount={entries.length} />
           <TopInsights />
         </section>
         <section className="diagnosis-lower-grid">
@@ -113,7 +122,11 @@ function ExecutiveSummary() {
   );
 }
 
-function SwotOverview() {
+interface SwotOverviewProps {
+  entryCount: number;
+}
+
+function SwotOverview({ entryCount }: SwotOverviewProps) {
   return (
     <SurfaceCard className="report-card report-swot-overview">
       <h2>
@@ -123,26 +136,30 @@ function SwotOverview() {
         <div>
           <b>Strengths</b>
           <span>Strong foundation to build on</span>
-          <strong>7.6 /10</strong>
+          <strong>—</strong>
         </div>
         <ReportRadar />
         <div>
           <b>Weaknesses</b>
           <span>Limit performance and resilience</span>
-          <strong>5.4 /10</strong>
+          <strong>—</strong>
         </div>
         <div>
           <b>Opportunities</b>
           <span>High leverage for improvement</span>
-          <strong>8.1 /10</strong>
+          <strong>—</strong>
         </div>
         <div>
           <b>Threats</b>
           <span>External risks to monitor</span>
-          <strong>4.8 /10</strong>
+          <strong>—</strong>
         </div>
       </div>
-      <p>Scores reflect synthesis of 63 journal entries.</p>
+      <p>
+        {entryCount > 0
+          ? `Scores reflect synthesis of ${entryCount} journal ${entryCount === 1 ? 'entry' : 'entries'}.`
+          : 'Add journal entries to generate synthesis scores.'}
+      </p>
     </SurfaceCard>
   );
 }
@@ -243,11 +260,11 @@ function PrioritizedFindings() {
 
 function RiskFlags() {
   const rows: Array<[string, string]> = [
-    ['High', 'Erosion risk on north-facing slopes'],
-    ['High', 'Overland flow damaging access track'],
+    ['High',   'Erosion risk on north-facing slopes'],
+    ['High',   'Overland flow damaging access track'],
     ['Medium', 'Invasive species along waterways'],
     ['Medium', 'Limited dry-season water availability'],
-    ['Low', 'Wildfire exposure (low site risk)'],
+    ['Low',    'Wildfire exposure (low site risk)'],
   ];
   return (
     <SurfaceCard className="report-card risk-flags-report">
@@ -280,7 +297,7 @@ function EvidenceCard() {
       </h2>
       {items.map((item, index) => (
         <p key={item}>
-          <time>May {10 - index * 2}</time>
+          <time>—</time>
           {item}
           <b>W {index + 1}</b>
         </p>
@@ -294,11 +311,11 @@ function EvidenceCard() {
 
 function RecommendedReportActions() {
   const rows: Array<[string, string, string]> = [
-    ['Establish keyline swales on contour in upper slopes', 'High', 'Jun 15'],
-    ['Implement cover cropping + compost program in priority zones', 'High', 'Jun 30'],
-    ['Reroute main access to ridge alignment and stabilize track', 'Medium', 'Jul 15'],
-    ['Remove priority invasive species along waterways', 'Medium', 'Aug 01'],
-    ['Install monitoring for soil moisture + rainfall', 'Low', 'Aug 15'],
+    ['Establish keyline swales on contour in upper slopes',           'High',   'Jun 15'],
+    ['Implement cover cropping + compost program in priority zones',  'High',   'Jun 30'],
+    ['Reroute main access to ridge alignment and stabilize track',    'Medium', 'Jul 15'],
+    ['Remove priority invasive species along waterways',              'Medium', 'Aug 01'],
+    ['Install monitoring for soil moisture + rainfall',               'Low',    'Aug 15'],
   ];
   return (
     <SurfaceCard className="report-card report-actions-card">

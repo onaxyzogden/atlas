@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
   Check,
@@ -6,16 +7,72 @@ import {
   Mountain,
   Plus,
   Settings,
+  Shield,
   Sun,
   Wind,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import compassMain from '../../assets/sector-compass-detail/compass-main.png';
-import siteContext from '../../assets/sector-compass-detail/site-context.png';
-import placementsStrip from '../../assets/sector-compass-detail/placements-strip.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useExternalForcesStore, type SectorArrow } from '../../../../store/externalForcesStore.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import TerrainSnapshot from '../topography/TerrainSnapshot.js';
+import SectorCompassDiagram from './SectorCompassDiagram.js';
+import { compassKpis, type KpiIconKey, type KpiItem } from './derivations.js';
+import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  compass: Compass,
+  layers: Layers,
+  wind: Wind,
+  sun: Sun,
+  flame: Flame,
+  mountain: Mountain,
+  shield: Shield,
+};
+
+const SECTOR_TYPE_LABELS: Record<SectorArrow['type'], string> = {
+  sun_summer: 'Summer sun',
+  sun_winter: 'Winter sun',
+  wind_prevailing: 'Prevailing wind',
+  wind_storm: 'Storm wind',
+  fire: 'Wildfire / hazard',
+  noise: 'Road & noise',
+  wildlife: 'Wildlife corridor',
+  view: 'Views',
+};
+
+const INTENSITY_LABELS: Record<NonNullable<SectorArrow['intensity']>, string> = {
+  high: 'High',
+  med: 'Medium',
+  low: 'Low',
+};
 
 export default function SectorCompassDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+
+  const allSectors = useExternalForcesStore((s) => s.sectors);
+  const sectors = useMemo(() => allSectors.filter((s) => s.projectId === id), [allSectors, id]);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const centroid = polygonCentroid(project?.location?.boundary);
+  const centroidTuple: [number, number] | null = centroid
+    ? [centroid.lng, centroid.lat]
+    : null;
+
+  const kpis = compassKpis(sectors, layers);
+
+  const sortedSectors = useMemo(() => {
+    const order: Record<string, number> = { high: 3, med: 2, low: 1 };
+    return [...sectors].sort(
+      (a, b) => (order[b.intensity ?? 'low'] ?? 0) - (order[a.intensity ?? 'low'] ?? 0),
+    );
+  }, [sectors]);
+
   return (
     <div className="detail-page sector-compass-page">
       <SectorCompassTop />
@@ -28,13 +85,17 @@ export default function SectorCompassDetail() {
           <p>Map and analyse the external energies and influences shaping your site.</p>
         </div>
       </header>
-      <SectorCompassKpis />
+      <SectorCompassKpis kpis={kpis} />
       <section className="sector-compass-layout">
         <div className="sector-compass-main">
           <section className="sector-compass-workspace">
             <SurfaceCard className="sector-compass-chart-card">
               <h2>Sector compass</h2>
-              <CroppedArt src={compassMain} className="sector-compass-main-image" />
+              <SectorCompassDiagram
+                sectors={sectors}
+                centroid={centroidTuple}
+                className="sector-compass-main-image"
+              />
               <div className="sector-compass-legend">
                 {[
                   'Wind & Air',
@@ -55,7 +116,13 @@ export default function SectorCompassDetail() {
                   <Settings aria-hidden="true" />
                 </button>
               </header>
-              <CroppedArt src={siteContext} className="sector-context-image" />
+              <TerrainSnapshot
+                boundary={project?.location?.boundary}
+                caption={project?.name}
+                width={280}
+                height={200}
+                className="sector-context-image"
+              />
               <p>
                 Arrows indicate the direction of external influences. Use this to guide placement
                 and protection.
@@ -66,18 +133,12 @@ export default function SectorCompassDetail() {
             </SurfaceCard>
           </section>
           <section className="sector-bottom-grid">
-            <SurfaceCard className="placements-card">
-              <h2>Recommended placements &amp; interventions</h2>
-              <CroppedArt src={placementsStrip} className="placements-strip-image" />
-              <button type="button">
-                <Compass aria-hidden="true" /> Generate design overlay
-              </button>
-            </SurfaceCard>
+            <PlacementsCard />
             <DesignResponses />
           </section>
         </div>
         <aside className="sector-compass-rail">
-          <SectorObservations />
+          <SectorObservations sectors={sortedSectors} />
           <PriorityActions />
         </aside>
       </section>
@@ -102,58 +163,74 @@ function SectorCompassTop() {
   );
 }
 
-function SectorCompassKpis() {
-  const items: Array<[LucideIcon, string, string, string]> = [
-    [Wind, 'Dominant wind', 'NW', '12 km/h avg'],
-    [Sun, 'Morning sun sector', 'E-SE', '74 degrees'],
-    [Flame, 'High-risk sector', 'SW', 'Wildfire risk'],
-    [Mountain, 'Beneficial view sector', 'NE', 'Ridge & valley'],
-    [Compass, 'Sector arrows placed', '5', 'Active'],
-  ];
+interface SectorCompassKpisProps {
+  kpis: KpiItem[];
+}
+
+function SectorCompassKpis({ kpis }: SectorCompassKpisProps) {
   return (
     <section className="sector-compass-kpis">
-      {items.map(([Icon, label, value, note]) => (
-        <SurfaceCard key={label} className="sector-compass-kpi">
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </SurfaceCard>
-      ))}
+      {kpis.map((item) => {
+        const Icon = ICON_MAP[item.iconKey];
+        return (
+          <SurfaceCard key={item.label} className={`sector-compass-kpi ${item.tone}`}>
+            <Icon aria-hidden="true" />
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.note}</small>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
 
-function SectorObservations() {
-  const rows: Array<[string, string, string]> = [
-    ['SW (225)', 'Wildfire risk', 'High'],
-    ['NW (315)', 'Winter wind', 'High'],
-    ['W (270)', 'Road & noise', 'Medium'],
-    ['E-SE (74)', 'Morning sun', 'High'],
-    ['S (180)', 'Summer sun', 'High'],
-    ['NE (45)', 'Views', 'High'],
-    ['N (0)', 'Cold air', 'Medium'],
-  ];
+interface SectorObservationsProps {
+  sectors: SectorArrow[];
+}
+
+function SectorObservations({ sectors }: SectorObservationsProps) {
   return (
     <SurfaceCard className="sector-observations-card">
       <h2>
-        Sector observations <b>5</b>
+        Sector observations{' '}
+        {sectors.length > 0 && <b>{sectors.length}</b>}
       </h2>
-      <div className="sector-observation-head">
-        <span>Priority</span>
-        <span>Sector</span>
-        <span>Influence</span>
-        <span>Impact</span>
-      </div>
-      {rows.map(([sector, influence, impact], index) => (
-        <p key={`${sector}-${influence}`}>
-          <b>{index + 1}</b>
-          <span>{sector}</span>
-          <em>{influence}</em>
-          <strong>{impact}</strong>
-        </p>
-      ))}
+      {sectors.length === 0 ? (
+        <p className="empty-note">No sectors logged yet — add one from the toolbar.</p>
+      ) : (
+        <>
+          <div className="sector-observation-head">
+            <span>Priority</span>
+            <span>Sector</span>
+            <span>Influence</span>
+            <span>Impact</span>
+          </div>
+          {sectors.map((s, index) => (
+            <p key={s.id}>
+              <b>{index + 1}</b>
+              <span>{s.bearingDeg}°</span>
+              <em>{SECTOR_TYPE_LABELS[s.type]}</em>
+              <strong>{INTENSITY_LABELS[s.intensity ?? 'low']}</strong>
+            </p>
+          ))}
+        </>
+      )}
       <button type="button">Edit sector arrows</button>
+    </SurfaceCard>
+  );
+}
+
+function PlacementsCard() {
+  return (
+    <SurfaceCard className="placements-card">
+      <h2>Recommended placements &amp; interventions</h2>
+      <p className="empty-note">
+        Placements generate as you add sector arrows from the toolbar.
+      </p>
+      <button type="button">
+        <Compass aria-hidden="true" /> Generate design overlay
+      </button>
     </SurfaceCard>
   );
 }

@@ -101,6 +101,7 @@ export default function ObserveLayout() {
                 <MapToolbar
                   map={map}
                   projectId={params.projectId ?? null}
+                  boundary={project?.location.boundary ?? null}
                   onBoundaryDrawn={(polygon) => {
                     if (!params.projectId) return;
                     updateProject(params.projectId, {

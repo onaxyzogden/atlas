@@ -21181,3 +21181,727 @@
 
 }
 
+
+/* ===== Human Context module — v3 wiring additions ===== */
+
+.chip.chip-add {
+  background: transparent;
+  border: 1px dashed rgba(176, 138, 58, 0.5);
+  color: rgb(176, 138, 58);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.chip.chip-add:hover {
+  background: rgba(176, 138, 58, 0.08);
+}
+
+.chip-list .chip-add-form {
+  display: inline-flex;
+  align-items: center;
+  margin: 2px;
+}
+
+.chip-list .chip-add-form input {
+  border: 1px solid rgba(176, 138, 58, 0.4);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  background: white;
+  outline: none;
+  min-width: 140px;
+}
+
+.chip-list .chip-add-form input:focus {
+  border-color: rgb(176, 138, 58);
+}
+
+/* Editable bullet lists */
+.editable-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editable-bullets li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+}
+
+.editable-bullets li button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.editable-bullets li button:hover {
+  color: #c0392b;
+}
+
+.editable-bullets li button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.empty-note {
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.add-row,
+.add-network-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.add-row input,
+.add-network-row input,
+.add-network-row select {
+  flex: 1 1 140px;
+  min-width: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.add-row input:focus,
+.add-network-row input:focus,
+.add-network-row select:focus {
+  border-color: rgb(176, 138, 58);
+  outline: none;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.45);
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.icon-button:hover {
+  color: #c0392b;
+}
+
+.icon-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Capacity orbit */
+.capacity-orbit {
+  color: rgb(60, 60, 60);
+}
+
+/* Moodboard */
+.moodboard-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.moodboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.moodboard-tile {
+  position: relative;
+  margin: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.moodboard-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.moodboard-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.moodboard-remove svg {
+  width: 12px;
+  height: 12px;
+}
+
+.moodboard-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 2px dashed rgba(176, 138, 58, 0.4);
+  background: rgba(176, 138, 58, 0.04);
+  color: rgb(176, 138, 58);
+  border-radius: 6px;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+  font-size: 0.85rem;
+}
+
+.moodboard-add:hover {
+  background: rgba(176, 138, 58, 0.1);
+}
+
+.moodboard-add svg {
+  width: 24px;
+  height: 24px;
+}
+
+.moodboard-empty {
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Concept image upload */
+.concept-image-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.concept-image-wrap .concept-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.concept-clear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.concept-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed rgba(176, 138, 58, 0.4);
+  background: rgba(176, 138, 58, 0.04);
+  color: rgb(176, 138, 58);
+  border-radius: 8px;
+  padding: 32px 16px;
+  cursor: pointer;
+  min-height: 200px;
+}
+
+.concept-empty svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* --- Macroclimate & Hazards module: SVG charts --- */
+.observe-port .monthly-climate-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.observe-port .monthly-climate-chart.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  color: var(--olos-muted, #888);
+  font-size: 13px;
+}
+.observe-port .monthly-climate-chart .precip-bar {
+  fill: rgba(117, 201, 231, 0.55);
+}
+.observe-port .monthly-climate-chart .temp-line {
+  stroke-width: 1.6;
+  fill: none;
+}
+.observe-port .monthly-climate-chart .temp-line.max { stroke: #d7553a; }
+.observe-port .monthly-climate-chart .temp-line.min { stroke: #4f7cc7; }
+.observe-port .monthly-climate-chart .month-tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.observe-port .sun-path-diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.observe-port .sun-path-diagram.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  color: var(--olos-muted, #888);
+}
+.observe-port .sun-path-diagram .horizon-line {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1;
+}
+.observe-port .sun-path-diagram .sun-arc {
+  stroke-width: 1.6;
+  fill: none;
+}
+.observe-port .sun-path-diagram .sun-arc.summer { stroke: #d7a236; }
+.observe-port .sun-path-diagram .sun-arc.equinox { stroke: var(--olos-green, #5a8a4a); }
+.observe-port .sun-path-diagram .sun-arc.winter { stroke: #6c7a89; }
+.observe-port .sun-path-diagram .sun-label,
+.observe-port .sun-path-diagram .sun-axis {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.observe-port .hazard-risk-matrix {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  grid-template-rows: 1fr 18px 18px;
+  gap: 4px;
+  width: 100%;
+  font-size: 11px;
+  color: var(--olos-muted, #888);
+}
+.observe-port .hazard-risk-matrix .matrix-y-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  grid-row: 1;
+  grid-column: 1;
+  text-align: center;
+}
+.observe-port .hazard-risk-matrix .matrix-grid {
+  grid-row: 1;
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  min-height: 140px;
+}
+.observe-port .matrix-cell {
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-start;
+}
+.observe-port .matrix-cell.green { background: rgba(90, 138, 74, 0.18); }
+.observe-port .matrix-cell.gold { background: rgba(215, 162, 54, 0.22); }
+.observe-port .matrix-cell.red { background: rgba(215, 85, 58, 0.22); }
+.observe-port .matrix-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--olos-card-bg, #fff);
+  color: var(--olos-text, #222);
+  font-weight: 600;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.observe-port .hazard-risk-matrix .matrix-x-label {
+  grid-row: 2;
+  grid-column: 2;
+  text-align: center;
+}
+.observe-port .hazard-risk-matrix .matrix-axis-labels {
+  grid-row: 3;
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.observe-port .hazard-hotspots-map {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.observe-port .hazard-hotspots-map .hotspot-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+}
+.observe-port .hazard-hotspots-map .hotspot-marker {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+.observe-port .hazard-hotspots-map .hotspot-marker svg {
+  width: 13px;
+  height: 13px;
+}
+.observe-port .hazard-hotspots-map .hotspot-marker.high { background: rgba(215, 85, 58, 0.95); color: #fff; }
+.observe-port .hazard-hotspots-map .hotspot-marker.moderate { background: rgba(215, 162, 54, 0.95); color: #fff; }
+.observe-port .hazard-hotspots-map .hotspot-marker.low { background: rgba(90, 138, 74, 0.95); color: #fff; }
+.observe-port .hazard-hotspots-map .hotspot-empty {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.45);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.observe-port .add-hazard-form .add-hazard-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.observe-port .add-hazard-form input,
+.observe-port .add-hazard-form select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--olos-border, #d8d8d8);
+  font: inherit;
+}
+.observe-port .hazard-row select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--olos-border, #d8d8d8);
+  font: inherit;
+}
+.observe-port .empty-note {
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+/* === Topography module 3 — pure-SVG components === */
+.observe-port .elevation-profile-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.observe-port .elevation-profile-chart .profile-fill {
+  fill: rgba(76, 132, 96, 0.18);
+}
+.observe-port .elevation-profile-chart .profile-line {
+  fill: none;
+  stroke: #4c8460;
+  stroke-width: 1.5;
+}
+.observe-port .elevation-profile-chart .profile-axis {
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+.observe-port .elevation-profile-chart .profile-tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+.observe-port .elevation-profile-chart .vertical-ref {
+  stroke: #b88a3a;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+.observe-port .elevation-profile-chart.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.observe-port .elevation-histogram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.observe-port .elevation-histogram .hist-bar {
+  fill: rgba(76, 132, 96, 0.6);
+}
+.observe-port .elevation-histogram .hist-axis {
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+.observe-port .elevation-histogram .hist-tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+.observe-port .elevation-histogram.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.observe-port .slope-legend-strip {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.observe-port .slope-legend-strip .slope-band {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #2a2a2a;
+}
+.observe-port .slope-legend-strip .slope-band b {
+  font-weight: 600;
+}
+.observe-port .slope-legend-strip .slope-band small {
+  opacity: 0.75;
+}
+.observe-port .slope-legend-strip .band-flat { background: #e6efe9; }
+.observe-port .slope-legend-strip .band-gentle { background: #c9e0d1; }
+.observe-port .slope-legend-strip .band-moderate { background: #f6dba0; }
+.observe-port .slope-legend-strip .band-steep { background: #e8a878; }
+.observe-port .slope-legend-strip .band-severe { background: #c97a6a; color: #fff; }
+
+.observe-port .aspect-compass {
+  display: block;
+}
+.observe-port .aspect-compass .compass-ring {
+  fill: none;
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+.observe-port .aspect-compass .compass-tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+.observe-port .aspect-compass .compass-tick.is-active {
+  fill: #4c8460;
+  font-weight: 600;
+}
+.observe-port .aspect-compass .compass-arrow {
+  stroke: #4c8460;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.observe-port .aspect-compass .compass-hub {
+  fill: #4c8460;
+}
+
+.observe-port .terrain-snapshot {
+  position: relative;
+}
+.observe-port .terrain-snapshot.overlay-contours::after,
+.observe-port .terrain-snapshot.overlay-slope::after,
+.observe-port .terrain-snapshot.overlay-hillshade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.observe-port .terrain-snapshot.overlay-contours::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 18px,
+      rgba(76, 132, 96, 0.35) 18px,
+      rgba(76, 132, 96, 0.35) 19px
+    );
+  mix-blend-mode: multiply;
+}
+.observe-port .terrain-snapshot.overlay-slope::after {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 239, 233, 0.25),
+    rgba(201, 122, 106, 0.25)
+  );
+}
+.observe-port .terrain-snapshot.overlay-hillshade::after {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18),
+    rgba(255, 255, 255, 0.12)
+  );
+  mix-blend-mode: overlay;
+}
+
+.observe-port .seasonal-solar-strip {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.observe-port .seasonal-solar-strip.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+}
+.observe-port .seasonal-solar-strip .solar-horizon {
+  stroke: var(--olos-border, #b8b8b8);
+  stroke-width: 1;
+}
+.observe-port .seasonal-solar-strip .solar-arc {
+  stroke-width: 1.5;
+  fill: none;
+}
+.observe-port .seasonal-solar-strip .solar-arc.summer { stroke: #d6a64a; }
+.observe-port .seasonal-solar-strip .solar-arc.equinox { stroke: #4c8460; }
+.observe-port .seasonal-solar-strip .solar-arc.winter { stroke: #6a8aa6; }
+.observe-port .seasonal-solar-strip .solar-tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.observe-port .layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--olos-border, #d8d8d8);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.observe-port .layer-toggle.on {
+  background: rgba(76, 132, 96, 0.12);
+  border-color: #4c8460;
+}
+.observe-port .layer-toggle b {
+  width: 14px;
+  color: #4c8460;
+}
+.observe-port .layer-toggle em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--olos-muted, #888);
+}
+
+.observe-port .cartographic-banner {
+  padding: 10px 12px;
+  background: rgba(76, 132, 96, 0.08);
+  border-left: 3px solid #4c8460;
+  font-size: 13px;
+  color: #2a2a2a;
+  margin: 8px 0 12px;
+}
+
+.observe-port .transect-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--olos-border, #eee);
+}
+.observe-port .transect-row b {
+  width: 18px;
+  text-align: center;
+  color: var(--olos-muted, #888);
+}
+.observe-port .transect-row-select {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.observe-port .transect-row-select small {
+  color: var(--olos-muted, #888);
+  font-size: 11px;
+}
+.observe-port .transect-row em {
+  font-style: normal;
+  font-size: 11px;
+  color: #4c8460;
+  font-weight: 600;
+}
+.observe-port .transect-row .icon-button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--olos-muted, #888);
+  padding: 2px 6px;
+}
+
+.observe-port .tone-green { border-left: 3px solid #4c8460; }
+.observe-port .tone-gold { border-left: 3px solid #d6a64a; }
+.observe-port .tone-red { border-left: 3px solid #c97a6a; }
+.observe-port .tone-blue { border-left: 3px solid #6a8aa6; }
+.observe-port .tone-dim { border-left: 3px solid var(--olos-border, #d8d8d8); }
+

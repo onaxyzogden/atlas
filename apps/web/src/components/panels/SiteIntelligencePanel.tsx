@@ -610,7 +610,13 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       Promise.all([refreshProject(project.id, [lng, lat], project.country, bbox), minDelay])
         .finally(() => setIsRefreshing(false));
     } catch { /* boundary may be invalid */ }
-  }, [project.id, project.parcelBoundaryGeojson, project.country, refreshProject, isRefreshing]);
+    // Depend on the whole `project` reference: an upstream re-memo (e.g.
+    // useV3Project rebuilds when siteDataStore changes) can hand us a fresh
+    // project wrapping the SAME parcelBoundaryGeojson ref, but a freshly drawn
+    // boundary always produces a NEW project. Keying on `project` alone makes
+    // the callback recreate reliably, eliminating any stale-FC closure risk
+    // that would otherwise refresh against the project's CREATION-time bbox.
+  }, [project, refreshProject, isRefreshing]);
 
   const onToggleLiveData = useCallback(() => setLiveDataOpen((v) => !v), []);
   const onToggleExpandedCrop = useCallback((id: string) => {

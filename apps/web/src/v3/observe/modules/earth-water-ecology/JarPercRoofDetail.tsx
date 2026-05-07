@@ -1,42 +1,85 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
-  CloudRain,
+  Beaker,
+  Binoculars,
   Download,
   Droplet,
-  Home,
+  FlaskConical,
   Leaf,
   NotebookText,
   Plus,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import jarLayers from '../../assets/jar-perc-roof/jar-layers.png';
-import percGauge from '../../assets/jar-perc-roof/perc-gauge.png';
-import roofDiagram from '../../assets/jar-perc-roof/roof-diagram.png';
-import storageCapacity from '../../assets/jar-perc-roof/storage-capacity.png';
-import seasonalCapture from '../../assets/jar-perc-roof/seasonal-capture.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSoilSampleStore, TEXTURE_LABELS, DEPTH_LABELS, BIO_ACTIVITY_LABELS } from '../../../../store/soilSampleStore.js';
+import SoilProfileBar from './SoilProfileBar.js';
+import PercGauge from './PercGauge.js';
+import WaterBalanceBar from './WaterBalanceBar.js';
+import {
+  jprKpis,
+  soilStats,
+  percRating,
+  roofAnnualCaptureL,
+  type KpiIconKey,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  droplet: Droplet,
+  leaf: Leaf,
+  layers: Beaker,
+  beaker: FlaskConical,
+  mountain: Binoculars,
+  waves: Waves,
+};
 
 export default function JarPercRoofDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const allSamples = useSoilSampleStore((s) => s.samples);
+  const samples = useMemo(
+    () => allSamples.filter((s) => s.projectId === id),
+    [allSamples, id],
+  );
+
+  const kpis = jprKpis(samples);
+  const stats = soilStats(samples);
+  const latest = stats.latestSample;
+
   return (
     <div className="detail-page jpr-page">
       <section className="jpr-layout">
         <div className="jpr-main">
           <JprHeader />
-          <JprKpis />
+          <SurfaceCard className="jpr-kpi-strip">
+            {kpis.map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
+                  <Icon aria-hidden="true" />
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.note}</small>
+                </div>
+              );
+            })}
+          </SurfaceCard>
           <section className="jpr-result-grid">
-            <JarTestCard />
-            <PercTestCard />
-            <RoofCatchmentCard />
+            <JarTestCard latest={latest} />
+            <PercTestCard latest={latest} />
+            <RoofCatchmentCard latest={latest} />
           </section>
           <section className="jpr-bottom-grid">
-            <AssumptionsCard />
-            <RecentTestsCard />
-            <NotesCard />
-            <NextActionsCard />
+            <AssumptionsCard latest={latest} />
+            <RecentTestsCard samples={samples} stats={stats} />
+            <NotesCard samples={samples} />
+            <NextActionsCard stats={stats} />
           </section>
         </div>
-        <JprSidebar />
+        <JprSidebar stats={stats} />
       </section>
     </div>
   );
@@ -59,29 +102,6 @@ function JprHeader() {
   );
 }
 
-function JprKpis() {
-  const items: Array<[LucideIcon, string, string, string]> = [
-    [Leaf, 'Soil texture class', 'Loam', 'Balanced'],
-    [Droplet, 'Percolation rate', '24 mm/hr', 'Moderate'],
-    [Waves, 'Infiltration rating', 'Good', 'Suitable for soakage'],
-    [CloudRain, 'Roof catchment (annual)', '74,300 L/yr', 'High potential'],
-    [Home, 'Effective roof area', '128 m2', 'After deductions'],
-    [NotebookText, 'Storage recommendation', '8,000-10,000 L', 'To reduce overflow'],
-  ];
-  return (
-    <SurfaceCard className="jpr-kpi-strip">
-      {items.map(([Icon, label, value, note]) => (
-        <div key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
-  );
-}
-
 interface CardHeaderProps {
   number: string;
   title: string;
@@ -101,128 +121,155 @@ function CardHeader({ number, title }: CardHeaderProps) {
   );
 }
 
-function JarTestCard() {
-  const layers: Array<[string, string]> = [
-    ['Organic matter', '5%'],
-    ['Clay', '18%'],
-    ['Silt', '37%'],
-    ['Sand', '40%'],
-  ];
+type LatestSample = ReturnType<typeof soilStats>['latestSample'];
+
+interface JarTestCardProps {
+  latest: LatestSample;
+}
+
+function JarTestCard({ latest }: JarTestCardProps) {
+  const jar = latest?.jarTest;
+  const layers: Array<[string, string]> = jar
+    ? [
+        ['Sand', `${jar.sandPct}%`],
+        ['Silt', `${jar.siltPct}%`],
+        ['Clay', `${jar.clayPct}%`],
+      ]
+    : [];
+
   return (
     <SurfaceCard className="jpr-card jar-card">
       <CardHeader number="1" title="Jar test results" />
       <p className="jpr-subtitle">Soil texture by volume (jar settling method)</p>
       <div className="jar-content">
-        <CroppedArt src={jarLayers} className="jar-layers-image" />
+        <SoilProfileBar jarTest={jar ?? null} className="jar-layers-image" />
         <div className="jar-layer-list">
-          {layers.map(([label, value]) => (
-            <p key={label}>
-              <span />
-              {label}
-              <b>{value}</b>
-            </p>
-          ))}
+          {layers.length === 0 ? (
+            <p className="empty-note">No jar test — fill a jar with soil and water, shake, and record the settled layers.</p>
+          ) : (
+            layers.map(([label, value]) => (
+              <p key={label}>
+                <span />
+                {label}
+                <b>{value}</b>
+              </p>
+            ))
+          )}
         </div>
       </div>
-      <p className="jpr-interpretation">
-        <Leaf aria-hidden="true" /> <b>Interpretation: Loam</b> - balanced mix of sand, silt &amp;
-        clay. Good for water holding and infiltration with structure support.
-      </p>
+      {latest?.texture && (
+        <p className="jpr-interpretation">
+          <Leaf aria-hidden="true" /> <b>Texture: {TEXTURE_LABELS[latest.texture]}</b> — balanced mix supports water holding and infiltration.
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function PercTestCard() {
+interface PercTestCardProps {
+  latest: LatestSample;
+}
+
+function PercTestCard({ latest }: PercTestCardProps) {
+  const percVal = latest?.percolationInPerHr;
+  const band = percVal != null ? percRating(percVal) : null;
+
   return (
     <SurfaceCard className="jpr-card perc-card">
       <CardHeader number="2" title="Percolation test (infiltration)" />
       <p className="jpr-subtitle">Infiltration rate</p>
       <div className="perc-content">
-        <CroppedArt src={percGauge} className="perc-gauge-image" />
+        <PercGauge inPerHr={percVal ?? null} className="perc-gauge-image" />
         <dl>
           <div>
-            <dt>Hole diameter</dt>
-            <dd>300 mm</dd>
+            <dt>Sample label</dt>
+            <dd>{latest?.label ?? '—'}</dd>
           </div>
           <div>
-            <dt>Hole depth</dt>
-            <dd>600 mm</dd>
+            <dt>Sample depth</dt>
+            <dd>{latest?.depth ? DEPTH_LABELS[latest.depth] : '—'}</dd>
           </div>
           <div>
-            <dt>Test duration</dt>
-            <dd>60 min</dd>
+            <dt>Percolation rate</dt>
+            <dd>{percVal != null ? `${percVal} in/hr` : '—'}</dd>
           </div>
           <div>
-            <dt>Start time</dt>
-            <dd>9:15 AM</dd>
+            <dt>Rating</dt>
+            <dd>{band?.label ?? '—'}</dd>
           </div>
           <div>
-            <dt>End time</dt>
-            <dd>10:15 AM</dd>
-          </div>
-          <div>
-            <dt>Final water drop</dt>
-            <dd>60 mm</dd>
-          </div>
-          <div>
-            <dt>Infiltration rate</dt>
-            <dd>24 mm/hr</dd>
+            <dt>Bulk density</dt>
+            <dd>{latest?.bulkDensityGCm3 != null ? `${latest.bulkDensityGCm3} g/cm³` : '—'}</dd>
           </div>
         </dl>
       </div>
-      <p className="jpr-interpretation blue">
-        <Droplet aria-hidden="true" /> <b>Suitability:</b> Good for soakage pits, trenching and
-        sub-surface irrigation. Avoid heavy compaction.
-      </p>
+      {band && (
+        <p className={`jpr-interpretation ${band.tone === 'green' ? '' : 'blue'}`}>
+          <Droplet aria-hidden="true" /> <b>Suitability:</b> {band.label} — {band.rating === 'ideal' ? 'Good for soakage pits and sub-surface irrigation.' : band.rating === 'fast' ? 'Rapid drainage — check for soil structure issues.' : 'Slow drainage — may need aeration or organic matter addition.'}
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function RoofCatchmentCard() {
+interface RoofCatchmentCardProps {
+  latest: LatestSample;
+}
+
+function RoofCatchmentCard({ latest }: RoofCatchmentCardProps) {
+  const roof = latest?.roofCatchment ?? null;
+  const annualL = roof
+    ? roofAnnualCaptureL(roof.roofAreaM2, roof.annualPrecipMm ?? 800, roof.runoffCoeff ?? 0.85)
+    : null;
+
   return (
     <SurfaceCard className="jpr-card roof-card">
       <CardHeader number="3" title="Roof catchment analysis" />
       <div className="roof-grid">
         <div>
-          <p className="jpr-subtitle">Roof diagram</p>
-          <CroppedArt src={roofDiagram} className="roof-diagram-image" />
+          <p className="jpr-subtitle">Monthly capture estimate</p>
+          <WaterBalanceBar roofCatchment={roof} variant="capture" className="seasonal-capture-image" />
         </div>
         <dl className="catchment-calc">
           <div>
-            <dt>Annual rainfall</dt>
-            <dd>1,050 mm</dd>
+            <dt>Annual precipitation</dt>
+            <dd>{roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm` : '—'}</dd>
           </div>
           <div>
             <dt>Effective roof area</dt>
-            <dd>128 m2</dd>
+            <dd>{roof?.roofAreaM2 != null ? `${roof.roofAreaM2} m²` : '—'}</dd>
           </div>
           <div>
             <dt>Runoff coefficient</dt>
-            <dd>0.85</dd>
+            <dd>{roof?.runoffCoeff != null ? roof.runoffCoeff.toFixed(2) : '—'}</dd>
           </div>
           <div>
             <dt>Annual potential</dt>
-            <dd>74,300 L/yr</dd>
+            <dd>{annualL != null ? `${Math.round(annualL).toLocaleString()} L/yr` : '—'}</dd>
           </div>
         </dl>
-        <CroppedArt src={storageCapacity} className="storage-capacity-image" />
-        <CroppedArt src={seasonalCapture} className="seasonal-capture-image" />
       </div>
-      <p className="jpr-interpretation blue">
-        <Droplet aria-hidden="true" /> <b>Overflow consideration:</b> Install overflow to swale or
-        rain garden. Keep first-flush diverter and leaf screen clean.
-      </p>
+      {annualL != null && (
+        <p className="jpr-interpretation blue">
+          <Droplet aria-hidden="true" /> <b>Overflow consideration:</b> Install overflow to swale or rain garden. Keep first-flush diverter and leaf screen clean.
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function AssumptionsCard() {
+interface AssumptionsCardProps {
+  latest: LatestSample;
+}
+
+function AssumptionsCard({ latest }: AssumptionsCardProps) {
+  const roof = latest?.roofCatchment;
   const rows: Array<[string, string]> = [
-    ['Annual rainfall', '1,050 mm/yr'],
-    ['Roof runoff coefficient', '0.85 (metal roof)'],
-    ['First flush loss', '1 mm'],
-    ['Evaporation loss', '10%'],
-    ['Storage days target', '30 days'],
+    ['Annual rainfall', roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm/yr` : '—'],
+    ['Roof runoff coefficient', roof?.runoffCoeff != null ? `${roof.runoffCoeff} (metal roof)` : '—'],
+    ['Effective roof area', roof?.roofAreaM2 != null ? `${roof.roofAreaM2} m²` : '—'],
+    ['Percolation rate', latest?.percolationInPerHr != null ? `${latest.percolationInPerHr} in/hr` : '—'],
+    ['Biological activity', latest?.biologicalActivity ? BIO_ACTIVITY_LABELS[latest.biologicalActivity] : '—'],
   ];
   return (
     <SurfaceCard className="jpr-small-card">
@@ -243,14 +290,15 @@ function AssumptionsCard() {
   );
 }
 
-function RecentTestsCard() {
-  const rows: Array<[string, string, string, string]> = [
-    ['Today, 9:15 AM', 'Percolation test #2', '24 mm/hr', 'Good'],
-    ['2 days ago', 'Jar test #2', 'Loam', ''],
-    ['2 days ago', 'Roof survey update', '128 m2', ''],
-    ['7 days ago', 'Percolation test #1', '18 mm/hr', 'Moderate'],
-    ['7 days ago', 'Jar test #1', 'Sandy loam', ''],
-  ];
+interface RecentTestsCardProps {
+  samples: ReturnType<typeof useSoilSampleStore.getState>['samples'];
+  stats: ReturnType<typeof soilStats>;
+}
+
+function RecentTestsCard({ samples }: RecentTestsCardProps) {
+  const recent = [...samples]
+    .sort((a, b) => b.sampleDate.localeCompare(a.sampleDate))
+    .slice(0, 5);
   return (
     <SurfaceCard className="jpr-small-card recent-tests-card">
       <header>
@@ -259,26 +307,31 @@ function RecentTestsCard() {
           View all <ArrowRight aria-hidden="true" />
         </button>
       </header>
-      {rows.map(([time, test, value, status]) => (
-        <p key={`${time}-${test}`}>
-          <span>{time}</span>
-          <b>{test}</b>
-          <em>{value}</em>
-          <small>{status}</small>
-        </p>
-      ))}
+      {recent.length === 0 ? (
+        <p className="empty-note">No samples yet — add a sample via the tools panel.</p>
+      ) : (
+        recent.map((s) => (
+          <p key={s.id}>
+            <span>{s.sampleDate}</span>
+            <b>{s.label}</b>
+            <em>{s.ph != null ? `pH ${s.ph}` : s.texture ? TEXTURE_LABELS[s.texture] : '—'}</em>
+            <small>{s.percolationInPerHr != null ? `${s.percolationInPerHr} in/hr` : ''}</small>
+          </p>
+        ))
+      )}
     </SurfaceCard>
   );
 }
 
-function NotesCard() {
-  const notes = [
-    'Site recently mulched; expect improved infiltration over time.',
-    'Roof is metal with gutter screens installed.',
-    'Consider additional shade over tanks.',
-    'Topsoil depth ~150 mm in most areas.',
-    'Avoid heavy machinery near test holes.',
-  ];
+interface NotesCardProps {
+  samples: ReturnType<typeof useSoilSampleStore.getState>['samples'];
+}
+
+function NotesCard({ samples }: NotesCardProps) {
+  const notes = samples
+    .filter((s) => s.notes && s.notes.trim().length > 0)
+    .slice(0, 5)
+    .map((s) => s.notes as string);
   return (
     <SurfaceCard className="jpr-small-card notes-card">
       <header>
@@ -287,21 +340,32 @@ function NotesCard() {
           Add note <Plus aria-hidden="true" />
         </button>
       </header>
-      {notes.map((note) => (
-        <p key={note}>{note}</p>
-      ))}
+      {notes.length === 0 ? (
+        <p className="empty-note">No notes — add observations to samples via the tools panel.</p>
+      ) : (
+        notes.map((note, i) => (
+          <p key={i}>{note}</p>
+        ))
+      )}
     </SurfaceCard>
   );
 }
 
-function NextActionsCard() {
-  const rows: Array<[string, string, string]> = [
-    ['Install 10kL rainwater tank system', 'High', 'Due in 7 days'],
-    ['Build swale overflow & rain garden', 'High', 'Due in 14 days'],
-    ['Install sub-surface irrigation lines', 'Medium', 'Due in 14 days'],
-    ['Add compost & mulch to planting zones', 'Medium', 'Due in 30 days'],
-    ['Re-test infiltration after wet season', 'Low', 'Due in 60 days'],
-  ];
+interface NextActionsCardProps {
+  stats: ReturnType<typeof soilStats>;
+}
+
+function NextActionsCard({ stats }: NextActionsCardProps) {
+  const rows: Array<[string, string]> = [];
+  if (!stats.hasJar) rows.push(['Run a jar test', 'High']);
+  if (!stats.hasPerc) rows.push(['Run a percolation test', 'High']);
+  if (!stats.hasRoof) rows.push(['Record roof catchment data', 'Medium']);
+  if (stats.avgPh != null && stats.avgPh < 6) rows.push(['Amend soil pH (add lime)', 'Medium']);
+  if (stats.avgOm != null && stats.avgOm < 2) rows.push(['Increase organic matter', 'Medium']);
+  if (rows.length === 0) {
+    rows.push(['Install rainwater tank system', 'Medium']);
+    rows.push(['Re-test after wet season', 'Low']);
+  }
   return (
     <SurfaceCard className="jpr-small-card jpr-actions-card">
       <header>
@@ -310,34 +374,54 @@ function NextActionsCard() {
           Prioritize <ArrowRight aria-hidden="true" />
         </button>
       </header>
-      {rows.map(([title, level, due], index) => (
+      {rows.map(([title, level], index) => (
         <p key={title}>
           <b>{index + 1}</b>
           <span>{title}</span>
           <em>{level}</em>
-          <small>{due}</small>
         </p>
       ))}
     </SurfaceCard>
   );
 }
 
-function JprSidebar() {
+interface JprSidebarProps {
+  stats: ReturnType<typeof soilStats>;
+}
+
+function JprSidebar({ stats }: JprSidebarProps) {
+  const latest = stats.latestSample;
+  const percVal = latest?.percolationInPerHr;
+  const band = percVal != null ? percRating(percVal) : null;
+  const annualL = latest?.roofCatchment
+    ? roofAnnualCaptureL(
+        latest.roofCatchment.roofAreaM2,
+        latest.roofCatchment.annualPrecipMm ?? 800,
+        latest.roofCatchment.runoffCoeff ?? 0.85,
+      )
+    : null;
+
   return (
     <aside className="jpr-sidebar">
       <SurfaceCard className="jpr-guidance-card">
         <h2>
           <Leaf aria-hidden="true" /> Summary &amp; guidance
         </h2>
-        <p>
-          Your soil is a loam with good structure, offering balanced water holding and
-          infiltration.
-        </p>
-        <p>Infiltration rate is good for on-site soakage solutions.</p>
-        <p>
-          Your roof has high rainfall capture potential. Capturing ~75-90% of annual rainfall will
-          significantly reduce mains use and site runoff.
-        </p>
+        {stats.count === 0 ? (
+          <p>No soil samples yet. Run a jar test, percolation test, and record roof catchment data to unlock water management insights.</p>
+        ) : (
+          <>
+            {latest?.texture && (
+              <p>Your soil texture is <b>{TEXTURE_LABELS[latest.texture]}</b> — {latest.texture.includes('clay') ? 'higher clay content means slower infiltration but good water retention.' : 'balanced structure supports both drainage and moisture retention.'}</p>
+            )}
+            {band && (
+              <p>Infiltration rate is <b>{band.label}</b> — {band.rating === 'ideal' ? 'well-suited for on-site soakage systems.' : band.rating === 'fast' ? 'may need organic matter to improve water retention.' : 'consider aerating and adding compost to improve drainage.'}</p>
+            )}
+            {annualL != null && (
+              <p>Your roof has a potential annual harvest of <b>{Math.round(annualL / 1000)} m³</b> — consider tank sizing to capture peak seasonal flows.</p>
+            )}
+          </>
+        )}
         <section>
           <h3>Next step</h3>
           <p>Use these results to size irrigation, soakage, and storage in your Water Plan.</p>

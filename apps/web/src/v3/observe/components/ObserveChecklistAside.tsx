@@ -239,6 +239,7 @@ export default function ObserveChecklistAside({
     <aside
       ref={asideRef}
       className={css.checklistBox}
+      data-has-active={activeModule !== null}
       aria-label="Observe guidance"
     >
       {OBSERVE_MODULES.map((mod) => (

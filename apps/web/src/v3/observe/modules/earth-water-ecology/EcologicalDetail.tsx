@@ -1,51 +1,191 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
+  Beaker,
   Binoculars,
   CalendarDays,
   ChevronDown,
-  Flower2,
+  Droplet,
+  FlaskConical,
   Leaf,
   Plus,
   Sprout,
   TriangleAlert,
+  Waves,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import habitatMap from '../../assets/ecological-detail/habitat-map.png';
-import speciesStrip from '../../assets/ecological-detail/species-strip.png';
-import seasonalCalendar from '../../assets/ecological-detail/seasonal-calendar.png';
-import relationshipWeb from '../../assets/ecological-detail/relationship-web.png';
-import seedlingCallout from '../../assets/ecological-detail/seedling-callout.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import SpeciesObservationList from './SpeciesObservationList.js';
+import SeasonalEcologyStrip from './SeasonalEcologyStrip.js';
+import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
+import {
+  ecologyDetailKpis,
+  ecologyCounts,
+  type KpiIconKey,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  droplet: Droplet,
+  leaf: Leaf,
+  layers: Beaker,
+  beaker: FlaskConical,
+  mountain: Binoculars,
+  waves: Waves,
+};
 
 export default function EcologicalDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const allObservations = useEcologyStore((s) => s.ecology);
+  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const successionByProject = useEcologyStore((s) => s.successionStageByProject);
+
+  const observations = useMemo(
+    () => allObservations.filter((o) => o.projectId === id),
+    [allObservations, id],
+  );
+  const zones = useMemo(
+    () => allZones.filter((z) => z.projectId === id),
+    [allZones, id],
+  );
+  const successionStage = successionByProject[id];
+
+  const kpis = ecologyDetailKpis(layers, observations, zones, successionStage);
+  const counts = ecologyCounts(observations, zones, successionStage);
+
   return (
     <div className="detail-page ecological-detail-page">
       <section className="ecology-layout">
         <div className="ecology-main">
           <EcologyHeader />
-          <EcologyKpis />
+          <SurfaceCard className="ecology-kpi-strip">
+            {kpis.map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
+                  <Icon aria-hidden="true" />
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.note}</small>
+                  {item.pill && <em className={`kpi-pill tone-${item.tone}`}>{item.pill}</em>}
+                </div>
+              );
+            })}
+          </SurfaceCard>
           <section className="ecology-content-grid">
             <div className="ecology-left-stack">
-              <HabitatMapPanel />
+              <SurfaceCard className="ecology-map-panel">
+                <header>
+                  <h2>Habitat map &amp; observation zones</h2>
+                  <button type="button">
+                    All observations <ChevronDown aria-hidden="true" />
+                  </button>
+                </header>
+                <WaterSystemsSnapshot
+                  boundary={project?.location?.boundary}
+                  caption={project?.name}
+                  width={320}
+                  height={200}
+                  overlays={[]}
+                  className="ecology-habitat-map"
+                  earthworks={[]}
+                  watercourses={[]}
+                  storageInfra={[]}
+                />
+                <div className="ecology-map-legend">
+                  {counts.trophicLevels.length === 0 ? (
+                    <span className="empty-note">Record observations to populate the habitat map.</span>
+                  ) : (
+                    counts.trophicLevels.map((level) => (
+                      <span key={level}>{level}</span>
+                    ))
+                  )}
+                  <button type="button">
+                    View full map <ArrowRight aria-hidden="true" />
+                  </button>
+                </div>
+              </SurfaceCard>
               <section className="ecology-bottom-grid">
-                <SeasonalCalendarPanel />
-                <IndicatorSpeciesPanel />
+                <SurfaceCard className="seasonal-ecology-panel">
+                  <header>
+                    <h2>Seasonal ecology calendar</h2>
+                    <button type="button">
+                      This season <ArrowRight aria-hidden="true" />
+                    </button>
+                  </header>
+                  <SeasonalEcologyStrip
+                    observations={observations}
+                    className="seasonal-calendar-image"
+                  />
+                </SurfaceCard>
+                <IndicatorSpeciesPanel observations={observations} />
               </section>
             </div>
             <div className="ecology-observation-column">
-              <SpeciesPanel />
+              <SurfaceCard className="species-panel">
+                <header>
+                  <h2>Species observations</h2>
+                  <button type="button">
+                    View all species <ArrowRight aria-hidden="true" />
+                  </button>
+                </header>
+                <SpeciesObservationList
+                  observations={observations}
+                  className="species-strip-image"
+                />
+              </SurfaceCard>
               <div className="ecology-two-up">
-                <HabitatHealthPanel />
-                <RelationshipPanel />
+                <SurfaceCard className="habitat-health-panel">
+                  <header>
+                    <h2>Succession &amp; zones</h2>
+                    <button type="button">
+                      Details <ArrowRight aria-hidden="true" />
+                    </button>
+                  </header>
+                  {zones.length === 0 ? (
+                    <p className="empty-note">
+                      <Sprout aria-hidden="true" /> Map ecology zones via the tools panel to assess habitat structure.
+                    </p>
+                  ) : (
+                    zones.slice(0, 6).map((zone) => (
+                      <p key={zone.id}>
+                        <Sprout aria-hidden="true" />
+                        <span>{zone.label ?? 'Zone'}</span>
+                        <b>{zone.dominantStage}</b>
+                        <i />
+                      </p>
+                    ))
+                  )}
+                </SurfaceCard>
+                <SurfaceCard className="relationship-panel">
+                  <header>
+                    <h2>Trophic web</h2>
+                    <button type="button">
+                      View food web <ArrowRight aria-hidden="true" />
+                    </button>
+                  </header>
+                  <SpeciesObservationList
+                    observations={observations}
+                    compact
+                    className="relationship-web-image"
+                  />
+                </SurfaceCard>
               </div>
               <div className="ecology-two-up ecology-actions-row">
-                <RecentFieldObservations />
-                <RecommendedActions />
+                <RecentFieldObservations observations={observations} />
+                <RecommendedActions counts={counts} />
               </div>
             </div>
           </section>
         </div>
-        <EcologySidebar />
+        <EcologySidebar counts={counts} />
       </section>
     </div>
   );
@@ -68,138 +208,14 @@ function EcologyHeader() {
   );
 }
 
-function EcologyKpis() {
-  const items: Array<[LucideIcon, string, string, string]> = [
-    [Leaf, 'Biodiversity score', '62 /100', 'Moderate'],
-    [Binoculars, 'Observed species', '137', 'Across 6 taxa'],
-    [Sprout, 'Habitat types', '5', 'Diverse mosaic'],
-    [Flower2, 'Pollinator activity', 'Moderate', '12% vs last season'],
-    [TriangleAlert, 'Invasive pressure', 'Low', 'Stable'],
-    [Sprout, 'Restoration priority', 'Medium', 'Targeted actions'],
-  ];
-  return (
-    <SurfaceCard className="ecology-kpi-strip">
-      {items.map(([Icon, label, value, note]) => (
-        <div key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
-  );
+interface IndicatorProps {
+  observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
 }
 
-function HabitatMapPanel() {
-  const taxa = ['Plants', 'Birds', 'Insects', 'Amphibians', 'Fungi', 'Other'];
-  return (
-    <SurfaceCard className="ecology-map-panel">
-      <header>
-        <h2>Habitat map &amp; observation zones</h2>
-        <button type="button">
-          All observations <ChevronDown aria-hidden="true" />
-        </button>
-      </header>
-      <CroppedArt src={habitatMap} className="ecology-habitat-map" />
-      <div className="ecology-map-legend">
-        {taxa.map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-        <button type="button">
-          View full map <ArrowRight aria-hidden="true" />
-        </button>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function SpeciesPanel() {
-  const filters = ['All', 'Plants', 'Birds', 'Insects', 'Amphibians', 'Fungi'];
-  return (
-    <SurfaceCard className="species-panel">
-      <header>
-        <h2>Species observations</h2>
-        <button type="button">
-          View all species <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      <nav aria-label="Species filters">
-        {filters.map((item) => (
-          <button key={item} type="button">
-            {item}
-          </button>
-        ))}
-      </nav>
-      <CroppedArt src={speciesStrip} className="species-strip-image" />
-    </SurfaceCard>
-  );
-}
-
-function HabitatHealthPanel() {
-  const rows: Array<[string, string]> = [
-    ['Structural complexity', 'Moderate'],
-    ['Native plant cover', 'Good'],
-    ['Ground cover', 'Moderate'],
-    ['Canopy regeneration', 'Low'],
-    ['Microclimate stability', 'Good'],
-    ['Hydrological function', 'Good'],
-  ];
-  return (
-    <SurfaceCard className="habitat-health-panel">
-      <header>
-        <h2>Habitat health summary</h2>
-        <button type="button">
-          Details <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      {rows.map(([label, status]) => (
-        <p key={label}>
-          <Sprout aria-hidden="true" />
-          <span>{label}</span>
-          <b>{status}</b>
-          <i />
-        </p>
-      ))}
-    </SurfaceCard>
-  );
-}
-
-function RelationshipPanel() {
-  return (
-    <SurfaceCard className="relationship-panel">
-      <header>
-        <h2>Ecosystem relationships</h2>
-        <button type="button">
-          View food web <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      <CroppedArt src={relationshipWeb} className="relationship-web-image" />
-    </SurfaceCard>
-  );
-}
-
-function SeasonalCalendarPanel() {
-  return (
-    <SurfaceCard className="seasonal-ecology-panel">
-      <header>
-        <h2>Seasonal ecology calendar</h2>
-        <button type="button">
-          This season <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      <CroppedArt src={seasonalCalendar} className="seasonal-calendar-image" />
-    </SurfaceCard>
-  );
-}
-
-function IndicatorSpeciesPanel() {
-  const rows: Array<[string, string, string]> = [
-    ['Eastern Yellow Robin', 'Eopsaltria australis', 'Good'],
-    ['Leaf-cutter Ants', 'Genus: Oecophylla', 'Good'],
-    ['Wombat', 'Vombatus ursinus', 'Moderate'],
-    ['Tree Frog spp.', 'Litoria spp.', 'Good'],
-  ];
+function IndicatorSpeciesPanel({ observations }: IndicatorProps) {
+  const indicators = observations.filter((o) =>
+    o.trophicLevel === 'tertiary' || o.trophicLevel === 'secondary',
+  ).slice(0, 4);
   return (
     <SurfaceCard className="indicator-species-panel">
       <header>
@@ -208,27 +224,32 @@ function IndicatorSpeciesPanel() {
           View all <ArrowRight aria-hidden="true" />
         </button>
       </header>
-      {rows.map(([name, latin, status], index) => (
-        <p key={name}>
-          <span>{index + 1}</span>
-          <b>
-            {name}
-            <small>{latin}</small>
-          </b>
-          <em>{status}</em>
-        </p>
-      ))}
+      {indicators.length === 0 ? (
+        <p className="empty-note">Log secondary and tertiary consumers as ecological indicators.</p>
+      ) : (
+        indicators.map((obs, index) => (
+          <p key={obs.id}>
+            <span>{index + 1}</span>
+            <b>
+              {obs.species}
+              <small>{obs.trophicLevel}</small>
+            </b>
+            <em>Observed</em>
+          </p>
+        ))
+      )}
     </SurfaceCard>
   );
 }
 
-function RecentFieldObservations() {
-  const rows: Array<[string, string, string]> = [
-    ['Today, 9:42 AM', 'Noted high pollinator activity in meadow edge.', 'Pollinator'],
-    ['Yesterday, 4:15 PM', 'Spotted Eastern Spinebill feeding on tea-tree.', 'Bird'],
-    ['2 days ago, 11:08 AM', 'Frog call survey at wet area after rainfall.', 'Amphibian'],
-    ['3 days ago, 2:34 PM', 'Leaf litter sample collected for fungi ID.', 'Fungi'],
-  ];
+interface RecentObsProps {
+  observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
+}
+
+function RecentFieldObservations({ observations }: RecentObsProps) {
+  const recent = [...observations]
+    .sort((a, b) => b.observedAt.localeCompare(a.observedAt))
+    .slice(0, 4);
   return (
     <SurfaceCard className="field-observations-panel">
       <header>
@@ -237,16 +258,20 @@ function RecentFieldObservations() {
           View journal <ArrowRight aria-hidden="true" />
         </button>
       </header>
-      {rows.map(([time, note, tag]) => (
-        <p key={note}>
-          <CalendarDays aria-hidden="true" />
-          <span>
-            {time}
-            <small>{note}</small>
-          </span>
-          <em>{tag}</em>
-        </p>
-      ))}
+      {recent.length === 0 ? (
+        <p className="empty-note">No observations recorded — log species via the tools panel.</p>
+      ) : (
+        recent.map((obs) => (
+          <p key={obs.id}>
+            <CalendarDays aria-hidden="true" />
+            <span>
+              {new Date(obs.observedAt).toLocaleDateString()}
+              <small>{obs.notes ?? obs.species}</small>
+            </span>
+            <em>{obs.trophicLevel}</em>
+          </p>
+        ))
+      )}
       <button className="green-button" type="button">
         <Plus aria-hidden="true" /> Add observation
       </button>
@@ -254,33 +279,20 @@ function RecentFieldObservations() {
   );
 }
 
-function RecommendedActions() {
-  const rows: Array<[string, string, string, string]> = [
-    [
-      'Enhance riparian buffer planting',
-      'Increase native cover along corridor.',
-      'High',
-      'Due in 7 days',
-    ],
-    [
-      'Control weeds in meadow',
-      'Prioritize early removal of key invasives.',
-      'High',
-      'Due in 14 days',
-    ],
-    [
-      'Install pollinator habitat',
-      'Add native flowering shrubs & logs.',
-      'Medium',
-      'Due in 14 days',
-    ],
-    [
-      'Monitor frog breeding sites',
-      'Check water quality & habitat.',
-      'Medium',
-      'Due in 30 days',
-    ],
-  ];
+interface ActionsProps {
+  counts: ReturnType<typeof ecologyCounts>;
+}
+
+function RecommendedActions({ counts }: ActionsProps) {
+  const actions: Array<[string, string, string]> = [];
+  if (counts.observations === 0) actions.push(['Log species observations', 'Record flora, fauna and fungi sightings.', 'High']);
+  if (counts.zones === 0) actions.push(['Map ecology zones', 'Outline distinct habitat patches on the map.', 'High']);
+  if (counts.trophicLevels.length < 3) actions.push(['Record higher trophic levels', 'Log birds, reptiles, and predators.', 'Medium']);
+  if (!counts.successionStage) actions.push(['Set succession stage', 'Describe overall site successional context.', 'Medium']);
+  if (actions.length === 0) {
+    actions.push(['Enhance riparian planting', 'Increase native cover along water corridors.', 'Medium']);
+    actions.push(['Install pollinator habitat', 'Add native flowering shrubs and logs.', 'Medium']);
+  }
   return (
     <SurfaceCard className="ecology-recommended-panel">
       <header>
@@ -289,17 +301,14 @@ function RecommendedActions() {
           Prioritize <ChevronDown aria-hidden="true" />
         </button>
       </header>
-      {rows.map(([title, note, level, due], index) => (
+      {actions.map(([title, note, level], index) => (
         <p key={title}>
           <b>{index + 1}</b>
           <span>
             {title}
             <small>{note}</small>
           </span>
-          <em>
-            {level}
-            <small>{due}</small>
-          </em>
+          <em>{level}</em>
         </p>
       ))}
       <button type="button">View all actions</button>
@@ -307,28 +316,33 @@ function RecommendedActions() {
   );
 }
 
-function EcologySidebar() {
-  const strengths = [
-    'Diverse habitat mosaic supporting multiple niches.',
-    'Healthy riparian corridor with good regeneration.',
-    'Strong pollinator presence across the site.',
-  ];
-  const vulnerabilities = [
-    'Low canopy regeneration in some woodland areas.',
-    'High weed pressure in meadow edges.',
-    'Erosion risk on slopes near track and drainage lines.',
-  ];
+interface SidebarProps {
+  counts: ReturnType<typeof ecologyCounts>;
+}
+
+function EcologySidebar({ counts }: SidebarProps) {
+  const strengths = counts.observations > 0
+    ? [`${counts.observations} species observations recorded across ${counts.trophicLevels.length} trophic level${counts.trophicLevels.length === 1 ? '' : 's'}.`]
+    : ['No species observations yet — begin recording to build a trophic picture.'];
+
+  const vulnerabilities: string[] = [];
+  if (counts.trophicLevels.length < 3) vulnerabilities.push('Incomplete trophic web — log secondary and tertiary consumers.');
+  if (counts.zones === 0) vulnerabilities.push('No ecology zones mapped — outline habitat patches to track succession.');
+  if (!counts.successionStage) vulnerabilities.push('Succession stage not set — characterize overall site trajectory.');
+
   const opportunities = [
     'Expand native plant corridors to connect habitats.',
-    'Enhance habitat for frogs and beneficial insects.',
-    'Increase structural complexity with understory layers.',
+    'Enhance habitat for pollinators and beneficial insects.',
+    'Increase structural complexity with multi-layered plantings.',
   ];
+
   return (
     <aside className="ecology-sidebar">
       <SurfaceCard className="module-progress-card ecology-progress">
-        <p>Module progress</p>
+        <p>Observations</p>
         <strong>
-          18 of 28 tasks complete <span>63%</span>
+          {counts.observations} recorded{' '}
+          <span>{counts.trophicLevels.length} trophic levels</span>
         </strong>
         <i />
         <button type="button">View module guide</button>
@@ -346,12 +360,19 @@ function EcologySidebar() {
         </section>
         <section>
           <h3>Vulnerabilities</h3>
-          {vulnerabilities.map((item) => (
-            <p key={item}>
-              <TriangleAlert aria-hidden="true" />
-              {item}
+          {vulnerabilities.length === 0 ? (
+            <p>
+              <Leaf aria-hidden="true" />
+              No critical gaps identified — keep observing.
             </p>
-          ))}
+          ) : (
+            vulnerabilities.map((item) => (
+              <p key={item}>
+                <TriangleAlert aria-hidden="true" />
+                {item}
+              </p>
+            ))
+          )}
         </section>
         <section>
           <h3>Opportunities</h3>
@@ -369,7 +390,6 @@ function EcologySidebar() {
         <button className="green-button" type="button">
           <Sprout aria-hidden="true" /> Add to stewardship plan
         </button>
-        <CroppedArt src={seedlingCallout} className="seedling-callout-image" />
       </SurfaceCard>
     </aside>
   );

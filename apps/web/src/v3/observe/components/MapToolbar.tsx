@@ -17,6 +17,7 @@
 
 import { useEffect } from 'react';
 import {
+  Crosshair,
   Layers,
   Map as MapIcon,
   Ruler,
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
+import { polygonBounds } from '../../components/DiagnoseMap.js';
 import {
   BASEMAP_OPTIONS,
   useBasemapStore,
@@ -42,6 +44,8 @@ import css from './MapToolbar.module.css';
 interface Props {
   map: MaplibreMap;
   projectId?: string | null;
+  /** Persisted parcel boundary, used to power the "Return to property" button. */
+  boundary?: GeoJSON.Polygon | null;
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
 }
 
@@ -66,7 +70,7 @@ const OVERLAYS: OverlayDef[] = [
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
 ];
 
-export default function MapToolbar({ map, projectId, onBoundaryDrawn }: Props) {
+export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const toggles = useMatrixTogglesStore();
@@ -90,6 +94,20 @@ export default function MapToolbar({ map, projectId, onBoundaryDrawn }: Props) {
 
   const elevationActive =
     activeTool === 'elevation-point' || activeTool === 'elevation-path';
+
+  // Re-fits the camera to the persisted parcel boundary. Mirrors the initial
+  // fit performed by DiagnoseMap (48px padding, polygonBounds helper). Honors
+  // prefers-reduced-motion: animate only when motion is allowed so the snap
+  // is calm on low-motion preferences.
+  const onReturnToProperty = () => {
+    if (!boundary) return;
+    const bb = polygonBounds(boundary);
+    if (!bb) return;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    map.fitBounds(bb, { padding: 48, animate: !reduceMotion });
+  };
 
   return (
     <div className={css.dock}>
@@ -159,6 +177,20 @@ export default function MapToolbar({ map, projectId, onBoundaryDrawn }: Props) {
           aria-label="Draw property boundary"
         >
           <SquareDashed size={16} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          className={css.btn}
+          onClick={onReturnToProperty}
+          disabled={!boundary}
+          title={
+            boundary
+              ? 'Return to property'
+              : 'Draw a property boundary first'
+          }
+          aria-label="Return to property"
+        >
+          <Crosshair size={16} strokeWidth={1.75} />
         </button>
         {activeTool !== null && (
           <>

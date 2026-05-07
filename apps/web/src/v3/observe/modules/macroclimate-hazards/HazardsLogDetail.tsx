@@ -1,34 +1,94 @@
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useParams } from '@tanstack/react-router';
 import {
   ArrowRight,
-  Download,
-  Droplet,
-  Flame,
   Plus,
   ShieldCheck,
-  Sun,
+  Trash2,
   TriangleAlert,
-  type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
-import riskMatrix from '../../assets/hazards-log/risk-matrix.png';
-import hazardHotspots from '../../assets/hazards-log/hazard-hotspots.png';
-import hazardTimeline from '../../assets/hazards-log/hazard-timeline.png';
+import { ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
+import {
+  makeHazardId,
+  useHazardsStore,
+  type Hazard,
+  type HazardKind,
+  type HazardRisk,
+  type HazardStatus,
+  type HazardTrend,
+} from '../../../../store/hazardsStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import HazardRiskMatrix from './HazardRiskMatrix.js';
+import HazardHotspotsMap from './HazardHotspotsMap.js';
+import {
+  hazardCounts,
+  riskLabel,
+  statusLabel,
+  topRiskPriorities,
+} from './derivations.js';
+
+const KIND_OPTIONS: HazardKind[] = [
+  'frost',
+  'storm',
+  'drought',
+  'flood',
+  'fire',
+  'wind',
+  'erosion',
+  'other',
+];
+const RISK_OPTIONS: HazardRisk[] = ['low', 'moderate', 'high'];
+const TREND_OPTIONS: HazardTrend[] = ['down', 'flat', 'up'];
+const STATUS_OPTIONS: HazardStatus[] = ['monitoring', 'planned', 'in_progress', 'mitigated'];
 
 export default function HazardsLogDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+
+  const ensureDefaults = useHazardsStore((s) => s.ensureDefaults);
+  const addHazard = useHazardsStore((s) => s.addHazard);
+  const updateHazard = useHazardsStore((s) => s.updateHazard);
+  const removeHazard = useHazardsStore((s) => s.removeHazard);
+  const allByProject = useHazardsStore((s) => s.byProject);
+  const hazards = useMemo(
+    () => allByProject.find((p) => p.projectId === id)?.hazards ?? [],
+    [allByProject, id],
+  );
+
+  useEffect(() => {
+    ensureDefaults(id);
+  }, [id, ensureDefaults]);
+
+  const counts = hazardCounts(hazards);
+  const priorities = topRiskPriorities(hazards).slice(0, 3);
+
   return (
     <div className="detail-page hazards-log-page">
       <HazardsHeader />
-      <HazardKpis />
+      <HazardKpis counts={counts} />
       <section className="hazards-top-grid">
-        <HazardsOverview />
-        <RiskMatrixPanel />
-        <HotspotsPanel />
+        <HazardsOverview
+          rows={hazards}
+          onUpdate={(hid, patch) => updateHazard(id, hid, patch)}
+          onRemove={(hid) => removeHazard(id, hid)}
+        />
+        <SurfaceCard className="hazard-panel risk-matrix-panel">
+          <h2>Risk matrix</h2>
+          <HazardRiskMatrix hazards={hazards} />
+        </SurfaceCard>
+        <SurfaceCard className="hazard-panel hotspots-panel">
+          <h2>Hazard hotspots</h2>
+          <HazardHotspotsMap
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+            hazards={hazards}
+          />
+        </SurfaceCard>
       </section>
+      <AddHazardForm onAdd={(h) => addHazard(id, h)} />
       <section className="hazards-bottom-grid">
-        <MitigationActions />
-        <TimelinePanel />
-        <RecentIncidents />
-        <PriorityActions />
+        <PriorityActions priorities={priorities} />
       </section>
     </div>
   );
@@ -49,28 +109,21 @@ function HazardsHeader() {
           </div>
         </div>
       </div>
-      <div className="hazards-header-actions">
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Add hazard
-        </button>
-        <button className="outlined-button" type="button">
-          <Download aria-hidden="true" /> Export log
-        </button>
-        <button className="outlined-button" type="button">
-          Open risk report
-        </button>
-      </div>
     </header>
   );
 }
 
-function HazardKpis() {
-  const items: Array<[LucideIcon, string, string, string, string]> = [
-    [ShieldCheck, 'Logged hazards', '3', 'Across all zones', 'green'],
-    [TriangleAlert, 'High priority', '1', 'Requires attention', 'red'],
-    [TriangleAlert, 'Medium priority', '2', 'Monitor & manage', 'gold'],
-    [ShieldCheck, 'Mitigations active', '5', 'Across all hazards', 'green'],
-    [Download, 'Review due', '14 days', 'Next review: 26 Apr 2025', 'dim'],
+interface HazardKpisProps {
+  counts: ReturnType<typeof hazardCounts>;
+}
+
+function HazardKpis({ counts }: HazardKpisProps) {
+  const items: Array<[typeof TriangleAlert | typeof ShieldCheck, string, string, string, string]> = [
+    [ShieldCheck, 'Logged hazards', String(counts.total), 'Across all zones', 'green'],
+    [TriangleAlert, 'High priority', String(counts.highRisk), 'Requires attention', counts.highRisk > 0 ? 'red' : 'dim'],
+    [TriangleAlert, 'Moderate', String(counts.moderateRisk), 'Monitor & manage', 'gold'],
+    [ShieldCheck, 'Mitigated', String(counts.mitigated), 'Resolved hazards', 'green'],
+    [ShieldCheck, 'Avg coverage', `${counts.averageMitigationPct}%`, 'Mitigation in place', 'green'],
   ];
 
   return (
@@ -79,7 +132,7 @@ function HazardKpis() {
         <SurfaceCard className={`hazard-kpi ${tone}`} key={label}>
           <Icon aria-hidden="true" />
           <span>{label}</span>
-          <strong>{value}</strong>
+          <strong>{counts.total === 0 ? '—' : value}</strong>
           <small>{note}</small>
         </SurfaceCard>
       ))}
@@ -87,205 +140,179 @@ function HazardKpis() {
   );
 }
 
-function HazardsOverview() {
-  const rows: Array<[LucideIcon, string, string, string, string, string, string, number]> = [
-    [
-      Sun,
-      'Drought stress',
-      'Prolonged dry periods impacting water availability and plant health.',
-      'High (4/5)',
-      'High (4/5)',
-      'Nov - Mar',
-      'High',
-      60,
-    ],
-    [
-      Droplet,
-      'Heavy rainfall & erosion',
-      'Intense rain events causing soil loss, gullying and infrastructure damage.',
-      'Medium (3/5)',
-      'Medium (3/5)',
-      'May - Aug',
-      'Medium',
-      75,
-    ],
-    [
-      Flame,
-      'Wildfire / windstorm / flooding',
-      'Extreme weather events increasing fire risk, wind damage and flash flooding.',
-      'High (5/5)',
-      'Low-Med (2/5)',
-      'Oct - Feb',
-      'High',
-      50,
-    ],
-  ];
+interface HazardsOverviewProps {
+  rows: Hazard[];
+  onUpdate: (id: string, patch: Partial<Omit<Hazard, 'id' | 'createdAt'>>) => void;
+  onRemove: (id: string) => void;
+}
 
+function HazardsOverview({ rows, onUpdate, onRemove }: HazardsOverviewProps) {
   return (
     <SurfaceCard className="hazard-panel hazards-overview-panel">
       <h2>Hazards overview</h2>
-      <div className="hazards-table-head">
-        <span>Hazard</span>
-        <span>Severity</span>
-        <span>Probability</span>
-        <span>Seasonal window</span>
-        <span>Status</span>
-        <span>Coverage</span>
-      </div>
-      {rows.map(([Icon, hazard, desc, severity, probability, window, status, progress], index) => (
-        <article className="hazard-row" key={hazard}>
-          <Icon aria-hidden="true" />
-          <b>{index + 1}</b>
-          <div>
-            <strong>{hazard}</strong>
-            <small>{desc}</small>
+      {rows.length === 0 ? (
+        <p className="empty-note">No hazards logged yet — add one below.</p>
+      ) : (
+        <>
+          <div className="hazards-table-head">
+            <span>Hazard</span>
+            <span>Risk</span>
+            <span>Trend</span>
+            <span>Window</span>
+            <span>Status</span>
+            <span>Coverage</span>
           </div>
-          <em>{severity}</em>
-          <em>{probability}</em>
-          <span>{window}</span>
-          <i>
-            {status}
-            <small>Active</small>
-          </i>
-          <ProgressRing value={progress} label={`${progress}%`} />
-        </article>
-      ))}
-      <button className="outlined-button" type="button">
-        View all hazards <ArrowRight aria-hidden="true" />
-      </button>
+          {rows.map((h, index) => (
+            <article className="hazard-row" key={h.id}>
+              <b>{index + 1}</b>
+              <div>
+                <strong>{h.label}</strong>
+                <small>{h.kind}</small>
+              </div>
+              <em>{riskLabel(h.risk)}</em>
+              <em>{h.trend}</em>
+              <span>{h.window ?? '—'}</span>
+              <select
+                value={h.status}
+                onChange={(e) => onUpdate(h.id, { status: e.target.value as HazardStatus })}
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {statusLabel(s)}
+                  </option>
+                ))}
+              </select>
+              <ProgressRing value={h.mitigationPct} label={`${h.mitigationPct}%`} />
+              <button
+                type="button"
+                aria-label={`Remove ${h.label}`}
+                className="icon-button"
+                onClick={() => onRemove(h.id)}
+              >
+                <Trash2 aria-hidden="true" />
+              </button>
+            </article>
+          ))}
+        </>
+      )}
     </SurfaceCard>
   );
 }
 
-function RiskMatrixPanel() {
-  return (
-    <SurfaceCard className="hazard-panel risk-matrix-panel">
-      <h2>Risk matrix</h2>
-      <CroppedArt src={riskMatrix} className="risk-matrix-image" />
-    </SurfaceCard>
-  );
+interface AddHazardFormProps {
+  onAdd: (h: Hazard) => void;
 }
 
-function HotspotsPanel() {
-  return (
-    <SurfaceCard className="hazard-panel hotspots-panel">
-      <h2>Hazard hotspots</h2>
-      <CroppedArt src={hazardHotspots} className="hotspots-image" />
-      <button className="outlined-button" type="button">
-        Open map view
-      </button>
-    </SurfaceCard>
-  );
-}
+function AddHazardForm({ onAdd }: AddHazardFormProps) {
+  const [label, setLabel] = useState('');
+  const [kind, setKind] = useState<HazardKind>('frost');
+  const [risk, setRisk] = useState<HazardRisk>('moderate');
+  const [trend, setTrend] = useState<HazardTrend>('flat');
+  const [mitigationPct, setMitigationPct] = useState(0);
+  const [window, setWindow] = useState('');
 
-function MitigationActions() {
-  const rows: Array<[string, string, string, string, string]> = [
-    ['Keyline swales & water spreading', 'Slow runoff, increase infiltration', '1 2', 'Active', '80%'],
-    ['Mulch & drought buffers', 'Reduce evaporation, support soil moisture', '1', 'Active', '70%'],
-    ['Spillways & overflow routing', 'Safe excess water movement', '2 3', 'Active', '75%'],
-    ['Firebreak maintenance', 'Limit fire spread through site', '3', 'Active', '60%'],
-    ['Shelterbelt planting', 'Reduce wind impact, erosion & fire risk', '1 3', 'In progress', '40%'],
-    ['Emergency water storage', 'Backup supply for drought & fire', '1 3', 'Planned', '20%'],
-  ];
-  return (
-    <SurfaceCard className="hazard-panel mitigation-panel">
-      <h2>Mitigation actions</h2>
-      {rows.map(([action, target, hazards, status, coverage]) => (
-        <p key={action}>
-          <ShieldCheck aria-hidden="true" />
-          <b>
-            {action}
-            <small>{target}</small>
-          </b>
-          <span>{hazards}</span>
-          <em>{status}</em>
-          <i>{coverage}</i>
-        </p>
-      ))}
-      <button className="outlined-button" type="button">
-        Manage all actions <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
+  function commit(e: FormEvent) {
+    e.preventDefault();
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const now = Date.now();
+    onAdd({
+      id: makeHazardId(),
+      kind,
+      label: trimmed,
+      risk,
+      trend,
+      status: 'monitoring',
+      mitigationPct,
+      window: window.trim() || undefined,
+      createdAt: now,
+      updatedAt: now,
+    });
+    setLabel('');
+    setMitigationPct(0);
+    setWindow('');
+  }
 
-function TimelinePanel() {
   return (
-    <SurfaceCard className="hazard-panel timeline-panel">
+    <SurfaceCard className="hazard-panel add-hazard-form">
       <h2>
-        Hazard timeline <small>(Seasonal risk window)</small>
+        <Plus aria-hidden="true" /> Add hazard
       </h2>
-      <CroppedArt src={hazardTimeline} className="hazard-timeline-image" />
+      <form onSubmit={commit} className="add-hazard-row">
+        <input
+          placeholder="Hazard label (e.g., Late spring frost)"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
+        <select value={kind} onChange={(e) => setKind(e.target.value as HazardKind)}>
+          {KIND_OPTIONS.map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
+        <select value={risk} onChange={(e) => setRisk(e.target.value as HazardRisk)}>
+          {RISK_OPTIONS.map((r) => (
+            <option key={r} value={r}>
+              {riskLabel(r)}
+            </option>
+          ))}
+        </select>
+        <select value={trend} onChange={(e) => setTrend(e.target.value as HazardTrend)}>
+          {TREND_OPTIONS.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <input
+          placeholder="Window (e.g., Apr-Sep)"
+          value={window}
+          onChange={(e) => setWindow(e.target.value)}
+        />
+        <input
+          type="number"
+          min={0}
+          max={100}
+          placeholder="Mitigation %"
+          value={mitigationPct}
+          onChange={(e) => setMitigationPct(Number(e.target.value) || 0)}
+        />
+        <button className="green-button" type="submit">
+          Add
+        </button>
+      </form>
     </SurfaceCard>
   );
 }
 
-function RecentIncidents() {
-  const rows: Array<[string, string, string]> = [
-    [
-      '10 Apr 2025',
-      'Soil moisture probes show low levels in Zone 2',
-      'Consider increasing mulch thickness.',
-    ],
-    ['06 Apr 2025', 'Minor gully formation observed near access track', '48 mm rain event.'],
-    ['28 Mar 2025', 'Strong NW winds recorded', 'Reduced exposure in Zone 5.'],
-  ];
-  return (
-    <SurfaceCard className="hazard-panel incidents-panel">
-      <h2>Recent observations &amp; incidents</h2>
-      {rows.map(([date, title, note]) => (
-        <p key={title}>
-          <b>{date}</b>
-          <span>
-            {title}
-            <small>{note}</small>
-          </span>
-        </p>
-      ))}
-      <button className="outlined-button" type="button">
-        View full journal
-      </button>
-    </SurfaceCard>
-  );
+interface PriorityActionsProps {
+  priorities: Hazard[];
 }
 
-function PriorityActions() {
-  const rows: Array<[string, string, string, string]> = [
-    [
-      'Reinforce drought resilience',
-      'Expand mulching in Zones 2 & 4. Check storage levels',
-      'High',
-      'Due: 18 Apr',
-    ],
-    [
-      'Maintain drainage lines',
-      'Clear silt, check swale integrity before winter rains',
-      'Medium',
-      'Due: 22 Apr',
-    ],
-    [
-      'Fire season preparation',
-      'Inspect firebreaks & access routes. Update water points',
-      'High',
-      'Due: 25 Apr',
-    ],
-  ];
+function PriorityActions({ priorities }: PriorityActionsProps) {
   return (
     <SurfaceCard className="hazard-panel priority-panel">
       <h2>Priority next actions</h2>
-      {rows.map(([title, note, priority, due], index) => (
-        <p key={title}>
-          <b>{index + 1}</b>
-          <span>
-            {title}
-            <small>{note}</small>
-          </span>
-          <em>
-            {priority}
-            <small>{due}</small>
-          </em>
-        </p>
-      ))}
+      {priorities.length === 0 ? (
+        <p className="empty-note">No active hazards — add one above.</p>
+      ) : (
+        priorities.map((h, index) => (
+          <p key={h.id}>
+            <b>{index + 1}</b>
+            <span>
+              {h.label}
+              <small>
+                {riskLabel(h.risk)} risk · {h.mitigationPct}% mitigated
+              </small>
+            </span>
+            <em>
+              {statusLabel(h.status)}
+              <small>{h.window ?? 'No window'}</small>
+            </em>
+          </p>
+        ))
+      )}
       <button className="outlined-button" type="button">
         View all recommendations <ArrowRight aria-hidden="true" />
       </button>

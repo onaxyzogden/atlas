@@ -1,6 +1,6 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
-  Briefcase,
   Camera,
   Compass,
   Download,
@@ -8,19 +8,57 @@ import {
   Eye,
   Leaf,
   Map,
+  Mountain,
   Route,
   Settings,
   SlidersHorizontal,
   Sun,
-  Thermometer,
+  Triangle,
+  Waves,
   Wind,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import mainMap from '../../assets/cartographic-detail/main-map.png';
-import legendStrip from '../../assets/cartographic-detail/legend-strip.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import SlopeLegendStrip from './SlopeLegendStrip.js';
+import TerrainSnapshot from './TerrainSnapshot.js';
+import {
+  featureCounts,
+  getElevationLayer,
+  slopeBand,
+} from './derivations.js';
 
 export default function CartographicDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allContours = useTopographyStore((s) => s.contours);
+  const allHighPoints = useTopographyStore((s) => s.highPoints);
+  const allDrainageLines = useTopographyStore((s) => s.drainageLines);
+  const transects = useMemo(
+    () => allTransects.filter((t) => t.projectId === id),
+    [allTransects, id],
+  );
+  const contours = useMemo(
+    () => allContours.filter((c) => c.projectId === id),
+    [allContours, id],
+  );
+  const highPoints = useMemo(
+    () => allHighPoints.filter((h) => h.projectId === id),
+    [allHighPoints, id],
+  );
+  const drainageLines = useMemo(
+    () => allDrainageLines.filter((d) => d.projectId === id),
+    [allDrainageLines, id],
+  );
+  const counts = featureCounts({ contours, highPoints, drainageLines, transects });
+  const elevation = getElevationLayer(layers)?.summary;
+
   return (
     <div className="detail-page cartographic-page">
       <header className="cartographic-header">
@@ -33,44 +71,59 @@ export default function CartographicDetail() {
         </div>
         <button type="button">Project settings</button>
       </header>
+      <SurfaceCard className="cartographic-banner">
+        Cartographic overlays surface here as you build out later modules. Currently showing
+        topography only.
+      </SurfaceCard>
       <section className="cartographic-layout">
-        <LayerPanel />
+        <LayerPanel counts={counts} />
         <div className="cartographic-main">
-          <CartographicKpis />
+          <CartographicKpis counts={counts} />
           <SurfaceCard className="cartographic-map-card">
-            <CroppedArt src={mainMap} className="cartographic-main-map" />
+            <TerrainSnapshot
+              boundary={project?.location?.boundary}
+              caption={project?.name}
+              width={520}
+              height={320}
+              overlays={['contours', 'elevation', 'slope']}
+              contours={contours}
+              highPoints={highPoints}
+              drainageLines={drainageLines}
+              className="cartographic-main-map"
+            />
             <button className="cartographic-workspace-button" type="button">
               Open map workspace <ArrowRight aria-hidden="true" />
               <span>Advanced editing &amp; analysis</span>
             </button>
-            <div className="cartographic-map-tools">
-              {['+', '-', 'layers', 'target', 'measure'].map((item) => (
-                <button key={item} type="button">
-                  {item}
-                </button>
-              ))}
-            </div>
           </SurfaceCard>
           <SurfaceCard className="cartographic-legend-card">
-            <CroppedArt src={legendStrip} className="cartographic-legend-image" />
+            <SlopeLegendStrip className="cartographic-legend-image" />
             <button type="button">
               Download legend <Download aria-hidden="true" />
             </button>
           </SurfaceCard>
         </div>
-        <CartographicSidebar />
+        <CartographicSidebar
+          counts={counts}
+          aspect={elevation?.predominant_aspect ?? null}
+          meanSlope={elevation?.mean_slope_deg ?? null}
+        />
       </section>
     </div>
   );
 }
 
-function CartographicKpis() {
+interface KpiProps {
+  counts: ReturnType<typeof featureCounts>;
+}
+
+function CartographicKpis({ counts }: KpiProps) {
   const items: Array<[LucideIcon, string, string, string]> = [
-    [Wind, 'Sectors mapped', '5', 'Primary sectors'],
-    [Thermometer, 'Microclimate areas', '7', 'Distinct areas'],
-    [Leaf, 'Zone allocations', '12', 'Zone types'],
-    [Route, 'Circulation routes', '8', 'Paths & access'],
-    [Sun, 'Opportunity hotspots', '6', 'High potential areas'],
+    [Wind, 'Sectors mapped', '—', 'Wired in module 5'],
+    [Triangle, 'Microclimate areas', '—', 'Wired in module 4'],
+    [Leaf, 'Zone allocations', '—', 'Wired in design phase'],
+    [Route, 'Circulation routes', '—', 'Wired in design phase'],
+    [Mountain, 'Topography annotations', String(counts.total), 'Contours, points, drainage'],
   ];
   return (
     <SurfaceCard className="cartographic-kpi-strip">
@@ -86,19 +139,18 @@ function CartographicKpis() {
   );
 }
 
-function LayerPanel() {
+function LayerPanel({ counts }: KpiProps) {
   const layers: Array<[LucideIcon, string, string, boolean]> = [
-    [Wind, 'Sectors', 'Sun, wind, fire, view & access', true],
-    [Thermometer, 'Microclimates', 'Temperature, moisture, wind', true],
-    [Leaf, 'Zones', 'Permaculture zone allocations', true],
-    [Route, 'Circulation', 'Paths, tracks & access points', true],
-    [Briefcase, 'Structures', 'Existing & proposed', true],
-    [Map, 'Contours', '2 m interval', true],
-    [Leaf, 'Vegetation', 'Canopy & key species', true],
-    [Droplet, 'Water features', 'Hydrology & flows', true],
-    [Compass, 'Soils', 'Texture & drainage', false],
-    [SlidersHorizontal, 'Utilities', 'Services & infrastructure', false],
-    [Camera, 'Photos & notes', 'Field observations', false],
+    [Map, 'Contours', `${counts.contours} traced`, counts.contours > 0],
+    [Waves, 'Drainage', `${counts.drainageLines} traced`, counts.drainageLines > 0],
+    [Mountain, 'Elevation points', `${counts.highPoints} pinned`, counts.highPoints > 0],
+    [Compass, 'Transects', `${counts.transects} drawn`, counts.transects > 0],
+    [Wind, 'Sectors', 'Module 5', false],
+    [Triangle, 'Microclimates', 'Module 4', false],
+    [Leaf, 'Vegetation', 'Module 4', false],
+    [Droplet, 'Water features', 'Module 4', false],
+    [SlidersHorizontal, 'Soils', 'Module 4', false],
+    [Camera, 'Photos & notes', 'Field tools', false],
   ];
   return (
     <SurfaceCard className="cartographic-layer-panel">
@@ -125,43 +177,60 @@ function LayerPanel() {
   );
 }
 
-function CartographicSidebar() {
-  const patterns: Array<[string, string]> = [
-    [
-      'Solar gradient',
-      'Strong north exposure creates excellent warming potential for Zones 1 & 2.',
-    ],
-    [
-      'Sheltered core',
-      'Central low area offers wind protection and water harvesting potential.',
-    ],
-    [
-      'Water flow convergence',
-      'Multiple swales converge near the pond - ideal for infiltration systems.',
-    ],
-    [
-      'Access efficiency',
-      'Primary access provides good reach to main zones; minor path upgrades recommended.',
-    ],
-    [
-      'Ridge lines',
-      'Ridgetops are exposed - consider wind breaks or low-profile plantings.',
-    ],
-  ];
+interface SidebarProps {
+  counts: ReturnType<typeof featureCounts>;
+  aspect: string | null;
+  meanSlope: number | null;
+}
 
-  const recommendations = [
-    'Refine Zone 1 layout and bed placement',
-    'Design swale network along contours',
-    'Plan windbreaks on western boundary',
-    'Add additional water storage near Zone 3',
-    'Validate access for machinery & vehicles',
-  ];
+function CartographicSidebar({ counts, aspect, meanSlope }: SidebarProps) {
+  const slope = slopeBand(meanSlope);
+  const patterns: Array<[string, string]> = [];
+  if (aspect) {
+    patterns.push([
+      `${aspect} aspect`,
+      `Slopes face ${aspect} — useful for siting passive-solar elements and sun-loving plants.`,
+    ]);
+  }
+  if (meanSlope != null) {
+    patterns.push([
+      `${slope.label.toLowerCase()} mean slope`,
+      `Mean ${meanSlope.toFixed(1)}° — design swales and access along this grade.`,
+    ]);
+  }
+  if (counts.drainageLines > 0) {
+    patterns.push([
+      'Drainage paths',
+      `${counts.drainageLines} traced — converge points are good infiltration sites.`,
+    ]);
+  }
+  if (counts.highPoints > 0) {
+    patterns.push([
+      'Elevation anchors',
+      `${counts.highPoints} pinned — useful for zone, building or storage placement.`,
+    ]);
+  }
+  if (patterns.length === 0) {
+    patterns.push([
+      'No patterns yet',
+      'Add elevation data and trace topographic features to surface site patterns.',
+    ]);
+  }
+
+  const recommendations: string[] = [];
+  if (counts.contours === 0) recommendations.push('Trace contours along the slope.');
+  if (counts.drainageLines === 0) recommendations.push('Mark seasonal drainage paths.');
+  if (counts.highPoints === 0) recommendations.push('Pin high and low points as anchors.');
+  if (counts.transects === 0) recommendations.push('Draw at least one A–B transect.');
+  if (recommendations.length === 0) {
+    recommendations.push('Topography baseline is solid — move into module 4 (Earth, Water & Ecology).');
+  }
 
   return (
     <aside className="cartographic-sidebar">
       <SurfaceCard className="cartographic-side-card patterns">
         <h2>
-          Detected patterns <b>7</b>
+          Detected patterns <b>{patterns.length}</b>
         </h2>
         {patterns.map(([title, note]) => (
           <p key={title}>
@@ -172,13 +241,10 @@ function CartographicSidebar() {
             </span>
           </p>
         ))}
-        <button type="button">
-          View all patterns <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
       <SurfaceCard className="cartographic-side-card recommendations">
         <h2>
-          Recommended next actions <b>5</b>
+          Recommended next actions <b>{recommendations.length}</b>
         </h2>
         {recommendations.map((item) => (
           <p key={item}>
@@ -186,28 +252,25 @@ function CartographicSidebar() {
             <span>{item}</span>
           </p>
         ))}
-        <button className="green-button" type="button">
-          View detailed recommendations <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
       <SurfaceCard className="cartographic-side-card map-info">
         <h2>Map information</h2>
         <dl>
           <div>
             <dt>Projection</dt>
-            <dd>WGS 84 / UTM Zone 56S</dd>
+            <dd>WGS 84</dd>
           </div>
           <div>
-            <dt>Contour interval</dt>
-            <dd>2 m</dd>
+            <dt>Annotations</dt>
+            <dd>{counts.total}</dd>
           </div>
           <div>
-            <dt>Map date</dt>
-            <dd>12 Apr 2025</dd>
+            <dt>Aspect</dt>
+            <dd>{aspect ?? '—'}</dd>
           </div>
           <div>
-            <dt>Data sources</dt>
-            <dd>LiDAR, Imagery, Field Survey</dd>
+            <dt>Mean slope</dt>
+            <dd>{meanSlope != null ? `${meanSlope.toFixed(1)}°` : '—'}</dd>
           </div>
         </dl>
         <button className="green-button" type="button">

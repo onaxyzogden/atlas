@@ -165,6 +165,7 @@ export default function ObserveTools({
     <aside
       ref={toolboxRef}
       className={css.toolbox}
+      data-has-active={activeModule !== null}
       aria-label="Observe tools"
     >
       {OBSERVE_MODULES.map((mod) => {

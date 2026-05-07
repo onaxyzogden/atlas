@@ -135,9 +135,39 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       updateProject: (id, updates) => {
-        // Builtin sample projects are read-only — silently no-op on writes.
         const target = get().projects.find((p) => p.id === id);
-        if (target?.isBuiltin) return;
+        // Builtin sample projects are read-only for narrative content (vision,
+        // owner notes, etc.) — but a freshly-drawn parcel boundary is a per-user
+        // *map customization*, not a content edit. Carve those fields out so
+        // the steward can re-trace the parcel on a builtin sample without the
+        // write being silently dropped.
+        if (target?.isBuiltin) {
+          const allowedKeys: (keyof LocalProject)[] = [
+            'parcelBoundaryGeojson',
+            'hasParcelBoundary',
+          ];
+          const filtered = Object.fromEntries(
+            Object.entries(updates).filter(([k]) =>
+              allowedKeys.includes(k as keyof LocalProject),
+            ),
+          ) as Partial<LocalProject>;
+          if (Object.keys(filtered).length === 0) return;
+          if (filtered.parcelBoundaryGeojson) {
+            geodataCache
+              .put(`boundary:${id}`, filtered.parcelBoundaryGeojson)
+              .catch((err) => {
+                console.warn('[OGDEN] Failed to cache boundary:', err);
+              });
+          }
+          set((state) => ({
+            projects: state.projects.map((p) =>
+              p.id === id
+                ? { ...p, ...filtered, updatedAt: new Date().toISOString() }
+                : p,
+            ),
+          }));
+          return;
+        }
         // Persist large GeoJSON to IndexedDB if boundary is being updated
         if (updates.parcelBoundaryGeojson) {
           geodataCache.put(`boundary:${id}`, updates.parcelBoundaryGeojson).catch((err) => {

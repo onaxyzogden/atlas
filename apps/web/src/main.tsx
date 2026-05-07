@@ -22,6 +22,12 @@ cleanupArchivedV3();
 
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
+// Import siteDataSync to bridge project boundaries → site-data fetches
+// independently of which UI surface (legacy / v3 / mobile) is mounted.
+// Must come AFTER projectStore so its top-level subscribe sees a fully-
+// constructed store; rehydration that follows still fires the subscriber
+// when boundaries land via IndexedDB-restore setState calls.
+import './store/siteDataSync.js';
 // Import connectivityStore to register online/offline listeners (side-effect import)
 import './store/connectivityStore.js';
 // Init auth from localStorage before first render (non-blocking — sets isLoaded when done)

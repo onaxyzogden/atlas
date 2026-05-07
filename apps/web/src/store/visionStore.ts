@@ -55,7 +55,33 @@ export interface StewardProfile {
   skills?: string[];
   /** Steward's vision in their own words. */
   vision?: string;
+  /** Vision panel string-list fields — added v3. Default to []. */
+  coreFunctions?: string[];
+  experienceGoals?: string[];
+  successMetrics?: string[];
+  principles?: string[];
+  guidingValues?: string[];
+  constraints?: string[];
+  /** Moodboard uploads — base64 data URLs, kept small (resized client-side). */
+  moodboardImages?: MoodboardImage[];
+  /** Concept image — single base64 data URL. */
+  conceptImageDataUrl?: string;
 }
+
+export interface MoodboardImage {
+  id: string;
+  dataUrl: string;
+  caption?: string;
+}
+
+export type StewardStringListField =
+  | 'skills'
+  | 'coreFunctions'
+  | 'experienceGoals'
+  | 'successMetrics'
+  | 'principles'
+  | 'guidingValues'
+  | 'constraints';
 
 /**
  * Indigenous + regional context — Phase 4a. Captures place-name history,
@@ -123,6 +149,12 @@ interface VisionState {
   updateRegional: (projectId: string, patch: Partial<RegionalContext>) => void;
   addNetworkContact: (projectId: string, contact: { id: string; name: string; type: string; contact?: string }) => void;
   removeNetworkContact: (projectId: string, contactId: string) => void;
+
+  // v3 additions — vision lists, moodboard, concept image
+  setStewardList: (projectId: string, field: StewardStringListField, items: string[]) => void;
+  addMoodboardImage: (projectId: string, image: MoodboardImage) => void;
+  removeMoodboardImage: (projectId: string, imageId: string) => void;
+  setConceptImage: (projectId: string, dataUrl: string | undefined) => void;
 }
 
 export const useVisionStore = create<VisionState>()(
@@ -270,10 +302,54 @@ export const useVisionStore = create<VisionState>()(
             };
           }),
         })),
+
+      setStewardList: (projectId, field, items) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, steward: { ...(v.steward ?? {}), [field]: items } }
+              : v,
+          ),
+        })),
+
+      addMoodboardImage: (projectId, image) =>
+        set((s) => ({
+          visions: s.visions.map((v) => {
+            if (v.projectId !== projectId) return v;
+            const list = v.steward?.moodboardImages ?? [];
+            return {
+              ...v,
+              steward: { ...(v.steward ?? {}), moodboardImages: [...list, image] },
+            };
+          }),
+        })),
+
+      removeMoodboardImage: (projectId, imageId) =>
+        set((s) => ({
+          visions: s.visions.map((v) => {
+            if (v.projectId !== projectId || !v.steward?.moodboardImages) return v;
+            return {
+              ...v,
+              steward: {
+                ...v.steward,
+                moodboardImages: v.steward.moodboardImages.filter((m) => m.id !== imageId),
+              },
+            };
+          }),
+        })),
+
+      setConceptImage: (projectId, dataUrl) =>
+        set((s) => ({
+          visions: s.visions.map((v) =>
+            v.projectId === projectId
+              ? { ...v, steward: { ...(v.steward ?? {}), conceptImageDataUrl: dataUrl } }
+              : v,
+          ),
+        })),
     }),
     {
       name: 'ogden-vision',
-      version: 2,
+      version: 3,
       partialize: (state) => ({ visions: state.visions }),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as { visions: VisionData[] };
@@ -282,6 +358,10 @@ export const useVisionStore = create<VisionState>()(
             ...v,
             milestones: (v as VisionData).milestones ?? [],
           }));
+        }
+        if (version < 3) {
+          // No structural change — new optional fields default to undefined.
+          // Touching nothing keeps existing payloads valid.
         }
         return state;
       },

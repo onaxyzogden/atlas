@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import {
   Beaker,
   Download,
@@ -16,26 +17,68 @@ import {
   Triangle,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import crossSectionChart from '../../assets/cross-section-tool/cross-section-chart.png';
-import transectMap from '../../assets/cross-section-tool/transect-map.png';
-import seasonalChart from '../../assets/cross-section-tool/seasonal-chart.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import {
+  useTopographyStore,
+  type Transect,
+} from '../../../../store/topographyStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import ElevationProfileChart from './ElevationProfileChart.js';
+import SeasonalSolarStrip from './SeasonalSolarStrip.js';
+import TerrainSnapshot from './TerrainSnapshot.js';
+import {
+  getElevationLayer,
+  polygonCentroid,
+  slopeBand,
+  transectStats,
+} from './derivations.js';
+
+const DASH = '—';
 
 export default function CrossSectionDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const transects = useMemo(
+    () => allTransects.filter((t) => t.projectId === id),
+    [allTransects, id],
+  );
+  const removeTransect = useTopographyStore((s) => s.removeTransect);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const active = transects.find((t) => t.id === activeId) ?? transects[0];
+  const stats = transectStats(active);
+  const lat = polygonCentroid(project?.location?.boundary)?.lat ?? null;
+  const elevationSummary = getElevationLayer(layers)?.summary;
+
   return (
     <div className="detail-page cross-section-page">
       <section className="cross-layout">
         <div className="cross-main">
           <CrossHeader />
-          <CrossKpis />
-          <CrossChartPanel />
+          <CrossKpis transect={active} />
+          <CrossChartPanel transect={active} />
           <section className="cross-bottom-grid">
-            <ObservationPanel />
-            <TransectLibrary />
-            <SeasonalPanel />
+            <ObservationPanel transect={active} />
+            <TransectLibrary
+              transects={transects}
+              activeId={active?.id}
+              onSelect={(tid) => setActiveId(tid)}
+              onRemove={removeTransect}
+            />
+            <SeasonalPanel lat={lat} />
           </section>
         </div>
-        <CrossSidebar />
+        <CrossSidebar
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          stats={stats}
+          aspect={elevationSummary?.predominant_aspect ?? null}
+        />
       </section>
       <CrossActionBar />
     </div>
@@ -60,13 +103,34 @@ function CrossHeader() {
   );
 }
 
-function CrossKpis() {
+interface KpiProps {
+  transect: Transect | undefined;
+}
+
+function CrossKpis({ transect }: KpiProps) {
+  const stats = transectStats(transect);
+  const slope = slopeBand(stats?.meanSlopePct);
   const items: Array<[LucideIcon, string, string, string]> = [
-    [Ruler, 'Transect length', '612 m', 'A to B'],
-    [Mountain, 'Elevation change', '27.8 m', 'High to low'],
-    [Triangle, 'Average slope', '4.2°', 'Overall grade'],
-    [Sun, 'Solar exposure (ann.)', '62%', 'Good exposure'],
-    [Trees, 'Vertical elements', '32', 'Trees & structures'],
+    [
+      Ruler,
+      'Transect length',
+      stats?.totalDistanceM ? `${Math.round(stats.totalDistanceM)} m` : DASH,
+      transect ? 'A to B' : 'No transect',
+    ],
+    [
+      Mountain,
+      'Elevation change',
+      stats ? `${stats.deltaM.toFixed(1)} m` : DASH,
+      stats ? 'High to low' : '—',
+    ],
+    [
+      Triangle,
+      'Mean slope',
+      stats ? `${stats.meanSlopePct.toFixed(1)}%` : DASH,
+      stats ? slope.label : '—',
+    ],
+    [Sun, 'Solar exposure (ann.)', DASH, 'Needs lat × bearing'],
+    [Trees, 'Vertical elements', String(transect?.verticalRefs?.length ?? 0), 'Pinned along transect'],
   ];
 
   return (
@@ -83,41 +147,45 @@ function CrossKpis() {
   );
 }
 
-function CrossChartPanel() {
-  const segments: Array<[string, string, string, string]> = [
-    ['1', '0-132 m', 'Slope 5.6°', 'Drop 7.4 m'],
-    ['2', '132-286 m', 'Slope 3.1°', 'Drop 4.8 m'],
-    ['3', '286-452 m', 'Slope 2.2°', 'Drop 3.6 m'],
-    ['4', '452-612 m', 'Slope 3.8°', 'Drop 12.0 m'],
-  ];
+function CrossChartPanel({ transect }: KpiProps) {
   return (
     <SurfaceCard className="cross-chart-panel">
-      <CroppedArt src={crossSectionChart} className="cross-chart-image" />
-      <div className="segment-strip">
-        <span>
-          <b>Segment stats</b>Click a segment on chart
-        </span>
-        {segments.map(([n, range, slope, drop]) => (
-          <span key={n}>
-            <b>{n}</b>
-            {range}
-            <small>
-              {slope} · {drop}
-            </small>
-          </span>
-        ))}
-      </div>
+      <ElevationProfileChart
+        transect={transect}
+        showVerticalRefs
+        className="cross-chart-image"
+      />
+      {transect ? null : (
+        <p className="empty-note">
+          No transects yet — draw an A–B line on the terrain map to start a cross-section.
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function ObservationPanel() {
-  const items: Array<[string, string, string]> = [
-    ['Ideal swale zone', 'A swale at 140-180 m will capture runoff from 5.2 ha.', 'green'],
-    ['Best tree belt zone', 'Plant a windbreak between 80-120 m on the ridge.', 'green'],
-    ['Frost pocket risk', 'Low basin near 540-590 m may collect cold air.', 'blue'],
-    ['Access path option', 'Gentle grade between 250-320 m is ideal for access.', 'green'],
-  ];
+function ObservationPanel({ transect }: KpiProps) {
+  const items: Array<[string, string, string]> = [];
+  if (transect?.notes) {
+    items.push(['Field notes', transect.notes, 'green']);
+  }
+  const verticalRefs = transect?.verticalRefs ?? [];
+  if (verticalRefs.length > 0) {
+    items.push([
+      `${verticalRefs.length} pinned element${verticalRefs.length === 1 ? '' : 's'}`,
+      verticalRefs
+        .map((r) => `${r.kind} @ ${Math.round(r.distanceAlongTransectM)} m`)
+        .join(' · '),
+      'green',
+    ]);
+  }
+  if (items.length === 0) {
+    items.push([
+      transect ? 'No observations yet' : 'No transect selected',
+      'Add field notes or pin vertical elements (trees, structures, swales) along the transect.',
+      'blue',
+    ]);
+  }
 
   return (
     <SurfaceCard className="cross-panel">
@@ -135,25 +203,50 @@ function ObservationPanel() {
   );
 }
 
-function TransectLibrary() {
-  const rows: Array<[string, string, string, string]> = [
-    ['1', 'A-B Main Transect', '612 m · 27.8 m drop · Today', 'Active'],
-    ['2', 'C-D Upper Ridge', '498 m · 18.1 m drop · 2 days ago', ''],
-    ['3', 'E-F Lower Valley', '723 m · 35.6 m drop · 5 days ago', ''],
-  ];
+interface LibraryProps {
+  transects: Transect[];
+  activeId: string | undefined;
+  onSelect: (id: string) => void;
+  onRemove: (id: string) => void;
+}
+
+function TransectLibrary({ transects, activeId, onSelect, onRemove }: LibraryProps) {
   return (
     <SurfaceCard className="cross-panel transect-library">
       <h2>Section library</h2>
-      {rows.map(([n, title, note, tag]) => (
-        <div className="transect-row" key={title}>
-          <b>{n}</b>
-          <span>
-            {title}
-            <small>{note}</small>
-          </span>
-          {tag ? <em>{tag}</em> : null}
-        </div>
-      ))}
+      {transects.length === 0 ? (
+        <p className="empty-note">No transects drawn yet.</p>
+      ) : (
+        transects.map((t, idx) => {
+          const stats = transectStats(t);
+          const note = stats
+            ? `${stats.totalDistanceM ? `${Math.round(stats.totalDistanceM)} m` : '—'} · ${stats.deltaM.toFixed(1)} m drop`
+            : 'Profile pending';
+          const isActive = t.id === activeId;
+          return (
+            <div className="transect-row" key={t.id}>
+              <b>{idx + 1}</b>
+              <button
+                type="button"
+                className="transect-row-select"
+                onClick={() => onSelect(t.id)}
+              >
+                {t.name}
+                <small>{note}</small>
+              </button>
+              {isActive ? <em>Active</em> : null}
+              <button
+                type="button"
+                aria-label={`Remove ${t.name}`}
+                className="icon-button"
+                onClick={() => onRemove(t.id)}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })
+      )}
       <button className="outlined-button" type="button">
         <Plus /> New transect
       </button>
@@ -161,21 +254,17 @@ function TransectLibrary() {
   );
 }
 
-function SeasonalPanel() {
-  const tabs = ['Jun 21', 'Sep 21', 'Dec 21', 'Mar 21'];
+interface SeasonalProps {
+  lat: number | null;
+}
+
+function SeasonalPanel({ lat }: SeasonalProps) {
   return (
     <SurfaceCard className="cross-panel seasonal-panel">
       <h2>
-        Seasonal comparison <small>(solar exposure)</small>
+        Seasonal comparison <small>(solar altitude at noon)</small>
       </h2>
-      <div className="season-tabs">
-        {tabs.map((tab, index) => (
-          <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
-            {tab}
-          </button>
-        ))}
-      </div>
-      <CroppedArt src={seasonalChart} className="seasonal-chart-image" />
+      <SeasonalSolarStrip lat={lat} className="seasonal-chart-image" />
     </SurfaceCard>
   );
 }
@@ -201,7 +290,14 @@ function ToggleRow({ icon: Icon, title, note }: ToggleRowProps) {
   );
 }
 
-function CrossSidebar() {
+interface CrossSidebarProps {
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+  stats: ReturnType<typeof transectStats>;
+  aspect: string | null;
+}
+
+function CrossSidebar({ boundary, caption, stats, aspect }: CrossSidebarProps) {
   const overlays: Array<[LucideIcon, string, string]> = [
     [Sun, 'Sun path', 'Show solar geometry'],
     [Triangle, 'Slope segments', 'Color by slope grade'],
@@ -215,7 +311,15 @@ function CrossSidebar() {
     <aside className="cross-sidebar">
       <SurfaceCard className="transect-map-card">
         <h2>Transect map</h2>
-        <CroppedArt src={transectMap} className="transect-map-image" />
+        <TerrainSnapshot
+          boundary={boundary}
+          caption={caption}
+          width={280}
+          height={180}
+          overlays={['contours']}
+          className="transect-map-image"
+        />
+        <small className="transect-aspect">Site aspect: {aspect ?? '—'}</small>
         <button className="outlined-button" type="button">
           <Settings /> Center on map
         </button>
@@ -243,15 +347,15 @@ function CrossSidebar() {
         <dl>
           <div>
             <dt>Cut</dt>
-            <dd>82.4 m³</dd>
+            <dd>{DASH}</dd>
           </div>
           <div>
             <dt>Fill</dt>
-            <dd>61.7 m³</dd>
+            <dd>{DASH}</dd>
           </div>
           <div>
             <dt>Net</dt>
-            <dd>20.7 m³ cut</dd>
+            <dd>{stats ? `${stats.deltaM.toFixed(1)} m drop` : DASH}</dd>
           </div>
         </dl>
         <button className="outlined-button" type="button">

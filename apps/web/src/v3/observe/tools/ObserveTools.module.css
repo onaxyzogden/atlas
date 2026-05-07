@@ -55,12 +55,12 @@
 }
 
 /*
- * Drain saturation on inactive sections so the active module pops. Hover
- * (only set on .groupClickable, see below) restores partial color as
- * affordance. The active section opts out of drain via the more-specific
- * .groupActive rule below.
+ * Drain saturation on inactive sections ONLY when a module is selected. With
+ * no active module the rail reads in full color; once one is picked, the
+ * others fade so the active card pops. Hover (only set on .groupClickable,
+ * see below) restores partial color as affordance.
  */
-.group {
+.toolbox[data-has-active='true'] .group:not(.groupActive) {
   filter: saturate(0.18);
   opacity: 0.62;
 }

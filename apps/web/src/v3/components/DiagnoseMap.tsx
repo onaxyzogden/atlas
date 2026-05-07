@@ -58,7 +58,7 @@ export interface DiagnoseMapProps {
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
-function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
+export function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
   const ring = poly.coordinates[0];
   if (!ring || ring.length === 0) return null;
   const first = ring[0];

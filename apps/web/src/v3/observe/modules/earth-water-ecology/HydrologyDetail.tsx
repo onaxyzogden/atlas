@@ -1,43 +1,262 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
+  Beaker,
+  Binoculars,
   ChevronDown,
   Download,
   Droplet,
+  FlaskConical,
   Leaf,
   Plus,
-  RotateCcw,
-  Sun,
   TriangleAlert,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import hydrologyMap from '../../assets/hydrology-detail/site-hydrology-map.png';
-import hydrologyProfile from '../../assets/hydrology-detail/hydrology-profile.png';
-import waterBalance from '../../assets/hydrology-detail/water-balance.png';
-import flowAccumulation from '../../assets/hydrology-detail/flow-accumulation.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
+import WaterBalanceBar from './WaterBalanceBar.js';
+import {
+  hydrologyKpis,
+  waterCounts,
+  getWatershedLayer,
+  getWetlandsLayer,
+  type KpiIconKey,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  droplet: Droplet,
+  leaf: Leaf,
+  layers: Beaker,
+  beaker: FlaskConical,
+  mountain: Binoculars,
+  waves: Waves,
+};
 
 export default function HydrologyDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
+
+  const earthworks = useMemo(() => allEarthworks.filter((e) => e.projectId === id), [allEarthworks, id]);
+  const storage = useMemo(() => allStorage.filter((s) => s.projectId === id), [allStorage, id]);
+  const watercourses = useMemo(() => allWatercourses.filter((w) => w.projectId === id), [allWatercourses, id]);
+
+  const kpis = hydrologyKpis(layers, earthworks, storage, watercourses);
+  const watershed = getWatershedLayer(layers);
+  const wetlands = getWetlandsLayer(layers);
+  const wc = waterCounts(earthworks, storage, watercourses);
+
   return (
     <div className="detail-page hydrology-detail-page">
       <section className="hydrology-layout">
         <div className="hydrology-main">
           <HydrologyHeader />
-          <HydrologyKpis />
+          <SurfaceCard className="hydrology-kpi-strip">
+            {kpis.map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
+                  <Icon aria-hidden="true" />
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                  <small>{item.note}</small>
+                </div>
+              );
+            })}
+          </SurfaceCard>
           <section className="hydrology-content-grid">
-            <HydrologyMapPanel />
+            <SurfaceCard className="hydrology-map-panel">
+              <header>
+                <h2>Site hydrology map</h2>
+                <button type="button">
+                  Flow visualization <ChevronDown aria-hidden="true" />
+                </button>
+              </header>
+              <div className="hydrology-map-wrap">
+                <WaterSystemsSnapshot
+                  boundary={project?.location?.boundary}
+                  caption={project?.name}
+                  width={320}
+                  height={220}
+                  overlays={['contours']}
+                  className="hydrology-detail-map"
+                  earthworks={earthworks}
+                  watercourses={watercourses}
+                  storageInfra={storage}
+                />
+              </div>
+            </SurfaceCard>
             <div className="hydrology-analysis-column">
-              <HydrologyProfilePanel />
-              <InfiltrationPanel />
+              <SurfaceCard className="hydrology-small-panel hydrology-profile-panel">
+                <h2>
+                  Watershed profile <small>(primary flow path)</small>
+                </h2>
+                <dl className="watershed-stats-dl">
+                  <div>
+                    <dt>Flow direction</dt>
+                    <dd>{watershed?.summary.flow_direction ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Catchment area</dt>
+                    <dd>{watershed?.summary.catchment_area_ha != null ? `${watershed.summary.catchment_area_ha} ha` : '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Stream order</dt>
+                    <dd>{watershed?.summary.stream_order ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Nearest stream</dt>
+                    <dd>{watershed?.summary.nearest_stream_m != null ? `${watershed.summary.nearest_stream_m} m` : '—'}</dd>
+                  </div>
+                </dl>
+              </SurfaceCard>
+              <SurfaceCard className="hydrology-small-panel infiltration-panel">
+                <header>
+                  <h2>Hydrology &amp; coverage</h2>
+                  <button type="button">
+                    Details <ArrowRight aria-hidden="true" />
+                  </button>
+                </header>
+                <div className="infiltration-content">
+                  <dl>
+                    <div>
+                      <dt>Flood zone</dt>
+                      <dd>{wetlands?.summary.flood_zone ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Wetland cover</dt>
+                      <dd>{wetlands?.summary.wetland_pct != null ? `${wetlands.summary.wetland_pct}%` : '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Riparian buffer</dt>
+                      <dd>{wetlands?.summary.riparian_buffer_m != null ? `${wetlands.summary.riparian_buffer_m} m` : '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Regulated area</dt>
+                      <dd>{wetlands?.summary.regulated_area_pct != null ? `${wetlands.summary.regulated_area_pct}%` : '—'}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </SurfaceCard>
             </div>
           </section>
           <section className="hydrology-bottom-grid">
-            <WaterBalancePanel />
-            <WatershedSummaryPanel />
-            <RiskFlagsPanel />
+            <SurfaceCard className="hydrology-bottom-panel water-balance-panel">
+              <header>
+                <h2>
+                  Water capture estimate <small>(roof catchment)</small>
+                </h2>
+                <button type="button">
+                  Monthly <ChevronDown aria-hidden="true" />
+                </button>
+              </header>
+              <WaterBalanceBar roofCatchment={null} variant="capture" className="water-balance-image" />
+              <p className="warning-note">
+                <TriangleAlert aria-hidden="true" /> Add roof catchment data via the Jar/Perc/Roof module to estimate water harvest potential.
+              </p>
+            </SurfaceCard>
+            <SurfaceCard className="hydrology-bottom-panel watershed-panel">
+              <header>
+                <h2>Watershed summary</h2>
+                <button type="button">
+                  Details <ArrowRight aria-hidden="true" />
+                </button>
+              </header>
+              <div className="watershed-content">
+                <dl>
+                  <div>
+                    <dt>Watershed name</dt>
+                    <dd>{watershed?.summary.watershed_name ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Catchment area</dt>
+                    <dd>{watershed?.summary.catchment_area_ha != null ? `${watershed.summary.catchment_area_ha} ha` : '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>HUC code</dt>
+                    <dd>{watershed?.summary.huc_code ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Earthworks mapped</dt>
+                    <dd>{wc.earthworks}</dd>
+                  </div>
+                  <div>
+                    <dt>Storage infrastructure</dt>
+                    <dd>{wc.storage}</dd>
+                  </div>
+                </dl>
+                <WaterSystemsSnapshot
+                  boundary={project?.location?.boundary}
+                  caption={project?.name}
+                  width={180}
+                  height={120}
+                  overlays={[]}
+                  className="flow-accumulation-image"
+                  earthworks={earthworks}
+                  watercourses={watercourses}
+                  storageInfra={storage}
+                />
+              </div>
+            </SurfaceCard>
+            <SurfaceCard className="hydrology-bottom-panel risk-flags-panel">
+              <h2>Risk flags</h2>
+              {wc.earthworks === 0 && (
+                <p>
+                  <TriangleAlert aria-hidden="true" />
+                  <b>
+                    No earthworks mapped
+                    <small>Design swales and diversions to manage runoff.</small>
+                  </b>
+                  <em>High</em>
+                </p>
+              )}
+              {wc.storage === 0 && (
+                <p>
+                  <TriangleAlert aria-hidden="true" />
+                  <b>
+                    No water storage mapped
+                    <small>Cisterns, ponds, or rain gardens not yet placed.</small>
+                  </b>
+                  <em>Medium</em>
+                </p>
+              )}
+              {wetlands?.summary.flood_zone && wetlands.summary.flood_zone !== 'X' && (
+                <p>
+                  <TriangleAlert aria-hidden="true" />
+                  <b>
+                    Flood zone: {wetlands.summary.flood_zone}
+                    <small>Site may be subject to flood risk. Review design with surveyor.</small>
+                  </b>
+                  <em>High</em>
+                </p>
+              )}
+              {wc.earthworks > 0 && wc.storage > 0 && (!wetlands?.summary.flood_zone || wetlands.summary.flood_zone === 'X') && (
+                <p>
+                  <Leaf aria-hidden="true" />
+                  <b>
+                    No critical risk flags
+                    <small>Continue monitoring and map additional features.</small>
+                  </b>
+                  <em>Low</em>
+                </p>
+              )}
+              <button className="green-button" type="button">
+                View all risks <ArrowRight aria-hidden="true" />
+              </button>
+            </SurfaceCard>
           </section>
         </div>
-        <HydrologySidebar />
+        <HydrologySidebar wc={wc} />
       </section>
     </div>
   );
@@ -60,238 +279,32 @@ function HydrologyHeader() {
   );
 }
 
-function HydrologyKpis() {
-  const items: Array<[LucideIcon, string, string, string]> = [
-    [Waves, 'Runoff direction', 'SE (125 degrees)', 'Primary flow path'],
-    [Droplet, 'Water points', '3', 'Perennial & seasonal'],
-    [Leaf, 'Infiltration status', 'Moderate', '15 mm/hr avg.'],
-    [Waves, 'Watershed pattern', 'Dendritic', 'Good flow distribution'],
-    [Droplet, 'Capture opportunities', '4', 'Swales, ponds, keylines'],
-    [Sun, 'Seasonal water stress', 'Moderate', 'Dry season (Jun-Sep)'],
-  ];
-  return (
-    <SurfaceCard className="hydrology-kpi-strip">
-      {items.map(([Icon, label, value, note]) => (
-        <div key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
-  );
+interface SidebarProps {
+  wc: ReturnType<typeof waterCounts>;
 }
 
-function HydrologyMapPanel() {
-  return (
-    <SurfaceCard className="hydrology-map-panel">
-      <header>
-        <h2>Site hydrology map</h2>
-        <button type="button">
-          Flow visualization <ChevronDown aria-hidden="true" />
-        </button>
-      </header>
-      <div className="hydrology-map-wrap">
-        <CroppedArt src={hydrologyMap} className="hydrology-detail-map" />
-        <button className="hydrology-reset" type="button">
-          <RotateCcw aria-hidden="true" /> Map layers
-        </button>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function HydrologyProfilePanel() {
-  return (
-    <SurfaceCard className="hydrology-small-panel hydrology-profile-panel">
-      <h2>
-        Hydrology profile <small>(primary flow path)</small>
-      </h2>
-      <p>
-        Length: 380 m <span>Elev. drop: 24.8 m</span> <span>Avg. slope: 6.5%</span>
-      </p>
-      <CroppedArt src={hydrologyProfile} className="hydrology-profile-image" />
-    </SurfaceCard>
-  );
-}
-
-function InfiltrationPanel() {
-  return (
-    <SurfaceCard className="hydrology-small-panel infiltration-panel">
-      <header>
-        <h2>Infiltration &amp; runoff</h2>
-        <button type="button">
-          Details <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      <div className="infiltration-content">
-        <div className="runoff-donut">
-          <b>42%</b>
-          <span>Runoff</span>
-          <em>58% Infiltration</em>
-        </div>
-        <dl>
-          <div>
-            <dt>Infiltration rate (avg.)</dt>
-            <dd>
-              15 mm/hr <span>Moderate</span>
-            </dd>
-          </div>
-          <div>
-            <dt>Runoff coefficient (C)</dt>
-            <dd>
-              0.42 <span>Moderate</span>
-            </dd>
-          </div>
-          <div>
-            <dt>Time to ponding</dt>
-            <dd>&gt; 45 min</dd>
-          </div>
-          <div>
-            <dt>Soil texture</dt>
-            <dd>Loam / Clay loam</dd>
-          </div>
-        </dl>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function RiskFlagsPanel() {
-  const rows: Array<[string, string, string]> = [
-    ['Erosion risk on slopes > 15%', 'Where bare soil and runoff converge.', 'High'],
-    ['Concentrated flow near access track', 'Potential gully formation.', 'Medium'],
-    ['Low infiltration in upper paddock', 'Compaction and surface sealing.', 'Medium'],
-    ['Dry season water stress', 'Jun-Sep likely water shortage.', 'Medium'],
-  ];
-  return (
-    <SurfaceCard className="hydrology-small-panel risk-flags-panel">
-      <h2>Risk flags</h2>
-      {rows.map(([title, note, level]) => (
-        <p key={title}>
-          <TriangleAlert aria-hidden="true" />
-          <b>
-            {title}
-            <small>{note}</small>
-          </b>
-          <em>{level}</em>
-        </p>
-      ))}
-      <button className="green-button" type="button">
-        View all risks <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
-
-function WaterBalancePanel() {
-  return (
-    <SurfaceCard className="hydrology-bottom-panel water-balance-panel">
-      <header>
-        <h2>
-          Water balance <small>(long-term average)</small>
-        </h2>
-        <button type="button">
-          Monthly <ChevronDown aria-hidden="true" />
-        </button>
-      </header>
-      <CroppedArt src={waterBalance} className="water-balance-image" />
-      <div className="water-balance-stats">
-        <span>
-          Annual rainfall <b>1,032 mm</b>
-        </span>
-        <span>
-          Annual ET <b>842 mm</b>
-        </span>
-        <span>
-          Surplus <b>+190 mm</b>
-        </span>
-        <span>
-          Dry season deficit <b>-68 mm</b>
-        </span>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function WatershedSummaryPanel() {
-  return (
-    <SurfaceCard className="hydrology-bottom-panel watershed-panel">
-      <header>
-        <h2>Watershed summary</h2>
-        <button type="button">
-          Details <ArrowRight aria-hidden="true" />
-        </button>
-      </header>
-      <div className="watershed-content">
-        <dl>
-          <div>
-            <dt>Watershed area</dt>
-            <dd>14.2 ha</dd>
-          </div>
-          <div>
-            <dt>Longest flow path</dt>
-            <dd>420 m</dd>
-          </div>
-          <div>
-            <dt>Relief (max-min)</dt>
-            <dd>48 m</dd>
-          </div>
-          <div>
-            <dt>Drainage density</dt>
-            <dd>1.28 km/ha</dd>
-          </div>
-          <div>
-            <dt>Contributing area</dt>
-            <dd>14.2 ha (100%)</dd>
-          </div>
-        </dl>
-        <CroppedArt src={flowAccumulation} className="flow-accumulation-image" />
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function HydrologySidebar() {
+function HydrologySidebar({ wc }: SidebarProps) {
   const insights = [
-    'Water flows primarily to the SE, following a dendritic drainage pattern to the main creek.',
-    'Good opportunity to slow, spread and sink water with swales along the 320-330 m contour.',
-    'Three reliable water points support biodiversity and can be anchors for water harvesting.',
-    'Moderate infiltration - improve soil structure and protect ground cover on key slopes.',
+    'Map watercourses and earthworks to build a full picture of site hydrology.',
+    'Add roof catchment data via the Jar/Perc/Roof module to estimate annual water harvest.',
+    'Use the watershed layer to understand drainage patterns and capture opportunities.',
+    'Protect riparian zones and install earthworks to slow, spread, and sink water.',
   ];
   const recommendations = [
-    'Install contour swales on 320-330 m contour.',
-    'Create 2-3 ponds in low-lying capture zones.',
-    'Protect riparian zone along the creek (20 m buffer).',
+    'Install contour swales along key drainage paths.',
+    'Protect riparian corridor with a 20 m buffer.',
+    'Design pond or cistern placement for water storage.',
     'Use keyline pattern to naturally disperse water.',
   ];
-  const actions: Array<[string, string, string, string]> = [
-    [
-      'Create contour swale (upper paddock)',
-      'Reduce runoff and increase infiltration.',
-      'High',
-      'Due in 7 days',
-    ],
-    [
-      'Install check dams on main flow path',
-      'Slow water and reduce erosion.',
-      'High',
-      'Due in 14 days',
-    ],
-    [
-      'Establish riparian buffer planting',
-      'Stabilize banks and improve water quality.',
-      'Medium',
-      'Due in 21 days',
-    ],
-    [
-      'Add organic mulch to bare slopes',
-      'Improve infiltration and soil health.',
-      'Low',
-      'Due in 30 days',
-    ],
-  ];
+
+  const actions: Array<[string, string, string]> = [];
+  if (wc.earthworks === 0) actions.push(['Map earthworks (swales, drains)', 'Trace existing features on the site map.', 'High']);
+  if (wc.storage === 0) actions.push(['Place water storage features', 'Add cisterns, ponds, or rain gardens.', 'High']);
+  if (wc.watercourses === 0) actions.push(['Trace watercourses', 'Map streams, creeks, and drainage lines.', 'Medium']);
+  if (actions.length === 0) {
+    actions.push(['Deepen hydrology analysis', 'Model water balance and infiltration rates.', 'Medium']);
+    actions.push(['Establish riparian buffer', 'Fence and revegetate with native species.', 'Medium']);
+  }
 
   return (
     <aside className="hydrology-sidebar">
@@ -329,17 +342,14 @@ function HydrologySidebar() {
             Prioritize <ChevronDown aria-hidden="true" />
           </button>
         </h2>
-        {actions.map(([title, note, level, due], index) => (
+        {actions.map(([title, note, level], index) => (
           <p key={title}>
             <b>{index + 1}</b>
             <span>
               {title}
               <small>{note}</small>
             </span>
-            <em>
-              {level}
-              <small>{due}</small>
-            </em>
+            <em>{level}</em>
           </p>
         ))}
         <button className="green-button" type="button">
