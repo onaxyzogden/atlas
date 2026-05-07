@@ -28,6 +28,14 @@ const WaterStorageCard        = lazy(() => import('./cards/water-management/Wate
 const WaterNetworkCard        = lazy(() => import('./cards/water-management/WaterNetworkCard.js'));
 const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevelLayer.js'));
 const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
+// Zone & Circulation (Module 3) — spatial overview added per Permaculture
+// Scholar verdict 2026-05-07. Atlas's Z0–Z5 list editor + path frequency
+// editor are KEPT (Scholar ruled the Z0–Z5 ladder permaculturally orthodox)
+// but augmented with a spatial mini-map + Z1/Z2 intersection validation,
+// because a list-only view is "entirely insufficient." Paddock rotation
+// from OGDEN is intentionally excluded — it belongs in a future
+// Subdivision/Livestock module per Yeomans Scale of Permanence.
+const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/ZoneCirculationOverviewCard.js'));
 // Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's PlantDatabaseCard / GuildBuilderCard /
 // CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
@@ -53,6 +61,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
+    case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;

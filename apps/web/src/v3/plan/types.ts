@@ -53,6 +53,72 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'principle-verification': 'Holmgren Principle Verification',
 };
 
+// ── Vision-Layout canvas (added 2026-05-07) ──────────────────────────────────
+// Top-tab views for the Plan stage. `current` keeps the legacy module-driven
+// experience; `vision` opens the design-element canvas; phase tabs filter the
+// canvas by Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
+export type PlanView =
+  | 'current'
+  | 'vision'
+  | 'phase-1'
+  | 'phase-2'
+  | 'terrain3d';
+
+export const PLAN_VIEWS: PlanView[] = [
+  'current',
+  'vision',
+  'phase-1',
+  'phase-2',
+  'terrain3d',
+];
+
+export const PLAN_VIEW_LABEL: Record<PlanView, string> = {
+  current: 'Current Land',
+  vision: 'Vision Layout',
+  'phase-1': 'Year 1',
+  'phase-2': 'Year 5',
+  terrain3d: '3D Terrain',
+};
+
+/**
+ * Yeomans' Scale of Permanence — canonical permaculture ordering used by the
+ * Vision-Layout canvas to gate which design elements show in each phase tab.
+ * Index 0 = most permanent (climate); 7 = most malleable (soil).
+ *
+ * Source: Permaculture Scholar dialogue 2026-04-28 (see
+ * wiki/concepts/atlas-sidebar-permaculture.md).
+ */
+export type PhaseKey =
+  | 'climate'      // 0
+  | 'landshape'    // 1
+  | 'water'        // 2
+  | 'access'       // 3
+  | 'trees'        // 4
+  | 'buildings'    // 5
+  | 'subdivision'  // 6
+  | 'soil';        // 7
+
+export const PHASE_ORDER: PhaseKey[] = [
+  'climate',
+  'landshape',
+  'water',
+  'access',
+  'trees',
+  'buildings',
+  'subdivision',
+  'soil',
+];
+
+export function phaseIndex(p: PhaseKey): number {
+  return PHASE_ORDER.indexOf(p);
+}
+
+/** Cap (inclusive) used to filter elements visible in each phase view tab. */
+export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
+  'phase-1': 'water',     // Year 1: climate → landshape → water
+  'phase-2': 'buildings', // Year 5: through buildings
+};
+
 /** Each module maps to one or more plan card section IDs. */
 export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: string }>> = {
   'dynamic-layering': [
@@ -66,6 +132,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   'zone-circulation': [
     { label: 'Zone level layer', sectionId: 'plan-zone-level' },
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
+    { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

@@ -33,11 +33,11 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
     ],
   },
   'zone-circulation': {
-    why: 'Zones radiate outward from the centre of use. Circulation routes follow zone boundaries to minimise labour and erosion (OSU PDC, Week 3: Zones & Sectors).',
+    why: 'Zones are a frequency-of-visit ladder (Z0 home → Z5 wilderness), not land-use categories. Per Permaculture Scholar (2026-05-07): a steward must be able to *see* whether daily / weekly paths actually intersect their high-maintenance Z1 / Z2 elements (Mollison, Designers\' Manual; Yeomans Scale of Permanence — subdivision and livestock come later).',
     how: [
-      'Draw zone boundaries using the Zone Level Layer.',
-      'Overlay path frequency data — high-traffic paths pave themselves.',
-      'Re-route paths along ridges or contours to eliminate erosion.',
+      'Tag each drawn zone with its Z-level in the Zone level layer tab.',
+      'Tag each drawn path with daily / weekly / occasional / rare in the Path frequency tab.',
+      'Open Overview & validation to verify high-frequency paths reach Z1 / Z2.',
     ],
   },
   'plant-systems': {
