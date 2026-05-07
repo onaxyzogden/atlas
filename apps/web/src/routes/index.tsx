@@ -38,7 +38,7 @@ import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
-import PlanPlaceholderPage from '../v3/pages/PlanPlaceholderPage.js';
+import PlanLayout from '../v3/plan/PlanLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 
 // Auth gate used by the public landing route. Reads the persisted token
@@ -177,7 +177,7 @@ const v3ObserveModuleRoute = createRoute({
 const v3PlanRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan',
-  component: PlanPlaceholderPage,
+  component: PlanLayout,
 });
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,

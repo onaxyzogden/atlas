@@ -965,22 +965,29 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     map.on('styleimagemissing', onImageMissing);
 
     return () => {
-      map.off('style.load', onStyle);
-      map.off('styleimagemissing', onImageMissing);
-      map.off('click', onMapClick);
-      // Remove click/hover handlers per layer id so a re-render or unmount
-      // doesn't leave dangling listeners on stale layer ids.
-      for (const [layerId, h] of clickHandlers) {
-        map.off('click', layerId, h);
-      }
-      for (const [layerId, h] of dblHandlers) {
-        map.off('dblclick', layerId, h);
-      }
-      for (const [layerId, h] of enterHandlers) {
-        map.off('mouseenter', layerId, h);
-      }
-      for (const [layerId, h] of leaveHandlers) {
-        map.off('mouseleave', layerId, h);
+      // Wrap in try/catch: map.off() with a layerId argument accesses
+      // MapLibre internals that crash on a removed map (style already
+      // destroyed). Listener cleanup is best-effort on unmount.
+      try {
+        map.off('style.load', onStyle);
+        map.off('styleimagemissing', onImageMissing);
+        map.off('click', onMapClick);
+        // Remove click/hover handlers per layer id so a re-render or unmount
+        // doesn't leave dangling listeners on stale layer ids.
+        for (const [layerId, h] of clickHandlers) {
+          map.off('click', layerId, h);
+        }
+        for (const [layerId, h] of dblHandlers) {
+          map.off('dblclick', layerId, h);
+        }
+        for (const [layerId, h] of enterHandlers) {
+          map.off('mouseenter', layerId, h);
+        }
+        for (const [layerId, h] of leaveHandlers) {
+          map.off('mouseleave', layerId, h);
+        }
+      } catch {
+        // map already removed — nothing to clean up
       }
     };
     // layerSpecs is the memoised set of FeatureCollections + layer specs;
@@ -1001,20 +1008,28 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   useEffect(() => {
     return () => {
       if (!map) return;
-      const allLayers = map.getStyle()?.layers ?? [];
-      for (const l of allLayers) {
-        if (l.id.startsWith(LAYER_PREFIX) && map.getLayer(l.id)) {
-          map.removeLayer(l.id);
+      // Wrap in try/catch: DiagnoseMap may have already called map.remove()
+      // before this cleanup fires (timing races during route transitions mean
+      // the map can be in a half-destroyed state where getLayer() throws).
+      // Cleanup is best-effort — if the map is already gone, nothing to do.
+      try {
+        const allLayers = map.getStyle()?.layers ?? [];
+        for (const l of allLayers) {
+          if (l.id.startsWith(LAYER_PREFIX) && map.getLayer(l.id)) {
+            map.removeLayer(l.id);
+          }
         }
-      }
-      const sources = (map.getStyle()?.sources ?? {}) as Record<
-        string,
-        unknown
-      >;
-      for (const sid of Object.keys(sources)) {
-        if (sid.startsWith(SOURCE_PREFIX) && map.getSource(sid)) {
-          map.removeSource(sid);
+        const sources = (map.getStyle()?.sources ?? {}) as Record<
+          string,
+          unknown
+        >;
+        for (const sid of Object.keys(sources)) {
+          if (sid.startsWith(SOURCE_PREFIX) && map.getSource(sid)) {
+            map.removeSource(sid);
+          }
         }
+      } catch {
+        // map already removed — nothing to clean up
       }
     };
   }, [map]);

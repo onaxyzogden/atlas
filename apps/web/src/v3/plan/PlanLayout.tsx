@@ -51,6 +51,8 @@ const MTC_FALLBACK: LocalProject = {
   accessNotes: null,
   waterRightsNotes: null,
   visionStatement: null,
+  units: 'metric',
+  attachments: [],
 };
 
 export default function PlanLayout() {

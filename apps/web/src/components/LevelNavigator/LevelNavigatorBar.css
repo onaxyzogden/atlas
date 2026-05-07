@@ -104,6 +104,35 @@
   min-width: 0;
 }
 
+/* Clickable state — applied when on a /v3/project route */
+.fln-bar__center--clickable {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md, 6px);
+  padding: 4px 10px;
+  /* Inherit flex layout from .fln-bar__center */
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: center;
+  overflow: hidden;
+  transition: background var(--duration-base, 180ms) var(--ease-default, ease),
+              opacity 200ms var(--ease-default, ease),
+              transform 200ms var(--ease-default, ease);
+}
+
+.fln-bar__center--clickable:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fln-bar__center--clickable:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
 @media (max-width: 900px) {
   .fln-bar__subtitle,
   .fln-bar__side-label {

@@ -45,6 +45,8 @@ const FALLBACK_PROJECT: LocalProject = {
   accessNotes: null,
   waterRightsNotes: null,
   visionStatement: null,
+  units: 'metric',
+  attachments: [],
 };
 
 export default function V3PlanPage() {
