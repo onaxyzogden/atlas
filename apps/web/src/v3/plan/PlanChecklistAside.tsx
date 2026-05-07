@@ -49,11 +49,12 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
     ],
   },
   'soil-fertility': {
-    why: 'Use and value renewable resources (Holmgren P5): soil biology is the primary fertility engine. Every waste stream on-site is a soil amendment waiting to be unlocked.',
+    why: 'Per Permaculture Scholar (2026-05-07): soil fertility is the "digestive system" of the design and must be diagnosed before it is amended. OSU PDC mandates jar-test, percolation, and pH as the bare-minimum baseline; Holmgren P6 (Produce no waste) requires that every fertility unit have both a feedstock source and a destination.',
     how: [
-      'Map all organic waste streams and match them to a fertility pathway.',
-      'Place composting and processing areas within Zone 1–2 for ease of management.',
-      'Design soil-building sequences that precede annual cropping by at least one season.',
+      'Open Soil baseline first: enter jar-test %, percolation, and pH to surface limiting factors.',
+      'Add fertility infrastructure (composters, hugelkultur beds, worm bins) on the designer tab.',
+      'Wire waste vectors between zones, structures, crops, and fertility units.',
+      'Open Closed-loop graph to verify no fertility unit is orphaned (no flows attached).',
     ],
   },
   'cross-section-solar': {

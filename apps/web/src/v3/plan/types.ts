@@ -143,6 +143,8 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   'soil-fertility': [
     { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
     { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
+    { label: 'Closed-loop graph', sectionId: 'plan-closed-loop-graph' },
+    { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor', sectionId: 'plan-transect-vertical' },

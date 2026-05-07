@@ -52,6 +52,14 @@ const GuildSpatialBuilderCard    = lazy(() => import('./cards/plant-systems/Guil
 const CanopySuccessionCard       = lazy(() => import('./cards/plant-systems/CanopySuccessionCard.js'));
 const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
 const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
+// Soil Fertility (Module 5) — additive cards added per Permaculture Scholar
+// verdict 2026-05-07. Atlas's SoilFertilityDesignerCard + WasteVectorTool kept
+// as the entry tabs (Scholar said the closed-loop vector model is correct).
+// What was missing: a baseline (jar test → texture triangle → limiting
+// factors) and a graph visualisation with orphan-fertility detection
+// (Holmgren P6 Produce No Waste enforcement).
+const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
+const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBaselineCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
@@ -74,6 +82,8 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
+    case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-baseline':       return <SoilBaselineCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;

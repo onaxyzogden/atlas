@@ -116,8 +116,8 @@ export default function PermanenceLadderCard({ project }: Props) {
       name: r.name,
       timescale: r.timescale,
       blurb: r.blurb,
-      count: counts[r.rank].count,
-      countLabel: counts[r.rank].label,
+      count: counts[r.rank]?.count ?? 0,
+      countLabel: counts[r.rank]?.label ?? '',
       prereqs: r.prereqs,
     }));
   }, [project.id, allZones, allPaths, allStructures, allCrops, allTransects, allEarthworks, allStorage, allFertility, allEcology, allGuilds]);
