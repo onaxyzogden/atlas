@@ -42,7 +42,21 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
 ## Follow-ups (not in this commit)
 
 - ✅ **Persist soil baseline** — landed 2026-05-07 as `apps/web/src/store/soilTestStore.ts` (Zustand+persist, byProject, optional zoneId per reading). `SoilBaselineCard` now lists saved readings (with auto-load of the most recent on project switch), a label + zone dropdown, save/load/remove buttons, ghost-dots for prior readings on the texture triangle, and a notes field. Multiple readings per project per the Scholar's "soil management areas" guidance.
-- **Resource inventory tab** (Scholar's tab 2): split-panel polygon-draw for soil-management areas + a Greens/Browns inventory checklist. Not built v1.
+- ✅ **Resource inventory tab — Greens/Browns leg landed 2026-05-07.**
+  New 5th tab `plan-soil-resources` under Soil — `SoilResourcesCard.tsx` —
+  inventories common high-N (greens) and high-C (browns) feedstocks with
+  Cornell/USDA reference C:N ratios. Volume input (m³) per checked
+  feedstock drives a mass-weighted aggregate C:N (constant 200 kg/m³
+  density v1, so density cancels and ratio depends only on volumes ×
+  per-feedstock C-fraction). Verdict bands keyed to Cornell hot-composting
+  guidance: < 20:1 too-green (ammonia/anaerobic), 25–35:1 ideal,
+  > 50:1 too-brown (won't heat), all-green / all-brown each get their
+  own remedy. Per-feedstock notes carry field-realistic warnings
+  ("strip tape and glossy print", "rinse seaweed to drop salt", "compost
+  fresh manure ≥ 90 days before food-crop contact"). Component-state
+  v1 — persistence (a `compostInventoryStore`) is a follow-up. The
+  split-panel polygon-draw for soil-management areas remains deferred
+  (needs map-draw integration).
 - **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
 - ✅ **Expand fertility taxonomy** — landed 2026-05-07. `FertilityInfraType` in `closedLoopStore.ts` now includes `cover_crop`, `chop_and_drop`, `dynamic_accumulator`, `rotational_grazing` alongside the original four structural types. The Scholar's three-pillar framing (structural · vegetative/biological · animal-integration) is now representable in the closed-loop graph. Picker in `SoilFertilityDesignerCard` extended to all eight options with permaculture-grounded taglines. Defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so the cross-section view doesn't render phantom stacks for the new vegetative kinds (cover-crop 0.3 m, chop-and-drop 0.1 m, dynamic accumulator 1.0 m, rotational grazing 0.1 m). `ClosedLoopGraphCard` label generation collapses underscores to spaces. No persist-version bump — additive union members; legacy entries persist unchanged.
 - ✅ **Spatial graph layout** — landed 2026-05-07. `ClosedLoopGraphCard` now exposes a Ring / Spatial layout toggle. Spatial mode derives a `[lng, lat]` centroid for each node (zone/crop/structure-without-center → average of polygon vertices; structure → `center` field; fertility → `center` field), normalises the cloud into the SVG viewport with N up, and lays nodes that have no centroid on a small inner ring so they don't pile up at the origin. The Spatial button auto-disables when no node has a centroid. Vector length now reflects real haul distance, surfacing Holmgren P3 *Obtain a yield* (short haul = positive yield; long haul = energy debt).

@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 5 · Soil Greens/Browns inventory card
+
+Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). New 5th tab `plan-soil-resources` under Soil — `SoilResourcesCard.tsx` — inventories common feedstocks with Cornell/USDA reference C:N ratios across two columns (Greens 8 items, Browns 8 items). Volume input (m³) per checked feedstock drives a mass-weighted aggregate C:N; verdict bands keyed to Cornell hot-composting guidance (< 20:1 too-green, 25–35:1 ideal, > 50:1 too-brown, all-green / all-brown each get their own remedy). Per-feedstock notes carry field warnings ("strip tape and glossy print", "compost fresh manure ≥ 90 days before food-crop contact", "rinse seaweed to drop salt"). Component-state v1 (persistence as future `compostInventoryStore` follow-up); split-panel polygon-draw for soil-management areas remains deferred. Cites Holmgren P6 + Cornell Waste Management "Composting in Schools" + Mollison ch.8. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 2 · Water peak-event sizing (design-storm vs capacity)
 
 Module 2 (Water) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-water-scholar-build-fresh.md`). `WaterNetworkCard` gains a "Peak-event sizing" panel between Annual balance and Validation. Steward enters a design-storm depth (default 100 mm / 24 hr — coarse NOAA Atlas-14 100-yr mid-latitude NA figure); the card computes peak inflow as `Σ Area × stormDepth × C` over catchments and compares against the sum of effective storage capacities (`effectiveCapacityL` per non-catchment node, swales via `L × W × D`). When peak > capacity the balance row reads "undersized — N L must spill to emergency overflow" in warning red plus a Yeomans-grounded callout recommending capacity expansion or a non-erosive vegetated spillway. Reuses the existing `catchmentYieldM3` helper (V = A × P × C works for both annual yield and storm peak — only the depth changes). Cites Mollison ch.7 + USDA NRCS TR-55. Typecheck clean.

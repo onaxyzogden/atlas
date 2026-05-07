@@ -66,6 +66,7 @@ const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVect
 // (Holmgren P6 Produce No Waste enforcement).
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
 const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBaselineCard.js'));
+const SoilResourcesCard       = lazy(() => import('./cards/soil-fertility/SoilResourcesCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
 // Cross-section & Solar (Module 6) — additive section-annotations card added
 // per Permaculture Scholar verdict 2026-05-07. Atlas's TransectVerticalEditorCard
@@ -116,6 +117,7 @@ function renderCard(
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
     case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-baseline':       return <SoilBaselineCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-resources':      return <SoilResourcesCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
     case 'plan-section-annotations': return <SectionAnnotationsCard project={project} onSwitchToMap={noop} />;

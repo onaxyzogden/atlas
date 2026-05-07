@@ -146,6 +146,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
     { label: 'Closed-loop graph', sectionId: 'plan-closed-loop-graph' },
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
+    { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
