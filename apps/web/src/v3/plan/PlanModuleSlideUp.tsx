@@ -18,9 +18,14 @@ import css from './PlanModuleSlideUp.module.css';
 
 // All 16 plan cards lazy-loaded.
 const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
-const RunoffCalculatorCard    = lazy(() => import('../../features/plan/RunoffCalculatorCard.js'));
-const SwaleDrainTool          = lazy(() => import('../../features/plan/SwaleDrainTool.js'));
-const StorageInfraTool        = lazy(() => import('../../features/plan/StorageInfraTool.js'));
+// Water Management (Module 2) — fresh build per Permaculture Scholar verdict
+// 2026-05-07. Atlas's RunoffCalculatorCard / SwaleDrainTool / StorageInfraTool
+// remain at apps/web/src/features/plan/ as legacy and are still wired into
+// V3PlanPage + DashboardRouter; the iteration ADR tracks consolidation as
+// a follow-up.
+const WaterCatchmentsCard     = lazy(() => import('./cards/water-management/WaterCatchmentsCard.js'));
+const WaterStorageCard        = lazy(() => import('./cards/water-management/WaterStorageCard.js'));
+const WaterNetworkCard        = lazy(() => import('./cards/water-management/WaterNetworkCard.js'));
 const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevelLayer.js'));
 const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
 // Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
@@ -43,9 +48,9 @@ function renderCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
-    case 'plan-runoff-calculator':   return <RunoffCalculatorCard project={project} onSwitchToMap={noop} />;
-    case 'plan-swale-drain':         return <SwaleDrainTool project={project} onSwitchToMap={noop} />;
-    case 'plan-storage-infra':       return <StorageInfraTool project={project} onSwitchToMap={noop} />;
+    case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
+    case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
+    case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;

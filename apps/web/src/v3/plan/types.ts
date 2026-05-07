@@ -59,9 +59,9 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
   ],
   'water-management': [
-    { label: 'Runoff calculator',  sectionId: 'plan-runoff-calculator' },
-    { label: 'Swale / drain tool', sectionId: 'plan-swale-drain' },
-    { label: 'Storage placement',  sectionId: 'plan-storage-infra' },
+    { label: 'Catchments',     sectionId: 'plan-water-catchments' },
+    { label: 'Storage & overflow', sectionId: 'plan-water-storage' },
+    { label: 'Network & balance',  sectionId: 'plan-water-network' },
   ],
   'zone-circulation': [
     { label: 'Zone level layer', sectionId: 'plan-zone-level' },

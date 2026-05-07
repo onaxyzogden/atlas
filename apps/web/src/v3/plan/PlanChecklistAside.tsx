@@ -25,11 +25,11 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
     ],
   },
   'water-management': {
-    why: 'Catch and store energy (Holmgren P2) begins with water. Every drop harvested on-site multiplies fertility, moderates microclimate, and reduces flood risk.',
+    why: 'Water design is a directed graph: catchments shed → storage retains → swales spread → sinks absorb. Per Permaculture Scholar (2026-05-07): every node must declare an overflow target so excess flows along the topographic slope rather than disappearing off-site (Mollison, Designers\' Manual ch.7; Holmgren P2: Catch and store energy).',
     how: [
-      'Calculate runoff from roof and slope areas before placing swales.',
-      'Place swales on keyline or contour using the Swale / Drain tool.',
-      'Locate storage tanks and ponds below the highest reliable runoff source.',
+      'List catchments first — roofs, paved areas, pasture — with surface coefficients.',
+      'Add storage and swale nodes; pick an overflow target for every one.',
+      'Open Network & balance to see total yield, retained volume, and orphans.',
     ],
   },
   'zone-circulation': {
