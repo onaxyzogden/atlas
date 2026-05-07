@@ -1,0 +1,210 @@
+# External Data Sources — Phase 8 Reference
+
+## Summary
+
+Attribution, licensing, and refresh-cadence reference for the
+external geospatial datasets Phase 8 work depends on. Compiled so
+the next ingest session does not re-derive the licence terms or
+re-discover the open questions baked into the scoping ADRs.
+
+Scope: only sources named in the three Phase 8 scoping ADRs that
+remain partially or fully deferred —
+[`raster-pollinator-corridor-scoping`](../decisions/2026-05-02-raster-pollinator-corridor-scoping.md),
+[`global-groundwater-esg-sources-scoping`](../decisions/2026-05-02-global-groundwater-esg-sources-scoping.md).
+Existing live adapters (NWIS, PGMN, BLM, BC MTO) are not duplicated
+here — they're documented in their service files.
+
+---
+
+## Land cover (Phase 8.1-A — pollinator corridor)
+
+### ESA WorldCover
+
+- **Use.** Global fallback for the pollinator-corridor land-cover
+  layer where parcels fall outside North America.
+- **Coverage.** Global at 10 m resolution, 11 classes.
+- **Vintage.** 2020 v100 + 2021 v200 published; annual cadence on
+  ESA's roadmap but not contractually guaranteed.
+- **Licence.** CC-BY 4.0 — attribution required; redistribution and
+  derivative works permitted.
+- **Attribution string.** "© ESA WorldCover project / Contains
+  modified Copernicus Sentinel data (2020, 2021) processed by ESA
+  WorldCover consortium."
+- **URL.** <https://esa-worldcover.org>
+- **Open question (carried from 8.1 scoping ADR).** Mixing 2021-vintage
+  WorldCover with annual AAFC ACI in the same Atlas snapshot —
+  acceptable, or does the diagnosis report need a `dataDateMin`
+  ecoregion constraint?
+
+### USGS NLCD
+
+- **Use.** US primary land-cover source for pollinator-corridor work
+  (per 8.1-A hybrid recommendation).
+- **Coverage.** US 50 states + Puerto Rico at 30 m, Anderson Level 2
+  (16 classes).
+- **Vintage.** Latest CONUS release 2021; cadence 2-3 years.
+- **Licence.** US public domain — no attribution legally required, but
+  citation is conventional.
+- **Citation form.** "Dewitz, J., and U.S. Geological Survey, 2023,
+  National Land Cover Database (NLCD) 2021 Products."
+- **URL.** <https://www.usgs.gov/centers/eros/science/national-land-cover-database>
+
+### AAFC Annual Crop Inventory (ACI)
+
+- **Use.** Canada primary land-cover source for pollinator-corridor
+  work. Preserves the agricultural class detail that WorldCover
+  collapses into a single "Cropland" class — material to the
+  pollinator-supportive vs. -limiting weighting.
+- **Coverage.** Canada at 30 m, ~70 classes including crop-by-crop
+  detail.
+- **Vintage.** Annual since 1985.
+- **Licence.** Open Government Licence — Canada (OGL-Canada 2.0).
+  Attribution required; redistribution and derivative works permitted.
+- **Attribution string.** "Contains information licensed under the
+  Open Government Licence – Canada. Source: Agriculture and
+  Agri-Food Canada, Annual Crop Inventory."
+- **URL.** <https://open.canada.ca/data/en/dataset/ba2645d5-4458-414d-b196-6303ac06c1c9>
+
+---
+
+## Friction surface (Phase 8.1-B — pollinator corridor, optional)
+
+### Theobald human-modification gradient
+
+- **Use.** P2 enhancement on top of the class-table friction model
+  recommended in 8.1 D3. Not part of the first accepted slice; the
+  initial friction surface derives from the existing
+  `POLLINATOR_SUPPORTIVE_WEIGHTS` /
+  `POLLINATOR_LIMITING_WEIGHTS` tables.
+- **Form.** Continuous 0-1 anthropogenic-modification index;
+  per-pixel friction = `1 + α · HM`.
+- **Citation.** Theobald, D.M. (2014) "Estimating natural landscape
+  changes from 1992 to 2030 in conterminous US." *Landscape Ecology*
+  29, 1411-1424.
+- **Licence.** The 2014 paper does not redistribute the raster
+  itself; the scoping ADR notes the HM raster "is freely available"
+  but does not specify the host. **Verification needed before
+  ingest:** confirm whether the raster comes from the Conservation
+  Science Partners (CSP) group's "Human Modification Index"
+  successor product (different vintage, different licence) or from
+  a journal-supplemental archive.
+- **Open question (carried from 8.1 scoping ADR).** Universal vs.
+  taxon-specific friction (honeybee / native bee / butterfly differ
+  per Sponsler & Johnson 2017). Decision deferred to whichever
+  accepted ADR picks Theobald up.
+
+---
+
+## Groundwater (Phase 8.2-A)
+
+### IGRAC Global Groundwater Information System (GGIS)
+
+- **Use.** Global offline-path groundwater fallback — replaces the
+  client-side `null` returned today outside US (NWIS) + Ontario (PGMN)
+  coverage. Tier-1 live adapters stay for US/CA because diagnosis
+  freshness matters there.
+- **Coverage.** ~1M wells globally, aggregated from national agencies.
+- **Vintage.** National-agency-paced — months to years per country.
+  Diagnosis reports for non-US/CA projects will carry a `dataDate`
+  that may be 1-3 years stale; caveat copy must surface this.
+- **Licence — UNRESOLVED CONTRADICTION IN SOURCE ADR.** The
+  scoping ADR's context section describes IGRAC as "CC-BY"; its
+  open-questions section describes the same dataset as "CC-BY-NC."
+  These are not interchangeable — CC-BY-NC blocks our default
+  commercial-redistribution licence and forces an export-bundle
+  exclusion path for paid Atlas exports.
+  **Verification needed before ingest:** confirm the actual licence
+  on the GGIS portal terms-of-use and whether our processed
+  `groundwater_depth_m` summary counts as derivative under their terms.
+  The accepted 8.2-A ADR cannot land until this is settled.
+- **URL.** <https://www.un-igrac.org/global-groundwater-information-system-ggis>
+
+---
+
+## Conservation overlays (Phase 8.2-B)
+
+### WDPA — World Database on Protected Areas
+
+- **Use.** Global floor for the conservation-overlay layer (per 8.2-B
+  D2 tiered recommendation). NCED + ECCC ESG add voluntary-easement
+  detail on top.
+- **Coverage.** Global, monthly refresh.
+- **Steward.** UNEP-WCMC.
+- **Licence.** CC-BY-NC. Redistribution prohibited under the
+  non-commercial clause — incompatible with Atlas's default
+  commercial-export licence. Projects exporting full geospatial
+  bundles need a separate "WDPA tile excluded" path.
+- **Open question (carried from 8.2-B scoping ADR).** "On-demand
+  fetch at view time" vs. "ingest into PostGIS." On-demand sidesteps
+  redistribution; ingest gives faster reads. **Constraint:** the
+  diagnosis report is consumed *offline*. On-demand fetch breaks the
+  offline use case unless tiles are bundled into the report — which
+  *is* redistribution. Likely-resolution: ingest for online
+  diagnosis-report rendering, exclude from offline-bundle exports.
+  Confirm with UNEP-WCMC terms-of-use before the accepted ADR lands.
+- **Attribution string.** "© UNEP-WCMC and IUCN (2024), The World
+  Database on Protected Areas (WDPA)" — date stamp updates monthly
+  with the release vintage actually in use.
+- **URL.** <https://www.protectedplanet.net>
+
+### NCED — National Conservation Easement Database
+
+- **Use.** US voluntary-easement detail in the 8.2-B tiered overlay.
+- **Coverage.** US, easement-record level. Refresh cadence varies
+  by reporting easement holder.
+- **Licence.** Per NCED terms-of-use — not yet captured in the
+  scoping ADR. **Verification needed before ingest.**
+- **URL.** <https://www.conservationeasement.us>
+
+### ECCC Ecological Gifts Program
+
+- **Use.** Canada voluntary-easement detail in the 8.2-B tiered
+  overlay.
+- **Coverage.** Canada, gift-record level.
+- **Vintage.** Static dataset — last refresh 2023 (per the
+  groundwater-ESG scoping ADR's context section). Diagnosis reports
+  must surface this honestly; this is not a live feed.
+- **Licence.** Open Government Licence — Canada (OGL-Canada 2.0,
+  same as AAFC ACI). Attribution required; redistribution and
+  derivative works permitted.
+- **URL.** <https://www.canada.ca/en/environment-climate-change/services/environmental-funding/ecological-gifts-program.html>
+
+---
+
+## Verification checklist (before any of these become accepted ADRs)
+
+- [ ] **IGRAC licence.** CC-BY vs. CC-BY-NC discrepancy in the
+  scoping ADR resolved against GGIS portal terms. Derivative-summary
+  status confirmed.
+- [ ] **WDPA bundling.** UNEP-WCMC terms-of-use on tile inclusion in
+  offline reports. Default to "ingest + exclude-from-export"
+  unless terms permit otherwise.
+- [ ] **NCED licence.** Terms-of-use captured in this doc.
+- [ ] **Theobald HM raster source.** Whether the canonical raster
+  is the 2014 paper supplement or the CSP-hosted successor product.
+- [ ] **Pollinator friction granularity.** Universal vs. taxon-specific —
+  decision needed before 8.1 D3 enters an accepted ADR.
+- [ ] **Buffered polygonization.** 8.1 open question — buffer size
+  for off-parcel land cover (default ~1.5-3 km native bee foraging
+  range) needs to land in the 8.1-B accepted ADR.
+
+---
+
+## References
+
+- ADRs:
+  - [`2026-05-02-raster-pollinator-corridor-scoping`](../decisions/2026-05-02-raster-pollinator-corridor-scoping.md)
+    — D1 (land-cover hybrid), D3 (friction model), open questions
+    on Theobald + buffered polygonize.
+  - [`2026-05-02-global-groundwater-esg-sources-scoping`](../decisions/2026-05-02-global-groundwater-esg-sources-scoping.md)
+    — D1 (IGRAC), D2 (WDPA + NCED + ECCC), open questions on IGRAC
+    licence + WDPA bundling.
+- Existing live adapters (not duplicated above):
+  - USGS NWIS — `apps/api/src/services/pipeline/adapters/NwisGroundwaterAdapter.ts`
+  - LIO PGMN — `apps/api/src/services/pipeline/adapters/PgmnGroundwaterAdapter.ts`
+  - Federal BLM, BC MTO — retained branches in `apps/web/src/lib/layerFetcher.ts:fetchMineralRightsComposite`.
+- Adjacent papers referenced but not ingested:
+  - Sponsler, D.B. & Johnson, R.M. (2017) "Mechanistic modeling of
+    pesticide exposure: The missing keystone of honey bee toxicology."
+    *Environmental Toxicology and Chemistry* 36(4) — relevant to
+    taxon-specific friction.

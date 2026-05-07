@@ -1,27 +1,31 @@
 import {
   ArrowRight,
-  CheckCircle2,
   Compass,
   Home,
   Leaf,
   MapPin,
   Sprout,
   Sun,
-  Wind,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AppShell,
-  ProgressRing,
+  ModuleHeroCard,
+  ModuleKpiStrip,
+  ModuleSynthesisPanel,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus,
 } from "../components/index.js";
+
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorsMicroclimatesDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { SectorCompassContent } from "./SectorCompassPage.jsx";
+import { CartographicDetailContent } from "./CartographicDetailPage.jsx";
 
 const metadata = screenCatalog.find(
   (s) => s.route === "/observe/sectors-zones"
@@ -39,24 +43,39 @@ const TONE_COLOR = {
 export function SectorsMicroclimatesDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page sectors-page">
+      <div className="detail-page sectors-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <ProjectDataStatus />
         <section className="sectors-layout">
           <div className="sectors-main">
-            <SectorsHeader meta={meta} />
+            <ModuleHeroCard
+              moduleNumber="Module 5"
+              title="Sectors, Microclimates & Zones"
+              icon={Compass}
+              copy={vm.hero.copy}
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+            />
             <SectorsKpis />
             <SynthesisCard />
             <div className="sectors-tool-grid">
-              <SectorCompassCard />
-              <CartographicCard />
+              <SectorCompassCard onAction={() => setPane("sectorCompass")} />
+              <CartographicCard onAction={() => setPane("cartographic")} />
             </div>
           </div>
           <SectorsSidebar />
         </section>
       </div>
+      <SlideUpPane open={pane === "sectorCompass"} title="Sector compass" onClose={close}>
+        <SectorCompassContent />
+      </SlideUpPane>
+      <SlideUpPane open={pane === "cartographic"} title="Cartographic detail" onClose={close}>
+        <CartographicDetailContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -68,55 +87,24 @@ export function SectorsMicroclimatesDashboardPage() {
   );
 }
 
-function SectorsHeader({ meta }) {
-  const county = meta.county ?? meta.bioregion ?? null;
-  return (
-    <header className="sectors-header">
-      <span className="stage-kicker">{vm.hero.moduleNumber}</span>
-      <h1>{vm.hero.title}</h1>
-      <p>{vm.hero.copy}</p>
-      {county && <b className="sectors-location-badge"><MapPin size={13} /> {county}</b>}
-    </header>
-  );
-}
+const sectorsIconMap = { leaf: Leaf, sun: Sun, home: Home, compass: Compass };
 
 function SectorsKpis() {
   const { kpis } = vm;
-  return (
-    <section className="sectors-kpi-strip">
-      <SurfaceCard className="sectors-kpi-card green">
-        <Leaf aria-hidden="true" />
-        <span>Sector analysis plans</span>
-        <strong>{kpis.sectorAnalysisPlans}</strong>
-        <small>Documented</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card gold">
-        <Sun aria-hidden="true" />
-        <span>Microclimate services</span>
-        <strong>{kpis.microclimates}</strong>
-        <small>Identified</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card green">
-        <Home aria-hidden="true" />
-        <span>Zones outlined</span>
-        <strong>{kpis.zonesOutlined}</strong>
-        <small>Across site</small>
-      </SurfaceCard>
-      <SurfaceCard className="sectors-kpi-card">
-        <ProgressRing value={kpis.observationDepth} label={`${kpis.observationDepth}%`} />
-        <span>Observation depth</span>
-        <strong>{kpis.observationDepth}%</strong>
-        <small>Module complete</small>
-      </SurfaceCard>
-    </section>
-  );
+  const items = [
+    ["leaf",    "Sector analysis plans", String(kpis.sectorAnalysisPlans), "Documented",  "green"],
+    ["sun",     "Microclimate services", String(kpis.microclimates),       "Identified",  "gold" ],
+    ["home",    "Zones outlined",        String(kpis.zonesOutlined),       "Across site", "green"],
+    ["compass", "Observation depth",     `${kpis.observationDepth}%`,      "Coverage",    "gold" ],
+  ];
+  return <ModuleKpiStrip items={items} iconMap={sectorsIconMap} />;
 }
 
 function SynthesisCard() {
   return (
     <SurfaceCard className="sectors-synthesis-card">
       <h2><Sprout aria-hidden="true" /> Synthesis</h2>
-      <p>{vm.synthesis}</p>
+      <p>{vm.synthesisText}</p>
       <div className="sectors-synthesis-actions">
         <button className="outlined-button" type="button">View all sectors <ArrowRight size={14} aria-hidden="true" /></button>
         <button className="outlined-button" type="button">View zone map <ArrowRight size={14} aria-hidden="true" /></button>
@@ -125,7 +113,7 @@ function SynthesisCard() {
   );
 }
 
-function SectorCompassCard() {
+function SectorCompassCard({ onAction }) {
   return (
     <SurfaceCard className="sectors-tool-card compass-card">
       <header className="sectors-tool-card__header">
@@ -135,9 +123,9 @@ function SectorCompassCard() {
       <div className="compass-art-wrap">
         <CompassArt sectors={vm.sectorCompassSectors} />
       </div>
-      <Link to="/observe/sectors-zones/sector-compass" className="outlined-button sectors-open-btn">
+      <button className="outlined-button sectors-open-btn" type="button" onClick={onAction}>
         Open Sector compass <ArrowRight size={14} aria-hidden="true" />
-      </Link>
+      </button>
     </SurfaceCard>
   );
 }
@@ -210,7 +198,7 @@ function CompassArt({ sectors }) {
   );
 }
 
-function CartographicCard() {
+function CartographicCard({ onAction }) {
   return (
     <SurfaceCard className="sectors-tool-card cartographic-card">
       <header className="sectors-tool-card__header">
@@ -220,9 +208,9 @@ function CartographicCard() {
       <div className="cartographic-art-wrap">
         <CartographicArt zones={vm.cartographicZones} />
       </div>
-      <Link to="/observe/sectors-zones/cartographic-detail" className="outlined-button sectors-open-btn">
+      <button className="outlined-button sectors-open-btn" type="button" onClick={onAction}>
         Open Cartographic detail <ArrowRight size={14} aria-hidden="true" />
-      </Link>
+      </button>
     </SurfaceCard>
   );
 }
@@ -307,38 +295,11 @@ function CartographicArt({ zones }) {
 function SectorsSidebar() {
   return (
     <aside className="sectors-sidebar">
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Design implications</h2>
-        {vm.designImplications.map((item) => (
-          <p key={item} className="sectors-implication">
-            <CheckCircle2 size={14} aria-hidden="true" />
-            <span>{item}</span>
-          </p>
-        ))}
-      </SurfaceCard>
-
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Detected opportunities</h2>
-        {vm.detectedOpportunities.map((item) => (
-          <p key={item} className="sectors-opportunity">
-            <Leaf size={14} aria-hidden="true" />
-            <span>{item}</span>
-          </p>
-        ))}
-      </SurfaceCard>
-
-      <SurfaceCard className="sectors-sidebar-card">
-        <h2>Recommended next actions</h2>
-        {vm.nextActions.map((item, i) => (
-          <p key={item} className="sectors-next-action">
-            <b>{i + 1}</b>
-            <span>{item}</span>
-          </p>
-        ))}
-        <button className="green-button sectors-cta" type="button">
-          <Wind size={14} aria-hidden="true" /> Do Sector Site Analysis
-        </button>
-      </SurfaceCard>
+      <ModuleSynthesisPanel
+        title="Sectors Synthesis"
+        synthesis={vm.synthesis}
+        alignmentLabel="Zone Alignment"
+      />
     </aside>
   );
 }

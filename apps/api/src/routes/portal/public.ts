@@ -3,6 +3,16 @@
  * No authentication required.
  *
  * GET /:shareToken — return published portal config
+ *
+ * TODO(launch-readiness): cache + rate-limit gaps before first public URL.
+ *   - Every visitor request hits PostgreSQL; a single Hacker News spike
+ *     would saturate the API connection pool. Add CDN-cached static
+ *     render (ISR or rendered-to-blob) before going live.
+ *   - No per-request rate limit. Relies on UUIDv4 share_token secrecy and
+ *     `is_published` filter. If a token leaks, `@fastify/rate-limit`
+ *     should cap blast radius.
+ *   See wiki/decisions/2026-05-04-p4-public-portal-section27-consolidation.md
+ *   (D2 + D4 — both deferred to launch-readiness sprint).
  */
 
 import type { FastifyInstance } from 'fastify';

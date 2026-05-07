@@ -28,9 +28,9 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-type Phase = 'P1' | 'P2' | 'P3' | 'P4' | 'MT' | 'FUTURE';
+type Phase = 'P1' | 'P2' | 'P3' | 'P4' | 'MT' | 'LATENT';
 
-const VALID_PHASES: readonly Phase[] = ['P1', 'P2', 'P3', 'P4', 'MT', 'FUTURE'];
+const VALID_PHASES: readonly Phase[] = ['P1', 'P2', 'P3', 'P4', 'MT', 'LATENT'];
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, '../../..');

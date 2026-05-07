@@ -174,6 +174,7 @@ export const humanContextDashboard = {
     progressLabel: "Well on your way",
     progressNote: "9 of 11 areas captured",
     metrics: [
+      { label: "Module progress", value: "9 / 11", note: "Areas captured" },
       { iconKey: "eye", label: "Vision phases", value: "3 / 3", note: "Captured" },
       { iconKey: "flag", label: "Milestones", value: "0", note: "Defined" },
       { iconKey: "mapPin", label: "Regional context", value: "11", note: "Captured" }
@@ -416,7 +417,14 @@ export const macroclimateDashboard = {
     title: "Macroclimate & Hazards",
     copy:
       "Understand the big-picture climate patterns and natural hazards that shape your site. Use this foundation to design resilient systems that work with your environment, not against it.",
-    badge: "Data complete"
+    badge: "Data complete",
+    progressPct: 100,
+    metrics: [
+      { iconKey: "snowflake", label: "Hardiness zone", value: "5b", note: "USDA" },
+      { iconKey: "droplet", label: "Annual precip", value: "870 mm", note: "Average" },
+      { iconKey: "calendar", label: "Frost-free days", value: "155", note: "Average" },
+      { iconKey: "alert", label: "Logged hazards", value: "3", note: "Active" }
+    ]
   },
   kpis: [
     ["snowflake", "Hardiness zone", "5b", "USDA", "blue"],
@@ -452,7 +460,28 @@ export const macroclimateDashboard = {
       "Integrate climate insights into Zone & Sector planning."
     ],
     riskPriorities: ["Late spring frost", "Intense storm / wind", "Summer drought"]
-  }
+  },
+  synthesis: {
+    alignmentPct: 85,
+    alignmentNote: "Climate patterns fully mapped. Ready to integrate into design.",
+    keyInsights: [
+      "Cool temperate climate with strong seasonality and good precipitation.",
+      "High winter solar access — design for passive solar gain.",
+      "NW winds and late frosts are primary design constraints.",
+      "Low-moderate summer water stress — prioritize water storage and soil moisture.",
+    ],
+    designImplications: [
+      "Orient buildings on SE-facing slopes to capture winter solar gain.",
+      "Plant dense evergreen windbreaks on NW boundary to reduce cold wind exposure.",
+      "Design water storage systems to capture Nov–Mar peak rainfall.",
+      "Extend growing season with frost protection on late-spring microclimate zones.",
+    ],
+    nextSteps: [
+      "Review Solar & Climate detail for passive design opportunities.",
+      "Open Hazards log to refine mitigation strategies and track progress.",
+      "Integrate climate insights into Zone & Sector planning.",
+    ],
+  },
 };
 
 // SolarClimateDetailPage (`/observe/macroclimate-hazards/solar-climate`).
@@ -517,9 +546,17 @@ export const solarClimateDetail = {
 // TopographyDashboardPage (`/observe/topography`).
 export const topographyDashboard = {
   header: {
+    moduleNumber: "Module 3",
     title: "Topography & Base Map",
     copy:
-      "Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it."
+      "Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it.",
+    progressPct: 72,
+    metrics: [
+      { iconKey: "triangle", label: "Mean slope", value: "4.2°", note: "Gentle" },
+      { iconKey: "mountain", label: "Elevation range", value: "28 m", note: "240–268 m" },
+      { iconKey: "sliders", label: "Aspect tendency", value: "SE", note: "135 degrees" },
+      { iconKey: "layers", label: "Dominant landforms", value: "Mid-slopes", note: "Rolling terrain" }
+    ]
   },
   metrics: [
     ["triangle", "Mean slope", "4.2 degrees", "Gentle", "Predominantly gentle slopes."],
@@ -538,7 +575,25 @@ export const topographyDashboard = {
       ["droplet", "Water", "Natural swales and gentle fall lines support harvesting, infiltration and ponding."],
       ["leaf", "Soil & stability", "Mostly stable slopes with low erosion risk. Protect exposed ridge lines and swales."],
       ["home", "Access & zones", "Multiple access points with buildable benches and productive lower slope zones."]
-    ]
+    ],
+    alignmentPct: 88,
+    alignmentNote: "Strong topographic data captured. Ready for design phase.",
+    keyInsights: [
+      "Gentle SE-facing slopes provide excellent passive solar conditions.",
+      "Natural swales and fall lines support water harvesting and infiltration.",
+      "Multiple buildable benches allow flexible placement of structures and zones.",
+    ],
+    designImplications: [
+      "Swales and lower slopes are ideal for capturing and slowing water movement.",
+      "Gentle slopes reduce erosion risk; protect exposed ridges and swale entry points.",
+      "Southeast aspect delivers strong morning sun and winter warmth.",
+      "Benches and lower rises offer flexible locations for buildings and zones.",
+    ],
+    nextSteps: [
+      "Map keyline candidates for water harvesting system design.",
+      "Identify building sites using terrain analysis and solar exposure data.",
+      "Plan access and internal routes between zones.",
+    ],
   },
   terrainTool: {
     rows: [
@@ -676,12 +731,19 @@ export const crossSectionTool = {
 // EarthWaterEcologyPage (`/observe/earth-water-ecology`).
 export const earthWaterEcologyPage = {
   header: {
+    moduleNumber: "Module 4",
     title: "Earth, Water & Ecology Diagnostics",
     copy:
       "Understand the living systems of your site. Diagnose soils, hydrology and ecology to reveal opportunities, risks and patterns that inform wise design.",
     statusPill: "In progress",
     progressLine: "18 of 28 tasks complete",
-    progressPct: 63
+    progressPct: 63,
+    metrics: [
+      { iconKey: "sprout", label: "Soil pH", value: "6.8", note: "Slightly acidic" },
+      { iconKey: "leaf", label: "Biodiversity", value: "62 /100", note: "Moderate" },
+      { iconKey: "droplet", label: "Water security", value: "Low", note: "Improve capture" },
+      { iconKey: "eye", label: "Field observations", value: "24", note: "This season" }
+    ]
   },
   kpis: [
     ["sprout", "Latest soil pH", "6.8", "Slightly acidic", "green"],
@@ -724,7 +786,27 @@ export const earthWaterEcologyPage = {
     ["Apply compost + mulch to garden beds", "Build organic matter and soil biology.", "Medium", "Due in 14 days"],
     ["Protect riparian corridor", "Fence and revegetate with natives.", "High", "Due in 21 days"],
     ["Conduct biological aeration", "Reduce compaction, improve infiltration.", "Medium", "Due in 30 days"]
-  ]
+  ],
+  synthesis: {
+    alignmentPct: 63,
+    alignmentNote: "Core diagnostics in progress. Key patterns emerging.",
+    keyInsights: [
+      "Moderate soil health with good pH — biological aeration will unlock full potential.",
+      "Water security is the primary constraint; prioritize capture and storage.",
+      "Moderate biodiversity with a valuable riparian corridor worth protecting.",
+    ],
+    designImplications: [
+      "Install contour swales to slow runoff and recharge soil moisture.",
+      "Protect and enhance the riparian corridor as a biodiversity keystone.",
+      "Apply compost amendments to build organic matter and soil biology.",
+      "Design irrigation systems to manage the Jun–Aug dry season deficit.",
+    ],
+    nextSteps: [
+      "Install contour swale on mid-slope to reduce erosion risk.",
+      "Fence and revegetate the riparian corridor with native species.",
+      "Submit soil sample for full biological analysis.",
+    ],
+  },
 };
 
 // CartographicDetailPage (`/observe/sectors-zones/cartographic-detail`).
@@ -836,9 +918,16 @@ export const sectorCompassPage = {
 // SectorsMicroclimatesDashboardPage (`/observe/sectors-zones`).
 export const sectorsMicroclimatesDashboard = {
   hero: {
-    moduleNumber: "MODULE 5 · SECTORS, MICROCLIMATES & ZONES",
+    moduleNumber: "Module 5",
     title: "Sectors, Microclimates & Zones",
     copy: "Map the zones and sectors that inform where and why design elements belong on the land.",
+    progressPct: 68,
+    metrics: [
+      { iconKey: "leaf", label: "Sector plans", value: "4", note: "Documented" },
+      { iconKey: "sun", label: "Microclimates", value: "6", note: "Identified" },
+      { iconKey: "compass", label: "Zones", value: "5", note: "Outlined" },
+      { iconKey: "wind", label: "Observation depth", value: "72%", note: "Coverage" }
+    ]
   },
   kpis: {
     sectorAnalysisPlans: 4,
@@ -846,7 +935,27 @@ export const sectorsMicroclimatesDashboard = {
     zonesOutlined: 5,
     observationDepth: 72,
   },
-  synthesis: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  synthesisText: "We identified the forces and influences acting on your site. Microclimates that these forces shape are mapped across the landscape. Sun, wind, water and terrain work together to create distinct growing conditions in each zone — understanding these is the foundation of good placement.",
+  synthesis: {
+    alignmentPct: 68,
+    alignmentNote: "Sector and zone mapping well underway. Placement decisions ready.",
+    keyInsights: [
+      "SE-facing microclimate provides the best conditions for warm-season production.",
+      "Western boundary is the primary wind exposure risk — windbreak design is critical.",
+      "Five distinct zones identified with clear spatial logic for element placement.",
+    ],
+    designImplications: [
+      "N-slope buildings capture morning sun and avoid southern competition.",
+      "Dense canopy sectors planned for windbreak along western boundary.",
+      "Water features positioned to intercept W-SW runoff flow paths.",
+      "SE-facing microclimate ideal for warm-season annual production.",
+    ],
+    nextSteps: [
+      "Place key structures using zone map and sector overlays.",
+      "Finalise tree placement using windbreak sector analysis.",
+      "Develop access and circulation plan between zones 1–3.",
+    ],
+  },
   sectorCompassSectors: [
     { dir: "N",  label: "Cold exposure",    tone: "dim",  deg: 0   },
     { dir: "NE", label: "Morning sun",      tone: "gold", deg: 45  },
@@ -886,12 +995,42 @@ export const sectorsMicroclimatesDashboard = {
 
 // ── M6 SWOT Dashboard (/observe/swot) ────────────────────────────────────
 export const swotDashboard = {
+  hero: {
+    copy: "Synthesise insights from your journal and diagnosis to reveal strategic leverage points and inform robust, regenerative design decisions across the site.",
+    progressPct: 72,
+    metrics: [
+      { iconKey: "leaf",     label: "Insights captured",   value: "36",         note: "Across 4 categories" },
+      { iconKey: "sliders",  label: "Synthesis strength",  value: "Developing", note: "Connections firming up" },
+      { iconKey: "calendar", label: "Last updated",        value: "May 3",      note: "by Yousef A." },
+    ],
+  },
   kpis: [
     { label: "STRENGTHS",     value: 12, sub: "+3 this week", tone: "success" },
     { label: "WEAKNESSES",    value:  8, sub: "2 unresolved", tone: "warning" },
     { label: "OPPORTUNITIES", value: 10, sub: "+5 this week", tone: "gold"    },
     { label: "THREATS",       value:  6, sub: "1 critical",   tone: "error"   },
   ],
+  synthesis: {
+    alignmentPct: 72,
+    alignmentNote: "Strong site assets and an engaged steward; key leverage in water storage, windbreak placement, and partnership formalisation.",
+    keyInsights: [
+      "Soils are the single strongest asset — protect from compaction and leverage for rapid guild establishment.",
+      "Water storage is the binding constraint on Zone 1-2 food production.",
+      "Adjacent organic farm partnership ready to formalise before next planting season.",
+      "Buckthorn pressure is time-critical — act before late-August fruiting.",
+    ],
+    designImplications: [
+      "Prioritise water-harvesting earthworks on mid-slope",
+      "Integrate windbreak plantings along NW frost pocket edge",
+      "Develop partnership MOU with adjacent organic farm",
+      "Schedule buckthorn removal before fruiting season",
+    ],
+    nextSteps: [
+      "Complete threat assessment to unlock full Diagnosis Report",
+      "Draft swale network design for mid-slope Zone 2",
+      "Apply for Conservation Halton riparian grant before Jun 30",
+    ],
+  },
   journalPreview: [
     { date: "May 16, 2026", category: "strength",    title: "Rich topsoil depth in valley floor",      score: 88 },
     { date: "May 15, 2026", category: "opportunity", title: "Adjacent farm partnership potential",      score: 76 },

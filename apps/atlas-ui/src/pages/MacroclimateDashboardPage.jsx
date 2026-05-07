@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   CalendarDays,
-  CheckCircle2,
   Droplet,
   Leaf,
   ShieldAlert,
@@ -10,11 +9,15 @@ import {
   TriangleAlert,
   Wind
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
+  ModuleKpiStrip,
+  ModuleSynthesisPanel,
   QaOverlay,
+  SlideUpPane,
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus
@@ -23,6 +26,7 @@ import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { macroclimateDashboard as vm } from "../data/builtin-sample.js";
 import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
+import { SolarClimateContent } from "./SolarClimateDetailPage.jsx";
 import monthlyClimate from "../assets/generated/macroclimate-dashboard/monthly-climate.png";
 import sunPath from "../assets/generated/macroclimate-dashboard/sun-path.png";
 import hazardMatrix from "../assets/generated/macroclimate-dashboard/hazard-risk-matrix.png";
@@ -35,37 +39,37 @@ const macroIconMap = { snowflake: Snowflake, droplet: Droplet, alert: TriangleAl
 export function MacroclimateDashboardPage() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
+  const [pane, setPane] = useState(null);
+  const close = () => setPane(null);
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page macroclimate-page">
-        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis - Module 2" />
+      <div className="detail-page macroclimate-page module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 2" />
         <ProjectDataStatus />
         <section className="macroclimate-layout">
           <div className="macroclimate-main">
-            <MacroHeader meta={meta} />
+            <ModuleHeroCard
+              moduleNumber="Module 2"
+              title="Macroclimate & Hazards"
+              icon={Wind}
+              copy={vm.hero.copy}
+              progressPct={vm.hero.progressPct}
+              metrics={vm.hero.metrics}
+            />
             <MacroKpis meta={meta} />
-            <SolarClimateCard />
+            <SolarClimateCard onAction={() => setPane("solar")} />
             <HazardsCard />
           </div>
           <MacroSidebar />
         </section>
       </div>
+      <SlideUpPane open={pane === "solar"} title="Solar & Climate detail" onClose={close}>
+        <SolarClimateContent />
+      </SlideUpPane>
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
     </AppShell>
-  );
-}
-
-function MacroHeader({ meta }) {
-  const badge = meta.climateRegion ?? vm.hero.badge;
-  return (
-    <header className="macro-header">
-      <span>{vm.hero.moduleNumber}</span>
-      <h1>{vm.hero.title}</h1>
-      <p>{vm.hero.copy}</p>
-      <b>{badge}</b>
-    </header>
   );
 }
 
@@ -79,24 +83,10 @@ function MacroKpis({ meta }) {
     ["sun",       "Avg. solar",        meta.avgDailySolarKwhM2 ? `${meta.avgDailySolarKwhM2} kWh/m²/day` : vm.kpis[4][2], "Annual avg.", "gold"],
     ["wind",      "Prevailing wind",   meta.prevailingWindDir ?? vm.kpis[5]?.[2] ?? "W / SW",         "10-18 km/h",   "green"],
   ];
-  return (
-    <section className="macro-kpi-grid">
-      {kpis.map(([iconKey, label, value, note, tone]) => {
-        const Icon = macroIconMap[iconKey];
-        return (
-          <SurfaceCard className={`macro-kpi-card ${tone}`} key={label}>
-            <Icon aria-hidden="true" />
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{note}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
+  return <ModuleKpiStrip items={kpis} iconMap={macroIconMap} />;
 }
 
-function SolarClimateCard() {
+function SolarClimateCard({ onAction }) {
   return (
     <SurfaceCard className="macro-section-card solar-card">
       <header>
@@ -104,7 +94,7 @@ function SolarClimateCard() {
           <h2><Sun aria-hidden="true" /> Solar & Climate detail</h2>
           <p>Deep dive into sun, temperature, precipitation, and seasonality to identify opportunities for passive design and productivity.</p>
         </div>
-        <Link to="/observe/macroclimate-hazards/solar-climate" className="green-button">Open page <ArrowRight aria-hidden="true" /></Link>
+        <button className="green-button" type="button" onClick={onAction}>Open page <ArrowRight aria-hidden="true" /></button>
       </header>
       <div className="solar-grid">
         <div>
@@ -168,20 +158,11 @@ function HazardsCard() {
 function MacroSidebar() {
   return (
     <aside className="macro-sidebar">
-      <SurfaceCard className="macro-insights-card">
-        <h2>Design insights & recommendations</h2>
-        <h3>Key takeaways</h3>
-        {vm.insights.keyTakeaways.map((item) => <p key={item}><CheckCircle2 aria-hidden="true" />{item}</p>)}
-        <h3>Next actions</h3>
-        {vm.insights.nextActions.map((item, index) => <p className="numbered" key={item}><b>{index + 1}</b>{item}</p>)}
-        <section className="risk-priorities">
-          <h3>Top risk priorities</h3>
-          <ol>
-            {vm.insights.riskPriorities.map((r) => <li key={r}>{r}</li>)}
-          </ol>
-        </section>
-        <button className="green-button" type="button">Go to next: Site Analysis <ArrowRight aria-hidden="true" /></button>
-      </SurfaceCard>
+      <ModuleSynthesisPanel
+        title="Macroclimate Synthesis"
+        synthesis={vm.synthesis}
+        alignmentLabel="Climate Alignment"
+      />
     </aside>
   );
 }

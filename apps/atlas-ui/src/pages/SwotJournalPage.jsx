@@ -60,23 +60,29 @@ const STATUS_FOR_IMPACT = {
   Low: "Review",
 };
 
+export function SwotJournalContent() {
+  return (
+    <div className="swot-journal-page">
+      <JournalTopProcess />
+      <section className="journal-frame">
+        <JournalHeader />
+        <JournalMetrics />
+        <section className="journal-layout">
+          <div className="journal-main">
+            <JournalFilters />
+            <EntriesTable />
+          </div>
+          <JournalSidebar />
+        </section>
+      </section>
+    </div>
+  );
+}
+
 export function SwotJournalPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="swot-journal-page">
-        <JournalTopProcess />
-        <section className="journal-frame">
-          <JournalHeader />
-          <JournalMetrics />
-          <section className="journal-layout">
-            <div className="journal-main">
-              <JournalFilters />
-              <EntriesTable />
-            </div>
-            <JournalSidebar />
-          </section>
-        </section>
-      </div>
+      <SwotJournalContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

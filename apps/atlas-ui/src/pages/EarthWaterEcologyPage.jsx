@@ -1,6 +1,4 @@
-import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   ArrowRight,
   Beaker,
   Binoculars,
@@ -19,6 +17,9 @@ import {
 import {
   AppShell,
   CroppedArt,
+  ModuleHeroCard,
+  ModuleKpiStrip,
+  ModuleSynthesisPanel,
   ProgressRing,
   QaOverlay,
   SurfaceCard,
@@ -58,7 +59,7 @@ function scoreNote(n) {
   return "Low";
 }
 
-export function EarthWaterEcologyPage() {
+export function EarthWaterEcologyContent() {
   const { project, assessment } = useBuiltinProject();
   const meta   = project?.metadata  ?? {};
   const sb     = assessment?.scoreBreakdown ?? {};
@@ -76,26 +77,47 @@ export function EarthWaterEcologyPage() {
     : null;
 
   return (
+    <div className="detail-page diagnostics-page">
+      <div className="diagnostics-layout">
+        <div className="diagnostics-main">
+          <ModuleHeroCard
+            moduleNumber="Module 4"
+            title="Earth, Water & Ecology"
+            icon={Leaf}
+            copy={vm.header.copy}
+            progressPct={vm.header.progressPct}
+            metrics={vm.header.metrics}
+          />
+          <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
+          <TabsAndActions />
+          <section className="diagnostic-grid">
+            <SiteMapCard />
+            <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
+            <HydrologyCard fieldObservations={meta.fieldObservations} />
+            <EcologyCard />
+            <RecentObservationsCard />
+            <RecommendedActionsCard />
+          </section>
+        </div>
+        <aside className="diagnostics-sidebar">
+          <ModuleSynthesisPanel
+            title="Earth & Water Synthesis"
+            synthesis={vm.synthesis}
+            alignmentLabel="Ecology Alignment"
+          />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+export function EarthWaterEcologyPage() {
+  return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page diagnostics-page">
-        <TopStageBar
-          stage="Stage 1 of 3"
-          module="Roots & Diagnosis · Module 4"
-          actionLabel="Module settings"
-        />
+      <div className="module-frame">
+        <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 4" />
         <ProjectDataStatus />
-        <ModuleHeader />
-        <KpiStrip rawPh={rawPh} soilHealthScore={soilHealthScore} bioScore={bioScore} waterScore={waterScore} />
-        <TabsAndActions />
-        <section className="diagnostic-grid">
-          <SiteMapCard />
-          <SoilDiagnosticsCard rawPh={rawPh} rawOm={rawOm} soilNotes={meta.soilNotes} />
-          <HydrologyCard fieldObservations={meta.fieldObservations} />
-          <EcologyCard />
-          <RecentObservationsCard />
-          <RecommendedActionsCard />
-        </section>
-        <StatusFooter />
+        <EarthWaterEcologyContent />
       </div>
       {import.meta.env.DEV ? (
         <QaOverlay
@@ -105,31 +127,6 @@ export function EarthWaterEcologyPage() {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function ModuleHeader() {
-  return (
-    <header className="module-header">
-      <div className="module-title-block">
-        <Link to="/observe/dashboard" className="back-link"><ArrowLeft aria-hidden="true" /> Back to overview</Link>
-        <div className="module-title-row">
-          <b>4</b>
-          <div>
-            <h1>{vm.header.title}</h1>
-            <p>{vm.header.copy}</p>
-          </div>
-          <span className="status-pill">{vm.header.statusPill}</span>
-        </div>
-      </div>
-      <SurfaceCard className="module-progress-card">
-        <span>Module progress</span>
-        <strong>{vm.header.progressLine}</strong>
-        <div className="thin-progress"><i style={{ width: `${vm.header.progressPct}%` }} /></div>
-        <em>{vm.header.progressPct}%</em>
-        <button className="outlined-button" type="button">View module guide</button>
-      </SurfaceCard>
-    </header>
   );
 }
 
@@ -144,21 +141,7 @@ function KpiStrip({ rawPh, soilHealthScore, bioScore, waterScore }) {
     ["binoculars","Field observations", vm.kpis[4][2], vm.kpis[4][3], "gold"],
     ["flask",     "Tests & samples",    vm.kpis[5][2], vm.kpis[5][3], "gold"],
   ];
-  return (
-    <SurfaceCard className="diagnostic-kpi-strip">
-      {kpis.map(([iconKey, label, value, note, tone]) => {
-        const Icon = ecologyIconMap[iconKey];
-        return (
-          <div className={`diagnostic-kpi ${tone}`} key={label}>
-            <Icon aria-hidden="true" />
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{note}</small>
-          </div>
-        );
-      })}
-    </SurfaceCard>
-  );
+  return <ModuleKpiStrip items={kpis} iconMap={ecologyIconMap} />;
 }
 
 function TabsAndActions() {
@@ -315,16 +298,3 @@ function RecommendedActionsCard() {
   );
 }
 
-function StatusFooter() {
-  const { siteBanner } = useBuiltinProject();
-  return (
-    <footer className="diagnostic-footer">
-      <span><b>Site:</b> {siteBanner.siteName}</span>
-      <span><b>Location:</b> {siteBanner.location}</span>
-      <span><b>Elevation:</b> {siteBanner.elevationRange}</span>
-      <span><b>Project start:</b> {siteBanner.projectStart}</span>
-      <span>Last updated: {siteBanner.lastUpdatedAbsolute} by {siteBanner.lastUpdatedBy}</span>
-      <span className="synced">{siteBanner.syncStatus}</span>
-    </footer>
-  );
-}

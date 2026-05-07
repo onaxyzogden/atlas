@@ -27,7 +27,7 @@
  * disagree, `taxonomy.ts` and the actually-mounted panels win.
  */
 
-export type PhaseTag = 'P1' | 'P2' | 'P3' | 'P4' | 'MT' | 'FUTURE';
+export type PhaseTag = 'P1' | 'P2' | 'P3' | 'P4' | 'MT' | 'LATENT';
 
 export type SectionStatus = 'done' | 'partial' | 'stub' | 'planned';
 
@@ -55,9 +55,13 @@ export interface FeatureSection {
 
 /**
  * Ordinal ranking used by `phaseAtMost()` for `ATLAS_PHASE_MAX` gating.
- * MT and FUTURE sit off the P-tag ordinal scale. Both require their own
- * flag (`ATLAS_MOONTRANCE`, `ATLAS_FUTURE`) — phaseAtMost rejects them
- * unless explicitly allowed.
+ * MT and LATENT sit off the P-tag ordinal scale. Both require their own
+ * flag (`ATLAS_MOONTRANCE`, `ATLAS_LATENT` — legacy `ATLAS_FUTURE` still
+ * honoured during transition) — phaseAtMost rejects them unless explicitly
+ * allowed. LATENT replaces the prior FUTURE tag per ADR
+ * 2026-05-02-phase-gated-future-routes-scoping (D2, accepted 2026-05-04):
+ * "future-ready" was a junk drawer; LATENT names the slot honestly as
+ * tracked-not-built.
  */
 const PHASE_ORDER: Record<PhaseTag, number> = {
   P1: 1,
@@ -65,7 +69,7 @@ const PHASE_ORDER: Record<PhaseTag, number> = {
   P3: 3,
   P4: 4,
   MT: 99,
-  FUTURE: 98,
+  LATENT: 98,
 };
 
 export const FEATURE_SECTIONS: readonly FeatureSection[] = [
@@ -637,18 +641,18 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     id: 28,
     slug: 'future-geospatial',
     name: 'Advanced Geospatial / Future-Ready Features',
-    phases: ['FUTURE'],
+    phases: ['LATENT'],
     status: 'stub',
     features: [
-      { key: 'lidar-drone-photogrammetry-import', label: 'LiDAR / drone point cloud / photogrammetry mesh import', phase: 'FUTURE', status: 'planned' },
-      { key: 'hi-res-terrain-3d-tiles', label: 'High-resolution terrain mesh replacement + 3D tiles support', phase: 'FUTURE', status: 'planned' },
-      { key: 'sensor-data-integration', label: 'Sensor data integration (soil, water, weather, grazing)', phase: 'FUTURE', status: 'planned' },
-      { key: 'satellite-revisit-change-detection', label: 'Satellite revisit monitoring + change detection over time', phase: 'FUTURE', status: 'planned' },
-      { key: 'vegetation-health-degradation-detection', label: 'Vegetation health and land degradation detection', phase: 'FUTURE', status: 'planned' },
-      { key: 'carbon-monitoring-integrations', label: 'Carbon monitoring integrations', phase: 'FUTURE', status: 'planned' },
-      { key: 'ar-vr-walkthrough', label: 'AR site walkthrough + VR immersive walkthrough modes', phase: 'FUTURE', status: 'planned' },
-      { key: 'multi-property-corridor-planning', label: 'Multi-property regional + corridor-level landscape planning', phase: 'FUTURE', status: 'planned' },
-      { key: 'portfolio-dashboard', label: 'Portfolio dashboard for many sites', phase: 'FUTURE', status: 'planned' },
+      { key: 'lidar-drone-photogrammetry-import', label: 'LiDAR / drone point cloud / photogrammetry mesh import', phase: 'LATENT', status: 'planned' },
+      { key: 'hi-res-terrain-3d-tiles', label: 'High-resolution terrain mesh replacement + 3D tiles support', phase: 'LATENT', status: 'planned' },
+      { key: 'sensor-data-integration', label: 'Sensor data integration (soil, water, weather, grazing)', phase: 'LATENT', status: 'planned' },
+      { key: 'satellite-revisit-change-detection', label: 'Satellite revisit monitoring + change detection over time', phase: 'LATENT', status: 'planned' },
+      { key: 'vegetation-health-degradation-detection', label: 'Vegetation health and land degradation detection', phase: 'LATENT', status: 'planned' },
+      { key: 'carbon-monitoring-integrations', label: 'Carbon monitoring integrations', phase: 'LATENT', status: 'planned' },
+      { key: 'ar-vr-walkthrough', label: 'AR site walkthrough + VR immersive walkthrough modes', phase: 'LATENT', status: 'planned' },
+      { key: 'multi-property-corridor-planning', label: 'Multi-property regional + corridor-level landscape planning', phase: 'LATENT', status: 'planned' },
+      { key: 'portfolio-dashboard', label: 'Portfolio dashboard for many sites', phase: 'LATENT', status: 'planned' },
     ],
   },
   {
@@ -705,7 +709,7 @@ export function getFeature(key: string): FeatureItem | undefined {
  */
 export function phaseAtMost(candidate: PhaseTag, max: PhaseTag): boolean {
   if (candidate === 'MT' || max === 'MT') return candidate === max;
-  if (candidate === 'FUTURE' || max === 'FUTURE') return candidate === max;
+  if (candidate === 'LATENT' || max === 'LATENT') return candidate === max;
   return PHASE_ORDER[candidate] <= PHASE_ORDER[max];
 }
 

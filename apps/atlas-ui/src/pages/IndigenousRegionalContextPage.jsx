@@ -33,40 +33,46 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/human
 const chipIconMap = { alert: AlertTriangle, check: CheckCircle2, network: Network };
 const statIconMap = { alert: AlertTriangle, sprout: Sprout, users: Users };
 
+export function IndigenousRegionalContextContent() {
+  return (
+    <div className="detail-page regional-page">
+      <div className="detail-layout">
+        <div className="detail-main">
+          <RegionalHero />
+          <PlaceNamesCard />
+          <div className="two-card-grid">
+            <KnowledgeCard
+              number="2"
+              title="Cultural Challenges"
+              icon={AlertTriangle}
+              tone="gold"
+              subtitle={vm.challenges.subtitle}
+              bullets={vm.challenges.bullets}
+              action={vm.challenges.action}
+            />
+            <KnowledgeCard
+              number="3"
+              title="Cultural Strengths"
+              icon={Sprout}
+              subtitle={vm.strengths.subtitle}
+              bullets={vm.strengths.bullets}
+              action={vm.strengths.action}
+            />
+          </div>
+          <LocalNetworkCard />
+        </div>
+        <RegionalSidebar />
+      </div>
+    </div>
+  );
+}
+
 export function IndigenousRegionalContextPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page regional-page">
-        <TopStageBar />
-        <ProjectDataStatus />
-        <div className="detail-layout">
-          <div className="detail-main">
-            <RegionalHero />
-            <PlaceNamesCard />
-            <div className="two-card-grid">
-              <KnowledgeCard
-                number="2"
-                title="Cultural Challenges"
-                icon={AlertTriangle}
-                tone="gold"
-                subtitle={vm.challenges.subtitle}
-                bullets={vm.challenges.bullets}
-                action={vm.challenges.action}
-              />
-              <KnowledgeCard
-                number="3"
-                title="Cultural Strengths"
-                icon={Sprout}
-                subtitle={vm.strengths.subtitle}
-                bullets={vm.strengths.bullets}
-                action={vm.strengths.action}
-              />
-            </div>
-            <LocalNetworkCard />
-          </div>
-          <RegionalSidebar />
-        </div>
-      </div>
+      <TopStageBar />
+      <ProjectDataStatus />
+      <IndigenousRegionalContextContent />
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}

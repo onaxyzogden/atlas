@@ -31,28 +31,34 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/human
 
 const themeIconMap = { leaf: Leaf, users: Users, clock: Clock3 };
 
+export function StewardSurveyContent() {
+  return (
+    <div className="detail-page steward-page">
+      <div className="detail-layout">
+        <div className="detail-main">
+          <ModuleHero
+            kicker={vm.hero.kicker}
+            title={vm.hero.title}
+            copy={vm.hero.copy}
+            image={heroLandscape}
+          />
+          <IdentityCard />
+          <CapacityCard />
+          <VisionCard />
+          <div className="detail-note">All fields are optional. You can update this anytime as your understanding deepens.</div>
+        </div>
+        <StewardSnapshot />
+      </div>
+    </div>
+  );
+}
+
 export function StewardSurveyPage() {
   return (
     <AppShell navConfig={observeNav}>
-      <div className="detail-page steward-page">
-        <BreadcrumbBar items={vm.breadcrumb} />
-        <ProjectDataStatus />
-        <div className="detail-layout">
-          <div className="detail-main">
-            <ModuleHero
-              kicker={vm.hero.kicker}
-              title={vm.hero.title}
-              copy={vm.hero.copy}
-              image={heroLandscape}
-            />
-            <IdentityCard />
-            <CapacityCard />
-            <VisionCard />
-            <div className="detail-note">All fields are optional. You can update this anytime as your understanding deepens.</div>
-          </div>
-          <StewardSnapshot />
-        </div>
-      </div>
+      <BreadcrumbBar items={vm.breadcrumb} />
+      <ProjectDataStatus />
+      <StewardSurveyContent />
       {import.meta.env.DEV ? (
         <QaOverlay
           reference={metadata.reference}
