@@ -77,6 +77,23 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
   `templates`, `fieldwork`, `history`) remain in place. See
   [[2026-04-29-act-stage-ia-restructure]].
 
+## Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)
+
+The 8 Plan-stage modules surfaced through `PlanModuleBar` were each adjudicated against their OGDEN counterpart by the Permaculture Scholar (NotebookLM `5aa3dcf3-…`). Index ADR: [[2026-05-07-atlas-plan-modules-scholar-iteration]]; per-module ADRs filed same date. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**.
+
+Card inventory after iteration, keyed by `MODULE_CARDS` `sectionId` in `apps/web/src/v3/plan/types.ts`:
+
+- **Module 1 · Plant systems** (`plant-systems`) — *Build fresh:* `PlantDatabasePort` · `GuildBuilderPort` · `CanopySimulatorPort` (ported from OGDEN; see ADR `2026-05-07-atlas-plan-plants-scholar-build-fresh.md`).
+- **Module 2 · Water management** (`water-management`) — *Build fresh:* `RunoffCalculatorPort` · `SwaleDrainPort` · `StoragePlacementPort` (ported from OGDEN; ADR `…-water-…`).
+- **Module 3 · Zones & circulation** (`zone-circulation`) — *Additive:* legacy `ZoneLevelLayer` + `PathFrequencyEditor` retained as data entry; new `ZoneCirculationOverviewCard` (SVG mini-map + bbox-overlap validation).
+- **Module 4 · Dynamic layering** (`dynamic-layering`) — *Additive:* legacy `PermanenceScalesCard` retained as `plan-permanence-scales` sub-tab; new `PermanenceLadderCard` at `plan-permanence-ladder` sub-tab (9-rank Yeomans bars + ordering-violation checks).
+- **Module 5 · Soil fertility** (`soil-fertility`) — *Additive (4 sub-tabs):* legacy `SoilFertilityDesignerCard` (`plan-soil-fertility`) + `WasteVectorTool` (`plan-waste-vectors`) retained as data entry; new `ClosedLoopGraphCard` (`plan-closed-loop-graph`, ring-layout SVG + Holmgren P6 validations) + `SoilBaselineCard` (`plan-soil-baseline`, USDA texture-triangle classifier + limiting-factor remedies).
+- **Module 6 · Cross-section & solar geometry** (`cross-section-solar`) — *Keep Atlas:* `TransectVerticalEditorCard` (~540L, typed-ref pins + winter/summer solstice altitude lines) unchanged. Four enhancements deferred: microclimate brackets, succession bands, slope-% annotations, sector-response callouts.
+- **Module 7 · Phasing & budgeting** (`phasing-budgeting`) — *Keep Atlas:* `PhasingMatrixCard` + `SeasonalTaskCard` + `LaborBudgetSummaryCard` unchanged. Three enhancements deferred: optional `designLayer` enum on `PhaseTask`, capacity-validation against Client Survey, cumulative investment rollups.
+- **Module 8 · Principle verification** (`principle-verification`) — *Keep Atlas:* `HolmgrenChecklistCard` (~187L, 12-principle reflective rubric + linked-feature multi-pick) unchanged. Three enhancements deferred: three-Ethics rollup, Mission Statement cross-check, missing-principle warnings + coverage matrix.
+
+Cross-cutting follow-up: ported OGDEN cards (Modules 1, 2) still operate on mock inputs per the iteration's "visual-first port" cadence — wiring to real Zustand stores deferred.
+
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
