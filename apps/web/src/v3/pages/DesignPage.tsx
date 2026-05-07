@@ -40,6 +40,7 @@ import DesignPlacementsOverlay from "../components/overlays/design/DesignPlaceme
 import DesignDropController from "../components/DesignDropController.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useDesignMetrics } from "../data/useDesignMetrics.js";
+import StageShell from "../_shell/StageShell.js";
 import css from "./DesignPage.module.css";
 
 interface ToolItem {
@@ -164,7 +165,12 @@ export default function DesignPage() {
   );
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Design canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   function armItem(group: ToolGroup, item: ToolItem) {
@@ -184,6 +190,7 @@ export default function DesignPage() {
     : "Click a tool, then click on the canvas to drop";
 
   return (
+    <StageShell canvasLabel="Design canvas" canvas={
     <div className={css.studio}>
       <aside className={css.toolbox} aria-label="Design toolbox">
         <header className={css.toolboxHeader}>
@@ -345,5 +352,6 @@ export default function DesignPage() {
         </footer>
       </div>
     </div>
+    } />
   );
 }

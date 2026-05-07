@@ -36,6 +36,7 @@ import type {
   BuildTask,
   BuildTaskStatus,
 } from "../types.js";
+import StageShell from "../_shell/StageShell.js";
 import css from "./BuildPage.module.css";
 
 const PHASE_STATUS_LABEL: Record<BuildPhaseStatus, string> = {
@@ -104,10 +105,20 @@ export default function BuildPage() {
   }, [overrides, project]);
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Build canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
   if (!project.build) {
-    return <div className={css.page}>Build plan is not yet available for this project.</div>;
+    return (
+      <StageShell
+        canvasLabel="Build canvas"
+        canvas={<div className={css.page}>Build plan is not yet available for this project.</div>}
+      />
+    );
   }
 
   const totalTasks = phases.reduce((acc, p) => acc + p.tasks.length, 0);
@@ -121,6 +132,7 @@ export default function BuildPage() {
   );
 
   return (
+    <StageShell canvasLabel="Build canvas" canvas={
     <div className={css.page}>
       <PageHeader
         eyebrow="Build"
@@ -198,5 +210,6 @@ export default function BuildPage() {
         })}
       </div>
     </div>
+    } />
   );
 }

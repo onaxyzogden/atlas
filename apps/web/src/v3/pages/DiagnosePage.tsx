@@ -36,6 +36,7 @@ import { useV3Project } from "../data/useV3Project.js";
 import { useWindClimatology } from "../data/useWindClimatology.js";
 import { downloadDiagnoseBrief } from "../lib/exportDiagnoseBrief.js";
 import type { DiagnoseCategoryId } from "../types.js";
+import StageShell from "../_shell/StageShell.js";
 import "../styles/chrome.css";
 import css from "./DiagnosePage.module.css";
 
@@ -50,12 +51,22 @@ export default function DiagnosePage() {
   const project = useV3Project(params.projectId);
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Diagnose canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   const brief = project.diagnose;
   if (!brief) {
-    return <div className={css.page}>Land brief is not yet available for this project.</div>;
+    return (
+      <StageShell
+        canvasLabel="Diagnose canvas"
+        canvas={<div className={css.page}>Land brief is not yet available for this project.</div>}
+      />
+    );
   }
 
   const risks = brief.insights.filter((i) => i.kind === "risk");
@@ -84,6 +95,7 @@ export default function DiagnosePage() {
     : undefined;
 
   return (
+    <StageShell canvasLabel="Diagnose canvas" canvas={
     <div className={css.page}>
       <StageHero
         eyebrow="Diagnose"
@@ -168,6 +180,7 @@ export default function DiagnosePage() {
         />
       )}
     </div>
+    } />
   );
 }
 

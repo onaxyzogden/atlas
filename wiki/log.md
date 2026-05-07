@@ -4,6 +4,14 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Atlas StageShell template (canonical chrome for all 8 lifecycle stages)
+
+**Branch:** `feat/atlas-permaculture` · **Type:** refactor / architecture
+
+User asked: "make the Observe page the global standard template" (scoped to lifecycle stages). Extracted Observe's 3-column + bottom-tray + overlay shell into a slot-based component at `apps/web/src/v3/_shell/StageShell.tsx` + `StageShell.module.css`. Slots: `leftRail` / `canvas` / `rightRail` / `bottomTray` / `overlay` (rails optional). The body grid uses CSS `:has()` to adapt column count to which rails are present, so rails-absent stages render as a clean single canvas column with no phantom gutters. The `display: flex` rail-clipping fix from earlier this session is preserved verbatim. Migrated `ObserveLayout.tsx` and `PlanLayout.tsx` to slot props (their per-stage `*.module.css` files deleted). Wrapped the six single-canvas stages (Diagnose / Design / Prove / Build / Operate / Report) in `<StageShell canvas={…}/>` — page-internal padding/headers preserved inside the canvas slot. Plan's pre-existing toolbox bottom-cutoff bug auto-resolves by inheriting the shell's flex-rail discipline. Deferred follow-ups (filed in ADR): migrate DesignPage's page-internal toolbox into the `leftRail` slot, and `DecisionRail` (Prove + Operate) into the `rightRail` slot. ADR: [2026-05-07 Atlas StageShell template](decisions/2026-05-07-atlas-stage-shell-template.md). `tsc` clean against migrated files (pre-existing unrelated test-fixture errors remain). `vite build` clean (35.55 s).
+
+---
+
 ## 2026-05-07 — Atlas OBSERVE toolbox bento parity with checklist
 
 **Branch:** `feat/atlas-permaculture` · **Type:** style/cosmetic

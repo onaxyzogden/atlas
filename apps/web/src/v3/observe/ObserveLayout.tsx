@@ -41,7 +41,7 @@ import {
   isObserveModule,
   type ObserveModule,
 } from './types.js';
-import css from './ObserveLayout.module.css';
+import StageShell from '../_shell/StageShell.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -83,70 +83,70 @@ export default function ObserveLayout() {
   };
 
   return (
-    <div className={css.layout}>
-      <div className={css.body}>
-        <aside className={css.left} aria-label="Observe tools">
-          <ObserveTools
-            activeModule={validModule}
-            onSelectModule={handleSelectModule}
-          />
-        </aside>
-        <main className={css.canvas} aria-label="Observe canvas">
-          <DiagnoseMap
-            centroid={FALLBACK_CENTROID}
-            boundary={project?.location.boundary}
-          >
-            {({ map }) => (
-              <>
-                <MapToolbar
-                  map={map}
-                  projectId={params.projectId ?? null}
-                  boundary={project?.location.boundary ?? null}
-                  onBoundaryDrawn={(polygon) => {
-                    if (!params.projectId) return;
-                    updateProject(params.projectId, {
-                      parcelBoundaryGeojson: {
-                        type: 'FeatureCollection',
-                        features: [
-                          {
-                            type: 'Feature',
-                            properties: {},
-                            geometry: polygon,
-                          },
-                        ],
-                      },
-                      hasParcelBoundary: true,
-                    });
-                  }}
-                />
-                <ObserveAnnotationLayers
-                  map={map}
-                  projectId={params.projectId ?? null}
-                />
-                <ObserveDrawHost
-                  map={map}
-                  projectId={params.projectId ?? null}
-                />
-                <AnnotationDragHandler map={map} />
-                <AnnotationVertexEditHandler map={map} />
-                <SelectionFloater projectId={params.projectId ?? null} />
-                <ExportButton projectId={params.projectId ?? null} />
-              </>
-            )}
-          </DiagnoseMap>
-        </main>
-        <aside className={css.right} aria-label="Observe checklist">
-          <ObserveChecklistAside
-            activeModule={validModule}
-            onSelectModule={handleSelectModule}
-            slideUpOpen={slideUpOpen && validModule !== null}
-            onOpenSlideUp={() => setSlideUpOpen(true)}
-            onCloseSlideUp={() => setSlideUpOpen(false)}
-          />
-        </aside>
-      </div>
-
-      <div className={css.bottom}>
+    <StageShell
+      canvasLabel="Observe canvas"
+      leftRailLabel="Observe tools"
+      rightRailLabel="Observe checklist"
+      leftRail={
+        <ObserveTools
+          activeModule={validModule}
+          onSelectModule={handleSelectModule}
+        />
+      }
+      canvas={
+        <DiagnoseMap
+          centroid={FALLBACK_CENTROID}
+          boundary={project?.location.boundary}
+        >
+          {({ map }) => (
+            <>
+              <MapToolbar
+                map={map}
+                projectId={params.projectId ?? null}
+                boundary={project?.location.boundary ?? null}
+                onBoundaryDrawn={(polygon) => {
+                  if (!params.projectId) return;
+                  updateProject(params.projectId, {
+                    parcelBoundaryGeojson: {
+                      type: 'FeatureCollection',
+                      features: [
+                        {
+                          type: 'Feature',
+                          properties: {},
+                          geometry: polygon,
+                        },
+                      ],
+                    },
+                    hasParcelBoundary: true,
+                  });
+                }}
+              />
+              <ObserveAnnotationLayers
+                map={map}
+                projectId={params.projectId ?? null}
+              />
+              <ObserveDrawHost
+                map={map}
+                projectId={params.projectId ?? null}
+              />
+              <AnnotationDragHandler map={map} />
+              <AnnotationVertexEditHandler map={map} />
+              <SelectionFloater projectId={params.projectId ?? null} />
+              <ExportButton projectId={params.projectId ?? null} />
+            </>
+          )}
+        </DiagnoseMap>
+      }
+      rightRail={
+        <ObserveChecklistAside
+          activeModule={validModule}
+          onSelectModule={handleSelectModule}
+          slideUpOpen={slideUpOpen && validModule !== null}
+          onOpenSlideUp={() => setSlideUpOpen(true)}
+          onCloseSlideUp={() => setSlideUpOpen(false)}
+        />
+      }
+      bottomTray={
         <ObserveModuleBar
           activeModule={validModule}
           onSelectModule={handleSelectModule}
@@ -154,16 +154,18 @@ export default function ObserveLayout() {
           onOpenSlideUp={() => setSlideUpOpen(true)}
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
-      </div>
-
-      <ModuleSlideUp
-        module={validModule}
-        open={slideUpOpen && validModule !== null}
-        onClose={() => setSlideUpOpen(false)}
-      />
-
-      <AnnotationFormSlideUp />
-      <AnnotationDetailPanel projectId={params.projectId ?? null} />
-    </div>
+      }
+      overlay={
+        <>
+          <ModuleSlideUp
+            module={validModule}
+            open={slideUpOpen && validModule !== null}
+            onClose={() => setSlideUpOpen(false)}
+          />
+          <AnnotationFormSlideUp />
+          <AnnotationDetailPanel projectId={params.projectId ?? null} />
+        </>
+      }
+    />
   );
 }

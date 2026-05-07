@@ -163,7 +163,7 @@
   justify-content: center;
   gap: 4px;
   padding: 8px 4px;
-  background: color-mix(in srgb, var(--color-bg) 91%, #000);
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
   border: 1px solid color-mix(in srgb, var(--color-border) 85%, #fff);
   border-radius: var(--radius-md);
   color: var(--color-text);

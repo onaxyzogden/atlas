@@ -1,0 +1,106 @@
+/* PlanTools — bento left-rail, mirrors ObserveTools layout */
+
+.toolbox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  overflow-y: auto;
+  min-width: 200px;
+  max-width: 240px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.toolbox::-webkit-scrollbar { width: 6px; }
+.toolbox::-webkit-scrollbar-track { background: transparent; }
+.toolbox::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+.toolbox::-webkit-scrollbar-thumb:hover { background: var(--color-text-subtle); }
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --group-dot: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease,
+    filter 150ms ease, opacity 150ms ease;
+}
+
+/* Fade inactive groups when one is selected */
+.toolbox[data-has-active='true'] .group:not(.groupActive) {
+  filter: saturate(0.18);
+  opacity: 0.62;
+}
+
+.group:hover {
+  filter: saturate(0.85);
+  opacity: 0.92;
+  border-color: color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
+  background: color-mix(in srgb, var(--group-dot) 6%, var(--color-bg));
+}
+
+.group:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--group-dot));
+  outline-offset: 2px;
+}
+
+.groupActive {
+  filter: none;
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--group-dot) 25%, transparent);
+}
+
+/* Module colour dots */
+.group[data-module='dynamic-layering']       { --group-dot: #7aabca; }
+.group[data-module='water-management']       { --group-dot: #5fc7d4; }
+.group[data-module='zone-circulation']       { --group-dot: #d68bd0; }
+.group[data-module='plant-systems']          { --group-dot: #5dd39e; }
+.group[data-module='soil-fertility']         { --group-dot: #8bd16a; }
+.group[data-module='cross-section-solar']    { --group-dot: #e6c34a; }
+.group[data-module='phasing-budgeting']      { --group-dot: #c4a265; }
+.group[data-module='principle-verification'] { --group-dot: #e88aa4; }
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--group-dot);
+  flex: 0 0 8px;
+}
+
+.groupLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.groupActive .groupLabel {
+  color: var(--color-text);
+}
+
+.placeholder {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0;
+}

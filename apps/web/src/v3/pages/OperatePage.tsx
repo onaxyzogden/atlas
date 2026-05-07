@@ -24,6 +24,7 @@ import { useV3Project } from "../data/useV3Project.js";
 import { useFieldFlags } from "../data/useFieldFlags.js";
 import { useFieldTaskStore, type FieldTask } from "../../store/fieldTaskStore.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
+import StageShell from "../_shell/StageShell.js";
 import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
 
@@ -50,14 +51,25 @@ export default function OperatePage() {
   );
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Operate canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   if (!brief) {
-    return <div className={css.page}>Operations data is not yet available for this project.</div>;
+    return (
+      <StageShell
+        canvasLabel="Operate canvas"
+        canvas={<div className={css.page}>Operations data is not yet available for this project.</div>}
+      />
+    );
   }
 
   return (
+    <StageShell canvasLabel="Operate canvas" canvas={
     <div className={css.page}>
       <PageHeader
         eyebrow="Operate"
@@ -183,6 +195,7 @@ export default function OperatePage() {
         />
       )}
     </div>
+    } />
   );
 }
 

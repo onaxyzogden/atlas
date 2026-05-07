@@ -1,0 +1,154 @@
+/**
+ * PlanModuleSlideUp — bottom sheet for Plan stage module detail.
+ *
+ * When a module is active, renders the corresponding plan card(s) inside a
+ * slide-up sheet. Modules with multiple sub-cards (e.g. Water Management)
+ * show a tab row at the top. Each plan card receives the LocalProject and
+ * a no-op onSwitchToMap (the map is already visible in the background).
+ *
+ * Plan cards are lazy-loaded to keep the initial bundle tight.
+ * ESC and backdrop-click close the sheet.
+ */
+
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import type { LocalProject } from '../../store/projectStore.js';
+import type { PlanModule } from './types.js';
+import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
+import css from './PlanModuleSlideUp.module.css';
+
+// All 16 plan cards lazy-loaded.
+const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
+const RunoffCalculatorCard    = lazy(() => import('../../features/plan/RunoffCalculatorCard.js'));
+const SwaleDrainTool          = lazy(() => import('../../features/plan/SwaleDrainTool.js'));
+const StorageInfraTool        = lazy(() => import('../../features/plan/StorageInfraTool.js'));
+const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevelLayer.js'));
+const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
+const PlantDatabaseCard       = lazy(() => import('../../features/plan/PlantDatabaseCard.js'));
+const GuildBuilderCard        = lazy(() => import('../../features/plan/GuildBuilderCard.js'));
+const CanopySimulatorCard     = lazy(() => import('../../features/plan/CanopySimulatorCard.js'));
+const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
+const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
+const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
+const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
+const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
+const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
+const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
+
+function renderCard(sectionId: string, project: LocalProject) {
+  const noop = () => {};
+  switch (sectionId) {
+    case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
+    case 'plan-runoff-calculator':   return <RunoffCalculatorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-swale-drain':         return <SwaleDrainTool project={project} onSwitchToMap={noop} />;
+    case 'plan-storage-infra':       return <StorageInfraTool project={project} onSwitchToMap={noop} />;
+    case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
+    case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
+    case 'plan-plant-database':      return <PlantDatabaseCard project={project} onSwitchToMap={noop} />;
+    case 'plan-guild-builder':       return <GuildBuilderCard project={project} onSwitchToMap={noop} />;
+    case 'plan-canopy-simulator':    return <CanopySimulatorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
+    case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
+    case 'plan-transect-vertical':
+    case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
+    case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
+    case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
+    case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
+    default: return null;
+  }
+}
+
+interface Props {
+  module: PlanModule | null;
+  open: boolean;
+  onClose: () => void;
+  project: LocalProject;
+}
+
+export default function PlanModuleSlideUp({ module, open, onClose, project }: Props) {
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  // Active sub-card within the module; reset when module changes.
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  useEffect(() => {
+    if (module) {
+      const cards = MODULE_CARDS[module];
+      setActiveSectionId(cards[0]?.sectionId ?? null);
+    }
+  }, [module]);
+  useEffect(() => {
+    if (!open) return;
+    const cards = module ? MODULE_CARDS[module] : [];
+    setActiveSectionId(cards[0]?.sectionId ?? null);
+  }, [open, module]);
+
+  const handleEscape = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleEscape();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, handleEscape]);
+
+  if (!open || !module) return null;
+
+  const cards = MODULE_CARDS[module];
+  const currentId = activeSectionId ?? cards[0]?.sectionId ?? null;
+  const label = PLAN_MODULE_FULL_LABEL[module];
+  const hasMultiple = cards.length > 1;
+
+  return (
+    <div className={css.scrim} role="presentation" onClick={onClose}>
+      <aside
+        className={css.sheet}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${label} — plan tools`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className={css.header}>
+          <div className={css.titleBlock}>
+            <span className={css.eyebrow}>Plan · module</span>
+            <h2 className={css.title}>{label}</h2>
+          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            className={css.close}
+            onClick={onClose}
+            aria-label="Close module"
+          >
+            ×
+          </button>
+        </header>
+
+        {hasMultiple && (
+          <nav className={css.tabs} aria-label="Module sub-tools">
+            {cards.map(({ label: tabLabel, sectionId }) => (
+              <button
+                key={sectionId}
+                type="button"
+                className={`${css.tab} ${sectionId === currentId ? css.tabActive : ''}`}
+                onClick={() => setActiveSectionId(sectionId)}
+              >
+                {tabLabel}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        <div className={css.body}>
+          <Suspense fallback={<p className={css.loading}>Loading…</p>}>
+            {currentId ? renderCard(currentId, project) : null}
+          </Suspense>
+        </div>
+      </aside>
+    </div>
+  );
+}
