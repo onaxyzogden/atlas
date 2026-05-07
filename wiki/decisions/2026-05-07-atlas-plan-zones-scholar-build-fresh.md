@@ -124,11 +124,14 @@ Module 3 sub-cards (3, was 2):
   read-only (geometries flow in from the live map). Future work
   could add inline drawing of zone polygons / path lines without a
   context switch.
-- **Polygon-line intersection refinement** — replace bbox-overlap with
-  a true polygon-line intersection test once
-  `@turf/boolean-intersects` (or equivalent) is in the bundle. Bbox
-  is the right *conservative* heuristic (no false-passes; some
-  false-fails on diagonal paths grazing rectangular zones).
+- ✅ **Polygon-line intersection refinement** — landed 2026-05-07.
+  `ZoneCirculationOverviewCard` now uses a two-stage test: the
+  existing bbox overlap is kept as a cheap pre-filter, and surviving
+  candidates are confirmed with `@turf/boolean-intersects` (already in
+  the bundle as `@turf/turf` ^7.1.0) for a real line ↔ polygon
+  intersection. A defensive `try/catch` around the turf call falls
+  back to the bbox-positive result on degenerate geometries so a bad
+  feature can't false-flag every high-frequency path.
 - **Sector overlay** — OSU PDC and Mollison both pair zones with
   *sectors* (sun, wind, fire, view). The Cross-section module
   (Module 6) covers sun. A separate sector card for wind/fire/view

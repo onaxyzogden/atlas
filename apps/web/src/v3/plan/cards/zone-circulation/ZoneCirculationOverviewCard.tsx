@@ -14,10 +14,14 @@
  * paths the user already drew on the live map. No map-draw integration
  * here — that's a follow-up. Validation flags daily / weekly paths that
  * never enter a Z1 or Z2 zone (the canonical "where high-maintenance
- * elements live" zones), using bbox overlap as a conservative heuristic.
+ * elements live" zones). Geometry test uses @turf/boolean-intersects
+ * (line ↔ polygon true intersection) per Module 3 follow-up
+ * `2026-05-07-atlas-plan-zones-scholar-keep-atlas.md`; the legacy
+ * bbox-overlap heuristic is still kept as a cheap pre-filter.
  */
 
 import { useMemo } from 'react';
+import { booleanIntersects } from '@turf/turf';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../../../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../../../../store/pathStore.js';
@@ -206,26 +210,45 @@ export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: 
       .join(' ');
   }, [project.parcelBoundaryGeojson, project2d]);
 
-  // Validation: high-frequency paths whose bbox doesn't intersect any
-  // Z1 or Z2 zone bbox. Bbox is conservative — if it returns "no overlap"
-  // we are confident the path doesn't enter the zone.
-  const z12BBoxes = useMemo(
-    () =>
-      zones
-        .filter((z) => z.permacultureZone === 1 || z.permacultureZone === 2)
-        .map((z) => polygonBBox(z.geometry)),
+  // Validation: high-frequency paths that don't truly intersect any Z1/Z2
+  // zone polygon. Two-stage test: (1) cheap bbox pre-filter rejects the
+  // obvious non-overlaps; (2) @turf/boolean-intersects then runs a real
+  // line↔polygon intersection on the survivors so adjacent-but-not-touching
+  // bboxes don't false-positive as orphans. Closes the bbox-only heuristic
+  // tracked in `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-keep-atlas.md`.
+  const z12Zones = useMemo(
+    () => zones.filter((z) => z.permacultureZone === 1 || z.permacultureZone === 2),
     [zones],
+  );
+  const z12BBoxes = useMemo(
+    () => z12Zones.map((z) => polygonBBox(z.geometry)),
+    [z12Zones],
   );
   const orphanHighFreqPaths = useMemo(() => {
     const result: DesignPath[] = [];
     for (const p of paths) {
       if (p.usageFrequency !== 'daily' && p.usageFrequency !== 'weekly') continue;
       const pb = lineBBox(p.geometry);
-      const touchesZ12 = z12BBoxes.some((zb) => bboxesIntersect(pb, zb));
+      let touchesZ12 = false;
+      for (let i = 0; i < z12Zones.length; i++) {
+        if (!bboxesIntersect(pb, z12BBoxes[i]!)) continue;
+        // bbox says "maybe overlap" → confirm with real geometry test.
+        try {
+          if (booleanIntersects(p.geometry, z12Zones[i]!.geometry)) {
+            touchesZ12 = true;
+            break;
+          }
+        } catch {
+          // If turf throws on a degenerate geometry, fall back to the
+          // bbox-positive result rather than false-flagging the path.
+          touchesZ12 = true;
+          break;
+        }
+      }
       if (!touchesZ12) result.push(p);
     }
     return result;
-  }, [paths, z12BBoxes]);
+  }, [paths, z12Zones, z12BBoxes]);
 
   const untaggedZones = zones.filter((z) => typeof z.permacultureZone !== 'number').length;
   const untaggedPaths = paths.filter((p) => !p.usageFrequency).length;

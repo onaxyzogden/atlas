@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 3 · Zone overview polygon-line intersection refinement (turf)
+
+Module 3 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). `ZoneCirculationOverviewCard`'s orphan-high-frequency-path validation no longer relies on bbox-overlap alone. The card now runs a two-stage test: the existing bbox check stays as a cheap pre-filter, and surviving candidates pass through `@turf/boolean-intersects` (already in the bundle via `@turf/turf` ^7.1.0) for a real line ↔ polygon test. A `try/catch` around the turf call falls back to the bbox-positive answer on degenerate features so one bad geometry can't false-flag every daily/weekly path. Closes the bbox-only heuristic Scholar called out as a known false-fail mode (diagonal paths grazing rectangular zone bboxes). Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 4 · Permanence-ladder ordering-violation deep-links
 
 First Module 4 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The ordering-check warnings in `PermanenceLadderCard` previously listed missing prerequisite ranks as static text ("missing prerequisite: 3 Water"); they are now rendered as deep-link buttons that switch the slide-up to the Plan module where the prerequisite is authored — rank 2 Landform → `cross-section-solar`, rank 3 Water → `water-management`, rank 4 Access → `zone-circulation`, rank 7 Soil → `soil-fertility`, rank 8 Vegetation → `plant-systems`. Ranks without a dedicated module (1 Climate, 5 Structures, 6 Subsystems, 9 Fauna) still render as plain chips. Wired through a new optional `onSwitchModule?: (mod: PlanModule) => void` prop on both the card and `PlanModuleSlideUp`; `PlanLayout` passes a callback that calls `handleSelectModule(mod)` then re-opens the slide-up so the steward lands directly on the prerequisite module's first sub-tab. Atlas's `PermanenceScalesCard` is untouched. Typecheck clean (pre-existing unrelated `elementCatalog.ts` error from Vision-Layout WIP unchanged).
