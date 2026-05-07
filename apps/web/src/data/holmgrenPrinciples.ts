@@ -1,4 +1,47 @@
 /**
+ * Three Permaculture Ethics — the umbrella layer above Holmgren's twelve
+ * principles. Per Permaculture Scholar verdict 2026-05-07
+ * (`wiki/decisions/2026-05-07-atlas-plan-principles-scholar-keep-atlas.md`):
+ * "Permaculture is fundamentally an ethically based design system" with
+ * the three ethics at its core; the 12 principles serve the ethics.
+ *
+ * The principle → primary-ethic mapping below is a defensible
+ * simplification (each principle assigned to one primary ethic); the
+ * actual Holmgren flower-diagram allows overlap, but a single primary
+ * mapping makes a 4 / 4 / 4-ish rollup tractable and pedagogically clean.
+ */
+export type PermacultureEthic = 'earth-care' | 'people-care' | 'fair-share';
+
+export interface PermacultureEthicDef {
+  id: PermacultureEthic;
+  label: string;
+  blurb: string;
+  /** Holmgren principle ids assigned primarily to this ethic. */
+  principleIds: string[];
+}
+
+export const PERMACULTURE_ETHICS: PermacultureEthicDef[] = [
+  {
+    id: 'earth-care',
+    label: 'Earth Care',
+    blurb: 'Care for the soil, water, forests, atmosphere — the living systems that hold us.',
+    principleIds: ['p1', 'p2', 'p7', 'p10', 'p11'],
+  },
+  {
+    id: 'people-care',
+    label: 'People Care',
+    blurb: 'Care for self, kin, and community — the social fabric the design serves.',
+    principleIds: ['p3', 'p4', 'p8', 'p9'],
+  },
+  {
+    id: 'fair-share',
+    label: 'Fair Share',
+    blurb: 'Set limits and redistribute surplus — return what is gifted to the commons.',
+    principleIds: ['p5', 'p6', 'p12'],
+  },
+];
+
+/**
  * Holmgren's twelve permaculture-design principles.
  *
  * Source: David Holmgren, "Permaculture: Principles & Pathways Beyond

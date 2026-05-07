@@ -72,6 +72,12 @@ const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudg
 // earlier layers exist in the same phase).
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
+// Principle Verification (Module 8) — three-Ethics rollup added per Permaculture
+// Scholar verdict 2026-05-07. Atlas's HolmgrenChecklistCard remains the
+// principle-by-principle reflection surface (orthodox per OSU PDC final
+// portfolio); this additive card rolls those checks up to the umbrella
+// 3 Ethics (Earth Care / People Care / Fair Share).
+const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
 
 function renderCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
@@ -98,6 +104,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
+    case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }
