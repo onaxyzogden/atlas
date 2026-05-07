@@ -98,9 +98,7 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
       name: name.trim(),
       anchorSpeciesId: anchorId,
       members: members.filter((m) => m.speciesId),
-      // Encode the spatial centroid in `notes` until the store schema
-      // is extended with a first-class `centroidUv` field.
-      notes: `centroidUv:${centroid[0].toFixed(3)},${centroid[1].toFixed(3)}`,
+      centroidUv: [centroid[0], centroid[1]],
       createdAt: new Date().toISOString(),
     };
     addGuild(g);
@@ -188,9 +186,17 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
 
           {/* Existing saved guild centroids on this project */}
           {guilds.map((g) => {
-            const m = g.notes?.match(/centroidUv:([\d.]+),([\d.]+)/);
-            if (!m) return null;
-            const u = Number(m[1]); const v = Number(m[2]);
+            let u: number | undefined;
+            let v: number | undefined;
+            if (g.centroidUv) {
+              u = g.centroidUv[0];
+              v = g.centroidUv[1];
+            } else {
+              // Legacy fallback: pre-2026-05-07 entries encoded in notes.
+              const m = g.notes?.match(/centroidUv:([\d.]+),([\d.]+)/);
+              if (m) { u = Number(m[1]); v = Number(m[2]); }
+            }
+            if (u === undefined || v === undefined) return null;
             const cx = 20 + u * 360;
             const cy = 20 + v * 280;
             return (

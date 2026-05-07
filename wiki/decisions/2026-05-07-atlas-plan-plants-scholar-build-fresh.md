@@ -74,8 +74,14 @@ Three cards under `apps/web/src/v3/plan/cards/plant-systems/`:
 
 ## Follow-ups
 
-- Extend `Guild` schema with first-class `centroidUv: [u, v]`; migrate
-  `notes`-encoded values.
+- ✅ **Extend `Guild` schema with first-class `centroidUv`** — landed
+  2026-05-07. `Guild` interface in `polycultureStore.ts` gains optional
+  `centroidUv?: [number, number]`. `GuildSpatialBuilderCard.commit()`
+  now writes the field directly (dropping the `notes:"centroidUv:u,v"`
+  encoding), and the saved-guild reader prefers `g.centroidUv` with a
+  legacy notes-regex fallback so pre-migration entries still render on
+  the parcel diagram. No persist-version bump (additive optional
+  field; legacy rows untouched until next save).
 - Pull true slope vector + water-flow raster from `siteDataStore` into
   `siteMatch.ts` and `GuildSpatialBuilderCard.tsx`.
 - Consolidate the legacy `features/plan/Plant*Card.tsx` away once

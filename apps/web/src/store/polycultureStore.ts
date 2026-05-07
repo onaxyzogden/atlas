@@ -36,6 +36,13 @@ export interface Guild {
   anchorSpeciesId: string;
   members: GuildMember[];
   notes?: string;
+  /**
+   * Normalised site coordinates [u, v] in 0..1 space (anchor placement on the
+   * map). First-class field as of 2026-05-07; older guilds may instead encode
+   * this in `notes` as `centroidUv:U,V` — readers should fall back to the
+   * notes regex until those rows are migrated.
+   */
+  centroidUv?: [number, number];
   createdAt: string;
 }
 
