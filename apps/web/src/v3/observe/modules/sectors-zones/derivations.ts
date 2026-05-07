@@ -137,7 +137,7 @@ export function sectorsKpis(
 function bearingLabel(bearingDeg: number): string {
   const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
   const idx = Math.round(((bearingDeg % 360) + 360) % 360 / 45) % 8;
-  return dirs[idx];
+  return dirs[idx]!;
 }
 
 function highestIntensity(candidates: SectorArrow[]): SectorArrow | undefined {
