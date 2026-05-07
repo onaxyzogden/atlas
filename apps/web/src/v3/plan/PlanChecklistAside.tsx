@@ -41,11 +41,11 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
     ],
   },
   'plant-systems': {
-    why: 'Produce no waste (Holmgren P6): multi-storey polycultures close nutrient cycles and maximise photosynthesis per square metre across all vertical layers.',
+    why: 'Tree placement follows the patterns of water flow and access (Mollison, Designers\' Manual ch.10; OSU PDC, Tree Influence on Watershed). Pick species against site context, place guilds on the parcel where water and access already lead, then track the 30-year succession arc.',
     how: [
-      'Build at least one guild for each zone before selecting species.',
-      'Use the Canopy Simulator to check solar access between layers.',
-      'Plant the highest-permanence woody plants first.',
+      'Use the site-match score to filter species against the project\'s hardiness band.',
+      'Place each guild centroid on the parcel diagram in line with water flow and zones.',
+      'Step through the succession scenarios (Year 1 / 5 / 10 / 20 / 30+) to check light by layer.',
     ],
   },
   'soil-fertility': {

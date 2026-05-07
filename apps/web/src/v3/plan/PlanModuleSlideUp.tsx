@@ -23,9 +23,14 @@ const SwaleDrainTool          = lazy(() => import('../../features/plan/SwaleDrai
 const StorageInfraTool        = lazy(() => import('../../features/plan/StorageInfraTool.js'));
 const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevelLayer.js'));
 const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
-const PlantDatabaseCard       = lazy(() => import('../../features/plan/PlantDatabaseCard.js'));
-const GuildBuilderCard        = lazy(() => import('../../features/plan/GuildBuilderCard.js'));
-const CanopySimulatorCard     = lazy(() => import('../../features/plan/CanopySimulatorCard.js'));
+// Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
+// 2026-05-07. Atlas's PlantDatabaseCard / GuildBuilderCard /
+// CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
+// are still wired into V3PlanPage + DashboardRouter; the iteration ADR
+// tracks consolidation as a follow-up.
+const PlantDatabaseSiteMatchCard = lazy(() => import('./cards/plant-systems/PlantDatabaseSiteMatchCard.js'));
+const GuildSpatialBuilderCard    = lazy(() => import('./cards/plant-systems/GuildSpatialBuilderCard.js'));
+const CanopySuccessionCard       = lazy(() => import('./cards/plant-systems/CanopySuccessionCard.js'));
 const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
 const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
@@ -43,9 +48,9 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-storage-infra':       return <StorageInfraTool project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
-    case 'plan-plant-database':      return <PlantDatabaseCard project={project} onSwitchToMap={noop} />;
-    case 'plan-guild-builder':       return <GuildBuilderCard project={project} onSwitchToMap={noop} />;
-    case 'plan-canopy-simulator':    return <CanopySimulatorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
+    case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
+    case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
