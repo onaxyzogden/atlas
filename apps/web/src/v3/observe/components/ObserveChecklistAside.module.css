@@ -24,6 +24,29 @@
   opacity: 0.7;
 }
 
+/* Section-as-button affordances. Scoped to [role="button"] so non-interactive
+   uses (if reintroduced) stay passive. Mirrors ObserveTools left-rail
+   behavior so the right rail clicks like the bottom tile rail. */
+.group[role='button'] {
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+.group[role='button']:hover {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 55%, var(--color-border));
+}
+.group[role='button']:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--group-dot));
+  outline-offset: 2px;
+}
+.group[role='button']:active {
+  transform: translateY(1px);
+}
+
 .groupActive {
   opacity: 1;
   border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));

@@ -11,6 +11,7 @@
  * 48a34396-5525-4a57-9884-108d93b1872f, turn 1.
  */
 
+import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
 import {
@@ -30,6 +31,10 @@ const EMPTY_CHECKS: readonly number[] = [];
 
 interface ObserveChecklistAsideProps {
   activeModule: ObserveModule | null;
+  onSelectModule: (module: ObserveModule | null) => void;
+  slideUpOpen: boolean;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
 }
 
 interface ModuleGuidance {
@@ -102,10 +107,18 @@ function GuidanceCard({
   module,
   active,
   projectId,
+  slideUpOpen,
+  onSelectModule,
+  onOpenSlideUp,
+  onCloseSlideUp,
 }: {
   module: ObserveModule;
   active: boolean;
   projectId: string | null;
+  slideUpOpen: boolean;
+  onSelectModule: (module: ObserveModule | null) => void;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
 }) {
   const guidance = MODULE_GUIDANCE[module];
   const checkedList = useObserveHowChecksStore(
@@ -114,10 +127,40 @@ function GuidanceCard({
   );
   const toggle = useObserveHowChecksStore((s) => s.toggle);
 
+  // Mirrors ObserveModuleBar.handleCardClick — inactive card navigates,
+  // active card toggles the slide-up. Keeps the right rail in lock-step
+  // with the bottom rail as a module selector.
+  const handleCardClick = () => {
+    if (active) {
+      if (slideUpOpen) onCloseSlideUp();
+      else onOpenSlideUp();
+      return;
+    }
+    onSelectModule(module);
+  };
+  const handleKey = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCardClick();
+    }
+  };
+
+  const title = active
+    ? slideUpOpen
+      ? `Close ${OBSERVE_MODULE_LABEL[module]} details`
+      : `Open ${OBSERVE_MODULE_LABEL[module]} details`
+    : `Switch to ${OBSERVE_MODULE_LABEL[module]}`;
+
   return (
     <section
       className={`${css.group} ${active ? css.groupActive : ''}`}
       data-module={module}
+      role="button"
+      tabIndex={0}
+      aria-pressed={active}
+      title={title}
+      onClick={handleCardClick}
+      onKeyDown={handleKey}
     >
       <header className={css.groupHeader}>
         <span className={css.dot} aria-hidden="true" />
@@ -131,8 +174,12 @@ function GuidanceCard({
             const checked = checkedList.includes(i);
             return (
               <li key={i} className={css.howItem}>
+                {/* stopPropagation prevents a checkbox toggle from also firing
+                    the section's module-select / slide-up handler. */}
                 <label
                   className={`${css.howCheck} ${checked ? css.howCheckDone : ''}`}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                 >
                   <input
                     type="checkbox"
@@ -157,24 +204,53 @@ function GuidanceCard({
 
 export default function ObserveChecklistAside({
   activeModule,
+  onSelectModule,
+  slideUpOpen,
+  onOpenSlideUp,
+  onCloseSlideUp,
 }: ObserveChecklistAsideProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
-  if (activeModule) {
-    return (
-      <aside className={css.checklistBox} aria-label="Observe guidance">
-        <GuidanceCard module={activeModule} active projectId={projectId} />
-      </aside>
+
+  // Mirror the left-rail (`ObserveTools`) behavior: always render all six
+  // modules so the steward can see the whole pillar set; greying handles
+  // the inactive state, and the active card auto-scrolls into view on
+  // module change. `block: 'nearest'` no-ops when already visible.
+  const asideRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!activeModule) return;
+    const root = asideRef.current;
+    if (!root) return;
+    const section = root.querySelector<HTMLElement>(
+      `[data-module="${activeModule}"]`,
     );
-  }
+    if (!section) return;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    section.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    });
+  }, [activeModule]);
+
   return (
-    <aside className={css.checklistBox} aria-label="Observe guidance">
+    <aside
+      ref={asideRef}
+      className={css.checklistBox}
+      aria-label="Observe guidance"
+    >
       {OBSERVE_MODULES.map((mod) => (
         <GuidanceCard
           key={mod}
           module={mod}
-          active={false}
+          active={mod === activeModule}
           projectId={projectId}
+          slideUpOpen={slideUpOpen}
+          onSelectModule={onSelectModule}
+          onOpenSlideUp={onOpenSlideUp}
+          onCloseSlideUp={onCloseSlideUp}
         />
       ))}
     </aside>

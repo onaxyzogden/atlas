@@ -135,7 +135,13 @@ export default function ObserveLayout() {
           </DiagnoseMap>
         </main>
         <aside className={css.right} aria-label="Observe checklist">
-          <ObserveChecklistAside activeModule={validModule} />
+          <ObserveChecklistAside
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
         </aside>
       </div>
 

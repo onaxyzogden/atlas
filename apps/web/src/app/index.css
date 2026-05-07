@@ -75,6 +75,44 @@ body {
 /* ─── Left toolbar scrollbar hide ────────────────────────────────────────── */
 .left-toolbar::-webkit-scrollbar { display: none; }
 
+/* ─── Theme-aware scrollbars ─────────────────────────────────────────────────
+ * Default browser scrollbars (especially the light-grey WebKit one) clash
+ * against our dark surfaces. Token-driven colours so dark and light themes
+ * each get the correct contrast without per-component overrides.
+ *
+ *   - Firefox: native `scrollbar-color` / `scrollbar-width`.
+ *   - WebKit/Blink: `::-webkit-scrollbar*` pseudos.
+ *
+ * Components that explicitly hide their scrollbar (e.g. `.left-toolbar`) keep
+ * doing so via `display: none` above — their rule comes first only by
+ * accident; specificity wins regardless.
+ */
+* {
+  scrollbar-color: var(--color-border) transparent;
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 8px;
+  /* Inset border draws a gap between thumb and track so the thumb reads as
+     a slim pill rather than filling the whole gutter. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gold-brand);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ─── Mobile responsive ──────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .desktop-only { display: none !important; }
