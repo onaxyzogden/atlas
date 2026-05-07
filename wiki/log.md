@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 6 (Cross-section & Solar Geometry) · KEEP_ATLAS per Permaculture Scholar verdict
+
+Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's `TransectVerticalEditorCard` (540L) "the correct holistic framing" — cross-section + winter/summer solstice altitude lines is exactly what OSU PDC Assignment 15 requires; OGDEN's swale-only embedded section "severely misunderstands the broad utility of the cross-section." Verdict: KEEP_ATLAS, no code change. Four orthodox enhancements identified and logged as follow-ups in the ADR: (1) microclimate bracket labels below the profile; (2) succession-stage bands; (3) explicit slope-% annotations; (4) sector-response wind / flow deflection callouts. ADR: `wiki/decisions/2026-05-07-atlas-plan-cross-section-scholar-keep-atlas.md`.
+
+---
+
 ## 2026-05-07 — Plan Module 5 (Soil Fertility) · BUILD_FRESH (additive) per Permaculture Scholar verdict
 
 Scholar (NotebookLM `5aa3dcf3-…`) ruled Atlas's 4-node fertility taxonomy too narrow and the WasteVectorTool "useless without graphical validation"; required a baseline diagnosis (jar test → texture → limiting factors) before any amendment. Verdict: BUILD_FRESH, additive (legacy cards retained as the data-entry layer). Two new cards added under `cards/soil-fertility/`: `SoilBaselineCard` (sand/silt/clay + percolation + pH → USDA 12-class texture-triangle classifier with barycentric SVG plot + auto-derived limiting factors with permaculture-grounded remedies — sheet-mulch+biochar for sand-dominant, daikon/Keyline subsoiling for clay-dominant, hugelkultur lift for slow drainage, etc.); `ClosedLoopGraphCard` (ring-layout SVG of all features + waste-vectors with arrowed edges, plus three validations: orphan fertility, fertility-without-feedstock, isolated features — Holmgren P6 Produce No Waste enforcement). Soil-baseline persistence + resource-inventory tab + chronological soil-building plan deferred. ADR: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`. Typecheck clean.
