@@ -155,6 +155,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Seasonal tasks',         sectionId: 'plan-seasonal-tasks' },
     { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
+    { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
   ],
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },

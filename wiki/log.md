@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · Cumulative-investment rollup card
+
+Second enhancement landed from the Module 7 KEEP_ATLAS verdict (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). New sub-tab `plan-cumulative-investment` under `phasing-budgeting` shows per-phase incremental hrs/$ + running cumulative-since-start + a two-track stacked bar (gold = cost share of total, green = labor-hours share). Pivots on phase boundary rather than strict calendar year to avoid parsing free-text `BuildPhase.timeframe` ("Year 0-1" etc.) — same shape as the OSU PDC Pro "5-Year Total" rollup the Scholar cited. No store changes, no persistence change. Folded into the parent ADR rather than a new one (small additive view). Typecheck clean. Module 7 enhancement set is now complete except for capacity-validation against Client Survey, which remains deferred pending a project-survey store.
+
+---
+
 ## 2026-05-07 — Plan Module 8 · Three-Ethics rollup enhancement
 
 First enhancement landed from the Module 8 KEEP_ATLAS verdict (parent: `wiki/decisions/2026-05-07-atlas-plan-principles-scholar-keep-atlas.md`). Added `PERMACULTURE_ETHICS` constant + `PermacultureEthic` type to `apps/web/src/data/holmgrenPrinciples.ts` mapping each Holmgren principle to a single primary ethic (Earth Care: p1/p2/p7/p10/p11; People Care: p3/p4/p8/p9; Fair Share: p5/p6/p12 — 5+4+3=12). New sub-tab `plan-three-ethics-rollup` under `principle-verification` shows three ethic sections, each listing the constituent principles with their per-principle status pill (sourced live from the existing checklist) plus a per-ethic running tally and a `(met + 0.5×partial) / total` health pill thresholded Met (≥70 %) / Partial (≥30 %) / Unmet. Coverage hint fires when an ethic has zero met principles. Top-level "Overall health" section mirrors the same score across all 12. No store changes — rollup reads existing `principleCheckStore` data; legacy projects render with all 12 defaulting to Unmet. Two Module 8 enhancements remain deferred: Mission Statement cross-check (needs project-goals store), missing-principle radar/heatmap. ADR: `wiki/decisions/2026-05-07-atlas-plan-principles-three-ethics-rollup.md`. Typecheck clean.

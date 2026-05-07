@@ -71,6 +71,7 @@ const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudg
 // sequencing-violation warnings (later layers populated before prerequisite
 // earlier layers exist in the same phase).
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
+const CumulativeInvestmentCard = lazy(() => import('./cards/phasing-budgeting/CumulativeInvestmentCard.js'));
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
 // Principle Verification (Module 8) — three-Ethics rollup added per Permaculture
 // Scholar verdict 2026-05-07. Atlas's HolmgrenChecklistCard remains the
@@ -103,6 +104,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
+    case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     default: return null;
