@@ -17,6 +17,7 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
+import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import {
   newAnnotationId,
   type Guild,
@@ -116,11 +117,43 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
     setCentroid([u, v]);
   }
 
-  // Generic downslope arrow — points from north (top) to south (bottom).
-  // TODO: wire to the real slope vector from siteDataStore once aspect
-  // raster is available per project.
-  const arrowFrom = { x: 200, y: 30 };
-  const arrowTo   = { x: 200, y: 290 };
+  // Slope vector pulled from `siteDataStore` elevation layer when available
+  // (Scholar follow-up 2026-05-07). `predominant_aspect` is a compass string
+  // ("N", "NE", …, "NW") representing the downslope-facing direction; water
+  // flows in that direction. We rotate the arrow accordingly and annotate
+  // with `mean_slope_deg`. Falls back to the generic N→S arrow when the
+  // elevation layer hasn't been fetched yet.
+  const siteData = useSiteData(project.id);
+  const elev = siteData
+    ? getLayerSummary<{
+        mean_slope_deg?: number;
+        predominant_aspect?: string;
+      }>(siteData, 'elevation')
+    : null;
+
+  const ASPECT_BEARING: Record<string, number> = {
+    N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315,
+  };
+  const aspect = elev?.predominant_aspect;
+  const meanSlope = elev?.mean_slope_deg;
+  const bearingDeg = aspect ? ASPECT_BEARING[aspect] ?? 180 : 180;
+  // SVG y grows downward; bearing 0 = N (up). Convert to SVG vector.
+  const theta = (bearingDeg * Math.PI) / 180;
+  const cx = 200, cy = 160;
+  const half = 130; // pixels from center to arrow head
+  const arrowFrom = {
+    x: cx - Math.sin(theta) * half,
+    y: cy + Math.cos(theta) * half,
+  };
+  const arrowTo = {
+    x: cx + Math.sin(theta) * half,
+    y: cy - Math.cos(theta) * half,
+  };
+  const arrowLabel = aspect
+    ? `water flow → ${aspect}${
+        typeof meanSlope === 'number' ? ` · ${meanSlope.toFixed(1)}° slope` : ''
+      }`
+    : 'water flow (generic — fetch elevation in Observe)';
 
   return (
     <div className={styles.page}>
@@ -141,8 +174,13 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
         <h2 className={styles.sectionTitle}>Parcel placement</h2>
         <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
           Click anywhere on the parcel to set the guild centroid. The blue
-          arrow shows generic downslope flow (TODO: pull true slope vector
-          from <code>siteDataStore</code>).
+          arrow shows downslope water flow {aspect
+            ? <>(from <code>siteDataStore</code> elevation: aspect <b>{aspect}</b>{
+                typeof meanSlope === 'number'
+                  ? <>, mean slope <b>{meanSlope.toFixed(1)}°</b></>
+                  : null
+              })</>
+            : <>(generic — run an elevation fetch in Observe to wire the real vector).</>}
         </p>
         <svg
           viewBox="0 0 400 320"
@@ -182,7 +220,7 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
             markerEnd="url(#flow-arrow)"
           />
           <text x={arrowTo.x + 8} y={arrowTo.y - 6} fontSize={10}
-            fill="rgba(120,180,210,0.85)">water flow</text>
+            fill="rgba(120,180,210,0.85)">{arrowLabel}</text>
 
           {/* Existing saved guild centroids on this project */}
           {guilds.map((g) => {

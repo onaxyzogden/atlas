@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 4 · GuildSpatialBuilder slope vector from siteDataStore
+
+Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `GuildSpatialBuilderCard` now reads `predominant_aspect` + `mean_slope_deg` off the elevation layer summary in `siteDataStore` (via `useSiteData` + `getLayerSummary`). The schematic water-flow arrow is rotated to the aspect bearing — the eight compass strings (N/NE/E/SE/S/SW/W/NW) map to 0/45/.../315° and an SVG sin/cos transform places the arrow head in the downslope direction with the tail uphill. Inline label reads e.g. "water flow → SE · 4.2° slope"; the prose above the diagram echoes the values. When the elevation layer hasn't been fetched, the card falls back to the original generic N→S arrow with a hint to run an elevation fetch in Observe. The Scholar's quote ("Tree placement will follow the patterns of water flow and access") now has a live data hook rather than a TODO. `siteMatch.ts` precip/slope refinement stays deferred. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 4 · Guild centroidUv first-class field
 
 Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `Guild` interface in `polycultureStore.ts` gains optional `centroidUv?: [number, number]` — the spatial centroid the steward placed on the parcel diagram is now a first-class field rather than a `notes:"centroidUv:u,v"` regex hack. `GuildSpatialBuilderCard.commit()` writes the field directly; the saved-guild renderer prefers `g.centroidUv` and falls back to the legacy notes regex so pre-migration entries still draw on the parcel SVG. Additive optional field — no persist-version bump. Typecheck clean (only the unrelated `elementCatalog.ts` WIP error remains).

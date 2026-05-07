@@ -82,7 +82,17 @@ Three cards under `apps/web/src/v3/plan/cards/plant-systems/`:
   legacy notes-regex fallback so pre-migration entries still render on
   the parcel diagram. No persist-version bump (additive optional
   field; legacy rows untouched until next save).
-- Pull true slope vector + water-flow raster from `siteDataStore` into
-  `siteMatch.ts` and `GuildSpatialBuilderCard.tsx`.
+- ✅ **True slope vector wired into `GuildSpatialBuilderCard`** — landed
+  2026-05-07. Card now reads `useSiteData(project.id)` and pulls
+  `predominant_aspect` + `mean_slope_deg` from the elevation layer
+  summary. The water-flow arrow is rotated to the aspect bearing
+  (compass→degrees lookup), the SVG label reads `water flow → SE ·
+  4.2° slope`, and the prose above the diagram cites the live values.
+  Falls back to the previous generic N→S arrow when the elevation
+  layer hasn't been fetched yet (with a "fetch elevation in Observe"
+  hint). `siteMatch.ts` precip/slope refinement remains deferred —
+  hardiness-only scoring still ratchets correctly today, and folding
+  precip/slope needs a per-zone microclimate model the Scholar will
+  shape separately.
 - Consolidate the legacy `features/plan/Plant*Card.tsx` away once
   `V3PlanPage.tsx` and `DashboardRouter.tsx` no longer reference them.
