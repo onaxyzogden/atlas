@@ -64,6 +64,13 @@ const TransectVerticalEditorCard = lazy(() => import('../../features/plan/Transe
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
+// Phasing & Budgeting (Module 7) — additive Scale-of-Permanence matrix added
+// per Permaculture Scholar verdict 2026-05-07. Atlas's three legacy phasing
+// cards remain orthodox; the new card pivots BuildPhase.tasks into a Yeomans
+// Keyline (Earthworks/Water/Structures/Vegetation) × phase grid and surfaces
+// sequencing-violation warnings (later layers populated before prerequisite
+// earlier layers exist in the same phase).
+const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
 
 function renderCard(sectionId: string, project: LocalProject) {
@@ -89,6 +96,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
+    case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }

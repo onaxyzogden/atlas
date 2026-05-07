@@ -151,9 +151,10 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Solar overlay',   sectionId: 'plan-solar-overlay' },
   ],
   'phasing-budgeting': [
-    { label: 'Phasing matrix',  sectionId: 'plan-phasing-matrix' },
-    { label: 'Seasonal tasks',  sectionId: 'plan-seasonal-tasks' },
-    { label: 'Labor & budget',  sectionId: 'plan-labor-budget' },
+    { label: 'Phasing matrix',         sectionId: 'plan-phasing-matrix' },
+    { label: 'Seasonal tasks',         sectionId: 'plan-seasonal-tasks' },
+    { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
+    { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
   ],
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },

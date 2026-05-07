@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · Scale-of-Permanence enhancement (designLayer + matrix card)
+
+First enhancement landed from the Module 7 KEEP_ATLAS verdict (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). Added an optional `designLayer?: 'earthworks' | 'water' | 'vegetation' | 'structures'` field to `PhaseTask` (no persistence-version bump — legacy tasks load with designLayer undefined and surface in an "Uncategorised" row). `SeasonalTaskCard` now exposes a "Scale of permanence (Yeomans, optional)" dropdown in the add-task form, ordered to match orthodox Keyline sequencing. New sub-tab `plan-phasing-scale-matrix` under `phasing-budgeting` shows a fourth pivot view: rows = the 4 Yeomans Keyline categories (+ Uncategorised catchall), columns = project phases, cells = task-count + hrs + $. Surfaces three derived signals: coverage stats (layers-in-use counter), per-cell dimming for empty cells, and sequencing-violation warnings — if a "later" layer (Structures/Vegetation) has tasks in a phase whose prerequisite "earlier" layers (Earthworks + Water) are empty in the same phase, the violation is flagged. Two Module 7 enhancements remain deferred: capacity validation against Client Survey, and cumulative 5-year investment rollups. ADR: `wiki/decisions/2026-05-07-atlas-plan-phasing-scale-of-permanence-enhancement.md`. Typecheck clean (pre-existing unrelated `elementCatalog.ts` error from Vision-Layout WIP unchanged).
+
+---
+
 ## 2026-05-07 — Plan stage · 8-module Permaculture Scholar iteration complete
 
 Closed the 8-step Permaculture Scholar adjudication of every Plan-stage module against its OGDEN counterpart. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**. The original plan anticipated several PORT_OGDEN verdicts — none materialised; in every module where OGDEN had a candidate the Scholar either found Atlas's framing more orthodox (Modules 3, 6) or demanded a fresh additive build because both prototypes were missing the orthodox visualisation/validation layer (Modules 1, 2, 4, 5). Index ADR `wiki/decisions/2026-05-07-atlas-plan-modules-scholar-iteration.md` aggregates the 8 per-module ADRs, observed patterns, and ~16 deferred follow-ups across modules. `wiki/entities/web-app.md` now carries the post-iteration card inventory under "Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)."

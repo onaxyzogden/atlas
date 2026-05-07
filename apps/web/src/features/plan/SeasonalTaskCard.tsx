@@ -9,7 +9,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { usePhaseStore, type PhaseTask, type BuildPhase } from '../../store/phaseStore.js';
+import { usePhaseStore, type PhaseTask, type BuildPhase, type DesignLayer } from '../../store/phaseStore.js';
 import styles from './planCard.module.css';
 
 interface Props {
@@ -22,6 +22,18 @@ const SEASONS: Array<{ value: PhaseTask['season']; label: string }> = [
   { value: 'spring', label: 'Spring' },
   { value: 'summer', label: 'Summer' },
   { value: 'fall',   label: 'Fall' },
+];
+
+/**
+ * Yeomans Keyline Scale-of-Permanence layers in their orthodox sequencing
+ * order — earlier rows in the matrix should populate before later rows.
+ * Per Permaculture Scholar verdict 2026-05-07.
+ */
+const DESIGN_LAYERS: Array<{ value: DesignLayer; label: string }> = [
+  { value: 'earthworks', label: 'Earthworks (landform)' },
+  { value: 'water',      label: 'Water (ponds, swales, irrigation)' },
+  { value: 'structures', label: 'Structures & energy' },
+  { value: 'vegetation', label: 'Vegetation (succession)' },
 ];
 
 function newTaskId(): string {
@@ -42,6 +54,7 @@ export default function SeasonalTaskCard({ project }: Props) {
   const [title, setTitle] = useState('');
   const [laborHrs, setLaborHrs] = useState<number>(8);
   const [costUSD, setCostUSD] = useState<number>(0);
+  const [designLayer, setDesignLayer] = useState<DesignLayer | ''>('');
 
   const phase: BuildPhase | undefined = phases.find((p) => p.id === phaseId);
 
@@ -53,11 +66,13 @@ export default function SeasonalTaskCard({ project }: Props) {
       title: title.trim(),
       laborHrs: Math.max(0, laborHrs),
       costUSD: Math.max(0, costUSD),
+      ...(designLayer ? { designLayer } : {}),
     };
     updatePhase(phase.id, { tasks: [...(phase.tasks ?? []), task] });
     setTitle('');
     setLaborHrs(8);
     setCostUSD(0);
+    setDesignLayer('');
   }
 
   function removeTask(p: BuildPhase, taskId: string) {
@@ -110,6 +125,13 @@ export default function SeasonalTaskCard({ project }: Props) {
                 <input type="number" min={0} step={10} value={costUSD}
                   onChange={(e) => setCostUSD(Number(e.target.value) || 0)} />
               </label>
+              <label className={`${styles.field} ${styles.full}`}>
+                <span>Scale of permanence (Yeomans, optional)</span>
+                <select value={designLayer} onChange={(e) => setDesignLayer((e.target.value || '') as DesignLayer | '')}>
+                  <option value="">— uncategorised —</option>
+                  {DESIGN_LAYERS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                </select>
+              </label>
             </div>
             <div className={styles.btnRow}>
               <button type="button" className={styles.btn} onClick={commit} disabled={!phase || !title.trim()}>
@@ -133,6 +155,7 @@ export default function SeasonalTaskCard({ project }: Props) {
                     <strong>{t.title}</strong>
                     <div className={styles.listMeta}>
                       {SEASONS.find((s) => s.value === t.season)?.label} · {t.laborHrs} h · ${t.costUSD}
+                      {t.designLayer ? ` · ${DESIGN_LAYERS.find((d) => d.value === t.designLayer)?.label ?? t.designLayer}` : ''}
                     </div>
                   </div>
                   <button type="button" className={styles.removeBtn} onClick={() => removeTask(p, t.id)}>Remove</button>
