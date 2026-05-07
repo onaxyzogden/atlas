@@ -28,6 +28,7 @@ import {
   type FieldDef,
   type FieldSchema,
 } from './annotationFieldSchemas.js';
+import { KIND_LABELS } from '../AnnotationRegistry.js';
 import type { SwotBucket } from '../../../../store/swotStore.js';
 import css from './AnnotationFormSlideUp.module.css';
 
@@ -52,20 +53,45 @@ export default function AnnotationFormSlideUp() {
 
   if (!active) return null;
   const schema = FIELD_SCHEMAS[active.kind];
+  // For batch edit, seed from the first id; the form renders one set of
+  // fields and Save loops the patch over every id.
+  const seedId =
+    active.mode === 'edit-batch'
+      ? (active.existingIds?.[0] ?? null)
+      : (active.existingId ?? null);
+  const batchCount =
+    active.mode === 'edit-batch' ? (active.existingIds?.length ?? 0) : 0;
+  const kindLabel = KIND_LABELS[active.kind];
+  const eyebrowOverride =
+    active.mode === 'edit-batch'
+      ? `Edit ${batchCount} ${kindLabel.toLowerCase()}${batchCount === 1 ? '' : 's'}`
+      : null;
   return (
     <FormBody
-      key={`${active.kind}:${active.existingId ?? 'create'}`}
+      key={`${active.kind}:${active.mode}:${seedId ?? 'create'}:${batchCount}`}
       schema={schema}
       mode={active.mode}
-      existingId={active.existingId}
+      existingId={seedId}
+      eyebrowOverride={eyebrowOverride}
       bucket={inferSwotBucket(activeTool)}
       onSave={(values) => {
-        schema.save(values, {
-          projectId: active.projectId,
-          geometry: active.geometry,
-          existingId: active.existingId,
-          bucket: inferSwotBucket(activeTool),
-        });
+        if (active.mode === 'edit-batch' && active.existingIds) {
+          for (const id of active.existingIds) {
+            schema.save(values, {
+              projectId: active.projectId,
+              geometry: active.geometry,
+              existingId: id,
+              bucket: inferSwotBucket(activeTool),
+            });
+          }
+        } else {
+          schema.save(values, {
+            projectId: active.projectId,
+            geometry: active.geometry,
+            existingId: active.existingId,
+            bucket: inferSwotBucket(activeTool),
+          });
+        }
         close();
         // Clear active tool only when finishing a fresh create.
         if (active.mode === 'create') setActiveTool(null);
@@ -79,19 +105,21 @@ function FormBody({
   schema,
   mode,
   existingId,
+  eyebrowOverride,
   bucket,
   onSave,
   onCancel,
 }: {
   schema: FieldSchema;
-  mode: 'create' | 'edit';
-  existingId: string | undefined;
+  mode: 'create' | 'edit' | 'edit-batch';
+  existingId: string | null;
+  eyebrowOverride: string | null;
   bucket: SwotBucket | undefined;
   onSave: (values: Record<string, unknown>) => void;
   onCancel: () => void;
 }) {
   const [values, setValues] = useState<Record<string, unknown>>(() => {
-    if (mode === 'edit' && existingId) {
+    if ((mode === 'edit' || mode === 'edit-batch') && existingId) {
       const loaded = schema.loadDefaults(existingId, '');
       if (loaded) return loaded;
     }
@@ -112,11 +140,12 @@ function FormBody({
   };
 
   const eyebrow =
-    bucket && schema.title === 'SWOT tag'
+    eyebrowOverride ??
+    (bucket && schema.title === 'SWOT tag'
       ? `${bucket} · SWOT tag`
       : mode === 'edit'
         ? 'Edit annotation'
-        : 'New annotation';
+        : 'New annotation');
 
   return (
     <div className={css.scrim} onClick={onCancel}>

@@ -50,16 +50,37 @@ export default function SelectionFloater({ projectId }: Props) {
   if (selected.length === 0) return null;
 
   const single = selected.length === 1 ? selected[0] : null;
+  const first = selected[0];
+  // Same-kind batch enabled when every selected item shares the first item's
+  // kind. Mixed-kind selections cannot share one form (different schemas), so
+  // Edit stays disabled until the steward narrows the selection.
+  const sameKindBatch =
+    selected.length > 1 &&
+    first !== undefined &&
+    selected.every((s) => s.kind === first.kind);
+  const editEnabled = Boolean(projectId) && (single !== null || sameKindBatch);
 
   const onEdit = () => {
-    if (!single || !projectId) return;
-    openForm({
-      kind: single.kind,
-      geometry: null,
-      mode: 'edit',
-      existingId: single.id,
-      projectId,
-    });
+    if (!projectId) return;
+    if (single) {
+      openForm({
+        kind: single.kind,
+        geometry: null,
+        mode: 'edit',
+        existingId: single.id,
+        projectId,
+      });
+      return;
+    }
+    if (sameKindBatch && first) {
+      openForm({
+        kind: first.kind,
+        geometry: null,
+        mode: 'edit-batch',
+        existingIds: selected.map((s) => s.id),
+        projectId,
+      });
+    }
   };
 
   const onDelete = () => {
@@ -90,8 +111,16 @@ export default function SelectionFloater({ projectId }: Props) {
         type="button"
         className={css.btn}
         onClick={onEdit}
-        disabled={!single || !projectId}
-        title={single ? 'Edit selected' : 'Select a single item to edit'}
+        disabled={!editEnabled}
+        title={
+          !projectId
+            ? 'Select a project to edit'
+            : single
+              ? 'Edit selected'
+              : sameKindBatch
+                ? `Edit ${selected.length} items together`
+                : 'Select items of one kind to edit together'
+        }
       >
         <Pencil aria-hidden="true" />
         <span>Edit</span>

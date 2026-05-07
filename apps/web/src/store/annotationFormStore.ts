@@ -27,8 +27,13 @@ export interface AnnotationFormActive {
    *  permaculture) carry no geometry from MapboxDraw — they hand-roll
    *  their own anchor and pass `null` here. */
   geometry: GeoJSON.Geometry | null;
-  mode: 'create' | 'edit';
+  mode: 'create' | 'edit' | 'edit-batch';
+  /** Single-item edit target. Required when `mode === 'edit'`. */
   existingId?: string;
+  /** Multi-item edit targets — used when `mode === 'edit-batch'` with two or
+   *  more annotations of the same `kind`. Form is seeded from the first id;
+   *  Save loops the schema's `save()` once per id. */
+  existingIds?: string[];
   /** Project context so the schema's save handler can write into the
    *  right namespace partition. */
   projectId: string;
