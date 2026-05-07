@@ -11,12 +11,22 @@
  * 48a34396-5525-4a57-9884-108d93b1872f, turn 1.
  */
 
+import { useParams } from '@tanstack/react-router';
+import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
 import {
   OBSERVE_MODULES,
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
 import css from './ObserveChecklistAside.module.css';
+
+/**
+ * Stable empty-array reference for the GuidanceCard zustand selector.
+ * DO NOT inline `?? []` inside the selector — zustand uses `Object.is`
+ * for change detection and a fresh `[]` literal each render produces an
+ * infinite re-render loop ("Maximum update depth exceeded").
+ */
+const EMPTY_CHECKS: readonly number[] = [];
 
 interface ObserveChecklistAsideProps {
   activeModule: ObserveModule | null;
@@ -91,11 +101,19 @@ const MODULE_GUIDANCE: Record<ObserveModule, ModuleGuidance> = {
 function GuidanceCard({
   module,
   active,
+  projectId,
 }: {
   module: ObserveModule;
   active: boolean;
+  projectId: string | null;
 }) {
   const guidance = MODULE_GUIDANCE[module];
+  const checkedList = useObserveHowChecksStore(
+    (s) =>
+      (projectId ? s.byProject[projectId]?.[module] : null) ?? EMPTY_CHECKS,
+  );
+  const toggle = useObserveHowChecksStore((s) => s.toggle);
+
   return (
     <section
       className={`${css.group} ${active ? css.groupActive : ''}`}
@@ -108,13 +126,26 @@ function GuidanceCard({
       <p className={css.why}>{guidance.why}</p>
       <div className={css.howBlock}>
         <span className={css.blockLabel}>How</span>
-        <ol className={css.howList}>
-          {guidance.how.map((step, i) => (
-            <li key={i} className={css.howItem}>
-              {step}
-            </li>
-          ))}
-        </ol>
+        <ul className={css.howList}>
+          {guidance.how.map((step, i) => {
+            const checked = checkedList.includes(i);
+            return (
+              <li key={i} className={css.howItem}>
+                <label
+                  className={`${css.howCheck} ${checked ? css.howCheckDone : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!projectId}
+                    onChange={() => projectId && toggle(projectId, module, i)}
+                  />
+                  <span className={css.howText}>{step}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
       </div>
       <div className={css.pitfall}>
         <span className={css.blockLabel}>Pitfall</span>
@@ -127,17 +158,24 @@ function GuidanceCard({
 export default function ObserveChecklistAside({
   activeModule,
 }: ObserveChecklistAsideProps) {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const projectId = params.projectId ?? null;
   if (activeModule) {
     return (
       <aside className={css.checklistBox} aria-label="Observe guidance">
-        <GuidanceCard module={activeModule} active />
+        <GuidanceCard module={activeModule} active projectId={projectId} />
       </aside>
     );
   }
   return (
     <aside className={css.checklistBox} aria-label="Observe guidance">
       {OBSERVE_MODULES.map((mod) => (
-        <GuidanceCard key={mod} module={mod} active={false} />
+        <GuidanceCard
+          key={mod}
+          module={mod}
+          active={false}
+          projectId={projectId}
+        />
       ))}
     </aside>
   );

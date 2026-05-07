@@ -81,13 +81,44 @@
 .select,
 .textarea {
   flex: 1;
-  background: rgba(255, 255, 255, 0.06);
-  color: #f2ede3;
-  border: 1px solid rgba(242, 237, 227, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8f4ea;
+  border: 1px solid rgba(242, 237, 227, 0.4);
   border-radius: 4px;
   padding: 4px 6px;
   font-family: inherit;
   font-size: 11px;
+}
+
+.select:hover,
+.input:hover,
+.textarea:hover {
+  border-color: rgba(242, 237, 227, 0.6);
+}
+
+.select:focus,
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-gold-brand, #c4a265);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/*
+ * Brighten the native dropdown options. Browsers (Chrome/Edge/Firefox) honor
+ * background + color on <option> for the popup list — the native rendering
+ * otherwise inherits a low-contrast grey under our dark theme.
+ */
+.select option {
+  background: #1a1a1a;
+  color: #f8f4ea;
+  padding: 4px 6px;
+}
+
+.select option:checked,
+.select option:hover {
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1a1a;
 }
 
 .textarea {
