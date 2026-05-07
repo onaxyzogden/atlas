@@ -17,6 +17,31 @@
 .left {
   min-height: 0;
   overflow: auto;
+  /*
+   * Themed scrollbar — the left tool rail is the only Observe column that
+   * routinely overflows (9 sector buttons + 6 module sections at narrow
+   * viewports). Match the .custom-scrollbar utility (apps/web/src/styles/
+   * utilities.css) so the rail blends with surrounding bento cards.
+   */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.left::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.left::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
 }
 
 .right {

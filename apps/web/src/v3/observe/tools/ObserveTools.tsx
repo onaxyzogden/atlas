@@ -17,6 +17,9 @@
 import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
+  Bird,
+  Eye,
+  Flame,
   MapPin,
   Mountain,
   PenLine,
@@ -28,10 +31,14 @@ import {
   Sprout,
   Star,
   Sun,
+  Sunrise,
   TestTube,
   Target,
+  Tornado,
   Users,
+  Volume2,
   Waves,
+  Wind,
   type LucideIcon,
 } from 'lucide-react';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
@@ -48,6 +55,13 @@ import css from './ObserveTools.module.css';
 
 interface ObserveToolsProps {
   activeModule: ObserveModule | null;
+  /**
+   * Optional handler to switch the active OBSERVE module from the toolbar.
+   * When provided, each section becomes a button that navigates to its
+   * module — mirroring the bottom `ObserveModuleBar`. Clicking the already-
+   * active section deselects (passes `null` to clear the URL module).
+   */
+  onSelectModule?: (module: ObserveModule | null) => void;
 }
 
 interface ToolItem {
@@ -79,7 +93,14 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'ecology-zone',    label: 'Ecology zone',        Icon: Sprout,   toolId: 'observe.earth-water-ecology.ecology-zone' },
   ],
   'sectors-zones': [
-    { id: 'sun-wind-wedge',  label: 'Sun/wind wedge',      Icon: Sun,      toolId: 'observe.sectors-zones.sun-wind-wedge' },
+    { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },
+    { id: 'sun-winter',      label: 'Sun (winter)',        Icon: Sunrise,  toolId: 'observe.sectors-zones.sun-winter' },
+    { id: 'wind-prevailing', label: 'Wind (prevailing)',   Icon: Wind,     toolId: 'observe.sectors-zones.wind-prevailing' },
+    { id: 'wind-storm',      label: 'Wind (storm)',        Icon: Tornado,  toolId: 'observe.sectors-zones.wind-storm' },
+    { id: 'fire',            label: 'Fire approach',       Icon: Flame,    toolId: 'observe.sectors-zones.fire' },
+    { id: 'noise',           label: 'Noise',               Icon: Volume2,  toolId: 'observe.sectors-zones.noise' },
+    { id: 'wildlife',        label: 'Wildlife corridor',   Icon: Bird,     toolId: 'observe.sectors-zones.wildlife' },
+    { id: 'view',            label: 'View',                Icon: Eye,      toolId: 'observe.sectors-zones.view' },
     { id: 'permaculture',    label: 'Permaculture zone',   Icon: Target,   toolId: 'observe.sectors-zones.permaculture' },
   ],
   'swot-synthesis': [
@@ -90,7 +111,10 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
   ],
 };
 
-export default function ObserveTools({ activeModule }: ObserveToolsProps) {
+export default function ObserveTools({
+  activeModule,
+  onSelectModule,
+}: ObserveToolsProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
 
@@ -101,24 +125,67 @@ export default function ObserveTools({ activeModule }: ObserveToolsProps) {
   );
   const homesteadPlaced = Boolean(homestead);
 
-  const onToolClick = (toolId: MapToolId) => {
+  const onToolClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    toolId: MapToolId,
+  ) => {
+    // Tool clicks must not bubble to the section's module-select handler —
+    // picking a draw tool should activate that tool only, not also navigate
+    // away from the steward's current module context.
+    e.stopPropagation();
     setActiveTool(activeTool === toolId ? null : toolId);
   };
+
+  const canSelectModules = Boolean(onSelectModule && projectId);
 
   return (
     <aside className={css.toolbox} aria-label="Observe tools">
       {OBSERVE_MODULES.map((mod) => {
         const items = TOOL_GROUPS[mod];
         const isActive = mod === activeModule;
+        const headerLabel = OBSERVE_MODULE_LABEL[mod];
+        // Active sections also act as a button — clicking the active group
+        // deselects (mirrors the bottom rail's "click active card" behavior
+        // when no slide-up is open). Inactive sections navigate to that
+        // module. Both paths run through the same onSelectModule.
+        const onSectionActivate = () => {
+          if (!canSelectModules || !onSelectModule) return;
+          onSelectModule(isActive ? null : mod);
+        };
+        const sectionInteractionProps = canSelectModules
+          ? {
+              role: 'button' as const,
+              tabIndex: 0,
+              'aria-pressed': isActive,
+              title: isActive
+                ? `Deselect ${headerLabel}`
+                : `Switch to ${headerLabel}`,
+              onClick: onSectionActivate,
+              onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSectionActivate();
+                }
+              },
+            }
+          : {};
+        const sectionClassName = [
+          css.group,
+          isActive ? css.groupActive : '',
+          canSelectModules ? css.groupClickable : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         return (
           <section
             key={mod}
-            className={`${css.group} ${isActive ? css.groupActive : ''}`}
+            className={sectionClassName}
             data-module={mod}
+            {...sectionInteractionProps}
           >
             <header className={css.groupHeader}>
               <span className={css.dot} aria-hidden="true" />
-              <span className={css.groupLabel}>{OBSERVE_MODULE_LABEL[mod]}</span>
+              <span className={css.groupLabel}>{headerLabel}</span>
             </header>
             <div className={css.itemGrid}>
               {items.map((it) => {
@@ -140,7 +207,7 @@ export default function ObserveTools({ activeModule }: ObserveToolsProps) {
                     disabled={disabled}
                     aria-pressed={isToolActive}
                     title={title}
-                    onClick={() => onToolClick(it.toolId)}
+                    onClick={(e) => onToolClick(e, it.toolId)}
                   >
                     <span className={css.toolGlyph} aria-hidden="true">
                       <it.Icon size={16} strokeWidth={1.6} />

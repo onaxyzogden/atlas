@@ -75,8 +75,65 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
     case 'observe.earth-water-ecology.ecology-zone':
       tool = <EcologyZoneTool map={map} projectId={projectId} />;
       break;
-    case 'observe.sectors-zones.sun-wind-wedge':
-      tool = <SunWindWedgeTool map={map} projectId={projectId} />;
+    case 'observe.sectors-zones.sun-summer':
+      tool = (
+        <SunWindWedgeTool
+          map={map}
+          projectId={projectId}
+          sectorType="sun_summer"
+        />
+      );
+      break;
+    case 'observe.sectors-zones.sun-winter':
+      tool = (
+        <SunWindWedgeTool
+          map={map}
+          projectId={projectId}
+          sectorType="sun_winter"
+        />
+      );
+      break;
+    case 'observe.sectors-zones.wind-prevailing':
+      tool = (
+        <SunWindWedgeTool
+          map={map}
+          projectId={projectId}
+          sectorType="wind_prevailing"
+        />
+      );
+      break;
+    case 'observe.sectors-zones.wind-storm':
+      tool = (
+        <SunWindWedgeTool
+          map={map}
+          projectId={projectId}
+          sectorType="wind_storm"
+        />
+      );
+      break;
+    case 'observe.sectors-zones.fire':
+      tool = (
+        <SunWindWedgeTool map={map} projectId={projectId} sectorType="fire" />
+      );
+      break;
+    case 'observe.sectors-zones.noise':
+      tool = (
+        <SunWindWedgeTool map={map} projectId={projectId} sectorType="noise" />
+      );
+      break;
+    case 'observe.sectors-zones.wildlife':
+      tool = (
+        <SunWindWedgeTool
+          map={map}
+          projectId={projectId}
+          sectorType="wildlife"
+        />
+      );
+      break;
+    case 'observe.sectors-zones.view':
+      tool = (
+        <SunWindWedgeTool map={map} projectId={projectId} sectorType="view" />
+      );
       break;
     case 'observe.sectors-zones.permaculture':
       tool = <PermacultureZoneTool map={map} projectId={projectId} />;

@@ -37,7 +37,16 @@ export type MapToolId =
   | 'observe.earth-water-ecology.soil-sample'
   | 'observe.earth-water-ecology.ecology-zone'
   // Observe Module 5 — Sectors & Zones
-  | 'observe.sectors-zones.sun-wind-wedge'
+  // One tool per SectorType so each kind of wedge is its own toolbar
+  // button (no in-popover Type dropdown).
+  | 'observe.sectors-zones.sun-summer'
+  | 'observe.sectors-zones.sun-winter'
+  | 'observe.sectors-zones.wind-prevailing'
+  | 'observe.sectors-zones.wind-storm'
+  | 'observe.sectors-zones.fire'
+  | 'observe.sectors-zones.noise'
+  | 'observe.sectors-zones.wildlife'
+  | 'observe.sectors-zones.view'
   | 'observe.sectors-zones.permaculture'
   // Observe Module 6 — SWOT Synthesis
   | 'observe.swot-synthesis.strength'

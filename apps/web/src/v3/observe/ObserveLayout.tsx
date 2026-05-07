@@ -86,7 +86,10 @@ export default function ObserveLayout() {
     <div className={css.layout}>
       <div className={css.body}>
         <aside className={css.left} aria-label="Observe tools">
-          <ObserveTools activeModule={validModule} />
+          <ObserveTools
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+          />
         </aside>
         <main className={css.canvas} aria-label="Observe canvas">
           <DiagnoseMap

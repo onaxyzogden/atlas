@@ -2,9 +2,10 @@
  * SunWindWedgeTool — adds a SectorArrow (bearing + arc) to externalForcesStore.
  *
  * Not a MapboxDraw tool: sectors are angular wedges anchored at the homestead
- * (or parcel centroid as fallback). Steward picks type/intensity/arc width and
- * either types a bearing or click-seeds it from the map (cursor crosshair on
- * the canvas).
+ * (or parcel centroid as fallback). The wedge **type** is fixed by which
+ * toolbar button the steward clicked (one button per `SectorType`); this
+ * popover only collects bearing, arc width, intensity, and optional
+ * click-to-seed bearing from the map.
  */
 
 import { useEffect, useState } from 'react';
@@ -21,18 +22,38 @@ import css from './ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  sectorType: SectorType;
 }
 
-const SECTOR_OPTIONS: { value: SectorType; label: string }[] = [
-  { value: 'sun_summer', label: 'Sun (summer)' },
-  { value: 'sun_winter', label: 'Sun (winter)' },
-  { value: 'wind_prevailing', label: 'Wind (prevailing)' },
-  { value: 'wind_storm', label: 'Wind (storm)' },
-  { value: 'fire', label: 'Fire approach' },
-  { value: 'noise', label: 'Noise' },
-  { value: 'wildlife', label: 'Wildlife corridor' },
-  { value: 'view', label: 'View' },
-];
+const TYPE_LABEL: Record<SectorType, string> = {
+  sun_summer: 'Sun (summer)',
+  sun_winter: 'Sun (winter)',
+  wind_prevailing: 'Wind (prevailing)',
+  wind_storm: 'Wind (storm)',
+  fire: 'Fire approach',
+  noise: 'Noise',
+  wildlife: 'Wildlife corridor',
+  view: 'View',
+};
+
+/**
+ * Per-type sensible starting bearing/arc so the popover feels pre-tuned for
+ * the chosen sector. Bearings assume Northern-hemisphere conventions; the
+ * steward can always adjust before saving.
+ */
+const TYPE_DEFAULTS: Record<
+  SectorType,
+  { bearingDeg: number; arcDeg: number }
+> = {
+  sun_summer: { bearingDeg: 180, arcDeg: 120 },
+  sun_winter: { bearingDeg: 180, arcDeg: 60 },
+  wind_prevailing: { bearingDeg: 270, arcDeg: 60 },
+  wind_storm: { bearingDeg: 315, arcDeg: 90 },
+  fire: { bearingDeg: 270, arcDeg: 90 },
+  noise: { bearingDeg: 0, arcDeg: 45 },
+  wildlife: { bearingDeg: 0, arcDeg: 30 },
+  view: { bearingDeg: 0, arcDeg: 60 },
+};
 
 function bearingFromPoints(
   fromLng: number,
@@ -51,16 +72,28 @@ function bearingFromPoints(
   return ((θ * 180) / Math.PI + 360) % 360;
 }
 
-export default function SunWindWedgeTool({ map, projectId }: Props) {
+export default function SunWindWedgeTool({
+  map,
+  projectId,
+  sectorType,
+}: Props) {
   const addSector = useExternalForcesStore((s) => s.addSector);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const homestead = useHomesteadStore((s) => s.byProject[projectId]);
 
-  const [type, setType] = useState<SectorType>('wind_prevailing');
-  const [bearingDeg, setBearingDeg] = useState(270);
-  const [arcDeg, setArcDeg] = useState(60);
+  const defaults = TYPE_DEFAULTS[sectorType];
+  const [bearingDeg, setBearingDeg] = useState(defaults.bearingDeg);
+  const [arcDeg, setArcDeg] = useState(defaults.arcDeg);
   const [intensity, setIntensity] = useState<SectorIntensity>('med');
   const [seedingFromMap, setSeedingFromMap] = useState(false);
+
+  // Re-seed bearing/arc when the steward switches sector buttons without
+  // closing the popover (parent remounts via a different `sectorType` prop,
+  // but in case React re-uses the instance, this keeps the form aligned).
+  useEffect(() => {
+    setBearingDeg(defaults.bearingDeg);
+    setArcDeg(defaults.arcDeg);
+  }, [sectorType, defaults.bearingDeg, defaults.arcDeg]);
 
   // Click-to-seed bearing: when active, the next map click computes the
   // bearing from the homestead (or map center) to the click point.
@@ -88,7 +121,7 @@ export default function SunWindWedgeTool({ map, projectId }: Props) {
     addSector({
       id: crypto.randomUUID(),
       projectId,
-      type,
+      type: sectorType,
       bearingDeg,
       arcDeg,
       intensity,
@@ -96,23 +129,11 @@ export default function SunWindWedgeTool({ map, projectId }: Props) {
     setActiveTool(null);
   };
 
+  const label = TYPE_LABEL[sectorType];
+
   return (
-    <div className={css.popover} role="dialog" aria-label="Sun/wind wedge">
-      <span className={css.title}>Sun / wind wedge</span>
-      <div className={css.row}>
-        <span className={css.fieldLabel}>Type</span>
-        <select
-          className={css.select}
-          value={type}
-          onChange={(e) => setType(e.target.value as SectorType)}
-        >
-          {SECTOR_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className={css.popover} role="dialog" aria-label={`${label} sector`}>
+      <span className={css.title}>{label} sector</span>
       <div className={css.row}>
         <span className={css.fieldLabel}>Bearing</span>
         <input

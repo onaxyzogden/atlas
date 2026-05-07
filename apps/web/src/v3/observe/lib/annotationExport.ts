@@ -18,6 +18,7 @@
  *                — these are CSV-only (KML / GeoJSON omit them).
  */
 
+import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
@@ -25,6 +26,13 @@ import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
+
+/** Outer radius (metres) for synthesised sector wedges. Mirrors the
+ *  hard-coded value used by the OBSERVE renderer in
+ *  `ObserveAnnotationLayers.wedgePolygon` so an exported sector overlays
+ *  the on-map wedge. Centralised here so a future change is one line. */
+const SECTOR_RADIUS_M = 250;
 
 // ── Kind taxonomy ──────────────────────────────────────────────────────────────
 
@@ -159,10 +167,95 @@ export function collectProjectAnnotations(
 
 type Geom = GeoJSON.Geometry | null;
 
+/** Per-export context computed once by the serialiser entry points and
+ *  threaded through `geometryFor`. Holds project-resolved data that would
+ *  otherwise force a per-record store walk. */
+interface ExportContext {
+  /** Anchor point (`[lng, lat]`) for synthesising sector wedges, or
+   *  `null` when no homestead and no parcel boundary are available. */
+  sectorAnchor: [number, number] | null;
+}
+
+/** Build a wedge (sector) polygon anchored at `center`, opening along
+ *  `bearingDeg` ± `arcDeg/2`, with outer radius `radiusM`. Lifted verbatim
+ *  from `ObserveAnnotationLayers.wedgePolygon` so the exported polygon
+ *  overlays the on-map sector pixel-for-pixel. */
+function wedgePolygon(
+  center: [number, number],
+  bearingDeg: number,
+  arcDeg: number,
+  radiusM: number,
+  steps = 24,
+): GeoJSON.Polygon {
+  const half = arcDeg / 2;
+  const start = bearingDeg - half;
+  const end = bearingDeg + half;
+  const ring: [number, number][] = [center];
+  for (let i = 0; i <= steps; i++) {
+    const b = start + ((end - start) * i) / steps;
+    const dest = turf.destination(turf.point(center), radiusM / 1000, b, {
+      units: 'kilometers',
+    });
+    const c = dest.geometry.coordinates as [number, number];
+    ring.push(c);
+  }
+  ring.push(center);
+  return { type: 'Polygon', coordinates: [ring] };
+}
+
+/** Resolve the anchor for sector-wedge synthesis. Mirrors the renderer's
+ *  preference order: first homestead in the project, then the parcel
+ *  boundary centroid, else `null` (sectors fall back to CSV-only). */
+function resolveSectorAnchor(
+  projectId: string,
+): [number, number] | null {
+  const homestead = useHumanContextStore
+    .getState()
+    .households.find(
+      (h) =>
+        h.projectId === projectId &&
+        Array.isArray(h.position) &&
+        h.position.length === 2,
+    );
+  if (homestead?.position) {
+    return [homestead.position[0], homestead.position[1]];
+  }
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectId);
+  const boundary = project?.parcelBoundaryGeojson;
+  if (boundary && boundary.features.length > 0) {
+    try {
+      const c = turf.centroid(boundary);
+      const coords = c.geometry.coordinates;
+      if (
+        Array.isArray(coords) &&
+        coords.length >= 2 &&
+        Number.isFinite(coords[0]) &&
+        Number.isFinite(coords[1])
+      ) {
+        return [coords[0] as number, coords[1] as number];
+      }
+    } catch {
+      // turf.centroid throws on degenerate input — fall through to null.
+    }
+  }
+  return null;
+}
+
 /** Map a record of any kind to a GeoJSON geometry, or `null` if the record
- *  has no spatial geometry available for export (sector / observation /
- *  permacultureZone are intentionally excluded from spatial exports). */
-function geometryFor(kind: ExportKind, r: Record<string, unknown>): Geom {
+ *  has no spatial geometry available for export.
+ *
+ *  When `ctx.sectorAnchor` is non-null, `'sector'` synthesises a wedge
+ *  `Polygon` at `SECTOR_RADIUS_M` metres, anchored at the project's
+ *  homestead (or parcel-boundary centroid). Otherwise sectors return
+ *  `null` and remain CSV-only. `permacultureZone` and `ecologyObservation`
+ *  always return `null` — they have no geometry to synthesise from. */
+function geometryFor(
+  kind: ExportKind,
+  r: Record<string, unknown>,
+  ctx: ExportContext,
+): Geom {
   const g = (r as { geometry?: GeoJSON.Geometry }).geometry;
   switch (kind) {
     case 'neighbour':
@@ -199,8 +292,19 @@ function geometryFor(kind: ExportKind, r: Record<string, unknown>): Geom {
     case 'hazard':
     case 'ecologyZone':
       return g ?? null;
+    case 'sector': {
+      const anchor = ctx.sectorAnchor;
+      if (!anchor) return null;
+      const bearingDeg = Number(
+        (r as { bearingDeg?: number }).bearingDeg,
+      );
+      const arcDeg = Number((r as { arcDeg?: number }).arcDeg);
+      if (!Number.isFinite(bearingDeg) || !Number.isFinite(arcDeg)) {
+        return null;
+      }
+      return wedgePolygon(anchor, bearingDeg, arcDeg, SECTOR_RADIUS_M);
+    }
     case 'permacultureZone':
-    case 'sector':
     case 'ecologyObservation':
       return null;
   }
@@ -223,11 +327,14 @@ function propsFor(
 /** Roll the project annotations into a single GeoJSON FeatureCollection.
  *  Records without exportable geometry are silently skipped. */
 export function toGeoJSON(p: ProjectAnnotations): GeoJSON.FeatureCollection {
+  const ctx: ExportContext = {
+    sectorAnchor: resolveSectorAnchor(p.projectId),
+  };
   const features: GeoJSON.Feature[] = [];
   for (const kind of ALL_KINDS) {
     const arr = p.byKind[kind] ?? [];
     for (const r of arr) {
-      const geom = geometryFor(kind, r);
+      const geom = geometryFor(kind, r, ctx);
       if (!geom) continue;
       features.push({
         type: 'Feature',
@@ -304,12 +411,15 @@ function placemarkXml(
  *  per kind; geometry-less kinds are omitted from the KML entirely
  *  (they remain in the CSV export). */
 export function toKML(p: ProjectAnnotations): string {
+  const ctx: ExportContext = {
+    sectorAnchor: resolveSectorAnchor(p.projectId),
+  };
   const folders: string[] = [];
   for (const kind of ALL_KINDS) {
     const arr = p.byKind[kind] ?? [];
     const placemarks: string[] = [];
     for (const r of arr) {
-      const geom = geometryFor(kind, r);
+      const geom = geometryFor(kind, r, ctx);
       if (!geom) continue;
       placemarks.push(placemarkXml(kind, r, geom));
     }
@@ -374,6 +484,7 @@ function geomToWkt(g: GeoJSON.Geometry | null): string {
 function csvSection(
   kind: ExportKind,
   rows: Array<Record<string, unknown>>,
+  ctx: ExportContext,
 ): string {
   if (!rows.length) return '';
   // Compute column union across rows so optional fields aren't dropped.
@@ -387,7 +498,7 @@ function csvSection(
   const ordered = ['id', 'createdAt', ...[...cols].filter((c) => c !== 'id' && c !== 'createdAt').sort()];
   const header = [...ordered, 'geometryWkt'].join(',');
   const lines = rows.map((r) => {
-    const wkt = geomToWkt(geometryFor(kind, r));
+    const wkt = geomToWkt(geometryFor(kind, r, ctx));
     const cells = ordered.map((c) => csvEscape(r[c]));
     cells.push(csvEscape(wkt));
     return cells.join(',');
@@ -398,6 +509,9 @@ function csvSection(
 /** Render a multi-section CSV — one block per kind with its own header
  *  row — preceded by a meta block. Empty kinds are skipped. */
 export function toCSV(p: ProjectAnnotations): string {
+  const ctx: ExportContext = {
+    sectorAnchor: resolveSectorAnchor(p.projectId),
+  };
   const sections: string[] = [
     `# atlas-observe-export`,
     `# projectId: ${p.projectId}`,
@@ -406,7 +520,7 @@ export function toCSV(p: ProjectAnnotations): string {
   ];
   for (const kind of ALL_KINDS) {
     const arr = p.byKind[kind] ?? [];
-    const block = csvSection(kind, arr);
+    const block = csvSection(kind, arr, ctx);
     if (block) sections.push('', block);
   }
   return sections.join('\n');
