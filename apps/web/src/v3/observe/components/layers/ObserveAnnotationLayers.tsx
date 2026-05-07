@@ -28,6 +28,7 @@ import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
+import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import type { AnnotationKind } from '../draw/annotationFieldSchemas.js';
 
 interface Props {
@@ -37,6 +38,11 @@ interface Props {
 
 const SOURCE_PREFIX = 'observe-anno-';
 const LAYER_PREFIX = 'observe-anno-';
+const HALO_SOURCE = 'observe-anno-selection';
+const HALO_LAYER_CIRCLE = 'observe-anno-selection-circle';
+const HALO_LAYER_LINE = 'observe-anno-selection-line';
+const HALO_COLOR = '#c4a265';
+const HALO_OUTLINE = '#3a2a1a';
 
 interface LayerSpec {
   /** Stable id suffix; `${SOURCE_PREFIX}${id}` is the source id. */
@@ -673,29 +679,92 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   ]);
 
   const openDetail = useAnnotationDetailStore((s) => s.open);
+  const selected = useObserveSelectionStore((s) => s.selected);
+  const setSelection = useObserveSelectionStore((s) => s.set);
+  const toggleSelection = useObserveSelectionStore((s) => s.toggle);
+  const clearSelection = useObserveSelectionStore((s) => s.clear);
+
+  // Derive selected features (points + lines/polygons) for the halo source.
+  const haloData = useMemo<GeoJSON.FeatureCollection>(() => {
+    if (!selected.length)
+      return { type: 'FeatureCollection', features: [] };
+    const wanted = new Set(selected.map((s) => `${s.kind}:${s.id}`));
+    const features: GeoJSON.Feature[] = [];
+    for (const spec of layerSpecs) {
+      for (const f of spec.data.features) {
+        const props = f.properties ?? {};
+        const kind = (props as Record<string, unknown>).annoKind;
+        const id = (props as Record<string, unknown>).annoId;
+        if (typeof kind !== 'string' || typeof id !== 'string') continue;
+        if (wanted.has(`${kind}:${id}`)) {
+          features.push(f);
+        }
+      }
+    }
+    return { type: 'FeatureCollection', features };
+  }, [layerSpecs, selected]);
 
   // Apply layers to the map. Tracks which (source × layer) ids we've added so
   // we can clean up stale entries when annotations are removed or hidden.
   useEffect(() => {
     if (!map) return;
 
-    // Click handler: any layer carrying `annoKind` + `annoId` opens the
-    // detail panel. Registered per layer id once, removed on cleanup.
-    const clickHandlers = new Map<string, (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => void>();
+    // Multi-select uses shift-click; disable MapLibre boxZoom so the
+    // gesture isn't intercepted. Idempotent.
+    map.boxZoom.disable();
+
+    // Click semantics on annotation layers:
+    //   plain click  → set selection to [{ kind, id }]
+    //   shift-click  → toggle membership (multi-select)
+    //   double-click → open detail panel
+    //   empty-map click (no annotation feature hit) → clear selection
+    // Click handlers are registered per layer id once, removed on cleanup.
+    type LayerClick = (
+      e: maplibregl.MapMouseEvent & {
+        features?: maplibregl.MapGeoJSONFeature[];
+      },
+    ) => void;
+    const clickHandlers = new Map<string, LayerClick>();
+    const dblHandlers = new Map<string, LayerClick>();
     const enterHandlers = new Map<string, () => void>();
     const leaveHandlers = new Map<string, () => void>();
 
+    /** Track when a click was handled by a layer, so the empty-map click
+     *  handler can know to skip clearing (MapLibre fires both layer click
+     *  and the global click on the same event). */
+    let consumedAt = 0;
+
     const wireClick = (layerId: string) => {
       if (clickHandlers.has(layerId)) return;
-      const onClick = (
-        e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] },
-      ) => {
+      const onClick: LayerClick = (e) => {
         const f = e.features?.[0];
         if (!f) return;
         const props = f.properties ?? {};
-        const kind = props.annoKind as AnnotationKind | undefined;
-        const id = props.annoId as string | undefined;
+        const kind = (props as Record<string, unknown>).annoKind as
+          | AnnotationKind
+          | undefined;
+        const id = (props as Record<string, unknown>).annoId as
+          | string
+          | undefined;
         if (!kind || !id) return;
+        consumedAt = e.originalEvent.timeStamp;
+        const shift = (e.originalEvent as MouseEvent).shiftKey;
+        if (shift) toggleSelection({ kind, id });
+        else setSelection([{ kind, id }]);
+      };
+      const onDbl: LayerClick = (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+        const props = f.properties ?? {};
+        const kind = (props as Record<string, unknown>).annoKind as
+          | AnnotationKind
+          | undefined;
+        const id = (props as Record<string, unknown>).annoId as
+          | string
+          | undefined;
+        if (!kind || !id) return;
+        // Stop the map's default zoom-on-double-click for this gesture.
+        e.preventDefault();
         openDetail({ kind, id });
       };
       const onEnter = () => {
@@ -705,22 +774,36 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         map.getCanvas().style.cursor = '';
       };
       map.on('click', layerId, onClick);
+      map.on('dblclick', layerId, onDbl);
       map.on('mouseenter', layerId, onEnter);
       map.on('mouseleave', layerId, onLeave);
       clickHandlers.set(layerId, onClick);
+      dblHandlers.set(layerId, onDbl);
       enterHandlers.set(layerId, onEnter);
       leaveHandlers.set(layerId, onLeave);
     };
+
+    /** Empty-map click → clear selection. Skips when a layer click consumed
+     *  the same event (within 50ms — same gesture). */
+    const onMapClick = (e: maplibregl.MapMouseEvent) => {
+      if (e.originalEvent.timeStamp - consumedAt < 50) return;
+      clearSelection();
+    };
+    map.on('click', onMapClick);
 
     const apply = () => {
       // Bail if style isn't ready yet.
       if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
 
       // Compute desired ids.
-      const desiredSourceIds = new Set(
-        layerSpecs.map((spec) => `${SOURCE_PREFIX}${spec.id}`),
-      );
-      const desiredLayerIds = new Set<string>();
+      const desiredSourceIds = new Set([
+        ...layerSpecs.map((spec) => `${SOURCE_PREFIX}${spec.id}`),
+        HALO_SOURCE,
+      ]);
+      const desiredLayerIds = new Set<string>([
+        HALO_LAYER_CIRCLE,
+        HALO_LAYER_LINE,
+      ]);
       for (const spec of layerSpecs) {
         for (const l of spec.layers) desiredLayerIds.add(l.id);
       }
@@ -782,6 +865,62 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
           }
         }
       }
+
+      // ── Selection halo: single source + 2 stacked layers ──────────────────
+      const haloSource = map.getSource(HALO_SOURCE) as
+        | maplibregl.GeoJSONSource
+        | undefined;
+      if (haloSource) {
+        haloSource.setData(haloData);
+      } else {
+        map.addSource(HALO_SOURCE, { type: 'geojson', data: haloData });
+      }
+      if (!map.getLayer(HALO_LAYER_LINE)) {
+        map.addLayer({
+          id: HALO_LAYER_LINE,
+          type: 'line',
+          source: HALO_SOURCE,
+          filter: ['!=', ['geometry-type'], 'Point'],
+          paint: {
+            'line-color': HALO_COLOR,
+            'line-width': 4,
+            'line-opacity': 0.9,
+          },
+        });
+      }
+      if (!map.getLayer(HALO_LAYER_CIRCLE)) {
+        map.addLayer({
+          id: HALO_LAYER_CIRCLE,
+          type: 'circle',
+          source: HALO_SOURCE,
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-radius': 11,
+            'circle-color': 'transparent',
+            'circle-stroke-color': HALO_COLOR,
+            'circle-stroke-width': 3,
+            'circle-stroke-opacity': 0.95,
+            'circle-pitch-alignment': 'map',
+          },
+        });
+      }
+      // Always keep halo layers above all annotation layers + visible per master.
+      const haloVisible = visible && haloData.features.length > 0;
+      for (const id of [HALO_LAYER_LINE, HALO_LAYER_CIRCLE]) {
+        if (map.getLayer(id)) {
+          map.setLayoutProperty(
+            id,
+            'visibility',
+            haloVisible ? 'visible' : 'none',
+          );
+          // Re-stack on top of annotation layers (cheap when halo is empty).
+          try {
+            map.moveLayer(id);
+          } catch {
+            /* ignore — layer not yet in style */
+          }
+        }
+      }
     };
 
     apply();
@@ -791,10 +930,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
 
     return () => {
       map.off('style.load', onStyle);
+      map.off('click', onMapClick);
       // Remove click/hover handlers per layer id so a re-render or unmount
       // doesn't leave dangling listeners on stale layer ids.
       for (const [layerId, h] of clickHandlers) {
         map.off('click', layerId, h);
+      }
+      for (const [layerId, h] of dblHandlers) {
+        map.off('dblclick', layerId, h);
       }
       for (const [layerId, h] of enterHandlers) {
         map.off('mouseenter', layerId, h);
@@ -806,7 +949,16 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // layerSpecs is the memoised set of FeatureCollections + layer specs;
     // visibility toggles are also captured here so the master toggle takes
     // effect without remounting the component.
-  }, [map, layerSpecs, visible, openDetail]);
+  }, [
+    map,
+    layerSpecs,
+    visible,
+    openDetail,
+    haloData,
+    setSelection,
+    toggleSelection,
+    clearSelection,
+  ]);
 
   // Clean up everything when the component unmounts (route change).
   useEffect(() => {

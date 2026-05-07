@@ -29,9 +29,12 @@ import ObserveModuleBar from './components/ObserveModuleBar.js';
 import ModuleSlideUp from './components/ModuleSlideUp.js';
 import MapToolbar from './components/MapToolbar.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
+import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
+import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
 import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
+import SelectionFloater from './components/SelectionFloater.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -115,6 +118,9 @@ export default function ObserveLayout() {
                   map={map}
                   projectId={params.projectId ?? null}
                 />
+                <AnnotationDragHandler map={map} />
+                <AnnotationVertexEditHandler map={map} />
+                <SelectionFloater projectId={params.projectId ?? null} />
               </>
             )}
           </DiagnoseMap>
