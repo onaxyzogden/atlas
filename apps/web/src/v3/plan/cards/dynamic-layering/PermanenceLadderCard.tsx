@@ -99,6 +99,17 @@ interface Row {
   count: number;
   countLabel: string;
   prereqs: number[];
+  /**
+   * Optional per-rank weight (extent), in the rank's natural unit:
+   *   · area-bearing ranks (Soil zones, Vegetation, Storage area) → m²
+   *   · linear ranks (Access paths, Swales) → m
+   * Zero/undefined when no extent metric applies (Climate, Fauna obs).
+   * Surfaced separately so a single 1-acre swale system out-weights a
+   * cluster of toy-sized footprints — Module 4 follow-up score-weighting
+   * (`2026-05-07-atlas-plan-layering-scholar-build-fresh.md`).
+   */
+  weight: number;
+  weightLabel: string;
 }
 
 export default function PermanenceLadderCard({ project, onSwitchModule }: Props) {
@@ -126,16 +137,46 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
     const ecology = allEcology.filter((e) => e.projectId === pId);
     const guilds = allGuilds.filter((g) => g.projectId === pId);
 
-    const counts: Record<number, { count: number; label: string }> = {
-      1: { count: 1, label: 'site-level (Observe)' },
-      2: { count: transects.length, label: `${transects.length} transect(s)` },
-      3: { count: earthworks.length + storage.length, label: `${earthworks.length} earthworks · ${storage.length} storage` },
-      4: { count: paths.length, label: `${paths.length} path(s)` },
-      5: { count: structures.length, label: `${structures.length} structure(s)` },
-      6: { count: fertility.length, label: `${fertility.length} fertility unit(s)` },
-      7: { count: zones.filter((z) => z.category === 'food_production').length, label: `${zones.filter((z) => z.category === 'food_production').length} food-production zone(s)` },
-      8: { count: crops.length + guilds.length, label: `${crops.length} crop area(s) · ${guilds.length} guild(s)` },
-      9: { count: ecology.length, label: `${ecology.length} ecology obs.` },
+    const foodZones = zones.filter((z) => z.category === 'food_production');
+    const earthworksLen = earthworks.reduce((a, e) => a + (e.lengthM ?? 0), 0);
+    const pathsLen = paths.reduce((a, p) => a + (p.lengthM ?? 0), 0);
+    const foodArea = foodZones.reduce((a, z) => a + (z.areaM2 ?? 0), 0);
+    const cropArea = crops.reduce((a, c) => a + (c.areaM2 ?? 0), 0);
+
+    const fmtM = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`);
+    const fmtA = (m2: number) =>
+      m2 >= 10000 ? `${(m2 / 10000).toFixed(2)} ha` : `${Math.round(m2)} m²`;
+
+    const counts: Record<number, { count: number; label: string; weight: number; weightLabel: string }> = {
+      1: { count: 1, label: 'site-level (Observe)', weight: 0, weightLabel: '' },
+      2: { count: transects.length, label: `${transects.length} transect(s)`, weight: 0, weightLabel: '' },
+      3: {
+        count: earthworks.length + storage.length,
+        label: `${earthworks.length} earthworks · ${storage.length} storage`,
+        weight: earthworksLen,
+        weightLabel: earthworksLen > 0 ? `${fmtM(earthworksLen)} of swales / drains` : '',
+      },
+      4: {
+        count: paths.length,
+        label: `${paths.length} path(s)`,
+        weight: pathsLen,
+        weightLabel: pathsLen > 0 ? `${fmtM(pathsLen)} of access` : '',
+      },
+      5: { count: structures.length, label: `${structures.length} structure(s)`, weight: 0, weightLabel: '' },
+      6: { count: fertility.length, label: `${fertility.length} fertility unit(s)`, weight: 0, weightLabel: '' },
+      7: {
+        count: foodZones.length,
+        label: `${foodZones.length} food-production zone(s)`,
+        weight: foodArea,
+        weightLabel: foodArea > 0 ? `${fmtA(foodArea)} under management` : '',
+      },
+      8: {
+        count: crops.length + guilds.length,
+        label: `${crops.length} crop area(s) · ${guilds.length} guild(s)`,
+        weight: cropArea,
+        weightLabel: cropArea > 0 ? `${fmtA(cropArea)} of crop` : '',
+      },
+      9: { count: ecology.length, label: `${ecology.length} ecology obs.`, weight: 0, weightLabel: '' },
     };
 
     return RANKS.map((r) => ({
@@ -145,6 +186,8 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
       blurb: r.blurb,
       count: counts[r.rank]?.count ?? 0,
       countLabel: counts[r.rank]?.label ?? '',
+      weight: counts[r.rank]?.weight ?? 0,
+      weightLabel: counts[r.rank]?.weightLabel ?? '',
       prereqs: r.prereqs,
     }));
   }, [project.id, allZones, allPaths, allStructures, allCrops, allTransects, allEarthworks, allStorage, allFertility, allEcology, allGuilds]);
@@ -269,7 +312,17 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
                     {r.count} · {r.countLabel}
                   </span>
                 </div>
-                <div className={styles.listMeta} style={{ marginTop: 2 }}>{r.blurb}</div>
+                <div className={styles.listMeta} style={{ marginTop: 2 }}>
+                  {r.blurb}
+                  {r.weightLabel && (
+                    <>
+                      {' · '}
+                      <span style={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}>
+                        {r.weightLabel}
+                      </span>
+                    </>
+                  )}
+                </div>
                 <div
                   aria-hidden
                   style={{

@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 4 · Permanence-ladder extent dimension (score weighting)
+
+Module 4 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` now surfaces a per-rank extent metric next to the existing count: rank 3 Water sums `earthwork.lengthM` (formatted m / km), rank 4 Access sums `path.lengthM`, rank 7 Soil sums `areaM2` of food-production zones (m² / ha), rank 8 Vegetation sums `crop.areaM2`. Ranks without an extent metric (Climate, Landform, Structures, Subsystems, Fauna) show count only. Bar still keyed off count — extent is shown inline in the rank's blurb line — so the visual hierarchy stays intact while a single 1-acre swale system reads as more than five toy footprints. Age- and function-count weighting remain deferred. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 5 · Fertility taxonomy expansion
 
 Module 5 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). `FertilityInfraType` extended from four structural types to eight first-class node kinds, mirroring the Scholar's three-pillar framing of soil fertility — structural built objects (composter / hugelkultur / biochar / worm bin), vegetative & biological practices (cover crop / chop & drop / dynamic accumulator), animal integration (rotational grazing). Picker in `SoilFertilityDesignerCard` extended with permaculture-grounded taglines for all eight (e.g. "N-fixers / biomass between cash crops" for cover crop, "Deep-rooted mineral cyclers (comfrey, persimmon)" for dynamic accumulator). Cross-section vertical-stack defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so vegetative practices don't render phantom canopy (cover-crop 0.3 m, chop-and-drop 0.1 m, accumulator 1.0 m, grazing 0.1 m). `ClosedLoopGraphCard` collapses underscores to spaces in node labels. Additive union — no persist-version bump, legacy entries load unchanged. Typecheck clean.
