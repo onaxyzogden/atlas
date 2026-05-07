@@ -61,6 +61,12 @@ const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVect
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
 const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBaselineCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
+// Cross-section & Solar (Module 6) — additive section-annotations card added
+// per Permaculture Scholar verdict 2026-05-07. Atlas's TransectVerticalEditorCard
+// (vertical pins + solstice overlay) is preserved; the new card adds the four
+// orthodox bracket overlays the Scholar called out as missing — microclimate,
+// succession, slope, sector-response.
+const SectionAnnotationsCard  = lazy(() => import('./cards/cross-section/SectionAnnotationsCard.js'));
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
@@ -101,6 +107,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'plan-soil-baseline':       return <SoilBaselineCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-section-annotations': return <SectionAnnotationsCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;

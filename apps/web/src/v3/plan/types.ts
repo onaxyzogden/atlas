@@ -147,8 +147,9 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
   ],
   'cross-section-solar': [
-    { label: 'Vertical editor', sectionId: 'plan-transect-vertical' },
-    { label: 'Solar overlay',   sectionId: 'plan-solar-overlay' },
+    { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
+    { label: 'Solar overlay',       sectionId: 'plan-solar-overlay' },
+    { label: 'Section annotations', sectionId: 'plan-section-annotations' },
   ],
   'phasing-budgeting': [
     { label: 'Phasing matrix',         sectionId: 'plan-phasing-matrix' },

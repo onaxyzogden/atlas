@@ -29,6 +29,10 @@ Scholar identified four orthodox elements Atlas does not yet surface, all logged
 3. **Explicit slope / elevation annotations** — even when the visual slope is rendered, orthodox cross-sections call out elevation deltas and slope % (e.g. "Slope 20–25%") in text.
 4. **Wind and flow deflection callouts** — vertical illustration of how an element responds to a sector force (e.g. dense evergreen deflecting cold winter wind over a structure; swale catching overland flow). Sector origins themselves stay on the top-down Sector Compass; this is the section-level *response*.
 
+### Follow-up status (2026-05-07)
+
+- ✅ #1–#4 — Section-level annotations landed as `plan-section-annotations` sub-tab (`apps/web/src/v3/plan/cards/cross-section/SectionAnnotationsCard.tsx`). One additive card covers all four bracket kinds (microclimate / succession / slope / sector-response) — labelled brackets sit in their own row beneath the elevation profile, colour-coded by kind. Persisted as a new optional `Transect.sectionAnnotations?: SectionAnnotation[]` field (no schema-version bump — legacy transects load with it undefined). Slope brackets auto-derive a slope % from the cached elevation profile so the steward only labels intent, not gradient. Coverage stats surface uncovered kinds against the OSU PDC rubric. Atlas's existing `TransectVerticalEditorCard` (vertical pins + solstice overlay) is untouched.
+
 ## Decision
 
 No code change required for the verdict. Filing the four enhancements above as a Module 6 follow-up ticket; the iteration ADR will list them. Atlas's Module 6 remains as-is.
