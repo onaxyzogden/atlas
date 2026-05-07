@@ -109,9 +109,17 @@ Shared math helper `waterMath.ts`:
 - **Map-draw integration:** polygon tool for catchments, polyline
   tool for swales/overflows. Atlas's draw infrastructure lives in
   OBSERVE; needs re-mounting on the Plan map.
-- **Topographic context:** contour overlay + ridge/valley auto-trace
-  from `siteDataStore` slope/aspect raster (Yeomans Scale of
-  Permanence: landform precedes water).
+- ✅ **Topographic context (summary fields)** — landed 2026-05-07.
+  `WaterCatchmentsCard` now reads the elevation layer from
+  `siteDataStore` and surfaces a Yeomans-grounded "Topographic
+  context" panel at the top of the card: elevation range + mean,
+  mean slope (with max), predominant aspect (labelled as the
+  downslope direction). One-line callout cites Yeomans's Scale of
+  Permanence ("Climate & Landform precede Water") so the steward
+  reads landform *before* sizing catchments. Falls back to an
+  "Observe fetch needed" prompt when the elevation layer isn't yet
+  populated. Contour overlay + ridge/valley auto-trace remain
+  deferred — those need raster work, not just summary fields.
 - **Peak-event sizing:** ingest 100-yr / 24-hr design storm to size
   emergency overflows / spillways alongside annual yields.
 - **Migrate legacy `earthworks` and `storageInfra` collections** into

@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 2 · Water catchments topographic context
+
+Module 2 (Water) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-water-scholar-build-fresh.md`). `WaterCatchmentsCard` gains a "Topographic context" section above its precipitation block. Pulls `min/max/mean_elevation_m`, `mean_slope_deg` (+max), and `predominant_aspect` from the elevation layer summary in `siteDataStore` and renders one stat row per available field. Above the rows: a Yeomans-grounded callout ("Climate & Landform precede Water on the Scale of Permanence — read the slope & aspect before sizing catchments"). When the elevation layer isn't fetched, the panel renders an Observe-fetch hint instead of empty rows. Contour overlay + ridge/valley auto-trace remain deferred (those need raster work). Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 4 · GuildSpatialBuilder slope vector from siteDataStore
 
 Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `GuildSpatialBuilderCard` now reads `predominant_aspect` + `mean_slope_deg` off the elevation layer summary in `siteDataStore` (via `useSiteData` + `getLayerSummary`). The schematic water-flow arrow is rotated to the aspect bearing — the eight compass strings (N/NE/E/SE/S/SW/W/NW) map to 0/45/.../315° and an SVG sin/cos transform places the arrow head in the downslope direction with the tail uphill. Inline label reads e.g. "water flow → SE · 4.2° slope"; the prose above the diagram echoes the values. When the elevation layer hasn't been fetched, the card falls back to the original generic N→S arrow with a hint to run an elevation fetch in Observe. The Scholar's quote ("Tree placement will follow the patterns of water flow and access") now has a live data hook rather than a TODO. `siteMatch.ts` precip/slope refinement stays deferred. Typecheck clean.

@@ -20,7 +20,7 @@ import {
   type CatchmentSurface,
 } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
-import { useSiteData, getLayer } from '../../../../store/siteDataStore.js';
+import { useSiteData, getLayer, getLayerSummary } from '../../../../store/siteDataStore.js';
 import {
   DEFAULT_COEFF,
   SURFACE_LABEL,
@@ -46,6 +46,18 @@ export default function WaterCatchmentsCard({ project }: Props) {
     const climate = getLayer(siteData, 'climate');
     const summary = climate?.summary as { annual_precip_mm?: number } | undefined;
     return summary?.annual_precip_mm ?? null;
+  }, [siteData]);
+
+  const elev = useMemo(() => {
+    if (!siteData) return null;
+    return getLayerSummary<{
+      min_elevation_m?: number;
+      max_elevation_m?: number;
+      mean_elevation_m?: number;
+      mean_slope_deg?: number;
+      max_slope_deg?: number;
+      predominant_aspect?: string;
+    }>(siteData, 'elevation');
   }, [siteData]);
 
   const [precipMm, setPrecipMm] = useState<number>(sitePrecipMm ?? 900);
@@ -97,6 +109,53 @@ export default function WaterCatchmentsCard({ project }: Props) {
           directed water graph in the network view.
         </p>
       </header>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Topographic context</h2>
+        <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
+          Yeomans places <em>Climate &amp; Landform</em> above <em>Water</em> on
+          the Scale of Permanence — read the slope & aspect before sizing
+          catchments so swales and storage land on the right contours.
+        </p>
+        {elev ? (
+          <>
+            {typeof elev.min_elevation_m === 'number' &&
+             typeof elev.max_elevation_m === 'number' && (
+              <div className={styles.statRow}>
+                <span>Elevation range</span>
+                <span>
+                  {elev.min_elevation_m}–{elev.max_elevation_m} m
+                  {typeof elev.mean_elevation_m === 'number'
+                    ? ` (mean ${elev.mean_elevation_m} m)`
+                    : ''}
+                </span>
+              </div>
+            )}
+            {typeof elev.mean_slope_deg === 'number' && (
+              <div className={styles.statRow}>
+                <span>Mean slope</span>
+                <span>
+                  {elev.mean_slope_deg.toFixed(1)}°
+                  {typeof elev.max_slope_deg === 'number'
+                    ? ` (max ${elev.max_slope_deg.toFixed(1)}°)`
+                    : ''}
+                </span>
+              </div>
+            )}
+            {elev.predominant_aspect && (
+              <div className={styles.statRow}>
+                <span>Predominant aspect</span>
+                <span>{elev.predominant_aspect} (downslope direction)</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0' }}>
+            No elevation layer fetched — run an Observe site fetch to populate
+            slope, aspect, and elevation context.
+          </p>
+        )}
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Site precipitation</h2>
