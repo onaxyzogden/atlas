@@ -79,7 +79,10 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
 
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
-- `projectStore` — project CRUD, active project selection
+- `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
+  now preserves the existing local UUID (keeps IndexedDB `boundary:<id>` entries
+  valid) and user-drawn parcel boundaries across builtin re-seeds. See
+  [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 - `zoneStore` — land zones (13 categories)
 - `structureStore` — structures (20 types)
 - `livestockStore` — paddocks + livestock species
@@ -89,7 +92,11 @@ All use `persist` middleware with localStorage. Key stores:
 - `scenarioStore` — design scenario snapshots (v2, full dollars)
 - `financialStore` — region, mission weights, overrides
 - `fieldworkStore` — field notes, walk routes, punch lists
-- `siteDataStore` — cached layer data (fetch-driven, ephemeral)
+- `siteDataStore` — cached layer data (fetch-driven, ephemeral). Now tracks
+  `lastCenter` + `lastCountry` per project; when `refreshProject` detects a
+  centroid shift >1km or country change, stale jurisdiction data is cleared
+  before the new fetch runs (prevents Ontario scores from labelling a Michigan
+  parcel during a reload). See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 - **Site-annotations namespace stores (2026-04-30, 7 stores):**
   `externalForcesStore` (hazards + sectors), `topographyStore` (transects
   with `verticalRefs` discriminated union), `ecologyStore` (ecology +
@@ -131,6 +138,24 @@ All use `persist` middleware with localStorage. Key stores:
   remains mounted; cutover deferred to v3.1. See decision record
   [`2026-04-28-atlas-v3-mock-first-lifecycle-shell.md`](../decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md)
   and backlog [`apps/web/src/v3/BACKLOG-v3.1.md`](../../apps/web/src/v3/BACKLOG-v3.1.md).
+
+  **Stage right-rail ownership (2026-05-07):** `LandOsShell.rail` is now
+  optional. Design / Prove / Operate (`SELF_RAILED_STAGES`) own their right rail
+  by passing a stage-specific component to `StageShell.rightRail`; the
+  outer `LandOsShell` rail track is omitted entirely for those stages.
+  `V3ProjectLayout` passes `rail={undefined}` for self-railed stages;
+  `DecisionRail` short-circuits on them as a belt-and-suspenders guard.
+
+  **DiagnoseMap crash-fix pattern (2026-05-07):** `DiagnoseMap` calls
+  `setMap(null); m.remove()` in cleanup. `m.remove()` destroys `map.style`
+  synchronously, but React fires children's old cleanup effects afterward
+  with a stale map reference — any MapLibre API call inside those cleanups
+  throws. All components rendered inside `DiagnoseMap` that attach cleanup
+  effects calling MapLibre APIs must wrap those calls in
+  `try { … } catch { /* map already removed */ }`.
+  Fixed components: `ObserveAnnotationLayers` (commit `4da754f`),
+  `AnnotationDragHandler` (commit `88b6556`). `AnnotationVertexEditHandler`
+  was already guarded. See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
