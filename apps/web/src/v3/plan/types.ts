@@ -134,6 +134,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Zone level layer', sectionId: 'plan-zone-level' },
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
     { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
+    { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

@@ -42,6 +42,12 @@ const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequ
 // from OGDEN is intentionally excluded — it belongs in a future
 // Subdivision/Livestock module per Yeomans Scale of Permanence.
 const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/ZoneCirculationOverviewCard.js'));
+// Zones (Module 3) — sector overlay card added per Permaculture Scholar
+// follow-up 2026-05-07. Mollison ch.3 + OSU PDC pair zones (radial from the
+// home centre) with sectors (radial from outside): wind, fire, view, noise.
+// This card surfaces wind from the climate layer + downslope from the
+// elevation layer, with editable fire/view/noise compass pickers.
+const SectorOverlayCard           = lazy(() => import('./cards/zone-circulation/SectorOverlayCard.js'));
 // Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's PlantDatabaseCard / GuildBuilderCard /
 // CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
@@ -102,6 +108,7 @@ function renderCard(
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
+    case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;

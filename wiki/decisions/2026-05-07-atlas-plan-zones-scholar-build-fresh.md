@@ -132,7 +132,16 @@ Module 3 sub-cards (3, was 2):
   intersection. A defensive `try/catch` around the turf call falls
   back to the bbox-positive result on degenerate geometries so a bad
   feature can't false-flag every high-frequency path.
-- **Sector overlay** — OSU PDC and Mollison both pair zones with
-  *sectors* (sun, wind, fire, view). The Cross-section module
-  (Module 6) covers sun. A separate sector card for wind/fire/view
-  may be warranted in a future iteration.
+- ✅ **Sector overlay** — landed 2026-05-07. New
+  `SectorOverlayCard` at `apps/web/src/v3/plan/cards/zone-circulation/`
+  added as 4th tab `plan-sector-overlay` under `zone-circulation`.
+  Renders a 360 × 360 compass diagram with: a wind sector (parsed
+  from `climate.prevailing_wind` via 8-point compass quantiser
+  handling "W-SW" / "WSW" / "SW" forms), a downslope-water sector
+  (from `elevation.predominant_aspect`), and three editable
+  compass-pickers for fire / view / noise (component-state v1 —
+  persistence as future `sectorStore` follow-up). Wedge `<path>`
+  geometry is bearing-keyed (N=0° up, SVG y-down). Site-data source
+  rows below the diagram echo the raw layer values + parsed compass
+  keys, with "run an Observe site fetch" hint when layers absent.
+  Cites Mollison ch.3 + OSU PDC Week 2 (Sectors & Zones).

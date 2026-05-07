@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 3 · SectorOverlayCard (wind/fire/view/noise)
+
+Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). New card `apps/web/src/v3/plan/cards/zone-circulation/SectorOverlayCard.tsx` added as the 4th `zone-circulation` tab (`plan-sector-overlay`). Renders a 360×360 compass with: a prevailing-wind sector parsed from `climate.prevailing_wind` (8-point quantiser handles "W-SW", "WSW", "SW"), a downslope-water sector from `elevation.predominant_aspect`, and three editable compass-pickers for Fire / View / Noise (component-state v1; future `sectorStore` will persist). Wedges drawn via SVG `<path>` with N=0° / y-down geometry; site-data rows below the diagram echo raw + parsed values, with an Observe-fetch hint when layers absent. The "Why sectors" footer cites Mollison ch.3 + OSU PDC Week 2 (Sectors & Zones). Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 1 · Layer-relationship graph in PermanenceLadderCard
 
 Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` adds a "Layer relationships" SVG (360 × 280) between the rank ledger and the "Why this ladder" footer. Nine rank nodes are laid out top-to-bottom; curved edges arc rightward from each rank to every prerequisite (e.g. Vegetation → Water, Access, Soil) using the same `prereqs` schema that already drives the ordering check. Nodes glow with the warm→cool ladder palette when populated and stay dim grey when empty; the right margin shows the live count. The Scholar's call to surface inter-rank relationships beyond ordering warnings — Holmgren P8 (*Integrate rather than segregate*) — is now drawn rather than narrated. Typecheck clean.
