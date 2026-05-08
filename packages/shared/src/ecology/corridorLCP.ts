@@ -103,7 +103,16 @@ export const COVER_IMPEDANCE: Record<CoverClass, number> = {
 export function normalizeCoverClass(input: string | null | undefined): CoverClass {
   if (!input) return 'unknown';
   const s = input.toLowerCase();
-  if (s.includes('developed') || s.includes('urban') || s.includes('impervious')) return 'urban';
+  // 'built' added 2026-05-08 to catch WorldCover class 50 + ACI class 41,
+  // both of which canonicalise to 'Built-up (unspecified)' (the only
+  // urban canonical missing 'developed' / 'urban' / 'impervious').
+  if (
+    s.includes('developed') ||
+    s.includes('urban') ||
+    s.includes('impervious') ||
+    s.includes('built')
+  )
+    return 'urban';
   if (s.includes('water') || s.includes('open water')) return 'water';
   if (s.includes('wetland') || s.includes('marsh') || s.includes('bog') || s.includes('fen')) {
     return 'wetland';

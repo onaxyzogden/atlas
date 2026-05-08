@@ -131,6 +131,11 @@ describe('normalizeCoverClass', () => {
     expect(normalizeCoverClass('Woody Wetlands')).toBe('wetland');
     expect(normalizeCoverClass('Open Water')).toBe('water');
     expect(normalizeCoverClass('Developed, Medium Intensity')).toBe('urban');
+    // WorldCover class 50 + ACI class 41 both canonicalise to 'Built-up
+    // (unspecified)'. Before 2026-05-08 these slipped through to 'unknown'
+    // (friction 5) instead of 'urban' (friction 15) — see corridorLCP.ts:106.
+    expect(normalizeCoverClass('Built-up (unspecified)')).toBe('urban');
+    expect(normalizeCoverClass('Built up')).toBe('urban');
     expect(normalizeCoverClass('Barren Land')).toBe('barren');
     expect(normalizeCoverClass(null)).toBe('unknown');
     expect(normalizeCoverClass('')).toBe('unknown');
