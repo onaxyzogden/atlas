@@ -229,13 +229,46 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
         const richness = guilds.length > 0
           ? ` · avg ${avgLayers.toFixed(1)} / 7 layers (deepest ${maxLayers})`
           : '';
+
+        // Age weighting (Module 1 follow-up 2026-05-07). A 5-year-old
+        // food-forest carries more permanence than a freshly-recorded
+        // garden bed; Yeomans treats Vegetation as a months–years rank
+        // because canopy depth and soil-microbiome maturity *accumulate*
+        // with time. Use `createdAt` as a `plantedAt` proxy until a
+        // first-class field is added — the steward's recording date is
+        // the best signal we have. Aggregate the *oldest* and *median*
+        // age across crop areas + guilds, in years.
+        const now = Date.now();
+        const ageYears: number[] = [];
+        for (const c of crops) {
+          const ts = Date.parse(c.createdAt);
+          if (Number.isFinite(ts)) ageYears.push((now - ts) / (365.25 * 24 * 3600 * 1000));
+        }
+        for (const g of guilds) {
+          const ts = Date.parse(g.createdAt);
+          if (Number.isFinite(ts)) ageYears.push((now - ts) / (365.25 * 24 * 3600 * 1000));
+        }
+        let agePart = '';
+        if (ageYears.length > 0) {
+          const sorted = ageYears.slice().sort((a, b) => a - b);
+          const oldest = sorted[sorted.length - 1] ?? 0;
+          const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+          // Format: <0.1 yr → weeks; <1 yr → months; ≥1 yr → years to 1dp.
+          const fmtYr = (y: number): string => {
+            if (y >= 1) return `${y.toFixed(1)} yr`;
+            if (y >= 1 / 12) return `${Math.round(y * 12)} mo`;
+            return `${Math.max(1, Math.round(y * 52))} wk`;
+          };
+          agePart = ` · oldest ${fmtYr(oldest)} (median ${fmtYr(median)})`;
+        }
+
         const cropAreaLabel = cropArea > 0 ? `${fmtA(cropArea)} of crop` : '';
-        const weightLabel = [cropAreaLabel, richness.replace(/^ · /, '')]
+        const weightLabel = [cropAreaLabel, richness.replace(/^ · /, ''), agePart.replace(/^ · /, '')]
           .filter(Boolean)
           .join(' · ');
         return {
           count: crops.length + guilds.length,
-          label: `${crops.length} crop area(s) · ${guilds.length} guild(s)${richness}`,
+          label: `${crops.length} crop area(s) · ${guilds.length} guild(s)${richness}${agePart}`,
           weight: cropArea,
           weightLabel,
         };

@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 1 · Age weighting on rank 8 Vegetation
+
+Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` rank 8 now surfaces `oldest N.N yr (median M)` derived from `CropArea.createdAt` and `Guild.createdAt` (used as a `plantedAt` proxy — no schema change). Yeomans frames Vegetation as a months–years rank precisely because canopy depth and soil-microbiome maturity accumulate with time; making age legible at the ladder row lets a 5-year-old food forest read as more anchored than a freshly-recorded bed. Format scales with magnitude (weeks / months / years). The bar still keys on raw count; richness + age are purely advisory. A first-class `plantedAt` field remains nice-to-have but no longer blocking — the proxy is honest about what it represents. Typecheck clean (only pre-existing unrelated `elementCatalog.ts` error).
+
+---
+
 ## 2026-05-07 — Plan Module 7 · Cumulative-prerequisite severity on Scale-of-Permanence matrix
 
 Module 7 (Phasing) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scale-of-permanence-enhancement.md`). `PhasingScaleMatrixCard` previously flagged sequencing violations only at the per-phase grain (Vegetation present in Phase 3 but Water empty in Phase 3). The check now also computes cumulative prereq counts across phases 1..N — a violation tagged `cumulative` (red) means the prereq has zero tasks anywhere upstream, which is the orthodox Keyline failure (you've been planting trees for three phases with no water work upstream); a `same-phase` violation (orange, weaker) means the prereq exists upstream but not within this phase. Each violation row now carries a coloured left-border + a tag pill, and cumulative-severity rows replace the per-phase remedy text with the cross-program Yeomans reading. Same-phase violations are de-duplicated against cumulative ones so the steward sees the worst severity once. Typecheck clean (only pre-existing unrelated `elementCatalog.ts` error).
