@@ -1,12 +1,20 @@
 /**
  * DesignToolRail — right-edge floating tool column for the Vision-Layout canvas.
  *
- * Mirrors the visual grammar of the reference image: Select, Pan, a Draw
- * indicator that reflects the palette's active element, Duplicate, Zoom +/-,
- * Layers. v1 wires only the zoom controls to MapLibre; the rest are visual
- * placeholders that surface state already owned elsewhere (palette → activeKind).
+ * Wires:
+ *   - Select / Pan: a tool-mode toggle. Select mode arms a map click handler
+ *     that queries the `design-el-*` layers for the topmost feature under the
+ *     cursor and stores its id; Duplicate then operates on that selection.
+ *   - Draw (Pencil): reflects the palette's `activeKind`. When a draw is
+ *     armed, clicking the pencil disarms via `onDisarmDraw`.
+ *   - Duplicate: clones the selected element via the design-elements store,
+ *     offset by a small lng/lat delta so the clone is visible.
+ *   - Zoom +/-: MapLibre `zoomIn` / `zoomOut`.
+ *   - Layers: opens a small popover toggling the visibility of the
+ *     `design-el-*` map layers (polygons / lines / points / labels).
  */
 
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Copy,
   Hand,
@@ -16,38 +24,223 @@ import {
   Plus,
   Minus,
 } from 'lucide-react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
+import { useDesignElementsStore } from '../../../store/designElementsStore.js';
 import css from './DesignToolRail.module.css';
 
 interface Props {
   map: MaplibreMap;
   /** Active draw kind from the palette; pencil button highlights when set. */
   activeKind: string | null;
+  /** Project id — used by Duplicate to clone into the right collection. */
+  projectId: string;
+  /** Optional callback to disarm an active palette draw tool. */
+  onDisarmDraw?: () => void;
 }
 
-export default function DesignToolRail({ map, activeKind }: Props) {
+type ToolMode = 'pan' | 'select';
+
+const DESIGN_QUERY_LAYERS = [
+  'design-el-poly-fill',
+  'design-el-line',
+  'design-el-point',
+];
+
+const VISIBILITY_LAYERS: Array<{ key: string; label: string; ids: string[] }> = [
+  { key: 'poly',   label: 'Polygons', ids: ['design-el-poly-fill', 'design-el-poly-line'] },
+  { key: 'line',   label: 'Lines',    ids: ['design-el-line'] },
+  { key: 'point',  label: 'Points',   ids: ['design-el-point'] },
+  { key: 'label',  label: 'Labels',   ids: ['design-el-label'] },
+];
+
+const DUPLICATE_OFFSET_DEG = 0.00015; // ~15 m in lat — small visual nudge
+
+function offsetGeometry(
+  g: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon,
+  d: number,
+): GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon {
+  if (g.type === 'Point') {
+    const [lng, lat] = g.coordinates;
+    return { ...g, coordinates: [lng! + d, lat! + d] };
+  }
+  if (g.type === 'LineString') {
+    return {
+      ...g,
+      coordinates: g.coordinates.map(([lng, lat]) => [lng! + d, lat! + d]),
+    };
+  }
+  return {
+    ...g,
+    coordinates: g.coordinates.map((ring) =>
+      ring.map(([lng, lat]) => [lng! + d, lat! + d]),
+    ),
+  };
+}
+
+export default function DesignToolRail({ map, activeKind, projectId, onDisarmDraw }: Props) {
+  const [mode, setMode] = useState<ToolMode>('pan');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const railRef = useRef<HTMLDivElement>(null);
+
+  const elements = useDesignElementsStore(
+    (s) => s.byProject[projectId] ?? [],
+  );
+  const addElement = useDesignElementsStore((s) => s.add);
+
   const zoomIn = () => map.zoomIn();
   const zoomOut = () => map.zoomOut();
 
+  // ── Select mode: pick design features on click ─────────────────────────
+  useEffect(() => {
+    if (mode !== 'select') return;
+    const onClick = (e: MapMouseEvent) => {
+      const layerIds = DESIGN_QUERY_LAYERS.filter((id) => map.getLayer(id));
+      if (layerIds.length === 0) return;
+      const feats = map.queryRenderedFeatures(e.point, { layers: layerIds });
+      const id =
+        (feats[0]?.properties as { id?: string } | undefined)?.id ?? null;
+      setSelectedId(id);
+    };
+    map.on('click', onClick);
+    const prevCursor = map.getCanvas().style.cursor;
+    map.getCanvas().style.cursor = 'crosshair';
+    return () => {
+      try {
+        map.off('click', onClick);
+        map.getCanvas().style.cursor = prevCursor;
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, mode]);
+
+  // ── Layers panel: apply visibility to map layers ───────────────────────
+  useEffect(() => {
+    for (const group of VISIBILITY_LAYERS) {
+      const isHidden = hidden[group.key] === true;
+      for (const id of group.ids) {
+        if (!map.getLayer(id)) continue;
+        try {
+          map.setLayoutProperty(id, 'visibility', isHidden ? 'none' : 'visible');
+        } catch {
+          /* layer style not ready yet — re-runs after style.load via parent */
+        }
+      }
+    }
+  }, [map, hidden, elements]); // re-run when elements arrive (layers might mount late)
+
+  // ── Click-outside: close the Layers popover ────────────────────────────
+  useEffect(() => {
+    if (!layersOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!railRef.current) return;
+      if (e.target instanceof Node && railRef.current.contains(e.target)) return;
+      setLayersOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [layersOpen]);
+
+  // Clear stale selection if the underlying element is gone.
+  useEffect(() => {
+    if (selectedId && !elements.some((e) => e.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [elements, selectedId]);
+
+  const selected = useMemo(
+    () => elements.find((e) => e.id === selectedId) ?? null,
+    [elements, selectedId],
+  );
+
+  const handlePan = () => {
+    setMode('pan');
+    setSelectedId(null);
+  };
+  const handleSelect = () => setMode('select');
+
+  const handlePencil = () => {
+    if (activeKind && onDisarmDraw) onDisarmDraw();
+  };
+
+  const handleDuplicate = useCallback(() => {
+    if (!selected) return;
+    const newId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    addElement(projectId, {
+      ...selected,
+      id: newId,
+      label: selected.label ? `${selected.label} (copy)` : undefined,
+      geometry: offsetGeometry(selected.geometry, DUPLICATE_OFFSET_DEG),
+      createdAt: new Date().toISOString(),
+    });
+    setSelectedId(newId);
+  }, [selected, addElement, projectId]);
+
+  const drawArmed = activeKind !== null;
+  const canDuplicate = selected != null;
+
   return (
-    <div className={css.rail} role="toolbar" aria-label="Design tools">
-      <button type="button" className={css.btn} disabled title="Select (coming soon)" aria-label="Select">
+    <div ref={railRef} className={css.rail} role="toolbar" aria-label="Design tools">
+      <button
+        type="button"
+        className={css.btn}
+        data-active={mode === 'select'}
+        onClick={handleSelect}
+        title={
+          mode === 'select'
+            ? selected
+              ? `Selected: ${selected.label ?? selected.kind}`
+              : 'Select — click a design element on the map'
+            : 'Select'
+        }
+        aria-label="Select"
+        aria-pressed={mode === 'select'}
+      >
         <MousePointer2 size={15} strokeWidth={1.75} />
       </button>
-      <button type="button" className={css.btn} disabled title="Pan (coming soon)" aria-label="Pan">
+      <button
+        type="button"
+        className={css.btn}
+        data-active={mode === 'pan'}
+        onClick={handlePan}
+        title="Pan — drag the map"
+        aria-label="Pan"
+        aria-pressed={mode === 'pan'}
+      >
         <Hand size={15} strokeWidth={1.75} />
       </button>
       <button
         type="button"
         className={css.btn}
-        data-active={activeKind !== null}
-        disabled
-        title={activeKind ? `Drawing: ${activeKind}` : 'Pick an element from the palette to draw'}
+        data-active={drawArmed}
+        onClick={handlePencil}
+        disabled={!drawArmed}
+        title={
+          drawArmed
+            ? `Drawing: ${activeKind} — click to cancel`
+            : 'Pick an element from the palette to draw'
+        }
         aria-label="Draw"
       >
         <Pencil size={15} strokeWidth={1.75} />
       </button>
-      <button type="button" className={css.btn} disabled title="Duplicate (coming soon)" aria-label="Duplicate">
+      <button
+        type="button"
+        className={css.btn}
+        onClick={handleDuplicate}
+        disabled={!canDuplicate}
+        title={
+          canDuplicate
+            ? `Duplicate ${selected!.label ?? selected!.kind}`
+            : 'Select an element first to duplicate'
+        }
+        aria-label="Duplicate"
+      >
         <Copy size={15} strokeWidth={1.75} />
       </button>
       <div className={css.divider} aria-hidden="true" />
@@ -58,9 +251,38 @@ export default function DesignToolRail({ map, activeKind }: Props) {
         <Minus size={15} strokeWidth={1.75} />
       </button>
       <div className={css.divider} aria-hidden="true" />
-      <button type="button" className={css.btn} disabled title="Layers (coming soon)" aria-label="Layers">
+      <button
+        type="button"
+        className={css.btn}
+        data-active={layersOpen}
+        onClick={() => setLayersOpen((o) => !o)}
+        title="Layer visibility"
+        aria-label="Layers"
+        aria-expanded={layersOpen}
+      >
         <Layers size={15} strokeWidth={1.75} />
       </button>
+
+      {layersOpen && (
+        <div className={css.popover} role="menu" aria-label="Layer visibility">
+          <div className={css.popoverTitle}>Layer visibility</div>
+          {VISIBILITY_LAYERS.map((g) => {
+            const isHidden = hidden[g.key] === true;
+            return (
+              <label key={g.key} className={css.popoverRow}>
+                <input
+                  type="checkbox"
+                  checked={!isHidden}
+                  onChange={(e) =>
+                    setHidden((h) => ({ ...h, [g.key]: !e.target.checked }))
+                  }
+                />
+                <span>{g.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

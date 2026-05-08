@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan canvas · DesignToolRail buttons made live
+
+The Vision-Layout canvas's right-edge tool rail had Select / Pan / Pencil / Duplicate / Layers as visual placeholders ("(coming soon)"). All five are now functional. **Select** toggles a select-mode cursor and binds a `map.on('click')` handler that runs `queryRenderedFeatures` against the `design-el-*` layers, storing the topmost feature's id. **Pan** clears selection and returns to default drag. **Pencil** disarms an active palette draw via the existing `onDrawComplete` callback (passed through `VisionLayoutCanvas` as `onDisarmDraw`); it disables when no draw is armed. **Duplicate** clones the selected `DesignElement` via `designElementsStore.add` with a ~15 m lng/lat offset and a `(copy)` label, using `crypto.randomUUID()` (with a fallback). **Layers** opens a click-outside-dismissible popover with four checkboxes (Polygons / Lines / Points / Labels) that drive `map.setLayoutProperty(layerId, 'visibility', ...)`. Mode buttons highlight via the existing `data-active` styling. No store-schema or persistence changes — the rail composes existing actions. Also: `DesignMap.tsx` no longer mounts a MapLibre `NavigationControl` (the rail's own +/- buttons replace it); other map containers (Diagnose / Operate / portal / wizard) keep their nav controls.
+
+---
+
 ## 2026-05-07 — Plan Module 8 · Breadth radar on PrincipleCoverageMatrixCard
 
 `PrincipleCoverageMatrixCard` gains a 12-spoke SVG radar above the matrix. Each spoke is one Holmgren principle; the radius is the share of feature types (typesUsed / 9) the steward has linked as evidence for that principle, normalised to [0, 1]. Concentric reference rings at 0.25 / 0.5 / 0.75 / 1.0 give a visual scale; spoke labels show the principle number; vertices for non-zero values are dotted in gold so a single-type-only principle is still visible against an empty spoke. A spiky shape signals lopsided design (Holmgren P4 *Apply Self-Regulation and Accept Feedback*); a balanced polygon is P8 *Integrate rather than segregate* made visible. Closes the radar half of the parent ADR's "radar / heatmap" follow-up — the matrix's existing per-cell intensity ramp covers the heatmap half. Pure render addition, no schema or store change. ADR `2026-05-07-atlas-plan-principles-three-ethics-rollup.md` updated.

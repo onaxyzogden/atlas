@@ -63,7 +63,12 @@ export default function VisionLayoutCanvas({
       {({ map }) => (
         <>
           <DesignElementLayers map={map} projectId={projectId} view={view} />
-          <DesignToolRail map={map} activeKind={activeKind} />
+          <DesignToolRail
+            map={map}
+            activeKind={activeKind}
+            projectId={projectId}
+            onDisarmDraw={onDrawComplete}
+          />
           <BaseMapCard />
           {activeKind && (
             <DesignElementDrawHost
