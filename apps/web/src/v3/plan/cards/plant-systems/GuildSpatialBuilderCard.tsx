@@ -1,128 +1,170 @@
 /**
- * GuildSpatialBuilderCard — Plan Module 4, fresh build per Permaculture
- * Scholar verdict (2026-05-07).
+ * GuildSpatialBuilderCard — concentric-rings guild designer
+ * (2026-05-08 redesign per user request).
  *
- * Atlas's anchor + members composer is preserved (members tagged by
- * canopy layer, persisted to `usePolycultureStore.guilds`). What the
- * Scholar required additionally: guilds become *spatial*, not list-only,
- * because tree placement "follows the patterns of water flow and access."
+ * Centre disc holds the anchor; concentric rings represent the canopy
+ * layers below the anchor (sub_canopy → root). Click a ring to open a
+ * layer-filtered species picker; click an existing member to remove it.
+ * Every change persists immediately via `updateGuild` — there is no
+ * "Save" gate. Anchor is editable in place.
  *
- * v1 of the spatial pane: a unit-square parcel diagram with a generic
- * downslope water-flow arrow and a draggable guild-centroid marker. The
- * marker position is held in component state — store-schema extension to
- * persist `centroidUv: [u, v]` per guild is a follow-up ticket so this
- * card can ship without a migration.
+ * The parcel placement pane on the left remains as a read-only locator
+ * for guild centroids; new placement happens via the rail Guild tool
+ * (`GuildTool.tsx`), which is the canonical map-first entry. Members
+ * are composed here.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import {
   newAnnotationId,
   type Guild,
-  type GuildMember,
   type GuildLayer,
 } from '../../../../store/site-annotations.js';
 import {
   PLANT_DATABASE,
   findSpecies,
-  type CanopyLayer,
 } from '../../../../data/plantDatabase.js';
+import { findCompanions } from '../../../../lib/companionPlanting.js';
 import styles from '../../../../features/plan/planCard.module.css';
+import GuildRingsCanvas from './GuildRingsCanvas.js';
+import {
+  LAYER_LABEL,
+  FUNCTION_SHORT,
+  primaryFunction,
+} from './guildLayerOrder.js';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
 
-const GUILD_LAYERS: Array<{ value: GuildLayer; label: string }> = [
-  { value: 'canopy',       label: 'Canopy' },
-  { value: 'sub_canopy',   label: 'Sub-canopy' },
-  { value: 'shrub',        label: 'Shrub' },
-  { value: 'herbaceous',   label: 'Herbaceous' },
-  { value: 'ground_cover', label: 'Ground cover' },
-  { value: 'vine',         label: 'Vine' },
-  { value: 'root',         label: 'Root' },
-];
-
-function layerLabel(l: CanopyLayer): string {
-  return GUILD_LAYERS.find((g) => g.value === l)?.label ?? l;
-}
+const ANCHOR_LAYERS: GuildLayer[] = ['canopy', 'sub_canopy'];
 
 export default function GuildSpatialBuilderCard({ project }: Props) {
   const allGuilds = usePolycultureStore((s) => s.guilds);
-  const allPicks = usePolycultureStore((s) => s.species);
   const addGuild = usePolycultureStore((s) => s.addGuild);
+  const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const removeGuild = usePolycultureStore((s) => s.removeGuild);
 
   const guilds = useMemo(
     () => allGuilds.filter((g) => g.projectId === project.id),
     [allGuilds, project.id],
   );
-  const projectPickIds = useMemo(
-    () =>
-      allPicks
-        .filter((p) => p.projectId === project.id)
-        .map((p) => p.speciesId),
-    [allPicks, project.id],
-  );
 
-  const [name, setName] = useState('');
-  const [anchorId, setAnchorId] = useState('');
-  const [members, setMembers] = useState<GuildMember[]>([]);
-  // Spatial centroid in unit-square parcel coords (0..1, top-left origin).
-  const [centroid, setCentroid] = useState<[number, number]>([0.5, 0.5]);
+  const [activeGuildId, setActiveGuildId] = useState<string | null>(null);
+  const [activeRing, setActiveRing] = useState<GuildLayer | null>(null);
+  const [pickAnchor, setPickAnchor] = useState(false);
 
-  const speciesPool = useMemo(() => {
-    if (projectPickIds.length > 0) {
-      return PLANT_DATABASE.filter((p) => projectPickIds.includes(p.id));
+  // Auto-select most recent guild as active (or null when empty).
+  useEffect(() => {
+    if (guilds.length === 0) {
+      setActiveGuildId(null);
+      return;
     }
-    return PLANT_DATABASE;
-  }, [projectPickIds]);
+    if (!activeGuildId || !guilds.some((g) => g.id === activeGuildId)) {
+      const last = guilds[guilds.length - 1];
+      if (last) setActiveGuildId(last.id);
+    }
+  }, [guilds, activeGuildId]);
 
-  function addMember() {
-    setMembers((m) => [...m, { speciesId: speciesPool[0]?.id ?? '', layer: 'shrub' }]);
-  }
-  function updateMember(idx: number, patch: Partial<GuildMember>) {
-    setMembers((m) => m.map((mem, i) => (i === idx ? { ...mem, ...patch } : mem)));
-  }
-  function removeMember(idx: number) {
-    setMembers((m) => m.filter((_, i) => i !== idx));
-  }
+  const active = useMemo(
+    () => guilds.find((g) => g.id === activeGuildId) ?? null,
+    [guilds, activeGuildId],
+  );
+  const anchor = active ? findSpecies(active.anchorSpeciesId) ?? null : null;
 
-  function commit() {
-    if (!name.trim() || !anchorId) return;
+  function startNewGuild() {
     const g: Guild = {
       id: newAnnotationId('gld'),
       projectId: project.id,
-      name: name.trim(),
-      anchorSpeciesId: anchorId,
-      members: members.filter((m) => m.speciesId),
-      centroidUv: [centroid[0], centroid[1]],
+      name: `Guild ${guilds.length + 1}`,
+      anchorSpeciesId: '',
+      members: [],
+      centroidUv: [0.5, 0.5],
       createdAt: new Date().toISOString(),
     };
     addGuild(g);
-    setName('');
-    setAnchorId('');
-    setMembers([]);
-    setCentroid([0.5, 0.5]);
+    setActiveGuildId(g.id);
+    setActiveRing(null);
+    setPickAnchor(true);
   }
 
-  function handleParcelClick(e: React.MouseEvent<SVGSVGElement>) {
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    const u = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const v = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-    setCentroid([u, v]);
+  function pickRing(layer: GuildLayer) {
+    if (!active) return;
+    setActiveRing((cur) => (cur === layer ? null : layer));
+    setPickAnchor(false);
   }
 
-  // Slope vector pulled from `siteDataStore` elevation layer when available
-  // (Scholar follow-up 2026-05-07). `predominant_aspect` is a compass string
-  // ("N", "NE", …, "NW") representing the downslope-facing direction; water
-  // flows in that direction. We rotate the arrow accordingly and annotate
-  // with `mean_slope_deg`. Falls back to the generic N→S arrow when the
-  // elevation layer hasn't been fetched yet.
+  function addMember(speciesId: string, layer: GuildLayer) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: [...active.members, { speciesId, layer }],
+    });
+    setActiveRing(null);
+  }
+
+  function removeMember(memberIndex: number) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.filter((_, i) => i !== memberIndex),
+    });
+  }
+
+  function setAnchor(speciesId: string) {
+    if (!active) return;
+    updateGuild(active.id, { anchorSpeciesId: speciesId });
+    setPickAnchor(false);
+  }
+
+  function renameGuild(name: string) {
+    if (!active) return;
+    updateGuild(active.id, { name });
+  }
+
+  // Picker species pool — filtered by ring layer, ordered by:
+  // 1. companions of the anchor (best-effort string match against MATRIX),
+  // 2. species sharing a function the guild is missing,
+  // 3. alphabetical.
+  const pickerSpecies = useMemo(() => {
+    if (!activeRing || !active) return [];
+    const candidates = PLANT_DATABASE.filter((p) => p.layer === activeRing);
+    const used = new Set(active.members.map((m) => m.speciesId));
+    const remaining = candidates.filter((p) => !used.has(p.id));
+    const anchorSp = findSpecies(active.anchorSpeciesId);
+    const anchorKey = anchorSp?.commonName.toLowerCase().split(' ')[0] ?? '';
+    const companionEntry = anchorKey ? findCompanions(anchorKey) : null;
+    const companionSet = new Set(companionEntry?.companions ?? []);
+    const presentFns = new Set(
+      active.members
+        .map((m) => findSpecies(m.speciesId))
+        .filter((s): s is NonNullable<typeof s> => !!s)
+        .flatMap((s) => s.ecologicalFunction),
+    );
+    const score = (sp: (typeof remaining)[number]) => {
+      let s = 0;
+      const key = sp.commonName.toLowerCase().split(' ')[0] ?? '';
+      if (key && companionSet.has(key)) s += 10;
+      const newFns = sp.ecologicalFunction.filter((f) => !presentFns.has(f));
+      s += newFns.length;
+      return s;
+    };
+    return [...remaining].sort((a, b) => {
+      const sa = score(a);
+      const sb = score(b);
+      if (sa !== sb) return sb - sa;
+      return a.commonName.localeCompare(b.commonName);
+    });
+  }, [activeRing, active]);
+
+  const anchorPickerSpecies = useMemo(
+    () => PLANT_DATABASE.filter((p) => ANCHOR_LAYERS.includes(p.layer)),
+    [],
+  );
+
+  // Slope vector pulled from `siteDataStore` elevation layer when available.
   const siteData = useSiteData(project.id);
   const elev = siteData
     ? getLayerSummary<{
@@ -130,25 +172,17 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
         predominant_aspect?: string;
       }>(siteData, 'elevation')
     : null;
-
   const ASPECT_BEARING: Record<string, number> = {
     N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315,
   };
   const aspect = elev?.predominant_aspect;
   const meanSlope = elev?.mean_slope_deg;
   const bearingDeg = aspect ? ASPECT_BEARING[aspect] ?? 180 : 180;
-  // SVG y grows downward; bearing 0 = N (up). Convert to SVG vector.
   const theta = (bearingDeg * Math.PI) / 180;
   const cx = 200, cy = 160;
-  const half = 130; // pixels from center to arrow head
-  const arrowFrom = {
-    x: cx - Math.sin(theta) * half,
-    y: cy + Math.cos(theta) * half,
-  };
-  const arrowTo = {
-    x: cx + Math.sin(theta) * half,
-    y: cy - Math.cos(theta) * half,
-  };
+  const half = 130;
+  const arrowFrom = { x: cx - Math.sin(theta) * half, y: cy + Math.cos(theta) * half };
+  const arrowTo = { x: cx + Math.sin(theta) * half, y: cy - Math.cos(theta) * half };
   const arrowLabel = aspect
     ? `water flow → ${aspect}${
         typeof meanSlope === 'number' ? ` · ${meanSlope.toFixed(1)}° slope` : ''
@@ -161,21 +195,244 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Guild builder · spatial</h1>
         <p className={styles.lede}>
-          Compose a polyculture around an anchor species, then place its
-          centroid on the parcel diagram so the guild responds to the
-          site’s water-flow and access patterns.{' '}
-          {projectPickIds.length > 0
-            ? `${projectPickIds.length} project picks available.`
-            : 'Tip: add picks in the Plant Database first.'}
+          Compose a polyculture as concentric layers around an anchor tree:
+          the anchor sits at the centre, then each canopy stratum
+          (sub-canopy → root) becomes a ring you can populate with companions
+          filtered to that layer. The parcel pane on the right shows where
+          your saved guilds live on the site.
         </p>
       </header>
 
       <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          Active guild
+          {active && (
+            <span style={{ color: 'rgba(232,220,200,0.55)', fontWeight: 400, marginLeft: 8 }}>
+              · {active.members.length} member(s)
+            </span>
+          )}
+        </h2>
+        {!active ? (
+          <div>
+            <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
+              No guild on this project yet. Drop one with the rail's
+              {' '}<strong>Guild</strong> tool, or start a fresh one here.
+            </p>
+            <div className={styles.btnRow}>
+              <button type="button" className={styles.btn} onClick={startNewGuild}>
+                + New guild
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className={styles.grid} style={{ marginBottom: 16 }}>
+              <label className={styles.field}>
+                <span>Guild name</span>
+                <input
+                  value={active.name}
+                  onChange={(e) => renameGuild(e.target.value)}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Switch guild</span>
+                <select
+                  value={active.id}
+                  onChange={(e) => {
+                    setActiveGuildId(e.target.value);
+                    setActiveRing(null);
+                    setPickAnchor(false);
+                  }}
+                >
+                  {guilds.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, 1fr)',
+                gap: 16,
+                alignItems: 'start',
+              }}
+            >
+              <GuildRingsCanvas
+                anchor={anchor}
+                members={active.members}
+                onPickRing={pickRing}
+                onClickMember={removeMember}
+                onPickAnchor={() => {
+                  setPickAnchor(true);
+                  setActiveRing(null);
+                }}
+                activeRing={activeRing}
+              />
+
+              <div>
+                {pickAnchor && (
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.25)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                  >
+                    <h3 style={{ margin: '0 0 8px', fontSize: 13, color: 'rgba(232,220,200,0.85)' }}>
+                      Pick anchor
+                    </h3>
+                    <p style={{ margin: '0 0 8px', fontSize: 11, color: 'rgba(232,220,200,0.6)' }}>
+                      Anchors are canopy or sub-canopy species — they set the upper
+                      storey of the guild.
+                    </p>
+                    <ul className={styles.list} style={{ maxHeight: 320, overflowY: 'auto' }}>
+                      {anchorPickerSpecies.map((p) => (
+                        <li
+                          key={p.id}
+                          className={styles.listRow}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setAnchor(p.id)}
+                        >
+                          <div>
+                            <strong>{p.commonName}</strong>
+                            <div className={styles.listMeta}>
+                              {LAYER_LABEL[p.layer]} · {p.latinName}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className={styles.btnRow}>
+                      <button
+                        type="button"
+                        className={styles.btn}
+                        onClick={() => setPickAnchor(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeRing && !pickAnchor && (
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.25)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                  >
+                    <h3 style={{ margin: '0 0 4px', fontSize: 13, color: 'rgba(232,220,200,0.85)' }}>
+                      Add to {LAYER_LABEL[activeRing]} layer
+                    </h3>
+                    <p style={{ margin: '0 0 8px', fontSize: 11, color: 'rgba(232,220,200,0.6)' }}>
+                      Filtered to species whose canopy layer is{' '}
+                      <code>{activeRing}</code>. Companions of the anchor float
+                      to the top.
+                    </p>
+                    {pickerSpecies.length === 0 ? (
+                      <p className={styles.empty} style={{ padding: '6px 0' }}>
+                        No more species available in this layer.
+                      </p>
+                    ) : (
+                      <ul className={styles.list} style={{ maxHeight: 320, overflowY: 'auto' }}>
+                        {pickerSpecies.map((p) => {
+                          const fn = primaryFunction(p.ecologicalFunction);
+                          return (
+                            <li
+                              key={p.id}
+                              className={styles.listRow}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => addMember(p.id, activeRing)}
+                            >
+                              <div>
+                                <strong>{p.commonName}</strong>
+                                <div className={styles.listMeta}>
+                                  {fn ? FUNCTION_SHORT[fn] : '—'} · {p.latinName}
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    <div className={styles.btnRow}>
+                      <button
+                        type="button"
+                        className={styles.btn}
+                        onClick={() => setActiveRing(null)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!pickAnchor && !activeRing && (
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.25)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      padding: 12,
+                      fontSize: 12,
+                      color: 'rgba(232,220,200,0.7)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    <strong style={{ color: 'rgba(232,220,200,0.95)' }}>
+                      How to compose
+                    </strong>
+                    <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+                      <li>Click the centre disc to pick / change the anchor.</li>
+                      <li>Click any ring to add a companion at that layer.</li>
+                      <li>Click a member dot to remove it.</li>
+                    </ul>
+                    <hr
+                      style={{
+                        border: 0,
+                        borderTop: '1px solid rgba(255,255,255,0.08)',
+                        margin: '10px 0',
+                      }}
+                    />
+                    <strong style={{ color: 'rgba(232,220,200,0.95)' }}>
+                      Function chips
+                    </strong>
+                    <div style={{ marginTop: 4 }}>
+                      N-fix · Poll · Acc · Ins · Wild · Edible · Med · Timber · Fodder
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.btnRow} style={{ marginTop: 12 }}>
+              <button type="button" className={styles.btn} onClick={startNewGuild}>
+                + New guild
+              </button>
+              <button
+                type="button"
+                className={styles.removeBtn}
+                onClick={() => active && removeGuild(active.id)}
+              >
+                Delete guild
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Parcel placement</h2>
         <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
-          Click anywhere on the parcel to set the guild centroid. The blue
-          arrow shows downslope water flow {aspect
-            ? <>(from <code>siteDataStore</code> elevation: aspect <b>{aspect}</b>{
+          Read-only locator for guild centroids. Drop a new guild on the
+          map via the rail's Guild tool. The blue arrow shows downslope
+          water flow {aspect
+            ? <>(elevation: aspect <b>{aspect}</b>{
                 typeof meanSlope === 'number'
                   ? <>, mean slope <b>{meanSlope.toFixed(1)}°</b></>
                   : null
@@ -184,17 +441,14 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
         </p>
         <svg
           viewBox="0 0 400 320"
-          onClick={handleParcelClick}
           style={{
             width: '100%',
             height: 'auto',
             background: 'rgba(0,0,0,0.25)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 8,
-            cursor: 'crosshair',
           }}
         >
-          {/* Parcel boundary placeholder */}
           <rect x={20} y={20} width={360} height={280}
             fill="none"
             stroke="rgba(230,195,74,0.7)"
@@ -204,8 +458,6 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
           <text x={28} y={36} fontSize={10} fill="rgba(232,220,200,0.6)">
             parcel (schematic)
           </text>
-
-          {/* Water-flow arrow */}
           <defs>
             <marker id="flow-arrow" viewBox="0 0 10 10" refX="8" refY="5"
               markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -221,8 +473,6 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
           />
           <text x={arrowTo.x + 8} y={arrowTo.y - 6} fontSize={10}
             fill="rgba(120,180,210,0.85)">{arrowLabel}</text>
-
-          {/* Existing saved guild centroids on this project */}
           {guilds.map((g) => {
             let u: number | undefined;
             let v: number | undefined;
@@ -230,87 +480,38 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
               u = g.centroidUv[0];
               v = g.centroidUv[1];
             } else {
-              // Legacy fallback: pre-2026-05-07 entries encoded in notes.
               const m = g.notes?.match(/centroidUv:([\d.]+),([\d.]+)/);
               if (m) { u = Number(m[1]); v = Number(m[2]); }
             }
             if (u === undefined || v === undefined) return null;
-            const cx = 20 + u * 360;
-            const cy = 20 + v * 280;
+            const cxg = 20 + u * 360;
+            const cyg = 20 + v * 280;
+            const isActive = g.id === activeGuildId;
             return (
-              <g key={g.id} opacity={0.6}>
-                <circle cx={cx} cy={cy} r={6}
-                  fill="rgba(140,180,120,0.45)"
-                  stroke="rgba(180,210,150,0.8)"
+              <g
+                key={g.id}
+                opacity={isActive ? 1 : 0.55}
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setActiveGuildId(g.id);
+                  setActiveRing(null);
+                  setPickAnchor(false);
+                }}
+              >
+                <circle
+                  cx={cxg}
+                  cy={cyg}
+                  r={isActive ? 9 : 6}
+                  fill={isActive ? 'rgba(230,195,74,0.6)' : 'rgba(140,180,120,0.45)'}
+                  stroke={isActive ? 'rgba(230,195,74,1)' : 'rgba(180,210,150,0.8)'}
+                  strokeWidth={1.5}
                 />
-                <text x={cx + 8} y={cy + 3} fontSize={9}
+                <text x={cxg + 10} y={cyg + 3} fontSize={9}
                   fill="rgba(232,220,200,0.7)">{g.name}</text>
               </g>
             );
           })}
-
-          {/* Working draft centroid */}
-          <circle
-            cx={20 + centroid[0] * 360}
-            cy={20 + centroid[1] * 280}
-            r={9}
-            fill="rgba(230,195,74,0.6)"
-            stroke="rgba(230,195,74,1)"
-            strokeWidth={1.5}
-          />
         </svg>
-        <div className={styles.statRow}>
-          <span>Centroid (u, v)</span>
-          <span>{centroid[0].toFixed(2)}, {centroid[1].toFixed(2)}</span>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Compose new guild</h2>
-        <div className={styles.grid}>
-          <label className={styles.field}>
-            <span>Guild name</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Apple guild — north slope" />
-          </label>
-          <label className={styles.field}>
-            <span>Anchor species</span>
-            <select value={anchorId} onChange={(e) => setAnchorId(e.target.value)}>
-              <option value="">— select anchor —</option>
-              {speciesPool.map((p) => (
-                <option key={p.id} value={p.id}>{p.commonName} ({layerLabel(p.layer)})</option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <h3 style={{ fontSize: 13, color: 'rgba(232,220,200,0.7)', margin: '16px 0 8px' }}>
-          Supporting members ({members.length})
-        </h3>
-        <ul className={styles.list}>
-          {members.map((m, i) => (
-            <li key={i} className={styles.listRow}>
-              <select
-                value={m.speciesId}
-                onChange={(e) => updateMember(i, { speciesId: e.target.value })}
-                style={{ flex: 1, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(232,220,200,0.92)', padding: 6, borderRadius: 6 }}
-              >
-                {speciesPool.map((p) => <option key={p.id} value={p.id}>{p.commonName}</option>)}
-              </select>
-              <select
-                value={m.layer}
-                onChange={(e) => updateMember(i, { layer: e.target.value as GuildLayer })}
-                style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(232,220,200,0.92)', padding: 6, borderRadius: 6 }}
-              >
-                {GUILD_LAYERS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
-              <button type="button" className={styles.removeBtn} onClick={() => removeMember(i)}>×</button>
-            </li>
-          ))}
-        </ul>
-        <div className={styles.btnRow}>
-          <button type="button" className={styles.btn} onClick={addMember}>+ Add member</button>
-          <button type="button" className={styles.btn} onClick={commit} disabled={!name.trim() || !anchorId}>Save guild</button>
-        </div>
       </section>
 
       <section className={styles.section}>
@@ -320,16 +521,38 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
         ) : (
           <ul className={styles.list}>
             {guilds.map((g) => {
-              const anchor = findSpecies(g.anchorSpeciesId);
+              const a = findSpecies(g.anchorSpeciesId);
+              const isActive = g.id === activeGuildId;
               return (
-                <li key={g.id} className={styles.listRow}>
+                <li
+                  key={g.id}
+                  className={styles.listRow}
+                  style={{
+                    cursor: 'pointer',
+                    outline: isActive ? '1px solid rgba(230,195,74,0.6)' : 'none',
+                  }}
+                  onClick={() => {
+                    setActiveGuildId(g.id);
+                    setActiveRing(null);
+                    setPickAnchor(false);
+                  }}
+                >
                   <div>
                     <strong>{g.name}</strong>
                     <div className={styles.listMeta}>
-                      Anchor: {anchor?.commonName ?? g.anchorSpeciesId} · {g.members.length} member(s)
+                      Anchor: {a?.commonName ?? (g.anchorSpeciesId || '—')} · {g.members.length} member(s)
                     </div>
                   </div>
-                  <button type="button" className={styles.removeBtn} onClick={() => removeGuild(g.id)}>Remove</button>
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeGuild(g.id);
+                    }}
+                  >
+                    Remove
+                  </button>
                 </li>
               );
             })}
