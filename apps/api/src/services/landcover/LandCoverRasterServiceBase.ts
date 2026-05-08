@@ -27,7 +27,9 @@ import { join } from 'node:path';
 import { fromFile, fromUrl, type GeoTIFF } from 'geotiff';
 import proj4 from 'proj4';
 import pino from 'pino';
+import type { Polygon } from 'geojson';
 import type { LandCoverSourceId, RasterClip } from '@ogden/shared';
+import { pointInPolygonRing } from './pointInPolygonRing.js';
 
 // ── Manifest types ─────────────────────────────────────────────────────────
 
@@ -68,6 +70,12 @@ export interface ClassHistogram {
   totalPixels: number;
   /** Pixels classified as NoData / out-of-extent. */
   nodataCount: number;
+  /**
+   * Pixels inside the bbox but outside the supplied parcel polygon.
+   * Always 0 when `sampleHistogram` is called bbox-only (no polygon arg).
+   * Telemetry only — never counted in `totalPixels` or `counts`.
+   */
+  outsidePolygonCount?: number;
   /** Vintage of the tile(s) that satisfied this query. */
   vintage: number;
   /** Native pixel size in source CRS units (informational). */
@@ -190,6 +198,25 @@ export abstract class LandCoverRasterServiceBase {
   }
 
   /**
+   * Reproject a single point from source CRS → WGS84. Symmetric to
+   * `reprojectBboxToSource` but inverse direction; used by the
+   * polygon-mask path of `sampleHistogram` to test each pixel centre
+   * against a parcel polygon expressed in EPSG:4326.
+   *
+   * Per-pixel call is acceptable at parcel scale (≤ ~50k pixels per
+   * histogram); profile if it bites for larger AOIs.
+   */
+  protected reprojectPointFromSource(x: number, y: number): { lng: number; lat: number } {
+    if (this.sourceCRS === 4326) return { lng: x, lat: y };
+    const src = `EPSG:${this.sourceCRS}`;
+    const [lng, lat] = proj4(src, WGS84, [x, y]);
+    if (lng === undefined || lat === undefined) {
+      throw new Error(`Point reprojection failed for (${x}, ${y})`);
+    }
+    return { lng, lat };
+  }
+
+  /**
    * Pick the manifest entries whose source-CRS bbox intersects the
    * reprojected parcel bbox. Most parcels hit one tile; a parcel straddling
    * a tile boundary can hit 2-4. Returns empty when manifest unloaded or
@@ -214,12 +241,22 @@ export abstract class LandCoverRasterServiceBase {
    * grid (a single physical pixel never spans tile boundaries; it's owned by
    * one tile or the other).
    *
-   * Bbox-only sampling is the v1 cut: pixels inside the parcel bbox but
-   * outside the parcel polygon are counted. For square-ish parcels the
-   * error is small (≤ 5%); a polygon-mask refinement is a follow-up.
-   * Documented in the ADR as a known limitation.
+   * Bbox-only sampling (the default — `parcelPolygon4326` omitted) is
+   * the v1 cut: pixels inside the parcel bbox but outside the parcel
+   * polygon are counted. For square-ish parcels the error is small
+   * (≤ 5 %).
+   *
+   * Pass `parcelPolygon4326` to enable polygon-mask refinement: each
+   * pixel centre is reprojected to EPSG:4326 and ray-cast against the
+   * polygon's outer ring (`pointInPolygonRing`). Pixels outside the
+   * polygon are excluded from `counts` / `totalPixels` and tallied in
+   * `outsidePolygonCount` for telemetry. Holes in the polygon are
+   * ignored (parcel boundaries don't have them); see helper docs.
    */
-  async sampleHistogram(parcelBbox: ParcelBbox4326): Promise<ClassHistogram | null> {
+  async sampleHistogram(
+    parcelBbox: ParcelBbox4326,
+    parcelPolygon4326?: Polygon,
+  ): Promise<ClassHistogram | null> {
     if (!this.manifest || !this.isEnabled()) return null;
 
     const srcBbox = this.reprojectBboxToSource(parcelBbox);
@@ -229,20 +266,31 @@ export abstract class LandCoverRasterServiceBase {
       return null;
     }
 
+    // Outer ring only — see pointInPolygonRing JSDoc for the holes
+    // caveat. `coordinates[0]` is the GeoJSON outer ring per RFC 7946.
+    const ring = parcelPolygon4326?.coordinates[0];
+    const useMask = ring !== undefined && ring.length >= 3;
+
     const counts: Record<string, number> = {};
     let totalPixels = 0;
     let nodataCount = 0;
+    let outsidePolygonCount = 0;
     let pixelSizeX = 0;
     let pixelSizeY = 0;
 
     for (const entry of entries) {
-      const tileResult = await this.sampleTile(entry, srcBbox);
+      const tileResult = await this.sampleTile(
+        entry,
+        srcBbox,
+        useMask ? ring : undefined,
+      );
       if (!tileResult) continue;
       for (const [code, n] of Object.entries(tileResult.counts)) {
         counts[code] = (counts[code] ?? 0) + n;
       }
       totalPixels += tileResult.totalPixels;
       nodataCount += tileResult.nodataCount;
+      outsidePolygonCount += tileResult.outsidePolygonCount;
       pixelSizeX = tileResult.pixelSizeX;
       pixelSizeY = tileResult.pixelSizeY;
     }
@@ -253,6 +301,7 @@ export abstract class LandCoverRasterServiceBase {
       counts,
       totalPixels,
       nodataCount,
+      outsidePolygonCount,
       vintage: this.manifest.vintage,
       pixelSize: { x: pixelSizeX, y: pixelSizeY },
     };
@@ -265,10 +314,14 @@ export abstract class LandCoverRasterServiceBase {
   private async sampleTile(
     entry: LandCoverManifestEntry,
     srcBbox: { minX: number; minY: number; maxX: number; maxY: number },
+    /** Optional outer ring in [lng, lat] order (EPSG:4326). When supplied,
+     * pixels whose centre falls outside the ring are excluded. */
+    polygonRing4326?: number[][],
   ): Promise<{
     counts: Record<string, number>;
     totalPixels: number;
     nodataCount: number;
+    outsidePolygonCount: number;
     pixelSizeX: number;
     pixelSizeY: number;
   } | null> {
@@ -323,27 +376,72 @@ export abstract class LandCoverRasterServiceBase {
     const counts: Record<string, number> = {};
     let totalPixels = 0;
     let nodataCount = 0;
-    const len = (band0 as unknown as { length: number }).length;
-    for (let i = 0; i < len; i++) {
-      const v = band0[i];
-      totalPixels++;
-      if (v === undefined || v === null) {
-        nodataCount++;
-        continue;
+    let outsidePolygonCount = 0;
+    const winW = px1 - px0;
+    const winH = py1 - py0;
+
+    // Two paths so the bbox-only fast path stays O(1) per pixel — the
+    // polygon-mask path adds a per-pixel reproject + ray cast.
+    if (!polygonRing4326) {
+      const len = (band0 as unknown as { length: number }).length;
+      for (let i = 0; i < len; i++) {
+        const v = band0[i];
+        totalPixels++;
+        if (v === undefined || v === null) {
+          nodataCount++;
+          continue;
+        }
+        const numV = typeof v === 'number' ? v : Number(v);
+        if (gdalNoData !== null && gdalNoData !== undefined && numV === gdalNoData) {
+          nodataCount++;
+          continue;
+        }
+        const key = String(numV);
+        counts[key] = (counts[key] ?? 0) + 1;
       }
-      const numV = typeof v === 'number' ? v : Number(v);
-      if (gdalNoData !== null && gdalNoData !== undefined && numV === gdalNoData) {
-        nodataCount++;
-        continue;
+    } else {
+      // Polygon-mask path. Walk the window as a 2D grid so we can
+      // recover each pixel's source-CRS centre, reproject to WGS84,
+      // and ray-cast against the supplied ring. yRes is negative for
+      // north-up rasters (so `originY + (py + 0.5) * yRes` yields the
+      // pixel-centre Y).
+      for (let py = 0; py < winH; py++) {
+        const tileRow = py0 + py;
+        const sy = originY + (tileRow + 0.5) * yRes;
+        for (let px = 0; px < winW; px++) {
+          const tileCol = px0 + px;
+          const sx = originX + (tileCol + 0.5) * xRes;
+          const v = band0[py * winW + px];
+
+          // Ray-cast first: pixels outside the parcel polygon don't
+          // count toward totalPixels at all (telemetry only).
+          const { lng, lat } = this.reprojectPointFromSource(sx, sy);
+          if (!pointInPolygonRing(lng, lat, polygonRing4326)) {
+            outsidePolygonCount++;
+            continue;
+          }
+
+          totalPixels++;
+          if (v === undefined || v === null) {
+            nodataCount++;
+            continue;
+          }
+          const numV = typeof v === 'number' ? v : Number(v);
+          if (gdalNoData !== null && gdalNoData !== undefined && numV === gdalNoData) {
+            nodataCount++;
+            continue;
+          }
+          const key = String(numV);
+          counts[key] = (counts[key] ?? 0) + 1;
+        }
       }
-      const key = String(numV);
-      counts[key] = (counts[key] ?? 0) + 1;
     }
 
     return {
       counts,
       totalPixels,
       nodataCount,
+      outsidePolygonCount,
       pixelSizeX: Math.abs(xRes),
       pixelSizeY: Math.abs(yRes),
     };
