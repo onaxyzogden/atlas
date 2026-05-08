@@ -31,6 +31,11 @@ import { useAnnotationDetailStore } from '../../../../store/annotationDetailStor
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
+import type {
+  SectorType,
+  SectorIntensity,
+} from '../../../../store/externalForcesStore.js';
+import type { MatrixToggleKey } from '../../../../store/matrixTogglesStore.js';
 import {
   registerObserveIcons,
   tryRegisterMissingObserveIcon,
@@ -56,6 +61,10 @@ interface LayerSpec {
   data: GeoJSON.FeatureCollection;
   /** One or more MapLibre layer specs over this source. */
   layers: maplibregl.LayerSpecification[];
+  /** Optional sub-toggle from `useMatrixTogglesStore` that ANDs with the
+   *  master `observeAnnotations` toggle. When omitted, only the master
+   *  toggle gates this group. */
+  toggleKey?: Exclude<MatrixToggleKey, 'observeAnnotations'>;
 }
 
 type AnnoLayer = maplibregl.LayerSpecification;
@@ -109,6 +118,51 @@ const SECTOR_TYPE_COLOR: Record<string, string> = {
   wildlife: PALETTE.sectorView,
   view: '#9a8aa8',
 };
+
+// Sector grouping for per-group legend toggles. Each `SectorType` belongs to
+// exactly one of four groups, and each group maps to a `MatrixToggleKey`.
+// Splitting the legacy single `sectors` spec by group lets the steward gate
+// "Solar / Wind / Hazard / View" wedges independently from the legend.
+type SectorGroup = 'solar' | 'wind' | 'hazard' | 'view';
+
+const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
+  sun_summer: 'solar',
+  sun_winter: 'solar',
+  wind_prevailing: 'wind',
+  wind_storm: 'wind',
+  fire: 'hazard',
+  noise: 'hazard',
+  wildlife: 'hazard',
+  view: 'view',
+};
+
+const GROUP_TOGGLE: Record<SectorGroup, Exclude<MatrixToggleKey, 'observeAnnotations'>> = {
+  solar: 'sectors',
+  wind: 'wind',
+  hazard: 'hazards',
+  view: 'views',
+};
+
+// Wind-sector visual upgrade (Option B, 2026-05-08): scale wedge radius by
+// intensity so high-intensity sectors read as longer reaches, mirroring the
+// proportional-wedge style of the climatology-driven prevailing rose. Each
+// wind wedge also emits a Point feature mid-arc so a compass+intensity label
+// can render via a sibling symbol layer.
+const INTENSITY_RADIUS_MULT: Record<SectorIntensity, number> = {
+  low: 0.4,
+  med: 0.7,
+  high: 1.0,
+};
+const INTENSITY_LABEL: Record<SectorIntensity, string> = {
+  low: 'low',
+  med: 'med',
+  high: 'high',
+};
+function compassFromBearing(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return dirs[idx]!;
+}
 
 const SWOT_COLOR: Record<string, string> = {
   S: PALETTE.swotS,
@@ -164,6 +218,28 @@ function wedgePolygon(
 
 export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
+  // Per-group sub-toggles. ANDed with the master `visible` to compute the
+  // final per-spec visibility. Each group only respects its toggle when
+  // `LayerSpec.toggleKey` is set; otherwise the master toggle alone gates.
+  const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
+  const topographyVisible = useMatrixTogglesStore((s) => s.topography);
+  const zonesVisible = useMatrixTogglesStore((s) => s.zones);
+  const windVisible = useMatrixTogglesStore((s) => s.wind);
+  const waterVisible = useMatrixTogglesStore((s) => s.water);
+  const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
+  const viewsVisible = useMatrixTogglesStore((s) => s.views);
+  const subToggles: Record<
+    Exclude<MatrixToggleKey, 'observeAnnotations'>,
+    boolean
+  > = {
+    sectors: sectorsVisible,
+    topography: topographyVisible,
+    zones: zonesVisible,
+    wind: windVisible,
+    water: waterVisible,
+    hazards: hazardsVisible,
+    views: viewsVisible,
+  };
 
   // Subscribe by full namespace (per ADR 2026-04-26 — no inline filtering in
   // the selector) and filter via useMemo below.
@@ -317,6 +393,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       );
       result.push({
         id: 'human-zones',
+        toggleKey: 'zones',
         data: { type: 'FeatureCollection', features: zoneFeatures },
         layers: [
           {
@@ -386,42 +463,120 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     }
 
     // ── Sectors (anchor on homestead, fall back to map center) ──────────────
+    // Partitioned into four groups (solar / wind / hazard / view) so the
+    // legend can gate them independently. Each non-empty group emits its own
+    // source + fill/line layer pair; click handlers (wireClick) pick up the
+    // new layer ids automatically because every feature still carries
+    // `annoKind: 'sector'` + `annoId`.
     const projectSectors = inProject(sectors);
     if (projectSectors.length) {
       const center = map.getCenter();
       const anchor: [number, number] = homestead ?? [center.lng, center.lat];
-      const sectorFeatures: GeoJSON.Feature[] = projectSectors.map((s) => ({
-        type: 'Feature',
-        properties: {
-          kind: s.type,
-          color: SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector,
-        },
-        geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, sectorRadiusM),
-      }));
-      result.push({
-        id: 'sectors',
-        data: { type: 'FeatureCollection', features: sectorFeatures },
-        layers: [
+      const grouped: Record<SectorGroup, GeoJSON.Feature[]> = {
+        solar: [],
+        wind: [],
+        hazard: [],
+        view: [],
+      };
+      for (const s of projectSectors) {
+        const g = SECTOR_GROUP[s.type];
+        // Wind wedges scale radius by intensity (Option B); other groups
+        // keep the uniform `sectorRadiusM` reach so solar arcs / hazard
+        // wedges / view cones still read as full-length sightlines.
+        const radius =
+          g === 'wind'
+            ? sectorRadiusM *
+              (INTENSITY_RADIUS_MULT[s.intensity ?? 'med'] ?? 0.7)
+            : sectorRadiusM;
+        const color = SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector;
+        grouped[g].push({
+          type: 'Feature',
+          properties: {
+            kind: s.type,
+            color,
+            annoKind: 'sector',
+            annoId: s.id,
+          },
+          geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, radius),
+        });
+        // Emit a label Point for wind only — mirrors the climatology rose's
+        // mid-wedge text. Label = compass + intensity (e.g. "NW · high").
+        if (g === 'wind') {
+          const labelDest = turf.destination(
+            turf.point(anchor),
+            (radius * 0.6) / 1000,
+            s.bearingDeg,
+            { units: 'kilometers' },
+          );
+          const compass = compassFromBearing(s.bearingDeg);
+          const intensityLabel = INTENSITY_LABEL[s.intensity ?? 'med'];
+          grouped[g].push({
+            type: 'Feature',
+            properties: {
+              kind: s.type,
+              color,
+              annoKind: 'sector',
+              annoId: s.id,
+              label: `${compass} · ${intensityLabel}`,
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: labelDest.geometry.coordinates as [number, number],
+            },
+          });
+        }
+      }
+      (Object.keys(grouped) as SectorGroup[]).forEach((group) => {
+        const features = grouped[group];
+        if (!features.length) return;
+        const layers: maplibregl.LayerSpecification[] = [
           {
-            id: `${LAYER_PREFIX}sectors-fill`,
+            id: `${LAYER_PREFIX}sectors-${group}-fill`,
             type: 'fill',
-            source: `${SOURCE_PREFIX}sectors`,
+            source: `${SOURCE_PREFIX}sectors-${group}`,
+            filter: ['==', ['geometry-type'], 'Polygon'],
             paint: {
               'fill-color': ['get', 'color'],
-              'fill-opacity': 0.16,
+              'fill-opacity': group === 'wind' ? 0.18 : 0.16,
             },
           },
           {
-            id: `${LAYER_PREFIX}sectors-line`,
+            id: `${LAYER_PREFIX}sectors-${group}-line`,
             type: 'line',
-            source: `${SOURCE_PREFIX}sectors`,
+            source: `${SOURCE_PREFIX}sectors-${group}`,
+            filter: ['==', ['geometry-type'], 'Polygon'],
             paint: {
               'line-color': ['get', 'color'],
-              'line-width': 1,
-              'line-opacity': 0.55,
+              'line-width': group === 'wind' ? 1.4 : 1,
+              'line-opacity': group === 'wind' ? 0.7 : 0.55,
             },
           },
-        ],
+        ];
+        if (group === 'wind') {
+          layers.push({
+            id: `${LAYER_PREFIX}sectors-wind-label`,
+            type: 'symbol',
+            source: `${SOURCE_PREFIX}sectors-wind`,
+            filter: ['==', ['geometry-type'], 'Point'],
+            layout: {
+              'text-field': ['get', 'label'],
+              'text-size': 11,
+              'text-allow-overlap': false,
+              'text-ignore-placement': false,
+            },
+            paint: {
+              'text-color': '#1f3340',
+              'text-halo-color': '#f2ede3',
+              'text-halo-width': 1.2,
+            },
+          });
+        }
+        result.push({
+          id: `sectors-${group}`,
+          toggleKey: GROUP_TOGGLE[group],
+          data: { type: 'FeatureCollection', features },
+          layers,
+        });
       });
     }
 
@@ -451,6 +606,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (topoLines.length) {
       result.push({
         id: 'topography-lines',
+        toggleKey: 'topography',
         data: { type: 'FeatureCollection', features: topoLines },
         layers: [
           {
@@ -496,6 +652,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (hpFeatures.length) {
       result.push({
         id: 'topography-points',
+        toggleKey: 'topography',
         data: { type: 'FeatureCollection', features: hpFeatures },
         layers: [
           {
@@ -528,6 +685,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (waterFeatures.length) {
       result.push({
         id: 'water-lines',
+        toggleKey: 'water',
         data: { type: 'FeatureCollection', features: waterFeatures },
         layers: [
           {
@@ -863,30 +1021,32 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
+        const specVisible =
+          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
         for (const layer of spec.layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer as AnnoLayer);
-          } else {
-            // Layer exists; refresh visibility based on master toggle.
-            map.setLayoutProperty(
-              layer.id,
-              'visibility',
-              visible ? 'visible' : 'none',
-            );
           }
+          map.setLayoutProperty(
+            layer.id,
+            'visibility',
+            specVisible ? 'visible' : 'none',
+          );
           // Click + cursor handlers: idempotent via Map<id, handler> guard.
           wireClick(layer.id);
         }
       }
 
-      // Apply visibility toggle to all our layers.
+      // Apply visibility toggle (master AND per-group) to all our layers.
       for (const spec of layerSpecs) {
+        const specVisible =
+          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
         for (const layer of spec.layers) {
           if (map.getLayer(layer.id)) {
             map.setLayoutProperty(
               layer.id,
               'visibility',
-              visible ? 'visible' : 'none',
+              specVisible ? 'visible' : 'none',
             );
           }
         }
@@ -997,6 +1157,13 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     map,
     layerSpecs,
     visible,
+    sectorsVisible,
+    topographyVisible,
+    zonesVisible,
+    windVisible,
+    waterVisible,
+    hazardsVisible,
+    viewsVisible,
     openDetail,
     haloData,
     setSelection,

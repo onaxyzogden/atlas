@@ -1,21 +1,28 @@
 /**
- * PlanChecklistAside — right guidance rail for the Plan stage.
+ * PlanChecklistAside — right-rail Permaculture-Scholar guidance for Plan.
  *
- * 8 module guidance cards grounded in permaculture design methodology.
- * Mirrors ObserveChecklistAside: inactive cards select the module,
- * active card toggles the slide-up. Inactive cards fade when one is active.
+ * 9 module guidance cards grounded in permaculture design methodology.
+ * Cards delegate to the shared `<GuidanceCard>`; this file owns the Plan
+ * guidance copy and the per-module dot palette. Inactive cards select the
+ * module; the active card toggles the slide-up. Active card auto-scrolls
+ * into view; How bullets are individually checkable with strikethrough on
+ * completion (persisted via planHowChecksStore).
  */
 
-import type { PlanModule } from './types.js';
-import { PLAN_MODULES, PLAN_MODULE_LABEL } from './types.js';
+import { useRef } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { usePlanHowChecksStore } from '../../store/planHowChecksStore.js';
+import { useAutoScrollToActiveModule } from '../_shared/hooks/useAutoScrollToActiveModule.js';
+import {
+  GuidanceCard,
+  type GuidanceCardData,
+} from '../_shared/components/GuidanceCard.js';
+import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
 import css from './PlanChecklistAside.module.css';
 
-interface PlanModuleGuidance {
-  why: string;
-  how: string[];
-}
+const EMPTY_CHECKS: readonly number[] = [];
 
-const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
+const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
   'dynamic-layering': {
     why: 'Yeomans\' nine ranks decide order: Climate → Landform → Water → Access → Structures → Subsystems → Soil → Vegetation → Fauna. Per Permaculture Scholar (2026-05-07): collapsing Access + Structures is a Keyline violation; visualising ordering and warning when prerequisites are skipped is what the module must do (Mollison ch.5; Holmgren P8 Integrate rather than segregate).',
     how: [
@@ -91,12 +98,65 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, PlanModuleGuidance> = {
   },
 };
 
+const PLAN_MODULE_DOT: Record<PlanModule, string> = {
+  'dynamic-layering': '#7aabca',
+  'water-management': '#5fc7d4',
+  'zone-circulation': '#d68bd0',
+  livestock: '#c9a05a',
+  'plant-systems': '#5dd39e',
+  'soil-fertility': '#8bd16a',
+  'cross-section-solar': '#e6c34a',
+  'phasing-budgeting': '#c4a265',
+  'principle-verification': '#e88aa4',
+};
+
 interface Props {
   activeModule: PlanModule | null;
   onSelectModule: (module: PlanModule | null) => void;
   slideUpOpen: boolean;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
+}
+
+function PlanGuidanceCard({
+  module,
+  active,
+  projectId,
+  slideUpOpen,
+  onSelectModule,
+  onOpenSlideUp,
+  onCloseSlideUp,
+}: {
+  module: PlanModule;
+  active: boolean;
+  projectId: string | null;
+  slideUpOpen: boolean;
+  onSelectModule: (module: PlanModule | null) => void;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
+}) {
+  const checkedList = usePlanHowChecksStore(
+    (s) =>
+      (projectId ? s.byProject[projectId]?.[module] : null) ?? EMPTY_CHECKS,
+  );
+  const toggle = usePlanHowChecksStore((s) => s.toggle);
+
+  return (
+    <GuidanceCard
+      moduleKey={module}
+      label={PLAN_MODULE_LABEL[module]}
+      dotColor={PLAN_MODULE_DOT[module]}
+      active={active}
+      slideUpOpen={slideUpOpen}
+      guidance={PLAN_MODULE_GUIDANCE[module]}
+      checkedList={checkedList}
+      onToggle={(i) => projectId && toggle(projectId, module, i)}
+      onSelect={() => onSelectModule(module)}
+      onOpenSlideUp={onOpenSlideUp}
+      onCloseSlideUp={onCloseSlideUp}
+      checksDisabled={!projectId}
+    />
+  );
 }
 
 export default function PlanChecklistAside({
@@ -106,65 +166,30 @@ export default function PlanChecklistAside({
   onOpenSlideUp,
   onCloseSlideUp,
 }: Props) {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const projectId = params.projectId ?? null;
+
+  const asideRef = useRef<HTMLDivElement | null>(null);
+  useAutoScrollToActiveModule(activeModule, asideRef);
+
   return (
     <div
+      ref={asideRef}
       className={css.checklistBox}
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
-      {PLAN_MODULES.map((mod) => {
-        const isActive = activeModule === mod;
-        const guidance = PLAN_MODULE_GUIDANCE[mod];
-
-        const handleClick = () => {
-          if (isActive) {
-            if (slideUpOpen) onCloseSlideUp();
-            else onOpenSlideUp();
-          } else {
-            onSelectModule(mod);
-          }
-        };
-
-        const handleKey = (e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        };
-
-        const title = isActive
-          ? slideUpOpen
-            ? `Close ${PLAN_MODULE_LABEL[mod]} details`
-            : `Open ${PLAN_MODULE_LABEL[mod]} details`
-          : `Switch to ${PLAN_MODULE_LABEL[mod]}`;
-
-        return (
-          <section
-            key={mod}
-            className={`${css.group} ${isActive ? css.groupActive : ''}`}
-            data-module={mod}
-            role="button"
-            tabIndex={0}
-            aria-pressed={isActive}
-            title={title}
-            onClick={handleClick}
-            onKeyDown={handleKey}
-          >
-            <header className={css.groupHeader}>
-              <span className={css.dot} aria-hidden="true" />
-              <span className={css.groupLabel}>{PLAN_MODULE_LABEL[mod]}</span>
-            </header>
-            <p className={css.why}>{guidance.why}</p>
-            <div className={css.howBlock}>
-              <span className={css.blockLabel}>How</span>
-              <ul className={css.howList}>
-                {guidance.how.map((step) => (
-                  <li key={step} className={css.howItem}>{step}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        );
-      })}
+      {PLAN_MODULES.map((mod) => (
+        <PlanGuidanceCard
+          key={mod}
+          module={mod}
+          active={activeModule === mod}
+          projectId={projectId}
+          slideUpOpen={slideUpOpen}
+          onSelectModule={onSelectModule}
+          onOpenSlideUp={onOpenSlideUp}
+          onCloseSlideUp={onCloseSlideUp}
+        />
+      ))}
     </div>
   );
 }

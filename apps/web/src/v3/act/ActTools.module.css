@@ -1,12 +1,18 @@
-/* ActTools — bento left-rail, mirrors PlanTools layout */
-
+/*
+ * ActTools bento — mirrors PlanTools.module.css. Outer .toolbox is the
+ * panel shell (surface bg + hairline border + soft shadow + --radius-lg);
+ * inner .group cards are quieter insets on --color-bg with --radius-md so
+ * the rail reads as a single bento containing N module cards.
+ */
 .toolbox {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   min-width: 200px;
   max-width: 240px;
@@ -26,15 +32,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   --group-dot: var(--color-text-muted);
   cursor: pointer;
   transition: border-color 120ms ease, box-shadow 120ms ease,
-    filter 150ms ease, opacity 150ms ease;
+    filter 150ms ease, opacity 150ms ease, background 120ms ease;
 }
 
 .toolbox[data-has-active='true'] .group:not(.groupActive) {
@@ -46,7 +51,7 @@
   filter: saturate(0.85);
   opacity: 0.92;
   border-color: color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
-  background: color-mix(in srgb, var(--group-dot) 6%, var(--color-bg));
+  background: color-mix(in srgb, var(--group-dot) 6%, var(--color-surface));
 }
 
 .group:focus-visible {
@@ -61,12 +66,13 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--group-dot) 25%, transparent);
 }
 
-/* Module colour dots — 5-module palette */
-.group[data-module='build']    { --group-dot: #c4a265; }
-.group[data-module='maintain'] { --group-dot: #5fc7d4; }
-.group[data-module='harvest']  { --group-dot: #8bd16a; }
-.group[data-module='review']   { --group-dot: #e88aa4; }
-.group[data-module='network']  { --group-dot: #d68bd0; }
+/* Module colour dots — 6-module palette (mirrors ACT_MODULE_DOT in TSX) */
+.group[data-module='build']     { --group-dot: #c4a265; }
+.group[data-module='maintain']  { --group-dot: #5fc7d4; }
+.group[data-module='livestock'] { --group-dot: #e6c34a; }
+.group[data-module='harvest']   { --group-dot: #8bd16a; }
+.group[data-module='review']    { --group-dot: #e88aa4; }
+.group[data-module='network']   { --group-dot: #d68bd0; }
 
 .groupHeader {
   display: flex;

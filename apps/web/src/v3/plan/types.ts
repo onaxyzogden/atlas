@@ -10,6 +10,7 @@ export type PlanModule =
   | 'dynamic-layering'
   | 'water-management'
   | 'zone-circulation'
+  | 'livestock'
   | 'plant-systems'
   | 'soil-fertility'
   | 'cross-section-solar'
@@ -20,6 +21,7 @@ export const PLAN_MODULES: PlanModule[] = [
   'dynamic-layering',
   'water-management',
   'zone-circulation',
+  'livestock',
   'plant-systems',
   'soil-fertility',
   'cross-section-solar',
@@ -35,6 +37,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Layering',
   'water-management':       'Water',
   'zone-circulation':       'Zones',
+  livestock:                'Livestock',
   'plant-systems':          'Plants',
   'soil-fertility':         'Soil',
   'cross-section-solar':    'Cross-section',
@@ -46,6 +49,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
+  livestock:                'Livestock & Subdivision',
   'plant-systems':          'Plant Systems & Polyculture',
   'soil-fertility':         'Soil Fertility & Closed-Loop',
   'cross-section-solar':    'Cross-section & Solar Geometry',
@@ -135,6 +139,15 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
     { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
     { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
+  ],
+  livestock: [
+    { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },
+    { label: 'Multi-species planner',   sectionId: 'plan-livestock-species-mix' },
+    { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
+    { label: 'Fencing layout',          sectionId: 'plan-livestock-fencing' },
+    { label: 'Mobile tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
+    { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
+    { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

@@ -30,6 +30,17 @@ const HazardPlansCard           = lazy(() => import('../../features/act/HazardPl
 const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkCrmCard.js'));
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
+// Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
+// of paddock rotation to a future Subdivision/Livestock module). All seven
+// cards live at apps/web/src/features/livestock/ and take { projectId } except
+// ForageQualitySeasonalCard which takes { project }.
+const RotationScheduleCard         = lazy(() => import('../../features/livestock/RotationScheduleCard.js'));
+const PastureUtilizationCard       = lazy(() => import('../../features/livestock/PastureUtilizationCard.js'));
+const ForageQualitySeasonalCard    = lazy(() => import('../../features/livestock/ForageQualitySeasonalCard.js'));
+const BrowsePressureRiskCard       = lazy(() => import('../../features/livestock/BrowsePressureRiskCard.js'));
+const PredatorRiskHotspotsCard     = lazy(() => import('../../features/livestock/PredatorRiskHotspotsCard.js'));
+const WelfareAccessAuditCard       = lazy(() => import('../../features/livestock/WelfareAccessAuditCard.js'));
+const AnimalCorridorGrazingRouteCard = lazy(() => import('../../features/livestock/AnimalCorridorGrazingRouteCard.js'));
 
 function renderCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
@@ -47,6 +58,13 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-network-crm':       return <NetworkCrmCard project={project} onSwitchToMap={noop} />;
     case 'act-community-event':   return <CommunityEventCard project={project} onSwitchToMap={noop} />;
     case 'act-appropriate-tech':  return <AppropriateTechLogCard project={project} onSwitchToMap={noop} />;
+    case 'act-livestock-rotation':        return <RotationScheduleCard projectId={project.id} />;
+    case 'act-livestock-pasture':         return <PastureUtilizationCard projectId={project.id} />;
+    case 'act-livestock-forage':          return <ForageQualitySeasonalCard project={project} />;
+    case 'act-livestock-browse-pressure': return <BrowsePressureRiskCard projectId={project.id} />;
+    case 'act-livestock-predator-risk':   return <PredatorRiskHotspotsCard projectId={project.id} />;
+    case 'act-livestock-welfare-audit':   return <WelfareAccessAuditCard projectId={project.id} />;
+    case 'act-livestock-corridors':       return <AnimalCorridorGrazingRouteCard projectId={project.id} />;
     default: return null;
   }
 }

@@ -18,7 +18,6 @@
 import { useEffect } from 'react';
 import {
   Crosshair,
-  Layers,
   Map as MapIcon,
   Ruler,
   Mountain,
@@ -27,7 +26,6 @@ import {
   X,
 } from 'lucide-react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { polygonBounds } from '../../components/DiagnoseMap.js';
 import {
   BASEMAP_OPTIONS,
@@ -49,31 +47,9 @@ interface Props {
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
 }
 
-interface OverlayDef {
-  key:
-    | 'topography'
-    | 'sectors'
-    | 'zones'
-    | 'wind'
-    | 'water'
-    | 'observeAnnotations';
-  label: string;
-  swatch: string;
-}
-
-const OVERLAYS: OverlayDef[] = [
-  { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
-  { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
-  { key: 'sectors', label: 'Solar sectors (sun arcs)', swatch: '#c4a265' },
-  { key: 'zones', label: 'Zones (use-frequency rings)', swatch: '#a85a3f' },
-  { key: 'wind', label: 'Wind (prevailing rose)', swatch: '#5b7a8a' },
-  { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
-];
-
 export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const toggles = useMatrixTogglesStore();
   const basemap = useBasemapStore((s) => s.basemap);
   const setBasemap = useBasemapStore((s) => s.setBasemap);
 
@@ -112,16 +88,6 @@ export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }
   return (
     <div className={css.dock}>
       <div className={css.bar} role="toolbar" aria-label="Map tools">
-        <button
-          type="button"
-          className={css.btn}
-          data-active={activeTool === 'overlays'}
-          onClick={onClick('overlays')}
-          title="Overlays"
-          aria-label="Overlays"
-        >
-          <Layers size={16} strokeWidth={1.75} />
-        </button>
         <button
           type="button"
           className={css.btn}
@@ -207,23 +173,6 @@ export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }
           </>
         )}
       </div>
-
-      {activeTool === 'overlays' && (
-        <div className={css.popover} role="dialog" aria-label="Overlays">
-          <span className={css.popoverTitle}>Overlays</span>
-          {OVERLAYS.map((o) => (
-            <label key={o.key} className={css.overlayRow}>
-              <input
-                type="checkbox"
-                checked={toggles[o.key]}
-                onChange={() => toggles.toggle(o.key)}
-              />
-              <span className={css.swatch} style={{ background: o.swatch }} />
-              {o.label}
-            </label>
-          ))}
-        </div>
-      )}
 
       {activeTool === 'basemap' && (
         <div className={css.popover} role="dialog" aria-label="Basemap">

@@ -23,6 +23,12 @@ apps/web/public/cesium/
 
 # Local Claude Code per-project settings (allow-list, MCP creds, etc.)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+apps/web/.claude/
+
+# Permaculture Scholar / NotebookLM scratch artifacts
+.scholar-*
 
 # Scratch/scaffolding directories used while validating data-ingest scripts
 apps/api/tmp-*/

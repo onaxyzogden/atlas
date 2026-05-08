@@ -18,6 +18,7 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
+import { useLivestockStore } from '../../../store/livestockStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -66,6 +67,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const paths = usePathStore((s) => s.paths);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const fertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
+  const paddocks = useLivestockStore((s) => s.paddocks);
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
@@ -94,6 +96,19 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       try {
         const ctr = turf.centroid(c.geometry).geometry;
         labels.push({ type: 'Feature', id: c.id, properties: props, geometry: ctr });
+      } catch {
+        /* skip */
+      }
+    }
+
+    // Paddocks (polygon) — Module 4 Livestock & Subdivision. Yeomans rank 9.
+    for (const pd of paddocks) {
+      if (pd.projectId !== projectId) continue;
+      const props = { id: pd.id, color: pd.color, label: pd.name };
+      polys.push({ type: 'Feature', id: pd.id, properties: props, geometry: pd.geometry });
+      try {
+        const ctr = turf.centroid(pd.geometry).geometry;
+        labels.push({ type: 'Feature', id: pd.id, properties: props, geometry: ctr });
       } catch {
         /* skip */
       }
@@ -146,7 +161,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       pointFC: { type: 'FeatureCollection' as const, features: points },
       labelFC: { type: 'FeatureCollection' as const, features: labels },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, projectId]);
 
   useEffect(() => {
     if (!map) return;

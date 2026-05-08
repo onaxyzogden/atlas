@@ -1,4 +1,4 @@
-/* PlanModuleBar — 8-column bottom navigator, mirrors ObserveModuleBar */
+/* PlanModuleBar — 9-column bottom navigator, mirrors ObserveModuleBar */
 
 .rail {
   display: flex;
@@ -12,7 +12,7 @@
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(9, 1fr);
   gap: 8px;
 }
 

@@ -48,6 +48,18 @@ const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/
 // This card surfaces wind from the climate layer + downslope from the
 // elevation layer, with editable fire/view/noise compass pickers.
 const SectorOverlayCard           = lazy(() => import('./cards/zone-circulation/SectorOverlayCard.js'));
+// Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
+// of paddock rotation to a "future Subdivision/Livestock module per Yeomans
+// Scale of Permanence"). All seven cards live at apps/web/src/features/livestock/
+// and take { projectId } — wrapped inline in renderCard().
+const LivestockLandFitCard        = lazy(() => import('../../features/livestock/LivestockLandFitCard.js'));
+const MultiSpeciesPlannerCard     = lazy(() => import('../../features/livestock/MultiSpeciesPlannerCard.js'));
+const PaddockCellDesignCard       = lazy(() => import('../../features/livestock/PaddockCellDesignCard.js'));
+const FencingLayoutCard           = lazy(() => import('../../features/livestock/FencingLayoutCard.js'));
+const MobileTractorZonesCard      = lazy(() => import('../../features/livestock/MobileTractorZonesCard.js'));
+const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
+const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
+const GuestSafeBufferAuditCard    = lazy(() => import('../../features/livestock/GuestSafeBufferAuditCard.js'));
 // Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's PlantDatabaseCard / GuildBuilderCard /
 // CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
@@ -118,6 +130,18 @@ function renderCard(
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
+    case 'plan-livestock-land-fit':         return <LivestockLandFitCard projectId={project.id} />;
+    case 'plan-livestock-species-mix':      return <MultiSpeciesPlannerCard projectId={project.id} />;
+    case 'plan-livestock-paddock-cells':    return <PaddockCellDesignCard projectId={project.id} />;
+    case 'plan-livestock-fencing':          return <FencingLayoutCard projectId={project.id} />;
+    case 'plan-livestock-tractor-zones':    return <MobileTractorZonesCard projectId={project.id} />;
+    case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
+    case 'plan-livestock-buffers':          return (
+      <>
+        <BiosecurityBufferCard projectId={project.id} />
+        <GuestSafeBufferAuditCard projectId={project.id} />
+      </>
+    );
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;

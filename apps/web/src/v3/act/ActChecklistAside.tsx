@@ -1,21 +1,25 @@
 /**
- * ActChecklistAside — right guidance rail for the Act stage.
+ * ActChecklistAside — right-rail Permaculture-Scholar guidance for Act.
  *
- * 5 module guidance cards grounded in execution discipline.
- * Mirrors PlanChecklistAside: inactive cards select the module,
- * active card toggles the slide-up. Inactive cards fade when one is active.
+ * 6 module guidance cards grounded in execution discipline. Cards delegate
+ * to the shared `<GuidanceCard>`; this file owns the Act guidance copy and
+ * the per-module dot palette.
  */
 
-import type { ActModule } from './types.js';
-import { ACT_MODULES, ACT_MODULE_LABEL } from './types.js';
+import { useRef } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { useActHowChecksStore } from '../../store/actHowChecksStore.js';
+import { useAutoScrollToActiveModule } from '../_shared/hooks/useAutoScrollToActiveModule.js';
+import {
+  GuidanceCard,
+  type GuidanceCardData,
+} from '../_shared/components/GuidanceCard.js';
+import { ACT_MODULES, ACT_MODULE_LABEL, type ActModule } from './types.js';
 import css from './ActChecklistAside.module.css';
 
-interface ActModuleGuidance {
-  why: string;
-  how: string[];
-}
+const EMPTY_CHECKS: readonly number[] = [];
 
-const ACT_MODULE_GUIDANCE: Record<ActModule, ActModuleGuidance> = {
+const ACT_MODULE_GUIDANCE: Record<ActModule, GuidanceCardData> = {
   build: {
     why: 'Implementation cadence determines whether a design survives contact with the land. Sequencing earthworks, infrastructure, and pilot plots in the right order protects capital and prevents rework (Mollison, Designer\'s Manual ch.14).',
     how: [
@@ -30,6 +34,14 @@ const ACT_MODULE_GUIDANCE: Record<ActModule, ActModuleGuidance> = {
       'Hold the maintenance schedule on the calendar — recurring, not reactive.',
       'Audit irrigation lines, valves, and reservoirs before each dry window.',
       'Close the loop on every waste stream — compost, mulch, or animal feed.',
+    ],
+  },
+  livestock: {
+    why: 'Animals integrate the design (Holmgren P8) — they cycle nutrients, manage forage, and signal pasture health. Stewarding them well during execution turns the paddock plan into resilient operations (Mollison, Designer\'s Manual ch.8).',
+    how: [
+      'Move stock on the cell rotation cadence agreed in Plan — graze short, rest long.',
+      'Log animal-day usage per cell so rest periods stay honest.',
+      'Inspect water, fencing, and shelter on every move — equipment failures compound fastest with livestock.',
     ],
   },
   harvest: {
@@ -58,12 +70,62 @@ const ACT_MODULE_GUIDANCE: Record<ActModule, ActModuleGuidance> = {
   },
 };
 
+const ACT_MODULE_DOT: Record<ActModule, string> = {
+  build: '#c4a265',
+  maintain: '#5fc7d4',
+  livestock: '#e6c34a',
+  harvest: '#8bd16a',
+  review: '#e88aa4',
+  network: '#d68bd0',
+};
+
 interface Props {
   activeModule: ActModule | null;
   onSelectModule: (module: ActModule | null) => void;
   slideUpOpen: boolean;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
+}
+
+function ActGuidanceCard({
+  module,
+  active,
+  projectId,
+  slideUpOpen,
+  onSelectModule,
+  onOpenSlideUp,
+  onCloseSlideUp,
+}: {
+  module: ActModule;
+  active: boolean;
+  projectId: string | null;
+  slideUpOpen: boolean;
+  onSelectModule: (module: ActModule | null) => void;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
+}) {
+  const checkedList = useActHowChecksStore(
+    (s) =>
+      (projectId ? s.byProject[projectId]?.[module] : null) ?? EMPTY_CHECKS,
+  );
+  const toggle = useActHowChecksStore((s) => s.toggle);
+
+  return (
+    <GuidanceCard
+      moduleKey={module}
+      label={ACT_MODULE_LABEL[module]}
+      dotColor={ACT_MODULE_DOT[module]}
+      active={active}
+      slideUpOpen={slideUpOpen}
+      guidance={ACT_MODULE_GUIDANCE[module]}
+      checkedList={checkedList}
+      onToggle={(i) => projectId && toggle(projectId, module, i)}
+      onSelect={() => onSelectModule(module)}
+      onOpenSlideUp={onOpenSlideUp}
+      onCloseSlideUp={onCloseSlideUp}
+      checksDisabled={!projectId}
+    />
+  );
 }
 
 export default function ActChecklistAside({
@@ -73,65 +135,30 @@ export default function ActChecklistAside({
   onOpenSlideUp,
   onCloseSlideUp,
 }: Props) {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const projectId = params.projectId ?? null;
+
+  const asideRef = useRef<HTMLDivElement | null>(null);
+  useAutoScrollToActiveModule(activeModule, asideRef);
+
   return (
     <div
+      ref={asideRef}
       className={css.checklistBox}
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
-      {ACT_MODULES.map((mod) => {
-        const isActive = activeModule === mod;
-        const guidance = ACT_MODULE_GUIDANCE[mod];
-
-        const handleClick = () => {
-          if (isActive) {
-            if (slideUpOpen) onCloseSlideUp();
-            else onOpenSlideUp();
-          } else {
-            onSelectModule(mod);
-          }
-        };
-
-        const handleKey = (e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        };
-
-        const title = isActive
-          ? slideUpOpen
-            ? `Close ${ACT_MODULE_LABEL[mod]} details`
-            : `Open ${ACT_MODULE_LABEL[mod]} details`
-          : `Switch to ${ACT_MODULE_LABEL[mod]}`;
-
-        return (
-          <section
-            key={mod}
-            className={`${css.group} ${isActive ? css.groupActive : ''}`}
-            data-module={mod}
-            role="button"
-            tabIndex={0}
-            aria-pressed={isActive}
-            title={title}
-            onClick={handleClick}
-            onKeyDown={handleKey}
-          >
-            <header className={css.groupHeader}>
-              <span className={css.dot} aria-hidden="true" />
-              <span className={css.groupLabel}>{ACT_MODULE_LABEL[mod]}</span>
-            </header>
-            <p className={css.why}>{guidance.why}</p>
-            <div className={css.howBlock}>
-              <span className={css.blockLabel}>How</span>
-              <ul className={css.howList}>
-                {guidance.how.map((step) => (
-                  <li key={step} className={css.howItem}>{step}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        );
-      })}
+      {ACT_MODULES.map((mod) => (
+        <ActGuidanceCard
+          key={mod}
+          module={mod}
+          active={activeModule === mod}
+          projectId={projectId}
+          slideUpOpen={slideUpOpen}
+          onSelectModule={onSelectModule}
+          onOpenSlideUp={onOpenSlideUp}
+          onCloseSlideUp={onCloseSlideUp}
+        />
+      ))}
     </div>
   );
 }

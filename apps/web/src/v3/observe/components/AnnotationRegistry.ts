@@ -53,6 +53,18 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   ecologyZone: 'Ecology zone',
   soilSample: 'Soil sample',
   swotTag: 'SWOT tag',
+  sector: 'Sector',
+};
+
+export const SECTOR_TYPE_LABELS: Record<string, string> = {
+  sun_summer: 'Summer sun',
+  sun_winter: 'Winter sun',
+  wind_prevailing: 'Prevailing wind',
+  wind_storm: 'Storm wind',
+  fire: 'Fire',
+  noise: 'Noise',
+  wildlife: 'Wildlife',
+  view: 'View',
 };
 
 // ─── Row builders ──────────────────────────────────────────────────────
@@ -200,6 +212,19 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.createdAt,
         }));
     }
+    case 'sector': {
+      return useExternalForcesStore
+        .getState()
+        .sectors.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: SECTOR_TYPE_LABELS[r.type] ?? 'Sector',
+          subtitle: `${Math.round(r.bearingDeg)}° · arc ${Math.round(r.arcDeg)}°${r.intensity ? ` · ${r.intensity}` : ''}`,
+          // SectorArrow has no createdAt — use id as a stable sort key.
+          createdAt: r.id,
+        }));
+    }
   }
 }
 
@@ -217,6 +242,7 @@ export function useAnnotationsForKinds(
   const households = useHumanContextStore((s) => s.households);
   const accessRoads = useHumanContextStore((s) => s.accessRoads);
   const hazards = useExternalForcesStore((s) => s.hazards);
+  const sectors = useExternalForcesStore((s) => s.sectors);
   const contours = useTopographyStore((s) => s.contours);
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
@@ -240,6 +266,7 @@ export function useAnnotationsForKinds(
     households,
     accessRoads,
     hazards,
+    sectors,
     contours,
     highPoints,
     drainageLines,
@@ -378,6 +405,17 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
+    case 'sector': {
+      const r = useExternalForcesStore.getState().sectors.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: SECTOR_TYPE_LABELS[r.type] ?? 'Sector',
+        subtitle: `${Math.round(r.bearingDeg)}° · arc ${Math.round(r.arcDeg)}°${r.intensity ? ` · ${r.intensity}` : ''}`,
+        createdAt: r.id,
+      };
+    }
   }
 }
 
@@ -417,6 +455,9 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'swotTag':
       useSwotStore.getState().removeSwot(id);
+      return;
+    case 'sector':
+      useExternalForcesStore.getState().removeSector(id);
       return;
   }
 }

@@ -16,6 +16,7 @@ import {
   Container,
   Disc,
   Droplet,
+  Fence,
   FolderOpen,
   Recycle,
   Route,
@@ -53,6 +54,9 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   'zone-circulation': [
     { id: 'zone', label: 'Zone', Icon: Square, toolId: 'plan.zone-circulation.zone' },
     { id: 'path', label: 'Path', Icon: Route,  toolId: 'plan.zone-circulation.path' },
+  ],
+  livestock: [
+    { id: 'paddock', label: 'Paddock', Icon: Fence, toolId: 'plan.livestock.paddock' },
   ],
   'plant-systems': [
     { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },

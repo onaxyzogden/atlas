@@ -23,6 +23,8 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
+import WaterOverlay from '../components/overlays/WaterOverlay.js';
 import ObserveTools from './tools/ObserveTools.js';
 import ObserveChecklistAside from './components/ObserveChecklistAside.js';
 import ObserveModuleBar from './components/ObserveModuleBar.js';
@@ -31,6 +33,7 @@ import MapToolbar from './components/MapToolbar.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
 import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
 import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
+import AnnotationSectorHandles from './components/draw/AnnotationSectorHandles.js';
 import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
@@ -43,6 +46,7 @@ import {
   type ObserveModule,
 } from './types.js';
 import StageShell from '../_shell/StageShell.js';
+import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -101,6 +105,19 @@ export default function ObserveLayout() {
         >
           {({ map }) => (
             <>
+              <MapOverlaysLegend />
+              {/* Tile overlays from MapTiler / OpenMapTiles. The
+                  climatology-driven prevailing wind rose
+                  (`WindSectorsOverlay`) is intentionally NOT mounted in
+                  Observe: the `wind` toggle gates only the steward-drawn
+                  wind-type sectors, which now render with
+                  intensity-proportional wedge sizing + compass labels in
+                  `ObserveAnnotationLayers`. Likewise `ZonesOverlay`
+                  (computed default Zone 0–5 rings) is NOT mounted: the
+                  Zones toggle gates only the steward-drawn permaculture-
+                  zone polygons. */}
+              <TopographyOverlay map={map} />
+              <WaterOverlay map={map} />
               <MapToolbar
                 map={map}
                 projectId={params.projectId ?? null}
@@ -132,6 +149,10 @@ export default function ObserveLayout() {
               />
               <AnnotationDragHandler map={map} />
               <AnnotationVertexEditHandler map={map} />
+              <AnnotationSectorHandles
+                map={map}
+                projectId={params.projectId ?? null}
+              />
               <SelectionFloater projectId={params.projectId ?? null} />
               <ExportButton projectId={params.projectId ?? null} />
               <ImportSiteIntelButton projectId={params.projectId ?? null} />

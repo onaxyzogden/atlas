@@ -9,6 +9,7 @@
 export type ActModule =
   | 'build'
   | 'maintain'
+  | 'livestock'
   | 'harvest'
   | 'review'
   | 'network';
@@ -16,6 +17,7 @@ export type ActModule =
 export const ACT_MODULES: ActModule[] = [
   'build',
   'maintain',
+  'livestock',
   'harvest',
   'review',
   'network',
@@ -26,19 +28,21 @@ export function isActModule(s: string): s is ActModule {
 }
 
 export const ACT_MODULE_LABEL: Record<ActModule, string> = {
-  build:    'Build',
-  maintain: 'Maintain',
-  harvest:  'Harvest',
-  review:   'Review',
-  network:  'Network',
+  build:     'Build',
+  maintain:  'Maintain',
+  livestock: 'Livestock',
+  harvest:   'Harvest',
+  review:    'Review',
+  network:   'Network',
 };
 
 export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
-  build:    'Build & Construction',
-  maintain: 'Maintenance & Operations',
-  harvest:  'Harvest & Succession',
-  review:   'Review & Risk',
-  network:  'Network & Community',
+  build:     'Build & Construction',
+  maintain:  'Maintenance & Operations',
+  livestock: 'Livestock & Grazing',
+  harvest:   'Harvest & Succession',
+  review:    'Review & Risk',
+  network:   'Network & Community',
 };
 
 /** Each module maps to one or more act card section IDs. */
@@ -52,6 +56,15 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
     { label: 'Maintenance schedule', sectionId: 'act-maintenance' },
     { label: 'Irrigation manager',   sectionId: 'act-irrigation' },
     { label: 'Waste routing',        sectionId: 'act-waste-routing' },
+  ],
+  livestock: [
+    { label: 'Rotation schedule',    sectionId: 'act-livestock-rotation' },
+    { label: 'Pasture utilization',  sectionId: 'act-livestock-pasture' },
+    { label: 'Forage quality',       sectionId: 'act-livestock-forage' },
+    { label: 'Browse pressure',      sectionId: 'act-livestock-browse-pressure' },
+    { label: 'Predator hotspots',    sectionId: 'act-livestock-predator-risk' },
+    { label: 'Welfare access audit', sectionId: 'act-livestock-welfare-audit' },
+    { label: 'Animal corridors',     sectionId: 'act-livestock-corridors' },
   ],
   harvest: [
     { label: 'Harvest log',        sectionId: 'act-harvest-log' },

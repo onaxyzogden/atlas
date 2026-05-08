@@ -29,7 +29,7 @@ import {
   Warehouse,
   type LucideIcon,
 } from 'lucide-react';
-import type { DrawMode } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import type { DrawMode } from '../../observe/components/draw/useMapboxDrawTool.js';
 import type { PhaseKey } from '../types.js';
 
 export type DesignCategory =

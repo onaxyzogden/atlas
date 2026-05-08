@@ -19,6 +19,8 @@ export type MatrixToggleKey =
   | 'zones'
   | 'wind'
   | 'water'
+  | 'hazards'
+  | 'views'
   | 'observeAnnotations';
 
 export interface MatrixTogglesState {
@@ -27,6 +29,10 @@ export interface MatrixTogglesState {
   zones: boolean;
   wind: boolean;
   water: boolean;
+  /** Hazard sectors (fire / noise / wildlife). Split out of `sectors` in v8. */
+  hazards: boolean;
+  /** Sightline / view sectors. Split out of `sectors` in v8. */
+  views: boolean;
   /** OBSERVE annotations master toggle (default on). */
   observeAnnotations: boolean;
   toggle: (key: MatrixToggleKey) => void;
@@ -41,6 +47,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       zones: false,
       wind: false,
       water: false,
+      hazards: false,
+      views: false,
       observeAnnotations: true,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
@@ -50,17 +58,23 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zones: value,
           wind: value,
           water: value,
+          hazards: value,
+          views: value,
           observeAnnotations: value,
         })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v8 (2026-05-08): split the legacy single `sectors` toggle into four
+      // groups (Solar / Wind / Hazard / View). `sectors` keeps its name as
+      // the solar sub-toggle for back-compat; new keys `hazards` + `views`
+      // default to off.
       // v7 (2026-05-06): added observeAnnotations master toggle (default on)
       // for the OBSERVE-stage annotation layers shipped this session.
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 7,
+      version: 8,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -69,6 +83,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zones: prev.zones ?? false,
           wind: prev.wind ?? false,
           water: prev.water ?? false,
+          hazards: prev.hazards ?? false,
+          views: prev.views ?? false,
           observeAnnotations: prev.observeAnnotations ?? true,
         } as MatrixTogglesState;
       },

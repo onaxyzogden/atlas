@@ -168,6 +168,7 @@ export default function PlanLayout() {
           <PlanTools
             activeModule={validModule}
             onSelectModule={handleSelectModule}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
           />
         )
       }

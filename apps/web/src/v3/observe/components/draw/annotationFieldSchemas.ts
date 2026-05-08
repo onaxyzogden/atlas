@@ -35,7 +35,8 @@ export type AnnotationKind =
   | 'watercourse'
   | 'ecologyZone'
   | 'soilSample'
-  | 'swotTag';
+  | 'swotTag'
+  | 'sector';
 
 export type FieldDef =
   | {
@@ -726,6 +727,79 @@ const swotTag: FieldSchema = {
   },
 };
 
+/**
+ * Sector schema — edit-only.
+ *
+ * Creates happen in `SunWindWedgeTool` directly (the create flow needs the
+ * homestead-fallback apex, type-specific defaults, and `addSector` call,
+ * none of which fit cleanly into the `save(values, ctx)` shape that takes
+ * a single `geometry`). The schema only services edit mode: form load
+ * reads from `externalForcesStore.sectors`, save patches via
+ * `updateSector`. The on-map drag handles in `<AnnotationSectorHandles>`
+ * also call `updateSector` so live drags and form edits agree.
+ */
+const sector: FieldSchema = {
+  title: 'Sector',
+  fields: [
+    {
+      name: 'bearingDeg',
+      label: 'Bearing (° from N)',
+      type: 'number',
+      min: 0,
+      max: 360,
+      step: 1,
+    },
+    {
+      name: 'arcDeg',
+      label: 'Arc width (°)',
+      type: 'number',
+      min: 10,
+      max: 350,
+      step: 1,
+    },
+    {
+      name: 'intensity',
+      label: 'Intensity',
+      type: 'select',
+      options: [
+        { value: '', label: '—' },
+        { value: 'low', label: 'Low' },
+        { value: 'med', label: 'Medium' },
+        { value: 'high', label: 'High' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { bearingDeg: 180, arcDeg: 90, intensity: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useExternalForcesStore.getState().sectors.find((x) => x.id === id);
+    if (!rec) return null;
+    return {
+      bearingDeg: rec.bearingDeg,
+      arcDeg: rec.arcDeg,
+      intensity: rec.intensity ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    if (!ctx.existingId) return; // Creates handled by SunWindWedgeTool.
+    const store = useExternalForcesStore.getState();
+    const bearing = n(v.bearingDeg);
+    const arc = n(v.arcDeg);
+    const intensityRaw = typeof v.intensity === 'string' ? v.intensity : '';
+    const intensity =
+      intensityRaw === 'low' || intensityRaw === 'med' || intensityRaw === 'high'
+        ? intensityRaw
+        : undefined;
+    store.updateSector(ctx.existingId, {
+      ...(bearing !== null ? { bearingDeg: ((bearing % 360) + 360) % 360 } : {}),
+      ...(arc !== null ? { arcDeg: Math.max(10, Math.min(350, arc)) } : {}),
+      intensity,
+      notes: s(v.notes),
+    });
+  },
+};
+
 export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   neighbourPin,
   household,
@@ -739,4 +813,5 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   ecologyZone,
   soilSample,
   swotTag,
+  sector,
 };

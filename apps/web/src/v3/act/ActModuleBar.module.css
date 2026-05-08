@@ -1,4 +1,4 @@
-/* ActModuleBar — 5-column bottom navigator, mirrors PlanModuleBar */
+/* ActModuleBar — 6-column bottom navigator, mirrors PlanModuleBar */
 
 .rail {
   display: flex;
@@ -12,12 +12,12 @@
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
 }
 
 @media (max-width: 900px) {
-  .tiles { grid-template-columns: repeat(5, 1fr); }
+  .tiles { grid-template-columns: repeat(6, 1fr); }
 }
 
 .tile {

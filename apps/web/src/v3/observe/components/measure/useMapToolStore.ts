@@ -64,7 +64,9 @@ export type MapToolId =
   // Plan Module 5 — Plant Systems & Polyculture
   | 'plan.plant-systems.crop-area'
   // Plan Module 6 — Soil Fertility & Closed-Loop
-  | 'plan.soil-fertility.fertility-unit';
+  | 'plan.soil-fertility.fertility-unit'
+  // Plan Module 4 — Livestock & Subdivision
+  | 'plan.livestock.paddock';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

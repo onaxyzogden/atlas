@@ -25,6 +25,7 @@ import ActModuleBar from './ActModuleBar.js';
 import ActModuleSlideUp from './ActModuleSlideUp.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
+import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -127,6 +128,7 @@ export default function ActLayout() {
         >
           {({ map }) => (
             <>
+              <MapOverlaysLegend />
               <MapToolbar
                 map={map}
                 projectId={params.projectId ?? null}

@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
 import {
@@ -120,7 +120,7 @@ export default function DesignElementLayers({
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
 
-      const selFlag = ['boolean', ['feature-state', 'selected'], false] as const;
+      const selFlag: ExpressionSpecification = ['boolean', ['feature-state', 'selected'], false];
       const SEL_GOLD = '#c4a265';
 
       ensureLayer({
