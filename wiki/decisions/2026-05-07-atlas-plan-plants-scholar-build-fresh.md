@@ -91,6 +91,17 @@ Three cards under `apps/web/src/v3/plan/cards/plant-systems/`:
   Falls back to the previous generic N→S arrow when the elevation
   layer hasn't been fetched yet (with a "fetch elevation in Observe"
   hint).
+- ✅ **Macro-site context panel surfaces live precip + slope** —
+  landed 2026-05-07. `PlantDatabaseSiteMatchCard`'s "Macro-site
+  context (v1)" section reworked: the stale "country drives hardiness
+  scoring" framing + TODO comment ("fold slope, aspect, precipitation
+  rasters") replaced with three `statRow` lines surfacing the exact
+  inputs the v2 score uses — hardiness band (country), annual
+  precipitation (mm, climate layer), mean slope (°, elevation layer).
+  Layers that haven't been observed yet read "not fetched — run an
+  Observe site fetch" so the under-observation degradation is
+  legible. Top caption documents the 0.55/0.30/0.15 weight split +
+  drop-and-renormalise behaviour. Card-doc comment updated to match.
 - ✅ **`siteMatch.ts` precip + slope refinement** — landed 2026-05-07.
   `scoreSiteMatch` is now a 3-axis weighted composite (hardiness 0.55,
   precipitation 0.30, slope 0.15 when all present; weights renormalise

@@ -3,9 +3,13 @@
  * Scholar verdict (2026-05-07).
  *
  * Inherits Atlas's filterable PLANT_DATABASE browser, then adds a per-row
- * site-match score driven by the project's macro-site context (country →
- * hardiness band today; full siteDataStore raster integration in a
- * follow-up). Scholar quote anchoring this rebuild:
+ * site-match score driven by a 3-axis weighted composite (hardiness 0.55,
+ * precipitation 0.30, slope 0.15 — see `siteMatch.ts`). Hardiness is
+ * derived from `project.country`; precipitation and slope come live from
+ * the climate / elevation layers in `siteDataStore`. Axes that haven't
+ * been observed yet are dropped from the composite (weights renormalise),
+ * so the score degrades gracefully on under-observed sites. Scholar
+ * quote anchoring this rebuild:
  *   "Tree placement will follow the patterns of water flow and access
  *    and will be part of the long-term major infrastructure of our
  *    design sites."
@@ -147,16 +151,33 @@ export default function PlantDatabaseSiteMatchCard({ project }: Props) {
       </header>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Macro-site context (v1)</h2>
+        <h2 className={styles.sectionTitle}>Macro-site context</h2>
+        <p className={styles.empty} style={{ textAlign: 'left', padding: '0 0 8px' }}>
+          Site-match score weights: hardiness 0.55 · precipitation 0.30 ·
+          slope 0.15. Axes without observed data are dropped (weights
+          renormalise) — fetch missing layers in Observe to sharpen the
+          score.
+        </p>
         <div className={styles.statRow}>
-          <span>Country band drives hardiness scoring</span>
+          <span>Hardiness (country band)</span>
           <span>{project.country}</span>
         </div>
-        <p className={styles.empty} style={{ textAlign: 'left', padding: '6px 0' }}>
-          TODO: fold slope, aspect, precipitation and water-flow rasters
-          from <code>siteDataStore</code> into the score once Observe data
-          is reliably populated for every project.
-        </p>
+        <div className={styles.statRow}>
+          <span>Annual precipitation (climate)</span>
+          <span>
+            {annualPrecipMm != null
+              ? `${Math.round(annualPrecipMm)} mm`
+              : 'not fetched — run an Observe site fetch'}
+          </span>
+        </div>
+        <div className={styles.statRow}>
+          <span>Mean slope (elevation)</span>
+          <span>
+            {meanSlopeDeg != null
+              ? `${meanSlopeDeg.toFixed(1)}°`
+              : 'not fetched'}
+          </span>
+        </div>
       </section>
 
       <section className={styles.section}>
