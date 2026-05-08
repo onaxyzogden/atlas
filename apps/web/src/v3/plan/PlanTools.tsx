@@ -18,6 +18,7 @@ import {
   Droplet,
   FolderOpen,
   Route,
+  Sprout,
   Square,
   Waves,
   type LucideIcon,
@@ -51,6 +52,9 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   'zone-circulation': [
     { id: 'zone', label: 'Zone', Icon: Square, toolId: 'plan.zone-circulation.zone' },
     { id: 'path', label: 'Path', Icon: Route,  toolId: 'plan.zone-circulation.path' },
+  ],
+  'plant-systems': [
+    { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
   ],
 };
 

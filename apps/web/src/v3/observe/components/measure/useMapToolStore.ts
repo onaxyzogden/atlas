@@ -60,7 +60,9 @@ export type MapToolId =
   | 'plan.water-management.sink'
   // Plan Module 3 — Zone & Circulation
   | 'plan.zone-circulation.zone'
-  | 'plan.zone-circulation.path';
+  | 'plan.zone-circulation.path'
+  // Plan Module 5 — Plant Systems & Polyculture
+  | 'plan.plant-systems.crop-area';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

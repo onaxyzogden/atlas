@@ -16,6 +16,7 @@ import * as turf from '@turf/turf';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
+import { useCropStore } from '../../../store/cropStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -36,6 +37,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const zones = useZoneStore((s) => s.zones);
   const paths = usePathStore((s) => s.paths);
+  const cropAreas = useCropStore((s) => s.cropAreas);
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
@@ -51,6 +53,19 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       try {
         const c = turf.centroid(z.geometry).geometry;
         labels.push({ type: 'Feature', id: z.id, properties: props, geometry: c });
+      } catch {
+        /* skip */
+      }
+    }
+
+    // Crop areas (polygon) — Module 5 Plant Systems. Yeomans rank 8.
+    for (const c of cropAreas) {
+      if (c.projectId !== projectId) continue;
+      const props = { id: c.id, color: c.color, label: c.name };
+      polys.push({ type: 'Feature', id: c.id, properties: props, geometry: c.geometry });
+      try {
+        const ctr = turf.centroid(c.geometry).geometry;
+        labels.push({ type: 'Feature', id: c.id, properties: props, geometry: ctr });
       } catch {
         /* skip */
       }
@@ -83,7 +98,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       pointFC: { type: 'FeatureCollection' as const, features: points },
       labelFC: { type: 'FeatureCollection' as const, features: labels },
     };
-  }, [waterNodes, zones, paths, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, projectId]);
 
   useEffect(() => {
     if (!map) return;
