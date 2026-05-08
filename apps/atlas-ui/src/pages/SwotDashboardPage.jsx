@@ -35,11 +35,11 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/swot"
 
 const swotIconMap = { leaf: Leaf, mountain: Mountain, sprout: Sprout, cloud: CloudLightning };
 
-export function SwotDashboardPage() {
+export function SwotContent() {
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
   return (
-    <AppShell navConfig={observeNav}>
+    <>
       <div className="swot-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — SWOT Synthesis" />
         <ProjectDataStatus />
@@ -74,6 +74,14 @@ export function SwotDashboardPage() {
       <SlideUpPane open={pane === "diagnosis"} title="Diagnosis report" onClose={close}>
         <SwotDiagnosisReportContent />
       </SlideUpPane>
+    </>
+  );
+}
+
+export function SwotDashboardPage() {
+  return (
+    <AppShell navConfig={observeNav}>
+      <SwotContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

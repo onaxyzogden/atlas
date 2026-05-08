@@ -1,6 +1,7 @@
 import { createRoute, createRootRoute, createRouter, redirect, Outlet, Link } from "@tanstack/react-router";
 import { ObservePage } from "../pages/ObservePage.jsx";
 import { ObserveDashboardPage } from "../pages/ObserveDashboardPage.jsx";
+import { LandBriefPage } from "../pages/LandBriefPage.jsx";
 import { HumanContextDashboardPage } from "../pages/HumanContextDashboardPage.jsx";
 import { StewardSurveyPage } from "../pages/StewardSurveyPage.jsx";
 import { IndigenousRegionalContextPage } from "../pages/IndigenousRegionalContextPage.jsx";
@@ -47,6 +48,12 @@ const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/observe/dashboard",
   component: ObserveDashboardPage,
+});
+
+const landBriefRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/observe/land-brief",
+  component: LandBriefPage,
 });
 
 const humanContextRoute = createRoute({
@@ -162,6 +169,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   observeRoute,
   dashboardRoute,
+  landBriefRoute,
   humanContextRoute,
   stewardSurveyRoute,
   indigenousContextRoute,

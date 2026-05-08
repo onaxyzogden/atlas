@@ -26,12 +26,22 @@ export function AppShell({
   brand = "atlas",
   topbarChildren,
   rightPanel,
+  rightSidebar,
+  rightSidebarTitle,
+  rightSidebarCollapsible = true,
+  rightSidebarDefaultCollapsed = false,
+  leftSidebar,
+  leftSidebarTitle,
+  leftSidebarCollapsible = true,
+  leftSidebarDefaultCollapsed = false,
   layout = "contained",
   collapsible = true,
   defaultCollapsed = false,
   children,
 }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const [rightCollapsed, setRightCollapsed] = useState(rightSidebarDefaultCollapsed);
+  const [leftCollapsed, setLeftCollapsed] = useState(leftSidebarDefaultCollapsed);
   const topbarSlotRef = useRef(null);
   const [topbarSlotEl, setTopbarSlotEl] = useState(null);
 
@@ -41,7 +51,14 @@ export function AppShell({
 
   const portalApi = useMemo(() => ({ element: topbarSlotEl }), [topbarSlotEl]);
 
-  const gridClass = `appshell appshell--${layout} ${collapsed ? "appshell--collapsed" : ""}`.trim();
+  const gridClass = [
+    "appshell",
+    `appshell--${layout}`,
+    collapsed ? "appshell--collapsed" : "",
+    leftSidebar ? "appshell--has-left" : "",
+    leftSidebar && leftCollapsed ? "appshell--left-collapsed" : "",
+    rightSidebar && rightCollapsed ? "appshell--right-collapsed" : "",
+  ].filter(Boolean).join(" ");
 
   return (
     <TopbarPortalContext.Provider value={portalApi}>
@@ -57,16 +74,91 @@ export function AppShell({
             {topbarChildren}
           </div>
         </header>
+        {leftSidebar ? (
+          <LeftSidebar
+            title={leftSidebarTitle}
+            collapsed={leftCollapsed}
+            onToggle={leftSidebarCollapsible ? () => setLeftCollapsed((c) => !c) : null}
+          >
+            {leftSidebar}
+          </LeftSidebar>
+        ) : null}
         <main className="appshell__main" role="main">
           {children}
         </main>
-        {rightPanel ? (
+        {rightSidebar ? (
+          <RightSidebar
+            title={rightSidebarTitle}
+            collapsed={rightCollapsed}
+            onToggle={rightSidebarCollapsible ? () => setRightCollapsed((c) => !c) : null}
+          >
+            {rightSidebar}
+          </RightSidebar>
+        ) : rightPanel ? (
           <aside className="appshell__right" aria-label="Side panel">
             {rightPanel}
           </aside>
         ) : null}
       </div>
     </TopbarPortalContext.Provider>
+  );
+}
+
+function LeftSidebar({ title, collapsed, onToggle, children }) {
+  return (
+    <aside
+      className={`appshell__left appshell__left--sidebar${collapsed ? " is-collapsed" : ""}`}
+      aria-label={title || "Side panel"}
+    >
+      <div className="appshell__left-head">
+        {!collapsed && title ? <span className="appshell__left-title">{title}</span> : null}
+        {collapsed && title ? (
+          <span className="appshell__left-title-vert" aria-hidden="true">{title}</span>
+        ) : null}
+        {onToggle ? (
+          <Tooltip content={collapsed ? "Expand" : "Collapse"} side="right">
+            <IconButton
+              label={collapsed ? `Expand ${title || "panel"}` : `Collapse ${title || "panel"}`}
+              size="sm"
+              onClick={onToggle}
+              className="appshell__left-collapse"
+            >
+              <Icon.chevronRight style={{ transform: collapsed ? "none" : "rotate(180deg)" }} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </div>
+      {!collapsed ? <div className="appshell__left-body">{children}</div> : null}
+    </aside>
+  );
+}
+
+function RightSidebar({ title, collapsed, onToggle, children }) {
+  return (
+    <aside
+      className={`appshell__right appshell__right--sidebar${collapsed ? " is-collapsed" : ""}`}
+      aria-label={title || "Side panel"}
+    >
+      <div className="appshell__right-head">
+        {!collapsed && title ? <span className="appshell__right-title">{title}</span> : null}
+        {collapsed && title ? (
+          <span className="appshell__right-title-vert" aria-hidden="true">{title}</span>
+        ) : null}
+        {onToggle ? (
+          <Tooltip content={collapsed ? "Expand" : "Collapse"} side="left">
+            <IconButton
+              label={collapsed ? `Expand ${title || "panel"}` : `Collapse ${title || "panel"}`}
+              size="sm"
+              onClick={onToggle}
+              className="appshell__right-collapse"
+            >
+              <Icon.chevronRight style={{ transform: collapsed ? "rotate(180deg)" : "none" }} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </div>
+      {!collapsed ? <div className="appshell__right-body">{children}</div> : null}
+    </aside>
   );
 }
 

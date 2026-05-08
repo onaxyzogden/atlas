@@ -2,6 +2,27 @@ import { generatedScreenCatalog } from "./screenCatalog.generated.js";
 
 export const screenCatalog = [
   {
+    id: "observe-land-brief",
+    route: "/observe/land-brief",
+    title: "Land Brief",
+    reference: null,
+    viewport: { width: 1448, height: 1086 },
+    pageType: "stage overview",
+    complexity: "high",
+    status: "draft",
+    majorRegions: [
+      "diagnose-mode header",
+      "stage stepper (6 modules)",
+      "land verdict rail",
+      "selected module hero + insights",
+      "aggregated observations rail",
+      "module thumbnail strip"
+    ],
+    interactions: ["select stage", "select thumbnail", "open module", "generate brief"],
+    cropCategories: ["module hero images", "stage icons"],
+    dependencies: ["app shell", "progress ring", "surface card", "synthesis aggregator"]
+  },
+  {
     id: "observe-homepage",
     route: "/observe",
     title: "Observe Homepage",
