@@ -205,12 +205,41 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
         weight: foodArea,
         weightLabel: foodArea > 0 ? `${fmtA(foodArea)} under management` : '',
       },
-      8: {
-        count: crops.length + guilds.length,
-        label: `${crops.length} crop area(s) · ${guilds.length} guild(s)`,
-        weight: cropArea,
-        weightLabel: cropArea > 0 ? `${fmtA(cropArea)} of crop` : '',
-      },
+      8: (() => {
+        // Function-count weighting on rank 8 Vegetation (Module 1 follow-up
+        // 2026-05-07): a guild that fills 6 of 7 GuildLayers integrates more
+        // niches than one with two layers — Holmgren P8 *Integrate rather
+        // than segregate*. Compute distinct-layer count per guild and surface
+        // the average + the maximum (the "deepest stack") so the steward
+        // sees not just *how many* polycultures are in play but how layered
+        // each one is. Crops aren't subdivided by layer in `cropStore`, so
+        // they contribute purely to count.
+        const guildLayerCounts = guilds.map((g) => {
+          const set = new Set<string>();
+          for (const m of g.members) set.add(m.layer);
+          // anchor species typically a canopy/sub-canopy layer — but the
+          // members array already includes the anchor's layer in normal
+          // editor flow, so we don't double-count.
+          return set.size;
+        });
+        const avgLayers = guildLayerCounts.length > 0
+          ? guildLayerCounts.reduce((a, b) => a + b, 0) / guildLayerCounts.length
+          : 0;
+        const maxLayers = guildLayerCounts.reduce((m, n) => Math.max(m, n), 0);
+        const richness = guilds.length > 0
+          ? ` · avg ${avgLayers.toFixed(1)} / 7 layers (deepest ${maxLayers})`
+          : '';
+        const cropAreaLabel = cropArea > 0 ? `${fmtA(cropArea)} of crop` : '';
+        const weightLabel = [cropAreaLabel, richness.replace(/^ · /, '')]
+          .filter(Boolean)
+          .join(' · ');
+        return {
+          count: crops.length + guilds.length,
+          label: `${crops.length} crop area(s) · ${guilds.length} guild(s)${richness}`,
+          weight: cropArea,
+          weightLabel,
+        };
+      })(),
       9: { count: ecology.length, label: `${ecology.length} ecology obs.`, weight: 0, weightLabel: '' },
     };
 
