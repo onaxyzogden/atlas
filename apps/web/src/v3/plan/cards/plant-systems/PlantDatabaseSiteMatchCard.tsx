@@ -30,6 +30,7 @@ import {
   type SpeciesPick,
 } from '../../../../store/site-annotations.js';
 import { scoreSiteMatch } from './siteMatch.js';
+import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -75,6 +76,23 @@ export default function PlantDatabaseSiteMatchCard({ project }: Props) {
     [projectPicks],
   );
 
+  // ── Site context (optional axes for scoreSiteMatch v2) ────────────────
+  const siteData = useSiteData(project.id);
+  const annualPrecipMm = useMemo(() => {
+    if (!siteData) return null;
+    const climate = getLayerSummary<{ annual_precip_mm?: number }>(siteData, 'climate');
+    return climate?.annual_precip_mm ?? null;
+  }, [siteData]);
+  const meanSlopeDeg = useMemo(() => {
+    if (!siteData) return null;
+    const elev = getLayerSummary<{ mean_slope_deg?: number }>(siteData, 'elevation');
+    return elev?.mean_slope_deg ?? null;
+  }, [siteData]);
+  const siteContext = useMemo(
+    () => ({ annualPrecipMm, meanSlopeDeg }),
+    [annualPrecipMm, meanSlopeDeg],
+  );
+
   const [query, setQuery] = useState('');
   const [layer, setLayer] = useState<CanopyLayer | 'all'>('all');
   const [light, setLight] = useState<LightNeeds | 'all'>('all');
@@ -85,7 +103,7 @@ export default function PlantDatabaseSiteMatchCard({ project }: Props) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return PLANT_DATABASE
-      .map((p) => ({ p, m: scoreSiteMatch(p, project.country) }))
+      .map((p) => ({ p, m: scoreSiteMatch(p, project.country, siteContext) }))
       .filter(({ p, m }) => {
         if (q && !p.commonName.toLowerCase().includes(q) && !p.latinName.toLowerCase().includes(q)) return false;
         if (layer !== 'all' && p.layer !== layer) return false;
@@ -96,7 +114,7 @@ export default function PlantDatabaseSiteMatchCard({ project }: Props) {
         return true;
       })
       .sort((a, b) => b.m.score - a.m.score);
-  }, [query, layer, light, water, func, minMatch, project.country]);
+  }, [query, layer, light, water, func, minMatch, project.country, siteContext]);
 
   function pick(speciesId: string) {
     const sp: SpeciesPick = {

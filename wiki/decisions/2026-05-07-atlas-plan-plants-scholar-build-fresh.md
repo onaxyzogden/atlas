@@ -90,9 +90,20 @@ Three cards under `apps/web/src/v3/plan/cards/plant-systems/`:
   4.2° slope`, and the prose above the diagram cites the live values.
   Falls back to the previous generic N→S arrow when the elevation
   layer hasn't been fetched yet (with a "fetch elevation in Observe"
-  hint). `siteMatch.ts` precip/slope refinement remains deferred —
-  hardiness-only scoring still ratchets correctly today, and folding
-  precip/slope needs a per-zone microclimate model the Scholar will
-  shape separately.
+  hint).
+- ✅ **`siteMatch.ts` precip + slope refinement** — landed 2026-05-07.
+  `scoreSiteMatch` is now a 3-axis weighted composite (hardiness 0.55,
+  precipitation 0.30, slope 0.15 when all present; weights renormalise
+  when an axis is missing). Precip match scores `waterNeeds` (low /
+  med / high) against the climate layer's `annual_precip_mm` using
+  generous heuristic bands (low: ≤700 mm ideal, ≤1000 acceptable; med:
+  500–1400 ideal; high: ≥1000 ideal). Slope match scores `rootPattern`
+  against the elevation layer's `mean_slope_deg` (flat: any pattern;
+  steep: tap > fibrous > rhizome — Yeomans/Lawton observation that deep
+  anchor-root woody perennials are a slope's first defence). The
+  rationale string surfaces the *worst* axis so the steward sees what
+  to act on. Per-axis scores are also returned in `factors` for future
+  diagnostic UI. Backwards-compatible: `context` arg is optional, so
+  any consumer that doesn't pass it gets pure hardiness scoring.
 - Consolidate the legacy `features/plan/Plant*Card.tsx` away once
   `V3PlanPage.tsx` and `DashboardRouter.tsx` no longer reference them.

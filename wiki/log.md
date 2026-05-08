@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 4 · siteMatch precip + slope refinement
+
+Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `scoreSiteMatch` upgraded from hardiness-only to a 3-axis weighted composite (hardiness 0.55, precipitation 0.30, slope 0.15 when all present; weights renormalise when an axis is missing). Precip match scores `waterNeeds` against the climate layer's `annual_precip_mm` with generous heuristic bands (low ≤ 700 ideal, med 500–1400 ideal, high ≥ 1000 ideal). Slope match scores `rootPattern` against the elevation layer's `mean_slope_deg` — tap > fibrous > rhizome on > 15° gradients per the Yeomans/Lawton anchor-root observation. The rationale string now surfaces the *worst* axis so the steward sees the limiting factor. Per-axis scores returned in `factors` for future diagnostic UI. `PlantDatabaseSiteMatchCard` rewired to read climate + elevation summaries from `siteDataStore` and pass them in. Backwards-compatible — `context` arg is optional. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 5 · Soil Greens/Browns inventory card
 
 Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). New 5th tab `plan-soil-resources` under Soil — `SoilResourcesCard.tsx` — inventories common feedstocks with Cornell/USDA reference C:N ratios across two columns (Greens 8 items, Browns 8 items). Volume input (m³) per checked feedstock drives a mass-weighted aggregate C:N; verdict bands keyed to Cornell hot-composting guidance (< 20:1 too-green, 25–35:1 ideal, > 50:1 too-brown, all-green / all-brown each get their own remedy). Per-feedstock notes carry field warnings ("strip tape and glossy print", "compost fresh manure ≥ 90 days before food-crop contact", "rinse seaweed to drop salt"). Component-state v1 (persistence as future `compostInventoryStore` follow-up); split-panel polygon-draw for soil-management areas remains deferred. Cites Holmgren P6 + Cornell Waste Management "Composting in Schools" + Mollison ch.8. Typecheck clean.
