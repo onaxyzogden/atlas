@@ -45,6 +45,7 @@ Three derived signals are surfaced:
 - **Coverage stats:** total tasks / hours / cost across all phases, and a `layers in use: N / 4` count.
 - **Per-cell visualisation:** empty cells are dimmed (opacity 0.45); populated cells show count + hrs + dollars.
 - **Sequencing-violation warnings:** if a "later" layer (Structures or Vegetation) has tasks in a phase whose prerequisite "earlier" layers (Earthworks + Water) are empty *in the same phase*, the violation is flagged with a recommendation to sequence the prerequisite work first. This is the Keyline rule operationalised.
+  - ✅ **Cumulative-prerequisite severity** (added 2026-05-07). The check now distinguishes two severities: *same-phase* (orange — later layer leaps the prereq within one phase, often a benign batching choice) and *cumulative* (red — later layer populated in phase N but the prereq has zero tasks in phases 1..N anywhere upstream, the orthodox Keyline failure). Cumulative subsumes same-phase: a prereq missing cumulatively is removed from the same-phase set so the steward sees the worst severity once. Each violation row now carries a coloured left-border + a `cumulative` / `same phase` tag pill, and cumulative-severity rows replace the per-phase remedy text with the cross-program reading: "no tasks in this phase or any earlier phase. Yeomans Keyline: water and landform must precede planting and structures across the whole program."
 
 ### 5. Wiring
 

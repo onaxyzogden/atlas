@@ -127,21 +127,75 @@ export default function PhasingScaleMatrixCard({ project }: Props) {
     return m;
   }, [phases]);
 
-  // Sequencing-violation detection.
+  // Sequencing-violation detection. Two severities:
+  //   · `same-phase` (orange) — later layer populated but its prereqs are
+  //     empty in THE SAME phase. Often a real ordering issue, sometimes
+  //     just a steward batching multi-phase prep into earlier rows; the
+  //     cumulative check below catches the remaining true violations.
+  //   · `cumulative` (red) — later layer populated in phase N but its
+  //     prereqs are empty in phases 1..N (nowhere upstream). This is the
+  //     orthodox Keyline reading: trees planted before water is on the
+  //     land *anywhere* in the program. Strictly worse than same-phase.
+  // A given (phase, layer, prereq) triple is reported once at the worst
+  // severity that applies — cumulative subsumes same-phase, so any prereq
+  // missing cumulatively is removed from the same-phase set.
   const violations = useMemo(() => {
-    const out: Array<{ phaseId: string; phaseName: string; layer: DesignLayer; missing: DesignLayer[] }> = [];
-    for (const ph of phases) {
+    type Severity = 'same-phase' | 'cumulative';
+    const out: Array<{
+      phaseId: string;
+      phaseName: string;
+      layer: DesignLayer;
+      missing: DesignLayer[];
+      severity: Severity;
+    }> = [];
+    // Pre-compute cumulative counts per (layer, phaseIndex) — count of
+    // tasks tagged that layer across phases 0..i inclusive.
+    const cumByLayer: Record<string, number[]> = {};
+    for (const row of LAYER_ROWS) {
+      const arr: number[] = [];
+      let running = 0;
+      for (const ph of phases) {
+        running += matrix.get(`${row.key}::${ph.id}`)?.count ?? 0;
+        arr.push(running);
+      }
+      cumByLayer[row.key] = arr;
+    }
+    for (let i = 0; i < phases.length; i += 1) {
+      const ph = phases[i];
+      if (!ph) continue;
       for (const row of LAYER_ROWS) {
         if (row.key === 'uncategorised') continue;
         if (row.prereqs.length === 0) continue;
         const cell = matrix.get(`${row.key}::${ph.id}`);
         if (!cell || cell.count === 0) continue;
-        const missing = row.prereqs.filter((pre) => {
-          const c = matrix.get(`${pre}::${ph.id}`);
-          return !c || c.count === 0;
-        });
-        if (missing.length > 0) {
-          out.push({ phaseId: ph.id, phaseName: ph.name, layer: row.key as DesignLayer, missing });
+        const cumulativeMissing: DesignLayer[] = [];
+        const samePhaseMissing: DesignLayer[] = [];
+        for (const pre of row.prereqs) {
+          const cumCount = cumByLayer[pre]?.[i] ?? 0;
+          const sameCount = matrix.get(`${pre}::${ph.id}`)?.count ?? 0;
+          if (cumCount === 0) {
+            cumulativeMissing.push(pre);
+          } else if (sameCount === 0) {
+            samePhaseMissing.push(pre);
+          }
+        }
+        if (cumulativeMissing.length > 0) {
+          out.push({
+            phaseId: ph.id,
+            phaseName: ph.name,
+            layer: row.key as DesignLayer,
+            missing: cumulativeMissing,
+            severity: 'cumulative',
+          });
+        }
+        if (samePhaseMissing.length > 0) {
+          out.push({
+            phaseId: ph.id,
+            phaseName: ph.name,
+            layer: row.key as DesignLayer,
+            missing: samePhaseMissing,
+            severity: 'same-phase',
+          });
         }
       }
     }
@@ -266,16 +320,42 @@ export default function PhasingScaleMatrixCard({ project }: Props) {
           </p>
         ) : (
           <ul className={styles.list}>
-            {violations.map((v, i) => (
-              <li key={`${v.phaseId}-${v.layer}-${i}`} className={styles.listRow}>
-                <div>
-                  <strong>{v.phaseName}</strong> — {LAYER_ROWS.find((r) => r.key === v.layer)?.label} populated
-                  <div className={styles.listMeta}>
-                    but {v.missing.map((m) => LAYER_ROWS.find((r) => r.key === m)?.label).join(' + ')} is empty in the same phase. Consider sequencing the prerequisite work first.
+            {violations.map((v, i) => {
+              const isCumulative = v.severity === 'cumulative';
+              const ringColor = isCumulative ? 'rgba(220,90,90,0.7)' : 'rgba(220,160,90,0.7)';
+              const tagColor = isCumulative ? 'rgba(220,90,90,0.9)' : 'rgba(220,160,90,0.9)';
+              const missingLabel = v.missing
+                .map((m) => LAYER_ROWS.find((r) => r.key === m)?.label)
+                .join(' + ');
+              return (
+                <li
+                  key={`${v.phaseId}-${v.layer}-${v.severity}-${i}`}
+                  className={styles.listRow}
+                  style={{ borderLeft: `3px solid ${ringColor}`, paddingLeft: 10 }}
+                >
+                  <div>
+                    <strong>{v.phaseName}</strong> — {LAYER_ROWS.find((r) => r.key === v.layer)?.label} populated{' '}
+                    <span style={{
+                      marginLeft: 6,
+                      padding: '1px 8px',
+                      borderRadius: 10,
+                      border: `1px solid ${tagColor}`,
+                      color: tagColor,
+                      fontSize: '0.7em',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                    }}>
+                      {isCumulative ? 'cumulative' : 'same phase'}
+                    </span>
+                    <div className={styles.listMeta} style={{ marginTop: 2 }}>
+                      {isCumulative
+                        ? `but ${missingLabel} has no tasks in this phase or any earlier phase. Yeomans Keyline: water and landform must precede planting and structures across the whole program, not just within one phase.`
+                        : `but ${missingLabel} is empty in the same phase. Consider sequencing the prerequisite work first.`}
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

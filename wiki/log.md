@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · Cumulative-prerequisite severity on Scale-of-Permanence matrix
+
+Module 7 (Phasing) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scale-of-permanence-enhancement.md`). `PhasingScaleMatrixCard` previously flagged sequencing violations only at the per-phase grain (Vegetation present in Phase 3 but Water empty in Phase 3). The check now also computes cumulative prereq counts across phases 1..N — a violation tagged `cumulative` (red) means the prereq has zero tasks anywhere upstream, which is the orthodox Keyline failure (you've been planting trees for three phases with no water work upstream); a `same-phase` violation (orange, weaker) means the prereq exists upstream but not within this phase. Each violation row now carries a coloured left-border + a tag pill, and cumulative-severity rows replace the per-phase remedy text with the cross-program Yeomans reading. Same-phase violations are de-duplicated against cumulative ones so the steward sees the worst severity once. Typecheck clean (only pre-existing unrelated `elementCatalog.ts` error).
+
+---
+
 ## 2026-05-07 — Plan Module 1 · Function-count weighting on rank 8 Vegetation
 
 Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` rank 8 (Vegetation) previously read `N crop area(s) · M guild(s) · ha of crop`. Now also tallies the distinct `GuildLayer` set (canopy / sub_canopy / shrub / herbaceous / ground_cover / vine / root) for each guild and surfaces `avg N.N / 7 layers (deepest M)` so a steward sees not just how many polycultures are in play but how *layered* each one is. Surfaces Holmgren P8 *Integrate rather than segregate* at the rank-8 row — a 6-layer guild integrates more niches than a 2-layer one. The bar still uses raw count as the primary signal; the richness readout is advisory. Age weighting (canopy maturity / years-since-planting) remains deferred — needs a `plantedAt` field on `Crop` / `Guild` first. Typecheck clean (only pre-existing unrelated `elementCatalog.ts` error).
