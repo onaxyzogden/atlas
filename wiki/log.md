@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 5 · Type-aware orphan remedies in ClosedLoopGraphCard
+
+Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). The "Fertility units to wire up" list in `ClosedLoopGraphCard` no longer reads a single generic remedy line per orphan. New `FERTILITY_REMEDY` lookup, keyed on the eight `FertilityInfraType` members (composter, hugelkultur, biochar, worm_bin, cover_crop, chop_and_drop, dynamic_accumulator, rotational_grazing), supplies a permaculture-grounded `orphan` message (no flows declared) and a separate `noFeedstock` message (outgoing but no incoming). Composters get "wire greens + browns inward, finished compost out to garden / orchard zones"; hugel beds get "log the prunings or felled trunks that built the mound"; chop-and-drop gets "which planting is being chopped?"; etc. Sourced from Mollison ch.8 + Cornell composting guidance. Generic fallback retained when type lookup fails (defensive). Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 4 · Site-context panel surfaces live precip + slope
 
 Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `PlantDatabaseSiteMatchCard`'s "Macro-site context" section reworked to match the v2 3-axis scoring: hardiness (country band) + annual precipitation (mm, climate layer) + mean slope (°, elevation layer) each surfaced on their own `statRow`. Stale TODO ("fold slope, aspect, precipitation rasters into the score once Observe data is reliably populated") and the misleading "country band drives hardiness scoring" framing both removed — the score already does this. Top caption documents the 0.55/0.30/0.15 weight split + drop-and-renormalise behaviour for unobserved axes; "not fetched — run an Observe site fetch" hint surfaces under-observation legibly. Card-doc comment updated. Typecheck clean.

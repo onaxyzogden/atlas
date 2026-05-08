@@ -63,6 +63,22 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
   soil-management areas remains deferred (needs map-draw integration).
 - **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
 - ✅ **Expand fertility taxonomy** — landed 2026-05-07. `FertilityInfraType` in `closedLoopStore.ts` now includes `cover_crop`, `chop_and_drop`, `dynamic_accumulator`, `rotational_grazing` alongside the original four structural types. The Scholar's three-pillar framing (structural · vegetative/biological · animal-integration) is now representable in the closed-loop graph. Picker in `SoilFertilityDesignerCard` extended to all eight options with permaculture-grounded taglines. Defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so the cross-section view doesn't render phantom stacks for the new vegetative kinds (cover-crop 0.3 m, chop-and-drop 0.1 m, dynamic accumulator 1.0 m, rotational grazing 0.1 m). `ClosedLoopGraphCard` label generation collapses underscores to spaces. No persist-version bump — additive union members; legacy entries persist unchanged.
+- ✅ **Type-aware orphan remedies in `ClosedLoopGraphCard`** — landed
+  2026-05-07. The "Fertility units to wire up" list previously read a
+  single generic line per orphan ("No vectors — declare both a
+  feedstock source and a destination"). Replaced with a per-type
+  `FERTILITY_REMEDY` lookup keyed on `FertilityInfraType` (composter /
+  hugelkultur / biochar / worm_bin / cover_crop / chop_and_drop /
+  dynamic_accumulator / rotational_grazing), each with an `orphan`
+  message (no flows declared) and a `noFeedstock` message (outgoing
+  but no incoming). Sourced from Mollison ch.8 and Cornell composting
+  guidance — composters want greens + browns, hugel beds want logs +
+  brash, biochar wants prunings, worm bins want fine kitchen scraps,
+  chop-and-drop wants the planting it's cut from. Fallback to the
+  generic line when type lookup fails. Closes the gap noted in the
+  Scholar's "every fertility unit needs a wired-in flow" remedy
+  guidance — stewards now see *which* flow each type expects, not
+  just that one is missing.
 - ✅ **Spatial graph layout** — landed 2026-05-07. `ClosedLoopGraphCard` now exposes a Ring / Spatial layout toggle. Spatial mode derives a `[lng, lat]` centroid for each node (zone/crop/structure-without-center → average of polygon vertices; structure → `center` field; fertility → `center` field), normalises the cloud into the SVG viewport with N up, and lays nodes that have no centroid on a small inner ring so they don't pile up at the origin. The Spatial button auto-disables when no node has a centroid. Vector length now reflects real haul distance, surfacing Holmgren P3 *Obtain a yield* (short haul = positive yield; long haul = energy debt).
 
 ## Verification

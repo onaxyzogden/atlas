@@ -17,7 +17,10 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
-import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
+import {
+  useClosedLoopStore,
+  type FertilityInfraType,
+} from '../../../../store/closedLoopStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useStructureStore } from '../../../../store/structureStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
@@ -52,6 +55,51 @@ interface Node {
 }
 
 type LayoutMode = 'ring' | 'spatial';
+
+/**
+ * Type-aware remedies for fertility units missing flows. Generic "declare
+ * a feedstock and a destination" helps no one — a composter wants greens
+ * + browns and outputs amendment; a chop-and-drop wants in-bed biomass
+ * and outputs surface mulch. Sourced from Mollison ch.8 + Cornell
+ * composting guidance + practical permaculture references.
+ */
+const FERTILITY_REMEDY: Record<
+  FertilityInfraType,
+  { orphan: string; noFeedstock: string }
+> = {
+  composter: {
+    orphan: 'Wire greens + browns sources (kitchen scraps, grass, leaves, straw) inward and finished compost outward to garden / orchard zones.',
+    noFeedstock: 'Outgoing flow declared but no feedstock source — what feeds the heap? Add greens + browns from kitchen, pasture or pruning piles.',
+  },
+  hugelkultur: {
+    orphan: 'Hugel beds eat woody debris on build, then output a long planting bed. Wire wood-chip / log / brash sources inward and the bed itself as a planting destination.',
+    noFeedstock: 'Outgoing yield declared but no woody feedstock — log the prunings or felled trunks that built the mound.',
+  },
+  biochar: {
+    orphan: 'Biochar is built from a woody-feedstock burn and finished into amendment. Wire pruning/coppice waste inward and charged char out to garden beds.',
+    noFeedstock: 'Outgoing char declared but no feedstock — what biomass is being charred?',
+  },
+  worm_bin: {
+    orphan: 'Worm bins eat fine kitchen scraps and produce castings + leachate. Wire scrap source inward and castings out to a seedling / nursery zone.',
+    noFeedstock: 'Outgoing castings declared but no incoming scraps — confirm the kitchen-to-bin route.',
+  },
+  cover_crop: {
+    orphan: 'Cover crops capture sun + N in place. Wire the bed they grow in inward (as substrate) and chop-and-drop or tilling-in outward to the same bed.',
+    noFeedstock: 'Cover crops typically self-seed or are sown — log the seed source / nursery as the incoming flow.',
+  },
+  chop_and_drop: {
+    orphan: 'Chop-and-drop sources biomass in-place (comfrey, nettle, sunflower) and drops it as mulch. Wire the planting they\'re cut from inward and the bed they mulch outward.',
+    noFeedstock: 'Outgoing mulch declared but no source — which planting is being chopped?',
+  },
+  dynamic_accumulator: {
+    orphan: 'Dynamic accumulators (comfrey, dandelion, yarrow) mine deep minerals. Wire the soil/bed they grow in inward and a leaf-fall / cut-back schedule outward.',
+    noFeedstock: 'Accumulators feed off the deep soil profile — log the bed or root-zone they\'re drawing from.',
+  },
+  rotational_grazing: {
+    orphan: 'Rotational grazing eats forage and outputs manure + impact. Wire the paddock / cover crop inward and dunged paddocks outward to the next-rotation zone.',
+    noFeedstock: 'Outgoing manure declared but no forage source — link the paddock or stockpile providing the feed.',
+  },
+};
 
 const KIND_COLOR: Record<Node['kind'], string> = {
   zone: '#7fb285',
@@ -351,18 +399,26 @@ export default function ClosedLoopGraphCard({ project }: Props) {
               <>
                 <h3 className={styles.sectionTitle} style={{ marginTop: 12, fontSize: '0.95em' }}>Fertility units to wire up</h3>
                 <ul className={styles.list}>
-                  {[...orphanFertility, ...fertilityWithoutFeedstock].map((n) => (
-                    <li key={n.id} className={styles.listRow}>
-                      <div>
-                        <strong>{n.label}</strong>
-                        <div className={styles.listMeta}>
-                          {orphanFertility.includes(n)
-                            ? 'No vectors — declare both a feedstock source and a destination.'
-                            : 'Outgoing vector exists but no incoming feedstock — what fills this unit?'}
+                  {[...orphanFertility, ...fertilityWithoutFeedstock].map((n) => {
+                    const isOrphan = orphanFertility.includes(n);
+                    const fert = allFertility.find((f) => f.id === n.id);
+                    const remedy = fert ? FERTILITY_REMEDY[fert.type] : null;
+                    const fallback = isOrphan
+                      ? 'No vectors — declare both a feedstock source and a destination.'
+                      : 'Outgoing vector exists but no incoming feedstock — what fills this unit?';
+                    return (
+                      <li key={n.id} className={styles.listRow}>
+                        <div>
+                          <strong>{n.label}</strong>
+                          <div className={styles.listMeta}>
+                            {remedy
+                              ? (isOrphan ? remedy.orphan : remedy.noFeedstock)
+                              : fallback}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             )}
