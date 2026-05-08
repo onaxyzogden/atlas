@@ -123,6 +123,39 @@ export default function WaterNetworkCard({ project }: Props) {
     };
   }, [nodes, stormDepthMm]);
 
+  // Lawton's capture–slow–spread–sink–store hydrology ladder. Each
+  // WaterNode kind maps to one or more stages; a project that catches
+  // water but never slows or sinks it is leaking the design's
+  // hydrological depth-of-treatment. Per Module 2 follow-up
+  // (`2026-05-07-atlas-plan-water-scholar-build-fresh.md`) — Lawton was
+  // already cited as the framing for the directed graph; this panel
+  // surfaces the five stages explicitly so the steward sees coverage
+  // gaps, not just nodes-and-edges.
+  const lawtonCoverage = useMemo(() => {
+    const stages: Array<{
+      key: 'capture' | 'slow' | 'spread' | 'sink' | 'store';
+      label: string;
+      blurb: string;
+      kinds: WaterNodeKind[];
+    }> = [
+      { key: 'capture', label: 'Capture', blurb: 'Catchments — roofs, paved, pasture, forest sheds.',                kinds: ['catchment'] },
+      { key: 'slow',    label: 'Slow',    blurb: 'Swales on contour — slow overland flow before it cuts.',          kinds: ['swale'] },
+      { key: 'spread',  label: 'Spread',  blurb: 'Swales / level-sills — disperse the slowed flow across the land.', kinds: ['swale'] },
+      { key: 'sink',    label: 'Sink',    blurb: 'Infiltration basins, swale berms, ponds — let water enter soil.',  kinds: ['swale', 'sink'] },
+      { key: 'store',   label: 'Store',   blurb: 'Tanks, cisterns, ponds — banked supply for dry months.',           kinds: ['storage'] },
+    ];
+    const haveByKind = new Map<WaterNodeKind, number>();
+    for (const n of nodes) {
+      haveByKind.set(n.kind, (haveByKind.get(n.kind) ?? 0) + 1);
+    }
+    const rows = stages.map((s) => {
+      const count = s.kinds.reduce((a, k) => a + (haveByKind.get(k) ?? 0), 0);
+      return { ...s, count, present: count > 0 };
+    });
+    const missing = rows.filter((r) => !r.present).map((r) => r.label);
+    return { rows, missing };
+  }, [nodes]);
+
   const orphans = useMemo(
     () =>
       nodes.filter(
@@ -243,6 +276,86 @@ export default function WaterNetworkCard({ project }: Props) {
             swales, deeper pond) or designate a non-erosive emergency
             spillway / vegetated overflow path. Yeomans warns rework here is
             an order of magnitude more costly than upfront sizing.
+          </p>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Lawton hydrology coverage</h2>
+        <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
+          Geoff Lawton&rsquo;s rule: every drop should be{' '}
+          <em>captured, slowed, spread, sunk, and stored</em>. The graph
+          above tells you whether nodes connect; this panel tells you
+          whether the design treats water at every depth-of-treatment
+          stage. A site that captures and stores but never slows or
+          sinks is a leaky pipe with extra steps.
+        </p>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 6,
+            margin: '4px 0 8px',
+          }}
+        >
+          {lawtonCoverage.rows.map((r) => (
+            <div
+              key={r.key}
+              title={r.blurb}
+              style={{
+                padding: '8px 6px',
+                borderRadius: 6,
+                border: r.present
+                  ? '1px solid rgba(160,200,140,0.45)'
+                  : '1px solid rgba(220,140,120,0.45)',
+                background: r.present
+                  ? 'rgba(160,200,140,0.10)'
+                  : 'rgba(220,140,120,0.08)',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  letterSpacing: 0.4,
+                  textTransform: 'uppercase',
+                  color: r.present
+                    ? 'rgba(200,230,180,0.95)'
+                    : 'rgba(232,180,170,0.95)',
+                }}
+              >
+                {r.label}
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  marginTop: 2,
+                  color: r.present
+                    ? 'rgba(160,200,140,0.95)'
+                    : 'rgba(220,140,120,0.95)',
+                }}
+              >
+                {r.present ? `✓ ${r.count}` : '×'}
+              </div>
+            </div>
+          ))}
+        </div>
+        {lawtonCoverage.missing.length > 0 ? (
+          <p
+            className={styles.empty}
+            style={{ textAlign: 'left', padding: '6px 0 0', color: 'rgba(220,140,120,0.85)' }}
+          >
+            Missing stage{lawtonCoverage.missing.length > 1 ? 's' : ''}:{' '}
+            <strong>{lawtonCoverage.missing.join(' · ')}</strong>. Lawton:
+            water moved through fewer than five stages exits the site
+            faster than it arrived.
+          </p>
+        ) : (
+          <p
+            className={styles.empty}
+            style={{ textAlign: 'left', padding: '6px 0 0', color: 'rgba(160,200,140,0.85)' }}
+          >
+            All five stages present. ✓
           </p>
         )}
       </section>

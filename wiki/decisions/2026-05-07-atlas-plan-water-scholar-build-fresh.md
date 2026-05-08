@@ -132,6 +132,23 @@ Shared math helper `waterMath.ts`:
   recommending capacity expansion or a non-erosive vegetated
   spillway. Reuses the existing `catchmentYieldM3` math — no new
   helper. Cites Mollison ch.7 + USDA NRCS TR-55.
+- ✅ **Lawton hydrology coverage panel** — landed 2026-05-07.
+  `WaterNetworkCard` gains a "Lawton hydrology coverage" section
+  between Peak-event sizing and Validation. Maps each
+  `WaterNodeKind` to one or more of Lawton's five stages
+  (*capture · slow · spread · sink · store*) and renders a five-cell
+  grid with present/absent indicators (green ✓ + count when
+  populated, red × when empty). Stage → kinds mapping: Capture →
+  catchment; Slow + Spread → swale; Sink → swale + sink; Store →
+  storage. The graph above shows whether nodes connect; this panel
+  shows whether the design treats water at every depth-of-treatment
+  stage. A footnote names missing stages explicitly ("water moved
+  through fewer than five stages exits the site faster than it
+  arrived"), so a project that captures and stores but never slows
+  or sinks is flagged at the depth-of-treatment level, not just the
+  nodes-and-edges level. Lawton's framing was already cited as the
+  graph's directed-edge rationale; this surfaces the five-stage
+  ladder as an explicit fitness check rather than implicit context.
 - **Migrate legacy `earthworks` and `storageInfra` collections** into
   `waterNodes` once `V3PlanPage` and `DashboardRouter` no longer
   reference the old features/plan/* cards.

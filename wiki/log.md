@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 2 · Lawton hydrology coverage panel on WaterNetworkCard
+
+`WaterNetworkCard` now renders a five-cell "Lawton hydrology coverage" panel between Peak-event sizing and Validation. Each cell maps a Lawton stage (capture / slow / spread / sink / store) to one or more `WaterNodeKind` values and shows present/absent state with a count. Missing stages are listed explicitly with Lawton's framing ("water moved through fewer than five stages exits the site faster than it arrived"), so a steward who has captured + stored water but never slowed or sunk it is flagged at the depth-of-treatment level rather than just at the nodes-and-edges level. Lawton was already cited as the directed-graph rationale in the Module 2 ADR; this surfaces the five-stage ladder as an explicit fitness check. Pure render addition, no schema change. ADR `2026-05-07-atlas-plan-water-scholar-build-fresh.md` updated.
+
+---
+
 ## 2026-05-07 — Plan Module 1 · Age weighting on rank 8 Vegetation
 
 Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). `PermanenceLadderCard` rank 8 now surfaces `oldest N.N yr (median M)` derived from `CropArea.createdAt` and `Guild.createdAt` (used as a `plantedAt` proxy — no schema change). Yeomans frames Vegetation as a months–years rank precisely because canopy depth and soil-microbiome maturity accumulate with time; making age legible at the ladder row lets a 5-year-old food forest read as more anchored than a freshly-recorded bed. Format scales with magnitude (weeks / months / years). The bar still keys on raw count; richness + age are purely advisory. A first-class `plantedAt` field remains nice-to-have but no longer blocking — the proxy is honest about what it represents. Typecheck clean (only pre-existing unrelated `elementCatalog.ts` error).
