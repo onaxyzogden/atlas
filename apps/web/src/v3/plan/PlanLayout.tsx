@@ -31,6 +31,10 @@ import DesignElementPalette from './canvas/DesignElementPalette.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
 import StageShell from '../_shell/StageShell.js';
+import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
+import PlanDrawHost from './draw/PlanDrawHost.js';
+import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
+import PlanDataLayers from './layers/PlanDataLayers.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -133,6 +137,7 @@ export default function PlanLayout() {
     <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
       {({ map }) => (
         <>
+          <MapOverlaysLegend />
           <MapToolbar
             map={map}
             projectId={id}
@@ -140,6 +145,9 @@ export default function PlanLayout() {
             onBoundaryDrawn={handleBoundaryDrawn}
           />
           <ObserveAnnotationLayers map={map} projectId={id} />
+          <PlanDataLayers map={map} projectId={id} />
+          <PlanDrawHost map={map} projectId={id} />
+          <InlineFeaturePopover map={map} />
         </>
       )}
     </DiagnoseMap>

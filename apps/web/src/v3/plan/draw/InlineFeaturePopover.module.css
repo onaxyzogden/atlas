@@ -1,0 +1,133 @@
+.popover {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+  max-width: 280px;
+  padding: 10px 12px;
+  background: rgba(31, 29, 26, 0.96);
+  color: #f2ede3;
+  border: 1px solid rgba(242, 237, 227, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  /* Translate so the popover sits to the right of the anchor with a small gap.
+     The auto-flip rule below swaps to a left position when clipping right. */
+  transform: translate(12px, -50%);
+}
+
+.popover[data-flipped='true'] {
+  transform: translate(calc(-100% - 12px), -50%);
+}
+
+.title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fieldLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input,
+.select {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8f4ea;
+  border: 1px solid rgba(242, 237, 227, 0.4);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-gold-brand, #c4a265);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.input:disabled,
+.input[readonly] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.select option {
+  background: #1a1a1a;
+  color: #f8f4ea;
+}
+
+.select option:checked,
+.select option:hover {
+  background: var(--color-gold-brand, #c4a265);
+  color: #1a1a1a;
+}
+
+.suffix {
+  font-size: 10px;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.btnRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: var(--color-gold-brand, #c4a265);
+  color: #2a2018;
+  border: 1px solid var(--color-gold-brand, #c4a265);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: #f2ede3;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.secondaryBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}

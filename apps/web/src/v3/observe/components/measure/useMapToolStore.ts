@@ -52,7 +52,15 @@ export type MapToolId =
   | 'observe.swot-synthesis.strength'
   | 'observe.swot-synthesis.weakness'
   | 'observe.swot-synthesis.opportunity'
-  | 'observe.swot-synthesis.threat';
+  | 'observe.swot-synthesis.threat'
+  // Plan Module 2 — Water Management (directed-graph nodes)
+  | 'plan.water-management.catchment'
+  | 'plan.water-management.storage'
+  | 'plan.water-management.swale'
+  | 'plan.water-management.sink'
+  // Plan Module 3 — Zone & Circulation
+  | 'plan.zone-circulation.zone'
+  | 'plan.zone-circulation.path';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

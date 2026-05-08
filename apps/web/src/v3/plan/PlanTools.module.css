@@ -32,25 +32,27 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   --group-dot: var(--color-text-muted);
-  cursor: pointer;
   transition: border-color 120ms ease, box-shadow 120ms ease,
     filter 150ms ease, opacity 150ms ease;
 }
 
-/* Fade inactive groups when one is selected */
 .toolbox[data-has-active='true'] .group:not(.groupActive) {
   filter: saturate(0.18);
   opacity: 0.62;
 }
 
-.group:hover {
+.groupClickable {
+  cursor: pointer;
+}
+
+.groupClickable:hover {
   filter: saturate(0.85);
   opacity: 0.92;
   border-color: color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
   background: color-mix(in srgb, var(--group-dot) 6%, var(--color-bg));
 }
 
-.group:focus-visible {
+.groupClickable:focus-visible {
   outline: 2px solid var(--color-focus-ring, var(--group-dot));
   outline-offset: 2px;
 }
@@ -66,6 +68,7 @@
 .group[data-module='dynamic-layering']       { --group-dot: #7aabca; }
 .group[data-module='water-management']       { --group-dot: #5fc7d4; }
 .group[data-module='zone-circulation']       { --group-dot: #d68bd0; }
+.group[data-module='livestock']              { --group-dot: #c9a05a; }
 .group[data-module='plant-systems']          { --group-dot: #5dd39e; }
 .group[data-module='soil-fertility']         { --group-dot: #8bd16a; }
 .group[data-module='cross-section-solar']    { --group-dot: #e6c34a; }
@@ -98,9 +101,87 @@
   color: var(--color-text);
 }
 
-.placeholder {
-  font-size: 11px;
-  color: var(--color-text-subtle);
-  font-style: italic;
-  margin: 0;
+.itemGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.toolItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 85%, #fff);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  opacity: 1;
+  transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.toolItem:hover:not(:disabled) {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
+}
+
+.toolItem[data-active='true'] {
+  opacity: 1;
+  background: color-mix(in srgb, var(--group-dot) 18%, var(--color-bg));
+  border-color: var(--group-dot);
+  box-shadow: 0 0 0 1px var(--group-dot);
+}
+
+.toolItem:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.toolGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--group-dot) 12%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--group-dot) 30%, transparent);
+  color: var(--group-dot);
+}
+
+.toolLabel {
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.openModuleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  border-radius: var(--radius-md);
+  color: color-mix(in srgb, var(--group-dot) 80%, var(--color-text));
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.openModuleBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--group-dot) 8%, transparent);
+  border-color: var(--group-dot);
+}
+
+.openModuleBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
