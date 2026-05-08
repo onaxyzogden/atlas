@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 5 · Compost-inventory persistence
+
+Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). `SoilResourcesCard` swapped from component-state to persistent storage via the new `apps/web/src/store/compostInventoryStore.ts` (Zustand + persist, key `ogden-compost-inventory` v1). Store shape is a flat `byProject: { [projectId]: { [feedstockId]: m³ } }` — Greens/Browns split lives only in the card's static catalog, so feedstock catalog evolution (adding/removing entries) does not invalidate persisted volumes; unknown ids are quietly ignored at read time. `setVolume(projectId, id, v)` drops the key when `v ≤ 0`; `replaceInventory` filters non-positive volumes. The card now reads `byProject` and derives its per-project slice via `useMemo` per the selector-stability ADR. The C:N verdict survives reload. Typecheck clean (only the unrelated WIP `elementCatalog.ts` error remains).
+
+---
+
 ## 2026-05-07 — Plan Module 7 · 5-year horizon cumulative rollup
 
 Module 7 (Phasing) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). `LaborBudgetSummaryCard` gains a "5-year horizon (running totals)" section beneath the per-season rollup. Each phase is bucketed by the year-end parsed from its `timeframe` string (`Year X-Y` → `Y`, `Year X+` → `X`, `Year X` → `X`, fallback to `phase.order`). Per-row line shows the phase delta + running cumulative; phases beyond year 5 dim to 0.6 opacity. A bordered "5-year total" footer sums hours and dollars across phases with `yearEnd ≤ 5`; a footnote counts any phases that extend beyond year 5. Caption cites OSU PDC Pro template + the Scholar's note that 5 years is the practical budgeted horizon. Capacity-validation against Client Survey baselines stays hard-blocked on the project-survey store. Typecheck clean.

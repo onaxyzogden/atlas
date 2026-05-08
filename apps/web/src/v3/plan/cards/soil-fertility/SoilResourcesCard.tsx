@@ -21,9 +21,11 @@
  *   - Permaculture-grounded prompt at the bottom keyed to the result —
  *     e.g. "add straw or wood chips" / "add manure or grass clippings".
  *
- * v1 is component-state. Persistence (a `compostInventoryStore`) is a
- * follow-up — the Scholar's main complaint was the absence of the
- * inventory at all, not its persistence model.
+ * Persistence: per-project volumes round-trip through
+ * `compostInventoryStore` (zustand + persist) — see
+ * `src/store/compostInventoryStore.ts`. The card owns the static
+ * Greens/Browns catalog; the store only persists `{ feedstockId → m³ }`,
+ * so the catalog can evolve without invalidating saved data.
  *
  * Sources: NotebookLM Permaculture Scholar (5aa3dcf3-…) 2026-05-07;
  * Holmgren D. P6 *Produce No Waste*; Cornell Waste Management Institute
@@ -31,8 +33,9 @@
  * Designer's Manual* ch.8.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
+import { useCompostInventoryStore } from '../../../../store/compostInventoryStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -74,22 +77,26 @@ const BROWNS: Feedstock[] = [
 
 const DENSITY_KG_PER_M3 = 200; // coarse — enough to weight ratios in the right direction.
 
-interface InventoryEntry {
-  vol: number; // m³, ≥ 0
-}
+export default function SoilResourcesCard({ project }: Props) {
+  // ── Persistent inventory (compostInventoryStore) ──────────────────────
+  // v1 used component-state; v2 (2026-05-07) persists per-project so the
+  // C:N verdict survives reload. The store holds a flat
+  // { feedstockId → m³ } record per project — Greens/Browns split
+  // happens at render-time by checking the GREENS / BROWNS catalog.
+  const byProject = useCompostInventoryStore((s) => s.byProject);
+  const setVolume = useCompostInventoryStore((s) => s.setVolume);
+  const inventory = useMemo(
+    () => byProject[project.id] ?? {},
+    [byProject, project.id],
+  );
 
-export default function SoilResourcesCard({ project: _project }: Props) {
-  // Component-state v1.
-  const [greenVols, setGreenVols] = useState<Record<string, InventoryEntry>>({});
-  const [brownVols, setBrownVols] = useState<Record<string, InventoryEntry>>({});
-
-  function setVol(setter: typeof setGreenVols, id: string, raw: string) {
+  function setVol(id: string, raw: string) {
     const v = Math.max(0, Number(raw) || 0);
-    setter((prev) => ({ ...prev, [id]: { vol: v } }));
+    setVolume(project.id, id, v);
   }
 
-  function checked(map: Record<string, InventoryEntry>, id: string): boolean {
-    return (map[id]?.vol ?? 0) > 0;
+  function checked(id: string): boolean {
+    return (inventory[id] ?? 0) > 0;
   }
 
   // Mass-weighted C:N — the contribution of each feedstock to total C
@@ -103,24 +110,25 @@ export default function SoilResourcesCard({ project: _project }: Props) {
     let totalC = 0;
     let totalN = 0;
     for (const f of GREENS) {
-      const v = greenVols[f.id]?.vol ?? 0;
+      const v = inventory[f.id] ?? 0;
       if (v <= 0) continue;
       const m = v * DENSITY_KG_PER_M3;
       totalC += m * (f.cn / (f.cn + 1));
       totalN += m * (1 / (f.cn + 1));
     }
     for (const f of BROWNS) {
-      const v = brownVols[f.id]?.vol ?? 0;
+      const v = inventory[f.id] ?? 0;
       if (v <= 0) continue;
       const m = v * DENSITY_KG_PER_M3;
       totalC += m * (f.cn / (f.cn + 1));
       totalN += m * (1 / (f.cn + 1));
     }
     const ratio = totalN > 0 ? totalC / totalN : 0;
-    const greenCount = GREENS.filter((f) => checked(greenVols, f.id)).length;
-    const brownCount = BROWNS.filter((f) => checked(brownVols, f.id)).length;
+    const greenCount = GREENS.filter((f) => checked(f.id)).length;
+    const brownCount = BROWNS.filter((f) => checked(f.id)).length;
     return { totalC, totalN, ratio, greenCount, brownCount };
-  }, [greenVols, brownVols]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inventory]);
 
   // Verdict bands.
   const verdict = useMemo(() => {
@@ -181,9 +189,9 @@ export default function SoilResourcesCard({ project: _project }: Props) {
     neutral: 'rgba(232, 220, 200, 0.85)',
   };
 
-  function renderRow(f: Feedstock, map: Record<string, InventoryEntry>, setter: typeof setGreenVols) {
-    const v = map[f.id]?.vol ?? 0;
-    const isOn = v > 0;
+  function renderRow(f: Feedstock) {
+    const v = inventory[f.id] ?? 0;
+    const isOn = checked(f.id);
     return (
       <li key={f.id} className={styles.listRow}>
         <div>
@@ -197,7 +205,7 @@ export default function SoilResourcesCard({ project: _project }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <input
             value={v > 0 ? String(v) : ''}
-            onChange={(e) => setVol(setter, f.id, e.target.value)}
+            onChange={(e) => setVol(f.id, e.target.value)}
             placeholder="0"
             inputMode="decimal"
             style={{ width: 60, textAlign: 'right' }}
@@ -278,14 +286,14 @@ export default function SoilResourcesCard({ project: _project }: Props) {
           Leave blank if not available.
         </p>
         <ul className={styles.list}>
-          {GREENS.map((f) => renderRow(f, greenVols, setGreenVols))}
+          {GREENS.map((f) => renderRow(f))}
         </ul>
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Browns (high C — &gt; 30:1)</h2>
         <ul className={styles.list}>
-          {BROWNS.map((f) => renderRow(f, brownVols, setBrownVols))}
+          {BROWNS.map((f) => renderRow(f))}
         </ul>
       </section>
 

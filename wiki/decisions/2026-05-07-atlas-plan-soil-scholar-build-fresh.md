@@ -53,10 +53,14 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
   > 50:1 too-brown (won't heat), all-green / all-brown each get their
   own remedy. Per-feedstock notes carry field-realistic warnings
   ("strip tape and glossy print", "rinse seaweed to drop salt", "compost
-  fresh manure ≥ 90 days before food-crop contact"). Component-state
-  v1 — persistence (a `compostInventoryStore`) is a follow-up. The
-  split-panel polygon-draw for soil-management areas remains deferred
-  (needs map-draw integration).
+  fresh manure ≥ 90 days before food-crop contact"). ✅ Persistence
+  landed 2026-05-07 via `apps/web/src/store/compostInventoryStore.ts`
+  (Zustand + persist, key `ogden-compost-inventory` v1) — flat
+  `byProject: { [projectId]: { [feedstockId]: m³ } }` shape; `setVolume`
+  drops keys at ≤ 0; the card owns the static GREENS/BROWNS catalog so
+  catalog evolution doesn't invalidate persisted volumes (unknown ids
+  are quietly ignored at read time). The split-panel polygon-draw for
+  soil-management areas remains deferred (needs map-draw integration).
 - **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
 - ✅ **Expand fertility taxonomy** — landed 2026-05-07. `FertilityInfraType` in `closedLoopStore.ts` now includes `cover_crop`, `chop_and_drop`, `dynamic_accumulator`, `rotational_grazing` alongside the original four structural types. The Scholar's three-pillar framing (structural · vegetative/biological · animal-integration) is now representable in the closed-loop graph. Picker in `SoilFertilityDesignerCard` extended to all eight options with permaculture-grounded taglines. Defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so the cross-section view doesn't render phantom stacks for the new vegetative kinds (cover-crop 0.3 m, chop-and-drop 0.1 m, dynamic accumulator 1.0 m, rotational grazing 0.1 m). `ClosedLoopGraphCard` label generation collapses underscores to spaces. No persist-version bump — additive union members; legacy entries persist unchanged.
 - ✅ **Spatial graph layout** — landed 2026-05-07. `ClosedLoopGraphCard` now exposes a Ring / Spatial layout toggle. Spatial mode derives a `[lng, lat]` centroid for each node (zone/crop/structure-without-center → average of polygon vertices; structure → `center` field; fertility → `center` field), normalises the cloud into the SVG viewport with N up, and lays nodes that have no centroid on a small inner ring so they don't pile up at the origin. The Spatial button auto-disables when no node has a centroid. Vector length now reflects real haul distance, surfacing Holmgren P3 *Obtain a yield* (short haul = positive yield; long haul = energy debt).
