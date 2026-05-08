@@ -1,5 +1,6 @@
 import { BookOpen, CalendarDays, Leaf, Layers3, Sprout } from "lucide-react";
 import { ActionCard } from "../components/ActionCard.jsx";
+import { useToast } from "../components/primitives/index.js";
 import { AppShell } from "../components/AppShell.jsx";
 import { CroppedArt } from "../components/CroppedArt.jsx";
 import { MetricStrip } from "../components/MetricStrip.jsx";
@@ -65,6 +66,7 @@ const metrics = [
 const modules = observeModules;
 
 export function ObservePage() {
+  const toast = useToast();
   return (
     <AppShell navConfig={observeNav}>
       <div className="observe-screen">
@@ -94,7 +96,7 @@ export function ObservePage() {
             action
             to="/observe/dashboard"
           />
-          <ActionCard icon={<BookOpen />} title="View Stage Guide" />
+          <ActionCard icon={<BookOpen />} title="View Stage Guide" onClick={() => toast.info("Stage guide — coming soon")} />
           <ActionCard
             className="quote-card"
             title="Observation reveals"
@@ -107,6 +109,7 @@ export function ObservePage() {
             title="Field tips"
             body="Walk slowly • Notice edges • Record anomalies • Revisit after rain"
             action
+            onClick={() => toast.info("More field tips — coming soon")}
           />
         </section>
       </section>

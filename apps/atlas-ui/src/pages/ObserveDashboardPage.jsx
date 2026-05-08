@@ -15,7 +15,7 @@ import {
   Users
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AppShell,
   CroppedArt,
@@ -23,7 +23,8 @@ import {
   ProjectOverviewCard,
   QaOverlay,
   SlideUpPane,
-  TopStageBar
+  TopStageBar,
+  useToast
 } from "../components/index.js";
 import { EarthWaterEcologyContent } from "./EarthWaterEcologyPage.jsx";
 import { EmptyState, Skeleton } from "../components/primitives/index.js";
@@ -82,6 +83,12 @@ export function ObserveDashboardPage() {
 }
 
 function DashboardHero() {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const handleContinue = () => {
+    const last = typeof window !== "undefined" ? sessionStorage.getItem("lastObserveRoute") : null;
+    navigate({ to: last ?? "/observe/land-brief" });
+  };
   return (
     <section className="dashboard-hero">
       <div className="dashboard-hero__copy">
@@ -93,8 +100,8 @@ function DashboardHero() {
           so far and links to the detail surface.
         </p>
         <div className="dashboard-hero__actions">
-          <button className="green-button" type="button">Continue where you left off <ArrowRight /></button>
-          <button className="outlined-button" type="button"><BookOpen /> View Stage 1 guide</button>
+          <button className="green-button" type="button" onClick={handleContinue}>Continue where you left off <ArrowRight /></button>
+          <button className="outlined-button" type="button" onClick={() => toast.info("Stage 1 guide — coming soon")}><BookOpen /> View Stage 1 guide</button>
         </div>
       </div>
       <CroppedArt className="dashboard-hero__image" src={heroLandscape} />
@@ -190,6 +197,7 @@ function deriveEweScores(sb) {
 function DashboardCards() {
   const m = observeDashboardModules;
   const { assessment } = useBuiltinProject();
+  const toast = useToast();
   const eweScores = assessment?.scoreBreakdown
     ? deriveEweScores(assessment.scoreBreakdown)
     : m.earthWaterEcology.scores;
@@ -215,18 +223,18 @@ function DashboardCards() {
         <BadgeRow items={m.topography.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="4" title="Earth, Water & Ecology Diagnostics" footer={<CardActions primary="Hydrology detail" onPrimary={() => setPane("ewe")} secondary="Ecological detail" tertiary="Jar / Perc / Roof" />}>
+      <ModuleSummaryCard number="4" title="Earth, Water & Ecology Diagnostics" footer={<CardActions primary="Hydrology detail" onPrimary={() => setPane("ewe")} secondary="Ecological detail" onSecondary={() => setPane("ewe")} tertiary="Jar / Perc / Roof" onTertiary={() => toast.info("Lab tests — coming soon")} />}>
         <FactList rows={m.earthWaterEcology.facts} />
         <ScoreRings scores={eweScores} />
         <BadgeRow items={m.earthWaterEcology.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="5" title="Sectors, Microclimates & Zones" status="Needs input" tone="gold" mediaSrc={sectorMap} footer={<CardActions primary="Sector compass" secondary="Cartographic detail" />}>
+      <ModuleSummaryCard number="5" title="Sectors, Microclimates & Zones" status="Needs input" tone="gold" mediaSrc={sectorMap} footer={<CardActions primary="Sector compass" primaryTo="/observe/sectors-zones/sector-compass" secondary="Cartographic detail" secondaryTo="/observe/sectors-zones/cartographic-detail" />}>
         <FactList rows={m.sectors.facts} />
         <BadgeRow items={m.sectors.badges} />
       </ModuleSummaryCard>
 
-      <ModuleSummaryCard number="6" title="SWOT Synthesis" footer={<CardActions primary="SWOT journal" secondary="Diagnosis report" />}>
+      <ModuleSummaryCard number="6" title="SWOT Synthesis" footer={<CardActions primary="SWOT journal" primaryTo="/observe/swot/journal" secondary="Diagnosis report" secondaryTo="/observe/swot/diagnosis-report" />}>
         <SwotGrid quadrants={m.swot.quadrants} />
         <BadgeRow items={m.swot.badges} />
       </ModuleSummaryCard>
@@ -338,7 +346,7 @@ function SiteFlags({ flags }) {
   );
 }
 
-function CardActions({ primary, primaryTo, onPrimary, secondary, secondaryTo, tertiary, tertiaryTo }) {
+function CardActions({ primary, primaryTo, onPrimary, secondary, secondaryTo, onSecondary, tertiary, tertiaryTo, onTertiary }) {
   return (
     <div className="dashboard-card-actions">
       {onPrimary
@@ -348,11 +356,11 @@ function CardActions({ primary, primaryTo, onPrimary, secondary, secondaryTo, te
           : <button className="green-button" type="button">{primary} <ArrowRight /></button>}
       {secondaryTo
         ? <Link to={secondaryTo} className="outlined-button">{secondary}</Link>
-        : <button className="outlined-button" type="button">{secondary}</button>}
+        : <button className="outlined-button" type="button" onClick={onSecondary}>{secondary}</button>}
       {tertiary
         ? tertiaryTo
           ? <Link to={tertiaryTo} className="outlined-button">{tertiary}</Link>
-          : <button className="outlined-button" type="button">{tertiary}</button>
+          : <button className="outlined-button" type="button" onClick={onTertiary}>{tertiary}</button>
         : null}
     </div>
   );

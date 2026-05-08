@@ -4,6 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routes/index.jsx";
 import { BuiltinProjectProvider } from "./context/BuiltinProjectContext.jsx";
 import { ToastProvider } from "./components/primitives/index.js";
+import "@ogden/ui-components/style.css";
 import "./styles.css";
 
 createRoot(document.getElementById("root")).render(

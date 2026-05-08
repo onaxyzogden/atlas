@@ -30,11 +30,11 @@ import regionalSnapshot from "../assets/generated/human-context-dashboard/region
 
 const metadata = screenCatalog.find((screen) => screen.route === "/observe/human-context");
 
-export function HumanContextDashboardPage() {
+export function HumanContextContent() {
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
   return (
-    <AppShell navConfig={observeNav}>
+    <>
       <div className="human-context-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 1" />
         <ProjectDataStatus />
@@ -76,6 +76,14 @@ export function HumanContextDashboardPage() {
       <SlideUpPane open={pane === "implications"} title="Design implications" onClose={close}>
         <ImplicationsContent />
       </SlideUpPane>
+    </>
+  );
+}
+
+export function HumanContextDashboardPage() {
+  return (
+    <AppShell navConfig={observeNav}>
+      <HumanContextContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -178,7 +186,21 @@ function ChipRow({ items }) {
 }
 
 function FooterTabs({ items }) {
-  return <div className="human-footer-tabs">{items.map((item) => <button type="button" key={item}>{item}</button>)}</div>;
+  const [activeIndex, setActiveIndex] = useState(0);
+  return (
+    <div className="human-footer-tabs">
+      {items.map((item, index) => (
+        <button
+          type="button"
+          key={item}
+          className={index === activeIndex ? "is-active" : ""}
+          onClick={() => setActiveIndex(index)}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function HealthStrip() {

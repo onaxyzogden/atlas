@@ -20,7 +20,8 @@ import {
   SlideUpPane,
   SurfaceCard,
   TopStageBar,
-  ProjectDataStatus
+  ProjectDataStatus,
+  useToast
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -36,13 +37,13 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/macro
 
 const macroIconMap = { snowflake: Snowflake, droplet: Droplet, alert: TriangleAlert, calendar: CalendarDays, sun: Sun, wind: Wind };
 
-export function MacroclimateDashboardPage() {
+export function MacroclimateContent() {
   const { project } = useBuiltinProject();
   const meta = project?.metadata ?? {};
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
   return (
-    <AppShell navConfig={observeNav}>
+    <>
       <div className="detail-page macroclimate-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 2" />
         <ProjectDataStatus />
@@ -66,6 +67,14 @@ export function MacroclimateDashboardPage() {
       <SlideUpPane open={pane === "solar"} title="Solar & Climate detail" onClose={close}>
         <SolarClimateContent />
       </SlideUpPane>
+    </>
+  );
+}
+
+export function MacroclimateDashboardPage() {
+  return (
+    <AppShell navConfig={observeNav}>
+      <MacroclimateContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}
@@ -87,6 +96,7 @@ function MacroKpis({ meta }) {
 }
 
 function SolarClimateCard({ onAction }) {
+  const toast = useToast();
   return (
     <SurfaceCard className="macro-section-card solar-card">
       <header>
@@ -112,13 +122,14 @@ function SolarClimateCard({ onAction }) {
           ))}
         </SurfaceCard>
       </div>
-      <button className="outlined-button section-link" type="button">See full climate analysis <ArrowRight aria-hidden="true" /></button>
+      <button className="outlined-button section-link" type="button" onClick={() => toast.info("Full climate analysis — coming soon")}>See full climate analysis <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }
 
 function HazardsCard() {
   const rows = vm.hazards;
+  const toast = useToast();
   return (
     <SurfaceCard className="macro-section-card hazards-card">
       <header>
@@ -126,7 +137,7 @@ function HazardsCard() {
           <h2><TriangleAlert aria-hidden="true" /> Hazards log</h2>
           <p>Review natural hazards, risk levels, and mitigation strategies for your site.</p>
         </div>
-        <button className="green-button" type="button">Open page <ArrowRight aria-hidden="true" /></button>
+        <button className="green-button" type="button" onClick={() => toast.info("Hazards page — coming soon")}>Open page <ArrowRight aria-hidden="true" /></button>
       </header>
       <div className="hazards-grid">
         <div>
@@ -150,7 +161,7 @@ function HazardsCard() {
           ))}
         </SurfaceCard>
       </div>
-      <button className="outlined-button section-link" type="button">See full hazards log <ArrowRight aria-hidden="true" /></button>
+      <button className="outlined-button section-link" type="button" onClick={() => toast.info("Full hazards log — coming soon")}>See full hazards log <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }

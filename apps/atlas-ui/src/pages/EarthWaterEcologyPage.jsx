@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   Beaker,
@@ -24,7 +25,8 @@ import {
   QaOverlay,
   SurfaceCard,
   TopStageBar,
-  ProjectDataStatus
+  ProjectDataStatus,
+  useToast
 } from "../components/index.js";
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
@@ -145,31 +147,57 @@ function KpiStrip({ rawPh, soilHealthScore, bioScore, waterScore }) {
 }
 
 function TabsAndActions() {
+  const toast = useToast();
+  const [activeTab, setActiveTab] = useState(0);
   return (
     <div className="diagnostic-tabs-row">
       <nav className="diagnostic-tabs" aria-label="Diagnostics sections">
         {vm.tabs.map((tab, index) => (
-          <button className={index === 0 ? "is-active" : ""} type="button" key={tab}>{tab}</button>
+          <button
+            className={index === activeTab ? "is-active" : ""}
+            type="button"
+            key={tab}
+            onClick={() => setActiveTab(index)}
+          >
+            {tab}
+          </button>
         ))}
       </nav>
       <div className="diagnostic-actions">
-        <button className="outlined-button" type="button"><Download aria-hidden="true" /> Export report <ChevronDown aria-hidden="true" /></button>
-        <button className="outlined-button" type="button"><CalendarDays aria-hidden="true" /> This season <ChevronDown aria-hidden="true" /></button>
+        <button
+          className="outlined-button"
+          type="button"
+          onClick={() => toast.info("Export report — coming soon")}
+        >
+          <Download aria-hidden="true" /> Export report <ChevronDown aria-hidden="true" />
+        </button>
+        <button
+          className="outlined-button"
+          type="button"
+          onClick={() => toast.info("Season filter — coming soon")}
+        >
+          <CalendarDays aria-hidden="true" /> This season <ChevronDown aria-hidden="true" />
+        </button>
       </div>
     </div>
   );
 }
 
-function PanelHeader({ title, action }) {
+function PanelHeader({ title, action, onAction }) {
   return (
     <header className="panel-header">
       <h2>{title}</h2>
-      {action ? <button className="outlined-button" type="button">{action} <ArrowRight aria-hidden="true" /></button> : null}
+      {action ? (
+        <button className="outlined-button" type="button" onClick={onAction}>
+          {action} <ArrowRight aria-hidden="true" />
+        </button>
+      ) : null}
     </header>
   );
 }
 
 function SiteMapCard() {
+  const toast = useToast();
   return (
     <SurfaceCard className="diagnostic-panel site-map-panel">
       <PanelHeader title="Site map & observations" />
@@ -181,7 +209,9 @@ function SiteMapCard() {
         <span><Leaf /> Soil sample</span>
         <span><MapPin /> Erosion risk</span>
         <span><Sprout /> Vegetation</span>
-        <button type="button">View full map <ArrowRight aria-hidden="true" /></button>
+        <button type="button" onClick={() => toast.info("Full map — coming soon")}>
+          View full map <ArrowRight aria-hidden="true" />
+        </button>
       </div>
     </SurfaceCard>
   );
@@ -203,9 +233,10 @@ function SoilDiagnosticsCard({ rawPh, rawOm, soilNotes }) {
     ? soilNotes.biologicalActivity.split(".")[0] + "."
     : vm.soilInterpretation;
 
+  const toast = useToast();
   return (
     <SurfaceCard className="diagnostic-panel soil-panel">
-      <PanelHeader title="Soil diagnostics" action="View all tests" />
+      <PanelHeader title="Soil diagnostics" action="View all tests" onAction={() => toast.info("Full test results — coming soon")} />
       <div className="soil-row-list">
         {soilRows.map(([name, value, note, rating, position]) => (
           <div className="soil-row" key={name}>
@@ -225,9 +256,10 @@ function HydrologyCard({ fieldObservations }) {
   const insight = fieldObservations
     ? fieldObservations.split(";")[0].trim() + "."
     : vm.hydrologyInsight;
+  const toast = useToast();
   return (
     <SurfaceCard className="diagnostic-panel hydrology-panel">
-      <PanelHeader title="Hydrology overview" action="Details" />
+      <PanelHeader title="Hydrology overview" action="Details" onAction={() => toast.info("Hydrology details — coming soon")} />
       <div className="hydrology-layout">
         <dl>
           {vm.hydrologyFacts.map(([label, value, note]) => (
@@ -245,12 +277,21 @@ function HydrologyCard({ fieldObservations }) {
 }
 
 function EcologyCard() {
+  const toast = useToast();
+  const [activeSpeciesTab, setActiveSpeciesTab] = useState(0);
   return (
     <SurfaceCard className="diagnostic-panel ecology-panel">
-      <PanelHeader title="Ecology observations" action="View all species" />
+      <PanelHeader title="Ecology observations" action="View all species" onAction={() => toast.info("Full species list — coming soon")} />
       <div className="species-tabs">
         {vm.ecologyTabs.map((tab, index) => (
-          <button className={index === 0 ? "is-active" : ""} type="button" key={tab}>{tab}</button>
+          <button
+            className={index === activeSpeciesTab ? "is-active" : ""}
+            type="button"
+            key={tab}
+            onClick={() => setActiveSpeciesTab(index)}
+          >
+            {tab}
+          </button>
         ))}
       </div>
       <CroppedArt src={speciesThumbs} className="species-image" />
@@ -261,9 +302,10 @@ function EcologyCard() {
 
 function RecentObservationsCard() {
   const { siteBanner } = useBuiltinProject();
+  const toast = useToast();
   return (
     <SurfaceCard className="diagnostic-panel recent-panel">
-      <PanelHeader title="Recent observations" action="View journal" />
+      <PanelHeader title="Recent observations" action="View journal" onAction={() => toast.info("Observation journal — coming soon")} />
       <div className="timeline-list">
         {vm.recentObservations.map(([time, text, tag]) => (
           <div className="timeline-item" key={text}>
@@ -273,16 +315,17 @@ function RecentObservationsCard() {
           </div>
         ))}
       </div>
-      <button className="green-button" type="button">+ Add observation</button>
-      <button className="camera-button" type="button" aria-label="Attach photo"><Camera aria-hidden="true" /></button>
+      <button className="green-button" type="button" onClick={() => toast.info("Add observation — coming soon")}>+ Add observation</button>
+      <button className="camera-button" type="button" aria-label="Attach photo" onClick={() => toast.info("Photo capture — coming soon")}><Camera aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }
 
 function RecommendedActionsCard() {
+  const toast = useToast();
   return (
     <SurfaceCard className="diagnostic-panel actions-panel">
-      <PanelHeader title="Recommended next actions" action="Prioritize" />
+      <PanelHeader title="Recommended next actions" action="Prioritize" onAction={() => toast.info("Action prioritization — coming soon")} />
       <div className="action-list">
         {vm.recommendedActions.map(([title, note, priority, due], index) => (
           <div className="action-item" key={title}>
@@ -293,7 +336,7 @@ function RecommendedActionsCard() {
           </div>
         ))}
       </div>
-      <button className="text-link" type="button">View all actions <ArrowRight aria-hidden="true" /></button>
+      <button className="text-link" type="button" onClick={() => toast.info("Full action list — coming soon")}>View all actions <ArrowRight aria-hidden="true" /></button>
     </SurfaceCard>
   );
 }

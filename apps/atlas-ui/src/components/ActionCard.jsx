@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-export function ActionCard({ className = "", icon, title, body, art, action, to }) {
+export function ActionCard({ className = "", icon, title, body, art, action, to, onClick }) {
   const inner = (
     <>
       {icon ? <span className="action-icon">{icon}</span> : null}
@@ -14,5 +14,5 @@ export function ActionCard({ className = "", icon, title, body, art, action, to 
     </>
   );
   if (to) return <Link to={to} className={`action-card ${className}`}>{inner}</Link>;
-  return <button className={`action-card ${className}`} type="button">{inner}</button>;
+  return <button className={`action-card ${className}`} type="button" onClick={onClick}>{inner}</button>;
 }
