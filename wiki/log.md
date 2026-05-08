@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 5 · Soil-building plan card landed
+
+Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). The Scholar's "tab 3 chronological plan" — deferred at module-build time until phasing was rebuilt — is now a 6th tab `plan-soil-building-plan` rendered by new `SoilBuildingPlanCard` at `apps/web/src/v3/plan/cards/soil-fertility/`. Three horizons: (1) **Diagnose now** re-derives limiting factors from the most-recent `useSoilTestStore` reading per management area (re-using `SoilBaselineCard.deriveLimits`) so the steward sees *which* zone needs lime / N-fixers / drainage *first*; (2) **Establish (one-time)** buckets `closedLoopStore.fertilityInfra` into the Yeomans three pillars (structural / vegetative / animal-integration) via a `FERTILITY_PILLAR` lookup, with amber "· gap" chips when a pillar is empty (Holmgren P8 at the fertility layer); (3) **Recurring flows** lists every `wasteVector` with a heuristic cadence per resource type (kitchen-scrap → "weekly · year-round", leaf-fall → "seasonal · autumn", manure → "rotational · 28-day cycle") so the closed-loop graph reads as a calendar. Empty-state routes to Soil baseline tab. Cites OSU PDC tab 3 + Holmgren P3 *Obtain a yield* / P6 *Produce no waste*. Wired through `types.ts` + `PlanModuleSlideUp.tsx`. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 1 · Diagnostic edge encoding on layer-relationships graph
 
 Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The 9-rank prereq graph in `PermanenceLadderCard` previously rendered every curved edge in the same neutral grey — structurally correct but inert. Edges now encode satisfaction state in colour + width + dash + arrowhead: amber+heavier when the source rank is populated but its prerequisite is empty (Yeomans-violation visualised), green when both ends carry elements, dashed dim when neither does. Each `<path>` carries a `<title>` tooltip naming the state. Three arrowhead `<marker>` defs (`prereq-arrow-ok` / `-warn` / neutral) keep tip colour consistent with shaft. The graph is now itself diagnostic — Holmgren P8 violations show on the diagram, not just in the panel above. No data-model change. Typecheck clean.

@@ -61,7 +61,33 @@ Scholar said the existing 4-node fertility designer and the directed-edge waste 
   catalog evolution doesn't invalidate persisted volumes (unknown ids
   are quietly ignored at read time). The split-panel polygon-draw for
   soil-management areas remains deferred (needs map-draw integration).
-- **Soil-building plan** (Scholar's tab 3 "chronological plan"): time-keyed Gantt of vector executions + amendment applications. Defer until phasing module is rebuilt.
+- ✅ **Soil-building plan** — landed 2026-05-07. New
+  `SoilBuildingPlanCard` at `apps/web/src/v3/plan/cards/soil-fertility/`
+  added as 6th tab `plan-soil-building-plan` under Module 5 Soil. The
+  Scholar's "tab 3 chronological plan" framing rendered as three
+  horizons: **(1) Diagnose now** re-derives limiting factors from the
+  most-recent soil reading per management area (re-using
+  `SoilBaselineCard.deriveLimits` logic against `useSoilTestStore`), so
+  the steward sees *which* zone needs lime / N-fixers / drainage *first*
+  rather than reading the baseline as an undifferentiated table.
+  **(2) Establish (one-time)** buckets `closedLoopStore.fertilityInfra`
+  into the Yeomans three pillars (`structural` = composter / hugel /
+  biochar / worm_bin; `vegetative` = cover_crop / chop_and_drop /
+  dynamic_accumulator; `animal` = rotational_grazing) via a
+  `FERTILITY_PILLAR` lookup, with an amber "· gap" chip when a pillar
+  has zero entries — surfacing Holmgren P8 *Integrate rather than
+  segregate* at the fertility layer. **(3) Recurring flows** lists
+  every `wasteVector` with a heuristic cadence (`vectorCadence(resource,
+  label)` returning weekly / monthly / seasonal / 28-day rotational
+  based on the resource type so kitchen-scrap → worm-bin reads "weekly
+  · year-round" while leaf-fall → hugel reads "seasonal · autumn") —
+  the closed-loop graph becomes a calendar, not just a topology. Empty
+  state routes to the Soil baseline tab. Cites OSU PDC tab 3 + Holmgren
+  P3 *Obtain a yield* / P6 *Produce no waste*. Wired through `types.ts`
+  + `PlanModuleSlideUp.tsx`. Time-keyed Gantt visualisation remains
+  possible but the three-horizon list reads cleanly at this scope —
+  the underlying state (per-vector cadence + per-pillar gap detection)
+  is the substrate a Gantt would render from.
 - ✅ **Expand fertility taxonomy** — landed 2026-05-07. `FertilityInfraType` in `closedLoopStore.ts` now includes `cover_crop`, `chop_and_drop`, `dynamic_accumulator`, `rotational_grazing` alongside the original four structural types. The Scholar's three-pillar framing (structural · vegetative/biological · animal-integration) is now representable in the closed-loop graph. Picker in `SoilFertilityDesignerCard` extended to all eight options with permaculture-grounded taglines. Defaults in `TransectVerticalEditorCard.FERTILITY_DEFAULT_HEIGHT_M` extended so the cross-section view doesn't render phantom stacks for the new vegetative kinds (cover-crop 0.3 m, chop-and-drop 0.1 m, dynamic accumulator 1.0 m, rotational grazing 0.1 m). `ClosedLoopGraphCard` label generation collapses underscores to spaces. No persist-version bump — additive union members; legacy entries persist unchanged.
 - ✅ **Type-aware orphan remedies in `ClosedLoopGraphCard`** — landed
   2026-05-07. The "Fertility units to wire up" list previously read a

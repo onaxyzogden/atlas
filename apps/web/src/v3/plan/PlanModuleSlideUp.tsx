@@ -67,6 +67,14 @@ const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVect
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
 const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBaselineCard.js'));
 const SoilResourcesCard       = lazy(() => import('./cards/soil-fertility/SoilResourcesCard.js'));
+// Soil Fertility (Module 5) — chronological "Soil-building plan" tab added per
+// Permaculture Scholar follow-up 2026-05-07. The Scholar's "tab 3" framing:
+// once the steward has a baseline (limiting factors) and a closed-loop graph,
+// they need a time-keyed plan that sequences (1) diagnosis-driven remediation
+// (2) one-time fertility infrastructure across the three Yeomans pillars
+// (structural / vegetative / animal-integration) and (3) recurring waste-flow
+// cadences. Holmgren P3 (Obtain a Yield) + P6 (Produce No Waste).
+const SoilBuildingPlanCard    = lazy(() => import('./cards/soil-fertility/SoilBuildingPlanCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
 // Cross-section & Solar (Module 6) — additive section-annotations card added
 // per Permaculture Scholar verdict 2026-05-07. Atlas's TransectVerticalEditorCard
@@ -118,6 +126,7 @@ function renderCard(
     case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-baseline':       return <SoilBaselineCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-resources':      return <SoilResourcesCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-building-plan':  return <SoilBuildingPlanCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
     case 'plan-section-annotations': return <SectionAnnotationsCard project={project} onSwitchToMap={noop} />;
