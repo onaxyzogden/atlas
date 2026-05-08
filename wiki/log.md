@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · CumulativeInvestmentCard per-phase tier composition
+
+Module 7 (Phasing) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`, enhancement #3). `CumulativeInvestmentCard` previously showed two stacked bars per phase row (gold cost share, green labor share) — surfacing the *magnitude* of each phase but not what the dollars were *for*. The card now buckets each phase's tasks by `PhaseTask.designLayer` (already optional on the store) and renders a third stacked bar showing the Yeomans-tier composition of that phase's spend: earthworks (warm sienna) → water (cool blue) → structures (neutral grey) → vegetation (green) → uncategorised (faint). Same warm-cool ramp as `PhasingScaleMatrixCard` and `PermanenceLadderCard` so the steward reads the same tier the same way across every phasing surface. Hover tooltip lists per-tier `$` and hours; tier segments only render when non-zero. Surfaces upside-down sequencing (e.g. Phase 1 with 80 % vegetation and 0 % earthworks) at the cumulative-rollup level. No store change. Typecheck clean (only the pre-existing unrelated `elementCatalog.ts` error from the WIP Vision-Layout work).
+
+---
+
 ## 2026-05-07 — Plan Module 8 · Three-Ethics rollup surfaces evidence depth
 
 Module 8 (Principles) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-principles-three-ethics-rollup.md`). `ThreeEthicsRollupCard` previously surfaced only met/partial/unmet status pills per principle — orthogonal to the linked-feature evidence the same checklist captures. Each rollup row now reads `checks[pid].linkedFeatureIds.length` and renders a "· N linked" meta-chip alongside the principle title; each ethic section gains an "Evidence depth: N linked features across M / 4 principles" caption beneath the blurb. Rolls the principle-by-principle linked-feature data the new 12 × 9 coverage matrix already pivots up to the 3-Ethics layer, so a steward who's only opened the rollup view can still spot ethics that have status pills set but zero feature evidence (the "performative met" failure mode). No store change. Typecheck clean.

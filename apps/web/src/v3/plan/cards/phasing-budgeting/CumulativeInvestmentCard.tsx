@@ -21,8 +21,30 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
-import { usePhaseStore } from '../../../../store/phaseStore.js';
+import { usePhaseStore, type DesignLayer } from '../../../../store/phaseStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
+
+// Yeomans Keyline ordering on the 4 designLayer tags (earthworks → water →
+// structures → vegetation), plus an "uncategorised" catchall for legacy
+// tasks. Colours mirror the warm-cool ramp used in PhasingScaleMatrixCard
+// and PermanenceLadderCard so the steward reads the same tier the same
+// way across every phasing surface.
+type Tier = DesignLayer | 'uncategorised';
+const TIER_ORDER: Tier[] = ['earthworks', 'water', 'structures', 'vegetation', 'uncategorised'];
+const TIER_LABEL: Record<Tier, string> = {
+  earthworks:    'Earthworks',
+  water:         'Water',
+  structures:    'Structures',
+  vegetation:    'Vegetation',
+  uncategorised: 'Uncategorised',
+};
+const TIER_COLOR: Record<Tier, string> = {
+  earthworks:    'rgba(195, 130, 70, 0.7)',  // warm sienna
+  water:         'rgba(80, 140, 200, 0.7)',  // cool blue
+  structures:    'rgba(160, 160, 170, 0.7)', // neutral grey
+  vegetation:    'rgba(120, 200, 140, 0.7)', // green
+  uncategorised: 'rgba(255, 255, 255, 0.18)',
+};
 
 interface Props {
   project: LocalProject;
@@ -41,6 +63,18 @@ interface RowVM {
   shareUSD: number;
   /** Share of grand-total hours. */
   shareHrs: number;
+  /** Per-tier hrs/$ breakdown for this phase (Yeomans Keyline composition). */
+  byTier: Record<Tier, { hrs: number; usd: number }>;
+}
+
+function emptyTierMap(): Record<Tier, { hrs: number; usd: number }> {
+  return {
+    earthworks:    { hrs: 0, usd: 0 },
+    water:         { hrs: 0, usd: 0 },
+    structures:    { hrs: 0, usd: 0 },
+    vegetation:    { hrs: 0, usd: 0 },
+    uncategorised: { hrs: 0, usd: 0 },
+  };
 }
 
 function fmtUSD(n: number): string {
@@ -62,8 +96,15 @@ export default function CumulativeInvestmentCard({ project }: Props) {
     const incPerPhase = phases.map((p) => {
       const tasks = p.tasks ?? [];
       let hrs = 0, usd = 0;
-      for (const t of tasks) { hrs += t.laborHrs; usd += t.costUSD; }
-      return { id: p.id, name: p.name, timeframe: p.timeframe, incHrs: hrs, incUSD: usd };
+      const byTier = emptyTierMap();
+      for (const t of tasks) {
+        hrs += t.laborHrs;
+        usd += t.costUSD;
+        const tier: Tier = (t.designLayer ?? 'uncategorised') as Tier;
+        byTier[tier].hrs += t.laborHrs;
+        byTier[tier].usd += t.costUSD;
+      }
+      return { id: p.id, name: p.name, timeframe: p.timeframe, incHrs: hrs, incUSD: usd, byTier };
     });
     const totalHrs = incPerPhase.reduce((acc, r) => acc + r.incHrs, 0);
     const totalUSD = incPerPhase.reduce((acc, r) => acc + r.incUSD, 0);
@@ -153,6 +194,40 @@ export default function CumulativeInvestmentCard({ project }: Props) {
                       background: 'rgba(120, 200, 140, 0.5)',
                     }} />
                   </div>
+                  {/* Yeomans-tier composition strip — what fraction of THIS phase's
+                      dollars flows into each permanence tier (earthworks → water →
+                      structures → vegetation → uncategorised). Surfaces whether the
+                      steward is sequencing capital correctly per Keyline order. */}
+                  {r.incUSD > 0 && (
+                    <div
+                      title={TIER_ORDER
+                        .filter((t) => r.byTier[t].usd > 0)
+                        .map((t) => `${TIER_LABEL[t]}: ${fmtUSD(r.byTier[t].usd)} · ${r.byTier[t].hrs}h`)
+                        .join(' · ')}
+                      style={{
+                        height: 8,
+                        borderRadius: 3,
+                        background: 'rgba(255,255,255,0.06)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                      }}
+                    >
+                      {TIER_ORDER.map((t) => {
+                        const frac = r.byTier[t].usd / r.incUSD;
+                        if (frac <= 0) return null;
+                        return (
+                          <div
+                            key={t}
+                            style={{
+                              width: `${frac * 100}%`,
+                              height: '100%',
+                              background: TIER_COLOR[t],
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </li>
             ))}
@@ -163,12 +238,15 @@ export default function CumulativeInvestmentCard({ project }: Props) {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Notes</h2>
         <p className={styles.listMeta}>
-          Bars: top (gold) is share of total cost; bottom (green) is share of
-          total labor hours. Cumulative columns (cum N h · $N) show the
-          running total as of the end of that phase. The OSU PDC Pro
-          Phasing Plan template uses this shape as the "5-Year Total"
-          rollup; Atlas pivots on phase boundaries instead of strict
-          calendar years to avoid parsing free-text timeframes.
+          Bars per phase: top (gold) is share of total cost; middle (green) is
+          share of total labor hours; bottom (warm-cool) is the Yeomans-tier
+          composition of THIS phase's dollars — earthworks (sienna) · water
+          (blue) · structures (grey) · vegetation (green) · uncategorised
+          (faint). Cumulative columns (cum N h · $N) show the running total as
+          of the end of that phase. The OSU PDC Pro Phasing Plan template uses
+          this shape as the "5-Year Total" rollup; Atlas pivots on phase
+          boundaries instead of strict calendar years to avoid parsing
+          free-text timeframes.
         </p>
       </section>
     </div>
