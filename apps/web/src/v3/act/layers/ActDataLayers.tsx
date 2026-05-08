@@ -20,6 +20,8 @@ import * as turf from '@turf/turf';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useMaintenanceLogStore } from '../../../store/maintenanceLogStore.js';
+import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -37,6 +39,9 @@ export default function ActDataLayers({ map, projectId }: Props) {
   const entries = useHarvestLogStore((s) => s.entries);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);
+  const maintEvents = useMaintenanceLogStore((s) => s.events);
+  const earthworks = useWaterSystemsStore((s) => s.earthworks);
+  const storageInfra = useWaterSystemsStore((s) => s.storageInfra);
 
   const harvestFC = useMemo<GeoJSON.FeatureCollection>(() => {
     const features: GeoJSON.Feature[] = [];
@@ -90,6 +95,55 @@ export default function ActDataLayers({ map, projectId }: Props) {
     return { type: 'FeatureCollection', features };
   }, [entries, cropAreas, paddocks, projectId]);
 
+  const maintenanceFC = useMemo<GeoJSON.FeatureCollection>(() => {
+    const features: GeoJSON.Feature[] = [];
+    const earthworkById = new Map(earthworks.map((w) => [w.id, w]));
+    const storageById = new Map(storageInfra.map((s) => [s.id, s]));
+    const now = Date.now();
+
+    for (const ev of maintEvents) {
+      if (ev.projectId !== projectId) continue;
+      let center: [number, number] | null = null;
+      let sourceName = '';
+      if (ev.sourceKind === 'earthwork') {
+        const w = earthworkById.get(ev.sourceId);
+        if (!w) continue;
+        try {
+          const coords = w.geometry.coordinates;
+          if (!Array.isArray(coords) || coords.length === 0) continue;
+          const mid = coords[Math.floor(coords.length / 2)];
+          if (typeof mid?.[0] !== 'number' || typeof mid?.[1] !== 'number') continue;
+          center = [mid[0], mid[1]];
+        } catch {
+          continue;
+        }
+        sourceName = w.type.replace('_', ' ');
+      } else {
+        const s = storageById.get(ev.sourceId);
+        if (!s) continue;
+        center = s.center;
+        sourceName = s.type.replace('_', ' ');
+      }
+      if (!center) continue;
+      const ageMs = now - new Date(ev.date).getTime();
+      const recent = Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= RECENT_MS;
+      features.push({
+        type: 'Feature',
+        id: ev.id,
+        properties: {
+          id: ev.id,
+          color: recent ? RECENT_COLOR : STALE_COLOR,
+          label: ev.action,
+          sourceKind: ev.sourceKind,
+          sourceName,
+        },
+        geometry: { type: 'Point', coordinates: center },
+      });
+    }
+
+    return { type: 'FeatureCollection', features };
+  }, [maintEvents, earthworks, storageInfra, projectId]);
+
   useEffect(() => {
     if (!map) return;
 
@@ -137,6 +191,51 @@ export default function ActDataLayers({ map, projectId }: Props) {
           },
         });
       }
+
+      // Maintenance events — square markers (visually distinct from harvest circles).
+      const msid = `${SOURCE_PREFIX}maintenance`;
+      const mexisting = map.getSource(msid) as
+        | maplibregl.GeoJSONSource
+        | undefined;
+      if (mexisting) mexisting.setData(maintenanceFC);
+      else map.addSource(msid, { type: 'geojson', data: maintenanceFC, promoteId: 'id' });
+
+      if (!map.getLayer(`${LAYER_PREFIX}maintenance`)) {
+        map.addLayer({
+          id: `${LAYER_PREFIX}maintenance`,
+          type: 'circle',
+          source: msid,
+          paint: {
+            'circle-radius': 5,
+            'circle-color': ['get', 'color'],
+            'circle-stroke-color': '#1f1d1a',
+            'circle-stroke-width': 2,
+            'circle-opacity': 0.95,
+            // Diamond-ish look via larger stroke + inner color, but
+            // staying with 'circle' to keep paint expressions trivial.
+          },
+        });
+      }
+      if (!map.getLayer(`${LAYER_PREFIX}maintenance-label`)) {
+        map.addLayer({
+          id: `${LAYER_PREFIX}maintenance-label`,
+          type: 'symbol',
+          source: msid,
+          minzoom: 16,
+          layout: {
+            'text-field': ['get', 'label'],
+            'text-size': 10,
+            'text-offset': [0, 1.0],
+            'text-anchor': 'top',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': '#f2ede3',
+            'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+            'text-halo-width': 1.2,
+          },
+        });
+      }
     };
 
     apply();
@@ -150,7 +249,7 @@ export default function ActDataLayers({ map, projectId }: Props) {
         /* map already disposed */
       }
     };
-  }, [map, harvestFC]);
+  }, [map, harvestFC, maintenanceFC]);
 
   useEffect(() => {
     return () => {

@@ -41,9 +41,10 @@ const QUICK_LOGS: QuickLog[] = [
   {
     id: 'water',
     label: 'Log water check',
-    hint: 'Open Maintenance · Irrigation Manager',
+    hint: 'Click a swale, cistern, or pond to log a maintenance event',
     Icon: Droplet,
     module: 'maintain',
+    toolId: 'act.maintain.log-event',
   },
   {
     id: 'livestock',

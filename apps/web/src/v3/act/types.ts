@@ -72,6 +72,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
     { label: 'Pilot plots',       sectionId: 'act-pilot-plots' },
   ],
   maintain: [
+    { label: 'Event log',            sectionId: 'act-maintenance-events' },
     { label: 'Maintenance schedule', sectionId: 'act-maintenance' },
     { label: 'Irrigation manager',   sectionId: 'act-irrigation' },
     { label: 'Waste routing',        sectionId: 'act-waste-routing' },

@@ -80,7 +80,9 @@ export type MapToolId =
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Act Module — Harvest log (point-on-existing-crop-area, no new geometry)
-  | 'act.harvest.log-entry';
+  | 'act.harvest.log-entry'
+  // Act Module — Maintenance event log (click an irrigation feature)
+  | 'act.maintain.log-event';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

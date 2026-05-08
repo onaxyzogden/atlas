@@ -31,6 +31,7 @@ const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkC
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
 const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
+const MaintenanceLogCard        = lazy(() => import('../../features/act/MaintenanceLogCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a future Subdivision/Livestock module). All seven
 // cards live at apps/web/src/features/livestock/ and take { projectId } except
@@ -49,6 +50,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-build-gantt':       return <BuildGanttCard project={project} onSwitchToMap={noop} />;
     case 'act-budget-actuals':    return <BudgetActualsCard project={project} onSwitchToMap={noop} />;
     case 'act-pilot-plots':       return <PilotPlotsCard project={project} onSwitchToMap={noop} />;
+    case 'act-maintenance-events': return <MaintenanceLogCard project={project} onSwitchToMap={noop} />;
     case 'act-maintenance':       return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;
     case 'act-irrigation':        return <IrrigationManagerCard project={project} onSwitchToMap={noop} />;
     case 'act-waste-routing':     return <WasteRoutingChecklistCard project={project} onSwitchToMap={noop} />;

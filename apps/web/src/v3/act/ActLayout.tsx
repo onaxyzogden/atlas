@@ -128,6 +128,7 @@ export default function ActLayout() {
         <ActTools
           activeModule={validModule}
           onSelectModule={handleSelectModule}
+          onOpenSlideUp={() => setSlideUpOpen(true)}
         />
       }
       canvas={
