@@ -4,6 +4,61 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-08 — Three parked follow-ups: 'built' fix, polygon-mask, memory-budget
+
+Three independent commits on PR #12 (`claude/vigilant-elbakyan-2d16d9`)
+closing the parked items flagged in the 2026-05-05 debrief. Each commit
+is independently revertable; production gates stay off
+(`POLLINATOR_USE_POLYGON_FRICTION=false`, `LANDCOVER_TILES_READY=false`).
+
+**Piece 1 — `normalizeCoverClass` recognises "Built-up"** (`d1bb06b`).
+One-line ladder extension at `packages/shared/src/ecology/corridorLCP.ts:106`
+adding `s.includes('built')` to the urban matcher. Closes the miss
+surfaced by the 8.2 parity harness on 2026-05-08: WorldCover class 50
+("Built-up (unspecified)") and ACI class 41 (same canonical) now route
+to `'urban'` (friction 15, hostile) instead of `'unknown'` (friction 5,
+moderate). Two new asserts in `packages/shared/src/tests/corridorLCP.test.ts`
+guard `'Built-up (unspecified)'` and `'Built up'`. 20/20 green.
+
+**Piece 2 — `sampleHistogram` polygon-mask refinement** (`0461cd9`).
+Additive signature change on `LandCoverRasterServiceBase.sampleHistogram`:
+new optional `parcelPolygon4326?: Polygon` arg threads a parcel
+polygon through to `sampleTile`, where each pixel centre is
+reprojected to WGS84 and ray-cast against the outer ring. Pixels
+outside the polygon increment a new `outsidePolygonCount` field on
+`ClassHistogram` and are excluded from `totalPixels`. Bbox-only fast
+path preserved when arg omitted (existing adapter callers untouched
+— wiring is a follow-up commit so the histogram-shape change has
+clean revert boundary). New helper `pointInPolygonRing.ts`
+(even-odd ray-cast, no turf dep, holes ignored, antimeridian naive)
+with sibling 7-test file. New
+`LandCoverRasterServiceBase.sampleHistogram.test.ts` (5 tests:
+bbox-only regression, polygon ≈ bbox, top-half rectangle drops
+bottom-half, disjoint polygon → null, triangle on uniform raster
+≈ half pixels). Full landcover suite 28/28 green; tsc clean.
+
+**Piece 3 — `clipToBbox` memory-budget guard** (`2df1d2d`).
+`LandCoverRasterServiceBase`: `CLIP_MAX_TILES` lifted 4 → 16, new
+`CLIP_MAX_PIXELS = 16_000_000` (= 64 MB Int32Array stitched
+buffer) checked after stitched window dims are computed. Two-tier:
+tile-count cap is a cheap pre-flight (avoids opening 50 tiles
+before discovering the buffer is too big); pixel-count guard is
+the real ceiling because tile dimensions vary by source (NLCD
+~10 000², WorldCover ~36 000² at 10 m). The old "5+ tiles → null"
+test rewritten as three: 5-tile horizontal stitch SUCCEEDS (within
+budget), 17-tile fallback (pre-flight fires, no tiff opened),
+4-tile-but-huge fallback (post-open pixel-count guard fires after
+opening 4 tiles). 11/11 green; tsc clean.
+
+**Outstanding parked items** (carried forward):
+- Wire the polygon-mask call into the three `*LandCoverAdapter`s
+  (WorldCover/NLCD/ACI) so production histograms benefit from the
+  refinement. Held back so Piece 2 lands additively.
+- Real-tile end-to-end smoke (Phase 8.2 proper) — still awaiting a
+  real WorldCover/NLCD tile to flip `LANDCOVER_TILES_READY=true`.
+
+---
+
 ## 2026-05-05 — 8.1-B follow-ups: lat-buffer, test triage, multi-tile stitch
 
 Three independent commits on PR #12 (`claude/vigilant-elbakyan-2d16d9`)
