@@ -47,6 +47,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Open Overview & validation to verify high-frequency paths reach Z1 / Z2.',
     ],
   },
+  'structures-subsystems': {
+    why: 'Structures (Yeomans rank 5) and their subsystems (rank 6: power, water, sanitation) are placed *after* climate, landform, water, and access are settled — locking dwellings before water lines and roads forces expensive retrofits (Yeomans, Water for Every Farm; Mollison, Designers\' Manual ch.13). Cabin, yurt, earthship, greenhouse, prayer space, and utility infrastructure all sit on this rank pair.',
+    how: [
+      'Confirm Water and Zone & Circulation are settled before placing dwellings.',
+      'Drop a Structure point on the parcel; pick its type, phase, and rotation.',
+      'Group utility subsystems (well, water tank, solar array, pump house, compost station) near the structures they feed.',
+    ],
+  },
   livestock: {
     why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later.',
     how: [
@@ -102,6 +110,7 @@ const PLAN_MODULE_DOT: Record<PlanModule, string> = {
   'dynamic-layering': '#7aabca',
   'water-management': '#5fc7d4',
   'zone-circulation': '#d68bd0',
+  'structures-subsystems': '#a06b48',
   livestock: '#c9a05a',
   'plant-systems': '#5dd39e',
   'soil-fertility': '#8bd16a',

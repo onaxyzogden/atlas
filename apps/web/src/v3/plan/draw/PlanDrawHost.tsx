@@ -16,6 +16,8 @@ import PathLineTool from './tools/PathLineTool.js';
 import CropAreaTool from './tools/CropAreaTool.js';
 import FertilityInfraTool from './tools/FertilityInfraTool.js';
 import PaddockTool from './tools/PaddockTool.js';
+import GuildTool from './tools/GuildTool.js';
+import StructureTool from './tools/StructureTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -53,11 +55,17 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     case 'plan.plant-systems.crop-area':
       tool = <CropAreaTool map={map} projectId={projectId} />;
       break;
+    case 'plan.plant-systems.guild':
+      tool = <GuildTool map={map} projectId={projectId} />;
+      break;
     case 'plan.soil-fertility.fertility-unit':
       tool = <FertilityInfraTool map={map} projectId={projectId} />;
       break;
     case 'plan.livestock.paddock':
       tool = <PaddockTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.structures-subsystems.structure':
+      tool = <StructureTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

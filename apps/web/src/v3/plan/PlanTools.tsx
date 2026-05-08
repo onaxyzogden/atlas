@@ -18,11 +18,13 @@ import {
   Droplet,
   Fence,
   FolderOpen,
+  Home,
   Layers,
   Recycle,
   Route,
   Sprout,
   Square,
+  TreeDeciduous,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
@@ -57,11 +59,15 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'zone', label: 'Zone', Icon: Square, toolId: 'plan.zone-circulation.zone' },
     { id: 'path', label: 'Path', Icon: Route,  toolId: 'plan.zone-circulation.path' },
   ],
+  'structures-subsystems': [
+    { id: 'structure', label: 'Structure', Icon: Home, toolId: 'plan.structures-subsystems.structure' },
+  ],
   livestock: [
     { id: 'paddock', label: 'Paddock', Icon: Fence, toolId: 'plan.livestock.paddock' },
   ],
   'plant-systems': [
     { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
+    { id: 'guild',     label: 'Guild',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
   ],
   'soil-fertility': [
     { id: 'fertility-unit', label: 'Fertility unit', Icon: Recycle, toolId: 'plan.soil-fertility.fertility-unit' },

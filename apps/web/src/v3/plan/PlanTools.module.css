@@ -73,6 +73,7 @@
 .group[data-module='dynamic-layering']       { --group-dot: #7aabca; }
 .group[data-module='water-management']       { --group-dot: #5fc7d4; }
 .group[data-module='zone-circulation']       { --group-dot: #d68bd0; }
+.group[data-module='structures-subsystems']  { --group-dot: #a06b48; }
 .group[data-module='livestock']              { --group-dot: #c9a05a; }
 .group[data-module='plant-systems']          { --group-dot: #5dd39e; }
 .group[data-module='soil-fertility']         { --group-dot: #8bd16a; }

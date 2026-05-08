@@ -19,6 +19,8 @@ import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { usePolycultureStore } from '../../../store/polycultureStore.js';
+import { useStructureStore } from '../../../store/structureStore.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -65,6 +67,33 @@ const FERTILITY_LABEL: Record<string, string> = {
   rotational_grazing:  'Rot. grazing',
 };
 
+// Structure category palette. Dwellings on warm clay (rank-5 lens hue);
+// utility/infra on cooler steel; agricultural on muted green-clay; civic
+// gathering on amber. The Yeomans lens stamps rank 5 on every structure
+// so the lens swap recolours all 20 types uniformly.
+const STRUCTURE_COLOR: Record<string, string> = {
+  cabin:            '#a06b48',
+  yurt:             '#b07c4a',
+  earthship:        '#8a6a3a',
+  tent_glamping:    '#c08a5a',
+  pavilion:         '#caa46c',
+  classroom:        '#caa46c',
+  prayer_space:     '#b58c5e',
+  bathhouse:        '#9a8070',
+  fire_circle:      '#a85a3a',
+  lookout:          '#8a8270',
+  greenhouse:       '#7aae3c',
+  barn:             '#a07050',
+  animal_shelter:   '#9b8a7a',
+  workshop:         '#8a8270',
+  storage:          '#7a7068',
+  compost_station:  '#6a4a28',
+  water_pump_house: '#3a8fb7',
+  solar_array:      '#3a4a5c',
+  well:             '#3a8fb7',
+  water_tank:       '#5fc7d4',
+};
+
 /**
  * Build a MapLibre `match` expression that maps the per-feature
  * `yeomansRank` to a Yeomans-rank colour. Falls back to `color` if the
@@ -86,6 +115,8 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const cropAreas = useCropStore((s) => s.cropAreas);
   const fertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
   const paddocks = useLivestockStore((s) => s.paddocks);
+  const guilds = usePolycultureStore((s) => s.guilds);
+  const structures = useStructureStore((s) => s.structures);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
@@ -140,6 +171,60 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       lines.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
     }
 
+    // Structures (polygon) — Yeomans rank 5 (Structures) + 6 (Subsystems).
+    // The lens stamps rank 5 uniformly; the per-feature `color` already
+    // reflects category (dwelling vs utility) when the lens is OFF.
+    for (const st of structures) {
+      if (st.projectId !== projectId) continue;
+      const color = STRUCTURE_COLOR[st.type] ?? '#a06b48';
+      const props = { id: st.id, color, label: st.name, yeomansRank: 5 };
+      polys.push({ type: 'Feature', id: st.id, properties: props, geometry: st.geometry });
+      try {
+        const ctr = turf.centroid(st.geometry).geometry;
+        labels.push({ type: 'Feature', id: st.id, properties: props, geometry: ctr });
+      } catch {
+        /* skip */
+      }
+    }
+
+    // Guilds (point) — Module 5 Plant Systems. Yeomans rank 8 (Vegetation).
+    // Render only guilds whose centroidUv can be projected back to lng/lat
+    // via current map bounds. The slide-up GuildSpatialBuilderCard remains
+    // the canonical layer composer; this is the at-a-glance anchor map.
+    let mapBounds: [number, number, number, number] | null = null;
+    try {
+      const b = map.getBounds();
+      mapBounds = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
+    } catch {
+      mapBounds = null;
+    }
+    for (const g of guilds) {
+      if (g.projectId !== projectId) continue;
+      if (!g.centroidUv) continue;
+      if (!mapBounds) continue;
+      const [w, s, e, n] = mapBounds;
+      const lng = w + g.centroidUv[0] * (e - w);
+      const lat = n - g.centroidUv[1] * (n - s);
+      const props = {
+        id: g.id,
+        color: '#3d8a3d',
+        label: g.name,
+        yeomansRank: 8,
+      };
+      points.push({
+        type: 'Feature',
+        id: g.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+      });
+      labels.push({
+        type: 'Feature',
+        id: g.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+      });
+    }
+
     // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
     for (const f of fertilityInfra) {
       if (f.projectId !== projectId) continue;
@@ -180,7 +265,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       pointFC: { type: 'FeatureCollection' as const, features: points },
       labelFC: { type: 'FeatureCollection' as const, features: labels },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, guilds, structures, projectId, map]);
 
   useEffect(() => {
     if (!map) return;

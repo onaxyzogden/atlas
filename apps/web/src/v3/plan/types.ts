@@ -10,6 +10,7 @@ export type PlanModule =
   | 'dynamic-layering'
   | 'water-management'
   | 'zone-circulation'
+  | 'structures-subsystems'
   | 'livestock'
   | 'plant-systems'
   | 'soil-fertility'
@@ -21,6 +22,7 @@ export const PLAN_MODULES: PlanModule[] = [
   'dynamic-layering',
   'water-management',
   'zone-circulation',
+  'structures-subsystems',
   'livestock',
   'plant-systems',
   'soil-fertility',
@@ -37,6 +39,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Layering',
   'water-management':       'Water',
   'zone-circulation':       'Zones',
+  'structures-subsystems':  'Structures',
   livestock:                'Livestock',
   'plant-systems':          'Plants',
   'soil-fertility':         'Soil',
@@ -49,6 +52,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
+  'structures-subsystems':  'Structures & Subsystems',
   livestock:                'Livestock & Subdivision',
   'plant-systems':          'Plant Systems & Polyculture',
   'soil-fertility':         'Soil Fertility & Closed-Loop',
@@ -139,6 +143,10 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
     { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
     { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
+  ],
+  'structures-subsystems': [
+    { label: 'Structures overview', sectionId: 'plan-structures-overview' },
+    { label: 'Subsystems overview', sectionId: 'plan-subsystems-overview' },
   ],
   livestock: [
     { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },

@@ -1,5 +1,5 @@
 /**
- * PlanModuleBar — 8-tile bottom navigator for the Plan stage.
+ * PlanModuleBar — 10-tile bottom navigator for the Plan stage.
  *
  * Click semantics mirror ObserveModuleBar:
  *   inactive tile    → select module (no slide-up yet)
