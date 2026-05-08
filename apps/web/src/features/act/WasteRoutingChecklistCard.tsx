@@ -71,7 +71,7 @@ export default function WasteRoutingChecklistCard({ project }: Props) {
 
       <section className={styles.section}>
         {vectors.length === 0 ? (
-          <p className={styles.empty}>No waste vectors yet — design them in PLAN → Waste Vectors.</p>
+          <p className={styles.empty}>No waste vectors yet — design them in PLAN → Soil &amp; fertility → Waste-to-resource vectors.</p>
         ) : (
           <ul className={styles.list}>
             {vectors.map((v) => {

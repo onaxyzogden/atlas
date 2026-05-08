@@ -1,0 +1,302 @@
+/* ActOpsAside — operations dashboard right rail for the Act stage.
+   4 stacked panels (priorities / alerts / events / actions) inside one
+   surface bento. Mirrors the Operations Hub mockup. */
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  min-width: 260px;
+  max-width: 320px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.aside::-webkit-scrollbar { width: 6px; }
+.aside::-webkit-scrollbar-track { background: transparent; }
+.aside::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.panelTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.panelSubtitle {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.panelLink {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.panelLink:hover { color: var(--color-text); }
+
+.empty {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* —— Priorities list —— */
+
+.priorityList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.priorityItem {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.priorityIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-muted) 18%, transparent);
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 600;
+  flex: 0 0 18px;
+}
+
+.priorityTitle {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.priorityMeta {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+/* —— Alerts —— */
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.alertItem {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.alertIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--alert-color, var(--color-text-muted)) 14%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--alert-color, var(--color-text-muted)) 35%, transparent);
+  color: var(--alert-color, var(--color-text-muted));
+}
+
+.alertBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.alertTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.alertMeta {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  line-height: 1.25;
+}
+
+.alertChip {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm, 4px);
+  background: color-mix(in srgb, var(--alert-color, var(--color-text-muted)) 18%, transparent);
+  color: var(--alert-color, var(--color-text-muted));
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.alertChip[data-severity='high']   { --alert-color: #d27071; }
+.alertChip[data-severity='medium'] { --alert-color: #c4a265; }
+.alertChip[data-severity='low']    { --alert-color: #5fc7d4; }
+.alertItem[data-severity='high']   { --alert-color: #d27071; }
+.alertItem[data-severity='medium'] { --alert-color: #c4a265; }
+.alertItem[data-severity='low']    { --alert-color: #5fc7d4; }
+
+/* —— Events —— */
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.eventItem {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.eventIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.eventBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.eventTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.eventMeta {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.rsvpBtn {
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm, 4px);
+  background: color-mix(in srgb, var(--color-bg) 60%, var(--color-surface));
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.rsvpBtn:hover { border-color: var(--color-text-muted); }
+
+/* —— Quick actions —— */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+
+.primaryBtn {
+  background: var(--color-accent, #c4a265);
+  color: #1a1a1a;
+  border: 1px solid color-mix(in srgb, var(--color-accent, #c4a265) 70%, #000);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent, #c4a265) 90%, #000);
+}
+
+.secondaryBtn {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
