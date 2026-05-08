@@ -7274,3 +7274,60 @@ flip `POLLINATOR_USE_POLYGON_FRICTION=true` +
 watch a `samplingMethod: 'polygon'` row land in `project_layers`.
 Triage the 7 pre-existing failing tests (separate session — they
 pre-date this work).
+
+---
+
+## 2026-05-08 — Phase 8.2 synthetic-tile parity harness
+
+Closed parked option (c) from the post-compaction debrief: a
+synthetic-tile parity run for the polygon-friction path.
+
+**Scope pivot.** The original framing — "diff `verify-scoring-parity`
+between polygon and synthesized-grid paths" — is structurally
+meaningless: a grep of `apps/api/src/services/scoring/computeScores.ts`
+shows `pollinator_opportunity` only as a narrative string at
+line ~2698 with zero data dependency, so `overall_score` is
+identical regardless of which path emits the patch grid. The
+meaningful comparison is at the processor-output level: does
+the polygon path produce the analytically-correct permeable
+fraction for a known mix of land-cover classes?
+
+**Implementation.** New vitest at
+`apps/api/src/services/terrain/pollinatorPolygonPath.parity.test.ts`
+(4 tests, all green). Synthetic 50×50 WorldCover-coded clip
+in EPSG:4326 with rows split 60/20/20 across class 10 (Forest,
+friction 1), class 30 (Grassland, friction 3), class 80 (Open
+Water, friction 12). Stub `clipProvider` returns the clip;
+`runPolygonFrictionPath` consumes it via the default
+`polygonizePixelGrid` polygoniser → `deriveCorridorFriction`.
+Asserts `permeableFraction = 0.80` to 6 decimals, plus
+all-permeable and all-hostile boundary cases, plus the
+clipProvider-throws fall-through contract.
+
+**Bug surfaced (filed, not fixed).** First fixture revision
+used WorldCover class 50 ("Built-up (unspecified)") for the
+hostile band. `normalizeCoverClass` in
+`packages/shared/src/ecology/corridorLCP.ts:106` matches
+`s.includes('developed')` / `s.includes('urban')` /
+`s.includes('impervious')` but not `s.includes('built')`,
+so WorldCover's "Built-up" canonical falls through to
+`'unknown'` (friction 5) instead of `'urban'` (friction 15).
+Effect: built-up areas via WorldCover are scored as moderate
+matrix instead of hostile. Out of scope for this harness;
+test was respun on class 80 (Open Water → 'water' → friction
+12) which routes correctly. Add `'built'` to the urban
+matcher when next touching `corridorLCP.ts`.
+
+**Verification.** `vitest run pollinatorPolygonPath.parity.test.ts`
+→ 4/4 green. `tsc --noEmit` clean across `@ogden/api`. No
+geotiff / Postgres / BullMQ involvement — pure in-memory.
+
+**Outstanding parked items** (carried forward from the
+post-compaction debrief):
+- Raise `CLIP_MAX_TILES` cap above 4 if profiling justifies.
+- Polygon-mask refinement of `sampleHistogram` (currently
+  bbox-only).
+- Fix the `normalizeCoverClass` 'built' miss flagged above.
+- Real-tile end-to-end smoke (Phase 8.2 proper) — still
+  awaiting a real WorldCover/NLCD tile to flip
+  `LANDCOVER_TILES_READY=true` against.
