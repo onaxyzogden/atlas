@@ -9,18 +9,21 @@
  * shape zone placement: prevailing wind (from the climate layer
  * `prevailing_wind`) and an editable fire / view / noise compass.
  *
- * v1 is read-only for the wind sector and editable for fire/view/noise
- * via simple compass-direction toggles. The intent is steward-awareness:
- * the same site-data the rest of the Plan stage already pulls is now
- * laid out radially so it can be reasoned against zone polygons.
+ * Wind / downslope are read-only (derived live from climate /
+ * elevation layers); fire / view / noise are editable via 8-point
+ * compass toggles and persist per-project through `sectorStore`. The
+ * intent is steward-awareness: the same site-data the rest of the
+ * Plan stage already pulls is laid out radially so it can be reasoned
+ * against zone polygons.
  *
  * Sources: Mollison B. *Permaculture Designer's Manual* ch.3 (sectors);
  * OSU PDC Week 2 (Sectors & Zones).
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
+import { useSectorStore } from '../../../../store/sectorStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -105,11 +108,21 @@ export default function SectorOverlayCard({ project }: Props) {
   const windDir = parseCompass(climate?.prevailing_wind);
   const downslope = parseCompass(elev?.predominant_aspect);
 
-  // Editable fire / view / noise sectors. v1 holds them in component
-  // state — persistence is a follow-up (would need a `sectorStore`).
-  const [fireDir, setFireDir] = useState<Compass | null>(null);
-  const [viewDir, setViewDir] = useState<Compass | null>(null);
-  const [noiseDir, setNoiseDir] = useState<Compass | null>(null);
+  // Editable fire / view / noise sectors persist via sectorStore — the
+  // steward's read of fire approach / view aperture / noise source is a
+  // site-specific Holmgren-P1 *Observe* note that should survive reload.
+  const byProject = useSectorStore((s) => s.byProject);
+  const setSector = useSectorStore((s) => s.setSector);
+  const projectSectors = useMemo(
+    () => byProject[project.id] ?? {},
+    [byProject, project.id],
+  );
+  const fireDir = projectSectors.fire ?? null;
+  const viewDir = projectSectors.view ?? null;
+  const noiseDir = projectSectors.noise ?? null;
+  const setFireDir = (c: Compass | null) => setSector(project.id, 'fire', c);
+  const setViewDir = (c: Compass | null) => setSector(project.id, 'view', c);
+  const setNoiseDir = (c: Compass | null) => setSector(project.id, 'noise', c);
 
   const W = 360;
   const H = 360;
@@ -321,8 +334,7 @@ export default function SectorOverlayCard({ project }: Props) {
         <h2 className={styles.sectionTitle}>Editable sectors</h2>
         <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
           Tap a direction to mark where the sector enters the site. Tap
-          again to clear. v1 holds these per session — persistence is a
-          follow-up.
+          again to clear. Selections persist per project.
         </p>
         <div className={styles.grid}>
           <CompassPicker label="Fire (← incoming)" value={fireDir} setValue={setFireDir} />

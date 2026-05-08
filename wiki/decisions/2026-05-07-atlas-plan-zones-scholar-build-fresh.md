@@ -139,9 +139,12 @@ Module 3 sub-cards (3, was 2):
   from `climate.prevailing_wind` via 8-point compass quantiser
   handling "W-SW" / "WSW" / "SW" forms), a downslope-water sector
   (from `elevation.predominant_aspect`), and three editable
-  compass-pickers for fire / view / noise (component-state v1 —
-  persistence as future `sectorStore` follow-up). Wedge `<path>`
-  geometry is bearing-keyed (N=0° up, SVG y-down). Site-data source
-  rows below the diagram echo the raw layer values + parsed compass
-  keys, with "run an Observe site fetch" hint when layers absent.
-  Cites Mollison ch.3 + OSU PDC Week 2 (Sectors & Zones).
+  compass-pickers for fire / view / noise. Wedge `<path>` geometry
+  is bearing-keyed (N=0° up, SVG y-down). Site-data source rows
+  below the diagram echo the raw layer values + parsed compass keys,
+  with "run an Observe site fetch" hint when layers absent. Cites
+  Mollison ch.3 + OSU PDC Week 2 (Sectors & Zones). ✅ Persistence
+  landed 2026-05-07 via `apps/web/src/store/sectorStore.ts` (Zustand +
+  persist, key `ogden-sectors` v1) — flat `byProject: { [projectId]:
+  { fire?, view?, noise? } }`; `setSector` clears keys on `null`;
+  wind / downslope remain derived-only.

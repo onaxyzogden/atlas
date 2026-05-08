@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 3 · Sector compass persistence
+
+Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). `SectorOverlayCard`'s editable fire / view / noise compass pickers swapped from component-state to persistent storage via the new `apps/web/src/store/sectorStore.ts` (Zustand + persist, key `ogden-sectors` v1). Store shape is `byProject: { [projectId]: { fire?, view?, noise? } }` keyed by 8-point compass values; `setSector(projectId, key, null)` clears the key. Wind and downslope-aspect sectors stay derived live from the climate / elevation layers — only steward-authored Holmgren-P1 *Observe* notes persist. Card subscribes to `byProject` and derives its per-project slice via `useMemo` per the selector-stability ADR. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 5 · Compost-inventory persistence
 
 Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). `SoilResourcesCard` swapped from component-state to persistent storage via the new `apps/web/src/store/compostInventoryStore.ts` (Zustand + persist, key `ogden-compost-inventory` v1). Store shape is a flat `byProject: { [projectId]: { [feedstockId]: m³ } }` — Greens/Browns split lives only in the card's static catalog, so feedstock catalog evolution (adding/removing entries) does not invalidate persisted volumes; unknown ids are quietly ignored at read time. `setVolume(projectId, id, v)` drops the key when `v ≤ 0`; `replaceInventory` filters non-positive volumes. The card now reads `byProject` and derives its per-project slice via `useMemo` per the selector-stability ADR. The C:N verdict survives reload. Typecheck clean (only the unrelated WIP `elementCatalog.ts` error remains).
