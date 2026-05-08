@@ -28,6 +28,7 @@ import type {
   ParcelBbox4326,
 } from '../../landcover/LandCoverRasterServiceBase.js';
 import { AppError } from '../../../lib/errors.js';
+import type { Polygon } from 'geojson';
 
 /** Parcel bbox in WGS84. Extracted from boundary GeoJSON or context centroid. */
 export function extractParcelBbox(
@@ -68,6 +69,36 @@ export function extractParcelBbox(
     'No centroid and no valid GeoJSON boundary',
     400,
   );
+}
+
+/**
+ * Extract a single GeoJSON Polygon from boundary input for the
+ * polygon-mask path of `LandCoverRasterServiceBase.sampleHistogram`.
+ *
+ * Returns `undefined` when the boundary is missing, malformed, or
+ * a non-polygon geometry — callers fall back to bbox-only sampling
+ * (the v1 path) without error. Symmetric to `extractParcelBbox` in
+ * spirit, but with no centroid analogue: there's no sensible synthetic
+ * polygon to fabricate from a centroid alone, so the caller silently
+ * loses the refinement when boundary data is absent.
+ *
+ * MultiPolygon → first sub-polygon. Atlas parcels are typically
+ * single-polygon; a real cohort of MultiPolygon parcels would need
+ * a follow-up to union the rings (or pass the largest by area).
+ * Documented as a known limitation in the wiki.
+ */
+export function extractParcelPolygon(boundary: unknown): Polygon | undefined {
+  const geo = boundary as { type?: string; coordinates?: unknown } | null;
+  if (!geo || !geo.coordinates) return undefined;
+  if (geo.type === 'Polygon') {
+    return { type: 'Polygon', coordinates: geo.coordinates as number[][][] };
+  }
+  if (geo.type === 'MultiPolygon') {
+    const coords = geo.coordinates as number[][][][];
+    if (coords.length === 0) return undefined;
+    return { type: 'Polygon', coordinates: coords[0]! };
+  }
+  return undefined;
 }
 
 export interface BuildSummaryArgs {
@@ -152,6 +183,10 @@ export function buildLandCoverResult(args: BuildSummaryArgs): AdapterResult {
       pixelCount: histogram.totalPixels,
       validPixelCount: validPixels,
       nodataPixelCount: histogram.nodataCount,
+      // Pixels inside the parcel bbox but outside the parcel polygon
+      // (when the polygon-mask path is enabled). 0 when boundary was
+      // bbox-only or didn't carry a Polygon — see extractParcelPolygon.
+      outsidePolygonCount: histogram.outsidePolygonCount ?? 0,
       samplingMethod: 'raster' as const,
       dataSources,
       // Pass through canonical-class metadata so EcologicalDashboard can

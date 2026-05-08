@@ -23,6 +23,7 @@ import {
   buildLandCoverResult,
   buildUnavailableResult,
   extractParcelBbox,
+  extractParcelPolygon,
 } from './landCoverAdapterCommon.js';
 
 const logger = pino({ name: 'WorldCoverLandCoverAdapter' });
@@ -56,9 +57,13 @@ export class WorldCoverLandCoverAdapter implements DataSourceAdapter {
     }
 
     const bbox = extractParcelBbox(context, boundary);
-    logger.info({ bbox, vintage: this.raster.getVintage() }, 'Sampling WorldCover');
+    const polygon = extractParcelPolygon(boundary);
+    logger.info(
+      { bbox, hasPolygon: !!polygon, vintage: this.raster.getVintage() },
+      'Sampling WorldCover',
+    );
 
-    const histogram = await this.raster.sampleHistogram(bbox);
+    const histogram = await this.raster.sampleHistogram(bbox, polygon);
     if (!histogram) {
       return buildUnavailableResult({
         source: 'WorldCover',

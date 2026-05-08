@@ -21,6 +21,7 @@ import {
   buildLandCoverResult,
   buildUnavailableResult,
   extractParcelBbox,
+  extractParcelPolygon,
 } from './landCoverAdapterCommon.js';
 
 const logger = pino({ name: 'NlcdLandCoverAdapter' });
@@ -54,9 +55,13 @@ export class NlcdLandCoverAdapter implements DataSourceAdapter {
     }
 
     const bbox = extractParcelBbox(context, boundary);
-    logger.info({ bbox, vintage: this.raster.getVintage() }, 'Sampling NLCD');
+    const polygon = extractParcelPolygon(boundary);
+    logger.info(
+      { bbox, hasPolygon: !!polygon, vintage: this.raster.getVintage() },
+      'Sampling NLCD',
+    );
 
-    const histogram = await this.raster.sampleHistogram(bbox);
+    const histogram = await this.raster.sampleHistogram(bbox, polygon);
     if (!histogram) {
       return buildUnavailableResult({
         source: 'NLCD',
