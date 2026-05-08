@@ -47,11 +47,15 @@ const STATUS_LABEL: Record<PrincipleStatus, string> = {
 
 interface EthicRollup {
   ethic: PermacultureEthicDef;
-  rows: Array<{ id: string; number: number; title: string; status: PrincipleStatus }>;
+  rows: Array<{ id: string; number: number; title: string; status: PrincipleStatus; linkCount: number }>;
   met: number;
   partial: number;
   unmet: number;
   total: number;
+  /** Sum of linked-feature counts across this ethic's principles. */
+  evidenceLinks: number;
+  /** Number of principles with at least one linked feature. */
+  evidencedPrinciples: number;
 }
 
 export default function ThreeEthicsRollupCard({ project }: Props) {
@@ -63,17 +67,21 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
       const rows = ethic.principleIds.map((pid) => {
         const principle = HOLMGREN_PRINCIPLES.find((p) => p.id === pid);
         const status: PrincipleStatus = checks[pid]?.status ?? 'unmet';
+        const linkCount = checks[pid]?.linkedFeatureIds?.length ?? 0;
         return {
           id: pid,
           number: principle?.number ?? 0,
           title: principle?.title ?? pid,
           status,
+          linkCount,
         };
       });
       const met = rows.filter((r) => r.status === 'met').length;
       const partial = rows.filter((r) => r.status === 'partial').length;
       const unmet = rows.length - met - partial;
-      return { ethic, rows, met, partial, unmet, total: rows.length };
+      const evidenceLinks = rows.reduce((s, r) => s + r.linkCount, 0);
+      const evidencedPrinciples = rows.filter((r) => r.linkCount > 0).length;
+      return { ethic, rows, met, partial, unmet, total: rows.length, evidenceLinks, evidencedPrinciples };
     });
   }, [checks]);
 
@@ -126,7 +134,7 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
         <div className={styles.statRow}><span>Unmet or unanswered</span><span>{overall.total - overall.met - overall.partial} / {overall.total}</span></div>
       </section>
 
-      {rollups.map(({ ethic, rows, met, partial, unmet, total }) => {
+      {rollups.map(({ ethic, rows, met, partial, unmet, total, evidenceLinks, evidencedPrinciples }) => {
         const score = total === 0 ? 0 : Math.round(((met + 0.5 * partial) / total) * 100);
         return (
           <section key={ethic.id} className={styles.section}>
@@ -137,6 +145,9 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
               </span>
             </h2>
             <p className={styles.lede} style={{ marginTop: 0 }}>{ethic.blurb}</p>
+            <p className={styles.listMeta} style={{ marginTop: 4 }}>
+              Evidence depth: {evidenceLinks} linked feature{evidenceLinks === 1 ? '' : 's'} across {evidencedPrinciples} / {total} principle{total === 1 ? '' : 's'}.
+            </p>
 
             {met === 0 && total > 0 && (
               <p className={styles.empty} style={{ marginTop: 0 }}>
@@ -150,6 +161,11 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
                 <li key={row.id} className={styles.listRow}>
                   <div>
                     <strong>{row.number}. {row.title}</strong>
+                    {row.linkCount > 0 && (
+                      <span className={styles.listMeta} style={{ marginLeft: 8 }}>
+                        · {row.linkCount} linked
+                      </span>
+                    )}
                   </div>
                   <span className={`${styles.pill} ${statusPillClass(row.status)}`}>
                     {STATUS_LABEL[row.status]}

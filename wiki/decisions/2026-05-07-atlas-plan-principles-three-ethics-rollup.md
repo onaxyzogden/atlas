@@ -32,6 +32,7 @@ Total: 5 + 4 + 3 = 12.
 - the constituent principles with their per-principle status pill (Met / Partial / Unmet, sourced live from the existing checklist);
 - a per-ethic running tally (`{met} met · {partial} partial · {unmet} unmet`) with a coloured pill computed as `score = (met + 0.5 × partial) / total` thresholded into Met (≥70 %) / Partial (≥30 %) / Unmet;
 - a coverage hint — if an ethic has zero met principles, prompt the steward to record evidence for at least one principle below.
+- ✅ **Evidence depth (added 2026-05-07)** — each per-principle row now reads `checks[pid].linkedFeatureIds.length` and renders a "· N linked" meta-chip alongside the title; each ethic section gains an "Evidence depth: N linked features across M / 4 principles" caption below the blurb. Surfaces the "performative met" failure mode (status pill set without feature evidence) without leaving the rollup view.
 
 A top-level "Overall health" section shows the same score across all 12 principles plus met / partial / unmet running counts.
 
