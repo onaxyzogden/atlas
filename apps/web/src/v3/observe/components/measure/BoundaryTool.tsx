@@ -3,6 +3,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import * as turf from '@turf/turf';
 import css from '../MapToolbar.module.css';
+import { MAPLIBRE_DRAW_STYLES } from '../draw/mapboxDrawStyles.js';
 
 interface Props {
   map: MaplibreMap;
@@ -12,11 +13,20 @@ interface Props {
 export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
   const drawRef = useRef<MapboxDraw | null>(null);
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(null);
+  // Stash latest onBoundaryDrawn so the effect does not re-init the draw
+  // control every time the parent re-renders (ObserveLayout creates a new
+  // inline arrow function on every render, which would otherwise cause
+  // draw_polygon mode to restart mid-session and lose the in-progress polygon).
+  const onBoundaryDrawnRef = useRef(onBoundaryDrawn);
+  useEffect(() => {
+    onBoundaryDrawnRef.current = onBoundaryDrawn;
+  }, [onBoundaryDrawn]);
 
   useEffect(() => {
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
+      styles: MAPLIBRE_DRAW_STYLES,
     });
     map.addControl(draw);
     draw.changeMode('draw_polygon');
@@ -28,7 +38,7 @@ export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
       if (feat && feat.geometry.type === 'Polygon') {
         const poly = feat.geometry as GeoJSON.Polygon;
         setPolygon(poly);
-        onBoundaryDrawn?.(poly);
+        onBoundaryDrawnRef.current?.(poly);
       } else {
         setPolygon(null);
       }
@@ -49,7 +59,7 @@ export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
       }
       drawRef.current = null;
     };
-  }, [map, onBoundaryDrawn]);
+  }, [map]); // removed onBoundaryDrawn from deps — stashed in ref above
 
   const ring = polygon?.coordinates[0];
   const vertexCount = ring ? ring.length - 1 : 0;

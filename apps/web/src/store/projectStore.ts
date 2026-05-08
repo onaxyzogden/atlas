@@ -152,13 +152,8 @@ export const useProjectStore = create<ProjectState>()(
             ),
           ) as Partial<LocalProject>;
           if (Object.keys(filtered).length === 0) return;
-          if (filtered.parcelBoundaryGeojson) {
-            geodataCache
-              .put(`boundary:${id}`, filtered.parcelBoundaryGeojson)
-              .catch((err) => {
-                console.warn('[OGDEN] Failed to cache boundary:', err);
-              });
-          }
+          // Boundary FC now persisted directly via zustand persist (see
+          // partialize note + ADDENDUM 6). No IDB write here.
           set((state) => ({
             projects: state.projects.map((p) =>
               p.id === id
@@ -168,12 +163,8 @@ export const useProjectStore = create<ProjectState>()(
           }));
           return;
         }
-        // Persist large GeoJSON to IndexedDB if boundary is being updated
-        if (updates.parcelBoundaryGeojson) {
-          geodataCache.put(`boundary:${id}`, updates.parcelBoundaryGeojson).catch((err) => {
-            console.warn('[OGDEN] Failed to cache boundary:', err);
-          });
-        }
+        // Boundary FC now persisted directly via zustand persist (see
+        // partialize note + ADDENDUM 6). No IDB write here.
         set((state) => ({
           projects: state.projects.map((p) =>
             p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
@@ -281,13 +272,13 @@ export const useProjectStore = create<ProjectState>()(
         }
         return state;
       },
-      // Strip large geospatial blobs from localStorage to prevent quota issues.
-      // GeoJSON boundaries and parsed file data are cached in IndexedDB via geodataCache.
+      // Strip large geospatial blobs (parsed attachments) from localStorage to
+      // prevent quota issues. Parcel boundary FCs are small (~1-10 KB) so they
+      // ride directly in localStorage like designElementsStore does in PLAN
+      // — single source of truth, no IDB-restore race window. See ADDENDUM 6.
       partialize: (state) => ({
         projects: state.projects.map((p) => ({
           ...p,
-          // Boundary GeoJSON is stored in IndexedDB under key "boundary:<projectId>"
-          parcelBoundaryGeojson: null,
           attachments: p.attachments.map((a) => ({
             ...a,
             // Parsed geospatial data stored in IndexedDB under key "attachment:<id>"
@@ -305,6 +296,10 @@ export const useProjectStore = create<ProjectState>()(
 // — so the home page always shows the canonical "351 House — Atlas Sample"
 // even before sign-in. The legacy hard-coded local seed has been removed in
 // favour of this single source of truth.
+//
+// Boundary FCs ride along the rehydrated `projects[]` from localStorage
+// directly (see partialize). The previous IDB-restore sequencing (ADDENDA
+// 3) is no longer needed — see ADDENDUM 6.
 useProjectStore.persist.onFinishHydration(() => {
   void hydrateBuiltins();
 });
@@ -531,11 +526,7 @@ function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
     const sp = builtins[i];
     if (!lp || !sp) continue;
     if (lp.isBuiltin) seedBuiltinObserveData(lp.id);
-    if (lp.parcelBoundaryGeojson) {
-      geodataCache.put(`boundary:${lp.id}`, lp.parcelBoundaryGeojson).catch((err) => {
-        console.warn('[OGDEN] Failed to cache builtin boundary:', err);
-      });
-    }
+    // Boundary persists via zustand persist (see partialize + ADDENDUM 6).
     // Stream Tier-1 layer summaries (climate, elevation, etc.) into
     // siteDataStore keyed by the local project id, so Stage 1 modules
     // and the diagnosis report read DB-canonical snake_case values
@@ -597,28 +588,46 @@ async function hydrateBuiltins(): Promise<void> {
   }
 }
 
-// Restore boundary GeoJSON from IndexedDB after hydration
-useProjectStore.persist.onFinishHydration(() => {
+// One-time legacy-data migrator: pre-ADDENDUM-6 builds stored boundary FCs
+// in IndexedDB under `boundary:<projectId>`. Now that boundaries persist
+// directly via zustand's localStorage, fold any pre-existing IDB blobs
+// back into in-memory state for projects whose `parcelBoundaryGeojson`
+// is null after rehydrate, then drop the legacy IDB entry. After this
+// runs once successfully, no further IDB reads happen.
+async function migrateLegacyIdbBoundaries(): Promise<void> {
   const { projects: hydratedProjects } = useProjectStore.getState();
-  for (const hp of hydratedProjects) {
-    if (hp.hasParcelBoundary && !hp.parcelBoundaryGeojson) {
-      geodataCache.get<GeoJSON.FeatureCollection>(`boundary:${hp.id}`).then((geo) => {
-        if (geo) {
-          useProjectStore.setState((state) => ({
-            projects: state.projects.map((proj) =>
-              proj.id === hp.id ? { ...proj, parcelBoundaryGeojson: geo } : proj,
-            ),
-          }));
-        }
-      }).catch((err) => {
-        console.warn('[OGDEN] Failed to restore boundary from IndexedDB:', err);
-      });
-    }
-  }
-});
+  const restored = await Promise.all(
+    hydratedProjects.map(async (hp) => {
+      if (!hp.hasParcelBoundary || hp.parcelBoundaryGeojson) return null;
+      try {
+        const geo = await geodataCache.get<GeoJSON.FeatureCollection>(
+          `boundary:${hp.id}`,
+        );
+        return geo ? { id: hp.id, geo } : null;
+      } catch (err) {
+        console.warn('[OGDEN] Legacy boundary IDB read failed:', err);
+        return null;
+      }
+    }),
+  );
+  const hits = restored.filter(
+    (r): r is { id: string; geo: GeoJSON.FeatureCollection } => r !== null,
+  );
+  if (hits.length === 0) return;
+  useProjectStore.setState((state) => ({
+    projects: state.projects.map((p) => {
+      const hit = hits.find((h) => h.id === p.id);
+      return hit ? { ...p, parcelBoundaryGeojson: hit.geo } : p;
+    }),
+  }));
+}
 
 // Hydrate from localStorage (Zustand v5 requires explicit rehydrate)
 useProjectStore.persist.rehydrate();
+// After rehydrate completes, run the one-time legacy IDB migrator. This
+// is fire-and-forget; if the legacy entry exists it is folded into the
+// next zustand persist cycle automatically when state changes.
+void migrateLegacyIdbBoundaries();
 
 // Expose store for console/testing access
 if (typeof window !== 'undefined') {

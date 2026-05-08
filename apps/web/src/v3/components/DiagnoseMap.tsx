@@ -196,8 +196,23 @@ export default function DiagnoseMap({
       }
     };
 
-    const ensureAndFit = () => {
+    // ADDENDUM 7 (render-path-A fix): idempotently re-add the boundary
+    // source/layers on every `styledata` event. The previous design
+    // attached a one-shot `styledata` for the first paint plus a
+    // `style.load` listener for subsequent basemap swaps, but in some
+    // F5/setStyle interleavings `style.load` does not fire and the
+    // initial-paint listener has already self-`off`d — leaving the
+    // app-added layers wiped without re-entry. `styledata` fires for
+    // every style update including basemap swaps, and `ensure()` is
+    // idempotent (guards on `getSource`/`getLayer`). fitBounds runs
+    // exactly once per mount/boundary-change so we never steal the
+    // user's pan.
+    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
+    let didInitialFit = false;
+    const ensureAndMaybeFit = () => {
+      if (!ready()) return;
       ensure();
+      if (didInitialFit) return;
       const fb = polygonBounds(boundary);
       if (fb) {
         map.fitBounds(fb, {
@@ -205,24 +220,12 @@ export default function DiagnoseMap({
           animate: false,
         });
       }
+      didInitialFit = true;
     };
-
-    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
-    if (ready()) {
-      ensureAndFit();
-    } else {
-      const onFirst = () => {
-        if (!ready()) return;
-        ensureAndFit();
-        map.off("styledata", onFirst);
-      };
-      map.on("styledata", onFirst);
-    }
-    // Reapply (without refit) after every subsequent style swap.
-    const onStyleSwap = () => ensure();
-    map.on("style.load", onStyleSwap);
+    ensureAndMaybeFit();
+    map.on("styledata", ensureAndMaybeFit);
     return () => {
-      map.off("style.load", onStyleSwap);
+      map.off("styledata", ensureAndMaybeFit);
     };
   }, [map, boundary]);
 

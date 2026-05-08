@@ -69,6 +69,13 @@ interface SaveContext {
   projectId: string;
   geometry: GeoJSON.Geometry | null;
   existingId?: string;
+  /**
+   * When set, the create-branch of `save` uses this id instead of
+   * generating a fresh UUID. Lets `createWithDefaults` (below) preallocate
+   * the id so callers can immediately open the form in edit mode against
+   * the just-created record. See ADDENDUM 6.
+   */
+  newId?: string;
   /** Optional bucket carried out-of-band for SWOT (S/W/O/T). */
   bucket?: SwotBucket;
 }
@@ -79,6 +86,25 @@ export interface FieldSchema {
   defaults: FormValues;
   loadDefaults: (id: string, projectId: string) => FormValues | null;
   save: (values: FormValues, ctx: SaveContext) => void;
+}
+
+/**
+ * Persist a new annotation immediately at draw-complete time using the
+ * schema's `defaults` values. Returns the new id so the caller can open
+ * `<AnnotationFormSlideUp>` in edit mode against the just-created record.
+ *
+ * Mirrors the PLAN-stage `useDesignElementDrawTool` pattern (auto-persist
+ * on draw, no intermediate form gate) so the polygon survives even if the
+ * form-open bridge fails. See ADDENDUM 6.
+ */
+export function createWithDefaults(
+  schema: FieldSchema,
+  ctx: SaveContext,
+): string | null {
+  if (!ctx.geometry) return null;
+  const newId = crypto.randomUUID();
+  schema.save(schema.defaults, { ...ctx, existingId: undefined, newId });
+  return newId;
 }
 
 const nowIso = () => new Date().toISOString();
@@ -122,7 +148,7 @@ const neighbourPin: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addNeighbour({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       label: s(v.label),
@@ -163,7 +189,7 @@ const household: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addHousehold({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       label: s(v.label),
@@ -209,7 +235,7 @@ const accessRoad: FieldSchema = {
       units: 'meters',
     });
     store.addAccessRoad({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       lengthM,
@@ -253,7 +279,7 @@ const frostPocket: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addHazard({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       type: 'frost',
       date: new Date().toISOString().slice(0, 10),
@@ -326,7 +352,7 @@ const hazardZone: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addHazard({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       type: v.type as never,
       severity: v.severity as 'low' | 'med' | 'high' | 'catastrophic',
@@ -362,7 +388,7 @@ const contourLine: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addContour({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       elevationM: elevationM ?? undefined,
@@ -406,7 +432,7 @@ const highPoint: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addHighPoint({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       kind: v.kind as 'high' | 'low',
@@ -436,7 +462,7 @@ const drainageLine: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addDrainageLine({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       notes: s(v.notes),
@@ -480,7 +506,7 @@ const watercourse: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addWatercourse({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       kind: v.kind as 'stream' | 'creek' | 'ditch' | 'other',
@@ -531,7 +557,7 @@ const ecologyZone: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addEcologyZone({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       dominantStage: v.dominantStage as never,
@@ -652,7 +678,7 @@ const soilSample: FieldSchema = {
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     const t = nowIso();
     store.addSample({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       ...baseFields,
       location: [lng, lat],
@@ -689,7 +715,7 @@ const swotTag: FieldSchema = {
     if (!ctx.bucket) return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addSwot({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       bucket: ctx.bucket,
       title: (v.title as string) || 'SWOT tag',

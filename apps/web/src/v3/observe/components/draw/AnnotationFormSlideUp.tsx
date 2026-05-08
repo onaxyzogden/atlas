@@ -93,8 +93,12 @@ export default function AnnotationFormSlideUp() {
           });
         }
         close();
-        // Clear active tool only when finishing a fresh create.
-        if (active.mode === 'create') setActiveTool(null);
+        // Always clear the active draw tool on save. ADDENDUM 6 changed
+        // the post-draw flow from create-mode-with-geometry to
+        // create-defaults-then-edit-existing, so saving from edit mode is
+        // now the normal "finish a fresh draw" path. Clearing is a no-op
+        // for dashboard-initiated edits (activeTool was already null).
+        setActiveTool(null);
       }}
       onCancel={close}
     />
