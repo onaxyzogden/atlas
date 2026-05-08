@@ -18,6 +18,7 @@ import {
   Droplet,
   Fence,
   FolderOpen,
+  Layers,
   Recycle,
   Route,
   Sprout,
@@ -29,6 +30,7 @@ import {
   useMapToolStore,
   type MapToolId,
 } from '../observe/components/measure/useMapToolStore.js';
+import { useLayeringLensStore } from '../../store/layeringLensStore.js';
 import {
   PLAN_MODULES,
   PLAN_MODULE_FULL_LABEL,
@@ -82,6 +84,8 @@ export default function PlanTools({
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const lensEnabled = useLayeringLensStore((s) => s.enabled);
+  const toggleLens = useLayeringLensStore((s) => s.toggle);
 
   const toolboxRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -190,6 +194,27 @@ export default function PlanTools({
                   );
                 })}
               </div>
+            ) : mod === 'dynamic-layering' ? (
+              <button
+                type="button"
+                className={css.openModuleBtn}
+                disabled={!projectId}
+                aria-pressed={lensEnabled}
+                data-active={lensEnabled ? 'true' : 'false'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!projectId) return;
+                  toggleLens();
+                }}
+                title={
+                  lensEnabled
+                    ? 'Disable Yeomans lens — restore per-feature colours'
+                    : 'Enable Yeomans lens — recolour features by Yeomans rank'
+                }
+              >
+                <Layers size={14} strokeWidth={1.6} />
+                <span>{lensEnabled ? 'Yeomans lens · ON' : 'Yeomans lens'}</span>
+              </button>
             ) : (
               <button
                 type="button"

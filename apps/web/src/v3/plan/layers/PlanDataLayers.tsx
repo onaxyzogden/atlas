@@ -19,6 +19,10 @@ import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import {
+  useLayeringLensStore,
+  RANK_COLOR,
+} from '../../../store/layeringLensStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -61,6 +65,20 @@ const FERTILITY_LABEL: Record<string, string> = {
   rotational_grazing:  'Rot. grazing',
 };
 
+/**
+ * Build a MapLibre `match` expression that maps the per-feature
+ * `yeomansRank` to a Yeomans-rank colour. Falls back to `color` if the
+ * rank is missing (defensive — every plan-data feature now ships with a
+ * rank).
+ */
+function rankColorExpr(): unknown {
+  const branches: unknown[] = [];
+  for (const [rank, color] of Object.entries(RANK_COLOR)) {
+    branches.push(Number(rank), color);
+  }
+  return ['match', ['get', 'yeomansRank'], ...branches, ['get', 'color']];
+}
+
 export default function PlanDataLayers({ map, projectId }: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const zones = useZoneStore((s) => s.zones);
@@ -68,6 +86,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const cropAreas = useCropStore((s) => s.cropAreas);
   const fertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
   const paddocks = useLivestockStore((s) => s.paddocks);
+  const lensEnabled = useLayeringLensStore((s) => s.enabled);
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
@@ -75,10 +94,10 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     const points: GeoJSON.Feature[] = [];
     const labels: GeoJSON.Feature[] = [];
 
-    // Zones (polygon)
+    // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
     for (const z of zones) {
       if (z.projectId !== projectId) continue;
-      const props = { id: z.id, color: z.color, label: z.name };
+      const props = { id: z.id, color: z.color, label: z.name, yeomansRank: 4 };
       polys.push({ type: 'Feature', id: z.id, properties: props, geometry: z.geometry });
       try {
         const c = turf.centroid(z.geometry).geometry;
@@ -91,7 +110,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     // Crop areas (polygon) — Module 5 Plant Systems. Yeomans rank 8.
     for (const c of cropAreas) {
       if (c.projectId !== projectId) continue;
-      const props = { id: c.id, color: c.color, label: c.name };
+      const props = { id: c.id, color: c.color, label: c.name, yeomansRank: 8 };
       polys.push({ type: 'Feature', id: c.id, properties: props, geometry: c.geometry });
       try {
         const ctr = turf.centroid(c.geometry).geometry;
@@ -104,7 +123,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     // Paddocks (polygon) — Module 4 Livestock & Subdivision. Yeomans rank 9.
     for (const pd of paddocks) {
       if (pd.projectId !== projectId) continue;
-      const props = { id: pd.id, color: pd.color, label: pd.name };
+      const props = { id: pd.id, color: pd.color, label: pd.name, yeomansRank: 9 };
       polys.push({ type: 'Feature', id: pd.id, properties: props, geometry: pd.geometry });
       try {
         const ctr = turf.centroid(pd.geometry).geometry;
@@ -114,10 +133,10 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       }
     }
 
-    // Paths (line)
+    // Paths (line) — Yeomans rank 4 (Access).
     for (const p of paths) {
       if (p.projectId !== projectId) continue;
-      const props = { id: p.id, color: p.color, label: p.name };
+      const props = { id: p.id, color: p.color, label: p.name, yeomansRank: 4 };
       lines.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
     }
 
@@ -126,7 +145,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       if (f.projectId !== projectId) continue;
       const color = FERTILITY_COLOR[f.type] ?? '#8a6a3a';
       const label = FERTILITY_LABEL[f.type] ?? f.type;
-      const props = { id: f.id, color, label };
+      const props = { id: f.id, color, label, yeomansRank: 7 };
       points.push({
         type: 'Feature',
         id: f.id,
@@ -188,18 +207,22 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
 
+      // Colour expression toggles between per-feature `color` (default) and
+      // a Yeomans-rank `match` (when the layering lens is enabled).
+      const colorExpr = lensEnabled ? rankColorExpr() : ['get', 'color'];
+
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
-        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.28 },
+        paint: { 'fill-color': colorExpr as never, 'fill-opacity': 0.28 },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
         type: 'line',
         source: polySid,
         paint: {
-          'line-color': ['get', 'color'],
+          'line-color': colorExpr as never,
           'line-width': 1.5,
           'line-opacity': 0.9,
         },
@@ -209,7 +232,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         type: 'line',
         source: lineSid,
         paint: {
-          'line-color': ['get', 'color'],
+          'line-color': colorExpr as never,
           'line-width': 2,
           'line-opacity': 0.9,
         },
@@ -220,12 +243,24 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         source: pointSid,
         paint: {
           'circle-radius': 6,
-          'circle-color': ['get', 'color'],
+          'circle-color': colorExpr as never,
           'circle-stroke-color': '#1f1d1a',
           'circle-stroke-width': 1.5,
           'circle-opacity': 0.95,
         },
       });
+
+      // Re-apply paint properties on existing layers so the toggle takes
+      // effect for already-created layers (ensureLayer is a no-op when the
+      // layer exists).
+      try {
+        map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-color', colorExpr as never);
+      } catch {
+        /* layer may have been removed mid-toggle */
+      }
       ensureLayer({
         id: `${LAYER_PREFIX}label`,
         type: 'symbol',
@@ -256,7 +291,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         /* map already disposed */
       }
     };
-  }, [map, polyFC, lineFC, pointFC, labelFC]);
+  }, [map, polyFC, lineFC, pointFC, labelFC, lensEnabled]);
 
   // Cleanup on unmount.
   useEffect(() => {
