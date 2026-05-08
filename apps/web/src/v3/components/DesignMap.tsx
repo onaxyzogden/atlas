@@ -124,7 +124,6 @@ export default function DesignMap({
       attributionControl: { compact: true },
       transformRequest: maptilerTransformRequest,
     });
-    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     setMap(m);
     return () => {
       setMap(null);

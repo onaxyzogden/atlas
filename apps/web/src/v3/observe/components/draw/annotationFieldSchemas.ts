@@ -22,6 +22,16 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore, type SwotBucket } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import {
+  useBuiltEnvironmentStore,
+  type BuildingSubtype,
+  type WellKind,
+  type SepticKind,
+  type PowerLinePlacement,
+  type BuriedUtilityKind,
+  type FenceKind,
+  type DrivewaySurface,
+} from '../../../../store/builtEnvironmentStore.js';
 
 export type AnnotationKind =
   | 'neighbourPin'
@@ -35,7 +45,16 @@ export type AnnotationKind =
   | 'watercourse'
   | 'ecologyZone'
   | 'soilSample'
-  | 'swotTag';
+  | 'swotTag'
+  | 'sector'
+  | 'building'
+  | 'well'
+  | 'septic'
+  | 'powerLine'
+  | 'buriedUtility'
+  | 'fence'
+  | 'gate'
+  | 'existingDriveway';
 
 export type FieldDef =
   | {
@@ -69,6 +88,13 @@ interface SaveContext {
   projectId: string;
   geometry: GeoJSON.Geometry | null;
   existingId?: string;
+  /**
+   * When set, the create-branch of `save` uses this id instead of
+   * generating a fresh UUID. Lets `createWithDefaults` (below) preallocate
+   * the id so callers can immediately open the form in edit mode against
+   * the just-created record. See ADDENDUM 6.
+   */
+  newId?: string;
   /** Optional bucket carried out-of-band for SWOT (S/W/O/T). */
   bucket?: SwotBucket;
 }
@@ -79,6 +105,25 @@ export interface FieldSchema {
   defaults: FormValues;
   loadDefaults: (id: string, projectId: string) => FormValues | null;
   save: (values: FormValues, ctx: SaveContext) => void;
+}
+
+/**
+ * Persist a new annotation immediately at draw-complete time using the
+ * schema's `defaults` values. Returns the new id so the caller can open
+ * `<AnnotationFormSlideUp>` in edit mode against the just-created record.
+ *
+ * Mirrors the PLAN-stage `useDesignElementDrawTool` pattern (auto-persist
+ * on draw, no intermediate form gate) so the polygon survives even if the
+ * form-open bridge fails. See ADDENDUM 6.
+ */
+export function createWithDefaults(
+  schema: FieldSchema,
+  ctx: SaveContext,
+): string | null {
+  if (!ctx.geometry) return null;
+  const newId = crypto.randomUUID();
+  schema.save(schema.defaults, { ...ctx, existingId: undefined, newId });
+  return newId;
 }
 
 const nowIso = () => new Date().toISOString();
@@ -122,7 +167,7 @@ const neighbourPin: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addNeighbour({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       label: s(v.label),
@@ -163,7 +208,7 @@ const household: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addHousehold({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       label: s(v.label),
@@ -209,7 +254,7 @@ const accessRoad: FieldSchema = {
       units: 'meters',
     });
     store.addAccessRoad({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       lengthM,
@@ -253,7 +298,7 @@ const frostPocket: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addHazard({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       type: 'frost',
       date: new Date().toISOString().slice(0, 10),
@@ -326,7 +371,7 @@ const hazardZone: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addHazard({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       type: v.type as never,
       severity: v.severity as 'low' | 'med' | 'high' | 'catastrophic',
@@ -362,7 +407,7 @@ const contourLine: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addContour({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       elevationM: elevationM ?? undefined,
@@ -406,7 +451,7 @@ const highPoint: FieldSchema = {
     if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addHighPoint({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       position: [lng, lat],
       kind: v.kind as 'high' | 'low',
@@ -436,7 +481,7 @@ const drainageLine: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addDrainageLine({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       notes: s(v.notes),
@@ -480,7 +525,7 @@ const watercourse: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
     store.addWatercourse({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       kind: v.kind as 'stream' | 'creek' | 'ditch' | 'other',
@@ -531,7 +576,7 @@ const ecologyZone: FieldSchema = {
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
     store.addEcologyZone({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       dominantStage: v.dominantStage as never,
@@ -652,7 +697,7 @@ const soilSample: FieldSchema = {
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     const t = nowIso();
     store.addSample({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       ...baseFields,
       location: [lng, lat],
@@ -689,12 +734,499 @@ const swotTag: FieldSchema = {
     if (!ctx.bucket) return;
     const [lng, lat] = ctx.geometry.coordinates as [number, number];
     store.addSwot({
-      id: crypto.randomUUID(),
+      id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       bucket: ctx.bucket,
       title: (v.title as string) || 'SWOT tag',
       body: s(v.body),
       position: [lng, lat],
+      createdAt: nowIso(),
+    });
+  },
+};
+
+/**
+ * Sector schema — edit-only.
+ *
+ * Creates happen in `SunWindWedgeTool` directly (the create flow needs the
+ * homestead-fallback apex, type-specific defaults, and `addSector` call,
+ * none of which fit cleanly into the `save(values, ctx)` shape that takes
+ * a single `geometry`). The schema only services edit mode: form load
+ * reads from `externalForcesStore.sectors`, save patches via
+ * `updateSector`. The on-map drag handles in `<AnnotationSectorHandles>`
+ * also call `updateSector` so live drags and form edits agree.
+ */
+const sector: FieldSchema = {
+  title: 'Sector',
+  fields: [
+    {
+      name: 'bearingDeg',
+      label: 'Bearing (° from N)',
+      type: 'number',
+      min: 0,
+      max: 360,
+      step: 1,
+    },
+    {
+      name: 'arcDeg',
+      label: 'Arc width (°)',
+      type: 'number',
+      min: 10,
+      max: 350,
+      step: 1,
+    },
+    {
+      name: 'intensity',
+      label: 'Intensity',
+      type: 'select',
+      options: [
+        { value: '', label: '—' },
+        { value: 'low', label: 'Low' },
+        { value: 'med', label: 'Medium' },
+        { value: 'high', label: 'High' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { bearingDeg: 180, arcDeg: 90, intensity: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useExternalForcesStore.getState().sectors.find((x) => x.id === id);
+    if (!rec) return null;
+    return {
+      bearingDeg: rec.bearingDeg,
+      arcDeg: rec.arcDeg,
+      intensity: rec.intensity ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    if (!ctx.existingId) return; // Creates handled by SunWindWedgeTool.
+    const store = useExternalForcesStore.getState();
+    const bearing = n(v.bearingDeg);
+    const arc = n(v.arcDeg);
+    const intensityRaw = typeof v.intensity === 'string' ? v.intensity : '';
+    const intensity =
+      intensityRaw === 'low' || intensityRaw === 'med' || intensityRaw === 'high'
+        ? intensityRaw
+        : undefined;
+    store.updateSector(ctx.existingId, {
+      ...(bearing !== null ? { bearingDeg: ((bearing % 360) + 360) % 360 } : {}),
+      ...(arc !== null ? { arcDeg: Math.max(10, Math.min(350, arc)) } : {}),
+      intensity,
+      notes: s(v.notes),
+    });
+  },
+};
+
+// ── Built Environment ──────────────────────────────────────────────────
+
+const building: FieldSchema = {
+  title: 'Building',
+  fields: [
+    {
+      name: 'subtype',
+      label: 'Subtype',
+      type: 'select',
+      options: [
+        { value: 'residence', label: 'Residence' },
+        { value: 'outbuilding', label: 'Outbuilding' },
+        { value: 'agricultural', label: 'Agricultural' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'Main house' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { subtype: 'residence', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().buildings.find((b) => b.id === id);
+    if (!rec) return null;
+    return { subtype: rec.subtype, label: rec.label ?? '', notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateBuilding(ctx.existingId, {
+        subtype: v.subtype as BuildingSubtype,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    let areaM2: number | undefined;
+    try {
+      areaM2 = turf.area(turf.polygon(ctx.geometry.coordinates));
+    } catch {
+      areaM2 = undefined;
+    }
+    store.addBuilding({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      subtype: v.subtype as BuildingSubtype,
+      label: s(v.label),
+      notes: s(v.notes),
+      areaM2,
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const well: FieldSchema = {
+  title: 'Well',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'drinking', label: 'Drinking' },
+        { value: 'irrigation', label: 'Irrigation' },
+        { value: 'unknown', label: 'Unknown' },
+      ],
+    },
+    { name: 'depthM', label: 'Depth (m)', type: 'number', min: 0, step: 0.5 },
+    { name: 'flowLpm', label: 'Flow (L/min)', type: 'number', min: 0, step: 1 },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'North well' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'unknown', depthM: '', flowLpm: '', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().wells.find((w) => w.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      depthM: rec.depthM ?? '',
+      flowLpm: rec.flowLpm ?? '',
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    const depthM = n(v.depthM);
+    const flowLpm = n(v.flowLpm);
+    if (ctx.existingId) {
+      store.updateWell(ctx.existingId, {
+        kind: v.kind as WellKind,
+        depthM: depthM ?? undefined,
+        flowLpm: flowLpm ?? undefined,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
+    const [lng, lat] = ctx.geometry.coordinates as [number, number];
+    store.addWell({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      position: [lng, lat],
+      kind: v.kind as WellKind,
+      depthM: depthM ?? undefined,
+      flowLpm: flowLpm ?? undefined,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const septic: FieldSchema = {
+  title: 'Septic / leach field',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'tank', label: 'Tank' },
+        { value: 'leach_field', label: 'Leach field' },
+        { value: 'cesspool', label: 'Cesspool' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'tank', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().septics.find((sp) => sp.id === id);
+    if (!rec) return null;
+    return { kind: rec.kind, label: rec.label ?? '', notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateSeptic(ctx.existingId, {
+        kind: v.kind as SepticKind,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    let areaM2: number | undefined;
+    try {
+      areaM2 = turf.area(turf.polygon(ctx.geometry.coordinates));
+    } catch {
+      areaM2 = undefined;
+    }
+    store.addSeptic({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as SepticKind,
+      label: s(v.label),
+      notes: s(v.notes),
+      areaM2,
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const powerLine: FieldSchema = {
+  title: 'Power line',
+  fields: [
+    {
+      name: 'placement',
+      label: 'Placement',
+      type: 'select',
+      options: [
+        { value: 'overhead', label: 'Overhead' },
+        { value: 'buried', label: 'Buried' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { placement: 'overhead', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().powerLines.find((p) => p.id === id);
+    if (!rec) return null;
+    return {
+      placement: rec.placement,
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updatePowerLine(ctx.existingId, {
+        placement: v.placement as PowerLinePlacement,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    const lengthM = turf.length(turf.lineString(ctx.geometry.coordinates), {
+      units: 'meters',
+    });
+    store.addPowerLine({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      placement: v.placement as PowerLinePlacement,
+      lengthM,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const buriedUtility: FieldSchema = {
+  title: 'Buried utility',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'water_main', label: 'Water main' },
+        { value: 'gas', label: 'Gas' },
+        { value: 'fibre', label: 'Fibre' },
+        { value: 'sewer', label: 'Sewer' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'water_main', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore
+      .getState()
+      .buriedUtilities.find((u) => u.id === id);
+    if (!rec) return null;
+    return { kind: rec.kind, label: rec.label ?? '', notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateBuriedUtility(ctx.existingId, {
+        kind: v.kind as BuriedUtilityKind,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    const lengthM = turf.length(turf.lineString(ctx.geometry.coordinates), {
+      units: 'meters',
+    });
+    store.addBuriedUtility({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as BuriedUtilityKind,
+      lengthM,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const fence: FieldSchema = {
+  title: 'Fence',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'barbed', label: 'Barbed' },
+        { value: 'page_wire', label: 'Page wire' },
+        { value: 'electric', label: 'Electric' },
+        { value: 'privacy', label: 'Privacy' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'page_wire', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().fences.find((f) => f.id === id);
+    if (!rec) return null;
+    return { kind: rec.kind, label: rec.label ?? '', notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateFence(ctx.existingId, {
+        kind: v.kind as FenceKind,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    const lengthM = turf.length(turf.lineString(ctx.geometry.coordinates), {
+      units: 'meters',
+    });
+    store.addFence({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as FenceKind,
+      lengthM,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const gate: FieldSchema = {
+  title: 'Gate',
+  fields: [
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'Main gate' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore.getState().gates.find((g) => g.id === id);
+    if (!rec) return null;
+    return { label: rec.label ?? '', notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateGate(ctx.existingId, {
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
+    const [lng, lat] = ctx.geometry.coordinates as [number, number];
+    store.addGate({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      position: [lng, lat],
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const existingDriveway: FieldSchema = {
+  title: 'Existing driveway',
+  fields: [
+    {
+      name: 'surface',
+      label: 'Surface',
+      type: 'select',
+      options: [
+        { value: 'gravel', label: 'Gravel' },
+        { value: 'paved', label: 'Paved' },
+        { value: 'dirt', label: 'Dirt' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { surface: 'gravel', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useBuiltEnvironmentStore
+      .getState()
+      .existingDriveways.find((d) => d.id === id);
+    if (!rec) return null;
+    return {
+      surface: rec.surface,
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useBuiltEnvironmentStore.getState();
+    if (ctx.existingId) {
+      store.updateExistingDriveway(ctx.existingId, {
+        surface: v.surface as DrivewaySurface,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    const lengthM = turf.length(turf.lineString(ctx.geometry.coordinates), {
+      units: 'meters',
+    });
+    store.addExistingDriveway({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      surface: v.surface as DrivewaySurface,
+      lengthM,
+      label: s(v.label),
+      notes: s(v.notes),
       createdAt: nowIso(),
     });
   },
@@ -713,4 +1245,13 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   ecologyZone,
   soilSample,
   swotTag,
+  sector,
+  building,
+  well,
+  septic,
+  powerLine,
+  buriedUtility,
+  fence,
+  gate,
+  existingDriveway,
 };

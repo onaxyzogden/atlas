@@ -12,6 +12,7 @@ export type LifecycleLevel = 'observe' | 'plan' | 'act';
 
 export type ObserveModule =
   | 'human-context'
+  | 'built-environment'
   | 'macroclimate-hazards'
   | 'topography'
   | 'earth-water-ecology'
@@ -20,6 +21,7 @@ export type ObserveModule =
 
 export const OBSERVE_MODULES: readonly ObserveModule[] = [
   'human-context',
+  'built-environment',
   'macroclimate-hazards',
   'topography',
   'earth-water-ecology',
@@ -29,6 +31,7 @@ export const OBSERVE_MODULES: readonly ObserveModule[] = [
 
 export const OBSERVE_MODULE_LABEL: Record<ObserveModule, string> = {
   'human-context': 'Human Context',
+  'built-environment': 'Built Environment',
   'macroclimate-hazards': 'Macroclimate & Hazards',
   topography: 'Topography',
   'earth-water-ecology': 'Earth, Water & Ecology',

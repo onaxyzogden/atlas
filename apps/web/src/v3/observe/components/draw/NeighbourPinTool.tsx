@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -15,7 +16,22 @@ export default function NeighbourPinTool({ map, projectId }: Props) {
     map,
     mode: 'draw_point',
     onComplete: (geom) => {
-      open({ kind: 'neighbourPin', geometry: geom, mode: 'create', projectId });
+      // Persist-first (PLAN-stage pattern, ADDENDUM 6): create record with
+      // schema defaults so render layer can immediately replace the wiped
+      // MapboxDraw layer; then open form in edit mode so the steward can
+      // refine the metadata. Cancel keeps the default record.
+      const id = createWithDefaults(FIELD_SCHEMAS.neighbourPin, {
+        projectId,
+        geometry: geom,
+      });
+      if (id)
+        open({
+          kind: 'neighbourPin',
+          geometry: geom,
+          mode: 'edit',
+          existingId: id,
+          projectId,
+        });
     },
   });
 

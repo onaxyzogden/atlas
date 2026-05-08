@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -15,95 +16,51 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
+import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
+import { journalMetrics, type MetricItem } from './derivations.js';
 
-type Entry = [string, string, string, string, string[], string, string];
+const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
+  S: 'Strengths',
+  W: 'Weaknesses',
+  O: 'Opportunities',
+  T: 'Threats',
+};
 
-const entries: Entry[] = [
-  [
-    'May 18, 2025\n10:42 AM',
-    'Mature trees provide strong shade & habitat',
-    'Large established canopy on north slope. Supports birds and beneficial...',
-    'Strengths',
-    ['trees', 'habitat', '+2'],
-    'Zone 2\nWater access',
-    'Logged',
-  ],
-  [
-    'May 17, 2025\n4:15 PM',
-    'Steep slope causes erosion in heavy rain',
-    'Bare patches near access track. Sediment flows into swale.',
-    'Weaknesses',
-    ['erosion', 'soil', '+1'],
-    'Zone 3\nUpper slope',
-    'Review',
-  ],
-  [
-    'May 16, 2025\n9:08 AM',
-    'Opportunity to expand food forest downslope',
-    'Underutilized area with good sun and existing water catchment.',
-    'Opportunities',
-    ['food forest', 'water', '+1'],
-    'Zone 1\nLower valley',
-    'Logged',
-  ],
-  [
-    'May 15, 2025\n2:33 PM',
-    'Long dry season increasing water stress',
-    'Rainfall pattern variability noted over past 5 years.',
-    'Threats',
-    ['climate', 'drought', '+1'],
-    'Whole site\nClimate',
-    'High priority',
-  ],
-  [
-    'May 14, 2025\n11:20 AM',
-    'Diverse understory supports ecosystem',
-    'Native shrubs and groundcovers abundant in shaded areas.',
-    'Strengths',
-    ['biodiversity', 'native', '+1'],
-    'Zone 2\nWoodland edge',
-    'Logged',
-  ],
-  [
-    'May 13, 2025\n3:47 PM',
-    'Limited flat space for building',
-    'Most areas are sloped. Earthworks will be needed.',
-    'Weaknesses',
-    ['slope', 'infrastructure'],
-    'Zone 4\nBuilding area',
-    'Review',
-  ],
-  [
-    'May 12, 2025\n8:55 AM',
-    'Potential for eco-tourism and education',
-    'Scenic views and existing trails attract visitors.',
-    'Opportunities',
-    ['tourism', 'education', '+1'],
-    'Zone 5\nAccess & entry',
-    'Logged',
-  ],
-  [
-    'May 11, 2025\n6:12 PM',
-    'Pest pressure on young fruit trees',
-    'Possums and birds damaging new plantings.',
-    'Threats',
-    ['pests', 'wildlife', '+1'],
-    'Zone 1\nOrchard',
-    'High priority',
-  ],
-];
+const METRIC_ICONS: Record<string, LucideIcon> = {
+  Strengths:     ShieldCheck,
+  Weaknesses:    TriangleAlert,
+  Opportunities: Lightbulb,
+  Threats:       CloudLightning,
+  'Total entries': BookOpen,
+};
 
 export default function SwotJournal() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const allEntries = useSwotStore((s) => s.swot);
+  const entries = useMemo(
+    () => allEntries.filter((e) => e.projectId === id),
+    [allEntries, id],
+  );
+
+  const metrics = journalMetrics(entries);
+  const sorted = useMemo(
+    () => [...entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [entries],
+  );
+
   return (
     <div className="detail-page swot-journal-page">
       <section className="journal-frame">
         <JournalHeader />
-        <JournalMetrics />
+        <JournalMetrics metrics={metrics} />
         <section className="journal-layout">
           <div className="journal-main">
             <JournalFilters />
-            <EntriesTable />
+            <EntriesTable entries={sorted} />
           </div>
           <JournalSidebar />
         </section>
@@ -139,24 +96,24 @@ function JournalHeader() {
   );
 }
 
-function JournalMetrics() {
-  const metrics: Array<[LucideIcon, string, string, string]> = [
-    [ShieldCheck, 'Strengths', '24', '3 new'],
-    [TriangleAlert, 'Weaknesses', '18', '2 new'],
-    [Lightbulb, 'Opportunities', '22', '4 new'],
-    [CloudLightning, 'Threats', '16', '1 new'],
-    [BookOpen, 'Total entries', '80', 'This project'],
-  ];
+interface JournalMetricsProps {
+  metrics: MetricItem[];
+}
+
+function JournalMetrics({ metrics }: JournalMetricsProps) {
   return (
     <section className="journal-metrics">
-      {metrics.map(([Icon, label, value, delta]) => (
-        <SurfaceCard className={`journal-metric ${label.toLowerCase()}`} key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{delta}</small>
-        </SurfaceCard>
-      ))}
+      {metrics.map(({ label, value, delta }) => {
+        const Icon = METRIC_ICONS[label] ?? BookOpen;
+        return (
+          <SurfaceCard className={`journal-metric ${label.toLowerCase().replace(/\s+/g, '-')}`} key={label}>
+            <Icon aria-hidden="true" />
+            <span>{label}</span>
+            <strong>{value}</strong>
+            <small>{delta}</small>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
@@ -188,7 +145,11 @@ function JournalFilters() {
   );
 }
 
-function EntriesTable() {
+interface EntriesTableProps {
+  entries: SwotEntry[];
+}
+
+function EntriesTable({ entries }: EntriesTableProps) {
   return (
     <SurfaceCard className="entries-table-card">
       <div className="entries-head">
@@ -201,33 +162,38 @@ function EntriesTable() {
         <span>Status</span>
         <span />
       </div>
-      {entries.map(([date, entry, notes, category, tags, zone, status]) => (
-        <div className="entry-row" key={entry}>
-          <time>{date}</time>
-          <b className={category.toLowerCase()}>{entry}</b>
-          <span>{notes}</span>
-          <em className={category.toLowerCase()}>{category}</em>
-          <p>
-            {tags.map((tag) => (
-              <i key={tag}>{tag}</i>
-            ))}
-          </p>
-          <span>{zone}</span>
-          <strong>{status}</strong>
-          <MoreVertical aria-hidden="true" />
-        </div>
-      ))}
+      {entries.length === 0 ? (
+        <p className="empty-note">No journal entries yet — add one from the toolbar above.</p>
+      ) : (
+        entries.map((e) => {
+          const category = BUCKET_LABELS[e.bucket];
+          return (
+            <div className="entry-row" key={e.id}>
+              <time>{new Date(e.createdAt).toLocaleDateString()}</time>
+              <b className={category.toLowerCase()}>{e.title}</b>
+              <span>{e.body ?? ''}</span>
+              <em className={category.toLowerCase()}>{category}</em>
+              <p>
+                {(e.tags ?? []).map((tag) => (
+                  <i key={tag}>{tag}</i>
+                ))}
+              </p>
+              <span>—</span>
+              <strong>Logged</strong>
+              <MoreVertical aria-hidden="true" />
+            </div>
+          );
+        })
+      )}
       <footer>
-        <span>Showing 1-8 of 80 entries</span>
+        <span>
+          {entries.length === 0
+            ? 'No entries'
+            : `Showing 1–${Math.min(entries.length, 50)} of ${entries.length} entries`}
+        </span>
         <nav>
           <button type="button">Prev</button>
-          <button className="is-active" type="button">
-            1
-          </button>
-          <button type="button">2</button>
-          <button type="button">3</button>
-          <button type="button">...</button>
-          <button type="button">10</button>
+          <button className="is-active" type="button">1</button>
           <button type="button">Next</button>
         </nav>
       </footer>
@@ -242,18 +208,18 @@ function JournalSidebar() {
     'Biodiversity and habitat are strong across multiple zones.',
   ];
   const themes: Array<[string, string]> = [
-    ['Water management', '18'],
-    ['Slope & erosion', '12'],
-    ['Biodiversity & habitat', '11'],
-    ['Access & infrastructure', '9'],
-    ['Climate variability', '8'],
+    ['Water management',      '—'],
+    ['Slope & erosion',       '—'],
+    ['Biodiversity & habitat','—'],
+    ['Access & infrastructure','—'],
+    ['Climate variability',   '—'],
   ];
   const followups: Array<[string, string]> = [
     ['Investigate erosion control options', 'High'],
-    ['Map seasonal water flows', 'High'],
-    ['Assess water storage potential', 'Med'],
-    ['Plan wildlife protection strategy', 'Med'],
-    ['Explore eco-tourism opportunities', 'Low'],
+    ['Map seasonal water flows',            'High'],
+    ['Assess water storage potential',      'Med'],
+    ['Plan wildlife protection strategy',   'Med'],
+    ['Explore eco-tourism opportunities',   'Low'],
   ];
   return (
     <aside className="journal-sidebar">

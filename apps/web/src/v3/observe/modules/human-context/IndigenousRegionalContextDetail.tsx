@@ -1,13 +1,14 @@
+import { useEffect, useState, type FormEvent } from 'react';
+import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
   Mail,
-  MoreVertical,
   Network,
-  Plus,
   Sprout,
   Sun,
+  Trash2,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -19,44 +20,104 @@ import {
   SurfaceCard,
 } from '../../_shared/components/index.js';
 import heroTerrain from '../../assets/indigenous-regional-context/hero-terrain.png';
-import regionalMap from '../../assets/indigenous-regional-context/regional-map.png';
+import { useVisionStore } from '../../../../store/visionStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
+import { regionalCounts } from './derivations.js';
+
+const CONTACT_TYPES = ['regulator', 'first_nation', 'community', 'partner', 'other'];
 
 export default function IndigenousRegionalContextDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
+  const updateRegional = useVisionStore((s) => s.updateRegional);
+  const addNetworkContact = useVisionStore((s) => s.addNetworkContact);
+  const removeNetworkContact = useVisionStore((s) => s.removeNetworkContact);
+  const regional = useVisionStore((s) => s.getVisionData(id)?.regional);
+
+  useEffect(() => {
+    ensureDefaults(id);
+  }, [id, ensureDefaults]);
+
+  const placeNames = regional?.indigenousNames ?? [];
+  const challenges = regional?.culturalChallenges ?? [];
+  const strengths = regional?.culturalStrengths ?? [];
+  const network = regional?.localNetwork ?? [];
+
   return (
     <div className="detail-page regional-page">
       <div className="detail-layout">
         <div className="detail-main">
           <RegionalHero />
-          <PlaceNamesCard />
+          <SurfaceCard className="content-card place-card">
+            <header className="content-card__header">
+              <div>
+                <b>1</b>
+                <h2>Indigenous Place-Names</h2>
+              </div>
+            </header>
+            <p>Recognize the traditional territories and histories that shape this landscape.</p>
+            <ChipList
+              removable
+              className="place-chip-list"
+              items={placeNames}
+              onAdd={(value) =>
+                updateRegional(id, { indigenousNames: [...placeNames, value] })
+              }
+              onRemove={(idx) =>
+                updateRegional(id, {
+                  indigenousNames: placeNames.filter((_, i) => i !== idx),
+                })
+              }
+              addPlaceholder="New place-name"
+            />
+          </SurfaceCard>
+
           <div className="two-card-grid">
-            <KnowledgeCard
+            <EditableKnowledgeCard
               number="2"
               title="Cultural Challenges"
               icon={AlertTriangle}
               tone="gold"
               subtitle="Key considerations and risks to address with care."
-              bullets={[
-                'Land-acknowledgement protocols still maturing in rural Halton; consult Mississaugas of the Credit Department of Consultation & Accommodation before any earthworks',
-                'Seasonal creek setback corridor overlaps with potentially significant pre-contact archaeological sites - Stage 1 archaeological assessment recommended before excavation',
-              ]}
-              action="View guidance & resources"
+              items={challenges}
+              onAdd={(value) =>
+                updateRegional(id, { culturalChallenges: [...challenges, value] })
+              }
+              onRemove={(idx) =>
+                updateRegional(id, {
+                  culturalChallenges: challenges.filter((_, i) => i !== idx),
+                })
+              }
+              addPlaceholder="Add challenge"
             />
-            <KnowledgeCard
+            <EditableKnowledgeCard
               number="3"
               title="Cultural Strengths"
               icon={Sprout}
               subtitle="Assets and relationships to build upon."
-              bullets={[
-                'Active Halton Hills agricultural community - long-running farmer cooperatives and seed exchanges',
-                'Conservation Halton stewardship programs with riparian planting and well-decommissioning grants',
-                'Active Muslim community in Mississauga / Brampton supports retreat hosting and weekend gatherings',
-              ]}
-              action="Explore stewardship opportunities"
+              items={strengths}
+              onAdd={(value) =>
+                updateRegional(id, { culturalStrengths: [...strengths, value] })
+              }
+              onRemove={(idx) =>
+                updateRegional(id, {
+                  culturalStrengths: strengths.filter((_, i) => i !== idx),
+                })
+              }
+              addPlaceholder="Add strength"
             />
           </div>
-          <LocalNetworkCard />
+
+          <LocalNetworkCard
+            rows={network}
+            onAdd={(c) => addNetworkContact(id, c)}
+            onRemove={(contactId) => removeNetworkContact(id, contactId)}
+          />
         </div>
-        <RegionalSidebar />
+        <RegionalSidebar projectId={id} regional={regional} />
       </div>
     </div>
   );
@@ -85,51 +146,39 @@ function RegionalHero() {
   );
 }
 
-function PlaceNamesCard() {
-  return (
-    <SurfaceCard className="content-card place-card">
-      <header className="content-card__header">
-        <div>
-          <b>1</b>
-          <h2>Indigenous Place-Names</h2>
-        </div>
-        <button className="outlined-button" type="button">
-          <Plus aria-hidden="true" /> Add place-name
-        </button>
-      </header>
-      <p>Recognize the traditional territories and histories that shape this landscape.</p>
-      <ChipList
-        removable
-        className="place-chip-list"
-        items={[
-          'Mississaugas of the Credit First Nation - Treaty 19 (1818) lands',
-          'Haudenosaunee Confederacy - historical territory under the Dish With One Spoon wampum',
-          'Anishinaabe / Wendat - pre-contact seasonal use of the Sixteen Mile Creek corridor',
-        ]}
-      />
-    </SurfaceCard>
-  );
-}
-
-interface KnowledgeCardProps {
+interface EditableKnowledgeCardProps {
   number: string;
   title: string;
   subtitle: string;
-  bullets: string[];
-  action: string;
+  items: string[];
+  onAdd: (value: string) => void;
+  onRemove: (index: number) => void;
+  addPlaceholder: string;
   icon: LucideIcon;
   tone?: 'green' | 'gold';
 }
 
-function KnowledgeCard({
+function EditableKnowledgeCard({
   number,
   title,
   subtitle,
-  bullets,
-  action,
+  items,
+  onAdd,
+  onRemove,
+  addPlaceholder,
   icon: Icon,
   tone = 'green',
-}: KnowledgeCardProps) {
+}: EditableKnowledgeCardProps) {
+  const [draft, setDraft] = useState('');
+
+  function commit(e: FormEvent) {
+    e.preventDefault();
+    const value = draft.trim();
+    if (!value) return;
+    onAdd(value);
+    setDraft('');
+  }
+
   return (
     <SurfaceCard className={`content-card knowledge-card ${tone}`}>
       <header className="content-card__header">
@@ -140,19 +189,70 @@ function KnowledgeCard({
         <Icon aria-hidden="true" />
       </header>
       <p>{subtitle}</p>
-      <ul>
-        {bullets.map((bullet) => (
-          <li key={bullet}>{bullet}</li>
-        ))}
-      </ul>
-      <button className="outlined-button" type="button">
-        {action} <ArrowUpRight aria-hidden="true" />
-      </button>
+      {items.length > 0 ? (
+        <ul className="editable-bullets">
+          {items.map((bullet, idx) => (
+            <li key={`${bullet}-${idx}`}>
+              <span>{bullet}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${bullet}`}
+                onClick={() => onRemove(idx)}
+              >
+                <Trash2 aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-note">No entries yet.</p>
+      )}
+      <form className="add-row" onSubmit={commit}>
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={addPlaceholder}
+        />
+        <button className="outlined-button" type="submit">
+          Add
+        </button>
+      </form>
     </SurfaceCard>
   );
 }
 
-function LocalNetworkCard() {
+interface NetworkRow {
+  id: string;
+  name: string;
+  type: string;
+  contact?: string;
+}
+
+interface LocalNetworkCardProps {
+  rows: NetworkRow[];
+  onAdd: (contact: NetworkRow) => void;
+  onRemove: (id: string) => void;
+}
+
+function LocalNetworkCard({ rows, onAdd, onRemove }: LocalNetworkCardProps) {
+  const [name, setName] = useState('');
+  const [type, setType] = useState(CONTACT_TYPES[0] ?? 'community');
+  const [contact, setContact] = useState('');
+
+  function commit(e: FormEvent) {
+    e.preventDefault();
+    const n = name.trim();
+    if (!n) return;
+    onAdd({
+      id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      name: n,
+      type,
+      contact: contact.trim() || undefined,
+    });
+    setName('');
+    setContact('');
+  }
+
   return (
     <SurfaceCard className="content-card local-network-card">
       <header className="content-card__header">
@@ -160,60 +260,88 @@ function LocalNetworkCard() {
           <b>4</b>
           <h2>Local Network</h2>
         </div>
-        <button className="outlined-button" type="button">
-          <Plus aria-hidden="true" /> Add contact
-        </button>
       </header>
       <p>Organizations and contacts you can lean on for guidance and collaboration.</p>
-      <DataTable
-        columns={['Organization', 'Type', 'Contact', '', '']}
-        rows={[
-          [
-            'Conservation Halton - Stewardship Services',
-            'regulator',
-            'stewardship@hrca.on.ca',
-            <Mail key="m1" aria-hidden="true" />,
-            <MoreVertical key="v1" aria-hidden="true" />,
-          ],
-          [
-            'Mississaugas of the Credit - Department of Consultation & Accommodation',
-            'first_nation',
-            'consultation@mncfn.ca',
-            <Mail key="m2" aria-hidden="true" />,
-            <MoreVertical key="v2" aria-hidden="true" />,
-          ],
-          [
-            'Halton Region Federation of Agriculture',
-            'community',
-            'info@haltonfa.com',
-            <Mail key="m3" aria-hidden="true" />,
-            <MoreVertical key="v3" aria-hidden="true" />,
-          ],
-        ]}
-      />
+      {rows.length > 0 ? (
+        <DataTable
+          columns={['Organization', 'Type', 'Contact', '', '']}
+          rows={rows.map((r) => [
+            r.name,
+            r.type,
+            r.contact ?? '—',
+            r.contact ? <Mail key={`m-${r.id}`} aria-hidden="true" /> : <span key={`m-${r.id}`} />,
+            <button
+              key={`del-${r.id}`}
+              type="button"
+              aria-label={`Remove ${r.name}`}
+              onClick={() => onRemove(r.id)}
+              className="icon-button"
+            >
+              <Trash2 aria-hidden="true" />
+            </button>,
+          ])}
+        />
+      ) : (
+        <p className="empty-note">No contacts yet.</p>
+      )}
+      <form className="add-network-row" onSubmit={commit}>
+        <input
+          placeholder="Organization name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          {CONTACT_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <input
+          placeholder="Email or phone (optional)"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+        />
+        <button className="outlined-button" type="submit">
+          Add contact
+        </button>
+      </form>
     </SurfaceCard>
   );
 }
 
-function RegionalSidebar() {
+interface RegionalSidebarProps {
+  projectId: string;
+  regional: ReturnType<typeof useVisionStore.getState>['visions'][number]['regional'];
+}
+
+function RegionalSidebar({ projectId, regional }: RegionalSidebarProps) {
+  const project = useV3Project(projectId);
+  const counts = regionalCounts(regional);
+
   return (
     <aside className="regional-sidebar">
       <SurfaceCard className="regional-map-card">
         <h2>
           <Sun aria-hidden="true" /> Regional Snapshot
         </h2>
-        <CroppedArt src={regionalMap} className="regional-map-image" />
+        <ParcelSatelliteSnapshot
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          width={320}
+          height={240}
+        />
       </SurfaceCard>
       <div className="regional-stat-grid">
-        <RegionalStat icon={AlertTriangle} value="2" label="Key Warnings" />
-        <RegionalStat icon={Sprout} value="3" label="Cultural Strengths" />
-        <RegionalStat icon={Users} value="3" label="Local Contacts" />
+        <RegionalStat icon={AlertTriangle} value={counts.challenges} label="Cultural Challenges" />
+        <RegionalStat icon={Sprout} value={counts.strengths} label="Cultural Strengths" />
+        <RegionalStat icon={Users} value={counts.contacts} label="Local Contacts" />
       </div>
       <NextStepsPanel
         steps={[
-          'Consult Mississaugas of the Credit Department of Consultation & Accommodation before any earthworks.',
-          'Complete a Stage 1 archaeological assessment for areas near the creek corridor.',
-          'Reach out to local partners to co-develop stewardship goals and opportunities.',
+          'Consult First Nations representatives before any earthworks.',
+          'Complete a Stage 1 archaeological assessment for sensitive areas.',
+          'Reach out to local partners to co-develop stewardship goals.',
         ]}
       />
       <SurfaceCard className="toolkit-card">
@@ -232,7 +360,7 @@ function RegionalSidebar() {
 
 interface RegionalStatProps {
   icon: LucideIcon;
-  value: string;
+  value: number;
   label: string;
 }
 
@@ -240,7 +368,7 @@ function RegionalStat({ icon: Icon, value, label }: RegionalStatProps) {
   return (
     <SurfaceCard className="regional-stat">
       <Icon aria-hidden="true" />
-      <strong>{value}</strong>
+      <strong>{value > 0 ? value : '—'}</strong>
       <span>{label}</span>
     </SurfaceCard>
   );

@@ -26,6 +26,7 @@ import {
   getProjectShareUrl,
 } from "../data/generateProjectReport.js";
 import type { ProjectScores } from "../types.js";
+import StageShell from "../_shell/StageShell.js";
 import css from "./ReportPage.module.css";
 
 const SCORE_KEYS: Array<{ key: keyof ProjectScores; label: string }> = [
@@ -44,7 +45,12 @@ export default function ReportPage() {
   const [shareToast, setShareToast] = useState<string | null>(null);
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Report canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   const onCopyShare = async () => {
@@ -63,6 +69,7 @@ export default function ReportPage() {
   };
 
   return (
+    <StageShell canvasLabel="Report canvas" canvas={
     <div className={css.page}>
       <PageHeader
         eyebrow="Report"
@@ -201,5 +208,6 @@ export default function ReportPage() {
         </article>
       )}
     </div>
+    } />
   );
 }

@@ -1,0 +1,113 @@
+/* ActTools — Quick Log strip for the Act stage left rail. Three large-tap
+   field-log buttons (icon + label + hint) inside one bento surface. */
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  max-width: 240px;
+}
+
+.stripHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 4px 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.stripHeaderLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stripHeaderHint {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.logBtn {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  --kind-color: var(--color-text-muted);
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+
+.logBtn[data-kind='harvest']   { --kind-color: #8bd16a; }
+.logBtn[data-kind='water']     { --kind-color: #5fc7d4; }
+.logBtn[data-kind='livestock'] { --kind-color: #c9a05a; }
+
+.logBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--kind-color) 8%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--kind-color) 45%, var(--color-border));
+}
+
+.logBtn:focus-visible {
+  outline: 2px solid var(--kind-color);
+  outline-offset: 1px;
+}
+
+.logBtn[data-active='true'] {
+  background: color-mix(in srgb, var(--kind-color) 14%, var(--color-bg));
+  border-color: var(--kind-color);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--kind-color) 35%, transparent);
+}
+
+.logBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.logGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--kind-color) 14%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--kind-color) 35%, transparent);
+  color: var(--kind-color);
+}
+
+.logBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.logLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.logHint {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

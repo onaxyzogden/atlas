@@ -7,6 +7,7 @@ import type { ElevationProfileResponse } from '@ogden/shared';
 import { useMapToolStore } from './useMapToolStore.js';
 import Sparkline from './sparkline.js';
 import css from '../MapToolbar.module.css';
+import { MAPLIBRE_DRAW_STYLES } from '../draw/mapboxDrawStyles.js';
 
 interface Props {
   map: MaplibreMap;
@@ -70,6 +71,7 @@ export default function ElevationTool({ map, projectId }: Props) {
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
+      styles: MAPLIBRE_DRAW_STYLES,
     });
     map.addControl(draw);
     draw.changeMode('draw_line_string');

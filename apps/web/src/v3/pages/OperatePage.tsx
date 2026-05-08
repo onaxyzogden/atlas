@@ -8,10 +8,10 @@
  *   [Alerts + Upcoming]          Two side-by-side panels (animal/water + this week)
  *
  * Phase 5.2 PR2: live `OperateMap` (MapLibre) replaces `FieldMapPlaceholder`.
- * Right rail is mounted by V3ProjectLayout → DecisionRail → OperateRail.
+ * Right rail is owned by this page and passed to StageShell.rightRail.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import MetricCard from "../components/MetricCard.js";
@@ -24,6 +24,8 @@ import { useV3Project } from "../data/useV3Project.js";
 import { useFieldFlags } from "../data/useFieldFlags.js";
 import { useFieldTaskStore, type FieldTask } from "../../store/fieldTaskStore.js";
 import type { OpsTone, UpcomingEvent } from "../types.js";
+import StageShell from "../_shell/StageShell.js";
+import OperateRail from "../components/rails/OperateRail.js";
 import "../styles/chrome.css";
 import css from "./OperatePage.module.css";
 
@@ -45,19 +47,35 @@ export default function OperatePage() {
   // the brief's hand-authored fixture rows so a created task lands on
   // the calendar within the same render tick.
   const [taskOpen, setTaskOpen] = useState(false);
-  const projectTasks = useFieldTaskStore((s) =>
-    project ? s.tasks.filter((t) => t.projectId === project.id) : [],
+  const allTasks = useFieldTaskStore((s) => s.tasks);
+  const projectTasks = useMemo(
+    () => (project ? allTasks.filter((t) => t.projectId === project.id) : []),
+    [allTasks, project],
   );
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Operate canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   if (!brief) {
-    return <div className={css.page}>Operations data is not yet available for this project.</div>;
+    return (
+      <StageShell
+        canvasLabel="Operate canvas"
+        canvas={<div className={css.page}>Operations data is not yet available for this project.</div>}
+      />
+    );
   }
 
   return (
+    <StageShell
+      canvasLabel="Operate canvas"
+      rightRail={<OperateRail project={project} />}
+      canvas={
     <div className={css.page}>
       <PageHeader
         eyebrow="Operate"
@@ -183,6 +201,7 @@ export default function OperatePage() {
         />
       )}
     </div>
+    } />
   );
 }
 

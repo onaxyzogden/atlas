@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -15,7 +16,18 @@ export default function WatercourseTool({ map, projectId }: Props) {
     map,
     mode: 'draw_line_string',
     onComplete: (geom) => {
-      open({ kind: 'watercourse', geometry: geom, mode: 'create', projectId });
+      const id = createWithDefaults(FIELD_SCHEMAS.watercourse, {
+        projectId,
+        geometry: geom,
+      });
+      if (id)
+        open({
+          kind: 'watercourse',
+          geometry: geom,
+          mode: 'edit',
+          existingId: id,
+          projectId,
+        });
     },
   });
 

@@ -62,7 +62,19 @@ export default function HarvestLogCard({ project }: Props) {
   const cropName = (id: string) => crops.find((c) => c.id === id)?.name ?? '(deleted area)';
 
   const entries = useMemo(
-    () => allEntries.filter((e) => e.projectId === project.id).slice().sort((a, b) => (a.date < b.date ? 1 : -1)),
+    () =>
+      allEntries
+        .filter(
+          (e) =>
+            e.projectId === project.id &&
+            // Default-undefined sourceKind is treated as 'crop' for
+            // backward-compat with v1-persisted entries that pre-date the
+            // livestock split. Livestock entries surface on ActDataLayers
+            // (map) until a dedicated LivestockYieldCard ships.
+            (e.sourceKind ?? 'crop') === 'crop',
+        )
+        .slice()
+        .sort((a, b) => (a.date < b.date ? 1 : -1)),
     [allEntries, project.id],
   );
 
@@ -85,6 +97,7 @@ export default function HarvestLogCard({ project }: Props) {
     const entry: HarvestEntry = {
       id: newId(),
       projectId: project.id,
+      sourceKind: 'crop',
       cropAreaId: draft.cropAreaId,
       date: draft.date,
       quantity: qty,

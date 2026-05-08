@@ -8,14 +8,19 @@
  * remain comfortably under 100 ms because we use array `.join('\n')`
  * instead of incremental string concatenation.
  *
- * Geometry coverage (v1):
+ * Geometry coverage (v2 — 2026-05-07):
  *   Point:       neighbour, household, highPoint, soilSample, swot,
- *                storageInfra
+ *                storageInfra, ecologyObservation (when `location` set)
  *   LineString:  accessRoad, contour, drainageLine, watercourse,
  *                earthwork, transect (synthesised from pointA/pointB)
- *   Polygon:     hazard (when geometry present), ecologyZone
- *   No geometry: ecologyObservation, permacultureZone, sector
- *                — these are CSV-only (KML / GeoJSON omit them).
+ *   Polygon:     hazard (when geometry present), ecologyZone, sector
+ *                (synthesised wedge when homestead anchor available),
+ *                permacultureZone (synthesised six concentric circles
+ *                from anchorPoint + ringRadiiM — emitted as six Polygon
+ *                Features in GeoJSON / six Placemarks in KML / one
+ *                MULTIPOLYGON WKT row in CSV)
+ *   No geometry: ecologyObservation without `location`, sector without
+ *                a resolved anchor — these stay CSV-only.
  */
 
 import * as turf from '@turf/turf';
@@ -27,12 +32,7 @@ import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
-
-/** Outer radius (metres) for synthesised sector wedges. Mirrors the
- *  hard-coded value used by the OBSERVE renderer in
- *  `ObserveAnnotationLayers.wedgePolygon` so an exported sector overlays
- *  the on-map wedge. Centralised here so a future change is one line. */
-const SECTOR_RADIUS_M = 250;
+import { getSectorRadiusM } from './sectorRadius.js';
 
 // ── Kind taxonomy ──────────────────────────────────────────────────────────────
 
@@ -165,15 +165,40 @@ export function collectProjectAnnotations(
 
 // ── GeoJSON ────────────────────────────────────────────────────────────────────
 
-type Geom = GeoJSON.Geometry | null;
+/** One geometry produced for a record, plus optional per-feature
+ *  properties that should be merged into the GeoJSON Feature
+ *  `properties` (or KML placemark name). Used by kinds that expand a
+ *  single record into multiple features (e.g. `permacultureZone` — six
+ *  concentric ring polygons each labelled with `ring` + `radiusM`). */
+interface KindGeom {
+  geom: GeoJSON.Geometry;
+  extraProps?: Record<string, unknown>;
+}
 
 /** Per-export context computed once by the serialiser entry points and
- *  threaded through `geometryFor`. Holds project-resolved data that would
- *  otherwise force a per-record store walk. */
+ *  threaded through `geometriesFor`. Holds project-resolved data that
+ *  would otherwise force a per-record store walk. */
 interface ExportContext {
   /** Anchor point (`[lng, lat]`) for synthesising sector wedges, or
    *  `null` when no homestead and no parcel boundary are available. */
   sectorAnchor: [number, number] | null;
+  /** Outer radius (metres) for synthesised sector wedges. Resolved per
+   *  project from `metadata.sectorRadiusM` via `getSectorRadiusM`, with
+   *  a 250 m fallback. Single source of truth shared with the renderer. */
+  sectorRadiusM: number;
+}
+
+/** Build a circular polygon centred at `center` with outer radius
+ *  `radiusM`. Lifted verbatim from `ObserveAnnotationLayers.circlePolygon`
+ *  so an exported permaculture-zone ring overlays the on-map ring
+ *  pixel-for-pixel (same 64-step segmentation). Keep in sync. */
+function circlePolygon(
+  center: [number, number],
+  radiusM: number,
+  steps = 64,
+): GeoJSON.Polygon {
+  const f = turf.circle(center, radiusM / 1000, { steps, units: 'kilometers' });
+  return f.geometry;
 }
 
 /** Build a wedge (sector) polygon anchored at `center`, opening along
@@ -243,70 +268,120 @@ function resolveSectorAnchor(
   return null;
 }
 
-/** Map a record of any kind to a GeoJSON geometry, or `null` if the record
- *  has no spatial geometry available for export.
+/** Map a record of any kind to zero or more GeoJSON geometries.
  *
- *  When `ctx.sectorAnchor` is non-null, `'sector'` synthesises a wedge
- *  `Polygon` at `SECTOR_RADIUS_M` metres, anchored at the project's
- *  homestead (or parcel-boundary centroid). Otherwise sectors return
- *  `null` and remain CSV-only. `permacultureZone` and `ecologyObservation`
- *  always return `null` — they have no geometry to synthesise from. */
-function geometryFor(
+ *  Most kinds produce 0 or 1 geometry. Two kinds expand one record into
+ *  multiple features:
+ *
+ *  - `permacultureZone` — fans `anchorPoint` + `ringRadiiM` (six radii)
+ *    into up to six concentric ring polygons. Each `KindGeom` carries
+ *    `extraProps: { ring, radiusM }` so downstream Feature properties /
+ *    KML placemark names can identify the ring (Zone 0–5).
+ *  - `sector` — produces zero or one wedge depending on whether
+ *    `ctx.sectorAnchor` resolved (homestead → parcel-boundary centroid →
+ *    null).
+ *
+ *  `ecologyObservation` returns one Point when `location` is set,
+ *  otherwise zero. Records that produce zero geometries are silently
+ *  omitted from GeoJSON / KML and appear in CSV with an empty
+ *  `geometryWkt` cell. */
+function geometriesFor(
   kind: ExportKind,
   r: Record<string, unknown>,
   ctx: ExportContext,
-): Geom {
+): KindGeom[] {
   const g = (r as { geometry?: GeoJSON.Geometry }).geometry;
   switch (kind) {
     case 'neighbour':
     case 'household':
     case 'highPoint': {
       const pos = (r as { position?: [number, number] }).position;
-      return pos ? { type: 'Point', coordinates: pos } : null;
+      return pos ? [{ geom: { type: 'Point', coordinates: pos } }] : [];
     }
     case 'soilSample': {
       const loc = (r as { location?: [number, number] | null }).location;
-      return loc ? { type: 'Point', coordinates: loc } : null;
+      return loc ? [{ geom: { type: 'Point', coordinates: loc } }] : [];
     }
     case 'swot': {
       const pos = (r as { position?: [number, number] }).position;
-      return pos ? { type: 'Point', coordinates: pos } : null;
+      return pos ? [{ geom: { type: 'Point', coordinates: pos } }] : [];
     }
     case 'storageInfra': {
       const c = (r as { center?: [number, number] }).center;
-      return c ? { type: 'Point', coordinates: c } : null;
+      return c ? [{ geom: { type: 'Point', coordinates: c } }] : [];
     }
     case 'accessRoad':
     case 'contour':
     case 'drainageLine':
     case 'watercourse':
     case 'earthwork':
-      return g ?? null;
+      return g ? [{ geom: g }] : [];
     case 'transect': {
       const a = (r as { pointA?: [number, number] }).pointA;
       const b = (r as { pointB?: [number, number] }).pointB;
       return a && b
-        ? { type: 'LineString', coordinates: [a, b] }
-        : null;
+        ? [{ geom: { type: 'LineString', coordinates: [a, b] } }]
+        : [];
     }
     case 'hazard':
     case 'ecologyZone':
-      return g ?? null;
+      return g ? [{ geom: g }] : [];
     case 'sector': {
       const anchor = ctx.sectorAnchor;
-      if (!anchor) return null;
+      if (!anchor) return [];
       const bearingDeg = Number(
         (r as { bearingDeg?: number }).bearingDeg,
       );
       const arcDeg = Number((r as { arcDeg?: number }).arcDeg);
       if (!Number.isFinite(bearingDeg) || !Number.isFinite(arcDeg)) {
-        return null;
+        return [];
       }
-      return wedgePolygon(anchor, bearingDeg, arcDeg, SECTOR_RADIUS_M);
+      return [
+        { geom: wedgePolygon(anchor, bearingDeg, arcDeg, ctx.sectorRadiusM) },
+      ];
     }
-    case 'permacultureZone':
-    case 'ecologyObservation':
-      return null;
+    case 'permacultureZone': {
+      const anchor = (r as { anchorPoint?: [number, number] }).anchorPoint;
+      const radii = (r as { ringRadiiM?: readonly number[] }).ringRadiiM;
+      if (
+        !anchor ||
+        !Array.isArray(anchor) ||
+        anchor.length < 2 ||
+        !Number.isFinite(anchor[0]) ||
+        !Number.isFinite(anchor[1]) ||
+        !Array.isArray(radii)
+      ) {
+        return [];
+      }
+      const out: KindGeom[] = [];
+      radii.forEach((radiusM, ring) => {
+        if (
+          typeof radiusM !== 'number' ||
+          !Number.isFinite(radiusM) ||
+          radiusM <= 0
+        ) {
+          return;
+        }
+        out.push({
+          geom: circlePolygon([anchor[0], anchor[1]], radiusM),
+          extraProps: { ring, radiusM },
+        });
+      });
+      return out;
+    }
+    case 'ecologyObservation': {
+      const loc = (r as { location?: [number, number] }).location;
+      if (
+        !loc ||
+        !Array.isArray(loc) ||
+        loc.length < 2 ||
+        !Number.isFinite(loc[0]) ||
+        !Number.isFinite(loc[1])
+      ) {
+        return [];
+      }
+      return [{ geom: { type: 'Point', coordinates: [loc[0], loc[1]] } }];
+    }
   }
 }
 
@@ -325,22 +400,27 @@ function propsFor(
 }
 
 /** Roll the project annotations into a single GeoJSON FeatureCollection.
- *  Records without exportable geometry are silently skipped. */
+ *  Records without exportable geometry are silently skipped. Kinds that
+ *  expand one record into several features (`permacultureZone`) emit one
+ *  Feature per geometry, with the per-feature `extraProps` merged into
+ *  `properties`. */
 export function toGeoJSON(p: ProjectAnnotations): GeoJSON.FeatureCollection {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const features: GeoJSON.Feature[] = [];
   for (const kind of ALL_KINDS) {
     const arr = p.byKind[kind] ?? [];
     for (const r of arr) {
-      const geom = geometryFor(kind, r, ctx);
-      if (!geom) continue;
-      features.push({
-        type: 'Feature',
-        properties: propsFor(kind, r),
-        geometry: geom,
-      });
+      const baseProps = propsFor(kind, r);
+      for (const { geom, extraProps } of geometriesFor(kind, r, ctx)) {
+        features.push({
+          type: 'Feature',
+          properties: extraProps ? { ...baseProps, ...extraProps } : baseProps,
+          geometry: geom,
+        });
+      }
     }
   }
   return { type: 'FeatureCollection', features };
@@ -391,15 +471,27 @@ function placemarkXml(
   kind: ExportKind,
   r: Record<string, unknown>,
   geom: GeoJSON.Geometry,
+  extraProps?: Record<string, unknown>,
 ): string {
   const id = String(r.id ?? '');
-  const name = (() => {
+  const baseName = (() => {
     const label = r.label ?? r.title ?? r.species ?? r.type;
     return label ? String(label) : KIND_LABELS[kind];
   })();
+  // permacultureZone expands one record into six placemarks; suffix the
+  // ring index + radius so KML viewers can tell them apart in a folder.
+  const ring = extraProps?.ring;
+  const radiusM = extraProps?.radiusM;
+  const name =
+    typeof ring === 'number' && typeof radiusM === 'number'
+      ? `${baseName} — Zone ${ring} (${radiusM} m)`
+      : baseName;
+  // Disambiguate per-ring placemark IDs so `id` stays unique within KML.
+  const placemarkId =
+    typeof ring === 'number' ? `${id}-ring-${ring}` : id;
   const description = r.notes ?? r.body ?? r.description ?? '';
   return [
-    `<Placemark id="${escapeXml(id)}">`,
+    `<Placemark id="${escapeXml(placemarkId)}">`,
     `<name>${escapeXml(name)}</name>`,
     description ? `<description>${escapeXml(String(description))}</description>` : '',
     geomToKml(geom),
@@ -413,15 +505,16 @@ function placemarkXml(
 export function toKML(p: ProjectAnnotations): string {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const folders: string[] = [];
   for (const kind of ALL_KINDS) {
     const arr = p.byKind[kind] ?? [];
     const placemarks: string[] = [];
     for (const r of arr) {
-      const geom = geometryFor(kind, r, ctx);
-      if (!geom) continue;
-      placemarks.push(placemarkXml(kind, r, geom));
+      for (const { geom, extraProps } of geometriesFor(kind, r, ctx)) {
+        placemarks.push(placemarkXml(kind, r, geom, extraProps));
+      }
     }
     if (!placemarks.length) continue;
     folders.push(
@@ -479,6 +572,44 @@ function geomToWkt(g: GeoJSON.Geometry | null): string {
   }
 }
 
+/** Collapse 0..N geometries from a single record into one CSV-safe WKT
+ *  cell. 0 → empty string; 1 → single-geom WKT; N geometries of the same
+ *  type → MULTIPOINT / MULTILINESTRING / MULTIPOLYGON. Mixed-type fan-out
+ *  is not produced by any current kind and is treated as empty
+ *  defensively (the GeoJSON / KML paths still emit each feature). */
+function geomsToWkt(geoms: GeoJSON.Geometry[]): string {
+  if (geoms.length === 0) return '';
+  if (geoms.length === 1) return geomToWkt(geoms[0]!);
+  const fmt = (c: GeoJSON.Position) => `${c[0]} ${c[1]}`;
+  const types = new Set(geoms.map((g) => g.type));
+  if (types.size > 1) return '';
+  const t = geoms[0]!.type;
+  if (t === 'Point') {
+    const pts = (geoms as GeoJSON.Point[])
+      .map((g) => `(${fmt(g.coordinates)})`)
+      .join(', ');
+    return `MULTIPOINT(${pts})`;
+  }
+  if (t === 'LineString') {
+    const ls = (geoms as GeoJSON.LineString[])
+      .map((g) => `(${g.coordinates.map(fmt).join(', ')})`)
+      .join(', ');
+    return `MULTILINESTRING(${ls})`;
+  }
+  if (t === 'Polygon') {
+    const polys = (geoms as GeoJSON.Polygon[])
+      .map(
+        (g) =>
+          `(${g.coordinates
+            .map((ring) => `(${ring.map(fmt).join(', ')})`)
+            .join(', ')})`,
+      )
+      .join(', ');
+    return `MULTIPOLYGON(${polys})`;
+  }
+  return '';
+}
+
 /** Build one CSV section for a single kind. Returns `''` when the kind
  *  has no rows to emit (the caller filters those sections out). */
 function csvSection(
@@ -498,7 +629,7 @@ function csvSection(
   const ordered = ['id', 'createdAt', ...[...cols].filter((c) => c !== 'id' && c !== 'createdAt').sort()];
   const header = [...ordered, 'geometryWkt'].join(',');
   const lines = rows.map((r) => {
-    const wkt = geomToWkt(geometryFor(kind, r, ctx));
+    const wkt = geomsToWkt(geometriesFor(kind, r, ctx).map((g) => g.geom));
     const cells = ordered.map((c) => csvEscape(r[c]));
     cells.push(csvEscape(wkt));
     return cells.join(',');
@@ -511,6 +642,7 @@ function csvSection(
 export function toCSV(p: ProjectAnnotations): string {
   const ctx: ExportContext = {
     sectorAnchor: resolveSectorAnchor(p.projectId),
+    sectorRadiusM: getSectorRadiusM(p.projectId),
   };
   const sections: string[] = [
     `# atlas-observe-export`,

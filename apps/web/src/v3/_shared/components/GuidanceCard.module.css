@@ -1,0 +1,204 @@
+/* GuidanceCard — shared right-rail guidance card structure for Observe / Plan / Act.
+   Per-module dot colour comes via the `--group-dot` CSS variable set inline by
+   the consuming stage (each stage owns its module palette). The parent
+   container's `[data-has-active='true']` attribute drives the inactive-fade. */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  --group-dot: var(--color-text-muted);
+  transition: filter 150ms ease, opacity 150ms ease,
+    background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+/* Drain saturation on inactive cards ONLY when a module is selected. With no
+   active module the whole rail reads in full color; once one is picked, the
+   others fade so the active card pops. The parent aside sets
+   data-has-active. */
+[data-has-active='true'] .group:not(.groupActive) {
+  filter: saturate(0.18);
+  opacity: 0.62;
+}
+
+.group[role='button'] {
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+.group[role='button']:hover {
+  filter: saturate(0.85);
+  opacity: 0.92;
+  border-color: color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
+  background: color-mix(in srgb, var(--group-dot) 6%, var(--color-bg));
+}
+.group[role='button']:focus-visible {
+  outline: 2px solid var(--color-focus-ring, var(--group-dot));
+  outline-offset: 2px;
+}
+.group[role='button']:active {
+  transform: translateY(1px);
+}
+
+.groupActive {
+  filter: none;
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--group-dot) 25%, transparent);
+}
+
+.groupActive[role='button']:hover {
+  filter: none;
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--group-dot) 70%, var(--color-border));
+  background: var(--color-bg);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--group-dot);
+  flex: 0 0 8px;
+}
+
+.groupLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.groupActive .groupLabel {
+  color: var(--color-text);
+}
+
+.why {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text);
+  font-style: italic;
+}
+
+.howBlock,
+.pitfall {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blockLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--group-dot);
+}
+
+.howList {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.howItem {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.howCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  padding: 2px 0;
+  user-select: none;
+}
+
+.howCheck input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 2px 0 0;
+  flex: 0 0 14px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--group-dot) 50%, var(--color-border));
+  background: var(--color-bg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.howCheck input[type='checkbox']:hover:not(:disabled) {
+  border-color: var(--group-dot);
+}
+
+.howCheck input[type='checkbox']:checked {
+  background: var(--group-dot);
+  border-color: var(--group-dot);
+}
+
+.howCheck input[type='checkbox']:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid var(--color-bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.howCheck input[type='checkbox']:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.howText {
+  flex: 1 1 auto;
+  transition: color 120ms ease, opacity 120ms ease;
+}
+
+.howCheckDone .howText {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--color-text-muted) 80%, transparent);
+  color: var(--color-text-muted);
+  opacity: 0.75;
+}
+
+.pitfall {
+  padding: 8px;
+  background: color-mix(in srgb, var(--group-dot) 10%, var(--color-bg));
+  border: 1px solid
+    color-mix(in srgb, var(--group-dot) 30%, var(--color-border));
+  border-radius: var(--radius-sm, 6px);
+}
+
+.pitfallText {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text);
+}

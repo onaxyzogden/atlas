@@ -12,7 +12,7 @@
  * Right rail is mounted by V3ProjectLayout → DecisionRail → HomeRail.
  */
 
-import { useParams } from "@tanstack/react-router";
+import { useParams, useNavigate } from "@tanstack/react-router";
 import HomeHero from "../components/HomeHero.js";
 import ActivityList from "../components/ActivityList.js";
 import ActionList from "../components/ActionList.js";
@@ -36,6 +36,7 @@ const LAST_OBSERVED = "April 27, 2026, 4:12 PM";
 export default function HomePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
+  const navigate = useNavigate();
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
@@ -56,7 +57,7 @@ export default function HomePage() {
         meta={`${project.location.region} · ${project.location.acreage} ${project.location.acreageUnit}`}
         verdict={project.verdict}
         actions={[
-          { label: "Continue Project", onClick: () => {} },
+          { label: "Continue Project", onClick: () => navigate({ to: "/cycle" }) },
           { label: "Generate Brief", variant: "secondary", onClick: () => {} },
         ]}
       />

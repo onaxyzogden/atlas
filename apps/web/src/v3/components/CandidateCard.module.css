@@ -125,6 +125,12 @@
 .tone-watch   { background: rgba(212, 175, 95, 0.10); color: #d4af5f; border-color: rgba(212, 175, 95, 0.35); }
 .tone-warning { background: rgba(212, 140, 60, 0.10);  color: #e0a368; border-color: rgba(212, 140, 60, 0.35); }
 .tone-blocked { background: rgba(190, 60, 60, 0.10);   color: #e27272; border-color: rgba(190, 60, 60, 0.35); }
+.tone-muted   { background: var(--color-bg);             color: var(--color-text-muted); border-color: var(--color-border); }
+
+.placeholderText {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
 
 .tags {
   display: flex;

@@ -25,6 +25,15 @@ export type MapToolId =
   | 'observe.human-context.neighbour-pin'
   | 'observe.human-context.steward'
   | 'observe.human-context.access-road'
+  // Observe Module — Built Environment
+  | 'observe.built-environment.building'
+  | 'observe.built-environment.well'
+  | 'observe.built-environment.septic'
+  | 'observe.built-environment.power-line'
+  | 'observe.built-environment.buried-utility'
+  | 'observe.built-environment.fence'
+  | 'observe.built-environment.gate'
+  | 'observe.built-environment.driveway'
   // Observe Module 2 — Macroclimate & Hazards
   | 'observe.macroclimate-hazards.frost-pocket'
   | 'observe.macroclimate-hazards.hazard-zone'
@@ -52,7 +61,28 @@ export type MapToolId =
   | 'observe.swot-synthesis.strength'
   | 'observe.swot-synthesis.weakness'
   | 'observe.swot-synthesis.opportunity'
-  | 'observe.swot-synthesis.threat';
+  | 'observe.swot-synthesis.threat'
+  // Plan Module 2 — Water Management (directed-graph nodes)
+  | 'plan.water-management.catchment'
+  | 'plan.water-management.storage'
+  | 'plan.water-management.swale'
+  | 'plan.water-management.sink'
+  // Plan Module 3 — Zone & Circulation
+  | 'plan.zone-circulation.zone'
+  | 'plan.zone-circulation.path'
+  // Plan Module 5 — Plant Systems & Polyculture
+  | 'plan.plant-systems.crop-area'
+  | 'plan.plant-systems.guild'
+  // Plan Module 6 — Soil Fertility & Closed-Loop
+  | 'plan.soil-fertility.fertility-unit'
+  // Plan Module 4 — Livestock & Subdivision
+  | 'plan.livestock.paddock'
+  // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
+  | 'plan.structures-subsystems.structure'
+  // Act Module — Harvest log (point-on-existing-crop-area, no new geometry)
+  | 'act.harvest.log-entry'
+  // Act Module — Maintenance event log (click an irrigation feature)
+  | 'act.maintain.log-event';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

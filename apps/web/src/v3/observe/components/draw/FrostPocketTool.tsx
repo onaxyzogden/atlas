@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -15,7 +16,18 @@ export default function FrostPocketTool({ map, projectId }: Props) {
     map,
     mode: 'draw_polygon',
     onComplete: (geom) => {
-      open({ kind: 'frostPocket', geometry: geom, mode: 'create', projectId });
+      const id = createWithDefaults(FIELD_SCHEMAS.frostPocket, {
+        projectId,
+        geometry: geom,
+      });
+      if (id)
+        open({
+          kind: 'frostPocket',
+          geometry: geom,
+          mode: 'edit',
+          existingId: id,
+          projectId,
+        });
     },
   });
 

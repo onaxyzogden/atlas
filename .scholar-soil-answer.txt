@@ -1,0 +1,44 @@
+**QUESTION (1): Is the four-node taxonomy (composter / hugelkultur / biochar / worm bin) correct, or is the orthodox framing different?**
+
+The four-node taxonomy in Atlas is far too narrow and structural. In orthodox permaculture design, soil fertility is framed broadly as the "digestive system" of the site, where raw materials are transformed into rich soil through a wide variety of biological and management methods [1]. 
+
+According to the Oregon State University (OSU) Permaculture Design Course, a comprehensive soil building plan should include strategies that respond directly to site-specific limiting factors [2]. The orthodox framing includes:
+*   **Composting and Mulching:** Standard composting, vermicompost, and sheet mulching [2, 3].
+*   **Biological/Plant-Based Strategies:** Cover-cropping (especially with nitrogen fixers like clover or fibrous roots to break up compaction), chop-and-drop (e.g., Siberian Peashrub), and utilizing dynamic accumulators [2, 4].
+*   **Animal Integration:** Rotational grazing and utilizing manures from livestock like chickens, cows, and horses [5-7].
+*   **Mechanical/Earthworks:** Keyline plowing to deepen topsoil, and utilizing swales and ponds to hold moisture in the soil profile [7, 8].
+
+**QUESTION (2): Is "waste-to-resource vectors" the right model, or should this instead be a soil-test → amendment-plan → mulch/compost-application schedule?**
+
+Permaculture actually requires **both** models, applied in a specific sequence. 
+
+1.  **The Baseline (Testing & Planning):** Permaculture design dictates that you must first observe and assess the soil. You begin with a soil map, followed by physical tests (jar tests for sand/silt/clay percentages, ribbon tests for feel, and percolation tests for drainage) to identify limiting factors like compaction, acidity, or low organic matter [2, 9]. Based on this, you create a time-bound **Soil Building Goals and Plan** [2].
+2.  **The Closed-Loop (Vectors):** Once the baseline is established, the "waste-to-resource" vector model is the exact orthodox approach for systemic design. Permaculture Principle 6 is "Produce No Waste," meaning the waste of one element becomes the food for another [10]. For example, weeds feed chickens, chicken manure feeds the salad greens, and salad waste goes to the compost to feed the chickens [6]. The goal is to transition from linear "nutrient mining" (extracting resources and sending waste to landfills) to closed-loop "nutrient cycling" [11, 12].
+
+**QUESTION (3): What bare-minimum visualisations / validations would make this module actually useful?**
+
+To be practically useful and permaculture-sound, the module needs validations and visualizations that bridge the gap between physical soil conditions and systemic nutrient flows:
+*   **Soil Management Area Subdivisions (Spatial):** Soil is the last element on the "Scale of Landscape Permanence" and should be managed spatially after water, access, and structures are defined [7, 13]. The module needs a map interface to subdivide the landscape into specific "soil management blocks" [7, 13].
+*   **Soil Texture Triangle Validation:** A visual "jar test" calculator where a steward inputs sand/silt/clay percentages, and a soil texture triangle visualizes the soil type (e.g., sandy loam, silty clay) [9].
+*   **Carbon/Nitrogen (Browns/Greens) Inventory:** A validation checklist or table that categorizes available on-site and local resources into "Nitrogen Rich (Greens/Juicies)" and "Carbon Rich (Browns/Crunchies)" to ensure the steward has the right balance of feedstocks for compost and mulch [5].
+*   **Vector/Connection Graph:** A visual web showing the directed edges of waste-to-resource flows to validate that every output has a sink (e.g., ensuring greywater or manure isn't being "mined" or wasted) [6, 12].
+
+**QUESTION (4): Verdict & UI Sketch**
+
+**Verdict: BUILD_FRESH**
+
+*Rationale:* The current Atlas implementation (Option A) treats fertility as isolated, non-spatial widgets (composters, worm bins) and lacks any baseline soil assessment. Permaculture specifically teaches that soil fertility strategies must be a direct response to tested limiting factors [2], and must be integrated spatially into the landscape's existing water and access infrastructure [7]. The waste vector tool is conceptually sound but useless without a graphical validation of the nutrient cycle [11, 12]. Since OGDEN has no module, a fresh build is required to merge the analytical (testing) with the systemic (cycling).
+
+*Sketched UI Shape (BUILD_FRESH):*
+The new module should be structured as a 3-step tabbed workflow:
+
+*   **Tab 1: Soil Baseline & Diagnosis**
+    *   *UI:* Form inputs for Jar Test results (%), Percolation rate (inches/hr), and pH. 
+    *   *Visualization:* An auto-plotting Soil Texture Triangle [9].
+    *   *Output:* A generated list of "Limiting Factors" (e.g., "Drains too fast," "Low organic matter") [2, 5].
+*   **Tab 2: Resource Inventory & Management Areas**
+    *   *UI:* A split-panel. On the left, a spatial map allowing the user to draw polygon "Soil Management Areas" [7, 13]. On the right, an inventory tool to log on-site and off-site resources categorized strictly into *Greens/Nitrogen* (kitchen waste, grass clippings, manure) and *Browns/Carbon* (cardboard, woodchips, straw) [5]. 
+*   **Tab 3: The Digestive System (Closed-Loop Vectors & Plan)**
+    *   *UI:* A node-and-edge graph visualization combining the user's structures, crops, animals, and fertility infrastructure.
+    *   *Validation:* The UI highlights any "orphan" nodes (e.g., a chicken coop with an un-routed manure output, or a garden bed with no compost input) to enforce Principle 6 (Produce No Waste) [6, 10]. 
+    *   *Output:* A chronological "Soil Building Plan" table where the user schedules when specific vectors (e.g., sheet mulching, cover cropping, compost application) will be executed [2].

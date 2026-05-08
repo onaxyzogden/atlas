@@ -25,10 +25,18 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
+import { useProjectStore } from '../../../../store/projectStore.js';
+import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
+import type {
+  SectorType,
+  SectorIntensity,
+} from '../../../../store/externalForcesStore.js';
+import type { MatrixToggleKey } from '../../../../store/matrixTogglesStore.js';
 import {
   registerObserveIcons,
   tryRegisterMissingObserveIcon,
@@ -54,6 +62,10 @@ interface LayerSpec {
   data: GeoJSON.FeatureCollection;
   /** One or more MapLibre layer specs over this source. */
   layers: maplibregl.LayerSpecification[];
+  /** Optional sub-toggle from `useMatrixTogglesStore` that ANDs with the
+   *  master `observeAnnotations` toggle. When omitted, only the master
+   *  toggle gates this group. */
+  toggleKey?: Exclude<MatrixToggleKey, 'observeAnnotations'>;
 }
 
 type AnnoLayer = maplibregl.LayerSpecification;
@@ -107,6 +119,51 @@ const SECTOR_TYPE_COLOR: Record<string, string> = {
   wildlife: PALETTE.sectorView,
   view: '#9a8aa8',
 };
+
+// Sector grouping for per-group legend toggles. Each `SectorType` belongs to
+// exactly one of four groups, and each group maps to a `MatrixToggleKey`.
+// Splitting the legacy single `sectors` spec by group lets the steward gate
+// "Solar / Wind / Hazard / View" wedges independently from the legend.
+type SectorGroup = 'solar' | 'wind' | 'hazard' | 'view';
+
+const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
+  sun_summer: 'solar',
+  sun_winter: 'solar',
+  wind_prevailing: 'wind',
+  wind_storm: 'wind',
+  fire: 'hazard',
+  noise: 'hazard',
+  wildlife: 'hazard',
+  view: 'view',
+};
+
+const GROUP_TOGGLE: Record<SectorGroup, Exclude<MatrixToggleKey, 'observeAnnotations'>> = {
+  solar: 'sectors',
+  wind: 'wind',
+  hazard: 'hazards',
+  view: 'views',
+};
+
+// Wind-sector visual upgrade (Option B, 2026-05-08): scale wedge radius by
+// intensity so high-intensity sectors read as longer reaches, mirroring the
+// proportional-wedge style of the climatology-driven prevailing rose. Each
+// wind wedge also emits a Point feature mid-arc so a compass+intensity label
+// can render via a sibling symbol layer.
+const INTENSITY_RADIUS_MULT: Record<SectorIntensity, number> = {
+  low: 0.4,
+  med: 0.7,
+  high: 1.0,
+};
+const INTENSITY_LABEL: Record<SectorIntensity, string> = {
+  low: 'low',
+  med: 'med',
+  high: 'high',
+};
+function compassFromBearing(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
+  return dirs[idx]!;
+}
 
 const SWOT_COLOR: Record<string, string> = {
   S: PALETTE.swotS,
@@ -162,6 +219,30 @@ function wedgePolygon(
 
 export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
+  // Per-group sub-toggles. ANDed with the master `visible` to compute the
+  // final per-spec visibility. Each group only respects its toggle when
+  // `LayerSpec.toggleKey` is set; otherwise the master toggle alone gates.
+  const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
+  const topographyVisible = useMatrixTogglesStore((s) => s.topography);
+  const zonesVisible = useMatrixTogglesStore((s) => s.zones);
+  const windVisible = useMatrixTogglesStore((s) => s.wind);
+  const waterVisible = useMatrixTogglesStore((s) => s.water);
+  const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
+  const viewsVisible = useMatrixTogglesStore((s) => s.views);
+  const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
+  const subToggles: Record<
+    Exclude<MatrixToggleKey, 'observeAnnotations'>,
+    boolean
+  > = {
+    sectors: sectorsVisible,
+    topography: topographyVisible,
+    zones: zonesVisible,
+    wind: windVisible,
+    water: waterVisible,
+    hazards: hazardsVisible,
+    views: viewsVisible,
+    builtEnvironment: builtEnvironmentVisible,
+  };
 
   // Subscribe by full namespace (per ADR 2026-04-26 — no inline filtering in
   // the selector) and filter via useMemo below.
@@ -178,8 +259,27 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
+  const buildings = useBuiltEnvironmentStore((s) => s.buildings);
+  const wells = useBuiltEnvironmentStore((s) => s.wells);
+  const septics = useBuiltEnvironmentStore((s) => s.septics);
+  const powerLines = useBuiltEnvironmentStore((s) => s.powerLines);
+  const buriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
+  const fences = useBuiltEnvironmentStore((s) => s.fences);
+  const gates = useBuiltEnvironmentStore((s) => s.gates);
+  const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
   const homesteadByProject = useHomesteadStore((s) => s.byProject);
   const homestead = projectId ? homesteadByProject[projectId] : undefined;
+  // Per-project sector wedge outer radius (metres). Falls back to
+  // DEFAULT_SECTOR_RADIUS_M when unset / non-finite / non-positive.
+  // Subscribed directly so a metadata edit triggers a re-render.
+  const sectorRadiusM = useProjectStore((s) => {
+    if (!projectId) return DEFAULT_SECTOR_RADIUS_M;
+    const v = s.projects.find((p) => p.id === projectId)?.metadata
+      ?.sectorRadiusM;
+    return typeof v === 'number' && Number.isFinite(v) && v > 0
+      ? v
+      : DEFAULT_SECTOR_RADIUS_M;
+  });
 
   const layerSpecs = useMemo<LayerSpec[]>(() => {
     if (!projectId) return [];
@@ -304,6 +404,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       );
       result.push({
         id: 'human-zones',
+        toggleKey: 'zones',
         data: { type: 'FeatureCollection', features: zoneFeatures },
         layers: [
           {
@@ -373,42 +474,120 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     }
 
     // ── Sectors (anchor on homestead, fall back to map center) ──────────────
+    // Partitioned into four groups (solar / wind / hazard / view) so the
+    // legend can gate them independently. Each non-empty group emits its own
+    // source + fill/line layer pair; click handlers (wireClick) pick up the
+    // new layer ids automatically because every feature still carries
+    // `annoKind: 'sector'` + `annoId`.
     const projectSectors = inProject(sectors);
     if (projectSectors.length) {
       const center = map.getCenter();
       const anchor: [number, number] = homestead ?? [center.lng, center.lat];
-      const sectorFeatures: GeoJSON.Feature[] = projectSectors.map((s) => ({
-        type: 'Feature',
-        properties: {
-          kind: s.type,
-          color: SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector,
-        },
-        geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, 250),
-      }));
-      result.push({
-        id: 'sectors',
-        data: { type: 'FeatureCollection', features: sectorFeatures },
-        layers: [
+      const grouped: Record<SectorGroup, GeoJSON.Feature[]> = {
+        solar: [],
+        wind: [],
+        hazard: [],
+        view: [],
+      };
+      for (const s of projectSectors) {
+        const g = SECTOR_GROUP[s.type];
+        // Wind wedges scale radius by intensity (Option B); other groups
+        // keep the uniform `sectorRadiusM` reach so solar arcs / hazard
+        // wedges / view cones still read as full-length sightlines.
+        const radius =
+          g === 'wind'
+            ? sectorRadiusM *
+              (INTENSITY_RADIUS_MULT[s.intensity ?? 'med'] ?? 0.7)
+            : sectorRadiusM;
+        const color = SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector;
+        grouped[g].push({
+          type: 'Feature',
+          properties: {
+            kind: s.type,
+            color,
+            annoKind: 'sector',
+            annoId: s.id,
+          },
+          geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, radius),
+        });
+        // Emit a label Point for wind only — mirrors the climatology rose's
+        // mid-wedge text. Label = compass + intensity (e.g. "NW · high").
+        if (g === 'wind') {
+          const labelDest = turf.destination(
+            turf.point(anchor),
+            (radius * 0.6) / 1000,
+            s.bearingDeg,
+            { units: 'kilometers' },
+          );
+          const compass = compassFromBearing(s.bearingDeg);
+          const intensityLabel = INTENSITY_LABEL[s.intensity ?? 'med'];
+          grouped[g].push({
+            type: 'Feature',
+            properties: {
+              kind: s.type,
+              color,
+              annoKind: 'sector',
+              annoId: s.id,
+              label: `${compass} · ${intensityLabel}`,
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: labelDest.geometry.coordinates as [number, number],
+            },
+          });
+        }
+      }
+      (Object.keys(grouped) as SectorGroup[]).forEach((group) => {
+        const features = grouped[group];
+        if (!features.length) return;
+        const layers: maplibregl.LayerSpecification[] = [
           {
-            id: `${LAYER_PREFIX}sectors-fill`,
+            id: `${LAYER_PREFIX}sectors-${group}-fill`,
             type: 'fill',
-            source: `${SOURCE_PREFIX}sectors`,
+            source: `${SOURCE_PREFIX}sectors-${group}`,
+            filter: ['==', ['geometry-type'], 'Polygon'],
             paint: {
               'fill-color': ['get', 'color'],
-              'fill-opacity': 0.16,
+              'fill-opacity': group === 'wind' ? 0.18 : 0.16,
             },
           },
           {
-            id: `${LAYER_PREFIX}sectors-line`,
+            id: `${LAYER_PREFIX}sectors-${group}-line`,
             type: 'line',
-            source: `${SOURCE_PREFIX}sectors`,
+            source: `${SOURCE_PREFIX}sectors-${group}`,
+            filter: ['==', ['geometry-type'], 'Polygon'],
             paint: {
               'line-color': ['get', 'color'],
-              'line-width': 1,
-              'line-opacity': 0.55,
+              'line-width': group === 'wind' ? 1.4 : 1,
+              'line-opacity': group === 'wind' ? 0.7 : 0.55,
             },
           },
-        ],
+        ];
+        if (group === 'wind') {
+          layers.push({
+            id: `${LAYER_PREFIX}sectors-wind-label`,
+            type: 'symbol',
+            source: `${SOURCE_PREFIX}sectors-wind`,
+            filter: ['==', ['geometry-type'], 'Point'],
+            layout: {
+              'text-field': ['get', 'label'],
+              'text-size': 11,
+              'text-allow-overlap': false,
+              'text-ignore-placement': false,
+            },
+            paint: {
+              'text-color': '#1f3340',
+              'text-halo-color': '#f2ede3',
+              'text-halo-width': 1.2,
+            },
+          });
+        }
+        result.push({
+          id: `sectors-${group}`,
+          toggleKey: GROUP_TOGGLE[group],
+          data: { type: 'FeatureCollection', features },
+          layers,
+        });
       });
     }
 
@@ -438,6 +617,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (topoLines.length) {
       result.push({
         id: 'topography-lines',
+        toggleKey: 'topography',
         data: { type: 'FeatureCollection', features: topoLines },
         layers: [
           {
@@ -483,6 +663,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (hpFeatures.length) {
       result.push({
         id: 'topography-points',
+        toggleKey: 'topography',
         data: { type: 'FeatureCollection', features: hpFeatures },
         layers: [
           {
@@ -515,6 +696,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     if (waterFeatures.length) {
       result.push({
         id: 'water-lines',
+        toggleKey: 'water',
         data: { type: 'FeatureCollection', features: waterFeatures },
         layers: [
           {
@@ -664,6 +846,218 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // ── Built Environment ──────────────────────────────────────────────────
+
+    // Buildings (polygons)
+    const buildingFeatures: GeoJSON.Feature[] = inProject(buildings).map((b) => ({
+      type: 'Feature',
+      properties: {
+        subtype: b.subtype,
+        label: b.label ?? '',
+        annoKind: 'building',
+        annoId: b.id,
+      },
+      geometry: b.geometry,
+    }));
+    if (buildingFeatures.length) {
+      result.push({
+        id: 'be-buildings',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: buildingFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-buildings-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}be-buildings`,
+            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.35 },
+          },
+          {
+            id: `${LAYER_PREFIX}be-buildings-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-buildings`,
+            paint: { 'line-color': '#3a3a3a', 'line-width': 1.2, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
+    // Wells (points)
+    const wellFeatures: GeoJSON.Feature[] = inProject(wells).map((w) => ({
+      type: 'Feature',
+      properties: { kind: w.kind, annoKind: 'well', annoId: w.id },
+      geometry: { type: 'Point', coordinates: w.position },
+    }));
+    if (wellFeatures.length) {
+      result.push({
+        id: 'be-wells',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: wellFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-wells`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}be-wells`,
+            paint: {
+              'circle-radius': 6,
+              'circle-color': '#3a8aa8',
+              'circle-stroke-color': '#1a4a5a',
+              'circle-stroke-width': 1.2,
+            },
+          },
+        ],
+      });
+    }
+
+    // Septic (polygons)
+    const septicFeatures: GeoJSON.Feature[] = inProject(septics).map((sp) => ({
+      type: 'Feature',
+      properties: { kind: sp.kind, annoKind: 'septic', annoId: sp.id },
+      geometry: sp.geometry,
+    }));
+    if (septicFeatures.length) {
+      result.push({
+        id: 'be-septics',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: septicFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-septics-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}be-septics`,
+            paint: { 'fill-color': '#7a6a3f', 'fill-opacity': 0.3 },
+          },
+          {
+            id: `${LAYER_PREFIX}be-septics-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-septics`,
+            paint: { 'line-color': '#4a3a2a', 'line-width': 1, 'line-opacity': 0.85 },
+          },
+        ],
+      });
+    }
+
+    // Power lines
+    const powerLineFeatures: GeoJSON.Feature[] = inProject(powerLines).map((p) => ({
+      type: 'Feature',
+      properties: { placement: p.placement, annoKind: 'powerLine', annoId: p.id },
+      geometry: p.geometry,
+    }));
+    if (powerLineFeatures.length) {
+      result.push({
+        id: 'be-power-lines',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: powerLineFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-power-lines`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-power-lines`,
+            paint: { 'line-color': '#c87a3f', 'line-width': 2, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
+    // Buried utilities
+    const buriedUtilityFeatures: GeoJSON.Feature[] = inProject(buriedUtilities).map(
+      (u) => ({
+        type: 'Feature',
+        properties: { kind: u.kind, annoKind: 'buriedUtility', annoId: u.id },
+        geometry: u.geometry,
+      }),
+    );
+    if (buriedUtilityFeatures.length) {
+      result.push({
+        id: 'be-buried-utilities',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: buriedUtilityFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-buried-utilities`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-buried-utilities`,
+            paint: {
+              'line-color': '#7a7a7a',
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+              'line-dasharray': [2, 2],
+            },
+          },
+        ],
+      });
+    }
+
+    // Fences
+    const fenceFeatures: GeoJSON.Feature[] = inProject(fences).map((f) => ({
+      type: 'Feature',
+      properties: { kind: f.kind, annoKind: 'fence', annoId: f.id },
+      geometry: f.geometry,
+    }));
+    if (fenceFeatures.length) {
+      result.push({
+        id: 'be-fences',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: fenceFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-fences`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-fences`,
+            paint: { 'line-color': '#5a4a3a', 'line-width': 1.2, 'line-opacity': 0.85 },
+          },
+        ],
+      });
+    }
+
+    // Gates (points)
+    const gateFeatures: GeoJSON.Feature[] = inProject(gates).map((g) => ({
+      type: 'Feature',
+      properties: { label: g.label ?? '', annoKind: 'gate', annoId: g.id },
+      geometry: { type: 'Point', coordinates: g.position },
+    }));
+    if (gateFeatures.length) {
+      result.push({
+        id: 'be-gates',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: gateFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-gates`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}be-gates`,
+            paint: {
+              'circle-radius': 5,
+              'circle-color': '#c4a265',
+              'circle-stroke-color': '#3a2a1a',
+              'circle-stroke-width': 1.2,
+            },
+          },
+        ],
+      });
+    }
+
+    // Existing driveways
+    const drivewayFeatures: GeoJSON.Feature[] = inProject(existingDriveways).map((d) => ({
+      type: 'Feature',
+      properties: { surface: d.surface, annoKind: 'existingDriveway', annoId: d.id },
+      geometry: d.geometry,
+    }));
+    if (drivewayFeatures.length) {
+      result.push({
+        id: 'be-driveways',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: drivewayFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-driveways`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-driveways`,
+            paint: { 'line-color': '#8a6a3f', 'line-width': 2.5, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
     return result;
   }, [
     projectId,
@@ -680,7 +1074,16 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     ecologyZones,
     swot,
     soilSamples,
+    buildings,
+    wells,
+    septics,
+    powerLines,
+    buriedUtilities,
+    fences,
+    gates,
+    existingDriveways,
     homestead,
+    sectorRadiusM,
     map,
   ]);
 
@@ -849,30 +1252,32 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
+        const specVisible =
+          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
         for (const layer of spec.layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer as AnnoLayer);
-          } else {
-            // Layer exists; refresh visibility based on master toggle.
-            map.setLayoutProperty(
-              layer.id,
-              'visibility',
-              visible ? 'visible' : 'none',
-            );
           }
+          map.setLayoutProperty(
+            layer.id,
+            'visibility',
+            specVisible ? 'visible' : 'none',
+          );
           // Click + cursor handlers: idempotent via Map<id, handler> guard.
           wireClick(layer.id);
         }
       }
 
-      // Apply visibility toggle to all our layers.
+      // Apply visibility toggle (master AND per-group) to all our layers.
       for (const spec of layerSpecs) {
+        const specVisible =
+          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
         for (const layer of spec.layers) {
           if (map.getLayer(layer.id)) {
             map.setLayoutProperty(
               layer.id,
               'visibility',
-              visible ? 'visible' : 'none',
+              specVisible ? 'visible' : 'none',
             );
           }
         }
@@ -951,22 +1356,29 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     map.on('styleimagemissing', onImageMissing);
 
     return () => {
-      map.off('style.load', onStyle);
-      map.off('styleimagemissing', onImageMissing);
-      map.off('click', onMapClick);
-      // Remove click/hover handlers per layer id so a re-render or unmount
-      // doesn't leave dangling listeners on stale layer ids.
-      for (const [layerId, h] of clickHandlers) {
-        map.off('click', layerId, h);
-      }
-      for (const [layerId, h] of dblHandlers) {
-        map.off('dblclick', layerId, h);
-      }
-      for (const [layerId, h] of enterHandlers) {
-        map.off('mouseenter', layerId, h);
-      }
-      for (const [layerId, h] of leaveHandlers) {
-        map.off('mouseleave', layerId, h);
+      // Wrap in try/catch: map.off() with a layerId argument accesses
+      // MapLibre internals that crash on a removed map (style already
+      // destroyed). Listener cleanup is best-effort on unmount.
+      try {
+        map.off('style.load', onStyle);
+        map.off('styleimagemissing', onImageMissing);
+        map.off('click', onMapClick);
+        // Remove click/hover handlers per layer id so a re-render or unmount
+        // doesn't leave dangling listeners on stale layer ids.
+        for (const [layerId, h] of clickHandlers) {
+          map.off('click', layerId, h);
+        }
+        for (const [layerId, h] of dblHandlers) {
+          map.off('dblclick', layerId, h);
+        }
+        for (const [layerId, h] of enterHandlers) {
+          map.off('mouseenter', layerId, h);
+        }
+        for (const [layerId, h] of leaveHandlers) {
+          map.off('mouseleave', layerId, h);
+        }
+      } catch {
+        // map already removed — nothing to clean up
       }
     };
     // layerSpecs is the memoised set of FeatureCollections + layer specs;
@@ -976,6 +1388,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     map,
     layerSpecs,
     visible,
+    sectorsVisible,
+    topographyVisible,
+    zonesVisible,
+    windVisible,
+    waterVisible,
+    hazardsVisible,
+    viewsVisible,
+    builtEnvironmentVisible,
     openDetail,
     haloData,
     setSelection,
@@ -987,20 +1407,28 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   useEffect(() => {
     return () => {
       if (!map) return;
-      const allLayers = map.getStyle()?.layers ?? [];
-      for (const l of allLayers) {
-        if (l.id.startsWith(LAYER_PREFIX) && map.getLayer(l.id)) {
-          map.removeLayer(l.id);
+      // Wrap in try/catch: DiagnoseMap may have already called map.remove()
+      // before this cleanup fires (timing races during route transitions mean
+      // the map can be in a half-destroyed state where getLayer() throws).
+      // Cleanup is best-effort — if the map is already gone, nothing to do.
+      try {
+        const allLayers = map.getStyle()?.layers ?? [];
+        for (const l of allLayers) {
+          if (l.id.startsWith(LAYER_PREFIX) && map.getLayer(l.id)) {
+            map.removeLayer(l.id);
+          }
         }
-      }
-      const sources = (map.getStyle()?.sources ?? {}) as Record<
-        string,
-        unknown
-      >;
-      for (const sid of Object.keys(sources)) {
-        if (sid.startsWith(SOURCE_PREFIX) && map.getSource(sid)) {
-          map.removeSource(sid);
+        const sources = (map.getStyle()?.sources ?? {}) as Record<
+          string,
+          unknown
+        >;
+        for (const sid of Object.keys(sources)) {
+          if (sid.startsWith(SOURCE_PREFIX) && map.getSource(sid)) {
+            map.removeSource(sid);
+          }
         }
+      } catch {
+        // map already removed — nothing to clean up
       }
     };
   }, [map]);

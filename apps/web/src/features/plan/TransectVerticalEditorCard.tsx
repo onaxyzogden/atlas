@@ -60,11 +60,21 @@ const STORAGE_DEFAULT_HEIGHT_M: Record<StorageInfra['type'], number> = {
   pond: 1.0,
   rain_garden: 0.5,
 };
+// Vertical default for each fertility-infra kind. The four "structural"
+// types stack visibly in the cross-section; the four vegetative/animal
+// practices added 2026-05-07 (cover-crop, chop-and-drop, dynamic
+// accumulator, rotational grazing) read at ground level — they are
+// processes, not built objects, so they default to a near-zero stack
+// height rather than introducing phantom canopy.
 const FERTILITY_DEFAULT_HEIGHT_M: Record<FertilityInfra['type'], number> = {
   composter: 1.5,
   hugelkultur: 1.2,
   biochar: 0.8,
   worm_bin: 0.5,
+  cover_crop: 0.3,
+  chop_and_drop: 0.1,
+  dynamic_accumulator: 1.0,
+  rotational_grazing: 0.1,
 };
 
 /** Approximate noon solar altitude (degrees) at solstice for a given lat. */

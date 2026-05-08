@@ -19,12 +19,19 @@ import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   Bird,
+  Cable,
+  DoorOpen,
+  Droplet,
   Eye,
+  Fence,
   Flame,
+  Home,
   MapPin,
   Mountain,
   PenLine,
   Pencil,
+  Recycle,
+  Route,
   Shield,
   ShieldAlert,
   Skull,
@@ -40,6 +47,7 @@ import {
   Volume2,
   Waves,
   Wind,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
@@ -78,6 +86,16 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'neighbour-pin',   label: 'Neighbour pin',       Icon: MapPin,   toolId: 'observe.human-context.neighbour-pin' },
     { id: 'steward',         label: 'Steward / household', Icon: Users,    toolId: 'observe.human-context.steward' },
     { id: 'access-road',     label: 'Access road',         Icon: Pencil,   toolId: 'observe.human-context.access-road' },
+  ],
+  'built-environment': [
+    { id: 'building',        label: 'Building',            Icon: Home,     toolId: 'observe.built-environment.building' },
+    { id: 'well',            label: 'Well',                Icon: Droplet,  toolId: 'observe.built-environment.well' },
+    { id: 'septic',          label: 'Septic / leach field',Icon: Recycle,  toolId: 'observe.built-environment.septic' },
+    { id: 'power-line',      label: 'Power line',          Icon: Zap,      toolId: 'observe.built-environment.power-line' },
+    { id: 'buried-utility',  label: 'Buried utility',      Icon: Cable,    toolId: 'observe.built-environment.buried-utility' },
+    { id: 'fence',           label: 'Fence',               Icon: Fence,    toolId: 'observe.built-environment.fence' },
+    { id: 'gate',            label: 'Gate',                Icon: DoorOpen, toolId: 'observe.built-environment.gate' },
+    { id: 'driveway',        label: 'Driveway',            Icon: Route,    toolId: 'observe.built-environment.driveway' },
   ],
   'macroclimate-hazards': [
     { id: 'frost-pocket',    label: 'Frost pocket',        Icon: Snowflake, toolId: 'observe.macroclimate-hazards.frost-pocket' },
@@ -165,6 +183,7 @@ export default function ObserveTools({
     <aside
       ref={toolboxRef}
       className={css.toolbox}
+      data-has-active={activeModule !== null}
       aria-label="Observe tools"
     >
       {OBSERVE_MODULES.map((mod) => {

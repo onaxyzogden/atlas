@@ -3,6 +3,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import * as turf from '@turf/turf';
 import css from '../MapToolbar.module.css';
+import { MAPLIBRE_DRAW_STYLES } from '../draw/mapboxDrawStyles.js';
 
 interface Props {
   map: MaplibreMap;
@@ -16,6 +17,7 @@ export default function AreaTool({ map }: Props) {
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
+      styles: MAPLIBRE_DRAW_STYLES,
     });
     map.addControl(draw);
     draw.changeMode('draw_polygon');

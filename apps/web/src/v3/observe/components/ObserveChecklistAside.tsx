@@ -3,16 +3,22 @@
  *
  * Replaces the legacy static checklist with module-aware WHY/HOW/Pitfall cards
  * grounded in a 2026-05-06 Permaculture Scholar dialogue (Holmgren P1–P7,
- * Mollison Designer's Manual ch.2, OSU PDC). When a module is active, only
- * its card is shown; at the Observe landing (no module), all six render in
- * a stacked accordion-style column.
+ * Mollison Designer's Manual ch.2, OSU PDC). Cards delegate to the shared
+ * `<GuidanceCard>`; this file owns the Observe-specific guidance copy and the
+ * per-module dot palette.
  *
  * Source: notebook 5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b, conversation
  * 48a34396-5525-4a57-9884-108d93b1872f, turn 1.
  */
 
+import { useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
+import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
+import {
+  GuidanceCard,
+  type GuidanceCardData,
+} from '../../_shared/components/GuidanceCard.js';
 import {
   OBSERVE_MODULES,
   OBSERVE_MODULE_LABEL,
@@ -21,24 +27,13 @@ import {
 import css from './ObserveChecklistAside.module.css';
 
 /**
- * Stable empty-array reference for the GuidanceCard zustand selector.
- * DO NOT inline `?? []` inside the selector — zustand uses `Object.is`
- * for change detection and a fresh `[]` literal each render produces an
- * infinite re-render loop ("Maximum update depth exceeded").
+ * Stable empty-array reference for the zustand selector. DO NOT inline `?? []`
+ * inside the selector — zustand uses `Object.is` for change detection and a
+ * fresh `[]` literal each render produces an infinite re-render loop.
  */
 const EMPTY_CHECKS: readonly number[] = [];
 
-interface ObserveChecklistAsideProps {
-  activeModule: ObserveModule | null;
-}
-
-interface ModuleGuidance {
-  why: string;
-  how: string[];
-  pitfall: string;
-}
-
-const MODULE_GUIDANCE: Record<ObserveModule, ModuleGuidance> = {
+const MODULE_GUIDANCE: Record<ObserveModule, GuidanceCardData> = {
   'human-context': {
     why: 'Observe and Interact (Holmgren P1) begins with understanding the cultural, social, and economic climate of the human residents, who are the beating heart of the system (OSU PDC, Week 1).',
     how: [
@@ -48,6 +43,17 @@ const MODULE_GUIDANCE: Record<ObserveModule, ModuleGuidance> = {
     ],
     pitfall:
       'Do not design new paths yet; only map current existing human access and interaction.',
+  },
+  'built-environment': {
+    why: 'Existing infrastructure shapes what design moves are even possible — a buried gas line vetoes earthworks across it, a strong well sets your irrigation budget, fence lines define livestock subdivision options.',
+    how: [
+      'Trace buildings and outbuildings.',
+      'Mark wells (with depth/flow if known) and septic systems.',
+      'Sketch power lines and buried utilities; walk the fence lines.',
+      'Drop gates and trace existing driveways.',
+    ],
+    pitfall:
+      'Don’t skip "invisible" assets — buried lines and utility easements bind the design more than visible structures.',
   },
   'macroclimate-hazards': {
     why: 'Catching and storing energy (Holmgren P2) requires first identifying major local forces, like fire and flood, that must be deflected to protect the site’s vitality (OSU PDC, Sectors/Hazards).',
@@ -98,16 +104,43 @@ const MODULE_GUIDANCE: Record<ObserveModule, ModuleGuidance> = {
   },
 };
 
-function GuidanceCard({
+/** Per-module dot palette. Mirrors the legacy `[data-module='...']` rules
+ *  formerly carried by ObserveChecklistAside.module.css. */
+const OBSERVE_MODULE_DOT: Record<ObserveModule, string> = {
+  'human-context': '#5dd39e',
+  'built-environment': '#8a8e94',
+  'macroclimate-hazards': '#e6c34a',
+  topography: '#8bd16a',
+  'earth-water-ecology': '#5fc7d4',
+  'sectors-zones': '#d68bd0',
+  'swot-synthesis': '#e88aa4',
+};
+
+interface ObserveChecklistAsideProps {
+  activeModule: ObserveModule | null;
+  onSelectModule: (module: ObserveModule | null) => void;
+  slideUpOpen: boolean;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
+}
+
+function ObserveGuidanceCard({
   module,
   active,
   projectId,
+  slideUpOpen,
+  onSelectModule,
+  onOpenSlideUp,
+  onCloseSlideUp,
 }: {
   module: ObserveModule;
   active: boolean;
   projectId: string | null;
+  slideUpOpen: boolean;
+  onSelectModule: (module: ObserveModule | null) => void;
+  onOpenSlideUp: () => void;
+  onCloseSlideUp: () => void;
 }) {
-  const guidance = MODULE_GUIDANCE[module];
   const checkedList = useObserveHowChecksStore(
     (s) =>
       (projectId ? s.byProject[projectId]?.[module] : null) ?? EMPTY_CHECKS,
@@ -115,66 +148,53 @@ function GuidanceCard({
   const toggle = useObserveHowChecksStore((s) => s.toggle);
 
   return (
-    <section
-      className={`${css.group} ${active ? css.groupActive : ''}`}
-      data-module={module}
-    >
-      <header className={css.groupHeader}>
-        <span className={css.dot} aria-hidden="true" />
-        <span className={css.groupLabel}>{OBSERVE_MODULE_LABEL[module]}</span>
-      </header>
-      <p className={css.why}>{guidance.why}</p>
-      <div className={css.howBlock}>
-        <span className={css.blockLabel}>How</span>
-        <ul className={css.howList}>
-          {guidance.how.map((step, i) => {
-            const checked = checkedList.includes(i);
-            return (
-              <li key={i} className={css.howItem}>
-                <label
-                  className={`${css.howCheck} ${checked ? css.howCheckDone : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    disabled={!projectId}
-                    onChange={() => projectId && toggle(projectId, module, i)}
-                  />
-                  <span className={css.howText}>{step}</span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-      <div className={css.pitfall}>
-        <span className={css.blockLabel}>Pitfall</span>
-        <p className={css.pitfallText}>{guidance.pitfall}</p>
-      </div>
-    </section>
+    <GuidanceCard
+      moduleKey={module}
+      label={OBSERVE_MODULE_LABEL[module]}
+      dotColor={OBSERVE_MODULE_DOT[module]}
+      active={active}
+      slideUpOpen={slideUpOpen}
+      guidance={MODULE_GUIDANCE[module]}
+      checkedList={checkedList}
+      onToggle={(i) => projectId && toggle(projectId, module, i)}
+      onSelect={() => onSelectModule(module)}
+      onOpenSlideUp={onOpenSlideUp}
+      onCloseSlideUp={onCloseSlideUp}
+      checksDisabled={!projectId}
+    />
   );
 }
 
 export default function ObserveChecklistAside({
   activeModule,
+  onSelectModule,
+  slideUpOpen,
+  onOpenSlideUp,
+  onCloseSlideUp,
 }: ObserveChecklistAsideProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
-  if (activeModule) {
-    return (
-      <aside className={css.checklistBox} aria-label="Observe guidance">
-        <GuidanceCard module={activeModule} active projectId={projectId} />
-      </aside>
-    );
-  }
+
+  const asideRef = useRef<HTMLElement | null>(null);
+  useAutoScrollToActiveModule(activeModule, asideRef);
+
   return (
-    <aside className={css.checklistBox} aria-label="Observe guidance">
+    <aside
+      ref={asideRef}
+      className={css.checklistBox}
+      data-has-active={activeModule !== null}
+      aria-label="Observe guidance"
+    >
       {OBSERVE_MODULES.map((mod) => (
-        <GuidanceCard
+        <ObserveGuidanceCard
           key={mod}
           module={mod}
-          active={false}
+          active={mod === activeModule}
           projectId={projectId}
+          slideUpOpen={slideUpOpen}
+          onSelectModule={onSelectModule}
+          onOpenSlideUp={onOpenSlideUp}
+          onCloseSlideUp={onCloseSlideUp}
         />
       ))}
     </aside>

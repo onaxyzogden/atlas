@@ -53,6 +53,10 @@ export const ProjectMetadata = z.object({
   // Human-context fields captured by intake wizard / steward survey
   stewardName: z.string().max(200).optional(),
   visionStatement: z.string().max(2000).optional(),
+  // OBSERVE sector wedge outer radius in metres. Falls back to
+  // DEFAULT_SECTOR_RADIUS_M (250) when unset. 5 km cap is a sanity
+  // ceiling well past any plausible permaculture-scale parcel.
+  sectorRadiusM: z.number().positive().max(5000).optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

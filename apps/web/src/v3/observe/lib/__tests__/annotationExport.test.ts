@@ -8,6 +8,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import * as turf from '@turf/turf';
 import {
   collectProjectAnnotations,
   exportFilename,
@@ -15,6 +16,10 @@ import {
   toGeoJSON,
   toKML,
 } from '../annotationExport.js';
+import {
+  DEFAULT_SECTOR_RADIUS_M,
+  getSectorRadiusM,
+} from '../sectorRadius.js';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
@@ -22,6 +27,7 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useProjectStore } from '../../../../store/projectStore.js';
 
 const PROJECT = 'export-test-project';
 const OTHER = 'other-project';
@@ -48,6 +54,7 @@ function reset(): void {
   useEcologyStore.setState({ ecology: [], ecologyZones: [] });
   useSwotStore.setState({ swot: [] });
   useSoilSampleStore.setState({ samples: [] });
+  useProjectStore.setState({ projects: [] });
 }
 
 beforeEach(reset);
@@ -205,11 +212,10 @@ describe('annotationExport — sector wedge synthesis', () => {
     useExternalForcesStore.setState({
       hazards: [],
       sectors: [
-        // @ts-expect-error - minimal seed shape
         {
           id: 'sec1',
           projectId: PROJECT,
-          type: 'sun',
+          type: 'sun_summer',
           bearingDeg: 180,
           arcDeg: 60,
         },
@@ -241,11 +247,10 @@ describe('annotationExport — sector wedge synthesis', () => {
     useExternalForcesStore.setState({
       hazards: [],
       sectors: [
-        // @ts-expect-error - minimal seed shape
         {
           id: 'sec-orphan',
           projectId: PROJECT,
-          type: 'wind',
+          type: 'wind_prevailing',
           bearingDeg: 90,
           arcDeg: 45,
         },
@@ -268,6 +273,290 @@ describe('annotationExport — sector wedge synthesis', () => {
       .find((l) => l.startsWith('sec-orphan'));
     expect(sectorLine).toBeTruthy();
     expect(sectorLine!.endsWith(',')).toBe(true);
+  });
+});
+
+describe('annotationExport — configurable sector radius', () => {
+  it('honours metadata.sectorRadiusM when synthesising sector wedges', () => {
+    const anchor: [number, number] = [-78.2, 44.5];
+    useProjectStore.setState({
+      projects: [
+        // @ts-expect-error - minimal seed shape; passthrough() metadata
+        {
+          id: PROJECT,
+          name: 'Test',
+          metadata: { sectorRadiusM: 500 },
+          attachments: [],
+        },
+      ],
+    });
+    useHumanContextStore.setState({
+      // @ts-expect-error - minimal seed shape
+      households: [{ id: 'hh1', projectId: PROJECT, position: anchor }],
+      neighbours: [],
+      accessRoads: [],
+      permacultureZones: [],
+    });
+    useExternalForcesStore.setState({
+      hazards: [],
+      sectors: [
+        {
+          id: 'sec1',
+          projectId: PROJECT,
+          type: 'sun_summer',
+          bearingDeg: 180,
+          arcDeg: 60,
+        },
+      ],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const sectorFeature = fc.features.find(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'sector',
+    );
+    expect(sectorFeature).toBeTruthy();
+    const ring = (sectorFeature!.geometry as GeoJSON.Polygon).coordinates[0]!;
+    // ring[0] is the apex (anchor) — pick a non-apex vertex along the arc.
+    const arcVertex = ring[Math.floor(ring.length / 2)]!;
+    const distM =
+      turf.distance(turf.point(anchor), turf.point(arcVertex), {
+        units: 'kilometers',
+      }) * 1000;
+    expect(distM).toBeGreaterThanOrEqual(480);
+    expect(distM).toBeLessThanOrEqual(520);
+  });
+
+  it('getSectorRadiusM falls back to DEFAULT_SECTOR_RADIUS_M for invalid values', () => {
+    expect(DEFAULT_SECTOR_RADIUS_M).toBe(250);
+    // No project at all.
+    expect(getSectorRadiusM(null)).toBe(250);
+    expect(getSectorRadiusM(undefined)).toBe(250);
+    expect(getSectorRadiusM('missing-project')).toBe(250);
+
+    const cases: Array<unknown> = [
+      undefined,
+      Number.NaN,
+      0,
+      -100,
+      Number.POSITIVE_INFINITY,
+      'not a number',
+      null,
+    ];
+    for (const v of cases) {
+      useProjectStore.setState({
+        projects: [
+          // @ts-expect-error - minimal seed shape; passthrough() metadata
+          { id: PROJECT, name: 'Test', metadata: { sectorRadiusM: v }, attachments: [] },
+        ],
+      });
+      expect(getSectorRadiusM(PROJECT)).toBe(250);
+    }
+
+    // Missing metadata entirely.
+    useProjectStore.setState({
+      // @ts-expect-error - minimal seed shape
+      projects: [{ id: PROJECT, name: 'Test', attachments: [] }],
+    });
+    expect(getSectorRadiusM(PROJECT)).toBe(250);
+  });
+});
+
+describe('annotationExport — permacultureZone + ecologyObservation spatial export', () => {
+  it('expands a permacultureZone into six concentric Polygon Features in GeoJSON', () => {
+    const anchor: [number, number] = [-78.2, 44.5];
+    const radii = [10, 20, 30, 40, 50, 60] as const;
+    useHumanContextStore.setState({
+      neighbours: [],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [
+        {
+          id: 'pz1',
+          projectId: PROJECT,
+          ringRadiiM: [...radii] as [number, number, number, number, number, number],
+          anchorPoint: anchor,
+          createdAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const zoneFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'permacultureZone',
+    );
+    expect(zoneFeatures.length).toBe(6);
+    // Each feature carries its ring index + radius and is a Polygon.
+    const seenRings = new Set<number>();
+    for (const f of zoneFeatures) {
+      expect(f.geometry.type).toBe('Polygon');
+      const props = f.properties as { ring?: number; radiusM?: number };
+      expect(typeof props.ring).toBe('number');
+      expect(radii).toContain(props.radiusM as (typeof radii)[number]);
+      seenRings.add(props.ring!);
+    }
+    expect(seenRings.size).toBe(6);
+
+    // Ring 5 (60 m) outer vertex should be ~60 m from the anchor.
+    const ring5 = zoneFeatures.find(
+      (f) => (f.properties as { ring?: number }).ring === 5,
+    )!;
+    const outerRing = (ring5.geometry as GeoJSON.Polygon).coordinates[0]!;
+    const vertex = outerRing[Math.floor(outerRing.length / 2)]!;
+    const distM =
+      turf.distance(turf.point(anchor), turf.point(vertex), {
+        units: 'kilometers',
+      }) * 1000;
+    expect(distM).toBeGreaterThanOrEqual(55);
+    expect(distM).toBeLessThanOrEqual(65);
+  });
+
+  it('emits a permacultureZone CSV row with MULTIPOLYGON WKT covering all six rings', () => {
+    useHumanContextStore.setState({
+      neighbours: [],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [
+        {
+          id: 'pz1',
+          projectId: PROJECT,
+          ringRadiiM: [10, 20, 30, 40, 50, 60],
+          anchorPoint: [-78.2, 44.5],
+          createdAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+    });
+
+    const csv = toCSV(collectProjectAnnotations(PROJECT));
+    expect(csv).toContain('# kind: permacultureZone');
+    const zoneLine = csv.split('\n').find((l) => l.startsWith('pz1'));
+    expect(zoneLine).toBeTruthy();
+    // The WKT cell holds all six rings as one MULTIPOLYGON; CSV-escaping
+    // wraps the cell in double quotes because it contains commas.
+    expect(zoneLine!.toUpperCase()).toContain('MULTIPOLYGON(((');
+    // Six "((" tokens indicate six polygon outer rings inside the
+    // MULTIPOLYGON. Count without overlap.
+    const matches = zoneLine!.match(/\(\(/g) ?? [];
+    expect(matches.length).toBe(6);
+  });
+
+  it('emits six Placemarks under the Permaculture zone folder in KML', () => {
+    useHumanContextStore.setState({
+      neighbours: [],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [
+        {
+          id: 'pz1',
+          projectId: PROJECT,
+          ringRadiiM: [10, 20, 30, 40, 50, 60],
+          anchorPoint: [-78.2, 44.5],
+          createdAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+    });
+
+    const xml = toKML(collectProjectAnnotations(PROJECT));
+    // Slice out the Permaculture zone folder and count placemarks inside.
+    const folderMatch = xml.match(
+      /<Folder><name>Permaculture zone<\/name>(.*?)<\/Folder>/,
+    );
+    expect(folderMatch).toBeTruthy();
+    const folderInner = folderMatch![1]!;
+    const placemarkCount = (folderInner.match(/<Placemark/g) ?? []).length;
+    expect(placemarkCount).toBe(6);
+    // Per-ring placemark name carries Zone N annotation.
+    expect(folderInner).toContain('Zone 0');
+    expect(folderInner).toContain('Zone 5');
+  });
+
+  it('emits a Point Feature for an ecologyObservation with location set', () => {
+    const loc: [number, number] = [-78.2, 44.5];
+    useEcologyStore.setState({
+      ecology: [
+        {
+          id: 'eo-located',
+          projectId: PROJECT,
+          species: 'oak',
+          trophicLevel: 'producer',
+          location: loc,
+          observedAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+      ecologyZones: [],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const ecoFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'ecologyObservation',
+    );
+    expect(ecoFeatures.length).toBe(1);
+    const geom = ecoFeatures[0]!.geometry as GeoJSON.Point;
+    expect(geom.type).toBe('Point');
+    expect(geom.coordinates[0]).toBeCloseTo(loc[0]);
+    expect(geom.coordinates[1]).toBeCloseTo(loc[1]);
+
+    const csv = toCSV(collectProjectAnnotations(PROJECT));
+    const ecoLine = csv.split('\n').find((l) => l.startsWith('eo-located'));
+    expect(ecoLine).toBeTruthy();
+    expect(ecoLine!.toUpperCase()).toContain('POINT(-78.2 44.5)');
+  });
+
+  it('omits a locationless ecologyObservation from GeoJSON / KML but keeps it in CSV', () => {
+    useEcologyStore.setState({
+      ecology: [
+        {
+          id: 'eo-orphan',
+          projectId: PROJECT,
+          species: 'oak',
+          trophicLevel: 'producer',
+          observedAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+      ecologyZones: [],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const ecoFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'ecologyObservation',
+    );
+    expect(ecoFeatures.length).toBe(0);
+
+    const xml = toKML(collectProjectAnnotations(PROJECT));
+    expect(xml).not.toContain('Ecology observation');
+
+    const csv = toCSV(collectProjectAnnotations(PROJECT));
+    expect(csv).toContain('# kind: ecologyObservation');
+    const ecoLine = csv.split('\n').find((l) => l.startsWith('eo-orphan'));
+    expect(ecoLine).toBeTruthy();
+    expect(ecoLine!.endsWith(',')).toBe(true);
+  });
+
+  it('skips zero / negative radii within a permacultureZone but emits the rest', () => {
+    useHumanContextStore.setState({
+      neighbours: [],
+      households: [],
+      accessRoads: [],
+      permacultureZones: [
+        {
+          id: 'pz1',
+          projectId: PROJECT,
+          // Ring 1 is zero, ring 4 is negative — both should be skipped.
+          ringRadiiM: [10, 0, 30, 40, -50, 60],
+          anchorPoint: [-78.2, 44.5],
+          createdAt: '2026-05-07T00:00:00Z',
+        },
+      ],
+    });
+
+    const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
+    const zoneFeatures = fc.features.filter(
+      (f) => (f.properties as { kind?: string } | null)?.kind === 'permacultureZone',
+    );
+    expect(zoneFeatures.length).toBe(4);
+    const rings = zoneFeatures
+      .map((f) => (f.properties as { ring?: number }).ring)
+      .sort();
+    expect(rings).toEqual([0, 2, 3, 5]);
   });
 });
 

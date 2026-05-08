@@ -9,11 +9,13 @@
  * so the header and main content tree both see the same context.
  */
 
+import { useEffect } from "react";
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
 import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
+import { useProjectStore } from "../store/projectStore.js";
 import type { LifecycleStage } from "./types.js";
 import { isObserveModule, type ObserveModule } from "./observe/types.js";
 import css from "./V3ProjectLayout.module.css";
@@ -53,16 +55,29 @@ function activeFromPath(pathname: string): ActiveRoute {
   return { stage: "home" };
 }
 
+// Stages that own their own right rail via StageShell.rightRail. The outer
+// LandOsShell rail track is omitted entirely on these routes.
+const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "plan", "act"]);
+
 export default function V3ProjectLayout() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const project = useV3Project(params.projectId);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { stage, module } = activeFromPath(pathname);
 
+  const setActiveProject = useProjectStore((s) => s.setActiveProject);
+  useEffect(() => {
+    if (params.projectId) setActiveProject(params.projectId);
+  }, [params.projectId, setActiveProject]);
+
+  const rail = SELF_RAILED_STAGES.has(stage)
+    ? undefined
+    : <DecisionRail stage={stage} project={project} activeModule={module} />;
+
   return (
     <LandOsShell
       sidebar={<V3LifecycleSidebar activeStage={stage} />}
-      rail={<DecisionRail stage={stage} project={project} activeModule={module} />}
+      rail={rail}
     >
       <div className={css.frame}>
         <div className={css.outletHost}>

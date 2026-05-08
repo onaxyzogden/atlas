@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import {
   ArrowRight,
   CalendarDays,
@@ -8,27 +9,71 @@ import {
   Sun,
   TriangleAlert,
   Wind,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
+import { SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
-import monthlyClimate from '../../assets/macroclimate-dashboard/monthly-climate.png';
-import sunPath from '../../assets/macroclimate-dashboard/sun-path.png';
-import hazardMatrix from '../../assets/macroclimate-dashboard/hazard-risk-matrix.png';
-import hazardHotspots from '../../assets/macroclimate-dashboard/hazard-hotspots.png';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useHazardsStore } from '../../../../store/hazardsStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import MonthlyClimateChart from './MonthlyClimateChart.js';
+import SunPathDiagram from './SunPathDiagram.js';
+import HazardRiskMatrix from './HazardRiskMatrix.js';
+import HazardHotspotsMap from './HazardHotspotsMap.js';
+import {
+  climateKpis,
+  hazardCounts,
+  polygonCentroid,
+  riskLabel,
+  solarOpportunities,
+  statusLabel,
+  topRiskPriorities,
+  type KpiItem,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
+  snowflake: Snowflake,
+  droplet: Droplet,
+  alert: TriangleAlert,
+  calendar: CalendarDays,
+  sun: Sun,
+  wind: Wind,
+  shield: ShieldCheck,
+};
 
 export default function MacroclimateDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+  const ensureHazards = useHazardsStore((s) => s.ensureDefaults);
+  const allByProject = useHazardsStore((s) => s.byProject);
+  const hazards = useMemo(
+    () => allByProject.find((p) => p.projectId === id)?.hazards ?? [],
+    [allByProject, id],
+  );
+
+  useEffect(() => {
+    ensureHazards(id);
+  }, [id, ensureHazards]);
+
+  const centroid = polygonCentroid(project?.location?.boundary);
+
   return (
     <div className="detail-page macroclimate-page">
       <section className="macroclimate-layout">
         <div className="macroclimate-main">
           <MacroHeader />
-          <MacroKpis />
-          <SolarClimateCard />
-          <HazardsCard />
+          <MacroKpis layers={layers} hazards={hazards} />
+          <SolarClimateCard layers={layers} lat={centroid?.lat ?? null} />
+          <HazardsCard
+            hazards={hazards}
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+          />
           <AnnotationListCard
             title="Field annotations"
             projectId={projectId ?? null}
@@ -36,7 +81,7 @@ export default function MacroclimateDashboard() {
             emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
           />
         </div>
-        <MacroSidebar />
+        <MacroSidebar hazards={hazards} />
       </section>
     </div>
   );
@@ -52,45 +97,54 @@ function MacroHeader() {
         this foundation to design resilient systems that work with your environment, not against
         it.
       </p>
-      <b>Data complete</b>
     </header>
   );
 }
 
-function MacroKpis() {
-  const items: Array<[LucideIcon, string, string, string, string]> = [
-    [Snowflake, 'Hardiness zone', '5b', 'USDA', 'blue'],
-    [Droplet, 'Annual precip', '870 mm', 'Average', 'blue'],
-    [TriangleAlert, 'Logged hazards', '3', 'Active', 'gold'],
-    [CalendarDays, 'Frost-free days', '155', 'Average', 'green'],
-    [Sun, 'Avg. solar exposure', '5.4 kWh/m2/day', 'Annual average', 'gold'],
-    [Wind, 'Prevailing wind', 'NW', '12 km/h avg.', 'green'],
-    [Droplet, 'Seasonal water stress', 'Low-Moderate', 'Jun-Aug', 'green'],
+interface MacroKpisProps {
+  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
+  hazards: ReturnType<ReturnType<typeof useHazardsStore.getState>['getHazards']>;
+}
+
+function MacroKpis({ layers, hazards }: MacroKpisProps) {
+  const climateItems = climateKpis(layers).slice(0, 6);
+  const counts = hazardCounts(hazards);
+  const items: KpiItem[] = [
+    ...climateItems,
+    {
+      iconKey: 'alert',
+      label: 'Logged hazards',
+      value: counts.total === 0 ? '—' : String(counts.active),
+      note: counts.total === 0 ? 'None yet' : `${counts.total} total`,
+      tone: counts.highRisk > 0 ? 'red' : 'gold',
+    },
   ];
 
   return (
     <section className="macro-kpi-grid">
-      {items.map(([Icon, label, value, note, tone]) => (
-        <SurfaceCard className={`macro-kpi-card ${tone}`} key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </SurfaceCard>
-      ))}
+      {items.map((item) => {
+        const Icon = ICON_MAP[item.iconKey];
+        return (
+          <SurfaceCard className={`macro-kpi-card ${item.tone}`} key={item.label}>
+            <Icon aria-hidden="true" />
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.note}</small>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
 
-function SolarClimateCard() {
+interface SolarClimateCardProps {
+  layers: MacroKpisProps['layers'];
+  lat: number | null;
+}
+
+function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
   const nav = useDetailNav();
-  const opportunities: Array<[string, string]> = [
-    ['Passive solar gain', 'High in winter'],
-    ['Shade for cooling', 'Important Jun-Aug'],
-    ['Rainwater harvesting', 'High yield potential'],
-    ['Wind protection', 'NW winds in winter'],
-    ['Season extension', 'Long shoulder seasons'],
-  ];
+  const opportunities = solarOpportunities(layers);
 
   return (
     <SurfaceCard className="macro-section-card solar-card">
@@ -104,22 +158,18 @@ function SolarClimateCard() {
             opportunities for passive design and productivity.
           </p>
         </div>
-        <button
-          className="green-button"
-          type="button"
-          onClick={() => nav.push('solar-climate')}
-        >
+        <button className="green-button" type="button" onClick={() => nav.push('solar-climate')}>
           Open page <ArrowRight aria-hidden="true" />
         </button>
       </header>
       <div className="solar-grid">
         <div>
           <h3>Average Monthly Climate</h3>
-          <CroppedArt src={monthlyClimate} className="macro-chart monthly-chart" />
+          <MonthlyClimateChart layers={layers} />
         </div>
         <div>
-          <h3>Sun path (Summer solstice)</h3>
-          <CroppedArt src={sunPath} className="macro-chart sun-chart" />
+          <h3>Sun path</h3>
+          <SunPathDiagram lat={lat} />
         </div>
         <SurfaceCard className="climate-opportunities">
           <h3>Climate opportunities</h3>
@@ -143,13 +193,15 @@ function SolarClimateCard() {
   );
 }
 
-function HazardsCard() {
+interface HazardsCardProps {
+  hazards: ReturnType<ReturnType<typeof useHazardsStore.getState>['getHazards']>;
+  boundary?: GeoJSON.Polygon;
+  caption?: string;
+}
+
+function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
   const nav = useDetailNav();
-  const rows: Array<[string, string, string, string, string]> = [
-    ['Late spring frost', 'High', 'Up', 'In progress', '60%'],
-    ['Intense storm / wind', 'High', 'Right', 'Planned', '25%'],
-    ['Summer drought', 'Moderate', 'Up', 'Monitoring', '40%'],
-  ];
+  const top = topRiskPriorities(hazards).slice(0, 3);
 
   return (
     <SurfaceCard className="macro-section-card hazards-card">
@@ -160,37 +212,37 @@ function HazardsCard() {
           </h2>
           <p>Review natural hazards, risk levels, and mitigation strategies for your site.</p>
         </div>
-        <button
-          className="green-button"
-          type="button"
-          onClick={() => nav.push('hazards-log')}
-        >
+        <button className="green-button" type="button" onClick={() => nav.push('hazards-log')}>
           Open page <ArrowRight aria-hidden="true" />
         </button>
       </header>
       <div className="hazards-grid">
         <div>
           <h3>Hazard risk matrix</h3>
-          <CroppedArt src={hazardMatrix} className="macro-chart hazard-matrix-image" />
+          <HazardRiskMatrix hazards={hazards} />
         </div>
         <div>
           <h3>Hazard hotspots</h3>
-          <CroppedArt src={hazardHotspots} className="macro-chart hazard-hotspots-image" />
+          <HazardHotspotsMap boundary={boundary} caption={caption} hazards={hazards} />
         </div>
         <SurfaceCard className="active-hazards-table">
           <h3>Active hazards</h3>
-          {rows.map(([hazard, risk, trend, mitigation, status], index) => (
-            <p key={hazard}>
-              <b>{index + 1}</b>
-              <span>
-                {hazard}
-                <small>{risk} risk</small>
-              </span>
-              <em>{trend}</em>
-              <strong>{mitigation}</strong>
-              <i>{status}</i>
-            </p>
-          ))}
+          {top.length > 0 ? (
+            top.map((h, index) => (
+              <p key={h.id}>
+                <b>{index + 1}</b>
+                <span>
+                  {h.label}
+                  <small>{riskLabel(h.risk)} risk</small>
+                </span>
+                <em>{h.trend}</em>
+                <strong>{h.mitigationPct}%</strong>
+                <i>{statusLabel(h.status)}</i>
+              </p>
+            ))
+          ) : (
+            <p className="empty-note">No hazards logged yet.</p>
+          )}
         </SurfaceCard>
       </div>
       <button
@@ -204,7 +256,13 @@ function HazardsCard() {
   );
 }
 
-function MacroSidebar() {
+interface MacroSidebarProps {
+  hazards: HazardsCardProps['hazards'];
+}
+
+function MacroSidebar({ hazards }: MacroSidebarProps) {
+  const top = topRiskPriorities(hazards).slice(0, 3);
+
   return (
     <aside className="macro-sidebar">
       <SurfaceCard className="macro-insights-card">
@@ -212,9 +270,8 @@ function MacroSidebar() {
         <h3>Key takeaways</h3>
         {[
           'Cool temperate climate with strong seasonality and good precipitation.',
-          'High winter solar access - design for passive solar gain.',
-          'NW winds and late frosts are primary design constraints.',
-          'Low-moderate summer water stress - prioritize water storage and soil moisture.',
+          'Design for passive solar gain, wind protection, and water capture.',
+          'Frost windows shape planting timing and protective infrastructure.',
         ].map((item) => (
           <p key={item}>
             <CheckCircle2 aria-hidden="true" />
@@ -234,11 +291,15 @@ function MacroSidebar() {
         ))}
         <section className="risk-priorities">
           <h3>Top risk priorities</h3>
-          <ol>
-            <li>Late spring frost</li>
-            <li>Intense storm / wind</li>
-            <li>Summer drought</li>
-          </ol>
+          {top.length > 0 ? (
+            <ol>
+              {top.map((h) => (
+                <li key={h.id}>{h.label}</li>
+              ))}
+            </ol>
+          ) : (
+            <p className="empty-note">No hazards logged yet.</p>
+          )}
         </section>
         <button className="green-button" type="button">
           Go to next: Site Analysis <ArrowRight aria-hidden="true" />

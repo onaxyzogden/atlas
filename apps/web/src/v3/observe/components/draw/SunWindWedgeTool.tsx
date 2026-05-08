@@ -17,6 +17,7 @@ import {
 } from '../../../../store/externalForcesStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { bearingFromPoints } from '../../utils/sectorMath.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -54,23 +55,6 @@ const TYPE_DEFAULTS: Record<
   wildlife: { bearingDeg: 0, arcDeg: 30 },
   view: { bearingDeg: 0, arcDeg: 60 },
 };
-
-function bearingFromPoints(
-  fromLng: number,
-  fromLat: number,
-  toLng: number,
-  toLat: number,
-): number {
-  const φ1 = (fromLat * Math.PI) / 180;
-  const φ2 = (toLat * Math.PI) / 180;
-  const Δλ = ((toLng - fromLng) * Math.PI) / 180;
-  const y = Math.sin(Δλ) * Math.cos(φ2);
-  const x =
-    Math.cos(φ1) * Math.sin(φ2) -
-    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-  const θ = Math.atan2(y, x);
-  return ((θ * 180) / Math.PI + 360) % 360;
-}
 
 export default function SunWindWedgeTool({
   map,

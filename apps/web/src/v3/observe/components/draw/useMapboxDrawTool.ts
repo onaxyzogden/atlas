@@ -22,6 +22,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import { MAPLIBRE_DRAW_STYLES } from './mapboxDrawStyles.js';
 
 export type DrawMode = 'draw_point' | 'draw_line_string' | 'draw_polygon';
 
@@ -58,6 +59,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
+      styles: MAPLIBRE_DRAW_STYLES,
     });
     map.addControl(draw);
     // MapboxDraw's `changeMode` is typed as a string-literal overload that
@@ -71,9 +73,20 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
           ? 'LineString'
           : 'Polygon';
 
-    const onCreate = () => {
-      const all = draw.getAll();
-      const feat = all.features[all.features.length - 1];
+    // ADDENDUM 7 (H-B1 hardening): read the new feature off the
+    // `draw.create` event payload rather than `draw.getAll()`. The
+    // event-payload form is the documented MapboxDraw contract and
+    // avoids any ambiguity from stale features lingering in the draw
+    // control between rapid mode switches.
+    const onCreate = (e: { features?: GeoJSON.Feature[] }) => {
+      const feat =
+        (e?.features && e.features[0]) ??
+        // Defensive fallback (e.g. mocked harnesses): re-query the
+        // control if the event payload is missing.
+        (() => {
+          const all = draw.getAll();
+          return all.features[all.features.length - 1];
+        })();
       if (!feat || feat.geometry.type !== expectedType) return;
       const geom = feat.geometry as G;
       setGeometry(geom);

@@ -12,12 +12,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import * as turf from '@turf/turf';
 import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import { useStructureStore } from '../store/structureStore.js';
-import { useSiteDataStore, abortFetchForProject } from '../store/siteDataStore.js';
-import { debounce } from '../lib/debounce.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useIsMobile } from '../hooks/useMediaQuery.js';
 import { useProjectRole } from '../hooks/useProjectRole.js';
@@ -79,27 +76,9 @@ export default function LifecycleProjectPage() {
     return () => setActiveProject(null);
   }, [projectId, setActiveProject]);
 
-  const fetchSiteData = useSiteDataStore((s) => s.fetchForProject);
-  const debouncedFetchSiteData = useMemo(() => debounce(fetchSiteData, 400), [fetchSiteData]);
-  useEffect(() => {
-    if (!project?.parcelBoundaryGeojson) return;
-    try {
-      const centroid = turf.centroid(project.parcelBoundaryGeojson);
-      const coords = centroid.geometry.coordinates;
-      const lng = coords[0] ?? 0;
-      const lat = coords[1] ?? 0;
-      const turfBbox = turf.bbox(project.parcelBoundaryGeojson);
-      const bbox: [number, number, number, number] = [turfBbox[0], turfBbox[1], turfBbox[2], turfBbox[3]];
-      debouncedFetchSiteData(project.id, [lng, lat], project.country, bbox);
-    } catch { /* boundary may be invalid */ }
-    return () => debouncedFetchSiteData.cancel();
-  }, [project?.id, project?.parcelBoundaryGeojson, project?.country, debouncedFetchSiteData]);
-
-  useEffect(() => {
-    if (!project?.id) return;
-    const id = project.id;
-    return () => { abortFetchForProject(id); };
-  }, [project?.id]);
+  // Site-data fetch is wired at the data layer in `store/siteDataSync.ts` —
+  // any project with a boundary auto-populates `useSiteDataStore` regardless
+  // of which UI surface is mounted. This page just reads.
 
   useEffect(() => {
     if (!isEditing && !showDeleteConfirm) return;

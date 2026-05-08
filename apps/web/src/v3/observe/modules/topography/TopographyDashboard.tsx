@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
+  Compass,
   Droplet,
   Home,
   Layers,
@@ -9,7 +11,6 @@ import {
   Mountain,
   Ruler,
   ShieldAlert,
-  SlidersHorizontal,
   Sun,
   Triangle,
   type LucideIcon,
@@ -19,21 +20,72 @@ import { CroppedArt, ProgressRing, SurfaceCard } from '../../_shared/components/
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
-import terrainPreview from '../../assets/topography-dashboard/terrain-preview.png';
-import crossSectionPreview from '../../assets/topography-dashboard/cross-section-preview.png';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import {
+  useTopographyStore,
+  type Transect,
+} from '../../../../store/topographyStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import AspectCompass from './AspectCompass.js';
+import ElevationProfileChart from './ElevationProfileChart.js';
+import TerrainSnapshot from './TerrainSnapshot.js';
+import {
+  featureCounts,
+  getElevationLayer,
+  topographyKpis,
+  type KpiItem,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
+  triangle: Triangle,
+  mountain: Mountain,
+  ruler: Ruler,
+  compass: Compass,
+  layers: Layers,
+  map: Map,
+};
 
 export default function TopographyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allContours = useTopographyStore((s) => s.contours);
+  const allHighPoints = useTopographyStore((s) => s.highPoints);
+  const allDrainageLines = useTopographyStore((s) => s.drainageLines);
+  const transects = useMemo(
+    () => allTransects.filter((t) => t.projectId === id),
+    [allTransects, id],
+  );
+  const contours = useMemo(
+    () => allContours.filter((c) => c.projectId === id),
+    [allContours, id],
+  );
+  const highPoints = useMemo(
+    () => allHighPoints.filter((h) => h.projectId === id),
+    [allHighPoints, id],
+  );
+  const drainageLines = useMemo(
+    () => allDrainageLines.filter((d) => d.projectId === id),
+    [allDrainageLines, id],
+  );
+  const counts = featureCounts({ contours, highPoints, drainageLines, transects });
+  const elevationSummary = getElevationLayer(layers)?.summary;
+
   return (
     <div className="detail-page topography-page">
       <section className="topography-layout">
         <div className="topography-main">
           <TopographyHeader />
-          <TopographyMetrics />
-          <TopographySynthesis />
+          <TopographyMetrics layers={layers} transects={transects} />
+          <TopographySynthesis summary={elevationSummary} counts={counts} />
           <section className="topography-tool-grid">
-            <TerrainToolCard />
-            <CrossSectionToolCard />
+            <TerrainToolCard
+              boundary={project?.location?.boundary}
+              caption={project?.name}
+            />
+            <CrossSectionToolCard transect={transects[0]} />
           </section>
           <AnnotationListCard
             title="Field annotations"
@@ -42,7 +94,11 @@ export default function TopographyDashboard() {
             emptyHint="No contours, elevation points, or drainage lines yet — trace one with the tools panel."
           />
         </div>
-        <TopographySidebar />
+        <TopographySidebar
+          summary={elevationSummary}
+          counts={counts}
+          aspect={elevationSummary?.predominant_aspect ?? null}
+        />
       </section>
     </div>
   );
@@ -66,60 +122,82 @@ function TopographyHeader() {
   );
 }
 
-function TopographyMetrics() {
-  const metrics: Array<[LucideIcon, string, string, string, string]> = [
-    [Triangle, 'Mean slope', '4.2 degrees', 'Gentle', 'Predominantly gentle slopes.'],
-    [
-      Mountain,
-      'Elevation range',
-      '240-268 m',
-      '28 m total range',
-      'Lowest to highest point on site.',
-    ],
-    [Ruler, 'A-B transects', '1', 'Mapped', 'Cross-sections mapped across site.'],
-    [SlidersHorizontal, 'Aspect tendency', 'SE', '135 degrees', 'Slopes face mainly SE.'],
-    [
-      Layers,
-      'Dominant landforms',
-      'Mid-slopes & lower rises',
-      '',
-      'Rolling terrain with gentle benches.',
-    ],
-  ];
+interface MetricsProps {
+  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
+  transects: Transect[];
+}
 
+function TopographyMetrics({ layers, transects }: MetricsProps) {
+  const items = topographyKpis(layers, transects);
   return (
     <section className="topography-metric-grid">
-      {metrics.map(([Icon, label, value, pill, note]) => (
-        <SurfaceCard className="topography-metric-card" key={label}>
-          <Icon aria-hidden="true" />
-          <div>
-            <span>{label}</span>
-            <strong>{value}</strong>
-            {pill ? <em>{pill}</em> : null}
-          </div>
-          <p>{note}</p>
-        </SurfaceCard>
-      ))}
+      {items.map((item) => {
+        const Icon = ICON_MAP[item.iconKey];
+        return (
+          <SurfaceCard
+            className={`topography-metric-card tone-${item.tone}`}
+            key={item.label}
+          >
+            <Icon aria-hidden="true" />
+            <div>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              {item.pill ? <em>{item.pill}</em> : null}
+            </div>
+            <p>{item.note}</p>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
 
-function TopographySynthesis() {
+interface SynthesisProps {
+  summary: ReturnType<typeof getElevationLayer> extends infer L
+    ? L extends { summary: infer S } ? S : undefined
+    : undefined;
+  counts: ReturnType<typeof featureCounts>;
+}
+
+function TopographySynthesis({ summary, counts }: SynthesisProps) {
+  const range =
+    summary?.min_elevation_m != null && summary?.max_elevation_m != null
+      ? Math.round(summary.max_elevation_m - summary.min_elevation_m)
+      : null;
+  const aspect = summary?.predominant_aspect;
+  const meanSlope = summary?.mean_slope_deg;
+
+  const synopsis = !summary
+    ? 'Elevation data pending — once a DEM is sampled, the dashboard will summarise the site shape.'
+    : `${meanSlope != null ? `Mean slope ${meanSlope.toFixed(1)}°` : 'Slope data partial'}${
+        range != null ? `, ${range} m of total relief` : ''
+      }${aspect ? ` and a ${aspect} aspect` : ''}. ${
+        counts.total === 0
+          ? 'No field annotations yet — trace contours, high points, or drainage lines to start building a base map.'
+          : `${counts.total} field annotation${counts.total === 1 ? '' : 's'} so far.`
+      }`;
+
   const items: Array<[LucideIcon, string, string]> = [
     [
       Droplet,
       'Water',
-      'Natural swales and gentle fall lines support harvesting, infiltration and ponding.',
+      counts.drainageLines > 0
+        ? `${counts.drainageLines} drainage line${counts.drainageLines === 1 ? '' : 's'} traced — use them to plan swales, ponds and infiltration.`
+        : 'Trace drainage lines on the map to surface water-harvesting opportunities here.',
     ],
     [
       Leaf,
       'Soil & stability',
-      'Mostly stable slopes with low erosion risk. Protect exposed ridge lines and swales.',
+      summary?.max_slope_deg != null && summary.max_slope_deg > 25
+        ? 'Steep zones present — protect them with vegetation and avoid cut/fill.'
+        : 'Mostly stable slopes; protect any exposed ridge lines and swale entries.',
     ],
     [
       Home,
       'Access & zones',
-      'Multiple access points with buildable benches and productive lower slope zones.',
+      counts.highPoints > 0
+        ? `${counts.highPoints} elevation point${counts.highPoints === 1 ? '' : 's'} pinned — useful anchors for buildings or zones.`
+        : 'Pin high and low points to find buildable benches and productive zones.',
     ],
   ];
 
@@ -128,14 +206,13 @@ function TopographySynthesis() {
       <div className="topography-synthesis-copy">
         <span>Topography synthesis</span>
         <h2>
-          A gentle, south-easterly facing landscape with useful water harvesting opportunities.
+          {summary
+            ? `${aspect ? `${aspect}-facing` : 'Site'} terrain with ${
+                range != null ? `${range} m relief` : 'partial relief data'
+              }.`
+            : 'Topography synthesis pending'}
         </h2>
-        <p>
-          The site is characterised by gentle mid-slopes and lower rises with a 28 m elevation
-          range. Southeast aspect and natural swales create excellent conditions for capturing and
-          infiltrating water while offering multiple options for access, building, and productive
-          zones.
-        </p>
+        <p>{synopsis}</p>
       </div>
       {items.map(([Icon, title, text]) => (
         <article key={title}>
@@ -148,7 +225,12 @@ function TopographySynthesis() {
   );
 }
 
-function TerrainToolCard() {
+interface TerrainToolCardProps {
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+}
+
+function TerrainToolCard({ boundary, caption }: TerrainToolCardProps) {
   const nav = useDetailNav();
   return (
     <SurfaceCard className="topography-tool-card">
@@ -161,25 +243,13 @@ function TerrainToolCard() {
         layers.
       </p>
       <div className="tool-card-body">
-        <dl>
-          <div>
-            <dt>Contour interval</dt>
-            <dd>2 m</dd>
-          </div>
-          <div>
-            <dt>Slope range</dt>
-            <dd>0-25 %</dd>
-          </div>
-          <div>
-            <dt>Elevation range</dt>
-            <dd>240-268 m</dd>
-          </div>
-          <div>
-            <dt>Parcel boundary</dt>
-            <dd>On</dd>
-          </div>
-        </dl>
-        <CroppedArt src={terrainPreview} className="topography-tool-image" />
+        <TerrainSnapshot
+          boundary={boundary}
+          caption={caption}
+          width={240}
+          height={160}
+          className="topography-tool-image"
+        />
       </div>
       <div className="tool-card-actions">
         <button className="green-button" type="button" onClick={() => nav.push('terrain-detail')}>
@@ -191,7 +261,11 @@ function TerrainToolCard() {
   );
 }
 
-function CrossSectionToolCard() {
+interface CrossSectionToolCardProps {
+  transect: Transect | undefined;
+}
+
+function CrossSectionToolCard({ transect }: CrossSectionToolCardProps) {
   const nav = useDetailNav();
   return (
     <SurfaceCard className="topography-tool-card">
@@ -204,29 +278,11 @@ function CrossSectionToolCard() {
         exposure.
       </p>
       <div className="tool-card-body">
-        <dl>
-          <div>
-            <dt>Active transect</dt>
-            <dd>A to B</dd>
-          </div>
-          <div>
-            <dt>Length</dt>
-            <dd>612 m</dd>
-          </div>
-          <div>
-            <dt>Elevation drop</dt>
-            <dd>27.8 m</dd>
-          </div>
-          <div>
-            <dt>Mean slope</dt>
-            <dd>4.2 degrees</dd>
-          </div>
-          <div>
-            <dt>Solar exposure</dt>
-            <dd>62 %</dd>
-          </div>
-        </dl>
-        <CroppedArt src={crossSectionPreview} className="topography-tool-image" />
+        <ElevationProfileChart
+          transect={transect}
+          compact
+          className="topography-tool-image"
+        />
       </div>
       <div className="tool-card-actions">
         <button
@@ -245,45 +301,83 @@ function CrossSectionToolCard() {
   );
 }
 
-function TopographySidebar() {
-  const implications: Array<[LucideIcon, string, string]> = [
-    [
+interface SidebarProps {
+  summary: SynthesisProps['summary'];
+  counts: ReturnType<typeof featureCounts>;
+  aspect: string | null;
+}
+
+function TopographySidebar({ summary, counts, aspect }: SidebarProps) {
+  const implications: Array<[LucideIcon, string, string]> = [];
+  if (counts.drainageLines > 0) {
+    implications.push([
       Droplet,
-      'Prime water harvesting potential',
-      'Swales and lower slopes are ideal for capturing and slowing water.',
-    ],
-    [
+      'Drainage lines mapped',
+      `${counts.drainageLines} traced — design swales and infiltration along them.`,
+    ]);
+  } else {
+    implications.push([
+      Droplet,
+      'Trace drainage to plan water',
+      'Mark seasonal runoff paths to plan swales and ponds.',
+    ]);
+  }
+  if (summary?.max_slope_deg != null && summary.max_slope_deg > 25) {
+    implications.push([
+      ShieldAlert,
+      'Steep zones present',
+      `Max slope ${summary.max_slope_deg.toFixed(1)}° — protect with vegetation, avoid cut/fill.`,
+    ]);
+  } else {
+    implications.push([
       ShieldAlert,
       'Low erosion risk overall',
-      'Most slopes are gentle; protect exposed ridges and swale entry points.',
-    ],
-    [
+      'Most slopes are gentle; still protect exposed ridges and swale entries.',
+    ]);
+  }
+  if (aspect) {
+    implications.push([
       Sun,
-      'Good solar access',
-      'Southeast aspect provides strong morning sun and winter warmth.',
-    ],
-    [
+      `Aspect: ${aspect}`,
+      'Use aspect to place sun-loving plants and passive-solar buildings.',
+    ]);
+  }
+  if (counts.highPoints > 0) {
+    implications.push([
       Home,
-      'Multiple buildable options',
-      'Benches and lower rises offer flexible locations for buildings and zones.',
-    ],
-  ];
+      'Buildable anchors pinned',
+      `${counts.highPoints} elevation point${counts.highPoints === 1 ? '' : 's'} ready for siting decisions.`,
+    ]);
+  } else {
+    implications.push([
+      Home,
+      'Pin high and low points',
+      'Anchors help locate buildings, zones, and water storage.',
+    ]);
+  }
 
-  const features: Array<[string, string]> = [
-    ['Ridges', '1'],
-    ['Swales / Drainage lines', '3'],
-    ['Gentle benches', '4'],
-    ['Steeper slopes (> 15%)', '2'],
-    ['Potential water collection zones', '2'],
+  const features: Array<[string, number]> = [
+    ['Contour lines', counts.contours],
+    ['Elevation points', counts.highPoints],
+    ['Drainage lines', counts.drainageLines],
+    ['A–B transects', counts.transects],
   ];
 
   const actions: Array<[string, string]> = [
-    ['Map keyline candidates', 'High'],
-    ['Design water harvesting system', 'High'],
-    ['Identify building sites', 'Medium'],
-    ['Plan access & internal routes', 'Medium'],
+    [
+      counts.drainageLines === 0 ? 'Trace drainage lines' : 'Design water harvesting system',
+      'High',
+    ],
+    [counts.transects === 0 ? 'Draw an A–B transect' : 'Add another transect', 'High'],
+    [
+      counts.highPoints === 0 ? 'Pin high and low points' : 'Identify building sites',
+      'Medium',
+    ],
+    ['Walk the site to verify drainage', 'Medium'],
     ['Estimate earthworks (cut/fill)', 'Low'],
   ];
+
+  const healthPct = Math.min(100, counts.total * 10 + (summary ? 40 : 0));
 
   return (
     <aside className="topography-sidebar">
@@ -299,7 +393,7 @@ function TopographySidebar() {
       </SurfaceCard>
       <SurfaceCard className="topography-side-card feature-list">
         <h2>
-          Detected terrain features <b>5</b>
+          Detected terrain features <b>{counts.total}</b>
         </h2>
         {features.map(([label, value]) => (
           <p key={label}>
@@ -319,15 +413,27 @@ function TopographySidebar() {
           </p>
         ))}
       </SurfaceCard>
+      <SurfaceCard className="topography-side-card aspect-card">
+        <h2>Aspect</h2>
+        <AspectCompass aspect={aspect} size={96} />
+        <strong>{aspect ?? '—'}</strong>
+        <small>Predominant facing direction.</small>
+      </SurfaceCard>
       <SurfaceCard className="topography-health-card">
         <h2>
-          Module health <strong>Good</strong>
+          Module health <strong>{healthPct >= 70 ? 'Good' : healthPct >= 40 ? 'Forming' : 'Empty'}</strong>
         </h2>
         <i>
           <b />
         </i>
-        <p>All key topographic data captured. You&apos;re ready to move into design.</p>
-        <ProgressRing value={88} label="88%" />
+        <p>
+          {healthPct >= 70
+            ? 'Topographic data captured. You’re ready to move into design.'
+            : healthPct >= 40
+              ? 'Some topographic data present. Add annotations to deepen the picture.'
+              : 'Trace contours, drainage and pin elevation points to start a base map.'}
+        </p>
+        <ProgressRing value={healthPct} label={`${healthPct}%`} />
       </SurfaceCard>
     </aside>
   );

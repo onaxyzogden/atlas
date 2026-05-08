@@ -77,9 +77,29 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
   `templates`, `fieldwork`, `history`) remain in place. See
   [[2026-04-29-act-stage-ia-restructure]].
 
+## Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)
+
+The 8 Plan-stage modules surfaced through `PlanModuleBar` were each adjudicated against their OGDEN counterpart by the Permaculture Scholar (NotebookLM `5aa3dcf3-…`). Index ADR: [[2026-05-07-atlas-plan-modules-scholar-iteration]]; per-module ADRs filed same date. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**.
+
+Card inventory after iteration, keyed by `MODULE_CARDS` `sectionId` in `apps/web/src/v3/plan/types.ts`:
+
+- **Module 1 · Plant systems** (`plant-systems`) — *Build fresh:* `PlantDatabasePort` · `GuildBuilderPort` · `CanopySimulatorPort` (ported from OGDEN; see ADR `2026-05-07-atlas-plan-plants-scholar-build-fresh.md`).
+- **Module 2 · Water management** (`water-management`) — *Build fresh:* `RunoffCalculatorPort` · `SwaleDrainPort` · `StoragePlacementPort` (ported from OGDEN; ADR `…-water-…`).
+- **Module 3 · Zones & circulation** (`zone-circulation`) — *Additive:* legacy `ZoneLevelLayer` + `PathFrequencyEditor` retained as data entry; new `ZoneCirculationOverviewCard` (SVG mini-map + bbox-overlap validation).
+- **Module 4 · Dynamic layering** (`dynamic-layering`) — *Additive:* legacy `PermanenceScalesCard` retained as `plan-permanence-scales` sub-tab; new `PermanenceLadderCard` at `plan-permanence-ladder` sub-tab (9-rank Yeomans bars + ordering-violation checks).
+- **Module 5 · Soil fertility** (`soil-fertility`) — *Additive (4 sub-tabs):* legacy `SoilFertilityDesignerCard` (`plan-soil-fertility`) + `WasteVectorTool` (`plan-waste-vectors`) retained as data entry; new `ClosedLoopGraphCard` (`plan-closed-loop-graph`, ring-layout SVG + Holmgren P6 validations) + `SoilBaselineCard` (`plan-soil-baseline`, USDA texture-triangle classifier + limiting-factor remedies).
+- **Module 6 · Cross-section & solar geometry** (`cross-section-solar`) — *Keep Atlas:* `TransectVerticalEditorCard` (~540L, typed-ref pins + winter/summer solstice altitude lines) unchanged. Four enhancements deferred: microclimate brackets, succession bands, slope-% annotations, sector-response callouts.
+- **Module 7 · Phasing & budgeting** (`phasing-budgeting`) — *Keep Atlas:* `PhasingMatrixCard` + `SeasonalTaskCard` + `LaborBudgetSummaryCard` unchanged. Three enhancements deferred: optional `designLayer` enum on `PhaseTask`, capacity-validation against Client Survey, cumulative investment rollups.
+- **Module 8 · Principle verification** (`principle-verification`) — *Keep Atlas:* `HolmgrenChecklistCard` (~187L, 12-principle reflective rubric + linked-feature multi-pick) unchanged. Three enhancements deferred: three-Ethics rollup, Mission Statement cross-check, missing-principle warnings + coverage matrix.
+
+Cross-cutting follow-up: ported OGDEN cards (Modules 1, 2) still operate on mock inputs per the iteration's "visual-first port" cadence — wiring to real Zustand stores deferred.
+
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
-- `projectStore` — project CRUD, active project selection
+- `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
+  now preserves the existing local UUID (keeps IndexedDB `boundary:<id>` entries
+  valid) and user-drawn parcel boundaries across builtin re-seeds. See
+  [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 - `zoneStore` — land zones (13 categories)
 - `structureStore` — structures (20 types)
 - `livestockStore` — paddocks + livestock species
@@ -89,7 +109,11 @@ All use `persist` middleware with localStorage. Key stores:
 - `scenarioStore` — design scenario snapshots (v2, full dollars)
 - `financialStore` — region, mission weights, overrides
 - `fieldworkStore` — field notes, walk routes, punch lists
-- `siteDataStore` — cached layer data (fetch-driven, ephemeral)
+- `siteDataStore` — cached layer data (fetch-driven, ephemeral). Now tracks
+  `lastCenter` + `lastCountry` per project; when `refreshProject` detects a
+  centroid shift >1km or country change, stale jurisdiction data is cleared
+  before the new fetch runs (prevents Ontario scores from labelling a Michigan
+  parcel during a reload). See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 - **Site-annotations namespace stores (2026-04-30, 7 stores):**
   `externalForcesStore` (hazards + sectors), `topographyStore` (transects
   with `verticalRefs` discriminated union), `ecologyStore` (ecology +
@@ -131,6 +155,24 @@ All use `persist` middleware with localStorage. Key stores:
   remains mounted; cutover deferred to v3.1. See decision record
   [`2026-04-28-atlas-v3-mock-first-lifecycle-shell.md`](../decisions/2026-04-28-atlas-v3-mock-first-lifecycle-shell.md)
   and backlog [`apps/web/src/v3/BACKLOG-v3.1.md`](../../apps/web/src/v3/BACKLOG-v3.1.md).
+
+  **Stage right-rail ownership (2026-05-07):** `LandOsShell.rail` is now
+  optional. Design / Prove / Operate (`SELF_RAILED_STAGES`) own their right rail
+  by passing a stage-specific component to `StageShell.rightRail`; the
+  outer `LandOsShell` rail track is omitted entirely for those stages.
+  `V3ProjectLayout` passes `rail={undefined}` for self-railed stages;
+  `DecisionRail` short-circuits on them as a belt-and-suspenders guard.
+
+  **DiagnoseMap crash-fix pattern (2026-05-07):** `DiagnoseMap` calls
+  `setMap(null); m.remove()` in cleanup. `m.remove()` destroys `map.style`
+  synchronously, but React fires children's old cleanup effects afterward
+  with a stale map reference — any MapLibre API call inside those cleanups
+  throws. All components rendered inside `DiagnoseMap` that attach cleanup
+  effects calling MapLibre APIs must wrap those calls in
+  `try { … } catch { /* map already removed */ }`.
+  Fixed components: `ObserveAnnotationLayers` (commit `4da754f`),
+  `AnnotationDragHandler` (commit `88b6556`). `AnnotationVertexEditHandler`
+  was already guarded. See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)

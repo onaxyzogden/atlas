@@ -1,39 +1,107 @@
+import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   ChevronDown,
+  Compass,
   Download,
   Droplet,
   Layers,
   MapPin,
   Mountain,
   Plus,
-  RotateCcw,
-  Settings,
-  SlidersHorizontal,
+  Ruler,
   Triangle,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
-import mainTerrainMap from '../../assets/terrain-detail/main-terrain-map.png';
-import slopeMap from '../../assets/terrain-detail/slope-map.png';
-import elevationHistogram from '../../assets/terrain-detail/elevation-histogram.png';
-import elevationProfile from '../../assets/terrain-detail/elevation-profile.png';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import ElevationHistogram from './ElevationHistogram.js';
+import ElevationProfileChart from './ElevationProfileChart.js';
+import SlopeLegendStrip from './SlopeLegendStrip.js';
+import TerrainSnapshot, { type TerrainOverlay } from './TerrainSnapshot.js';
+import {
+  featureCounts,
+  topographyKpis,
+  type KpiItem,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
+  triangle: Triangle,
+  mountain: Mountain,
+  ruler: Ruler,
+  compass: Compass,
+  layers: Layers,
+  map: MapPin,
+};
+
+const OVERLAYS: TerrainOverlay[] = ['slope', 'contours', 'aspect', 'elevation', 'hillshade'];
 
 export default function TerrainDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+  const allTransects = useTopographyStore((s) => s.transects);
+  const allContours = useTopographyStore((s) => s.contours);
+  const allHighPoints = useTopographyStore((s) => s.highPoints);
+  const allDrainageLines = useTopographyStore((s) => s.drainageLines);
+  const transects = useMemo(
+    () => allTransects.filter((t) => t.projectId === id),
+    [allTransects, id],
+  );
+  const contours = useMemo(
+    () => allContours.filter((c) => c.projectId === id),
+    [allContours, id],
+  );
+  const highPoints = useMemo(
+    () => allHighPoints.filter((h) => h.projectId === id),
+    [allHighPoints, id],
+  );
+  const drainageLines = useMemo(
+    () => allDrainageLines.filter((d) => d.projectId === id),
+    [allDrainageLines, id],
+  );
+  const counts = featureCounts({ contours, highPoints, drainageLines, transects });
+
+  const [active, setActive] = useState<TerrainOverlay[]>([
+    'slope',
+    'contours',
+    'hillshade',
+    'elevation',
+  ]);
+  const toggle = (k: TerrainOverlay) =>
+    setActive((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
+
   return (
     <div className="detail-page terrain-detail-page">
       <TerrainHeader />
-      <TerrainMetrics />
+      <TerrainMetrics layers={layers} transects={transects} />
       <section className="terrain-workspace">
         <div className="terrain-main-column">
-          <TerrainMapPanel />
+          <TerrainMapPanel
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+            overlays={active}
+            onToggle={toggle}
+            contours={contours}
+            highPoints={highPoints}
+            drainageLines={drainageLines}
+          />
           <section className="terrain-lower-grid">
-            <ElevationProfilePanel />
-            <DetectedFeaturesPanel />
+            <ElevationProfilePanel transect={transects[0]} />
+            <DetectedFeaturesPanel counts={counts} />
           </section>
         </div>
-        <TerrainSidebar />
+        <TerrainSidebar
+          layers={layers}
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          counts={counts}
+        />
       </section>
     </div>
   );
@@ -64,111 +132,123 @@ function TerrainHeader() {
   );
 }
 
-function TerrainMetrics() {
-  const items: Array<[LucideIcon, string, string, string, string]> = [
-    [Triangle, 'Mean slope', '4.2 degrees', 'Gentle', 'Predominantly gentle slopes.'],
-    [
-      Mountain,
-      'Elevation range',
-      '240-268 m',
-      '28 m total range',
-      'Lowest to highest point on site.',
-    ],
-    [SlidersHorizontal, 'Aspect tendency', 'SE', '135 degrees', 'Slopes face mainly SE.'],
-    [
-      Waves,
-      'Dominant landforms',
-      'Mid-slopes & lower rises',
-      '',
-      'Rolling terrain with gentle benches.',
-    ],
-    [MapPin, 'A-B transects', '1', 'Mapped', 'Cross-sections mapped across site.'],
-  ];
+interface MetricsProps {
+  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
+  transects: ReturnType<typeof useTopographyStore.getState>['transects'];
+}
 
+function TerrainMetrics({ layers, transects }: MetricsProps) {
+  const items = topographyKpis(layers, transects);
   return (
     <section className="terrain-metric-grid">
-      {items.map(([Icon, label, value, pill, note]) => (
-        <SurfaceCard className="terrain-metric-card" key={label}>
-          <Icon aria-hidden="true" />
-          <div>
-            <span>{label}</span>
-            <strong>{value}</strong>
-            {pill ? <em>{pill}</em> : null}
-          </div>
-          <p>{note}</p>
-        </SurfaceCard>
-      ))}
+      {items.map((item) => {
+        const Icon = ICON_MAP[item.iconKey];
+        return (
+          <SurfaceCard className={`terrain-metric-card tone-${item.tone}`} key={item.label}>
+            <Icon aria-hidden="true" />
+            <div>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              {item.pill ? <em>{item.pill}</em> : null}
+            </div>
+            <p>{item.note}</p>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
 
-function TerrainMapPanel() {
-  const layers: Array<[string, string, boolean]> = [
-    ['Slope', 'On', true],
-    ['Contours (2 m)', 'On', true],
-    ['Hillshade', 'On', true],
-    ['Aspect', 'Off', false],
-    ['Elevation', 'On', true],
-    ['Parcel boundary', 'On', true],
-  ];
+interface MapPanelProps {
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+  overlays: TerrainOverlay[];
+  onToggle: (k: TerrainOverlay) => void;
+  contours: ReturnType<typeof useTopographyStore.getState>['contours'];
+  highPoints: ReturnType<typeof useTopographyStore.getState>['highPoints'];
+  drainageLines: ReturnType<typeof useTopographyStore.getState>['drainageLines'];
+}
+
+function TerrainMapPanel({
+  boundary,
+  caption,
+  overlays,
+  onToggle,
+  contours,
+  highPoints,
+  drainageLines,
+}: MapPanelProps) {
   return (
     <SurfaceCard className="terrain-map-panel">
-      <CroppedArt src={mainTerrainMap} className="terrain-main-map" />
+      <TerrainSnapshot
+        boundary={boundary}
+        caption={caption}
+        width={520}
+        height={320}
+        overlays={overlays}
+        contours={contours}
+        highPoints={highPoints}
+        drainageLines={drainageLines}
+        className="terrain-main-map"
+      />
       <div className="terrain-layer-card">
         <h2>Layers</h2>
-        {layers.map(([label, state, enabled]) => (
-          <p key={label}>
-            <b className={enabled ? 'on' : ''}>{enabled ? '✓' : ''}</b>
-            <span>{label}</span>
-            <em>{state}</em>
-          </p>
-        ))}
+        {OVERLAYS.map((k) => {
+          const enabled = overlays.includes(k);
+          return (
+            <button
+              key={k}
+              type="button"
+              className={`layer-toggle ${enabled ? 'on' : ''}`}
+              onClick={() => onToggle(k)}
+              data-overlay={k}
+            >
+              <b>{enabled ? '✓' : ''}</b>
+              <span>{k.charAt(0).toUpperCase() + k.slice(1)}</span>
+              <em>{enabled ? 'On' : 'Off'}</em>
+            </button>
+          );
+        })}
       </div>
       <div className="terrain-legend-card">
-        <h2>Legend</h2>
-        <p>Slope (%)</p>
-        {['> 25', '15-25', '8-15', '4-8', '0-4'].map((item, index) => (
-          <span className={`slope-step s${index}`} key={item}>
-            {item}
-          </span>
-        ))}
+        <SlopeLegendStrip />
       </div>
-      <div className="terrain-map-tools">
-        <button type="button">+</button>
-        <button type="button">-</button>
-        <button type="button">
-          <Settings aria-hidden="true" />
-        </button>
-        <button type="button">
-          <Layers aria-hidden="true" />
-        </button>
-      </div>
-      <button className="reset-view-button" type="button">
-        <RotateCcw aria-hidden="true" /> Reset view
-      </button>
     </SurfaceCard>
   );
 }
 
-function ElevationProfilePanel() {
+interface ProfileProps {
+  transect: ReturnType<typeof useTopographyStore.getState>['transects'][number] | undefined;
+}
+
+function ElevationProfilePanel({ transect }: ProfileProps) {
   return (
     <SurfaceCard className="terrain-panel elevation-profile-panel">
       <header>
-        <h2>Elevation profile (A-B transect)</h2>
-        <span>Length: 412 m</span>
+        <h2>Elevation profile (A–B transect)</h2>
+        <span>
+          {transect?.totalDistanceM
+            ? `Length: ${Math.round(transect.totalDistanceM)} m`
+            : transect
+              ? 'Length: —'
+              : 'No transect drawn'}
+        </span>
       </header>
-      <CroppedArt src={elevationProfile} className="elevation-profile-image" />
+      <ElevationProfileChart transect={transect} className="elevation-profile-image" />
     </SurfaceCard>
   );
 }
 
-function DetectedFeaturesPanel() {
-  const rows: Array<[string, string, string]> = [
-    ['Ridgeline', '1', 'High spine running N-S'],
-    ['Valley line / Drainage', '2', 'Concentration zones'],
-    ['Keypoint candidates', '4', 'Potential design anchors'],
-    ['Erosion-prone zones', '1', 'Steeper slopes, exposed soil'],
-    ['Access-friendly route', '1', 'Contours < 8% slope'],
+interface FeaturesProps {
+  counts: ReturnType<typeof featureCounts>;
+}
+
+function DetectedFeaturesPanel({ counts }: FeaturesProps) {
+  const rows: Array<[string, number, string]> = [
+    ['Contour lines', counts.contours, 'User-traced contour annotations'],
+    ['Drainage lines', counts.drainageLines, 'Concentration and runoff paths'],
+    ['Elevation points', counts.highPoints, 'High and low pinned anchors'],
+    ['A–B transects', counts.transects, 'Cross-section samples'],
   ];
 
   return (
@@ -187,34 +267,45 @@ function DetectedFeaturesPanel() {
           <span>{note}</span>
         </p>
       ))}
+      {counts.total === 0 ? (
+        <small className="empty-note">No features traced yet — draw on the map to populate.</small>
+      ) : null}
     </SurfaceCard>
   );
 }
 
-function TerrainSidebar() {
-  const insights = [
-    'Ridge line runs north-south through the centre of the site.',
-    'Mid-slopes on the east face offer good water harvesting opportunities.',
-    'Drainage concentrates in the eastern gully system.',
-    'Gentle bench areas in the southwest are suitable for dwellings or productive zones.',
-  ];
+interface SidebarProps {
+  layers: MetricsProps['layers'];
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+  counts: ReturnType<typeof featureCounts>;
+}
+
+function TerrainSidebar({ layers, boundary, caption, counts }: SidebarProps) {
+  const insights: string[] = [];
+  if (counts.contours > 0)
+    insights.push(`${counts.contours} contour line${counts.contours === 1 ? '' : 's'} traced.`);
+  if (counts.drainageLines > 0)
+    insights.push(
+      `${counts.drainageLines} drainage line${counts.drainageLines === 1 ? '' : 's'} mapped — design swales along them.`,
+    );
+  if (counts.highPoints > 0)
+    insights.push(`${counts.highPoints} high/low point${counts.highPoints === 1 ? '' : 's'} pinned.`);
+  if (insights.length === 0)
+    insights.push('No annotations yet — trace contours, drainage and pin high/low points.');
 
   const actions: Array<[string, string, string]> = [
     [
-      'Create swale test line on mid-slope',
-      'High',
+      counts.drainageLines > 0 ? 'Plan swale on a drainage line' : 'Trace primary drainage paths',
+      counts.drainageLines > 0 ? 'High' : 'High',
       'Capture and infiltrate seasonal runoff.',
     ],
     [
-      'Add additional transect',
+      counts.transects > 0 ? 'Add additional transect' : 'Draw an A–B transect',
       'Medium',
-      'Map another cross-section across the eastern gully.',
+      'Map cross-sections for elevation, water and solar.',
     ],
-    [
-      'Verify runoff paths in field',
-      'Medium',
-      'Confirm drainage lines and pond opportunities.',
-    ],
+    ['Verify runoff paths in field', 'Medium', 'Confirm drainage lines and pond opportunities.'],
     ['Evaluate access route', 'Low', 'Walk the suggested route and note constraints.'],
   ];
 
@@ -222,14 +313,20 @@ function TerrainSidebar() {
     <aside className="terrain-sidebar">
       <SurfaceCard className="terrain-side-panel slope-panel">
         <h2>Slope map</h2>
-        <CroppedArt src={slopeMap} className="terrain-slope-map" />
+        <TerrainSnapshot
+          boundary={boundary}
+          caption={caption}
+          width={280}
+          height={180}
+          overlays={['slope']}
+          className="terrain-slope-map"
+        />
       </SurfaceCard>
       <SurfaceCard className="terrain-side-panel histogram-panel">
         <header>
           <h2>Elevation distribution</h2>
-          <span>28 m range</span>
         </header>
-        <CroppedArt src={elevationHistogram} className="terrain-histogram" />
+        <ElevationHistogram layers={layers} className="terrain-histogram" />
       </SurfaceCard>
       <SurfaceCard className="terrain-side-panel insights-panel">
         <h2>Terrain insights</h2>

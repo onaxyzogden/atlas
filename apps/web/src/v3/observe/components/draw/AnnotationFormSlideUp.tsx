@@ -23,6 +23,7 @@
 import { useEffect, useState } from 'react';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import {
   FIELD_SCHEMAS,
   type FieldDef,
@@ -51,8 +52,25 @@ export default function AnnotationFormSlideUp() {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
+  // Subscribe to sectors so that on-map drag handles updating
+  // (`updateSector`) trigger a live re-load of the form fields while the
+  // slide-up is open in edit mode for a sector. Cheap subscription —
+  // unrelated record changes share-of-renders are negligible. See
+  // ADDENDUM 8.
+  const sectors = useExternalForcesStore((s) => s.sectors);
+
   if (!active) return null;
   const schema = FIELD_SCHEMAS[active.kind];
+  // Compute a "live revision" for the underlying record so the form body
+  // can re-sync mid-edit (e.g., dragging the bearing handle while the
+  // form is open). Only computed for kinds whose store updates can race
+  // with the form — sectors today; trivial to extend.
+  let liveRev = '';
+  if (active.kind === 'sector' && active.mode === 'edit' && active.existingId) {
+    const r = sectors.find((x) => x.id === active.existingId);
+    if (r)
+      liveRev = `${r.bearingDeg}|${r.arcDeg}|${r.intensity ?? ''}|${r.notes ?? ''}`;
+  }
   // For batch edit, seed from the first id; the form renders one set of
   // fields and Save loops the patch over every id.
   const seedId =
@@ -72,6 +90,7 @@ export default function AnnotationFormSlideUp() {
       schema={schema}
       mode={active.mode}
       existingId={seedId}
+      liveRev={liveRev}
       eyebrowOverride={eyebrowOverride}
       bucket={inferSwotBucket(activeTool)}
       onSave={(values) => {
@@ -93,8 +112,12 @@ export default function AnnotationFormSlideUp() {
           });
         }
         close();
-        // Clear active tool only when finishing a fresh create.
-        if (active.mode === 'create') setActiveTool(null);
+        // Always clear the active draw tool on save. ADDENDUM 6 changed
+        // the post-draw flow from create-mode-with-geometry to
+        // create-defaults-then-edit-existing, so saving from edit mode is
+        // now the normal "finish a fresh draw" path. Clearing is a no-op
+        // for dashboard-initiated edits (activeTool was already null).
+        setActiveTool(null);
       }}
       onCancel={close}
     />
@@ -105,6 +128,7 @@ function FormBody({
   schema,
   mode,
   existingId,
+  liveRev,
   eyebrowOverride,
   bucket,
   onSave,
@@ -113,6 +137,10 @@ function FormBody({
   schema: FieldSchema;
   mode: 'create' | 'edit' | 'edit-batch';
   existingId: string | null;
+  /** Stable string that changes when the underlying record changes
+   *  (e.g., on-map drag handles updating a sector). Empty when no
+   *  live re-sync is desired. */
+  liveRev: string;
   eyebrowOverride: string | null;
   bucket: SwotBucket | undefined;
   onSave: (values: Record<string, unknown>) => void;
@@ -125,6 +153,20 @@ function FormBody({
     }
     return { ...schema.defaults };
   });
+
+  // Live re-sync: when `liveRev` changes (an on-map drag mutated the
+  // record), reload defaults from the schema. Only applies in edit mode;
+  // creates have no underlying record to track. Skips when liveRev is
+  // empty (the default for kinds that don't drag-update).
+  useEffect(() => {
+    if (!liveRev) return;
+    if (mode !== 'edit' || !existingId) return;
+    const loaded = schema.loadDefaults(existingId, '');
+    if (loaded) setValues(loaded);
+    // schema and existingId are stable per FormBody mount (re-keyed at
+    // parent on identity change), so liveRev is the meaningful signal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveRev]);
 
   // ESC closes (cancel).
   useEffect(() => {

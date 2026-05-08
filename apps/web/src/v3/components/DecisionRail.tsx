@@ -46,7 +46,15 @@ const STAGE_TITLE: Record<RailStage, string> = {
   act: "Act",
 };
 
+// Stages that own their own right rail via StageShell.rightRail.
+// DecisionRail short-circuits on these so the outer LandOsShell rail stays empty
+// and only the page-owned rail renders.
+const SELF_RAILED_STAGES: readonly RailStage[] = ["design", "prove", "operate", "plan", "act"];
+
 export default function DecisionRail({ stage, project, activeModule }: DecisionRailProps) {
+  if (SELF_RAILED_STAGES.includes(stage)) {
+    return null;
+  }
   return (
     <div className={css.rail}>
       {stage !== "observe" && (
@@ -92,8 +100,8 @@ function StagePanel({
   if (stage === "observe") {
     return <ObserveSiteIntelligenceRail projectId={project?.id} />;
   }
-  if (stage === "plan" || stage === "act") {
-    return <p className={css.empty}>{stage === "plan" ? "Plan" : "Act"} rail arrives in Phase C.</p>;
+  if (stage === "plan") {
+    return <p className={css.empty}>Plan rail arrives in Phase C.</p>;
   }
   if (!project) {
     return <p className={css.empty}>Select a project to see live guidance.</p>;

@@ -19,6 +19,7 @@
 import { useEffect } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import { MAPLIBRE_DRAW_STYLES } from './mapboxDrawStyles.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
 import {
@@ -65,7 +66,11 @@ export default function AnnotationVertexEditHandler({ map }: Props) {
       : readPolygon(kind, id);
     if (!initialGeom) return;
 
-    const draw = new MapboxDraw({ displayControlsDefault: false, controls: {} });
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {},
+      styles: MAPLIBRE_DRAW_STYLES,
+    });
     map.addControl(draw);
 
     const featureId = `vertex-edit-${kind}-${id}`;

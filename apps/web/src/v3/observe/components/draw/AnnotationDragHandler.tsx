@@ -245,21 +245,28 @@ export default function AnnotationDragHandler({ map }: Props) {
     map.on('touchend', onPointerUp);
 
     return () => {
-      for (const layerId of POINT_LAYER_IDS) {
-        map.off('mousedown', layerId, onLayerPointerDown);
-        map.off('touchstart', layerId, onLayerPointerDown);
+      // Wrap in try/catch: DiagnoseMap calls setMap(null) + map.remove()
+      // before this cleanup fires, leaving the map in a destroyed state where
+      // map.off() and map.dragPan.enable() access null style internals.
+      try {
+        for (const layerId of POINT_LAYER_IDS) {
+          map.off('mousedown', layerId, onLayerPointerDown);
+          map.off('touchstart', layerId, onLayerPointerDown);
+        }
+        map.off('mousemove', onPointerMove);
+        map.off('touchmove', onPointerMove);
+        map.off('mouseup', onPointerUp);
+        map.off('touchend', onPointerUp);
+        // Restore default state in case unmount races with an active drag.
+        map.dragPan.enable();
+        if (touchRotateSuspended) {
+          map.touchZoomRotate.enableRotation();
+          touchRotateSuspended = false;
+        }
+        map.getCanvas().style.cursor = '';
+      } catch {
+        // map already removed — nothing to clean up
       }
-      map.off('mousemove', onPointerMove);
-      map.off('touchmove', onPointerMove);
-      map.off('mouseup', onPointerUp);
-      map.off('touchend', onPointerUp);
-      // Restore default state in case unmount races with an active drag.
-      map.dragPan.enable();
-      if (touchRotateSuspended) {
-        map.touchZoomRotate.enableRotation();
-        touchRotateSuspended = false;
-      }
-      map.getCanvas().style.cursor = '';
       setPreview(null);
     };
   }, [map, selected]);
@@ -269,8 +276,12 @@ export default function AnnotationDragHandler({ map }: Props) {
   useEffect(() => {
     return () => {
       if (!map) return;
-      if (map.getLayer(PREVIEW_LAYER)) map.removeLayer(PREVIEW_LAYER);
-      if (map.getSource(PREVIEW_SOURCE)) map.removeSource(PREVIEW_SOURCE);
+      try {
+        if (map.getLayer(PREVIEW_LAYER)) map.removeLayer(PREVIEW_LAYER);
+        if (map.getSource(PREVIEW_SOURCE)) map.removeSource(PREVIEW_SOURCE);
+      } catch {
+        // map already removed — nothing to clean up
+      }
     };
   }, [map]);
 

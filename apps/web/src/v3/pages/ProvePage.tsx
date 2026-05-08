@@ -9,7 +9,7 @@
  *   [Execution Reality]          5 MetricCards (labor, FTE, $, peak cash, intensity)
  *   [Design Rules & Safety]      Pass / Warning / Blocked grid
  *
- * Right rail is mounted by V3ProjectLayout → DecisionRail → ProveRail.
+ * Right rail is owned by this page and passed to StageShell.rightRail.
  *
  * Phase 6.2 (per `.claude/plans/few-concerns-shiny-quokka.md`): the
  * StageHero CTAs are now wired:
@@ -33,6 +33,8 @@ import DesignRulesGrid from "../components/DesignRulesGrid.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import { downloadProveBrief } from "../data/generateProveBrief.js";
+import StageShell from "../_shell/StageShell.js";
+import ProveRail from "../components/rails/ProveRail.js";
 import "../styles/chrome.css";
 import css from "./ProvePage.module.css";
 
@@ -61,12 +63,22 @@ export default function ProvePage() {
   const focus = useMapFocusStore((s) => s.focus);
 
   if (!project) {
-    return <p className={css.empty}>No project loaded.</p>;
+    return (
+      <StageShell
+        canvasLabel="Prove canvas"
+        canvas={<p className={css.empty}>No project loaded.</p>}
+      />
+    );
   }
 
   const brief = project.prove;
   if (!brief) {
-    return <div className={css.page}>Feasibility brief is not yet available for this project.</div>;
+    return (
+      <StageShell
+        canvasLabel="Prove canvas"
+        canvas={<div className={css.page}>Feasibility brief is not yet available for this project.</div>}
+      />
+    );
   }
 
   const verdict = brief.verdict ?? project.verdict;
@@ -89,6 +101,10 @@ export default function ProvePage() {
   };
 
   return (
+    <StageShell
+      canvasLabel="Prove canvas"
+      rightRail={<ProveRail project={project} />}
+      canvas={
     <div className={css.page}>
       <StageHero
         eyebrow="Prove"
@@ -164,6 +180,7 @@ export default function ProvePage() {
         <DesignRulesGrid rules={brief.designRules} />
       </section>
     </div>
+    } />
   );
 }
 

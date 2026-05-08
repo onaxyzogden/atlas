@@ -1,33 +1,87 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
-  CircleHelp,
   Compass,
-  Droplet,
+  Flame,
   Layers,
   Leaf,
-  Link,
+  Mountain,
   Route,
+  Shield,
   Sun,
-  Thermometer,
+  Wind,
   type LucideIcon,
 } from 'lucide-react';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
+import { useParams } from '@tanstack/react-router';
+import { SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
+import SectorRadiusControl from '../../components/SectorRadiusControl.js';
+import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
+import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import TerrainSnapshot from '../topography/TerrainSnapshot.js';
+import SectorCompassDiagram from './SectorCompassDiagram.js';
+import {
+  sectorsKpis,
+  zoneCounts,
+  sectorCounts,
+  dominantWindDir,
+  type KpiIconKey,
+  type KpiItem,
+} from './derivations.js';
+import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
 import sectorHero from '../../assets/sectors-dashboard/sector-hero.png';
-import sectorCompass from '../../assets/sectors-dashboard/sector-compass.png';
-import cartographicPreview from '../../assets/sectors-dashboard/cartographic-preview.png';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  compass: Compass,
+  layers: Layers,
+  wind: Wind,
+  sun: Sun,
+  flame: Flame,
+  mountain: Mountain,
+  shield: Shield,
+};
 
 export default function SectorsDashboard() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+
+  const allSectors = useExternalForcesStore((s) => s.sectors);
+  const sectors = useMemo(() => allSectors.filter((s) => s.projectId === id), [allSectors, id]);
+  const allZones = useZoneStore((s) => s.zones);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const centroid = polygonCentroid(project?.location?.boundary);
+  const centroidTuple: [number, number] | null = centroid
+    ? [centroid.lng, centroid.lat]
+    : null;
+
+  const kpis = sectorsKpis(sectors, zones, layers);
+  const sc = sectorCounts(sectors);
+  const zc = zoneCounts(zones);
+
   return (
     <div className="detail-page sectors-page">
       <section className="sectors-layout">
         <div className="sectors-main">
           <SectorsHero />
-          <SectorsMetrics />
+          <SectorsMetrics kpis={kpis} />
           <SynthesisBand />
+          <SurfaceCard className="sector-radius-card">
+            <h2 style={{ margin: 0, fontSize: 14 }}>Sector wedge calibration</h2>
+            <SectorRadiusControl projectId={id} />
+          </SurfaceCard>
           <section className="sectors-tool-grid">
-            <SectorCompassCard />
-            <CartographicCard />
+            <SectorCompassCard sectors={sectors} centroid={centroidTuple} arrowCount={sc.total} />
+            <CartographicCard
+              boundary={project?.location?.boundary}
+              sc={sc}
+              zc={zc}
+              windDir={dominantWindDir(layers)}
+            />
           </section>
         </div>
         <SectorsSidebar />
@@ -39,7 +93,7 @@ export default function SectorsDashboard() {
 function SectorsHero() {
   return (
     <section className="sectors-hero">
-      <CroppedArt src={sectorHero} className="sectors-hero-art" />
+      <img src={sectorHero} className="sectors-hero-art" alt="" aria-hidden="true" />
       <div className="sectors-hero-copy">
         <span>5</span>
         <div>
@@ -54,30 +108,24 @@ function SectorsHero() {
   );
 }
 
-function SectorsMetrics() {
-  const items: Array<[LucideIcon, string, string, string]> = [
-    [Compass, 'Sector arrows placed', '5', 'Active'],
-    [Thermometer, 'Microclimates identified', '4', 'Distinct areas'],
-    [Layers, 'Zones outlined', '6', 'Functional zones'],
-    [Link, 'Circulation links', '3', 'Key connections'],
-  ];
+interface SectorsMetricsProps {
+  kpis: KpiItem[];
+}
+
+function SectorsMetrics({ kpis }: SectorsMetricsProps) {
   return (
     <section className="sectors-metrics-row">
-      {items.map(([Icon, label, value, note]) => (
-        <SurfaceCard key={label} className="sector-metric-card">
-          <Icon aria-hidden="true" />
-          <p>{label}</p>
-          <strong>{value}</strong>
-          <span>{note}</span>
-        </SurfaceCard>
-      ))}
-      <SurfaceCard className="sector-progress-card">
-        <p>Progress status</p>
-        <div>
-          <b>72%</b>
-        </div>
-        <span>Complete</span>
-      </SurfaceCard>
+      {kpis.map((item) => {
+        const Icon = ICON_MAP[item.iconKey];
+        return (
+          <SurfaceCard key={item.label} className={`sector-metric-card ${item.tone}`}>
+            <Icon aria-hidden="true" />
+            <p>{item.label}</p>
+            <strong>{item.value}</strong>
+            <span>{item.note}</span>
+          </SurfaceCard>
+        );
+      })}
     </section>
   );
 }
@@ -104,7 +152,13 @@ function SynthesisBand() {
   );
 }
 
-function SectorCompassCard() {
+interface SectorCompassCardProps {
+  sectors: ReturnType<typeof useExternalForcesStore.getState>['sectors'];
+  centroid: [number, number] | null;
+  arrowCount: number;
+}
+
+function SectorCompassCard({ sectors, centroid, arrowCount }: SectorCompassCardProps) {
   const nav = useDetailNav();
   const helps = [
     'Understand incoming forces & opportunities',
@@ -118,10 +172,16 @@ function SectorCompassCard() {
         <h2>
           <span>1</span> Sector compass
         </h2>
+        {arrowCount > 0 && <em>{arrowCount} arrows</em>}
       </header>
       <p>Map the forces and influences that arrive at your site.</p>
       <div className="compass-card-body">
-        <CroppedArt src={sectorCompass} className="sector-compass-image" />
+        <SectorCompassDiagram
+          sectors={sectors}
+          centroid={centroid}
+          compact
+          className="sector-compass-image"
+        />
         <div>
           <h3>This analysis helps you:</h3>
           {helps.map((item) => (
@@ -143,15 +203,22 @@ function SectorCompassCard() {
   );
 }
 
-function CartographicCard() {
+interface CartographicCardProps {
+  boundary?: GeoJSON.Polygon;
+  sc: ReturnType<typeof sectorCounts>;
+  zc: ReturnType<typeof zoneCounts>;
+  windDir: string;
+}
+
+function CartographicCard({ boundary, sc, zc }: CartographicCardProps) {
   const nav = useDetailNav();
   const layers: Array<[string, string]> = [
-    ['Microclimate areas', '4'],
-    ['Functional zones', '6'],
-    ['Circulation links', '3'],
-    ['Water features', ''],
-    ['Contours & topography', ''],
-    ['Sector overlays', '5'],
+    ['Microclimate areas', '—'],
+    ['Functional zones', zc.total > 0 ? String(zc.total) : '—'],
+    ['Circulation links', '—'],
+    ['Water features', '—'],
+    ['Contours & topography', '—'],
+    ['Sector overlays', sc.total > 0 ? String(sc.total) : '—'],
   ];
   return (
     <SurfaceCard className="sector-tool-card cartographic-tool-card">
@@ -163,7 +230,12 @@ function CartographicCard() {
       </header>
       <p>Visualize microclimates, zones, and sector influences on your map.</p>
       <div className="cartographic-card-body">
-        <CroppedArt src={cartographicPreview} className="cartographic-preview-image" />
+        <TerrainSnapshot
+          boundary={boundary}
+          width={200}
+          height={150}
+          className="cartographic-preview-image"
+        />
         <div>
           <h3>Layer summary</h3>
           {layers.map(([name, count]) => (
@@ -188,9 +260,9 @@ function CartographicCard() {
 
 function SectorsSidebar() {
   const implications: Array<[LucideIcon, string]> = [
-    [Droplet, 'Buildings on ridges capture breezes and views, away from cold air pockets.'],
+    [Wind, 'Buildings on ridges capture breezes and views, away from cold air pockets.'],
     [Sun, 'Gardens in warm, protected microclimates for longer seasons.'],
-    [Droplet, 'Water systems follow natural flow and infiltration opportunities.'],
+    [Layers, 'Water systems follow natural flow and infiltration opportunities.'],
     [Route, 'Circulation aligns with contours, access, and desire lines.'],
     [Leaf, 'Protected areas buffer risks like wind, fire, and noise.'],
   ];
@@ -210,9 +282,7 @@ function SectorsSidebar() {
   return (
     <aside className="sectors-sidebar">
       <SurfaceCard className="sector-side-card implications">
-        <h2>
-          Design implications <CircleHelp aria-hidden="true" />
-        </h2>
+        <h2>Design implications</h2>
         {implications.map(([Icon, text]) => (
           <p key={text}>
             <Icon aria-hidden="true" />

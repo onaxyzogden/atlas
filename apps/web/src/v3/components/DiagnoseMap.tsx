@@ -25,6 +25,7 @@ import css from "./DiagnoseMap.module.css";
 
 const BOUNDARY_SOURCE_ID = "diagnose-parcel-boundary";
 const BOUNDARY_LINE_LAYER = "diagnose-parcel-boundary-line";
+const BOUNDARY_LINE_CASING_LAYER = "diagnose-parcel-boundary-line-casing";
 const BOUNDARY_FILL_LAYER = "diagnose-parcel-boundary-fill";
 const FIT_PADDING = 48;
 
@@ -58,7 +59,7 @@ export interface DiagnoseMapProps {
   children?: (ctx: DiagnoseMapChildProps) => ReactNode;
 }
 
-function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
+export function polygonBounds(poly: GeoJSON.Polygon): maplibregl.LngLatBounds | null {
   const ring = poly.coordinates[0];
   if (!ring || ring.length === 0) return null;
   const first = ring[0];
@@ -161,7 +162,23 @@ export default function DiagnoseMap({
           source: BOUNDARY_SOURCE_ID,
           paint: {
             "fill-color": "#c4a265",
-            "fill-opacity": 0.06,
+            "fill-opacity": 0.08,
+          },
+        });
+      }
+      // Two-pass casing → main stroke. Dark casing underneath gives the
+      // line legibility on bright/satellite basemaps where a thin tan line
+      // disappears into terrain; the warm gold on top stays branded. This
+      // pattern is standard MapLibre cartography (cf. street casings).
+      if (!map.getLayer(BOUNDARY_LINE_CASING_LAYER)) {
+        map.addLayer({
+          id: BOUNDARY_LINE_CASING_LAYER,
+          type: "line",
+          source: BOUNDARY_SOURCE_ID,
+          paint: {
+            "line-color": "#1f1a14",
+            "line-width": 6,
+            "line-opacity": 0.6,
           },
         });
       }
@@ -171,16 +188,31 @@ export default function DiagnoseMap({
           type: "line",
           source: BOUNDARY_SOURCE_ID,
           paint: {
-            "line-color": "#7a6a3f",
-            "line-width": 2,
-            "line-opacity": 0.85,
+            "line-color": "#e6c34a",
+            "line-width": 3,
+            "line-opacity": 0.95,
           },
         });
       }
     };
 
-    const ensureAndFit = () => {
+    // ADDENDUM 7 (render-path-A fix): idempotently re-add the boundary
+    // source/layers on every `styledata` event. The previous design
+    // attached a one-shot `styledata` for the first paint plus a
+    // `style.load` listener for subsequent basemap swaps, but in some
+    // F5/setStyle interleavings `style.load` does not fire and the
+    // initial-paint listener has already self-`off`d — leaving the
+    // app-added layers wiped without re-entry. `styledata` fires for
+    // every style update including basemap swaps, and `ensure()` is
+    // idempotent (guards on `getSource`/`getLayer`). fitBounds runs
+    // exactly once per mount/boundary-change so we never steal the
+    // user's pan.
+    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
+    let didInitialFit = false;
+    const ensureAndMaybeFit = () => {
+      if (!ready()) return;
       ensure();
+      if (didInitialFit) return;
       const fb = polygonBounds(boundary);
       if (fb) {
         map.fitBounds(fb, {
@@ -188,24 +220,12 @@ export default function DiagnoseMap({
           animate: false,
         });
       }
+      didInitialFit = true;
     };
-
-    const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
-    if (ready()) {
-      ensureAndFit();
-    } else {
-      const onFirst = () => {
-        if (!ready()) return;
-        ensureAndFit();
-        map.off("styledata", onFirst);
-      };
-      map.on("styledata", onFirst);
-    }
-    // Reapply (without refit) after every subsequent style swap.
-    const onStyleSwap = () => ensure();
-    map.on("style.load", onStyleSwap);
+    ensureAndMaybeFit();
+    map.on("styledata", ensureAndMaybeFit);
     return () => {
-      map.off("style.load", onStyleSwap);
+      map.off("styledata", ensureAndMaybeFit);
     };
   }, [map, boundary]);
 

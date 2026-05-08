@@ -47,6 +47,33 @@ export interface TransectVerticalRef {
   standalone?: StandaloneVerticalMarker;
 }
 
+/**
+ * Section-level annotation kinds — orthodox cross-section overlays per
+ * OSU PDC Assignment 15 (added 2026-05-07 per Permaculture Scholar verdict
+ * `2026-05-07-atlas-plan-cross-section-scholar-keep-atlas.md`):
+ *
+ *   - `microclimate`     — bracket label like "Shady, dry, warm"
+ *   - `succession`       — early/mid/late succession band
+ *   - `slope`            — slope-% / elevation-delta callout
+ *   - `sector-response`  — wind / overland-flow deflection commentary
+ */
+export type SectionAnnotationKind =
+  | 'microclimate'
+  | 'succession'
+  | 'slope'
+  | 'sector-response';
+
+export interface SectionAnnotation {
+  id: string;
+  kind: SectionAnnotationKind;
+  /** Free-text label drawn under the bracket. */
+  label: string;
+  /** Bracket start distance (m from point A). */
+  startM: number;
+  /** Bracket end distance (m from point A). Must be >= startM. */
+  endM: number;
+}
+
 export interface Transect {
   id: string;
   projectId: string;
@@ -72,6 +99,12 @@ export interface Transect {
    * `verticalElements` (migrated to `kind: 'standalone'` refs).
    */
   verticalRefs?: TransectVerticalRef[];
+  /**
+   * Section-level overlay brackets (microclimate / succession / slope /
+   * sector-response). Optional; legacy transects load with this undefined.
+   * Added 2026-05-07 per Module 6 Scholar follow-up #1–#4.
+   */
+  sectionAnnotations?: SectionAnnotation[];
 }
 
 // ── Module 3 (Topography) annotations ───────────────────────────────────────

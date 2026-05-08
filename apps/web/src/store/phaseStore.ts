@@ -40,6 +40,19 @@ export interface BuildPhase {
   tasks?: PhaseTask[];
 }
 
+/**
+ * Yeomans Keyline Scale of Permanence categories used by the Plan-stage
+ * phasing matrix to enforce the orthodox sequencing rule (mainframe
+ * earthworks + water before structures; vegetation last).
+ *
+ * Per Permaculture Scholar verdict 2026-05-07
+ * (`wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`),
+ * `designLayer` is optional on PhaseTask: legacy tasks load with
+ * `designLayer` undefined and are surfaced in an "Uncategorised" row in
+ * the Scale-of-Permanence matrix until the steward classifies them.
+ */
+export type DesignLayer = 'earthworks' | 'water' | 'vegetation' | 'structures';
+
 /** A single seasonal build / maintenance task on a phase. */
 export interface PhaseTask {
   id: string;
@@ -48,6 +61,11 @@ export interface PhaseTask {
   laborHrs: number;
   costUSD: number;
   notes?: string;
+  /**
+   * Optional Scale-of-Permanence categorisation (Yeomans Keyline). Drives
+   * the `PhasingScaleMatrixCard` row grouping. Omitted on legacy tasks.
+   */
+  designLayer?: DesignLayer;
 }
 
 interface PhaseState {

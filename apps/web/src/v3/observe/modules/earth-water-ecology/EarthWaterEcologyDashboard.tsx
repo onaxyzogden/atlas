@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ArrowRight,
   Beaker,
@@ -9,38 +10,102 @@ import {
   FlaskConical,
   Leaf,
   MapPin,
-  Settings,
   Sprout,
   TriangleAlert,
+  Waves,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
+import { SurfaceCard } from '../../_shared/components/index.js';
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
-import siteMap from '../../assets/earth-water-ecology/site-observations-map.png';
-import hydrologyMap from '../../assets/earth-water-ecology/hydrology-map.png';
-import speciesThumbs from '../../assets/earth-water-ecology/species-thumbnails.png';
+import { useSiteDataStore } from '../../../../store/siteDataStore.js';
+import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
+import SpeciesObservationList from './SpeciesObservationList.js';
+import {
+  earthwaterKpis,
+  getWatershedLayer,
+  waterCounts,
+  type KpiIconKey,
+} from './derivations.js';
+
+const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
+  droplet: Droplet,
+  leaf: Leaf,
+  layers: Beaker,
+  beaker: FlaskConical,
+  mountain: Binoculars,
+  waves: Waves,
+};
 
 export default function EarthWaterEcologyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const project = useV3Project(id);
+  const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
+
+  const allObservations = useEcologyStore((s) => s.ecology);
+  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
+  const allSamples = useSoilSampleStore((s) => s.samples);
+
+  const observations = useMemo(() => allObservations.filter((o) => o.projectId === id), [allObservations, id]);
+  const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
+  const earthworks = useMemo(() => allEarthworks.filter((e) => e.projectId === id), [allEarthworks, id]);
+  const storage = useMemo(() => allStorage.filter((s) => s.projectId === id), [allStorage, id]);
+  const watercourses = useMemo(() => allWatercourses.filter((w) => w.projectId === id), [allWatercourses, id]);
+  const samples = useMemo(() => allSamples.filter((s) => s.projectId === id), [allSamples, id]);
+
+  const kpis = earthwaterKpis(layers, samples, observations, earthworks, storage, watercourses);
+  const watershed = getWatershedLayer(layers);
+  const wc = waterCounts(earthworks, storage, watercourses);
+
   return (
     <div className="detail-page diagnostics-page">
       <ModuleHeader />
-      <KpiStrip />
+      <SurfaceCard className="diagnostic-kpi-strip">
+        {kpis.map((item) => {
+          const Icon = ICON_MAP[item.iconKey];
+          return (
+            <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
+              <Icon aria-hidden="true" />
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.note}</small>
+            </div>
+          );
+        })}
+      </SurfaceCard>
       <TabsAndActions />
       <section className="diagnostic-grid">
-        <SiteMapCard />
-        <SoilDiagnosticsCard />
-        <HydrologyCard />
-        <EcologyCard />
+        <SiteMapCard
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          earthworks={earthworks}
+          watercourses={watercourses}
+          storage={storage}
+          flowDirection={watershed?.summary.flow_direction}
+        />
+        <SoilDiagnosticsCard samples={samples} />
+        <HydrologyCard wc={wc} flowDirection={watershed?.summary.flow_direction ?? null} />
+        <EcologyCard
+          observations={observations}
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+        />
         <AnnotationListCard
           title="Field annotations"
           projectId={projectId ?? null}
           kinds={['soilSample', 'watercourse', 'ecologyZone']}
           emptyHint="No soil samples, watercourses, or ecology zones recorded yet — drop one with the tools panel."
         />
-        <RecommendedActionsCard />
+        <RecommendedActionsCard wc={wc} observationCount={observations.length} sampleCount={samples.length} />
       </section>
     </div>
   );
@@ -59,45 +124,9 @@ function ModuleHeader() {
               reveal opportunities, risks and patterns that inform wise design.
             </p>
           </div>
-          <span className="status-pill">In progress</span>
         </div>
       </div>
-      <SurfaceCard className="module-progress-card">
-        <span>Module progress</span>
-        <strong>18 of 28 tasks complete</strong>
-        <div className="thin-progress">
-          <i style={{ width: '63%' }} />
-        </div>
-        <em>63%</em>
-        <button className="outlined-button" type="button">
-          View module guide
-        </button>
-      </SurfaceCard>
     </header>
-  );
-}
-
-function KpiStrip() {
-  const items: Array<[LucideIcon, string, string, string, string]> = [
-    [Sprout, 'Latest soil pH', '6.8', 'Slightly acidic', 'green'],
-    [Settings, 'Soil health score', '65 /100', 'Moderate', 'gold'],
-    [Leaf, 'Biodiversity score', '62 /100', 'Moderate', 'gold'],
-    [Droplet, 'Water security', 'Low', 'Improve capture', 'blue'],
-    [Binoculars, 'Field observations', '24', 'This season', 'gold'],
-    [FlaskConical, 'Tests & samples', '11', 'Across site', 'gold'],
-  ];
-
-  return (
-    <SurfaceCard className="diagnostic-kpi-strip">
-      {items.map(([Icon, label, value, note, tone]) => (
-        <div className={`diagnostic-kpi ${tone}`} key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
   );
 }
 
@@ -126,152 +155,143 @@ function TabsAndActions() {
   );
 }
 
-interface PanelHeaderProps {
-  title: string;
-  action?: string;
-  onAction?: () => void;
+interface SiteMapCardProps {
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+  earthworks: ReturnType<typeof useWaterSystemsStore.getState>['earthworks'];
+  watercourses: ReturnType<typeof useWaterSystemsStore.getState>['watercourses'];
+  storage: ReturnType<typeof useWaterSystemsStore.getState>['storageInfra'];
+  flowDirection: string | undefined;
 }
 
-function PanelHeader({ title, action, onAction }: PanelHeaderProps) {
-  return (
-    <header className="panel-header">
-      <h2>{title}</h2>
-      {action ? (
-        <button className="outlined-button" type="button" onClick={onAction}>
-          {action} <ArrowRight aria-hidden="true" />
-        </button>
-      ) : null}
-    </header>
-  );
-}
-
-function SiteMapCard() {
+function SiteMapCard({ boundary, caption, earthworks, watercourses, storage, flowDirection }: SiteMapCardProps) {
   return (
     <SurfaceCard className="diagnostic-panel site-map-panel">
-      <PanelHeader title="Site map & observations" />
-      <div className="site-map-wrap">
-        <CroppedArt src={siteMap} className="site-map-image" />
-      </div>
+      <header className="panel-header">
+        <h2>Site map &amp; observations</h2>
+      </header>
+      <WaterSystemsSnapshot
+        boundary={boundary}
+        caption={caption}
+        width={320}
+        height={200}
+        overlays={['contours']}
+        className="site-map-image"
+        earthworks={earthworks}
+        watercourses={watercourses}
+        storageInfra={storage}
+      />
       <div className="map-legend">
-        <span>
-          <Droplet /> Water point
-        </span>
-        <span>
-          <Leaf /> Soil sample
-        </span>
-        <span>
-          <MapPin /> Erosion risk
-        </span>
-        <span>
-          <Sprout /> Vegetation
-        </span>
-        <button type="button">
-          View full map <ArrowRight aria-hidden="true" />
-        </button>
+        <span><Droplet /> Water point</span>
+        <span><Leaf /> Soil sample</span>
+        <span><MapPin /> Erosion risk</span>
+        <span><Sprout /> Vegetation</span>
+        {flowDirection && <small>Flow: {flowDirection}</small>}
       </div>
     </SurfaceCard>
   );
 }
 
-function SoilDiagnosticsCard() {
-  const nav = useDetailNav();
-  const rows: Array<[string, string, string, string, number]> = [
-    ['pH (H2O)', '6.8', 'Slightly acidic', 'Good', 72],
-    ['Infiltration rate', '15 mm/hr', 'Moderate infiltration', 'Moderate', 55],
-    ['Compaction', '320 kPa', 'Moderate compaction', 'Moderate', 68],
-    ['Organic matter', '3.2%', 'Moderate', 'Moderate', 58],
-    ['Soil texture', 'Loam', 'Balanced', 'Good', 64],
-  ];
+interface SoilCardProps {
+  samples: ReturnType<typeof useSoilSampleStore.getState>['samples'];
+}
 
+function SoilDiagnosticsCard({ samples }: SoilCardProps) {
+  const nav = useDetailNav();
   return (
     <SurfaceCard className="diagnostic-panel soil-panel">
-      <PanelHeader
-        title="Soil diagnostics"
-        action="View all tests"
-        onAction={() => nav.push('jar-perc-roof')}
-      />
+      <header className="panel-header">
+        <h2>Soil diagnostics</h2>
+        <button className="outlined-button" type="button" onClick={() => nav.push('jar-perc-roof')}>
+          View all tests <ArrowRight aria-hidden="true" />
+        </button>
+      </header>
       <div className="soil-row-list">
-        {rows.map(([name, value, note, rating, position]) => (
-          <div className="soil-row" key={name}>
-            <Beaker aria-hidden="true" />
-            <div>
-              <strong>{name}</strong>
-              <span>
-                {value} · {note}
-              </span>
+        {samples.length === 0 ? (
+          <p className="empty-note">No soil samples yet — add a sample via the tools panel.</p>
+        ) : (
+          samples.slice(0, 5).map((s) => (
+            <div className="soil-row" key={s.id}>
+              <Beaker aria-hidden="true" />
+              <div>
+                <strong>{s.label}</strong>
+                <span>
+                  {s.depth}{s.ph != null ? ` · pH ${s.ph}` : ''}{s.organicMatterPct != null ? ` · OM ${s.organicMatterPct}%` : ''}
+                </span>
+              </div>
+              <b className={s.ph != null && s.ph >= 6 && s.ph <= 7.5 ? 'good' : 'moderate'}>
+                {s.ph != null ? `pH ${s.ph}` : '—'}
+              </b>
+              <i><em style={{ left: `${s.ph != null ? Math.min(100, ((s.ph - 4) / 6) * 100) : 50}%` }} /></i>
             </div>
-            <b className={rating === 'Good' ? 'good' : 'moderate'}>{rating}</b>
-            <i>
-              <em style={{ left: `${position}%` }} />
-            </i>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-      <p className="interpretation">
-        <Sprout aria-hidden="true" /> <b>Interpretation:</b> Good pH and OM for soil life. Moderate
-        infiltration and compaction - consider biological aeration and organic amendments.
-      </p>
     </SurfaceCard>
   );
 }
 
-function HydrologyCard() {
+interface HydrologyCardProps {
+  wc: ReturnType<typeof waterCounts>;
+  flowDirection: string | null;
+}
+
+function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
   const nav = useDetailNav();
   return (
     <SurfaceCard className="diagnostic-panel hydrology-panel">
-      <PanelHeader title="Hydrology overview" action="Details" onAction={() => nav.push('hydrology')} />
+      <header className="panel-header">
+        <h2>Hydrology overview</h2>
+        <button className="outlined-button" type="button" onClick={() => nav.push('hydrology')}>
+          Details <ArrowRight aria-hidden="true" />
+        </button>
+      </header>
       <div className="hydrology-layout">
         <dl>
           <div>
             <dt>Runoff direction</dt>
-            <dd>
-              SE (125°)<span>Primary flow path</span>
-            </dd>
+            <dd>{flowDirection ?? '—'}<span>Primary flow path</span></dd>
           </div>
           <div>
-            <dt>Water points</dt>
-            <dd>
-              3<span>Perennial & seasonal</span>
-            </dd>
+            <dt>Watercourses</dt>
+            <dd>{wc.watercourses}<span>Mapped</span></dd>
           </div>
           <div>
-            <dt>Drainage pattern</dt>
-            <dd>
-              Dendritic<span>Good landscape flow</span>
-            </dd>
+            <dt>Earthworks</dt>
+            <dd>{wc.earthworks}<span>Swales, drains, diversions</span></dd>
           </div>
           <div>
-            <dt>Capture opportunities</dt>
-            <dd>
-              4<span>Swales, ponds, keylines</span>
-            </dd>
+            <dt>Storage</dt>
+            <dd>{wc.storage}<span>Cisterns, ponds, rain gardens</span></dd>
           </div>
         </dl>
-        <CroppedArt src={hydrologyMap} className="hydrology-image" />
       </div>
-      <div className="flow-legend">
-        <span>Surface flow</span>
-        <span>Intermittent flow</span>
-        <span>Watershed divide</span>
-      </div>
-      <p className="warning-note">
-        <TriangleAlert aria-hidden="true" /> <b>Insight:</b> Possible erosion risk on lower slope.
-        Prioritize slow, spread, sink strategies and protect riparian corridor.
-      </p>
+      {wc.total === 0 && (
+        <p className="warning-note">
+          <TriangleAlert aria-hidden="true" /> <b>Tip:</b> Map watercourses, earthworks and storage to build the water picture.
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function EcologyCard() {
+interface EcologyCardProps {
+  observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
+  boundary: GeoJSON.Polygon | undefined;
+  caption: string | undefined;
+}
+
+function EcologyCard({ observations, boundary, caption }: EcologyCardProps) {
   const nav = useDetailNav();
   const tabs = ['All', 'Flora', 'Fauna', 'Fungi'];
   return (
     <SurfaceCard className="diagnostic-panel ecology-panel">
-      <PanelHeader
-        title="Ecology observations"
-        action="View all species"
-        onAction={() => nav.push('ecological')}
-      />
+      <header className="panel-header">
+        <h2>Ecology observations</h2>
+        <button className="outlined-button" type="button" onClick={() => nav.push('ecological')}>
+          View all species <ArrowRight aria-hidden="true" />
+        </button>
+      </header>
       <div className="species-tabs">
         {tabs.map((tab, index) => (
           <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
@@ -279,48 +299,40 @@ function EcologyCard() {
           </button>
         ))}
       </div>
-      <CroppedArt src={speciesThumbs} className="species-image" />
-      <p className="biodiversity-note">
-        <Leaf aria-hidden="true" /> <b>Biodiversity insight:</b> Moderate diversity for this
-        landscape. Riparian corridor supports valuable habitat - worth protecting and enhancing.
-      </p>
+      <SpeciesObservationList observations={observations} compact className="species-image" />
+      {observations.length === 0 && (
+        <p className="biodiversity-note">
+          <Leaf aria-hidden="true" /> <b>Tip:</b> Record species observations to build a trophic picture of the site.
+        </p>
+      )}
     </SurfaceCard>
   );
 }
 
-function RecommendedActionsCard() {
-  const actions: Array<[string, string, string, string]> = [
-    [
-      'Install contour swale on mid-slope',
-      'Capture runoff and reduce erosion risk.',
-      'High',
-      'Due in 7 days',
-    ],
-    [
-      'Apply compost + mulch to garden beds',
-      'Build organic matter and soil biology.',
-      'Medium',
-      'Due in 14 days',
-    ],
-    [
-      'Protect riparian corridor',
-      'Fence and revegetate with natives.',
-      'High',
-      'Due in 21 days',
-    ],
-    [
-      'Conduct biological aeration',
-      'Reduce compaction, improve infiltration.',
-      'Medium',
-      'Due in 30 days',
-    ],
-  ];
+interface ActionsCardProps {
+  wc: ReturnType<typeof waterCounts>;
+  observationCount: number;
+  sampleCount: number;
+}
+
+function RecommendedActionsCard({ wc, observationCount, sampleCount }: ActionsCardProps) {
+  const actions: Array<[string, string, string]> = [];
+  if (wc.earthworks === 0) actions.push(['Design and install a contour swale', 'Capture runoff and reduce erosion risk.', 'High']);
+  if (sampleCount === 0) actions.push(['Collect soil samples', 'Run jar, percolation and lab tests.', 'High']);
+  if (observationCount === 0) actions.push(['Log ecology observations', 'Record species and trophic levels.', 'Medium']);
+  if (wc.storage === 0) actions.push(['Plan water storage', 'Site a pond, cistern or rain garden.', 'Medium']);
+  if (actions.length === 0) {
+    actions.push(['Deepen hydrology analysis', 'Model water balance and infiltration.', 'Medium']);
+    actions.push(['Protect riparian corridor', 'Fence and revegetate with natives.', 'Medium']);
+  }
 
   return (
     <SurfaceCard className="diagnostic-panel actions-panel">
-      <PanelHeader title="Recommended next actions" action="Prioritize" />
+      <header className="panel-header">
+        <h2>Recommended next actions</h2>
+      </header>
       <div className="action-list">
-        {actions.map(([title, note, priority, due], index) => (
+        {actions.map(([title, note, priority], index) => (
           <div className="action-item" key={title}>
             <b>{index + 1}</b>
             <div>
@@ -328,13 +340,9 @@ function RecommendedActionsCard() {
               <span>{note}</span>
             </div>
             <em className={priority.toLowerCase()}>{priority}</em>
-            <small>{due}</small>
           </div>
         ))}
       </div>
-      <button className="text-link" type="button">
-        View all actions <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

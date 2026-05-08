@@ -61,12 +61,15 @@ export default function CandidateCard({
   onToggleSelect,
   onOpen,
 }: CandidateCardProps) {
-  const tone = STATUS_TONE[candidate.verdict];
-  const ringColor = RING_TONE[candidate.verdict];
+  const evaluated = candidate.fitScore != null;
+  const tone = evaluated ? STATUS_TONE[candidate.verdict] : "tone-muted";
+  const ringColor = evaluated ? RING_TONE[candidate.verdict] : "rgba(212,175,95,0.35)";
   const fit = candidate.fitScore ?? 0;
   const r = 22;
   const circumference = 2 * Math.PI * r;
-  const dashOffset = circumference * (1 - Math.max(0, Math.min(100, fit)) / 100);
+  const dashOffset = evaluated
+    ? circumference * (1 - Math.max(0, Math.min(100, fit)) / 100)
+    : circumference;
   const impact = candidate.topBlocker.impact ?? "medium";
 
   const subRows: { label: string; value: number | undefined }[] = [
@@ -104,53 +107,65 @@ export default function CandidateCard({
             <h3 className={css.name}>{candidate.name}</h3>
             <span className={css.region}>{candidate.region}</span>
           </div>
-          <div className={css.ring} aria-label={`Fit score ${fit} of 100`}>
+          <div className={css.ring} aria-label={evaluated ? `Fit score ${fit} of 100` : "Not yet evaluated"}>
             <svg width="54" height="54" viewBox="0 0 54 54">
               <circle cx="27" cy="27" r={r} fill="none" stroke="rgba(212,175,95,0.12)" strokeWidth="2" />
-              <circle
-                cx="27" cy="27" r={r}
-                fill="none"
-                stroke={ringColor}
-                strokeWidth="2.5"
-                strokeDasharray={circumference}
-                strokeDashoffset={dashOffset}
-                strokeLinecap="round"
-                transform="rotate(-90 27 27)"
-              />
+              {evaluated && (
+                <circle
+                  cx="27" cy="27" r={r}
+                  fill="none"
+                  stroke={ringColor}
+                  strokeWidth="2.5"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={dashOffset}
+                  strokeLinecap="round"
+                  transform="rotate(-90 27 27)"
+                />
+              )}
             </svg>
-            <span className={css.ringValue} style={{ color: ringColor }}>{fit}</span>
+            <span className={css.ringValue} style={{ color: ringColor }}>
+              {evaluated ? fit : "—"}
+            </span>
           </div>
         </div>
 
         <div className={css.factsRow}>
           <span className={css.fact}>{candidate.acreage.toLocaleString()} {candidate.acreageUnit}</span>
-          <span className={css.fact}>{formatPrice(candidate.priceUsd)}</span>
+          {candidate.priceUsd > 0 && (
+            <span className={css.fact}>{formatPrice(candidate.priceUsd)}</span>
+          )}
           {candidate.pricePerAcre && (
             <span className={css.factPerAcre}>${candidate.pricePerAcre.toLocaleString()}/ac</span>
           )}
           <span className={`${css.verdictPill} ${css[tone]}`}>{candidate.verdictLabel}</span>
         </div>
 
-        <div className={css.tags}>
-          {candidate.fitTags.map((t) => (
-            <span key={t} className={css.tag}>{t}</span>
-          ))}
-        </div>
+        {evaluated && candidate.fitTags.length > 0 && (
+          <div className={css.tags}>
+            {candidate.fitTags.map((t) => (
+              <span key={t} className={css.tag}>{t}</span>
+            ))}
+          </div>
+        )}
 
         <div className={css.divider} />
 
         <div className={css.blocker}>
           <div className={css.blockerLeft}>
             <span className={css.blockerLabel}>Top Blocker</span>
-            <span className={css.blockerText}>{candidate.topBlocker.title}</span>
+            <span className={`${css.blockerText} ${evaluated ? "" : css.placeholderText}`}>
+              {evaluated ? candidate.topBlocker.title : "—"}
+            </span>
           </div>
-          <span className={`${css.impactPill} ${css[`impact-${impact}`]}`}>{impact}</span>
+          {evaluated && (
+            <span className={`${css.impactPill} ${css[`impact-${impact}`]}`}>{impact}</span>
+          )}
         </div>
 
         <div className={css.fitHeader}>
           <span className={css.fitLabel}>Fit Score</span>
           <span className={css.fitScore}>
-            {fit}<span className={css.fitDenom}>/100</span>
+            {evaluated ? fit : "—"}<span className={css.fitDenom}>/100</span>
           </span>
         </div>
 
@@ -161,9 +176,13 @@ export default function CandidateCard({
               <div key={row.label} className={css.scoreRow}>
                 <span className={css.scoreLabel}>{row.label}</span>
                 <div className={css.scoreBar}>
-                  <div className={`${css.scoreFill} ${css[scoreTone(v)]}`} style={{ width: `${v}%` }} />
+                  {evaluated && (
+                    <div className={`${css.scoreFill} ${css[scoreTone(v)]}`} style={{ width: `${v}%` }} />
+                  )}
                 </div>
-                <span className={css.scoreValue}>{v}</span>
+                <span className={`${css.scoreValue} ${evaluated ? "" : css.placeholderText}`}>
+                  {evaluated ? v : "—"}
+                </span>
               </div>
             );
           })}

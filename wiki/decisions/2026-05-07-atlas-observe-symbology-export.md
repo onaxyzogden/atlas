@@ -226,9 +226,194 @@ so totals and folder presence assertions stay valid.
 26.81s, 626 PWA precache entries), 8 / 8 export specs pass.
 
 **Still deferred.** KML `<IconStyle>` for sector colour fidelity;
-configurable radius; per-record anchor on `SectorArrow` (would need a
-store-schema bump + draw-tool + renderer change in lockstep);
-`permacultureZone` and `ecologyObservation` in spatial exports.
+per-record anchor on `SectorArrow` (would need a store-schema bump +
+draw-tool + renderer change in lockstep); per-sector-type radius
+(sun vs wind vs fire); `permacultureZone` and `ecologyObservation` in
+spatial exports.
+
+## 2026-05-07 — Update — configurable sector wedge radius via project metadata
+
+The previous Update centralised the sector outer radius behind a single
+constant (`SECTOR_RADIUS_M = 250`) shared by the renderer and exporter.
+That value is now configurable per project via
+`LocalProject.metadata.sectorRadiusM`, with the same 250 m fallback for
+unset projects.
+
+**Schema** ([project.schema.ts](../../packages/shared/src/schemas/project.schema.ts)):
+one optional field added to `ProjectMetadata`:
+
+```ts
+sectorRadiusM: z.number().positive().max(5000).optional(),
+```
+
+`ProjectMetadata` is `z.object({...}).passthrough()`, so the API jsonb
+round-trip and the `projects.metadata` jsonb column accept the new key
+without a migration. 5 km cap is a sanity ceiling well past any plausible
+permaculture-scale parcel.
+
+**Helper**
+([sectorRadius.ts](../../apps/web/src/v3/observe/lib/sectorRadius.ts) — NEW):
+`DEFAULT_SECTOR_RADIUS_M = 250` and `getSectorRadiusM(projectId)`. The
+helper reads `useProjectStore.getState()` and returns the project's
+override only when it is a finite positive number; otherwise it falls
+back to the default. Mirrors the read-only store-access pattern already
+used by `resolveSectorAnchor`.
+
+**Renderer wire-up** ([ObserveAnnotationLayers.tsx](../../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)):
+the hard-coded `250` literal is replaced by a Zustand-subscribed
+selector that reads `metadata.sectorRadiusM` for the active project,
+falling back to `DEFAULT_SECTOR_RADIUS_M`. Subscribing directly means a
+metadata edit triggers a re-render without a reload. `sectorRadiusM`
+joins the `useMemo` dependency list so wedge polygons recompute when
+the value changes.
+
+**Exporter wire-up** ([annotationExport.ts](../../apps/web/src/v3/observe/lib/annotationExport.ts)):
+the module-level `SECTOR_RADIUS_M` constant is removed. `ExportContext`
+gains `sectorRadiusM: number`; `toGeoJSON`, `toKML`, and `toCSV` each
+resolve the value once per export pass via `getSectorRadiusM(p.projectId)`
+and thread it through. `geometryFor`'s sector arm now uses
+`ctx.sectorRadiusM`. JSDoc updated to note the metadata-driven value.
+
+**UI** ([SectorRadiusControl.tsx](../../apps/web/src/v3/observe/components/SectorRadiusControl.tsx) — NEW,
+mounted in [SectorsDashboard.tsx](../../apps/web/src/v3/observe/modules/sectors-zones/SectorsDashboard.tsx)):
+single labeled numeric input ("Sector wedge radius — m") inside the
+Sectors / Zones module slide-up. Debounced 300 ms commit via
+`useProjectStore.updateProject`. Bounds: `[10, 5000]`, clamped on
+commit. Empty input clears the override (writes `metadata` without the
+key) and the renderer falls back to 250 m. Helper text: "Default 250 m.
+Applied to all sun, wind, fire, noise, wildlife, and view sectors."
+
+**Tests.** Two new specs in
+[annotationExport.test.ts](../../apps/web/src/v3/observe/lib/__tests__/annotationExport.test.ts):
+
+1. *Configured radius round-trip* — seed a project with
+   `metadata.sectorRadiusM = 500`, a homestead, and one sector. The
+   resulting GeoJSON polygon's mid-arc vertex sits 500 m from the anchor
+   (`turf.distance` ∈ [480, 520] m).
+2. *`getSectorRadiusM` fallback table* — null/undefined projectId, missing
+   project, missing metadata, missing field, `NaN`, `0`, `-100`,
+   `Infinity`, non-numeric all return 250.
+
+The pre-existing 8 specs continue to pass — none of them seeds
+`metadata.sectorRadiusM`, so all existing fixtures resolve to the 250 m
+default and behaviour is preserved.
+
+**Verification.** `tsc --noEmit` clean, `vite build` clean (✓ built in
+57.91s), 10 / 10 export specs pass.
+
+**Why this design (not the alternatives).**
+- Not per-record `radiusM` on `SectorArrow` — would force a store-schema
+  bump + draw-tool + renderer change in lockstep with no current product
+  driver. Stays deferred.
+- Not a new dedicated metadata editor — none exists today and building
+  one is separate work.
+- Not extending dashboard `ProjectEditor` — that surface edits top-level
+  columns only; adding metadata there invites scope creep.
+- Not adding to the intake wizard — new stewards rarely know the right
+  radius before drawing a single sector. Setting it after first draw,
+  with the wedge live on the map, is the better UX.
+
+**Still deferred.** KML `<IconStyle>` for sector colour fidelity;
+per-record anchor on `SectorArrow`; per-sector-type radius
+(sun vs wind vs fire); `permacultureZone` and `ecologyObservation` in
+spatial exports; promoting `sectorRadiusM` to a dedicated DB column
+once query patterns demand it.
+
+## 2026-05-07 — Update — permacultureZone + ecologyObservation spatial coverage
+
+This update closes the second deferred item from the original ADR:
+`permacultureZone` and `ecologyObservation` are no longer "geometry-less,
+CSV-only." Both kinds now flow through GeoJSON and KML alongside the
+other OBSERVE annotations, with `MULTIPOLYGON` WKT in CSV for zones.
+
+**Schema** ([ecologyStore.ts](../../apps/web/src/store/ecologyStore.ts)):
+one optional field added to `EcologyObservation`:
+
+```ts
+/** Optional [lng, lat] for map placement / spatial export. Existing
+ *  observations without a location remain CSV-only. */
+location?: [number, number];
+```
+
+No migration: the store is `persist`-backed, existing rows simply
+never set the field. Records with `location` set become Points in
+GeoJSON / KML; records without stay CSV-only (current behaviour
+preserved). `permacultureZone` requires no schema change — the existing
+`anchorPoint` + `ringRadiiM[6]` fields already carry everything needed
+to synthesise geometry.
+
+**Exporter rework** ([annotationExport.ts](../../apps/web/src/v3/observe/lib/annotationExport.ts)):
+the `geometryFor(kind, r, ctx): Geom | null` function is widened to
+`geometriesFor(kind, r, ctx): KindGeom[]`, where each `KindGeom` is
+`{ geom; extraProps? }`. Existing scalar arms become 0- or 1-element
+arrays. Two new arms:
+
+- `permacultureZone` — fans `anchorPoint` + `ringRadiiM` into up to
+  six `KindGeom`s, one per ring. `extraProps: { ring, radiusM }` flows
+  through into per-feature GeoJSON `properties` and per-placemark KML
+  names ("Permaculture zone — Zone 3 (40 m)"). Skips rings whose radius
+  is zero, negative, or non-finite. `circlePolygon` is lifted verbatim
+  from the renderer (`ObserveAnnotationLayers.tsx:129-136`) so the
+  exported ring overlays the on-map ring pixel-for-pixel (64-step).
+- `ecologyObservation` — emits one Point when `location` is set, zero
+  otherwise.
+
+`toGeoJSON` and `toKML` iterate the array and emit one Feature /
+Placemark per geometry. `csvSection` collapses the array into one cell
+via a new `geomsToWkt(arr)` helper: 0 → empty string, 1 → existing
+single-geom WKT, N same-typed → `MULTIPOINT` / `MULTILINESTRING` /
+`MULTIPOLYGON`. The CSV row contract stays 1:1 with records, so a
+permaculture zone with six rings emits one row whose `geometryWkt` cell
+is `MULTIPOLYGON((...),(...),(...),(...),(...),(...))`. KML placemark
+IDs for zones are disambiguated as `${id}-ring-${n}` so the per-ring
+placemarks stay unique within their folder.
+
+**Tests.** Six new specs in
+[annotationExport.test.ts](../../apps/web/src/v3/observe/lib/__tests__/annotationExport.test.ts):
+
+1. *Six-ring GeoJSON expansion* — seed a zone with `ringRadiiM = [10, 20, 30, 40, 50, 60]`,
+   assert six `permacultureZone` Features, each carrying its `ring` and
+   `radiusM` properties. Ring 5's mid-arc vertex sits ~60 m from the
+   anchor (`turf.distance` ∈ [55, 65] m).
+2. *MULTIPOLYGON CSV row* — one `pz1` row whose WKT cell contains
+   `MULTIPOLYGON(((` and exactly six `((` outer-ring tokens.
+3. *Six KML placemarks per folder* — the "Permaculture zone" folder
+   contains six `<Placemark>` elements with "Zone 0".."Zone 5" labels.
+4. *Located ecologyObservation → Point* — `location: [-78.2, 44.5]`
+   produces one Point Feature and a `POINT(-78.2 44.5)` WKT cell.
+5. *Locationless ecologyObservation* — zero Features in GeoJSON, no
+   "Ecology observation" folder in KML, but the row is still present in
+   CSV with an empty `geometryWkt` cell (legacy contract preserved).
+6. *Skip zero / negative ring radii* — a zone with `[10, 0, 30, 40, -50, 60]`
+   emits four Features with rings `[0, 2, 3, 5]`.
+
+The pre-existing 10 specs continue to pass — none of them seeds a
+`permacultureZone` or sets `location` on an observation.
+
+**Verification.** `tsc --noEmit` clean, `vite build` clean (✓ built in
+34.69s), 16 / 16 export specs pass.
+
+**Why this design (not the alternatives).**
+- *Six Polygon Features (not one MultiPolygon, not a holed donut).*
+  Per-ring `ring`/`radiusM` properties matter for QGIS styling. KML has
+  no native MultiPolygon (would force MultiGeometry XML); a holed donut
+  loses zone identity entirely. CSV uses MULTIPOLYGON only because the
+  CSV row contract is 1:1 with records and OGR / PostGIS round-trip it
+  losslessly.
+- *Optional `location` field, not homestead-anchor fallback.* A
+  fallback would stack every observation at one pixel — misleading on
+  the map. Optional field is honest about what we know.
+- *`geometriesFor` as a single source of truth.* All three serialisers
+  (GeoJSON, KML, CSV) call the same function, preventing drift.
+- *Capture UI for `EcologyObservation.location` deferred.* Out of scope
+  this turn — pure export plumbing keeps the diff reviewable. A future
+  turn adds map-pick to the Ecology detail editor.
+
+**Still deferred.** KML `<IconStyle>` for sector colour fidelity;
+per-record anchor on `SectorArrow`; per-sector-type radius
+(sun vs wind vs fire); map-pick capture UI for
+`EcologyObservation.location`; promoting `sectorRadiusM` to a dedicated
+DB column once query patterns demand it.
 
 ## References
 

@@ -27,6 +27,8 @@ export type {
   TransectVerticalRefKind,
   TransectVerticalRef,
   Transect,
+  SectionAnnotationKind,
+  SectionAnnotation,
 } from './topographyStore.js';
 
 // Ecology

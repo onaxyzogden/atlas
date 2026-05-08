@@ -1,14 +1,14 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { useParams } from '@tanstack/react-router';
 import {
   ArrowRight,
   Clock3,
+  Compass,
   Hammer,
   Leaf,
-  Plus,
   Sprout,
   UserRound,
   Users,
-  type LucideIcon,
 } from 'lucide-react';
 import {
   ChipList,
@@ -20,10 +20,43 @@ import {
   SelectField,
   TextAreaField,
 } from '../../_shared/components/index.js';
+import { useVisionStore } from '../../../../store/visionStore.js';
 import heroLandscape from '../../assets/steward-survey/hero-landscape.png';
-import capacityOrbit from '../../assets/steward-survey/capacity-orbit.png';
+import { CapacityOrbit } from './CapacityOrbit.js';
+import {
+  archetypeFor,
+  stewardCompleteness,
+  totalHoursPerWeek,
+} from './derivations.js';
+
+const LIFESTYLE_OPTIONS = ['active', 'sedentary'];
+
+function fmt(value: number | undefined): string {
+  return value === undefined || Number.isNaN(value) ? '' : String(value);
+}
+
+function parseHrs(text: string): number | undefined {
+  const t = text.trim();
+  if (t === '') return undefined;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : undefined;
+}
 
 export default function StewardSurveyDetail() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
+  const updateSteward = useVisionStore((s) => s.updateSteward);
+  const setStewardList = useVisionStore((s) => s.setStewardList);
+  const steward = useVisionStore((s) => s.getVisionData(id)?.steward);
+
+  useEffect(() => {
+    ensureDefaults(id);
+  }, [id, ensureDefaults]);
+
+  const skills = steward?.skills ?? [];
+
   return (
     <div className="detail-page steward-page">
       <div className="detail-layout">
@@ -34,9 +67,133 @@ export default function StewardSurveyDetail() {
             copy="A protracted observation begins with the people. Capture who is stewarding this land, what they bring, and what they hope to grow. All fields optional - fill in what you have."
             image={heroLandscape}
           />
-          <IdentityCard />
-          <CapacityCard />
-          <VisionCard />
+
+          <FormCard number="1" title="Identity" icon={UserRound}>
+            <div className="field-grid identity-grid">
+              <TextInput
+                label="Name"
+                value={steward?.name ?? ''}
+                onChange={(v) => updateSteward(id, { name: v })}
+              />
+              <TextInput
+                label="Age"
+                type="number"
+                value={fmt(steward?.age)}
+                onChange={(v) => {
+                  const n = parseHrs(v);
+                  updateSteward(id, { age: n });
+                }}
+              />
+              <TextInput
+                label="Occupation"
+                value={steward?.occupation ?? ''}
+                onChange={(v) => updateSteward(id, { occupation: v })}
+              />
+              <SelectField
+                label="Lifestyle"
+                value={steward?.lifestyle ?? 'active'}
+                options={LIFESTYLE_OPTIONS}
+                onChange={(v) =>
+                  updateSteward(id, {
+                    lifestyle: v === 'sedentary' ? 'sedentary' : 'active',
+                  })
+                }
+              />
+            </div>
+          </FormCard>
+
+          <FormCard
+            number="2"
+            title="Capacity & Resources"
+            icon={Clock3}
+            className="capacity-card"
+          >
+            <div className="capacity-grid">
+              <div className="field-grid capacity-fields">
+                <TextInput
+                  label="Maintenance hrs/wk - initial"
+                  type="number"
+                  value={fmt(steward?.maintenanceHrsInitial)}
+                  onChange={(v) =>
+                    updateSteward(id, { maintenanceHrsInitial: parseHrs(v) })
+                  }
+                />
+                <TextInput
+                  label="Budget"
+                  value={steward?.budget ?? ''}
+                  onChange={(v) => updateSteward(id, { budget: v })}
+                />
+                <TextInput
+                  label="Maintenance hrs/wk - ongoing"
+                  type="number"
+                  value={fmt(steward?.maintenanceHrsOngoing)}
+                  onChange={(v) =>
+                    updateSteward(id, { maintenanceHrsOngoing: parseHrs(v) })
+                  }
+                />
+
+                <CapacityOverview steward={steward} />
+
+                <div className="skills-row">
+                  <span>Skills</span>
+                  <ChipList
+                    removable
+                    items={skills}
+                    onRemove={(idx) =>
+                      setStewardList(
+                        id,
+                        'skills',
+                        skills.filter((_, i) => i !== idx),
+                      )
+                    }
+                    onAdd={(value) =>
+                      setStewardList(id, 'skills', [...skills, value])
+                    }
+                    addPlaceholder="New skill"
+                  />
+                </div>
+              </div>
+
+              <CapacityOrbit
+                initialHrs={steward?.maintenanceHrsInitial}
+                ongoingHrs={steward?.maintenanceHrsOngoing}
+                className="capacity-orbit"
+              />
+            </div>
+          </FormCard>
+
+          <FormCard number="3" title="Vision" icon={Sprout}>
+            <div className="vision-grid">
+              <TextAreaField
+                label="In your own words"
+                value={steward?.vision ?? ''}
+                placeholder="A small homestead that…"
+                onChange={(v) => updateSteward(id, { vision: v })}
+              />
+              <div className="theme-box">
+                <span>Vision themes</span>
+                <ChipList
+                  removable
+                  items={steward?.coreFunctions ?? []}
+                  onAdd={(value) =>
+                    setStewardList(id, 'coreFunctions', [
+                      ...(steward?.coreFunctions ?? []),
+                      value,
+                    ])
+                  }
+                  onRemove={(idx) =>
+                    setStewardList(
+                      id,
+                      'coreFunctions',
+                      (steward?.coreFunctions ?? []).filter((_, i) => i !== idx),
+                    )
+                  }
+                  addPlaceholder="New theme"
+                />
+              </div>
+            </div>
+          </FormCard>
+
           <div className="detail-note">
             All fields are optional. You can update this anytime as your understanding deepens.
           </div>
@@ -70,7 +227,7 @@ function ModuleHero({ kicker, title, copy, image }: ModuleHeroProps) {
 interface FormCardProps {
   number: string;
   title: string;
-  icon?: LucideIcon;
+  icon?: typeof UserRound;
   children: ReactNode;
   className?: string;
 }
@@ -88,100 +245,76 @@ function FormCard({ number, title, icon: Icon, children, className = '' }: FormC
   );
 }
 
-function IdentityCard() {
-  return (
-    <FormCard number="1" title="Identity" icon={UserRound}>
-      <div className="field-grid identity-grid">
-        <TextInput label="Name" value="Yousef Abdelsalam" />
-        <TextInput label="Age" value="34" />
-        <TextInput label="Occupation" value="Software / regenerative design" />
-        <SelectField label="Lifestyle" value="Active" options={['Quiet', 'Seasonal']} />
-      </div>
-    </FormCard>
-  );
+interface CapacityOverviewProps {
+  steward: ReturnType<typeof useVisionStore.getState>['visions'][number]['steward'];
 }
 
-function CapacityCard() {
-  return (
-    <FormCard number="2" title="Capacity & Resources" icon={Clock3} className="capacity-card">
-      <div className="capacity-grid">
-        <div className="field-grid capacity-fields">
-          <TextInput label="Maintenance hrs/wk - initial" value="20" />
-          <TextInput label="Budget" value="$15k/yr establishment, $3k/yr ongoing" />
-          <TextInput label="Maintenance hrs/wk - ongoing" value="8" />
-          <div className="capacity-overview">
-            <span>Capacity overview</span>
-            <strong>28</strong>
-            <small>hrs / week total</small>
-            <div className="stacked-bar">
-              <i />
-              <b />
-            </div>
-            <em>20 hrs initial</em>
-            <em>8 hrs ongoing</em>
-          </div>
-          <div className="budget-card">
-            <span>
-              <Leaf />$15k / yr{' '}
-              <small>
-                Establishment
-                <br />
-                83%
-              </small>
-            </span>
-            <ProgressRing value={83} label="$" />
-            <span>
-              $3k / yr{' '}
-              <small>
-                Ongoing
-                <br />
-                17%
-              </small>
-            </span>
-          </div>
-          <div className="skills-row">
-            <span>Skills</span>
-            <ChipList
-              removable
-              items={['carpentry (intermediate)', 'orcharding', 'gardening', 'CAD/GIS']}
-            />
-            <button className="add-chip" type="button">
-              <Plus aria-hidden="true" /> Add skill
-            </button>
-          </div>
-        </div>
-        <CroppedArt src={capacityOrbit} className="capacity-orbit" />
-      </div>
-    </FormCard>
-  );
-}
+function CapacityOverview({ steward }: CapacityOverviewProps) {
+  const initial = steward?.maintenanceHrsInitial ?? 0;
+  const ongoing = steward?.maintenanceHrsOngoing ?? 0;
+  const total = initial + ongoing;
+  const initialPct = total > 0 ? (initial / total) * 100 : 0;
+  const ongoingPct = total > 0 ? (ongoing / total) * 100 : 0;
 
-function VisionCard() {
   return (
-    <FormCard number="3" title="Vision" icon={Sprout}>
-      <div className="vision-grid">
-        <TextAreaField
-          label="In your own words"
-          value="A small Carolinian homestead that produces food, hosts learning, and integrates daily prayer with regenerative care of land - modest scale, long horizon."
-        />
-        <div className="theme-box">
-          <span>Vision themes detected</span>
-          <ChipList
-            items={[
-              { label: 'Food production', icon: Leaf },
-              { label: 'Learning & community', icon: Users },
-              'Spiritual practice',
-              { label: 'Regenerative care', icon: Leaf },
-              { label: 'Long-term stewardship', icon: Clock3 },
-            ]}
-          />
-        </div>
+    <div className="capacity-overview">
+      <span>Capacity overview</span>
+      <strong>{total > 0 ? total : '—'}</strong>
+      <small>hrs / week total</small>
+      <div className="stacked-bar">
+        <i style={{ width: `${initialPct}%` }} />
+        <b style={{ width: `${ongoingPct}%` }} />
       </div>
-    </FormCard>
+      <em>{initial > 0 ? `${initial} hrs initial` : '— initial'}</em>
+      <em>{ongoing > 0 ? `${ongoing} hrs ongoing` : '— ongoing'}</em>
+    </div>
   );
 }
 
 function StewardSnapshot() {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+  const steward = useVisionStore((s) => s.getVisionData(id)?.steward);
+
+  const completeness = stewardCompleteness(steward);
+  const archetype = archetypeFor(steward);
+  const totalHrs = totalHoursPerWeek(steward);
+  const skills = steward?.skills ?? [];
+
+  const implications: string[] = [];
+  if (totalHrs >= 20) {
+    implications.push(
+      'Strong implementation capacity - designs can be more build-intensive.',
+    );
+  } else if (totalHrs > 0) {
+    implications.push(
+      'Light-touch capacity - prefer durable, low-maintenance systems.',
+    );
+  }
+  if (skills.some((s) => /cad|gis|map/i.test(s))) {
+    implications.push(
+      'Mapping/CAD skills support detailed spatial layout and recordkeeping.',
+    );
+  }
+  if (skills.some((s) => /carp|build|wood/i.test(s))) {
+    implications.push(
+      'Building skills support phased infrastructure (sheds, barns, fences).',
+    );
+  }
+  if (steward?.budget) {
+    implications.push(`Budget noted: ${steward.budget}.`);
+  }
+  if (steward?.lifestyle === 'active') {
+    implications.push(
+      'Active lifestyle suggests energy for regular maintenance and physical work.',
+    );
+  }
+  if (implications.length === 0) {
+    implications.push(
+      'Fill in capacity, skills, and budget to surface design implications.',
+    );
+  }
+
   return (
     <InsightSidebar
       title="Steward Snapshot"
@@ -189,19 +322,33 @@ function StewardSnapshot() {
       intro="A quick read on who you are as a steward and what it means for your design."
     >
       <SnapshotMetric label="Profile completeness">
-        <ProgressRing value={78} label="78%" />
+        <ProgressRing value={completeness.pct} label={`${completeness.pct}%`} />
         <div>
-          <strong>Well on your way.</strong>
-          <span>6 of 8 areas filled</span>
+          <strong>
+            {completeness.pct >= 70
+              ? 'Well on your way.'
+              : completeness.pct >= 30
+              ? 'Filling in.'
+              : 'Just getting started.'}
+          </strong>
+          <span>
+            {completeness.filled} of {completeness.total} areas filled
+          </span>
         </div>
       </SnapshotMetric>
       <SnapshotMetric label="Steward archetype">
         <div className="round-icon">
-          <Hammer aria-hidden="true" />
+          {archetype.name === 'Cartographer-Steward' ? (
+            <Compass aria-hidden="true" />
+          ) : archetype.name === 'Practical Builder' ? (
+            <Hammer aria-hidden="true" />
+          ) : (
+            <Users aria-hidden="true" />
+          )}
         </div>
         <div>
-          <strong>Practical Builder</strong>
-          <span>Hands-on, skilled, and ready to implement.</span>
+          <strong>{archetype.name}</strong>
+          <span>{archetype.blurb}</span>
         </div>
       </SnapshotMetric>
       <SnapshotMetric label="Time capacity">
@@ -209,26 +356,27 @@ function StewardSnapshot() {
           <Clock3 aria-hidden="true" />
         </div>
         <div>
-          <strong>28 hrs / wk</strong>
-          <span>Strong capacity for both build and maintenance.</span>
+          <strong>{totalHrs > 0 ? `${totalHrs} hrs / wk` : '— hrs / wk'}</strong>
+          <span>
+            {totalHrs >= 20
+              ? 'Strong capacity for both build and maintenance.'
+              : totalHrs > 0
+              ? 'Light-touch capacity — prioritize compounding systems.'
+              : 'Capacity not yet captured.'}
+          </span>
         </div>
       </SnapshotMetric>
       <section className="sidebar-list">
         <h3>What this implies for design</h3>
-        {[
-          'You have strong implementation capacity - designs can be more build-intensive.',
-          'Skills in carpentry, orcharding and CAD/GIS support infrastructure, planting systems, and mapping.',
-          'Budget supports a modest, phased build - prioritize durable, multi-functional elements.',
-          'Active lifestyle suggests energy for regular maintenance and physical work.',
-        ].map((item) => (
+        {implications.map((item) => (
           <p key={item}>✓ {item}</p>
         ))}
       </section>
       <div className="design-tip">
         <b>Design tip</b>
         <p>
-          Focus on resilient, low-maintenance systems that compound over time. Your capacity and
-          skills are ideal for a phased, skillfully built homestead.
+          Focus on resilient, low-maintenance systems that compound over time. Match
+          ambition to your real capacity, not aspirational hours.
         </p>
         <button type="button">
           View design implications <ArrowRight aria-hidden="true" />

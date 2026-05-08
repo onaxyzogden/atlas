@@ -42,6 +42,58 @@ export interface StorageInfra {
   createdAt: string;
 }
 
+// ── Water nodes (Scholar-aligned directed graph for Plan Module 2) ──────────
+//
+// Per Permaculture Scholar verdict 2026-05-07: water design is a directed
+// graph of nodes (catchments → storage → swale → sink) where every non-sink
+// node MUST declare an overflow target. Volume flows downstream and excess
+// spills along the overflow edge. This collection is purpose-built for the
+// new Plan Module 2 cards and is independent of the legacy
+// `earthworks` / `storageInfra` arrays (which remain for map-layer
+// compatibility and for the existing OBSERVE annotation pipeline).
+
+export type WaterNodeKind = 'catchment' | 'storage' | 'swale' | 'sink';
+
+export type CatchmentSurface =
+  | 'metal_roof'
+  | 'asphalt_roof'
+  | 'gravel'
+  | 'pasture'
+  | 'forest';
+
+export type StorageNodeKind = 'cistern' | 'tank' | 'pond' | 'rain_garden';
+
+export interface WaterNode {
+  id: string;
+  projectId: string;
+  name: string;
+  kind: WaterNodeKind;
+  createdAt: string;
+
+  /** Catchment fields. */
+  surface?: CatchmentSurface;
+  areaM2?: number;
+  runoffCoeff?: number;
+
+  /** Storage fields. */
+  storageKind?: StorageNodeKind;
+  capacityL?: number;
+
+  /** Swale fields — capacity derived from L × W × D × 1000 if all present. */
+  swaleLengthM?: number;
+  swaleWidthM?: number;
+  swaleDepthM?: number;
+
+  /**
+   * Mandatory for any non-sink node. Either another node id within the
+   * same project, the literal `'offsite'` (acknowledged loss), or `null`
+   * if the steward hasn't decided yet (treated as a validation warning).
+   */
+  overflowToNodeId?: string | 'offsite' | null;
+
+  notes?: string;
+}
+
 // ── Watercourses (natural drainage — distinct from built earthworks) ────────
 
 export type WatercourseKind = 'stream' | 'creek' | 'ditch' | 'other';
@@ -60,6 +112,7 @@ interface WaterSystemsState {
   earthworks: Earthwork[];
   storageInfra: StorageInfra[];
   watercourses: Watercourse[];
+  waterNodes: WaterNode[];
 
   addEarthwork: (e: Earthwork) => void;
   updateEarthwork: (id: string, patch: Partial<Earthwork>) => void;
@@ -72,6 +125,10 @@ interface WaterSystemsState {
   addWatercourse: (w: Watercourse) => void;
   updateWatercourse: (id: string, patch: Partial<Watercourse>) => void;
   removeWatercourse: (id: string) => void;
+
+  addWaterNode: (n: WaterNode) => void;
+  updateWaterNode: (id: string, patch: Partial<WaterNode>) => void;
+  removeWaterNode: (id: string) => void;
 }
 
 export const useWaterSystemsStore = create<WaterSystemsState>()(
@@ -80,6 +137,7 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
       earthworks: [],
       storageInfra: [],
       watercourses: [],
+      waterNodes: [],
 
       addEarthwork: (e) => set((s) => ({ earthworks: [...s.earthworks, e] })),
       updateEarthwork: (id, patch) =>
@@ -98,13 +156,34 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
         })),
       removeWatercourse: (id) =>
         set((s) => ({ watercourses: s.watercourses.filter((w) => w.id !== id) })),
+
+      addWaterNode: (n) => set((s) => ({ waterNodes: [...s.waterNodes, n] })),
+      updateWaterNode: (id, patch) =>
+        set((s) => ({
+          waterNodes: s.waterNodes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
+        })),
+      removeWaterNode: (id) =>
+        set((s) => {
+          // Removing a node also nulls any overflow edges pointing at it,
+          // so the directed graph never holds a dangling reference.
+          const remaining = s.waterNodes.filter((n) => n.id !== id);
+          return {
+            waterNodes: remaining.map((n) =>
+              n.overflowToNodeId === id ? { ...n, overflowToNodeId: null } : n,
+            ),
+          };
+        }),
     }), { limit: 200 }),
     {
       name: 'ogden-water-systems',
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const p = (persisted ?? {}) as Partial<WaterSystemsState>;
-        return { ...p, watercourses: p.watercourses ?? [] } as WaterSystemsState;
+        return {
+          ...p,
+          watercourses: p.watercourses ?? [],
+          waterNodes: p.waterNodes ?? [],
+        } as WaterSystemsState;
       },
     },
   ),

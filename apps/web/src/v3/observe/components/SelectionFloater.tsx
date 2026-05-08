@@ -18,7 +18,12 @@ import { useEffect } from 'react';
 import { Pencil, Trash2, X } from 'lucide-react';
 import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
-import { KIND_LABELS, removeAnnotation } from './AnnotationRegistry.js';
+import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
+import {
+  KIND_LABELS,
+  SECTOR_TYPE_LABELS,
+  removeAnnotation,
+} from './AnnotationRegistry.js';
 import css from './SelectionFloater.module.css';
 
 interface Props {
@@ -30,6 +35,9 @@ export default function SelectionFloater({ projectId }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
   const clear = useObserveSelectionStore((s) => s.clear);
   const openForm = useAnnotationFormStore((s) => s.open);
+  // Subscribed so the floater's sector-type label re-renders if the
+  // underlying record's `type` is edited while selected (rare, but cheap).
+  const sectors = useExternalForcesStore((s) => s.sectors);
 
   // Esc → clear selection. Only attach when there's something selected so we
   // don't fight other Esc-bound consumers (form slide-up, detail panel) when
@@ -98,10 +106,24 @@ export default function SelectionFloater({ projectId }: Props) {
 
   const onClear = () => clear();
 
-  const countLabel =
-    selected.length === 1 && single
-      ? KIND_LABELS[single.kind]
-      : `${selected.length} selected`;
+  // For a single sector selection, append the sector's type
+  // (e.g. "Sector · Summer sun") so the steward sees which kind of wedge
+  // they've grabbed without opening the form. Other kinds keep their
+  // generic registry label.
+  let countLabel: string;
+  if (selected.length === 1 && single) {
+    if (single.kind === 'sector') {
+      const rec = sectors.find((x) => x.id === single.id);
+      const typeLabel = rec ? SECTOR_TYPE_LABELS[rec.type] : null;
+      countLabel = typeLabel
+        ? `${KIND_LABELS.sector} · ${typeLabel}`
+        : KIND_LABELS.sector;
+    } else {
+      countLabel = KIND_LABELS[single.kind];
+    }
+  } else {
+    countLabel = `${selected.length} selected`;
+  }
 
   return (
     <div className={css.floater} role="toolbar" aria-label="Selection actions">

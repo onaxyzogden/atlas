@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
+  Compass,
   Eye,
   Flag,
+  Hammer,
   Leaf,
   MapPin,
   Sprout,
@@ -18,21 +21,44 @@ import {
 import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
-import regionalSnapshot from '../../assets/human-context-dashboard/regional-snapshot.png';
+import { useVisionStore } from '../../../../store/visionStore.js';
+import { useV3Project } from '../../../data/useV3Project.js';
+import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
+import {
+  archetypeFor,
+  healthLabel,
+  moduleCompleteness,
+  phaseNotesCaptured,
+  regionalCompleteness,
+  regionalCounts,
+  stewardCompleteness,
+  totalHoursPerWeek,
+  visionCompleteness,
+  visionCounts,
+} from './derivations.js';
 
 export default function HumanContextDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const id = projectId ?? 'mtc';
+
+  const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
+  const vision = useVisionStore((s) => s.getVisionData(id));
+
+  useEffect(() => {
+    ensureDefaults(id);
+  }, [id, ensureDefaults]);
+
   return (
     <div className="human-context-page">
       <div className="human-context-layout">
         <div className="human-context-main">
-          <HumanHero />
+          <HumanHero vision={vision} />
           <section className="human-card-grid">
-            <StewardCard />
-            <RegionalCard />
-            <VisionSummaryCard />
+            <StewardCard projectId={id} vision={vision} />
+            <RegionalCard projectId={id} vision={vision} />
+            <VisionSummaryCard projectId={id} vision={vision} />
           </section>
-          <HealthStrip />
+          <HealthStrip vision={vision} />
           <AnnotationListCard
             title="Field annotations"
             projectId={projectId ?? null}
@@ -40,13 +66,28 @@ export default function HumanContextDashboard() {
             emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
           />
         </div>
-        <SynthesisPanel />
+        <SynthesisPanel vision={vision} />
       </div>
     </div>
   );
 }
 
-function HumanHero() {
+type Vision = ReturnType<typeof useVisionStore.getState>['visions'][number] | undefined;
+
+interface VisionProps {
+  vision: Vision;
+}
+
+interface ProjectVisionProps extends VisionProps {
+  projectId: string;
+}
+
+function HumanHero({ vision }: VisionProps) {
+  const overall = moduleCompleteness(vision);
+  const phases = phaseNotesCaptured(vision);
+  const milestones = vision?.milestones?.length ?? 0;
+  const regional = regionalCounts(vision?.regional);
+
   return (
     <SurfaceCard className="human-hero-card">
       <CroppedArt src={heroLandscape} className="human-hero-image" />
@@ -62,16 +103,37 @@ function HumanHero() {
         </p>
       </div>
       <div className="human-hero-metrics">
-        <ProgressRing value={78} label="78%" />
+        <ProgressRing value={overall.pct} label={`${overall.pct}%`} />
         <MetricBlock
           label="Module progress"
-          value="Well on your way"
-          note="9 of 11 areas captured"
+          value={
+            overall.pct >= 70
+              ? 'Well on your way'
+              : overall.pct >= 30
+              ? 'Filling in'
+              : 'Just getting started'
+          }
+          note={`${overall.filled} of ${overall.total} areas captured`}
           compact
         />
-        <MetricBlock icon={Eye} label="Vision phases" value="3 / 3" note="Captured" />
-        <MetricBlock icon={Flag} label="Milestones" value="0" note="Defined" />
-        <MetricBlock icon={MapPin} label="Regional context" value="11" note="Captured" />
+        <MetricBlock
+          icon={Eye}
+          label="Vision phases"
+          value={`${phases.filled} / ${phases.total}`}
+          note="Captured"
+        />
+        <MetricBlock
+          icon={Flag}
+          label="Milestones"
+          value={String(milestones)}
+          note="Defined"
+        />
+        <MetricBlock
+          icon={MapPin}
+          label="Regional context"
+          value={regional.total > 0 ? String(regional.total) : '—'}
+          note="Captured"
+        />
       </div>
     </SurfaceCard>
   );
@@ -134,8 +196,22 @@ function ModuleCardShell({
   );
 }
 
-function StewardCard() {
+function StewardCard({ vision }: ProjectVisionProps) {
   const nav = useDetailNav();
+  const steward = vision?.steward;
+  const completeness = stewardCompleteness(steward);
+  const archetype = archetypeFor(steward);
+  const totalHrs = totalHoursPerWeek(steward);
+  const skills = (steward?.skills ?? []).slice(0, 3);
+  const ArchetypeIcon =
+    archetype.name === 'Cartographer-Steward'
+      ? Compass
+      : archetype.name === 'Practical Builder'
+      ? Hammer
+      : archetype.name === 'Hands-Off Caretaker'
+      ? Leaf
+      : Users;
+
   return (
     <ModuleCardShell
       number="1"
@@ -148,45 +224,47 @@ function StewardCard() {
       <div className="steward-summary-grid">
         <div className="mini-profile">
           <span>Steward Profile</span>
-          <ProgressRing value={78} label="78%" />
+          <ProgressRing value={completeness.pct} label={`${completeness.pct}%`} />
           <p>
-            Well on your way
+            {completeness.pct >= 70
+              ? 'Well on your way'
+              : completeness.pct >= 30
+              ? 'Filling in'
+              : 'Just getting started'}
             <br />
-            6 of 8 areas filled
+            {completeness.filled} of {completeness.total} areas filled
           </p>
         </div>
         <div className="mini-profile">
           <span>Steward Archetype</span>
-          <Leaf aria-hidden="true" />
+          <ArchetypeIcon aria-hidden="true" />
           <p>
-            Practical Builder
+            {archetype.name}
             <br />
-            Hands-on, skilled, and ready to implement.
+            {archetype.blurb}
           </p>
         </div>
       </div>
       <div className="capacity-mini">
         <span>Capacity Overview</span>
-        <strong>28</strong>
+        <strong>{totalHrs > 0 ? totalHrs : '—'}</strong>
         <small>hrs / week total</small>
-        <i>
-          <b />
-        </i>
       </div>
-      <ChipRow
-        items={[
-          'Active Halton Hills agricultural community',
-          'Conservation mindset',
-          'Long-term stewardship',
-        ]}
+      <ChipRow items={skills.length > 0 ? skills : ['No skills captured yet.']} />
+      <FooterTabs
+        items={['Profile insights', 'Capacity & resources', 'Local network']}
+        onSelect={() => nav.push('steward-survey')}
       />
-      <FooterTabs items={['Profile insights', 'Capacity & resources', 'Local network']} />
     </ModuleCardShell>
   );
 }
 
-function RegionalCard() {
+function RegionalCard({ projectId, vision }: ProjectVisionProps) {
   const nav = useDetailNav();
+  const project = useV3Project(projectId);
+  const counts = regionalCounts(vision?.regional);
+  const strengths = (vision?.regional?.culturalStrengths ?? []).slice(0, 3);
+
   return (
     <ModuleCardShell
       number="2"
@@ -198,34 +276,40 @@ function RegionalCard() {
     >
       <p>Honour the land&apos;s story, culture, and regional systems.</p>
       <div className="regional-summary-grid">
-        <CroppedArt src={regionalSnapshot} className="regional-summary-image" />
+        <ParcelSatelliteSnapshot
+          boundary={project?.location?.boundary}
+          width={220}
+          height={160}
+        />
         <dl>
           {[
-            ['Indigenous place-names', '3'],
-            ['Cultural challenges', '3'],
-            ['Cultural strengths', '3'],
-            ['Local contacts', '3'],
-            ['Warnings', '2'],
+            ['Indigenous place-names', counts.placeNames],
+            ['Cultural challenges', counts.challenges],
+            ['Cultural strengths', counts.strengths],
+            ['Local contacts', counts.contacts],
           ].map(([label, value]) => (
-            <div key={label}>
+            <div key={String(label)}>
               <dt>{label}</dt>
-              <dd>{value}</dd>
+              <dd>{Number(value) > 0 ? value : '—'}</dd>
             </div>
           ))}
         </dl>
       </div>
-      <ChipRow
-        items={['Land acknowledgement', 'Sacred site care', 'Stewardship partnerships']}
-      />
+      <ChipRow items={strengths.length > 0 ? strengths : ['No strengths captured yet.']} />
       <FooterTabs
         items={['Place-names', 'Cultural challenges', 'Cultural strengths', 'Local network']}
+        onSelect={() => nav.push('indigenous-regional-context')}
       />
     </ModuleCardShell>
   );
 }
 
-function VisionSummaryCard() {
+function VisionSummaryCard({ vision }: ProjectVisionProps) {
   const nav = useDetailNav();
+  const steward = vision?.steward;
+  const counts = visionCounts(steward);
+  const themes = (steward?.coreFunctions ?? []).slice(0, 5);
+
   return (
     <ModuleCardShell
       number="3"
@@ -236,35 +320,29 @@ function VisionSummaryCard() {
     >
       <p>Where we&apos;re going and what success looks like.</p>
       <div className="vision-summary-grid">
-        <blockquote>
-          A small Carolinian homestead that produces food, hosts learning, and integrates
-          daily prayer with regenerative care of land - modest scale, long horizon.
-        </blockquote>
+        <blockquote>{steward?.vision || 'Not yet captured.'}</blockquote>
         <div>
-          {[
-            'Food production',
-            'Learning & community',
-            'Spiritual practice',
-            'Regenerative care',
-            'Long-term stewardship',
-          ].map((item) => (
-            <span key={item}>{item}</span>
-          ))}
+          {themes.length > 0 ? (
+            themes.map((item) => <span key={item}>{item}</span>)
+          ) : (
+            <span>No themes yet.</span>
+          )}
         </div>
       </div>
       <div className="vision-counts">
         <span>
-          <b>6</b>Core Functions
+          <b>{counts.coreFunctions}</b>Core Functions
         </span>
         <span>
-          <b>5</b>Success Metrics
+          <b>{counts.successMetrics}</b>Success Metrics
         </span>
         <span>
-          <b>6</b>Moodboard Images
+          <b>{counts.moodboardImages}</b>Moodboard Images
         </span>
       </div>
       <FooterTabs
         items={['Vision concept', 'Success metrics', 'Moodboard', 'Core functions']}
+        onSelect={() => nav.push('vision')}
       />
     </ModuleCardShell>
   );
@@ -285,12 +363,13 @@ function ChipRow({ items }: ChipRowProps) {
 
 interface FooterTabsProps {
   items: string[];
+  onSelect: (item: string) => void;
 }
-function FooterTabs({ items }: FooterTabsProps) {
+function FooterTabs({ items, onSelect }: FooterTabsProps) {
   return (
     <div className="human-footer-tabs">
       {items.map((item) => (
-        <button type="button" key={item}>
+        <button type="button" key={item} onClick={() => onSelect(item)}>
           {item}
         </button>
       ))}
@@ -298,69 +377,125 @@ function FooterTabs({ items }: FooterTabsProps) {
   );
 }
 
-function HealthStrip() {
+function HealthStrip({ vision }: VisionProps) {
+  const overall = moduleCompleteness(vision);
+  const sw = stewardCompleteness(vision?.steward);
+  const rg = regionalCompleteness(vision?.regional);
+  const vs = visionCompleteness(vision);
+  const challenges = vision?.regional?.culturalChallenges?.length ?? 0;
+
   return (
     <SurfaceCard className="human-health-strip">
       <span>
-        <Leaf /> <b>Overall Module Health</b>Strong foundation with clear direction.
+        <Leaf /> <b>Overall Module Health</b>
+        {overall.pct >= 70
+          ? 'Strong foundation with clear direction.'
+          : overall.pct >= 30
+          ? 'Forming — keep filling in the picture.'
+          : 'Sparse — start with the steward survey.'}
       </span>
       <span>
-        People &amp; Capacity <b>Strong</b>
+        People &amp; Capacity <b>{healthLabel(sw.pct)}</b>
       </span>
       <span>
-        Place &amp; Culture <b>Strong</b>
+        Place &amp; Culture <b>{healthLabel(rg.pct)}</b>
       </span>
       <span>
-        Vision &amp; Purpose <b>Strong</b>
+        Vision &amp; Purpose <b>{healthLabel(vs.pct)}</b>
       </span>
       <span>
-        Risks to Address <b>2</b>
-      </span>
-      <span>
-        Last updated
-        <br />
-        Today, 10:24 AM
+        Risks to Address <b>{challenges}</b>
       </span>
     </SurfaceCard>
   );
 }
 
-function SynthesisPanel() {
+function SynthesisPanel({ vision }: VisionProps) {
+  const overall = moduleCompleteness(vision);
+  const steward = vision?.steward;
+  const regional = vision?.regional;
+  const archetype = archetypeFor(steward);
+  const totalHrs = totalHoursPerWeek(steward);
+  const skills = steward?.skills ?? [];
+  const empty =
+    !steward?.vision &&
+    (regional?.indigenousNames?.length ?? 0) === 0 &&
+    (regional?.culturalStrengths?.length ?? 0) === 0;
+
+  const insights: string[] = [];
+  if (totalHrs > 0) {
+    insights.push(
+      totalHrs >= 20
+        ? `${totalHrs} hrs/week of stewardship capacity — strong foundation.`
+        : `${totalHrs} hrs/week — light-touch capacity, favour resilient systems.`,
+    );
+  }
+  if (archetype.name !== 'Observer-In-Residence') {
+    insights.push(`Archetype: ${archetype.name}. ${archetype.blurb}`);
+  }
+  if ((regional?.culturalStrengths?.length ?? 0) > 0) {
+    insights.push(
+      `${regional?.culturalStrengths?.length ?? 0} cultural strengths identified — leverage them in design.`,
+    );
+  }
+  if (insights.length === 0) {
+    insights.push('Capture steward, regional, and vision details to generate insights.');
+  }
+
+  const implications: string[] = [];
+  if (skills.some((s) => /cad|gis|map/i.test(s))) {
+    implications.push('Mapping skills support detailed spatial layout.');
+  }
+  if (skills.some((s) => /carp|build|wood/i.test(s))) {
+    implications.push('Building skills support phased infrastructure.');
+  }
+  if ((regional?.culturalChallenges?.length ?? 0) > 0) {
+    implications.push('Address cultural challenges in early design phases.');
+  }
+  if ((steward?.coreFunctions?.length ?? 0) > 0) {
+    implications.push('Vision themes should drive zone prioritization.');
+  }
+  if (implications.length === 0) {
+    implications.push('Add skills, strengths, and themes to surface design implications.');
+  }
+
+  const nextSteps: string[] = [];
+  if ((regional?.localNetwork?.length ?? 0) === 0) {
+    nextSteps.push('Add at least one local network contact.');
+  }
+  if (!steward?.vision) {
+    nextSteps.push('Write a one-sentence vision statement.');
+  }
+  if ((vision?.phaseNotes ?? []).every((p) => !p.notes.trim())) {
+    nextSteps.push('Capture phased aspirations (year 1, 2-3, 4+).');
+  }
+  if (nextSteps.length === 0) {
+    nextSteps.push('Move to Macroclimate to deepen site analysis.');
+  }
+
   return (
     <SurfaceCard className="human-synthesis-panel">
       <h2>Human Context Synthesis</h2>
-      <div className="synthesis-score">
-        <ProgressRing value={82} label="82%" />
-        <p>
-          <b>Context Alignment</b>Strong foundation across people, place, and purpose.
-        </p>
-      </div>
-      <SynthesisSection
-        title="Key insights"
-        items={[
-          'Strong stewardship capacity and clear intention to build a resilient homestead.',
-          'Deep local roots and cultural strengths provide a solid foundation.',
-          'Long-term vision is coherent and grounded in care for land and people.',
-        ]}
-      />
-      <SynthesisSection
-        title="Design implications"
-        items={[
-          'Leverage community network for shared infrastructure and knowledge.',
-          'Address land acknowledgement and sacred site care in early designs.',
-          'Plan for water resilience and soil health to support long-term food production.',
-          'Build flexible spaces for learning, retreat, and community gatherings.',
-        ]}
-      />
-      <SynthesisSection
-        title="Next steps"
-        numbered
-        items={[
-          'Finalize land acknowledgement and cultural consultation.',
-          'Co-develop stewardship goals with local partners.',
-          'Use vision themes to prioritize design zones and sequences.',
-        ]}
-      />
+      {empty ? (
+        <p>Fill in the steward survey, regional context, and vision to see synthesis.</p>
+      ) : (
+        <>
+          <div className="synthesis-score">
+            <ProgressRing value={overall.pct} label={`${overall.pct}%`} />
+            <p>
+              <b>Context Alignment</b>
+              {overall.pct >= 70
+                ? 'Strong foundation across people, place, and purpose.'
+                : overall.pct >= 30
+                ? 'Forming — keep building.'
+                : 'Sparse — capture the basics first.'}
+            </p>
+          </div>
+          <SynthesisSection title="Key insights" items={insights} />
+          <SynthesisSection title="Design implications" items={implications} />
+          <SynthesisSection title="Next steps" numbered items={nextSteps} />
+        </>
+      )}
       <button className="green-button" type="button">
         View full design implications <ArrowRight aria-hidden="true" />
       </button>

@@ -29,6 +29,7 @@ import LoginPage from '../pages/LoginPage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
+import ProjectsLandingPage from '../v3/pages/ProjectsLandingPage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
 import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
@@ -38,8 +39,13 @@ import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
-import PlanPlaceholderPage from '../v3/pages/PlanPlaceholderPage.js';
+import PlanLayout from '../v3/plan/PlanLayout.js';
+import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
+
+// ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
+// ActLayout but left importable for any future fallback need.
+void ActPlaceholderPage;
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -119,6 +125,15 @@ const v3ProjectLayoutRoute = createRoute({
   component: V3ProjectLayout,
 });
 
+// /v3/project (no project ID) — projects landing rendered in the Property
+// Candidates format. Sibling of v3ProjectLayoutRoute so it isn't gated on a
+// projectId param.
+const v3ProjectsLandingRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/project',
+  component: ProjectsLandingPage,
+});
+
 // ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
 // Nested under v3ProjectLayoutRoute so the lifecycle sidebar persists.
 const v3EthicsReferenceRoute = createRoute({
@@ -177,12 +192,22 @@ const v3ObserveModuleRoute = createRoute({
 const v3PlanRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan',
-  component: PlanPlaceholderPage,
+  component: PlanLayout,
+});
+const v3PlanModuleRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/$module',
+  component: PlanLayout,
 });
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act',
-  component: ActPlaceholderPage,
+  component: ActLayout,
+});
+const v3ActModuleRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/$module',
+  component: ActLayout,
 });
 const v3DesignRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -258,6 +283,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    v3ProjectsLandingRoute,
     v3ProjectLayoutRoute.addChildren([
       v3IndexRoute,
       v3HomeRoute,
@@ -266,7 +292,9 @@ const routeTree = rootRoute.addChildren([
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanRoute,
+      v3PlanModuleRoute,
       v3ActRoute,
+      v3ActModuleRoute,
       v3DesignRoute,
       v3ProveRoute,
       v3BuildRoute,

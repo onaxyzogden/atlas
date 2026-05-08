@@ -1,0 +1,13 @@
+PROJECT: Atlas — Plan stage, module: Soil Fertility & Closed-Loop (Module 5)
+
+OPTION A — Atlas current implementation (two cards):
+1. SoilFertilityDesignerCard.tsx (~127L, store-wired) — list-only editor letting the steward add fertility infrastructure as nodes (composter | hugelkultur bed | biochar kiln | worm bin), each with type / scale-note / free-text notes; persists to closedLoopStore.fertilityInfra. Counts per type. No spatial placement, no inputs/outputs declared per node, no soil-type or amendment data.
+2. WasteVectorTool.tsx (~154L, store-wired) — directed-edge editor: pick FROM feature (any zone / structure / crop / fertility unit) and TO feature, pick resource type (organic_matter | manure | greywater | compost), pick free-text label. Persists to closedLoopStore.wasteVectors. No graph visualisation, no balance check (does every output have a sink, every sink have an input), no quantification.
+
+OPTION B — OGDEN prototype: NO CANDIDATE. OGDEN ships no soil-fertility page.
+
+QUESTION: For permaculture-sound soil-fertility design, what should this module do? Specifically:
+(1) is the four-node taxonomy (composter / hugelkultur / biochar / worm bin) correct, or is the orthodox framing different (e.g. Albrecht cation-balancing, bio-intensive double-dig, Hugelkultur layer composition, chop-and-drop, animal integration)?
+(2) is "waste-to-resource vectors" the right model for closed-loop nutrient cycling, or should this instead be a soil-test → amendment-plan → mulch/compost-application schedule?
+(3) what bare-minimum visualisations / validations would make this module actually useful to a steward (e.g. nutrient mass balance? soil-horizon cross-section? carbon-to-nitrogen ratio of compost feedstocks? bed-layout planner?)
+(4) verdict: PORT_OGDEN | KEEP_ATLAS | BUILD_FRESH, with rationale and a sketched UI shape if BUILD_FRESH.
