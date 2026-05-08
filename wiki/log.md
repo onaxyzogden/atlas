@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · Scale-of-Permanence ADR closure + LaborBudget rollup
+
+Module 7 (Phasing) follow-up #1 closed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). The Scale-of-Permanence pivot matrix had already landed in commit `000840e` as `PhasingScaleMatrixCard.tsx` (Phase × Yeomans-tier with sequencing-violation detection) plus the `designLayer` field on `PhaseTask` and the `<select>` in `SeasonalTaskCard`, but the ADR still labelled #1 as "deferred". This fire flips it to ✅ and lands a complementary enhancement in `LaborBudgetSummaryCard.tsx`: a new "By Scale of Permanence (Yeomans Keyline)" section aggregating `{ count, hrs, usd }` per Yeomans tier (earthworks / water / structures / vegetation + uncategorised) across all phases. Where `PhasingScaleMatrixCard` shows *sequencing* (which phase touches which tier), the new rollup shows *totals* — a steward can now see at a glance whether dollars + hours are flowing into the right permanence tier, or whether vegetation is dwarfing earthworks/water early in the program (the orthodox upside-down-sequencing failure mode). Uncategorised row hides when zero so legacy-task migration doesn't clutter the view. Caption cites OSU PDC + Yeomans. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 5 · Type-aware orphan remedies in ClosedLoopGraphCard
 
 Module 5 (Soil) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`). The "Fertility units to wire up" list in `ClosedLoopGraphCard` no longer reads a single generic remedy line per orphan. New `FERTILITY_REMEDY` lookup, keyed on the eight `FertilityInfraType` members (composter, hugelkultur, biochar, worm_bin, cover_crop, chop_and_drop, dynamic_accumulator, rotational_grazing), supplies a permaculture-grounded `orphan` message (no flows declared) and a separate `noFeedstock` message (outgoing but no incoming). Composters get "wire greens + browns inward, finished compost out to garden / orchard zones"; hugel beds get "log the prunings or felled trunks that built the mound"; chop-and-drop gets "which planting is being chopped?"; etc. Sourced from Mollison ch.8 + Cornell composting guidance. Generic fallback retained when type lookup fails (defensive). Typecheck clean.

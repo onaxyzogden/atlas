@@ -2,12 +2,18 @@
  * LaborBudgetSummaryCard — PLAN Module 7.
  *
  * Read-only rollup of seasonal-task labor and dollar totals across the
- * full phase timeline. Two slices: per-phase and per-season.
+ * full phase timeline. Four slices: per-phase, per-season, per Yeomans
+ * Scale-of-Permanence layer (earthworks/water/structures/vegetation),
+ * and a 5-year cumulative horizon. The Scale-of-Permanence rollup
+ * complements `PhasingScaleMatrixCard` (which shows phase × layer
+ * sequencing) by surfacing total $ + hours per Yeomans tier so a
+ * steward can detect upside-down budgeting (vegetation dwarfing
+ * earthworks/water early in the program).
  */
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { usePhaseStore, type PhaseTask } from '../../store/phaseStore.js';
+import { usePhaseStore, type PhaseTask, type DesignLayer } from '../../store/phaseStore.js';
 import styles from './planCard.module.css';
 
 interface Props {
@@ -18,6 +24,27 @@ interface Props {
 const SEASONS: PhaseTask['season'][] = ['winter', 'spring', 'summer', 'fall'];
 const SEASON_LABEL: Record<PhaseTask['season'], string> = {
   winter: 'Winter', spring: 'Spring', summer: 'Summer', fall: 'Fall',
+};
+
+// ── Yeomans Scale of Permanence rollup buckets ────────────────────────
+// Ordered top-down: longest-permanence (earthworks) → shortest (vegetation).
+// "uncategorised" catches legacy tasks lacking a `designLayer` so the
+// rollup degrades gracefully rather than silently dropping them.
+type LayerBucket = DesignLayer | 'uncategorised';
+const LAYER_ORDER: LayerBucket[] = ['earthworks', 'water', 'structures', 'vegetation', 'uncategorised'];
+const LAYER_LABEL: Record<LayerBucket, string> = {
+  earthworks:    'Earthworks (terrain, access)',
+  water:         'Water (catchment, swales, storage)',
+  structures:    'Structures (buildings, fences, trellises)',
+  vegetation:    'Vegetation (trees, guilds, ground cover)',
+  uncategorised: 'Uncategorised (legacy)',
+};
+const LAYER_BLURB: Record<LayerBucket, string> = {
+  earthworks:    'Once shaped, hardest to redo — front-load capital here.',
+  water:         'Earthworks-dependent; size to catchment yield not guesswork.',
+  structures:    'Mid-permanence; site to support the water lines, not vice versa.',
+  vegetation:    'Cheap to plant, slow to mature — sequence after earth+water.',
+  uncategorised: 'Tag these in Seasonal Tasks to enter the Yeomans rollup.',
 };
 
 export default function LaborBudgetSummaryCard({ project }: Props) {
@@ -99,6 +126,31 @@ export default function LaborBudgetSummaryCard({ project }: Props) {
     return { rows, fiveYearHrs, fiveYearUSD, beyondCount };
   }, [phases, rollup.perPhase]);
 
+  // ── Scale-of-Permanence rollup (Yeomans / OSU PDC) ──────────────────────
+  // Aggregate every phase's tasks by their `designLayer` field so the
+  // steward can answer: are dollars + hours flowing into the right
+  // permanence tier? Complement to the per-phase × per-tier matrix in
+  // PhasingScaleMatrixCard — that one shows *sequencing*; this one shows
+  // *totals*.
+  const perLayer = useMemo(() => {
+    const buckets: Record<LayerBucket, { count: number; hrs: number; usd: number }> = {
+      earthworks:    { count: 0, hrs: 0, usd: 0 },
+      water:         { count: 0, hrs: 0, usd: 0 },
+      structures:    { count: 0, hrs: 0, usd: 0 },
+      vegetation:    { count: 0, hrs: 0, usd: 0 },
+      uncategorised: { count: 0, hrs: 0, usd: 0 },
+    };
+    for (const p of phases) {
+      for (const t of p.tasks ?? []) {
+        const key: LayerBucket = t.designLayer ?? 'uncategorised';
+        buckets[key].count += 1;
+        buckets[key].hrs += t.laborHrs;
+        buckets[key].usd += t.costUSD;
+      }
+    }
+    return buckets;
+  }, [phases]);
+
   const empty = rollup.perPhase.every((r) => r.taskCount === 0);
 
   return (
@@ -144,6 +196,32 @@ export default function LaborBudgetSummaryCard({ project }: Props) {
                 <span>{rollup.perSeason[s].hrs} h · ${rollup.perSeason[s].usd.toLocaleString()}</span>
               </div>
             ))}
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>By Scale of Permanence (Yeomans Keyline)</h2>
+            <p style={{ fontSize: 12, color: 'rgba(232,220,200,0.55)', margin: '0 0 12px', lineHeight: 1.5 }}>
+              Per OSU PDC and Yeomans' Scale of Permanence: every dollar
+              and hour bucketed by the layer it shapes. Earthworks first
+              (most permanent, hardest to redo); vegetation last. If the
+              Vegetation row dwarfs Earthworks + Water early on, the
+              sequencing is upside-down — fix in the Seasonal Tasks card.
+            </p>
+            {LAYER_ORDER.map((layer) => {
+              const bucket = perLayer[layer];
+              if (layer === 'uncategorised' && bucket.count === 0) return null;
+              return (
+                <div key={layer} className={styles.statRow}>
+                  <span>
+                    {LAYER_LABEL[layer]}{' '}
+                    <span className={styles.listMeta}>· {bucket.count} task(s) · {LAYER_BLURB[layer]}</span>
+                  </span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {bucket.hrs} h · ${bucket.usd.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
           </section>
 
           <section className={styles.section}>
