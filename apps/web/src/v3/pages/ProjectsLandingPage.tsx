@@ -66,7 +66,7 @@ export default function ProjectsLandingPage() {
     null;
 
   return (
-    <div className={css.page}>
+    <div className={`${landingCss.scrollHost} ${css.page}`}>
       <PageHeader
         eyebrow="Projects"
         title="Property Candidates"

@@ -57,32 +57,7 @@ export default function HomePage() {
         meta={`${project.location.region} · ${project.location.acreage} ${project.location.acreageUnit}`}
         verdict={project.verdict}
         actions={[
-          {
-            label: "Observe",
-            onClick: () =>
-              navigate({
-                to: "/v3/project/$projectId/observe",
-                params: { projectId: params.projectId ?? "" },
-              }),
-          },
-          {
-            label: "Plan",
-            variant: "secondary",
-            onClick: () =>
-              navigate({
-                to: "/v3/project/$projectId/plan",
-                params: { projectId: params.projectId ?? "" },
-              }),
-          },
-          {
-            label: "Act",
-            variant: "secondary",
-            onClick: () =>
-              navigate({
-                to: "/v3/project/$projectId/act",
-                params: { projectId: params.projectId ?? "" },
-              }),
-          },
+          { label: "Continue Project", onClick: () => navigate({ to: "/cycle" }) },
           { label: "Generate Brief", variant: "secondary", onClick: () => {} },
         ]}
       />

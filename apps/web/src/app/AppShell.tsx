@@ -38,9 +38,9 @@ export default function AppShell({ children }: AppShellProps) {
       </a>
       {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/home" className={styles.logo}>
+        <Link to="/v3/project" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
-          <span className={styles.logoSub}>Land Design Atlas</span>
+          <span className={styles.logoSub}>Land OS</span>
         </Link>
 
         <div className={styles.headerCenter}>

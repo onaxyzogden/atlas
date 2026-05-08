@@ -31,6 +31,9 @@ export type CycleSegment = {
   label: string;
   color?: string;
   Icon?: LucideIcon;
+  description?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 };
 
 type Props = {
@@ -89,6 +92,7 @@ export default function CycleWheel({
   const arcSize = 360 / n;
   const startOffset = -90 - arcSize / 2;
   const patternId = `cw-pat-${levelPattern}`;
+  const hoveredSegment = hovered ? segments.find((s) => s.id === hovered) : null;
 
   return (
     <div className={`cw-wrap${className ? ` ${className}` : ''}`}>
@@ -152,15 +156,31 @@ export default function CycleWheel({
           const endDeg = startOffset + (i + 1) * arcSize;
           const isHovered = hovered === seg.id;
           const hov = isHovered ? ' is-hovered' : '';
+          const clickable = !!seg.onClick && !seg.disabled;
           return (
             <g
               key={`inner-${seg.id}`}
-              role="img"
+              role={clickable ? 'button' : 'img'}
               aria-label={seg.label}
-              className={`cw-sector${isMounted ? ' is-mounted' : ''}${hov}`}
+              aria-disabled={seg.disabled || undefined}
+              tabIndex={clickable ? 0 : undefined}
+              className={`cw-sector${isMounted ? ' is-mounted' : ''}${hov}${clickable ? ' is-clickable' : ''}${seg.disabled ? ' is-disabled' : ''}`}
               style={{ animationDelay: `${i * 90}ms` }}
               onMouseEnter={() => setHovered(seg.id)}
               onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(seg.id)}
+              onBlur={() => setHovered(null)}
+              onClick={clickable ? seg.onClick : undefined}
+              onKeyDown={
+                clickable
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        seg.onClick?.();
+                      }
+                    }
+                  : undefined
+              }
             >
               <path
                 d={annularSector(HUB_R, PROGRESS_MAX_R, startDeg, endDeg)}
@@ -188,6 +208,7 @@ export default function CycleWheel({
           const endDeg = startDeg + arcSize;
           const isHovered = hovered === seg.id;
           const hov = isHovered ? ' is-hovered' : '';
+          const clickable = !!seg.onClick && !seg.disabled;
           return (
             <path
               key={`band-${seg.id}`}
@@ -195,11 +216,12 @@ export default function CycleWheel({
               fill={seg.color || 'url(#cw-band-level)'}
               stroke="rgba(10, 20, 24, 0.85)"
               strokeWidth="1.5"
-              className={`cw-band${hov}`}
+              className={`cw-band${hov}${clickable ? ' is-clickable' : ''}`}
               role="img"
               aria-label={seg.label}
               onMouseEnter={() => setHovered(seg.id)}
               onMouseLeave={() => setHovered(null)}
+              onClick={clickable ? seg.onClick : undefined}
             />
           );
         })}
@@ -240,6 +262,20 @@ export default function CycleWheel({
           </text>
         </g>
       </svg>
+      {hoveredSegment && (hoveredSegment.description || hoveredSegment.label) && (
+        <div className="cw-tooltip" role="tooltip">
+          <div className="cw-tooltip-label">{hoveredSegment.label}</div>
+          {hoveredSegment.description && (
+            <div className="cw-tooltip-desc">{hoveredSegment.description}</div>
+          )}
+          {hoveredSegment.onClick && !hoveredSegment.disabled && (
+            <div className="cw-tooltip-cta">Click to open →</div>
+          )}
+          {hoveredSegment.disabled && (
+            <div className="cw-tooltip-cta cw-tooltip-cta-disabled">No project selected</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
