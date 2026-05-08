@@ -49,6 +49,21 @@ Scholar explicitly endorsed Atlas's 9-rank data model as orthodox. The legacy `P
   rather than segregate*) is now visualised, not just narrated.
   A force-directed/Sankey variant remains possible but the curved
   prereq-edge layout reads cleanly at this scale.
+- ✅ **Diagnostic edge encoding on the layer-relationships graph** —
+  landed 2026-05-07. The curved prereq-edge graph now colours each
+  edge by satisfaction state instead of rendering every line in the
+  same neutral grey: amber + heavier stroke + amber arrowhead when
+  the source rank is populated but the prerequisite is empty (the
+  same condition flagged in the Ordering-check panel above), green
+  when both ends are populated, dashed dim grey when neither rank
+  carries elements yet. Each `<path>` carries a `<title>` tooltip
+  that names the state in plain English ("3.Water has elements but
+  prerequisite 2 is empty"). The graph is now itself diagnostic —
+  the steward can see Holmgren P8 violations as colour, not just
+  read them in a list. Three new arrowhead `<marker>` defs
+  (`prereq-arrow-ok` / `-warn` plus the original neutral) keep
+  arrowhead colour consistent with shaft colour. No data-model
+  change; pure SVG render upgrade.
 - ✅ **Ordering-violation suggestions** — landed 2026-05-07. Each missing-prerequisite chip in the ordering-check panel is now a deep-link button that switches the slide-up to the Plan module where that rank is authored (rank 2 → `cross-section-solar`, 3 → `water-management`, 4 → `zone-circulation`, 7 → `soil-fertility`, 8 → `plant-systems`). Wired through a new `onSwitchModule?: (mod: PlanModule) => void` prop on `PermanenceLadderCard` + `PlanModuleSlideUp`; `PlanLayout` calls `handleSelectModule(mod)` then re-opens the sheet. Ranks without a Plan module home (Climate, Structures, Subsystems, Fauna) remain plain chips.
 - ✅ **Score weighting (extent dimension)** — landed 2026-05-07. Each ladder row now shows a per-rank extent metric alongside the count: rank 3 Water sums `earthwork.lengthM` (formatted as m / km), rank 4 Access sums `path.lengthM`, rank 7 Soil sums `areaM2` of food-production zones (m² / ha), rank 8 Vegetation sums `crop.areaM2`. Ranks without a natural extent metric (Climate, Landform, Structures, Subsystems, Fauna) display count only. The bar still uses count as the primary signal — the extent line gives stewards the magnitude, surfacing the "single 1-acre swale system out-weights five toy footprints" insight without conflating two metrics in one bar. Age and function-count weighting remain deferred.
 

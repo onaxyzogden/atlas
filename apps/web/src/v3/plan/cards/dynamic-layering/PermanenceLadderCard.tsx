@@ -355,9 +355,14 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
         <p className={styles.lede} style={{ marginBottom: 8 }}>
           Each rank inherits constraints from the ranks above it. Arrows point
           from a rank to every prerequisite that must already be in place —
-          so e.g. Vegetation depends on Water, Access, and Soil. This is
-          Holmgren P8 (<em>Integrate rather than segregate</em>) drawn out as
-          a graph rather than narrated.
+          so e.g. Vegetation depends on Water, Access, and Soil. Edges are
+          colour-coded: <span style={{ color: 'rgb(220,150,90)' }}>amber</span>{' '}
+          when the source rank is populated but its prerequisite is empty
+          (the same violation flagged in the panel above), {' '}
+          <span style={{ color: 'rgb(140,180,120)' }}>green</span> when both
+          ends carry elements, and dim grey when neither does. Holmgren P8
+          (<em>Integrate rather than segregate</em>) made diagnostic, not
+          just narrated.
         </p>
         {(() => {
           const W = 360;
@@ -367,6 +372,28 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
           const STEP = (H - PAD_TOP - PAD_BOT) / (RANKS.length - 1);
           const nodeX = 70;
           const yOf = (rank: number) => PAD_TOP + (rank - 1) * STEP;
+          // Edge state encoding (Scholar 2026-05-07 follow-up): the
+          // ordering-check panel reports violations as a list, but the
+          // graph itself was previously inert — every prereq edge drawn
+          // the same neutral grey. Colour by source/target population:
+          //   · violation: src.count > 0 ∧ tgt.count == 0  → amber, solid
+          //   · satisfied: src.count > 0 ∧ tgt.count > 0   → green
+          //   · latent:    src.count == 0                  → dim grey,
+          //                                                  thin/dashed
+          const byRank = new Map(rows.map((r) => [r.rank, r] as const));
+          const edgeStateOf = (srcRank: number, tgtRank: number) => {
+            const src = byRank.get(srcRank);
+            const tgt = byRank.get(tgtRank);
+            if (!src || !tgt) return 'latent' as const;
+            if (src.count === 0) return 'latent' as const;
+            if (tgt.count === 0) return 'violation' as const;
+            return 'satisfied' as const;
+          };
+          const EDGE_STYLE = {
+            satisfied: { stroke: 'rgba(140,180,120,0.85)', width: 1.5, marker: 'prereq-arrow-ok',   dashArray: undefined },
+            violation: { stroke: 'rgba(220,150,90,0.95)',  width: 2,   marker: 'prereq-arrow-warn', dashArray: undefined },
+            latent:    { stroke: 'rgba(180,180,180,0.35)', width: 1,   marker: 'prereq-arrow',      dashArray: '3 3' },
+          } as const;
           return (
             <svg
               viewBox={`0 0 ${W} ${H}`}
@@ -390,24 +417,58 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
                 >
                   <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(180,180,180,0.65)" />
                 </marker>
+                <marker
+                  id="prereq-arrow-ok"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="5"
+                  markerHeight="5"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(140,180,120,0.95)" />
+                </marker>
+                <marker
+                  id="prereq-arrow-warn"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="5"
+                  markerHeight="5"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(220,150,90,0.95)" />
+                </marker>
               </defs>
               {/* Edges: from each rank to each prerequisite. Curved out
-                  to the right so multi-prereq stacks read clearly. */}
+                  to the right so multi-prereq stacks read clearly.
+                  Coloured by satisfaction state. */}
               {RANKS.flatMap((r) =>
                 r.prereqs.map((p) => {
                   const y1 = yOf(r.rank);
                   const y2 = yOf(p);
                   const dy = Math.abs(y1 - y2);
                   const ctrl = nodeX + 30 + dy * 0.35;
+                  const state = edgeStateOf(r.rank, p);
+                  const style = EDGE_STYLE[state];
                   return (
                     <path
                       key={`${r.rank}-${p}`}
                       d={`M ${nodeX + 6} ${y1} C ${ctrl} ${y1}, ${ctrl} ${y2}, ${nodeX + 6} ${y2}`}
-                      stroke="rgba(180,180,180,0.55)"
-                      strokeWidth={1}
+                      stroke={style.stroke}
+                      strokeWidth={style.width}
+                      strokeDasharray={style.dashArray}
                       fill="none"
-                      markerEnd="url(#prereq-arrow)"
-                    />
+                      markerEnd={`url(#${style.marker})`}
+                    >
+                      <title>
+                        {state === 'violation'
+                          ? `${r.rank}.${r.name} has elements but prerequisite ${p} is empty`
+                          : state === 'satisfied'
+                            ? `${r.rank}.${r.name} → ${p} (both populated)`
+                            : `${r.rank}.${r.name} → ${p} (neither populated yet)`}
+                      </title>
+                    </path>
                   );
                 }),
               )}

@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 1 · Diagnostic edge encoding on layer-relationships graph
+
+Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The 9-rank prereq graph in `PermanenceLadderCard` previously rendered every curved edge in the same neutral grey — structurally correct but inert. Edges now encode satisfaction state in colour + width + dash + arrowhead: amber+heavier when the source rank is populated but its prerequisite is empty (Yeomans-violation visualised), green when both ends carry elements, dashed dim when neither does. Each `<path>` carries a `<title>` tooltip naming the state. Three arrowhead `<marker>` defs (`prereq-arrow-ok` / `-warn` / neutral) keep tip colour consistent with shaft. The graph is now itself diagnostic — Holmgren P8 violations show on the diagram, not just in the panel above. No data-model change. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 3 · SectorOverlayCard adjustable arc widths
 
 Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). Sector arcs were previously hard-coded (fire 30° / view 30° / noise 25° half-width), forcing every wildfire to render as a tidy 60° wedge regardless of the actual approach geometry. `ProjectSectors` now carries optional `fireHalfWidth` / `viewHalfWidth` / `noiseHalfWidth` numbers (additive — no persist version bump). New `setSectorHalfWidth(projectId, key, halfWidth | null)` action clamps to `[1, 90]` and integer-rounds; clearing a sector also drops its custom arc so next time starts fresh from default. Card UI: each `CompassPicker` gained an arc slider (5–90° half-width, step 5, disabled until a direction is set) reading live `arc N°` (full-width readout) with a `reset` chip when tuned away from default. Wedge geometry reads the live values, so a 70° wildfire approach or a 10° saddle-aperture view renders faithfully. Sourced from Mollison ch.3 + Holmgren P1 (Observe and Interact). Typecheck clean.
