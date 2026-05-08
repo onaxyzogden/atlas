@@ -5,6 +5,7 @@
  *   /              → Landing (public) — redirects to /home if authenticated
  *   /home          → Home (project list, authenticated)
  *   /new           → New project wizard
+ *   /cycle         → Cycle wheel (Observe / Plan / Act)
  *   /project/$id   → Project view (map + dashboard)
  *   /login         → Login / register (outside AppShell)
  *   /portal/$slug  → Public project portal (outside AppShell)
@@ -28,8 +29,6 @@ import LoginPage from '../pages/LoginPage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
-import V3DiscoverPage from '../v3/pages/DiscoverPage.js';
-import V3DiagnosePage from '../v3/pages/DiagnosePage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
 import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
@@ -37,6 +36,10 @@ import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
+import CyclePage from '../pages/CyclePage.js';
+import ObserveLayout from '../v3/observe/ObserveLayout.js';
+import PlanPlaceholderPage from '../v3/pages/PlanPlaceholderPage.js';
+import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -77,6 +80,12 @@ const newProjectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/new',
   component: NewProjectPage,
+});
+
+const cycleRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/cycle',
+  component: CyclePage,
 });
 
 const projectRoute = createRoute({
@@ -128,15 +137,52 @@ const v3HomeRoute = createRoute({
   path: 'home',
   component: V3HomePage,
 });
+// Legacy discover/diagnose routes redirect to the new Observe shell.
+// The underlying page components remain in the repo for reuse in Plan/Act
+// surfaces (Phase C) — only the routes are reshaped.
 const v3DiscoverRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'discover',
-  component: V3DiscoverPage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({
+      to: '/v3/project/$projectId/observe/$module',
+      params: { projectId, module: 'human-context' },
+    });
+  },
 });
 const v3DiagnoseRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'diagnose',
-  component: V3DiagnosePage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({
+      to: '/v3/project/$projectId/observe/$module',
+      params: { projectId, module: 'human-context' },
+    });
+  },
+});
+const v3ObserveIndexRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe',
+  component: ObserveLayout,
+});
+const v3ObserveModuleRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe/$module',
+  component: ObserveLayout,
+});
+const v3PlanRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan',
+  component: PlanPlaceholderPage,
+});
+const v3ActRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act',
+  component: ActPlaceholderPage,
 });
 const v3DesignRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -208,6 +254,7 @@ const routeTree = rootRoute.addChildren([
   appShellRoute.addChildren([
     homeRoute,
     newProjectRoute,
+    cycleRoute,
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
@@ -216,6 +263,10 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
+      v3ObserveIndexRoute,
+      v3ObserveModuleRoute,
+      v3PlanRoute,
+      v3ActRoute,
       v3DesignRoute,
       v3ProveRoute,
       v3BuildRoute,

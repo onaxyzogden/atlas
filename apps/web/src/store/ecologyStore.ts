@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type TrophicLevel =
   | 'producer'
@@ -34,22 +35,44 @@ export interface EcologyObservation {
   observedAt: string;
 }
 
+/**
+ * OBSERVE Module 4 — distinct ecological patches (mature forest, disturbed
+ * pasture, wetland edge, etc.) outlined on the map. The `dominantStage`
+ * succession label is per-zone (vs. `successionStageByProject` which is a
+ * site-wide rollup).
+ */
+export interface EcologyZone {
+  id: string;
+  projectId: string;
+  geometry: GeoJSON.Polygon;
+  dominantStage: SuccessionStage;
+  label?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 interface EcologyState {
   ecology: EcologyObservation[];
   /** Optional per-project succession-stage label; one entry per project. */
   successionStageByProject: Record<string, SuccessionStage>;
+  ecologyZones: EcologyZone[];
 
   addObservation: (o: EcologyObservation) => void;
   updateObservation: (id: string, patch: Partial<EcologyObservation>) => void;
   removeObservation: (id: string) => void;
   setSuccessionStage: (projectId: string, stage: SuccessionStage | undefined) => void;
+
+  addEcologyZone: (z: EcologyZone) => void;
+  updateEcologyZone: (id: string, patch: Partial<EcologyZone>) => void;
+  removeEcologyZone: (id: string) => void;
 }
 
 export const useEcologyStore = create<EcologyState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       ecology: [],
       successionStageByProject: {},
+      ecologyZones: [],
 
       addObservation: (o) => set((s) => ({ ecology: [...s.ecology, o] })),
       updateObservation: (id, patch) =>
@@ -62,8 +85,23 @@ export const useEcologyStore = create<EcologyState>()(
           else next[projectId] = stage;
           return { successionStageByProject: next };
         }),
-    }),
-    { name: 'ogden-ecology', version: 1 },
+
+      addEcologyZone: (z) => set((s) => ({ ecologyZones: [...s.ecologyZones, z] })),
+      updateEcologyZone: (id, patch) =>
+        set((s) => ({
+          ecologyZones: s.ecologyZones.map((z) => (z.id === id ? { ...z, ...patch } : z)),
+        })),
+      removeEcologyZone: (id) =>
+        set((s) => ({ ecologyZones: s.ecologyZones.filter((z) => z.id !== id) })),
+    }), { limit: 200 }),
+    {
+      name: 'ogden-ecology',
+      version: 2,
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as Partial<EcologyState>;
+        return { ...p, ecologyZones: p.ecologyZones ?? [] } as EcologyState;
+      },
+    },
   ),
 );
 

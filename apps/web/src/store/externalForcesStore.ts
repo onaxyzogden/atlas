@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Hazards ──────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ export type HazardType =
   | 'earthquake'
   | 'drought'
   | 'tornado'
+  | 'frost'
   | 'other';
 
 export type HazardSeverity = 'low' | 'med' | 'high' | 'catastrophic';
@@ -49,6 +51,12 @@ export interface HazardEvent {
    * items) that participate in the mitigation plan for this hazard.
    */
   linkedFeatureIds?: string[];
+  /**
+   * OBSERVE Module 2 — optional polygon outlining the hazard footprint on the
+   * site (frost pocket, flood plain, fire corridor, slide zone). Optional;
+   * historical tabular hazard entries persist with `geometry: undefined`.
+   */
+  geometry?: GeoJSON.Polygon;
 }
 
 // ── Sectors ──────────────────────────────────────────────────────────────────
@@ -92,7 +100,7 @@ interface ExternalForcesState {
 
 export const useExternalForcesStore = create<ExternalForcesState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       hazards: [],
       sectors: [],
 
@@ -105,8 +113,12 @@ export const useExternalForcesStore = create<ExternalForcesState>()(
       updateSector: (id, patch) =>
         set((s) => ({ sectors: s.sectors.map((x) => (x.id === id ? { ...x, ...patch } : x)) })),
       removeSector: (id) => set((s) => ({ sectors: s.sectors.filter((x) => x.id !== id) })),
-    }),
-    { name: 'ogden-external-forces', version: 1 },
+    }), { limit: 200 }),
+    {
+      name: 'ogden-external-forces',
+      version: 2,
+      migrate: (persisted) => persisted as ExternalForcesState,
+    },
   ),
 );
 

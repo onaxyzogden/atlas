@@ -17,6 +17,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 /** Coarse texture vocabulary — aligned with USDA soil texture triangle
  *  classes that show up most often on lab reports. `unknown` lets a steward
@@ -113,7 +114,7 @@ interface SoilSampleState {
 
 export const useSoilSampleStore = create<SoilSampleState>()(
   persist(
-    (set) => ({
+    temporal((set) => ({
       samples: [],
 
       addSample: (sample) =>
@@ -130,7 +131,7 @@ export const useSoilSampleStore = create<SoilSampleState>()(
 
       deleteSample: (id) =>
         set((s) => ({ samples: s.samples.filter((x) => x.id !== id) })),
-    }),
+    }), { limit: 200 }),
     { name: 'ogden-soil-samples', version: 1 },
   ),
 );

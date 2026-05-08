@@ -13,7 +13,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type MatrixToggleKey = 'topography' | 'sectors' | 'zones' | 'wind' | 'water';
+export type MatrixToggleKey =
+  | 'topography'
+  | 'sectors'
+  | 'zones'
+  | 'wind'
+  | 'water'
+  | 'observeAnnotations';
 
 export interface MatrixTogglesState {
   topography: boolean;
@@ -21,6 +27,8 @@ export interface MatrixTogglesState {
   zones: boolean;
   wind: boolean;
   water: boolean;
+  /** OBSERVE annotations master toggle (default on). */
+  observeAnnotations: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -33,6 +41,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       zones: false,
       wind: false,
       water: false,
+      observeAnnotations: true,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
         set(() => ({
@@ -41,14 +50,17 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zones: value,
           wind: value,
           water: value,
+          observeAnnotations: value,
         })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v7 (2026-05-06): added observeAnnotations master toggle (default on)
+      // for the OBSERVE-stage annotation layers shipped this session.
       // v6 (2026-04-28): added water (streams + surface water) toggle.
-      // v5 added wind-prevailing rose. Migrate seeds `false` for any
+      // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 6,
+      version: 7,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -57,6 +69,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zones: prev.zones ?? false,
           wind: prev.wind ?? false,
           water: prev.water ?? false,
+          observeAnnotations: prev.observeAnnotations ?? true,
         } as MatrixTogglesState;
       },
     },
