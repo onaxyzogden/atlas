@@ -148,3 +148,21 @@ Module 3 sub-cards (3, was 2):
   persist, key `ogden-sectors` v1) — flat `byProject: { [projectId]:
   { fire?, view?, noise? } }`; `setSector` clears keys on `null`;
   wind / downslope remain derived-only.
+- ✅ **Adjustable per-sector arc widths** — landed 2026-05-07.
+  `ProjectSectors` extended with optional `fireHalfWidth` /
+  `viewHalfWidth` / `noiseHalfWidth` (degrees, additive — no persist
+  version bump). New store action `setSectorHalfWidth(projectId, key,
+  halfWidth | null)` clamps to `[1, 90]` and rounds to integer; passing
+  `null` reverts to the per-sector default (fire 30° / view 30° /
+  noise 25°, preserving prior visual behaviour for any existing
+  project). `setSector(_, key, null)` now also drops the matching
+  half-width so a cleared sector starts fresh next time. Card-side:
+  `SectorOverlayCard.CompassPicker` gained an arc slider (range
+  5–90°, step 5, disabled until a direction is set) showing live
+  `arc N°` (full-width readout) plus a `reset` button when the
+  steward has tuned away from the default. Wedge geometry now reads
+  `fireHalf` / `viewHalf` / `noiseHalf` instead of hard-coded 30/30/25,
+  so a 60–80° wildfire approach or a 10° saddle-aperture view renders
+  faithfully. Holmgren P1 (*Observe and Interact*): the steward's
+  read of *how wide* a sector enters is part of the same observation
+  as *which* compass direction it enters from.

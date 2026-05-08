@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 3 · SectorOverlayCard adjustable arc widths
+
+Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). Sector arcs were previously hard-coded (fire 30° / view 30° / noise 25° half-width), forcing every wildfire to render as a tidy 60° wedge regardless of the actual approach geometry. `ProjectSectors` now carries optional `fireHalfWidth` / `viewHalfWidth` / `noiseHalfWidth` numbers (additive — no persist version bump). New `setSectorHalfWidth(projectId, key, halfWidth | null)` action clamps to `[1, 90]` and integer-rounds; clearing a sector also drops its custom arc so next time starts fresh from default. Card UI: each `CompassPicker` gained an arc slider (5–90° half-width, step 5, disabled until a direction is set) reading live `arc N°` (full-width readout) with a `reset` chip when tuned away from default. Wedge geometry reads the live values, so a 70° wildfire approach or a 10° saddle-aperture view renders faithfully. Sourced from Mollison ch.3 + Holmgren P1 (Observe and Interact). Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 7 · Scale-of-Permanence ADR closure + LaborBudget rollup
 
 Module 7 (Phasing) follow-up #1 closed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). The Scale-of-Permanence pivot matrix had already landed in commit `000840e` as `PhasingScaleMatrixCard.tsx` (Phase × Yeomans-tier with sequencing-violation detection) plus the `designLayer` field on `PhaseTask` and the `<select>` in `SeasonalTaskCard`, but the ADR still labelled #1 as "deferred". This fire flips it to ✅ and lands a complementary enhancement in `LaborBudgetSummaryCard.tsx`: a new "By Scale of Permanence (Yeomans Keyline)" section aggregating `{ count, hrs, usd }` per Yeomans tier (earthworks / water / structures / vegetation + uncategorised) across all phases. Where `PhasingScaleMatrixCard` shows *sequencing* (which phase touches which tier), the new rollup shows *totals* — a steward can now see at a glance whether dollars + hours are flowing into the right permanence tier, or whether vegetation is dwarfing earthworks/water early in the program (the orthodox upside-down-sequencing failure mode). Uncategorised row hides when zero so legacy-task migration doesn't clutter the view. Caption cites OSU PDC + Yeomans. Typecheck clean.

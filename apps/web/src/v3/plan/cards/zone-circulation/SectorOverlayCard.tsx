@@ -11,7 +11,11 @@
  *
  * Wind / downslope are read-only (derived live from climate /
  * elevation layers); fire / view / noise are editable via 8-point
- * compass toggles and persist per-project through `sectorStore`. The
+ * compass toggles plus per-sector arc-width sliders (5–90° half-width,
+ * default 30/30/25), and persist per-project through `sectorStore`. A
+ * wildfire often arrives across a 60–80° arc; a borrowed view through
+ * a saddle may be a 10° aperture — getting the arc right matters for
+ * windbreak length and firebreak placement, not just the bearing. The
  * intent is steward-awareness: the same site-data the rest of the
  * Plan stage already pulls is laid out radially so it can be reasoned
  * against zone polygons.
@@ -113,6 +117,7 @@ export default function SectorOverlayCard({ project }: Props) {
   // site-specific Holmgren-P1 *Observe* note that should survive reload.
   const byProject = useSectorStore((s) => s.byProject);
   const setSector = useSectorStore((s) => s.setSector);
+  const setSectorHalfWidth = useSectorStore((s) => s.setSectorHalfWidth);
   const projectSectors = useMemo(
     () => byProject[project.id] ?? {},
     [byProject, project.id],
@@ -120,6 +125,14 @@ export default function SectorOverlayCard({ project }: Props) {
   const fireDir = projectSectors.fire ?? null;
   const viewDir = projectSectors.view ?? null;
   const noiseDir = projectSectors.noise ?? null;
+  // Defaults preserve prior visual behaviour (30° / 30° / 25°) for any
+  // existing project that hasn't tuned its arc widths.
+  const FIRE_DEFAULT = 30;
+  const VIEW_DEFAULT = 30;
+  const NOISE_DEFAULT = 25;
+  const fireHalf = projectSectors.fireHalfWidth ?? FIRE_DEFAULT;
+  const viewHalf = projectSectors.viewHalfWidth ?? VIEW_DEFAULT;
+  const noiseHalf = projectSectors.noiseHalfWidth ?? NOISE_DEFAULT;
   const setFireDir = (c: Compass | null) => setSector(project.id, 'fire', c);
   const setViewDir = (c: Compass | null) => setSector(project.id, 'view', c);
   const setNoiseDir = (c: Compass | null) => setSector(project.id, 'noise', c);
@@ -152,7 +165,7 @@ export default function SectorOverlayCard({ project }: Props) {
   if (fireDir) {
     sectors.push({
       dir: fireDir,
-      halfWidth: 30,
+      halfWidth: fireHalf,
       fill: 'rgba(220,90,60,0.28)',
       stroke: 'rgba(220,90,60,0.85)',
       label: `fire ← ${fireDir}`,
@@ -161,7 +174,7 @@ export default function SectorOverlayCard({ project }: Props) {
   if (viewDir) {
     sectors.push({
       dir: viewDir,
-      halfWidth: 30,
+      halfWidth: viewHalf,
       fill: 'rgba(200,180,90,0.22)',
       stroke: 'rgba(220,200,110,0.85)',
       label: `view → ${viewDir}`,
@@ -170,7 +183,7 @@ export default function SectorOverlayCard({ project }: Props) {
   if (noiseDir) {
     sectors.push({
       dir: noiseDir,
-      halfWidth: 25,
+      halfWidth: noiseHalf,
       fill: 'rgba(160,140,200,0.22)',
       stroke: 'rgba(180,160,220,0.8)',
       label: `noise ← ${noiseDir}`,
@@ -178,8 +191,16 @@ export default function SectorOverlayCard({ project }: Props) {
   }
 
   function CompassPicker({
-    label, value, setValue,
-  }: { label: string; value: Compass | null; setValue: (c: Compass | null) => void }) {
+    label, value, setValue, halfWidth, defaultHalfWidth, sectorKey,
+  }: {
+    label: string;
+    value: Compass | null;
+    setValue: (c: Compass | null) => void;
+    halfWidth: number;
+    defaultHalfWidth: number;
+    sectorKey: 'fire' | 'view' | 'noise';
+  }) {
+    const isCustom = halfWidth !== defaultHalfWidth;
     return (
       <div className={styles.field} style={{ flex: 1, minWidth: 220 }}>
         <span>{label}</span>
@@ -210,6 +231,51 @@ export default function SectorOverlayCard({ project }: Props) {
               </button>
             );
           })}
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            opacity: value ? 1 : 0.45,
+          }}
+        >
+          <span style={{ fontSize: 11, opacity: 0.7, minWidth: 70 }}>
+            arc {halfWidth * 2}°
+          </span>
+          <input
+            type="range"
+            min={5}
+            max={90}
+            step={5}
+            value={halfWidth}
+            disabled={!value}
+            onChange={(e) =>
+              setSectorHalfWidth(project.id, sectorKey, Number(e.target.value))
+            }
+            style={{ flex: 1 }}
+          />
+          {isCustom && value && (
+            <button
+              type="button"
+              onClick={() => setSectorHalfWidth(project.id, sectorKey, null)}
+              style={{
+                padding: '1px 8px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: '0.75em',
+                cursor: 'pointer',
+                opacity: 0.7,
+              }}
+              title="Revert to default arc width"
+            >
+              reset
+            </button>
+          )}
         </div>
       </div>
     );
@@ -334,12 +400,34 @@ export default function SectorOverlayCard({ project }: Props) {
         <h2 className={styles.sectionTitle}>Editable sectors</h2>
         <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
           Tap a direction to mark where the sector enters the site. Tap
-          again to clear. Selections persist per project.
+          again to clear. Drag the arc slider to widen or narrow the
+          wedge (5–90° half-width). Selections persist per project.
         </p>
         <div className={styles.grid}>
-          <CompassPicker label="Fire (← incoming)" value={fireDir} setValue={setFireDir} />
-          <CompassPicker label="View (→ outgoing)" value={viewDir} setValue={setViewDir} />
-          <CompassPicker label="Noise (← incoming)" value={noiseDir} setValue={setNoiseDir} />
+          <CompassPicker
+            label="Fire (← incoming)"
+            value={fireDir}
+            setValue={setFireDir}
+            halfWidth={fireHalf}
+            defaultHalfWidth={FIRE_DEFAULT}
+            sectorKey="fire"
+          />
+          <CompassPicker
+            label="View (→ outgoing)"
+            value={viewDir}
+            setValue={setViewDir}
+            halfWidth={viewHalf}
+            defaultHalfWidth={VIEW_DEFAULT}
+            sectorKey="view"
+          />
+          <CompassPicker
+            label="Noise (← incoming)"
+            value={noiseDir}
+            setValue={setNoiseDir}
+            halfWidth={noiseHalf}
+            defaultHalfWidth={NOISE_DEFAULT}
+            sectorKey="noise"
+          />
         </div>
       </section>
 
