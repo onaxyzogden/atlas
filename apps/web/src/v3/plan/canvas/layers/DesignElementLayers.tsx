@@ -23,13 +23,20 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   view: PlanView;
+  /** Currently selected design element id. Drives the feature-state highlight. */
+  selectedId?: string | null;
 }
 
 const SOURCE_PREFIX = 'design-el-';
 const LAYER_PREFIX = 'design-el-';
 const EMPTY_ELEMENTS: DesignElement[] = [];
 
-export default function DesignElementLayers({ map, projectId, view }: Props) {
+export default function DesignElementLayers({
+  map,
+  projectId,
+  view,
+  selectedId,
+}: Props) {
   const elements = useDesignElementsStore(
     (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
   );
@@ -61,19 +68,20 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
             : (el.label ?? spec?.label ?? el.kind),
       };
       if (el.geometry.type === 'Polygon') {
-        polys.push({ type: 'Feature', properties: props, geometry: el.geometry });
+        polys.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
         try {
           const c = turf.centroid(el.geometry).geometry;
-          labels.push({ type: 'Feature', properties: props, geometry: c });
+          labels.push({ type: 'Feature', id: el.id, properties: props, geometry: c });
         } catch {
           /* malformed polygon — skip label */
         }
       } else if (el.geometry.type === 'LineString') {
-        lines.push({ type: 'Feature', properties: props, geometry: el.geometry });
+        lines.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
       } else {
-        points.push({ type: 'Feature', properties: props, geometry: el.geometry });
+        points.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
         labels.push({
           type: 'Feature',
+          id: el.id,
           properties: props,
           geometry: el.geometry,
         });
@@ -99,7 +107,7 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
           | maplibregl.GeoJSONSource
           | undefined;
         if (existing) existing.setData(data);
-        else map.addSource(sid, { type: 'geojson', data });
+        else map.addSource(sid, { type: 'geojson', data, promoteId: 'id' });
         return sid;
       };
 
@@ -112,13 +120,16 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
 
+      const selFlag = ['boolean', ['feature-state', 'selected'], false] as const;
+      const SEL_GOLD = '#c4a265';
+
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': 0.28,
+          'fill-opacity': ['case', selFlag, 0.55, 0.28],
         },
       });
       ensureLayer({
@@ -126,8 +137,8 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
         type: 'line',
         source: polySid,
         paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 1.5,
+          'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
+          'line-width': ['case', selFlag, 3, 1.5],
           'line-opacity': 0.9,
         },
       });
@@ -136,8 +147,8 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
         type: 'line',
         source: lineSid,
         paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 2,
+          'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
+          'line-width': ['case', selFlag, 4, 2],
           'line-opacity': 0.9,
           'line-dasharray': [2, 1],
         },
@@ -147,10 +158,10 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
         type: 'circle',
         source: pointSid,
         paint: {
-          'circle-radius': 6,
+          'circle-radius': ['case', selFlag, 9, 6],
           'circle-color': ['get', 'color'],
-          'circle-stroke-color': '#1f1d1a',
-          'circle-stroke-width': 1.5,
+          'circle-stroke-color': ['case', selFlag, SEL_GOLD, '#1f1d1a'],
+          'circle-stroke-width': ['case', selFlag, 3, 1.5],
           'circle-opacity': 0.95,
         },
       });
@@ -185,6 +196,31 @@ export default function DesignElementLayers({ map, projectId, view }: Props) {
       }
     };
   }, [map, polyFC, lineFC, pointFC, labelFC]);
+
+  // Drive feature-state highlight off selectedId. Re-runs on FC changes
+  // because source.setData() wipes feature-state.
+  useEffect(() => {
+    if (!map) return;
+    const sources = [
+      `${SOURCE_PREFIX}poly`,
+      `${SOURCE_PREFIX}line`,
+      `${SOURCE_PREFIX}point`,
+    ];
+    try {
+      for (const source of sources) {
+        if (!map.getSource(source)) continue;
+        map.removeFeatureState({ source });
+      }
+      if (selectedId) {
+        for (const source of sources) {
+          if (!map.getSource(source)) continue;
+          map.setFeatureState({ source, id: selectedId }, { selected: true });
+        }
+      }
+    } catch {
+      /* sources not yet ready — next data effect will re-apply */
+    }
+  }, [map, selectedId, polyFC, lineFC, pointFC]);
 
   // Cleanup on unmount: remove our sources + layers so they don't bleed into
   // the Current Land view.

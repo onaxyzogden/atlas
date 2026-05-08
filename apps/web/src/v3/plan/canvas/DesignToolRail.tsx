@@ -15,6 +15,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import {
   Copy,
   Hand,
@@ -36,6 +37,10 @@ interface Props {
   projectId: string;
   /** Optional callback to disarm an active palette draw tool. */
   onDisarmDraw?: () => void;
+  /** Selected design element id — owned by VisionLayoutCanvas so the
+   *  DesignElementLayers feature-state highlight can read the same value. */
+  selectedId: string | null;
+  setSelectedId: Dispatch<SetStateAction<string | null>>;
 }
 
 type ToolMode = 'pan' | 'select';
@@ -77,9 +82,15 @@ function offsetGeometry(
   };
 }
 
-export default function DesignToolRail({ map, activeKind, projectId, onDisarmDraw }: Props) {
+export default function DesignToolRail({
+  map,
+  activeKind,
+  projectId,
+  onDisarmDraw,
+  selectedId,
+  setSelectedId,
+}: Props) {
   const [mode, setMode] = useState<ToolMode>('pan');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const railRef = useRef<HTMLDivElement>(null);
@@ -114,7 +125,7 @@ export default function DesignToolRail({ map, activeKind, projectId, onDisarmDra
         /* map disposed */
       }
     };
-  }, [map, mode]);
+  }, [map, mode, setSelectedId]);
 
   // ── Layers panel: apply visibility to map layers ───────────────────────
   useEffect(() => {
@@ -148,7 +159,7 @@ export default function DesignToolRail({ map, activeKind, projectId, onDisarmDra
     if (selectedId && !elements.some((e) => e.id === selectedId)) {
       setSelectedId(null);
     }
-  }, [elements, selectedId]);
+  }, [elements, selectedId, setSelectedId]);
 
   const selected = useMemo(
     () => elements.find((e) => e.id === selectedId) ?? null,

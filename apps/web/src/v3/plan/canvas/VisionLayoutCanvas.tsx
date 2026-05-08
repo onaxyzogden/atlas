@@ -58,16 +58,25 @@ export default function VisionLayoutCanvas({
   const [drawNonce] = useState(0);
   void drawNonce;
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   return (
     <DiagnoseMap centroid={centroid} boundary={boundary}>
       {({ map }) => (
         <>
-          <DesignElementLayers map={map} projectId={projectId} view={view} />
+          <DesignElementLayers
+            map={map}
+            projectId={projectId}
+            view={view}
+            selectedId={selectedId}
+          />
           <DesignToolRail
             map={map}
             activeKind={activeKind}
             projectId={projectId}
             onDisarmDraw={onDrawComplete}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
           />
           <BaseMapCard />
           {activeKind && (
