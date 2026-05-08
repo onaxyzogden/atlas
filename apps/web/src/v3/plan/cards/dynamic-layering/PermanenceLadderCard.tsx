@@ -34,6 +34,8 @@ import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useSectorStore } from '../../../../store/sectorStore.js';
+import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -123,6 +125,15 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
   const allEcology = useEcologyStore((s) => s.ecology);
   const allGuilds = usePolycultureStore((s) => s.guilds);
+  // Sector Compass entries land on the Climate row (rank 1) — wind &
+  // downslope are derived from the climate / elevation site-data layers,
+  // fire / view / noise are steward-authored in `sectorStore`. Per the
+  // Module 1 follow-up: surface sectors as part of the Scale of
+  // Permanence rather than treating Climate as a single binary "Observe
+  // happened" toggle. Each sector is itself a permaculture-orthodox
+  // climate-rank reading (Mollison ch.3).
+  const sectorsByProject = useSectorStore((s) => s.byProject);
+  const siteData = useSiteData(project.id);
 
   const rows: Row[] = useMemo(() => {
     const pId = project.id;
@@ -147,8 +158,32 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
     const fmtA = (m2: number) =>
       m2 >= 10000 ? `${(m2 / 10000).toFixed(2)} ha` : `${Math.round(m2)} m²`;
 
+    // Climate-rank sector inventory. Wind / downslope are present iff
+    // the Observe layer carries a populated string field; fire / view /
+    // noise are present iff the steward has authored them in
+    // `sectorStore` (any non-null Compass8). Each populated sector is
+    // worth one unit of Climate-rank evidence — the row reads as the
+    // total number of sector readings on file rather than a binary 1.
+    const climate = siteData
+      ? getLayerSummary<{ prevailing_wind?: string | null }>(siteData, 'climate')
+      : null;
+    const elev = siteData
+      ? getLayerSummary<{ predominant_aspect?: string | null }>(siteData, 'elevation')
+      : null;
+    const sectors = sectorsByProject[pId] ?? {};
+    const climateBits: string[] = [];
+    if (climate?.prevailing_wind) climateBits.push('wind');
+    if (elev?.predominant_aspect) climateBits.push('downslope');
+    if (sectors.fire) climateBits.push('fire');
+    if (sectors.view) climateBits.push('view');
+    if (sectors.noise) climateBits.push('noise');
+    const climateCount = climateBits.length;
+    const climateLabel = climateCount === 0
+      ? 'no sectors yet — fetch climate / elevation, mark fire / view / noise'
+      : `${climateCount} sector${climateCount === 1 ? '' : 's'}: ${climateBits.join(' · ')}`;
+
     const counts: Record<number, { count: number; label: string; weight: number; weightLabel: string }> = {
-      1: { count: 1, label: 'site-level (Observe)', weight: 0, weightLabel: '' },
+      1: { count: climateCount, label: climateLabel, weight: 0, weightLabel: '' },
       2: { count: transects.length, label: `${transects.length} transect(s)`, weight: 0, weightLabel: '' },
       3: {
         count: earthworks.length + storage.length,
@@ -190,7 +225,7 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
       weightLabel: counts[r.rank]?.weightLabel ?? '',
       prereqs: r.prereqs,
     }));
-  }, [project.id, allZones, allPaths, allStructures, allCrops, allTransects, allEarthworks, allStorage, allFertility, allEcology, allGuilds]);
+  }, [project.id, allZones, allPaths, allStructures, allCrops, allTransects, allEarthworks, allStorage, allFertility, allEcology, allGuilds, sectorsByProject, siteData]);
 
   // Detect ordering violations: any rank with count > 0 whose prereqs
   // have count == 0. These are the "design-implication" warnings the

@@ -65,6 +65,24 @@ Scholar explicitly endorsed Atlas's 9-rank data model as orthodox. The legacy `P
   arrowhead colour consistent with shaft colour. No data-model
   change; pure SVG render upgrade.
 - ✅ **Ordering-violation suggestions** — landed 2026-05-07. Each missing-prerequisite chip in the ordering-check panel is now a deep-link button that switches the slide-up to the Plan module where that rank is authored (rank 2 → `cross-section-solar`, 3 → `water-management`, 4 → `zone-circulation`, 7 → `soil-fertility`, 8 → `plant-systems`). Wired through a new `onSwitchModule?: (mod: PlanModule) => void` prop on `PermanenceLadderCard` + `PlanModuleSlideUp`; `PlanLayout` calls `handleSelectModule(mod)` then re-opens the sheet. Ranks without a Plan module home (Climate, Structures, Subsystems, Fauna) remain plain chips.
+- ✅ **Sector Compass entries on the Climate row** — landed 2026-05-07.
+  Rank 1 (Climate) previously rendered as a binary `count: 1` toggle
+  ("site-level (Observe)"), which collapsed several distinct climate-
+  rank readings into a single dot. The ladder now reads
+  `sectorStore.byProject[projectId]` plus the climate +
+  elevation site-data layers and tallies up to five sector entries:
+  *wind* (climate.prevailing_wind populated), *downslope*
+  (elevation.predominant_aspect populated), and the steward-authored
+  *fire / view / noise* compass picks. The Climate row label reads
+  "N sectors: wind · downslope · fire …" when populated, falling back
+  to a "fetch climate / elevation, mark fire / view / noise" prompt
+  when empty. Climate-rank prerequisites elsewhere in the ladder
+  (Water requires Climate + Landform; Access requires …) now resolve
+  correctly only once the steward has at least one sector reading on
+  file — the ordering check no longer treats a freshly-created project
+  as having "Climate satisfied" by default. Mollison ch.3 (sector
+  analysis is the climate-rank reading) + Holmgren P1 (*Observe and
+  Interact*).
 - ✅ **Score weighting (extent dimension)** — landed 2026-05-07. Each ladder row now shows a per-rank extent metric alongside the count: rank 3 Water sums `earthwork.lengthM` (formatted as m / km), rank 4 Access sums `path.lengthM`, rank 7 Soil sums `areaM2` of food-production zones (m² / ha), rank 8 Vegetation sums `crop.areaM2`. Ranks without a natural extent metric (Climate, Landform, Structures, Subsystems, Fauna) display count only. The bar still uses count as the primary signal — the extent line gives stewards the magnitude, surfacing the "single 1-acre swale system out-weights five toy footprints" insight without conflating two metrics in one bar. Age and function-count weighting remain deferred.
 
 ## Verification
