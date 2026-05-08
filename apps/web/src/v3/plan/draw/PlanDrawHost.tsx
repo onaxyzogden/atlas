@@ -14,6 +14,7 @@ import WaterSinkTool from './tools/WaterSinkTool.js';
 import ZonePolygonTool from './tools/ZonePolygonTool.js';
 import PathLineTool from './tools/PathLineTool.js';
 import CropAreaTool from './tools/CropAreaTool.js';
+import FertilityInfraTool from './tools/FertilityInfraTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -50,6 +51,9 @@ export default function PlanDrawHost({ map, projectId }: Props) {
       break;
     case 'plan.plant-systems.crop-area':
       tool = <CropAreaTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.soil-fertility.fertility-unit':
+      tool = <FertilityInfraTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

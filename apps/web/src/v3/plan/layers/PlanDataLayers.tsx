@@ -17,6 +17,7 @@ import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
+import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -33,11 +34,38 @@ const WATER_COLOR: Record<string, string> = {
   sink: '#205c7a',
 };
 
+// Fertility-infra palette: structural practices (composter / hugelkultur /
+// biochar / worm_bin) sit on warm earth tones; biological practices
+// (cover_crop / chop_and_drop / dynamic_accumulator / rotational_grazing)
+// sit on greens. Yeomans rank 7 (Soil).
+const FERTILITY_COLOR: Record<string, string> = {
+  composter:           '#8a6a3a',
+  hugelkultur:         '#6a4a28',
+  biochar:             '#3a2a1a',
+  worm_bin:            '#a07050',
+  cover_crop:          '#7aae3c',
+  chop_and_drop:       '#6b8b3d',
+  dynamic_accumulator: '#9bc15a',
+  rotational_grazing:  '#a8c97f',
+};
+
+const FERTILITY_LABEL: Record<string, string> = {
+  composter:           'Composter',
+  hugelkultur:         'Hugelkultur',
+  biochar:             'Biochar',
+  worm_bin:            'Worm bin',
+  cover_crop:          'Cover crop',
+  chop_and_drop:       'Chop & drop',
+  dynamic_accumulator: 'Accumulator',
+  rotational_grazing:  'Rot. grazing',
+};
+
 export default function PlanDataLayers({ map, projectId }: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const zones = useZoneStore((s) => s.zones);
   const paths = usePathStore((s) => s.paths);
   const cropAreas = useCropStore((s) => s.cropAreas);
+  const fertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
@@ -78,6 +106,26 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       lines.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
     }
 
+    // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
+    for (const f of fertilityInfra) {
+      if (f.projectId !== projectId) continue;
+      const color = FERTILITY_COLOR[f.type] ?? '#8a6a3a';
+      const label = FERTILITY_LABEL[f.type] ?? f.type;
+      const props = { id: f.id, color, label };
+      points.push({
+        type: 'Feature',
+        id: f.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: f.center },
+      });
+      labels.push({
+        type: 'Feature',
+        id: f.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: f.center },
+      });
+    }
+
     // Water nodes — polygons (catchments use stored geometry? They don't —
     // catchment geometry isn't on WaterNode. v1: render storage/sink as
     // points; render swale as a thin line if a length is set; skip catchment
@@ -98,7 +146,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       pointFC: { type: 'FeatureCollection' as const, features: points },
       labelFC: { type: 'FeatureCollection' as const, features: labels },
     };
-  }, [waterNodes, zones, paths, cropAreas, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, projectId]);
 
   useEffect(() => {
     if (!map) return;

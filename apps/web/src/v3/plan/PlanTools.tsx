@@ -17,6 +17,7 @@ import {
   Disc,
   Droplet,
   FolderOpen,
+  Recycle,
   Route,
   Sprout,
   Square,
@@ -56,14 +57,22 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   'plant-systems': [
     { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
   ],
+  'soil-fertility': [
+    { id: 'fertility-unit', label: 'Fertility unit', Icon: Recycle, toolId: 'plan.soil-fertility.fertility-unit' },
+  ],
 };
 
 interface Props {
   activeModule: PlanModule | null;
   onSelectModule: (mod: PlanModule | null) => void;
+  onOpenSlideUp?: () => void;
 }
 
-export default function PlanTools({ activeModule, onSelectModule }: Props) {
+export default function PlanTools({
+  activeModule,
+  onSelectModule,
+  onOpenSlideUp,
+}: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
 
@@ -184,7 +193,9 @@ export default function PlanTools({ activeModule, onSelectModule }: Props) {
                 disabled={!projectId}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (projectId) onSelectModule(mod);
+                  if (!projectId) return;
+                  onSelectModule(mod);
+                  onOpenSlideUp?.();
                 }}
                 title={`Open ${headerLabel} module`}
               >

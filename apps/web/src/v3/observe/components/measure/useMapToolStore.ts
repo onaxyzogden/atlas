@@ -62,7 +62,9 @@ export type MapToolId =
   | 'plan.zone-circulation.zone'
   | 'plan.zone-circulation.path'
   // Plan Module 5 — Plant Systems & Polyculture
-  | 'plan.plant-systems.crop-area';
+  | 'plan.plant-systems.crop-area'
+  // Plan Module 6 — Soil Fertility & Closed-Loop
+  | 'plan.soil-fertility.fertility-unit';
 
 export interface MapToolState {
   activeTool: MapToolId | null;
