@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 8 · Coverage matrix expanded to 9 feature types
+
+Module 8 (Principles) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-principles-scholar-keep-atlas.md`). `PrincipleCoverageMatrixCard` previously rendered a 12 × 6 grid (zone / path / structure / transect / guild / earthwork) — orthogonally missing three feature kinds the checklist most naturally evidences. `HolmgrenChecklistCard.featureOptions` and `PrincipleCoverageMatrixCard` both extended in lockstep with **crop / fertility / ecology** columns: P3 *Obtain a Yield* now accepts `cropStore.cropAreas` evidence directly, P6 *Produce No Waste* accepts `closedLoopStore.fertilityInfra`, P10 *Use & Value Diversity* accepts `ecologyStore.ecology` observations. The "well-integrated" threshold rose from ≥4 to ≥5 feature-type-uses-per-principle to scale with the wider column set. No store change — `linkedFeatureIds` was already a flat string array. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 1 · Sector Compass entries on Climate row of Permanence ladder
 
 Module 1 (Layering) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-layering-scholar-build-fresh.md`). The Permanence ladder's Climate row (rank 1) previously read `count: 1, label: 'site-level (Observe)'` — a binary toggle that flattened several distinct climate-rank readings into one. `PermanenceLadderCard` now subscribes to `useSectorStore` + `useSiteData` and tallies up to five sector entries on the Climate row: derived **wind** (climate layer's `prevailing_wind`), derived **downslope** (elevation layer's `predominant_aspect`), and steward-authored **fire / view / noise** from sectorStore. Label reads "N sectors: wind · downslope · fire …" when populated; falls back to a "fetch climate / elevation, mark fire / view / noise" prompt when empty. Side effect: the ordering-check downstream now correctly treats Climate as unsatisfied until at least one sector reading is on file, so a freshly-created project no longer appears to have "Climate satisfied" by default. Cites Mollison ch.3 (sector analysis = climate-rank reading) + Holmgren P1. Typecheck clean.

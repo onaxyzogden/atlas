@@ -9,11 +9,16 @@
  * prompting the designer to 'Apply Self-Regulation and Accept Feedback.'"
  *
  * This additive card pivots the same `principleCheckStore.byProject[
- * projectId]` data used by the Holmgren checklist, building a 12 × 6
+ * projectId]` data used by the Holmgren checklist, building a 12 × 9
  * coverage matrix: rows are Holmgren's 12 principles, columns are the
- * feature-type buckets the checklist already supports (Zone / Path /
- * Structure / Transect / Guild / Earthwork). Each cell counts how many
- * features of that type are linked to that principle's check.
+ * feature-type buckets the checklist supports (Zone / Path / Structure /
+ * Transect / Guild / Earthwork / Crop / Fertility / Ecology). Each cell
+ * counts how many features of that type are linked to that principle's
+ * check. The expanded set (added 2026-05-07) lets P3 *Obtain a Yield*
+ * accept crop-area evidence directly, P6 *Produce No Waste* accept
+ * fertility-unit evidence, and P10 *Use & Value Diversity* accept
+ * ecology observations — closing the gap where earlier the checklist
+ * forced these to be evidenced indirectly via zones or guilds.
  *
  * Surfaces three derived signals:
  *   - "Uncovered principles" — principles with zero linked features
@@ -33,6 +38,9 @@ import { useStructureStore } from '../../../../store/structureStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useCropStore } from '../../../../store/cropStore.js';
+import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
+import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -40,7 +48,9 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-type FeatureKind = 'zone' | 'path' | 'structure' | 'transect' | 'guild' | 'earthwork';
+type FeatureKind =
+  | 'zone' | 'path' | 'structure' | 'transect' | 'guild' | 'earthwork'
+  | 'crop' | 'fertility' | 'ecology';
 
 const FEATURE_COLS: Array<{ key: FeatureKind; label: string }> = [
   { key: 'zone',       label: 'Zones' },
@@ -49,6 +59,9 @@ const FEATURE_COLS: Array<{ key: FeatureKind; label: string }> = [
   { key: 'transect',   label: 'Transects' },
   { key: 'guild',      label: 'Guilds' },
   { key: 'earthwork',  label: 'Earthworks' },
+  { key: 'crop',       label: 'Crops' },
+  { key: 'fertility',  label: 'Fertility' },
+  { key: 'ecology',    label: 'Ecology' },
 ];
 
 export default function PrincipleCoverageMatrixCard({ project }: Props) {
@@ -61,6 +74,9 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
   const allTransects = useTopographyStore((s) => s.transects);
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allCrops = useCropStore((s) => s.cropAreas);
+  const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
+  const allEcology = useEcologyStore((s) => s.ecology);
 
   // Build a fast id → kind map scoped to this project, so we can
   // classify each linkedFeatureId without N×M scans.
@@ -73,8 +89,11 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
     for (const t of allTransects)  if (t.projectId === pId) m.set(t.id, 'transect');
     for (const g of allGuilds)     if (g.projectId === pId) m.set(g.id, 'guild');
     for (const e of allEarthworks) if (e.projectId === pId) m.set(e.id, 'earthwork');
+    for (const c of allCrops)      if (c.projectId === pId) m.set(c.id, 'crop');
+    for (const f of allFertility)  if (f.projectId === pId) m.set(f.id, 'fertility');
+    for (const o of allEcology)    if (o.projectId === pId) m.set(o.id, 'ecology');
     return m;
-  }, [project.id, allZones, allPaths, allStructures, allTransects, allGuilds, allEarthworks]);
+  }, [project.id, allZones, allPaths, allStructures, allTransects, allGuilds, allEarthworks, allCrops, allFertility, allEcology]);
 
   // 12 × 6 matrix (principle id → feature kind → count of linked features)
   const matrix = useMemo(() => {
@@ -110,7 +129,7 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
       const label = `${principle.number}. ${principle.title}`;
       if (totalLinks === 0) uncovered.push(label);
       else if (typesUsed === 1) underweight.push(label);
-      else if (typesUsed >= 4) dominant.push(label);
+      else if (typesUsed >= 5) dominant.push(label);
     }
     return { uncovered, underweight, dominant };
   }, [matrix]);
@@ -167,7 +186,7 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
         )}
 
         <div className={styles.statRow} style={{ marginTop: 10 }}>
-          <span>Well-integrated (≥4 feature types)</span>
+          <span>Well-integrated (≥5 feature types)</span>
           <span>{summary.dominant.length} / 12</span>
         </div>
         {summary.dominant.length > 0 && (

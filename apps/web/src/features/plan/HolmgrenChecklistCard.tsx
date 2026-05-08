@@ -21,6 +21,9 @@ import { useStructureStore } from '../../store/structureStore.js';
 import { useTopographyStore } from '../../store/topographyStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
+import { useCropStore } from '../../store/cropStore.js';
+import { useClosedLoopStore } from '../../store/closedLoopStore.js';
+import { useEcologyStore } from '../../store/ecologyStore.js';
 import styles from './planCard.module.css';
 
 interface Props {
@@ -44,6 +47,9 @@ export default function HolmgrenChecklistCard({ project }: Props) {
   const allTransects = useTopographyStore((s) => s.transects);
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allCrops = useCropStore((s) => s.cropAreas);
+  const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
+  const allEcology = useEcologyStore((s) => s.ecology);
 
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
@@ -56,8 +62,11 @@ export default function HolmgrenChecklistCard({ project }: Props) {
     for (const t of allTransects) if (t.projectId === pId) out.push({ id: t.id, label: `Transect · ${t.name}` });
     for (const g of allGuilds) if (g.projectId === pId) out.push({ id: g.id, label: `Guild · ${g.name}` });
     for (const e of allEarthworks) if (e.projectId === pId) out.push({ id: e.id, label: `Earthwork · ${e.type}` });
+    for (const c of allCrops) if (c.projectId === pId) out.push({ id: c.id, label: `Crop · ${c.name || c.type}` });
+    for (const f of allFertility) if (f.projectId === pId) out.push({ id: f.id, label: `Fertility · ${f.type.replace(/_/g, ' ')}` });
+    for (const o of allEcology) if (o.projectId === pId) out.push({ id: o.id, label: `Ecology · ${o.species}` });
     return out;
-  }, [project.id, allZones, allPaths, allStructures, allTransects, allGuilds, allEarthworks]);
+  }, [project.id, allZones, allPaths, allStructures, allTransects, allGuilds, allEarthworks, allCrops, allFertility, allEcology]);
 
   const metCount = useMemo(
     () => Object.values(checks).filter((c) => c.status === 'met').length,
