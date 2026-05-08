@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 7 · 5-year horizon cumulative rollup
+
+Module 7 (Phasing) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-phasing-scholar-keep-atlas.md`). `LaborBudgetSummaryCard` gains a "5-year horizon (running totals)" section beneath the per-season rollup. Each phase is bucketed by the year-end parsed from its `timeframe` string (`Year X-Y` → `Y`, `Year X+` → `X`, `Year X` → `X`, fallback to `phase.order`). Per-row line shows the phase delta + running cumulative; phases beyond year 5 dim to 0.6 opacity. A bordered "5-year total" footer sums hours and dollars across phases with `yearEnd ≤ 5`; a footnote counts any phases that extend beyond year 5. Caption cites OSU PDC Pro template + the Scholar's note that 5 years is the practical budgeted horizon. Capacity-validation against Client Survey baselines stays hard-blocked on the project-survey store. Typecheck clean.
+
+---
+
 ## 2026-05-07 — Plan Module 4 · siteMatch precip + slope refinement
 
 Module 4 (Plants) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-plants-scholar-build-fresh.md`). `scoreSiteMatch` upgraded from hardiness-only to a 3-axis weighted composite (hardiness 0.55, precipitation 0.30, slope 0.15 when all present; weights renormalise when an axis is missing). Precip match scores `waterNeeds` against the climate layer's `annual_precip_mm` with generous heuristic bands (low ≤ 700 ideal, med 500–1400 ideal, high ≥ 1000 ideal). Slope match scores `rootPattern` against the elevation layer's `mean_slope_deg` — tap > fibrous > rhizome on > 15° gradients per the Yeomans/Lawton anchor-root observation. The rationale string now surfaces the *worst* axis so the steward sees the limiting factor. Per-axis scores returned in `factors` for future diagnostic UI. `PlantDatabaseSiteMatchCard` rewired to read climate + elevation summaries from `siteDataStore` and pass them in. Backwards-compatible — `context` arg is optional. Typecheck clean.

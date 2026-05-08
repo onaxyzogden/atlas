@@ -33,7 +33,7 @@ Scholar identified three orthodox elements Atlas does not yet surface, all logge
 
 2. **Capacity validation against Client Survey baselines.** Link the `LaborBudgetSummaryCard` rollup to the project's initial Client Interview data (weekly labor availability, annual budget). Flag energy deficits: if a steward declares 10 hrs/week and $5K/year but Phase 1 demands 1,000 hrs and $21K, the module should warn that the design exceeds the steward's actual capacity.
 
-3. **Cumulative investment rollups (Gantt-style 5-year horizon).** Add read-only summaries showing "Yearly Running Total $" and "Yearly Labor Hours," culminating in a "5-Year Total." Scholar notes that while permaculture conceptually stretches to 50 years for mature canopy, the practical budgeted phasing horizon is 5 years.
+3. ✅ **Cumulative investment rollups (Gantt-style 5-year horizon)** — landed 2026-05-07. `LaborBudgetSummaryCard` adds a "5-year horizon (running totals)" section beneath the per-season rollup. Each phase is bucketed by the year-end parsed from its `timeframe` string (`Year X-Y` → `Y`, `Year X+` → `X`, `Year X` → `X`, fallback to `phase.order`). Per-row line shows the phase delta + running cumulative; phases ending beyond year 5 dim to 0.6 opacity. A bordered "5-year total" footer sums hours and dollars across phases with `yearEnd ≤ 5`; a footnote counts any phases that extend beyond year 5. Caption cites the OSU PDC Pro template + the Scholar's note that 5 years is the practical budgeted horizon (vs. 50-yr canopy maturity, which is a different question).
 
 ## Decision
 

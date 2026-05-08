@@ -54,6 +54,51 @@ export default function LaborBudgetSummaryCard({ project }: Props) {
     return { totalHrs, totalUSD, perPhase, perSeason };
   }, [phases]);
 
+  // ── Cumulative 5-year horizon rollup ────────────────────────────────────
+  // Per OSU PDC Pro Phasing Plan template — read-only summary showing
+  // running total $ and labor hours, culminating in a 5-Year Total. Atlas
+  // phases declare a `timeframe` string ("Year 0-1", "Year 1-3", "Year 5+")
+  // which we parse to a year-end; phases without a parseable timeframe
+  // bucket at their order. Scholar verdict 2026-05-07: while permaculture
+  // conceptually stretches to 50 years for mature canopy, the practical
+  // budgeted phasing horizon is 5 years.
+  const cumulative = useMemo(() => {
+    function parseYearEnd(timeframe: string, fallbackOrder: number): number {
+      // "Year 0-1" → 1, "Year 1-3" → 3, "Year 5+" → 5, "Year 3" → 3.
+      const range = timeframe.match(/year\s*(\d+)\s*[-–]\s*(\d+)/i);
+      if (range) return Number(range[2]);
+      const open = timeframe.match(/year\s*(\d+)\s*\+/i);
+      if (open) return Number(open[1]);
+      const single = timeframe.match(/year\s*(\d+)/i);
+      if (single) return Number(single[1]);
+      return fallbackOrder;
+    }
+    let runHrs = 0;
+    let runUSD = 0;
+    const rows = rollup.perPhase.map((r, idx) => {
+      const phase = phases[idx]!;
+      const yearEnd = parseYearEnd(phase.timeframe, phase.order);
+      runHrs += r.hrs;
+      runUSD += r.usd;
+      return {
+        id: r.id,
+        name: r.name,
+        timeframe: phase.timeframe,
+        yearEnd,
+        phaseHrs: r.hrs,
+        phaseUSD: r.usd,
+        cumHrs: runHrs,
+        cumUSD: runUSD,
+      };
+    });
+    // Five-year total: sum of phases ending within year 5.
+    const within5 = rows.filter((r) => r.yearEnd <= 5);
+    const fiveYearHrs = within5.reduce((s, r) => s + r.phaseHrs, 0);
+    const fiveYearUSD = within5.reduce((s, r) => s + r.phaseUSD, 0);
+    const beyondCount = rows.length - within5.length;
+    return { rows, fiveYearHrs, fiveYearUSD, beyondCount };
+  }, [phases, rollup.perPhase]);
+
   const empty = rollup.perPhase.every((r) => r.taskCount === 0);
 
   return (
@@ -99,6 +144,49 @@ export default function LaborBudgetSummaryCard({ project }: Props) {
                 <span>{rollup.perSeason[s].hrs} h · ${rollup.perSeason[s].usd.toLocaleString()}</span>
               </div>
             ))}
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>5-year horizon (running totals)</h2>
+            <p style={{ fontSize: 12, color: 'rgba(232,220,200,0.55)', margin: '0 0 12px', lineHeight: 1.5 }}>
+              Per OSU PDC Pro template: phases bucketed by timeframe end-year, with running cumulative hours and cost. The 5-year total below is the orthodox planning horizon — beyond that, costs become speculative.
+            </p>
+            {cumulative.rows.map((r) => {
+              const within = r.yearEnd <= 5;
+              return (
+                <div
+                  key={r.id}
+                  className={styles.statRow}
+                  style={{ opacity: within ? 1 : 0.6 }}
+                >
+                  <span>
+                    {r.name} <span className={styles.listMeta}>· {r.timeframe} (year ≤ {r.yearEnd})</span>
+                  </span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                    +{r.phaseHrs} h · +${r.phaseUSD.toLocaleString()} → {r.cumHrs} h · ${r.cumUSD.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+            <div
+              className={styles.statRow}
+              style={{
+                marginTop: 8,
+                paddingTop: 10,
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+                fontWeight: 600,
+              }}
+            >
+              <span>5-year total</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {cumulative.fiveYearHrs.toLocaleString()} h · ${cumulative.fiveYearUSD.toLocaleString()}
+              </span>
+            </div>
+            {cumulative.beyondCount > 0 && (
+              <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(232,220,200,0.5)', fontStyle: 'italic' }}>
+                {cumulative.beyondCount} phase(s) extend beyond year 5 — counted in totals above but not in the 5-year horizon.
+              </div>
+            )}
           </section>
         </>
       )}
