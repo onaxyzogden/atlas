@@ -448,13 +448,24 @@ export abstract class LandCoverRasterServiceBase {
   }
 
   /**
-   * Maximum number of intersecting tiles supported by `clipToBbox`. Bounded to
-   * keep memory usage predictable and the stitch-loop trivially correct. Real
-   * parcels-near-tile-corners worst case is 4 (a 2D corner straddle); five or
-   * more means either a pathological manifest or an AOI larger than any
-   * realistic parcel.
+   * Pre-flight cap on the number of intersecting tiles. Avoids opening
+   * dozens of GeoTIFFs to discover the stitched window blows the memory
+   * budget. 16 covers the worst case for a 6°×6° AOI on 3°×3° WorldCover
+   * tiles (9-tile straddle) plus headroom for irregular tile-grid layouts
+   * (e.g. an NLCD CONUS clip with an additional Alaska/Hawaii fragment).
+   * Tune when profiling justifies.
    */
-  private static readonly CLIP_MAX_TILES = 4;
+  private static readonly CLIP_MAX_TILES = 16;
+
+  /**
+   * Hard cap on the stitched output's pixel count. The stitched buffer
+   * is `Int32Array(W * H)` = 4 bytes per pixel, so 16M pixels = 64 MB —
+   * bounded enough not to OOM a typical ingest worker, large enough that
+   * no realistic parcel + 2 km buffer hits it. This is the real
+   * memory-budget guard; the tile-count cap above is a cheap pre-flight.
+   * Tune when profiling justifies.
+   */
+  private static readonly CLIP_MAX_PIXELS = 16_000_000;
 
   /**
    * Clip the raster covering `parcelBbox` and return a `RasterClip` suitable
@@ -467,6 +478,11 @@ export abstract class LandCoverRasterServiceBase {
    * same pixel grid (xRes/yRes + origin modulo), the same NoData sentinel,
    * and the same vintage; on any mismatch the method falls back to `null`
    * and the orchestrator drops to the synthesized-grid path.
+   *
+   * Two memory guards: a cheap pre-flight on tile count
+   * ({@link CLIP_MAX_TILES}) and a hard cap on the stitched pixel count
+   * ({@link CLIP_MAX_PIXELS}, ≈ 64 MB). The pixel-count guard fires after
+   * the windows are computed but before the buffer is allocated.
    */
   async clipToBbox(parcelBbox: ParcelBbox4326): Promise<RasterClip | null> {
     if (!this.manifest || !this.isEnabled()) return null;
@@ -622,6 +638,20 @@ export abstract class LandCoverRasterServiceBase {
     const W = absMaxCol - absMinCol;
     const H = absMaxRow - absMinRow;
     if (W <= 0 || H <= 0) return null;
+
+    if (W * H > LandCoverRasterServiceBase.CLIP_MAX_PIXELS) {
+      this.log.warn(
+        {
+          stitchedW: W,
+          stitchedH: H,
+          pixels: W * H,
+          max: LandCoverRasterServiceBase.CLIP_MAX_PIXELS,
+          srcBbox,
+        },
+        'clipToBbox: stitched window exceeds memory budget — falling back',
+      );
+      return null;
+    }
 
     const fill = ref.gdalNoData ?? 0;
     const pixels = new Int32Array(W * H);

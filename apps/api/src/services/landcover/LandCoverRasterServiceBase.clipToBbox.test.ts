@@ -316,8 +316,11 @@ describe('LandCoverRasterServiceBase.clipToBbox', () => {
     expect(clip).toBeNull();
   });
 
-  it('returns null when more than 4 tiles intersect the parcel', async () => {
-    // 5 horizontally-tiled neighbours all touched by a wide AOI.
+  it('stitches across 5 horizontal tiles when within both memory caps', async () => {
+    // 5 horizontally-tiled neighbours, each 4×4 px, aligned grid
+    // (origin shifts by 4° per tile). AOI spans all 5 → stitched
+    // window is at most 20×4 = 80 pixels, well inside CLIP_MAX_PIXELS.
+    // CLIP_MAX_TILES is 16 (post-2026-05-08), so 5 tiles is fine.
     writeMultiTileManifest([
       { filename: 't0.tif', bbox: [0, 0, 4, 4] },
       { filename: 't1.tif', bbox: [4, 0, 8, 4] },
@@ -325,12 +328,86 @@ describe('LandCoverRasterServiceBase.clipToBbox', () => {
       { filename: 't3.tif', bbox: [12, 0, 16, 4] },
       { filename: 't4.tif', bbox: [16, 0, 20, 4] },
     ]);
+    mockFromFile.mockImplementation(async (path: unknown) => {
+      const p = String(path);
+      const idx = Number(p.match(/t(\d)\.tif$/)?.[1] ?? 0);
+      // Each tile's pixels = 100 + 10*tileIdx + (row*4 + col), so we
+      // can confirm pixels came from the right tile after stitching.
+      const raster = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) raster[i] = 100 + idx * 10 + i;
+      return makeFakeTiff({
+        origin: [idx * 4, 4],
+        fullRaster: raster,
+      }) as never;
+    });
+
     const svc = new WorldCoverRasterService(TMP, null);
     svc.loadManifest();
 
-    const clip = await svc.clipToBbox({ minLng: 1, minLat: 1, maxLng: 19, maxLat: 3 });
+    const clip = await svc.clipToBbox({ minLng: 0, minLat: 0, maxLng: 20, maxLat: 4 });
+    expect(clip).not.toBeNull();
+    expect(clip!.width).toBe(20);
+    expect(clip!.height).toBe(4);
+    // First-row, first-col of stitched buffer is t0's (0,0) = 100.
+    expect(clip!.pixels[0]).toBe(100);
+    // Column 4 (first col of t1) is t1's (0,0) = 110.
+    expect(clip!.pixels[4]).toBe(110);
+    // Column 19 of last row (t4's bottom-right) = 100 + 4*10 + 15 = 155.
+    expect(clip!.pixels[3 * 20 + 19]).toBe(155);
+  });
+
+  it('returns null when more than 16 tiles intersect the parcel', async () => {
+    const entries: MultiTileEntry[] = [];
+    for (let i = 0; i < 17; i++) {
+      entries.push({ filename: `t${i}.tif`, bbox: [i * 4, 0, (i + 1) * 4, 4] });
+    }
+    writeMultiTileManifest(entries);
+
+    const svc = new WorldCoverRasterService(TMP, null);
+    svc.loadManifest();
+
+    const clip = await svc.clipToBbox({ minLng: 1, minLat: 1, maxLng: 67, maxLat: 3 });
     expect(clip).toBeNull();
-    // Bailed out before opening any tiff.
+    // Tile-count guard fires before any tiff is opened.
     expect(mockFromFile).not.toHaveBeenCalled();
+  });
+
+  it('returns null when the stitched pixel count exceeds the memory budget', async () => {
+    // 2×2 grid of 3000×3000-pixel tiles → stitched 6000×6000 = 36M
+    // pixels > CLIP_MAX_PIXELS (16M). Falls back AFTER opening tiles
+    // (the pixel-count guard is post-window-compute by design).
+    writeMultiTileManifest([
+      { filename: 'a.tif', bbox: [0, 3, 3, 6], vintage: 2021 },
+      { filename: 'b.tif', bbox: [3, 3, 6, 6], vintage: 2021 },
+      { filename: 'c.tif', bbox: [0, 0, 3, 3], vintage: 2021 },
+      { filename: 'd.tif', bbox: [3, 0, 6, 3], vintage: 2021 },
+    ]);
+    mockFromFile.mockImplementation(async (path: unknown) => {
+      const p = String(path);
+      // Each tile is 3000×3000 px at 0.001° pixelSize; aligned grid.
+      // Origin [originX, originY] is the top-left, so yRes is -0.001.
+      let origin: [number, number];
+      if (p.endsWith('a.tif')) origin = [0, 6];
+      else if (p.endsWith('b.tif')) origin = [3, 6];
+      else if (p.endsWith('c.tif')) origin = [0, 3];
+      else origin = [3, 3];
+      return makeFakeTiff({
+        origin,
+        resolution: [0.001, -0.001],
+        width: 3000,
+        height: 3000,
+        // Skip the full 9M raster — readRasters won't be called when
+        // the pixel-count guard fires; supply a tiny stub anyway.
+        fullRaster: new Uint8Array(0),
+      }) as never;
+    });
+
+    const svc = new WorldCoverRasterService(TMP, null);
+    svc.loadManifest();
+
+    const clip = await svc.clipToBbox({ minLng: 0, minLat: 0, maxLng: 6, maxLat: 6 });
+    expect(clip).toBeNull();
+    // Tiles WERE opened (pre-flight tile-count guard at 16 passes 4).
+    expect(mockFromFile).toHaveBeenCalledTimes(4);
   });
 });
