@@ -11,8 +11,10 @@
  *   - projectId is missing (tools require a project context to persist)
  */
 
+import { useEffect } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import NeighbourPinTool from './NeighbourPinTool.js';
 import HouseholdPinTool from './HouseholdPinTool.js';
 import AccessRoadTool from './AccessRoadTool.js';
@@ -36,7 +38,21 @@ interface Props {
 
 export default function ObserveDrawHost({ map, projectId }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
-  if (!activeTool || !activeTool.startsWith('observe.') || !projectId) {
+
+  // When a draw tool is active, force the master annotations overlay on so the
+  // record the user is about to create is actually visible after save. Without
+  // this, the persist-first refactor (records auto-saved on draw-complete)
+  // creates the confusing UX of "I drew it, it saved, but I see nothing"
+  // whenever the user has previously toggled the overlay off.
+  const isObserveDraw =
+    !!activeTool && activeTool.startsWith('observe.') && !!projectId;
+  useEffect(() => {
+    if (!isObserveDraw) return;
+    const s = useMatrixTogglesStore.getState();
+    if (!s.observeAnnotations) s.toggle('observeAnnotations');
+  }, [isObserveDraw]);
+
+  if (!isObserveDraw) {
     return null;
   }
 
