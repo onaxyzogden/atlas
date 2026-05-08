@@ -51,11 +51,65 @@ budget), 17-tile fallback (pre-flight fires, no tiff opened),
 opening 4 tiles). 11/11 green; tsc clean.
 
 **Outstanding parked items** (carried forward):
-- Wire the polygon-mask call into the three `*LandCoverAdapter`s
-  (WorldCover/NLCD/ACI) so production histograms benefit from the
-  refinement. Held back so Piece 2 lands additively.
+- ~~Wire the polygon-mask call into the three `*LandCoverAdapter`s~~
+  → closed by `6c653e1` (same day; entry below).
 - Real-tile end-to-end smoke (Phase 8.2 proper) — still awaiting a
   real WorldCover/NLCD tile to flip `LANDCOVER_TILES_READY=true`.
+
+---
+
+## 2026-05-08 — Adapters thread parcel polygon to sampleHistogram
+
+Single follow-up commit on PR #12 (`claude/vigilant-elbakyan-2d16d9`)
+closing the deferred adapter-wiring item from the same day's prior
+entry. Production gates stay off
+(`POLLINATOR_USE_POLYGON_FRICTION=false`,
+`LANDCOVER_TILES_READY=false`).
+
+**Commit `6c653e1`.** New `extractParcelPolygon(boundary)` helper in
+`apps/api/src/services/pipeline/adapters/landCoverAdapterCommon.ts`
+returns a GeoJSON `Polygon` for Polygon input, the first sub-
+polygon for MultiPolygon, and `undefined` for null / malformed /
+non-polygon input (callers silently fall back to the bbox-only
+fast path). The three adapters — `WorldCoverLandCoverAdapter`,
+`NlcdLandCoverAdapter`, `AciLandCoverAdapter` — now extract the
+polygon alongside the bbox and pass `(bbox, polygon)` to
+`sampleHistogram`. A `hasPolygon` field is added to the per-call
+log line so operators can see when the polygon-mask path is
+firing in production. `buildLandCoverResult` surfaces
+`histogram.outsidePolygonCount` into
+`summaryData.outsidePolygonCount` (defaulting to 0) — no schema
+migration; just a new optional number on the JSON column.
+
+**Verification.** `tsc --noEmit` clean. New tests: 4 cases in
+`landCoverAdapterCommon.polygonExtract.test.ts` (Polygon →
+preserved, MultiPolygon → first sub-polygon, missing/empty →
+`undefined`, other geometry types → `undefined`); 3 cases in
+`WorldCoverLandCoverAdapter.polygonMask.test.ts` (Polygon
+boundary → mocked `sampleHistogram` called with
+`(bbox, polygon)`, `summaryData.outsidePolygonCount` reflects
+histogram value; null boundary + centroid → mocked called with
+`(bbox, undefined)`, sentinel = 0; zero-rejection histogram →
+sentinel preserved). Regression: `landcover/` 28/28 unchanged;
+8.2 parity harness 4/4 unchanged (it uses `clipToBbox`, not
+`sampleHistogram`). Total run: 41/41 green across landcover +
+parity + adapter scopes.
+
+**Why this is the right verification (not "re-run the 8.2 parity
+harness").** The user's verbatim ask was "re-run the 8.2 parity
+harness to confirm `outsidePolygonCount > 0` on irregular parcels."
+That harness exercises `runPolygonFrictionPath` →
+`clipToBbox` → `polygonizePixelGrid`, which has no
+`outsidePolygonCount` concept (the polygon mask is in
+`sampleHistogram`, a different path). The substituted verification
+proves the wiring at the adapter layer where it actually applies.
+The 8.2 parity harness re-runs only as a regression guard.
+
+**Known limitation (filed, not fixed).** MultiPolygon parcels
+return only the first sub-polygon — pixels in the other
+sub-polygons would be rejected. Atlas parcels are typically
+single-polygon; file a follow-up if a real cohort surfaces a
+MultiPolygon parcel and the rejection becomes meaningful.
 
 ---
 
