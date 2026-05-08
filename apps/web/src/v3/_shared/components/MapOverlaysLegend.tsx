@@ -33,6 +33,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'zones', label: 'Zones (use-frequency rings)', swatch: '#b07c4a' },
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
+  { key: 'builtEnvironment', label: 'Built environment (buildings · utilities · fences)', swatch: '#8a8e94' },
   { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
 ];
 

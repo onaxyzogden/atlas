@@ -44,6 +44,17 @@ const MODULE_GUIDANCE: Record<ObserveModule, GuidanceCardData> = {
     pitfall:
       'Do not design new paths yet; only map current existing human access and interaction.',
   },
+  'built-environment': {
+    why: 'Existing infrastructure shapes what design moves are even possible — a buried gas line vetoes earthworks across it, a strong well sets your irrigation budget, fence lines define livestock subdivision options.',
+    how: [
+      'Trace buildings and outbuildings.',
+      'Mark wells (with depth/flow if known) and septic systems.',
+      'Sketch power lines and buried utilities; walk the fence lines.',
+      'Drop gates and trace existing driveways.',
+    ],
+    pitfall:
+      'Don’t skip "invisible" assets — buried lines and utility easements bind the design more than visible structures.',
+  },
   'macroclimate-hazards': {
     why: 'Catching and storing energy (Holmgren P2) requires first identifying major local forces, like fire and flood, that must be deflected to protect the site’s vitality (OSU PDC, Sectors/Hazards).',
     how: [
@@ -97,6 +108,7 @@ const MODULE_GUIDANCE: Record<ObserveModule, GuidanceCardData> = {
  *  formerly carried by ObserveChecklistAside.module.css. */
 const OBSERVE_MODULE_DOT: Record<ObserveModule, string> = {
   'human-context': '#5dd39e',
+  'built-environment': '#8a8e94',
   'macroclimate-hazards': '#e6c34a',
   topography: '#8bd16a',
   'earth-water-ecology': '#5fc7d4',

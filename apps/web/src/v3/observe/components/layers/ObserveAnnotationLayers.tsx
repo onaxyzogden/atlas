@@ -25,6 +25,7 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
@@ -228,6 +229,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const waterVisible = useMatrixTogglesStore((s) => s.water);
   const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
   const viewsVisible = useMatrixTogglesStore((s) => s.views);
+  const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const subToggles: Record<
     Exclude<MatrixToggleKey, 'observeAnnotations'>,
     boolean
@@ -239,6 +241,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     water: waterVisible,
     hazards: hazardsVisible,
     views: viewsVisible,
+    builtEnvironment: builtEnvironmentVisible,
   };
 
   // Subscribe by full namespace (per ADR 2026-04-26 — no inline filtering in
@@ -256,6 +259,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
+  const buildings = useBuiltEnvironmentStore((s) => s.buildings);
+  const wells = useBuiltEnvironmentStore((s) => s.wells);
+  const septics = useBuiltEnvironmentStore((s) => s.septics);
+  const powerLines = useBuiltEnvironmentStore((s) => s.powerLines);
+  const buriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
+  const fences = useBuiltEnvironmentStore((s) => s.fences);
+  const gates = useBuiltEnvironmentStore((s) => s.gates);
+  const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
   const homesteadByProject = useHomesteadStore((s) => s.byProject);
   const homestead = projectId ? homesteadByProject[projectId] : undefined;
   // Per-project sector wedge outer radius (metres). Falls back to
@@ -835,6 +846,218 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // ── Built Environment ──────────────────────────────────────────────────
+
+    // Buildings (polygons)
+    const buildingFeatures: GeoJSON.Feature[] = inProject(buildings).map((b) => ({
+      type: 'Feature',
+      properties: {
+        subtype: b.subtype,
+        label: b.label ?? '',
+        annoKind: 'building',
+        annoId: b.id,
+      },
+      geometry: b.geometry,
+    }));
+    if (buildingFeatures.length) {
+      result.push({
+        id: 'be-buildings',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: buildingFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-buildings-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}be-buildings`,
+            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.35 },
+          },
+          {
+            id: `${LAYER_PREFIX}be-buildings-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-buildings`,
+            paint: { 'line-color': '#3a3a3a', 'line-width': 1.2, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
+    // Wells (points)
+    const wellFeatures: GeoJSON.Feature[] = inProject(wells).map((w) => ({
+      type: 'Feature',
+      properties: { kind: w.kind, annoKind: 'well', annoId: w.id },
+      geometry: { type: 'Point', coordinates: w.position },
+    }));
+    if (wellFeatures.length) {
+      result.push({
+        id: 'be-wells',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: wellFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-wells`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}be-wells`,
+            paint: {
+              'circle-radius': 6,
+              'circle-color': '#3a8aa8',
+              'circle-stroke-color': '#1a4a5a',
+              'circle-stroke-width': 1.2,
+            },
+          },
+        ],
+      });
+    }
+
+    // Septic (polygons)
+    const septicFeatures: GeoJSON.Feature[] = inProject(septics).map((sp) => ({
+      type: 'Feature',
+      properties: { kind: sp.kind, annoKind: 'septic', annoId: sp.id },
+      geometry: sp.geometry,
+    }));
+    if (septicFeatures.length) {
+      result.push({
+        id: 'be-septics',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: septicFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-septics-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}be-septics`,
+            paint: { 'fill-color': '#7a6a3f', 'fill-opacity': 0.3 },
+          },
+          {
+            id: `${LAYER_PREFIX}be-septics-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-septics`,
+            paint: { 'line-color': '#4a3a2a', 'line-width': 1, 'line-opacity': 0.85 },
+          },
+        ],
+      });
+    }
+
+    // Power lines
+    const powerLineFeatures: GeoJSON.Feature[] = inProject(powerLines).map((p) => ({
+      type: 'Feature',
+      properties: { placement: p.placement, annoKind: 'powerLine', annoId: p.id },
+      geometry: p.geometry,
+    }));
+    if (powerLineFeatures.length) {
+      result.push({
+        id: 'be-power-lines',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: powerLineFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-power-lines`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-power-lines`,
+            paint: { 'line-color': '#c87a3f', 'line-width': 2, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
+    // Buried utilities
+    const buriedUtilityFeatures: GeoJSON.Feature[] = inProject(buriedUtilities).map(
+      (u) => ({
+        type: 'Feature',
+        properties: { kind: u.kind, annoKind: 'buriedUtility', annoId: u.id },
+        geometry: u.geometry,
+      }),
+    );
+    if (buriedUtilityFeatures.length) {
+      result.push({
+        id: 'be-buried-utilities',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: buriedUtilityFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-buried-utilities`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-buried-utilities`,
+            paint: {
+              'line-color': '#7a7a7a',
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+              'line-dasharray': [2, 2],
+            },
+          },
+        ],
+      });
+    }
+
+    // Fences
+    const fenceFeatures: GeoJSON.Feature[] = inProject(fences).map((f) => ({
+      type: 'Feature',
+      properties: { kind: f.kind, annoKind: 'fence', annoId: f.id },
+      geometry: f.geometry,
+    }));
+    if (fenceFeatures.length) {
+      result.push({
+        id: 'be-fences',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: fenceFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-fences`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-fences`,
+            paint: { 'line-color': '#5a4a3a', 'line-width': 1.2, 'line-opacity': 0.85 },
+          },
+        ],
+      });
+    }
+
+    // Gates (points)
+    const gateFeatures: GeoJSON.Feature[] = inProject(gates).map((g) => ({
+      type: 'Feature',
+      properties: { label: g.label ?? '', annoKind: 'gate', annoId: g.id },
+      geometry: { type: 'Point', coordinates: g.position },
+    }));
+    if (gateFeatures.length) {
+      result.push({
+        id: 'be-gates',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: gateFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-gates`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}be-gates`,
+            paint: {
+              'circle-radius': 5,
+              'circle-color': '#c4a265',
+              'circle-stroke-color': '#3a2a1a',
+              'circle-stroke-width': 1.2,
+            },
+          },
+        ],
+      });
+    }
+
+    // Existing driveways
+    const drivewayFeatures: GeoJSON.Feature[] = inProject(existingDriveways).map((d) => ({
+      type: 'Feature',
+      properties: { surface: d.surface, annoKind: 'existingDriveway', annoId: d.id },
+      geometry: d.geometry,
+    }));
+    if (drivewayFeatures.length) {
+      result.push({
+        id: 'be-driveways',
+        toggleKey: 'builtEnvironment',
+        data: { type: 'FeatureCollection', features: drivewayFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}be-driveways`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}be-driveways`,
+            paint: { 'line-color': '#8a6a3f', 'line-width': 2.5, 'line-opacity': 0.9 },
+          },
+        ],
+      });
+    }
+
     return result;
   }, [
     projectId,
@@ -851,6 +1074,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     ecologyZones,
     swot,
     soilSamples,
+    buildings,
+    wells,
+    septics,
+    powerLines,
+    buriedUtilities,
+    fences,
+    gates,
+    existingDriveways,
     homestead,
     sectorRadiusM,
     map,
@@ -1164,6 +1395,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     waterVisible,
     hazardsVisible,
     viewsVisible,
+    builtEnvironmentVisible,
     openDetail,
     haloData,
     setSelection,

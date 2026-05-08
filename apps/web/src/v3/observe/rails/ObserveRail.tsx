@@ -25,6 +25,12 @@ const PLACEHOLDER_CHECKLIST: Record<ObserveModule, string[]> = {
     'Note governance & tenure',
     'List adjacent neighbours',
   ],
+  'built-environment': [
+    'Trace buildings and outbuildings',
+    'Mark wells and septic systems',
+    'Sketch power and buried utilities',
+    'Walk the fence and gate lines',
+  ],
   'macroclimate-hazards': [
     'Pull regional climate normals',
     'Map wildfire / flood / wind exposure',

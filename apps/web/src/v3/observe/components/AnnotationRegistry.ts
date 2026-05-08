@@ -22,6 +22,7 @@ import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
+import { useBuiltEnvironmentStore } from '../../../store/builtEnvironmentStore.js';
 import type { AnnotationKind } from './draw/annotationFieldSchemas.js';
 
 /**
@@ -54,6 +55,14 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   soilSample: 'Soil sample',
   swotTag: 'SWOT tag',
   sector: 'Sector',
+  building: 'Building',
+  well: 'Well',
+  septic: 'Septic / leach field',
+  powerLine: 'Power line',
+  buriedUtility: 'Buried utility',
+  fence: 'Fence',
+  gate: 'Gate',
+  existingDriveway: 'Driveway',
 };
 
 export const SECTOR_TYPE_LABELS: Record<string, string> = {
@@ -225,6 +234,102 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.id,
         }));
     }
+    case 'building': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .buildings.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Building',
+          subtitle: `${r.subtype}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'well': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .wells.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Well',
+          subtitle: `${r.kind}${r.depthM !== undefined ? ` · ${r.depthM} m` : ''}${r.flowLpm !== undefined ? ` · ${r.flowLpm} L/min` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'septic': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .septics.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Septic',
+          subtitle: r.kind,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'powerLine': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .powerLines.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Power line',
+          subtitle: `${r.placement} · ${Math.round(r.lengthM)} m`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'buriedUtility': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .buriedUtilities.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Buried utility',
+          subtitle: `${r.kind} · ${Math.round(r.lengthM)} m`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'fence': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .fences.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Fence',
+          subtitle: `${r.kind} · ${Math.round(r.lengthM)} m`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'gate': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .gates.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Gate',
+          subtitle: r.notes || undefined,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'existingDriveway': {
+      return useBuiltEnvironmentStore
+        .getState()
+        .existingDriveways.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Driveway',
+          subtitle: `${r.surface} · ${Math.round(r.lengthM)} m`,
+          createdAt: r.createdAt,
+        }));
+    }
   }
 }
 
@@ -250,6 +355,14 @@ export function useAnnotationsForKinds(
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const samples = useSoilSampleStore((s) => s.samples);
   const swot = useSwotStore((s) => s.swot);
+  const buildings = useBuiltEnvironmentStore((s) => s.buildings);
+  const wells = useBuiltEnvironmentStore((s) => s.wells);
+  const septics = useBuiltEnvironmentStore((s) => s.septics);
+  const powerLines = useBuiltEnvironmentStore((s) => s.powerLines);
+  const buriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
+  const fences = useBuiltEnvironmentStore((s) => s.fences);
+  const gates = useBuiltEnvironmentStore((s) => s.gates);
+  const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
 
   return useMemo(() => {
     if (!projectId) return [];
@@ -274,6 +387,14 @@ export function useAnnotationsForKinds(
     ecologyZones,
     samples,
     swot,
+    buildings,
+    wells,
+    septics,
+    powerLines,
+    buriedUtilities,
+    fences,
+    gates,
+    existingDriveways,
   ]);
 }
 
@@ -416,6 +537,46 @@ export function getAnnotationRow(
         createdAt: r.id,
       };
     }
+    case 'building': {
+      const r = useBuiltEnvironmentStore.getState().buildings.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Building', subtitle: r.subtype, createdAt: r.createdAt };
+    }
+    case 'well': {
+      const r = useBuiltEnvironmentStore.getState().wells.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Well', subtitle: r.kind, createdAt: r.createdAt };
+    }
+    case 'septic': {
+      const r = useBuiltEnvironmentStore.getState().septics.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Septic', subtitle: r.kind, createdAt: r.createdAt };
+    }
+    case 'powerLine': {
+      const r = useBuiltEnvironmentStore.getState().powerLines.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Power line', subtitle: r.placement, createdAt: r.createdAt };
+    }
+    case 'buriedUtility': {
+      const r = useBuiltEnvironmentStore.getState().buriedUtilities.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Buried utility', subtitle: r.kind, createdAt: r.createdAt };
+    }
+    case 'fence': {
+      const r = useBuiltEnvironmentStore.getState().fences.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Fence', subtitle: r.kind, createdAt: r.createdAt };
+    }
+    case 'gate': {
+      const r = useBuiltEnvironmentStore.getState().gates.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Gate', subtitle: r.notes, createdAt: r.createdAt };
+    }
+    case 'existingDriveway': {
+      const r = useBuiltEnvironmentStore.getState().existingDriveways.find((x) => x.id === id);
+      if (!r) return null;
+      return { kind, id, title: r.label || 'Driveway', subtitle: r.surface, createdAt: r.createdAt };
+    }
   }
 }
 
@@ -458,6 +619,30 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'sector':
       useExternalForcesStore.getState().removeSector(id);
+      return;
+    case 'building':
+      useBuiltEnvironmentStore.getState().removeBuilding(id);
+      return;
+    case 'well':
+      useBuiltEnvironmentStore.getState().removeWell(id);
+      return;
+    case 'septic':
+      useBuiltEnvironmentStore.getState().removeSeptic(id);
+      return;
+    case 'powerLine':
+      useBuiltEnvironmentStore.getState().removePowerLine(id);
+      return;
+    case 'buriedUtility':
+      useBuiltEnvironmentStore.getState().removeBuriedUtility(id);
+      return;
+    case 'fence':
+      useBuiltEnvironmentStore.getState().removeFence(id);
+      return;
+    case 'gate':
+      useBuiltEnvironmentStore.getState().removeGate(id);
+      return;
+    case 'existingDriveway':
+      useBuiltEnvironmentStore.getState().removeExistingDriveway(id);
       return;
   }
 }

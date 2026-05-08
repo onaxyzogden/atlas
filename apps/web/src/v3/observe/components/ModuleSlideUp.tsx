@@ -36,6 +36,7 @@ import css from './ModuleSlideUp.module.css';
 
 const MODULE_PANELS: Record<ObserveModule, LazyExoticComponent<() => JSX.Element>> = {
   'human-context':        lazy(() => import('../modules/HumanContextPanel.js').then(toModuleHost)),
+  'built-environment':    lazy(() => import('../modules/BuiltEnvironmentPanel.js').then(toModuleHost)),
   'macroclimate-hazards': lazy(() => import('../modules/MacroclimateHazardsPanel.js').then(toModuleHost)),
   topography:             lazy(() => import('../modules/TopographyPanel.js').then(toModuleHost)),
   'earth-water-ecology':  lazy(() => import('../modules/EarthWaterEcologyPanel.js').then(toModuleHost)),

@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import {
   Users,
+  Building2,
   CloudLightning,
   Mountain,
   Droplets,
@@ -29,6 +30,7 @@ const STORAGE_KEY = 'atlas.observe.bottomRail.collapsed';
 
 const MODULE_ICON: Record<ObserveModule, LucideIcon> = {
   'human-context': Users,
+  'built-environment': Building2,
   'macroclimate-hazards': CloudLightning,
   topography: Mountain,
   'earth-water-ecology': Droplets,

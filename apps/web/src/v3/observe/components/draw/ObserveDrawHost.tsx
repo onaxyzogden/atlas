@@ -29,6 +29,14 @@ import EcologyZoneTool from './EcologyZoneTool.js';
 import SunWindWedgeTool from './SunWindWedgeTool.js';
 import PermacultureZoneTool from './PermacultureZoneTool.js';
 import SwotTagTool from './SwotTagTool.js';
+import BuildingTool from './BuildingTool.js';
+import WellTool from './WellTool.js';
+import SepticTool from './SepticTool.js';
+import PowerLineTool from './PowerLineTool.js';
+import BuriedUtilityTool from './BuriedUtilityTool.js';
+import FenceTool from './FenceTool.js';
+import GateTool from './GateTool.js';
+import ExistingDrivewayTool from './ExistingDrivewayTool.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -165,6 +173,30 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       break;
     case 'observe.swot-synthesis.threat':
       tool = <SwotTagTool map={map} projectId={projectId} bucket="T" />;
+      break;
+    case 'observe.built-environment.building':
+      tool = <BuildingTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.well':
+      tool = <WellTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.septic':
+      tool = <SepticTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.power-line':
+      tool = <PowerLineTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.buried-utility':
+      tool = <BuriedUtilityTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.fence':
+      tool = <FenceTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.gate':
+      tool = <GateTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.built-environment.driveway':
+      tool = <ExistingDrivewayTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

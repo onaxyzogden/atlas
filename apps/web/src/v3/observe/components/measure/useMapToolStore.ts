@@ -25,6 +25,15 @@ export type MapToolId =
   | 'observe.human-context.neighbour-pin'
   | 'observe.human-context.steward'
   | 'observe.human-context.access-road'
+  // Observe Module — Built Environment
+  | 'observe.built-environment.building'
+  | 'observe.built-environment.well'
+  | 'observe.built-environment.septic'
+  | 'observe.built-environment.power-line'
+  | 'observe.built-environment.buried-utility'
+  | 'observe.built-environment.fence'
+  | 'observe.built-environment.gate'
+  | 'observe.built-environment.driveway'
   // Observe Module 2 — Macroclimate & Hazards
   | 'observe.macroclimate-hazards.frost-pocket'
   | 'observe.macroclimate-hazards.hazard-zone'
@@ -63,10 +72,15 @@ export type MapToolId =
   | 'plan.zone-circulation.path'
   // Plan Module 5 — Plant Systems & Polyculture
   | 'plan.plant-systems.crop-area'
+  | 'plan.plant-systems.guild'
   // Plan Module 6 — Soil Fertility & Closed-Loop
   | 'plan.soil-fertility.fertility-unit'
   // Plan Module 4 — Livestock & Subdivision
-  | 'plan.livestock.paddock';
+  | 'plan.livestock.paddock'
+  // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
+  | 'plan.structures-subsystems.structure'
+  // Act Module — Harvest log (point-on-existing-crop-area, no new geometry)
+  | 'act.harvest.log-entry';
 
 export interface MapToolState {
   activeTool: MapToolId | null;

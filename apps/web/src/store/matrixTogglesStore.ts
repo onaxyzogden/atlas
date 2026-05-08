@@ -21,6 +21,7 @@ export type MatrixToggleKey =
   | 'water'
   | 'hazards'
   | 'views'
+  | 'builtEnvironment'
   | 'observeAnnotations';
 
 export interface MatrixTogglesState {
@@ -33,6 +34,8 @@ export interface MatrixTogglesState {
   hazards: boolean;
   /** Sightline / view sectors. Split out of `sectors` in v8. */
   views: boolean;
+  /** Built-environment annotations (buildings, utilities, fences). v9. */
+  builtEnvironment: boolean;
   /** OBSERVE annotations master toggle (default on). */
   observeAnnotations: boolean;
   toggle: (key: MatrixToggleKey) => void;
@@ -49,6 +52,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       water: false,
       hazards: false,
       views: false,
+      builtEnvironment: false,
       observeAnnotations: true,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
@@ -60,11 +64,15 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           water: value,
           hazards: value,
           views: value,
+          builtEnvironment: value,
           observeAnnotations: value,
         })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v9 (2026-05-08): added builtEnvironment toggle for the new
+      // Built Environment OBSERVE module (buildings, utilities, fences,
+      // gates, driveways, wells, septic). Defaults off.
       // v8 (2026-05-08): split the legacy single `sectors` toggle into four
       // groups (Solar / Wind / Hazard / View). `sectors` keeps its name as
       // the solar sub-toggle for back-compat; new keys `hazards` + `views`
@@ -74,7 +82,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 8,
+      version: 9,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -85,6 +93,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           water: prev.water ?? false,
           hazards: prev.hazards ?? false,
           views: prev.views ?? false,
+          builtEnvironment: prev.builtEnvironment ?? false,
           observeAnnotations: prev.observeAnnotations ?? true,
         } as MatrixTogglesState;
       },
