@@ -37,11 +37,11 @@ const metadata = screenCatalog.find((screen) => screen.route === "/observe/topog
 
 const topoIconMap = { triangle: Triangle, mountain: Mountain, ruler: Ruler, sliders: SlidersHorizontal, layers: Layers, droplet: Droplet, leaf: Leaf, home: Home, shield: ShieldAlert, sun: Sun };
 
-export function TopographyDashboardPage() {
+export function TopographyContent() {
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
   return (
-    <AppShell navConfig={observeNav}>
+    <>
       <div className="detail-page topography-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 3" />
         <ProjectDataStatus />
@@ -72,6 +72,14 @@ export function TopographyDashboardPage() {
       <SlideUpPane open={pane === "crossSection"} title="Cross-section tool" onClose={close}>
         <CrossSectionToolContent />
       </SlideUpPane>
+    </>
+  );
+}
+
+export function TopographyDashboardPage() {
+  return (
+    <AppShell navConfig={observeNav}>
+      <TopographyContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay reference={metadata.reference} nativeWidth={metadata.viewport.width} nativeHeight={metadata.viewport.height} />
       ) : null}

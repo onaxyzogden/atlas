@@ -1,6 +1,8 @@
 /* AppShell — unified shell styles. */
 
 .appshell {
+  --left-panel-w: 240px;
+  --left-panel-collapsed-w: 48px;
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: var(--topbar-h) 1fr;
@@ -12,14 +14,56 @@
   color: var(--olos-cream);
 }
 .appshell--collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
-.appshell:has(.appshell__right) {
+
+/* Right sidebar only */
+.appshell:not(.appshell--has-left):has(.appshell__right) {
   grid-template-columns: var(--sidebar-w) 1fr var(--right-panel-w);
   grid-template-areas:
     "sidebar topbar topbar"
     "sidebar main   right";
 }
-.appshell.appshell--collapsed:has(.appshell__right) {
+.appshell.appshell--collapsed:not(.appshell--has-left):has(.appshell__right) {
   grid-template-columns: var(--sidebar-w-collapsed) 1fr var(--right-panel-w);
+}
+.appshell.appshell--right-collapsed:not(.appshell--has-left):has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w) 1fr 56px;
+}
+.appshell.appshell--collapsed.appshell--right-collapsed:not(.appshell--has-left):has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w-collapsed) 1fr 56px;
+}
+
+/* Left content sidebar only */
+.appshell.appshell--has-left:not(:has(.appshell__right)) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-w) 1fr;
+  grid-template-areas:
+    "sidebar topbar topbar"
+    "sidebar left   main";
+}
+.appshell.appshell--has-left.appshell--left-collapsed:not(:has(.appshell__right)) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-collapsed-w) 1fr;
+}
+
+/* Both left content sidebar and right sidebar */
+.appshell.appshell--has-left:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-w) 1fr var(--right-panel-w);
+  grid-template-areas:
+    "sidebar topbar topbar topbar"
+    "sidebar left   main   right";
+}
+.appshell.appshell--has-left.appshell--collapsed:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w-collapsed) var(--left-panel-w) 1fr var(--right-panel-w);
+}
+.appshell.appshell--has-left.appshell--left-collapsed:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-collapsed-w) 1fr var(--right-panel-w);
+}
+.appshell.appshell--has-left.appshell--right-collapsed:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-w) 1fr 56px;
+}
+.appshell.appshell--has-left.appshell--left-collapsed.appshell--right-collapsed:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w) var(--left-panel-collapsed-w) 1fr 56px;
+}
+.appshell.appshell--has-left.appshell--collapsed.appshell--left-collapsed.appshell--right-collapsed:has(.appshell__right) {
+  grid-template-columns: var(--sidebar-w-collapsed) var(--left-panel-collapsed-w) 1fr 56px;
 }
 
 .appshell__sidebar {
@@ -142,6 +186,141 @@
   padding: var(--space-5);
   overflow-y: auto;
 }
+.appshell__right--sidebar {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.appshell__right-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--olos-line-soft);
+  min-height: var(--topbar-h, 56px);
+}
+.appshell__right--sidebar.is-collapsed .appshell__right-head {
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: var(--space-2) 0;
+  border-bottom: none;
+  gap: var(--space-3);
+}
+.appshell__right-title {
+  flex: 1;
+  font-family: var(--olos-font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--olos-text-label);
+}
+.appshell__right-title-vert {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+  color: var(--olos-text-label);
+  white-space: nowrap;
+}
+.appshell__right-collapse { flex-shrink: 0; }
+.appshell__right-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-4) var(--space-5);
+}
+
+/* Left content sidebar (mirrors right) */
+.appshell__left {
+  grid-area: left;
+  background: var(--elev-1-bg);
+  border-right: 1px solid var(--olos-line-soft);
+  overflow: hidden;
+}
+.appshell__left--sidebar {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.appshell__left-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--olos-line-soft);
+  min-height: var(--topbar-h, 56px);
+}
+.appshell__left--sidebar.is-collapsed .appshell__left-head {
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: var(--space-2) 0;
+  border-bottom: none;
+  gap: var(--space-3);
+}
+.appshell__left-title {
+  flex: 1;
+  font-family: var(--olos-font-display);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--olos-text-label);
+}
+.appshell__left-title-vert {
+  writing-mode: vertical-rl;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+  color: var(--olos-text-label);
+  white-space: nowrap;
+}
+.appshell__left-collapse { flex-shrink: 0; }
+.appshell__left-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-2) var(--space-4);
+}
+
+/* Collapsible inline pane (slide-down / slide-up handles) */
+.collapsible-pane {
+  display: flex;
+  flex-direction: column;
+  background: var(--elev-1-bg);
+  border: 1px solid var(--olos-line-soft);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.collapsible-pane--down { /* handle on bottom */ }
+.collapsible-pane--up   { /* handle on top */ }
+.collapsible-pane__handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px var(--space-3);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: default;
+  min-height: 28px;
+}
+.collapsible-pane--down .collapsible-pane__handle { order: 2; border-top: 1px solid var(--olos-line-soft); }
+.collapsible-pane--up .collapsible-pane__handle { order: 1; border-bottom: 1px solid var(--olos-line-soft); }
+.collapsible-pane__title {
+  flex: 1;
+  font-family: var(--olos-font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--olos-text-label);
+}
+.collapsible-pane__toggle { flex-shrink: 0; }
+.collapsible-pane__body {
+  padding: var(--space-3);
+}
+.collapsible-pane.is-collapsed .collapsible-pane__handle { border-top: none; border-bottom: none; }
 
 /* Search palette */
 .search-palette {

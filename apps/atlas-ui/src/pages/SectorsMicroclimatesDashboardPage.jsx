@@ -18,12 +18,12 @@ import {
   SurfaceCard,
   TopStageBar,
   ProjectDataStatus,
+  useToast,
 } from "../components/index.js";
 
 import { observeNav } from "../data/navConfig.js";
 import { screenCatalog } from "../screenCatalog.js";
 import { sectorsMicroclimatesDashboard as vm } from "../data/builtin-sample.js";
-import { useBuiltinProject } from "../context/BuiltinProjectContext.jsx";
 import { SectorCompassContent } from "./SectorCompassPage.jsx";
 import { CartographicDetailContent } from "./CartographicDetailPage.jsx";
 
@@ -40,13 +40,11 @@ const TONE_COLOR = {
   dim:   "var(--olos-dim)",
 };
 
-export function SectorsMicroclimatesDashboardPage() {
-  const { project } = useBuiltinProject();
-  const meta = project?.metadata ?? {};
+export function SectorsMicroclimatesContent() {
   const [pane, setPane] = useState(null);
   const close = () => setPane(null);
   return (
-    <AppShell navConfig={observeNav}>
+    <>
       <div className="detail-page sectors-page module-frame">
         <TopStageBar stage="Stage 1 of 3" module="Roots & Diagnosis — Module 5" />
         <ProjectDataStatus />
@@ -76,6 +74,14 @@ export function SectorsMicroclimatesDashboardPage() {
       <SlideUpPane open={pane === "cartographic"} title="Cartographic detail" onClose={close}>
         <CartographicDetailContent />
       </SlideUpPane>
+    </>
+  );
+}
+
+export function SectorsMicroclimatesDashboardPage() {
+  return (
+    <AppShell navConfig={observeNav}>
+      <SectorsMicroclimatesContent />
       {import.meta.env.DEV && metadata ? (
         <QaOverlay
           reference={metadata.reference}
@@ -101,13 +107,14 @@ function SectorsKpis() {
 }
 
 function SynthesisCard() {
+  const toast = useToast();
   return (
     <SurfaceCard className="sectors-synthesis-card">
       <h2><Sprout aria-hidden="true" /> Synthesis</h2>
       <p>{vm.synthesisText}</p>
       <div className="sectors-synthesis-actions">
-        <button className="outlined-button" type="button">View all sectors <ArrowRight size={14} aria-hidden="true" /></button>
-        <button className="outlined-button" type="button">View zone map <ArrowRight size={14} aria-hidden="true" /></button>
+        <button className="outlined-button" type="button" onClick={() => toast.info("Sector index — coming soon")}>View all sectors <ArrowRight size={14} aria-hidden="true" /></button>
+        <button className="outlined-button" type="button" onClick={() => toast.info("Zone map — coming soon")}>View zone map <ArrowRight size={14} aria-hidden="true" /></button>
       </div>
     </SurfaceCard>
   );
