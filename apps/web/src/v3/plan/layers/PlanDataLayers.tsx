@@ -25,6 +25,7 @@ import {
   useLayeringLensStore,
   RANK_COLOR,
 } from '../../../store/layeringLensStore.js';
+import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -116,8 +117,13 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const fertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
   const paddocks = useLivestockStore((s) => s.paddocks);
   const guilds = usePolycultureStore((s) => s.guilds);
+  const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useStructureStore((s) => s.structures);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
+  const selected = usePlanSelectionStore((s) => s.selected);
+  const setSelected = usePlanSelectionStore((s) => s.setSelected);
+  const selectedGuildId =
+    selected?.kind === 'guild' ? selected.id : null;
 
   const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
@@ -207,6 +213,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       const lat = n - g.centroidUv[1] * (n - s);
       const props = {
         id: g.id,
+        kind: 'guild',
         color: '#3d8a3d',
         label: g.name,
         yeomansRank: 8,
@@ -230,7 +237,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       if (f.projectId !== projectId) continue;
       const color = FERTILITY_COLOR[f.type] ?? '#8a6a3a';
       const label = FERTILITY_LABEL[f.type] ?? f.type;
-      const props = { id: f.id, color, label, yeomansRank: 7 };
+      const props = { id: f.id, kind: 'fertility', color, label, yeomansRank: 7 };
       points.push({
         type: 'Feature',
         id: f.id,
@@ -271,7 +278,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     if (!map) return;
 
     const apply = () => {
-      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      if (!map.isStyleLoaded()) return;
 
       const ensureSource = (id: string, data: GeoJSON.FeatureCollection) => {
         const sid = `${SOURCE_PREFIX}${id}`;
@@ -322,15 +329,25 @@ export default function PlanDataLayers({ map, projectId }: Props) {
           'line-opacity': 0.9,
         },
       });
+      const strokeColorExpr = selectedGuildId
+        ? ['case', ['==', ['get', 'id'], selectedGuildId], '#ffd166', '#1f1d1a']
+        : '#1f1d1a';
+      const strokeWidthExpr = selectedGuildId
+        ? ['case', ['==', ['get', 'id'], selectedGuildId], 3, 1.5]
+        : 1.5;
+      const radiusExpr = selectedGuildId
+        ? ['case', ['==', ['get', 'id'], selectedGuildId], 9, 6]
+        : 6;
+
       ensureLayer({
         id: `${LAYER_PREFIX}point`,
         type: 'circle',
         source: pointSid,
         paint: {
-          'circle-radius': 6,
+          'circle-radius': radiusExpr as never,
           'circle-color': colorExpr as never,
-          'circle-stroke-color': '#1f1d1a',
-          'circle-stroke-width': 1.5,
+          'circle-stroke-color': strokeColorExpr as never,
+          'circle-stroke-width': strokeWidthExpr as never,
           'circle-opacity': 0.95,
         },
       });
@@ -343,6 +360,9 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-color', colorExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-color', strokeColorExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-width', strokeWidthExpr as never);
+        map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-radius', radiusExpr as never);
       } catch {
         /* layer may have been removed mid-toggle */
       }
@@ -368,15 +388,98 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     apply();
     const onStyle = () => apply();
     map.on('style.load', onStyle);
+    map.on('load', onStyle);
+    // If style isn't loaded yet at mount, wait for next idle to retry once.
+    let pendingIdle = false;
+    if (!map.isStyleLoaded()) {
+      pendingIdle = true;
+      map.once('idle', onStyle);
+    }
 
     return () => {
       try {
         map.off('style.load', onStyle);
+        map.off('load', onStyle);
+        if (pendingIdle) map.off('idle', onStyle);
       } catch {
         /* map already disposed */
       }
     };
-  }, [map, polyFC, lineFC, pointFC, labelFC, lensEnabled]);
+  }, [map, polyFC, lineFC, pointFC, labelFC, lensEnabled, selectedGuildId]);
+
+  // Click-to-select + drag-to-move for guild points (mirrors AnnotationSectorHandles).
+  useEffect(() => {
+    if (!map) return;
+    const layerId = `${LAYER_PREFIX}point`;
+    let dragging = false;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind === 'guild') {
+        map.getCanvas().style.cursor = 'move';
+      }
+    };
+    const onMouseLeave = () => {
+      if (!dragging) map.getCanvas().style.cursor = '';
+    };
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'guild') return;
+      e.preventDefault();
+      const guildId = String(f.properties.id);
+      setSelected({ kind: 'guild', id: guildId });
+      dragging = true;
+      map.dragPan.disable();
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        const b = map.getBounds();
+        const w = b.getWest();
+        const eL = b.getEast();
+        const s = b.getSouth();
+        const n = b.getNorth();
+        const u = (ev.lngLat.lng - w) / (eL - w);
+        const v = (n - ev.lngLat.lat) / (n - s);
+        const cu = Math.min(1, Math.max(0, u));
+        const cv = Math.min(1, Math.max(0, v));
+        updateGuild(guildId, { centroidUv: [cu, cv] });
+      };
+      const onUp = () => {
+        dragging = false;
+        map.off('mousemove', onMove);
+        map.dragPan.enable();
+        map.getCanvas().style.cursor = '';
+      };
+      map.on('mousemove', onMove);
+      map.once('mouseup', onUp);
+    };
+    const onBgClick = (e: maplibregl.MapMouseEvent) => {
+      if (!map.getLayer(layerId)) return;
+      try {
+        const features = map.queryRenderedFeatures(e.point, { layers: [layerId] });
+        const hit = features.find((feat) => feat.properties?.kind === 'guild');
+        if (!hit) setSelected(null);
+      } catch {
+        /* layer may have been removed mid-event */
+      }
+    };
+
+    map.on('mouseenter', layerId, onMouseEnter);
+    map.on('mouseleave', layerId, onMouseLeave);
+    map.on('mousedown', layerId, onMouseDown);
+    map.on('click', onBgClick);
+
+    return () => {
+      try {
+        map.off('mouseenter', layerId, onMouseEnter);
+        map.off('mouseleave', layerId, onMouseLeave);
+        map.off('mousedown', layerId, onMouseDown);
+        map.off('click', onBgClick);
+        map.dragPan.enable();
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, setSelected, updateGuild]);
 
   // Cleanup on unmount.
   useEffect(() => {
