@@ -50,7 +50,23 @@ A top-level "Overall health" section shows the same score across all 12 principl
 From the parent ADR:
 
 - **Mission Statement / Goals cross-check** — needs a project-goals store first; deferred until the Observe stage's project-survey scaffolding lands.
-- **Missing-principle warnings + feature-type coverage matrix** (radar / heatmap) — cosmetic visualisation pass; lower priority than the structural Ethics rollup.
+- ✅ **Breadth radar visualisation** — landed 2026-05-07.
+  `PrincipleCoverageMatrixCard` now renders a 12-spoke SVG radar
+  above the matrix. Each spoke is one Holmgren principle; the radius
+  is the share of feature types (typesUsed / 9) the steward has
+  linked as evidence for that principle, normalised to [0, 1].
+  Concentric reference rings at 0.25 / 0.5 / 0.75 / 1.0 give a
+  visual scale; spoke labels show the principle number; vertices
+  for non-zero values are dotted in gold so a single-type-only
+  principle is visible against an empty spoke. A spiky shape
+  signals lopsided design (Holmgren P4 *Apply Self-Regulation and
+  Accept Feedback* — surface the imbalance the matrix hides in row
+  scanning); a balanced polygon is P8 *Integrate rather than
+  segregate* made visible. The matrix's per-cell heatmap intensity
+  (existing `cellBg` ramp) remains the second half of the
+  "radar / heatmap" pairing the parent ADR asked for. Pure render
+  addition, no schema or store change.
+- **Mission Statement / Goals cross-check** — still deferred (needs a project-goals store first).
 
 Both remain on the iteration ADR's deferred-follow-up list.
 

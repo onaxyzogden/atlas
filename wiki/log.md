@@ -4,6 +4,12 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-07 — Plan Module 8 · Breadth radar on PrincipleCoverageMatrixCard
+
+`PrincipleCoverageMatrixCard` gains a 12-spoke SVG radar above the matrix. Each spoke is one Holmgren principle; the radius is the share of feature types (typesUsed / 9) the steward has linked as evidence for that principle, normalised to [0, 1]. Concentric reference rings at 0.25 / 0.5 / 0.75 / 1.0 give a visual scale; spoke labels show the principle number; vertices for non-zero values are dotted in gold so a single-type-only principle is still visible against an empty spoke. A spiky shape signals lopsided design (Holmgren P4 *Apply Self-Regulation and Accept Feedback*); a balanced polygon is P8 *Integrate rather than segregate* made visible. Closes the radar half of the parent ADR's "radar / heatmap" follow-up — the matrix's existing per-cell intensity ramp covers the heatmap half. Pure render addition, no schema or store change. ADR `2026-05-07-atlas-plan-principles-three-ethics-rollup.md` updated.
+
+---
+
 ## 2026-05-07 — Plan Module 2 · Lawton hydrology coverage panel on WaterNetworkCard
 
 `WaterNetworkCard` now renders a five-cell "Lawton hydrology coverage" panel between Peak-event sizing and Validation. Each cell maps a Lawton stage (capture / slow / spread / sink / store) to one or more `WaterNodeKind` values and shows present/absent state with a count. Missing stages are listed explicitly with Lawton's framing ("water moved through fewer than five stages exits the site faster than it arrived"), so a steward who has captured + stored water but never slowed or sunk it is flagged at the depth-of-treatment level rather than just at the nodes-and-edges level. Lawton was already cited as the directed-graph rationale in the Module 2 ADR; this surfaces the five-stage ladder as an explicit fitness check. Pure render addition, no schema change. ADR `2026-05-07-atlas-plan-water-scholar-build-fresh.md` updated.

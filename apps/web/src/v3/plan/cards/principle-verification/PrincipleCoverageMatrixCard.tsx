@@ -197,6 +197,125 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
       </section>
 
       <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Breadth radar</h2>
+        <p className={styles.empty} style={{ textAlign: 'left', padding: '4px 0 8px' }}>
+          Each spoke is one principle; the radius is the share of feature
+          types you&rsquo;ve linked as evidence for it (1.0 = all {FEATURE_COLS.length}{' '}
+          types, 0 = uncovered). A spiky shape means the design leans on a
+          handful of principles; a balanced polygon is Holmgren P8{' '}
+          <em>Integrate rather than segregate</em> made visible.
+        </p>
+        {(() => {
+          const SIZE = 320;
+          const CX = SIZE / 2;
+          const CY = SIZE / 2;
+          const R = SIZE / 2 - 36;
+          const N = HOLMGREN_PRINCIPLES.length;
+          const COLS = FEATURE_COLS.length;
+          const angleAt = (i: number): number =>
+            -Math.PI / 2 + (i * 2 * Math.PI) / N;
+          const pointAt = (i: number, frac: number): [number, number] => {
+            const a = angleAt(i);
+            return [CX + Math.cos(a) * R * frac, CY + Math.sin(a) * R * frac];
+          };
+          const values: number[] = HOLMGREN_PRINCIPLES.map((p) => {
+            const row = matrix.get(p.id);
+            if (!row) return 0;
+            let typesUsed = 0;
+            for (const c of FEATURE_COLS) {
+              if ((row.get(c.key) ?? 0) > 0) typesUsed += 1;
+            }
+            return typesUsed / COLS;
+          });
+          const polygon = HOLMGREN_PRINCIPLES.map((_, i) =>
+            pointAt(i, values[i] ?? 0).join(','),
+          ).join(' ');
+          const rings = [0.25, 0.5, 0.75, 1.0];
+          return (
+            <svg
+              viewBox={`0 0 ${SIZE} ${SIZE}`}
+              style={{
+                width: '100%',
+                maxWidth: 360,
+                height: 'auto',
+                margin: '0 auto',
+                display: 'block',
+              }}
+            >
+              {/* Concentric reference rings */}
+              {rings.map((f) => (
+                <circle
+                  key={f}
+                  cx={CX}
+                  cy={CY}
+                  r={R * f}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth={1}
+                  strokeDasharray={f === 1 ? undefined : '2 3'}
+                />
+              ))}
+              {/* Spokes */}
+              {HOLMGREN_PRINCIPLES.map((p, i) => {
+                const [x, y] = pointAt(i, 1);
+                return (
+                  <line
+                    key={`spoke-${p.id}`}
+                    x1={CX}
+                    y1={CY}
+                    x2={x}
+                    y2={y}
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth={1}
+                  />
+                );
+              })}
+              {/* Coverage polygon */}
+              <polygon
+                points={polygon}
+                fill="rgba(var(--color-gold-rgb), 0.18)"
+                stroke="rgba(var(--color-gold-rgb), 0.85)"
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+              />
+              {/* Vertices for non-zero values */}
+              {HOLMGREN_PRINCIPLES.map((p, i) => {
+                const v = values[i] ?? 0;
+                if (v === 0) return null;
+                const [x, y] = pointAt(i, v);
+                return (
+                  <circle
+                    key={`pt-${p.id}`}
+                    cx={x}
+                    cy={y}
+                    r={2.5}
+                    fill="rgba(var(--color-gold-rgb), 0.95)"
+                  />
+                );
+              })}
+              {/* Spoke labels (principle number) */}
+              {HOLMGREN_PRINCIPLES.map((p, i) => {
+                const [x, y] = pointAt(i, 1.12);
+                return (
+                  <text
+                    key={`lbl-${p.id}`}
+                    x={x}
+                    y={y}
+                    fontSize={10}
+                    fill="rgba(232,220,200,0.8)"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                  >
+                    {p.number}
+                  </text>
+                );
+              })}
+            </svg>
+          );
+        })()}
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Matrix</h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
