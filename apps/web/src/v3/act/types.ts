@@ -6,6 +6,16 @@
  * used by ActModuleSlideUp to load the right card.
  */
 
+import {
+  Hammer,
+  Wrench,
+  Beef,
+  Sprout,
+  Shield,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
+
 export type ActModule =
   | 'build'
   | 'maintain'
@@ -36,6 +46,15 @@ export const ACT_MODULE_LABEL: Record<ActModule, string> = {
   network:   'Network',
 };
 
+export const ACT_MODULE_ICON: Record<ActModule, LucideIcon> = {
+  build:     Hammer,
+  maintain:  Wrench,
+  livestock: Beef,
+  harvest:   Sprout,
+  review:    Shield,
+  network:   Users,
+};
+
 export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
   build:     'Build & Construction',
   maintain:  'Maintenance & Operations',
@@ -58,6 +77,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
     { label: 'Waste routing',        sectionId: 'act-waste-routing' },
   ],
   livestock: [
+    { label: 'Yield log',            sectionId: 'act-livestock-yield' },
     { label: 'Rotation schedule',    sectionId: 'act-livestock-rotation' },
     { label: 'Pasture utilization',  sectionId: 'act-livestock-pasture' },
     { label: 'Forage quality',       sectionId: 'act-livestock-forage' },

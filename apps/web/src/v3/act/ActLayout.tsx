@@ -10,6 +10,11 @@
  * Project bridge: reads LocalProject from useProjectStore; falls back to
  * an MTC stub so the dev sentinel /v3/project/mtc/act renders without
  * server data.
+ *
+ * Tool model: Act tools log execution events against existing features
+ * (e.g., harvest entries on Plan crop areas) — no new geometry authoring.
+ * Plan/Observe layers render here as a read-only substrate so the steward
+ * can hit-test their authored features when logging events.
  */
 
 import { useMemo, useState } from 'react';
@@ -19,10 +24,14 @@ import type { LocalProject } from '../../store/projectStore.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
+import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
+import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import ActTools from './ActTools.js';
 import ActChecklistAside from './ActChecklistAside.js';
 import ActModuleBar from './ActModuleBar.js';
 import ActModuleSlideUp from './ActModuleSlideUp.js';
+import ActDrawHost from './draw/ActDrawHost.js';
+import ActDataLayers from './layers/ActDataLayers.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
@@ -139,6 +148,14 @@ export default function ActLayout() {
                 map={map}
                 projectId={params.projectId ?? null}
               />
+              {params.projectId ? (
+                <PlanDataLayers map={map} projectId={params.projectId} />
+              ) : null}
+              {params.projectId ? (
+                <ActDataLayers map={map} projectId={params.projectId} />
+              ) : null}
+              <ActDrawHost map={map} projectId={params.projectId ?? null} />
+              <InlineFeaturePopover map={map} />
             </>
           )}
         </DiagnoseMap>

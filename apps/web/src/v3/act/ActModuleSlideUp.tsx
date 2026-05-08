@@ -30,6 +30,7 @@ const HazardPlansCard           = lazy(() => import('../../features/act/HazardPl
 const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkCrmCard.js'));
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
+const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a future Subdivision/Livestock module). All seven
 // cards live at apps/web/src/features/livestock/ and take { projectId } except
@@ -58,6 +59,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-network-crm':       return <NetworkCrmCard project={project} onSwitchToMap={noop} />;
     case 'act-community-event':   return <CommunityEventCard project={project} onSwitchToMap={noop} />;
     case 'act-appropriate-tech':  return <AppropriateTechLogCard project={project} onSwitchToMap={noop} />;
+    case 'act-livestock-yield':           return <LivestockYieldCard project={project} onSwitchToMap={noop} />;
     case 'act-livestock-rotation':        return <RotationScheduleCard projectId={project.id} />;
     case 'act-livestock-pasture':         return <PastureUtilizationCard projectId={project.id} />;
     case 'act-livestock-forage':          return <ForageQualitySeasonalCard project={project} />;
