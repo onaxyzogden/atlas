@@ -22,7 +22,7 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === '/home';
+  const isHome = pathname === '/home' || pathname === '/v3/project';
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
@@ -106,7 +106,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Back to Projects */}
         {!isHome && pathname !== '/new' && (
-          <Link to="/home" aria-label="Back to all projects" className={styles.backLink}>
+          <Link to="/v3/project" aria-label="Back to all projects" className={styles.backLink}>
             All Projects
           </Link>
         )}

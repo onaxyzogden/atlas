@@ -29,6 +29,7 @@ import LoginPage from '../pages/LoginPage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
+import ProjectsLandingPage from '../v3/pages/ProjectsLandingPage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
 import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
@@ -122,6 +123,15 @@ const v3ProjectLayoutRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/project/$projectId',
   component: V3ProjectLayout,
+});
+
+// /v3/project (no project ID) — projects landing rendered in the Property
+// Candidates format. Sibling of v3ProjectLayoutRoute so it isn't gated on a
+// projectId param.
+const v3ProjectsLandingRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/project',
+  component: ProjectsLandingPage,
 });
 
 // ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
@@ -273,6 +283,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    v3ProjectsLandingRoute,
     v3ProjectLayoutRoute.addChildren([
       v3IndexRoute,
       v3HomeRoute,
