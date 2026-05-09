@@ -26,6 +26,13 @@ import {
   RANK_COLOR,
 } from '../../../store/layeringLensStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
+import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
+import { useInlineFormStore } from '../draw/inlineFormStore.js';
+import {
+  STRUCTURE_TEMPLATES,
+  createFootprintPolygon,
+} from '../../../features/structures/footprints.js';
+import type { StructureType } from '../../../store/structureStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -119,6 +126,9 @@ export default function PlanDataLayers({ map, projectId }: Props) {
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useStructureStore((s) => s.structures);
+  const updateStructure = useStructureStore((s) => s.updateStructure);
+  const activeTool = useMapToolStore((s) => s.activeTool);
+  const openForm = useInlineFormStore((s) => s.open);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const selected = usePlanSelectionStore((s) => s.selected);
   const setSelected = usePlanSelectionStore((s) => s.setSelected);
@@ -183,7 +193,7 @@ export default function PlanDataLayers({ map, projectId }: Props) {
     for (const st of structures) {
       if (st.projectId !== projectId) continue;
       const color = STRUCTURE_COLOR[st.type] ?? '#a06b48';
-      const props = { id: st.id, color, label: st.name, yeomansRank: 5 };
+      const props = { id: st.id, kind: 'structure', color, label: st.name, yeomansRank: 5 };
       polys.push({ type: 'Feature', id: st.id, properties: props, geometry: st.geometry });
       try {
         const ctr = turf.centroid(st.geometry).geometry;
@@ -444,13 +454,14 @@ export default function PlanDataLayers({ map, projectId }: Props) {
         updateGuild(guildId, { centroidUv: [cu, cv] });
       };
       const onUp = () => {
+        map.off('mouseup', onUp);
         dragging = false;
         map.off('mousemove', onMove);
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
       };
       map.on('mousemove', onMove);
-      map.once('mouseup', onUp);
+      map.on('mouseup', onUp);
     };
     const onBgClick = (e: maplibregl.MapMouseEvent) => {
       if (!map.getLayer(layerId)) return;
@@ -480,6 +491,202 @@ export default function PlanDataLayers({ map, projectId }: Props) {
       }
     };
   }, [map, setSelected, updateGuild]);
+
+  // Click-to-edit + drag-to-move for placed Structures (poly fill).
+  // Gated to `activeTool == null` so a Plan draw tool always wins.
+  useEffect(() => {
+    if (!map) return;
+    if (activeTool !== null) return;
+    const layerId = `${LAYER_PREFIX}poly-fill`;
+
+    const TYPE_OPTIONS: { value: StructureType; label: string }[] = [
+      { value: 'cabin',            label: 'Cabin' },
+      { value: 'yurt',             label: 'Yurt' },
+      { value: 'earthship',        label: 'Earthship' },
+      { value: 'tent_glamping',    label: 'Tent / Glamping' },
+      { value: 'pavilion',         label: 'Pavilion' },
+      { value: 'classroom',        label: 'Classroom' },
+      { value: 'prayer_space',     label: 'Prayer space' },
+      { value: 'bathhouse',        label: 'Bathhouse' },
+      { value: 'fire_circle',      label: 'Fire circle' },
+      { value: 'lookout',          label: 'Lookout' },
+      { value: 'greenhouse',       label: 'Greenhouse' },
+      { value: 'barn',             label: 'Barn' },
+      { value: 'animal_shelter',   label: 'Animal shelter' },
+      { value: 'workshop',         label: 'Workshop' },
+      { value: 'storage',          label: 'Storage shed' },
+      { value: 'compost_station',  label: 'Compost station' },
+      { value: 'water_pump_house', label: 'Pump house' },
+      { value: 'solar_array',      label: 'Solar array' },
+      { value: 'well',             label: 'Well' },
+      { value: 'water_tank',       label: 'Water tank' },
+    ];
+    const PHASE_OPTIONS = [
+      { value: 'Phase 1', label: 'Phase 1' },
+      { value: 'Phase 2', label: 'Phase 2' },
+      { value: 'Phase 3', label: 'Phase 3' },
+      { value: 'Phase 4', label: 'Phase 4' },
+    ];
+    const midCost = (type: StructureType): number => {
+      const [lo, hi] = STRUCTURE_TEMPLATES[type].costRange;
+      return Math.round((lo + hi) / 2);
+    };
+
+    const DRAG_THRESHOLD_PX = 4;
+    let down: { id: string; x: number; y: number; dragging: boolean } | null = null;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind === 'structure') {
+        map.getCanvas().style.cursor = 'move';
+      }
+    };
+    const onMouseLeave = () => {
+      if (!down?.dragging) map.getCanvas().style.cursor = '';
+    };
+
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'structure') return;
+      e.preventDefault();
+      down = {
+        id: String(f.properties.id),
+        x: e.point.x,
+        y: e.point.y,
+        dragging: false,
+      };
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        if (!down) return;
+        const dx = ev.point.x - down.x;
+        const dy = ev.point.y - down.y;
+        if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+          down.dragging = true;
+          map.dragPan.disable();
+          map.getCanvas().style.cursor = 'grabbing';
+        }
+        if (!down.dragging) return;
+        const st = useStructureStore
+          .getState()
+          .structures.find((s) => s.id === down!.id);
+        if (!st) return;
+        const center: [number, number] = [ev.lngLat.lng, ev.lngLat.lat];
+        const geometry = createFootprintPolygon(
+          center,
+          st.widthM,
+          st.depthM,
+          st.rotationDeg,
+        );
+        updateStructure(st.id, { center, geometry });
+      };
+      const onUp = (ev: maplibregl.MapMouseEvent) => {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        if (!down) return;
+        const wasDrag = down.dragging;
+        const id = down.id;
+        const downXY = { x: down.x, y: down.y };
+        down = null;
+        map.dragPan.enable();
+        map.getCanvas().style.cursor = '';
+        if (wasDrag) return;
+        // Click (no drag) → open edit popover.
+        const st = useStructureStore
+          .getState()
+          .structures.find((s) => s.id === id);
+        if (!st) return;
+        const anchor: [number, number] =
+          ev?.lngLat
+            ? [ev.lngLat.lng, ev.lngLat.lat]
+            : (() => {
+                try {
+                  const { lng, lat } = map.unproject([downXY.x, downXY.y]);
+                  return [lng, lat] as [number, number];
+                } catch {
+                  return st.center;
+                }
+              })();
+        openForm({
+          title: 'Edit structure',
+          anchor,
+          fields: [
+            { key: 'name', label: 'Name', kind: 'text', required: true },
+            {
+              key: 'type',
+              label: 'Type',
+              kind: 'select',
+              required: true,
+              options: TYPE_OPTIONS,
+            },
+            {
+              key: 'phase',
+              label: 'Phase',
+              kind: 'select',
+              options: PHASE_OPTIONS,
+            },
+            {
+              key: 'rotationDeg',
+              label: 'Rotation (°)',
+              kind: 'number',
+              placeholder: '0',
+              suffix: '°',
+            },
+          ],
+          initial: {
+            name: st.name,
+            type: st.type,
+            phase: st.phase,
+            rotationDeg: st.rotationDeg,
+          },
+          onSave: (values) => {
+            const nextType = values.type as StructureType;
+            const nextTpl = STRUCTURE_TEMPLATES[nextType] ?? STRUCTURE_TEMPLATES[st.type];
+            const rawRot = Number(values.rotationDeg);
+            const rotationDeg = Number.isFinite(rawRot)
+              ? ((rawRot % 360) + 360) % 360
+              : 0;
+            const geometry = createFootprintPolygon(
+              st.center,
+              nextTpl.widthM,
+              nextTpl.depthM,
+              rotationDeg,
+            );
+            updateStructure(st.id, {
+              name: String(values.name ?? nextTpl.label).trim() || nextTpl.label,
+              type: nextType,
+              geometry,
+              rotationDeg,
+              widthM: nextTpl.widthM,
+              depthM: nextTpl.depthM,
+              phase: String(values.phase ?? 'Phase 1'),
+              costEstimate: midCost(nextType),
+              infrastructureReqs: [...nextTpl.infrastructureReqs],
+            });
+          },
+          onCancel: () => {
+            /* no-op — record already exists */
+          },
+        });
+      };
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    };
+
+    map.on('mouseenter', layerId, onMouseEnter);
+    map.on('mouseleave', layerId, onMouseLeave);
+    map.on('mousedown', layerId, onMouseDown);
+
+    return () => {
+      try {
+        map.off('mouseenter', layerId, onMouseEnter);
+        map.off('mouseleave', layerId, onMouseLeave);
+        map.off('mousedown', layerId, onMouseDown);
+        map.dragPan.enable();
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, updateStructure, openForm]);
 
   // Cleanup on unmount.
   useEffect(() => {

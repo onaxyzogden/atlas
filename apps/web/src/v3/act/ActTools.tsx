@@ -49,9 +49,10 @@ const QUICK_LOGS: QuickLog[] = [
   {
     id: 'livestock',
     label: 'Log livestock move',
-    hint: 'Open Livestock · Rotation schedule',
+    hint: 'Click a paddock to log a move-in / out / rotate-through',
     Icon: Beef,
     module: 'livestock',
+    toolId: 'act.livestock.log-move',
   },
 ];
 

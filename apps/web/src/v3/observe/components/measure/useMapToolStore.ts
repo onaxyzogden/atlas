@@ -82,7 +82,9 @@ export type MapToolId =
   // Act Module — Harvest log (point-on-existing-crop-area, no new geometry)
   | 'act.harvest.log-entry'
   // Act Module — Maintenance event log (click an irrigation feature)
-  | 'act.maintain.log-event';
+  | 'act.maintain.log-event'
+  // Act Module — Livestock move log (click a paddock)
+  | 'act.livestock.log-move';
 
 export interface MapToolState {
   activeTool: MapToolId | null;
