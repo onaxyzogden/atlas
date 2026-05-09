@@ -19,6 +19,7 @@ import {
 } from '../_shared/components/GuidanceCard.js';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
+import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
 import css from './PlanChecklistAside.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
@@ -151,6 +152,14 @@ function PlanGuidanceCard({
   );
   const toggle = usePlanHowChecksStore((s) => s.toggle);
 
+  const refSummary = useModuleProjectTypeReferences(module, projectId);
+  const showChip = refSummary.openGaps > 0;
+  const chipTitle = showChip
+    ? `${refSummary.openGaps} of ${refSummary.referencedBy} ticked project-type item${
+        refSummary.referencedBy === 1 ? '' : 's'
+      } reference ${PLAN_MODULE_LABEL[module]} but the expected how-checks or map artifacts here are still missing.`
+    : '';
+
   return (
     <GuidanceCard
       moduleKey={module}
@@ -165,6 +174,19 @@ function PlanGuidanceCard({
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
+      headerExtras={
+        showChip ? (
+          <span
+            className={css.refChip}
+            title={chipTitle}
+            aria-label={chipTitle}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            ↗ {refSummary.openGaps} ref{refSummary.openGaps === 1 ? '' : 's'}
+          </span>
+        ) : null
+      }
     />
   );
 }

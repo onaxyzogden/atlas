@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-09
 **Branch:** feat/atlas-permaculture
-**Status:** Implemented (+ wizard-seed follow-up landed same day)
+**Status:** Implemented (+ wizard-seed and cross-check follow-ups landed same day)
 
 ## Decision
 
@@ -87,9 +87,10 @@ verbatim.
 
 - ~~Wiring `project.projectType` from the wizard into the picker as a
   default seed.~~ — **Closed 2026-05-09** (see Follow-up below).
-- Cross-checking checklist progress against module progress (e.g.
+- ~~Cross-checking checklist progress against module progress (e.g.
   "you've ticked Conservation #2 'wildlife corridors' but Zone &
-  Circulation has no Z5 polygon").
+  Circulation has no Z5 polygon").~~ — **Closed 2026-05-09** (see
+  Follow-up — cross-check chip below).
 - Per-item linking to the module that satisfies the prompt (so a
   click jumps to that module's slide-up).
 
@@ -129,6 +130,111 @@ without a type are unreachable.
 - Edited `apps/web/src/v3/plan/PlanProjectTypeCard.tsx` (added
   `wizardType` selector + `asPlanProjectTypeKey` guard +
   `effectiveType` derivation + first-toggle lock-in in `handleToggle`).
+
+## Follow-up — cross-check chip on module cards (2026-05-09)
+
+Each module's GuidanceCard now lights a small amber "↗ N refs" chip in its
+header when one or more *ticked* project-type items reference that module
+but their dependencies are not yet satisfied. The chip is the reciprocal
+view of the project-type card's checklist: ticking a project-type item that
+depends on (say) `water-management` how-checks 0 + 1 *and* a stored water
+artifact lights a single chip on the Water card; closing those gaps clears
+the chip. The chip exists only on module cards (not on the Project Type
+card itself) — the project-type rail is the source, the module rail is the
+mirror.
+
+### `relatedWork` schema migration on `PlanProjectTypeItem`
+
+`PLAN_PROJECT_TYPE_TEMPLATES[type].items` was previously
+`readonly string[]`. It is now `readonly PlanProjectTypeItem[]`:
+
+```ts
+interface PlanProjectTypeItemRelatedWork {
+  module: PlanModule;
+  indexes: readonly number[];          // how-check indexes that satisfy this entry
+  requiresArtifacts?: boolean;          // ALSO requires a stored map artifact for the module
+}
+interface PlanProjectTypeItem {
+  text: string;
+  relatedWork: readonly PlanProjectTypeItemRelatedWork[];
+}
+```
+
+All 36 items (6 types × 6 each) ship with hand-authored `relatedWork`
+arrays. An item can reference multiple modules (e.g. Homestead "Anchor
+Z0/Z1 (house + kitchen garden)" depends on `zone-circulation` index 0 +
+artifact, `structures-subsystems` artifact, AND `cross-section-solar`
+indexes 0 + 1) — each referenced module gets its own chip independently.
+
+`PlanProjectTypeCard.tsx` reads the new shape with `{item.text}` instead of
+`{item}`; no other consumer touches `items`.
+
+### "Either gap" chip rule
+
+A reference is *satisfied* iff **all** declared `indexes` are ticked in
+`planHowChecksStore` for the module **AND** (`!requiresArtifacts` OR the
+module reports artifact presence). The chip stays lit while *either* gap
+exists — strictest of the three rule options canvassed
+(how-checks-only, artifacts-only, either-gap). Rationale: ticked items that
+only have how-checks satisfied still represent unfinished work if the map
+side is empty; collapsing the two would let the chip clear before the
+design actually exists on the canvas.
+
+The cross-check selector lives in
+[`useModuleProjectTypeReferences.ts`](../../apps/web/src/v3/plan/hooks/useModuleProjectTypeReferences.ts)
+and returns `{ referencedBy, openGaps }` per module per project. The chip
+shows `↗ {openGaps} ref(s)` and renders only when `openGaps > 0`.
+
+### Artifact-presence hook + Rules-of-Hooks fix
+
+[`planModuleArtifactPresence.ts`](../../apps/web/src/v3/plan/data/planModuleArtifactPresence.ts)
+exports `usePlanModuleArtifactPresence(module, projectId)` returning
+boolean. It subscribes to **all 9 artifact stores unconditionally**
+(`useWaterSystemsStore`, `useZoneStore`, `usePathStore`,
+`useStructureStore`, `useLivestockStore`, `useCropStore`,
+`usePolycultureStore`, `useClosedLoopStore`, `usePhaseStore`) and then
+switches on `module` to decide which booleans to return. The first draft
+returned `false` early for the three module keys that have no map artifact
+(`dynamic-layering` / `cross-section-solar` / `principle-verification`)
+*before* calling the hooks — a Rules-of-Hooks violation that surfaced as
+"Rendered fewer hooks than expected" once a project-type item with mixed
+dependencies was ticked. Subscribing all stores up-front is the simplest
+fix (the Zustand selectors are cheap booleans).
+
+### Shared `headerExtras` slot on `GuidanceCard`
+
+[`GuidanceCard.tsx`](../../apps/web/src/v3/_shared/components/GuidanceCard.tsx)
+gained an optional `headerExtras?: ReactNode` prop, rendered next to the
+module label inside `.groupHeader` via a new `.groupHeaderExtras`
+wrapper (`margin-left: auto` so it pushes to the right edge). This keeps
+the chip a Plan-stage concern — Observe and Act don't pass it — while
+reusing the universal card chrome. Plan's `PlanChecklistAside` is the only
+caller for now; the `onClick / onKeyDown` stopPropagation on the chip
+prevents card-level module-select / slide-up handlers from firing through
+it.
+
+### Drive-by: extracted wizard-seed selector for cross-stage reuse
+
+The wizard-seed precedence logic added in the previous follow-up was inline
+in `PlanProjectTypeCard.tsx`. It is now extracted to
+[`useEffectivePlanProjectType.ts`](../../apps/web/src/v3/plan/hooks/useEffectivePlanProjectType.ts)
+so the same `effectiveType = hasInteracted ? storedType : wizardSeed` rule
+can be reused by Act stage Operations Hub panels (which need the project's
+effective project-type lens for ranking, but not the first-toggle lock-in
+behaviour). `asPlanProjectTypeKey` moved with the hook. `PlanProjectTypeCard`
+is the only consumer in this commit; Act consumers land separately.
+
+### Files (this follow-up)
+
+- Created [`apps/web/src/v3/plan/data/planModuleArtifactPresence.ts`](../../apps/web/src/v3/plan/data/planModuleArtifactPresence.ts)
+- Created [`apps/web/src/v3/plan/hooks/useModuleProjectTypeReferences.ts`](../../apps/web/src/v3/plan/hooks/useModuleProjectTypeReferences.ts)
+- Created [`apps/web/src/v3/plan/hooks/useEffectivePlanProjectType.ts`](../../apps/web/src/v3/plan/hooks/useEffectivePlanProjectType.ts) (drive-by extraction)
+- Edited [`apps/web/src/v3/plan/data/planProjectTypeTemplates.ts`](../../apps/web/src/v3/plan/data/planProjectTypeTemplates.ts) — `items: string[]` → `items: PlanProjectTypeItem[]`, all 36 items migrated with `relatedWork`
+- Edited [`apps/web/src/v3/plan/PlanProjectTypeCard.tsx`](../../apps/web/src/v3/plan/PlanProjectTypeCard.tsx) — `{item}` → `{item.text}` + switched to the new `useEffectivePlanProjectType` hook
+- Edited [`apps/web/src/v3/_shared/components/GuidanceCard.tsx`](../../apps/web/src/v3/_shared/components/GuidanceCard.tsx) — `headerExtras` prop + slot
+- Edited [`apps/web/src/v3/_shared/components/GuidanceCard.module.css`](../../apps/web/src/v3/_shared/components/GuidanceCard.module.css) — `.groupHeaderExtras` rule
+- Edited [`apps/web/src/v3/plan/PlanChecklistAside.tsx`](../../apps/web/src/v3/plan/PlanChecklistAside.tsx) — chip wiring on each module card
+- Edited [`apps/web/src/v3/plan/PlanChecklistAside.module.css`](../../apps/web/src/v3/plan/PlanChecklistAside.module.css) — `.refChip` amber pill style
 
 ## Files
 

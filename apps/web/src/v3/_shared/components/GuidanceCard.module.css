@@ -89,6 +89,13 @@
   color: var(--color-text);
 }
 
+.groupHeaderExtras {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .why {
   margin: 0;
   font-size: 11.5px;

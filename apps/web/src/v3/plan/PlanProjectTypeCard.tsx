@@ -18,43 +18,22 @@
 import { useParams } from '@tanstack/react-router';
 import type { CSSProperties } from 'react';
 import { usePlanProjectTypeChecklistStore } from '../../store/planProjectTypeChecklistStore.js';
-import { useProjectStore } from '../../store/projectStore.js';
 import {
   PLAN_PROJECT_TYPE_KEYS,
   PLAN_PROJECT_TYPE_TEMPLATES,
   type PlanProjectTypeKey,
 } from './data/planProjectTypeTemplates.js';
+import { useEffectivePlanProjectType } from './hooks/useEffectivePlanProjectType.js';
 import css from './PlanProjectTypeCard.module.css';
 import guidanceCss from '../_shared/components/GuidanceCard.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
 
-function asPlanProjectTypeKey(value: string | null | undefined): PlanProjectTypeKey | null {
-  if (!value) return null;
-  return (PLAN_PROJECT_TYPE_KEYS as readonly string[]).includes(value)
-    ? (value as PlanProjectTypeKey)
-    : null;
-}
-
 export default function PlanProjectTypeCard() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
 
-  const wizardType = useProjectStore((s) =>
-    projectId ? (s.projects.find((p) => p.id === projectId)?.projectType ?? null) : null,
-  );
-  const wizardSeed = asPlanProjectTypeKey(wizardType);
-
-  const hasInteracted = usePlanProjectTypeChecklistStore((s) =>
-    projectId ? s.byProject[projectId] !== undefined : false,
-  );
-  const storedType = usePlanProjectTypeChecklistStore(
-    (s) => (projectId ? s.byProject[projectId]?.selectedType : null) ?? null,
-  );
-
-  const effectiveType: PlanProjectTypeKey | null = hasInteracted
-    ? storedType
-    : wizardSeed;
+  const { effectiveType, hasInteracted } = useEffectivePlanProjectType(projectId);
 
   const checkedList = usePlanProjectTypeChecklistStore(
     (s) =>
@@ -144,7 +123,7 @@ export default function PlanProjectTypeCard() {
                       disabled={!projectId}
                       onChange={() => handleToggle(i)}
                     />
-                    <span className={guidanceCss.howText}>{item}</span>
+                    <span className={guidanceCss.howText}>{item.text}</span>
                   </label>
                 </li>
               );
