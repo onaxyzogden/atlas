@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-09
 **Branch:** feat/atlas-permaculture
-**Status:** Implemented (+ wizard-seed and cross-check follow-ups landed same day)
+**Status:** Implemented (+ all three same-day follow-ups landed)
 
 ## Decision
 
@@ -91,8 +91,9 @@ verbatim.
   "you've ticked Conservation #2 'wildlife corridors' but Zone &
   Circulation has no Z5 polygon").~~ — **Closed 2026-05-09** (see
   Follow-up — cross-check chip below).
-- Per-item linking to the module that satisfies the prompt (so a
-  click jumps to that module's slide-up).
+- ~~Per-item linking to the module that satisfies the prompt (so a
+  click jumps to that module's slide-up).~~ — **Closed 2026-05-09**
+  (see Follow-up — per-item module-jump links below).
 
 ## Follow-up — wizard `projectType` wired as default seed (2026-05-09)
 
@@ -235,6 +236,51 @@ is the only consumer in this commit; Act consumers land separately.
 - Edited [`apps/web/src/v3/_shared/components/GuidanceCard.module.css`](../../apps/web/src/v3/_shared/components/GuidanceCard.module.css) — `.groupHeaderExtras` rule
 - Edited [`apps/web/src/v3/plan/PlanChecklistAside.tsx`](../../apps/web/src/v3/plan/PlanChecklistAside.tsx) — chip wiring on each module card
 - Edited [`apps/web/src/v3/plan/PlanChecklistAside.module.css`](../../apps/web/src/v3/plan/PlanChecklistAside.module.css) — `.refChip` amber pill style
+
+## Follow-up — per-item module-jump links (2026-05-09)
+
+Each project-type checklist bullet now renders one small "→ {Module}"
+mini-chip per `relatedWork` entry directly beneath the bullet. Clicking
+a chip selects that module (`onSelectModule`) and opens the slide-up
+(`onOpenSlideUp`) — the forward-direction complement of the reciprocal
+"↗ N refs" backward-direction chip on module cards. The forward `→` vs.
+backward `↗` arrow is deliberate: glancing at the rail tells the steward
+at a glance which way a chip points.
+
+### Why mini-chips per module, not a single primary target
+
+`relatedWork` on most items declares 2–3 modules (e.g. Homestead "Anchor
+Z0/Z1 (house + kitchen garden)" → `zone-circulation` + `structures-subsystems`
++ `cross-section-solar`). Picking one as a "primary" jump target hides the
+multi-module relationship the cross-check feature already surfaces; rendering
+one chip per entry makes the dependency fan-out visible.
+
+### Why chips-only as the click target (bullet text stays plain)
+
+Making the bullet text a clickable jump conflicted with the existing
+checkbox-tick gesture on the same row. Confining the click affordance to
+chips, with `e.stopPropagation()` on each chip, keeps the checkbox tick
+behaviour intact — a chip click never accidentally ticks the bullet, and a
+bullet tick never accidentally jumps modules.
+
+### Shared module-dot palette extracted
+
+The `PLAN_MODULE_DOT: Record<PlanModule, string>` map previously lived
+inline in `PlanChecklistAside.tsx`. Both that file and the new chip rendering
+in `PlanProjectTypeCard.tsx` consume the same palette, so the map moved to
+[`apps/web/src/v3/plan/data/planModulePalette.ts`](../../apps/web/src/v3/plan/data/planModulePalette.ts)
+and both consumers now import from there. Each chip sets its module's hex
+inline via a `--module-dot` CSS custom property; the `.module.css` rules use
+`color-mix(in srgb, var(--module-dot) 12%, ...)` for the tinted background
+and 35% for the ring, so chip colour tracks the dot palette without hard-coding
+hexes in the CSS.
+
+### Files (this follow-up)
+
+- Created [`apps/web/src/v3/plan/data/planModulePalette.ts`](../../apps/web/src/v3/plan/data/planModulePalette.ts) — extracted `PLAN_MODULE_DOT`
+- Edited [`apps/web/src/v3/plan/PlanChecklistAside.tsx`](../../apps/web/src/v3/plan/PlanChecklistAside.tsx) — import palette from new file, drop inline map, forward `onSelectModule` + `onOpenSlideUp` to `<PlanProjectTypeCard>`
+- Edited [`apps/web/src/v3/plan/PlanProjectTypeCard.tsx`](../../apps/web/src/v3/plan/PlanProjectTypeCard.tsx) — accept the two callbacks as props, render per-`relatedWork` mini-chips with stopPropagation
+- Edited [`apps/web/src/v3/plan/PlanProjectTypeCard.module.css`](../../apps/web/src/v3/plan/PlanProjectTypeCard.module.css) — `.relatedWorkChips` flex-wrap container + `.relatedWorkChip` pill rule
 
 ## Files
 

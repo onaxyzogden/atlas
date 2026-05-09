@@ -77,3 +77,43 @@
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* Per-item module-jump chips. One chip per relatedWork entry on a
+   project-type checklist item; clicking selects that module and opens
+   the slide-up. Module dot colour flows through `--module-dot` set
+   inline by the .tsx. */
+.relatedWorkChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 0 22px;
+}
+
+.relatedWorkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--module-dot) 12%, var(--color-bg));
+  color: color-mix(in srgb, var(--module-dot) 80%, var(--color-text));
+  border: 1px solid color-mix(in srgb, var(--module-dot) 35%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.relatedWorkChip:hover {
+  background: color-mix(in srgb, var(--module-dot) 22%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--module-dot) 60%, transparent);
+}
+
+.relatedWorkChip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--module-dot) 70%, var(--color-border));
+  outline-offset: 1px;
+}

@@ -24,12 +24,22 @@ import {
   type PlanProjectTypeKey,
 } from './data/planProjectTypeTemplates.js';
 import { useEffectivePlanProjectType } from './hooks/useEffectivePlanProjectType.js';
+import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
+import { PLAN_MODULE_LABEL, type PlanModule } from './types.js';
 import css from './PlanProjectTypeCard.module.css';
 import guidanceCss from '../_shared/components/GuidanceCard.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
 
-export default function PlanProjectTypeCard() {
+interface Props {
+  onSelectModule: (module: PlanModule | null) => void;
+  onOpenSlideUp: () => void;
+}
+
+export default function PlanProjectTypeCard({
+  onSelectModule,
+  onOpenSlideUp,
+}: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
 
@@ -68,6 +78,11 @@ export default function PlanProjectTypeCard() {
       setSelectedType(projectId, effectiveType);
     }
     toggle(projectId, effectiveType, i);
+  };
+
+  const handleJumpToModule = (module: PlanModule) => {
+    onSelectModule(module);
+    onOpenSlideUp();
   };
 
   return (
@@ -125,6 +140,32 @@ export default function PlanProjectTypeCard() {
                     />
                     <span className={guidanceCss.howText}>{item.text}</span>
                   </label>
+                  {item.relatedWork.length > 0 && (
+                    <div className={css.relatedWorkChips}>
+                      {item.relatedWork.map((rw) => {
+                        const chipStyle = {
+                          ['--module-dot' as never]: PLAN_MODULE_DOT[rw.module],
+                        } as CSSProperties;
+                        const label = PLAN_MODULE_LABEL[rw.module];
+                        return (
+                          <button
+                            key={rw.module}
+                            type="button"
+                            className={css.relatedWorkChip}
+                            style={chipStyle}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJumpToModule(rw.module);
+                            }}
+                            title={`Jump to ${label} module`}
+                            aria-label={`Jump to ${label} module`}
+                          >
+                            <span aria-hidden="true">→</span> {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </li>
               );
             })}

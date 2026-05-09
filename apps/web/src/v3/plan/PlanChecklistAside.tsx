@@ -20,6 +20,7 @@ import {
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
+import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
 import css from './PlanChecklistAside.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
@@ -106,19 +107,6 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Document the rationale for each score as a project record.',
     ],
   },
-};
-
-const PLAN_MODULE_DOT: Record<PlanModule, string> = {
-  'dynamic-layering': '#7aabca',
-  'water-management': '#5fc7d4',
-  'zone-circulation': '#d68bd0',
-  'structures-subsystems': '#a06b48',
-  livestock: '#c9a05a',
-  'plant-systems': '#5dd39e',
-  'soil-fertility': '#8bd16a',
-  'cross-section-solar': '#e6c34a',
-  'phasing-budgeting': '#c4a265',
-  'principle-verification': '#e88aa4',
 };
 
 interface Props {
@@ -210,7 +198,10 @@ export default function PlanChecklistAside({
       className={css.checklistBox}
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
-      <PlanProjectTypeCard />
+      <PlanProjectTypeCard
+        onSelectModule={onSelectModule}
+        onOpenSlideUp={onOpenSlideUp}
+      />
       {PLAN_MODULES.map((mod) => (
         <PlanGuidanceCard
           key={mod}
