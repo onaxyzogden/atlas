@@ -18,6 +18,7 @@ import {
   type GuidanceCardData,
 } from '../_shared/components/GuidanceCard.js';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
+import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import css from './PlanChecklistAside.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
@@ -187,6 +188,7 @@ export default function PlanChecklistAside({
       className={css.checklistBox}
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
+      <PlanProjectTypeCard />
       {PLAN_MODULES.map((mod) => (
         <PlanGuidanceCard
           key={mod}
