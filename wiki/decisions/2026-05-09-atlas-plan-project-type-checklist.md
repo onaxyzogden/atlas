@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-09
 **Branch:** feat/atlas-permaculture
-**Status:** Implemented
+**Status:** Implemented (+ wizard-seed follow-up landed same day)
 
 ## Decision
 
@@ -85,13 +85,50 @@ verbatim.
 
 ## Out of scope (follow-ups)
 
-- Wiring `project.projectType` from the wizard into the picker as a
-  default seed.
+- ~~Wiring `project.projectType` from the wizard into the picker as a
+  default seed.~~ — **Closed 2026-05-09** (see Follow-up below).
 - Cross-checking checklist progress against module progress (e.g.
   "you've ticked Conservation #2 'wildlife corridors' but Zone &
   Circulation has no Z5 polygon").
 - Per-item linking to the module that satisfies the prompt (so a
   click jumps to that module's slide-up).
+
+## Follow-up — wizard `projectType` wired as default seed (2026-05-09)
+
+The picker now seeds from `project.projectType` (read from
+`useProjectStore`) when the steward has not yet interacted with the
+Plan-stage picker for that project. After any explicit interaction the
+stored value wins, including an explicit clear back to "Select a
+project type…" (`selectedType: null`) — the wizard default does not
+re-seed.
+
+### Precedence rule
+
+`effectiveType = hasInteracted ? storedType : wizardSeed`, where
+`hasInteracted` is `byProject[projectId] !== undefined` in
+`planProjectTypeChecklistStore`. This makes presence-of-entry the
+single source of truth for "the steward has touched this in Plan",
+independent of whether the stored selection is a type or `null`.
+
+### First-toggle lock-in
+
+If the steward ticks a checkbox while the picker is showing the
+wizard seed (no entry yet), `handleToggle` writes
+`setSelectedType(projectId, effectiveType)` *before* the toggle. This
+promotes the wizard seed into an explicit selection in the same gesture,
+so a later wizard-side type change won't surprise the steward by
+silently swapping their checklist.
+
+Without this lock-in the toggle would create the entry with
+`selectedType: null` (from the store's `EMPTY_PROJECT` default) and
+only set `checks`, which would visually clear the picker — checks
+without a type are unreachable.
+
+### Files (this follow-up)
+
+- Edited `apps/web/src/v3/plan/PlanProjectTypeCard.tsx` (added
+  `wizardType` selector + `asPlanProjectTypeKey` guard +
+  `effectiveType` derivation + first-toggle lock-in in `handleToggle`).
 
 ## Files
 
