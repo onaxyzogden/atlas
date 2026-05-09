@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { CroppedArt, ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
@@ -231,7 +230,6 @@ interface TerrainToolCardProps {
 }
 
 function TerrainToolCard({ boundary, caption }: TerrainToolCardProps) {
-  const nav = useDetailNav();
   return (
     <SurfaceCard className="topography-tool-card">
       <header>
@@ -252,7 +250,7 @@ function TerrainToolCard({ boundary, caption }: TerrainToolCardProps) {
         />
       </div>
       <div className="tool-card-actions">
-        <button className="green-button" type="button" onClick={() => nav.push('terrain-detail')}>
+        <button className="green-button" type="button">
           Open terrain detail <ArrowRight aria-hidden="true" />
         </button>
         <small>Best for: Detailed analysis of slope, aspect, elevation and landforms.</small>
@@ -266,7 +264,6 @@ interface CrossSectionToolCardProps {
 }
 
 function CrossSectionToolCard({ transect }: CrossSectionToolCardProps) {
-  const nav = useDetailNav();
   return (
     <SurfaceCard className="topography-tool-card">
       <header>
@@ -288,7 +285,6 @@ function CrossSectionToolCard({ transect }: CrossSectionToolCardProps) {
         <button
           className="green-button"
           type="button"
-          onClick={() => nav.push('cross-section')}
         >
           Open cross-section tool <ArrowRight aria-hidden="true" />
         </button>

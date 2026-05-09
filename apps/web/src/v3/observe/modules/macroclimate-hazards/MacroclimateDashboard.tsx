@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useHazardsStore } from '../../../../store/hazardsStore.js';
@@ -143,7 +142,6 @@ interface SolarClimateCardProps {
 }
 
 function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
-  const nav = useDetailNav();
   const opportunities = solarOpportunities(layers);
 
   return (
@@ -158,7 +156,7 @@ function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
             opportunities for passive design and productivity.
           </p>
         </div>
-        <button className="green-button" type="button" onClick={() => nav.push('solar-climate')}>
+        <button className="green-button" type="button">
           Open page <ArrowRight aria-hidden="true" />
         </button>
       </header>
@@ -185,7 +183,6 @@ function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
       <button
         className="outlined-button section-link"
         type="button"
-        onClick={() => nav.push('solar-climate')}
       >
         See full climate analysis <ArrowRight aria-hidden="true" />
       </button>
@@ -200,7 +197,6 @@ interface HazardsCardProps {
 }
 
 function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
-  const nav = useDetailNav();
   const top = topRiskPriorities(hazards).slice(0, 3);
 
   return (
@@ -212,7 +208,7 @@ function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
           </h2>
           <p>Review natural hazards, risk levels, and mitigation strategies for your site.</p>
         </div>
-        <button className="green-button" type="button" onClick={() => nav.push('hazards-log')}>
+        <button className="green-button" type="button">
           Open page <ArrowRight aria-hidden="true" />
         </button>
       </header>
@@ -248,7 +244,6 @@ function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
       <button
         className="outlined-button section-link"
         type="button"
-        onClick={() => nav.push('hazards-log')}
       >
         See full hazards log <ArrowRight aria-hidden="true" />
       </button>

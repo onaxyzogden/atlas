@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
@@ -159,7 +158,6 @@ interface SectorCompassCardProps {
 }
 
 function SectorCompassCard({ sectors, centroid, arrowCount }: SectorCompassCardProps) {
-  const nav = useDetailNav();
   const helps = [
     'Understand incoming forces & opportunities',
     'Protect and enhance positive influences',
@@ -195,7 +193,6 @@ function SectorCompassCard({ sectors, centroid, arrowCount }: SectorCompassCardP
       <button
         className="green-button"
         type="button"
-        onClick={() => nav.push('sector-compass')}
       >
         Open Sector compass <ArrowRight aria-hidden="true" />
       </button>
@@ -211,7 +208,6 @@ interface CartographicCardProps {
 }
 
 function CartographicCard({ boundary, sc, zc }: CartographicCardProps) {
-  const nav = useDetailNav();
   const layers: Array<[string, string]> = [
     ['Microclimate areas', '—'],
     ['Functional zones', zc.total > 0 ? String(zc.total) : '—'],
@@ -250,7 +246,6 @@ function CartographicCard({ boundary, sc, zc }: CartographicCardProps) {
       <button
         className="green-button"
         type="button"
-        onClick={() => nav.push('cartographic')}
       >
         Open Cartographic detail <ArrowRight aria-hidden="true" />
       </button>

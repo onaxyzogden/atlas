@@ -18,7 +18,6 @@ import {
   ProgressRing,
   SurfaceCard,
 } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
@@ -197,7 +196,6 @@ function ModuleCardShell({
 }
 
 function StewardCard({ vision }: ProjectVisionProps) {
-  const nav = useDetailNav();
   const steward = vision?.steward;
   const completeness = stewardCompleteness(steward);
   const archetype = archetypeFor(steward);
@@ -218,7 +216,7 @@ function StewardCard({ vision }: ProjectVisionProps) {
       title="Steward Survey"
       icon={Users}
       action="Open Steward Survey"
-      onAction={() => nav.push('steward-survey')}
+      onAction={() => {}}
     >
       <p>Who is stewarding this land and what they bring.</p>
       <div className="steward-summary-grid">
@@ -253,14 +251,13 @@ function StewardCard({ vision }: ProjectVisionProps) {
       <ChipRow items={skills.length > 0 ? skills : ['No skills captured yet.']} />
       <FooterTabs
         items={['Profile insights', 'Capacity & resources', 'Local network']}
-        onSelect={() => nav.push('steward-survey')}
+        onSelect={() => {}}
       />
     </ModuleCardShell>
   );
 }
 
 function RegionalCard({ projectId, vision }: ProjectVisionProps) {
-  const nav = useDetailNav();
   const project = useV3Project(projectId);
   const counts = regionalCounts(vision?.regional);
   const strengths = (vision?.regional?.culturalStrengths ?? []).slice(0, 3);
@@ -272,7 +269,7 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
       icon={Sprout}
       action="Open Indigenous & Regional Context"
       tone="gold"
-      onAction={() => nav.push('indigenous-regional-context')}
+      onAction={() => {}}
     >
       <p>Honour the land&apos;s story, culture, and regional systems.</p>
       <div className="regional-summary-grid">
@@ -298,14 +295,13 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
       <ChipRow items={strengths.length > 0 ? strengths : ['No strengths captured yet.']} />
       <FooterTabs
         items={['Place-names', 'Cultural challenges', 'Cultural strengths', 'Local network']}
-        onSelect={() => nav.push('indigenous-regional-context')}
+        onSelect={() => {}}
       />
     </ModuleCardShell>
   );
 }
 
 function VisionSummaryCard({ vision }: ProjectVisionProps) {
-  const nav = useDetailNav();
   const steward = vision?.steward;
   const counts = visionCounts(steward);
   const themes = (steward?.coreFunctions ?? []).slice(0, 5);
@@ -316,7 +312,7 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
       title="Vision Detail"
       icon={Leaf}
       action="Open Vision Detail"
-      onAction={() => nav.push('vision')}
+      onAction={() => {}}
     >
       <p>Where we&apos;re going and what success looks like.</p>
       <div className="vision-summary-grid">
@@ -342,7 +338,7 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
       </div>
       <FooterTabs
         items={['Vision concept', 'Success metrics', 'Moodboard', 'Core functions']}
-        onSelect={() => nav.push('vision')}
+        onSelect={() => {}}
       />
     </ModuleCardShell>
   );

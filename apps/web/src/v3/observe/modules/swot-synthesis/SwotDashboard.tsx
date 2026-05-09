@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
 import { swotCounts } from './derivations.js';
@@ -137,7 +136,6 @@ interface SwotJournalCardProps {
 }
 
 function SwotJournalCard({ entries }: SwotJournalCardProps) {
-  const nav = useDetailNav();
   const recent = useMemo(
     () => [...entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
     [entries],
@@ -150,7 +148,7 @@ function SwotJournalCard({ entries }: SwotJournalCardProps) {
           <BookOpen aria-hidden="true" /> SWOT Journal{' '}
           <span>Captured insights and field notes</span>
         </h2>
-        <button type="button" onClick={() => nav.push('journal')}>
+        <button type="button">
           View all entries
         </button>
       </header>
@@ -172,7 +170,7 @@ function SwotJournalCard({ entries }: SwotJournalCardProps) {
           <span key={tag}>{tag}</span>
         ))}
       </div>
-      <button className="green-button" type="button" onClick={() => nav.push('journal')}>
+      <button className="green-button" type="button">
         Open SWOT journal <ArrowRight aria-hidden="true" />
       </button>
     </SurfaceCard>
@@ -180,7 +178,6 @@ function SwotJournalCard({ entries }: SwotJournalCardProps) {
 }
 
 function DiagnosisReportCard() {
-  const nav = useDetailNav();
   return (
     <SurfaceCard className="swot-panel-card diagnosis-card">
       <header>
@@ -188,7 +185,7 @@ function DiagnosisReportCard() {
           <ClipboardList aria-hidden="true" /> Diagnosis Report{' '}
           <span>Summary of site diagnosis and analysis</span>
         </h2>
-        <button type="button" onClick={() => nav.push('diagnosis-report')}>
+        <button type="button">
           View full report
         </button>
       </header>
@@ -225,7 +222,6 @@ function DiagnosisReportCard() {
       <button
         className="green-button"
         type="button"
-        onClick={() => nav.push('diagnosis-report')}
       >
         Open diagnosis report <ArrowRight aria-hidden="true" />
       </button>
