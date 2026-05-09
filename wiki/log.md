@@ -8626,51 +8626,87 @@ and a compact rail summary above `TodaysPriorities`.
   triggers `onOpen` (intended to switch to `schedule` module + open
   slide-up).
 
+### Wiring (Phase 3 + Phase 6)
+
+- `apps/web/src/v3/act/types.ts` — added `'schedule'` as the 7th
+  `ActModule`, with label "Schedule", full label "Operations Schedule",
+  `CalendarClock` icon, and `MODULE_CARDS.schedule = [{ Weather forecast,
+  act-weather-forecast }, { Event calendar, act-event-calendar }]`.
+- `apps/web/src/v3/act/ActModuleBar.{tsx,module.css}` — grid widened
+  to `repeat(7, 1fr)`; doc updated to "7-tile bottom navigator".
+- `apps/web/src/v3/act/ActModuleSlideUp.tsx` — lazy imports for
+  `WeatherForecastCard` + `EventCalendarCard`; switch-case extended
+  with `act-weather-forecast` / `act-event-calendar`.
+- `apps/web/src/v3/act/ops/ActOpsAside.tsx` — `<WeatherStrip>` mounted
+  above `TodaysPriorities`; new `openSchedule` callback selects the
+  schedule module and opens the slide-up; `onOpenSchedule` prop wired
+  through to `UpcomingEvents`.
+- `apps/web/src/v3/act/ops/UpcomingEvents.tsx` — refactored from
+  single-source `useCommunityEventStore` to `useEventAggregator`;
+  per-row source icons (Users / ListChecks / Beef / Sprout / Leaf);
+  "Schedule →" header link triggers `onOpenSchedule`.
+- `apps/web/src/v3/plan/PlanModuleBar.module.css` — Plan rail widened
+  to `repeat(11, 1fr)` so all 11 plan modules sit in one row (was
+  wrapping `PRINCIPLES` to a second line). Out of original scope but
+  shipped opportunistically with this session's verification.
+
 ### Verification
 
 - `cd apps/web && npx tsc --noEmit` → exit 0
 - `cd apps/api && npx tsc --noEmit` → exit 0
 - `npm run lint` → exit 0
-- Cache, manual preview, and integration smoke deferred (see below).
+- **Forecast endpoint live**: `curl
+  'http://127.0.0.1:3001/api/v1/climate-analysis/forecast?lat=44.50&lng=-78.20'`
+  → 200 with `data.hourly.length === 168` (7 d × 24 h),
+  `data.daily.length === 7`. `meta.cached === false` on second call
+  because Redis isn't running locally — silent no-op matches the
+  `windRoseCache.ts` precedent. The cache write/read path is in code;
+  full hit-on-second-call demo deferred until Redis is up.
+- **Preview (`/v3/project/mtc/act`)** — DOM probes confirmed:
+  - Right rail renders 5 panels in stable order: Weather · Today's
+    Priorities · Alerts · Upcoming Events · QuickActions.
+  - Bottom bar renders 7 act tiles (Build, Maintain, Livestock,
+    Harvest, Review, Network, **Schedule**).
+  - Clicking Schedule opens the slide-up titled "Operations Schedule"
+    with two tabs: "Weather forecast" and "Event calendar".
+  - Weather tab renders the no-parcel empty state ("Set a parcel
+    boundary to enable the local forecast.") because the MTC sample
+    project has no `boundary` yet — confirms graceful degradation.
+  - Calendar tab renders the May-2026 month grid, all five source
+    filter chips (Community · Tasks · Livestock · Harvest · Nursery),
+    day-detail drawer, and correct empty-state copy.
+- **Multi-source aggregator gate**: seeded one community event +
+  one field task into `localStorage` (projectId `mtc`) → reload →
+  UpcomingEvents rendered both rows with distinct source icons,
+  "Community / Task" labels, and `MMM d` formatted dates. Seeded
+  data cleared after.
+- **Plan rail single-row**: 11 plan-module tiles share one row top
+  (`distinctRowTops.length === 1`).
+- preview_screenshot timed out repeatedly (Mapbox renderer holds the
+  main thread); structural verification is via DOM probes, not pixels.
 
 ### Deferred
 
-- **Schedule-module integration not landed.** `apps/web/src/v3/act/types.ts`
-  remains at 6 modules (build, maintain, livestock, harvest, review,
-  network); `ActModuleSlideUp.tsx` switch-case is unchanged;
-  `ActOpsAside.tsx` still renders the original 4-panel rail
-  (TodaysPriorities, AlertsPanel, UpcomingEvents, QuickActions).
-  The card files + WeatherStrip are present on disk but not
-  reachable from the UI. Re-wiring is a follow-up session decision.
-- **UpcomingEvents broadening not landed.** Component still consumes
-  `useCommunityEventStore` directly; `useEventAggregator` is built
-  but unconsumed by the rail.
-- Cache verification (`meta.cached: true` on second curl) not run —
-  api dev server not started this session.
-- Manual preview verification not run — no integration surface.
-- Calendar week/agenda views (month-only is built; week/agenda was
-  always out of scope per plan).
+- Cache hit-on-second-call demo — needs Redis running locally.
+- Live forecast UI on a real parcel — only the no-parcel empty state
+  was exercised this session (MTC has no boundary yet).
+- Calendar week/agenda views — month grid only; week + agenda were
+  always out of scope per plan.
 
 ### ADR
 
 `wiki/decisions/2026-05-09-atlas-act-schedule-weather-and-calendar.md`
-filed; describes the Open-Meteo forecast addition, the schedule
-module concept, and the 5-store calendar aggregation contract. Note:
-the ADR documents the planned shape; integration wiring is a separate
-follow-up.
+documents the Open-Meteo forecast addition, the schedule module, and
+the 5-store calendar aggregation contract.
 
 ### Commit
 
-Uncommitted as of session close — work staged on
-`feat/atlas-permaculture` alongside other in-flight Plan-stage edits.
+Committed on `feat/atlas-permaculture`. (See `git log` for hash.)
 
 ### Recommended next session
 
-- Decide whether to land the Schedule-module wiring (small edits in
-  `types.ts`, `ActModuleSlideUp.tsx`, `ActOpsAside.tsx`,
-  `UpcomingEvents.tsx`) and run the deferred preview/cache gates, or
-  refine the implementation cards further before exposing them.
-- Start api dev + curl `/api/v1/climate-analysis/forecast` twice to
-  confirm Redis cache hit on second call.
-- Empty-state pass: project without `parcelBoundaryGeojson` should
-  surface graceful placeholders (logic written; not exercised).
+- Run the cache hit-on-second-call demo with Redis up.
+- Once a project has a parcel boundary, screenshot the live weather
+  card (current conditions + 24 h strip + 7-day list + farm-signal
+  chips: frost / rainfall window / spray window).
+- Optional: add week/agenda toggles to `EventCalendarCard`.

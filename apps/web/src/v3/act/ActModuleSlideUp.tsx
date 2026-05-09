@@ -32,6 +32,8 @@ const CommunityEventCard        = lazy(() => import('../../features/act/Communit
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
 const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
 const MaintenanceLogCard        = lazy(() => import('../../features/act/MaintenanceLogCard.js'));
+const WeatherForecastCard       = lazy(() => import('../../features/act/WeatherForecastCard.js'));
+const EventCalendarCard         = lazy(() => import('../../features/act/EventCalendarCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a future Subdivision/Livestock module). All seven
 // cards live at apps/web/src/features/livestock/ and take { projectId } except
@@ -69,6 +71,8 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-livestock-predator-risk':   return <PredatorRiskHotspotsCard projectId={project.id} />;
     case 'act-livestock-welfare-audit':   return <WelfareAccessAuditCard projectId={project.id} />;
     case 'act-livestock-corridors':       return <AnimalCorridorGrazingRouteCard projectId={project.id} />;
+    case 'act-weather-forecast':  return <WeatherForecastCard project={project} onSwitchToMap={noop} />;
+    case 'act-event-calendar':    return <EventCalendarCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

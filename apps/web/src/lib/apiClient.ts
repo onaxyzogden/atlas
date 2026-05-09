@@ -566,6 +566,32 @@ export const api = {
         throw err;
       }
     },
+
+    /**
+     * Server-side proxy for Open-Meteo 7-day forecast (current + hourly + daily).
+     * Maps the 502/FORECAST_UNAVAILABLE silent-fail to null so callers can
+     * fall back to an empty-state placeholder.
+     */
+    forecast: async (
+      lat: number,
+      lng: number,
+      signal?: AbortSignal,
+    ): Promise<WeatherForecastResponse | null> => {
+      try {
+        const env = await request<WeatherForecastResponse>(
+          'GET',
+          `/api/v1/climate-analysis/forecast?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`,
+          undefined,
+          signal,
+        );
+        return env.data;
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'FORECAST_UNAVAILABLE') {
+          return null;
+        }
+        throw err;
+      }
+    },
   },
 
   relationships: {
@@ -623,6 +649,52 @@ export interface WindRoseResponse {
   source: string;
   windowYears: { start: number; end: number };
   sampleCount: number;
+}
+
+export interface ForecastCurrent {
+  time: string;
+  temperatureC: number | null;
+  apparentC: number | null;
+  isDay: boolean;
+  precipitationMm: number | null;
+  weatherCode: number | null;
+  windSpeedMs: number | null;
+  windDirectionDeg: number | null;
+  humidity: number | null;
+}
+
+export interface ForecastHour {
+  time: string;
+  temperatureC: number | null;
+  apparentC: number | null;
+  precipitationMm: number | null;
+  precipitationProbability: number | null;
+  weatherCode: number | null;
+  windSpeedMs: number | null;
+  windDirectionDeg: number | null;
+  humidity: number | null;
+}
+
+export interface ForecastDay {
+  date: string;
+  tempMaxC: number | null;
+  tempMinC: number | null;
+  precipitationSumMm: number | null;
+  precipitationProbMax: number | null;
+  weatherCode: number | null;
+  windSpeedMaxMs: number | null;
+  sunrise: string | null;
+  sunset: string | null;
+}
+
+export interface WeatherForecastResponse {
+  current: ForecastCurrent | null;
+  hourly: ForecastHour[];
+  daily: ForecastDay[];
+  timezone: string;
+  source: string;
+  fetchedAt: string;
+  coordinates: { lat: number; lng: number };
 }
 
 export interface ComfortGridResponse {

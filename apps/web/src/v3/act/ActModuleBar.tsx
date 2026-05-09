@@ -1,5 +1,5 @@
 /**
- * ActModuleBar — 5-tile bottom navigator for the Act stage.
+ * ActModuleBar — 7-tile bottom navigator for the Act stage.
  *
  * Click semantics mirror PlanModuleBar / ObserveModuleBar:
  *   inactive tile    → select module

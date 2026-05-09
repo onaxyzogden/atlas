@@ -1,13 +1,13 @@
 /**
  * ActOpsAside — operations dashboard for the Act stage right rail.
  *
- * Replaces the previous GuidanceCard checklist surface with a 4-panel
- * dashboard inspired by the Operations Hub mockup: today's priorities,
- * alerts (or recent harvests when Harvest is active), upcoming events,
- * and quick-action CTAs.
+ * Five stacked panels (weather, today's priorities, alerts, upcoming
+ * events, quick actions). Weather and Upcoming Events deep-link into
+ * the schedule slide-up so the operator can drill from the rail summary
+ * into the full forecast or month grid without losing the map view.
  *
- * Module-aware: each panel filters its content to the active module
- * when one is selected; otherwise shows an aggregated all-domain view.
+ * Module-aware: panels that filter on the active module receive it via
+ * prop; the rail itself keeps a stable layout regardless of selection.
  */
 
 import { useState } from 'react';
@@ -20,6 +20,7 @@ import TodaysPriorities from './TodaysPriorities.js';
 import AlertsPanel from './AlertsPanel.js';
 import UpcomingEvents from './UpcomingEvents.js';
 import QuickActions from './QuickActions.js';
+import WeatherStrip from './WeatherStrip.js';
 import css from './ActOpsAside.module.css';
 
 interface Props {
@@ -32,7 +33,11 @@ interface Props {
 
 const FALLBACK_CENTER: [number, number] = [-78.20, 44.50];
 
-export default function ActOpsAside({ activeModule }: Props) {
+export default function ActOpsAside({
+  activeModule,
+  onSelectModule,
+  onOpenSlideUp,
+}: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
   const project = useV3Project(projectId ?? undefined);
@@ -40,14 +45,20 @@ export default function ActOpsAside({ activeModule }: Props) {
   const [taskOpen, setTaskOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
 
+  const openSchedule = () => {
+    onSelectModule('schedule');
+    onOpenSlideUp();
+  };
+
   return (
     <div
       className={css.aside}
       data-active-module={activeModule ?? 'all'}
     >
+      <WeatherStrip projectId={projectId} onOpen={openSchedule} />
       <TodaysPriorities projectId={projectId} activeModule={activeModule} />
       <AlertsPanel projectId={projectId} activeModule={activeModule} />
-      <UpcomingEvents projectId={projectId} />
+      <UpcomingEvents projectId={projectId} onOpenSchedule={openSchedule} />
       <QuickActions
         disabled={!projectId || !project}
         onCreateTask={() => setTaskOpen(true)}

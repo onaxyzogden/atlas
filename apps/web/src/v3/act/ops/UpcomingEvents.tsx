@@ -1,80 +1,106 @@
 /**
- * UpcomingEvents — surfaces communityEventStore entries within the next
- * 30 days. RSVP button is a placeholder (no mutation path); we surface
- * the list, not the network round-trip.
+ * UpcomingEvents — surfaces dated entries from all five Act-stage stores
+ * within the next 30 days (not just communityEventStore).
+ *
+ * Sources (priority order matches useEventAggregator): community, tasks,
+ * livestock moves, harvest log, nursery batches/transfers. Click the panel
+ * header → opens the schedule slide-up so the operator can see the full
+ * month grid.
+ *
+ * Phase milestones (BuildPhase) are excluded — their `timeframe` strings
+ * ("Year 0-1") aren't anchored to specific calendar dates.
  */
 
 import { useMemo } from 'react';
-import { Calendar } from 'lucide-react';
-import { useCommunityEventStore } from '../../../store/communityEventStore.js';
+import {
+  Beef,
+  Leaf,
+  ListChecks,
+  Sprout,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
+import {
+  useEventAggregator,
+  type CalendarSource,
+} from '../../../features/act/useEventAggregator.js';
 import css from './ActOpsAside.module.css';
 
 interface Props {
   projectId: string | null;
+  onOpenSchedule?: () => void;
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  work_day: 'Work day',
-  meetup: 'Meetup',
-  harvest_share: 'Harvest share',
-  tour: 'Tour',
+const SOURCE_ICON: Record<CalendarSource, LucideIcon> = {
+  community: Users,
+  task: ListChecks,
+  livestock: Beef,
+  harvest: Sprout,
+  nursery: Leaf,
 };
 
-export default function UpcomingEvents({ projectId }: Props) {
-  const events = useCommunityEventStore((s) => s.events);
+const SOURCE_LABEL: Record<CalendarSource, string> = {
+  community: 'Community',
+  task: 'Task',
+  livestock: 'Livestock',
+  harvest: 'Harvest',
+  nursery: 'Nursery',
+};
+
+export default function UpcomingEvents({ projectId, onOpenSchedule }: Props) {
+  const { all } = useEventAggregator(projectId ?? '');
 
   const upcoming = useMemo(() => {
     if (!projectId) return [];
     const now = Date.now();
     const cutoff = now + 30 * 24 * 60 * 60 * 1000;
-    return events
-      .filter((e) => e.projectId === projectId)
-      .map((e) => ({ ...e, ts: new Date(e.date).getTime() }))
+    return all
+      .map((e) => ({ ...e, ts: new Date(e.iso).getTime() }))
       .filter((e) => !Number.isNaN(e.ts) && e.ts >= now && e.ts <= cutoff)
-      .sort((a, b) => a.ts - b.ts)
       .slice(0, 4);
-  }, [events, projectId]);
-
-  const handleRsvp = () => {
-    if (typeof window !== 'undefined') {
-      window.alert('RSVP UI not yet wired — opens the Community Events module to manage attendees.');
-    }
-  };
+  }, [all, projectId]);
 
   return (
     <section className={css.panel}>
       <header className={css.panelHeader}>
         <h3 className={css.panelTitle}>Upcoming Events</h3>
+        {onOpenSchedule && (
+          <button
+            type="button"
+            className={css.panelLink}
+            onClick={onOpenSchedule}
+            aria-label="Open full schedule"
+          >
+            Schedule →
+          </button>
+        )}
       </header>
       {upcoming.length === 0 ? (
         <p className={css.empty}>No events in the next 30 days.</p>
       ) : (
         <ul className={css.eventList}>
-          {upcoming.map((e) => (
-            <li key={e.id} className={css.eventItem}>
-              <span className={css.eventIcon}>
-                <Calendar size={14} strokeWidth={1.7} />
-              </span>
-              <div className={css.eventBody}>
-                <span className={css.eventTitle}>{e.title}</span>
-                <span className={css.eventMeta}>
-                  {new Date(e.date).toLocaleDateString([], {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                  {' · '}
-                  {TYPE_LABEL[e.type] ?? e.type}
+          {upcoming.map((e) => {
+            const Icon = SOURCE_ICON[e.source];
+            return (
+              <li key={e.id} className={css.eventItem}>
+                <span className={css.eventIcon}>
+                  <Icon size={14} strokeWidth={1.7} />
                 </span>
-              </div>
-              <button
-                type="button"
-                className={css.rsvpBtn}
-                onClick={handleRsvp}
-              >
-                RSVP
-              </button>
-            </li>
-          ))}
+                <div className={css.eventBody}>
+                  <span className={css.eventTitle}>{e.title}</span>
+                  <span className={css.eventMeta}>
+                    {new Date(e.iso).toLocaleDateString([], {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                    {' · '}
+                    {SOURCE_LABEL[e.source]}
+                    {e.meta ? ` · ${e.meta}` : ''}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
