@@ -107,6 +107,13 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
           },
         ],
       },
+      {
+        text: 'Right-size primary tractor and implements against parcel acreage and slope; widen access before locking field shapes.',
+        relatedWork: [
+          { module: 'machinery', indexes: [0, 2] },
+          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+        ],
+      },
     ],
   },
   retreat_center: {
@@ -139,6 +146,7 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         text: 'Designate quiet zones (prayer / meditation / silence) at Z3-Z4 distance from kitchens, parking, and machinery.',
         relatedWork: [
           { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
+          { module: 'machinery', indexes: [1] },
         ],
       },
       {
@@ -361,6 +369,7 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         relatedWork: [
           { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
           { module: 'plant-systems', indexes: [], requiresArtifacts: true },
+          { module: 'machinery', indexes: [0, 1] },
         ],
       },
       {

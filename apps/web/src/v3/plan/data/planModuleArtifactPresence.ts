@@ -106,6 +106,8 @@ export function usePlanModuleArtifactPresence(
       return hasZones || hasPaths;
     case 'structures-subsystems':
       return hasStructures;
+    case 'machinery':
+      return hasStructures;
     case 'livestock':
       return hasPaddocks;
     case 'plant-systems':

@@ -53,6 +53,13 @@ const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/
 // This card surfaces wind from the climate layer + downslope from the
 // elevation layer, with editable fire/view/noise compass pickers.
 const SectorOverlayCard           = lazy(() => import('./cards/zone-circulation/SectorOverlayCard.js'));
+// Machinery (Module 5 — added 2026-05-09 between Structures and Livestock per
+// Yeomans rank 6: equipment housing/access infrastructure precedes animal
+// cells). Three cards live at apps/web/src/v3/plan/cards/machinery/ and take
+// { projectId } — same shape as livestock cards.
+const MachineryInventoryCard      = lazy(() => import('./cards/machinery/MachineryInventoryCard.js'));
+const MachineryAccessFitCard      = lazy(() => import('./cards/machinery/MachineryAccessFitCard.js'));
+const MachineryHousingFuelCard    = lazy(() => import('./cards/machinery/MachineryHousingFuelCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a "future Subdivision/Livestock module per Yeomans
 // Scale of Permanence"). All seven cards live at apps/web/src/features/livestock/
@@ -136,6 +143,9 @@ function renderCard(
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
+    case 'plan-machinery-inventory':        return <MachineryInventoryCard projectId={project.id} />;
+    case 'plan-machinery-access-fit':       return <MachineryAccessFitCard projectId={project.id} />;
+    case 'plan-machinery-housing-fuel':     return <MachineryHousingFuelCard projectId={project.id} />;
     case 'plan-livestock-land-fit':         return <LivestockLandFitCard projectId={project.id} />;
     case 'plan-livestock-species-mix':      return <MultiSpeciesPlannerCard projectId={project.id} />;
     case 'plan-livestock-paddock-cells':    return <PaddockCellDesignCard projectId={project.id} />;

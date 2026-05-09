@@ -15,6 +15,7 @@ export const PLAN_MODULE_DOT: Record<PlanModule, string> = {
   'water-management': '#5fc7d4',
   'zone-circulation': '#d68bd0',
   'structures-subsystems': '#a06b48',
+  machinery: '#6a6a6a',
   livestock: '#c9a05a',
   'plant-systems': '#5dd39e',
   'soil-fertility': '#8bd16a',

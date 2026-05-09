@@ -58,6 +58,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Group utility subsystems (well, water tank, solar array, pump house, compost station) near the structures they feed.',
     ],
   },
+  machinery: {
+    why: 'Machinery and access tracks (Yeomans rank 4 — Access) precede structures and livestock because tractor turning radii, harvester widths, and trailer reach dictate where roads, gates, and cells can sit (Yeomans, Water for Every Farm; Mollison, Designers\' Manual ch.5).',
+    how: [
+      'Inventory the machinery the project will actually run — sizes and turning radii.',
+      'Lay out access tracks and gates wide enough for the largest expected vehicle.',
+      'Verify each paddock, structure, and field has a reachable access path before locking phases.',
+    ],
+  },
   livestock: {
     why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later.',
     how: [
