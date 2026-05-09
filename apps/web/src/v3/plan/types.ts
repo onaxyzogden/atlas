@@ -132,6 +132,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
+    { label: 'Enterprises',       sectionId: 'plan-enterprises' },
   ],
   'water-management': [
     { label: 'Catchments',     sectionId: 'plan-water-catchments' },

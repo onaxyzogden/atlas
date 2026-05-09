@@ -70,19 +70,41 @@ export interface WaterNode {
   kind: WaterNodeKind;
   createdAt: string;
 
+  /**
+   * Absolute geographic anchor [lng, lat] used by PlanDataLayers + on-map
+   * drag. Set on placement: catchment = polygon centroid, storage/sink =
+   * drop point, swale = midpoint of the line. Older v1 nodes without
+   * `center` won't render on the Plan map until re-placed (no migration —
+   * field is optional).
+   */
+  center?: [number, number];
+
   /** Catchment fields. */
   surface?: CatchmentSurface;
   areaM2?: number;
   runoffCoeff?: number;
+  /** Catchment polygon footprint, used for map rendering + drag-translate. */
+  geometry?: GeoJSON.Polygon;
 
   /** Storage fields. */
   storageKind?: StorageNodeKind;
   capacityL?: number;
+  /**
+   * Storage sizing helper inputs (Tier C / C3). Optional — when both are
+   * present the implicit target is `householdLpd × daysOffGrid` litres,
+   * which the steward eyeballs against `capacityL`. Persisted so a
+   * follow-up helper card can compute and warn on under-sizing without a
+   * second migration. Only meaningful for `kind === 'storage'`.
+   */
+  householdLpd?: number;
+  daysOffGrid?: number;
 
   /** Swale fields — capacity derived from L × W × D × 1000 if all present. */
   swaleLengthM?: number;
   swaleWidthM?: number;
   swaleDepthM?: number;
+  /** Swale line geometry, used for map rendering + drag-translate. */
+  swaleGeometry?: GeoJSON.LineString;
 
   /**
    * Mandatory for any non-sink node. Either another node id within the
@@ -90,6 +112,20 @@ export interface WaterNode {
    * if the steward hasn't decided yet (treated as a validation warning).
    */
   overflowToNodeId?: string | 'offsite' | null;
+
+  /**
+   * PLAN-stage Module 9 — phaseStore phase id this water node belongs to.
+   * Optional; undefined = unassigned. Lets the Phasing dashboard roll up
+   * water infrastructure by build phase and credits the project-type
+   * cross-check chip on Multi-Enterprise sequencing items.
+   */
+  phase?: string;
+
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * water node belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
 
   notes?: string;
 }

@@ -70,15 +70,25 @@ export type MapToolId =
   // Plan Module 3 — Zone & Circulation
   | 'plan.zone-circulation.zone'
   | 'plan.zone-circulation.path'
+  // Plan Module 3 — Zone & Circulation (buffer rings, Tier B / B2)
+  | 'plan.zone-circulation.buffer-ring'
   // Plan Module 5 — Plant Systems & Polyculture
   | 'plan.plant-systems.crop-area'
   | 'plan.plant-systems.guild'
   // Plan Module 6 — Soil Fertility & Closed-Loop
   | 'plan.soil-fertility.fertility-unit'
+  // Plan Module 6 — Soil Fertility (flow connectors, Tier B / B3)
+  | 'plan.soil-fertility.flow-connector'
   // Plan Module 4 — Livestock & Subdivision
   | 'plan.livestock.paddock'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
+  // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)
+  | 'plan.structures-subsystems.utility-run'
+  // Plan Module — Principle Verification (annotation marker, Tier B / B5)
+  | 'plan.principle-verification.note'
+  // Plan Module — Principle Verification (monitoring transect, Tier B / B4)
+  | 'plan.principle-verification.transect'
   // Act Module — Harvest log (point-on-existing-crop-area, no new geometry)
   | 'act.harvest.log-entry'
   // Act Module — Maintenance event log (click an irrigation feature)

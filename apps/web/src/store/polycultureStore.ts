@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Guilds ──────────────────────────────────────────────────────────────────
 
@@ -37,12 +38,31 @@ export interface Guild {
   members: GuildMember[];
   notes?: string;
   /**
-   * Normalised site coordinates [u, v] in 0..1 space (anchor placement on the
-   * map). First-class field as of 2026-05-07; older guilds may instead encode
-   * this in `notes` as `centroidUv:U,V` — readers should fall back to the
-   * notes regex until those rows are migrated.
+   * Normalised site coordinates [u, v] in 0..1 space — used by the
+   * GuildSpatialBuilderCard 2D ring canvas (parcel-relative, independent of
+   * map bounds). Older guilds may instead encode this in `notes` as
+   * `centroidUv:U,V` — readers should fall back to the notes regex until
+   * those rows are migrated.
    */
   centroidUv?: [number, number];
+  /**
+   * Absolute geographic anchor [lng, lat] used by PlanDataLayers and on-map
+   * drag. Set on placement via GuildTool. Older v1 guilds without `center`
+   * won't render on the Plan map until re-placed (migration leaves it
+   * undefined; see persist `version: 2`).
+   */
+  center?: [number, number];
+  /**
+   * PLAN-stage Module 9 — phaseStore phase id this guild belongs to.
+   * Optional; undefined = unassigned. Lets the Phasing dashboard sequence
+   * guild establishment by build phase.
+   */
+  phase?: string;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * guild belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
   createdAt: string;
 }
 
@@ -72,19 +92,32 @@ interface PolycultureState {
 
 export const usePolycultureStore = create<PolycultureState>()(
   persist(
-    (set) => ({
-      guilds: [],
-      species: [],
+    temporal(
+      (set) => ({
+        guilds: [],
+        species: [],
 
-      addGuild: (g) => set((s) => ({ guilds: [...s.guilds, g] })),
-      updateGuild: (id, patch) =>
-        set((s) => ({ guilds: s.guilds.map((g) => (g.id === id ? { ...g, ...patch } : g)) })),
-      removeGuild: (id) => set((s) => ({ guilds: s.guilds.filter((g) => g.id !== id) })),
+        addGuild: (g) => set((s) => ({ guilds: [...s.guilds, g] })),
+        updateGuild: (id, patch) =>
+          set((s) => ({ guilds: s.guilds.map((g) => (g.id === id ? { ...g, ...patch } : g)) })),
+        removeGuild: (id) => set((s) => ({ guilds: s.guilds.filter((g) => g.id !== id) })),
 
-      addSpeciesPick: (sp) => set((s) => ({ species: [...s.species, sp] })),
-      removeSpeciesPick: (id) => set((s) => ({ species: s.species.filter((sp) => sp.id !== id) })),
-    }),
-    { name: 'ogden-polyculture', version: 1 },
+        addSpeciesPick: (sp) => set((s) => ({ species: [...s.species, sp] })),
+        removeSpeciesPick: (id) => set((s) => ({ species: s.species.filter((sp) => sp.id !== id) })),
+      }),
+      { limit: 200 },
+    ),
+    {
+      name: 'ogden-polyculture',
+      version: 2,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          const s = (persisted as Partial<PolycultureState>) ?? {};
+          return { guilds: s.guilds ?? [], species: s.species ?? [] };
+        }
+        return persisted as PolycultureState;
+      },
+    },
   ),
 );
 

@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 import { zone } from '../lib/tokens';
 
 export type ZoneCategory =
@@ -157,6 +158,20 @@ export interface LandZone {
    * Spec: PLAN spec §4 zone-and-circulation.
    */
   permacultureZone?: 0 | 1 | 2 | 3 | 4 | 5;
+  /**
+   * PLAN-stage Module 9 — phaseStore phase id this zone belongs to.
+   * Optional; undefined = unassigned (rendered in "All phases" view only).
+   * Drives the project-type cross-check chip on Multi-Enterprise items
+   * and the Phasing dashboard's per-feature phase rollup.
+   */
+  phase?: string;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * zone belongs to. Optional; undefined = unassigned. Drives the
+   * enterprise-grouped lens recolor and the Multi-Enterprise project-type
+   * cross-check chip on items #1, #2, #6.
+   */
+  enterprise?: string;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */
@@ -180,22 +195,25 @@ interface ZoneState {
 
 export const useZoneStore = create<ZoneState>()(
   persist(
-    (set, get) => ({
-      zones: [],
+    temporal(
+      (set, get) => ({
+        zones: [],
 
-      addZone: (zone) => set((s) => ({ zones: [...s.zones, zone] })),
+        addZone: (zone) => set((s) => ({ zones: [...s.zones, zone] })),
 
-      updateZone: (id, updates) =>
-        set((s) => ({
-          zones: s.zones.map((z) =>
-            z.id === id ? { ...z, ...updates, updatedAt: new Date().toISOString() } : z,
-          ),
-        })),
+        updateZone: (id, updates) =>
+          set((s) => ({
+            zones: s.zones.map((z) =>
+              z.id === id ? { ...z, ...updates, updatedAt: new Date().toISOString() } : z,
+            ),
+          })),
 
-      deleteZone: (id) => set((s) => ({ zones: s.zones.filter((z) => z.id !== id) })),
+        deleteZone: (id) => set((s) => ({ zones: s.zones.filter((z) => z.id !== id) })),
 
-      getProjectZones: (projectId) => get().zones.filter((z) => z.projectId === projectId),
-    }),
+        getProjectZones: (projectId) => get().zones.filter((z) => z.projectId === projectId),
+      }),
+      { limit: 200 },
+    ),
     {
       name: 'ogden-zones',
       version: 2,

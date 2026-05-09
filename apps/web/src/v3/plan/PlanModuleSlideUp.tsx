@@ -24,6 +24,11 @@ const PermanenceScalesCard    = lazy(() => import('../../features/plan/Permanenc
 // the spatial/relational layer they said was missing — proportional bars +
 // ordering-violation warnings keyed off Yeomans/Keyline prerequisites.
 const PermanenceLadderCard    = lazy(() => import('./cards/dynamic-layering/PermanenceLadderCard.js'));
+// Dynamic Layering (Module 1) — enterprises tab added per project-type
+// toolbar gap audit (Multi-Enterprise checklist items #1, #2, #6). Lets the
+// steward declare enterprises and ties them to the layering lens's
+// enterprise mode.
+const EnterprisesCard         = lazy(() => import('./cards/dynamic-layering/EnterprisesCard.js'));
 // Water Management (Module 2) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's RunoffCalculatorCard / SwaleDrainTool / StorageInfraTool
 // remain at apps/web/src/features/plan/ as legacy and are still wired into
@@ -123,6 +128,7 @@ function renderCard(
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} onSwitchModule={onSwitchModule} />;
+    case 'plan-enterprises':         return <EnterprisesCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;

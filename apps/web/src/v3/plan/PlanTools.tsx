@@ -13,6 +13,10 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
+  Activity,
+  ArrowRight,
+  Cable,
+  CircleDashed,
   Container,
   Disc,
   Droplet,
@@ -20,6 +24,7 @@ import {
   FolderOpen,
   Home,
   Layers,
+  MapPin,
   Recycle,
   Route,
   Sprout,
@@ -56,11 +61,13 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'sink',      label: 'Sink',      Icon: Disc,      toolId: 'plan.water-management.sink' },
   ],
   'zone-circulation': [
-    { id: 'zone', label: 'Zone', Icon: Square, toolId: 'plan.zone-circulation.zone' },
-    { id: 'path', label: 'Path', Icon: Route,  toolId: 'plan.zone-circulation.path' },
+    { id: 'zone',        label: 'Zone',        Icon: Square,        toolId: 'plan.zone-circulation.zone' },
+    { id: 'path',        label: 'Path',        Icon: Route,         toolId: 'plan.zone-circulation.path' },
+    { id: 'buffer-ring', label: 'Buffer ring', Icon: CircleDashed,  toolId: 'plan.zone-circulation.buffer-ring' },
   ],
   'structures-subsystems': [
-    { id: 'structure', label: 'Structure', Icon: Home, toolId: 'plan.structures-subsystems.structure' },
+    { id: 'structure',   label: 'Structure',   Icon: Home,  toolId: 'plan.structures-subsystems.structure' },
+    { id: 'utility-run', label: 'Utility run', Icon: Cable, toolId: 'plan.structures-subsystems.utility-run' },
   ],
   livestock: [
     { id: 'paddock', label: 'Paddock', Icon: Fence, toolId: 'plan.livestock.paddock' },
@@ -70,7 +77,12 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'guild',     label: 'Guild',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
   ],
   'soil-fertility': [
-    { id: 'fertility-unit', label: 'Fertility unit', Icon: Recycle, toolId: 'plan.soil-fertility.fertility-unit' },
+    { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },
+    { id: 'flow-connector',  label: 'Flow connector',  Icon: ArrowRight, toolId: 'plan.soil-fertility.flow-connector' },
+  ],
+  'principle-verification': [
+    { id: 'note',     label: 'Note',     Icon: MapPin,   toolId: 'plan.principle-verification.note' },
+    { id: 'transect', label: 'Transect', Icon: Activity, toolId: 'plan.principle-verification.transect' },
   ],
 };
 
@@ -91,7 +103,9 @@ export default function PlanTools({
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
-  const toggleLens = useLayeringLensStore((s) => s.toggle);
+  const lensMode = useLayeringLensStore((s) => s.mode);
+  const setLensEnabled = useLayeringLensStore((s) => s.set);
+  const setLensMode = useLayeringLensStore((s) => s.setMode);
 
   const toolboxRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -201,26 +215,43 @@ export default function PlanTools({
                 })}
               </div>
             ) : mod === 'dynamic-layering' ? (
-              <button
-                type="button"
-                className={css.openModuleBtn}
-                disabled={!projectId}
-                aria-pressed={lensEnabled}
-                data-active={lensEnabled ? 'true' : 'false'}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!projectId) return;
-                  toggleLens();
-                }}
-                title={
-                  lensEnabled
-                    ? 'Disable Yeomans lens — restore per-feature colours'
-                    : 'Enable Yeomans lens — recolour features by Yeomans rank'
-                }
-              >
-                <Layers size={14} strokeWidth={1.6} />
-                <span>{lensEnabled ? 'Yeomans lens · ON' : 'Yeomans lens'}</span>
-              </button>
+              <div className={css.lensRow}>
+                {(['yeomans', 'enterprise'] as const).map((m) => {
+                  const isOn = lensEnabled && lensMode === m;
+                  const label = m === 'yeomans' ? 'Yeomans' : 'Enterprise';
+                  const longLabel = m === 'yeomans'
+                    ? (isOn
+                      ? 'Yeomans lens · ON — click to disable'
+                      : 'Recolour features by Yeomans rank')
+                    : (isOn
+                      ? 'Enterprise lens · ON — click to disable'
+                      : 'Recolour features by enterprise tag');
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      className={css.openModuleBtn}
+                      disabled={!projectId}
+                      aria-pressed={isOn}
+                      data-active={isOn ? 'true' : 'false'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!projectId) return;
+                        if (isOn) {
+                          setLensEnabled(false);
+                        } else {
+                          setLensMode(m);
+                          setLensEnabled(true);
+                        }
+                      }}
+                      title={longLabel}
+                    >
+                      <Layers size={14} strokeWidth={1.6} />
+                      <span>{isOn ? `${label} · ON` : label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             ) : (
               <button
                 type="button"

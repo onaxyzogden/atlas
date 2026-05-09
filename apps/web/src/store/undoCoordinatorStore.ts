@@ -33,6 +33,13 @@ import { useWaterSystemsStore } from './waterSystemsStore.js';
 import { useEcologyStore } from './ecologyStore.js';
 import { useSwotStore } from './swotStore.js';
 import { useSoilSampleStore } from './soilSampleStore.js';
+import { useZoneStore } from './zoneStore.js';
+import { usePathStore } from './pathStore.js';
+import { useCropStore } from './cropStore.js';
+import { useLivestockStore } from './livestockStore.js';
+import { useClosedLoopStore } from './closedLoopStore.js';
+import { useStructureStore } from './structureStore.js';
+import { usePolycultureStore } from './polycultureStore.js';
 
 export type UndoableStoreName =
   | 'humanContext'
@@ -41,7 +48,14 @@ export type UndoableStoreName =
   | 'waterSystems'
   | 'ecology'
   | 'swot'
-  | 'soilSample';
+  | 'soilSample'
+  | 'zone'
+  | 'path'
+  | 'crop'
+  | 'livestock'
+  | 'closedLoop'
+  | 'structure'
+  | 'polyculture';
 
 interface UndoCoordinatorState {
   history: UndoableStoreName[];
@@ -88,6 +102,13 @@ const STORES: Record<UndoableStoreName, StoreWithMiddleware> = {
   ecology: useEcologyStore as unknown as StoreWithMiddleware,
   swot: useSwotStore as unknown as StoreWithMiddleware,
   soilSample: useSoilSampleStore as unknown as StoreWithMiddleware,
+  zone: useZoneStore as unknown as StoreWithMiddleware,
+  path: usePathStore as unknown as StoreWithMiddleware,
+  crop: useCropStore as unknown as StoreWithMiddleware,
+  livestock: useLivestockStore as unknown as StoreWithMiddleware,
+  closedLoop: useClosedLoopStore as unknown as StoreWithMiddleware,
+  structure: useStructureStore as unknown as StoreWithMiddleware,
+  polyculture: usePolycultureStore as unknown as StoreWithMiddleware,
 };
 
 export const useUndoCoordinatorStore = create<UndoCoordinatorState>((set, get) => ({

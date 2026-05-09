@@ -1,17 +1,24 @@
 /**
  * layeringLensStore — Plan Module 1 (Dynamic Layering) overlay lens.
  *
- * Toggles a Yeomans-rank colour cast over the `plan-data-*` MapLibre
- * sources. When `enabled` is true, every persisted Plan feature is
- * recoloured by the Yeomans rank it belongs to (rank 3 Water, rank 4
- * Access — paths + zones, rank 7 Soil — fertility infra, rank 8
- * Vegetation — crops, rank 9 Animals — paddocks). When false, features
- * keep their per-type fill colours (Water hue / per-zone / per-crop-type
- * etc.) drawn from each tool's palette.
+ * Toggles a colour cast over the `plan-data-*` MapLibre sources.
  *
- * The lens is the map-first interpretation of the Permanence Ladder:
- * the steward can see at-a-glance whether ranks were authored in the
- * canonical Yeomans order.
+ * Two modes:
+ *   - `yeomans` (default) — every persisted Plan feature is recoloured by
+ *     the Yeomans rank it belongs to (rank 3 Water, rank 4 Access —
+ *     paths + zones, rank 7 Soil — fertility infra, rank 8 Vegetation —
+ *     crops, rank 9 Animals — paddocks). The map-first interpretation of
+ *     the Permanence Ladder: the steward can see at-a-glance whether
+ *     ranks were authored in the canonical Yeomans order.
+ *   - `enterprise` — features are recoloured by the enterprise tag they
+ *     carry (one colour per enterprise from `enterpriseStore`). Untagged
+ *     features fall back to a neutral grey. Surfaces the multi-enterprise
+ *     project type's #1 prompt: "which enterprise does each feature
+ *     belong to?" — the answer becomes visually obvious.
+ *
+ * When `enabled` is false, features keep their per-type fill colours
+ * (Water hue / per-zone / per-crop-type etc.) drawn from each tool's
+ * palette.
  *
  * Single-instance, persisted so the lens state survives reload.
  */
@@ -19,18 +26,24 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export type LayeringLensMode = 'yeomans' | 'enterprise';
+
 interface LayeringLensState {
   enabled: boolean;
+  mode: LayeringLensMode;
   toggle: () => void;
   set: (next: boolean) => void;
+  setMode: (mode: LayeringLensMode) => void;
 }
 
 export const useLayeringLensStore = create<LayeringLensState>()(
   persist(
     (set) => ({
       enabled: false,
+      mode: 'yeomans',
       toggle: () => set((s) => ({ enabled: !s.enabled })),
       set: (next) => set({ enabled: next }),
+      setMode: (mode) => set({ mode }),
     }),
     { name: 'atlas.v3.plan.layeringLens' },
   ),

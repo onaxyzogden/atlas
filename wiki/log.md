@@ -4,6 +4,106 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-09 — Plan toolbar: project-type coverage closeout (Tiers A · B · C)
+
+Closed the 13 gaps from the [project-type checklist audit plan](../../.claude/plans/each-project-type-has-frolicking-sunrise.md). Toolbar now offers a one-click artifact path for every prompt that admits a spatial answer. Decision recorded in [decisions/2026-05-09-atlas-plan-toolbar-project-type-coverage.md](decisions/2026-05-09-atlas-plan-toolbar-project-type-coverage.md).
+
+### What shipped
+
+- **Tier A — popover fields**: phase setter (every placeable), enterprise tag (new `enterpriseStore` + recolour mode in `layeringLensStore`), path accessibility flag + rest-point anchors.
+- **Tier B — five new draw tools**: `EcologicalNoteTool` (annotation marker), `UtilityRunTool` (water/septic/power/data), `BufferRingTool` (setback ring), `FlowConnectorTool` (snaps to fertility units), `MonitoringTransectTool`. New stores backing each. `planModuleArtifactPresence` header loosened from "non-spatial-by-design" to "non-spatial-by-default" for `principle-verification`, `dynamic-layering`, `phasing-budgeting`.
+- **Tier C — overlays + capture fields**: `PlanSunPathOverlay` (suncalc + turf — solstice/equinox arcs, anchor priority Z0 → boundary → fallback), `PlanContoursOverlay` (mirror of Design's MapTiler tile layer), `PlanZoneRingsOverlay` (Z1/Z2/Z3 dashed rings around Z0 centroids), `householdLpd` + `daysOffGrid` capture on `WaterNode` for storage sizing, `pastureQuality` enum on `Paddock` for AUE/ha lookup.
+
+### Plumbing
+
+- `useMatrixTogglesStore` v9 → v10 with migration falling back to `false` for new keys (`sunPath`, `zoneRings`).
+- `MapOverlaysLegend` lists the two new overlays with swatches.
+- `ObserveAnnotationLayers` narrowed `MatrixToggleKey` exclusions in three places to compile-time-prove the new keys can't be miswired into Observe annotations.
+
+### Verification
+
+- TypeScript: full `tsc --noEmit` clean across all three rounds.
+- Manual project-type sweep: switched through all six types after each round; cross-check chips on previously-uncovered prompts now flip green when the matching artifact is placed.
+
+### Risks accepted
+
+- C3/C4 are capture-only; reactive computation deferred to a follow-up helper card (no second store migration needed).
+- Sun-path 200 m projection is a viewing radius, not a ground distance — micro-precise shadow casts belong in the cross-section editor.
+- `zoneRings` thresholds hard-coded at 30/100/500 m; per-project overrides deferred until a steward asks.
+
+---
+
+## 2026-05-09 — Act Operations Hub project-type-aware ranking
+
+Made the Act stage's right-rail Operations Hub re-rank `TodaysPriorities` and `AlertsPanel` items by per-project-type module affinity. No new cards, no new tools, no new stores — the signal is consumed at the sort step right before each panel slices to its display cap. Decision recorded in [decisions/2026-05-09-atlas-act-operations-hub-project-type-aware-ranking.md](decisions/2026-05-09-atlas-act-operations-hub-project-type-aware-ranking.md).
+
+### Files
+
+- Created `apps/web/src/v3/act/data/projectTypeModuleAffinity.ts` — single hard-coded `Record<PlanProjectTypeKey, readonly ActModule[]>` table + `getModuleAffinityRank(type, module)` helper.
+- Edited `apps/web/src/v3/act/ops/TodaysPriorities.tsx` — added `module: ActModule | null` and `_appendOrder` to each row; tagged rows by source (`fieldTasks.category` mapped via `fieldTaskModule()`, maintenance→'maintain', harvest+succession→'harvest', events→'network'); affinity sort fires only when `effectiveType` is set; slice to 8.
+- Edited `apps/web/src/v3/act/ops/AlertsPanel.tsx` — same row tagging (hazards→'review', paddocks→'livestock'); sort by `(severity, affinityRank, _appendOrder)` with affinity tier active only under `effectiveType`; slice to 5.
+- Consumed the upstream-same-day `useEffectivePlanProjectType` hook for the project-type lens — no additional source of truth introduced.
+
+### Verification
+
+- TypeScript: `tsc --noEmit` clean.
+- Dev preview at port 5200, with seeded test items spanning all six modules:
+  - **MTC fallback** (`projectType: null`) — original frost alert renders alone in `Alerts`, priorities empty. Source-append order, affinity sort short-circuits. Regression check ✓.
+  - **Real project, homestead** — priorities reorder to `maintain, maintain, harvest, network, network, review`. Alerts: high-severity fencing first; within medium, livestock water-point ranks above review hazard.
+  - **Real project, conservation** — priorities reorder to `review, maintain, maintain, network, network, harvest`. Alerts: within medium, hazard (review=0) promoted above water-point (livestock=5).
+  - **Real project, picker cleared** (`hasInteracted: true, selectedType: null`) — affinity sort short-circuits, source-append order fully restored.
+  - **Plan-side regression** — `PlanProjectTypeCard` renders all six options + homestead checklist via the shared hook with no observable behavior change.
+
+### Risks accepted
+
+- v1 affinity rankings are best-guess; tunable in one constant. Doc'd at the top of `projectTypeModuleAffinity.ts`.
+- Source→module tagging covers the live `fieldTask.category` values; unmapped categories return `null` and sink to bottom — fine for now, separate clean-up not in scope.
+
+---
+
+## 2026-05-09 — CSRA / investor-language erasure (Phase 1 of pre-test friction-audit)
+
+Closed Phase 1 of the [pre-test friction audit](../../../.claude/plans/before-we-proceed-with-mutable-beaver.md). Renamed every operator-visible "investor" / "CSRA" / "advance-purchase" / "member-share" surface in `apps/web`, `apps/api`, `packages/shared`, and project docs to **"capital partner"** under the permitted-channel framing established 2026-05-04 in the global covenant ([`~/.claude/CLAUDE.md`]). No deletion — every existing surface was renamed and reframed in place. Decision recorded in [decisions/2026-05-09-atlas-csra-erasure.md](decisions/2026-05-09-atlas-csra-erasure.md).
+
+### Why now
+
+The CSRA model was struck on **2026-05-04** on Islamic fiqh grounds — *bayʿ mā laysa ʿindak* (Islam does not permit the sale of what one does not yet possess). The pre-test audit found ~56 file occurrences still carrying the legacy framing across UI copy, type enums, manifest entries, schema docs, comments, and PDF templates. These were live and reachable from the dashboard, the presentation deck, the public portal, and the export sidebar — i.e. they would have shipped to the operator's first capital-partner walkthrough under the wrong framing.
+
+### Surface-level changes
+
+- **Export pipeline** — `InvestorSummaryExport.tsx` → `CapitalPartnerSummaryExport.tsx`; sidebar + router imports updated; new SQL migration `023_rename_investor_summary_to_capital_partner_summary.sql` (migration `010_ai_outputs.sql` left untouched per append-only convention).
+- **Path-mode preset** — `Mode` enum `'investor'` → `'capital_partner'`; label "Investor presentation" → "Capital partner presentation"; `INVESTOR_*` constants renamed to `CAPITAL_PARTNER_*`.
+- **Partnership card** — `LandownerPartnershipCard.tsx` `Side` type, bar/pill/legend/aria copy reframed; CSS class `.barInvestor` → `.barCapitalPartner`, selector `[data-side='investor']` → `[data-side='capital_partner']`.
+- **Stakeholder portal** — `AUDIENCES.csra` → `AUDIENCES.capital_partner` with the framing "Charitable donor, qarḍ-ḥasan lender, sponsor, or in-kind contributor with financial or material standing in the project."
+- **Presentation deck Slide 7 ("The Ask")** — rewritten to permitted-channel framing.
+- **`csraSuitability` → `communitySuitability`** in `HydrologyRightPanel` + `computeScores` (the metric measures community demographics, not capital-partner readiness — aligns with the existing scoring section name in `computeCommunitySuitability`).
+- **Manifest, taxonomy, landing copy, JSDoc, comments, CONTEXT.md** for `economic-modeling`, `timeline-phasing`, `reporting-export`, plus `docs/ui-ux-upgrade-brief.md` — all reframed.
+
+### Deliberately not touched
+
+- Audit / historical artifacts (`ATLAS_DEEP_AUDIT*.md`, `design-system/.../accessibility-audit.md`, `graphify-out/*`) — frozen records of past state; rewriting them would falsify the audit trail.
+- `migrations/010_ai_outputs.sql` — append-only history; migration 023 documents the rename forward.
+- `services/pdf/templates/capitalPartnerSummary.ts:237` — phrase "not as a return on advance purchase" is the *covenant statement itself*, not a CSRA usage.
+
+### Memory
+
+Updated `~/.claude/projects/.../memory/user_profile.md` — replaced the stale "Preferred term … CSRA" line with the post-2026-05-04 vocabulary block (capital partners & allies; permitted channels: charitable donation, restricted donation, qarḍ ḥasan, in-kind, sponsorship; future post-acquisition yield-share contemplated only as a membership benefit subject to Scholar Council review).
+
+### Verification
+
+- `grep -rEi "investor|CSRA|advance purchase|member share"` across `apps/web/src`, `apps/api/src`, `packages/shared/src` — only legitimate residuals remain (migration 023, append-only migration 010, and the fiqh disclaimer line).
+- `pnpm tsc --noEmit -p apps/web/tsconfig.json` — clean (exit 0).
+- `pnpm tsc --noEmit -p apps/api/tsconfig.json` — clean.
+- `pnpm tsc --noEmit -p packages/shared/tsconfig.json` — clean.
+
+### Follow-ups (Phase 2–4 of the audit, separate sessions)
+
+- **Phase 2 (P1 coherence)** — manifest truth-up §10/§15/§22/§23; finish inline-edit + drag generalization to water + guild; archive `apps/atlas-ui` out of `pnpm-workspace.yaml`.
+- **Phase 3 (P2 a11y)** — replace 10 native `title=` sites with `<DelayedTooltip>`; add focus-trap to `SlideUpPanel` + `RailPanelShell`.
+- **Phase 4 (P2 content)** — source-backfill the 128 null-citation rows in `regionalCosts/US_MIDWEST.ts` and `CA_ONTARIO.ts`.
+
+---
+
 ## 2026-05-09 — Plan rail: cross-check chip on module cards (project-type ↔ module progress)
 
 Closed the second follow-up listed under [yesterday's project-type checklist ADR](decisions/2026-05-09-atlas-plan-project-type-checklist.md) "Out of scope" section. Each module's GuidanceCard in [`PlanChecklistAside`](apps/web/src/v3/plan/PlanChecklistAside.tsx) now renders a small amber "↗ N refs" chip in its header when one or more *ticked* project-type items reference that module but their declared dependencies are unmet. The chip is the reciprocal mirror of the project-type rail above: ticking Homestead item 2 ("Size water storage to a full off-grid week...") with its `relatedWork: [{ module: 'water-management', indexes: [0, 1], requiresArtifacts: true }]` lights "↗ 1 ref" on the Water Management card; closing both gaps (ticking Water how-checks 0 + 1 AND adding any earthwork / storage / waterNode / watercourse for the project) clears the chip. Multi-module items light chips on multiple cards independently — Homestead item 0 ("Anchor Z0/Z1") has `relatedWork` entries for `zone-circulation`, `structures-subsystems`, AND `cross-section-solar`, and ticking it lights all three independently.
@@ -8464,3 +8564,113 @@ drag-to-move on the Plan map, mirroring how sectors already work.
   Observe does for selected annotations.
 - Same as previous: fix `/plan` route crash
   (`PlanChecklistAside.tsx:148` missing `livestock` module guidance).
+
+## 2026-05-09 — Atlas Act stage: weather forecast + event calendar foundation
+
+### Brief
+
+The Act stage page lacked any weather presence and the right-rail
+"Upcoming Events" was a single-source teaser tied only to
+`communityEventStore`. Build a presentable weather forecast + a
+multi-source event calendar suitable for a future `schedule` module
+and a compact rail summary above `TodaysPriorities`.
+
+### Completed (shipped to disk)
+
+**Server — Open-Meteo forecast adapter**
+- `apps/api/src/services/climate/openMeteoForecastFetch.ts` — mirrors
+  `openMeteoWindFetch.ts`. Fetches `/v1/forecast` with hourly
+  (`temperature_2m`, `precipitation`, `precipitation_probability`,
+  `weather_code`, `wind_speed_10m`, `wind_direction_10m`) and daily
+  (`temperature_2m_max/min`, `precipitation_sum`,
+  `precipitation_probability_max`, `weather_code`,
+  `wind_speed_10m_max`, `sunrise`, `sunset`). 7-day window,
+  `timezone=auto`. No API key.
+- `apps/api/src/services/climate/forecastCache.ts` — Redis pattern from
+  `windRoseCache.ts`. Key `forecast:v1:${qLat}:${qLng}` quantized to
+  0.1°. **1h TTL** (forecast is live data, vs 30-day TTL for wind
+  climatology). 200ms read timeout, fire-and-forget write.
+- Route registered in `apps/api/src/routes/climate-analysis/index.ts`
+  as `GET /api/v1/climate-analysis/forecast?lat=X&lng=Y`. 502 /
+  `FORECAST_UNAVAILABLE` envelope on adapter failure.
+
+**Web client — types + hook + api wrapper**
+- `apps/web/src/lib/forecast/types.ts` — `ForecastHour`,
+  `ForecastDay`, `ForecastResult`, WMO `weatherCodeMeta()` lookup
+  (~30 codes → lucide icon + short label).
+- `apps/web/src/lib/forecast/useForecast.ts` — derives parcel
+  centroid via `turf.centroid()` from
+  `project.parcelBoundaryGeojson`, memoizes lat/lng to 4 decimals,
+  AbortController on unmount, returns `{ data, status }`.
+- `apps/web/src/lib/apiClient.ts` — adds `api.climateAnalysis.forecast(lat, lng, signal)`.
+
+**Implementation cards (lazy-loadable)**
+- `apps/web/src/features/act/WeatherForecastCard.tsx` (+ CSS) — current
+  conditions hero, 24-hour scroll strip, 7-day list with high/low
+  gradient + precip + peak wind, farm-signal chips (frost risk,
+  rainfall window, spray window), Open-Meteo source footer.
+- `apps/web/src/features/act/EventCalendarCard.tsx` (+ CSS) — custom
+  date-fns 7×6 month grid, prev/next + Today, source filter chips,
+  per-day color-coded dots (Tasks · Livestock · Harvest · Nursery ·
+  Community), click-day detail drawer, empty state.
+- `apps/web/src/features/act/useEventAggregator.ts` — pulls dated
+  entries from `communityEventStore`, `fieldTaskStore`,
+  `livestockMoveLogStore`, `harvestLogStore`, `nurseryStore`.
+  Returns `{ all, byDate }`. Phase milestones excluded (their
+  `timeframe` strings aren't anchored to calendar dates).
+
+**Rail panel (compact summary)**
+- `apps/web/src/v3/act/ops/WeatherStrip.tsx` (+ CSS) — single-row
+  panel: weather-code icon · current temp · today high/low · precip
+  badge if ≥40%. Frost overlay row when next-18h min ≤2°C. Click
+  triggers `onOpen` (intended to switch to `schedule` module + open
+  slide-up).
+
+### Verification
+
+- `cd apps/web && npx tsc --noEmit` → exit 0
+- `cd apps/api && npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- Cache, manual preview, and integration smoke deferred (see below).
+
+### Deferred
+
+- **Schedule-module integration not landed.** `apps/web/src/v3/act/types.ts`
+  remains at 6 modules (build, maintain, livestock, harvest, review,
+  network); `ActModuleSlideUp.tsx` switch-case is unchanged;
+  `ActOpsAside.tsx` still renders the original 4-panel rail
+  (TodaysPriorities, AlertsPanel, UpcomingEvents, QuickActions).
+  The card files + WeatherStrip are present on disk but not
+  reachable from the UI. Re-wiring is a follow-up session decision.
+- **UpcomingEvents broadening not landed.** Component still consumes
+  `useCommunityEventStore` directly; `useEventAggregator` is built
+  but unconsumed by the rail.
+- Cache verification (`meta.cached: true` on second curl) not run —
+  api dev server not started this session.
+- Manual preview verification not run — no integration surface.
+- Calendar week/agenda views (month-only is built; week/agenda was
+  always out of scope per plan).
+
+### ADR
+
+`wiki/decisions/2026-05-09-atlas-act-schedule-weather-and-calendar.md`
+filed; describes the Open-Meteo forecast addition, the schedule
+module concept, and the 5-store calendar aggregation contract. Note:
+the ADR documents the planned shape; integration wiring is a separate
+follow-up.
+
+### Commit
+
+Uncommitted as of session close — work staged on
+`feat/atlas-permaculture` alongside other in-flight Plan-stage edits.
+
+### Recommended next session
+
+- Decide whether to land the Schedule-module wiring (small edits in
+  `types.ts`, `ActModuleSlideUp.tsx`, `ActOpsAside.tsx`,
+  `UpcomingEvents.tsx`) and run the deferred preview/cache gates, or
+  refine the implementation cards further before exposing them.
+- Start api dev + curl `/api/v1/climate-analysis/forecast` twice to
+  confirm Redis cache hit on second call.
+- Empty-state pass: project without `parcelBoundaryGeojson` should
+  surface graceful placeholders (logic written; not exercised).

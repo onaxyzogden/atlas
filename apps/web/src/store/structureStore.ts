@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type StructureType =
   | 'cabin'
@@ -104,6 +105,11 @@ export interface Structure {
    * demand linearly. Treated as 1 when absent or non-residential.
    */
   occupantCount?: number;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * structure belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */
@@ -122,25 +128,28 @@ interface StructureState {
 
 export const useStructureStore = create<StructureState>()(
   persist(
-    (set) => ({
-      structures: [],
-      placementMode: null,
+    temporal(
+      (set) => ({
+        structures: [],
+        placementMode: null,
 
-      addStructure: (structure) =>
-        set((s) => ({ structures: [...s.structures, structure] })),
+        addStructure: (structure) =>
+          set((s) => ({ structures: [...s.structures, structure] })),
 
-      updateStructure: (id, updates) =>
-        set((s) => ({
-          structures: s.structures.map((st) =>
-            st.id === id ? { ...st, ...updates, updatedAt: new Date().toISOString() } : st,
-          ),
-        })),
+        updateStructure: (id, updates) =>
+          set((s) => ({
+            structures: s.structures.map((st) =>
+              st.id === id ? { ...st, ...updates, updatedAt: new Date().toISOString() } : st,
+            ),
+          })),
 
-      deleteStructure: (id) =>
-        set((s) => ({ structures: s.structures.filter((st) => st.id !== id) })),
+        deleteStructure: (id) =>
+          set((s) => ({ structures: s.structures.filter((st) => st.id !== id) })),
 
-      setPlacementMode: (type) => set({ placementMode: type }),
-    }),
+        setPlacementMode: (type) => set({ placementMode: type }),
+      }),
+      { limit: 200 },
+    ),
     {
       name: 'ogden-structures',
       version: 2,

@@ -35,6 +35,11 @@ import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
+import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
+import PlanContoursOverlay from './layers/PlanContoursOverlay.js';
+import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
+import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
+import PlanSelectionFloater from './PlanSelectionFloater.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -146,8 +151,18 @@ export default function PlanLayout() {
           />
           <ObserveAnnotationLayers map={map} projectId={id} />
           <PlanDataLayers map={map} projectId={id} />
+          <PlanContoursOverlay map={map} />
+          <PlanZoneRingsOverlay map={map} projectId={id} />
+          <PlanSunPathOverlay
+            map={map}
+            projectId={id}
+            fallbackCentroid={FALLBACK_CENTROID}
+            boundary={boundary}
+          />
+          <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} />
           <InlineFeaturePopover map={map} />
+          <PlanSelectionFloater />
         </>
       )}
     </DiagnoseMap>

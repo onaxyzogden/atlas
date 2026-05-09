@@ -13,6 +13,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -34,11 +36,18 @@ const FREQUENCY_OPTIONS: {
   { value: 'rare', label: 'Rare' },
 ];
 
+const ACCESSIBLE_OPTIONS = [
+  { value: 'no', label: 'No' },
+  { value: 'yes', label: 'Yes' },
+];
+
 export default function PathLineTool({ map, projectId }: Props) {
   const addPath = usePathStore((s) => s.addPath);
   const updatePath = usePathStore((s) => s.updatePath);
   const deletePath = usePathStore((s) => s.deletePath);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.LineString>({
     map,
@@ -60,7 +69,7 @@ export default function PathLineTool({ map, projectId }: Props) {
         color: PATH_TYPE_CONFIG[type].color,
         geometry: geom,
         lengthM,
-        phase: '',
+        phase: phaseDefault,
         notes: '',
         usageFrequency: 'weekly',
         createdAt: now,
@@ -86,15 +95,55 @@ export default function PathLineTool({ map, projectId }: Props) {
             required: true,
             options: FREQUENCY_OPTIONS,
           },
+          phaseField,
+          enterpriseField,
+          {
+            key: 'accessible',
+            label: 'Accessible',
+            kind: 'select',
+            options: ACCESSIBLE_OPTIONS,
+          },
+          {
+            key: 'restPoints',
+            label: 'Rest points',
+            kind: 'number',
+            placeholder: '0',
+          },
         ],
-        initial: { name: 'Path', type, usageFrequency: 'weekly' },
+        initial: {
+          name: 'Path',
+          type,
+          usageFrequency: 'weekly',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
+          accessible: 'no',
+          restPoints: 0,
+        },
         onSave: (values) => {
           const type = values.type as PathType;
+          const accessible = values.accessible === 'yes';
+          const restPointCount = Math.max(0, Math.floor(Number(values.restPoints) || 0));
+          let restPointAnchors: [number, number][] | undefined;
+          if (accessible && restPointCount > 0) {
+            const lineFeature = turf.feature(geom);
+            const lengthKm = turf.length(lineFeature, { units: 'kilometers' });
+            const anchors: [number, number][] = [];
+            for (let i = 1; i <= restPointCount; i++) {
+              const fraction = i / (restPointCount + 1);
+              const pt = turf.along(lineFeature, lengthKm * fraction, { units: 'kilometers' });
+              anchors.push(pt.geometry.coordinates as [number, number]);
+            }
+            restPointAnchors = anchors;
+          }
           updatePath(id, {
             name: String(values.name ?? 'Path'),
             type,
             color: PATH_TYPE_CONFIG[type].color,
             usageFrequency: values.usageFrequency as DesignPath['usageFrequency'],
+            phase: String(values.phase ?? ''),
+            enterprise: String(values.enterprise ?? '') || undefined,
+            accessible: accessible || undefined,
+            restPointAnchors,
           });
         },
         onCancel: () => deletePath(id),

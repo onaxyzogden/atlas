@@ -8,6 +8,8 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -20,6 +22,8 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.LineString>({
     map,
@@ -36,10 +40,13 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
         projectId,
         name: 'Swale',
         kind: 'swale',
+        center: anchor,
+        swaleGeometry: geom,
         swaleLengthM: lengthM,
         swaleWidthM: 0.6,
         swaleDepthM: 0.4,
         overflowToNodeId: null,
+        phase: phaseDefault || undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -68,11 +75,15 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
             required: true,
             suffix: 'm',
           },
+          phaseField,
+          enterpriseField,
         ],
         initial: {
           swaleLengthM: Math.round(lengthM * 10) / 10,
           swaleWidthM: 0.6,
           swaleDepthM: 0.4,
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
         },
         onSave: (values) => {
           const w = Number(values.swaleWidthM);
@@ -80,6 +91,8 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
           updateWaterNode(id, {
             swaleWidthM: Number.isFinite(w) ? w : undefined,
             swaleDepthM: Number.isFinite(d) ? d : undefined,
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => removeWaterNode(id),

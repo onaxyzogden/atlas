@@ -30,6 +30,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -64,13 +66,6 @@ const TYPE_OPTIONS: { value: StructureType; label: string }[] = [
   { value: 'water_tank',       label: 'Water tank' },
 ];
 
-const PHASE_OPTIONS = [
-  { value: 'Phase 1', label: 'Phase 1' },
-  { value: 'Phase 2', label: 'Phase 2' },
-  { value: 'Phase 3', label: 'Phase 3' },
-  { value: 'Phase 4', label: 'Phase 4' },
-];
-
 function midCost(type: StructureType): number {
   const [lo, hi] = STRUCTURE_TEMPLATES[type].costRange;
   return Math.round((lo + hi) / 2);
@@ -81,6 +76,8 @@ export default function StructureTool({ map, projectId }: Props) {
   const updateStructure = useStructureStore((s) => s.updateStructure);
   const deleteStructure = useStructureStore((s) => s.deleteStructure);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
@@ -102,7 +99,7 @@ export default function StructureTool({ map, projectId }: Props) {
         rotationDeg: 0,
         widthM: tpl.widthM,
         depthM: tpl.depthM,
-        phase: 'Phase 1',
+        phase: phaseDefault,
         costEstimate: midCost(type),
         infrastructureReqs: [...tpl.infrastructureReqs],
         notes: '',
@@ -122,12 +119,8 @@ export default function StructureTool({ map, projectId }: Props) {
             required: true,
             options: TYPE_OPTIONS,
           },
-          {
-            key: 'phase',
-            label: 'Phase',
-            kind: 'select',
-            options: PHASE_OPTIONS,
-          },
+          phaseField,
+          enterpriseField,
           {
             key: 'rotationDeg',
             label: 'Rotation (°)',
@@ -139,7 +132,8 @@ export default function StructureTool({ map, projectId }: Props) {
         initial: {
           name: tpl.label,
           type,
-          phase: 'Phase 1',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
           rotationDeg: 0,
         },
         onSave: (values) => {
@@ -160,7 +154,8 @@ export default function StructureTool({ map, projectId }: Props) {
             rotationDeg,
             widthM: nextTpl.widthM,
             depthM: nextTpl.depthM,
-            phase: String(values.phase ?? 'Phase 1'),
+            phase: String(values.phase ?? ''),
+            enterprise: String(values.enterprise ?? '') || undefined,
             costEstimate: midCost(nextType),
             infrastructureReqs: [...nextTpl.infrastructureReqs],
           });
