@@ -290,9 +290,6 @@ function SectorsSidebar() {
             {item}
           </p>
         ))}
-        <button className="green-button" type="button">
-          Go to next: Site Analysis <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
     </aside>
   );

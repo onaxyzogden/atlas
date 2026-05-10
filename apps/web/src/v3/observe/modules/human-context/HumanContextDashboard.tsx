@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import {
-  ArrowRight,
   CheckCircle2,
   Compass,
   Eye,
@@ -447,9 +446,6 @@ function SynthesisPanel({ vision }: VisionProps) {
           <SynthesisSection title="Next steps" numbered items={nextSteps} />
         </>
       )}
-      <button className="green-button" type="button">
-        View full design implications <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

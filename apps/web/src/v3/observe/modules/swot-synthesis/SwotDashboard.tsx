@@ -255,10 +255,6 @@ function DesignImplications() {
           </p>
         ))}
       </section>
-      <button className="green-button" type="button">
-        Create action plan from synthesis <ArrowRight aria-hidden="true" />
-      </button>
-      <button type="button">Export synthesis summary</button>
     </SurfaceCard>
   );
 }

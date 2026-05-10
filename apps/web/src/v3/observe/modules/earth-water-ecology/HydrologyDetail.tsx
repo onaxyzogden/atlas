@@ -250,9 +250,6 @@ export default function HydrologyDetail() {
                   <em>Low</em>
                 </p>
               )}
-              <button className="green-button" type="button">
-                View all risks <ArrowRight aria-hidden="true" />
-              </button>
             </SurfaceCard>
           </section>
         </div>
@@ -331,9 +328,6 @@ function HydrologySidebar({ wc }: SidebarProps) {
             <ArrowRight aria-hidden="true" />
           </p>
         ))}
-        <button className="green-button" type="button">
-          View design overlay <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
       <SurfaceCard className="hydrology-side-card hydrology-actions">
         <h2>

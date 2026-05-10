@@ -8,7 +8,6 @@ import {
   Layers,
   MapPin,
   Mountain,
-  Plus,
   Ruler,
   Triangle,
   Waves,
@@ -118,9 +117,6 @@ function TerrainHeader() {
         </p>
       </div>
       <div className="terrain-header-actions">
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Create transect
-        </button>
         <button className="outlined-button" type="button">
           <Download aria-hidden="true" /> Export terrain report
         </button>

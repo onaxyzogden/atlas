@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import {
-  ArrowRight,
   CalendarDays,
   CheckCircle2,
   Droplet,
@@ -278,9 +277,6 @@ function MacroSidebar({ hazards }: MacroSidebarProps) {
             <p className="empty-note">No hazards logged yet.</p>
           )}
         </section>
-        <button className="green-button" type="button">
-          Go to next: Site Analysis <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
     </aside>
   );

@@ -5,7 +5,6 @@ import {
   Compass,
   Flame,
   Mountain,
-  Plus,
   Settings,
   Shield,
   Sun,
@@ -279,9 +278,6 @@ function PriorityActions() {
           <em>{priority}</em>
         </p>
       ))}
-      <button className="green-button" type="button">
-        <Plus aria-hidden="true" /> Add to design plan
-      </button>
     </SurfaceCard>
   );
 }

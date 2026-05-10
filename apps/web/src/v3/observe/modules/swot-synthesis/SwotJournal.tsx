@@ -82,9 +82,6 @@ function JournalHeader() {
         </p>
       </div>
       <nav>
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Add journal entry
-        </button>
         <button type="button">
           <Download aria-hidden="true" /> Export journal <ChevronDown aria-hidden="true" />
         </button>

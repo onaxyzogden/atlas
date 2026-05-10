@@ -76,9 +76,6 @@ function ReportTopbar() {
         <button type="button">
           <Share2 aria-hidden="true" /> Share summary
         </button>
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Add to design plan
-        </button>
       </nav>
     </header>
   );

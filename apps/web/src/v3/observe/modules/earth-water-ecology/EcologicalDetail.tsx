@@ -311,7 +311,6 @@ function RecommendedActions({ counts }: ActionsProps) {
           <em>{level}</em>
         </p>
       ))}
-      <button type="button">View all actions</button>
     </SurfaceCard>
   );
 }
