@@ -5,7 +5,11 @@
  * HerdRotationDashboard, and LivestockDashboard via useMemo.
  */
 
-import type { Paddock, LivestockSpecies } from '../../store/livestockStore.js';
+import type {
+  Paddock,
+  LivestockSpecies,
+  PastureQuality,
+} from '../../store/livestockStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
 import type { Structure } from '../../store/structureStore.js';
 import type { DesignPath } from '../../store/pathStore.js';
@@ -161,12 +165,63 @@ export function computeForageQuality(
   return { quality, adjustedStockingMultiplier, biomassEstimate: Math.round(score) };
 }
 
+/**
+ * Site-level recommended stocking from environmental forage quality.
+ *
+ * Legacy entrypoint used by the v2 livestock dashboards
+ * (GrazingDashboard, HerdRotationDashboard, LivestockDashboard,
+ * BrowsePressureRiskCard, ErosionGrazingRecoveryCard, CarryingCapacityCard).
+ *
+ * **For paddock-level stocking that respects a steward's per-paddock
+ * `pastureQuality`, prefer `computePaddockRecommendedStocking` —
+ * `pastureQuality` is canonical (ground truth) and overrides the derived
+ * forage-quality multiplier.**
+ */
 export function computeRecommendedStocking(
   species: LivestockSpecies,
   forage: ForageQuality,
 ): number {
   const base = LIVESTOCK_SPECIES[species]?.typicalStocking ?? 2;
   return Math.round(base * forage.adjustedStockingMultiplier * 10) / 10;
+}
+
+/**
+ * Pasture-quality stocking multipliers — derived from the AUE/ha figures
+ * in PaddockTool's `PASTURE_QUALITY_OPTIONS` (poor 0.7, fair 1.2, good 2.5,
+ * excellent 3.7) and normalised so `good` is the 1.0 baseline that aligns
+ * with `LIVESTOCK_SPECIES.typicalStocking`. Canonical mapping for any
+ * stocking-rate calculation that consumes a paddock's `pastureQuality`.
+ */
+export const PASTURE_QUALITY_MULTIPLIER: Record<PastureQuality, number> = {
+  poor: 0.7 / 2.5,
+  fair: 1.2 / 2.5,
+  good: 1.0,
+  excellent: 3.7 / 2.5,
+};
+
+/**
+ * Per-paddock recommended stocking (head | birds | hives per hectare,
+ * rounded to one decimal). Reads `paddock.pastureQuality` first — steward
+ * observation is ground truth — and falls back to a passed `ForageQuality`
+ * (from `computeForageQuality(...)`) when the paddock has not been graded.
+ * If neither is available, the catalog `typicalStocking` (calibrated for
+ * `good` pasture, multiplier 1.0) is returned unchanged.
+ *
+ * Use `LIVESTOCK_SPECIES[paddock.species[0]].stockingUnit` for the unit
+ * label — `head` / `birds` / `hives` varies per species.
+ */
+export function computePaddockRecommendedStocking(
+  paddock: Paddock,
+  fallbackForage?: ForageQuality,
+): number {
+  const species = paddock.species[0];
+  if (!species) return 0;
+  const base = LIVESTOCK_SPECIES[species]?.typicalStocking ?? 2;
+  const multiplier =
+    paddock.pastureQuality !== undefined
+      ? PASTURE_QUALITY_MULTIPLIER[paddock.pastureQuality]
+      : (fallbackForage?.adjustedStockingMultiplier ?? 1.0);
+  return Math.round(base * multiplier * 10) / 10;
 }
 
 /* ================================================================== */

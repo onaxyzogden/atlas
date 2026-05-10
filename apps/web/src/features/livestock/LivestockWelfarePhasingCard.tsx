@@ -37,6 +37,7 @@ import { useStructureStore, type Structure } from '../../store/structureStore.js
 import {
   computeShelterAccess,
   computeWaterPointDistance,
+  PASTURE_QUALITY_MULTIPLIER,
 } from './livestockAnalysis.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import css from './LivestockWelfarePhasingCard.module.css';
@@ -54,18 +55,9 @@ const REAL_FENCE_TYPES: ReadonlySet<FenceType> = new Set<FenceType>([
   'woven_wire',
 ]);
 
-/**
- * Pasture-quality stocking multipliers — derived from the AUE/ha figures
- * in the Paddock popover's PASTURE_QUALITY_OPTIONS (poor 0.7, fair 1.2,
- * good 2.5, excellent 3.7). Normalised so `good` is the 1.0 baseline that
- * matches `LIVESTOCK_SPECIES.typicalStocking`.
- */
-const PASTURE_QUALITY_MULTIPLIER: Record<PastureQuality, number> = {
-  poor: 0.7 / 2.5,
-  fair: 1.2 / 2.5,
-  good: 1.0,
-  excellent: 3.7 / 2.5,
-};
+// `PASTURE_QUALITY_MULTIPLIER` is now exported from livestockAnalysis.ts —
+// canonical mapping shared with `computePaddockRecommendedStocking`. Imported
+// at the top of this file.
 
 const PASTURE_QUALITY_LABEL: Record<PastureQuality, string> = {
   poor: 'Poor (~0.7 AUE/ha)',
