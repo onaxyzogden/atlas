@@ -4,6 +4,107 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Act-affinity telemetry pipeline shipped (Phases 1–7)
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Scope.** The seven-phase plan from the 2026-05-09 pen-and-paper sanity
+review landed end-to-end: the v1 affinity table now has a durable
+read/write pipeline so the next ranking decision rides on real-steward
+signal, not paper personas.
+
+- **Phase 1** — Migration `024_act_interaction_events.sql` (project_id,
+  user_id, session_id, occurred_at, project_type, module, event_type,
+  payload jsonb) plus three indexes; CHECK constraint pins the
+  7-event enum.
+- **Phase 2** — Fastify plugin `routes/telemetry/index.ts` with
+  `POST /api/v1/telemetry/act-interactions` (batched insert, max 100,
+  per-event-type Zod superRefine) and
+  `GET /api/v1/telemetry/act-interactions/aggregate` (server-grouped on
+  `(project_type, module, event_type)`, filtered by `req.userId`).
+  OpenAPI entries + Vitest coverage in `tests/telemetry.test.ts`.
+- **Phase 3** — Shared Zod schemas + types in
+  `packages/shared/src/schemas/actTelemetry.schema.ts`;
+  `ACT_INTERACTION_EVENT_TYPES` is the single source of truth that the
+  SQL CHECK mirrors by hand.
+- **Phase 4** — Client buffer in `apps/web/src/lib/actInteractionLog.ts`:
+  module-level queue, 1500 ms idle / 50-event ceiling / sendBeacon
+  triggers, capped 3-retry, `useActTelemetry(ctx)` hook, full Vitest
+  fake-timer spec. `apiClient.telemetry.{post,get}` wired.
+- **Phase 5** — Four instrumentation sites: `ActModuleBar` (3-way
+  tile_select/open/close), `ActTools` (quick_log_click w/ toolId),
+  `ActLayout` (slide-up dwell via two refs + transition guard),
+  `TodaysPriorities` + `AlertsPanel` (panel_row_visible w/ rowIds-hash
+  dedupe).
+- **Phase 6** — `AffinityTelemetryDashboard.tsx` 6×7 grid colored by
+  |observed rank − v1 rank| (green/yellow/orange/red), reachable via
+  `dev-affinity-telemetry` section behind
+  `VITE_ATLAS_TELEMETRY_ENABLED`; sidebar Dev group renders only when
+  the flag is on.
+- **Phase 7** — ADR
+  [2026-05-10-atlas-act-affinity-telemetry-pipeline.md](decisions/2026-05-10-atlas-act-affinity-telemetry-pipeline.md);
+  cross-link added to the predecessor v1 sanity-review ADR.
+
+**Privacy posture.** `user_id` is collected; no consent surface yet.
+Flag defaults `'true'` only in dev builds. A consent banner is the
+explicit precondition before any non-developer steward uses the
+deployed app — called out in the ADR follow-ups.
+
+**Out of scope.** Affinity-table revisions (wait for ≥30 sessions × ≥2
+project types of signal); schedule-module ranking; cross-user
+aggregation; time-series breakdown; sankey/sequence visualizations.
+
+**Verification handed to user.** Apply the migration
+(`pnpm --filter api migrate`), drive ~2 min of Act-stage
+interactions across multiple project types, confirm POST batches
+fire after 1.5 s idle, open the dashboard and see the populated 6×7
+grid. `pnpm -r test` and `pnpm -r typecheck` were run in-session and
+came back clean for the touched modules.
+
+---
+
+## 2026-05-10 — Plan machinery module follow-ups closed (Phases A/B/C)
+
+**Branch.** `feat/atlas-permaculture` (continues the 2026-05-09 machinery slice).
+
+**Scope.** The five deferred items in
+[2026-05-09-atlas-plan-machinery-module.md](decisions/2026-05-09-atlas-plan-machinery-module.md)
+shipped across three phases:
+
+- **Phase A** — Renamed livestock `MobileTractorZonesCard` → `AnimalTractorZonesCard`
+  (animal-housing tractors, not equipment); section id `plan-livestock-tractor-zones`
+  retained to avoid cascade. `featureManifest.ts` gained section 30
+  (`machinery-equipment`) registering all four machinery cards.
+- **Phase B** — Backend persistence: migration `025_machinery_items.sql` (mirrors
+  `design_features` with `acquisition_year` + `lifecycle_years_estimate`); shared
+  zod schemas in `packages/shared/src/schemas/machineryItem.schema.ts`; Fastify
+  routes at `/api/v1/machinery-items`; web bridge hook `useServerMachineryInventory`
+  mounted in `PlanLayout`. Client UUIDs (`crypto.randomUUID()`) round-trip via the
+  optional `id` field on `CreateMachineryItemInput`. localStorage is now a cache;
+  server-wins on first hydrate. Inventory card form exposes optional acquired-year
+  and lifecycle-years inputs.
+- **Phase C** — `noiseSectorOverlap.ts` builds a wedge polygon per dwelling from
+  `sectorStore` noise compass + half-width and intersects it with
+  `fuel-station` / `machinery-shed` / `equipment-yard` elements; flag list
+  surfaces on `MachineryHousingFuelCard` when an upwind hit is detected.
+  `EquipmentReplacementScheduleCard` (Phasing & Budgeting) joins
+  `machineryInventoryStore` × `phaseStore` — items whose
+  `acquisitionYear + lifecycleYearsEstimate` falls within a phase's parsed
+  timeframe (handles `Year 0-1`, `Year 5+`) appear in that phase's row;
+  incomplete-lifecycle items land in a "Lifecycle unknown" footer.
+
+**Verification.** `cd apps/web && npx tsc --noEmit` clean for all touched
+modules; the only remaining errors are two pre-existing
+`actInteractionLog.test.ts` TS2532 warnings unrelated to machinery.
+
+**Out of scope (unchanged).** `openapi.yaml` schemas (zod is the runtime source
+of truth; openapi is doc-only); distance-based fuel coverage radius math; a
+maintenance-event log table for machinery.
+
+ADR amended with a `## Follow-ups closed` section.
+
+---
+
 ## 2026-05-10 — Act-stage structure popover (read-only inspector + log-action handoff)
 
 **Branch.** `feat/atlas-permaculture` (commit `20879ef` bundled the

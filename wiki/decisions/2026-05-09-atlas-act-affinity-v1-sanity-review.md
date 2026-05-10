@@ -502,3 +502,12 @@ Operations Hub for ≥2 weeks:
 
 Until then, v1 stands. The review is the durable artifact; the table
 is unchanged.
+
+## Follow-up
+
+- [2026-05-10 — Act-affinity telemetry pipeline](2026-05-10-atlas-act-affinity-telemetry-pipeline.md):
+  the durable read/write pipeline that replaces pen-and-paper
+  walkthroughs with real-steward signal. Implements the precondition
+  that "ship nothing until telemetry exists" depends on. v2 ranking
+  proposals from this review (homestead, multi_enterprise) wait for
+  ≥30 sessions × ≥2 project types of dashboard data.
