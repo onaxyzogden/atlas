@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   Beaker,
   Binoculars,
-  CalendarDays,
-  ChevronDown,
   Download,
   Droplet,
   FlaskConical,
@@ -174,7 +172,7 @@ export default function EarthWaterEcologyDashboard() {
           );
         })}
       </SurfaceCard>
-      <TabsAndActions onExport={handleExport} exporting={exporting} />
+      <ExportActions onExport={handleExport} exporting={exporting} />
       <section className="diagnostic-grid">
         <SiteMapCard
           boundary={project?.location?.boundary}
@@ -186,11 +184,7 @@ export default function EarthWaterEcologyDashboard() {
         />
         <SoilDiagnosticsCard samples={samples} />
         <HydrologyCard wc={wc} flowDirection={watershed?.summary.flow_direction ?? null} />
-        <EcologyCard
-          observations={observations}
-          boundary={project?.location?.boundary}
-          caption={project?.name}
-        />
+        <EcologyCard observations={observations} />
         <AnnotationListCard
           title="Field annotations"
           projectId={projectId ?? null}
@@ -222,22 +216,14 @@ function ModuleHeader() {
   );
 }
 
-interface TabsAndActionsProps {
+interface ExportActionsProps {
   onExport: () => void;
   exporting: boolean;
 }
 
-function TabsAndActions({ onExport, exporting }: TabsAndActionsProps) {
-  const tabs = ['Overview', 'Soil', 'Water', 'Ecology', 'Lab Results', 'Trends'];
+function ExportActions({ onExport, exporting }: ExportActionsProps) {
   return (
     <div className="diagnostic-tabs-row">
-      <nav className="diagnostic-tabs" aria-label="Diagnostics sections">
-        {tabs.map((tab, index) => (
-          <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
-            {tab}
-          </button>
-        ))}
-      </nav>
       <div className="diagnostic-actions">
         <button
           className="outlined-button"
@@ -246,10 +232,6 @@ function TabsAndActions({ onExport, exporting }: TabsAndActionsProps) {
           disabled={exporting}
         >
           <Download aria-hidden="true" /> {exporting ? 'Generating…' : 'Export report'}
-        </button>
-        <button className="outlined-button" type="button">
-          <CalendarDays aria-hidden="true" /> This season{' '}
-          <ChevronDown aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -370,24 +352,14 @@ function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
 
 interface EcologyCardProps {
   observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
-  boundary: GeoJSON.Polygon | undefined;
-  caption: string | undefined;
 }
 
-function EcologyCard({ observations, boundary, caption }: EcologyCardProps) {
-  const tabs = ['All', 'Flora', 'Fauna', 'Fungi'];
+function EcologyCard({ observations }: EcologyCardProps) {
   return (
     <SurfaceCard className="diagnostic-panel ecology-panel">
       <header className="panel-header">
         <h2>Ecology observations</h2>
       </header>
-      <div className="species-tabs">
-        {tabs.map((tab, index) => (
-          <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
-            {tab}
-          </button>
-        ))}
-      </div>
       <SpeciesObservationList observations={observations} compact className="species-image" />
       {observations.length === 0 && (
         <p className="biodiversity-note">
