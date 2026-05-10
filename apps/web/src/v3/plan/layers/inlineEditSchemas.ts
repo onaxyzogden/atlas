@@ -1182,3 +1182,60 @@ export function buildWellEditSchema(
     },
   };
 }
+
+// ---------- Septic (Built Environment V2) ----------
+//
+// Polygon geometry; pure metadata edit (kind + label + notes). The
+// drawn polygon stands as-is — no auto-regeneration on field changes
+// (contrast Buildings, which redraw on rotation/dim edits).
+
+const SEPTIC_KIND_OPTIONS = [
+  { value: 'tank',        label: 'Tank' },
+  { value: 'leach_field', label: 'Leach field' },
+  { value: 'cesspool',    label: 'Cesspool' },
+  { value: 'other',       label: 'Other' },
+];
+
+export function buildSepticEditSchema(
+  sp: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = sp.existing ?? {};
+  return {
+    title: 'Edit septic',
+    fields: [
+      {
+        key: 'kind',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: SEPTIC_KIND_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      kind:  exist.subtype ?? 'tank',
+      label: sp.label ?? '',
+      notes: sp.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const kindRaw = String(values.kind ?? '').trim() || 'tank';
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(sp.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype: kindRaw },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}

@@ -124,8 +124,8 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
     label: 'Water Systems',
     elements: [
       { kind: 'water-tank', category: 'water', label: 'Water Tank', icon: Droplets, geometry: 'point',   drawMode: 'draw_point',       phase: 'water', color: COLORS.water },
-      { kind: 'pond',       category: 'water', label: 'Pond',       icon: Waves,    geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.water },
-      { kind: 'swale',      category: 'water', label: 'Swale',      icon: Sprout,   geometry: 'line',    drawMode: 'draw_line_string', phase: 'water', color: COLORS.water },
+      { kind: 'pond',       category: 'water', label: 'Pond',       icon: Waves,    geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.water, earthworkDepthCm: 200 },
+      { kind: 'swale',      category: 'water', label: 'Swale',      icon: Sprout,   geometry: 'line',    drawMode: 'draw_line_string', phase: 'water', color: COLORS.water, earthworkDepthCm: 60 },
       { kind: 'spring',     category: 'water', label: 'Spring',     icon: Leaf,     geometry: 'point',   drawMode: 'draw_point',       phase: 'water', color: COLORS.waterEphemeral },
     ],
   },
@@ -134,7 +134,7 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
     label: 'Access & Paths',
     elements: [
       { kind: 'path',   category: 'access', label: 'Path',   icon: Footprints, geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.accessFoot },
-      { kind: 'road',   category: 'access', label: 'Road',   icon: Route,      geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.access },
+      { kind: 'road',   category: 'access', label: 'Road',   icon: Route,      geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.access, earthworkDepthCm: 40 },
       { kind: 'gate',   category: 'access', label: 'Gate',   icon: Compass,    geometry: 'point', drawMode: 'draw_point',       phase: 'access', color: COLORS.access },
       { kind: 'bridge', category: 'access', label: 'Bridge', icon: Route,      geometry: 'point', drawMode: 'draw_point',       phase: 'access', color: COLORS.access },
     ],

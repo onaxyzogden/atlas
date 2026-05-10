@@ -37,6 +37,10 @@ import AnnotationSectorHandles from './components/draw/AnnotationSectorHandles.j
 import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
+import {
+  DesignElementExtrusionLayer,
+  DesignElementGlbLayer,
+} from '../builtEnvironment/layers/index.js';
 import SelectionFloater from './components/SelectionFloater.js';
 import ExportButton from './components/ExportButton.js';
 import ImportSiteIntelButton from './components/ImportSiteIntelButton.js';
@@ -139,6 +143,28 @@ export default function ObserveLayout() {
                 map={map}
                 projectId={params.projectId ?? null}
               />
+              {/* 3D extrusion + GLB layers for Built-Environment entities
+                  in the existing-state slice. Hidden top-down (pitch
+                  collapses extrusions); pitch the camera (or wire a
+                  Terrain3D toggle in MapToolbar) to surface them.
+                  Mounts unconditionally — empty FC when no eligible
+                  entities — so toggling pitch is the only affordance
+                  needed. Phase 4.2 of ADR
+                  2026-05-10-atlas-built-environment-unification.md */}
+              {params.projectId && (
+                <>
+                  <DesignElementExtrusionLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                  <DesignElementGlbLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                </>
+              )}
               <ObserveDrawHost
                 map={map}
                 projectId={params.projectId ?? null}

@@ -25,6 +25,7 @@ import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStore
 import {
   buildBuildingEditSchema,
   buildWellEditSchema,
+  buildSepticEditSchema,
 } from '../layers/inlineEditSchemas.js';
 
 interface Props {
@@ -166,6 +167,19 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
           .entities.find((x) => x.id === featureId && x.kind === 'well');
         if (entity) {
           const schema = buildWellEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-septics') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'septic');
+        if (entity) {
+          const schema = buildSepticEditSchema(entity);
           openInline({ ...schema, anchor });
           return;
         }

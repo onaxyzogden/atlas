@@ -56,6 +56,20 @@ export interface DesignElement {
   label?: string;
   /** Computed once on draw for polygons (acres). */
   acreage?: number;
+  /**
+   * Buried-utility conflicts captured at draw-time when the element's
+   * geometry intersected the 3 m buffer around an OBSERVE-recorded
+   * BuriedUtility. Persisted with a paired `utilityAcknowledgment`
+   * free-text statement from the steward. See ADR
+   * `2026-05-10-plan-earthwork-utility-veto.md`.
+   *
+   * Only carried on non-structure kinds with `earthworkDepthCm > 30`
+   * (pond, swale, road today). Structure-class entities route through
+   * `builtEnvironmentStoreV2` and don't carry this field today —
+   * footings are scoped out of the current veto.
+   */
+  utilityConflicts?: { id: string; kind: string }[];
+  utilityAcknowledgment?: string;
   createdAt: string;
 }
 
