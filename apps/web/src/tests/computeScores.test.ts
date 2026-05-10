@@ -24,9 +24,11 @@ describe('computeAssessmentScores', () => {
   describe('with US layers', () => {
     const scores = computeAssessmentScores(mockLayersUS(), null);
 
-    it('returns 10 assessment scores (8 weighted + FAO + USDA)', () => {
-      // Sprint BT: US returns 8 weighted (incl. Community Suitability) + FAO + USDA
-      expect(scores).toHaveLength(10);
+    it('returns 13 assessment scores (8 weighted + 3 water sub-scores + FAO + USDA)', () => {
+      // Sprint BT: US returns 8 weighted (incl. Community Suitability) +
+      // 3 §5 water-resilience sub-scores (Water Retention, Drought Resilience,
+      // Storm Resilience — diagnostic facets, weight 0 in overall) + FAO + USDA
+      expect(scores).toHaveLength(13);
     });
 
     it('includes all expected score labels', () => {
@@ -89,8 +91,8 @@ describe('computeAssessmentScores', () => {
     // Sprint BT: pass country='CA' to trigger the Canada Soil Capability branch
     const scores = computeAssessmentScores(mockLayersCA(), null, 'CA');
 
-    it('returns 11 scores for Canadian data (8 weighted + FAO + USDA + Canada Soil Capability)', () => {
-      expect(scores).toHaveLength(11);
+    it('returns 14 scores for Canadian data (8 weighted + 3 water sub-scores + FAO + USDA + Canada Soil Capability)', () => {
+      expect(scores).toHaveLength(14);
     });
 
     it('has valid scores between 0 and 100', () => {
@@ -104,7 +106,7 @@ describe('computeAssessmentScores', () => {
   describe('graceful degradation', () => {
     it('handles incomplete layers without crashing', () => {
       const scores = computeAssessmentScores(mockLayersIncomplete(), null);
-      expect(scores).toHaveLength(10);
+      expect(scores).toHaveLength(13);
       for (const score of scores) {
         expect(score.score).toBeGreaterThanOrEqual(0);
         expect(score.score).toBeLessThanOrEqual(100);
@@ -113,7 +115,7 @@ describe('computeAssessmentScores', () => {
 
     it('handles empty/pending layers', () => {
       const scores = computeAssessmentScores(mockLayersEmpty(), null);
-      expect(scores).toHaveLength(10);
+      expect(scores).toHaveLength(13);
       // With no real data, scores should be low or rated insufficient
       for (const score of scores) {
         expect(score.score).toBeGreaterThanOrEqual(0);
@@ -122,15 +124,15 @@ describe('computeAssessmentScores', () => {
 
     it('handles empty array input', () => {
       const scores = computeAssessmentScores([], null);
-      // Sprint BT: empty array returns 10 (no CA branch since country default unknown)
-      expect(scores).toHaveLength(10);
+      // Sprint BT: empty array returns 13 (no CA branch since country default unknown)
+      expect(scores).toHaveLength(13);
     });
   });
 
   describe('with acreage', () => {
     it('accepts numeric acreage without error', () => {
       const scores = computeAssessmentScores(mockLayersUS(), 50);
-      expect(scores).toHaveLength(10);
+      expect(scores).toHaveLength(13);
     });
   });
 });
@@ -368,8 +370,8 @@ function getComp(
 describe('computeAssessmentScores — Tier 3 layers present (if-true branches)', () => {
   const scores = computeAssessmentScores(withTier3(), null);
 
-  it('returns 10 scores with all Tier 3 layers present', () => {
-    expect(scores).toHaveLength(10);
+  it('returns 13 scores with all Tier 3 layers present', () => {
+    expect(scores).toHaveLength(13);
   });
 
   it('all scores are valid and clamped 0–100', () => {
