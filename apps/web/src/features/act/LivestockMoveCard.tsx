@@ -16,6 +16,8 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
   useLivestockMoveLogStore,
+  DIRECTION_OPTIONS,
+  SPECIES_OPTIONS,
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
@@ -31,24 +33,6 @@ import styles from './actCard.module.css';
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
 type SourceKind = 'paddock' | 'structure';
-
-const DIRECTIONS: { value: LivestockMoveDirection; label: string }[] = [
-  { value: 'move_in',        label: 'Move in' },
-  { value: 'move_out',       label: 'Move out' },
-  { value: 'rotate_through', label: 'Rotate through' },
-];
-
-const SPECIES: { value: LivestockSpecies; label: string }[] = [
-  { value: 'sheep',       label: 'Sheep' },
-  { value: 'cattle',      label: 'Cattle' },
-  { value: 'goats',       label: 'Goats' },
-  { value: 'poultry',     label: 'Poultry' },
-  { value: 'pigs',        label: 'Pigs' },
-  { value: 'horses',      label: 'Horses' },
-  { value: 'ducks_geese', label: 'Ducks & geese' },
-  { value: 'rabbits',     label: 'Rabbits' },
-  { value: 'bees',        label: 'Bees' },
-];
 
 interface Draft {
   sourceKind: SourceKind;
@@ -76,11 +60,11 @@ function emptyDraft(): Draft {
 function newId() { return `lvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
 
 function directionLabel(d: LivestockMoveDirection): string {
-  return DIRECTIONS.find((x) => x.value === d)?.label ?? d;
+  return DIRECTION_OPTIONS.find((x) => x.value === d)?.label ?? d;
 }
 
 function speciesLabel(s: LivestockSpecies): string {
-  return SPECIES.find((x) => x.value === s)?.label ?? s;
+  return SPECIES_OPTIONS.find((x) => x.value === s)?.label ?? s;
 }
 
 export default function LivestockMoveCard({ project }: Props) {
@@ -202,10 +186,10 @@ export default function LivestockMoveCard({ project }: Props) {
               {sourceOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
             {sourceOptions.length === 0 && draft.sourceKind === 'structure' ? (
-              <p className={styles.empty} style={{ marginTop: 6 }}>No barn or animal shelter placed — add one in Plan stage to log a structure-anchored move.</p>
+              <p className={styles.hint}>No barn or animal shelter placed — add one in Plan stage to log a structure-anchored move.</p>
             ) : null}
             {sourceOptions.length === 0 && draft.sourceKind === 'paddock' ? (
-              <p className={styles.empty} style={{ marginTop: 6 }}>No paddocks drawn — add one in Plan stage to log a paddock move.</p>
+              <p className={styles.hint}>No paddocks drawn — add one in Plan stage to log a paddock move.</p>
             ) : null}
           </div>
           <div className={styles.field}>
@@ -215,13 +199,13 @@ export default function LivestockMoveCard({ project }: Props) {
           <div className={styles.field}>
             <label>Direction</label>
             <select value={draft.direction} onChange={(e) => setDraft({ ...draft, direction: e.target.value as LivestockMoveDirection })}>
-              {DIRECTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+              {DIRECTION_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
             </select>
           </div>
           <div className={styles.field}>
             <label>Species</label>
             <select value={draft.species} onChange={(e) => setDraft({ ...draft, species: e.target.value as LivestockSpecies })}>
-              {SPECIES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              {SPECIES_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
           <div className={styles.field}>

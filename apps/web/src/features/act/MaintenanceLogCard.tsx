@@ -172,6 +172,15 @@ export default function MaintenanceLogCard({ project }: Props) {
               <option value="">— select —</option>
               {sourceOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
+            {sourceOptions.length === 0 && draft.sourceKind === 'earthwork' ? (
+              <p className={styles.hint}>No earthworks drawn — add a swale or drain in Plan stage to log maintenance.</p>
+            ) : null}
+            {sourceOptions.length === 0 && draft.sourceKind === 'storage' ? (
+              <p className={styles.hint}>No storage infrastructure placed — add a cistern or pond in Plan stage to log maintenance.</p>
+            ) : null}
+            {sourceOptions.length === 0 && draft.sourceKind === 'structure' ? (
+              <p className={styles.hint}>No structures placed — add one in Plan stage to log structure maintenance.</p>
+            ) : null}
           </div>
           <div className={styles.field}>
             <label>Date</label>

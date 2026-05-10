@@ -13,6 +13,31 @@ import type { LivestockSpecies } from './livestockStore.js';
 
 export type LivestockMoveDirection = 'move_in' | 'move_out' | 'rotate_through';
 
+/**
+ * Canonical label maps for the two union types written into
+ * `LivestockMoveEvent`. Lifted here so the popover handoff
+ * (`ActStructurePopover.actions.startLivestockMoveLog`) and the in-card
+ * form (`LivestockMoveCard`) share a single source of truth — adding a
+ * direction or species means one edit, not three.
+ */
+export const DIRECTION_OPTIONS: { value: LivestockMoveDirection; label: string }[] = [
+  { value: 'move_in',        label: 'Move in' },
+  { value: 'move_out',       label: 'Move out' },
+  { value: 'rotate_through', label: 'Rotate through' },
+];
+
+export const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
+  { value: 'sheep',       label: 'Sheep' },
+  { value: 'cattle',      label: 'Cattle' },
+  { value: 'goats',       label: 'Goats' },
+  { value: 'poultry',     label: 'Poultry' },
+  { value: 'pigs',        label: 'Pigs' },
+  { value: 'horses',      label: 'Horses' },
+  { value: 'ducks_geese', label: 'Ducks & geese' },
+  { value: 'rabbits',     label: 'Rabbits' },
+  { value: 'bees',        label: 'Bees' },
+];
+
 export interface LivestockMoveEvent {
   id: string;
   projectId: string;
