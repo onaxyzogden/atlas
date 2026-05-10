@@ -86,8 +86,9 @@ export default function MarketDistributionCard({ projectId }: Props) {
       let lon = 0;
       let lat = 0;
       for (const p of slaughterPoints) {
-        lon += p.geometry.coordinates[0];
-        lat += p.geometry.coordinates[1];
+        const [lng, lt] = p.geometry.coordinates as [number, number];
+        lon += lng;
+        lat += lt;
       }
       hub = {
         type: 'Point',
