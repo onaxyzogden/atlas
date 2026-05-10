@@ -88,11 +88,19 @@ export async function flush(): Promise<void> {
     // Retain failed events with a capped retry; drop after MAX_RETRIES so
     // we don't accumulate a leaky in-memory queue across the session.
     const survivors: QueuedEvent[] = [];
-    for (let i = 0; i < batch.length; i += 1) {
-      const item = batch[i];
+    for (const item of batch) {
       const tries = (item.__retries ?? 0) + 1;
       if (tries < MAX_RETRIES) {
-        survivors.push({ ...item, __retries: tries });
+        survivors.push({
+          projectId: item.projectId,
+          sessionId: item.sessionId,
+          occurredAt: item.occurredAt,
+          projectType: item.projectType,
+          module: item.module,
+          eventType: item.eventType,
+          payload: item.payload,
+          __retries: tries,
+        });
       }
     }
     queue = [...survivors, ...queue];

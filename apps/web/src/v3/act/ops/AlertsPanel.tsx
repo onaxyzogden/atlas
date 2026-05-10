@@ -10,8 +10,9 @@
  * order when the project type is null.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Droplet, AlertTriangle, Beef, Sprout } from 'lucide-react';
+import { useActTelemetry } from '../../../lib/actInteractionLog.js';
 import { useHazardsStore } from '../../../store/hazardsStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
@@ -128,6 +129,31 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
 
     return rows.slice(0, 5);
   }, [projectId, activeModule, hazardsByProject, paddocks, harvestMode, effectiveType]);
+
+  // panel_row_visible: emit only on visible-row-set hash change. See
+  // TodaysPriorities for the dedupe rationale.
+  const record = useActTelemetry({
+    projectId: projectId ?? '',
+    projectType: effectiveType,
+  });
+  const lastHashRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!projectId) return;
+    if (harvestMode) return; // alerts panel is the only telemetry surface here
+    if (alerts.length === 0) return;
+    const hash = alerts.map((a) => a.id).join('|');
+    if (hash === lastHashRef.current) return;
+    lastHashRef.current = hash;
+    record({
+      module: activeModule ?? 'review',
+      eventType: 'panel_row_visible',
+      payload: {
+        panel: 'alerts',
+        modules: alerts.map((a) => a.module),
+        rowIds: alerts.map((a) => a.id),
+      },
+    });
+  }, [alerts, projectId, activeModule, harvestMode, record]);
 
   if (harvestMode) {
     return (

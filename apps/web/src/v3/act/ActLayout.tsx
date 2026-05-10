@@ -17,9 +17,11 @@
  * can hit-test their authored features when logging events.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore } from '../../store/projectStore.js';
+import { useActTelemetry } from '../../lib/actInteractionLog.js';
+import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
@@ -93,6 +95,36 @@ export default function ActLayout() {
     | undefined;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+
+  const { effectiveType } = useEffectivePlanProjectType(params.projectId ?? null);
+  const record = useActTelemetry({
+    projectId: params.projectId ?? '',
+    projectType: effectiveType,
+  });
+
+  // Slide-up dwell instrumentation. Capture openedAt + module on the
+  // false→true transition so we can emit a slideup_close with dwellMs on
+  // the true→false transition. A ref keeps openedAt stable across renders;
+  // the explicit prev-flag guard avoids React 18 strict-mode double-fire.
+  const slideUpOpenRef = useRef(false);
+  const slideUpOpenSinceRef = useRef<{ at: number; module: ActModule } | null>(null);
+  useEffect(() => {
+    const wasOpen = slideUpOpenRef.current;
+    const isOpen = slideUpOpen && validModule !== null;
+    if (!wasOpen && isOpen && validModule) {
+      slideUpOpenSinceRef.current = { at: Date.now(), module: validModule };
+      record({ module: validModule, eventType: 'slideup_open' });
+    } else if (wasOpen && !isOpen && slideUpOpenSinceRef.current) {
+      const { at, module: m } = slideUpOpenSinceRef.current;
+      record({
+        module: m,
+        eventType: 'slideup_close',
+        payload: { dwellMs: Math.max(0, Date.now() - at) },
+      });
+      slideUpOpenSinceRef.current = null;
+    }
+    slideUpOpenRef.current = isOpen;
+  }, [slideUpOpen, validModule, record]);
 
   const handleSelectModule = (mod: ActModule | null) => {
     if (!params.projectId) return;

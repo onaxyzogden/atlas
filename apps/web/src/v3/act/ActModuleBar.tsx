@@ -7,8 +7,11 @@
  *   active + open    → close slide-up
  */
 
+import { useParams } from '@tanstack/react-router';
 import type { ActModule } from './types.js';
 import { ACT_MODULES, ACT_MODULE_LABEL } from './types.js';
+import { useActTelemetry } from '../../lib/actInteractionLog.js';
+import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import css from './ActModuleBar.module.css';
 
 interface Props {
@@ -26,12 +29,25 @@ export default function ActModuleBar({
   onOpenSlideUp,
   onCloseSlideUp,
 }: Props) {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const { effectiveType } = useEffectivePlanProjectType(params.projectId ?? null);
+  const record = useActTelemetry({
+    projectId: params.projectId ?? '',
+    projectType: effectiveType,
+  });
+
   const handleTileClick = (mod: ActModule) => {
     if (mod === activeModule) {
-      if (slideUpOpen) onCloseSlideUp();
-      else onOpenSlideUp();
+      if (slideUpOpen) {
+        record({ module: mod, eventType: 'tile_close' });
+        onCloseSlideUp();
+      } else {
+        record({ module: mod, eventType: 'tile_open' });
+        onOpenSlideUp();
+      }
       return;
     }
+    record({ module: mod, eventType: 'tile_select' });
     onSelectModule(mod);
   };
 

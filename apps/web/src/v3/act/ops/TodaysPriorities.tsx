@@ -10,8 +10,9 @@
  * when the project type is null.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFieldTaskStore } from '../../../store/fieldTaskStore.js';
+import { useActTelemetry } from '../../../lib/actInteractionLog.js';
 import { useMaintenanceStore } from '../../../store/maintenanceStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
 import { useSuccessionStore } from '../../../store/successionStore.js';
@@ -193,6 +194,33 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
     events,
     effectiveType,
   ]);
+
+  // panel_row_visible: emit only when the visible row-id set changes.
+  // Hash-dedupe prevents emit-storm on store updates that produce an
+  // identical visible set.
+  const record = useActTelemetry({
+    projectId: projectId ?? '',
+    projectType: effectiveType,
+  });
+  const lastHashRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!projectId || rows.length === 0) return;
+    const hash = rows.map((r) => r.id).join('|');
+    if (hash === lastHashRef.current) return;
+    lastHashRef.current = hash;
+    // Module bucketed against the active filter, not per-row, so the
+    // aggregate stays one row per (panel, hash). Per-row module data is
+    // preserved in the payload for later breakdowns.
+    record({
+      module: activeModule ?? 'review',
+      eventType: 'panel_row_visible',
+      payload: {
+        panel: 'priorities',
+        modules: rows.map((r) => r.module),
+        rowIds: rows.map((r) => r.id),
+      },
+    });
+  }, [rows, projectId, activeModule, record]);
 
   return (
     <section className={css.panel}>

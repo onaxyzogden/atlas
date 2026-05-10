@@ -43,6 +43,12 @@ describe('actInteractionLog', () => {
     vi.useRealTimers();
   });
 
+  const firstCallEvents = (): unknown[] => {
+    const args = postActInteractions.mock.calls[0];
+    if (!args) throw new Error('postActInteractions never called');
+    return args[0] as unknown[];
+  };
+
   it('debounces flush by 1500ms of idle', async () => {
     recordInteraction(ctx, tile());
     recordInteraction(ctx, tile({ eventType: 'tile_open' as never }));
@@ -54,7 +60,7 @@ describe('actInteractionLog', () => {
     vi.advanceTimersByTime(2);
     await Promise.resolve(); // flush() is async
     expect(postActInteractions).toHaveBeenCalledTimes(1);
-    expect(postActInteractions.mock.calls[0][0]).toHaveLength(2);
+    expect(firstCallEvents()).toHaveLength(2);
   });
 
   it('flushes immediately when the 50-event ceiling is hit', async () => {
@@ -64,7 +70,7 @@ describe('actInteractionLog', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(postActInteractions).toHaveBeenCalledTimes(1);
-    expect(postActInteractions.mock.calls[0][0]).toHaveLength(50);
+    expect(firstCallEvents()).toHaveLength(50);
   });
 
   it('resets the idle timer with each new event', async () => {
@@ -77,7 +83,7 @@ describe('actInteractionLog', () => {
     vi.advanceTimersByTime(600);
     await Promise.resolve();
     expect(postActInteractions).toHaveBeenCalledTimes(1);
-    expect(postActInteractions.mock.calls[0][0]).toHaveLength(2);
+    expect(firstCallEvents()).toHaveLength(2);
   });
 
   it('retains failed events with bounded retry', async () => {
@@ -90,7 +96,8 @@ describe('actInteractionLog', () => {
 
     expect(postActInteractions).toHaveBeenCalledTimes(1);
     expect(__test.getQueueLength()).toBe(1);
-    expect(__test.getQueueSnapshot()[0].__retries).toBe(1);
+    const snap = __test.getQueueSnapshot();
+    expect(snap[0]?.__retries).toBe(1);
   });
 
   it('drops events after MAX_RETRIES', async () => {
@@ -108,7 +115,12 @@ describe('actInteractionLog', () => {
     vi.advanceTimersByTime(1500);
     await Promise.resolve();
 
-    const evt = postActInteractions.mock.calls[0][0][0];
+    const evt = firstCallEvents()[0] as {
+      projectId: string;
+      projectType: string;
+      sessionId: string;
+      occurredAt: string;
+    };
     expect(evt.projectId).toBe(ctx.projectId);
     expect(evt.projectType).toBe('homestead');
     expect(typeof evt.sessionId).toBe('string');
@@ -123,8 +135,8 @@ describe('actInteractionLog', () => {
     vi.advanceTimersByTime(1500);
     await Promise.resolve();
 
-    const events = postActInteractions.mock.calls[0][0];
-    expect(events[0].sessionId).toBe(events[1].sessionId);
+    const events = firstCallEvents() as Array<{ sessionId: string }>;
+    expect(events[0]?.sessionId).toBe(events[1]?.sessionId);
   });
 
   it('is a no-op when projectId is empty', () => {
