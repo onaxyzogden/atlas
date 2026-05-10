@@ -85,6 +85,9 @@ import { renderFieldNotes } from './fieldNotes.js';
 import { renderCapitalPartnerSummary } from './capitalPartnerSummary.js';
 import { renderScenarioComparison } from './scenarioComparison.js';
 import { renderEducationalBooklet } from './educationalBooklet.js';
+import { renderSwotJournal } from './swotJournal.js';
+import { renderSwotDiagnosisReport } from './swotDiagnosisReport.js';
+import { renderSwotSynthesis } from './swotSynthesis.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -94,4 +97,7 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   capital_partner_summary: renderCapitalPartnerSummary,
   scenario_comparison: renderScenarioComparison,
   educational_booklet: renderEducationalBooklet,
+  swot_journal: renderSwotJournal,
+  swot_diagnosis_report: renderSwotDiagnosisReport,
+  swot_synthesis: renderSwotSynthesis,
 };

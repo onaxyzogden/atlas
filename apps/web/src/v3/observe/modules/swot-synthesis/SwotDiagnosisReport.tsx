@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
   CalendarDays,
   Check,
   CircleDot,
+  Download,
   Flag,
   Leaf,
   Sprout,
@@ -13,6 +14,7 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
+import { api } from '../../../../lib/apiClient.js';
 
 export default function SwotDiagnosisReport() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -21,9 +23,26 @@ export default function SwotDiagnosisReport() {
   const allEntries = useSwotStore((s) => s.swot);
   const entries = useMemo(() => allEntries.filter((e) => e.projectId === id), [allEntries, id]);
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const rec = await api.exports.generate(id, {
+        exportType: 'swot_diagnosis_report',
+        payload: { swot: { entries } },
+      });
+      window.open(rec.storageUrl, '_blank');
+    } catch (err) {
+      console.error('SWOT diagnosis export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="detail-page diagnosis-report-page">
-      <ReportTopbar />
+      <ReportTopbar onExport={handleExport} exporting={exporting} />
       <ReportStageBar />
       <section className="diagnosis-report-frame">
         <header className="diagnosis-report-hero">
@@ -59,13 +78,24 @@ export default function SwotDiagnosisReport() {
   );
 }
 
-function ReportTopbar() {
+interface ReportTopbarProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function ReportTopbar({ onExport, exporting }: ReportTopbarProps) {
   return (
     <header className="report-topbar">
       <p>
         Module 6 <ArrowRight aria-hidden="true" /> SWOT Synthesis{' '}
         <ArrowRight aria-hidden="true" /> <b>Diagnosis report</b>
       </p>
+      <nav>
+        <button type="button" onClick={onExport} disabled={exporting}>
+          <Download aria-hidden="true" />{' '}
+          {exporting ? 'Generating…' : 'Export report'}
+        </button>
+      </nav>
     </header>
   );
 }

@@ -10,6 +10,9 @@ export const ExportType = z.enum([
   'capital_partner_summary',
   'scenario_comparison',
   'educational_booklet',
+  'swot_journal',
+  'swot_diagnosis_report',
+  'swot_synthesis',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -121,6 +124,20 @@ export const ScenarioPayload = z.array(z.object({
 }));
 export type ScenarioPayload = z.infer<typeof ScenarioPayload>;
 
+export const SwotPayload = z.object({
+  entries: z.array(z.object({
+    id: z.string(),
+    projectId: z.string(),
+    bucket: z.enum(['S', 'W', 'O', 'T']),
+    title: z.string(),
+    body: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    position: z.tuple([z.number(), z.number()]).optional(),
+    createdAt: z.string(),
+  })),
+});
+export type SwotPayload = z.infer<typeof SwotPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -130,6 +147,7 @@ export const CreateExportInput = z.object({
     fieldNotes: FieldNotesPayload.optional(),
     financial: FinancialPayload.optional(),
     scenarios: ScenarioPayload.optional(),
+    swot: SwotPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
