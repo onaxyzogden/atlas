@@ -95,6 +95,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
   ],
   harvest: [
     { label: 'Harvest log',        sectionId: 'act-harvest-log' },
+    { label: 'Structure yield',    sectionId: 'act-structure-yield' },
     { label: 'Succession tracker', sectionId: 'act-succession' },
   ],
   review: [

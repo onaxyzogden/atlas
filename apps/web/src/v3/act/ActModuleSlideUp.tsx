@@ -31,6 +31,7 @@ const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkC
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
 const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
+const StructureYieldCard        = lazy(() => import('../../features/act/StructureYieldCard.js'));
 const MaintenanceLogCard        = lazy(() => import('../../features/act/MaintenanceLogCard.js'));
 const WeatherForecastCard       = lazy(() => import('../../features/act/WeatherForecastCard.js'));
 const EventCalendarCard         = lazy(() => import('../../features/act/EventCalendarCard.js'));
@@ -57,6 +58,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-irrigation':        return <IrrigationManagerCard project={project} onSwitchToMap={noop} />;
     case 'act-waste-routing':     return <WasteRoutingChecklistCard project={project} onSwitchToMap={noop} />;
     case 'act-harvest-log':       return <HarvestLogCard project={project} onSwitchToMap={noop} />;
+    case 'act-structure-yield':   return <StructureYieldCard project={project} onSwitchToMap={noop} />;
     case 'act-succession':        return <SuccessionTrackerCard project={project} onSwitchToMap={noop} />;
     case 'act-ongoing-swot':      return <OngoingSwotCard project={project} onSwitchToMap={noop} />;
     case 'act-hazard-plans':      return <HazardPlansCard project={project} onSwitchToMap={noop} />;
