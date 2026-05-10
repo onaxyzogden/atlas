@@ -18,6 +18,8 @@ import {
   useLivestockMoveLogStore,
   DIRECTION_OPTIONS,
   SPECIES_OPTIONS,
+  destPaddockId,
+  destStructureId,
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
@@ -35,8 +37,14 @@ interface Props { project: LocalProject; onSwitchToMap: () => void; }
 type SourceKind = 'paddock' | 'structure';
 
 interface Draft {
-  sourceKind: SourceKind;
-  sourceId: string;
+  /** Destination kind — required. */
+  toKind: SourceKind;
+  /** Destination id — required. */
+  toId: string;
+  /** Origin kind — optional ('' = unset, meaning no recorded origin). */
+  fromKind: SourceKind | '';
+  /** Origin id — required when fromKind is set. */
+  fromId: string;
   date: string;
   direction: LivestockMoveDirection;
   species: LivestockSpecies;
@@ -46,8 +54,10 @@ interface Draft {
 }
 function emptyDraft(): Draft {
   return {
-    sourceKind: 'paddock',
-    sourceId: '',
+    toKind: 'paddock',
+    toId: '',
+    fromKind: '',
+    fromId: '',
     date: new Date().toISOString().slice(0, 10),
     direction: 'move_in',
     species: 'sheep',
@@ -110,8 +120,10 @@ export default function LivestockMoveCard({ project }: Props) {
   const grouped = useMemo(() => {
     const m = new Map<string, LivestockMoveEvent[]>();
     events.forEach((e) => {
-      const kind: SourceKind = e.structureId ? 'structure' : 'paddock';
-      const id = e.structureId ?? e.paddockId ?? '';
+      const sid = destStructureId(e);
+      const pid = destPaddockId(e);
+      const kind: SourceKind = sid ? 'structure' : 'paddock';
+      const id = sid ?? pid ?? '';
       const key = `${kind}::${id}`;
       const list = m.get(key) ?? [];
       list.push(e);
@@ -122,16 +134,38 @@ export default function LivestockMoveCard({ project }: Props) {
 
   const [draft, setDraft] = useState<Draft>(emptyDraft);
 
-  const sourceOptions =
-    draft.sourceKind === 'paddock'
+  function optionsForKind(kind: SourceKind) {
+    return kind === 'paddock'
       ? paddocks.map((p) => ({ id: p.id, label: p.name }))
       : structures.map((s) => {
           const tpl = STRUCTURE_TEMPLATES[s.type];
           return { id: s.id, label: `${tpl.icon} ${s.name || tpl.label}` };
         });
+  }
+  const toOptions = optionsForKind(draft.toKind);
+  const fromOptions = draft.fromKind === '' ? [] : optionsForKind(draft.fromKind);
+
+  // Show From column on a group when any event in it has a recorded origin.
+  function groupHasFrom(list: LivestockMoveEvent[]): boolean {
+    return list.some((e) => e.fromPaddockId || e.fromStructureId);
+  }
+  function fromLabel(e: LivestockMoveEvent): string {
+    if (e.fromStructureId) {
+      const s = structures.find((x) => x.id === e.fromStructureId);
+      if (!s) return '(deleted structure)';
+      const tpl = STRUCTURE_TEMPLATES[s.type];
+      return `${tpl.icon} ${s.name || tpl.label}`;
+    }
+    if (e.fromPaddockId) {
+      const p = paddocks.find((x) => x.id === e.fromPaddockId);
+      return p ? p.name : '(deleted paddock)';
+    }
+    return '';
+  }
 
   function commit() {
-    if (!draft.sourceId) return;
+    if (!draft.toId) return;
+    if (draft.fromKind !== '' && !draft.fromId) return; // partial origin — block
     const rawHead = draft.headCount.trim();
     const headCount = rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
     const event: LivestockMoveEvent = {
@@ -143,9 +177,14 @@ export default function LivestockMoveCard({ project }: Props) {
       headCount,
       who: draft.who.trim() || undefined,
       notes: draft.notes.trim() || undefined,
-      ...(draft.sourceKind === 'structure'
-        ? { structureId: draft.sourceId }
-        : { paddockId: draft.sourceId }),
+      ...(draft.toKind === 'structure'
+        ? { toStructureId: draft.toId }
+        : { toPaddockId: draft.toId }),
+      ...(draft.fromKind === 'structure'
+        ? { fromStructureId: draft.fromId }
+        : draft.fromKind === 'paddock'
+          ? { fromPaddockId: draft.fromId }
+          : {}),
     };
     addEvent(event);
     setDraft(emptyDraft());
@@ -170,27 +209,49 @@ export default function LivestockMoveCard({ project }: Props) {
         <h2 className={styles.sectionTitle}>Log move</h2>
         <div className={styles.grid}>
           <div className={styles.field}>
-            <label>Feature kind</label>
+            <label>To · kind</label>
             <select
-              value={draft.sourceKind}
-              onChange={(e) => setDraft({ ...draft, sourceKind: e.target.value as SourceKind, sourceId: '' })}
+              value={draft.toKind}
+              onChange={(e) => setDraft({ ...draft, toKind: e.target.value as SourceKind, toId: '' })}
             >
               <option value="paddock">Paddock</option>
               <option value="structure">Structure (barn / animal shelter)</option>
             </select>
           </div>
           <div className={styles.field}>
-            <label>Feature</label>
-            <select value={draft.sourceId} onChange={(e) => setDraft({ ...draft, sourceId: e.target.value })}>
+            <label>To · feature</label>
+            <select value={draft.toId} onChange={(e) => setDraft({ ...draft, toId: e.target.value })}>
               <option value="">— select —</option>
-              {sourceOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+              {toOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
-            {sourceOptions.length === 0 && draft.sourceKind === 'structure' ? (
+            {toOptions.length === 0 && draft.toKind === 'structure' ? (
               <p className={styles.hint}>No barn or animal shelter placed — add one in Plan stage to log a structure-anchored move.</p>
             ) : null}
-            {sourceOptions.length === 0 && draft.sourceKind === 'paddock' ? (
+            {toOptions.length === 0 && draft.toKind === 'paddock' ? (
               <p className={styles.hint}>No paddocks drawn — add one in Plan stage to log a paddock move.</p>
             ) : null}
+          </div>
+          <div className={styles.field}>
+            <label>From · kind <span style={{ opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+            <select
+              value={draft.fromKind}
+              onChange={(e) => setDraft({ ...draft, fromKind: e.target.value as SourceKind | '', fromId: '' })}
+            >
+              <option value="">— none (first entry / unrecorded) —</option>
+              <option value="paddock">Paddock</option>
+              <option value="structure">Structure (barn / animal shelter)</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>From · feature</label>
+            <select
+              value={draft.fromId}
+              disabled={draft.fromKind === ''}
+              onChange={(e) => setDraft({ ...draft, fromId: e.target.value })}
+            >
+              <option value="">{draft.fromKind === '' ? '— (none) —' : '— select —'}</option>
+              {fromOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
           </div>
           <div className={styles.field}>
             <label>Date</label>
@@ -222,7 +283,12 @@ export default function LivestockMoveCard({ project }: Props) {
           </div>
         </div>
         <div className={styles.btnRow}>
-          <button type="button" className={styles.btn} onClick={commit} disabled={!draft.sourceId}>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={commit}
+            disabled={!draft.toId || (draft.fromKind !== '' && !draft.fromId)}
+          >
             Add move
           </button>
         </div>
@@ -237,6 +303,7 @@ export default function LivestockMoveCard({ project }: Props) {
           const [kind, id] = key.split('::') as [SourceKind, string];
           const totalHead = list.reduce((acc, e) => acc + (e.headCount ?? 0), 0);
           const lastDate = list.reduce((acc, e) => (e.date > acc ? e.date : acc), list[0]?.date ?? '');
+          const showFrom = groupHasFrom(list);
           return (
             <section key={key} className={styles.section}>
               <h2 className={styles.sectionTitle}>{sourceLabel(kind, id)} ({list.length})</h2>
@@ -253,6 +320,7 @@ export default function LivestockMoveCard({ project }: Props) {
                   <tr>
                     <th>Date</th>
                     <th>Direction</th>
+                    {showFrom ? <th>From</th> : null}
                     <th>Species</th>
                     <th className={styles.num}>Head</th>
                     <th>Who</th>
@@ -265,6 +333,7 @@ export default function LivestockMoveCard({ project }: Props) {
                     <tr key={e.id}>
                       <td>{e.date}</td>
                       <td>{directionLabel(e.direction)}</td>
+                      {showFrom ? <td>{fromLabel(e) || '—'}</td> : null}
                       <td>{speciesLabel(e.species)}</td>
                       <td className={styles.num}>{e.headCount ?? '—'}</td>
                       <td>{e.who ?? ''}</td>

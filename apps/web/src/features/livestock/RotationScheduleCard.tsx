@@ -15,9 +15,14 @@ import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import {
   useLivestockMoveLogStore,
   eventsByPaddock,
+  exitsFromPaddock,
+  structureDestEvents,
+  destStructureId,
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
+import { useStructureStore } from '../../store/structureStore.js';
+import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import {
   computeRecoveryStatus,
   computeRotationSchedule,
@@ -114,6 +119,28 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
     }
     return map;
   }, [allEvents, paddocks, projectId]);
+  const exitsByPaddockId = useMemo(() => {
+    const map = new Map<string, LivestockMoveEvent[]>();
+    for (const p of paddocks) {
+      map.set(p.id, exitsFromPaddock(allEvents, projectId, p.id));
+    }
+    return map;
+  }, [allEvents, paddocks, projectId]);
+  const structureEvents = useMemo(
+    () => structureDestEvents(allEvents, projectId),
+    [allEvents, projectId],
+  );
+  const allStructures = useStructureStore((s) => s.structures);
+  const projectStructures = useMemo(
+    () => allStructures.filter((s) => s.projectId === projectId),
+    [allStructures, projectId],
+  );
+  function structureLabel(id: string): string {
+    const s = projectStructures.find((x) => x.id === id);
+    if (!s) return '(deleted structure)';
+    const tpl = STRUCTURE_TEMPLATES[s.type];
+    return `${tpl.icon} ${s.name || tpl.label}`;
+  }
 
   const moves = useMemo(() => projectMoves(paddocks), [paddocks]);
 
@@ -255,19 +282,29 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                     </div>
 
                     {(() => {
-                      const events = eventsByPaddockId.get(m.paddockId) ?? [];
+                      const entries = eventsByPaddockId.get(m.paddockId) ?? [];
+                      const exits = exitsByPaddockId.get(m.paddockId) ?? [];
+                      // Combine: tag each event as 'in' (destination is this paddock)
+                      // or 'out' (origin is this paddock). Skip an exit if the same event
+                      // is already in entries (rotate-through within the same paddock).
+                      const entryIds = new Set(entries.map((e) => e.id));
+                      type Tagged = { ev: LivestockMoveEvent; tag: 'in' | 'out' };
+                      const combined: Tagged[] = [
+                        ...entries.map((ev) => ({ ev, tag: 'in' as const })),
+                        ...exits.filter((e) => !entryIds.has(e.id)).map((ev) => ({ ev, tag: 'out' as const })),
+                      ].sort((a, b) => (a.ev.date < b.ev.date ? 1 : a.ev.date > b.ev.date ? -1 : 0));
                       return (
                         <div className={css.loggedMovesSection}>
                           <div className={css.loggedMovesHeading}>Logged moves</div>
-                          {events.length === 0 ? (
+                          {combined.length === 0 ? (
                             <div className={css.loggedMoveEmpty}>
                               No moves logged for this paddock yet.
                             </div>
                           ) : (
-                            events.map((ev) => (
-                              <div key={ev.id} className={css.loggedMoveRow}>
+                            combined.map(({ ev, tag }) => (
+                              <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
                                 <div className={css.loggedMoveDirection}>
-                                  <b>{DIRECTION_LABEL[ev.direction]}</b>
+                                  <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
                                   <span>
                                     {formatLoggedDate(ev.date)}
                                     {' \u00b7 '}
@@ -294,6 +331,39 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
           </div>
         );
       })}
+
+      {structureEvents.length > 0 ? (
+        <div className={css.groupBlock}>
+          <div className={css.groupHead}>
+            <span className={css.groupName}>Structure moves</span>
+            <span className={css.groupMeta}>
+              {structureEvents.length} event{structureEvents.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className={css.loggedMovesSection}>
+            {structureEvents.map((ev) => {
+              const sid = destStructureId(ev);
+              return (
+                <div key={ev.id} className={css.loggedMoveRow}>
+                  <div className={css.loggedMoveDirection}>
+                    <b>{DIRECTION_LABEL[ev.direction]}</b>
+                    <span>
+                      {sid ? structureLabel(sid) : '(unknown)'}
+                      {' \u00b7 '}
+                      {formatLoggedDate(ev.date)}
+                      {' \u00b7 '}
+                      {ev.species}
+                      {ev.headCount != null ? ` \u00b7 ${ev.headCount} head` : ''}
+                      {ev.who ? ` \u00b7 ${ev.who}` : ''}
+                    </span>
+                  </div>
+                  {ev.notes ? <div className={css.loggedMoveMeta}>{ev.notes}</div> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <div className={css.assumption}>
         Schedule projects from each paddock{'\u2019'}s last-updated timestamp against species recovery

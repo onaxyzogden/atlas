@@ -146,7 +146,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
   addEvent({
     id,
     projectId,
-    structureId: structure.id,
+    toStructureId: structure.id,
     date: todayIso(),
     direction: 'move_in',
     species: defaultSpecies,

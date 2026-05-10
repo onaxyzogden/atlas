@@ -103,7 +103,7 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
       addEvent({
         id,
         projectId,
-        paddockId: hitId,
+        toPaddockId: hitId,
         date: todayIso(),
         direction: 'move_in',
         species: defaultSpecies,

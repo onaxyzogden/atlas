@@ -41,18 +41,40 @@ export const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
 export interface LivestockMoveEvent {
   id: string;
   projectId: string;
-  /** Paddock target. Set when the move is logged against a Plan paddock.
-   *  Exactly one of `paddockId` / `structureId` should be set. */
+  /** @deprecated v2 field — kept for legacy read fallback. New writes set
+   *  `toPaddockId` instead. v3 migration backfilled `toPaddockId` from this. */
   paddockId?: string;
-  /** Structure target — barn, animal_shelter, etc. Set when the move is
-   *  logged from the Act-stage structure inspector. */
+  /** @deprecated v2 field — kept for legacy read fallback. New writes set
+   *  `toStructureId` instead. v3 migration backfilled `toStructureId` from this. */
   structureId?: string;
+  /** Origin paddock — set when the herd came *from* a Plan paddock.
+   *  Optional: the first-ever entry to a paddock has no recorded origin.
+   *  Mutually exclusive with `fromStructureId`. */
+  fromPaddockId?: string;
+  /** Origin structure (barn / animal_shelter). Mutually exclusive with `fromPaddockId`. */
+  fromStructureId?: string;
+  /** Destination paddock. Exactly one of `toPaddockId` / `toStructureId` is set
+   *  on a well-formed event. Reads should also fall back to `paddockId`
+   *  for pre-migration events. */
+  toPaddockId?: string;
+  /** Destination structure (barn / animal_shelter). Reads should also fall
+   *  back to `structureId` for pre-migration events. */
+  toStructureId?: string;
   date: string;
   direction: LivestockMoveDirection;
   species: LivestockSpecies;
   headCount: number | null;
   who?: string;
   notes?: string;
+}
+
+/** Destination paddock id, with legacy v2 fallback. */
+export function destPaddockId(e: LivestockMoveEvent): string | undefined {
+  return e.toPaddockId ?? e.paddockId;
+}
+/** Destination structure id, with legacy v2 fallback. */
+export function destStructureId(e: LivestockMoveEvent): string | undefined {
+  return e.toStructureId ?? e.structureId;
 }
 
 interface LivestockMoveLogState {
@@ -73,7 +95,36 @@ export function eventsByPaddock(
   paddockId: string,
 ): LivestockMoveEvent[] {
   return events
-    .filter((e) => e.projectId === projectId && e.paddockId === paddockId)
+    .filter((e) => e.projectId === projectId && destPaddockId(e) === paddockId)
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+/**
+ * Returns events whose *origin* (`fromPaddockId`) is this paddock — i.e. exits
+ * from this cell. Useful for plan-vs-actual variance against rotation schedule.
+ */
+export function exitsFromPaddock(
+  events: LivestockMoveEvent[],
+  projectId: string,
+  paddockId: string,
+): LivestockMoveEvent[] {
+  return events
+    .filter((e) => e.projectId === projectId && e.fromPaddockId === paddockId)
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+/**
+ * Returns events whose destination is a structure on the given project,
+ * sorted most-recent first. Paddock-keyed reads silently drop these.
+ */
+export function structureDestEvents(
+  events: LivestockMoveEvent[],
+  projectId: string,
+): LivestockMoveEvent[] {
+  return events
+    .filter((e) => e.projectId === projectId && destStructureId(e) != null)
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
@@ -87,7 +138,21 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-livestock-moves', version: 2 },
+    {
+      name: 'ogden-livestock-moves',
+      version: 3,
+      migrate: (persisted, fromVersion) => {
+        const state = persisted as { events?: LivestockMoveEvent[] } | undefined;
+        if (state?.events && fromVersion < 3) {
+          state.events = state.events.map((e) => ({
+            ...e,
+            toPaddockId:   e.toPaddockId   ?? e.paddockId,
+            toStructureId: e.toStructureId ?? e.structureId,
+          }));
+        }
+        return state as LivestockMoveLogState;
+      },
+    },
   ),
 );
 
