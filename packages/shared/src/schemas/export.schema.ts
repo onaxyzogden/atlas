@@ -18,6 +18,7 @@ export const ExportType = z.enum([
   'macroclimate_report',
   'sectors_zones_report',
   'built_environment_report',
+  'human_context_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -429,6 +430,63 @@ export const BuiltEnvironmentPayload = z.object({
 });
 export type BuiltEnvironmentPayload = z.infer<typeof BuiltEnvironmentPayload>;
 
+export const HumanContextPayload = z.object({
+  steward: z.object({
+    name: z.string().optional(),
+    age: z.number().optional(),
+    occupation: z.string().optional(),
+    lifestyle: z.enum(['active', 'sedentary']).optional(),
+    maintenanceHrsInitial: z.number().optional(),
+    maintenanceHrsOngoing: z.number().optional(),
+    budget: z.string().optional(),
+    skills: z.array(z.string()).optional(),
+    vision: z.string().optional(),
+    coreFunctions: z.array(z.string()).optional(),
+    experienceGoals: z.array(z.string()).optional(),
+    successMetrics: z.array(z.string()).optional(),
+    principles: z.array(z.string()).optional(),
+    guidingValues: z.array(z.string()).optional(),
+    constraints: z.array(z.string()).optional(),
+    moodboardImageCount: z.number().optional(),
+  }),
+  regional: z.object({
+    indigenousNames: z.array(z.string()).optional(),
+    culturalChallenges: z.array(z.string()).optional(),
+    culturalStrengths: z.array(z.string()).optional(),
+    localNetwork: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      type: z.string(),
+      contact: z.string().optional(),
+    })).optional(),
+  }),
+  phaseNotes: z.array(z.object({
+    phaseKey: z.string(),
+    label: z.string(),
+    notes: z.string(),
+  })),
+  milestones: z.array(z.object({
+    id: z.string(),
+    phaseId: z.string(),
+    note: z.string(),
+    targetDate: z.string().nullable(),
+  })),
+  archetype: z.object({
+    name: z.string(),
+    blurb: z.string(),
+  }),
+  totals: z.object({
+    overallPct: z.number(),
+    stewardPct: z.number(),
+    regionalPct: z.number(),
+    visionPct: z.number(),
+    totalHoursPerWeek: z.number(),
+    milestonesDefined: z.number(),
+    moodboardImageCount: z.number(),
+  }),
+});
+export type HumanContextPayload = z.infer<typeof HumanContextPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -444,6 +502,7 @@ export const CreateExportInput = z.object({
     macroclimate: MacroclimatePayload.optional(),
     sectorsZones: SectorsZonesPayload.optional(),
     builtEnvironment: BuiltEnvironmentPayload.optional(),
+    humanContext: HumanContextPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
