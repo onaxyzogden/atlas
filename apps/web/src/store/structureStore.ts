@@ -1,13 +1,45 @@
 /**
- * Structure store — manages placed structures with localStorage persistence.
+ * structureStore — V2-derived facade for PLAN-stage proposed structures.
  *
- * Phase 2: Structures are placed on the map via click-to-place,
- * with predefined footprint polygons that can be rotated.
+ * History: V1 was a single `structures: Structure[]` zundo+persist store on
+ * `'ogden-structures'`. 2026-05-10 unification (ADR
+ * `2026-05-10-atlas-built-environment-unification.md`) moved canonical
+ * storage to `builtEnvironmentStoreV2` — a single `entities[]` array
+ * discriminated by `state: 'existing' | 'proposed'`.
+ *
+ * This module is kept on disk as a **bridge / facade** so the legacy
+ * reader/writer sites (`PlanDataLayers`, `PhasingDashboard`,
+ * `useAllPlacedEntities`, `StructureFootprintLibraryCard`,
+ * `PlanVertexEditHandler`, `StructureTool`) keep their V1-shape
+ * subscriptions unchanged. The facade:
+ *
+ *   - Subscribes to V2 on first hydrate and any update.
+ *   - Projects V2 entities (`state === 'proposed'`, kind in the legacy
+ *     20-StructureType set) into the V1 `Structure[]` shape.
+ *   - Routes every mutation (`addStructure`, `updateStructure`,
+ *     `deleteStructure`) through V2's `create / updateMetadata /
+ *     updateGeometry / delete`.
+ *
+ * Persistence + zundo temporal live on V2 only; this store is in-memory.
+ * `placementMode` is local-only UI state (was never persisted in V1
+ * either) and stays in this store unchanged.
+ *
+ * Follow-up: once a release ships clean, delete this file outright. The
+ * legacy localStorage key `ogden-structures` remains read-only via V2's
+ * migration shim; we do NOT write to it any more.
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { temporal } from 'zundo';
+import {
+  canonicalizeKind,
+  projectToStructures,
+  type BuiltEnvironmentEntity,
+  type ProposedMetadata,
+} from '@ogden/shared';
+import {
+  useBuiltEnvironmentStoreV2,
+  type BuiltEnvironmentV2State,
+} from './builtEnvironmentStoreV2.js';
 
 export type StructureType =
   | 'cabin'
@@ -43,76 +75,20 @@ export interface Structure {
   depthM: number;
   phase: string;
   costEstimate: number | null;
-  /**
-   * Optional ridge/eave height in metres. Used by the §6 Solar & Climate
-   * dashboard for shadow-length estimation. Falls back to the per-type
-   * height table in `features/structures/footprints.ts` when unset.
-   */
   heightM?: number;
-  /**
-   * Optional number of habitable stories (§9 multi-story-structure-support).
-   * Treated as 1 when absent. Multiplies usable floor area and the rough
-   * cost estimate inside the StructurePropertiesModal — does not currently
-   * change the rendered footprint geometry on the map (which is a single
-   * polygon at ground level regardless of vertical stack).
-   */
   storiesCount?: number;
-  /**
-   * Optional steward-entered labor estimate in person-hours for this
-   * structure. Read by the PhasingDashboard to roll up labor load by
-   * phase alongside cost (§15 "Cost, labor, material need by phase").
-   * Placeholder — not a scheduling engine.
-   */
   laborHoursEstimate?: number;
-  /**
-   * Optional steward-entered material estimate in metric tons (delivered
-   * mass). Read by the PhasingDashboard to roll up material demand by
-   * phase alongside cost and labor (§15 "Cost, labor, material need by
-   * phase"). Placeholder — not a BOM.
-   */
   materialTonnageEstimate?: number;
   infrastructureReqs: string[];
   notes: string;
-  /**
-   * Optional marker for temporary or seasonal elements (§15 Timeline,
-   * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
-   * view"). `true` = present only for this phase or a subset of the year;
-   * `false` / undefined = permanent. The PhasingDashboard uses this to
-   * offer a "Hide temporary" toggle and render temporary items with a
-   * dashed outline.
-   */
   isTemporary?: boolean;
-  /**
-   * Optional 1-indexed months (1 = January, 12 = December) during which
-   * the element is actually present on site. Meaningful only when
-   * `isTemporary` is `true`. Empty / undefined = year-round when present.
-   */
   seasonalMonths?: number[];
-  /**
-   * Optional steward override for daily water demand (US gal/day). When `> 0`,
-   * wins over the per-type default in `@ogden/shared/demand` regardless of
-   * `occupantCount` or `storiesCount`.
-   */
   demandWaterGalPerDay?: number;
-  /**
-   * Optional steward override for daily electricity demand (kWh/day). Same
-   * precedence rules as `demandWaterGalPerDay`.
-   */
   demandKwhPerDay?: number;
-  /**
-   * Optional human-occupant count for residential structures (cabin, yurt,
-   * tent_glamping, earthship, bathhouse). Multiplies water + electricity
-   * demand linearly. Treated as 1 when absent or non-residential.
-   */
   occupantCount?: number;
-  /**
-   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
-   * structure belongs to. Optional; undefined = unassigned.
-   */
   enterprise?: string;
   createdAt: string;
   updatedAt: string;
-  /** Server-assigned UUID after backend sync (undefined = not yet synced) */
   serverId?: string;
 }
 
@@ -126,45 +102,134 @@ interface StructureState {
   setPlacementMode: (type: StructureType | null) => void;
 }
 
-export const useStructureStore = create<StructureState>()(
-  persist(
-    temporal(
-      (set) => ({
-        structures: [],
-        placementMode: null,
+// ─────────────────────────────────────────────────────────────────────────
+// V1 ↔ V2 kind translation.
+// ─────────────────────────────────────────────────────────────────────────
+//
+// V1 `StructureType` is snake_case (`prayer_space`, `tent_glamping`); V2
+// kinds are kebab-case (`prayer-pavilion`, `tent-glamping`). The kind
+// registry already aliases the snake_case forms for migration; on the
+// write path we re-map V1 → kebab via the registry, and on the read path
+// we use the legacy reverse map embedded in `projectToStructures`.
 
-        addStructure: (structure) =>
-          set((s) => ({ structures: [...s.structures, structure] })),
+function structureTypeToV2Kind(t: StructureType): string {
+  // Registry's canonicalizeKind handles both shapes (prayer_space →
+  // prayer-pavilion via aliases, plus already-kebab kinds round-trip).
+  return canonicalizeKind(t) ?? canonicalizeKind(t.replace(/_/g, '-')) ?? t;
+}
 
-        updateStructure: (id, updates) =>
-          set((s) => ({
-            structures: s.structures.map((st) =>
-              st.id === id ? { ...st, ...updates, updatedAt: new Date().toISOString() } : st,
-            ),
-          })),
+// ─────────────────────────────────────────────────────────────────────────
+// V2 → V1 projection.
+// ─────────────────────────────────────────────────────────────────────────
 
-        deleteStructure: (id) =>
-          set((s) => ({ structures: s.structures.filter((st) => st.id !== id) })),
+function projectV2ToStructures(entities: BuiltEnvironmentEntity[]): Structure[] {
+  // The shared projection helper already filters to `state === 'proposed'`
+  // and the legacy 20-StructureType set, computes polygon centroids, and
+  // restores snake_case `type`. We just cast its `type: string` to the
+  // legacy enum since we know the helper only emits values from the V1 set.
+  return projectToStructures(entities).map((s) => ({
+    ...s,
+    type: s.type as StructureType,
+  }));
+}
 
-        setPlacementMode: (type) => set({ placementMode: type }),
-      }),
-      { limit: 200 },
-    ),
-    {
-      name: 'ogden-structures',
-      version: 2,
-      partialize: (state) => ({ structures: state.structures }),
-      migrate: (persisted, version) => {
-        const state = persisted as { structures?: Structure[] };
-        if (version < 2 && Array.isArray(state.structures)) {
-          // v1 → v2: add serverId field to all existing structures
-          state.structures = state.structures.map((s) => ({ serverId: undefined, ...s }));
-        }
-        return state;
-      },
-    },
-  ),
+// ─────────────────────────────────────────────────────────────────────────
+// V1 → V2 write helpers.
+// ─────────────────────────────────────────────────────────────────────────
+
+function v2Api() {
+  return useBuiltEnvironmentStoreV2.getState();
+}
+
+function buildProposedFromStructure(s: Partial<Structure>): ProposedMetadata {
+  const m: ProposedMetadata = {};
+  if (typeof s.rotationDeg === 'number') m.rotationDeg = s.rotationDeg;
+  if (typeof s.widthM === 'number') m.widthM = s.widthM;
+  if (typeof s.depthM === 'number') m.depthM = s.depthM;
+  if (typeof s.heightM === 'number') m.heightM = s.heightM;
+  if (typeof s.storiesCount === 'number') m.storiesCount = s.storiesCount;
+  if (typeof s.costEstimate === 'number') m.costEstimate = s.costEstimate;
+  if (typeof s.laborHoursEstimate === 'number') m.laborHoursEstimate = s.laborHoursEstimate;
+  if (typeof s.materialTonnageEstimate === 'number') {
+    m.materialTonnageEstimate = s.materialTonnageEstimate;
+  }
+  if (typeof s.demandWaterGalPerDay === 'number') {
+    m.demandWaterGalPerDay = s.demandWaterGalPerDay;
+  }
+  if (typeof s.demandKwhPerDay === 'number') m.demandKwhPerDay = s.demandKwhPerDay;
+  if (typeof s.occupantCount === 'number') m.occupantCount = s.occupantCount;
+  if (Array.isArray(s.infrastructureReqs)) m.infrastructureReqs = s.infrastructureReqs;
+  if (typeof s.isTemporary === 'boolean') m.isTemporary = s.isTemporary;
+  if (Array.isArray(s.seasonalMonths)) m.seasonalMonths = s.seasonalMonths;
+  if (typeof s.phase === 'string') m.phase = s.phase;
+  if (typeof s.enterprise === 'string') m.enterprise = s.enterprise;
+  return m;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Facade store.
+// ─────────────────────────────────────────────────────────────────────────
+
+const initialStructures = projectV2ToStructures(
+  useBuiltEnvironmentStoreV2.getState().entities,
 );
 
-// Hydrate from localStorage (Zustand v5)
-useStructureStore.persist.rehydrate();
+export const useStructureStore = create<StructureState>()((set) => ({
+  structures: initialStructures,
+  placementMode: null,
+
+  addStructure: (structure) => {
+    const proposed = buildProposedFromStructure(structure);
+    const input: Parameters<BuiltEnvironmentV2State['create']>[0] = {
+      projectId: structure.projectId,
+      kind: structureTypeToV2Kind(structure.type),
+      state: 'proposed',
+      geometry: structure.geometry,
+      proposed,
+    };
+    if (structure.name !== undefined) input.label = structure.name;
+    if (structure.notes !== undefined) input.notes = structure.notes;
+    // serverId is omitted from CreateBuiltEnvironmentInput by design; if
+    // an explicit serverId is supplied, patch it in via updateMetadata
+    // after V2 mints the canonical id.
+    const created = v2Api().create(input);
+    if (structure.serverId !== undefined) {
+      v2Api().updateMetadata(created.id, { serverId: structure.serverId });
+    }
+    // Note: V1-supplied id is dropped — V2 mints its own. V1 readers
+    // re-select via the facade by V2's id, so the divergence is invisible.
+  },
+
+  updateStructure: (id, updates) => {
+    const update: Parameters<BuiltEnvironmentV2State['updateMetadata']>[1] = {};
+    if (updates.name !== undefined) update.label = updates.name;
+    if (updates.notes !== undefined) update.notes = updates.notes;
+    if (updates.serverId !== undefined) update.serverId = updates.serverId;
+    const proposed = buildProposedFromStructure(updates);
+    if (Object.keys(proposed).length > 0) update.proposed = proposed;
+    v2Api().updateMetadata(id, update);
+    if (updates.geometry) v2Api().updateGeometry(id, updates.geometry);
+  },
+
+  deleteStructure: (id) => v2Api().delete(id),
+
+  setPlacementMode: (type) => set({ placementMode: type }),
+}));
+
+// ─────────────────────────────────────────────────────────────────────────
+// V2 → V1 reprojection subscription.
+// ─────────────────────────────────────────────────────────────────────────
+
+useBuiltEnvironmentStoreV2.subscribe((s, prev) => {
+  if (s.entities === prev.entities) return;
+  useStructureStore.setState({ structures: projectV2ToStructures(s.entities) });
+});
+
+// V2's `persist` middleware runs rehydration asynchronously; trigger it
+// explicitly so the facade picks up any pre-existing entities, then
+// re-project.
+void Promise.resolve(useBuiltEnvironmentStoreV2.persist.rehydrate()).then(() => {
+  useStructureStore.setState({
+    structures: projectV2ToStructures(useBuiltEnvironmentStoreV2.getState().entities),
+  });
+});

@@ -478,7 +478,7 @@ const initialSlices = projectV2ToV1Slices(
   useBuiltEnvironmentStoreV2.getState().entities,
 );
 
-const useBuiltEnvironmentStoreFacade = create<BuiltEnvironmentState>()((set) => ({
+export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) => ({
   ...initialSlices,
 
   addBuilding: (b) =>
@@ -734,123 +734,14 @@ const useBuiltEnvironmentStoreFacade = create<BuiltEnvironmentState>()((set) => 
 
 useBuiltEnvironmentStoreV2.subscribe((s, prev) => {
   if (s.entities === prev.entities) return;
-  useBuiltEnvironmentStoreFacade.setState(projectV2ToV1Slices(s.entities));
+  useBuiltEnvironmentStore.setState(projectV2ToV1Slices(s.entities));
 });
 
 // Force V2 to hydrate from localStorage on first import so the facade
 // captures any pre-existing entities. V2's `persist` middleware runs
 // rehydration asynchronously; we trigger it explicitly and then re-project.
 void Promise.resolve(useBuiltEnvironmentStoreV2.persist.rehydrate()).then(() => {
-  useBuiltEnvironmentStoreFacade.setState(
+  useBuiltEnvironmentStore.setState(
     projectV2ToV1Slices(useBuiltEnvironmentStoreV2.getState().entities),
   );
 });
-
-// ─────────────────────────────────────────────────────────────────────────
-// Legacy V1 store — preserved for `FLAGS.BUILT_ENV_V2 === false` rollback.
-//
-// Reads + writes go to the original `'ogden-built-environment'` localStorage
-// key with the original zundo temporal middleware. This store is fully
-// independent from V2 — toggling the flag is a clean swap with no shared
-// state. The migration shim in `builtEnvironmentStoreV2.ts` ingests this
-// key on first hydrate when V2 is empty, so flag-on→flag-off→flag-on does
-// not lose data (V1 reads its own key, V2 already has it).
-// ─────────────────────────────────────────────────────────────────────────
-
-const useBuiltEnvironmentStoreLegacy = create<BuiltEnvironmentState>()(
-  persist(
-    temporal((set) => ({
-      buildings: [],
-      wells: [],
-      septics: [],
-      powerLines: [],
-      buriedUtilities: [],
-      fences: [],
-      gates: [],
-      existingDriveways: [],
-
-      addBuilding: (b) => set((s) => ({ buildings: [...s.buildings, b] })),
-      updateBuilding: (id, patch) =>
-        set((s) => ({
-          buildings: s.buildings.map((b) => (b.id === id ? { ...b, ...patch } : b)),
-        })),
-      removeBuilding: (id) =>
-        set((s) => ({ buildings: s.buildings.filter((b) => b.id !== id) })),
-
-      addWell: (w) => set((s) => ({ wells: [...s.wells, w] })),
-      updateWell: (id, patch) =>
-        set((s) => ({
-          wells: s.wells.map((w) => (w.id === id ? { ...w, ...patch } : w)),
-        })),
-      removeWell: (id) => set((s) => ({ wells: s.wells.filter((w) => w.id !== id) })),
-
-      addSeptic: (sp) => set((s) => ({ septics: [...s.septics, sp] })),
-      updateSeptic: (id, patch) =>
-        set((s) => ({
-          septics: s.septics.map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)),
-        })),
-      removeSeptic: (id) =>
-        set((s) => ({ septics: s.septics.filter((sp) => sp.id !== id) })),
-
-      addPowerLine: (p) => set((s) => ({ powerLines: [...s.powerLines, p] })),
-      updatePowerLine: (id, patch) =>
-        set((s) => ({
-          powerLines: s.powerLines.map((p) => (p.id === id ? { ...p, ...patch } : p)),
-        })),
-      removePowerLine: (id) =>
-        set((s) => ({ powerLines: s.powerLines.filter((p) => p.id !== id) })),
-
-      addBuriedUtility: (u) =>
-        set((s) => ({ buriedUtilities: [...s.buriedUtilities, u] })),
-      updateBuriedUtility: (id, patch) =>
-        set((s) => ({
-          buriedUtilities: s.buriedUtilities.map((u) =>
-            u.id === id ? { ...u, ...patch } : u,
-          ),
-        })),
-      removeBuriedUtility: (id) =>
-        set((s) => ({
-          buriedUtilities: s.buriedUtilities.filter((u) => u.id !== id),
-        })),
-
-      addFence: (f) => set((s) => ({ fences: [...s.fences, f] })),
-      updateFence: (id, patch) =>
-        set((s) => ({
-          fences: s.fences.map((f) => (f.id === id ? { ...f, ...patch } : f)),
-        })),
-      removeFence: (id) =>
-        set((s) => ({ fences: s.fences.filter((f) => f.id !== id) })),
-
-      addGate: (g) => set((s) => ({ gates: [...s.gates, g] })),
-      updateGate: (id, patch) =>
-        set((s) => ({
-          gates: s.gates.map((g) => (g.id === id ? { ...g, ...patch } : g)),
-        })),
-      removeGate: (id) => set((s) => ({ gates: s.gates.filter((g) => g.id !== id) })),
-
-      addExistingDriveway: (d) =>
-        set((s) => ({ existingDriveways: [...s.existingDriveways, d] })),
-      updateExistingDriveway: (id, patch) =>
-        set((s) => ({
-          existingDriveways: s.existingDriveways.map((d) =>
-            d.id === id ? { ...d, ...patch } : d,
-          ),
-        })),
-      removeExistingDriveway: (id) =>
-        set((s) => ({
-          existingDriveways: s.existingDriveways.filter((d) => d.id !== id),
-        })),
-    }), { limit: 200 }),
-    { name: 'ogden-built-environment', version: 1 },
-  ),
-);
-
-useBuiltEnvironmentStoreLegacy.persist.rehydrate();
-
-// ─────────────────────────────────────────────────────────────────────────
-// Flag-gated export — pick V2-facade or V1-legacy at module load.
-// ─────────────────────────────────────────────────────────────────────────
-
-export const useBuiltEnvironmentStore = FLAGS.BUILT_ENV_V2
-  ? useBuiltEnvironmentStoreFacade
-  : useBuiltEnvironmentStoreLegacy;

@@ -49,6 +49,7 @@ export * from './schemas/actTelemetry.schema.js';
 // Built Environment (unified Observe + Plan entity — see ADR 2026-05-10)
 export * from './builtEnvironment.js';
 export * from './builtEnvironmentKinds.js';
+export * from './builtEnvironmentProjection.js';
 
 // Utilities
 export * from './lib/caseTransform.js';
