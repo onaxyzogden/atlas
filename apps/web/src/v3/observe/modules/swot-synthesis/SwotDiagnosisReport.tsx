@@ -5,11 +5,8 @@ import {
   CalendarDays,
   Check,
   CircleDot,
-  Download,
   Flag,
   Leaf,
-  Plus,
-  Share2,
   Sprout,
   Target,
 } from 'lucide-react';
@@ -69,14 +66,6 @@ function ReportTopbar() {
         Module 6 <ArrowRight aria-hidden="true" /> SWOT Synthesis{' '}
         <ArrowRight aria-hidden="true" /> <b>Diagnosis report</b>
       </p>
-      <nav>
-        <button type="button">
-          <Download aria-hidden="true" /> Export report
-        </button>
-        <button type="button">
-          <Share2 aria-hidden="true" /> Share summary
-        </button>
-      </nav>
     </header>
   );
 }

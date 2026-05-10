@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   ChevronDown,
   Compass,
-  Download,
   Droplet,
   Layers,
   MapPin,
@@ -115,14 +114,6 @@ function TerrainHeader() {
           Read the shape of the land. Understand elevation, slope, aspect and water movement so
           you can design with the land, not against it.
         </p>
-      </div>
-      <div className="terrain-header-actions">
-        <button className="outlined-button" type="button">
-          <Download aria-hidden="true" /> Export terrain report
-        </button>
-        <button className="outlined-button" type="button">
-          <Layers aria-hidden="true" /> Compare layers
-        </button>
       </div>
     </header>
   );

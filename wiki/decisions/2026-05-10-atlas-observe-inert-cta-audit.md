@@ -65,6 +65,30 @@ Unused `ArrowRight` and `Plus` imports dropped from
 `MacroclimateDashboard.tsx`, `HumanContextDashboard.tsx`,
 `SectorCompassDetail.tsx`, and `TerrainDetail.tsx`.
 
+### Second-tier sweep (same day)
+
+A follow-on pass under the same rule cleared 7 more inert non-`green-button`
+affordances: outlined/plain buttons that were never wired and acted as
+visual noise on top of the deleted primary CTAs.
+
+| File | Button copy |
+|---|---|
+| `topography/TerrainDetail.tsx` | Export terrain report · Compare layers (and the empty `terrain-header-actions` wrapper) |
+| `earth-water-ecology/EcologicalDetail.tsx` | Prioritize (header chevron) |
+| `earth-water-ecology/HydrologyDetail.tsx` | View full report (insights heading) · Prioritize (recommended-actions heading) |
+| `swot-synthesis/SwotDiagnosisReport.tsx` | Export report · Share summary (entire `<nav>` removed — neither had a backing pipeline) |
+| `swot-synthesis/SwotJournal.tsx` | Learn more (intro paragraph link-style button) |
+
+Side cleanup: dropped `Download` + `Share2` + `Plus` from
+`SwotDiagnosisReport.tsx` (Plus was already orphaned from the first
+sweep); dropped `Download` from `TerrainDetail.tsx` (`Layers` retained —
+still used as an icon mapping at line 36).
+
+Buttons explicitly **not** deleted in this second sweep:
+`SwotJournal` "Export journal" + "Send to diagnosis report" — also
+inert, but flagged for a future Export pipeline session rather than
+deletion (the labels imply a concrete future surface).
+
 No prop or interface changes — these buttons were local to their JSX and
 did not propagate types (unlike the option-B sweep, which trimmed
 `ModuleCardShellProps`).

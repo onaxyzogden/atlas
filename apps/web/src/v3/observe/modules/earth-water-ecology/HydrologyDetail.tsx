@@ -306,12 +306,7 @@ function HydrologySidebar({ wc }: SidebarProps) {
   return (
     <aside className="hydrology-sidebar">
       <SurfaceCard className="hydrology-side-card insights">
-        <h2>
-          Hydrology insights{' '}
-          <button type="button">
-            View full report <ArrowRight aria-hidden="true" />
-          </button>
-        </h2>
+        <h2>Hydrology insights</h2>
         {insights.map((item) => (
           <p key={item}>
             <Leaf aria-hidden="true" />
@@ -330,12 +325,7 @@ function HydrologySidebar({ wc }: SidebarProps) {
         ))}
       </SurfaceCard>
       <SurfaceCard className="hydrology-side-card hydrology-actions">
-        <h2>
-          Recommended actions{' '}
-          <button type="button">
-            Prioritize <ChevronDown aria-hidden="true" />
-          </button>
-        </h2>
+        <h2>Recommended actions</h2>
         {actions.map(([title, note, level], index) => (
           <p key={title}>
             <b>{index + 1}</b>

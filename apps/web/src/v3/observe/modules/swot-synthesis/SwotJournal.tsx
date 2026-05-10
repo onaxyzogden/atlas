@@ -74,12 +74,7 @@ function JournalHeader() {
     <header className="journal-header">
       <div>
         <h1>SWOT journal</h1>
-        <p>
-          Capture observations and insights about your site using the SWOT framework.{' '}
-          <button type="button">
-            Learn more <ArrowRight aria-hidden="true" />
-          </button>
-        </p>
+        <p>Capture observations and insights about your site using the SWOT framework.</p>
       </div>
       <nav>
         <button type="button">
