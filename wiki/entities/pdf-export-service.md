@@ -39,6 +39,7 @@ POST /api/v1/projects/:id/exports
 | `swot_journal` | payload.swot | Full per-entry SWOT log — bucket badges, tags, GPS, dates |
 | `swot_diagnosis_report` | payload.swot | Stage bar, executive summary, quadrant overview, prioritised findings, S+O / W+T action pairs |
 | `swot_synthesis` | payload.swot | Lighter narrative — hero, four-lenses card, equations, tag cloud |
+| `topography_report` | payload.topography | Observe Module 3 — elevation KPI strip, feature inventory, slope/drainage/aspect synthesis, transect + elevation-pin tables, recommended actions |
 
 ## Design System
 - Earth Green `#15803D`, Harvest Gold `#CA8A04`, Background `#F0FDF4`
@@ -67,4 +68,4 @@ POST /api/v1/projects/:id/exports
 - Browser singleton reused across requests (new page per render, ~500ms vs 3s cold start)
 - 50MB body limit on POST route to support embedded photos in field notes
 - `PUPPETEER_EXECUTABLE_PATH` env var for custom Chrome binary (Docker deployments)
-- Frontend integration: SWOT trio wired (Journal · Diagnosis Report · Synthesis) via `api.exports.generate()` + `window.open(storageUrl)`; other panels still use `window.print()`
+- Frontend integration: SWOT trio (Journal · Diagnosis Report · Synthesis) + Topography Report wired via `api.exports.generate()` + `window.open(data.storageUrl)`; remaining Observe panels still use `window.print()`

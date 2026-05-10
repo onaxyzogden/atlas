@@ -13,6 +13,7 @@ export const ExportType = z.enum([
   'swot_journal',
   'swot_diagnosis_report',
   'swot_synthesis',
+  'topography_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -138,6 +139,49 @@ export const SwotPayload = z.object({
 });
 export type SwotPayload = z.infer<typeof SwotPayload>;
 
+export const TopographyPayload = z.object({
+  /** Sampled elevation summary from the DEM layer (matches getElevationLayer().summary). */
+  elevationSummary: z.object({
+    min_elevation_m: z.number().nullable().optional(),
+    max_elevation_m: z.number().nullable().optional(),
+    mean_slope_deg: z.number().nullable().optional(),
+    max_slope_deg: z.number().nullable().optional(),
+    predominant_aspect: z.string().nullable().optional(),
+  }).nullable().optional(),
+  contours: z.array(z.object({
+    id: z.string(),
+    elevationM: z.number().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  highPoints: z.array(z.object({
+    id: z.string(),
+    position: z.tuple([z.number(), z.number()]),
+    kind: z.enum(['high', 'low']),
+    elevationM: z.number().optional(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  drainageLines: z.array(z.object({
+    id: z.string(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  transects: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    pointA: z.tuple([z.number(), z.number()]),
+    pointB: z.tuple([z.number(), z.number()]),
+    sampledAt: z.string().optional(),
+    sourceApi: z.string().nullable().optional(),
+    confidence: z.enum(['high', 'medium', 'low']).optional(),
+    totalDistanceM: z.number().optional(),
+    notes: z.string().optional(),
+  })),
+});
+export type TopographyPayload = z.infer<typeof TopographyPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -148,6 +192,7 @@ export const CreateExportInput = z.object({
     financial: FinancialPayload.optional(),
     scenarios: ScenarioPayload.optional(),
     swot: SwotPayload.optional(),
+    topography: TopographyPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
