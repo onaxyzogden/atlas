@@ -37,6 +37,7 @@ import {
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
+  type PhaseKey,
   type PlanView,
 } from '../../plan/types.js';
 import { findElementSpec } from '../../plan/canvas/elementCatalog.js';
@@ -113,7 +114,7 @@ export default function DesignElementExtrusionLayer({
       // Phase capping: only meaningful for proposed entries (Plan stage).
       // Existing-state entries always pass.
       if (e.state === 'proposed' && cap !== Infinity) {
-        const phase = (e.proposed?.phase ?? 'building') as PhaseKey;
+        const phase = (e.proposed?.phase ?? 'buildings') as PhaseKey;
         if (phaseIndex(phase) > cap) continue;
       }
 

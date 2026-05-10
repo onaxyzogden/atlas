@@ -36,6 +36,7 @@ import type { BuiltEnvironmentEntity } from '@ogden/shared';
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
+  type PhaseKey,
   type PlanView,
 } from '../../plan/types.js';
 import {
@@ -401,7 +402,7 @@ export default function DesignElementGlbLayer({
 
       // Phase capping: only meaningful for proposed entries (Plan stage).
       if (e.state === 'proposed' && cap !== Infinity) {
-        const phase = (e.proposed?.phase ?? 'building') as PhaseKey;
+        const phase = (e.proposed?.phase ?? 'buildings') as PhaseKey;
         if (phaseIndex(phase) > cap) continue;
       }
 
