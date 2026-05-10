@@ -46,6 +46,10 @@ export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
 export * from './schemas/actTelemetry.schema.js';
 
+// Built Environment (unified Observe + Plan entity — see ADR 2026-05-10)
+export * from './builtEnvironment.js';
+export * from './builtEnvironmentKinds.js';
+
 // Utilities
 export * from './lib/caseTransform.js';
 export * from './astronomy/sunPath.js';
@@ -62,3 +66,6 @@ export * from './ecology/pollinatorHabitatState.js';
 export * from './constants/dataSources.js';
 export * from './constants/flags.js';
 export * from './constants/system.js';
+
+// Store mirrors / payload helpers
+export * from './store-mirrors/pickHelpers.js';

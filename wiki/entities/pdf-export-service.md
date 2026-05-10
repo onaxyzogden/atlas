@@ -41,6 +41,7 @@ POST /api/v1/projects/:id/exports
 | `swot_synthesis` | payload.swot | Lighter narrative — hero, four-lenses card, equations, tag cloud |
 | `topography_report` | payload.topography | Observe Module 3 — elevation KPI strip, feature inventory, slope/drainage/aspect synthesis, transect + elevation-pin tables, recommended actions |
 | `earth_water_ecology_report` | payload.earthWaterEcology | Observe Module 4 — soil-sample roster, field-test mini-grid, water-systems trio (earthworks · storage · watercourses), ecology observations + zones, 2×2 site-layer synthesis (watershed · wetlands · critical habitat · soils), recommended actions |
+| `macroclimate_report` | payload.macroclimate | Observe Module 2 — climate KPI strip (hardiness zone · annual precip · solar · growing season), seasonal markers, monthly normals table, climate-opportunity list, hazard inventory sorted by risk × mitigation, status mini-grids, heuristic recommended actions |
 
 ## Design System
 - Earth Green `#15803D`, Harvest Gold `#CA8A04`, Background `#F0FDF4`
@@ -69,4 +70,5 @@ POST /api/v1/projects/:id/exports
 - Browser singleton reused across requests (new page per render, ~500ms vs 3s cold start)
 - 50MB body limit on POST route to support embedded photos in field notes
 - `PUPPETEER_EXECUTABLE_PATH` env var for custom Chrome binary (Docker deployments)
-- Frontend integration: SWOT trio (Journal · Diagnosis Report · Synthesis) + Topography Report + Earth · Water · Ecology Report wired via `api.exports.generate()` + `window.open(data.storageUrl)`; remaining Observe panels still use `window.print()`
+- Frontend integration: SWOT trio (Journal · Diagnosis Report · Synthesis) + Topography Report + Earth · Water · Ecology Report + Macroclimate & Hazards Report wired via `api.exports.generate()` + `window.open(data.storageUrl)`; remaining Observe panels still use `window.print()`
+- Payload-builder helpers `pickDefined` / `pickTruthy` live in `packages/shared/src/store-mirrors/pickHelpers.ts` and are reused across Topography, EWE, and Macroclimate dashboard handlers (rule-of-three lift, see 2026-05-10 Macroclimate ADR)

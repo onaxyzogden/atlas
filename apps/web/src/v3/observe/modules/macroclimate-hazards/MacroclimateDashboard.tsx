@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
+  Download,
   Droplet,
   Leaf,
   Snowflake,
@@ -12,18 +13,22 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
+import { pickDefined, pickTruthy } from '@ogden/shared';
 import { SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useHazardsStore } from '../../../../store/hazardsStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
+import { api } from '../../../../lib/apiClient.js';
 import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
 import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
 import {
   climateKpis,
+  getClimateLayer,
   hazardCounts,
+  monthlyClimateSeries,
   polygonCentroid,
   riskLabel,
   solarOpportunities,
@@ -31,6 +36,21 @@ import {
   topRiskPriorities,
   type KpiItem,
 } from './derivations.js';
+
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   snowflake: Snowflake,
@@ -60,11 +80,69 @@ export default function MacroclimateDashboard() {
 
   const centroid = polygonCentroid(project?.location?.boundary);
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const climateSummary = getClimateLayer(layers)?.summary as
+        | Record<string, unknown>
+        | undefined;
+      const monthly = monthlyClimateSeries(layers).map((m) => ({
+        month: MONTH_LABELS[(m.month - 1) % 12] ?? String(m.month),
+        ...(m.precipMm != null ? { precipMm: m.precipMm } : {}),
+        ...(m.meanMaxC != null ? { meanMaxC: m.meanMaxC } : {}),
+        ...(m.meanMinC != null ? { meanMinC: m.meanMinC } : {}),
+      }));
+      const counts = hazardCounts(hazards);
+      const { data } = await api.exports.generate(id, {
+        exportType: 'macroclimate_report',
+        payload: {
+          macroclimate: {
+            ...(climateSummary ? { climateSummary } : {}),
+            ...(monthly.length > 0 ? { monthlyNormals: monthly } : {}),
+            solarOpportunities: solarOpportunities(layers),
+            hazards: hazards.map((h) => ({
+              id: h.id,
+              kind: h.kind,
+              label: h.label,
+              risk: h.risk,
+              trend: h.trend,
+              status: h.status,
+              mitigationPct: h.mitigationPct,
+              ...pickDefined(h, ['lat', 'lng']),
+              ...pickTruthy(h, ['window', 'notes']),
+              createdAt: h.createdAt,
+              updatedAt: h.updatedAt,
+            })),
+            hazardCounts: {
+              total: counts.total,
+              active: counts.active,
+              mitigated: counts.mitigated,
+              monitoring: counts.monitoring,
+              in_progress: counts.inProgress,
+              planned: counts.planned,
+              highRisk: counts.highRisk,
+              moderateRisk: counts.moderateRisk,
+              lowRisk: counts.lowRisk,
+              averageMitigationPct: counts.averageMitigationPct,
+            },
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Macroclimate report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="detail-page macroclimate-page">
       <section className="macroclimate-layout">
         <div className="macroclimate-main">
-          <MacroHeader />
+          <MacroHeader onExport={handleExport} exporting={exporting} />
           <MacroKpis layers={layers} hazards={hazards} />
           <SolarClimateCard layers={layers} lat={centroid?.lat ?? null} />
           <HazardsCard
@@ -85,11 +163,22 @@ export default function MacroclimateDashboard() {
   );
 }
 
-function MacroHeader() {
+interface MacroHeaderProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function MacroHeader({ onExport, exporting }: MacroHeaderProps) {
   return (
     <header className="macro-header">
       <span>Module 2</span>
-      <h1>Macroclimate &amp; Hazards</h1>
+      <div className="macro-header-row">
+        <h1>Macroclimate &amp; Hazards</h1>
+        <button type="button" onClick={onExport} disabled={exporting}>
+          <Download aria-hidden="true" />{' '}
+          {exporting ? 'Generating…' : 'Export macroclimate report'}
+        </button>
+      </div>
       <p>
         Understand the big-picture climate patterns and natural hazards that shape your site. Use
         this foundation to design resilient systems that work with your environment, not against

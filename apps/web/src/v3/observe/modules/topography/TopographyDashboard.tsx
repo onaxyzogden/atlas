@@ -26,6 +26,7 @@ import {
 } from '../../../../store/topographyStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
+import { pickDefined, pickTruthy } from '@ogden/shared';
 import AspectCompass from './AspectCompass.js';
 import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
@@ -93,22 +94,21 @@ export default function TopographyDashboard() {
               : null,
             contours: contours.map((c) => ({
               id: c.id,
-              ...(c.elevationM != null ? { elevationM: c.elevationM } : {}),
-              ...(c.notes ? { notes: c.notes } : {}),
+              ...pickDefined(c, ['elevationM']),
+              ...pickTruthy(c, ['notes']),
               createdAt: c.createdAt,
             })),
             highPoints: highPoints.map((h) => ({
               id: h.id,
               position: h.position,
               kind: h.kind,
-              ...(h.elevationM != null ? { elevationM: h.elevationM } : {}),
-              ...(h.label ? { label: h.label } : {}),
-              ...(h.notes ? { notes: h.notes } : {}),
+              ...pickDefined(h, ['elevationM']),
+              ...pickTruthy(h, ['label', 'notes']),
               createdAt: h.createdAt,
             })),
             drainageLines: drainageLines.map((d) => ({
               id: d.id,
-              ...(d.notes ? { notes: d.notes } : {}),
+              ...pickTruthy(d, ['notes']),
               createdAt: d.createdAt,
             })),
             transects: transects.map((t) => ({
@@ -116,11 +116,8 @@ export default function TopographyDashboard() {
               name: t.name,
               pointA: t.pointA,
               pointB: t.pointB,
-              ...(t.sampledAt ? { sampledAt: t.sampledAt } : {}),
-              ...(t.sourceApi !== undefined ? { sourceApi: t.sourceApi } : {}),
-              ...(t.confidence ? { confidence: t.confidence } : {}),
-              ...(t.totalDistanceM != null ? { totalDistanceM: t.totalDistanceM } : {}),
-              ...(t.notes ? { notes: t.notes } : {}),
+              ...pickDefined(t, ['sourceApi', 'totalDistanceM']),
+              ...pickTruthy(t, ['sampledAt', 'confidence', 'notes']),
             })),
           },
         },

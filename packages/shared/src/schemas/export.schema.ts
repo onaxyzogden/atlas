@@ -15,6 +15,7 @@ export const ExportType = z.enum([
   'swot_synthesis',
   'topography_report',
   'earth_water_ecology_report',
+  'macroclimate_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -255,6 +256,46 @@ export const EarthWaterEcologyPayload = z.object({
 });
 export type EarthWaterEcologyPayload = z.infer<typeof EarthWaterEcologyPayload>;
 
+export const MacroclimatePayload = z.object({
+  /** Opaque climate-layer summary blob (hardiness_zone, annual_precip_mm, etc.). */
+  climateSummary: z.record(z.unknown()).optional(),
+  monthlyNormals: z.array(z.object({
+    month: z.string(),
+    precipMm: z.number().optional(),
+    meanMaxC: z.number().optional(),
+    meanMinC: z.number().optional(),
+  })).optional(),
+  solarOpportunities: z.array(z.tuple([z.string(), z.string()])).optional(),
+  hazards: z.array(z.object({
+    id: z.string(),
+    kind: z.string(),
+    label: z.string(),
+    risk: z.enum(['low', 'moderate', 'high']),
+    trend: z.enum(['up', 'flat', 'down']),
+    status: z.enum(['monitoring', 'planned', 'in_progress', 'mitigated']),
+    mitigationPct: z.number(),
+    window: z.string().optional(),
+    notes: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+    createdAt: z.number(),
+    updatedAt: z.number(),
+  })),
+  hazardCounts: z.object({
+    total: z.number(),
+    active: z.number(),
+    mitigated: z.number(),
+    monitoring: z.number(),
+    in_progress: z.number(),
+    planned: z.number(),
+    highRisk: z.number(),
+    moderateRisk: z.number(),
+    lowRisk: z.number(),
+    averageMitigationPct: z.number(),
+  }),
+});
+export type MacroclimatePayload = z.infer<typeof MacroclimatePayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -267,6 +308,7 @@ export const CreateExportInput = z.object({
     swot: SwotPayload.optional(),
     topography: TopographyPayload.optional(),
     earthWaterEcology: EarthWaterEcologyPayload.optional(),
+    macroclimate: MacroclimatePayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
