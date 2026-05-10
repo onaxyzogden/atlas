@@ -231,7 +231,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const selectedGuildId =
     selected?.kind === 'guild' ? selected.id : null;
 
-  const { polyFC, lineFC, pointFC, labelFC, setbackFC, flowFC, transectFC } = useMemo(() => {
+  const {
+    polyFC,
+    lineFC,
+    pointFC,
+    labelFC,
+    setbackFC,
+    flowFC,
+    transectFC,
+    conflictPointFC,
+    conflictLineFC,
+  } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
     const points: GeoJSON.Feature[] = [];
@@ -239,6 +249,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const setbacks: GeoJSON.Feature[] = [];
     const flows: GeoJSON.Feature[] = [];
     const transects: GeoJSON.Feature[] = [];
+    // Utility-conflict hazard halos — earthwork WaterNodes that intersected
+    // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
+    // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
+    // main water-node geometry so the conflict reads at a glance.
+    const conflictPoints: GeoJSON.Feature[] = [];
+    const conflictLines: GeoJSON.Feature[] = [];
 
     // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
     for (const z of zones) {
@@ -482,6 +498,29 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 2,
         enterprise: n.enterprise ?? '',
       };
+      // Utility-conflict halo geometry — mirror whatever geometry the
+      // node already renders with (swaleGeometry for swales, center
+      // point for storage / sink / catchment marker).
+      const hasConflict =
+        Array.isArray(n.utilityConflicts) && n.utilityConflicts.length > 0;
+      if (hasConflict) {
+        const haloProps = { id: n.id, kind: 'utility_conflict' };
+        if (n.kind === 'swale' && n.swaleGeometry) {
+          conflictLines.push({
+            type: 'Feature',
+            id: `${n.id}:halo`,
+            properties: haloProps,
+            geometry: n.swaleGeometry,
+          });
+        } else if (n.center) {
+          conflictPoints.push({
+            type: 'Feature',
+            id: `${n.id}:halo`,
+            properties: haloProps,
+            geometry: { type: 'Point', coordinates: n.center },
+          });
+        }
+      }
       if (n.kind === 'catchment') {
         if (n.geometry) {
           polys.push({
@@ -647,6 +686,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       setbackFC: { type: 'FeatureCollection' as const, features: setbacks },
       flowFC: { type: 'FeatureCollection' as const, features: flows },
       transectFC: { type: 'FeatureCollection' as const, features: transects },
+      conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
+      conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
   }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, projectId]);
 
@@ -673,10 +714,38 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const setbackSid = ensureSource('setback', setbackFC);
       const flowSid = ensureSource('flow', flowFC);
       const transectSid = ensureSource('transect', transectFC);
+      const conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
+      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
+
+      // Utility-conflict hazard halos — added before the main water-node
+      // layers so the `#c4422a` ring sits behind the node's fill/line and
+      // reads as an outline rather than an overlay. Per ADR 2026-05-10.
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-line`,
+        type: 'line',
+        source: conflictLineSid,
+        paint: {
+          'line-color': '#c4422a',
+          'line-width': 4,
+          'line-opacity': 0.95,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-point`,
+        type: 'circle',
+        source: conflictPointSid,
+        paint: {
+          'circle-radius': 11,
+          'circle-color': 'rgba(0,0,0,0)',
+          'circle-stroke-color': '#c4422a',
+          'circle-stroke-width': 4,
+          'circle-opacity': 1,
+        },
+      });
 
       // Colour expression toggles between per-feature `color` (default) and
       // a lens-mode-driven `match` (when the layering lens is enabled). The
@@ -904,6 +973,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     setbackFC,
     flowFC,
     transectFC,
+    conflictPointFC,
+    conflictLineFC,
     lensEnabled,
     lensMode,
     enterprises,

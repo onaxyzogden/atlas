@@ -23,15 +23,18 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
-import DesignElementExtrusionLayer from './layers/DesignElementExtrusionLayer.js';
-import DesignElementGlbLayer from './layers/DesignElementGlbLayer.js';
+import {
+  DesignElementExtrusionLayer,
+  DesignElementGlbLayer,
+  Terrain3DController,
+} from '../../builtEnvironment/layers/index.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
-import Terrain3DController from './Terrain3DController.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
+import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import type { PlanView } from '../types.js';
 
@@ -110,6 +113,7 @@ export default function VisionLayoutCanvas({
           <ObserveAnnotationLayers map={map} projectId={projectId} />
           <PlanObserveSelectionHandler map={map} />
           <InlineFeaturePopover map={map} />
+          <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           {activeKind && (
             <DesignElementDrawHost

@@ -54,6 +54,16 @@ export interface DesignElementSpec {
   phase: PhaseKey;
   /** Hex colour for the rendered feature. Drawn from lib/tokens.ts palette. */
   color: string;
+  /**
+   * Approximate excavation depth (cm) for this element. Drives the
+   * buried-utility conflict check in `checkUtilityConflicts` —
+   * elements whose depth exceeds the threshold (30 cm) trigger the
+   * veto dialog when their geometry intersects a recorded utility.
+   * Omit (or set 0) for above-grade elements.
+   *
+   * Per ADR 2026-05-10-plan-earthwork-utility-veto.md.
+   */
+  earthworkDepthCm?: number;
 }
 
 export interface DesignCategorySpec {

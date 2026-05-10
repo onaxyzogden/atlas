@@ -37,6 +37,7 @@ import StageShell from '../_shell/StageShell.js';
 import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
+import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
 import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
@@ -184,6 +185,7 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} />
           <InlineFeaturePopover map={map} />
+          <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           <PlanSelectionFloater
             onOpenGuildBuilder={() => {
