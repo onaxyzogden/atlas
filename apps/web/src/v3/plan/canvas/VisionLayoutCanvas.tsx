@@ -4,10 +4,14 @@
  *
  * Composition:
  *   DiagnoseMap (reused MapLibre container)
- *     ├ DesignElementLayers     — persistent rendering of design features
- *     ├ DesignToolRail          — right-edge floating tool column
- *     ├ BaseMapCard             — bottom-left floating basemap + overlays
- *     ├ DesignElementDrawHost   — mounts the draw hook iff activeKind set
+ *     ├ DesignElementLayers          — flat fill/line/circle/symbol layers
+ *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D shapes (always on;
+ *     │                                 read by pitch, not by view)
+ *     ├ Terrain3DController          — view==='terrain3d' camera preset
+ *     │                                 (pitch + DEM); unmount restores flat
+ *     ├ DesignToolRail               — right-edge floating tool column
+ *     ├ BaseMapCard                  — bottom-left floating basemap + overlays
+ *     ├ DesignElementDrawHost        — mounts the draw hook iff activeKind set
  *
  * The palette lives in `PlanLayout`'s leftRail slot, not inside the canvas,
  * so it shares the StageShell column with the existing PlanTools rail.
@@ -17,8 +21,10 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
+import DesignElementExtrusionLayer from './layers/DesignElementExtrusionLayer.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
+import Terrain3DController from './Terrain3DController.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import type { PlanView } from '../types.js';
 
@@ -70,6 +76,12 @@ export default function VisionLayoutCanvas({
             view={view}
             selectedId={selectedId}
           />
+          <DesignElementExtrusionLayer
+            map={map}
+            projectId={projectId}
+            view={view}
+          />
+          {view === 'terrain3d' && <Terrain3DController map={map} />}
           <DesignToolRail
             map={map}
             activeKind={activeKind}
