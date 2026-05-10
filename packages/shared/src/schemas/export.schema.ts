@@ -17,6 +17,7 @@ export const ExportType = z.enum([
   'earth_water_ecology_report',
   'macroclimate_report',
   'sectors_zones_report',
+  'built_environment_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -337,6 +338,97 @@ export const SectorsZonesPayload = z.object({
 });
 export type SectorsZonesPayload = z.infer<typeof SectorsZonesPayload>;
 
+export const BuiltEnvironmentPayload = z.object({
+  buildings: z.array(z.object({
+    id: z.string(),
+    subtype: z.enum(['residence', 'outbuilding', 'agricultural', 'other']),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number().optional(),
+    createdAt: z.string(),
+  })),
+  wells: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['drinking', 'irrigation', 'unknown']),
+    position: z.tuple([z.number(), z.number()]),
+    depthM: z.number().optional(),
+    flowLpm: z.number().optional(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  septics: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['tank', 'leach_field', 'cesspool', 'other']),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number().optional(),
+    createdAt: z.string(),
+  })),
+  powerLines: z.array(z.object({
+    id: z.string(),
+    placement: z.enum(['overhead', 'buried']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  buriedUtilities: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['water_main', 'gas', 'fibre', 'sewer', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  fences: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['barbed', 'page_wire', 'electric', 'privacy', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  gates: z.array(z.object({
+    id: z.string(),
+    position: z.tuple([z.number(), z.number()]),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  existingDriveways: z.array(z.object({
+    id: z.string(),
+    surface: z.enum(['gravel', 'paved', 'dirt', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  counts: z.object({
+    total: z.number(),
+    buildings: z.number(),
+    wells: z.number(),
+    septics: z.number(),
+    powerLines: z.number(),
+    buriedUtilities: z.number(),
+    fences: z.number(),
+    gates: z.number(),
+    existingDriveways: z.number(),
+  }),
+  totals: z.object({
+    buildingAreaM2: z.number(),
+    septicAreaM2: z.number(),
+    powerLineLengthM: z.number(),
+    buriedUtilityLengthM: z.number(),
+    fenceLengthM: z.number(),
+    drivewayLengthM: z.number(),
+    meanWellDepthM: z.number().nullable(),
+    overheadPowerCount: z.number(),
+  }),
+  healthPct: z.number(),
+});
+export type BuiltEnvironmentPayload = z.infer<typeof BuiltEnvironmentPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -351,6 +443,7 @@ export const CreateExportInput = z.object({
     earthWaterEcology: EarthWaterEcologyPayload.optional(),
     macroclimate: MacroclimatePayload.optional(),
     sectorsZones: SectorsZonesPayload.optional(),
+    builtEnvironment: BuiltEnvironmentPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;

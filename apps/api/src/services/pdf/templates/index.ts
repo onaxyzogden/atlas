@@ -92,6 +92,7 @@ import { renderTopographyReport } from './topographyReport.js';
 import { renderEarthWaterEcologyReport } from './earthWaterEcologyReport.js';
 import { renderMacroclimateReport } from './macroclimateReport.js';
 import { renderSectorsZonesReport } from './sectorsZonesReport.js';
+import { renderBuiltEnvironmentReport } from './builtEnvironmentReport.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -108,4 +109,5 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   earth_water_ecology_report: renderEarthWaterEcologyReport,
   macroclimate_report: renderMacroclimateReport,
   sectors_zones_report: renderSectorsZonesReport,
+  built_environment_report: renderBuiltEnvironmentReport,
 };
