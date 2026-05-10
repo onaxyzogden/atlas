@@ -743,6 +743,18 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
   },
   // All 29 sections populated. Appended historically via
   // `apps/api/scripts/scaffold-section.ts`; do not hand-edit stubs in.
+  {
+    id: 30,
+    slug: 'machinery-equipment',
+    name: 'Machinery & Equipment',
+    phases: ['P2'],
+    status: 'done',
+    features: [
+      { key: 'plan-machinery-inventory', label: 'Machinery inventory CRUD', phase: 'P2', status: 'done' },
+      { key: 'plan-machinery-access-fit', label: 'Machinery access-fit verdicts', phase: 'P2', status: 'done' },
+      { key: 'plan-machinery-housing-fuel', label: 'Machinery housing & fuel coverage', phase: 'P2', status: 'done' },
+    ],
+  },
 ];
 
 /** Lookup by section id. */
