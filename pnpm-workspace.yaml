@@ -1,3 +1,7 @@
 packages:
-  - 'apps/*'
+  # Active app workspaces. `apps/atlas-ui` is intentionally excluded — it is an
+  # archived prototype kept in-repo for reference only. See
+  # wiki/decisions/2026-05-10-atlas-ui-archived.md for rationale.
+  - 'apps/api'
+  - 'apps/web'
   - 'packages/*'

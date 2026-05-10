@@ -4,6 +4,46 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Plan 3D Terrain — design-element extrusions (Phase 1)
+
+Pivoted the "develop 3D models for placed features" objective from
+Cesium+GLB to MapLibre `fill-extrusion` keyed off `designElementsStore`,
+since the existing 3D Terrain canvas is MapLibre (not Cesium) and the
+truth-source for placed Plan features is design elements (not structures).
+
+Changes:
+
+- **`elementHeights.ts`** (new) — per-kind registry mapping ~22 kinds to
+  `{ heightM, footprintM, color }`. Documents future
+  `ElementModelMode = 'extrusion' | 'glb'` swap-in.
+- **`layers/DesignElementExtrusionLayer.tsx`** (new) — single
+  `fill-extrusion` layer over `designElementsStore`. Polygons extrude
+  as-drawn; points inflate via local `squareAround()`. Visibility flipped
+  per-view rather than torn down.
+- **`VisionLayoutCanvas.tsx`** — mounts the extrusion layer alongside
+  flat `DesignElementLayers`.
+- **`PlanPhaseTabs.tsx`** — `terrain3d` tab enabled.
+- **`DesignToolRail.tsx`** (hot-fix) — selector returned a fresh `[]`
+  literal, breaking Zustand v5 / `useSyncExternalStore` snapshot
+  caching → "Maximum update depth exceeded" loop on the 3D Terrain tab
+  for projects with no design elements. Hoisted module-level
+  `EMPTY_ELEMENTS` constant; matches the pattern in
+  `DesignElementLayers.tsx` and `useDesignElementDrawTool.ts`.
+
+ADR: [`wiki/decisions/2026-05-10-atlas-plan-terrain3d-design-element-extrusions.md`](decisions/2026-05-10-atlas-plan-terrain3d-design-element-extrusions.md)
+
+Verification: type-check pending; preview-screenshot tool timed out
+repeatedly on the 3D Terrain tab (likely raster-DEM tile contention) —
+flagged honestly per CLAUDE.md preview-verification rule rather than
+claimed visually. Loop fix verified by code reading.
+
+Deferred:
+
+- GLB asset pipeline per `ElementModelMode = 'glb'` (Phase 2).
+- Investigate unrelated `ActOpsAside` infinite loop visible in console.
+
+---
+
 ## 2026-05-10 — Plan Module 6 Livestock — Farm-Scholar pass
 
 Adjudicated the last unconverted Plan-stage module (Livestock & Subdivision,
@@ -9593,3 +9633,28 @@ the workspace), 4.1 (backfill 128 null-citation rows in
 `packages/shared/src/regionalCosts/`), 4.2 (deferred TODO sweep:
 guild centroid, succession slider, GAEZ scenario picker, hydrology
 stubs, public-portal cache).
+
+## 2026-05-10 — Atlas: archive `apps/atlas-ui` out of the workspace
+
+**Context.** Phase 2.3 of the pre-test friction audit
+([wiki/decisions/2026-05-09-atlas-pre-test-audit.md]) flagged
+`apps/atlas-ui` as a *stranded prototype* — a workspace member with stub
+`lint` / `typecheck` / `test` scripts and no documented integration
+story. Operator decision was **archive, not promote/merge.**
+
+**Change.**
+
+- `pnpm-workspace.yaml` switched from glob `apps/*` to explicit
+  `apps/api` + `apps/web` (plus `packages/*`). atlas-ui is no longer
+  linked, so `pnpm dev` from the repo root no longer spawns it.
+- `apps/atlas-ui/ARCHIVED.md` added at the folder root — status
+  marker, rationale, resurrection instructions.
+- ADR filed at
+  [wiki/decisions/2026-05-10-atlas-ui-archived.md].
+
+**Verification.** `corepack pnpm install` from repo root → "Done in
+17.4s"; -170 / +17 net change as the 1 atlas-ui-only dep tree
+detaches and the explicit-list pin-up resolves. No errors.
+
+**Deferred.** Audit phases 4.1 (regional-cost citation backfill) and
+4.2 (deferred-TODO sweep) still open.
