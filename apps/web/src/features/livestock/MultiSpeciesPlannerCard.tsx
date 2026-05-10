@@ -4,6 +4,11 @@
  * grouping (grazer / browser / mixed / mobile / specialist), polyface-stack
  * detection (cattle → sheep → poultry follower pattern), and recommendations
  * for missing followers or niche overlap. Pure presentation.
+ *
+ * 2026-05-10 — Reframed as "Specialization" per Farm-Scholar (Newman) ADR:
+ * shows an informational advisory when species count > 2 calling out the
+ * Cheesecake-farm pattern. Non-blocking. See
+ * wiki/decisions/2026-05-10-atlas-plan-module6-livestock-farm-scholar.md.
  */
 
 import { useMemo } from 'react';
@@ -267,7 +272,7 @@ export default function MultiSpeciesPlannerCard({ projectId }: MultiSpeciesPlann
       <section className={css.card ?? ''} aria-label="Multi-species planner">
         <header className={css.cardHead ?? ''}>
           <div>
-            <h3 className={css.cardTitle ?? ''}>Multi-species planner</h3>
+            <h3 className={css.cardTitle ?? ''}>Specialization</h3>
             <p className={css.cardHint ?? ''}>
               No paddocks with assigned species yet {'\u2014'} draw paddocks and assign livestock to surface this synthesis.
             </p>
@@ -285,14 +290,34 @@ export default function MultiSpeciesPlannerCard({ projectId }: MultiSpeciesPlann
     <section className={css.card ?? ''} aria-label="Multi-species planner">
       <header className={css.cardHead ?? ''}>
         <div>
-          <h3 className={css.cardTitle ?? ''}>Multi-species planner</h3>
+          <h3 className={css.cardTitle ?? ''}>Specialization</h3>
           <p className={css.cardHint ?? ''}>
             Synthesizes declared paddock-species assignments into per-species rollups, niche distribution, and pattern
-            recommendations.
+            recommendations. Newman&rsquo;s rule of thumb: specialize in 1&ndash;2 product lines that fit your land and labor.
           </p>
         </div>
         <span className={css.modeBadge ?? ''}>{'\u00A7'} 11</span>
       </header>
+
+      {v.speciesList.length > 2 && (
+        <div
+          className={`${css.verdictBanner ?? ''} ${css.verdictCaution ?? ''}`}
+          role="note"
+          aria-label="Specialization advisory"
+          style={{ borderLeft: '3px solid #c87a3c' }}
+        >
+          <div className={css.verdictTitle ?? ''}>
+            Cheesecake-farm pattern: {v.speciesList.length} species declared
+          </div>
+          <div className={css.verdictNote ?? ''}>
+            Per Chris Newman&rsquo;s <em>First Generation Farming</em>, small farms that try to raise beef + pigs + poultry +
+            eggs + produce all at once (&ldquo;the Cheesecake Factory of one&rdquo;) burn out from impossible staffing
+            logistics. Path to food sovereignty: specialize in 1&ndash;2 product lines and reach operational scale, then
+            cooperate with neighbour farms for the rest. Informational only &mdash; if you know what you&rsquo;re doing,
+            ignore this.
+          </div>
+        </div>
+      )}
 
       <div
         className={`${css.verdictBanner ?? ''} ${

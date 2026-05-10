@@ -81,6 +81,9 @@ export type MapToolId =
   | 'plan.soil-fertility.flow-connector'
   // Plan Module 4 — Livestock & Subdivision
   | 'plan.livestock.paddock'
+  // Plan Module 4 — Livestock fence-line (Farm-Scholar 2026-05-10: strip-grazing
+  // wire that the polygon Paddock tool cannot represent)
+  | 'plan.livestock.fence-line'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)

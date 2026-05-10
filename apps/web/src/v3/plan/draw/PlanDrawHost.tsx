@@ -17,6 +17,7 @@ import CropAreaTool from './tools/CropAreaTool.js';
 import FertilityInfraTool from './tools/FertilityInfraTool.js';
 import FlowConnectorTool from './tools/FlowConnectorTool.js';
 import PaddockTool from './tools/PaddockTool.js';
+import FenceLineTool from './tools/FenceLineTool.js';
 import GuildTool from './tools/GuildTool.js';
 import StructureTool from './tools/StructureTool.js';
 import UtilityRunTool from './tools/UtilityRunTool.js';
@@ -74,6 +75,9 @@ export default function PlanDrawHost({ map, projectId }: Props) {
       break;
     case 'plan.livestock.paddock':
       tool = <PaddockTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.livestock.fence-line':
+      tool = <FenceLineTool map={map} projectId={projectId} />;
       break;
     case 'plan.structures-subsystems.structure':
       tool = <StructureTool map={map} projectId={projectId} />;

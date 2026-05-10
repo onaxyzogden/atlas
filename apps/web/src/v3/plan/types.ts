@@ -160,7 +160,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   ],
   livestock: [
     { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },
-    { label: 'Multi-species planner',   sectionId: 'plan-livestock-species-mix' },
+    { label: 'Specialization',          sectionId: 'plan-livestock-species-mix' },
     { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
     { label: 'Fencing layout',          sectionId: 'plan-livestock-fencing' },
     { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },

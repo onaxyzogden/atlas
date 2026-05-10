@@ -196,6 +196,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   );
   const paddocks = useLivestockStore((s) => s.paddocks);
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
+  // Farm-Scholar (Newman) ADR 2026-05-10 — fence lines render on the shared
+  // line source; mobility-keyed dasharray distinguishes permanent perimeters
+  // from moveable temporary-strip wire.
+  const fenceLines = useLivestockStore((s) => s.fenceLines);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useStructureStore((s) => s.structures);
@@ -307,6 +311,23 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         enterprise: p.enterprise ?? '',
       };
       lines.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+    }
+
+    // Fence lines (line) — Module 4 Livestock & Subdivision, Yeomans rank 9.
+    // Mobility property drives dasharray in the temporary-strip render layer.
+    for (const f of fenceLines) {
+      if (f.projectId !== projectId) continue;
+      const color = f.mobility === 'temporary-strip' ? '#c87a3c' : '#6b5a45';
+      const props = {
+        id: f.id,
+        kind: 'fence-line',
+        color,
+        label: f.name,
+        yeomansRank: 9,
+        enterprise: '',
+        mobility: f.mobility,
+      };
+      lines.push({ type: 'Feature', id: f.id, properties: props, geometry: f.geometry });
     }
 
     // Utility runs (line) — Tier B / B1, under structures-subsystems.
@@ -626,7 +647,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       flowFC: { type: 'FeatureCollection' as const, features: flows },
       transectFC: { type: 'FeatureCollection' as const, features: transects },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, projectId]);
 
   useEffect(() => {
     if (!map) return;
@@ -706,10 +727,41 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}line`,
         type: 'line',
         source: lineSid,
+        // Hide temporary-strip fence lines from the solid-line layer; the
+        // dashed `fence-temp-line` layer below renders them with a dasharray
+        // pattern. Permanent fences and all other lines (paths, utility runs)
+        // render here as solid.
+        filter: [
+          '!',
+          ['all',
+            ['==', ['get', 'kind'], 'fence-line'],
+            ['==', ['get', 'mobility'], 'temporary-strip'],
+          ],
+        ] as never,
         paint: {
           'line-color': colorExpr as never,
           'line-width': 2,
           'line-opacity': 0.9,
+        },
+      });
+      // Farm-Scholar (Newman) ADR 2026-05-10 — temporary-strip fence overlay.
+      // Filtered to fence-line + mobility=temporary-strip so the dashed
+      // pattern reads as "moveable wire that gets rolled up daily" against
+      // the solid-line aesthetic of permanent fences and paths.
+      ensureLayer({
+        id: `${LAYER_PREFIX}fence-temp-line`,
+        type: 'line',
+        source: lineSid,
+        filter: [
+          'all',
+          ['==', ['get', 'kind'], 'fence-line'],
+          ['==', ['get', 'mobility'], 'temporary-strip'],
+        ] as never,
+        paint: {
+          'line-color': colorExpr as never,
+          'line-width': 2,
+          'line-opacity': 0.9,
+          'line-dasharray': [3, 2],
         },
       });
       // Flow connectors — solid line plus directional ▶ symbols spaced
@@ -788,6 +840,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
+        if (map.getLayer(`${LAYER_PREFIX}fence-temp-line`)) {
+          map.setPaintProperty(`${LAYER_PREFIX}fence-temp-line`, 'line-color', colorExpr as never);
+        }
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-color', strokeColorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-width', strokeWidthExpr as never);
