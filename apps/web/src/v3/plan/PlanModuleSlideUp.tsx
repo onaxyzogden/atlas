@@ -10,7 +10,8 @@
  * ESC and backdrop-click close the sheet.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useFocusTrap } from '../../components/ui/useFocusTrap.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { PlanModule } from './types.js';
 import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
@@ -71,7 +72,9 @@ const FencingLayoutCard           = lazy(() => import('../../features/livestock/
 const AnimalTractorZonesCard      = lazy(() => import('../../features/livestock/AnimalTractorZonesCard.js'));
 const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
 const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
-const GuestSafeBufferAuditCard    = lazy(() => import('../../features/livestock/GuestSafeBufferAuditCard.js'));
+// 2026-05-10 — GuestSafeBufferAuditCard import removed per Farm-Scholar
+// agritourism unmount. Card file preserved at apps/web/src/features/
+// livestock/GuestSafeBufferAuditCard.tsx per "no deletion in revamps".
 // Plant Systems (Module 4) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's PlantDatabaseCard / GuildBuilderCard /
 // CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
@@ -153,12 +156,11 @@ function renderCard(
     case 'plan-livestock-fencing':          return <FencingLayoutCard projectId={project.id} />;
     case 'plan-livestock-tractor-zones':    return <AnimalTractorZonesCard projectId={project.id} />;
     case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
-    case 'plan-livestock-buffers':          return (
-      <>
-        <BiosecurityBufferCard projectId={project.id} />
-        <GuestSafeBufferAuditCard projectId={project.id} />
-      </>
-    );
+    // 2026-05-10 Farm-Scholar pass — GuestSafeBufferAuditCard unmounted
+    // (agritourism out-of-scope per Newman). Card file preserved on disk
+    // per "no deletion in revamps" rule. See
+    // wiki/decisions/2026-05-10-atlas-plan-module6-livestock-farm-scholar.md.
+    case 'plan-livestock-buffers':          return <BiosecurityBufferCard projectId={project.id} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;
@@ -200,6 +202,7 @@ interface Props {
 
 export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule }: Props) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const sheetRef = useRef<HTMLElement | null>(null);
 
   // Active sub-card within the module; reset when module changes.
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -215,19 +218,11 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
     setActiveSectionId(cards[0]?.sectionId ?? null);
   }, [open, module]);
 
-  const handleEscape = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleEscape();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, handleEscape]);
+  // Focus trap (Tab/Shift+Tab wrap + Escape close + body-scroll lock).
+  // The sheet is non-portalled and shares the page with the map background;
+  // body-scroll lock keeps the map from scrolling underneath when the user
+  // scrolls inside the sheet body. Closes via the same handler as backdrop.
+  useFocusTrap(sheetRef, open && Boolean(module), { onEscape: onClose });
 
   if (!open || !module) return null;
 
@@ -239,10 +234,12 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
   return (
     <div className={css.scrim} role="presentation" onClick={onClose}>
       <aside
+        ref={sheetRef}
         className={css.sheet}
         role="dialog"
         aria-modal="true"
         aria-label={`${label} — plan tools`}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <header className={css.header}>

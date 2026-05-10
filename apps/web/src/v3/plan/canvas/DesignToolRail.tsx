@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import { useDesignElementsStore } from '../../../store/designElementsStore.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import css from './DesignToolRail.module.css';
 
 interface Props {
@@ -197,82 +198,100 @@ export default function DesignToolRail({
 
   return (
     <div ref={railRef} className={css.rail} role="toolbar" aria-label="Design tools">
-      <button
-        type="button"
-        className={css.btn}
-        data-active={mode === 'select'}
-        onClick={handleSelect}
-        title={
+      <DelayedTooltip
+        label={
           mode === 'select'
             ? selected
               ? `Selected: ${selected.label ?? selected.kind}`
               : 'Select — click a design element on the map'
             : 'Select'
         }
-        aria-label="Select"
-        aria-pressed={mode === 'select'}
+        position="left"
       >
-        <MousePointer2 size={15} strokeWidth={1.75} />
-      </button>
-      <button
-        type="button"
-        className={css.btn}
-        data-active={mode === 'pan'}
-        onClick={handlePan}
-        title="Pan — drag the map"
-        aria-label="Pan"
-        aria-pressed={mode === 'pan'}
-      >
-        <Hand size={15} strokeWidth={1.75} />
-      </button>
-      <button
-        type="button"
-        className={css.btn}
-        data-active={drawArmed}
-        onClick={handlePencil}
-        disabled={!drawArmed}
-        title={
+        <button
+          type="button"
+          className={css.btn}
+          data-active={mode === 'select'}
+          onClick={handleSelect}
+          aria-label="Select"
+          aria-pressed={mode === 'select'}
+        >
+          <MousePointer2 size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip label="Pan — drag the map" position="left">
+        <button
+          type="button"
+          className={css.btn}
+          data-active={mode === 'pan'}
+          onClick={handlePan}
+          aria-label="Pan"
+          aria-pressed={mode === 'pan'}
+        >
+          <Hand size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip
+        label={
           drawArmed
             ? `Drawing: ${activeKind} — click to cancel`
             : 'Pick an element from the palette to draw'
         }
-        aria-label="Draw"
+        position="left"
       >
-        <Pencil size={15} strokeWidth={1.75} />
-      </button>
-      <button
-        type="button"
-        className={css.btn}
-        onClick={handleDuplicate}
-        disabled={!canDuplicate}
-        title={
+        <button
+          type="button"
+          className={css.btn}
+          data-active={drawArmed}
+          onClick={handlePencil}
+          disabled={!drawArmed}
+          aria-label="Draw"
+        >
+          <Pencil size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip
+        label={
           canDuplicate
             ? `Duplicate ${selected!.label ?? selected!.kind}`
             : 'Select an element first to duplicate'
         }
-        aria-label="Duplicate"
+        position="left"
       >
-        <Copy size={15} strokeWidth={1.75} />
-      </button>
+        <button
+          type="button"
+          className={css.btn}
+          onClick={handleDuplicate}
+          disabled={!canDuplicate}
+          aria-label="Duplicate"
+        >
+          <Copy size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
       <div className={css.divider} aria-hidden="true" />
-      <button type="button" className={css.btn} onClick={zoomIn} title="Zoom in" aria-label="Zoom in">
-        <Plus size={15} strokeWidth={1.75} />
-      </button>
-      <button type="button" className={css.btn} onClick={zoomOut} title="Zoom out" aria-label="Zoom out">
-        <Minus size={15} strokeWidth={1.75} />
-      </button>
+      <DelayedTooltip label="Zoom in" position="left">
+        <button type="button" className={css.btn} onClick={zoomIn} aria-label="Zoom in">
+          <Plus size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip label="Zoom out" position="left">
+        <button type="button" className={css.btn} onClick={zoomOut} aria-label="Zoom out">
+          <Minus size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
       <div className={css.divider} aria-hidden="true" />
-      <button
-        type="button"
-        className={css.btn}
-        data-active={layersOpen}
-        onClick={() => setLayersOpen((o) => !o)}
-        title="Layer visibility"
-        aria-label="Layers"
-        aria-expanded={layersOpen}
-      >
-        <Layers size={15} strokeWidth={1.75} />
-      </button>
+      <DelayedTooltip label="Layer visibility" position="left">
+        <button
+          type="button"
+          className={css.btn}
+          data-active={layersOpen}
+          onClick={() => setLayersOpen((o) => !o)}
+          aria-label="Layers"
+          aria-expanded={layersOpen}
+        >
+          <Layers size={15} strokeWidth={1.75} />
+        </button>
+      </DelayedTooltip>
 
       {layersOpen && (
         <div className={css.popover} role="menu" aria-label="Layer visibility">

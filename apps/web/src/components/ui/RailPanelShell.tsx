@@ -10,6 +10,12 @@ import styles from './RailPanelShell.module.css';
 /*  looking at, independent of what the panel body chooses to render.         */
 /*  Deliberately thin — it sits ABOVE each panel's existing internal title    */
 /*  without competing with it.                                                */
+/*                                                                            */
+/*  a11y NOTE (2026-04-24 audit close-out): RailPanelShell is NON-MODAL       */
+/*  chrome — the right rail sits alongside the map and other UI; users must   */
+/*  be able to Tab out to the map, sidebar, and toolbars. Do NOT add          */
+/*  `useFocusTrap`, `role="dialog"`, or `aria-modal` here. Focus-trap is      */
+/*  reserved for true modals (Modal, SlideUpPanel, PlanModuleSlideUp).        */
 /* -------------------------------------------------------------------------- */
 
 export interface RailPanelShellProps {

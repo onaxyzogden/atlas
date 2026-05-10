@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef, useCallback, type ReactNode } from 'react';
+import { useFocusTrap } from './ui/useFocusTrap.js';
 import { zIndex } from '../lib/tokens.js';
 
 type PanelHeight = 'peek' | 'half' | 'full';
@@ -27,6 +28,12 @@ export default function SlideUpPanel({
   const [height, setHeight] = useState<PanelHeight>(initialHeight);
   const dragStartY = useRef(0);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // a11y (2026-04-24 audit close-out): the slide-up is modal — backdrop scrim
+  // covers the page — so it must trap Tab/Shift+Tab and dismiss on Escape, and
+  // declare role="dialog" + aria-modal so screen readers announce it as such.
+  // Body-scroll lock is handled inside the hook.
+  useFocusTrap(panelRef, isOpen, { onEscape: onClose });
 
   // `full` is sized to clear the host page's top chrome only — by default
   // the slide-up rises until just below the dashboard's top header (~120px
@@ -77,6 +84,10 @@ export default function SlideUpPanel({
       {/* Panel */}
       <div
         ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ?? 'Panel'}
+        tabIndex={-1}
         style={{
           position: 'fixed',
           bottom: 0,

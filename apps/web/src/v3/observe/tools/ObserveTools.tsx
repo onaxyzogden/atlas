@@ -51,6 +51,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -245,21 +246,21 @@ export default function ObserveTools({
                     : it.label;
                 const isToolActive = activeTool === it.toolId;
                 return (
-                  <button
-                    key={it.id}
-                    type="button"
-                    className={css.toolItem}
-                    data-active={isToolActive ? 'true' : 'false'}
-                    disabled={disabled}
-                    aria-pressed={isToolActive}
-                    title={title}
-                    onClick={(e) => onToolClick(e, it.toolId)}
-                  >
-                    <span className={css.toolGlyph} aria-hidden="true">
-                      <it.Icon size={16} strokeWidth={1.6} />
-                    </span>
-                    <span className={css.toolLabel}>{it.label}</span>
-                  </button>
+                  <DelayedTooltip key={it.id} label={title} position="top">
+                    <button
+                      type="button"
+                      className={css.toolItem}
+                      data-active={isToolActive ? 'true' : 'false'}
+                      disabled={disabled}
+                      aria-pressed={isToolActive}
+                      onClick={(e) => onToolClick(e, it.toolId)}
+                    >
+                      <span className={css.toolGlyph} aria-hidden="true">
+                        <it.Icon size={16} strokeWidth={1.6} />
+                      </span>
+                      <span className={css.toolLabel}>{it.label}</span>
+                    </button>
+                  </DelayedTooltip>
                 );
               })}
             </div>

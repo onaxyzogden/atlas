@@ -37,6 +37,7 @@ import DistanceTool from './measure/DistanceTool.js';
 import AreaTool from './measure/AreaTool.js';
 import ElevationTool from './measure/ElevationTool.js';
 import BoundaryTool from './measure/BoundaryTool.js';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import css from './MapToolbar.module.css';
 
 interface Props {
@@ -96,90 +97,103 @@ export default function MapToolbar({
   return (
     <div className={css.dock}>
       <div className={css.bar} role="toolbar" aria-label="Map tools">
-        <button
-          type="button"
-          className={css.btn}
-          data-active={activeTool === 'basemap'}
-          onClick={onClick('basemap')}
-          title="Basemap"
-          aria-label="Basemap"
-        >
-          <MapIcon size={16} strokeWidth={1.75} />
-        </button>
-        <div className={css.divider} aria-hidden="true" />
-        <button
-          type="button"
-          className={css.btn}
-          data-active={activeTool === 'distance'}
-          onClick={onClick('distance')}
-          title="Measure distance"
-          aria-label="Measure distance"
-        >
-          <Ruler size={16} strokeWidth={1.75} />
-        </button>
-        <button
-          type="button"
-          className={css.btn}
-          data-active={elevationActive}
-          onClick={() =>
-            setActiveTool(elevationActive ? null : 'elevation-point')
-          }
-          disabled={!projectId}
-          title={
-            projectId ? 'Measure elevation' : 'Open a project to use elevation'
-          }
-          aria-label="Measure elevation"
-        >
-          <Mountain size={16} strokeWidth={1.75} />
-        </button>
-        <button
-          type="button"
-          className={css.btn}
-          data-active={activeTool === 'area'}
-          onClick={onClick('area')}
-          title="Measure area"
-          aria-label="Measure area"
-        >
-          <SquareDashed size={16} strokeWidth={1.75} />
-        </button>
-        {showBoundary && (
+        <DelayedTooltip label="Basemap" position="top">
           <button
             type="button"
             className={css.btn}
-            data-active={activeTool === 'boundary'}
-            onClick={onClick('boundary')}
-            title="Draw property boundary"
-            aria-label="Draw property boundary"
+            data-active={activeTool === 'basemap'}
+            onClick={onClick('basemap')}
+            aria-label="Basemap"
           >
-            <Square size={16} strokeWidth={1.75} />
+            <MapIcon size={16} strokeWidth={1.75} />
           </button>
+        </DelayedTooltip>
+        <div className={css.divider} aria-hidden="true" />
+        <DelayedTooltip label="Measure distance" position="top">
+          <button
+            type="button"
+            className={css.btn}
+            data-active={activeTool === 'distance'}
+            onClick={onClick('distance')}
+            aria-label="Measure distance"
+          >
+            <Ruler size={16} strokeWidth={1.75} />
+          </button>
+        </DelayedTooltip>
+        <DelayedTooltip
+          label={
+            projectId ? 'Measure elevation' : 'Open a project to use elevation'
+          }
+          position="top"
+        >
+          <button
+            type="button"
+            className={css.btn}
+            data-active={elevationActive}
+            onClick={() =>
+              setActiveTool(elevationActive ? null : 'elevation-point')
+            }
+            disabled={!projectId}
+            aria-label="Measure elevation"
+          >
+            <Mountain size={16} strokeWidth={1.75} />
+          </button>
+        </DelayedTooltip>
+        <DelayedTooltip label="Measure area" position="top">
+          <button
+            type="button"
+            className={css.btn}
+            data-active={activeTool === 'area'}
+            onClick={onClick('area')}
+            aria-label="Measure area"
+          >
+            <SquareDashed size={16} strokeWidth={1.75} />
+          </button>
+        </DelayedTooltip>
+        {showBoundary && (
+          <DelayedTooltip label="Draw property boundary" position="top">
+            <button
+              type="button"
+              className={css.btn}
+              data-active={activeTool === 'boundary'}
+              onClick={onClick('boundary')}
+              aria-label="Draw property boundary"
+            >
+              <Square size={16} strokeWidth={1.75} />
+            </button>
+          </DelayedTooltip>
         )}
-        <button
-          type="button"
-          className={css.btn}
-          onClick={onReturnToProperty}
-          disabled={!boundary}
-          title={
+        <DelayedTooltip
+          label={
             boundary
               ? 'Return to property'
               : 'Draw a property boundary first'
           }
-          aria-label="Return to property"
+          position="top"
         >
-          <Crosshair size={16} strokeWidth={1.75} />
-        </button>
+          <button
+            type="button"
+            className={css.btn}
+            onClick={onReturnToProperty}
+            disabled={!boundary}
+            aria-label="Return to property"
+          >
+            <Crosshair size={16} strokeWidth={1.75} />
+          </button>
+        </DelayedTooltip>
         {activeTool !== null && (
           <>
             <div className={css.divider} aria-hidden="true" />
-            <button
-              type="button"
-              className={css.btn}
-              onClick={() => setActiveTool(null)}
-              title="Clear"
-              aria-label="Clear"
-            >
-              <X size={16} strokeWidth={1.75} />
-            </button>
+            <DelayedTooltip label="Clear" position="top">
+              <button
+                type="button"
+                className={css.btn}
+                onClick={() => setActiveTool(null)}
+                aria-label="Clear"
+              >
+                <X size={16} strokeWidth={1.75} />
+              </button>
+            </DelayedTooltip>
           </>
         )}
       </div>

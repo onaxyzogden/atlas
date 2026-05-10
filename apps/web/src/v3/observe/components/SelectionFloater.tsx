@@ -16,6 +16,7 @@
 
 import { useEffect } from 'react';
 import { Pencil, Trash2, X } from 'lucide-react';
+import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
@@ -129,12 +130,8 @@ export default function SelectionFloater({ projectId }: Props) {
     <div className={css.floater} role="toolbar" aria-label="Selection actions">
       <span className={css.count}>{countLabel}</span>
       <div className={css.divider} aria-hidden="true" />
-      <button
-        type="button"
-        className={css.btn}
-        onClick={onEdit}
-        disabled={!editEnabled}
-        title={
+      <DelayedTooltip
+        label={
           !projectId
             ? 'Select a project to edit'
             : single
@@ -143,29 +140,35 @@ export default function SelectionFloater({ projectId }: Props) {
                 ? `Edit ${selected.length} items together`
                 : 'Select items of one kind to edit together'
         }
+        position="top"
       >
-        <Pencil aria-hidden="true" />
-        <span>Edit</span>
-      </button>
-      <button
-        type="button"
-        className={`${css.btn} ${css.btnDanger}`}
-        onClick={onDelete}
-        title="Delete selected"
-      >
-        <Trash2 aria-hidden="true" />
-        <span>Delete</span>
-      </button>
+        <button
+          type="button"
+          className={css.btn}
+          onClick={onEdit}
+          disabled={!editEnabled}
+        >
+          <Pencil aria-hidden="true" />
+          <span>Edit</span>
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip label="Delete selected" position="top">
+        <button
+          type="button"
+          className={`${css.btn} ${css.btnDanger}`}
+          onClick={onDelete}
+        >
+          <Trash2 aria-hidden="true" />
+          <span>Delete</span>
+        </button>
+      </DelayedTooltip>
       <div className={css.divider} aria-hidden="true" />
-      <button
-        type="button"
-        className={css.btn}
-        onClick={onClear}
-        title="Clear selection (Esc)"
-      >
-        <X aria-hidden="true" />
-        <span>Clear</span>
-      </button>
+      <DelayedTooltip label="Clear selection (Esc)" position="top">
+        <button type="button" className={css.btn} onClick={onClear}>
+          <X aria-hidden="true" />
+          <span>Clear</span>
+        </button>
+      </DelayedTooltip>
     </div>
   );
 }
