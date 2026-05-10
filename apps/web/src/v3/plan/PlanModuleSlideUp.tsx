@@ -68,7 +68,7 @@ const LivestockLandFitCard        = lazy(() => import('../../features/livestock/
 const MultiSpeciesPlannerCard     = lazy(() => import('../../features/livestock/MultiSpeciesPlannerCard.js'));
 const PaddockCellDesignCard       = lazy(() => import('../../features/livestock/PaddockCellDesignCard.js'));
 const FencingLayoutCard           = lazy(() => import('../../features/livestock/FencingLayoutCard.js'));
-const MobileTractorZonesCard      = lazy(() => import('../../features/livestock/MobileTractorZonesCard.js'));
+const AnimalTractorZonesCard      = lazy(() => import('../../features/livestock/AnimalTractorZonesCard.js'));
 const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
 const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
 const GuestSafeBufferAuditCard    = lazy(() => import('../../features/livestock/GuestSafeBufferAuditCard.js'));
@@ -150,7 +150,7 @@ function renderCard(
     case 'plan-livestock-species-mix':      return <MultiSpeciesPlannerCard projectId={project.id} />;
     case 'plan-livestock-paddock-cells':    return <PaddockCellDesignCard projectId={project.id} />;
     case 'plan-livestock-fencing':          return <FencingLayoutCard projectId={project.id} />;
-    case 'plan-livestock-tractor-zones':    return <MobileTractorZonesCard projectId={project.id} />;
+    case 'plan-livestock-tractor-zones':    return <AnimalTractorZonesCard projectId={project.id} />;
     case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
     case 'plan-livestock-buffers':          return (
       <>

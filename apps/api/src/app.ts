@@ -49,6 +49,7 @@ import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
 import regenerationEventRoutes from './routes/regeneration-events/index.js';
+import telemetryRoutes from './routes/telemetry/index.js';
 
 // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
 import basemapTerrainRoutes from './routes/basemap-terrain/index.js';
@@ -157,6 +158,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
+  await app.register(telemetryRoutes,     { prefix: '/api/v1/telemetry' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
 
   // Static serve for the LocalStorageProvider — only kicks in when local

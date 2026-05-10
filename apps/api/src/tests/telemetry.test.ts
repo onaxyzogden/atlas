@@ -1,0 +1,186 @@
+/**
+ * Telemetry routes — tests for /api/v1/telemetry/act-interactions endpoints.
+ */
+
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import type { FastifyInstance } from 'fastify';
+import { mockDb, enqueue, clearQueue } from './helpers/testApp.js';
+import { TEST_USER_ID, TEST_EMAIL, TEST_PROJ_ID } from './helpers/fixtures.js';
+
+vi.mock('../plugins/database.js', async () => {
+  const { default: fp } = await import('fastify-plugin');
+  return {
+    default: fp(async (fastify: FastifyInstance) => {
+      // @ts-expect-error — mock
+      fastify.decorate('db', mockDb);
+      fastify.addHook('onClose', async () => {});
+    }),
+  };
+});
+
+vi.mock('../plugins/redis.js', async () => {
+  const { default: fp } = await import('fastify-plugin');
+  return {
+    default: fp(async (fastify: FastifyInstance) => {
+      // @ts-expect-error — mock
+      fastify.decorate('redis', { quit: vi.fn().mockResolvedValue('OK') });
+      fastify.addHook('onClose', async () => {});
+    }),
+  };
+});
+
+import { buildApp } from '../app.js';
+
+let app: FastifyInstance;
+let authToken: string;
+
+beforeAll(async () => {
+  app = await buildApp();
+  await app.ready();
+  authToken = app.jwt.sign({ sub: TEST_USER_ID, email: TEST_EMAIL }, { expiresIn: '1h' });
+});
+
+afterAll(async () => { await app.close(); });
+beforeEach(() => { clearQueue(); });
+
+const sampleEvent = (overrides: Partial<Record<string, unknown>> = {}) => ({
+  projectId: TEST_PROJ_ID,
+  sessionId: 'sess-test-1',
+  occurredAt: '2026-05-10T12:00:00.000Z',
+  projectType: 'homestead',
+  module: 'maintain',
+  eventType: 'tile_select',
+  payload: {},
+  ...overrides,
+});
+
+describe('POST /api/v1/telemetry/act-interactions', () => {
+  it('returns 201 with ingested count after a happy-path batch', async () => {
+    // 3 INSERTs — 3 mock-db calls, each returns an empty result.
+    enqueue();
+    enqueue();
+    enqueue();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/act-interactions',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        events: [
+          sampleEvent({ eventType: 'tile_select', module: 'maintain' }),
+          sampleEvent({
+            eventType: 'quick_log_click',
+            module: 'harvest',
+            payload: { toolId: 'log-harvest' },
+          }),
+          sampleEvent({
+            eventType: 'slideup_close',
+            module: 'review',
+            payload: { dwellMs: 3500 },
+          }),
+        ],
+      },
+    });
+
+    expect(res.statusCode).toBe(201);
+    const body = JSON.parse(res.body);
+    expect(body.data.ingested).toBe(3);
+  });
+
+  it('returns 401 without auth', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/act-interactions',
+      payload: { events: [sampleEvent()] },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 400 when payload fails per-eventType validation', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/act-interactions',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        events: [
+          sampleEvent({
+            eventType: 'quick_log_click',
+            payload: {}, // missing required toolId
+          }),
+        ],
+      },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 400 when batch is empty', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/telemetry/act-interactions',
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { events: [] },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('GET /api/v1/telemetry/act-interactions/aggregate', () => {
+  it('returns 200 with grouped rows', async () => {
+    enqueue(
+      {
+        project_type: 'homestead',
+        module: 'maintain',
+        event_type: 'tile_select',
+        touch_count: 7,
+        distinct_sessions: 2,
+        avg_dwell_ms: null,
+      },
+      {
+        project_type: 'homestead',
+        module: 'review',
+        event_type: 'slideup_close',
+        touch_count: 3,
+        distinct_sessions: 1,
+        avg_dwell_ms: 4200,
+      },
+    );
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/telemetry/act-interactions/aggregate',
+      headers: { authorization: `Bearer ${authToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.rows).toHaveLength(2);
+    expect(body.data.rows[0]).toMatchObject({
+      projectType: 'homestead',
+      module: 'maintain',
+      eventType: 'tile_select',
+      touchCount: 7,
+      distinctSessions: 2,
+      avgDwellMs: null,
+    });
+    expect(body.data.rows[1].avgDwellMs).toBe(4200);
+  });
+
+  it('returns 200 with empty rows', async () => {
+    enqueue();
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/telemetry/act-interactions/aggregate',
+      headers: { authorization: `Bearer ${authToken}` },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body).data.rows).toEqual([]);
+  });
+
+  it('returns 401 without auth', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/telemetry/act-interactions/aggregate',
+    });
+    expect(res.statusCode).toBe(401);
+  });
+});

@@ -163,7 +163,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Multi-species planner',   sectionId: 'plan-livestock-species-mix' },
     { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
     { label: 'Fencing layout',          sectionId: 'plan-livestock-fencing' },
-    { label: 'Mobile tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
+    { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
   ],
