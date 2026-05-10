@@ -294,13 +294,21 @@
   text-decoration: none;
   border-bottom-style: solid;
 }
-/* No outer chrome — the dashboard component supplies its own header,
-   subtitle, legend, grid, and footer. Wrapping it in another titled
-   "Developer / Affinity telemetry · live" section was redundant since
-   the embedded component already shows "Affinity telemetry" as its
-   page title. We just give the section page-flow spacing. */
+/* Bento tile housing the embedded Affinity telemetry dashboard.
+   Mirrors the Project Health / threeCol cards' visual language — a
+   rounded card with a hairline border, soft surface fill, and a faint
+   ambient gradient — so the embed feels like a deliberate tile in the
+   Home grid rather than a bare component dropped onto the page. The
+   inner dashboard's own _container card styling reads as a header
+   strip inside the bento, not a duplicate frame. */
 .devEmbed {
   margin-top: var(--space-3);
-  display: block;
+  padding: var(--space-4);
+  background:
+    linear-gradient(135deg, rgba(140,160,200,0.05), rgba(120,140,180,0.03)),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
   overflow: auto;
 }
