@@ -16,6 +16,7 @@ export const ExportType = z.enum([
   'topography_report',
   'earth_water_ecology_report',
   'macroclimate_report',
+  'sectors_zones_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -296,6 +297,46 @@ export const MacroclimatePayload = z.object({
 });
 export type MacroclimatePayload = z.infer<typeof MacroclimatePayload>;
 
+export const SectorsZonesPayload = z.object({
+  sectors: z.array(z.object({
+    id: z.string(),
+    type: z.string(),
+    bearingDeg: z.number(),
+    arcDeg: z.number(),
+    intensity: z.enum(['low', 'med', 'high']).optional(),
+    notes: z.string().optional(),
+  })),
+  zones: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    category: z.string(),
+    primaryUse: z.string().optional(),
+    secondaryUse: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number(),
+    invasivePressure: z.string().optional(),
+    successionStage: z.string().optional(),
+    seasonality: z.string().optional(),
+    permacultureZone: z.number().optional(),
+  })),
+  sectorCounts: z.object({
+    total: z.number(),
+    wind: z.number(),
+    sun: z.number(),
+    fire: z.number(),
+    noise: z.number(),
+    wildlife: z.number(),
+    view: z.number(),
+  }),
+  zoneCounts: z.object({
+    total: z.number(),
+    byCategory: z.record(z.number()),
+    totalAreaM2: z.number(),
+  }),
+  prevailingWind: z.string().optional(),
+});
+export type SectorsZonesPayload = z.infer<typeof SectorsZonesPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -309,6 +350,7 @@ export const CreateExportInput = z.object({
     topography: TopographyPayload.optional(),
     earthWaterEcology: EarthWaterEcologyPayload.optional(),
     macroclimate: MacroclimatePayload.optional(),
+    sectorsZones: SectorsZonesPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;

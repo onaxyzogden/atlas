@@ -91,6 +91,7 @@ import { renderSwotSynthesis } from './swotSynthesis.js';
 import { renderTopographyReport } from './topographyReport.js';
 import { renderEarthWaterEcologyReport } from './earthWaterEcologyReport.js';
 import { renderMacroclimateReport } from './macroclimateReport.js';
+import { renderSectorsZonesReport } from './sectorsZonesReport.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -106,4 +107,5 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   topography_report: renderTopographyReport,
   earth_water_ecology_report: renderEarthWaterEcologyReport,
   macroclimate_report: renderMacroclimateReport,
+  sectors_zones_report: renderSectorsZonesReport,
 };
