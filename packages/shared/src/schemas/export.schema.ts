@@ -14,6 +14,7 @@ export const ExportType = z.enum([
   'swot_diagnosis_report',
   'swot_synthesis',
   'topography_report',
+  'earth_water_ecology_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -182,6 +183,78 @@ export const TopographyPayload = z.object({
 });
 export type TopographyPayload = z.infer<typeof TopographyPayload>;
 
+export const EarthWaterEcologyPayload = z.object({
+  soilSamples: z.array(z.object({
+    id: z.string(),
+    sampleDate: z.string(),
+    label: z.string(),
+    depth: z.string(),
+    ph: z.number().optional(),
+    organicMatterPct: z.number().optional(),
+    texture: z.string().optional(),
+    cecMeq100g: z.number().optional(),
+    ecDsM: z.number().optional(),
+    bulkDensityGCm3: z.number().optional(),
+    biologicalActivity: z.string().optional(),
+    percolationInPerHr: z.number().optional(),
+    depthToBedrockM: z.number().optional(),
+    hasJarTest: z.boolean().optional(),
+    hasRoofCatchment: z.boolean().optional(),
+    notes: z.string().optional(),
+    lab: z.string().optional(),
+    location: z.tuple([z.number(), z.number()]).optional(),
+  })),
+  waterSystems: z.object({
+    earthworks: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      lengthM: z.number().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    storageInfra: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      center: z.tuple([z.number(), z.number()]),
+      capacityL: z.number().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    watercourses: z.array(z.object({
+      id: z.string(),
+      kind: z.string(),
+      perennial: z.boolean().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+  }),
+  ecology: z.object({
+    observations: z.array(z.object({
+      id: z.string(),
+      species: z.string(),
+      trophicLevel: z.string().optional(),
+      notes: z.string().optional(),
+      observedAt: z.string(),
+      location: z.tuple([z.number(), z.number()]).optional(),
+    })),
+    zones: z.array(z.object({
+      id: z.string(),
+      dominantStage: z.string(),
+      label: z.string().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    successionStage: z.string().optional(),
+  }),
+  siteLayers: z.object({
+    watershed: z.record(z.unknown()).optional(),
+    wetlandsPresent: z.boolean().optional(),
+    criticalHabitatPresent: z.boolean().optional(),
+    soilsSummary: z.record(z.unknown()).optional(),
+  }).optional(),
+});
+export type EarthWaterEcologyPayload = z.infer<typeof EarthWaterEcologyPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -193,6 +266,7 @@ export const CreateExportInput = z.object({
     scenarios: ScenarioPayload.optional(),
     swot: SwotPayload.optional(),
     topography: TopographyPayload.optional(),
+    earthWaterEcology: EarthWaterEcologyPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
