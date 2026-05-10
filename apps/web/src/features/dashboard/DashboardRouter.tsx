@@ -97,6 +97,9 @@ const NetworkCrmCard = lazy(() => import('../act/NetworkCrmCard.js'));
 const CommunityEventCard = lazy(() => import('../act/CommunityEventCard.js'));
 const HazardPlansCard = lazy(() => import('../act/HazardPlansCard.js'));
 const AppropriateTechLogCard = lazy(() => import('../act/AppropriateTechLogCard.js'));
+// Dev — Act-affinity telemetry read view (gated in DashboardSidebar by
+// VITE_ATLAS_TELEMETRY_ENABLED). Backs the affinity-validation pipeline.
+const AffinityTelemetryDashboard = lazy(() => import('./pages/AffinityTelemetryDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -107,6 +110,7 @@ interface DashboardRouterProps {
 const SECTION_LABELS: Record<string, string> = {
   'dashboard-settings': 'Settings',
   'archive': 'Archive',
+  'dev-affinity-telemetry': 'Affinity telemetry',
 };
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
@@ -558,6 +562,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Version History">
           <VersionHistoryDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'dev-affinity-telemetry':
+      return (
+        <PanelShell name="Affinity telemetry">
+          <AffinityTelemetryDashboard />
         </PanelShell>
       );
     default:
