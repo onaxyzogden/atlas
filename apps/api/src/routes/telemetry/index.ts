@@ -49,7 +49,7 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
               ${evt.projectType},
               ${evt.module},
               ${evt.eventType},
-              ${db.json(evt.payload as Record<string, unknown>)}
+              ${db.json(evt.payload as never) as unknown as string}
             )
           `;
           ingested += 1;
