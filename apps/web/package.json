@@ -11,7 +11,8 @@
     "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "gen:models": "node scripts/gen-generic-box-glb.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -25,13 +26,14 @@
     "date-fns": "^4.1.0",
     "geotiff": "^3.0.5",
     "i18next": "^24.0.0",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^1.14.0",
     "maplibre-gl": "^4.7.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.54.0",
     "react-i18next": "^15.1.0",
     "suncalc": "^1.9.0",
+    "three": "^0.169.0",
     "zod": "^3.23.8",
     "zundo": "^2.3.0",
     "zustand": "^5.0.0"
@@ -44,6 +46,7 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/suncalc": "^1.9.2",
+    "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.3.0",
     "@vitest/coverage-v8": "^2.1.9",
     "happy-dom": "^20.8.9",

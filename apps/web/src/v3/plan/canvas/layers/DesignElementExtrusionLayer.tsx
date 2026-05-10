@@ -10,6 +10,11 @@
  * `terrain3d` tab triggers a camera preset (`Terrain3DController`)
  * that does the tilting in one click.
  *
+ * Kinds whose registry entry sets `mode: 'glb'` are skipped here — they
+ * render through `DesignElementGlbLayer` instead. This layer therefore
+ * acts as a fallback for any kind that is in the registry but does not
+ * have an authored GLB.
+ *
  * Phase filtering mirrors `DesignElementLayers`: phase-1 caps at
  * `water`, phase-2 caps at `buildings`, vision/terrain3d show all.
  *
@@ -93,6 +98,11 @@ export default function DesignElementExtrusionLayer({
       if (phaseIndex(el.phase) > cap) continue;
       const spec = getElementHeightSpec(el.kind);
       if (!spec) continue;
+      // GLB-mode kinds are rendered by `DesignElementGlbLayer`. Skip them
+      // here so the two layers don't double-draw the same kind. The
+      // extrusion layer remains mounted as a fallback for any kind that
+      // is in the registry but lacks `mode: 'glb'`.
+      if (spec.mode === 'glb') continue;
       const colour =
         spec.color ?? findElementSpec(el.kind)?.color ?? '#888';
       const props = {

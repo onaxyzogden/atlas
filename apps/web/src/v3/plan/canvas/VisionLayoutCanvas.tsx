@@ -5,8 +5,10 @@
  * Composition:
  *   DiagnoseMap (reused MapLibre container)
  *     ├ DesignElementLayers          — flat fill/line/circle/symbol layers
- *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D shapes (always on;
- *     │                                 read by pitch, not by view)
+ *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D fallback (always on;
+ *     │                                 skips kinds rendered by GLB layer)
+ *     ├ DesignElementGlbLayer        — three.js custom layer rendering authored
+ *     │                                 GLB models per kind (always on)
  *     ├ Terrain3DController          — view==='terrain3d' camera preset
  *     │                                 (pitch + DEM); unmount restores flat
  *     ├ DesignToolRail               — right-edge floating tool column
@@ -22,6 +24,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
 import DesignElementExtrusionLayer from './layers/DesignElementExtrusionLayer.js';
+import DesignElementGlbLayer from './layers/DesignElementGlbLayer.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
 import Terrain3DController from './Terrain3DController.js';
@@ -77,6 +80,11 @@ export default function VisionLayoutCanvas({
             selectedId={selectedId}
           />
           <DesignElementExtrusionLayer
+            map={map}
+            projectId={projectId}
+            view={view}
+          />
+          <DesignElementGlbLayer
             map={map}
             projectId={projectId}
             view={view}
