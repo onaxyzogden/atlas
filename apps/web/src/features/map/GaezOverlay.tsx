@@ -442,6 +442,7 @@ function rasterUrl(sel: GaezSelection): string {
   // TODO(sprint-cd+2): make scenario dynamic once picker lands.
   // Backend accepts scenario as a required path segment per Sprint CD;
   // hardcoded to baseline until GaezSelection grows a scenario field.
+  // Status: deferred — see wiki/decisions/2026-05-10-deferred-todo-sweep.md.
   const { crop, waterSupply, inputLevel, variable } = sel;
   return `/api/v1/gaez/raster/baseline_1981_2010/${encodeURIComponent(crop)}/${encodeURIComponent(waterSupply)}/${encodeURIComponent(inputLevel)}/${encodeURIComponent(variable)}`;
 }

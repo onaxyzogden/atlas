@@ -13,6 +13,8 @@
  *     should cap blast radius.
  *   See wiki/decisions/2026-05-04-p4-public-portal-section27-consolidation.md
  *   (D2 + D4 — both deferred to launch-readiness sprint).
+ *   Re-confirmed open + gated to "before first public URL" in
+ *   wiki/decisions/2026-05-10-deferred-todo-sweep.md.
  */
 
 import type { FastifyInstance } from 'fastify';

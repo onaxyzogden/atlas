@@ -66,8 +66,10 @@ function polygonCentroid(poly: GeoJSON.Polygon): [number, number] {
   let sy = 0;
   let n = 0;
   for (let i = 0; i < ring.length - 1; i++) {
-    sx += ring[i][0];
-    sy += ring[i][1];
+    const pt = ring[i];
+    if (!pt) continue;
+    sx += pt[0] ?? 0;
+    sy += pt[1] ?? 0;
     n++;
   }
   if (n === 0) return [0, 0];
@@ -82,7 +84,10 @@ function polygonExtentsM(poly: GeoJSON.Polygon): { widthM: number; depthM: numbe
   let maxLng = -Infinity;
   let minLat = Infinity;
   let maxLat = -Infinity;
-  for (const [lng, lat] of ring) {
+  for (const pt of ring) {
+    const lng = pt[0];
+    const lat = pt[1];
+    if (lng == null || lat == null) continue;
     if (lng < minLng) minLng = lng;
     if (lng > maxLng) maxLng = lng;
     if (lat < minLat) minLat = lat;
