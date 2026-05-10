@@ -181,7 +181,12 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} />
           <InlineFeaturePopover map={map} />
-          <PlanSelectionFloater />
+          <PlanSelectionFloater
+            onOpenGuildBuilder={() => {
+              handleSelectModule('plant-systems');
+              setSlideUpOpen(true);
+            }}
+          />
         </>
       )}
     </DiagnoseMap>

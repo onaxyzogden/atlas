@@ -12,7 +12,7 @@
  */
 
 import { useEffect } from 'react';
-import { Pencil, Trash2, X } from 'lucide-react';
+import { Pencil, Trash2, Trees, X } from 'lucide-react';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   usePlanSelectionStore,
@@ -101,10 +101,20 @@ function removeOne(item: PlanSelectionItem): void {
   }
 }
 
-export default function PlanSelectionFloater() {
+interface Props {
+  onOpenGuildBuilder?: () => void;
+}
+
+export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {}) {
   const items = usePlanSelectionStore((s) => s.items);
   const clear = usePlanSelectionStore((s) => s.clear);
   const setVertexTarget = usePlanVertexEditStore((s) => s.setTarget);
+
+  const single = items.length === 1 ? items[0] : null;
+  const guildId = single?.kind === 'guild' ? single.id : null;
+  const guild = usePolycultureStore((s) =>
+    guildId ? s.guilds.find((g) => g.id === guildId) ?? null : null,
+  );
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -121,7 +131,6 @@ export default function PlanSelectionFloater() {
 
   if (items.length === 0) return null;
 
-  const single = items.length === 1 ? items[0] : null;
   const vertexEnabled = Boolean(
     single && POLYGON_KINDS.has(single.kind),
   );
@@ -149,7 +158,11 @@ export default function PlanSelectionFloater() {
   };
 
   const countLabel = single
-    ? KIND_LABEL[single.kind]
+    ? single.kind === 'guild' && guild
+      ? `${guild.name || 'Guild'} · ${guild.members.length} member${
+          guild.members.length === 1 ? '' : 's'
+        }`
+      : KIND_LABEL[single.kind]
     : `${items.length} selected`;
 
   return (
@@ -176,6 +189,18 @@ export default function PlanSelectionFloater() {
           <span>Edit vertices</span>
         </button>
       </DelayedTooltip>
+      {single?.kind === 'guild' && onOpenGuildBuilder ? (
+        <DelayedTooltip label="Open in Guild Builder" position="top">
+          <button
+            type="button"
+            className={css.btn}
+            onClick={onOpenGuildBuilder}
+          >
+            <Trees aria-hidden="true" />
+            <span>Open Guild Builder</span>
+          </button>
+        </DelayedTooltip>
+      ) : null}
       <DelayedTooltip label="Delete selected" position="top">
         <button
           type="button"
