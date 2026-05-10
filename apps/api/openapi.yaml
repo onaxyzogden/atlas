@@ -1030,7 +1030,7 @@ paths:
       summary: Generate a PDF export (owner or designer)
       description: |
         Supported export types: site_assessment, design_brief, feature_schedule,
-        field_notes, investor_summary, scenario_comparison, educational_booklet.
+        field_notes, capital_partner_summary, scenario_comparison, educational_booklet.
         Broadcasts an export_ready WebSocket event on completion.
         Body size limit: 50 MB (for embedded photos in field notes).
       requestBody:
@@ -2182,7 +2182,7 @@ components:
         - design_brief
         - feature_schedule
         - field_notes
-        - investor_summary
+        - capital_partner_summary
         - scenario_comparison
         - educational_booklet
 
@@ -2203,7 +2203,7 @@ components:
               description: FieldNotesPayload for field_notes export
             financial:
               type: object
-              description: FinancialPayload for investor_summary export
+              description: FinancialPayload for capital_partner_summary export
             scenarios:
               type: array
               description: ScenarioPayload array for scenario_comparison export

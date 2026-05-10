@@ -107,7 +107,7 @@ describe('ExportType enum', () => {
   it('accepts all export types', () => {
     expect(ExportType.parse('site_assessment')).toBe('site_assessment');
     expect(ExportType.parse('field_notes')).toBe('field_notes');
-    expect(ExportType.parse('investor_summary')).toBe('investor_summary');
+    expect(ExportType.parse('capital_partner_summary')).toBe('capital_partner_summary');
   });
 });
 

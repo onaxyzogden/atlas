@@ -136,7 +136,7 @@
   background: rgba(160, 195, 130, 0.78);
 }
 
-.barInvestor {
+.barCapitalPartner {
   background: rgba(196, 162, 101, 0.85);
 }
 
@@ -247,7 +247,7 @@
   color: rgba(190, 215, 165, 0.95);
 }
 
-.rulePill[data-side='investor'] {
+.rulePill[data-side='capital_partner'] {
   background: rgba(196, 162, 101, 0.2);
   color: rgba(232, 200, 145, 0.95);
 }

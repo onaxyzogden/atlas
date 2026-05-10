@@ -478,7 +478,7 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
       {/* ── §15 Per-phase permit readiness ──────────────────────────── */}
       <PermitReadinessCard projectId={project.id} />
 
-      {/* ── §22 Build path modes (Fastest / Cheapest / Regen / Investor) ── */}
+      {/* ── §22 Build path modes (Fastest / Cheapest / Regen / Capital partner) ── */}
       <PathModesCard project={project} />
 
       {/* ── Footnote ────────────────────────────────────────────────── */}

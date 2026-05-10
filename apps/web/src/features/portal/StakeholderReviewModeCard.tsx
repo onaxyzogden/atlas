@@ -8,7 +8,7 @@
  *     handled by `PortalConfigPanel` + `PublicPortalPage`
  *   - the *internal workspace* (full state for stewards and crew)
  *   - the *stakeholder review mode* — narrower than the public portal in
- *     audience (a curated list of CSRA members / donors / neighbors / a
+ *     audience (a curated list of capital partners / donors / neighbors / a
  *     review board) and broader in surface (can show phasing, acreage,
  *     and headline metrics that the public view rounds or hides), but
  *     still strictly view-only and structured around inviting *feedback*
@@ -83,7 +83,7 @@ const REVIEW_PROMPTS: ReviewPrompt[] = [
     id: 'community-fit',
     category: 'fit',
     prompt: 'How does this project sit with the surrounding community / neighbors / bioregion as you understand it?',
-    rationale: 'Specific to community-supported regenerative-ag framing; tests local-fit assumptions.',
+    rationale: 'Specific to community-rooted regenerative-ag framing; tests local-fit assumptions.',
   },
   {
     id: 'support-form',
@@ -95,12 +95,12 @@ const REVIEW_PROMPTS: ReviewPrompt[] = [
 
 // Three audience archetypes the steward might be sending the review pack
 // to. Affects the framing copy and the "why this view" line.
-type Audience = 'csra' | 'neighbor' | 'board';
+type Audience = 'capital_partner' | 'neighbor' | 'board';
 
 const AUDIENCES: Record<Audience, { label: string; framing: string; note: string }> = {
-  csra: {
-    label: 'CSRA member',
-    framing: 'Community-Supported Regenerative-Ag member who has financial standing in the project.',
+  capital_partner: {
+    label: 'Capital partner',
+    framing: 'Charitable donor, qarḍ-ḥasan lender, sponsor, or in-kind contributor with financial or material standing in the project.',
     note: 'Shows phasing, acreage, and headline metrics. Hides AI drafts and steward-only working notes.',
   },
   neighbor: {
@@ -156,7 +156,7 @@ export default function StakeholderReviewModeCard({ project }: Props) {
     [allZones, project.id],
   );
 
-  const [audience, setAudience] = useState<Audience>('csra');
+  const [audience, setAudience] = useState<Audience>('capital_partner');
   const [copied, setCopied] = useState(false);
 
   const totalEntities = structuresLen + utilitiesLen + cropsLen + paddocksLen + zonesLen;

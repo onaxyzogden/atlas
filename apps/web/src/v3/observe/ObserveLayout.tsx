@@ -40,7 +40,6 @@ import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers
 import SelectionFloater from './components/SelectionFloater.js';
 import ExportButton from './components/ExportButton.js';
 import ImportSiteIntelButton from './components/ImportSiteIntelButton.js';
-import useGlobalAnnotationUndo from './hooks/useGlobalAnnotationUndo.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -66,9 +65,6 @@ export default function ObserveLayout() {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
-
-  // Cmd-Z / Cmd-Shift-Z bound while OBSERVE is mounted.
-  useGlobalAnnotationUndo();
 
   const handleSelectModule = (mod: ObserveModule | null) => {
     if (!params.projectId) return;

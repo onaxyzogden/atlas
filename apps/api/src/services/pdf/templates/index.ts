@@ -82,7 +82,7 @@ import { renderSiteAssessment } from './siteAssessment.js';
 import { renderDesignBrief } from './designBrief.js';
 import { renderFeatureSchedule } from './featureSchedule.js';
 import { renderFieldNotes } from './fieldNotes.js';
-import { renderInvestorSummary } from './investorSummary.js';
+import { renderCapitalPartnerSummary } from './capitalPartnerSummary.js';
 import { renderScenarioComparison } from './scenarioComparison.js';
 import { renderEducationalBooklet } from './educationalBooklet.js';
 
@@ -91,7 +91,7 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   design_brief: renderDesignBrief,
   feature_schedule: renderFeatureSchedule,
   field_notes: renderFieldNotes,
-  investor_summary: renderInvestorSummary,
+  capital_partner_summary: renderCapitalPartnerSummary,
   scenario_comparison: renderScenarioComparison,
   educational_booklet: renderEducationalBooklet,
 };

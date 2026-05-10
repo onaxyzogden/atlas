@@ -1,7 +1,11 @@
 /**
- * InvestorSummaryExport — investor-facing summary with real financial data.
+ * CapitalPartnerSummaryExport — capital-partner-facing summary with real financial data.
  * Pulls from useFinancialModel, useSiteDataStore, visionStore, projectStore.
  * Generates PDF via POST /api/v1/projects/:id/exports.
+ *
+ * Audience: capital partners & allies considering charitable donation, restricted
+ * donation, qarḍ ḥasan, in-kind contribution, or sponsorship. The financial
+ * analysis is informational planning, not a sale of future returns.
  */
 
 import { useEffect, useState } from 'react';
@@ -18,7 +22,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function InvestorSummaryExport({ project, onClose }: Props) {
+export default function CapitalPartnerSummaryExport({ project, onClose }: Props) {
   const model = useFinancialModel(project.id);
   const siteData = useSiteDataStore((s) => s.dataByProject[project.id]);
   const visionData = useVisionStore((s) => s.getVisionData(project.id));
@@ -43,7 +47,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
     setError(null);
     try {
       const { data } = await api.exports.generate(project.id, {
-        exportType: 'investor_summary',
+        exportType: 'capital_partner_summary',
         payload: {
           financial: {
             region: model.region,
@@ -77,7 +81,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
     }
   };
 
-  // a11y: Escape key closes the investor-summary modal
+  // a11y: Escape key closes the capital-partner-summary modal
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -90,7 +94,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" style={{ width: 720, maxHeight: '90vh', overflowY: 'auto', background: semantic.surface, borderRadius: 12, color: sage[900] }}>
         {/* Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid rgba(21,128,61,0.15)' }}>
-          <span style={{ fontSize: 13, fontWeight: 500 }}>Investor Summary</span>
+          <span style={{ fontSize: 13, fontWeight: 500 }}>Capital Partner Summary</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {status === 'idle' && (
               <button
@@ -147,7 +151,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
               </button>
             )}
             <button onClick={onClose} style={{ padding: '6px 12px', fontSize: 14, border: '1px solid rgba(21,128,61,0.15)', borderRadius: 6, background: 'transparent', color: '#6b7280', cursor: 'pointer' }}>
-              {'\u00D7'}
+              {'×'}
             </button>
           </div>
         </div>
@@ -163,7 +167,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
           {/* Header */}
           <div style={{ borderBottom: `2px solid ${group.reporting}`, paddingBottom: 12, marginBottom: 24 }}>
             <div style={{ fontSize: 10, letterSpacing: '0.12em', color: warning.DEFAULT, textTransform: 'uppercase', marginBottom: 4, fontWeight: 600 }}>
-              OGDEN Land Design Atlas — Investor Summary (Estimate)
+              OGDEN Land Design Atlas — Capital Partner Summary (Estimate)
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 600, margin: 0, fontFamily: "'Fira Code', monospace", color: sage[900] }}>{project.name}</h1>
             {project.address && <p style={{ fontSize: 12, color: group.reporting, marginTop: 4 }}>{project.address}</p>}
@@ -174,11 +178,11 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
             )}
           </div>
 
-          {/* Key Investor Metrics */}
+          {/* Key Capital Plan Metrics */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
-            <MetricCard label="Total Investment (est.)" value={totalInvestmentStr} color={group.reporting} />
-            <MetricCard label="Break-Even (est.)" value={breakEvenStr} color={warning.DEFAULT} />
-            <MetricCard label="10-Year ROI (est.)" value={roiStr} color={group.reporting} />
+            <MetricCard label="Total Capital Required (est.)" value={totalInvestmentStr} color={group.reporting} />
+            <MetricCard label="Operating Self-Sufficiency (est.)" value={breakEvenStr} color={warning.DEFAULT} />
+            <MetricCard label="10-Year Project Yield (est.)" value={roiStr} color={group.reporting} />
           </div>
 
           {/* Year 5 / Year 10 cashflow preview */}
@@ -302,12 +306,21 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
             </div>
           )}
 
+          {/* Permitted Capital Channels */}
+          <div style={{ marginBottom: 16, padding: 12, background: 'rgba(21,128,61,0.05)', borderRadius: 8, fontSize: 11, color: sage[900], lineHeight: 1.6 }}>
+            <strong style={{ color: sage[900], display: 'block', marginBottom: 4 }}>Permitted Capital Channels</strong>
+            Charitable donation · Restricted donation · Qarḍ ḥasan (interest-free loan) · In-kind contribution · Sponsorship.
+            <span style={{ display: 'block', marginTop: 4, color: '#6b7280', fontStyle: 'italic' }}>
+              A future post-acquisition yield-share is contemplated only as a membership benefit, subject to Scholar Council review.
+            </span>
+          </div>
+
           {/* Disclaimer */}
           <div style={{ padding: 12, background: success[50], borderRadius: 8, fontSize: 10, color: '#6b7280', lineHeight: 1.6, marginBottom: 16 }}>
             <strong style={{ color: sage[900] }}>Estimate Disclaimer:</strong> All projections are estimates based on regional benchmarks and comparable operations.
             Actual costs depend on site conditions, permitting, contractor availability, and market factors.
             Revenue estimates assume competent management and normal market conditions.
-            These figures are for planning purposes only and do not constitute financial advice.
+            These figures are for planning purposes only, are not financial advice, and do not constitute an offer to sell future returns.
             {model && model.assumptions.length > 0 && (
               <details style={{ marginTop: 8 }}>
                 <summary style={{ cursor: 'pointer', fontWeight: 600, color: sage[900] }}>Key Assumptions ({model.assumptions.length})</summary>
@@ -322,7 +335,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
           </div>
 
           <div style={{ fontSize: 9, color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(21,128,61,0.15)', paddingTop: 12 }}>
-            Generated by OGDEN Land Design Atlas \u2014 {new Date().toLocaleDateString()} \u2014 Estimates for planning purposes only
+            Generated by OGDEN Land Design Atlas — {new Date().toLocaleDateString()} — Estimates for planning purposes only
           </div>
         </div>
       </div>
@@ -330,7 +343,7 @@ export default function InvestorSummaryExport({ project, onClose }: Props) {
   );
 }
 
-// ── Helper components ──────────────────────────────────────────────────────
+// ── Helper components ───────────────────────────────────────────────────────────────────────
 
 function MetricCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (

@@ -35,6 +35,8 @@ import {
   type FertilityInfraType,
 } from '../../../store/closedLoopStore.js';
 import { type Guild } from '../../../store/polycultureStore.js';
+import { resolveValidPresets, findGuildPreset } from '../../../data/guildPresets.js';
+import { PLANT_DATABASE } from '../../../data/plantDatabase.js';
 import {
   type CatchmentSurface,
   type StorageNodeKind,
@@ -450,19 +452,53 @@ export function buildFertilityEditSchema(
 
 // ---------- Guild ----------
 //
-// On-map quick-edit for a placed guild. Member composition + anchor species
-// stays in the slide-up GuildSpatialBuilderCard (the canvas is not the right
-// surface for editing 7 plant layers); the popover only exposes the two
-// fields a steward typically wants when they tap a guild marker on the map.
+// On-map quick-edit for a placed guild. Mirrors GuildTool's first-placement
+// popover: the steward can pick a guild template (from `guildPresets.ts`),
+// rename, swap the anchor species, and edit notes. Picking a template
+// autofills `name` + `anchorSpeciesId` reactively (only when those fields
+// still hold their previous-preset/initial values — manual edits are
+// preserved) and replaces `members[]` wholesale on save. Layer-by-layer
+// member composition still lives in the slide-up GuildSpatialBuilderCard;
+// the template picker here is the bulk-reset escape hatch.
+
+const GUILD_PRESET_OPTIONS = resolveValidPresets().map((p) => ({
+  value: p.id,
+  label: p.name,
+}));
+
+const GUILD_ANCHOR_OPTIONS = PLANT_DATABASE
+  .filter((p) => p.layer === 'canopy' || p.layer === 'sub_canopy')
+  .map((p) => ({
+    value: p.id,
+    label: `${p.commonName} (${p.layer === 'canopy' ? 'Canopy' : 'Sub-canopy'})`,
+  }));
 
 export function buildGuildEditSchema(
   g: Guild,
   updateGuild: (id: string, updates: Partial<Guild>) => void,
 ): Omit<InlineFormPayload, 'anchor'> {
+  // Per-popover scratchpad — same idempotent guard as GuildTool. Tracks the
+  // most recently autofilled values so the reactive hook only overwrites
+  // name/anchor that the steward hasn't manually edited since the last
+  // preset switch.
+  let lastAutofilled = { name: g.name, anchorSpeciesId: g.anchorSpeciesId };
+
   return {
     title: 'Edit guild',
     fields: [
+      {
+        key: 'preset',
+        label: 'Apply a template (optional)',
+        kind: 'select',
+        options: GUILD_PRESET_OPTIONS,
+      },
       { key: 'name', label: 'Name', kind: 'text', required: true },
+      {
+        key: 'anchorSpeciesId',
+        label: 'Anchor species',
+        kind: 'select',
+        options: GUILD_ANCHOR_OPTIONS,
+      },
       {
         key: 'notes',
         label: 'Notes',
@@ -470,11 +506,47 @@ export function buildGuildEditSchema(
         placeholder: 'e.g. north hedgerow',
       },
     ],
-    initial: { name: g.name, notes: g.notes ?? '' },
+    initial: {
+      preset: '',
+      name: g.name,
+      anchorSpeciesId: g.anchorSpeciesId,
+      notes: g.notes ?? '',
+    },
+    onValuesChange: (_next, prev, changed) => {
+      if (changed.key !== 'preset') return;
+      const presetId = String(changed.value);
+      if (!presetId) return; // cleared back to blank — leave fields as-is
+      const preset = findGuildPreset(presetId);
+      if (!preset) return;
+      const patch: Record<string, string> = {};
+      if (prev.name === lastAutofilled.name) {
+        patch.name = preset.name;
+      }
+      if (prev.anchorSpeciesId === lastAutofilled.anchorSpeciesId) {
+        patch.anchorSpeciesId = preset.anchorSpeciesId;
+      }
+      lastAutofilled = {
+        name: preset.name,
+        anchorSpeciesId: preset.anchorSpeciesId,
+      };
+      return patch;
+    },
     onSave: (values) => {
+      const presetId = String(values.preset ?? '');
+      const preset = presetId ? findGuildPreset(presetId) : undefined;
+      const typedNotes = String(values.notes ?? '').trim();
       updateGuild(g.id, {
         name: String(values.name ?? g.name).trim() || g.name,
-        notes: String(values.notes ?? '').trim() || undefined,
+        anchorSpeciesId: String(values.anchorSpeciesId ?? g.anchorSpeciesId),
+        notes: typedNotes || undefined,
+        ...(preset
+          ? {
+              members: preset.members,
+              // Only fall back to the preset's seed note when the steward
+              // didn't type their own — never clobber user-authored notes.
+              ...(!typedNotes && preset.notes ? { notes: preset.notes } : {}),
+            }
+          : {}),
       });
     },
     onCancel: () => {

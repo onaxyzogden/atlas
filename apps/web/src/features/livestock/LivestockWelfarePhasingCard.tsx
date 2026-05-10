@@ -25,12 +25,13 @@
  * Spec: §11 welfare-notes-infrastructure-phasing (featureManifest).
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useLivestockStore,
   type Paddock,
   type LivestockSpecies,
   type FenceType,
+  type PastureQuality,
 } from '../../store/livestockStore.js';
 import { useStructureStore, type Structure } from '../../store/structureStore.js';
 import {
@@ -53,6 +54,26 @@ const REAL_FENCE_TYPES: ReadonlySet<FenceType> = new Set<FenceType>([
   'woven_wire',
 ]);
 
+/**
+ * Pasture-quality stocking multipliers — derived from the AUE/ha figures
+ * in the Paddock popover's PASTURE_QUALITY_OPTIONS (poor 0.7, fair 1.2,
+ * good 2.5, excellent 3.7). Normalised so `good` is the 1.0 baseline that
+ * matches `LIVESTOCK_SPECIES.typicalStocking`.
+ */
+const PASTURE_QUALITY_MULTIPLIER: Record<PastureQuality, number> = {
+  poor: 0.7 / 2.5,
+  fair: 1.2 / 2.5,
+  good: 1.0,
+  excellent: 3.7 / 2.5,
+};
+
+const PASTURE_QUALITY_LABEL: Record<PastureQuality, string> = {
+  poor: 'Poor (~0.7 AUE/ha)',
+  fair: 'Fair (~1.2 AUE/ha)',
+  good: 'Good (~2.5 AUE/ha)',
+  excellent: 'Excellent (3.7+ AUE/ha)',
+};
+
 /** Water-bearing structure types. Mirrors the welfare-summary filter
  *  in LivestockDashboard so coverage counts agree. */
 const WATER_STRUCTURE_TYPES = new Set<Structure['type']>([
@@ -67,6 +88,8 @@ interface SpeciesRow {
   shelterMet: number;
   waterMet: number;
   fencingMet: number;
+  qualityMultiplierSum: number;
+  qualityCount: number;
 }
 
 interface PhaseRow {
@@ -82,6 +105,10 @@ interface PhaseRow {
 export default function LivestockWelfarePhasingCard({ projectId }: Props) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allStructures = useStructureStore((s) => s.structures);
+  // Empty-state pasture-quality picker. `typicalStocking` in the catalog is
+  // calibrated for good pasture, so 'good' is the natural default — moving
+  // the selector rescales the displayed stocking values in real time.
+  const [refPastureQuality, setRefPastureQuality] = useState<PastureQuality>('good');
 
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
@@ -124,11 +151,16 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
           shelterMet: 0,
           waterMet: 0,
           fencingMet: 0,
+          qualityMultiplierSum: 0,
+          qualityCount: 0,
         };
         row.paddockCount += 1;
         if (ps.shelterOk) row.shelterMet += 1;
         if (ps.waterOk) row.waterMet += 1;
         if (ps.fencingOk) row.fencingMet += 1;
+        const q = ps.paddock.pastureQuality;
+        row.qualityMultiplierSum += q ? PASTURE_QUALITY_MULTIPLIER[q] : 1.0;
+        row.qualityCount += 1;
         map.set(sp, row);
       }
     }
@@ -164,9 +196,90 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
     return Array.from(map.values()).sort((a, b) => a.phase.localeCompare(b.phase));
   }, [paddockStatus]);
 
-  // Empty state
+  // Empty state — render the species reference catalog + guidance so the
+  // tab has tangible content even before paddocks exist. Per-paddock rollup
+  // (gate chips, per-phase needs) populates once paddocks are drawn via the
+  // Paddock cell design tab.
   if (paddocks.length === 0) {
-    return null; // Project-wide welfare card already handles the empty case
+    const referenceSpecies = Object.entries(LIVESTOCK_SPECIES) as Array<
+      [LivestockSpecies, (typeof LIVESTOCK_SPECIES)[LivestockSpecies]]
+    >;
+    const multiplier = PASTURE_QUALITY_MULTIPLIER[refPastureQuality];
+
+    return (
+      <div className={css.card}>
+        <div className={css.cardHead}>
+          <h2 className={css.cardTitle}>Welfare Notes {'·'} Infrastructure Phasing</h2>
+          <span className={css.cardHint}>Reference {'·'} no paddocks yet</span>
+        </div>
+
+        <p className={css.emptyMsg}>
+          No paddocks drawn yet for this project. Use the{' '}
+          <strong>Paddock cell design</strong> tab in this slide-up to draw
+          paddocks {'—'} this view will then roll up per-species welfare
+          standards (fencing / water / shelter) and per-phase infrastructure
+          gates.
+        </p>
+
+        <label className={css.qualityPicker}>
+          <span className={css.qualityPickerLabel}>Pasture quality</span>
+          <select
+            className={css.qualitySelect}
+            value={refPastureQuality}
+            onChange={(e) => setRefPastureQuality(e.target.value as PastureQuality)}
+          >
+            {(Object.keys(PASTURE_QUALITY_LABEL) as PastureQuality[]).map((q) => (
+              <option key={q} value={q}>{PASTURE_QUALITY_LABEL[q]}</option>
+            ))}
+          </select>
+        </label>
+
+        <div className={css.sectionLabel}>Per-species welfare standards (reference)</div>
+        <div className={css.speciesGrid}>
+          {referenceSpecies.map(([key, info]) => (
+            <div key={key} className={css.speciesCard}>
+              <div className={css.speciesHead}>
+                <span className={css.speciesIcon}>{info.icon}</span>
+                <span className={css.speciesName}>{info.label}</span>
+              </div>
+              <div className={css.speciesNotesList}>
+                <div className={css.speciesNoteRow}>
+                  <span className={css.speciesNoteLabel}>Fencing</span>
+                  <span className={css.speciesNoteValue}>{info.fencingNote}</span>
+                </div>
+                <div className={css.speciesNoteRow}>
+                  <span className={css.speciesNoteLabel}>Water</span>
+                  <span className={css.speciesNoteValue}>{info.waterNote}</span>
+                </div>
+                <div className={css.speciesNoteRow}>
+                  <span className={css.speciesNoteLabel}>Shelter</span>
+                  <span className={css.speciesNoteValue}>{info.shelterNote}</span>
+                </div>
+                <div className={css.speciesNoteRow}>
+                  <span className={css.speciesNoteLabel}>Stocking</span>
+                  <span className={css.speciesNoteValue}>
+                    {Math.round(info.typicalStocking * multiplier * 10) / 10}{' '}
+                    {info.stockingUnit} / ha
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className={css.sectionLabel}>Per-phase infrastructure status</div>
+        <p className={css.emptyMsg}>
+          Per-phase infrastructure gates appear once paddocks are drawn.
+        </p>
+
+        <div className={css.footnote}>
+          Spec ref: §11 welfare-notes-infrastructure-phasing. Species standards
+          from <em>LIVESTOCK_SPECIES</em>; per-paddock satisfaction (shelter
+          access, water access, fencing) populates after paddocks exist via{' '}
+          <em>computeShelterAccess</em> and <em>computeWaterPointDistance</em>.
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -203,6 +316,13 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
                 <div className={css.speciesNoteRow}>
                   <span className={css.speciesNoteLabel}>Shelter</span>
                   <span className={css.speciesNoteValue}>{info.shelterNote}</span>
+                </div>
+                <div className={css.speciesNoteRow}>
+                  <span className={css.speciesNoteLabel}>Stocking</span>
+                  <span className={css.speciesNoteValue}>
+                    {Math.round(info.typicalStocking * (row.qualityMultiplierSum / row.qualityCount) * 10) / 10}{' '}
+                    {info.stockingUnit} / ha
+                  </span>
                 </div>
               </div>
               <div className={css.speciesGates}>

@@ -1,6 +1,6 @@
 /**
  * Formatting helpers for dollar values and low/high ranges used across the
- * Economics panel, Investor Summary export, Scenarios panel, etc.
+ * Economics panel, Capital Partner Summary export, Scenarios panel, etc.
  */
 
 /** Format a number as a "$XK" abbreviation (e.g. 12345 → "$12K"). Negative values keep their sign before the dollar sign. */

@@ -1,7 +1,7 @@
 /**
  * §17 DesignBriefPitchCard — bundles the dashboard's synthesis +
  * assumptions + alternative-layout outputs into a one-page brief the
- * steward can hand to a landowner, investor, or community reviewer.
+ * steward can hand to a landowner, capital partner, or community reviewer.
  *
  * Closes the §17 design-support loop alongside `AiSiteSynthesisCard`,
  * `AssumptionGapDetectorCard`, `NeedsSiteVisitCard`, and
@@ -18,7 +18,7 @@
  * steward edits the human-readable text after copying / printing,
  * matching the §17 spec language ("editable, clearly labeled as AI draft").
  *
- * Closes manifest §17 `ai-design-brief-investor-landowner-pitch`
+ * Closes manifest §17 `ai-design-brief-capital-partner-landowner-pitch`
  * (P3) planned -> done.
  */
 
@@ -321,7 +321,7 @@ export default function DesignBriefPitchCard({ project }: Props) {
     <section className={css.card} aria-label="Design brief pitch">
       <header className={css.cardHead}>
         <div>
-          <h3 className={css.cardTitle}>Design brief — landowner / investor pitch</h3>
+          <h3 className={css.cardTitle}>Design brief — landowner / capital partner pitch</h3>
           <p className={css.cardHint}>
             A one-page draft assembled from project basics, site-data
             layer summary, placed entities, and the §17 detector trio.

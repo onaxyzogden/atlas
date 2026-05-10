@@ -45,7 +45,7 @@ const PRESETS: Preset[] = [
   {
     id: 'sepia_field_map',
     name: 'Sepia Field Map',
-    intent: 'Warm parchment palette evoking a hand-drawn field journal. Friendly for site walks, family meetings, and CSRA member updates.',
+    intent: 'Warm parchment palette evoking a hand-drawn field journal. Friendly for site walks, family meetings, and capital-partner updates.',
     palette: [
       { label: 'Background', color: '#f4ead0' },
       { label: 'Primary line', color: '#5a4632' },
@@ -54,12 +54,12 @@ const PRESETS: Preset[] = [
       { label: 'Annotation', color: '#3d2f20' },
     ],
     recommendedExport: 'PNG · Letter (8.5 × 11 in)',
-    audience: 'Steward, Family, Visiting CSRA member',
+    audience: 'Steward, Family, Visiting capital partner',
   },
   {
     id: 'presentation',
     name: 'Presentation',
-    intent: 'Bold, projector-friendly palette with strong figure-ground separation. Optimized for slide decks, investor pitches, and stakeholder workshops.',
+    intent: 'Bold, projector-friendly palette with strong figure-ground separation. Optimized for slide decks, capital-partner pitches, and stakeholder workshops.',
     palette: [
       { label: 'Background', color: '#1a1a1a' },
       { label: 'Primary line', color: '#f3ecd7' },
@@ -68,7 +68,7 @@ const PRESETS: Preset[] = [
       { label: 'Annotation', color: '#96c8aa' },
     ],
     recommendedExport: 'PNG @ 2× · 16:9 (1920 × 1080)',
-    audience: 'Investor, Funder, Board, Workshop',
+    audience: 'Capital partner, Funder, Board, Workshop',
   },
   {
     id: 'audit',

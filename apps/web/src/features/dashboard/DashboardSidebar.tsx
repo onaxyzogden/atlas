@@ -183,7 +183,7 @@ function DashboardIcon({ id, active, color }: { id: string; active: boolean; col
       return <svg {...p}><rect x="1" y="9" width="2.5" height="4" rx="0.3"/><rect x="5.5" y="6" width="2.5" height="7" rx="0.3"/><rect x="10" y="3" width="2.5" height="10" rx="0.3"/><polyline points="1 7 5 4 9 6 13 2"/></svg>;
     case 'scenarios':
       return <svg {...p}><line x1="2" y1="7" x2="6" y2="7"/><line x1="6" y1="7" x2="9" y2="4"/><line x1="6" y1="7" x2="9" y2="10"/><line x1="9" y1="4" x2="12" y2="4"/><line x1="9" y1="10" x2="12" y2="10"/></svg>;
-    case 'investor-summary':
+    case 'capital-partner-summary':
       return <svg {...p}><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="7.5" x2="10" y2="7.5"/><path d="M4 10L5.5 11.5L8.5 9"/></svg>;
     case 'regulatory':
       return <svg {...p}><path d="M7 1L12 3V7C12 10 10 12 7 13C4 12 2 10 2 7V3L7 1Z"/><line x1="7" y1="5" x2="7" y2="8"/><circle cx="7" cy="9.5" r="0.7" fill={stroke}/></svg>;

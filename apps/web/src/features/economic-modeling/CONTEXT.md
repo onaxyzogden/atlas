@@ -9,7 +9,7 @@ P2, P3 (see `packages/shared/src/featureManifest.ts` for the authoritative item 
 ## Purpose
 Provide the economic spine of a site plan: cost estimates by feature and phase,
 revenue stream tagging by enterprise, cashflow / break-even modeling, and
-investor / grant / landowner-partnership summaries. This section turns a
+capital partner / grant / landowner-partnership summaries. This section turns a
 regenerative design into something a steward (or funder) can actually fund,
 ramp, and defend. P2 delivers pragmatic placeholders (cost/revenue tags,
 enterprise buckets, first-pass cashflow); P3 layers the full model (regional
@@ -19,7 +19,7 @@ templates, lean-MVP warnings, TCO and grant-readiness views).
 ## File inventory
 - `EconomicModelingPage.tsx` — route-level entry
 - `components/` — section-private components (cost tables, revenue tags,
-  cashflow chart, investor summary panels)
+  cashflow chart, capital partner summary panels)
 - `hooks/` — section-private hooks (cost queries, cashflow computation)
 - `economicModelingStore.ts` — Zustand slice (if section owns client state
   for overrides, sensitivity-slider settings, scenario selection)
@@ -70,7 +70,7 @@ templates, lean-MVP warnings, TCO and grant-readiness views).
   imported from here. Until then, the four `status: 'partial'` items in
   the manifest (cost-estimate-by-feature-phase,
   revenue-stream-tagging-enterprise-mapping, cashflow-sequence-chart-break-even,
-  investor-summary-landowner-partnership) are presumed covered — at least
+  capital-partner-summary-landowner-partnership) are presumed covered — at least
   in part — by the legacy folders.
 - Phase gating: P3 items are 404'd unless `ATLAS_PHASE_MAX >= P3`. The
   stub route is tagged P2 so it responds at P2+.

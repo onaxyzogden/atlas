@@ -334,7 +334,7 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
               Grant Readiness section below. */}
           <TotalCostOfOwnershipCard project={project} model={model} />
 
-          {/* §22 Landowner / Investor partnership split-of-interest summary. */}
+          {/* §22 Landowner / Capital partner partnership split-of-interest summary. */}
           <LandownerPartnershipCard project={project} model={model} />
 
           {/* Grant readiness */}

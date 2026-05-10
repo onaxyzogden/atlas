@@ -17,7 +17,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type MaintenanceSourceKind = 'earthwork' | 'storage';
+export type MaintenanceSourceKind = 'earthwork' | 'storage' | 'structure';
 
 export type MaintenanceAction =
   | 'inspect'
@@ -57,7 +57,7 @@ export const useMaintenanceLogStore = create<MaintenanceLogState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-act-maintenance-log', version: 1 },
+    { name: 'ogden-act-maintenance-log', version: 2 },
   ),
 );
 

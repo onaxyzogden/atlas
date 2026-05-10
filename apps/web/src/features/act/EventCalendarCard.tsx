@@ -16,12 +16,14 @@ import { useMemo, useState } from 'react';
 import {
   addDays,
   addMonths,
+  addWeeks,
   endOfMonth,
   endOfWeek,
   format,
   isSameDay,
   isSameMonth,
   parseISO,
+  startOfDay,
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
@@ -36,6 +38,9 @@ import {
 } from './useEventAggregator.js';
 import shared from './actCard.module.css';
 import css from './EventCalendarCard.module.css';
+
+type CalendarViewMode = 'month' | 'week' | 'agenda';
+const AGENDA_DAYS = 14;
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -59,6 +64,7 @@ export default function EventCalendarCard({ project }: Props) {
   const today = useMemo(() => new Date(), []);
   const [anchor, setAnchor] = useState<Date>(today);
   const [selectedDay, setSelectedDay] = useState<Date>(today);
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
   const [activeSources, setActiveSources] = useState<Set<CalendarSource>>(
     () => new Set(CALENDAR_SOURCES),
   );
@@ -70,6 +76,20 @@ export default function EventCalendarCard({ project }: Props) {
     for (let d = start; d <= end; d = addDays(d, 1)) out.push(d);
     return out;
   }, [anchor]);
+
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(anchor, { weekStartsOn: 0 });
+    const out: Date[] = [];
+    for (let i = 0; i < 7; i++) out.push(addDays(start, i));
+    return out;
+  }, [anchor]);
+
+  const agendaDays = useMemo(() => {
+    const start = startOfDay(today);
+    const out: Date[] = [];
+    for (let i = 0; i < AGENDA_DAYS; i++) out.push(addDays(start, i));
+    return out;
+  }, [today]);
 
   const filteredByDate = useMemo(() => {
     const out = new Map<string, CalendarEntry[]>();
@@ -83,6 +103,26 @@ export default function EventCalendarCard({ project }: Props) {
   const selectedKey = dateKey(selectedDay);
   const selectedEntries = filteredByDate.get(selectedKey) ?? [];
   const monthLabel = format(anchor, 'MMMM yyyy');
+  const weekLabel = `${format(weekDays[0]!, 'MMM d')} – ${format(weekDays[6]!, 'MMM d, yyyy')}`;
+  const headerLabel =
+    viewMode === 'week' ? weekLabel
+      : viewMode === 'agenda' ? `Next ${AGENDA_DAYS} days`
+      : monthLabel;
+
+  const stepBack = () => {
+    if (viewMode === 'week') setAnchor((a) => addWeeks(a, -1));
+    else if (viewMode === 'month') setAnchor((a) => addMonths(a, -1));
+  };
+  const stepForward = () => {
+    if (viewMode === 'week') setAnchor((a) => addWeeks(a, 1));
+    else if (viewMode === 'month') setAnchor((a) => addMonths(a, 1));
+  };
+
+  const agendaBlocks = useMemo(() => {
+    return agendaDays
+      .map((day) => ({ day, entries: filteredByDate.get(dateKey(day)) ?? [] }))
+      .filter((b) => b.entries.length > 0);
+  }, [agendaDays, filteredByDate]);
 
   const toggleSource = (source: CalendarSource) => {
     setActiveSources((prev) => {
@@ -106,21 +146,23 @@ export default function EventCalendarCard({ project }: Props) {
 
       <section className={shared.section}>
         <div className={css.toolbar}>
-          <span className={css.monthLabel}>{monthLabel}</span>
+          <span className={css.monthLabel}>{headerLabel}</span>
           <div className={css.navButtons}>
             <button
               type="button"
               className={css.navBtn}
-              aria-label="Previous month"
-              onClick={() => setAnchor((a) => addMonths(a, -1))}
+              aria-label={viewMode === 'week' ? 'Previous week' : 'Previous month'}
+              onClick={stepBack}
+              disabled={viewMode === 'agenda'}
             >
               <ChevronLeft size={14} />
             </button>
             <button
               type="button"
               className={css.navBtn}
-              aria-label="Next month"
-              onClick={() => setAnchor((a) => addMonths(a, 1))}
+              aria-label={viewMode === 'week' ? 'Next week' : 'Next month'}
+              onClick={stepForward}
+              disabled={viewMode === 'agenda'}
             >
               <ChevronRight size={14} />
             </button>
@@ -135,6 +177,20 @@ export default function EventCalendarCard({ project }: Props) {
               Today
             </button>
           </div>
+        </div>
+
+        <div className={css.viewToggle} role="group" aria-label="Calendar view mode">
+          {(['month', 'week', 'agenda'] as CalendarViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={`${css.filterChip} ${viewMode === mode ? css.filterChipActive : ''}`}
+              onClick={() => setViewMode(mode)}
+              aria-pressed={viewMode === mode}
+            >
+              {mode === 'month' ? 'Month' : mode === 'week' ? 'Week' : 'Agenda'}
+            </button>
+          ))}
         </div>
 
         <div className={css.filterRow} role="group" aria-label="Source filters">
@@ -155,68 +211,149 @@ export default function EventCalendarCard({ project }: Props) {
           })}
         </div>
 
-        <div className={css.weekHeader} aria-hidden="true">
-          {WEEKDAY_LABELS.map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
+        {viewMode === 'month' && (
+          <>
+            <div className={css.weekHeader} aria-hidden="true">
+              {WEEKDAY_LABELS.map((label) => (
+                <span key={label}>{label}</span>
+              ))}
+            </div>
 
-        <div className={css.grid}>
-          {days.map((day) => {
-            const key = dateKey(day);
-            const entries = filteredByDate.get(key) ?? [];
-            const inMonth = isSameMonth(day, anchor);
-            const isToday = isSameDay(day, today);
-            const isSelected = isSameDay(day, selectedDay);
-            const sourcesPresent = new Set(entries.map((e) => e.source));
-            const overflow = entries.length - 3;
+            <div className={css.grid}>
+              {days.map((day) => {
+                const key = dateKey(day);
+                const entries = filteredByDate.get(key) ?? [];
+                const inMonth = isSameMonth(day, anchor);
+                const isToday = isSameDay(day, today);
+                const isSelected = isSameDay(day, selectedDay);
+                const sourcesPresent = new Set(entries.map((e) => e.source));
+                const overflow = entries.length - 3;
 
-            const className = [
-              css.cell,
-              !inMonth ? css.cellOutside : '',
-              isToday ? css.cellToday : '',
-              isSelected ? css.cellSelected : '',
-              entries.length > 0 ? css.cellHasEvents : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
+                const className = [
+                  css.cell,
+                  !inMonth ? css.cellOutside : '',
+                  isToday ? css.cellToday : '',
+                  isSelected ? css.cellSelected : '',
+                  entries.length > 0 ? css.cellHasEvents : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
 
-            return (
-              <button
-                key={key}
-                type="button"
-                className={className}
-                onClick={() => {
-                  if (!inMonth) {
-                    setAnchor(day);
-                  }
-                  setSelectedDay(day);
-                }}
-                aria-label={`${format(day, 'PPP')} — ${entries.length} entries`}
-                aria-pressed={isSelected}
-              >
-                <span className={css.cellDayNum}>{format(day, 'd')}</span>
-                {sourcesPresent.size > 0 && (
-                  <span className={css.cellDots}>
-                    {CALENDAR_SOURCES.filter((s) => sourcesPresent.has(s))
-                      .slice(0, 5)
-                      .map((s) => (
-                        <span
-                          key={s}
-                          className={`${css.dot} ${SOURCE_DOT_CLASS[s]}`}
-                        />
-                      ))}
-                  </span>
-                )}
-                {overflow > 0 && (
-                  <span className={css.cellOverflow}>+{overflow} more</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={className}
+                    onClick={() => {
+                      if (!inMonth) {
+                        setAnchor(day);
+                      }
+                      setSelectedDay(day);
+                    }}
+                    aria-label={`${format(day, 'PPP')} — ${entries.length} entries`}
+                    aria-pressed={isSelected}
+                  >
+                    <span className={css.cellDayNum}>{format(day, 'd')}</span>
+                    {sourcesPresent.size > 0 && (
+                      <span className={css.cellDots}>
+                        {CALENDAR_SOURCES.filter((s) => sourcesPresent.has(s))
+                          .slice(0, 5)
+                          .map((s) => (
+                            <span
+                              key={s}
+                              className={`${css.dot} ${SOURCE_DOT_CLASS[s]}`}
+                            />
+                          ))}
+                      </span>
+                    )}
+                    {overflow > 0 && (
+                      <span className={css.cellOverflow}>+{overflow} more</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-        <DayDetail entries={selectedEntries} day={selectedDay} />
+            <DayDetail entries={selectedEntries} day={selectedDay} />
+          </>
+        )}
+
+        {viewMode === 'week' && (
+          <>
+            <div className={css.weekStrip}>
+              {weekDays.map((day) => {
+                const key = dateKey(day);
+                const entries = filteredByDate.get(key) ?? [];
+                const isToday = isSameDay(day, today);
+                const isSelected = isSameDay(day, selectedDay);
+                const sourcesPresent = new Set(entries.map((e) => e.source));
+                const overflow = entries.length - 3;
+
+                const className = [
+                  css.weekCell,
+                  isToday ? css.cellToday : '',
+                  isSelected ? css.cellSelected : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={className}
+                    onClick={() => setSelectedDay(day)}
+                    aria-label={`${format(day, 'PPP')} — ${entries.length} entries`}
+                    aria-pressed={isSelected}
+                  >
+                    <span className={css.weekCellLabel}>
+                      {format(day, 'EEE')} · {format(day, 'MMM d')}
+                    </span>
+                    <span className={css.weekCellRight}>
+                      {sourcesPresent.size > 0 && (
+                        <span className={css.cellDots}>
+                          {CALENDAR_SOURCES.filter((s) => sourcesPresent.has(s))
+                            .slice(0, 5)
+                            .map((s) => (
+                              <span
+                                key={s}
+                                className={`${css.dot} ${SOURCE_DOT_CLASS[s]}`}
+                              />
+                            ))}
+                        </span>
+                      )}
+                      {overflow > 0 && (
+                        <span className={css.cellOverflow}>+{overflow}</span>
+                      )}
+                      {entries.length === 0 && (
+                        <span className={css.weekCellEmpty}>—</span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <DayDetail entries={selectedEntries} day={selectedDay} />
+          </>
+        )}
+
+        {viewMode === 'agenda' && (
+          <div className={css.agendaList}>
+            {agendaBlocks.length === 0 ? (
+              <p className={css.emptyDetail}>
+                No upcoming entries in the next {AGENDA_DAYS} days. Toggle
+                filters or extend the window.
+              </p>
+            ) : (
+              agendaBlocks.map(({ day, entries }) => (
+                <div key={dateKey(day)} className={css.agendaDay}>
+                  <DayDetail entries={entries} day={day} />
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

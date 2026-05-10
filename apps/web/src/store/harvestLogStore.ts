@@ -17,7 +17,7 @@ import { persist } from 'zustand/middleware';
 
 export type HarvestUnit = 'kg' | 'lb' | 'count' | 'L';
 export type HarvestQuality = 'A' | 'B' | 'C';
-export type HarvestSourceKind = 'crop' | 'livestock';
+export type HarvestSourceKind = 'crop' | 'livestock' | 'structure';
 
 export interface HarvestEntry {
   id: string;
@@ -32,6 +32,9 @@ export interface HarvestEntry {
   cropAreaId: string;
   /** `livestockStore.Paddock.id` when `sourceKind === 'livestock'`. */
   paddockId?: string;
+  /** `structureStore.Structure.id` when `sourceKind === 'structure'`
+   *  (e.g. greenhouse harvest logged from the Act-stage inspector). */
+  structureId?: string;
   /** ISO date of harvest. */
   date: string;
   quantity: number;

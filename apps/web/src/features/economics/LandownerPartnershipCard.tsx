@@ -1,37 +1,37 @@
 /**
  * §22 LandownerPartnershipCard — split-of-interest summary between the
- * landowner-steward and the outside capital partner (investor / CSRA
- * member / fund).
+ * landowner-steward and the outside capital partner (charitable donor,
+ * qarḍ-ḥasan lender, sponsor, or in-kind contributor).
  *
- * The InvestorSummaryExport modal already covers the investor-facing
- * pitch (totalInvestment, breakEven, ROI). This card answers the
- * complementary partnership question: "if a landowner brings the land
- * and a capital partner brings the money, who funds what, who carries
+ * The CapitalPartnerSummaryExport modal already covers the
+ * capital-partner-facing pitch (totalInvestment, breakEven, ROI). This card
+ * answers the complementary partnership question: "if a landowner brings the
+ * land and a capital partner brings the money, who funds what, who carries
  * what risk, and who reaps which revenue stream?"
  *
  * HEURISTIC: there is no entity-level partnership tag in the data
  * model. The card classifies each cost line item by category and each
- * revenue stream by enterprise into landowner-aligned, investor-aligned,
+ * revenue stream by enterprise into landowner-aligned, capital-partner-aligned,
  * or shared buckets, using a presentational rule-of-thumb:
  *
  *   - Land Preparation       → landowner-led (stewardship of their land)
- *   - Structures             → investor-led  (capital for revenue assets)
- *   - Agricultural           → investor-led  (operating capital)
+ *   - Structures             → capital-partner-led (capital for revenue assets)
+ *   - Agricultural           → capital-partner-led (operating capital)
  *   - Infrastructure         → shared        (both benefit)
  *
  *   - carbon / grants / education / community-mission revenue
  *                            → landowner-aligned (mission income)
  *   - livestock / orchard / market_garden / retreat / agritourism
- *                            → investor-aligned (commercial income)
+ *                            → capital-partner-aligned (commercial income)
  *
  * Risk lens: the partner who carries the cumulative deficit in early
  * years is flagged as the "early-stage risk holder" — typically the
- * investor, since landowner contribution is largely the land itself.
+ * capital partner, since landowner contribution is largely the land itself.
  *
  * Pure presentation rollup over the existing FinancialModel. No shared
  * math, no entity edits, no new partnership data model.
  *
- * Closes manifest §22 `investor-summary-landowner-partnership` (P3)
+ * Closes manifest §22 `capital-partner-summary-landowner-partnership` (P3)
  * partial -> done.
  */
 
@@ -45,34 +45,34 @@ interface Props {
   model: FinancialModel;
 }
 
-type Side = 'landowner' | 'investor' | 'shared';
+type Side = 'landowner' | 'capital_partner' | 'shared';
 
 const COST_CATEGORY_SIDE: Record<string, Side> = {
   'Land Preparation': 'landowner',
   Infrastructure: 'shared',
-  Structures: 'investor',
-  Agricultural: 'investor',
+  Structures: 'capital_partner',
+  Agricultural: 'capital_partner',
 };
 
 const REVENUE_ENTERPRISE_SIDE: Record<EnterpriseType, Side> = {
   carbon: 'landowner',
   grants: 'landowner',
   education: 'landowner',
-  livestock: 'investor',
-  orchard: 'investor',
-  market_garden: 'investor',
-  retreat: 'investor',
-  agritourism: 'investor',
+  livestock: 'capital_partner',
+  orchard: 'capital_partner',
+  market_garden: 'capital_partner',
+  retreat: 'capital_partner',
+  agritourism: 'capital_partner',
 };
 
 interface SideTotals {
   landowner: number;
-  investor: number;
+  capital_partner: number;
   shared: number;
 }
 
 function emptyTotals(): SideTotals {
-  return { landowner: 0, investor: 0, shared: 0 };
+  return { landowner: 0, capital_partner: 0, shared: 0 };
 }
 
 function pct(n: number, total: number): number {
@@ -103,12 +103,12 @@ export default function LandownerPartnershipCard({ project, model }: Props) {
         revenueTotals[side] += stream.annualRevenue.mid;
       }
 
-      const tCost = costTotals.landowner + costTotals.investor + costTotals.shared;
-      const tRev = revenueTotals.landowner + revenueTotals.investor + revenueTotals.shared;
+      const tCost = costTotals.landowner + costTotals.capital_partner + costTotals.shared;
+      const tRev = revenueTotals.landowner + revenueTotals.capital_partner + revenueTotals.shared;
 
       // Early-stage risk holder: which year does cumulative cashflow
-      // bottom out? The investor carries the cashflow deficit from
-      // year 0 to that point.
+      // bottom out? The capital partner carries the cashflow deficit
+      // from year 0 to that point.
       let trough = { year: 0, value: 0 };
       for (const yr of model.cashflow) {
         if (yr.cumulativeCashflow.mid < trough.value) {
@@ -132,7 +132,7 @@ export default function LandownerPartnershipCard({ project, model }: Props) {
       <section className={s.card} aria-label="Landowner partnership summary">
         <header className={s.cardHead}>
           <div>
-            <h3 className={s.cardTitle}>Landowner & Investor Partnership</h3>
+            <h3 className={s.cardTitle}>Landowner & Capital Partner Partnership</h3>
             <p className={s.cardHint}>
               Split-of-interest view: who funds what, who carries what risk, who reaps which
               revenue stream. Place features and revenue streams to populate.
@@ -149,11 +149,11 @@ export default function LandownerPartnershipCard({ project, model }: Props) {
     <section className={s.card} aria-label="Landowner partnership summary">
       <header className={s.cardHead}>
         <div>
-          <h3 className={s.cardTitle}>Landowner & Investor Partnership</h3>
+          <h3 className={s.cardTitle}>Landowner & Capital Partner Partnership</h3>
           <p className={s.cardHint}>
             Split-of-interest view classifying each cost and revenue stream as
-            landowner-aligned, investor-aligned, or shared. A presentational rule-of-thumb to
-            frame partnership conversations {'\u2014'} not a legal allocation.
+            landowner-aligned, capital-partner-aligned, or shared. A presentational rule-of-thumb to
+            frame partnership conversations {'—'} not a legal allocation.
           </p>
         </div>
         <span className={s.heuristicBadge}>HEURISTIC</span>
@@ -179,7 +179,7 @@ export default function LandownerPartnershipCard({ project, model }: Props) {
       <div className={s.riskBlock}>
         <div className={s.riskHead}>
           <span className={s.riskLabel}>Early-stage risk holder</span>
-          <span className={s.riskBadge}>INVESTOR</span>
+          <span className={s.riskBadge}>CAPITAL PARTNER</span>
         </div>
         <p className={s.riskBody}>
           Cumulative cashflow troughs at <strong>Year {earlyRiskYear}</strong> with a peak
@@ -193,21 +193,21 @@ export default function LandownerPartnershipCard({ project, model }: Props) {
         <li>
           <span className={s.rulePill} data-side="landowner">Landowner</span>
           <span>
-            Land Preparation costs {'\u2014'} carbon, grant, and education revenue (mission
+            Land Preparation costs {'—'} carbon, grant, and education revenue (mission
             income).
           </span>
         </li>
         <li>
-          <span className={s.rulePill} data-side="investor">Investor</span>
+          <span className={s.rulePill} data-side="capital_partner">Capital Partner</span>
           <span>
-            Structures and Agricultural costs {'\u2014'} livestock, orchard, market garden,
+            Structures and Agricultural costs {'—'} livestock, orchard, market garden,
             retreat, agritourism revenue (commercial income).
           </span>
         </li>
         <li>
           <span className={s.rulePill} data-side="shared">Shared</span>
           <span>
-            Infrastructure costs {'\u2014'} both partners benefit from utilities, paths, and
+            Infrastructure costs {'—'} both partners benefit from utilities, paths, and
             shared site systems.
           </span>
         </li>
@@ -231,7 +231,7 @@ interface SplitBlockProps {
 
 function SplitBlock({ title, totalLabel, totalHint, totals, total }: SplitBlockProps) {
   const lP = pct(totals.landowner, total);
-  const iP = pct(totals.investor, total);
+  const iP = pct(totals.capital_partner, total);
   const sP = Math.max(0, 100 - lP - iP);
   return (
     <div className={s.split}>
@@ -242,14 +242,14 @@ function SplitBlock({ title, totalLabel, totalHint, totals, total }: SplitBlockP
           <span className={s.splitTotalHint}>{totalHint}</span>
         </div>
       </div>
-      <div className={s.bar} role="img" aria-label={`${lP}% landowner, ${iP}% investor, ${sP}% shared`}>
+      <div className={s.bar} role="img" aria-label={`${lP}% landowner, ${iP}% capital partner, ${sP}% shared`}>
         {lP > 0 && (
           <span className={`${s.barSeg} ${s.barLandowner}`} style={{ width: `${lP}%` }}>
             {lP >= 12 ? `${lP}%` : ''}
           </span>
         )}
         {iP > 0 && (
-          <span className={`${s.barSeg} ${s.barInvestor}`} style={{ width: `${iP}%` }}>
+          <span className={`${s.barSeg} ${s.barCapitalPartner}`} style={{ width: `${iP}%` }}>
             {iP >= 12 ? `${iP}%` : ''}
           </span>
         )}
@@ -265,8 +265,8 @@ function SplitBlock({ title, totalLabel, totalHint, totals, total }: SplitBlockP
           Landowner {fmtUsdK(totals.landowner)}
         </span>
         <span className={s.legendItem}>
-          <span className={`${s.legendSwatch} ${s.barInvestor}`} aria-hidden="true" />
-          Investor {fmtUsdK(totals.investor)}
+          <span className={`${s.legendSwatch} ${s.barCapitalPartner}`} aria-hidden="true" />
+          Capital Partner {fmtUsdK(totals.capital_partner)}
         </span>
         <span className={s.legendItem}>
           <span className={`${s.legendSwatch} ${s.barShared}`} aria-hidden="true" />

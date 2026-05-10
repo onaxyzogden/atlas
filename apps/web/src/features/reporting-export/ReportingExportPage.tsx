@@ -11,7 +11,7 @@ export default function ReportingExportPage() {
       realSurface={[
         'apps/web/src/features/reporting/ReportingPanel.tsx',
         'apps/web/src/features/export/ProjectSummaryExport.tsx',
-        'apps/web/src/features/export/InvestorSummaryExport.tsx',
+        'apps/web/src/features/export/CapitalPartnerSummaryExport.tsx',
         'apps/web/src/features/export/EducationalBookletExport.tsx',
         'apps/api/src/services/pdfExport.ts',
       ]}

@@ -8,6 +8,7 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
 import OfflineBanner from '../components/OfflineBanner.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
+import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import { Button } from '../components/ui/Button.js';
@@ -29,6 +30,7 @@ export default function AppShell({ children }: AppShellProps) {
   const openPalette = useUIStore((s) => s.openCommandPalette);
 
   useKeyboardShortcuts();
+  useGlobalAnnotationUndo();
 
   return (
     <V3LevelNavBridge>

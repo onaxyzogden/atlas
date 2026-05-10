@@ -16,7 +16,12 @@ export type LivestockMoveDirection = 'move_in' | 'move_out' | 'rotate_through';
 export interface LivestockMoveEvent {
   id: string;
   projectId: string;
-  paddockId: string;
+  /** Paddock target. Set when the move is logged against a Plan paddock.
+   *  Exactly one of `paddockId` / `structureId` should be set. */
+  paddockId?: string;
+  /** Structure target — barn, animal_shelter, etc. Set when the move is
+   *  logged from the Act-stage structure inspector. */
+  structureId?: string;
   date: string;
   direction: LivestockMoveDirection;
   species: LivestockSpecies;
@@ -32,6 +37,22 @@ interface LivestockMoveLogState {
   removeEvent: (id: string) => void;
 }
 
+/**
+ * Returns the events recorded against `paddockId` for the given project,
+ * sorted by `date` descending (most recent first). Pure helper — call from
+ * a `useMemo` keyed on `events` to avoid re-allocating every render.
+ */
+export function eventsByPaddock(
+  events: LivestockMoveEvent[],
+  projectId: string,
+  paddockId: string,
+): LivestockMoveEvent[] {
+  return events
+    .filter((e) => e.projectId === projectId && e.paddockId === paddockId)
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
 export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
   persist(
     (set) => ({
@@ -41,7 +62,7 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-livestock-moves', version: 1 },
+    { name: 'ogden-livestock-moves', version: 2 },
   ),
 );
 

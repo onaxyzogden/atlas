@@ -38,7 +38,7 @@ const StewardshipDashboard = lazy(() => import('./pages/StewardshipDashboard.js'
 const SolarClimateDashboard = lazy(() => import('../../features/climate/SolarClimateDashboard.js'));
 const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPanel.js'));
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
-const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
+const CapitalPartnerSummaryExport = lazy(() => import('../../features/export/CapitalPartnerSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
 const FeasibilityCommandCenter = lazy(() => import('../../features/decision/FeasibilityCommandCenter.js'));
 const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
@@ -488,10 +488,10 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
           <ScenarioPanel project={project} />
         </PanelShell>
       );
-    case 'investor-summary':
+    case 'capital-partner-summary':
       return (
-        <PanelShell name="Investor Summary">
-          <InvestorSummaryExport project={project} onClose={onSwitchToMap} />
+        <PanelShell name="Capital Partner Summary">
+          <CapitalPartnerSummaryExport project={project} onClose={onSwitchToMap} />
         </PanelShell>
       );
     case 'regulatory':

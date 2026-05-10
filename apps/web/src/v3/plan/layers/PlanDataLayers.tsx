@@ -47,6 +47,7 @@ import {
 } from '../../../features/structures/footprints.js';
 import type { StructureType } from '../../../store/structureStore.js';
 import { translateByDelta } from './translateGeometry.js';
+import { beginDragUndoWindow } from './dragUndo.js';
 import {
   buildZoneEditSchema,
   buildCropEditSchema,
@@ -909,6 +910,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         origCenter: r.center,
         dragging: false,
       };
+      let lastDLng = 0;
+      let lastDLat = 0;
+      const undoWindow = beginDragUndoWindow(usePolycultureStore);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
@@ -916,12 +920,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const dy = ev.point.y - down.startY;
         if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
           down.dragging = true;
+          undoWindow.start();
           map.dragPan.disable();
           map.getCanvas().style.cursor = 'grabbing';
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
+        lastDLng = dLng;
+        lastDLat = dLat;
         updateGuild(down.id, {
           center: [
             down.origCenter[0] + dLng,
@@ -935,11 +942,24 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         if (!down) return;
         const wasDrag = down.dragging;
         const id2 = down.id;
+        const origCenter = down.origCenter;
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
-        if (wasDrag) return;
+        if (wasDrag) {
+          undoWindow.commit(
+            () => updateGuild(id2, { center: origCenter }),
+            () =>
+              updateGuild(id2, {
+                center: [
+                  origCenter[0] + lastDLng,
+                  origCenter[1] + lastDLat,
+                ],
+              }),
+          );
+          return;
+        }
         const anchor: [number, number] = ev?.lngLat
           ? [ev.lngLat.lng, ev.lngLat.lat]
           : (() => {
@@ -1077,6 +1097,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         origGeom: st0.geometry,
         dragging: false,
       };
+      let lastDLng = 0;
+      let lastDLat = 0;
+      const undoWindow = beginDragUndoWindow(useStructureStore);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
@@ -1084,6 +1107,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const dy = ev.point.y - down.y;
         if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
           down.dragging = true;
+          undoWindow.start();
           map.dragPan.disable();
           map.getCanvas().style.cursor = 'grabbing';
         }
@@ -1093,6 +1117,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         // widthM/depthM/rotationDeg no longer describe the geometry.
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
+        lastDLng = dLng;
+        lastDLat = dLat;
         const center: [number, number] = [
           down.origCenter[0] + dLng,
           down.origCenter[1] + dLat,
@@ -1106,11 +1132,30 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         if (!down) return;
         const wasDrag = down.dragging;
         const id = down.id;
+        const origCenter = down.origCenter;
+        const origGeom = down.origGeom;
         const downXY = { x: down.x, y: down.y };
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
-        if (wasDrag) return;
+        if (wasDrag) {
+          undoWindow.commit(
+            () =>
+              updateStructure(id, {
+                center: origCenter,
+                geometry: origGeom,
+              }),
+            () =>
+              updateStructure(id, {
+                center: [
+                  origCenter[0] + lastDLng,
+                  origCenter[1] + lastDLat,
+                ],
+                geometry: translateByDelta(origGeom, lastDLng, lastDLat),
+              }),
+          );
+          return;
+        }
         // Click (no drag) → open edit popover.
         const st = useStructureStore
           .getState()
@@ -1285,6 +1330,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         origCenter,
         dragging: false,
       };
+      let lastDLng = 0;
+      let lastDLat = 0;
+      const undoStore =
+        k === 'zone'
+          ? useZoneStore
+          : k === 'crop'
+            ? useCropStore
+            : k === 'paddock'
+              ? useLivestockStore
+              : useWaterSystemsStore;
+      const undoWindow = beginDragUndoWindow(undoStore);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
@@ -1292,12 +1348,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const dy = ev.point.y - down.startY;
         if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
           down.dragging = true;
+          undoWindow.start();
           map.dragPan.disable();
           map.getCanvas().style.cursor = 'grabbing';
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
+        lastDLng = dLng;
+        lastDLat = dLat;
         const next = translateByDelta(down.origGeom, dLng, dLat);
         writeRecordGeometry(down.kind, down.id, next);
         if (down.kind === 'water_catchment' && down.origCenter) {
@@ -1316,11 +1375,38 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const wasDrag = down.dragging;
         const k2 = down.kind;
         const id2 = down.id;
+        const origGeom = down.origGeom;
+        const origCenter = down.origCenter;
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
-        if (wasDrag) return;
+        if (wasDrag) {
+          undoWindow.commit(
+            () => {
+              writeRecordGeometry(k2, id2, origGeom);
+              if (k2 === 'water_catchment' && origCenter) {
+                updateWaterNode(id2, { center: origCenter });
+              }
+            },
+            () => {
+              writeRecordGeometry(
+                k2,
+                id2,
+                translateByDelta(origGeom, lastDLng, lastDLat),
+              );
+              if (k2 === 'water_catchment' && origCenter) {
+                updateWaterNode(id2, {
+                  center: [
+                    origCenter[0] + lastDLng,
+                    origCenter[1] + lastDLat,
+                  ],
+                });
+              }
+            },
+          );
+          return;
+        }
         // Click (no drag) → open edit popover.
         const anchor: [number, number] = ev?.lngLat
           ? [ev.lngLat.lng, ev.lngLat.lat]
@@ -1505,6 +1591,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         origCenter,
         dragging: false,
       };
+      let lastDLng = 0;
+      let lastDLat = 0;
+      const undoStore =
+        k === 'path'
+          ? usePathStore
+          : k === 'utility'
+            ? useUtilityRunStore
+            : useWaterSystemsStore;
+      const undoWindow = beginDragUndoWindow(undoStore);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
@@ -1512,12 +1607,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const dy = ev.point.y - down.startY;
         if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
           down.dragging = true;
+          undoWindow.start();
           map.dragPan.disable();
           map.getCanvas().style.cursor = 'grabbing';
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
+        lastDLng = dLng;
+        lastDLat = dLat;
         const next = translateByDelta(down.origGeom, dLng, dLat);
         if (down.kind === 'path') {
           updatePath(down.id, { geometry: next });
@@ -1542,11 +1640,47 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const wasDrag = down.dragging;
         const k2 = down.kind;
         const id2 = down.id;
+        const origGeom = down.origGeom;
+        const origCenter = down.origCenter;
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
-        if (wasDrag) return;
+        if (wasDrag) {
+          undoWindow.commit(
+            () => {
+              if (k2 === 'path') {
+                updatePath(id2, { geometry: origGeom });
+              } else if (k2 === 'utility') {
+                updateUtilityRun(id2, { geometry: origGeom });
+              } else {
+                updateWaterNode(id2, { swaleGeometry: origGeom });
+                if (origCenter) {
+                  updateWaterNode(id2, { center: origCenter });
+                }
+              }
+            },
+            () => {
+              const finalGeom = translateByDelta(origGeom, lastDLng, lastDLat);
+              if (k2 === 'path') {
+                updatePath(id2, { geometry: finalGeom });
+              } else if (k2 === 'utility') {
+                updateUtilityRun(id2, { geometry: finalGeom });
+              } else {
+                updateWaterNode(id2, { swaleGeometry: finalGeom });
+                if (origCenter) {
+                  updateWaterNode(id2, {
+                    center: [
+                      origCenter[0] + lastDLng,
+                      origCenter[1] + lastDLat,
+                    ],
+                  });
+                }
+              }
+            },
+          );
+          return;
+        }
         const anchor: [number, number] = ev?.lngLat
           ? [ev.lngLat.lng, ev.lngLat.lat]
           : (() => {
@@ -1688,6 +1822,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         origCenter,
         dragging: false,
       };
+      let lastDLng = 0;
+      let lastDLat = 0;
+      const undoStore = k === 'fertility' ? useClosedLoopStore : useWaterSystemsStore;
+      const undoWindow = beginDragUndoWindow(undoStore);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
@@ -1695,12 +1833,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const dy = ev.point.y - down.startY;
         if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
           down.dragging = true;
+          undoWindow.start();
           map.dragPan.disable();
           map.getCanvas().style.cursor = 'grabbing';
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
+        lastDLng = dLng;
+        lastDLat = dLat;
         const nextCenter: [number, number] = [
           down.origCenter[0] + dLng,
           down.origCenter[1] + dLat,
@@ -1718,11 +1859,34 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const wasDrag = down.dragging;
         const k2 = down.kind;
         const id2 = down.id;
+        const origCenter2 = down.origCenter;
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
         map.getCanvas().style.cursor = '';
-        if (wasDrag) return;
+        if (wasDrag) {
+          undoWindow.commit(
+            () => {
+              if (k2 === 'fertility') {
+                updateFertilityInfra(id2, { center: origCenter2 });
+              } else {
+                updateWaterNode(id2, { center: origCenter2 });
+              }
+            },
+            () => {
+              const finalCenter: [number, number] = [
+                origCenter2[0] + lastDLng,
+                origCenter2[1] + lastDLat,
+              ];
+              if (k2 === 'fertility') {
+                updateFertilityInfra(id2, { center: finalCenter });
+              } else {
+                updateWaterNode(id2, { center: finalCenter });
+              }
+            },
+          );
+          return;
+        }
         const anchor: [number, number] = ev?.lngLat
           ? [ev.lngLat.lng, ev.lngLat.lat]
           : (() => {

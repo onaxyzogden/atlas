@@ -1,5 +1,9 @@
 /**
- * Investor Summary PDF — financial highlights, cashflow, break-even, mission scoring.
+ * Capital Partner Summary PDF — capital plan, cashflow projection, mission scoring.
+ *
+ * Audience: capital partners & allies considering charitable donation, restricted
+ * donation, qard ḥasan, in-kind contribution, or sponsorship. The financial
+ * analysis is informational (planning estimate), not a sale of future returns.
  */
 
 import type { ExportDataBag } from './index.js';
@@ -9,7 +13,6 @@ import {
 } from './baseLayout.js';
 
 function missionRadar(scores: { overall: number; financial: number; ecological: number; spiritual: number; community: number }): string {
-  // 4-axis radar chart as inline SVG
   const size = 200;
   const cx = size / 2;
   const cy = size / 2;
@@ -23,7 +26,6 @@ function missionRadar(scores: { overall: number; financial: number; ecological: 
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
 
-  // Grid rings
   const rings = [25, 50, 75, 100];
   const gridLines = rings.map((pct) => {
     const pr = (pct / 100) * r;
@@ -35,14 +37,12 @@ function missionRadar(scores: { overall: number; financial: number; ecological: 
     return `<polygon points="${points}" fill="none" stroke="#E5E7EB" stroke-width="0.5" />`;
   }).join('');
 
-  // Axis lines
   const axisLines = axes.map((a) => {
     const x2 = cx + r * Math.cos(toRad(a.angle));
     const y2 = cy + r * Math.sin(toRad(a.angle));
     return `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#E5E7EB" stroke-width="0.5" />`;
   }).join('');
 
-  // Data polygon
   const dataPoints = axes.map((a) => {
     const pr = (a.value / 100) * r;
     const x = cx + pr * Math.cos(toRad(a.angle));
@@ -50,7 +50,6 @@ function missionRadar(scores: { overall: number; financial: number; ecological: 
     return `${x},${y}`;
   }).join(' ');
 
-  // Labels
   const labels = axes.map((a) => {
     const lr = r + 20;
     const x = cx + lr * Math.cos(toRad(a.angle));
@@ -69,11 +68,10 @@ function missionRadar(scores: { overall: number; financial: number; ecological: 
     </div>`;
 }
 
-export function renderInvestorSummary(data: ExportDataBag): string {
+export function renderCapitalPartnerSummary(data: ExportDataBag): string {
   const { project: p, assessment: a, payload } = data;
   const fin = payload?.financial;
 
-  // ─── Property Context ─────────────────────────────────────────
   const propertySection = `
     <div class="section">
       <h2>Property Overview</h2>
@@ -96,28 +94,27 @@ export function renderInvestorSummary(data: ExportDataBag): string {
     </div>`;
 
   if (!fin) {
-    return baseLayout('Investor Summary', p.name,
-      propertySection + notAvailable('Financial Model — Export from the Financial Planning tab to include investment analysis, cashflow projections, and mission scoring.'));
+    return baseLayout('Capital Partner Summary', p.name,
+      propertySection + notAvailable('Financial Model — Export from the Financial Planning tab to include capital plan, cashflow projection, and mission scoring.'));
   }
 
-  // ─── Financial Highlights ─────────────────────────────────────
   const breakEvenLabel = fin.breakEven.breakEvenYear.mid != null
     ? `Year ${fin.breakEven.breakEvenYear.mid}` : '10+';
 
   const highlightsSection = `
     <div class="section">
-      <h2>Financial Highlights</h2>
+      <h2>Capital Plan Highlights</h2>
       <div class="card-grid">
         <div class="card">
-          <div class="card-header">Total Investment (est.)</div>
+          <div class="card-header">Total Capital Required (est.)</div>
           <div class="card-value" style="font-size:16pt">${fmtRange(fin.totalInvestment)}</div>
         </div>
         <div class="card">
-          <div class="card-header">Break-Even (est.)</div>
+          <div class="card-header">Operating Self-Sufficiency (est.)</div>
           <div class="card-value" style="font-size:16pt">${breakEvenLabel}</div>
         </div>
         <div class="card">
-          <div class="card-header">10-Year ROI</div>
+          <div class="card-header">10-Year Project Yield</div>
           <div class="card-value" style="font-size:16pt">${fmtPercent(fin.breakEven.tenYearROI.mid)}</div>
           <p style="font-size:8pt;color:var(--text-muted)">${fmtPercent(fin.breakEven.tenYearROI.low)} – ${fmtPercent(fin.breakEven.tenYearROI.high)}</p>
         </div>
@@ -134,7 +131,6 @@ export function renderInvestorSummary(data: ExportDataBag): string {
       </div>
     </div>`;
 
-  // ─── Capital Costs ────────────────────────────────────────────
   let costsSection = '';
   if (fin.costLineItems.length > 0) {
     const rows = fin.costLineItems.map((item) => `<tr>
@@ -159,7 +155,6 @@ export function renderInvestorSummary(data: ExportDataBag): string {
       </div>`;
   }
 
-  // ─── Revenue Streams ──────────────────────────────────────────
   let revenueSection = '';
   if (fin.revenueStreams.length > 0) {
     const rows = fin.revenueStreams.map((s) => `<tr>
@@ -179,7 +174,6 @@ export function renderInvestorSummary(data: ExportDataBag): string {
       </div>`;
   }
 
-  // ─── Cashflow Projection ──────────────────────────────────────
   let cashflowSection = '';
   if (fin.cashflow.length > 0) {
     const rows = fin.cashflow.map((yr) => `<tr>
@@ -200,7 +194,6 @@ export function renderInvestorSummary(data: ExportDataBag): string {
       </div>`;
   }
 
-  // ─── Mission Alignment ────────────────────────────────────────
   const missionSection = `
     <div class="section">
       <h2>Mission Alignment</h2>
@@ -224,10 +217,27 @@ export function renderInvestorSummary(data: ExportDataBag): string {
       </div>
     </div>`;
 
-  // ─── Assumptions & Disclaimer ─────────────────────────────────
   const assumptionsList = fin.assumptions.length > 0
     ? `<ul>${fin.assumptions.slice(0, 15).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`
     : '<p>No assumptions recorded.</p>';
+
+  const capitalChannelsSection = `
+    <div class="section">
+      <h2>Permitted Capital Channels</h2>
+      <p>This project accepts capital under the following structures:</p>
+      <ul>
+        <li><strong>Charitable donation</strong> — unrestricted gift to the project sponsor.</li>
+        <li><strong>Restricted donation</strong> — gift earmarked for a specific project component or phase.</li>
+        <li><strong>Qarḍ ḥasan</strong> — interest-free loan, repaid from project cashflow on agreed terms.</li>
+        <li><strong>In-kind contribution</strong> — materials, labor, equipment, or land use.</li>
+        <li><strong>Sponsorship</strong> — naming or recognition of project elements in exchange for support.</li>
+      </ul>
+      <p style="font-size:9pt;color:var(--text-muted);margin-top:8px">
+        A future post-acquisition yield-share for capital partners is contemplated as a
+        <em>membership benefit</em> (entitlement of belonging), not as a return on advance purchase.
+        Any such structure is subject to Scholar Council review prior to offering.
+      </p>
+    </div>`;
 
   const disclaimerSection = `
     <div class="section">
@@ -237,12 +247,13 @@ export function renderInvestorSummary(data: ExportDataBag): string {
         <strong>Estimate Disclaimer:</strong> All financial projections are estimates based on regional
         benchmarks and design inputs. Actual costs and revenues will vary based on market conditions,
         contractor availability, site-specific factors, and management decisions. These figures are
-        intended for planning purposes and should not be treated as guarantees. Professional financial
-        and agricultural advice is recommended before committing capital.
+        intended for planning purposes and should not be treated as guarantees or as an offer to sell
+        future returns. Professional financial and agricultural advice is recommended before
+        committing capital.
       </div>
     </div>`;
 
-  return baseLayout('Investor Summary', p.name,
+  return baseLayout('Capital Partner Summary', p.name,
     propertySection + highlightsSection + costsSection + revenueSection +
-    cashflowSection + missionSection + disclaimerSection);
+    cashflowSection + missionSection + capitalChannelsSection + disclaimerSection);
 }
