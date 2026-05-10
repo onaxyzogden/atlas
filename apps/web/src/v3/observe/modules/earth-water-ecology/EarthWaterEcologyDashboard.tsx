@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -22,11 +22,15 @@ import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
+import { api } from '../../../../lib/apiClient.js';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
 import {
   earthwaterKpis,
+  getCriticalHabitatLayer,
+  getSoilsLayer,
   getWatershedLayer,
+  getWetlandsLayer,
   waterCounts,
   type KpiIconKey,
 } from './derivations.js';
@@ -52,6 +56,7 @@ export default function EarthWaterEcologyDashboard() {
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
   const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
   const allSamples = useSoilSampleStore((s) => s.samples);
+  const successionStage = useEcologyStore((s) => s.successionStageByProject[id]);
 
   const observations = useMemo(() => allObservations.filter((o) => o.projectId === id), [allObservations, id]);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
@@ -63,6 +68,97 @@ export default function EarthWaterEcologyDashboard() {
   const kpis = earthwaterKpis(layers, samples, observations, earthworks, storage, watercourses);
   const watershed = getWatershedLayer(layers);
   const wc = waterCounts(earthworks, storage, watercourses);
+
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const wetlands = getWetlandsLayer(layers);
+      const habitat = getCriticalHabitatLayer(layers);
+      const soils = getSoilsLayer(layers);
+      const { data } = await api.exports.generate(id, {
+        exportType: 'earth_water_ecology_report',
+        payload: {
+          earthWaterEcology: {
+            soilSamples: samples.map((s) => ({
+              id: s.id,
+              sampleDate: s.sampleDate,
+              label: s.label,
+              depth: s.depth,
+              ...(s.ph != null ? { ph: s.ph } : {}),
+              ...(s.organicMatterPct != null ? { organicMatterPct: s.organicMatterPct } : {}),
+              ...(s.texture != null ? { texture: s.texture } : {}),
+              ...(s.cecMeq100g != null ? { cecMeq100g: s.cecMeq100g } : {}),
+              ...(s.ecDsM != null ? { ecDsM: s.ecDsM } : {}),
+              ...(s.bulkDensityGCm3 != null ? { bulkDensityGCm3: s.bulkDensityGCm3 } : {}),
+              ...(s.biologicalActivity ? { biologicalActivity: s.biologicalActivity } : {}),
+              ...(s.percolationInPerHr != null ? { percolationInPerHr: s.percolationInPerHr } : {}),
+              ...(s.depthToBedrockM != null ? { depthToBedrockM: s.depthToBedrockM } : {}),
+              ...(s.jarTest != null ? { hasJarTest: true } : {}),
+              ...(s.roofCatchment != null ? { hasRoofCatchment: true } : {}),
+              ...(s.notes ? { notes: s.notes } : {}),
+              ...(s.lab ? { lab: s.lab } : {}),
+              ...(s.location ? { location: s.location } : {}),
+            })),
+            waterSystems: {
+              earthworks: earthworks.map((e) => ({
+                id: e.id,
+                type: e.type,
+                ...(e.lengthM != null ? { lengthM: e.lengthM } : {}),
+                ...(e.notes ? { notes: e.notes } : {}),
+                createdAt: e.createdAt,
+              })),
+              storageInfra: storage.map((s) => ({
+                id: s.id,
+                type: s.type,
+                center: s.center,
+                ...(s.capacityL != null ? { capacityL: s.capacityL } : {}),
+                ...(s.notes ? { notes: s.notes } : {}),
+                createdAt: s.createdAt,
+              })),
+              watercourses: watercourses.map((w) => ({
+                id: w.id,
+                kind: w.kind,
+                ...(w.perennial != null ? { perennial: w.perennial } : {}),
+                ...(w.notes ? { notes: w.notes } : {}),
+                createdAt: w.createdAt,
+              })),
+            },
+            ecology: {
+              observations: observations.map((o) => ({
+                id: o.id,
+                species: o.species,
+                trophicLevel: o.trophicLevel,
+                ...(o.notes ? { notes: o.notes } : {}),
+                observedAt: o.observedAt,
+                ...(o.location ? { location: o.location } : {}),
+              })),
+              zones: zones.map((z) => ({
+                id: z.id,
+                dominantStage: z.dominantStage,
+                ...(z.label ? { label: z.label } : {}),
+                ...(z.notes ? { notes: z.notes } : {}),
+                createdAt: z.createdAt,
+              })),
+              ...(successionStage ? { successionStage } : {}),
+            },
+            siteLayers: {
+              ...(watershed ? { watershed: watershed.summary as Record<string, unknown> } : {}),
+              ...(wetlands ? { wetlandsPresent: (wetlands.summary.wetland_pct ?? 0) > 0 } : {}),
+              ...(habitat ? { criticalHabitatPresent: habitat.summary.on_site === true } : {}),
+              ...(soils ? { soilsSummary: soils.summary as Record<string, unknown> } : {}),
+            },
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Earth · Water · Ecology report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="detail-page diagnostics-page">
@@ -80,7 +176,7 @@ export default function EarthWaterEcologyDashboard() {
           );
         })}
       </SurfaceCard>
-      <TabsAndActions />
+      <TabsAndActions onExport={handleExport} exporting={exporting} />
       <section className="diagnostic-grid">
         <SiteMapCard
           boundary={project?.location?.boundary}
@@ -128,7 +224,12 @@ function ModuleHeader() {
   );
 }
 
-function TabsAndActions() {
+interface TabsAndActionsProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function TabsAndActions({ onExport, exporting }: TabsAndActionsProps) {
   const tabs = ['Overview', 'Soil', 'Water', 'Ecology', 'Lab Results', 'Trends'];
   return (
     <div className="diagnostic-tabs-row">
@@ -140,9 +241,13 @@ function TabsAndActions() {
         ))}
       </nav>
       <div className="diagnostic-actions">
-        <button className="outlined-button" type="button">
-          <Download aria-hidden="true" /> Export report{' '}
-          <ChevronDown aria-hidden="true" />
+        <button
+          className="outlined-button"
+          type="button"
+          onClick={onExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" /> {exporting ? 'Generating…' : 'Export report'}
         </button>
         <button className="outlined-button" type="button">
           <CalendarDays aria-hidden="true" /> This season{' '}
