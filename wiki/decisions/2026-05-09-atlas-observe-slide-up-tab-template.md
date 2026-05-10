@@ -88,8 +88,11 @@ for the now-redundant CTAs:
 - **B. Remove:** delete each tile card's CTA button entirely. Cleaner but
   bigger diff and risks dropping content the user wants visible.
 
-Option A ships now; if the inert buttons feel like dead weight in
-practice, option B can be a follow-up pass.
+Option A shipped first (commit `acabaec`); option B followed in
+commit `4105ba4` after the operator confirmed the silent CTAs felt
+like dead weight. All 14 inert buttons removed, plus the
+`FooterTabs` helper and the `action`/`onAction` props on
+`ModuleCardShell` in `HumanContextDashboard`. 110 lines deleted.
 
 ## Verification
 
