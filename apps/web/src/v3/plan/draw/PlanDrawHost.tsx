@@ -24,6 +24,9 @@ import UtilityRunTool from './tools/UtilityRunTool.js';
 import BufferRingTool from './tools/BufferRingTool.js';
 import EcologicalNoteTool from './tools/EcologicalNoteTool.js';
 import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
+import SlaughterPointTool from './tools/SlaughterPointTool.js';
+import ColdChainUnitTool from './tools/ColdChainUnitTool.js';
+import MarketNodeTool from './tools/MarketNodeTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -90,6 +93,15 @@ export default function PlanDrawHost({ map, projectId }: Props) {
       break;
     case 'plan.principle-verification.transect':
       tool = <MonitoringTransectTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.broiler-product-map.slaughter-point':
+      tool = <SlaughterPointTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.broiler-product-map.cold-chain-unit':
+      tool = <ColdChainUnitTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.broiler-product-map.market-node':
+      tool = <MarketNodeTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

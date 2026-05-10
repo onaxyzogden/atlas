@@ -19,6 +19,7 @@ import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
 import {
@@ -201,6 +202,13 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // line source; mobility-keyed dasharray distinguishes permanent perimeters
   // from moveable temporary-strip wire.
   const fenceLines = useLivestockStore((s) => s.fenceLines);
+  // Broiler Product Map (Module 7, ADR 2026-05-10) — post-farm-gate value
+  // chain points. Three colour-coded kinds rendered on the shared
+  // `plan-data-point` source: slaughter (red), cold-chain (blue),
+  // market (green).
+  const slaughterPoints = useAgribusinessStore((s) => s.slaughterPoints);
+  const coldChainUnits = useAgribusinessStore((s) => s.coldChainUnits);
+  const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useStructureStore((s) => s.structures);
@@ -678,6 +686,51 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
     }
 
+    // Slaughter points (Module 7) — red.
+    for (const p of slaughterPoints) {
+      if (p.projectId !== projectId) continue;
+      const props = {
+        id: p.id,
+        kind: 'slaughter_point',
+        color: '#c4422a',
+        label: p.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+      labels.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+    }
+
+    // Cold-chain units (Module 7) — blue.
+    for (const u of coldChainUnits) {
+      if (u.projectId !== projectId) continue;
+      const props = {
+        id: u.id,
+        kind: 'cold_chain_unit',
+        color: '#3a78c4',
+        label: u.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: u.id, properties: props, geometry: u.geometry });
+      labels.push({ type: 'Feature', id: u.id, properties: props, geometry: u.geometry });
+    }
+
+    // Market nodes (Module 7) — green.
+    for (const n of marketNodes) {
+      if (n.projectId !== projectId) continue;
+      const props = {
+        id: n.id,
+        kind: 'market_node',
+        color: '#3d8a3d',
+        label: n.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
+      labels.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
+    }
+
     return {
       polyFC: { type: 'FeatureCollection' as const, features: polys },
       lineFC: { type: 'FeatureCollection' as const, features: lines },
@@ -689,7 +742,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId]);
 
   useEffect(() => {
     if (!map) return;

@@ -115,6 +115,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Document the rationale for each score as a project record.',
     ],
   },
+  'broiler-product-map': {
+    why: 'Map the broiler value chain from slaughter through cold-chain to market so the steward sees the post-paddock flow as one connected system rather than three disconnected line items.',
+    how: [
+      'Drop a Slaughter point at the on-site or co-op processing location.',
+      'Drop Cold-chain units at every storage and transport step.',
+      'Drop Market nodes at each off-take destination.',
+    ],
+  },
 };
 
 interface Props {

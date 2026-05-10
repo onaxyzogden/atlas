@@ -15,6 +15,7 @@ import { useParams } from '@tanstack/react-router';
 import {
   Activity,
   ArrowRight,
+  Beef,
   Cable,
   CircleDashed,
   Container,
@@ -27,8 +28,10 @@ import {
   MapPin,
   Recycle,
   Route,
+  Snowflake,
   Sprout,
   Square,
+  Store,
   TreeDeciduous,
   Waves,
   type LucideIcon,
@@ -75,6 +78,13 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
     // strip / mob grazing wire that the polygon Paddock tool cannot model.
     { id: 'fence-line', label: 'Fence line', Icon: Fence,  toolId: 'plan.livestock.fence-line' },
+  ],
+  'broiler-product-map': [
+    // 2026-05-10 Broiler Product Map (Module 7) — Newman's post-farm-gate
+    // value chain: slaughter → cold chain → market / distribution.
+    { id: 'slaughter-point',  label: 'Slaughter',  Icon: Beef,      toolId: 'plan.broiler-product-map.slaughter-point' },
+    { id: 'cold-chain-unit',  label: 'Cold chain', Icon: Snowflake, toolId: 'plan.broiler-product-map.cold-chain-unit' },
+    { id: 'market-node',      label: 'Market',     Icon: Store,     toolId: 'plan.broiler-product-map.market-node' },
   ],
   'plant-systems': [
     { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },

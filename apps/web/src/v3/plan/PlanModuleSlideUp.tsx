@@ -80,6 +80,11 @@ const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/
 // CanopySimulatorCard remain at apps/web/src/features/plan/ as legacy and
 // are still wired into V3PlanPage + DashboardRouter; the iteration ADR
 // tracks consolidation as a follow-up.
+// Broiler Product Map (Module 7) — post-farm-gate value-chain diagnostics
+// per ADR 2026-05-10. Pure diagnostic cards backed by `agribusinessStore`.
+const SlaughterThroughputCard = lazy(() => import('../../features/agribusiness/SlaughterThroughputCard.js'));
+const ColdChainCoverageCard   = lazy(() => import('../../features/agribusiness/ColdChainCoverageCard.js'));
+const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/MarketDistributionCard.js'));
 const PlantDatabaseSiteMatchCard = lazy(() => import('./cards/plant-systems/PlantDatabaseSiteMatchCard.js'));
 const GuildSpatialBuilderCard    = lazy(() => import('./cards/plant-systems/GuildSpatialBuilderCard.js'));
 const CanopySuccessionCard       = lazy(() => import('./cards/plant-systems/CanopySuccessionCard.js'));
@@ -161,6 +166,10 @@ function renderCard(
     // per "no deletion in revamps" rule. See
     // wiki/decisions/2026-05-10-atlas-plan-module6-livestock-farm-scholar.md.
     case 'plan-livestock-buffers':          return <BiosecurityBufferCard projectId={project.id} />;
+    // Broiler Product Map (Module 7) — three diagnostic cards.
+    case 'plan-broiler-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
+    case 'plan-broiler-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
+    case 'plan-broiler-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;

@@ -27,6 +27,10 @@ import {
   buildWellEditSchema,
   buildSepticEditSchema,
   buildPowerLineEditSchema,
+  buildBuriedUtilityEditSchema,
+  buildFenceEditSchema,
+  buildGateEditSchema,
+  buildDrivewayEditSchema,
 } from '../layers/inlineEditSchemas.js';
 
 interface Props {
@@ -194,6 +198,58 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
           .entities.find((x) => x.id === featureId && x.kind === 'power-line');
         if (entity) {
           const schema = buildPowerLineEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-buried-utilities') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'buried-utility');
+        if (entity) {
+          const schema = buildBuriedUtilityEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-fences') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'fence');
+        if (entity) {
+          const schema = buildFenceEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-gates') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'gate');
+        if (entity) {
+          const schema = buildGateEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-driveways') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'driveway');
+        if (entity) {
+          const schema = buildDrivewayEditSchema(entity);
           openInline({ ...schema, anchor });
           return;
         }

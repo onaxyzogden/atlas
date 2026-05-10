@@ -1296,3 +1296,210 @@ export function buildPowerLineEditSchema(
     },
   };
 }
+
+// ---------- Buried utility (Built Environment V2) ----------
+//
+// LineString; metadata edit only. Subtype values mirror the legacy
+// `BuriedUtilityKind` enum and round-trip via `existing.subtype`.
+
+const BURIED_UTILITY_SUBTYPE_OPTIONS = [
+  { value: 'water_main', label: 'Water main' },
+  { value: 'gas',        label: 'Gas' },
+  { value: 'fibre',      label: 'Fibre' },
+  { value: 'sewer',      label: 'Sewer' },
+  { value: 'other',      label: 'Other' },
+];
+
+export function buildBuriedUtilityEditSchema(
+  bu: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = bu.existing ?? {};
+  return {
+    title: 'Edit buried utility',
+    fields: [
+      {
+        key: 'subtype',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: BURIED_UTILITY_SUBTYPE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      subtype: exist.subtype ?? 'water_main',
+      label:   bu.label ?? '',
+      notes:   bu.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const subtype = String(values.subtype ?? 'water_main');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(bu.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Fence (Built Environment V2) ----------
+//
+// LineString; metadata edit only. Subtype mirrors the legacy
+// `FenceKind` enum.
+
+const FENCE_SUBTYPE_OPTIONS = [
+  { value: 'barbed',      label: 'Barbed' },
+  { value: 'page_wire',   label: 'Page wire' },
+  { value: 'electric',    label: 'Electric' },
+  { value: 'privacy',     label: 'Privacy' },
+  { value: 'other',       label: 'Other' },
+];
+
+export function buildFenceEditSchema(
+  f: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = f.existing ?? {};
+  return {
+    title: 'Edit fence',
+    fields: [
+      {
+        key: 'subtype',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: FENCE_SUBTYPE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      subtype: exist.subtype ?? 'page_wire',
+      label:   f.label ?? '',
+      notes:   f.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const subtype = String(values.subtype ?? 'page_wire');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(f.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Gate (Built Environment V2) ----------
+//
+// Point; metadata edit only — gate has no enum axis, just label + notes.
+
+export function buildGateEditSchema(
+  g: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  return {
+    title: 'Edit gate',
+    fields: [
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label: g.label ?? '',
+      notes: g.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(g.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Driveway (Built Environment V2) ----------
+//
+// LineString; surface enum mirrors the legacy `DrivewaySurface`.
+
+const DRIVEWAY_SURFACE_OPTIONS = [
+  { value: 'gravel',   label: 'Gravel' },
+  { value: 'asphalt',  label: 'Asphalt' },
+  { value: 'concrete', label: 'Concrete' },
+  { value: 'dirt',     label: 'Dirt' },
+  { value: 'other',    label: 'Other' },
+];
+
+export function buildDrivewayEditSchema(
+  dw: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = dw.existing ?? {};
+  return {
+    title: 'Edit driveway',
+    fields: [
+      {
+        key: 'surface',
+        label: 'Surface',
+        kind: 'select',
+        required: true,
+        options: DRIVEWAY_SURFACE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      surface: exist.surface ?? 'gravel',
+      label:   dw.label ?? '',
+      notes:   dw.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const surface = String(values.surface ?? 'gravel');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(dw.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { surface },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}

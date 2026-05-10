@@ -84,6 +84,10 @@ export type MapToolId =
   // Plan Module 4 — Livestock fence-line (Farm-Scholar 2026-05-10: strip-grazing
   // wire that the polygon Paddock tool cannot represent)
   | 'plan.livestock.fence-line'
+  // Plan Module 7 — Broiler Product Map (post-farm-gate value chain)
+  | 'plan.broiler-product-map.slaughter-point'
+  | 'plan.broiler-product-map.cold-chain-unit'
+  | 'plan.broiler-product-map.market-node'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)

@@ -13,6 +13,7 @@ export type PlanModule =
   | 'structures-subsystems'
   | 'machinery'
   | 'livestock'
+  | 'broiler-product-map'
   | 'plant-systems'
   | 'soil-fertility'
   | 'cross-section-solar'
@@ -26,6 +27,7 @@ export const PLAN_MODULES: PlanModule[] = [
   'structures-subsystems',
   'machinery',
   'livestock',
+  'broiler-product-map',
   'plant-systems',
   'soil-fertility',
   'cross-section-solar',
@@ -44,6 +46,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'structures-subsystems':  'Structures',
   machinery:                'Machinery',
   livestock:                'Livestock',
+  'broiler-product-map':    'Broiler Map',
   'plant-systems':          'Plants',
   'soil-fertility':         'Soil',
   'cross-section-solar':    'Cross-section',
@@ -58,6 +61,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'structures-subsystems':  'Structures & Subsystems',
   machinery:                'Machinery & Equipment',
   livestock:                'Livestock & Subdivision',
+  'broiler-product-map':    'Broiler Product Map',
   'plant-systems':          'Plant Systems & Polyculture',
   'soil-fertility':         'Soil Fertility & Closed-Loop',
   'cross-section-solar':    'Cross-section & Solar Geometry',
@@ -166,6 +170,11 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
+  ],
+  'broiler-product-map': [
+    { label: 'Slaughter throughput',  sectionId: 'plan-broiler-slaughter-throughput' },
+    { label: 'Cold-chain coverage',   sectionId: 'plan-broiler-coldchain-coverage' },
+    { label: 'Market distribution',   sectionId: 'plan-broiler-market-distribution' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

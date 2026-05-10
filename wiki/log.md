@@ -4,6 +4,63 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Plan Module 7 implementation + inlineEditSchemas dedup
+
+Module 7 "Broiler Product Map" shipped per
+[ADR](decisions/2026-05-10-atlas-plan-module7-broiler-product-map.md).
+Three Point draw tools (`SlaughterPointTool`, `ColdChainUnitTool`,
+`MarketNodeTool`) under `apps/web/src/v3/plan/draw/tools/`; new
+`agribusinessStore.ts` with three slices + CRUD; three diagnostic
+cards under `apps/web/src/features/agribusiness/` wired into
+`PlanModuleSlideUp` for the new `broiler-product-map` module id.
+`PlanTools`, `PlanDrawHost`, `PlanDataLayers`, `useMapToolStore`,
+`types.ts`, `planModulePalette`, and `planModuleArtifactPresence`
+extended to surface the new module at Yeomans rank 10 (between
+`livestock` and `plant-systems`). `inlineEditSchemas.ts` gained
+`buildBuriedUtilityEditSchema` / `buildFenceEditSchema` /
+`buildGateEditSchema` / `buildDrivewayEditSchema` for BE V2 inline
+edits from Plan, wired in `PlanObserveSelectionHandler`.
+
+Mid-session a duplicate paste of those four V2 schemas
+(`inlineEditSchemas.ts:1510–1712`) tripped esbuild with nine
+"already declared" errors during preview boot. Deduplicated to the
+canonical 207-line block; file now 1505 LOC, esbuild clean, Vite HMR
+green on `http://localhost:5200/`. Note: an attempted PowerShell
+truncation during the fix mangled UTF-8 em-dashes to `â€"`; restored
+via `git checkout --` and the editor re-flushed the deduplicated
+working copy. No data lost.
+
+---
+
+## 2026-05-10 — Phase 4.5 closeout: BE point layer ids in drag allowlist
+
+Final Phase 4.5 piece. The dispatch tables in
+`annotationGeometryRegistry.ts` already covered the 8 BE kinds (logged
+below), but `AnnotationDragHandler.tsx`'s `POINT_LAYER_IDS` allowlist
+still didn't list the BE point layer ids registered by
+`ObserveAnnotationLayers`. Pointer-down on a well or gate therefore
+never engaged drag — the gate filtered the feature out before
+reaching the dispatch table. Added `'observe-anno-be-wells'` and
+`'observe-anno-be-gates'` to the allowlist (+5 LOC).
+
+Vertex edit needed no parallel patch — `AnnotationVertexEditHandler`
+gates on `LINESTRING_KINDS.has(kind)` / `POLYGON_KINDS.has(kind)`
+from the selection store, not on layer ids, so the four BE line kinds
+and two BE polygon kinds engage automatically now that they're in
+those sets.
+
+Tsc note: `apps/web` tsc currently has unrelated breakage from a
+sibling commit (`411d88d feat(plan): inline-edit Septics + Power
+lines from Plan stage`) — duplicate `buildBuriedUtilityEditSchema` /
+`buildFenceEditSchema` / `buildGateEditSchema` /
+`buildDrivewayEditSchema` blocks in `inlineEditSchemas.ts`, plus
+`broiler-product-map` PlanModule missing from three records. Phase
+4.5's surface (one-file change in `AnnotationDragHandler.tsx`) is
+clean; pre-existing breakage flagged for separate cleanup. Adapter
+vitest still 16/16 green.
+
+---
+
 ## 2026-05-10 — Phase 4.5: BE kinds wired into annotation geometry registry
 
 `apps/web/src/v3/observe/components/draw/annotationGeometryRegistry.ts`
