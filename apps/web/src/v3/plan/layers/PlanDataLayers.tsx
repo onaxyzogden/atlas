@@ -46,6 +46,7 @@ import {
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
 import type { StructureType } from '../../../store/structureStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
 import {
@@ -1154,7 +1155,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       };
       let lastDLng = 0;
       let lastDLat = 0;
-      const undoWindow = beginDragUndoWindow(useStructureStore);
+      // useStructureStore is now a V2-derived facade with no temporal
+      // middleware of its own; route undo through the canonical V2 store.
+      const undoWindow = beginDragUndoWindow(useBuiltEnvironmentStoreV2);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;
