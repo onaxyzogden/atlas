@@ -6,10 +6,11 @@
  * 1. `current` — legacy module-driven UI (PlanTools left, DiagnoseMap +
  *    MapToolbar + ObserveAnnotationLayers, PlanModuleBar bottom).
  *
- * 2. `vision` / `phase-1` / `phase-2` — Vision-Layout canvas: design-element
- *    palette (left), VisionLayoutCanvas (centre, with DesignElementLayers +
- *    DesignToolRail + BaseMapCard), no module bar. Phase tabs filter by
- *    Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
+ * 2. `vision` / `phase-1` / `phase-2` / `terrain3d` — Vision-Layout canvas:
+ *    design-element palette (left), VisionLayoutCanvas (centre, with
+ *    DesignElementLayers + DesignToolRail + BaseMapCard), no module bar.
+ *    Phase tabs filter by Yeomans Scale of Permanence index. `terrain3d`
+ *    drapes the same canvas over MapLibre 3D terrain via Terrain3DController.
  *
  * The PlanPhaseTabs strip itself overlays the canvas (absolute, top-centre).
  */
@@ -18,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
+import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
@@ -106,6 +108,11 @@ export default function PlanLayout() {
     usePhaseStore.getState().ensureDefaults(id);
   }, [id]);
 
+  // Hydrate machinery inventory from the server and bridge local store
+  // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
+  // since it isn't a real server project.
+  useServerMachineryInventory(id === 'mtc' ? undefined : id);
+
   const handleSelectModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
@@ -134,7 +141,10 @@ export default function PlanLayout() {
   };
 
   const isVisionCanvas =
-    activeView === 'vision' || activeView === 'phase-1' || activeView === 'phase-2';
+    activeView === 'vision' ||
+    activeView === 'phase-1' ||
+    activeView === 'phase-2' ||
+    activeView === 'terrain3d';
 
   // ── Canvas content ───────────────────────────────────────────────────────
   const canvasContent = isVisionCanvas ? (

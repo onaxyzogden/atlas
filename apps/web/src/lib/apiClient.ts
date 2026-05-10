@@ -12,6 +12,9 @@ import type {
   DesignFeatureSummary,
   CreateDesignFeatureInput,
   UpdateDesignFeatureInput,
+  MachineryItemSummary,
+  CreateMachineryItemInput,
+  UpdateMachineryItemInput,
   ProjectFile,
   ExportRecord,
   PortalRecord,
@@ -243,6 +246,20 @@ export const api = {
         `/api/v1/design-features/project/${projectId}/bulk`,
         { features },
       ),
+  },
+
+  machineryItems: {
+    list: (projectId: string) =>
+      request<MachineryItemSummary[]>('GET', `/api/v1/machinery-items/project/${projectId}`),
+
+    create: (projectId: string, input: CreateMachineryItemInput) =>
+      request<MachineryItemSummary>('POST', `/api/v1/machinery-items/project/${projectId}`, input),
+
+    update: (id: string, input: UpdateMachineryItemInput) =>
+      request<MachineryItemSummary>('PATCH', `/api/v1/machinery-items/${id}`, input),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/machinery-items/${id}`),
   },
 
   layers: {

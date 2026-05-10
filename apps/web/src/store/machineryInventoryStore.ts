@@ -43,6 +43,10 @@ export interface MachineryItem {
   fuelType: MachineryFuelType;
   /** designElementsStore id (machinery-shed | equipment-yard | barn | shed). */
   housingElementId?: string;
+  /** Year the item was acquired — feeds Phase C replacement-schedule math. */
+  acquisitionYear?: number;
+  /** Estimated useful lifespan in years — feeds Phase C replacement-schedule math. */
+  lifecycleYearsEstimate?: number;
 }
 
 export interface MachineryInventoryState {
@@ -120,5 +124,6 @@ export const useMachineryInventoryStore = create<MachineryInventoryState>()(
 );
 
 export function newMachineryId(): string {
-  return `m-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  // UUID so the same id round-trips to the backend `machinery_items` table.
+  return crypto.randomUUID();
 }

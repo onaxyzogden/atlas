@@ -196,6 +196,40 @@ export default function MachineryInventoryCard({ projectId }: Props) {
             ))}
           </select>
         </label>
+        <label className={css.field}>
+          <span>Acquired (year)</span>
+          <input
+            type="number"
+            min={1900}
+            step={1}
+            placeholder="optional"
+            value={draft.acquisitionYear ?? ''}
+            onChange={(e) =>
+              setDraft((d) => ({
+                ...d,
+                acquisitionYear:
+                  e.target.value === '' ? undefined : Number(e.target.value),
+              }))
+            }
+          />
+        </label>
+        <label className={css.field}>
+          <span>Lifecycle (years)</span>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            placeholder="optional"
+            value={draft.lifecycleYearsEstimate ?? ''}
+            onChange={(e) =>
+              setDraft((d) => ({
+                ...d,
+                lifecycleYearsEstimate:
+                  e.target.value === '' ? undefined : Number(e.target.value),
+              }))
+            }
+          />
+        </label>
         <button type="submit" className={css.submit} disabled={!canSubmit}>
           Add item
         </button>
