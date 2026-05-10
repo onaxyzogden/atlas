@@ -12,7 +12,10 @@
  * deletes the just-drawn skeleton.)
  */
 
+import type { BuiltEnvironmentEntity } from '@ogden/shared';
 import type { InlineFormPayload } from '../draw/inlineFormStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import { createFootprintPolygon } from '../../../features/structures/footprints.js';
 import {
   ZONE_CATEGORY_CONFIG,
   type LandZone,
@@ -940,6 +943,167 @@ export function buildMonitoringTransectEditSchema(
     },
     onCancel: () => {
       /* no-op */
+    },
+  };
+}
+
+// ---------- Building (Built Environment V2) ----------
+//
+// Phase 2: a Building footprint placed by Observe (and visible across all
+// Plan views) becomes editable inline from the Plan stage. The schema
+// covers the full 8-field set Observe captures, writing back to the
+// unified `builtEnvironmentStoreV2`. When rotation or footprint dims
+// change, the polygon geometry is regenerated around the existing
+// centroid via `createFootprintPolygon` so the visible footprint follows
+// the form.
+//
+// This is the templated pattern for the remaining seven built-env kinds.
+
+const BUILDING_SUBTYPE_OPTIONS = [
+  { value: '',             label: '— unspecified —' },
+  { value: 'residence',    label: 'Residence' },
+  { value: 'outbuilding',  label: 'Outbuilding' },
+  { value: 'agricultural', label: 'Agricultural' },
+  { value: 'other',        label: 'Other' },
+];
+
+const BUILDING_PHASE_OPTIONS = [
+  { value: '',        label: 'Unassigned' },
+  { value: 'phase-1', label: 'Phase 1' },
+  { value: 'phase-2', label: 'Phase 2' },
+  { value: 'phase-3', label: 'Phase 3' },
+  { value: 'phase-4', label: 'Phase 4' },
+];
+
+/**
+ * Centroid of a polygon's outer ring (mean of vertices, excluding the
+ * closing duplicate). Good enough for re-anchoring a footprint when the
+ * steward tweaks rotation / width / depth.
+ */
+function polygonCentroid(polygon: { coordinates: number[][][] }): [number, number] {
+  const ring = polygon.coordinates[0] ?? [];
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  const verts =
+    ring.length > 1 &&
+    first !== undefined &&
+    last !== undefined &&
+    first[0] === last[0] &&
+    first[1] === last[1]
+      ? ring.slice(0, -1)
+      : ring;
+  let sx = 0;
+  let sy = 0;
+  for (const v of verts) {
+    sx += v[0] ?? 0;
+    sy += v[1] ?? 0;
+  }
+  const n = verts.length || 1;
+  return [sx / n, sy / n];
+}
+
+export function buildBuildingEditSchema(
+  b: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = b.existing ?? {};
+  const prop = b.proposed ?? {};
+  return {
+    title: 'Edit building',
+    fields: [
+      { key: 'label', label: 'Name', kind: 'text', required: true },
+      {
+        key: 'subtype',
+        label: 'Subtype',
+        kind: 'select',
+        options: BUILDING_SUBTYPE_OPTIONS,
+      },
+      {
+        key: 'phase',
+        label: 'Phase',
+        kind: 'select',
+        options: BUILDING_PHASE_OPTIONS,
+      },
+      { key: 'rotationDeg', label: 'Rotation', kind: 'number', suffix: '°' },
+      { key: 'widthM',      label: 'Width',    kind: 'number', suffix: 'm' },
+      { key: 'depthM',      label: 'Depth',    kind: 'number', suffix: 'm' },
+      { key: 'heightM',     label: 'Height',   kind: 'number', suffix: 'm' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label:       b.label ?? '',
+      subtype:     exist.subtype ?? '',
+      phase:       prop.phase ?? '',
+      rotationDeg: prop.rotationDeg ?? 0,
+      widthM:      prop.widthM ?? '',
+      depthM:      prop.depthM ?? '',
+      heightM:     prop.heightM ?? '',
+      notes:       b.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim() || (b.label ?? 'Building');
+      const subtypeRaw = String(values.subtype ?? '').trim();
+      const phaseRaw = String(values.phase ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+
+      const rotRaw = Number(values.rotationDeg);
+      const widthRaw = Number(values.widthM);
+      const depthRaw = Number(values.depthM);
+      const heightRaw = Number(values.heightM);
+
+      const rotationDeg: number | undefined = Number.isFinite(rotRaw)
+        ? rotRaw
+        : prop.rotationDeg;
+      const widthM: number | undefined =
+        Number.isFinite(widthRaw) && widthRaw > 0 ? widthRaw : prop.widthM;
+      const depthM: number | undefined =
+        Number.isFinite(depthRaw) && depthRaw > 0 ? depthRaw : prop.depthM;
+      const heightM: number | undefined =
+        Number.isFinite(heightRaw) && heightRaw >= 0 ? heightRaw : prop.heightM;
+
+      store.updateMetadata(b.id, {
+        label,
+        notes: notesRaw || undefined,
+        existing: { subtype: subtypeRaw || undefined },
+        proposed: {
+          phase: phaseRaw || undefined,
+          rotationDeg,
+          widthM,
+          depthM,
+          heightM,
+        },
+      });
+
+      // Regenerate footprint polygon when rotation/dims changed and we
+      // have a polygon geometry + both dimensions to draw one.
+      const rotChanged = rotationDeg !== prop.rotationDeg;
+      const wChanged = widthM !== prop.widthM;
+      const dChanged = depthM !== prop.depthM;
+      if (
+        (rotChanged || wChanged || dChanged) &&
+        b.geometry.type === 'Polygon' &&
+        typeof widthM === 'number' &&
+        typeof depthM === 'number' &&
+        widthM > 0 &&
+        depthM > 0
+      ) {
+        const center = polygonCentroid(b.geometry);
+        const nextPoly = createFootprintPolygon(
+          center,
+          widthM,
+          depthM,
+          rotationDeg ?? 0,
+        );
+        store.updateGeometry(b.id, nextPoly);
+      }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
     },
   };
 }

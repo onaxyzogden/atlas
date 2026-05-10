@@ -20,6 +20,9 @@ import { useEffect } from 'react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import { useObserveLinkPopoverStore } from './observeLinkPopoverStore.js';
 import type { ObserveLinkKind } from './observeLinkPopoverStore.js';
+import { useInlineFormStore } from './inlineFormStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import { buildBuildingEditSchema } from '../layers/inlineEditSchemas.js';
 
 interface Props {
   map: MaplibreMap;
@@ -71,6 +74,7 @@ function resolveLayer(layerId: string): { module: ObserveLinkKind; label: string
 
 export default function PlanObserveSelectionHandler({ map }: Props) {
   const open = useObserveLinkPopoverStore((s) => s.open);
+  const openInline = useInlineFormStore((s) => s.open);
 
   useEffect(() => {
     if (!map) return;
@@ -132,6 +136,23 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
       // background. We're committing to the Observe selection.
       e.preventDefault();
       e.originalEvent.stopPropagation();
+
+      // Phase 2: Buildings open the inline-edit popover instead of the
+      // "Edit in Observe →" link popover. Other Observe kinds keep
+      // going through the link popover until their Phase 2 PRs land.
+      if (
+        top.layer.id.startsWith('observe-anno-be-buildings') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'building');
+        if (entity) {
+          const schema = buildBuildingEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
 
       open({
         kind: resolved.module,

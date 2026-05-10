@@ -14,7 +14,7 @@
 
 import { create } from 'zustand';
 
-export type FieldKind = 'text' | 'number' | 'select';
+export type FieldKind = 'text' | 'number' | 'select' | 'textarea';
 
 export interface FieldSpec {
   key: string;

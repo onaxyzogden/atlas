@@ -29,6 +29,10 @@ import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
 import Terrain3DController from './Terrain3DController.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
+import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
+import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
+import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
+import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import type { PlanView } from '../types.js';
 
 interface Props {
@@ -99,6 +103,14 @@ export default function VisionLayoutCanvas({
             setSelectedId={setSelectedId}
           />
           <BaseMapCard />
+          {/* Phase 2: Observe annotations + inline-edit + link popover
+              mounted across vision / phase / terrain3d views, so the
+              Plan steward can edit Buildings (and link out for other
+              Observe kinds) without bouncing back to Current Land. */}
+          <ObserveAnnotationLayers map={map} projectId={projectId} />
+          <PlanObserveSelectionHandler map={map} />
+          <InlineFeaturePopover map={map} />
+          <ObserveLinkPopover map={map} />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}

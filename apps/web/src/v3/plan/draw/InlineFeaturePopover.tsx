@@ -125,7 +125,11 @@ export default function InlineFeaturePopover({ map }: Props) {
     close();
   };
 
-  const setVal = (key: string, kind: 'text' | 'number' | 'select', raw: string) => {
+  const setVal = (
+    key: string,
+    kind: 'text' | 'number' | 'select' | 'textarea',
+    raw: string,
+  ) => {
     setValues((prev) => {
       const value = kind === 'number' ? (raw === '' ? '' : Number(raw)) : raw;
       const next: Record<string, string | number> = { ...prev, [key]: value };
@@ -173,6 +177,15 @@ export default function InlineFeaturePopover({ map }: Props) {
                     </option>
                   ))}
                 </select>
+              ) : f.kind === 'textarea' ? (
+                <textarea
+                  className={css.input}
+                  value={valStr}
+                  readOnly={f.readonly}
+                  placeholder={f.placeholder}
+                  rows={3}
+                  onChange={(e) => setVal(f.key, 'textarea', e.target.value)}
+                />
               ) : (
                 <input
                   className={css.input}
