@@ -26,6 +26,7 @@ import {
   buildBuildingEditSchema,
   buildWellEditSchema,
   buildSepticEditSchema,
+  buildPowerLineEditSchema,
 } from '../layers/inlineEditSchemas.js';
 
 interface Props {
@@ -180,6 +181,19 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
           .entities.find((x) => x.id === featureId && x.kind === 'septic');
         if (entity) {
           const schema = buildSepticEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-power-lines') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'power-line');
+        if (entity) {
+          const schema = buildPowerLineEditSchema(entity);
           openInline({ ...schema, anchor });
           return;
         }

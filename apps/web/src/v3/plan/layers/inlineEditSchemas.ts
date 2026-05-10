@@ -1239,3 +1239,60 @@ export function buildSepticEditSchema(
     },
   };
 }
+
+// ---------- Power line (Built Environment V2) ----------
+//
+// LineString geometry; metadata edit only — geometry stands as drawn.
+// Uses the typed `existing.placement` enum on V2 ExistingMetadata
+// rather than the free-form `subtype` slot (PowerLine is the only
+// built-env kind with a typed placement axis).
+
+const POWER_LINE_PLACEMENT_OPTIONS = [
+  { value: 'overhead', label: 'Overhead' },
+  { value: 'buried',   label: 'Buried' },
+];
+
+export function buildPowerLineEditSchema(
+  pl: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = pl.existing ?? {};
+  return {
+    title: 'Edit power line',
+    fields: [
+      {
+        key: 'placement',
+        label: 'Placement',
+        kind: 'select',
+        required: true,
+        options: POWER_LINE_PLACEMENT_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      placement: exist.placement ?? 'overhead',
+      label:     pl.label ?? '',
+      notes:     pl.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const placement: 'overhead' | 'buried' =
+        values.placement === 'buried' ? 'buried' : 'overhead';
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(pl.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { placement },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
