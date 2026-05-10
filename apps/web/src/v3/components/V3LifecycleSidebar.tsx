@@ -250,6 +250,20 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
             </Link>
           </li>
 
+          {(import.meta.env.VITE_ATLAS_TELEMETRY_ENABLED ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true' && (
+            <li className={css.utilityItem}>
+              <Link
+                to="/v3/project/$projectId/reference/affinity-telemetry"
+                params={{ projectId }}
+                className={css.utilityBtn}
+                title="Dev: observed Act-module touch counts vs. v1 affinity"
+              >
+                <span className={css.utilityLabel}>Affinity telemetry</span>
+                <span className={css.utilityDesc}>Dev · observed vs. v1 ranking</span>
+              </Link>
+            </li>
+          )}
+
           {DISABLED_LINKS.map((link) => (
             <li key={link.id} className={css.utilityItem}>
               <button
