@@ -39,6 +39,8 @@ import type {
   ElevationProfileResponse,
   ElevationPointRequest,
   ElevationPointResponse,
+  ActInteractionEventInput,
+  GetActAffinityAggregateResult,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -603,6 +605,27 @@ export const api = {
 
     delete: (projectId: string, edgeId: string) =>
       request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
+  },
+
+  telemetry: {
+    postActInteractions: (events: ActInteractionEventInput[]) =>
+      request<{ ingested: number }>(
+        'POST',
+        '/api/v1/telemetry/act-interactions',
+        { events },
+      ),
+
+    getActAffinityAggregate: (params?: { projectId?: string; from?: string; to?: string }) => {
+      const qs = new URLSearchParams();
+      if (params?.projectId) qs.set('projectId', params.projectId);
+      if (params?.from) qs.set('from', params.from);
+      if (params?.to) qs.set('to', params.to);
+      const suffix = qs.toString() ? `?${qs.toString()}` : '';
+      return request<GetActAffinityAggregateResult>(
+        'GET',
+        `/api/v1/telemetry/act-interactions/aggregate${suffix}`,
+      );
+    },
   },
 };
 
