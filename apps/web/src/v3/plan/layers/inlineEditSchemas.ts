@@ -1107,3 +1107,78 @@ export function buildBuildingEditSchema(
     },
   };
 }
+
+// ---------- Well (Built Environment V2) ----------
+//
+// Phase 2 — follow-on to Buildings. Wells are Point geometries, so no
+// footprint regeneration is needed; the popover is a pure metadata edit
+// over the well's `existing` block (kind / depth / flow) plus the
+// shared `label` + `notes`. Schema fields match the legacy Observe
+// `well` field-schema (kind/depthM/flowLpm/label/notes) so the inline
+// form on Plan and the slide-up form on Observe stay 1:1.
+
+const WELL_KIND_OPTIONS = [
+  { value: 'drinking',   label: 'Drinking' },
+  { value: 'irrigation', label: 'Irrigation' },
+  { value: 'unknown',    label: 'Unknown' },
+];
+
+export function buildWellEditSchema(
+  w: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = w.existing ?? {};
+  return {
+    title: 'Edit well',
+    fields: [
+      { key: 'label', label: 'Label', kind: 'text', placeholder: 'North well' },
+      {
+        key: 'kind',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: WELL_KIND_OPTIONS,
+      },
+      { key: 'depthM',  label: 'Depth', kind: 'number', suffix: 'm' },
+      { key: 'flowLpm', label: 'Flow',  kind: 'number', suffix: 'L/min' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label:   w.label ?? '',
+      kind:    exist.subtype ?? 'unknown',
+      depthM:  exist.depthM ?? '',
+      flowLpm: exist.flowLpm ?? '',
+      notes:   w.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim();
+      const kindRaw = String(values.kind ?? '').trim() || 'unknown';
+      const notesRaw = String(values.notes ?? '').trim();
+
+      const depthRaw = Number(values.depthM);
+      const flowRaw = Number(values.flowLpm);
+      const depthM =
+        Number.isFinite(depthRaw) && depthRaw >= 0 ? depthRaw : undefined;
+      const flowLpm =
+        Number.isFinite(flowRaw) && flowRaw >= 0 ? flowRaw : undefined;
+
+      store.updateMetadata(w.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: {
+          subtype: kindRaw,
+          depthM,
+          flowLpm,
+        },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}

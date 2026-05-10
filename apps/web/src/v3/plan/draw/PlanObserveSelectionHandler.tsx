@@ -22,7 +22,10 @@ import { useObserveLinkPopoverStore } from './observeLinkPopoverStore.js';
 import type { ObserveLinkKind } from './observeLinkPopoverStore.js';
 import { useInlineFormStore } from './inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
-import { buildBuildingEditSchema } from '../layers/inlineEditSchemas.js';
+import {
+  buildBuildingEditSchema,
+  buildWellEditSchema,
+} from '../layers/inlineEditSchemas.js';
 
 interface Props {
   map: MaplibreMap;
@@ -137,9 +140,10 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
       e.preventDefault();
       e.originalEvent.stopPropagation();
 
-      // Phase 2: Buildings open the inline-edit popover instead of the
-      // "Edit in Observe →" link popover. Other Observe kinds keep
-      // going through the link popover until their Phase 2 PRs land.
+      // Phase 2: Buildings and Wells open the inline-edit popover
+      // instead of the "Edit in Observe →" link popover. Remaining
+      // Observe kinds keep going through the link popover until their
+      // Phase 2 PRs land.
       if (
         top.layer.id.startsWith('observe-anno-be-buildings') &&
         featureId
@@ -149,6 +153,19 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
           .entities.find((x) => x.id === featureId && x.kind === 'building');
         if (entity) {
           const schema = buildBuildingEditSchema(entity);
+          openInline({ ...schema, anchor });
+          return;
+        }
+      }
+      if (
+        top.layer.id.startsWith('observe-anno-be-wells') &&
+        featureId
+      ) {
+        const entity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find((x) => x.id === featureId && x.kind === 'well');
+        if (entity) {
+          const schema = buildWellEditSchema(entity);
           openInline({ ...schema, anchor });
           return;
         }
