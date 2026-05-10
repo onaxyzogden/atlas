@@ -1,11 +1,13 @@
 /**
  * MaintenanceLogCard — ACT-stage Module 2 (Maintenance & Operations):
- * tabular surface for the events captured by `MaintenanceLogTool`.
+ * tabular surface for the events captured by `MaintenanceLogTool` and
+ * `ActStructurePopover.actions.startMaintenanceLog`.
  *
  * Where `MaintenanceScheduleCard` is the *plan* (recurring tasks the land
  * needs), this card is the *record* (what was actually done, when, on
- * which feature). Mirrors HarvestLogCard's structure but anchored on
- * earthworks / storage infra instead of crop areas.
+ * which feature). Mirrors HarvestLogCard's structure across three source
+ * kinds: earthworks (swale / drain), storage infra (cistern / pond), and
+ * placed structures (barn / greenhouse / well / etc.).
  */
 
 import { useMemo, useState } from 'react';
@@ -17,6 +19,8 @@ import {
   type MaintenanceSourceKind,
 } from '../../store/maintenanceLogStore.js';
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
+import { useStructureStore } from '../../store/structureStore.js';
+import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import styles from './actCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
@@ -53,6 +57,7 @@ export default function MaintenanceLogCard({ project }: Props) {
 
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allStructures = useStructureStore((s) => s.structures);
 
   const earthworks = useMemo(
     () => allEarthworks.filter((w) => w.projectId === project.id),
@@ -62,11 +67,21 @@ export default function MaintenanceLogCard({ project }: Props) {
     () => allStorage.filter((s) => s.projectId === project.id),
     [allStorage, project.id],
   );
+  const structures = useMemo(
+    () => allStructures.filter((s) => s.projectId === project.id),
+    [allStructures, project.id],
+  );
 
   const sourceLabel = (kind: MaintenanceSourceKind, id: string): string => {
     if (kind === 'earthwork') {
       const w = earthworks.find((e) => e.id === id);
       return w ? `${w.type.replace('_', ' ')}` : '(deleted earthwork)';
+    }
+    if (kind === 'structure') {
+      const s = structures.find((x) => x.id === id);
+      if (!s) return '(deleted structure)';
+      const tpl = STRUCTURE_TEMPLATES[s.type];
+      return `${tpl.icon} ${s.name || tpl.label}`;
     }
     const s = storage.find((x) => x.id === id);
     return s ? `${s.type.replace('_', ' ')}` : '(deleted storage)';
@@ -97,7 +112,12 @@ export default function MaintenanceLogCard({ project }: Props) {
   const sourceOptions =
     draft.sourceKind === 'earthwork'
       ? earthworks.map((w) => ({ id: w.id, label: w.type.replace('_', ' ') }))
-      : storage.map((s) => ({ id: s.id, label: s.type.replace('_', ' ') }));
+      : draft.sourceKind === 'structure'
+        ? structures.map((s) => {
+            const tpl = STRUCTURE_TEMPLATES[s.type];
+            return { id: s.id, label: `${tpl.icon} ${s.name || tpl.label}` };
+          })
+        : storage.map((s) => ({ id: s.id, label: s.type.replace('_', ' ') }));
 
   function commit() {
     if (!draft.sourceId) return;
@@ -143,6 +163,7 @@ export default function MaintenanceLogCard({ project }: Props) {
             >
               <option value="earthwork">Earthwork (swale / drain)</option>
               <option value="storage">Storage (cistern / pond)</option>
+              <option value="structure">Structure (barn / greenhouse / well / …)</option>
             </select>
           </div>
           <div className={styles.field}>
@@ -184,7 +205,7 @@ export default function MaintenanceLogCard({ project }: Props) {
 
       {grouped.length === 0 ? (
         <section className={styles.section}>
-          <p className={styles.empty}>No maintenance events yet — log your first above, or click an irrigation feature on the map with the &ldquo;Log water check&rdquo; tool.</p>
+          <p className={styles.empty}>No maintenance events yet — log your first above, click an irrigation feature on the map with the &ldquo;Log water check&rdquo; tool, or click a placed structure and choose &ldquo;Log maintenance&rdquo;.</p>
         </section>
       ) : (
         grouped.map(([key, list]) => {
