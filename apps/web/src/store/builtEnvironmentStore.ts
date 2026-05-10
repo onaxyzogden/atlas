@@ -126,7 +126,13 @@ export interface Gate {
   createdAt: string;
 }
 
-export type DrivewaySurface = 'gravel' | 'paved' | 'dirt' | 'other';
+export type DrivewaySurface =
+  | 'gravel'
+  | 'asphalt'
+  | 'concrete'
+  | 'paved' // legacy umbrella value — read-only; migrate to asphalt/concrete on next edit
+  | 'dirt'
+  | 'other';
 
 export interface ExistingDriveway {
   id: string;

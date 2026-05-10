@@ -17,6 +17,16 @@ import type { InlineFormPayload } from '../draw/inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { createFootprintPolygon } from '../../../features/structures/footprints.js';
 import {
+  BUILDING_SUBTYPE_OPTIONS as BE_BUILDING_SUBTYPE_OPTIONS,
+  BUILDING_PHASE_OPTIONS as BE_BUILDING_PHASE_OPTIONS,
+  WELL_KIND_OPTIONS as BE_WELL_KIND_OPTIONS,
+  SEPTIC_SUBTYPE_OPTIONS as BE_SEPTIC_SUBTYPE_OPTIONS,
+  POWER_LINE_PLACEMENT_OPTIONS as BE_POWER_LINE_PLACEMENT_OPTIONS,
+  BURIED_UTILITY_SUBTYPE_OPTIONS as BE_BURIED_UTILITY_SUBTYPE_OPTIONS,
+  FENCE_SUBTYPE_OPTIONS as BE_FENCE_SUBTYPE_OPTIONS,
+  DRIVEWAY_SURFACE_OPTIONS as BE_DRIVEWAY_SURFACE_OPTIONS,
+} from '../../builtEnvironment/schemas/beSchemaRegistry.js';
+import {
   ZONE_CATEGORY_CONFIG,
   type LandZone,
   type ZoneCategory,
@@ -959,20 +969,18 @@ export function buildMonitoringTransectEditSchema(
 //
 // This is the templated pattern for the remaining seven built-env kinds.
 
+// Plan-side option arrays prepend an empty sentinel ("— unspecified —" /
+// "Unassigned") because we're editing existing records that may not have
+// a subtype/phase set. The four real values for each enum live in the
+// canonical registry at `v3/builtEnvironment/schemas/beSchemaRegistry`.
 const BUILDING_SUBTYPE_OPTIONS = [
-  { value: '',             label: '— unspecified —' },
-  { value: 'residence',    label: 'Residence' },
-  { value: 'outbuilding',  label: 'Outbuilding' },
-  { value: 'agricultural', label: 'Agricultural' },
-  { value: 'other',        label: 'Other' },
+  { value: '', label: '— unspecified —' },
+  ...BE_BUILDING_SUBTYPE_OPTIONS,
 ];
 
 const BUILDING_PHASE_OPTIONS = [
-  { value: '',        label: 'Unassigned' },
-  { value: 'phase-1', label: 'Phase 1' },
-  { value: 'phase-2', label: 'Phase 2' },
-  { value: 'phase-3', label: 'Phase 3' },
-  { value: 'phase-4', label: 'Phase 4' },
+  { value: '', label: 'Unassigned' },
+  ...BE_BUILDING_PHASE_OPTIONS,
 ];
 
 /**
@@ -1117,11 +1125,7 @@ export function buildBuildingEditSchema(
 // `well` field-schema (kind/depthM/flowLpm/label/notes) so the inline
 // form on Plan and the slide-up form on Observe stay 1:1.
 
-const WELL_KIND_OPTIONS = [
-  { value: 'drinking',   label: 'Drinking' },
-  { value: 'irrigation', label: 'Irrigation' },
-  { value: 'unknown',    label: 'Unknown' },
-];
+const WELL_KIND_OPTIONS = BE_WELL_KIND_OPTIONS;
 
 export function buildWellEditSchema(
   w: BuiltEnvironmentEntity,
@@ -1189,12 +1193,7 @@ export function buildWellEditSchema(
 // drawn polygon stands as-is — no auto-regeneration on field changes
 // (contrast Buildings, which redraw on rotation/dim edits).
 
-const SEPTIC_KIND_OPTIONS = [
-  { value: 'tank',        label: 'Tank' },
-  { value: 'leach_field', label: 'Leach field' },
-  { value: 'cesspool',    label: 'Cesspool' },
-  { value: 'other',       label: 'Other' },
-];
+const SEPTIC_KIND_OPTIONS = BE_SEPTIC_SUBTYPE_OPTIONS;
 
 export function buildSepticEditSchema(
   sp: BuiltEnvironmentEntity,
@@ -1247,10 +1246,7 @@ export function buildSepticEditSchema(
 // rather than the free-form `subtype` slot (PowerLine is the only
 // built-env kind with a typed placement axis).
 
-const POWER_LINE_PLACEMENT_OPTIONS = [
-  { value: 'overhead', label: 'Overhead' },
-  { value: 'buried',   label: 'Buried' },
-];
+const POWER_LINE_PLACEMENT_OPTIONS = BE_POWER_LINE_PLACEMENT_OPTIONS;
 
 export function buildPowerLineEditSchema(
   pl: BuiltEnvironmentEntity,
@@ -1302,13 +1298,7 @@ export function buildPowerLineEditSchema(
 // LineString; metadata edit only. Subtype values mirror the legacy
 // `BuriedUtilityKind` enum and round-trip via `existing.subtype`.
 
-const BURIED_UTILITY_SUBTYPE_OPTIONS = [
-  { value: 'water_main', label: 'Water main' },
-  { value: 'gas',        label: 'Gas' },
-  { value: 'fibre',      label: 'Fibre' },
-  { value: 'sewer',      label: 'Sewer' },
-  { value: 'other',      label: 'Other' },
-];
+const BURIED_UTILITY_SUBTYPE_OPTIONS = BE_BURIED_UTILITY_SUBTYPE_OPTIONS;
 
 export function buildBuriedUtilityEditSchema(
   bu: BuiltEnvironmentEntity,
@@ -1359,13 +1349,7 @@ export function buildBuriedUtilityEditSchema(
 // LineString; metadata edit only. Subtype mirrors the legacy
 // `FenceKind` enum.
 
-const FENCE_SUBTYPE_OPTIONS = [
-  { value: 'barbed',      label: 'Barbed' },
-  { value: 'page_wire',   label: 'Page wire' },
-  { value: 'electric',    label: 'Electric' },
-  { value: 'privacy',     label: 'Privacy' },
-  { value: 'other',       label: 'Other' },
-];
+const FENCE_SUBTYPE_OPTIONS = BE_FENCE_SUBTYPE_OPTIONS;
 
 export function buildFenceEditSchema(
   f: BuiltEnvironmentEntity,
@@ -1452,13 +1436,7 @@ export function buildGateEditSchema(
 //
 // LineString; surface enum mirrors the legacy `DrivewaySurface`.
 
-const DRIVEWAY_SURFACE_OPTIONS = [
-  { value: 'gravel',   label: 'Gravel' },
-  { value: 'asphalt',  label: 'Asphalt' },
-  { value: 'concrete', label: 'Concrete' },
-  { value: 'dirt',     label: 'Dirt' },
-  { value: 'other',    label: 'Other' },
-];
+const DRIVEWAY_SURFACE_OPTIONS = BE_DRIVEWAY_SURFACE_OPTIONS;
 
 export function buildDrivewayEditSchema(
   dw: BuiltEnvironmentEntity,
