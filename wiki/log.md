@@ -4,6 +4,190 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Tile-grid width equalization across stage tool palettes
+
+Three small CSS-only commits in one session to fix a recurring
+"tiles in the same row aren't equal width" bug in the stage tool
+palettes. Root cause was always the same: `grid-template-columns:
+repeat(N, 1fr)` resolves each track to `minmax(auto, 1fr)`, and
+`auto` honors each column's min-content width — so any column whose
+longest unbreakable token (e.g. "household", "Buried utility",
+"Septic") exceeds the natural 1fr share expands and the others
+shrink to compensate. Fix is the same in every grid:
+
+- `grid-template-columns: repeat(N, minmax(0, 1fr))` on the grid
+- `min-width: 0` on the tile (and on the wrapper, where a
+  `DelayedTooltip` span sits between the grid and the button)
+- `overflow-wrap: anywhere; word-break: break-word;` on the label
+
+Grids touched:
+
+- `apps/web/src/v3/observe/tools/ObserveTools.module.css` —
+  `.itemGrid` (3-col), needs the wrapper-level `min-width: 0` because
+  the buttons are children of `DelayedTooltip` `<span>`s, not direct
+  grid children. Verified live: Human Context, Built Environment,
+  Macroclimate all collapse to 50/50/50 px columns. (commit a7e7878)
+- `apps/web/src/v3/plan/PlanModuleBar.module.css` — `.tiles`
+  (11-col). Verified: 11 × 60 px.
+- `apps/web/src/v3/act/ActModuleBar.module.css` — `.tiles` (7-col).
+  Verified: 7 × 96 px (Build/Maintain/Livestock/Harvest/Review/
+  Network/Schedule).
+- `apps/web/src/v3/plan/canvas/DesignElementPalette.module.css` —
+  `.tiles` (3-col). Patched in-line; not separately verified
+  because the palette wasn't mounted in the preview path used.
+
+Pattern is general enough to be worth repeating: any future tool
+palette using `repeat(N, 1fr)` should reach for `minmax(0, 1fr)` +
+`min-width: 0` to keep columns truly equal under variable label
+length.
+
+## 2026-05-10 — Act Quick Log — Field Task + Observation moved to left rail
+
+The `Create Field Task` (primary) and `Log Observation` (secondary)
+buttons used to sit at the bottom of the right-rail Ops aside
+(`ActOpsAside` → `QuickActions`), alongside Weather / Today's
+Priorities / Alerts / Upcoming Events. Operationally they're
+field-log entries — same intent as the Quick Log strip on the left
+rail (Log harvest / Log water check / Log livestock move). Operator
+asked for the move to consolidate logging into one column.
+
+Move:
+
+- `apps/web/src/v3/act/ActTools.tsx` — added `useState`,
+  `useV3Project`, `CreateFieldTaskDialog`, `LogObservationDialog`,
+  and rendered `<QuickActions>` (reused from `./ops/QuickActions.js`)
+  as the last item inside the Quick Log strip. Mounted both dialogs
+  from this component so the buttons are self-contained.
+- `apps/web/src/v3/act/ops/ActOpsAside.tsx` — removed the
+  `<QuickActions>` block, the dialog `useState`s, dialog mounts, and
+  the now-unused imports. The right rail now stops at Upcoming
+  Events.
+- `QuickActions` component itself was left untouched and re-imported
+  from its existing location, so styling stays consistent with no
+  CSS duplication.
+
+Verified live: left "Quick log" strip now contains 5 buttons (Log
+harvest / Log water check / Log livestock move / Create Field Task /
+Log Observation), and the right "Act checklist" rail no longer
+contains a `[aria-label="Quick actions"]` section. (commit 07630b1.)
+
+## 2026-05-10 — Act Quick Log icon request (no-op)
+
+Operator asked to swap the Act-stage Quick Log icon for "Log
+livestock move" away from `Beef`. On inspection, HEAD already had
+`Shuffle` for that slot (icon was changed in an earlier, unlogged
+session). Tried `CircleFadingArrowUp` mid-session and verified live
+render (`lucide lucide-circle-fading-arrow-up`), then the file was
+reverted back to `Shuffle` before commit. Net diff vs HEAD: zero
+icon changes for this session.
+
+---
+
+## 2026-05-10 — SWOT export pipeline (server-side PDF, three new templates)
+
+Built the backing surface that closes the inert-CTA loop opened by today's
+two button-deletion sweeps (commits `2dda642` + `18772ad`). Three of the
+deleted buttons — **Export journal**, **Export report**, **Export
+synthesis summary** — plus the retained label-only **Export journal** in
+`SwotJournal` all wanted the same surface: a SWOT-aware report exporter.
+The inert-CTA rule from this morning's ADR is **symmetric** — *"when a
+backing surface lands, the deleted button comes back with a real
+handler"* — and this session is that other half.
+
+Backend (5 files):
+
+- **`packages/shared/src/schemas/export.schema.ts`** — extended
+  `ExportType` enum with `'swot_journal'`, `'swot_diagnosis_report'`,
+  `'swot_synthesis'`. Added `SwotPayload` zod schema mirroring the
+  `SwotEntry` store shape; added optionally to `CreateExportInput.payload`.
+- **`apps/api/src/services/pdf/templates/swotJournal.ts`** (new) —
+  bucket-count summary, sortable entries table with tags + GPS.
+- **`apps/api/src/services/pdf/templates/swotDiagnosisReport.ts`** (new) —
+  stage bar, executive summary, 2×2 quadrant overview with top-3 entries
+  each, tag-frequency-prioritised findings, S+O / W+T action pairs.
+- **`apps/api/src/services/pdf/templates/swotSynthesis.ts`** (new) —
+  gradient hero, four-lenses card, equations, weighted tag cloud.
+- **`apps/api/src/services/pdf/templates/index.ts`** — registered all three.
+
+> No DB migration — `project_exports.export_type` is free-text at the
+> DB level; only the Zod enum gates new values.
+
+Frontend (3 files):
+
+- **`SwotJournal.tsx`** — wired the retained `Export journal` button
+  to `api.exports.generate()` + `window.open(storageUrl)`.
+- **`SwotDiagnosisReport.tsx`** — reintroduced `Export report` button.
+- **`SwotDashboard.tsx`** — reintroduced `Export synthesis summary`
+  button at the bottom of `DesignImplications`. Companion *Create
+  action plan from synthesis* stays deleted (no generator yet).
+
+All three buttons show `Generating…` + disabled state during the
+Puppeteer round-trip. tsc clean across `apps/web` and `apps/api`.
+
+Deferred:
+
+- **Send to diagnosis report** — internal pipe (copy SWOT entries into
+  diagnosis findings), not an export. Different surface; flagged for a
+  follow-up session.
+- Other Observe export labels (Terrain report, Hydrology data) — same
+  pattern, deferred to later sessions.
+
+ADR: `wiki/decisions/2026-05-10-atlas-swot-export-pipeline.md`.
+
+---
+
+## 2026-05-10 — Dirty-tree triage — 7 thematic commits
+
+Multi-thread dirty tree (15 modified + 4 untracked spanning unrelated
+work) split into 7 coherent commits on `feat/atlas-permaculture` rather
+than one monolithic blob. The Terrain3D enable was held back as broken
+(see *deferred* below).
+
+Commits landed (ffe8de3 … a7e7878):
+
+1. **`ffe8de3`** — Affinity-telemetry surfacing (dev-only). Adds
+   `/v3/project/$projectId/reference/affinity-telemetry` route plus
+   gated entry points in `V3LifecycleSidebar` + `HomePage` "References &
+   tools" section. Gate: `VITE_ATLAS_TELEMETRY_ENABLED ?? DEV`.
+2. **`6ff7bdb`** — SWOT PDF export pipeline. Three new templates
+   (`swotSynthesis`, `swotJournal`, `swotDiagnosisReport`) wired into
+   `apps/api` PDF service + `packages/shared/.../export.schema.ts` +
+   web-side export buttons on the three SWOT views.
+3. **`f05c78c`** — `DesignToolRail` selector hoists `EMPTY_ELEMENTS`
+   constant, fixing "Maximum update depth exceeded" on empty-element
+   projects. (Cross-referenced as a hot-fix in the Terrain3D entry
+   below.)
+4. **`07630b1`** — Drops the duplicate `QuickActions` + dialog mounts
+   from `ActOpsAside`; the canonical wiring now lives only in
+   `ActTools` (left rail).
+5. **`166c0e0`** — Vitest config gains `@vitejs/plugin-react`;
+   `actInteractionLog.test.ts` switches `jsdom → happy-dom`.
+6. **`a50613a`** — `MaintenanceLogCard` accepts placed-Structure
+   sources (barn / greenhouse / well / etc.) alongside the existing
+   earthworks + storage-infra source kinds.
+7. **`a7e7878`** — `ObserveTools.module.css` grid fix: tooltip wrapper
+   is now the direct grid child after the `e0a516d` DelayedTooltip
+   migration; columns needed `min-width: 0` + `repeat(3, minmax(0,
+   1fr))` to keep equal-width.
+
+Deferred (left dirty intentionally):
+
+- **Terrain3D enable** — `PlanPhaseTabs.tsx` flips `terrain3d` tab
+  from disabled to enabled, but the `Terrain3DController`,
+  `DesignElementExtrusionLayer`, and `elementHeights.ts` files the
+  log entry below references are not yet on disk (`git ls-files`
+  empty for those names). Landing the tab-enable now would ship a
+  click-target with no behaviour. Plus the Terrain3D ADR
+  (`wiki/decisions/2026-05-10-atlas-plan-terrain3d-design-element-extrusions.md`)
+  is still untracked. Holds until the implementation files land.
+
+Verification: `apps/web tsc --noEmit` was clean before, between, and
+after the 7 commits (background tasks `b8puyeeyy`, `bra7wrg2k`).
+
+Pushed: `3a80ed1..a7e7878 → origin/feat/atlas-permaculture`.
+
+---
+
 ## 2026-05-10 — Plan 3D Terrain — design-element extrusions (Phase 1)
 
 Pivoted the "develop 3D models for placed features" objective from
