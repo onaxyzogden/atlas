@@ -44,10 +44,23 @@ ADR:
 
 Closes the third and last deferred Phase-3 follow-up. The Act
 structure popover writes `livestockMove` events with `structureId`
-on `barn` / `animal_shelter`, and the Plan paddock write path is
-designed to write with `paddockId` — but `useLivestockMoveLogStore`
-had **zero read consumers** anywhere in `apps/web/src/`. Events
-persisted, then disappeared into the void.
+on `barn` / `animal_shelter`.
+
+**Errata (post-merge audit).** This entry originally claimed
+`useLivestockMoveLogStore` had "zero read consumers anywhere in
+`apps/web/src/`" — wrong. `RotationScheduleCard.tsx:16, 109–116,
+257–289` already imported the store and rendered a per-paddock
+"Logged moves" section under each rotation row. The actual gaps
+this card closes are: (a) **structure-source** events were truly
+invisible — `eventsByPaddock()` is paddockId-keyed and silently
+dropped them; (b) no self-service write affordance existed
+anywhere (rotation card is read-only); (c) no at-a-glance unified
+log across both source kinds plus structures.
+
+Root cause of the framing error: false-negative grep in the
+planning agent's first pass; planning trusted it without
+spot-verifying `RotationScheduleCard` directly. See the ADR's
+*Corrections* section.
 
 New `LivestockMoveCard` (Act Livestock module, second tab between
 *Yield log* and *Rotation schedule*) mirrors `MaintenanceLogCard`'s
@@ -10385,3 +10398,65 @@ gates: guild centroid tool (before parcel-spatial guild analytics
 ship), GAEZ scenario picker (before climate overlays surface
 publicly), portal cache/rate-limit (before first public share URL).
 Audit Phase 4 is now closed end-to-end.
+
+## 2026-05-10 — Built Environment unification — Phases 0–2 of 6
+
+**Context.** Plan
+[`C:\Users\MY OWN AXIS\.claude\plans\need-to-discuss-difference-composed-quill.md`]
+to collapse Observe `builtEnvironmentStore`, Plan `structureStore`, and
+the structure-class kinds of `designElementsStore` into a single
+unified store keyed by `state: 'existing' | 'proposed'`. ADR:
+[wiki/decisions/2026-05-10-atlas-built-environment-unification.md].
+
+**Change.**
+
+- **Phase 0 (verify):** Code-trace confirmed all 8 Observe Built
+  Environment kinds (building, well, septic, powerLine, buriedUtility,
+  fence, gate, existingDriveway) are absent from
+  `annotationGeometryRegistry.ts` dispatch tables and from
+  `POINT_LAYER_IDS` in `AnnotationDragHandler` — geometry editing
+  structurally absent. Attribute editing via `AnnotationFormSlideUp`
+  works (`FIELD_SCHEMAS` covers all 8). The geometry-edit gap folds
+  into Phase 4 lift.
+- **Phase 1 (schema + registry + ADR):** Added
+  `packages/shared/src/builtEnvironment.ts` with
+  `BuiltEnvironmentEntity` (Zod-validated, `state` axis, optional
+  `existing`/`proposed` metadata blocks) and
+  `packages/shared/src/builtEnvironmentKinds.ts` with a 30-kind
+  registry (Observe-8 + Plan-20 + designElement-11, deduped) carrying
+  per-kind `geometryType`, `defaultStates`, `renderMode`, height
+  defaults, GLB URL, and snake_case → kebab aliases. Exports wired
+  through `packages/shared/src/index.ts`.
+- **Phase 2 (store + migration + tests + flag):**
+  `apps/web/src/store/builtEnvironmentStoreV2.ts` — Zustand + zundo
+  + persist (key `ogden-built-environment-v2` v1) with
+  `create / updateGeometry / updateMetadata / setState / delete` plus
+  `selectByProject / -AndState / -AndKind` selectors. Migration shim
+  `migrateLegacyToV2()` reads all three legacy keys
+  (`ogden-built-environment`, `ogden-structures`,
+  `ogden-atlas-design-elements`), translates each into v2 shape,
+  dedupes by id, and runs once on first hydrate (legacy keys retained
+  read-only for rollback). Added `FLAGS.BUILT_ENV_V2`
+  (`ATLAS_BUILT_ENV_V2` env, default off). 16 vitest cases green
+  in `__tests__/builtEnvironmentStoreV2.test.ts`.
+
+**Verification.** `npx vitest run
+src/store/__tests__/builtEnvironmentStoreV2.test.ts` → 16/16 green.
+`cd packages/shared && npx tsc --noEmit` → clean. `cd apps/web &&
+NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` → no errors
+in new code (pre-existing `PlanObserveSelectionHandler.tsx` errors
+untouched).
+
+**Deferred to next session (Phases 3–6).** Phase 3 (read-side
+migration behind flag) is the highest-blast-radius phase — 100+ files
+reference the three legacy stores. Suggested sequencing for next
+session: build adapter hooks (`useBuiltEnvAdapter`,
+`useStructureAdapter`, `useDesignElementsAdapter`) that project v2
+entities into the legacy shape so the flag can swap data sources
+without a 100-file patch; then Phase 4 lifts `DesignElementGlbLayer`
+/ `DesignElementExtrusionLayer` / `Terrain3DController` /
+`PlanVertexEditHandler` / `InlineFeaturePopover` into a shared
+`apps/web/src/v3/builtEnvironment/` directory and mounts them in
+Observe (closes the Phase 0 geometry-edit gap). Phase 5 surfaces
+Plan-only kinds in Observe and vice-versa. Phase 6 flips flag
+default-on, deletes legacy stores, runs the cleanup sweep.
