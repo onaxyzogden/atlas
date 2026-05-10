@@ -38,7 +38,6 @@ import { usePathStore } from './pathStore.js';
 import { useCropStore } from './cropStore.js';
 import { useLivestockStore } from './livestockStore.js';
 import { useClosedLoopStore } from './closedLoopStore.js';
-import { useStructureStore } from './structureStore.js';
 import { usePolycultureStore } from './polycultureStore.js';
 
 export type UndoableStoreName =
@@ -54,7 +53,6 @@ export type UndoableStoreName =
   | 'crop'
   | 'livestock'
   | 'closedLoop'
-  | 'structure'
   | 'polyculture';
 
 interface UndoCoordinatorState {
@@ -107,7 +105,6 @@ const STORES: Record<UndoableStoreName, StoreWithMiddleware> = {
   crop: useCropStore as unknown as StoreWithMiddleware,
   livestock: useLivestockStore as unknown as StoreWithMiddleware,
   closedLoop: useClosedLoopStore as unknown as StoreWithMiddleware,
-  structure: useStructureStore as unknown as StoreWithMiddleware,
   polyculture: usePolycultureStore as unknown as StoreWithMiddleware,
 };
 
