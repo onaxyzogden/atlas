@@ -152,8 +152,14 @@
 
 .itemGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+/* Tooltip wrapper (DelayedTooltip) is the direct grid child; allow it to
+   shrink below its content min-size so columns stay equal-width. */
+.itemGrid > * {
+  min-width: 0;
 }
 
 .toolItem {
@@ -163,6 +169,8 @@
   justify-content: center;
   gap: 4px;
   padding: 8px 4px;
+  width: 100%;
+  min-width: 0;
   background: color-mix(in srgb, var(--color-surface) 96%, #fff);
   border: 1px solid color-mix(in srgb, var(--color-border) 85%, #fff);
   border-radius: var(--radius-md);
@@ -210,4 +218,6 @@
   text-align: center;
   line-height: 1.2;
   color: var(--color-text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
