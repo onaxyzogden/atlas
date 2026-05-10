@@ -156,9 +156,6 @@ function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
             opportunities for passive design and productivity.
           </p>
         </div>
-        <button className="green-button" type="button">
-          Open page <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="solar-grid">
         <div>
@@ -180,12 +177,6 @@ function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
           ))}
         </SurfaceCard>
       </div>
-      <button
-        className="outlined-button section-link"
-        type="button"
-      >
-        See full climate analysis <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }
@@ -208,9 +199,6 @@ function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
           </h2>
           <p>Review natural hazards, risk levels, and mitigation strategies for your site.</p>
         </div>
-        <button className="green-button" type="button">
-          Open page <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="hazards-grid">
         <div>
@@ -241,12 +229,6 @@ function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
           )}
         </SurfaceCard>
       </div>
-      <button
-        className="outlined-button section-link"
-        type="button"
-      >
-        See full hazards log <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

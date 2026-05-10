@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import {
-  ArrowRight,
   CheckCircle2,
   Compass,
   Droplet,
@@ -250,9 +249,6 @@ function TerrainToolCard({ boundary, caption }: TerrainToolCardProps) {
         />
       </div>
       <div className="tool-card-actions">
-        <button className="green-button" type="button">
-          Open terrain detail <ArrowRight aria-hidden="true" />
-        </button>
         <small>Best for: Detailed analysis of slope, aspect, elevation and landforms.</small>
       </div>
     </SurfaceCard>
@@ -282,12 +278,6 @@ function CrossSectionToolCard({ transect }: CrossSectionToolCardProps) {
         />
       </div>
       <div className="tool-card-actions">
-        <button
-          className="green-button"
-          type="button"
-        >
-          Open cross-section tool <ArrowRight aria-hidden="true" />
-        </button>
         <small>
           Best for: Understanding elevation change, solar exposure, drainage swales, dams,
           buildings and cut/fill balance.

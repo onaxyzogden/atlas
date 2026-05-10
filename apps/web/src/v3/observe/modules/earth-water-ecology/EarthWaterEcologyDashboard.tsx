@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import {
-  ArrowRight,
   Beaker,
   Binoculars,
   CalendarDays,
@@ -200,9 +199,6 @@ function SoilDiagnosticsCard({ samples }: SoilCardProps) {
     <SurfaceCard className="diagnostic-panel soil-panel">
       <header className="panel-header">
         <h2>Soil diagnostics</h2>
-        <button className="outlined-button" type="button">
-          View all tests <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="soil-row-list">
         {samples.length === 0 ? (
@@ -239,9 +235,6 @@ function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
     <SurfaceCard className="diagnostic-panel hydrology-panel">
       <header className="panel-header">
         <h2>Hydrology overview</h2>
-        <button className="outlined-button" type="button">
-          Details <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="hydrology-layout">
         <dl>
@@ -284,9 +277,6 @@ function EcologyCard({ observations, boundary, caption }: EcologyCardProps) {
     <SurfaceCard className="diagnostic-panel ecology-panel">
       <header className="panel-header">
         <h2>Ecology observations</h2>
-        <button className="outlined-button" type="button">
-          View all species <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="species-tabs">
         {tabs.map((tab, index) => (

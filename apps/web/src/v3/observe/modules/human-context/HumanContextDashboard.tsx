@@ -162,9 +162,7 @@ interface ModuleCardShellProps {
   title: string;
   icon?: LucideIcon;
   children: React.ReactNode;
-  action: string;
   tone?: 'green' | 'gold';
-  onAction: () => void;
 }
 
 function ModuleCardShell({
@@ -172,9 +170,7 @@ function ModuleCardShell({
   title,
   icon: Icon,
   children,
-  action,
   tone = 'green',
-  onAction,
 }: ModuleCardShellProps) {
   return (
     <SurfaceCard className={`human-module-card ${tone}`}>
@@ -184,13 +180,6 @@ function ModuleCardShell({
         {Icon ? <Icon aria-hidden="true" /> : null}
       </header>
       {children}
-      <button
-        className={tone === 'gold' ? 'gold-button' : 'green-button'}
-        type="button"
-        onClick={onAction}
-      >
-        {action} <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }
@@ -215,8 +204,6 @@ function StewardCard({ vision }: ProjectVisionProps) {
       number="1"
       title="Steward Survey"
       icon={Users}
-      action="Open Steward Survey"
-      onAction={() => {}}
     >
       <p>Who is stewarding this land and what they bring.</p>
       <div className="steward-summary-grid">
@@ -249,10 +236,6 @@ function StewardCard({ vision }: ProjectVisionProps) {
         <small>hrs / week total</small>
       </div>
       <ChipRow items={skills.length > 0 ? skills : ['No skills captured yet.']} />
-      <FooterTabs
-        items={['Profile insights', 'Capacity & resources', 'Local network']}
-        onSelect={() => {}}
-      />
     </ModuleCardShell>
   );
 }
@@ -267,9 +250,7 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
       number="2"
       title="Indigenous & Regional Context"
       icon={Sprout}
-      action="Open Indigenous & Regional Context"
       tone="gold"
-      onAction={() => {}}
     >
       <p>Honour the land&apos;s story, culture, and regional systems.</p>
       <div className="regional-summary-grid">
@@ -293,10 +274,6 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
         </dl>
       </div>
       <ChipRow items={strengths.length > 0 ? strengths : ['No strengths captured yet.']} />
-      <FooterTabs
-        items={['Place-names', 'Cultural challenges', 'Cultural strengths', 'Local network']}
-        onSelect={() => {}}
-      />
     </ModuleCardShell>
   );
 }
@@ -311,8 +288,6 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
       number="3"
       title="Vision Detail"
       icon={Leaf}
-      action="Open Vision Detail"
-      onAction={() => {}}
     >
       <p>Where we&apos;re going and what success looks like.</p>
       <div className="vision-summary-grid">
@@ -336,10 +311,6 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
           <b>{counts.moodboardImages}</b>Moodboard Images
         </span>
       </div>
-      <FooterTabs
-        items={['Vision concept', 'Success metrics', 'Moodboard', 'Core functions']}
-        onSelect={() => {}}
-      />
     </ModuleCardShell>
   );
 }
@@ -352,22 +323,6 @@ function ChipRow({ items }: ChipRowProps) {
     <div className="human-chip-row">
       {items.map((item) => (
         <span key={item}>{item}</span>
-      ))}
-    </div>
-  );
-}
-
-interface FooterTabsProps {
-  items: string[];
-  onSelect: (item: string) => void;
-}
-function FooterTabs({ items, onSelect }: FooterTabsProps) {
-  return (
-    <div className="human-footer-tabs">
-      {items.map((item) => (
-        <button type="button" key={item} onClick={() => onSelect(item)}>
-          {item}
-        </button>
       ))}
     </div>
   );

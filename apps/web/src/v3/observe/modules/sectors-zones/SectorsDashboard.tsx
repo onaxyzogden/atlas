@@ -190,12 +190,6 @@ function SectorCompassCard({ sectors, centroid, arrowCount }: SectorCompassCardP
           ))}
         </div>
       </div>
-      <button
-        className="green-button"
-        type="button"
-      >
-        Open Sector compass <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }
@@ -243,12 +237,6 @@ function CartographicCard({ boundary, sc, zc }: CartographicCardProps) {
           ))}
         </div>
       </div>
-      <button
-        className="green-button"
-        type="button"
-      >
-        Open Cartographic detail <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

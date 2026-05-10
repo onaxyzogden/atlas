@@ -148,9 +148,6 @@ function SwotJournalCard({ entries }: SwotJournalCardProps) {
           <BookOpen aria-hidden="true" /> SWOT Journal{' '}
           <span>Captured insights and field notes</span>
         </h2>
-        <button type="button">
-          View all entries
-        </button>
       </header>
       <div className="swot-journal-rows">
         {recent.length === 0 ? (
@@ -170,9 +167,6 @@ function SwotJournalCard({ entries }: SwotJournalCardProps) {
           <span key={tag}>{tag}</span>
         ))}
       </div>
-      <button className="green-button" type="button">
-        Open SWOT journal <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }
@@ -185,9 +179,6 @@ function DiagnosisReportCard() {
           <ClipboardList aria-hidden="true" /> Diagnosis Report{' '}
           <span>Summary of site diagnosis and analysis</span>
         </h2>
-        <button type="button">
-          View full report
-        </button>
       </header>
       <section>
         <div>
@@ -219,12 +210,6 @@ function DiagnosisReportCard() {
           <span>Community engagement</span>
         </p>
       </div>
-      <button
-        className="green-button"
-        type="button"
-      >
-        Open diagnosis report <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }
