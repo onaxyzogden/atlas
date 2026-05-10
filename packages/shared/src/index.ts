@@ -43,6 +43,7 @@ export * from './schemas/section27.schema.js';
 export * from './schemas/section28.schema.js';
 export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
+export * from './schemas/actTelemetry.schema.js';
 
 // Utilities
 export * from './lib/caseTransform.js';
