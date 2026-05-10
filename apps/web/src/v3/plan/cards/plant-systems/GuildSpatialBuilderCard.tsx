@@ -27,6 +27,10 @@ import {
   PLANT_DATABASE,
   findSpecies,
 } from '../../../../data/plantDatabase.js';
+import {
+  resolveValidPresets,
+  findGuildPreset,
+} from '../../../../data/guildPresets.js';
 import { findCompanions } from '../../../../lib/companionPlanting.js';
 import styles from '../../../../features/plan/planCard.module.css';
 import GuildRingsCanvas from './GuildRingsCanvas.js';
@@ -122,6 +126,29 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
   function renameGuild(name: string) {
     if (!active) return;
     updateGuild(active.id, { name });
+  }
+
+  // Premade-guild templates — same source as the rail GuildTool. Picking
+  // one wholesale-replaces anchor + members on the active guild (and seeds
+  // notes if the steward hasn't typed any). Resets the select after apply
+  // so re-picking the same template later still re-fires.
+  const presetOptions = useMemo(
+    () => resolveValidPresets().map((p) => ({ value: p.id, label: p.name })),
+    [],
+  );
+
+  function applyPreset(presetId: string) {
+    if (!active || !presetId) return;
+    const preset = findGuildPreset(presetId);
+    if (!preset) return;
+    updateGuild(active.id, {
+      name: preset.name,
+      anchorSpeciesId: preset.anchorSpeciesId,
+      members: preset.members,
+      ...(preset.notes && !active.notes ? { notes: preset.notes } : {}),
+    });
+    setActiveRing(null);
+    setPickAnchor(false);
   }
 
   // Picker species pool — filtered by ring layer, ordered by:
@@ -246,6 +273,22 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
                 >
                   {guilds.map((g) => (
                     <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.field}>
+                <span>Apply template</span>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v) applyPreset(v);
+                    e.target.value = '';
+                  }}
+                >
+                  <option value="">— pick template —</option>
+                  {presetOptions.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </label>

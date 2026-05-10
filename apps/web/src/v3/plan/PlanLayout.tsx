@@ -6,17 +6,20 @@
  * 1. `current` — legacy module-driven UI (PlanTools left, DiagnoseMap +
  *    MapToolbar + ObserveAnnotationLayers, PlanModuleBar bottom).
  *
- * 2. `vision` / `phase-1` / `phase-2` — Vision-Layout canvas: design-element
- *    palette (left), VisionLayoutCanvas (centre, with DesignElementLayers +
- *    DesignToolRail + BaseMapCard), no module bar. Phase tabs filter by
- *    Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
+ * 2. `vision` / `phase-1` / `phase-2` / `terrain3d` — Vision-Layout canvas:
+ *    design-element palette (left), VisionLayoutCanvas (centre, with
+ *    DesignElementLayers + DesignToolRail + BaseMapCard), no module bar.
+ *    Phase tabs filter by Yeomans Scale of Permanence index. `terrain3d`
+ *    drapes the same canvas over MapLibre 3D terrain via Terrain3DController.
  *
  * The PlanPhaseTabs strip itself overlays the canvas (absolute, top-centre).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore } from '../../store/projectStore.js';
+import { usePhaseStore } from '../../store/phaseStore.js';
+import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
@@ -35,6 +38,11 @@ import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
+import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
+import PlanContoursOverlay from './layers/PlanContoursOverlay.js';
+import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
+import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
+import PlanSelectionFloater from './PlanSelectionFloater.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -93,6 +101,18 @@ export default function PlanLayout() {
   const [activeView, setActiveView] = useState<PlanView>('current');
   const [activeKind, setActiveKind] = useState<string | null>(null);
 
+  // Plan stage assumes phases exist for phase-tagging on every drawn feature.
+  // Seed the default 4 phases (Phase 1–4) on entry so the inline draw popovers'
+  // Phase select renders real options instead of just "— Unassigned —".
+  useEffect(() => {
+    usePhaseStore.getState().ensureDefaults(id);
+  }, [id]);
+
+  // Hydrate machinery inventory from the server and bridge local store
+  // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
+  // since it isn't a real server project.
+  useServerMachineryInventory(id === 'mtc' ? undefined : id);
+
   const handleSelectModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
@@ -121,7 +141,10 @@ export default function PlanLayout() {
   };
 
   const isVisionCanvas =
-    activeView === 'vision' || activeView === 'phase-1' || activeView === 'phase-2';
+    activeView === 'vision' ||
+    activeView === 'phase-1' ||
+    activeView === 'phase-2' ||
+    activeView === 'terrain3d';
 
   // ── Canvas content ───────────────────────────────────────────────────────
   const canvasContent = isVisionCanvas ? (
@@ -143,11 +166,22 @@ export default function PlanLayout() {
             projectId={id}
             boundary={boundary ?? null}
             onBoundaryDrawn={handleBoundaryDrawn}
+            showBoundary={false}
           />
           <ObserveAnnotationLayers map={map} projectId={id} />
           <PlanDataLayers map={map} projectId={id} />
+          <PlanContoursOverlay map={map} />
+          <PlanZoneRingsOverlay map={map} projectId={id} />
+          <PlanSunPathOverlay
+            map={map}
+            projectId={id}
+            fallbackCentroid={FALLBACK_CENTROID}
+            boundary={boundary}
+          />
+          <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} />
           <InlineFeaturePopover map={map} />
+          <PlanSelectionFloater />
         </>
       )}
     </DiagnoseMap>

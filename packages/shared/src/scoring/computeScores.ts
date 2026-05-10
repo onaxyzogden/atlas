@@ -1453,7 +1453,7 @@ function computeCommunitySuitability(
   const components: ScoreComponent[] = [];
   const cc = layerConfidence(census);
 
-  // Rural classification (max 10) — rural/peri-urban = ideal for CSRA
+  // Rural classification (max 10) — rural/peri-urban = ideal for community-rooted regen ag
   const ruralClass = str(census, 'rural_class').toLowerCase();
   const ruralPts = ruralClass === 'rural' ? 10
     : ruralClass === 'peri-urban' ? 8
@@ -1462,13 +1462,13 @@ function computeCommunitySuitability(
     : 5; // unknown: neutral
   components.push(comp('rural_classification', ruralPts, 10, 'census_demographics', cc));
 
-  // Median household income band (max 8) — $60k-$120k = CSRA participation sweet spot
+  // Median household income band (max 8) — $60k-$120k = community participation sweet spot
   const income = num(census, 'median_income_usd');
   const incomePts = income <= 0 ? 4 // unknown: neutral
     : income >= 60000 && income <= 120000 ? 8
     : income > 120000 ? 5             // high income: can afford but may not prioritise
     : income >= 40000 ? 5             // moderate income: some capacity
-    : 2;                              // low income: limited CSRA participation capacity
+    : 2;                              // low income: limited participation capacity
   components.push(comp('income_band', incomePts, 8, 'census_demographics', cc));
 
   // Community age profile (max 7) — median age 30-55 = homesteading / food security interest
@@ -1507,7 +1507,7 @@ function computeCommunitySuitability(
     : 1;
   components.push(comp('homeownership_rate', homePts, 8, 'census_demographics', cc));
 
-  // Poverty rate (penalty, max -8) — high poverty = limited CSRA capacity
+  // Poverty rate (penalty, max -8) — high poverty = limited community capacity
   const povertyRate = num(census, 'poverty_pct');
   const povPen = povertyRate <= 0 ? 0 // unknown: no penalty
     : povertyRate >= 25 ? -8

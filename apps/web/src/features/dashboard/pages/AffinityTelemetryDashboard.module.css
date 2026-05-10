@@ -1,0 +1,171 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  color: var(--text-primary, #d8c9a8);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(216, 201, 168, 0.65);
+  max-width: 60ch;
+}
+
+.reloadBtn {
+  background: rgba(216, 201, 168, 0.08);
+  border: 1px solid rgba(216, 201, 168, 0.2);
+  border-radius: 6px;
+  padding: 6px 14px;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reloadBtn:hover {
+  background: rgba(216, 201, 168, 0.14);
+}
+
+.reloadBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.legend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+}
+
+.legendChip {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.errorBox {
+  background: rgba(220, 80, 80, 0.12);
+  border: 1px solid rgba(220, 80, 80, 0.4);
+  color: #f0c0c0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.emptyState {
+  background: rgba(216, 201, 168, 0.04);
+  border: 1px dashed rgba(216, 201, 168, 0.2);
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(216, 201, 168, 0.6);
+}
+
+.gridWrap {
+  overflow-x: auto;
+}
+
+.grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+  font-size: 12px;
+}
+
+.colHeader {
+  text-align: center;
+  font-weight: 500;
+  font-size: 11px;
+  color: rgba(216, 201, 168, 0.6);
+  padding: 6px 4px;
+}
+
+.rowHeader {
+  text-align: right;
+  font-weight: 500;
+  font-size: 11px;
+  color: rgba(216, 201, 168, 0.75);
+  padding: 6px 10px 6px 0;
+  white-space: nowrap;
+}
+
+.cell {
+  border-radius: 4px;
+  padding: 8px 6px;
+  min-width: 60px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.cellTouch {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cellMeta {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 2px;
+}
+
+.toneEmpty {
+  background: rgba(216, 201, 168, 0.04);
+  color: rgba(216, 201, 168, 0.4);
+  border-color: rgba(216, 201, 168, 0.08);
+}
+
+.toneEmpty .cellMeta {
+  color: rgba(216, 201, 168, 0.3);
+}
+
+.toneGreen {
+  background: rgba(120, 180, 110, 0.85);
+  color: #1a2a14;
+}
+
+.toneYellow {
+  background: rgba(220, 200, 100, 0.85);
+  color: #2a2310;
+}
+
+.toneOrange {
+  background: rgba(220, 140, 70, 0.85);
+  color: #2a1810;
+}
+
+.toneRed {
+  background: rgba(220, 90, 80, 0.85);
+  color: #2a1010;
+}
+
+.footer {
+  font-size: 11px;
+  color: rgba(216, 201, 168, 0.5);
+  border-top: 1px solid rgba(216, 201, 168, 0.08);
+  padding-top: 12px;
+}
+
+.footer code {
+  background: rgba(216, 201, 168, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+}

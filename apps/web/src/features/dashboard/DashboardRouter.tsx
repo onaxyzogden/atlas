@@ -38,7 +38,7 @@ const StewardshipDashboard = lazy(() => import('./pages/StewardshipDashboard.js'
 const SolarClimateDashboard = lazy(() => import('../../features/climate/SolarClimateDashboard.js'));
 const EconomicsPanel = lazy(() => import('../../features/economics/EconomicsPanel.js'));
 const ScenarioPanel = lazy(() => import('../../features/scenarios/ScenarioPanel.js'));
-const InvestorSummaryExport = lazy(() => import('../../features/export/InvestorSummaryExport.js'));
+const CapitalPartnerSummaryExport = lazy(() => import('../../features/export/CapitalPartnerSummaryExport.js'));
 const RegulatoryPanel = lazy(() => import('../../features/regulatory/RegulatoryPanel.js'));
 const FeasibilityCommandCenter = lazy(() => import('../../features/decision/FeasibilityCommandCenter.js'));
 const EnergyDashboard = lazy(() => import('./pages/EnergyDashboard.js'));
@@ -97,6 +97,9 @@ const NetworkCrmCard = lazy(() => import('../act/NetworkCrmCard.js'));
 const CommunityEventCard = lazy(() => import('../act/CommunityEventCard.js'));
 const HazardPlansCard = lazy(() => import('../act/HazardPlansCard.js'));
 const AppropriateTechLogCard = lazy(() => import('../act/AppropriateTechLogCard.js'));
+// Dev — Act-affinity telemetry read view (gated in DashboardSidebar by
+// VITE_ATLAS_TELEMETRY_ENABLED). Backs the affinity-validation pipeline.
+const AffinityTelemetryDashboard = lazy(() => import('./pages/AffinityTelemetryDashboard.js'));
 
 interface DashboardRouterProps {
   section: string;
@@ -107,6 +110,7 @@ interface DashboardRouterProps {
 const SECTION_LABELS: Record<string, string> = {
   'dashboard-settings': 'Settings',
   'archive': 'Archive',
+  'dev-affinity-telemetry': 'Affinity telemetry',
 };
 
 export default function DashboardRouter({ section, project, onSwitchToMap }: DashboardRouterProps) {
@@ -488,10 +492,10 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
           <ScenarioPanel project={project} />
         </PanelShell>
       );
-    case 'investor-summary':
+    case 'capital-partner-summary':
       return (
-        <PanelShell name="Investor Summary">
-          <InvestorSummaryExport project={project} onClose={onSwitchToMap} />
+        <PanelShell name="Capital Partner Summary">
+          <CapitalPartnerSummaryExport project={project} onClose={onSwitchToMap} />
         </PanelShell>
       );
     case 'regulatory':
@@ -558,6 +562,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Version History">
           <VersionHistoryDashboard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'dev-affinity-telemetry':
+      return (
+        <PanelShell name="Affinity telemetry">
+          <AffinityTelemetryDashboard />
         </PanelShell>
       );
     default:

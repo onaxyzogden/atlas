@@ -101,7 +101,7 @@ const SCORE_EXPLANATIONS: Record<string, {
     poor: 'Stewardship will take more upfront investment — soil amendments, erosion control, or infrastructure additions — before the land is ready to return the effort.',
   },
   'Community Suitability': {
-    plain: 'How well the surrounding community can support a Community-Supported Regenerative Agriculture (CSRA) project — looking at population density, incomes, education levels, homeownership, and how active the local area feels.',
+    plain: 'How well the surrounding community can support a community-rooted regenerative-agriculture project — looking at population density, incomes, education levels, homeownership, and how active the local area feels.',
     good: 'Your surrounding area has the demographic fundamentals to support a community-based agricultural project.',
     poor: 'You may need to invest more in outreach, education, and relationship-building to grow a local community around this land.',
   },

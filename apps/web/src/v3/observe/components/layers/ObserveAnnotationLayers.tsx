@@ -64,8 +64,13 @@ interface LayerSpec {
   layers: maplibregl.LayerSpecification[];
   /** Optional sub-toggle from `useMatrixTogglesStore` that ANDs with the
    *  master `observeAnnotations` toggle. When omitted, only the master
-   *  toggle gates this group. */
-  toggleKey?: Exclude<MatrixToggleKey, 'observeAnnotations'>;
+   *  toggle gates this group. PLAN-stage-only keys (`sunPath`,
+   *  `zoneRings`) are excluded — Observe annotation specs never gate on
+   *  them. */
+  toggleKey?: Exclude<
+    MatrixToggleKey,
+    'observeAnnotations' | 'sunPath' | 'zoneRings'
+  >;
 }
 
 type AnnoLayer = maplibregl.LayerSpecification;
@@ -137,7 +142,10 @@ const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
   view: 'view',
 };
 
-const GROUP_TOGGLE: Record<SectorGroup, Exclude<MatrixToggleKey, 'observeAnnotations'>> = {
+const GROUP_TOGGLE: Record<
+  SectorGroup,
+  Exclude<MatrixToggleKey, 'observeAnnotations' | 'sunPath' | 'zoneRings'>
+> = {
   solar: 'sectors',
   wind: 'wind',
   hazard: 'hazards',
@@ -231,7 +239,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const viewsVisible = useMatrixTogglesStore((s) => s.views);
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const subToggles: Record<
-    Exclude<MatrixToggleKey, 'observeAnnotations'>,
+    Exclude<MatrixToggleKey, 'observeAnnotations' | 'sunPath' | 'zoneRings'>,
     boolean
   > = {
     sectors: sectorsVisible,

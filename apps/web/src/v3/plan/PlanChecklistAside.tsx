@@ -18,6 +18,9 @@ import {
   type GuidanceCardData,
 } from '../_shared/components/GuidanceCard.js';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
+import PlanProjectTypeCard from './PlanProjectTypeCard.js';
+import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
+import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
 import css from './PlanChecklistAside.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
@@ -53,6 +56,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Confirm Water and Zone & Circulation are settled before placing dwellings.',
       'Drop a Structure point on the parcel; pick its type, phase, and rotation.',
       'Group utility subsystems (well, water tank, solar array, pump house, compost station) near the structures they feed.',
+    ],
+  },
+  machinery: {
+    why: 'Machinery and access tracks (Yeomans rank 4 — Access) precede structures and livestock because tractor turning radii, harvester widths, and trailer reach dictate where roads, gates, and cells can sit (Yeomans, Water for Every Farm; Mollison, Designers\' Manual ch.5).',
+    how: [
+      'Inventory the machinery the project will actually run — sizes and turning radii.',
+      'Lay out access tracks and gates wide enough for the largest expected vehicle.',
+      'Verify each paddock, structure, and field has a reachable access path before locking phases.',
     ],
   },
   livestock: {
@@ -106,19 +117,6 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
   },
 };
 
-const PLAN_MODULE_DOT: Record<PlanModule, string> = {
-  'dynamic-layering': '#7aabca',
-  'water-management': '#5fc7d4',
-  'zone-circulation': '#d68bd0',
-  'structures-subsystems': '#a06b48',
-  livestock: '#c9a05a',
-  'plant-systems': '#5dd39e',
-  'soil-fertility': '#8bd16a',
-  'cross-section-solar': '#e6c34a',
-  'phasing-budgeting': '#c4a265',
-  'principle-verification': '#e88aa4',
-};
-
 interface Props {
   activeModule: PlanModule | null;
   onSelectModule: (module: PlanModule | null) => void;
@@ -150,6 +148,14 @@ function PlanGuidanceCard({
   );
   const toggle = usePlanHowChecksStore((s) => s.toggle);
 
+  const refSummary = useModuleProjectTypeReferences(module, projectId);
+  const showChip = refSummary.openGaps > 0;
+  const chipTitle = showChip
+    ? `${refSummary.openGaps} of ${refSummary.referencedBy} ticked project-type item${
+        refSummary.referencedBy === 1 ? '' : 's'
+      } reference ${PLAN_MODULE_LABEL[module]} but the expected how-checks or map artifacts here are still missing.`
+    : '';
+
   return (
     <GuidanceCard
       moduleKey={module}
@@ -164,6 +170,19 @@ function PlanGuidanceCard({
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
+      headerExtras={
+        showChip ? (
+          <span
+            className={css.refChip}
+            title={chipTitle}
+            aria-label={chipTitle}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            ↗ {refSummary.openGaps} ref{refSummary.openGaps === 1 ? '' : 's'}
+          </span>
+        ) : null
+      }
     />
   );
 }
@@ -187,6 +206,10 @@ export default function PlanChecklistAside({
       className={css.checklistBox}
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
+      <PlanProjectTypeCard
+        onSelectModule={onSelectModule}
+        onOpenSlideUp={onOpenSlideUp}
+      />
       {PLAN_MODULES.map((mod) => (
         <PlanGuidanceCard
           key={mod}

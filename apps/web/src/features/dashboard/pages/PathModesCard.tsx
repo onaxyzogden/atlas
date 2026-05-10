@@ -1,7 +1,7 @@
 /**
  * §22 PathModesCard — "Fastest feasible / Lowest cost / Most regenerative /
- * Investor presentation" path modes for the buildout arc. Same entities, four
- * narratives: each lens re-prioritizes which placed features the steward
+ * Capital partner presentation" path modes for the buildout arc. Same entities,
+ * four narratives: each lens re-prioritizes which placed features the steward
  * should land in Phase 1 to satisfy that lens's success criterion.
  *
  * Pure presentation-layer ranking — no new entities, no shared math, no
@@ -21,7 +21,7 @@ interface Props {
   project: LocalProject;
 }
 
-type Mode = 'fastest' | 'cheapest' | 'regen' | 'investor';
+type Mode = 'fastest' | 'cheapest' | 'regen' | 'capital_partner';
 
 interface ModeMeta {
   id: Mode;
@@ -34,7 +34,7 @@ const MODES: ModeMeta[] = [
   { id: 'fastest', label: 'Fastest feasible', tagline: 'Operational + revenue ASAP', successCriterion: 'Steward can occupy and run the site within a single build season.' },
   { id: 'cheapest', label: 'Lowest cost', tagline: 'Defer capital-intensive items', successCriterion: 'Phase 1 capex stays under the lowest-cost decile of placed entities.' },
   { id: 'regen', label: 'Most regenerative', tagline: 'Soil + water + canopy first', successCriterion: 'Site regeneration begins before any net-new disturbance.' },
-  { id: 'investor', label: 'Investor presentation', tagline: 'Visible deliverables Y1', successCriterion: "Site reads as 'underway and intentional' to a first-time visitor." },
+  { id: 'capital_partner', label: 'Capital partner presentation', tagline: 'Visible deliverables Y1', successCriterion: "Site reads as 'underway and intentional' to a first-time visitor." },
 ];
 
 interface RankedItem {
@@ -112,23 +112,23 @@ const REGEN_CROP: Partial<Record<CropAreaType, number>> = {
   orchard: 75, nursery: 70, garden_bed: 60, market_garden: 50, row_crop: 35,
 };
 
-const INVESTOR_STRUCT: Partial<Record<StructureType, number>> = {
+const CAPITAL_PARTNER_STRUCT: Partial<Record<StructureType, number>> = {
   prayer_space: 90, pavilion: 85, lookout: 80, classroom: 75, fire_circle: 70,
   cabin: 75, earthship: 80, barn: 65, greenhouse: 70, bathhouse: 50,
   yurt: 60, tent_glamping: 65, animal_shelter: 50, workshop: 40, storage: 30,
   compost_station: 25, water_pump_house: 30, water_tank: 35, well: 50, solar_array: 75,
 };
-const INVESTOR_UTIL: Partial<Record<UtilityType, number>> = {
+const CAPITAL_PARTNER_UTIL: Partial<Record<UtilityType, number>> = {
   solar_panel: 80, lighting: 75, well_pump: 60, water_tank: 50, rain_catchment: 65,
   battery_room: 50, generator: 40, tool_storage: 30, firewood_storage: 35,
   septic: 15, greywater: 25, compost: 25, biochar: 30, waste_sorting: 20, laundry_station: 30,
 };
-const INVESTOR_PATH: Partial<Record<PathType, number>> = {
+const CAPITAL_PARTNER_PATH: Partial<Record<PathType, number>> = {
   main_road: 95, arrival_sequence: 90, secondary_road: 75, pedestrian_path: 70, trail: 65,
   quiet_route: 60, farm_lane: 55, service_road: 50, animal_corridor: 45, grazing_route: 40,
   emergency_access: 35,
 };
-const INVESTOR_CROP: Partial<Record<CropAreaType, number>> = {
+const CAPITAL_PARTNER_CROP: Partial<Record<CropAreaType, number>> = {
   orchard: 90, market_garden: 80, food_forest: 75, silvopasture: 70, pollinator_strip: 70,
   garden_bed: 65, windbreak: 55, shelterbelt: 55, nursery: 45, row_crop: 50,
 };
@@ -159,7 +159,7 @@ function reasonFor(mode: Mode, kind: RankedItem['kind'], type: string, score: nu
     if (kind === 'crop' && (type === 'windbreak' || type === 'shelterbelt')) return `${subject}: shelter trees protect every downstream field-scale planting.`;
     return `${subject}: regenerative leverage (${tag}).`;
   }
-  // investor
+  // capital_partner
   if (kind === 'path' && type === 'main_road') return `${subject}: first impression — visible from the property edge.`;
   if (kind === 'structure' && (type === 'prayer_space' || type === 'pavilion')) return `${subject}: signature gathering structure communicates mission immediately.`;
   if (kind === 'crop' && type === 'orchard') return `${subject}: photogenic perennial planting reads as "long-term commitment".`;
@@ -194,10 +194,10 @@ function scoreFor(
     if (kind === 'path') return REGEN_PATH[type as PathType] ?? 50;
     return REGEN_CROP[type as CropAreaType] ?? 50;
   }
-  if (kind === 'structure') return INVESTOR_STRUCT[type as StructureType] ?? 50;
-  if (kind === 'utility') return INVESTOR_UTIL[type as UtilityType] ?? 50;
-  if (kind === 'path') return INVESTOR_PATH[type as PathType] ?? 50;
-  return INVESTOR_CROP[type as CropAreaType] ?? 50;
+  if (kind === 'structure') return CAPITAL_PARTNER_STRUCT[type as StructureType] ?? 50;
+  if (kind === 'utility') return CAPITAL_PARTNER_UTIL[type as UtilityType] ?? 50;
+  if (kind === 'path') return CAPITAL_PARTNER_PATH[type as PathType] ?? 50;
+  return CAPITAL_PARTNER_CROP[type as CropAreaType] ?? 50;
 }
 
 function structureCost(s: Structure): number {

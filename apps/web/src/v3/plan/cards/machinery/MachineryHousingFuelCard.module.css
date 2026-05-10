@@ -1,0 +1,156 @@
+/* MachineryHousingFuelCard — housing assignment + fuel coverage. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.code {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'SF Mono', ui-monospace, monospace;
+  color: rgba(220, 210, 190, 0.85);
+}
+
+.flag {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(220, 110, 100, 0.08);
+  border: 1px solid rgba(220, 110, 100, 0.25);
+  font-size: 12px;
+  color: rgba(230, 200, 195, 0.92);
+}
+
+.empty {
+  padding: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.55);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowMain {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.rowMain strong {
+  font-size: 13px;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.fuelChip {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(106, 106, 106, 0.25);
+  color: rgba(220, 220, 220, 0.85);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rowAssign {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rowAssign label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.rowAssign label span {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.rowAssign select {
+  background: rgba(15, 17, 19, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: rgba(232, 220, 200, 0.92);
+  font-family: inherit;
+}
+
+.stale {
+  font-size: 11px;
+  color: rgba(220, 180, 90, 0.85);
+}
+
+.hint {
+  margin: 12px 0 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.55;
+}

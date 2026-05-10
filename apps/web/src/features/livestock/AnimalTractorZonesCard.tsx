@@ -1,6 +1,11 @@
 /**
- * \u00A711 MobileTractorZonesCard \u2014 identifies crop areas and zones that
- * suit rotating mobile-tractor systems (chicken, rabbit, pig). The
+ * \u00A711 AnimalTractorZonesCard \u2014 identifies crop areas and zones that
+ * suit rotating animal-tractor systems (chicken, rabbit, pig).
+ *
+ * Note: "tractor" here means the *animal* mobile cell (chicken / pig /
+ * rabbit tractor as a moveable enclosure), NOT machinery. The Plan stage
+ * has a separate `machinery` module for actual equipment. Renamed from
+ * `MobileTractorZonesCard` 2026-05-10 to disambiguate. The
  * heuristic matches each candidate area to the species whose ecological
  * role fits best:
  *   \u2022 Chicken \u2192 pest control + manure between rows in orchards, food
@@ -22,7 +27,7 @@ import { useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
-import css from './MobileTractorZonesCard.module.css';
+import css from './AnimalTractorZonesCard.module.css';
 
 /* \u2500\u2500 Tunables (head per hectare for a 1-week rotation) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
 
@@ -225,7 +230,7 @@ interface Props {
   projectId: string;
 }
 
-export default function MobileTractorZonesCard({ projectId }: Props) {
+export default function AnimalTractorZonesCard({ projectId }: Props) {
   const allCrops = useCropStore((s) => s.cropAreas);
   const allZones = useZoneStore((s) => s.zones);
   const allPaddocks = useLivestockStore((s) => s.paddocks);

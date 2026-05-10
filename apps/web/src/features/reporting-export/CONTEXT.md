@@ -8,7 +8,7 @@ P2, P3, P4 (see `packages/shared/src/featureManifest.ts` for the authoritative i
 
 ## Purpose
 Turns Atlas projects into deliverables usable outside the app: PDF site
-assessments, design briefs, phasing/cost/investor/landowner exports,
+assessments, design briefs, phasing/cost/capital-partner/landowner exports,
 educational booklets, GIS (KML/GeoJSON) layer exports, image captures,
 branded presentation and print layouts, white-label export, and eventually
 flyover videos, QR-share links, embeddable views, and public/client handoff
@@ -36,7 +36,7 @@ modes. This is the "publishing" surface of the Atlas.
 ## Cross-section dependencies
 - Reads from: Section 4 (Site Assessment), Section 15 (Timeline/Phasing),
   Section 22 (Economic Modeling), Section 14 (Moontrance Vision) for
-  investor/landowner/educational exports.
+  capital-partner/landowner/educational exports.
 
 ## Known gotchas
 - **Legacy directories overlap this section.** Three legacy code locations

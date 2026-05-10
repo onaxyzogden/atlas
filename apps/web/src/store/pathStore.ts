@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 import { path } from '../lib/tokens';
 
 export type PathType =
@@ -50,6 +51,28 @@ export interface DesignPath {
    * Optional; unset paths render at the default width.
    */
   usageFrequency?: 'daily' | 'weekly' | 'occasional' | 'rare';
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * path belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
+  /**
+   * Accessibility flag — true when the path is wheelchair / mobility-aid
+   * usable (graded surface, no steps, gentle slope). Surfaces in:
+   *   - Educational Farm checklist item #4 (Wheelchair-accessible primary
+   *     paths + rest points)
+   *   - Retreat Center checklist item #6 (Emergency egress + accessible
+   *     paths)
+   * Optional; undefined or false = not flagged accessible.
+   */
+  accessible?: boolean;
+  /**
+   * Optional rest-point coordinates along an accessible path. Each entry
+   * is a `[lon, lat]` tuple. Captured loosely in v1 (count-only entry in
+   * the popover, with future "tap-to-place" gesture). Empty / undefined
+   * = no rest points captured yet.
+   */
+  restPointAnchors?: [number, number][];
   createdAt: string;
   updatedAt: string;
 }
@@ -78,20 +101,23 @@ interface PathState {
 
 export const usePathStore = create<PathState>()(
   persist(
-    (set) => ({
-      paths: [],
+    temporal(
+      (set) => ({
+        paths: [],
 
-      addPath: (path) => set((s) => ({ paths: [...s.paths, path] })),
+        addPath: (path) => set((s) => ({ paths: [...s.paths, path] })),
 
-      updatePath: (id, updates) =>
-        set((s) => ({
-          paths: s.paths.map((p) =>
-            p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
-          ),
-        })),
+        updatePath: (id, updates) =>
+          set((s) => ({
+            paths: s.paths.map((p) =>
+              p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
+            ),
+          })),
 
-      deletePath: (id) => set((s) => ({ paths: s.paths.filter((p) => p.id !== id) })),
-    }),
+        deletePath: (id) => set((s) => ({ paths: s.paths.filter((p) => p.id !== id) })),
+      }),
+      { limit: 200 },
+    ),
     { name: 'ogden-paths', version: 1 },
   ),
 );

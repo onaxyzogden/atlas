@@ -45,9 +45,17 @@ interface Props {
   /** Persisted parcel boundary, used to power the "Return to property" button. */
   boundary?: GeoJSON.Polygon | null;
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
+  /** Show the draw-property-boundary button + tool. Defaults to true (Observe). */
+  showBoundary?: boolean;
 }
 
-export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }: Props) {
+export default function MapToolbar({
+  map,
+  projectId,
+  boundary,
+  onBoundaryDrawn,
+  showBoundary = true,
+}: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const basemap = useBasemapStore((s) => s.basemap);
@@ -132,18 +140,20 @@ export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }
           title="Measure area"
           aria-label="Measure area"
         >
-          <Square size={16} strokeWidth={1.75} />
-        </button>
-        <button
-          type="button"
-          className={css.btn}
-          data-active={activeTool === 'boundary'}
-          onClick={onClick('boundary')}
-          title="Draw property boundary"
-          aria-label="Draw property boundary"
-        >
           <SquareDashed size={16} strokeWidth={1.75} />
         </button>
+        {showBoundary && (
+          <button
+            type="button"
+            className={css.btn}
+            data-active={activeTool === 'boundary'}
+            onClick={onClick('boundary')}
+            title="Draw property boundary"
+            aria-label="Draw property boundary"
+          >
+            <Square size={16} strokeWidth={1.75} />
+          </button>
+        )}
         <button
           type="button"
           className={css.btn}
@@ -193,8 +203,12 @@ export default function MapToolbar({ map, projectId, boundary, onBoundaryDrawn }
 
       {activeTool === 'distance' && <DistanceTool map={map} />}
       {activeTool === 'area' && <AreaTool map={map} />}
-      {activeTool === 'boundary' && (
-        <BoundaryTool map={map} onBoundaryDrawn={onBoundaryDrawn} />
+      {showBoundary && activeTool === 'boundary' && (
+        <BoundaryTool
+          map={map}
+          existing={boundary ?? null}
+          onBoundaryDrawn={onBoundaryDrawn}
+        />
       )}
       {elevationActive && (
         <ElevationTool map={map} projectId={projectId ?? undefined} />

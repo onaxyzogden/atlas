@@ -12,6 +12,9 @@ import type {
   DesignFeatureSummary,
   CreateDesignFeatureInput,
   UpdateDesignFeatureInput,
+  MachineryItemSummary,
+  CreateMachineryItemInput,
+  UpdateMachineryItemInput,
   ProjectFile,
   ExportRecord,
   PortalRecord,
@@ -39,6 +42,8 @@ import type {
   ElevationProfileResponse,
   ElevationPointRequest,
   ElevationPointResponse,
+  ActInteractionEventInput,
+  GetActAffinityAggregateResult,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -241,6 +246,20 @@ export const api = {
         `/api/v1/design-features/project/${projectId}/bulk`,
         { features },
       ),
+  },
+
+  machineryItems: {
+    list: (projectId: string) =>
+      request<MachineryItemSummary[]>('GET', `/api/v1/machinery-items/project/${projectId}`),
+
+    create: (projectId: string, input: CreateMachineryItemInput) =>
+      request<MachineryItemSummary>('POST', `/api/v1/machinery-items/project/${projectId}`, input),
+
+    update: (id: string, input: UpdateMachineryItemInput) =>
+      request<MachineryItemSummary>('PATCH', `/api/v1/machinery-items/${id}`, input),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/machinery-items/${id}`),
   },
 
   layers: {
@@ -566,6 +585,32 @@ export const api = {
         throw err;
       }
     },
+
+    /**
+     * Server-side proxy for Open-Meteo 7-day forecast (current + hourly + daily).
+     * Maps the 502/FORECAST_UNAVAILABLE silent-fail to null so callers can
+     * fall back to an empty-state placeholder.
+     */
+    forecast: async (
+      lat: number,
+      lng: number,
+      signal?: AbortSignal,
+    ): Promise<WeatherForecastResponse | null> => {
+      try {
+        const env = await request<WeatherForecastResponse>(
+          'GET',
+          `/api/v1/climate-analysis/forecast?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`,
+          undefined,
+          signal,
+        );
+        return env.data;
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'FORECAST_UNAVAILABLE') {
+          return null;
+        }
+        throw err;
+      }
+    },
   },
 
   relationships: {
@@ -577,6 +622,27 @@ export const api = {
 
     delete: (projectId: string, edgeId: string) =>
       request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
+  },
+
+  telemetry: {
+    postActInteractions: (events: ActInteractionEventInput[]) =>
+      request<{ ingested: number }>(
+        'POST',
+        '/api/v1/telemetry/act-interactions',
+        { events },
+      ),
+
+    getActAffinityAggregate: (params?: { projectId?: string; from?: string; to?: string }) => {
+      const qs = new URLSearchParams();
+      if (params?.projectId) qs.set('projectId', params.projectId);
+      if (params?.from) qs.set('from', params.from);
+      if (params?.to) qs.set('to', params.to);
+      const suffix = qs.toString() ? `?${qs.toString()}` : '';
+      return request<GetActAffinityAggregateResult>(
+        'GET',
+        `/api/v1/telemetry/act-interactions/aggregate${suffix}`,
+      );
+    },
   },
 };
 
@@ -623,6 +689,52 @@ export interface WindRoseResponse {
   source: string;
   windowYears: { start: number; end: number };
   sampleCount: number;
+}
+
+export interface ForecastCurrent {
+  time: string;
+  temperatureC: number | null;
+  apparentC: number | null;
+  isDay: boolean;
+  precipitationMm: number | null;
+  weatherCode: number | null;
+  windSpeedMs: number | null;
+  windDirectionDeg: number | null;
+  humidity: number | null;
+}
+
+export interface ForecastHour {
+  time: string;
+  temperatureC: number | null;
+  apparentC: number | null;
+  precipitationMm: number | null;
+  precipitationProbability: number | null;
+  weatherCode: number | null;
+  windSpeedMs: number | null;
+  windDirectionDeg: number | null;
+  humidity: number | null;
+}
+
+export interface ForecastDay {
+  date: string;
+  tempMaxC: number | null;
+  tempMinC: number | null;
+  precipitationSumMm: number | null;
+  precipitationProbMax: number | null;
+  weatherCode: number | null;
+  windSpeedMaxMs: number | null;
+  sunrise: string | null;
+  sunset: string | null;
+}
+
+export interface WeatherForecastResponse {
+  current: ForecastCurrent | null;
+  hourly: ForecastHour[];
+  daily: ForecastDay[];
+  timezone: string;
+  source: string;
+  fetchedAt: string;
+  coordinates: { lat: number; lng: number };
 }
 
 export interface ComfortGridResponse {

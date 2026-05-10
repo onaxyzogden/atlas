@@ -6,9 +6,24 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type FenceType = 'electric' | 'post_wire' | 'post_rail' | 'woven_wire' | 'temporary' | 'none';
 export type LivestockSpecies = 'sheep' | 'cattle' | 'goats' | 'poultry' | 'pigs' | 'horses' | 'ducks_geese' | 'rabbits' | 'bees';
+
+/**
+ * Pasture quality (Tier C / C4 stocking-rate helper). Anchors a rough
+ * carrying-capacity expectation against which `stockingDensity` (head/ha)
+ * can be eyeballed. Persisted so a follow-up helper card can compute and
+ * warn on overstocking without a second migration.
+ *
+ * Indicative AUE/ha by class (cool-temperate humid baseline):
+ *   poor      ≈ 0.7   (degraded / drought-stressed / weed-dominant)
+ *   fair      ≈ 1.2   (recovering / mixed)
+ *   good      ≈ 2.5   (well-managed perennial sward)
+ *   excellent ≈ 3.7+  (fertile, irrigated, intensively rotated)
+ */
+export type PastureQuality = 'poor' | 'fair' | 'good' | 'excellent';
 
 export interface Paddock {
   id: string;
@@ -27,12 +42,22 @@ export interface Paddock {
    */
   scheduleASubcategoryBySpecies?: Partial<Record<LivestockSpecies, string>>;
   stockingDensity: number | null; // head per hectare
+  /**
+   * Tier C / C4 — pasture quality class for stocking-rate verification.
+   * Optional; undefined = not yet assessed.
+   */
+  pastureQuality?: PastureQuality;
   fencing: FenceType;
   guestSafeBuffer: boolean;
   waterPointNote: string;
   shelterNote: string;
   phase: string;
   notes: string;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * paddock belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,20 +72,24 @@ interface LivestockState {
 
 export const useLivestockStore = create<LivestockState>()(
   persist(
-    (set) => ({
-      paddocks: [],
+    temporal(
+      (set) => ({
+        paddocks: [],
 
-      addPaddock: (paddock) => set((s) => ({ paddocks: [...s.paddocks, paddock] })),
+        addPaddock: (paddock) => set((s) => ({ paddocks: [...s.paddocks, paddock] })),
 
-      updatePaddock: (id, updates) =>
-        set((s) => ({
-          paddocks: s.paddocks.map((p) =>
-            p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
-          ),
-        })),
+        updatePaddock: (id, updates) =>
+          set((s) => ({
+            paddocks: s.paddocks.map((p) =>
+              p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
+            ),
+          })),
 
-      deletePaddock: (id) => set((s) => ({ paddocks: s.paddocks.filter((p) => p.id !== id) })),
-    }),
+        deletePaddock: (id) =>
+          set((s) => ({ paddocks: s.paddocks.filter((p) => p.id !== id) })),
+      }),
+      { limit: 200 },
+    ),
     { name: 'ogden-livestock', version: 1 },
   ),
 );

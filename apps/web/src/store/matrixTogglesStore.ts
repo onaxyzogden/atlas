@@ -22,7 +22,9 @@ export type MatrixToggleKey =
   | 'hazards'
   | 'views'
   | 'builtEnvironment'
-  | 'observeAnnotations';
+  | 'observeAnnotations'
+  | 'sunPath'
+  | 'zoneRings';
 
 export interface MatrixTogglesState {
   topography: boolean;
@@ -38,6 +40,17 @@ export interface MatrixTogglesState {
   builtEnvironment: boolean;
   /** OBSERVE annotations master toggle (default on). */
   observeAnnotations: boolean;
+  /**
+   * PLAN Tier C / C1 — date-driven sun-path overlay (azimuth arcs at
+   * solstices + equinox, current-day sun position). Defaults off.
+   */
+  sunPath: boolean;
+  /**
+   * PLAN Tier C / C5 — Z-distance ring overlay (30 m / 100 m / 500 m
+   * concentric rings around any zone with `permacultureZone === 0`,
+   * giving a quick visual on Z1/Z2/Z3 reach). Defaults off.
+   */
+  zoneRings: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -54,6 +67,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       views: false,
       builtEnvironment: false,
       observeAnnotations: true,
+      sunPath: false,
+      zoneRings: false,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
         set(() => ({
@@ -66,10 +81,14 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           views: value,
           builtEnvironment: value,
           observeAnnotations: value,
+          sunPath: value,
+          zoneRings: value,
         })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v10 (2026-05-09): added Tier C PLAN-stage overlays (sunPath, zoneRings).
+      // Both default off so existing stewards don't inherit unfamiliar layers.
       // v9 (2026-05-08): added builtEnvironment toggle for the new
       // Built Environment OBSERVE module (buildings, utilities, fences,
       // gates, driveways, wells, septic). Defaults off.
@@ -82,7 +101,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 9,
+      version: 10,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -95,6 +114,8 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           views: prev.views ?? false,
           builtEnvironment: prev.builtEnvironment ?? false,
           observeAnnotations: prev.observeAnnotations ?? true,
+          sunPath: prev.sunPath ?? false,
+          zoneRings: prev.zoneRings ?? false,
         } as MatrixTogglesState;
       },
     },

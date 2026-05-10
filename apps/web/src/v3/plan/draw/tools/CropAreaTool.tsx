@@ -28,6 +28,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -80,6 +82,8 @@ export default function CropAreaTool({ map, projectId }: Props) {
   const updateCropArea = useCropStore((s) => s.updateCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Polygon>({
     map,
@@ -104,7 +108,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
         rowSpacingM: null,
         waterDemand: 'medium',
         irrigationType: 'rain_fed',
-        phase: 'Phase 1',
+        phase: phaseDefault,
         notes: '',
         createdAt: now,
         updatedAt: now,
@@ -136,12 +140,16 @@ export default function CropAreaTool({ map, projectId }: Props) {
             required: true,
             options: IRRIGATION_OPTIONS,
           },
+          phaseField,
+          enterpriseField,
         ],
         initial: {
           name: 'Crop area',
           type,
           waterDemand: 'medium',
           irrigationType: 'rain_fed',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
         },
         onSave: (values) => {
           const t = values.type as CropAreaType;
@@ -156,6 +164,8 @@ export default function CropAreaTool({ map, projectId }: Props) {
               | 'flood'
               | 'rain_fed'
               | 'none',
+            phase: String(values.phase ?? ''),
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => deleteCropArea(id),

@@ -40,7 +40,7 @@ import NutrientBalanceCard from '../../soil-fertility/NutrientBalanceCard.js';
 import SoilRiskHotspotsCard from '../../soil-fertility/SoilRiskHotspotsCard.js';
 import MissionImpactRollupCard from '../../decision/MissionImpactRollupCard.js';
 import MissionTradeoffExplorerCard from '../../decision/MissionTradeoffExplorerCard.js';
-import MobileTractorZonesCard from '../../livestock/MobileTractorZonesCard.js';
+import AnimalTractorZonesCard from '../../livestock/AnimalTractorZonesCard.js';
 import PresentationDeckCard from '../../collaboration/PresentationDeckCard.js';
 import css from './EcologicalDashboard.module.css';
 
@@ -421,7 +421,7 @@ export default function EcologicalDashboard({ project, onSwitchToMap }: Ecologic
       <MissionTradeoffExplorerCard project={project} />
 
       {/* §11 Mobile-tractor zones — chicken / rabbit / pig candidates */}
-      <MobileTractorZonesCard projectId={project.id} />
+      <AnimalTractorZonesCard projectId={project.id} />
 
       {/* §20 Meeting presentation deck — flattens project into a 7-slide briefing */}
       <PresentationDeckCard project={project} />

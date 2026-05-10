@@ -15,9 +15,14 @@ import ZonePolygonTool from './tools/ZonePolygonTool.js';
 import PathLineTool from './tools/PathLineTool.js';
 import CropAreaTool from './tools/CropAreaTool.js';
 import FertilityInfraTool from './tools/FertilityInfraTool.js';
+import FlowConnectorTool from './tools/FlowConnectorTool.js';
 import PaddockTool from './tools/PaddockTool.js';
 import GuildTool from './tools/GuildTool.js';
 import StructureTool from './tools/StructureTool.js';
+import UtilityRunTool from './tools/UtilityRunTool.js';
+import BufferRingTool from './tools/BufferRingTool.js';
+import EcologicalNoteTool from './tools/EcologicalNoteTool.js';
+import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -52,6 +57,9 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     case 'plan.zone-circulation.path':
       tool = <PathLineTool map={map} projectId={projectId} />;
       break;
+    case 'plan.zone-circulation.buffer-ring':
+      tool = <BufferRingTool map={map} projectId={projectId} />;
+      break;
     case 'plan.plant-systems.crop-area':
       tool = <CropAreaTool map={map} projectId={projectId} />;
       break;
@@ -61,11 +69,23 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     case 'plan.soil-fertility.fertility-unit':
       tool = <FertilityInfraTool map={map} projectId={projectId} />;
       break;
+    case 'plan.soil-fertility.flow-connector':
+      tool = <FlowConnectorTool map={map} projectId={projectId} />;
+      break;
     case 'plan.livestock.paddock':
       tool = <PaddockTool map={map} projectId={projectId} />;
       break;
     case 'plan.structures-subsystems.structure':
       tool = <StructureTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.structures-subsystems.utility-run':
+      tool = <UtilityRunTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.principle-verification.note':
+      tool = <EcologicalNoteTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.principle-verification.transect':
+      tool = <MonitoringTransectTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

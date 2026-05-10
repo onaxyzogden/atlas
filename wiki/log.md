@@ -4,6 +4,803 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Machinery inventory server persistence + Act structure-yield card
+
+Two related Plan/Act follow-ups landed on `feat/atlas-machinery-backend`
+(auto-branched by pre-commit hook):
+
+**Machinery server persistence** (`d3aa272`). Plan Module 6 lifted from
+local-only zustand-persist to API-backed CRUD. Five pieces:
+migration `025_machinery_items.sql`; shared zod schema
+`machineryItem.schema.ts`; Fastify `/api/v1/machinery-items`
+list/create/update/delete; `apiClient.ts` endpoints; new
+`useServerMachineryInventory` hook bridging zustand mutations to the
+API (called from `PlanLayout`, skipped for the `mtc` fallback id).
+Same pattern as `useServerStructures`. Local store stays as the
+in-memory source of truth for the rendered UI; the hook keeps it in
+sync with the server.
+
+Side rider in the same commit: `terrain3d` view promoted from a v1
+placeholder case to a real vision-canvas codepath in
+`PlanLayout.tsx` alongside `vision`/`phase-1`/`phase-2`. The
+controller itself shipped on a previous commit; this is the routing
+toggle.
+
+**Act Harvest module — `StructureYieldCard`** (`7b03b87`). Closes the
+deferred Phase-3 follow-up where harvest entries with
+`sourceKind === 'structure'` (greenhouse pilot via
+`ActStructurePopover.actions.startHarvestLog`) fell into an empty
+`cropAreaId` bucket and silently never rendered. New card mirrors
+`LivestockYieldCard` — reads `harvestLogStore` filtered to
+structure-source entries and groups by `structureId`. Slotted into
+the `harvest` Act module beside `Harvest log` (lazy-loaded in
+`ActModuleSlideUp`).
+
+ADRs: [2026-05-10 atlas-machinery-server-persistence](decisions/2026-05-10-atlas-machinery-server-persistence.md), [2026-05-10 atlas-act-structure-yield-card](decisions/2026-05-10-atlas-act-structure-yield-card.md).
+
+---
+
+## 2026-05-10 — Act-affinity telemetry pipeline shipped (Phases 1–7)
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Scope.** The seven-phase plan from the 2026-05-09 pen-and-paper sanity
+review landed end-to-end: the v1 affinity table now has a durable
+read/write pipeline so the next ranking decision rides on real-steward
+signal, not paper personas.
+
+- **Phase 1** — Migration `024_act_interaction_events.sql` (project_id,
+  user_id, session_id, occurred_at, project_type, module, event_type,
+  payload jsonb) plus three indexes; CHECK constraint pins the
+  7-event enum.
+- **Phase 2** — Fastify plugin `routes/telemetry/index.ts` with
+  `POST /api/v1/telemetry/act-interactions` (batched insert, max 100,
+  per-event-type Zod superRefine) and
+  `GET /api/v1/telemetry/act-interactions/aggregate` (server-grouped on
+  `(project_type, module, event_type)`, filtered by `req.userId`).
+  OpenAPI entries + Vitest coverage in `tests/telemetry.test.ts`.
+- **Phase 3** — Shared Zod schemas + types in
+  `packages/shared/src/schemas/actTelemetry.schema.ts`;
+  `ACT_INTERACTION_EVENT_TYPES` is the single source of truth that the
+  SQL CHECK mirrors by hand.
+- **Phase 4** — Client buffer in `apps/web/src/lib/actInteractionLog.ts`:
+  module-level queue, 1500 ms idle / 50-event ceiling / sendBeacon
+  triggers, capped 3-retry, `useActTelemetry(ctx)` hook, full Vitest
+  fake-timer spec. `apiClient.telemetry.{post,get}` wired.
+- **Phase 5** — Four instrumentation sites: `ActModuleBar` (3-way
+  tile_select/open/close), `ActTools` (quick_log_click w/ toolId),
+  `ActLayout` (slide-up dwell via two refs + transition guard),
+  `TodaysPriorities` + `AlertsPanel` (panel_row_visible w/ rowIds-hash
+  dedupe).
+- **Phase 6** — `AffinityTelemetryDashboard.tsx` 6×7 grid colored by
+  |observed rank − v1 rank| (green/yellow/orange/red), reachable via
+  `dev-affinity-telemetry` section behind
+  `VITE_ATLAS_TELEMETRY_ENABLED`; sidebar Dev group renders only when
+  the flag is on.
+- **Phase 7** — ADR
+  [2026-05-10-atlas-act-affinity-telemetry-pipeline.md](decisions/2026-05-10-atlas-act-affinity-telemetry-pipeline.md);
+  cross-link added to the predecessor v1 sanity-review ADR.
+
+**Privacy posture.** `user_id` is collected; no consent surface yet.
+Flag defaults `'true'` only in dev builds. A consent banner is the
+explicit precondition before any non-developer steward uses the
+deployed app — called out in the ADR follow-ups.
+
+**Out of scope.** Affinity-table revisions (wait for ≥30 sessions × ≥2
+project types of signal); schedule-module ranking; cross-user
+aggregation; time-series breakdown; sankey/sequence visualizations.
+
+**Verification handed to user.** Apply the migration
+(`pnpm --filter api migrate`), drive ~2 min of Act-stage
+interactions across multiple project types, confirm POST batches
+fire after 1.5 s idle, open the dashboard and see the populated 6×7
+grid. `pnpm -r test` and `pnpm -r typecheck` were run in-session and
+came back clean for the touched modules.
+
+---
+
+## 2026-05-10 — Plan machinery module follow-ups closed (Phases A/B/C)
+
+**Branch.** `feat/atlas-permaculture` (continues the 2026-05-09 machinery slice).
+
+**Scope.** The five deferred items in
+[2026-05-09-atlas-plan-machinery-module.md](decisions/2026-05-09-atlas-plan-machinery-module.md)
+shipped across three phases:
+
+- **Phase A** — Renamed livestock `MobileTractorZonesCard` → `AnimalTractorZonesCard`
+  (animal-housing tractors, not equipment); section id `plan-livestock-tractor-zones`
+  retained to avoid cascade. `featureManifest.ts` gained section 30
+  (`machinery-equipment`) registering all four machinery cards.
+- **Phase B** — Backend persistence: migration `025_machinery_items.sql` (mirrors
+  `design_features` with `acquisition_year` + `lifecycle_years_estimate`); shared
+  zod schemas in `packages/shared/src/schemas/machineryItem.schema.ts`; Fastify
+  routes at `/api/v1/machinery-items`; web bridge hook `useServerMachineryInventory`
+  mounted in `PlanLayout`. Client UUIDs (`crypto.randomUUID()`) round-trip via the
+  optional `id` field on `CreateMachineryItemInput`. localStorage is now a cache;
+  server-wins on first hydrate. Inventory card form exposes optional acquired-year
+  and lifecycle-years inputs.
+- **Phase C** — `noiseSectorOverlap.ts` builds a wedge polygon per dwelling from
+  `sectorStore` noise compass + half-width and intersects it with
+  `fuel-station` / `machinery-shed` / `equipment-yard` elements; flag list
+  surfaces on `MachineryHousingFuelCard` when an upwind hit is detected.
+  `EquipmentReplacementScheduleCard` (Phasing & Budgeting) joins
+  `machineryInventoryStore` × `phaseStore` — items whose
+  `acquisitionYear + lifecycleYearsEstimate` falls within a phase's parsed
+  timeframe (handles `Year 0-1`, `Year 5+`) appear in that phase's row;
+  incomplete-lifecycle items land in a "Lifecycle unknown" footer.
+
+**Verification.** `cd apps/web && npx tsc --noEmit` clean for all touched
+modules; the only remaining errors are two pre-existing
+`actInteractionLog.test.ts` TS2532 warnings unrelated to machinery.
+
+**Out of scope (unchanged).** `openapi.yaml` schemas (zod is the runtime source
+of truth; openapi is doc-only); distance-based fuel coverage radius math; a
+maintenance-event log table for machinery.
+
+ADR amended with a `## Follow-ups closed` section.
+
+---
+
+## 2026-05-10 — Act-stage structure popover (read-only inspector + log-action handoff)
+
+**Branch.** `feat/atlas-permaculture` (commit `20879ef` bundled the
+in-flight files; this entry documents the three-phase work as a unit).
+
+**Problem.** Clicking a placed Plan structure (barn / greenhouse / well /
+17 other types) from the **Act** canvas opened the *Plan* edit form
+because `PlanDataLayers` mounts under both stages and its click/drag
+handlers from
+[2026-05-09 act-livestock-move-and-plan-edit-mobility](decisions/2026-05-09-atlas-act-livestock-move-and-plan-edit-mobility.md)
+fired regardless of stage. Stage-bleed: rotating a barn footprint while
+on the Act stage. Separately, the three Act log tools
+(`MaintenanceLogTool`, `LivestockMoveTool`, `HarvestLogTool`) hit-tested
+earthworks / paddocks / crop areas — none of them targeted placed
+structures, so there was no path to record a barn maintenance, an
+animal-shelter livestock move, or a greenhouse harvest *from the
+structure click*.
+
+**Phase 1 — Plan handler gate.** `PlanDataLayers` accepts
+`editable?: boolean` (default `true`). Five `if (!editable) return`
+short-circuits at the top of each click/drag effect (guild, structure,
+polygon, line/curve, center-point). `ActLayout.tsx` passes
+`editable={false}`; Plan-stage edit behavior unchanged.
+
+**Phase 2 — Read-only Act inspector.** New `useActStructurePopoverStore`
++ `ActStructureClickHandler` (poly-fill click, filtered to
+`kind: 'structure'`) + `ActStructurePopover` (DOM popover anchored at
+`map.project(anchor)`, re-projected on `move`/`zoom`/`resize`). Renders
+type icon + label, optional name, phase, rotation°, footprint
+`widthM × depthM m`, category. ESC + outside-click + Close all dismiss;
+auto-closes if the underlying structure is deleted.
+
+**Phase 3 — Per-type log-action handoff.** Footer renders one button per
+applicable Act log action via `getActionsForType()`
+(`apps/web/src/v3/act/data/structureActions.ts`):
+
+- `barn`, `animal_shelter` → Log maintenance · Log livestock move
+- `greenhouse` → Log maintenance · Log harvest
+- 17 other types → Log maintenance only
+
+Each button calls a helper from
+`apps/web/src/v3/act/ActStructurePopover.actions.ts` mirroring the
+**skeleton-then-patch** pattern the three Act tools already use:
+close popover → `newAnnotationId('mnt'|'lvm'|'hrv')` →
+`addEvent`/`addEntry` skeleton with `structureId: structure.id` (and
+`sourceKind: 'structure'` for maintenance + harvest) →
+`useInlineFormStore.open()` at structure centroid with the same fields
+the matching tool uses → `onSave` patches with normalized values →
+`onCancel` rolls back the skeleton. `ActStructurePopover` accepts
+`projectId: string | null` from `ActLayout`; action buttons render only
+when `projectId` is truthy.
+
+**Schema deltas (additive).**
+- `MaintenanceSourceKind`: `'earthwork' | 'storage'` → `'earthwork' | 'storage' | 'structure'`. Reuses the existing polymorphic `sourceId` (no new field). Persist `version: 1 → 2`, no `migrate` (old records valid).
+- `LivestockMoveEvent`: `paddockId: string` → `paddockId?: string`; new `structureId?: string`. Invariant: exactly one set per event. Persist `version: 1 → 2`. `eventsByPaddock` helper unchanged.
+- `HarvestSourceKind`: `'crop' | 'livestock'` → `'crop' | 'livestock' | 'structure'`; new `structureId?: string`. `cropAreaId: string` kept non-optional — structure-source entries set `cropAreaId: ''` matching the prior livestock-source convention so `HarvestLogCard` grouping keeps working. No version bump (purely additive).
+
+**Why "extend, don't hide" on livestock-move.** Plan considered hiding
+the button on structures without a paired paddock. Audit: most barns /
+animal shelters don't have a paired paddock. Hiding would have made the
+feature dead by default. Adding `structureId?` is two lines of schema
+change for a useful event.
+
+**Verification.** `tsc --noEmit` (8 GB heap) exit 0. Mounted-component
+fiber walk on `/v3/project/mtc/act` confirms `ActStructurePopover`,
+`ActStructureClickHandler`, `PlanDataLayers` (`editable=false`),
+`InlineFeaturePopover` all present. `preview_eval` synthetic store
+probes hit the Vite dynamic-`import()` cache-bust limitation (separate
+Zustand singletons per imported module instance) — does not affect the
+user-click path which uses import-time singletons. Same limitation
+logged for Phase 2 last session. End-to-end click verification deferred
+to operator manual smoke.
+
+**ADR.** [2026-05-10 atlas-act-structure-popover](decisions/2026-05-10-atlas-act-structure-popover.md).
+
+---
+
+## 2026-05-10 — Plan guild template picker on placed-and-newly-placed guilds
+
+Closes the asymmetry where only newly-placed guilds had the template
+picker. `buildGuildEditSchema()` (popover for placed guilds) now
+mirrors `GuildTool.tsx` — `preset` + `anchorSpeciesId` fields with
+the same `lastAutofilled` scratchpad pattern that preserves manual
+edits. `GuildSpatialBuilderCard` (slide-up) gains an "Apply template"
+select beside "Switch guild"; wholesale apply, select clears after
+apply so re-picking re-fires.
+
+Wholesale-apply semantics on both surfaces: `name` +
+`anchorSpeciesId` + `members` overwritten; `preset.notes` only
+written when the steward has not typed a custom note. Manual edits
+to `name` between picks are preserved by the idempotent
+`lastAutofilled` guard.
+
+`InlineFeaturePopover.tsx` patch-spread switched from `{...next, ...patch}`
+to a filtered loop assigning only defined values, so the
+`Partial<Record<string, string|number>>` patch type does not widen
+`setValues`'s state signature to include `undefined`.
+
+Verified live via `preview_eval` invoking `buildGuildEditSchema`
+inside the running app — schema fields ordered correctly (4 presets,
+13 anchor options); preset pick patches `name` + `anchorSpeciesId`
+and `onSave` writes 7 members + preset notes; manual edit + later
+preset pick preserves `name`; user-typed notes preserved on save.
+`npm --prefix apps\web run typecheck` clean (exit 0).
+
+ADR: [2026-05-10 Plan guild template picker on popover](decisions/2026-05-10-atlas-plan-guild-template-picker-on-popover.md).
+
+---
+
+## 2026-05-10 — Observe dashboards: delete now-inert CTA buttons (option B)
+
+Follow-up to the 2026-05-09 slide-up restructure. The first pass left the
+dashboard tile-card CTAs visible but stripped of click handlers (option A);
+operator confirmed the silent CTAs felt like dead weight, so option B
+shipped: all 14 buttons removed across the 6 dashboards. Commit `4105ba4`.
+
+### Removed
+
+- **Topography**: Open terrain detail · Open cross-section tool
+- **Macroclimate**: Open page (solar) · See full climate analysis · Open
+  page (hazards) · See full hazards log
+- **Sectors**: Open Sector compass · Open Cartographic detail
+- **SWOT**: View all entries · Open SWOT journal · View full report ·
+  Open diagnosis report
+- **Human Context**: `ModuleCardShell` action button (3 cards) +
+  `FooterTabs` strips (3 cards) + helper component
+- **Earth/Water/Ecology**: View all tests · Details · View all species
+
+`ModuleCardShellProps` trimmed (`action`/`onAction` dropped) — was a
+local interface, no external impact. Tabs row in `ModuleSlideUp` is now
+the sole navigation surface.
+
+### Verification
+
+- TypeScript: `tsc --noEmit` clean (with `--max-old-space-size=8192`).
+- Diff: 110 lines deleted across 6 files.
+
+---
+
+## 2026-05-10 — Plan/Livestock Welfare phasing: pasture-quality-adjusted stocking
+
+`LivestockWelfarePhasingCard.tsx` now surfaces a recommended-stocking row in
+both the empty-state reference grid and the populated per-species rollup,
+with values driven by pasture quality.
+
+**Multipliers** (derived from the AUE/ha figures in the Paddock popover's
+`PASTURE_QUALITY_OPTIONS`, normalised so `good` = 1.0 baseline matching
+`LIVESTOCK_SPECIES.typicalStocking`):
+
+```
+poor      → 0.7 / 2.5 = 0.28
+fair      → 1.2 / 2.5 = 0.48
+good      → 1.0
+excellent → 3.7 / 2.5 = 1.48
+```
+
+- **Empty-state branch** — global `Pasture quality` `<select>` (default
+  `good`) above the species grid; selection rescales every species's
+  Stocking row in real time. Units rendered per-species via
+  `info.stockingUnit` (`head` / `birds` / `hives`).
+- **Populated branch** — `SpeciesRow` extended with `qualityMultiplierSum`
+  and `qualityCount`; the reducer accumulates
+  `PASTURE_QUALITY_MULTIPLIER[paddock.pastureQuality] ?? 1.0` per
+  species's paddocks. Each species card now carries a Stocking row
+  showing `Math.round(typicalStocking * avgMultiplier * 10) / 10` with
+  the species's unit.
+
+No `livestockAnalysis.computeRecommendedStocking()` use here — that
+helper takes a forage-quality score (soil OM / canopy / slope), not the
+`PastureQuality` enum the steward sets per paddock. Bridging the two is
+deferred (which is canonical?).
+
+**Verification.** `apps/web npx tsc --noEmit` clean (exit 0). DOM probes
+against `/v3/project/mtc/plan/livestock` → Welfare phasing tab with three
+test paddocks (P1=sheep+good, P2=poultry+poor, P3=goats+excellent, plus a
+2nd sheep paddock with `poor`):
+
+- Sheep avg multiplier `(1.0 + 0.28) / 2 = 0.64` → `12 × 0.64 = 7.7 head/ha` ✓
+- Poultry `0.28` → `250 × 0.28 = 70 birds/ha` ✓
+- Goats `1.48` → `10 × 1.48 = 14.8 head/ha` ✓
+
+Test paddocks scrubbed from `ogden-livestock` localStorage afterwards.
+
+---
+
+## 2026-05-10 — Observe map: draw-boundary becomes Observe-only + edit-mode-aware + icon swap
+
+Three small but related changes to the `MapToolbar` floating dock:
+
+1. **Stage scoping.** Added a `showBoundary?: boolean` prop (default
+   `true`) to `apps/web/src/v3/observe/components/MapToolbar.tsx`.
+   PlanLayout and ActLayout now pass `showBoundary={false}`; ObserveLayout
+   keeps the default. The toolbar still mounts in all three stages
+   (Distance / Elevation / Area / Return-to-property remain everywhere)
+   — only the parcel-boundary draw button + popover are gated. Rationale:
+   parcel definition belongs to Observe; surfacing the draw button in
+   Plan/Act invited stewards to redraw the boundary mid-design.
+
+2. **Edit mode.** `BoundaryTool.tsx` now accepts an `existing?:
+   GeoJSON.Polygon | null` prop. On mount: if `existing` is provided,
+   `draw.add(...)` seeds the feature and `draw.changeMode('direct_select',
+   { featureId })` opens it for vertex-level editing; otherwise the
+   original `draw.changeMode('draw_polygon')` runs. The existing
+   `draw.create / draw.update / draw.delete` listener triplet (already
+   present pre-change) covers the persistence path — no changes to
+   ObserveLayout's `onBoundaryDrawn` callback. `existing` is stashed in a
+   ref alongside `onBoundaryDrawn` to keep the init effect's dep array at
+   `[map]` (re-renders must not re-init the draw control mid-edit).
+
+3. **Icon swap.** Measure-area now uses Lucide `SquareDashed`;
+   draw-boundary uses Lucide `Square`. The dashed silhouette better
+   signals "ephemeral measurement"; the solid square signals
+   "persistent property edge."
+
+Verified end-to-end against the running dev server at :5200:
+`tsc --noEmit` clean; Observe toolbar shows 6 buttons including
+"Draw property boundary"; Plan + Act show 5 (no boundary); icon classes
+on the buttons confirmed (`lucide-square-dashed` for area,
+`lucide-square` for boundary); seeding a `parcelBoundaryGeojson`
+FeatureCollection on a project and reopening the tool produces the
+"Vertices N · Area X.XX ha" readout immediately (proof that
+`direct_select` ran with a populated polygon, rather than the
+"Click points to outline the parcel" hint shown when no boundary
+exists).
+
+---
+
+## 2026-05-09 — Plan stage: drag-time undo coalescing (1 entry per drag)
+
+Wrapped the five MapLibre drag-to-translate handlers in
+`PlanDataLayers.tsx` with a new `beginDragUndoWindow(store)` helper at
+`apps/web/src/v3/plan/layers/dragUndo.ts`. Pauses the underlying zundo
+`temporal()` middleware on first 4 px threshold cross, then on mouseup
+silently rewinds to pre-drag state, resumes, and applies the final
+state — collapsing the prior 30–60 undo entries per drag down to one.
+Covers Guild, Structure, polygon (zone / crop / paddock /
+water_catchment), line/curve (path / utility / water_swale), and
+center-point (fertility / water_storage / water_sink) handlers.
+Decision recorded in
+[decisions/2026-05-09-atlas-plan-drag-undo-coalescing.md](decisions/2026-05-09-atlas-plan-drag-undo-coalescing.md).
+
+Static gates clean: `tsc --noEmit` green; `vite build` green (53.6s,
+667 PWA precache entries). Dev server live at :5200; interactive smoke
+pass (drag → single Cmd-Z) deferred to user verification — programmatic
+drag synthesis on a WebGL map canvas is unreliable for the threshold
+and timing semantics this change hinges on.
+
+---
+
+## 2026-05-09 — Plan stage: Machinery as a first-class module (Yeomans rank 6)
+
+Added `machinery` as the 5th right-rail Plan module, slotted between
+`structures-subsystems` (rank 5) and `livestock` (rank 6+). Decision
+recorded in
+[decisions/2026-05-09-atlas-plan-machinery-module.md](decisions/2026-05-09-atlas-plan-machinery-module.md).
+`PLAN_MODULES` grows from 10 to 11.
+
+### What shipped
+
+- **Types & palette.** `'machinery'` added to `PlanModule`, `PLAN_MODULES`,
+  `PLAN_MODULE_LABEL` ("Machinery"), `PLAN_MODULE_FULL_LABEL`
+  ("Machinery & Equipment"), `MODULE_CARDS` (3 sub-cards). Module dot
+  `#6a6a6a` added to the shared `planModulePalette.ts`.
+- **Right-rail guidance card** in `PlanChecklistAside.tsx`: copy grounded
+  in Mollison ch.13 + Holmgren P9 (*Use small and slow solutions*).
+- **Three slide-up cards** under `apps/web/src/v3/plan/cards/machinery/`:
+  Inventory (CRUD over `machineryInventoryStore`), Access fit (verdicts
+  cross-checking widths / turn radii against drawn paths/roads/gates/
+  turnarounds), and Housing & fuel (housing assignment + fuel-station
+  coverage flag). Wired into `PlanModuleSlideUp.tsx`.
+- **Local-persist store** `machineryInventoryStore` (zustand + persist;
+  key `ogden-atlas-machinery-inventory-v1`).
+- **Four new Vision-Layout canvas elements** under a new `machinery`
+  design category in `canvas/elementCatalog.ts`: `machinery-shed`,
+  `equipment-yard`, `fuel-station` (`phase: 'buildings'`), and
+  `turnaround` (`phase: 'access'`, surfaces in Year-1 phase-1 view).
+- **Cross-stage wiring.** Artifact-presence selector now treats
+  Structures presence as a proxy for machinery artifacts;
+  `planProjectTypeTemplates.ts` adds machinery `relatedWork` entries on
+  the affected Regenerative-Farm / Retreat-Center / Educational-Farm
+  project-type bullets so the cross-check chip lights and the per-item
+  jump chips reach the new module.
+
+### Out of scope (deferred)
+
+- Backend API persistence (local-only in this slice).
+- Feature manifest entry in `packages/shared/src/featureManifest.ts`.
+- Renaming livestock's `MobileTractorZonesCard` for clarity (separate task).
+- Distance-based fuel-station coverage radius math (Phasing & Budgeting).
+
+---
+
+## 2026-05-09 — Plan rail: per-item module-jump chips on project-type bullets
+
+Closed the third and final follow-up listed under "Out of scope" in the
+[2026-05-09 project-type checklist ADR](decisions/2026-05-09-atlas-plan-project-type-checklist.md):
+*"Per-item linking to the module that satisfies the prompt (so a click jumps
+to that module's slide-up)."* The ADR is now in **Implemented (+ all three
+same-day follow-ups landed)** state.
+
+### What shipped
+
+- `apps/web/src/v3/plan/data/planModulePalette.ts` (new) — extracted
+  `PLAN_MODULE_DOT` from `PlanChecklistAside.tsx` so both the per-card dot
+  and the new chip rendering single-source the same hex palette.
+- `apps/web/src/v3/plan/PlanProjectTypeCard.tsx` — accepts `onSelectModule`
+  + `onOpenSlideUp` props; for every `relatedWork` entry on a checklist
+  item, renders a "→ {Module}" mini-chip with the module's dot colour set
+  inline via `--module-dot`. Chip click calls
+  `e.stopPropagation(); onSelectModule(rw.module); onOpenSlideUp();` so a
+  chip click never also ticks the bullet.
+- `apps/web/src/v3/plan/PlanProjectTypeCard.module.css` —
+  `.relatedWorkChips` flex-wrap container (4px gap, indented 22px past the
+  checkbox) + `.relatedWorkChip` pill (9.5px, `color-mix` 12% background /
+  35% ring / 22% on hover; focus-visible outline).
+- `apps/web/src/v3/plan/PlanChecklistAside.tsx` — drops the inline
+  `PLAN_MODULE_DOT` map (now imported from the new palette file) and
+  forwards `onSelectModule` + `onOpenSlideUp` to `<PlanProjectTypeCard>`.
+
+### Why mini-chips, not a single primary jump target
+
+`relatedWork` on most items declares 2–3 modules. A single "primary"
+target would hide the multi-module dependency fan-out the cross-check
+feature already surfaces from the other direction. Forward `→` chips
+mirror the reciprocal backward `↗ N refs` chip on module cards.
+
+### Verification
+
+- DOM probes via `preview_eval` / `preview_snapshot` (screenshot tool
+  unresponsive — same renderer-busy condition as the cross-check
+  close-out earlier today):
+  - Pick **Homestead**: 9 chips render across 6 items. Item 0
+    ("Anchor Z0/Z1") shows `→ Zones`, `→ Structures`, `→ Cross-section`
+    in the correct module dot colours (border alphas confirm).
+  - Click `→ Zones` → slide-up aria-label flips to
+    "Zone & Circulation — plan tools", Zone & Circulation card lights
+    `groupActive` + `aria-pressed="true"`.
+  - Click `→ Structures` → slide-up aria-label flips to
+    "Structures & Subsystems — plan tools"; Zone clears, Structures
+    activates.
+  - Tick checkbox on item 1 after a chip click → checkedList
+    `[true, true, false, false, false, false]`. `e.stopPropagation()`
+    on the chip did not regress the existing checkbox-tick gesture.
+
+---
+
+## 2026-05-09 — Observe slide-up adopts Plan/Act peer-tab template
+
+Restructured `ModuleSlideUp` from the legacy Dashboard/Detail-with-back-chip
+pattern (`useDetailNav` view stack) to the flat peer-tab template Plan and
+Act already use. Each module's pages — Dashboard plus every Detail — are
+now independent peer tabs in a tabs row across the slide-up header. Page
+bodies are preserved verbatim. Decision recorded in
+[decisions/2026-05-09-atlas-observe-slide-up-tab-template.md](decisions/2026-05-09-atlas-observe-slide-up-tab-template.md).
+
+### What shipped
+
+- `OBSERVE_MODULE_FULL_LABEL` + `OBSERVE_MODULE_CARDS` constants in
+  `apps/web/src/v3/observe/types.ts`. 22 cards across 7 modules; sectionId
+  follows `observe-<module>-<page>`.
+- `ModuleSlideUp.tsx` rewrite: 22 individual `lazy()` imports, one
+  `renderCard(sectionId)` switch, `activeSectionId` state reset on module
+  change + open transition, tabs row when `cards.length > 1`. Single-card
+  Built Environment renders without a tabs row (Plan precedent).
+- `ModuleSlideUp.module.css`: removed `.back` rule, added `.tabs`/`.tab`/
+  `.tabActive` rules verbatim from `PlanModuleSlideUp.module.css`.
+- 6 dashboard files (Topography, Macroclimate, Sectors, SWOT, HumanContext,
+  EarthWaterEcology) stripped of `useDetailNav` import and every
+  `nav.push(...)` handler. CTA buttons kept inert (option A from plan).
+  `HumanContextDashboard` required callback props replaced with `() => {}`
+  no-ops to keep types satisfied.
+- Legacy `*Panel.tsx` files and `modules/types.ts` interfaces preserved
+  per "no deletion in revamps" rule.
+
+### Verification
+
+- TypeScript: `tsc --noEmit` clean (after raising
+  `--max-old-space-size=8192`).
+- Dev preview at port 5200:
+  - Topography slide-up shows four-tab row; body swaps to Dashboard /
+    Terrain / Cartographic / Cross-section.
+  - Built Environment suppresses the tabs row (single card).
+  - ESC, backdrop, close button all dismiss.
+  - `ObserveModuleBar` click semantics (inactive→navigate;
+    active+closed→open; active+open→close) preserved.
+
+### Risks accepted
+
+- Dashboard CTAs are now inert (option A). Tabs row is the navigation
+  surface; if the silent CTA clicks feel awkward in practice, option B
+  (delete the buttons) is a one-pass follow-up.
+- 22 lazy imports in one file are verbose; collapse to a lookup table only
+  when a sixth Detail per module forces it.
+
+---
+
+## 2026-05-09 — Plan toolbar: project-type coverage closeout (Tiers A · B · C)
+
+Closed the 13 gaps from the [project-type checklist audit plan](../../.claude/plans/each-project-type-has-frolicking-sunrise.md). Toolbar now offers a one-click artifact path for every prompt that admits a spatial answer. Decision recorded in [decisions/2026-05-09-atlas-plan-toolbar-project-type-coverage.md](decisions/2026-05-09-atlas-plan-toolbar-project-type-coverage.md).
+
+### What shipped
+
+- **Tier A — popover fields**: phase setter (every placeable), enterprise tag (new `enterpriseStore` + recolour mode in `layeringLensStore`), path accessibility flag + rest-point anchors.
+- **Tier B — five new draw tools**: `EcologicalNoteTool` (annotation marker), `UtilityRunTool` (water/septic/power/data), `BufferRingTool` (setback ring), `FlowConnectorTool` (snaps to fertility units), `MonitoringTransectTool`. New stores backing each. `planModuleArtifactPresence` header loosened from "non-spatial-by-design" to "non-spatial-by-default" for `principle-verification`, `dynamic-layering`, `phasing-budgeting`.
+- **Tier C — overlays + capture fields**: `PlanSunPathOverlay` (suncalc + turf — solstice/equinox arcs, anchor priority Z0 → boundary → fallback), `PlanContoursOverlay` (mirror of Design's MapTiler tile layer), `PlanZoneRingsOverlay` (Z1/Z2/Z3 dashed rings around Z0 centroids), `householdLpd` + `daysOffGrid` capture on `WaterNode` for storage sizing, `pastureQuality` enum on `Paddock` for AUE/ha lookup.
+
+### Plumbing
+
+- `useMatrixTogglesStore` v9 → v10 with migration falling back to `false` for new keys (`sunPath`, `zoneRings`).
+- `MapOverlaysLegend` lists the two new overlays with swatches.
+- `ObserveAnnotationLayers` narrowed `MatrixToggleKey` exclusions in three places to compile-time-prove the new keys can't be miswired into Observe annotations.
+
+### Verification
+
+- TypeScript: full `tsc --noEmit` clean across all three rounds.
+- Manual project-type sweep: switched through all six types after each round; cross-check chips on previously-uncovered prompts now flip green when the matching artifact is placed.
+
+### Risks accepted
+
+- C3/C4 are capture-only; reactive computation deferred to a follow-up helper card (no second store migration needed).
+- Sun-path 200 m projection is a viewing radius, not a ground distance — micro-precise shadow casts belong in the cross-section editor.
+- `zoneRings` thresholds hard-coded at 30/100/500 m; per-project overrides deferred until a steward asks.
+
+---
+
+## 2026-05-09 — Act Operations Hub project-type-aware ranking
+
+Made the Act stage's right-rail Operations Hub re-rank `TodaysPriorities` and `AlertsPanel` items by per-project-type module affinity. No new cards, no new tools, no new stores — the signal is consumed at the sort step right before each panel slices to its display cap. Decision recorded in [decisions/2026-05-09-atlas-act-operations-hub-project-type-aware-ranking.md](decisions/2026-05-09-atlas-act-operations-hub-project-type-aware-ranking.md).
+
+### Files
+
+- Created `apps/web/src/v3/act/data/projectTypeModuleAffinity.ts` — single hard-coded `Record<PlanProjectTypeKey, readonly ActModule[]>` table + `getModuleAffinityRank(type, module)` helper.
+- Edited `apps/web/src/v3/act/ops/TodaysPriorities.tsx` — added `module: ActModule | null` and `_appendOrder` to each row; tagged rows by source (`fieldTasks.category` mapped via `fieldTaskModule()`, maintenance→'maintain', harvest+succession→'harvest', events→'network'); affinity sort fires only when `effectiveType` is set; slice to 8.
+- Edited `apps/web/src/v3/act/ops/AlertsPanel.tsx` — same row tagging (hazards→'review', paddocks→'livestock'); sort by `(severity, affinityRank, _appendOrder)` with affinity tier active only under `effectiveType`; slice to 5.
+- Consumed the upstream-same-day `useEffectivePlanProjectType` hook for the project-type lens — no additional source of truth introduced.
+
+### Verification
+
+- TypeScript: `tsc --noEmit` clean.
+- Dev preview at port 5200, with seeded test items spanning all six modules:
+  - **MTC fallback** (`projectType: null`) — original frost alert renders alone in `Alerts`, priorities empty. Source-append order, affinity sort short-circuits. Regression check ✓.
+  - **Real project, homestead** — priorities reorder to `maintain, maintain, harvest, network, network, review`. Alerts: high-severity fencing first; within medium, livestock water-point ranks above review hazard.
+  - **Real project, conservation** — priorities reorder to `review, maintain, maintain, network, network, harvest`. Alerts: within medium, hazard (review=0) promoted above water-point (livestock=5).
+  - **Real project, picker cleared** (`hasInteracted: true, selectedType: null`) — affinity sort short-circuits, source-append order fully restored.
+  - **Plan-side regression** — `PlanProjectTypeCard` renders all six options + homestead checklist via the shared hook with no observable behavior change.
+
+### Risks accepted
+
+- v1 affinity rankings are best-guess; tunable in one constant. Doc'd at the top of `projectTypeModuleAffinity.ts`.
+- Source→module tagging covers the live `fieldTask.category` values; unmapped categories return `null` and sink to bottom — fine for now, separate clean-up not in scope.
+
+---
+
+## 2026-05-09 — CSRA / investor-language erasure (Phase 1 of pre-test friction-audit)
+
+Closed Phase 1 of the [pre-test friction audit](../../../.claude/plans/before-we-proceed-with-mutable-beaver.md). Renamed every operator-visible "investor" / "CSRA" / "advance-purchase" / "member-share" surface in `apps/web`, `apps/api`, `packages/shared`, and project docs to **"capital partner"** under the permitted-channel framing established 2026-05-04 in the global covenant ([`~/.claude/CLAUDE.md`]). No deletion — every existing surface was renamed and reframed in place. Decision recorded in [decisions/2026-05-09-atlas-csra-erasure.md](decisions/2026-05-09-atlas-csra-erasure.md).
+
+### Why now
+
+The CSRA model was struck on **2026-05-04** on Islamic fiqh grounds — *bayʿ mā laysa ʿindak* (Islam does not permit the sale of what one does not yet possess). The pre-test audit found ~56 file occurrences still carrying the legacy framing across UI copy, type enums, manifest entries, schema docs, comments, and PDF templates. These were live and reachable from the dashboard, the presentation deck, the public portal, and the export sidebar — i.e. they would have shipped to the operator's first capital-partner walkthrough under the wrong framing.
+
+### Surface-level changes
+
+- **Export pipeline** — `InvestorSummaryExport.tsx` → `CapitalPartnerSummaryExport.tsx`; sidebar + router imports updated; new SQL migration `023_rename_investor_summary_to_capital_partner_summary.sql` (migration `010_ai_outputs.sql` left untouched per append-only convention).
+- **Path-mode preset** — `Mode` enum `'investor'` → `'capital_partner'`; label "Investor presentation" → "Capital partner presentation"; `INVESTOR_*` constants renamed to `CAPITAL_PARTNER_*`.
+- **Partnership card** — `LandownerPartnershipCard.tsx` `Side` type, bar/pill/legend/aria copy reframed; CSS class `.barInvestor` → `.barCapitalPartner`, selector `[data-side='investor']` → `[data-side='capital_partner']`.
+- **Stakeholder portal** — `AUDIENCES.csra` → `AUDIENCES.capital_partner` with the framing "Charitable donor, qarḍ-ḥasan lender, sponsor, or in-kind contributor with financial or material standing in the project."
+- **Presentation deck Slide 7 ("The Ask")** — rewritten to permitted-channel framing.
+- **`csraSuitability` → `communitySuitability`** in `HydrologyRightPanel` + `computeScores` (the metric measures community demographics, not capital-partner readiness — aligns with the existing scoring section name in `computeCommunitySuitability`).
+- **Manifest, taxonomy, landing copy, JSDoc, comments, CONTEXT.md** for `economic-modeling`, `timeline-phasing`, `reporting-export`, plus `docs/ui-ux-upgrade-brief.md` — all reframed.
+
+### Deliberately not touched
+
+- Audit / historical artifacts (`ATLAS_DEEP_AUDIT*.md`, `design-system/.../accessibility-audit.md`, `graphify-out/*`) — frozen records of past state; rewriting them would falsify the audit trail.
+- `migrations/010_ai_outputs.sql` — append-only history; migration 023 documents the rename forward.
+- `services/pdf/templates/capitalPartnerSummary.ts:237` — phrase "not as a return on advance purchase" is the *covenant statement itself*, not a CSRA usage.
+
+### Memory
+
+Updated `~/.claude/projects/.../memory/user_profile.md` — replaced the stale "Preferred term … CSRA" line with the post-2026-05-04 vocabulary block (capital partners & allies; permitted channels: charitable donation, restricted donation, qarḍ ḥasan, in-kind, sponsorship; future post-acquisition yield-share contemplated only as a membership benefit subject to Scholar Council review).
+
+### Verification
+
+- `grep -rEi "investor|CSRA|advance purchase|member share"` across `apps/web/src`, `apps/api/src`, `packages/shared/src` — only legitimate residuals remain (migration 023, append-only migration 010, and the fiqh disclaimer line).
+- `pnpm tsc --noEmit -p apps/web/tsconfig.json` — clean (exit 0).
+- `pnpm tsc --noEmit -p apps/api/tsconfig.json` — clean.
+- `pnpm tsc --noEmit -p packages/shared/tsconfig.json` — clean.
+
+### Follow-ups (Phase 2–4 of the audit, separate sessions)
+
+- **Phase 2 (P1 coherence)** — manifest truth-up §10/§15/§22/§23; finish inline-edit + drag generalization to water + guild; archive `apps/atlas-ui` out of `pnpm-workspace.yaml`.
+- **Phase 3 (P2 a11y)** — replace 10 native `title=` sites with `<DelayedTooltip>`; add focus-trap to `SlideUpPanel` + `RailPanelShell`.
+- **Phase 4 (P2 content)** — source-backfill the 128 null-citation rows in `regionalCosts/US_MIDWEST.ts` and `CA_ONTARIO.ts`.
+
+---
+
+## 2026-05-09 — Plan rail: cross-check chip on module cards (project-type ↔ module progress)
+
+Closed the second follow-up listed under [yesterday's project-type checklist ADR](decisions/2026-05-09-atlas-plan-project-type-checklist.md) "Out of scope" section. Each module's GuidanceCard in [`PlanChecklistAside`](apps/web/src/v3/plan/PlanChecklistAside.tsx) now renders a small amber "↗ N refs" chip in its header when one or more *ticked* project-type items reference that module but their declared dependencies are unmet. The chip is the reciprocal mirror of the project-type rail above: ticking Homestead item 2 ("Size water storage to a full off-grid week...") with its `relatedWork: [{ module: 'water-management', indexes: [0, 1], requiresArtifacts: true }]` lights "↗ 1 ref" on the Water Management card; closing both gaps (ticking Water how-checks 0 + 1 AND adding any earthwork / storage / waterNode / watercourse for the project) clears the chip. Multi-module items light chips on multiple cards independently — Homestead item 0 ("Anchor Z0/Z1") has `relatedWork` entries for `zone-circulation`, `structures-subsystems`, AND `cross-section-solar`, and ticking it lights all three independently.
+
+### Schema migration
+
+`PLAN_PROJECT_TYPE_TEMPLATES[type].items` changed from `readonly string[]` to `readonly PlanProjectTypeItem[]` where each item is `{ text: string, relatedWork: readonly { module: PlanModule, indexes: readonly number[], requiresArtifacts?: boolean }[] }`. All 36 items (6 types × 6 each) hand-authored with `relatedWork` mappings in [`planProjectTypeTemplates.ts`](apps/web/src/v3/plan/data/planProjectTypeTemplates.ts). Sole consumer change: [`PlanProjectTypeCard.tsx`](apps/web/src/v3/plan/PlanProjectTypeCard.tsx) reads `{item.text}` instead of `{item}`.
+
+### "Either gap" chip rule
+
+A reference is *satisfied* iff **all** declared `indexes` are ticked in [`planHowChecksStore`](apps/web/src/store/planHowChecksStore.ts) for the module **AND** (`!requiresArtifacts` OR the module reports artifact presence). Strictest of the three rule options canvassed (how-checks-only, artifacts-only, either-gap) — picked because ticked items with how-checks satisfied but no map artifact still represent unfinished design work. Implemented in NEW [`useModuleProjectTypeReferences`](apps/web/src/v3/plan/hooks/useModuleProjectTypeReferences.ts) hook which iterates `PLAN_PROJECT_TYPE_KEYS` × ticked-indices, filters each item's `relatedWork` to the current module, and returns `{ referencedBy, openGaps }` per module per project. Chip renders only when `openGaps > 0`.
+
+### Artifact-presence hook + Rules-of-Hooks fix
+
+NEW [`planModuleArtifactPresence.ts`](apps/web/src/v3/plan/data/planModuleArtifactPresence.ts) exports `usePlanModuleArtifactPresence(module, projectId)` returning a boolean. It subscribes to all 9 artifact stores unconditionally (`useWaterSystemsStore`, `useZoneStore`, `usePathStore`, `useStructureStore`, `useLivestockStore`, `useCropStore`, `usePolycultureStore`, `useClosedLoopStore`, `usePhaseStore`) and then switches on `module` to decide which booleans to combine. First draft returned `false` early for the three modules with no map artifact (`dynamic-layering` / `cross-section-solar` / `principle-verification`) *before* calling the hooks — a Rules-of-Hooks violation that surfaced as "Rendered fewer hooks than expected" once an item with mixed dependencies was ticked. Subscribing all stores up-front is the simplest fix; the Zustand selectors are cheap booleans (`s.X.some(x => x.projectId === projectId)`).
+
+### Drive-by: extracted wizard-seed selector
+
+The inline wizard-seed precedence logic from yesterday's follow-up was lifted into NEW [`useEffectivePlanProjectType`](apps/web/src/v3/plan/hooks/useEffectivePlanProjectType.ts) so the same `effectiveType = hasInteracted ? storedType : wizardSeed` rule can be reused by Act stage panels in a future commit; `asPlanProjectTypeKey` moved with it. `PlanProjectTypeCard.tsx` is the only consumer in this commit.
+
+### Shared `headerExtras` slot on `GuidanceCard`
+
+[`GuidanceCard.tsx`](apps/web/src/v3/_shared/components/GuidanceCard.tsx) gained an optional `headerExtras?: ReactNode` prop, rendered next to the module label via a new `.groupHeaderExtras` wrapper (`margin-left: auto` so it right-aligns). This keeps the chip a Plan-stage concern — Observe and Act don't pass `headerExtras` — while reusing the universal card chrome. The chip itself uses `onClick / onKeyDown` stopPropagation in [`PlanChecklistAside.tsx`](apps/web/src/v3/plan/PlanChecklistAside.tsx) so a click on it doesn't trigger the section's module-select / slide-up handler. Chip styling lives in [`PlanChecklistAside.module.css`](apps/web/src/v3/plan/PlanChecklistAside.module.css) (`.refChip` — amber pill, `color-mix(... #d97706 14%, var(--color-bg))` background).
+
+### Verification
+
+Verified at `/v3/project/d515a80b-02fc-489a-b4c1-94da467fa578/plan` (351 House — Atlas Sample, projectType: `homestead`) via DOM probes through `preview_eval` + `preview_snapshot` (screenshot tool was unresponsive — renderer was busy with proxied API failures, noted as a verification limitation rather than success):
+
+- **Single-item, both gaps unmet** → chip "↗ 1 ref" appeared on `water-management` after ticking Homestead item 2 (which only references that module).
+- **How-checks ticked, artifact missing** → chip stayed lit after ticking Water how-checks [0, 1] but with no stored earthworks/storage/nodes/watercourses, proving the "either gap" rule.
+- **Both gaps closed** → chip cleared after injecting a synthetic earthwork into `useWaterSystemsStore` (then cleaned up via localStorage filter to `earthworksRemaining: 0`).
+- **Multi-module item** → ticking Homestead item 0 lit chips independently on `zone-circulation`, `structures-subsystems`, and `cross-section-solar` — each at "↗ 1 ref" — confirming chips count references per-module rather than per-item.
+
+### Deferred
+
+- Per-item linking to the module that satisfies the prompt (click → jump to that module's slide-up) — last item from the original ADR's "Out of scope" list, intentionally left for a future pass.
+- 30+ unrelated WIP files in the working tree (api openapi, dashboard router/sidebar, reporting export, store edits, observe dashboards, V3 act/plan layers, schemas tests, untracked capital-partner-summary export, untracked `planVertexEditStore` + inline-edit handlers) — not from this session, not committed here.
+
+### Recommended next session
+
+- Per-item module-jump linking (the last remaining "Out of scope" item from the project-type checklist ADR), or pick up the unrelated WIP listed in Deferred.
+
+---
+
+## 2026-05-09 — `*.module.css` compound-state-modifier audit (no-op result)
+
+Followed up on the deferred audit from the 2026-05-08 V3LifecycleSidebar fix: scan `apps/web/src/**/*.module.css` for the same compound-state-modifier footgun (a state class like `.active` / `.selected` / `.open` / `.expanded` / `.current` that only ever appears in compound selectors `.foo.modifier`, consumed via `${css.modifier}` template literals, where vite's CSS-Modules export-only-where-standalone behaviour produces a literal-unhashed class on the element that never matches the hashed compound rule). Scope agreed at **B — interactive state modifiers** (active / selected / open / expanded / current). Result: `grep -rEn "\.\w+\.(active|selected|open|expanded|current)" apps/web/src --include="*.module.css"` → **zero matches**. Adjacent searches confirm no in-scope footgun remains: standalone `.activeBlock` / `.activeLabel` / `.activeName` / `.activeIntent` / `.activeMeta` / `.activeBadge` in [CartographicStylePresetsCard.module.css](apps/web/src/features/dashboard/pages/CartographicStylePresetsCard.module.css) and `.activeTag` in [WorkspaceManagementReadinessCard.module.css](apps/web/src/features/project/WorkspaceManagementReadinessCard.module.css) are unique class names, not compound modifiers; `${css.selected}` consumer at [CandidateCard.tsx:83](apps/web/src/v3/components/CandidateCard.tsx) reads a **standalone** `.selected` rule from [CandidateCard.module.css:12](apps/web/src/v3/components/CandidateCard.module.css); `styles.current` consumer at [StepIndicator.tsx:49](apps/web/src/components/ui/StepIndicator.tsx) only triggers descendant rules `.current .circle` / `.current .label`, which work correctly under CSS Modules. Conclusion — V3LifecycleSidebar was the only occurrence; no conversions needed. Out-of-scope-but-noted: [Toggle.module.css](apps/web/src/components/ui/Toggle.module.css) does have compound `.track.checked` / `.track.disabled` / `.sm.checked .thumb` / `.md.checked .thumb` patterns (modifiers `checked` / `disabled`, outside agreed B scope) — re-run at scope C if Toggle ever shows broken state visuals; size compounds in [Input.module.css](apps/web/src/components/ui/Input.module.css) (`.hasIconLeft.sm` etc.) combine two simultaneously-applied class flags rather than toggling a single modifier and aren't structurally vulnerable. Documenting here so future sessions don't re-run the same grep.
+
+---
+
+## 2026-05-09 — Plan rail: wizard `projectType` wired as picker default seed
+
+Closed the first follow-up listed under [yesterday's project-type checklist ADR](decisions/2026-05-09-atlas-plan-project-type-checklist.md) "Out of scope" section. [PlanProjectTypeCard.tsx](apps/web/src/v3/plan/PlanProjectTypeCard.tsx) now reads `project.projectType` from `useProjectStore` and uses it as the picker's default seed when the steward has not yet interacted with the Plan-stage picker for that project. Precedence rule: `effectiveType = hasInteracted ? storedType : wizardSeed`, where `hasInteracted = byProject[projectId] !== undefined` in [planProjectTypeChecklistStore](apps/web/src/store/planProjectTypeChecklistStore.ts) — presence-of-entry is the single source of truth for "the steward has touched this in Plan", independent of whether the stored selection is a type or `null`. After any explicit interaction the stored value wins, including an explicit clear back to "Select a project type…" (stored `selectedType: null`) — the wizard default does not re-seed. First-toggle lock-in: if the steward ticks a checkbox while the picker is showing the wizard seed (no entry yet), `handleToggle` writes `setSelectedType(projectId, effectiveType)` *before* the toggle so the seed is promoted to an explicit selection in the same gesture; without it the toggle would create the entry with `selectedType: null` from the store's `EMPTY_PROJECT` default and visually clear the picker. New helper `asPlanProjectTypeKey(value)` guards against unrecognised wizard values (e.g. gated `moontrance` or future codes the Plan card hasn't shipped templates for).
+
+### Verification
+
+- Cleared `ogden-atlas-plan-project-type-checklist` localStorage + reloaded → picker correctly defaulted to the project's wizard `projectType` (`'homestead'`), Homestead bullets rendered, first item "Anchor Z0/Z1 (house + kitchen garden) on a sun-facing aspect with year-round solar access."
+- Ticked checkbox index 2 → store entry created `{ d515a80b-...: { selectedType: 'homestead', checks: { homestead: [2] } } }` confirming first-toggle lock-in (selectedType was promoted from null to 'homestead' in the same gesture).
+- Picked "Select a project type…" → stored `selectedType: null`, picker cleared, placeholder rendered ("Pick a template to see project-type-specific design prompts."), Homestead checks retained but hidden — explicit user choice beats wizard seed on subsequent renders.
+
+### Deferred
+
+- Cross-checking checklist progress against module progress (e.g. "you've ticked Conservation #2 'wildlife corridors' but Zone & Circulation has no Z5 polygon").
+- Per-item linking to the module that satisfies the prompt (click → jump to that module's slide-up).
+- Sibling unstaged edits in `apps/web/src/v3/act/ActTools.tsx`, `apps/web/src/v3/act/draw/ActDrawHost.tsx`, `apps/web/src/v3/observe/components/measure/useMapToolStore.ts`, `apps/web/src/v3/plan/layers/PlanDataLayers.tsx`, plus untracked `apps/web/src/store/livestockMoveLogStore.ts` and `apps/web/src/v3/act/draw/tools/LivestockMoveTool.tsx` — not from this session, not committed here.
+
+### Recommended next session
+
+- Cross-check checklist progress against module progress (the second deferred item from the original ADR), or pick up the unrelated WIP files listed in Deferred.
+
+---
+
+## 2026-05-09 — Plan rail: Project-Type Template Checklist card
+
+Added a top-of-rail "Project Type" card to [`PlanChecklistAside`](apps/web/src/v3/plan/PlanChecklistAside.tsx) that lets the steward pick one of six project-type templates (Regenerative Farm / Retreat Center / Homestead / Educational Farm / Conservation / Multi-Enterprise) and tick through a tailored design-prompt checklist alongside the existing 10 module cards. Skeleton + content shipped together: NEW [`planProjectTypeTemplates.ts`](apps/web/src/v3/plan/data/planProjectTypeTemplates.ts) with `PLAN_PROJECT_TYPE_KEYS`, `PlanProjectTypeKey`, and `PLAN_PROJECT_TYPE_TEMPLATES: Record<PlanProjectTypeKey, { label, color, items: readonly string[] }>` — all six types populated with six action-prompt items each, grounded in Yeomans / Mollison / Holmgren, sequenced from earliest design move to latest. NEW [`planProjectTypeChecklistStore`](apps/web/src/store/planProjectTypeChecklistStore.ts) (persist key `ogden-atlas-plan-project-type-checklist`, version 1) mirrors the [`planHowChecksStore`](apps/web/src/store/planHowChecksStore.ts) shape but per-project state is `{ selectedType, checks: Record<type, number[]> }` so switching type doesn't lose per-type progress. NEW [`PlanProjectTypeCard.tsx`](apps/web/src/v3/plan/PlanProjectTypeCard.tsx) reuses `_shared/components/GuidanceCard.module.css` class names (`howBlock` / `howList` / `howCheck` / `howCheckDone` / `howText` / `blockLabel`) so check strikethrough behaviour matches the modules below verbatim; its own [`PlanProjectTypeCard.module.css`](apps/web/src/v3/plan/PlanProjectTypeCard.module.css) only adds picker styles. Unselected-type empty state copy: "Coming soon — checklist items for {label} are still being drafted." (now redundant since all types populated, but retained for future-added types). Picker is **independent of `project.projectType`** — stewards routinely revisit a parcel with a different vision; sourcing the checklist from a Plan-stage picker decouples intake-form data from "what design lens am I working through right now". `PlanChecklistAside` mounts `<PlanProjectTypeCard />` once at the top of the scroll column, before the `PLAN_MODULES.map(...)` block; the inactive-fade rule keys on `.group:not(.groupActive)` and the new card uses its own `.card` class so it stays full-saturation regardless of `data-has-active`. Preview-confirmed: card mounts above "Dynamic Layering"; picker exposes all 6 types; tick → strikethrough → persists in localStorage; switch type → return → check preserved; no console errors. ADR `2026-05-09-atlas-plan-project-type-checklist.md`.
+
+### Verification
+
+- All six types render six checkboxes each; first-item probe per type confirmed via DOM eval.
+- Persistence key `ogden-atlas-plan-project-type-checklist` writes `{ state: { byProject: { [projectId]: { selectedType, checks: { [type]: [indices] } } } } }`.
+- Card visible at top of right rail in screenshot (Multi-Enterprise selected).
+
+### Deferred
+
+- Wiring `project.projectType` from the wizard into the picker as a default seed.
+- Cross-checking checklist progress against module progress (e.g. "you've ticked Conservation #2 'wildlife corridors' but Zone & Circulation has no Z5 polygon").
+- Per-item linking to the module that satisfies the prompt (click → jump to that module's slide-up).
+- Sibling unstaged edits in `apps/web/src/v3/act/ActTools.tsx`, `apps/web/src/v3/act/draw/ActDrawHost.tsx`, `apps/web/src/v3/observe/components/measure/useMapToolStore.ts`, `apps/web/src/v3/plan/layers/PlanDataLayers.tsx`, plus untracked `apps/web/src/store/livestockMoveLogStore.ts` and `apps/web/src/v3/act/draw/tools/LivestockMoveTool.tsx` — not from this session, not committed here.
+
+### Recommended next session
+
+- Wire the wizard's `project.projectType` as the picker's default seed when it's set, with the in-Plan picker still able to override.
+
+---
+
+## 2026-05-09 — QuickActions direct-dialog wiring landed
+
+Executed the design captured in the earlier 2026-05-09 entry below. [QuickActions.tsx](apps/web/src/v3/act/ops/QuickActions.tsx) drops `onSelectModule` / `onOpenSlideUp` props and now accepts `onCreateTask` / `onLogObservation` callbacks; the two buttons just fire them. [ActOpsAside.tsx](apps/web/src/v3/act/ops/ActOpsAside.tsx) owns dialog state via two `useState<boolean>` flags, reads `useV3Project(projectId)` to grab `project.location.boundary`, and mounts [CreateFieldTaskDialog](apps/web/src/v3/components/CreateFieldTaskDialog.tsx) / [LogObservationDialog](apps/web/src/v3/components/LogObservationDialog.tsx) conditionally below the panel stack — same pattern as [OperatePage.tsx:186-202](apps/web/src/v3/pages/OperatePage.tsx). `disabled` on QuickActions extends to `!project` so the dialog never mounts without boundary data; `fallbackCenter` matches OperatePage's `[-78.20, 44.50]`. `ActChecklistAside` / `ActLayout` untouched (their `onSelectModule` / `onOpenSlideUp` props still arrive at `ActOpsAside`, they just no longer reach `QuickActions`). tsc clean (`NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit -p apps/web/tsconfig.json`).
+
+### Verification
+
+- `cd apps/web && tsc --noEmit` → exit 0.
+- The Act ops aside no longer flips the active module or opens the slide-up when the steward clicks Create Field Task / Log Observation; the dialog opens directly. Saves write to `useFieldTaskStore` / observation store, which `TodaysPriorities` already reads.
+
+### Deferred
+- Module-aware defaults (e.g. pre-fill `category` from active module) — `FieldTaskCategory` enum (`ops/weather/regulation/team/education`) doesn't map onto Act modules cleanly.
+- Map-click placement of new tasks/observations from inside the Act rail — out of parity scope.
+- Sibling sessions have unstaged edits (`apps/web/src/v3/plan/PlanChecklistAside.tsx`, new `apps/web/src/store/planProjectTypeChecklistStore.ts`, new `apps/web/src/v3/plan/PlanProjectTypeCard*`, new `apps/web/src/v3/plan/data/`) — not from this session, not committed here.
+
+### Recommended next session
+- Audit other `*.module.css` for the `.foo.active`-on-compound-selector footgun spotted in V3LifecycleSidebar; convert any matches to `[data-active='true']` attribute selectors.
+
+---
+
+## 2026-05-09 — Act `Log livestock move` wiring + Plan feature edit/move mobility
+
+Three closely-related defects on `feat/atlas-permaculture` resolved in one pass. (1) **Act Quick-Log livestock** previously just opened the slide-up onto a read-only `RotationScheduleCard`; the entry in [`ActTools.tsx`](apps/web/src/v3/act/ActTools.tsx) carried no `toolId`, no `ActDrawHost` arm existed, and no store backed it. Mirrored `MaintenanceLogTool` verbatim: NEW [`livestockMoveLogStore`](apps/web/src/store/livestockMoveLogStore.ts) (persist key `ogden-livestock-moves`, `LivestockMoveEvent` keyed on `paddockId` with `direction: 'move_in'|'move_out'|'rotate_through'`, `species`, `headCount`); NEW [`LivestockMoveTool.tsx`](apps/web/src/v3/act/draw/tools/LivestockMoveTool.tsx) hit-tests via `turf.booleanPointInPolygon` over `livestockStore.paddocks` (no tolerance — paddocks are large; first match wins; default species pulled from the hit paddock's `species[0]`); `MapToolId` extended with `'act.livestock.log-move'`; `ActDrawHost` switch arm added; livestock entry gains `toolId` + hint *"Click a paddock to log a move-in / out / rotate-through"*. (2) **Guild "movable once" bug** — the click-select+drag handler in [`PlanDataLayers.tsx:446-455`](apps/web/src/v3/plan/layers/PlanDataLayers.tsx) used `map.once('mouseup', onUp)` so the listener was consumed after the first drag and the second `mousedown` had no tear-down path. Changed to `map.on('mouseup', onUp)` with `map.off('mouseup', onUp)` as the first line of `onUp` (matches Observe `AnnotationDragHandler` 2026-05-06 pattern). (3) **Plan structures unmovable/uneditable** — [`StructureTool`](apps/web/src/v3/plan/draw/tools/StructureTool.tsx) opened the inline popover only on `useMapboxDrawTool.onComplete`. Added a new effect in `PlanDataLayers.tsx` on `${LAYER_PREFIX}poly-fill` filtered to `kind:'structure'` (added to feature props), gated on `useMapToolStore.activeTool == null` so any Plan draw tool wins. Click (movement < 4 px screen-space) opens `useInlineFormStore` with the same `name / type / phase / rotationDeg` schema as `StructureTool.onComplete`, pre-filled from the current `Structure`; `onSave` re-runs `createFootprintPolygon(structure.center, nextTpl.widthM, nextTpl.depthM, rotationDeg)` so type/rotation changes redraw. Drag (≥ 4 px) disables `dragPan`, translates `center` to `e.lngLat`, recomputes `geometry` keeping `widthM`/`depthM`/`rotationDeg`. Cursor: `move` on hover, `grabbing` while dragging. tsc clean (`NODE_OPTIONS=--max-old-space-size=8192`); preview-confirmed: livestock dialog mounts on Quick-Log click; Plan page loads cleanly. Drag-reposition + edit-popover for non-structure Plan features (zones / paths / crops / paddocks / fertility / water nodes), polygon vertex edit, multi-select/undo, and surfacing `LivestockMoveEvent`s in `RotationScheduleCard` deferred. ADR `2026-05-09-atlas-act-livestock-move-and-plan-edit-mobility.md`.
+
+---
+
+## 2026-05-09 — QuickActions direct-dialog wiring (designed, deferred to next session)
+
+Brainstormed the next deferred item from the 2026-05-08 redesign: the Act ops aside's `Create Field Task` / `Log Observation` buttons currently bounce through module selection + slide-up open, which is half a step. Investigation found that both [CreateFieldTaskDialog.tsx](apps/web/src/v3/components/CreateFieldTaskDialog.tsx) and [LogObservationDialog.tsx](apps/web/src/v3/components/LogObservationDialog.tsx) already exist (Phase 6.4) and are wired up in [OperatePage.tsx:186-202](apps/web/src/v3/pages/OperatePage.tsx:186) — they take `{ projectId, boundary, fallbackCenter, onClose }` and write directly to `useFieldTaskStore` (and the observation store). Approved design: pure-dialog approach (Option A) — `QuickActions` swaps `onSelectModule`/`onOpenSlideUp` props for `onCreateTask`/`onLogObservation` callbacks; `ActOpsAside` owns two `useState<boolean>` flags, reads `useV3Project(projectId)` to grab `project.location.boundary`, and mounts the two existing dialogs below the panel stack. No new files, no new stores, no schema changes; mirrors `OperatePage` verbatim. Implementation deferred — no code touched this session beyond reads.
+
+### Deferred
+- Implementation of the wiring above (small, mechanical; one component refactor + dialog mount in parent).
+- Sibling sessions have unstaged edits in `apps/web/src/v3/act/ActTools.tsx`, `apps/web/src/v3/act/draw/ActDrawHost.tsx`, `apps/web/src/v3/observe/components/measure/useMapToolStore.ts`, `apps/web/src/v3/plan/layers/PlanDataLayers.tsx`, plus untracked `apps/web/src/store/livestockMoveLogStore.ts` and `apps/web/src/v3/act/draw/tools/LivestockMoveTool.tsx` — not from this session, not committed here.
+
+### Recommended next session
+- Implement the QuickActions direct-dialog wiring per the design above. After landing, `TodaysPriorities` will pick up newly-created tasks automatically since it already reads `useFieldTaskStore`.
+
+---
+
+## 2026-05-08 — Act stage Operations Hub redesign + V3 sidebar regrouped to stage-collapsibles
+
+Two-part redesign of the Act stage rails. **Right rail** stops being a stack of permaculture-principle GuidanceCards and becomes an Operations Hub dashboard ([apps/web/src/v3/act/ops/ActOpsAside.tsx](apps/web/src/v3/act/ops/ActOpsAside.tsx), composed of `TodaysPriorities` / `AlertsPanel` / `UpcomingEvents` / `QuickActions`); module-aware so Build → budget overruns, Maintain → irrigation/waste flags, Livestock → rotation moves + welfare flags, Harvest → swaps Alerts for "Recent harvests", Review → hazard walk-throughs, Network → CRM follow-ups. Wired to existing stores only (`fieldTaskStore`, `maintenanceStore`, `harvestLogStore`, `successionStore`, `communityEventStore`, `hazardsStore`, `livestockStore`) — no new mutation paths; Create Field Task / Log Observation route into existing slide-ups, RSVP is a `window.alert` placeholder. `ActChecklistAside` becomes a thin shim so `ActLayout` consumers don't change. **Left outer sidebar** ([apps/web/src/v3/components/V3LifecycleSidebar.tsx](apps/web/src/v3/components/V3LifecycleSidebar.tsx)) reshaped into 3 collapsible stage groups (Observe / Plan / Act): active stage auto-expands and shows its module list with the active module highlighted; clicking a collapsed stage navigates to its landing route and expands it. Project Home above, Reference footer below. **Inner Act rail** ([apps/web/src/v3/act/ActTools.tsx](apps/web/src/v3/act/ActTools.tsx)) repurposed from per-module bento → "Quick Log" strip with three large-tap field-log buttons (Log harvest / Log water check / Log livestock move); each selects its module, opens the slide-up, and activates the matching map tool when one exists (`act.harvest.log-entry`). Color-keyed glyphs via `data-kind` (harvest:#8bd16a, water:#5fc7d4, livestock:#c9a05a). **Active-state class fix:** swapped `.moduleLink.active` / `.stageLink.active` / `.homeLink.active` compound CSS rules to `[data-active='true']` attribute selectors after observing the active module pill never rendered — vite's CSS-modules export doesn't reliably scope a class that only appears in compound selectors, so the JSX's `${css.active}` resolved to a literal unhashed `active` that didn't match the hashed `._moduleLink_xxx._active_xxx` rule. Switching to `data-active` attributes (consistent with the existing `.stageGroup[data-active='true']` pattern already on the same file) sidesteps the hashing question entirely. tsc clean (`NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit -p apps/web/tsconfig.json`). Plan file at `~/.claude/plans/the-act-stage-right-piped-bumblebee.md`.
+
+### Verification
+
+- `cd apps/web && tsc --noEmit` → exit 0, clean.
+- Preview `/v3/project/mtc/act` renders three rails in their intended shape: outer sidebar with Project Home + 3 collapsible stage groups (ACT expanded, modules listed); inner Quick Log strip; right Operations Hub dashboard.
+- Active module link (Build & Construction selected) now renders the sage-tinted pill that the rule always intended.
+
+### Deferred
+- Wiring "Create Field Task" / "Log Observation" / "RSVP" to real mutation paths (currently route to existing surfaces or `window.alert` stub).
+- Migrating Plan/Observe right-rails to dashboard format — Act is the execution stage; the others stay guidance-shaped on purpose.
+
+### Commit
+
+`07e0fd1 atlas/v3: Act ops aside + Built Environment dashboard WIP` on `feat/atlas-permaculture`.
+
+### Recommended next session
+
+- Wire `Create Field Task` / `Log Observation` to real store mutations rather than slide-up routing (currently the steward still has to fill the form by hand).
+- Audit the rest of the V3 codebase for the same `${css.active}`-on-compound-selector footgun (grep `\.\w+\.active` across `*.module.css`).
+
+---
+
+## 2026-05-08 — Act Waste routing empty-state copy fix
+
+Tiny UX fix. The Waste Routing Checklist's empty state in [WasteRoutingChecklistCard.tsx:74](apps/web/src/features/act/WasteRoutingChecklistCard.tsx:74) said "design them in PLAN → Waste Vectors", but the actual location is one level deeper — the Waste-to-resource vectors tab lives under the **Soil & fertility** module ([v3/plan/types.ts:167](apps/web/src/v3/plan/types.ts:167), mounted at [V3PlanPage.tsx:127](apps/web/src/v3/plan/V3PlanPage.tsx:127) and [PlanModuleSlideUp.tsx:149](apps/web/src/v3/plan/PlanModuleSlideUp.tsx:149)). Copy now reads "design them in PLAN → Soil & fertility → Waste-to-resource vectors." Preview-verified on the Maintenance & Operations slide-up Waste-routing tab.
+
+---
+
 ## 2026-05-08 — Plan rail completes Yeomans rank coverage (Guild + Structures & Subsystems)
 
 Closes two real gaps on the Plan rail. **Guild tool** added to Plant Systems: `polycultureStore` already defined `Guild.centroidUv` (added 2026-05-07) and `GuildSpatialBuilderCard` already composed members — but the rail had only `Crop area`. New `GuildTool.tsx` is a point tool that projects the dropped lng/lat against current map bounds into normalised parcel `[u, v]`, seeds a skeleton via `addGuild` (anchor empty, members empty), and exposes a 2-field popover (name + anchor species, filtered to canopy + sub-canopy from `PLANT_DATABASE`); members stay deferred to the slide-up which remains canonical. Cancel/ESC `removeGuild` rollback. **Structures & Subsystems** added as a 10th Plan module covering Yeomans rank 5 (Structures) + rank 6 (Subsystems) — one module not two because `structureStore` already mixes dwelling/civic/utility (cabin alongside solar_array/well/water_tank/compost_station/water_pump_house). One rail button (Structure) drops a point; `createFootprintPolygon(center, widthM, depthM, rotationDeg)` from `features/structures/footprints.ts` expands it via the type's template; popover surfaces `name + type (20-option grouped select) + phase + rotation`. Save recomputes the polygon for the chosen type so switching `type` updates the footprint; cancel `deleteStructure` rollback. Module slotted between `zone-circulation` and `livestock` (Yeomans 4 → 5/6 → 9 → 8 → 7); `PlanModuleBar` grid bumped from 9 to 10 columns; rail-dot `#a06b48` rank-5 clay. `PlanDataLayers` now reads `usePolycultureStore.guilds` (project `centroidUv` → lng/lat, stamp `yeomansRank: 8`, push to points + labels) and `useStructureStore.structures` (push `geometry` to polys + centroid label, stamp `yeomansRank: 5`); both recolour correctly via lens on/off. Rail now shows 10 modules in the order Yeomans demands: Layering · Water · Zones · Structures · Livestock · Plants · Soil · Cross-Section · Phasing · Principles. tsc clean (`NODE_OPTIONS=--max-old-space-size=8192`). Preview-confirmed: rail renders all 10 sections; Plant Systems shows `Crop area + Guild`; Structures section shows `Structure`; bottom navigator now 10-tile. ADRs `2026-05-08-atlas-plan-plant-guild-tool.md` and `2026-05-08-atlas-plan-module-structures-subsystems.md`.
@@ -8300,3 +9097,284 @@ drag-to-move on the Plan map, mirroring how sectors already work.
   Observe does for selected annotations.
 - Same as previous: fix `/plan` route crash
   (`PlanChecklistAside.tsx:148` missing `livestock` module guidance).
+
+## 2026-05-09 — Atlas Act stage: weather forecast + event calendar foundation
+
+### Brief
+
+The Act stage page lacked any weather presence and the right-rail
+"Upcoming Events" was a single-source teaser tied only to
+`communityEventStore`. Build a presentable weather forecast + a
+multi-source event calendar suitable for a future `schedule` module
+and a compact rail summary above `TodaysPriorities`.
+
+### Completed (shipped to disk)
+
+**Server — Open-Meteo forecast adapter**
+- `apps/api/src/services/climate/openMeteoForecastFetch.ts` — mirrors
+  `openMeteoWindFetch.ts`. Fetches `/v1/forecast` with hourly
+  (`temperature_2m`, `precipitation`, `precipitation_probability`,
+  `weather_code`, `wind_speed_10m`, `wind_direction_10m`) and daily
+  (`temperature_2m_max/min`, `precipitation_sum`,
+  `precipitation_probability_max`, `weather_code`,
+  `wind_speed_10m_max`, `sunrise`, `sunset`). 7-day window,
+  `timezone=auto`. No API key.
+- `apps/api/src/services/climate/forecastCache.ts` — Redis pattern from
+  `windRoseCache.ts`. Key `forecast:v1:${qLat}:${qLng}` quantized to
+  0.1°. **1h TTL** (forecast is live data, vs 30-day TTL for wind
+  climatology). 200ms read timeout, fire-and-forget write.
+- Route registered in `apps/api/src/routes/climate-analysis/index.ts`
+  as `GET /api/v1/climate-analysis/forecast?lat=X&lng=Y`. 502 /
+  `FORECAST_UNAVAILABLE` envelope on adapter failure.
+
+**Web client — types + hook + api wrapper**
+- `apps/web/src/lib/forecast/types.ts` — `ForecastHour`,
+  `ForecastDay`, `ForecastResult`, WMO `weatherCodeMeta()` lookup
+  (~30 codes → lucide icon + short label).
+- `apps/web/src/lib/forecast/useForecast.ts` — derives parcel
+  centroid via `turf.centroid()` from
+  `project.parcelBoundaryGeojson`, memoizes lat/lng to 4 decimals,
+  AbortController on unmount, returns `{ data, status }`.
+- `apps/web/src/lib/apiClient.ts` — adds `api.climateAnalysis.forecast(lat, lng, signal)`.
+
+**Implementation cards (lazy-loadable)**
+- `apps/web/src/features/act/WeatherForecastCard.tsx` (+ CSS) — current
+  conditions hero, 24-hour scroll strip, 7-day list with high/low
+  gradient + precip + peak wind, farm-signal chips (frost risk,
+  rainfall window, spray window), Open-Meteo source footer.
+- `apps/web/src/features/act/EventCalendarCard.tsx` (+ CSS) — custom
+  date-fns 7×6 month grid, prev/next + Today, source filter chips,
+  per-day color-coded dots (Tasks · Livestock · Harvest · Nursery ·
+  Community), click-day detail drawer, empty state.
+- `apps/web/src/features/act/useEventAggregator.ts` — pulls dated
+  entries from `communityEventStore`, `fieldTaskStore`,
+  `livestockMoveLogStore`, `harvestLogStore`, `nurseryStore`.
+  Returns `{ all, byDate }`. Phase milestones excluded (their
+  `timeframe` strings aren't anchored to calendar dates).
+
+**Rail panel (compact summary)**
+- `apps/web/src/v3/act/ops/WeatherStrip.tsx` (+ CSS) — single-row
+  panel: weather-code icon · current temp · today high/low · precip
+  badge if ≥40%. Frost overlay row when next-18h min ≤2°C. Click
+  triggers `onOpen` (intended to switch to `schedule` module + open
+  slide-up).
+
+### Wiring (Phase 3 + Phase 6)
+
+- `apps/web/src/v3/act/types.ts` — added `'schedule'` as the 7th
+  `ActModule`, with label "Schedule", full label "Operations Schedule",
+  `CalendarClock` icon, and `MODULE_CARDS.schedule = [{ Weather forecast,
+  act-weather-forecast }, { Event calendar, act-event-calendar }]`.
+- `apps/web/src/v3/act/ActModuleBar.{tsx,module.css}` — grid widened
+  to `repeat(7, 1fr)`; doc updated to "7-tile bottom navigator".
+- `apps/web/src/v3/act/ActModuleSlideUp.tsx` — lazy imports for
+  `WeatherForecastCard` + `EventCalendarCard`; switch-case extended
+  with `act-weather-forecast` / `act-event-calendar`.
+- `apps/web/src/v3/act/ops/ActOpsAside.tsx` — `<WeatherStrip>` mounted
+  above `TodaysPriorities`; new `openSchedule` callback selects the
+  schedule module and opens the slide-up; `onOpenSchedule` prop wired
+  through to `UpcomingEvents`.
+- `apps/web/src/v3/act/ops/UpcomingEvents.tsx` — refactored from
+  single-source `useCommunityEventStore` to `useEventAggregator`;
+  per-row source icons (Users / ListChecks / Beef / Sprout / Leaf);
+  "Schedule →" header link triggers `onOpenSchedule`.
+- `apps/web/src/v3/plan/PlanModuleBar.module.css` — Plan rail widened
+  to `repeat(11, 1fr)` so all 11 plan modules sit in one row (was
+  wrapping `PRINCIPLES` to a second line). Out of original scope but
+  shipped opportunistically with this session's verification.
+
+### Verification
+
+- `cd apps/web && npx tsc --noEmit` → exit 0
+- `cd apps/api && npx tsc --noEmit` → exit 0
+- `npm run lint` → exit 0
+- **Forecast endpoint live**: `curl
+  'http://127.0.0.1:3001/api/v1/climate-analysis/forecast?lat=44.50&lng=-78.20'`
+  → 200 with `data.hourly.length === 168` (7 d × 24 h),
+  `data.daily.length === 7`. `meta.cached === false` on second call
+  because Redis isn't running locally — silent no-op matches the
+  `windRoseCache.ts` precedent. The cache write/read path is in code;
+  full hit-on-second-call demo deferred until Redis is up.
+- **Preview (`/v3/project/mtc/act`)** — DOM probes confirmed:
+  - Right rail renders 5 panels in stable order: Weather · Today's
+    Priorities · Alerts · Upcoming Events · QuickActions.
+  - Bottom bar renders 7 act tiles (Build, Maintain, Livestock,
+    Harvest, Review, Network, **Schedule**).
+  - Clicking Schedule opens the slide-up titled "Operations Schedule"
+    with two tabs: "Weather forecast" and "Event calendar".
+  - Weather tab renders the no-parcel empty state ("Set a parcel
+    boundary to enable the local forecast.") because the MTC sample
+    project has no `boundary` yet — confirms graceful degradation.
+  - Calendar tab renders the May-2026 month grid, all five source
+    filter chips (Community · Tasks · Livestock · Harvest · Nursery),
+    day-detail drawer, and correct empty-state copy.
+- **Multi-source aggregator gate**: seeded one community event +
+  one field task into `localStorage` (projectId `mtc`) → reload →
+  UpcomingEvents rendered both rows with distinct source icons,
+  "Community / Task" labels, and `MMM d` formatted dates. Seeded
+  data cleared after.
+- **Plan rail single-row**: 11 plan-module tiles share one row top
+  (`distinctRowTops.length === 1`).
+- preview_screenshot timed out repeatedly (Mapbox renderer holds the
+  main thread); structural verification is via DOM probes, not pixels.
+
+### Deferred
+
+- Cache hit-on-second-call demo — needs Redis running locally.
+- Live forecast UI on a real parcel — only the no-parcel empty state
+  was exercised this session (MTC has no boundary yet).
+- Calendar week/agenda views — month grid only; week + agenda were
+  always out of scope per plan.
+
+### ADR
+
+`wiki/decisions/2026-05-09-atlas-act-schedule-weather-and-calendar.md`
+documents the Open-Meteo forecast addition, the schedule module, and
+the 5-store calendar aggregation contract.
+
+### Commit
+
+Committed on `feat/atlas-permaculture`. (See `git log` for hash.)
+
+### Recommended next session
+
+- Run the cache hit-on-second-call demo with Redis up.
+- Once a project has a parcel boundary, screenshot the live weather
+  card (current conditions + 24 h strip + 7-day list + farm-signal
+  chips: frost / rainfall window / spray window).
+- Optional: add week/agenda toggles to `EventCalendarCard`.
+
+## 2026-05-09 — Act affinity v1: pen-and-paper sanity review
+
+Sanity-checked the v1 project-type module-affinity table shipped earlier
+today (see `2026-05-09-atlas-act-operations-hub-project-type-aware-ranking.md`)
+against pen-and-paper steward-day walkthroughs for all six archetypes.
+Method per archetype: persona → 8–12-action peak-season day narrative
+tagged to Act modules → touch counts → derived ordering →
+v1 vs derived comparison (1-pos = noise, 2-pos = candidate revision,
+3+ = implausibly wrong) → confidence + recommendation. Findings:
+4/6 archetypes confirm v1 (regenerative_farm, retreat_center,
+educational_farm, conservation — conservation is the highest-confidence
+match); 2/6 surface candidate tweaks (homestead — promote `livestock`
+above `harvest`; multi_enterprise — promote `network` 3 positions, the
+biggest signal in the review). The review recommends shipping nothing
+today and deferring tweaks until real-steward telemetry exists, since
+pen-and-paper personas can't distinguish "wrong v1" from "wrong
+persona." Also flagged the Schedule-module gap: the `'schedule'`
+`ActModule` exists in `types.ts` but is absent from the affinity
+table, so any `module: 'schedule'` row currently sinks to the bottom
+for every type via `Number.POSITIVE_INFINITY`. Recommended adding a
+doc-comment in `projectTypeModuleAffinity.ts` explaining the
+omission rather than ranking it. ADR:
+`wiki/decisions/2026-05-09-atlas-act-affinity-v1-sanity-review.md`.
+Cross-link appended to the v1 ADR. **No code changes** this session —
+review only.
+
+### Atlas Act/Schedule — EventCalendarCard week + agenda views
+
+Follow-up to the 2026-05-09 schedule decision (ADR
+`2026-05-09-atlas-act-schedule-weather-and-calendar.md`). The Schedule
+module shipped month-only; this iteration adds Week and Agenda toggles
+on `EventCalendarCard.tsx` so an operator can pick the time window
+that matches the question they're asking.
+
+Added `type CalendarViewMode = 'month' | 'week' | 'agenda'` (local to
+the component), a `viewMode` `useState`, and a 3-button toggle row
+that reuses the existing `.filterChip` styling alongside the source
+filter chips. Header label, prev/next handlers, and the rendered
+panel branch on `viewMode`:
+
+- **Month** — unchanged 7×6 `date-fns` grid with the existing
+  DayDetail drawer.
+- **Week** — single column of 7 day cards from
+  `startOfWeek(anchor)` → `endOfWeek(anchor)` (Sunday start, matching
+  the month grid). ←/→ controls step `addWeeks(±1)`. Each card shows
+  `EEE · MMM d`, the same colored source dots / overflow count, and
+  `—` when empty. Clicking a card sets `selectedDay` and renders the
+  same DayDetail drawer below.
+- **Agenda** — derives `agendaDays` (next 14 days from
+  `startOfDay(today)`) and renders one `DayDetail` block per
+  non-empty day, or "No upcoming entries in the next 14 days. Toggle
+  filters or extend the window." when none exist. Prev/next disabled
+  in this mode (window is fixed to "next 14 days"). The header label
+  reads "Next 14 days" instead of a month/week range.
+
+Source filter chips (`activeSources: Set<CalendarSource>`) and
+`filteredByDate` are unchanged — both new modes consume the same
+filtered map. `selectedDay` survives mode switches.
+
+CSS additions in `EventCalendarCard.module.css`: `.viewToggle`
+(toggle row), `.weekStrip` + `.weekCell` + `.weekCellLabel` /
+`.weekCellRight` / `.weekCellEmpty` (Week column), `.agendaList`
++ `.agendaDay` (Agenda stack). Reuses `.cellToday`, `.cellSelected`,
+`.cellDots`, `.cellOverflow`, `.dayDetail`, and the dot palette.
+
+**Verification.** `apps/web npx tsc --noEmit` clean (exit 0). DOM
+probes against /v3/project/mtc/act/schedule with the slide-up open
+on the Event-calendar tab confirmed:
+- Toggle row renders with 3 buttons; exactly one carries
+  `aria-pressed="true"` at any time.
+- **Month** → 42 cells in `[class*="_grid_"]`.
+- **Week** → 7 buttons in `[class*="_weekStrip_"]`; header reads
+  `May 3 – May 9, 2026`.
+- **Agenda** → `[class*="_agendaList_"]` present; "No upcoming
+  entries" empty-state visible (mtc has no dated stores seeded);
+  header reads "Next 14 days".
+- Switching `Week → Agenda → Month` round-trips back to a 42-cell
+  grid; `aria-pressed` flag tracks the active mode at every step.
+
+**Deferred.** Phases A (Redis cache `meta.cached: true` demo) and B
+(live forecast UI screenshot on a parcel-bearing project) remain
+runtime/environment work — Redis container not running locally,
+Mapbox renderer is the screenshot blocker. Both are documented in
+the follow-up plan
+(`.claude/plans/the-act-stage-page-declarative-ullman.md`) and can
+land in a session that brings up Docker. No new ADR — this is a
+continuation of the existing schedule decision.
+
+## 2026-05-10 — Atlas Plan: guild template picker on popover + slide-up
+
+**Objective.** When a steward edits an already-placed guild — either
+via the map popover or the Plant-Systems slide-up — they should be
+able to apply a premade guild template (Apple guild, Nitrogen
+pioneer, 7-layer food forest, Pollinator edge) in one click, instead
+of re-placing the guild or composing layers manually. The
+first-placement picker on `GuildTool.tsx` had been live since
+2026-05-09; this session extends parity to edit surfaces.
+
+**Source picker (already in place from 20879ef).**
+- [`apps/web/src/data/guildPresets.ts`](../apps/web/src/data/guildPresets.ts) — `GuildPreset` type, 4 starter presets, `resolveValidPresets()` + `findGuildPreset()` with warn-and-drop on missing species IDs.
+- [`apps/web/src/data/__tests__/guildPresets.test.ts`](../apps/web/src/data/__tests__/guildPresets.test.ts) — 9/9 vitest cases for resolution + member-layer integrity.
+- [`GuildTool.tsx`](../apps/web/src/v3/plan/draw/tools/GuildTool.tsx) — `preset` field above name/anchor; `lastAutofilled` scratchpad preserves manual edits across preset switches; `onSave` writes `members` + optional `notes`.
+- [`InlineFeaturePopover.tsx`](../apps/web/src/v3/plan/draw/InlineFeaturePopover.tsx) — adopts the "store info from previous render" pattern + reactive `onValuesChange` so preset-autofill patches don't lose to a stale `useEffect` reset.
+
+**Edit-surface parity (this session's incremental — see ADR
+[2026-05-10-atlas-plan-guild-template-picker-on-popover](decisions/2026-05-10-atlas-plan-guild-template-picker-on-popover.md)).**
+- `buildGuildEditSchema()` in `inlineEditSchemas.ts` now exposes
+  `preset, name, anchorSpeciesId, notes`. Picking a preset patches
+  `name` + `anchorSpeciesId` only when untouched; `onSave` overwrites
+  `members`; `preset.notes` is written only when the steward did not
+  type a custom note.
+- `GuildSpatialBuilderCard.tsx` adds an "Apply template" select
+  beside the existing "Switch guild" select — wholesale apply of
+  `name` + `anchorSpeciesId` + `members`; resets to blank after apply
+  so re-picking the same template re-fires.
+
+**Side-fix.** `PlanChecklistAside.tsx`'s `PLAN_MODULE_GUIDANCE` was
+missing the `machinery` entry, which crashed `<GuidanceCard>` once
+machinery became a first-class module (commit ffde429). Added the
+entry — Yeomans rank 4 (Access) framing with Mollison ch.5 +
+Yeomans (*Water for Every Farm*) refs.
+
+**Verification.**
+- `cd apps/web && npx tsc --noEmit` → exit 0.
+- `cd apps/web && npx vitest run src/data/__tests__/guildPresets.test.ts` → 9/9.
+- Preview at `/v3/project/mtc/plan` loads cleanly; all 11 modules
+  render in the right rail; toolset rail exposes the Guild button.
+- Visual screenshot of popover-open + populated
+  `GuildSpatialBuilderCard` deferred — MapboxDraw subscribes to
+  native pointer events, and synthetic events through `preview_eval`
+  can't drive `draw_point` mode. A real pointer click on the canvas
+  is required for that proof.
+
+**Deferred.** Manual map-click screenshot for visual sign-off.

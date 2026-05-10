@@ -28,7 +28,7 @@ User archetypes served:
 
 - **Land steward / operator** — wants a verdict and a next move.
 - **Designer** — wants spatial design tools without re-orienting through metadata.
-- **Investor / partner** — wants a one-page deliverable on demand.
+- **Capital partner / ally** — wants a one-page deliverable on demand.
 - **Field user (mobile)** — wants the verdict, the blockers, and the ability to capture notes and photos outdoors.
 
 ---
@@ -77,7 +77,7 @@ Paddocks · Planting · Forestry · Water Systems · Infrastructure
 Economics · Scenarios · Timeline · Biomass
 
 ### Stage 5 — Prepare the Report
-Public Portal · Investor Summary · Export
+Public Portal · Capital Partner Summary · Export
 
 ### Mapping table — current taxonomy → new stages
 

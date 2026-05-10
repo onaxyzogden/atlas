@@ -7,6 +7,7 @@ export * from './schemas/template.schema.js';
 export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
 export * from './schemas/designFeature.schema.js';
+export * from './schemas/machineryItem.schema.js';
 export * from './schemas/file.schema.js';
 export * from './schemas/export.schema.js';
 export * from './schemas/portal.schema.js';
@@ -43,6 +44,7 @@ export * from './schemas/section27.schema.js';
 export * from './schemas/section28.schema.js';
 export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
+export * from './schemas/actTelemetry.schema.js';
 
 // Utilities
 export * from './lib/caseTransform.js';

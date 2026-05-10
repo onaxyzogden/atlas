@@ -25,10 +25,13 @@ import {
   useLivestockStore,
   type FenceType,
   type LivestockSpecies,
+  type PastureQuality,
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -57,6 +60,13 @@ const FENCE_OPTIONS: { value: FenceType; label: string }[] = [
   { value: 'none',        label: 'None' },
 ];
 
+const PASTURE_QUALITY_OPTIONS: { value: PastureQuality; label: string }[] = [
+  { value: 'poor',      label: 'Poor (~0.7 AUE/ha)' },
+  { value: 'fair',      label: 'Fair (~1.2 AUE/ha)' },
+  { value: 'good',      label: 'Good (~2.5 AUE/ha)' },
+  { value: 'excellent', label: 'Excellent (3.7+ AUE/ha)' },
+];
+
 // Per-species fill colour. Ruminants on warm clay tones; mono-gastrics on
 // cooler greys; poultry/waterfowl on amber; bees on gold.
 const SPECIES_COLOR: Record<LivestockSpecies, string> = {
@@ -76,6 +86,8 @@ export default function PaddockTool({ map, projectId }: Props) {
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
   const deletePaddock = useLivestockStore((s) => s.deletePaddock);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Polygon>({
     map,
@@ -101,7 +113,7 @@ export default function PaddockTool({ map, projectId }: Props) {
         guestSafeBuffer: false,
         waterPointNote: '',
         shelterNote: '',
-        phase: 'Phase 1',
+        phase: phaseDefault,
         notes: '',
         createdAt: now,
         updatedAt: now,
@@ -132,23 +144,45 @@ export default function PaddockTool({ map, projectId }: Props) {
             kind: 'text',
             placeholder: 'e.g. 12',
           },
+          {
+            key: 'pastureQuality',
+            label: 'Pasture quality',
+            kind: 'select',
+            options: [
+              { value: '', label: '— not assessed —' },
+              ...PASTURE_QUALITY_OPTIONS,
+            ],
+          },
+          phaseField,
+          enterpriseField,
         ],
         initial: {
           name: 'Paddock',
           species,
           fencing: 'electric',
           stockingDensity: '',
+          pastureQuality: '',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
         },
         onSave: (values) => {
           const sp = values.species as LivestockSpecies;
           const raw = String(values.stockingDensity ?? '').trim();
           const density = raw === '' ? null : Number.isFinite(Number(raw)) ? Number(raw) : null;
+          const pqRaw = String(values.pastureQuality ?? '').trim();
+          const pq: PastureQuality | undefined =
+            pqRaw === 'poor' || pqRaw === 'fair' || pqRaw === 'good' || pqRaw === 'excellent'
+              ? pqRaw
+              : undefined;
           updatePaddock(id, {
             name: String(values.name ?? 'Paddock'),
             color: SPECIES_COLOR[sp] ?? SPECIES_COLOR.sheep,
             species: [sp],
             fencing: values.fencing as FenceType,
             stockingDensity: density,
+            pastureQuality: pq,
+            phase: String(values.phase ?? ''),
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => deletePaddock(id),

@@ -241,7 +241,7 @@ export default function PresentationDeckCard({ project }: PresentationDeckCardPr
                     : '.'}
                 </p>
                 <ul className={css.bullets}>
-                  <li><strong>Capital partners</strong><span className={css.bulletMeta}>CSRA members or values-aligned investors.</span></li>
+                  <li><strong>Capital partners & allies</strong><span className={css.bulletMeta}>Charitable donation, restricted donation, qarḍ ḥasan, in-kind contribution, or sponsorship.</span></li>
                   <li><strong>Operational partners</strong><span className={css.bulletMeta}>Stewards, educators, or enterprise leads for each revenue stream.</span></li>
                   <li><strong>Next concrete step</strong><span className={css.bulletMeta}>Site visit, due-diligence pack review, or letter of intent.</span></li>
                 </ul>

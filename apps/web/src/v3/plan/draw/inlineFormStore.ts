@@ -47,6 +47,21 @@ export interface InlineFormPayload {
   onSave: (values: Record<string, string | number>) => void;
   /** Caller's discard handler. */
   onCancel: () => void;
+  /**
+   * Optional reactive hook fired after a single field changes. Returns a
+   * patch (partial values map) that will be merged into the form state, or
+   * void / null for no patch. Used by tools whose fields cross-fill — e.g.
+   * GuildTool's preset selector autofilling `name` + `anchorSpeciesId`.
+   *
+   * The hook receives the *next* values (post-change) and the *prev* values
+   * (pre-change), and the key + new value of the field that changed. Patch
+   * keys must be present in the form's `fields` spec.
+   */
+  onValuesChange?: (
+    next: Record<string, string | number>,
+    prev: Record<string, string | number>,
+    changed: { key: string; value: string | number },
+  ) => Partial<Record<string, string | number>> | void | null;
 }
 
 interface InlineFormState {

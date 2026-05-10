@@ -13,6 +13,7 @@ import {
   Sprout,
   Shield,
   Users,
+  CalendarClock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -22,7 +23,8 @@ export type ActModule =
   | 'livestock'
   | 'harvest'
   | 'review'
-  | 'network';
+  | 'network'
+  | 'schedule';
 
 export const ACT_MODULES: ActModule[] = [
   'build',
@@ -31,6 +33,7 @@ export const ACT_MODULES: ActModule[] = [
   'harvest',
   'review',
   'network',
+  'schedule',
 ];
 
 export function isActModule(s: string): s is ActModule {
@@ -44,6 +47,7 @@ export const ACT_MODULE_LABEL: Record<ActModule, string> = {
   harvest:   'Harvest',
   review:    'Review',
   network:   'Network',
+  schedule:  'Schedule',
 };
 
 export const ACT_MODULE_ICON: Record<ActModule, LucideIcon> = {
@@ -53,6 +57,7 @@ export const ACT_MODULE_ICON: Record<ActModule, LucideIcon> = {
   harvest:   Sprout,
   review:    Shield,
   network:   Users,
+  schedule:  CalendarClock,
 };
 
 export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
@@ -62,6 +67,7 @@ export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
   harvest:   'Harvest & Succession',
   review:    'Review & Risk',
   network:   'Network & Community',
+  schedule:  'Operations Schedule',
 };
 
 /** Each module maps to one or more act card section IDs. */
@@ -89,6 +95,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
   ],
   harvest: [
     { label: 'Harvest log',        sectionId: 'act-harvest-log' },
+    { label: 'Structure yield',    sectionId: 'act-structure-yield' },
     { label: 'Succession tracker', sectionId: 'act-succession' },
   ],
   review: [
@@ -99,5 +106,9 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
     { label: 'Network CRM',       sectionId: 'act-network-crm' },
     { label: 'Community events',  sectionId: 'act-community-event' },
     { label: 'Appropriate tech',  sectionId: 'act-appropriate-tech' },
+  ],
+  schedule: [
+    { label: 'Weather forecast',  sectionId: 'act-weather-forecast' },
+    { label: 'Event calendar',    sectionId: 'act-event-calendar' },
   ],
 };

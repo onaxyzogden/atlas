@@ -7,12 +7,14 @@ import { MAPLIBRE_DRAW_STYLES } from '../draw/mapboxDrawStyles.js';
 
 interface Props {
   map: MaplibreMap;
+  /** Existing persisted polygon — when present, tool opens in edit (direct_select) mode. */
+  existing?: GeoJSON.Polygon | null;
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
 }
 
-export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
+export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) {
   const drawRef = useRef<MapboxDraw | null>(null);
-  const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(null);
+  const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(existing ?? null);
   // Stash latest onBoundaryDrawn so the effect does not re-init the draw
   // control every time the parent re-renders (ObserveLayout creates a new
   // inline arrow function on every render, which would otherwise cause
@@ -21,6 +23,8 @@ export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
   useEffect(() => {
     onBoundaryDrawnRef.current = onBoundaryDrawn;
   }, [onBoundaryDrawn]);
+  // Snapshot existing at mount time so re-renders don't re-init the control.
+  const existingRef = useRef(existing);
 
   useEffect(() => {
     const draw = new MapboxDraw({
@@ -29,7 +33,22 @@ export default function BoundaryTool({ map, onBoundaryDrawn }: Props) {
       styles: MAPLIBRE_DRAW_STYLES,
     });
     map.addControl(draw);
-    draw.changeMode('draw_polygon');
+    const seed = existingRef.current;
+    if (seed) {
+      const ids = draw.add({
+        type: 'Feature',
+        properties: {},
+        geometry: seed,
+      });
+      const featureId = ids[0];
+      if (featureId) {
+        draw.changeMode('direct_select', { featureId });
+      } else {
+        draw.changeMode('draw_polygon');
+      }
+    } else {
+      draw.changeMode('draw_polygon');
+    }
     drawRef.current = draw;
 
     const onChange = () => {

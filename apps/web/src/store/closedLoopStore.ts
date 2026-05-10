@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 // ── Waste-to-resource vectors ───────────────────────────────────────────────
 
@@ -72,6 +73,17 @@ export interface FertilityInfra {
   /** Optional capacity / scale note (e.g. "3 m³ pile"). */
   scaleNote?: string;
   notes?: string;
+  /**
+   * PLAN-stage Module 9 — phaseStore phase id this fertility node belongs
+   * to. Optional; undefined = unassigned. Lets the Phasing dashboard
+   * sequence soil-building infrastructure by build phase.
+   */
+  phase?: string;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * fertility unit belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
   createdAt: string;
 }
 
@@ -94,26 +106,30 @@ interface ClosedLoopState {
 
 export const useClosedLoopStore = create<ClosedLoopState>()(
   persist(
-    (set) => ({
-      wasteVectors: [],
-      wasteVectorRuns: [],
-      fertilityInfra: [],
+    temporal(
+      (set) => ({
+        wasteVectors: [],
+        wasteVectorRuns: [],
+        fertilityInfra: [],
 
-      addWasteVector: (v) => set((s) => ({ wasteVectors: [...s.wasteVectors, v] })),
-      updateWasteVector: (id, patch) =>
-        set((s) => ({ wasteVectors: s.wasteVectors.map((v) => (v.id === id ? { ...v, ...patch } : v)) })),
-      removeWasteVector: (id) => set((s) => ({ wasteVectors: s.wasteVectors.filter((v) => v.id !== id) })),
+        addWasteVector: (v) => set((s) => ({ wasteVectors: [...s.wasteVectors, v] })),
+        updateWasteVector: (id, patch) =>
+          set((s) => ({ wasteVectors: s.wasteVectors.map((v) => (v.id === id ? { ...v, ...patch } : v)) })),
+        removeWasteVector: (id) =>
+          set((s) => ({ wasteVectors: s.wasteVectors.filter((v) => v.id !== id) })),
 
-      addWasteVectorRun: (r) => set((s) => ({ wasteVectorRuns: [...s.wasteVectorRuns, r] })),
-      removeWasteVectorRun: (id) =>
-        set((s) => ({ wasteVectorRuns: s.wasteVectorRuns.filter((r) => r.id !== id) })),
+        addWasteVectorRun: (r) => set((s) => ({ wasteVectorRuns: [...s.wasteVectorRuns, r] })),
+        removeWasteVectorRun: (id) =>
+          set((s) => ({ wasteVectorRuns: s.wasteVectorRuns.filter((r) => r.id !== id) })),
 
-      addFertilityInfra: (i) => set((s) => ({ fertilityInfra: [...s.fertilityInfra, i] })),
-      updateFertilityInfra: (id, patch) =>
-        set((s) => ({ fertilityInfra: s.fertilityInfra.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
-      removeFertilityInfra: (id) =>
-        set((s) => ({ fertilityInfra: s.fertilityInfra.filter((i) => i.id !== id) })),
-    }),
+        addFertilityInfra: (i) => set((s) => ({ fertilityInfra: [...s.fertilityInfra, i] })),
+        updateFertilityInfra: (id, patch) =>
+          set((s) => ({ fertilityInfra: s.fertilityInfra.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
+        removeFertilityInfra: (id) =>
+          set((s) => ({ fertilityInfra: s.fertilityInfra.filter((i) => i.id !== id) })),
+      }),
+      { limit: 200 },
+    ),
     { name: 'ogden-closed-loop', version: 1 },
   ),
 );

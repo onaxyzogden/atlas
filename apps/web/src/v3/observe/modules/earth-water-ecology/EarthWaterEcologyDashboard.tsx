@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import {
-  ArrowRight,
   Beaker,
   Binoculars,
   CalendarDays,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
-import { useDetailNav } from '../../components/ModuleSlideUp.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
@@ -197,14 +195,10 @@ interface SoilCardProps {
 }
 
 function SoilDiagnosticsCard({ samples }: SoilCardProps) {
-  const nav = useDetailNav();
   return (
     <SurfaceCard className="diagnostic-panel soil-panel">
       <header className="panel-header">
         <h2>Soil diagnostics</h2>
-        <button className="outlined-button" type="button" onClick={() => nav.push('jar-perc-roof')}>
-          View all tests <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="soil-row-list">
         {samples.length === 0 ? (
@@ -237,14 +231,10 @@ interface HydrologyCardProps {
 }
 
 function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
-  const nav = useDetailNav();
   return (
     <SurfaceCard className="diagnostic-panel hydrology-panel">
       <header className="panel-header">
         <h2>Hydrology overview</h2>
-        <button className="outlined-button" type="button" onClick={() => nav.push('hydrology')}>
-          Details <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="hydrology-layout">
         <dl>
@@ -282,15 +272,11 @@ interface EcologyCardProps {
 }
 
 function EcologyCard({ observations, boundary, caption }: EcologyCardProps) {
-  const nav = useDetailNav();
   const tabs = ['All', 'Flora', 'Fauna', 'Fungi'];
   return (
     <SurfaceCard className="diagnostic-panel ecology-panel">
       <header className="panel-header">
         <h2>Ecology observations</h2>
-        <button className="outlined-button" type="button" onClick={() => nav.push('ecological')}>
-          View all species <ArrowRight aria-hidden="true" />
-        </button>
       </header>
       <div className="species-tabs">
         {tabs.map((tab, index) => (

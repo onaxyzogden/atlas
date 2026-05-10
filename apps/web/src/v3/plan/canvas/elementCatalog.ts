@@ -14,11 +14,13 @@ import {
   Droplets,
   Flame,
   Footprints,
+  Fuel,
   Home,
   LandPlot,
   Leaf,
   ParkingSquare,
   Recycle,
+  RotateCw,
   Route,
   Sprout,
   Tent,
@@ -37,6 +39,7 @@ export type DesignCategory =
   | 'access'
   | 'grazing'
   | 'structure'
+  | 'machinery'
   | 'amenity';
 
 export interface DesignElementSpec {
@@ -69,6 +72,7 @@ const COLORS = {
   grazingSilvo: '#5a9a6a',
   grazingMix: '#a5c47a',
   structure: '#a85a3f',
+  machinery: '#6a6a6a',
   amenity: '#c4a265',
   amenityFire: '#c87a3f',
   amenityCompost: '#6a5a4a',
@@ -93,6 +97,16 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'greenhouse', category: 'structure', label: 'Greenhouse', icon: Home,      geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.structure },
       { kind: 'barn',       category: 'structure', label: 'Barn',       icon: Building2, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.structure },
       { kind: 'shed',       category: 'structure', label: 'Shed',       icon: Warehouse, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.structure },
+    ],
+  },
+  {
+    key: 'machinery',
+    label: 'Machinery & Equipment',
+    elements: [
+      { kind: 'machinery-shed', category: 'machinery', label: 'Machinery Shed', icon: Warehouse,     geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.machinery },
+      { kind: 'equipment-yard', category: 'machinery', label: 'Equipment Yard', icon: ParkingSquare, geometry: 'polygon', drawMode: 'draw_polygon', phase: 'buildings', color: COLORS.machinery },
+      { kind: 'fuel-station',   category: 'machinery', label: 'Fuel Station',   icon: Fuel,          geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.machinery },
+      { kind: 'turnaround',     category: 'machinery', label: 'Turnaround',     icon: RotateCw,      geometry: 'polygon', drawMode: 'draw_polygon', phase: 'access',    color: COLORS.machinery },
     ],
   },
   {

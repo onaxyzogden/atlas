@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 
 export type CropAreaType = 'orchard' | 'row_crop' | 'garden_bed' | 'food_forest' | 'windbreak' | 'shelterbelt' | 'silvopasture' | 'nursery' | 'market_garden' | 'pollinator_strip';
 
@@ -40,6 +41,11 @@ export interface CropArea {
   irrigationMode?: 'active' | 'transitioning' | 'passive';
   /** ISO date when the steward began the active→passive transition. */
   transitionStartDate?: string;
+  /**
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * crop area belongs to. Optional; undefined = unassigned.
+   */
+  enterprise?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,20 +60,24 @@ interface CropState {
 
 export const useCropStore = create<CropState>()(
   persist(
-    (set) => ({
-      cropAreas: [],
+    temporal(
+      (set) => ({
+        cropAreas: [],
 
-      addCropArea: (area) => set((s) => ({ cropAreas: [...s.cropAreas, area] })),
+        addCropArea: (area) => set((s) => ({ cropAreas: [...s.cropAreas, area] })),
 
-      updateCropArea: (id, updates) =>
-        set((s) => ({
-          cropAreas: s.cropAreas.map((c) =>
-            c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c,
-          ),
-        })),
+        updateCropArea: (id, updates) =>
+          set((s) => ({
+            cropAreas: s.cropAreas.map((c) =>
+              c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c,
+            ),
+          })),
 
-      deleteCropArea: (id) => set((s) => ({ cropAreas: s.cropAreas.filter((c) => c.id !== id) })),
-    }),
+        deleteCropArea: (id) =>
+          set((s) => ({ cropAreas: s.cropAreas.filter((c) => c.id !== id) })),
+      }),
+      { limit: 200 },
+    ),
     { name: 'ogden-crops', version: 1 },
   ),
 );

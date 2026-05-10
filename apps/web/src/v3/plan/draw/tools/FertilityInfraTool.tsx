@@ -32,6 +32,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -56,6 +58,8 @@ export default function FertilityInfraTool({ map, projectId }: Props) {
   const updateFertilityInfra = useClosedLoopStore((s) => s.updateFertilityInfra);
   const removeFertilityInfra = useClosedLoopStore((s) => s.removeFertilityInfra);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
@@ -72,6 +76,7 @@ export default function FertilityInfraTool({ map, projectId }: Props) {
         center: anchor,
         scaleNote: '',
         notes: '',
+        phase: phaseDefault || undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -92,12 +97,21 @@ export default function FertilityInfraTool({ map, projectId }: Props) {
             kind: 'text',
             placeholder: 'e.g. 3 m³ pile',
           },
+          phaseField,
+          enterpriseField,
         ],
-        initial: { type, scaleNote: '' },
+        initial: {
+          type,
+          scaleNote: '',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
+        },
         onSave: (values) => {
           updateFertilityInfra(id, {
             type: values.type as FertilityInfraType,
             scaleNote: String(values.scaleNote ?? '').trim() || undefined,
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => removeFertilityInfra(id),

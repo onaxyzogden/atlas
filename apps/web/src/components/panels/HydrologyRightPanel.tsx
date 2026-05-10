@@ -394,8 +394,8 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
         censusIncome:         censusDemog?.median_income_usd ?? null,
         censusAge:            censusDemog?.median_age ?? null,
         censusCounty:         censusDemog?.county_name ?? null,
-        // CSRA suitability rating derived from census fields
-        csraSuitability:      (() => {
+        // Community suitability rating derived from census fields
+        communitySuitability:      (() => {
           const rc = (censusDemog?.rural_class ?? '').toString().toLowerCase();
           const inc = Number(censusDemog?.median_income_usd ?? 0);
           const age = Number(censusDemog?.median_age ?? 0);
@@ -814,13 +814,13 @@ function RealtimePanel({ live, metrics, isLoading }: {
               <DataRow label="County"
                 value={live.censusCounty} />
             )}
-            {live.csraSuitability && (
-              <DataRow label="CSRA Suitability"
-                value={live.csraSuitability}
-                note="Community-Supported Regenerative Agriculture"
+            {live.communitySuitability && (
+              <DataRow label="Community Suitability"
+                value={live.communitySuitability}
+                note="Community-rooted regenerative agriculture fit"
                 color={
-                  live.csraSuitability === 'Excellent' ? confidence.high
-                    : live.csraSuitability === 'Good' ? confidence.medium
+                  live.communitySuitability === 'Excellent' ? confidence.high
+                    : live.communitySuitability === 'Good' ? confidence.medium
                     : confidence.low
                 } />
             )}
@@ -1030,7 +1030,7 @@ function buildLive() { return null as unknown as {
   cdlCropName: string | null; cdlLandUse: string | null; cdlIsAgricultural: boolean; cdlYear: number | null;
   aqPm25: number | null; aqOzone: number | null; aqNatlPct: number | null; aqClass: string | null;
   quakePga: number | null; quakeSs: number | null; quakeClass: string | null;
-  censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null; csraSuitability: string | null; soilKfact: number | null;
+  censusRuralClass: string | null; censusPopDensity: number | null; censusIncome: number | null; censusAge: number | null; censusCounty: string | null; communitySuitability: string | null; soilKfact: number | null;
   proxMasjidKm: number | null; proxMasjidName: string | null; proxMarketKm: number | null; proxMarketName: string | null; proxTownKm: number | null; proxTownName: string | null;
   meanSlopeDeg: number | null; minElevM: number | null; maxElevM: number | null;
   biomassGjHa: number; microhydroKw: number;

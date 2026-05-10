@@ -240,7 +240,7 @@ export default function AdaptiveDecisionRail({ project }: AdaptiveDecisionRailPr
           <section className={css.section}>
             <h4 className={css.sectionTitle}>Report</h4>
             <p className={css.placeholderBody}>
-              Investor summary and export readiness will surface here.
+              Capital partner summary and export readiness will surface here.
             </p>
           </section>
         );

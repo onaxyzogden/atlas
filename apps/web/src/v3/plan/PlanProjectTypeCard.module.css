@@ -1,0 +1,119 @@
+/* PlanProjectTypeCard — top-of-rail project-type template checklist.
+   Reuses the shared GuidanceCard structure visually (border, dot, blockLabel)
+   and exposes its own picker + item list. Dot color flows through the
+   `--group-dot` variable set inline by the .tsx. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  --group-dot: var(--color-text-muted);
+  border-color: color-mix(in srgb, var(--group-dot) 45%, var(--color-border));
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--group-dot) 25%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--group-dot);
+  flex: 0 0 8px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.picker {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid color-mix(in srgb, var(--group-dot) 35%, var(--color-border));
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+}
+
+.picker:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--group-dot) 70%, var(--color-border));
+  outline-offset: 1px;
+}
+
+.empty {
+  margin: 4px 0 0;
+  padding: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--group-dot) 8%, var(--color-bg));
+  border: 1px dashed
+    color-mix(in srgb, var(--group-dot) 30%, var(--color-border));
+  border-radius: var(--radius-sm, 6px);
+  font-style: italic;
+}
+
+.placeholder {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Per-item module-jump chips. One chip per relatedWork entry on a
+   project-type checklist item; clicking selects that module and opens
+   the slide-up. Module dot colour flows through `--module-dot` set
+   inline by the .tsx. */
+.relatedWorkChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 0 22px;
+}
+
+.relatedWorkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--module-dot) 12%, var(--color-bg));
+  color: color-mix(in srgb, var(--module-dot) 80%, var(--color-text));
+  border: 1px solid color-mix(in srgb, var(--module-dot) 35%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.relatedWorkChip:hover {
+  background: color-mix(in srgb, var(--module-dot) 22%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--module-dot) 60%, transparent);
+}
+
+.relatedWorkChip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--module-dot) 70%, var(--color-border));
+  outline-offset: 1px;
+}

@@ -62,7 +62,7 @@ const SECTION_FRAMING: Record<PortalSection, SectionFraming> = {
     stewardship:
       'A transparency surface. The steward shows the land as it is, including the unfinished and the not-yet-planted, not just the photogenic corners.',
     nudge:
-      'Does the map view masking hide problems, or just protect privacy? If a CSRA member asked "what aren\u2019t I being shown?", could you answer plainly?',
+      'Does the map view masking hide problems, or just protect privacy? If a capital partner asked "what aren\u2019t I being shown?", could you answer plainly?',
   },
   stageReveal: {
     label: 'Phase Reveal Story',

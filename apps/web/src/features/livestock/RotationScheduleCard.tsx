@@ -13,6 +13,12 @@
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import {
+  useLivestockMoveLogStore,
+  eventsByPaddock,
+  type LivestockMoveEvent,
+  type LivestockMoveDirection,
+} from '../../store/livestockMoveLogStore.js';
+import {
   computeRecoveryStatus,
   computeRotationSchedule,
   type RecoveryStatus,
@@ -48,6 +54,18 @@ const STATUS_LABEL: Record<RecoveryStatus['status'], string> = {
   ready: 'Ready',
   overdue: 'Overdue',
 };
+
+const DIRECTION_LABEL: Record<LivestockMoveDirection, string> = {
+  move_in: 'Move in',
+  move_out: 'Move out',
+  rotate_through: 'Rotate through',
+};
+
+function formatLoggedDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 function formatTargetDate(d: Date): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -87,6 +105,15 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
   );
+
+  const allEvents = useLivestockMoveLogStore((s) => s.events);
+  const eventsByPaddockId = useMemo(() => {
+    const map = new Map<string, LivestockMoveEvent[]>();
+    for (const p of paddocks) {
+      map.set(p.id, eventsByPaddock(allEvents, projectId, p.id));
+    }
+    return map;
+  }, [allEvents, paddocks, projectId]);
 
   const moves = useMemo(() => projectMoves(paddocks), [paddocks]);
 
@@ -226,6 +253,40 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                           : `${m.daysUntilReady} day${m.daysUntilReady === 1 ? '' : 's'} \u2014 target ${formatTargetDate(m.targetDate)}`}
                       </span>
                     </div>
+
+                    {(() => {
+                      const events = eventsByPaddockId.get(m.paddockId) ?? [];
+                      return (
+                        <div className={css.loggedMovesSection}>
+                          <div className={css.loggedMovesHeading}>Logged moves</div>
+                          {events.length === 0 ? (
+                            <div className={css.loggedMoveEmpty}>
+                              No moves logged for this paddock yet.
+                            </div>
+                          ) : (
+                            events.map((ev) => (
+                              <div key={ev.id} className={css.loggedMoveRow}>
+                                <div className={css.loggedMoveDirection}>
+                                  <b>{DIRECTION_LABEL[ev.direction]}</b>
+                                  <span>
+                                    {formatLoggedDate(ev.date)}
+                                    {' \u00b7 '}
+                                    {ev.species}
+                                    {ev.headCount != null
+                                      ? ` \u00b7 ${ev.headCount} head`
+                                      : ''}
+                                    {ev.who ? ` \u00b7 ${ev.who}` : ''}
+                                  </span>
+                                </div>
+                                {ev.notes ? (
+                                  <div className={css.loggedMoveMeta}>{ev.notes}</div>
+                                ) : null}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}

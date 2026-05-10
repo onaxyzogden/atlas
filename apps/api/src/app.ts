@@ -38,6 +38,7 @@ import { initGaezService } from './services/gaez/GaezRasterService.js';
 import soilgridsRoutes from './routes/soilgrids/index.js';
 import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
+import machineryItemRoutes from './routes/machinery-items/index.js';
 import fileRoutes from './routes/files/index.js';
 import exportRoutes from './routes/exports/index.js';
 import portalRoutes from './routes/portal/index.js';
@@ -49,6 +50,7 @@ import organizationRoutes from './routes/organizations/index.js';
 import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
 import regenerationEventRoutes from './routes/regeneration-events/index.js';
+import telemetryRoutes from './routes/telemetry/index.js';
 
 // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
 import basemapTerrainRoutes from './routes/basemap-terrain/index.js';
@@ -146,6 +148,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(gaezRoutes,     { prefix: '/api/v1/gaez' });
   await app.register(soilgridsRoutes,{ prefix: '/api/v1/soilgrids' });
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
+  await app.register(machineryItemRoutes, { prefix: '/api/v1/machinery-items' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
   await app.register(portalRoutes,        { prefix: '/api/v1/projects' });
@@ -157,6 +160,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(activityRoutes,      { prefix: '/api/v1/projects' });
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
+  await app.register(telemetryRoutes,     { prefix: '/api/v1/telemetry' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
 
   // Static serve for the LocalStorageProvider — only kicks in when local

@@ -191,3 +191,19 @@
   cursor: not-allowed;
   opacity: 0.45;
 }
+
+/* Pair of lens-mode buttons (Yeomans / Enterprise) under Dynamic Layering. */
+.lensRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+/* When a lens-mode button is active, give it the same emphasis as an
+ * active tool item so the steward can see at-a-glance which lens is on. */
+.lensRow .openModuleBtn[data-active='true'] {
+  background: color-mix(in srgb, var(--group-dot) 18%, var(--color-bg));
+  border-style: solid;
+  border-color: var(--group-dot);
+  color: var(--color-text);
+}

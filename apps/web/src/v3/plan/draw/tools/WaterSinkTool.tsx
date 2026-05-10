@@ -9,6 +9,8 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -21,6 +23,8 @@ export default function WaterSinkTool({ map, projectId }: Props) {
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
@@ -33,6 +37,8 @@ export default function WaterSinkTool({ map, projectId }: Props) {
         projectId,
         name: 'Sink',
         kind: 'sink',
+        center: anchor,
+        phase: phaseDefault || undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -47,10 +53,16 @@ export default function WaterSinkTool({ map, projectId }: Props) {
             required: true,
             placeholder: 'e.g., Wetland',
           },
+          phaseField,
+          enterpriseField,
         ],
-        initial: { name: 'Sink' },
+        initial: { name: 'Sink', phase: phaseDefault, enterprise: enterpriseDefault },
         onSave: (values) => {
-          updateWaterNode(id, { name: String(values.name ?? 'Sink') });
+          updateWaterNode(id, {
+            name: String(values.name ?? 'Sink'),
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
+          });
         },
         onCancel: () => removeWaterNode(id),
       });

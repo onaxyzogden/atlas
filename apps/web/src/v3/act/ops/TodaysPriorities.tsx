@@ -3,14 +3,23 @@
  * Act-stage stores. Module-aware: when the user has a module selected,
  * filters to that domain; when nothing is active, shows an aggregated
  * view (all-domain Operations Hub style).
+ *
+ * Project-type-aware ranking: when the project has an effective project
+ * type (Plan picker selection or wizard seed), items re-rank by per-type
+ * Act-module affinity before slicing. Falls back to source-append order
+ * when the project type is null.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFieldTaskStore } from '../../../store/fieldTaskStore.js';
+import { useActTelemetry } from '../../../lib/actInteractionLog.js';
 import { useMaintenanceStore } from '../../../store/maintenanceStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
 import { useSuccessionStore } from '../../../store/successionStore.js';
 import { useCommunityEventStore } from '../../../store/communityEventStore.js';
+import type { FieldTaskCategory } from '../../../store/fieldTaskStore.js';
+import { useEffectivePlanProjectType } from '../../plan/hooks/useEffectivePlanProjectType.js';
+import { getModuleAffinityRank } from '../data/projectTypeModuleAffinity.js';
 import type { ActModule } from '../types.js';
 import css from './ActOpsAside.module.css';
 
@@ -18,6 +27,8 @@ interface PriorityRow {
   id: string;
   title: string;
   meta?: string;
+  module: ActModule | null;
+  _appendOrder: number;
 }
 
 interface Props {
@@ -43,6 +54,21 @@ function formatTime(iso: string): string {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
+function fieldTaskModule(category: FieldTaskCategory): ActModule | null {
+  switch (category) {
+    case 'ops':
+      return 'maintain';
+    case 'weather':
+    case 'regulation':
+      return 'review';
+    case 'team':
+    case 'education':
+      return 'network';
+    default:
+      return null;
+  }
+}
+
 export default function TodaysPriorities({ projectId, activeModule }: Props) {
   const fieldTasks = useFieldTaskStore((s) => s.tasks);
   const maintenanceTasks = useMaintenanceStore((s) => s.tasks);
@@ -50,10 +76,16 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
   const milestones = useSuccessionStore((s) => s.milestones);
   const events = useCommunityEventStore((s) => s.events);
 
+  const { effectiveType } = useEffectivePlanProjectType(projectId);
+
   const rows = useMemo<PriorityRow[]>(() => {
     if (!projectId) return [];
 
     const acc: PriorityRow[] = [];
+    let order = 0;
+    const push = (row: Omit<PriorityRow, '_appendOrder'>) => {
+      acc.push({ ...row, _appendOrder: order++ });
+    };
 
     const wantBuild =
       activeModule === null || activeModule === 'build';
@@ -73,10 +105,11 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
         if (t.projectId !== projectId) continue;
         if (t.status === 'done') continue;
         if (!isToday(t.dueAt)) continue;
-        acc.push({
+        push({
           id: `ft-${t.id}`,
           title: t.title,
           meta: `${t.category} · ${formatTime(t.dueAt)}`,
+          module: fieldTaskModule(t.category),
         });
       }
     }
@@ -90,10 +123,11 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           !last ||
           last.toDateString() !== new Date().toDateString();
         if (!dueToday) continue;
-        acc.push({
+        push({
           id: `mt-${m.id}`,
           title: m.title,
           meta: `Maintenance · daily`,
+          module: 'maintain',
         });
       }
     }
@@ -103,20 +137,22 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
         .filter((e) => e.projectId === projectId && isToday(e.date))
         .slice(0, 5);
       for (const e of today) {
-        acc.push({
+        push({
           id: `hv-${e.id}`,
           title: `Harvest logged · ${e.quantity} ${e.unit}`,
           meta: e.sourceKind === 'crop' ? 'Crop area' : 'Paddock',
+          module: 'harvest',
         });
       }
       const dueMilestones = milestones.filter(
         (m) => m.projectId === projectId && m.year === new Date().getFullYear(),
       );
       for (const m of dueMilestones.slice(0, 3)) {
-        acc.push({
+        push({
           id: `sx-${m.id}`,
           title: m.observation || `Succession check · ${m.phase}`,
           meta: `Succession ${m.year}`,
+          module: 'harvest',
         });
       }
     }
@@ -129,16 +165,62 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
         const t = new Date(e.date).getTime();
         if (Number.isNaN(t)) continue;
         if (t < Date.now() || t > cutoff) continue;
-        acc.push({
+        push({
           id: `ev-${e.id}`,
           title: e.title,
           meta: `Event · ${new Date(e.date).toLocaleDateString()}`,
+          module: 'network',
         });
       }
     }
 
+    if (effectiveType) {
+      acc.sort((a, b) => {
+        const ra = getModuleAffinityRank(effectiveType, a.module);
+        const rb = getModuleAffinityRank(effectiveType, b.module);
+        if (ra !== rb) return ra - rb;
+        return a._appendOrder - b._appendOrder;
+      });
+    }
+
     return acc.slice(0, 8);
-  }, [projectId, activeModule, fieldTasks, maintenanceTasks, harvestEntries, milestones, events]);
+  }, [
+    projectId,
+    activeModule,
+    fieldTasks,
+    maintenanceTasks,
+    harvestEntries,
+    milestones,
+    events,
+    effectiveType,
+  ]);
+
+  // panel_row_visible: emit only when the visible row-id set changes.
+  // Hash-dedupe prevents emit-storm on store updates that produce an
+  // identical visible set.
+  const record = useActTelemetry({
+    projectId: projectId ?? '',
+    projectType: effectiveType,
+  });
+  const lastHashRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!projectId || rows.length === 0) return;
+    const hash = rows.map((r) => r.id).join('|');
+    if (hash === lastHashRef.current) return;
+    lastHashRef.current = hash;
+    // Module bucketed against the active filter, not per-row, so the
+    // aggregate stays one row per (panel, hash). Per-row module data is
+    // preserved in the payload for later breakdowns.
+    record({
+      module: activeModule ?? 'review',
+      eventType: 'panel_row_visible',
+      payload: {
+        panel: 'priorities',
+        modules: rows.map((r) => r.module),
+        rowIds: rows.map((r) => r.id),
+      },
+    });
+  }, [rows, projectId, activeModule, record]);
 
   return (
     <section className={css.panel}>

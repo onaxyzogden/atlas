@@ -16,7 +16,7 @@ per-phase cost/labor/material aggregates. Higher-phase capabilities add
 permit dependency warnings with readiness checklists, per-phase
 completion tracking with notes, scenario-based phasing alternatives, and
 four preset optimization modes ("Fastest feasible path", "Lowest cost
-path", "Most regenerative path", "Investor presentation path") that
+path", "Most regenerative path", "Capital partner presentation path") that
 re-order phases against different objective functions.
 
 ## Redirect notice
@@ -93,7 +93,7 @@ implementation without updating this CONTEXT.
 - Section 16 (Simulation) — scenario alternatives produced here feed
   simulation scoring
 - Section 22 (Economic) — per-phase cost/labor/material aggregates
-  feed the investor-presentation path mode
+  feed the capital-partner-presentation path mode
 
 ## Known gotchas
 - `phaseStore` persists under a Zustand `persist` middleware — any

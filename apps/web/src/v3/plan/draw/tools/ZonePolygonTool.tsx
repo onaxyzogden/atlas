@@ -12,6 +12,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -37,6 +39,8 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
   const updateZone = useZoneStore((s) => s.updateZone);
   const deleteZone = useZoneStore((s) => s.deleteZone);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Polygon>({
     map,
@@ -60,6 +64,7 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
         geometry: geom,
         areaM2,
         permacultureZone: 2,
+        phase: phaseDefault || undefined,
         createdAt: now,
         updatedAt: now,
       });
@@ -83,8 +88,16 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
             required: true,
             options: Z_OPTIONS,
           },
+          phaseField,
+          enterpriseField,
         ],
-        initial: { name: 'Zone', category, permacultureZone: '2' },
+        initial: {
+          name: 'Zone',
+          category,
+          permacultureZone: '2',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
+        },
         onSave: (values) => {
           const cat = values.category as ZoneCategory;
           const z = Number(values.permacultureZone);
@@ -95,6 +108,8 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
             permacultureZone: (Number.isFinite(z)
               ? Math.max(0, Math.min(5, Math.round(z)))
               : 2) as 0 | 1 | 2 | 3 | 4 | 5,
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => deleteZone(id),

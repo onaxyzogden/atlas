@@ -1,7 +1,7 @@
 /**
  * Plan stage module types — mirrors observe/types.ts pattern.
  *
- * 8 plan modules map 1:1 to PlanHub's module cards and to the
+ * 11 plan modules map 1:1 to PlanHub's module cards and to the
  * PlanModuleBar tiles. Each module maps to one or more plan card
  * sectionIds (used by PlanModuleSlideUp to load the right card).
  */
@@ -11,6 +11,7 @@ export type PlanModule =
   | 'water-management'
   | 'zone-circulation'
   | 'structures-subsystems'
+  | 'machinery'
   | 'livestock'
   | 'plant-systems'
   | 'soil-fertility'
@@ -23,6 +24,7 @@ export const PLAN_MODULES: PlanModule[] = [
   'water-management',
   'zone-circulation',
   'structures-subsystems',
+  'machinery',
   'livestock',
   'plant-systems',
   'soil-fertility',
@@ -40,6 +42,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'water-management':       'Water',
   'zone-circulation':       'Zones',
   'structures-subsystems':  'Structures',
+  machinery:                'Machinery',
   livestock:                'Livestock',
   'plant-systems':          'Plants',
   'soil-fertility':         'Soil',
@@ -53,6 +56,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
   'structures-subsystems':  'Structures & Subsystems',
+  machinery:                'Machinery & Equipment',
   livestock:                'Livestock & Subdivision',
   'plant-systems':          'Plant Systems & Polyculture',
   'soil-fertility':         'Soil Fertility & Closed-Loop',
@@ -132,6 +136,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
+    { label: 'Enterprises',       sectionId: 'plan-enterprises' },
   ],
   'water-management': [
     { label: 'Catchments',     sectionId: 'plan-water-catchments' },
@@ -148,12 +153,17 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Structures overview', sectionId: 'plan-structures-overview' },
     { label: 'Subsystems overview', sectionId: 'plan-subsystems-overview' },
   ],
+  machinery: [
+    { label: 'Inventory',       sectionId: 'plan-machinery-inventory' },
+    { label: 'Access fit',      sectionId: 'plan-machinery-access-fit' },
+    { label: 'Housing & fuel',  sectionId: 'plan-machinery-housing-fuel' },
+  ],
   livestock: [
     { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },
     { label: 'Multi-species planner',   sectionId: 'plan-livestock-species-mix' },
     { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
     { label: 'Fencing layout',          sectionId: 'plan-livestock-fencing' },
-    { label: 'Mobile tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
+    { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
   ],

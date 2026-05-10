@@ -27,15 +27,21 @@ export default function InlineFeaturePopover({ map }: Props) {
   const active = useInlineFormStore((s) => s.active);
   const close = useInlineFormStore((s) => s.close);
 
-  const [values, setValues] = useState<Record<string, string | number>>({});
+  const [values, setValues] = useState<Record<string, string | number>>(() =>
+    active ? { ...active.initial } : {},
+  );
+  const [prevActive, setPrevActive] = useState(active);
   const [screen, setScreen] = useState<{ x: number; y: number; flipped: boolean } | null>(null);
   const popoverRef = useRef<HTMLFormElement | null>(null);
 
-  // Reset draft on payload change
-  useEffect(() => {
-    if (!active) return;
-    setValues({ ...active.initial });
-  }, [active]);
+  // Reset draft synchronously when the active payload changes (React's
+  // "store info from previous render" pattern — avoids a race where a
+  // `useEffect` reset would clobber a same-tick `setVal` patch from the
+  // caller's reactive `onValuesChange` hook).
+  if (prevActive !== active) {
+    setPrevActive(active);
+    setValues(active ? { ...active.initial } : {});
+  }
 
   // Track anchor → screen coords; re-project on map move/zoom/resize.
   useEffect(() => {
@@ -111,10 +117,17 @@ export default function InlineFeaturePopover({ map }: Props) {
   };
 
   const setVal = (key: string, kind: 'text' | 'number' | 'select', raw: string) => {
-    setValues((prev) => ({
-      ...prev,
-      [key]: kind === 'number' ? (raw === '' ? '' : Number(raw)) : raw,
-    }));
+    setValues((prev) => {
+      const value = kind === 'number' ? (raw === '' ? '' : Number(raw)) : raw;
+      const next: Record<string, string | number> = { ...prev, [key]: value };
+      const patch = active?.onValuesChange?.(next, prev, { key, value });
+      if (patch) {
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) next[k] = v as string | number;
+        }
+      }
+      return next;
+    });
   };
 
   return (

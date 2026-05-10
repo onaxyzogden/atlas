@@ -7,7 +7,7 @@ export const ExportType = z.enum([
   'design_brief',
   'feature_schedule',
   'field_notes',
-  'investor_summary',
+  'capital_partner_summary',
   'scenario_comparison',
   'educational_booklet',
 ]);

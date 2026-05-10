@@ -10,7 +10,7 @@
  * pitfall sentence below How; Plan and Act omit it.
  */
 
-import type { CSSProperties, KeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import css from './GuidanceCard.module.css';
 
 export interface GuidanceCardData {
@@ -32,6 +32,12 @@ export interface GuidanceCardProps<M extends string> {
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
   checksDisabled?: boolean;
+  /**
+   * Optional content rendered in the card header next to the label.
+   * Plan uses this for the project-type cross-check chip; Observe / Act
+   * leave it unset.
+   */
+  headerExtras?: ReactNode;
 }
 
 export function GuidanceCard<M extends string>({
@@ -47,6 +53,7 @@ export function GuidanceCard<M extends string>({
   onOpenSlideUp,
   onCloseSlideUp,
   checksDisabled = false,
+  headerExtras,
 }: GuidanceCardProps<M>) {
   const handleCardClick = () => {
     if (active) {
@@ -87,6 +94,9 @@ export function GuidanceCard<M extends string>({
       <header className={css.groupHeader}>
         <span className={css.dot} aria-hidden="true" />
         <span className={css.groupLabel}>{label}</span>
+        {headerExtras ? (
+          <span className={css.groupHeaderExtras}>{headerExtras}</span>
+        ) : null}
       </header>
       <p className={css.why}>{guidance.why}</p>
       <div className={css.howBlock}>

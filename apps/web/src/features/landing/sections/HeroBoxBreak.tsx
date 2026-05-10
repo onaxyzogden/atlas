@@ -14,7 +14,7 @@ export default function HeroBoxBreak() {
             Know the land before you buy it.
           </h1>
           <p className={styles.sub}>
-            Atlas reads soil, water, climate, solar, and zoning for any parcel on Earth — in one map. Built for farmers, landowners, CSRA operators, and developers.
+            Atlas reads soil, water, climate, solar, and zoning for any parcel on Earth — in one map. Built for farmers, landowners, regenerative-ag operators, and developers.
           </p>
           <div className={styles.ctaRow}>
             <Link to="/login">

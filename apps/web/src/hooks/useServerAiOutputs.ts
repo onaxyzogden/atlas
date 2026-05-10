@@ -3,7 +3,7 @@
  * project from /api/v1/projects/:id/ai-outputs.
  *
  * Returns a map keyed by `output_type` (site_narrative, design_recommendation,
- * risk_flag, planting_guide, investor_summary, design_brief). The narrative
+ * risk_flag, planting_guide, capital_partner_summary, design_brief). The narrative
  * BullMQ worker writes into this table when Tier-3 analysis finishes; this
  * hook is the read path. Returns `null` until the first fetch completes.
  */

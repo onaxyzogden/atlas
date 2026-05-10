@@ -29,6 +29,33 @@
 
 export type PhaseTag = 'P1' | 'P2' | 'P3' | 'P4' | 'MT' | 'LATENT';
 
+/**
+ * `SectionStatus` semantics (defined 2026-05-09 in
+ * `wiki/decisions/2026-05-09-atlas-csra-erasure.md` companion truth-up):
+ *
+ *   `done`     — every feature item that this section claims at the
+ *                current `ATLAS_PHASE_MAX` is reachable from the
+ *                operator UI today and exercised by at least one
+ *                manual or automated test. Future-phase items in the
+ *                same section may still be `planned`.
+ *   `partial`  — at least one operator-reachable feature ships, but
+ *                some items at the current phase are still `planned`
+ *                or wired through a legacy surface that is on the
+ *                migration runway.
+ *   `stub`     — folder + scaffold exist; no operator-reachable UI;
+ *                used as a holding pen during scaffold passes.
+ *   `planned`  — design only; nothing wired. (Mostly used at the
+ *                feature-item level — sections with all items
+ *                `planned` should sit at `stub` or `partial`.)
+ *
+ * For §2 (basemap-terrain) specifically, `done` requires: (a) all
+ * P1/P2 items render in 2D + 2.5D + 3D map modes; (b) tile-server
+ * style + retina story documented in
+ * `wiki/decisions/2026-04-28-atlas-tile-style-retina.md` (the open
+ * follow-up). The audit on 2026-05-09 noted retina/key story is
+ * incomplete; this is tracked separately and does not flip §2's
+ * top-line status (the items themselves render).
+ */
 export type SectionStatus = 'done' | 'partial' | 'stub' | 'planned';
 
 export interface FeatureItem {
@@ -275,6 +302,12 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'multi-story-structure-support', label: 'Multi-story structure support (cost / floor-area scaling)', phase: 'P3', status: 'done' },
     ],
   },
+  // Implementation note (§10): the `apps/web/src/features/access-circulation/`
+  // folder is a scaffold orphan. The operator-reachable UI lives in the v3
+  // Plan stage (path / circulation tools in `apps/web/src/v3/plan/draw/tools/`
+  // + zone-circulation module in `apps/web/src/v3/plan/PlanChecklistAside.tsx`).
+  // Per the manifest header convention, taxonomy.ts + the live panels are
+  // canonical when the slug folder is empty.
   {
     id: 10,
     slug: 'access-circulation',
@@ -378,6 +411,14 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'problem-solves-dependencies-panels', label: "'What problem this solves', 'What it depends on' panels", phase: 'P3', status: 'planned' },
     ],
   },
+  // Implementation note (§15): the `apps/web/src/features/timeline-phasing/`
+  // folder is a scaffold orphan. The operator-reachable UI lives at
+  // `apps/web/src/components/panels/TimelinePanel.tsx` (composing
+  // `PhaseTimeline`, `FeatureAssignment`, `BuildOrderLogic`,
+  // `MilestoneMarkers`, `ComplexityScore`) plus the v3 Plan phasing module
+  // and `apps/web/src/features/utilities/InfrastructurePhasing.tsx`. Phase
+  // state lives in `src/store/phaseStore.ts`. taxonomy.ts has both
+  // `plan-phasing-matrix` and `timeline-phasing` panel entries.
   {
     id: 15,
     slug: 'timeline-phasing',
@@ -393,7 +434,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'permit-dependencies-readiness-checklist', label: 'Permit dependency warnings, readiness checklist per phase', phase: 'P3', status: 'done' },
       { key: 'phase-completion-tracking-notes', label: 'Phase completion tracking and notes', phase: 'P2', status: 'done' },
       { key: 'scenario-phasing-alternatives', label: 'Scenario-based phasing alternatives', phase: 'P3', status: 'done' },
-      { key: 'path-modes-fastest-lowest-cost-regen-investor', label: "'Fastest feasible path', 'Lowest cost path', 'Most regenerative path', 'Investor presentation path' modes", phase: 'P3', status: 'done' },
+      { key: 'path-modes-fastest-lowest-cost-regen-capital-partner', label: "'Fastest feasible path', 'Lowest cost path', 'Most regenerative path', 'Capital partner presentation path' modes", phase: 'P3', status: 'done' },
     ],
   },
   {
@@ -446,7 +487,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'ai-feature-placement-suggestions', label: 'AI feature placement suggestions (with explainability output)', phase: 'P3', status: 'done' },
       { key: 'ai-phased-build-water-grazing-orchard-strategies', label: 'AI phased build, water strategy, grazing strategy, orchard strategy suggestions', phase: 'P3', status: 'done' },
       { key: 'ai-risk-warnings-ecological-interpretation', label: 'AI risk warnings and ecological interpretation', phase: 'P3', status: 'done' },
-      { key: 'ai-design-brief-investor-landowner-pitch', label: 'AI design brief, investor summary, landowner pitch generation (editable, clearly labeled as AI draft)', phase: 'P3', status: 'done' },
+      { key: 'ai-design-brief-capital-partner-landowner-pitch', label: 'AI design brief, capital partner summary, landowner pitch generation (editable, clearly labeled as AI draft)', phase: 'P3', status: 'done' },
       { key: 'ai-educational-explanation-checklists', label: 'AI educational explanation and checklist generation', phase: 'P3', status: 'done' },
       { key: 'ai-assumptions-unanswered-questions-data-gap-detector', label: 'AI assumptions extractor, unanswered questions detector, data gap detector', phase: 'P3', status: 'done' },
       { key: 'ai-needs-site-visit-flags', label: "AI 'needs site visit' flags (triggered at confidence below Medium)", phase: 'P3', status: 'done' },
@@ -512,6 +553,14 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'maintenance-complexity-score', label: 'Maintenance complexity score', phase: 'P3', status: 'done' },
     ],
   },
+  // Implementation note (§22): the `apps/web/src/features/economic-modeling/`
+  // folder is a scaffold orphan. The operator-reachable UI lives at
+  // `apps/web/src/features/economics/` — `EconomicsPanel.tsx`,
+  // `LandownerPartnershipCard.tsx`, `CashflowSequenceChart.tsx`. Status
+  // remains `partial` because two P3 items (`regional-cost-database` and
+  // `cost-override-contractor-bid-import`) are still `planned` — the
+  // regional-cost dataset itself ships but only with low/mid/high range
+  // estimates, not yet contractor-bid imports.
   {
     id: 22,
     slug: 'economic-modeling',
@@ -529,10 +578,22 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'cashflow-sequence-chart-break-even', label: 'Cashflow sequence chart, break-even analysis', phase: 'P3', status: 'done' },
       { key: 'mission-weighted-donor-grant-income', label: 'Mission-weighted and donor/grant income modeling', phase: 'P3', status: 'done' },
       { key: 'overbuilt-for-revenue-lean-mvp', label: "'Overbuilt for revenue' AI warning, Lean MVP path view", phase: 'P3', status: 'done' },
-      { key: 'investor-summary-landowner-partnership', label: 'Investor summary dashboard, landowner partnership summary', phase: 'P3', status: 'done' },
+      { key: 'capital-partner-summary-landowner-partnership', label: 'Capital partner summary dashboard, landowner partnership summary', phase: 'P3', status: 'done' },
       { key: 'grant-readiness-total-cost-of-ownership', label: 'Grant-readiness checklist, total cost of ownership view', phase: 'P3', status: 'done' },
     ],
   },
+  // Implementation note (§23): the `apps/web/src/features/reporting-export/`
+  // folder is a scaffold orphan. The operator-reachable UI lives in two
+  // companion folders — `apps/web/src/features/reporting/ReportingPanel.tsx`
+  // (the live shell) and `apps/web/src/features/export/` (the export
+  // components: `ProjectSummaryExport`, `CapitalPartnerSummaryExport`
+  // [renamed 2026-05-09 from `InvestorSummaryExport` per fiqh erasure],
+  // `EducationalBookletExport`, plus unwired `QRCodeGenerator` /
+  // `EmbedCodeModal`). PDF templates live under `apps/api/src/services/pdf/
+  // templates/`. Status remains `partial` because `phasing-cost-capital-
+  // partner-landowner-exports` (a 4-export bundle), `white-label-export-mode`,
+  // `flyover-video-export`, and `qr-share-embed-website` are still `planned`
+  // — even though the QR/embed components exist, they have no consumer yet.
   {
     id: 23,
     slug: 'reporting-export',
@@ -542,8 +603,8 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
     features: [
       { key: 'pdf-site-assessment-export', label: 'PDF site assessment export', phase: 'P2', status: 'done' },
       { key: 'design-brief-feature-schedule-export', label: 'Design brief export, feature schedule export', phase: 'P2', status: 'done' },
-      { key: 'phasing-cost-investor-landowner-exports', label: 'Phasing report, cost summary, investor presentation, landowner pitch exports', phase: 'P3', status: 'planned' },
-      { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'planned' },
+      { key: 'phasing-cost-capital-partner-landowner-exports', label: 'Phasing report, cost summary, capital partner presentation, landowner pitch exports', phase: 'P3', status: 'planned' },
+      { key: 'educational-booklet-export', label: 'Educational booklet export', phase: 'P3', status: 'done' },
       { key: 'gis-kml-geojson-export', label: 'GIS layer export, KML / GeoJSON export', phase: 'P3', status: 'done' },
       { key: 'image-export-screenshot', label: 'Image export, screenshot capture', phase: 'P3', status: 'done' },
       { key: 'branded-presentation-print-layout', label: 'Branded presentation mode, print layout mode', phase: 'P3', status: 'done' },
@@ -629,7 +690,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'interactive-public-property-view', label: 'Interactive public property view, guided public tour', phase: 'P4', status: 'planned' },
       { key: 'stage-reveal-story', label: 'Stage reveal story, mission story overlay', phase: 'MT', status: 'planned' },
       { key: 'donation-support-cta', label: 'Donation / support CTA integration', phase: 'P4', status: 'planned' },
-      { key: 'inquiry-interest-forms', label: 'Inquiry, investor interest, landowner interest, volunteer interest form integration', phase: 'P4', status: 'planned' },
+      { key: 'inquiry-interest-forms', label: 'Inquiry, capital-partner interest, landowner interest, volunteer interest form integration', phase: 'P4', status: 'planned' },
       { key: 'educational-tour-mode', label: 'Educational tour mode', phase: 'MT', status: 'planned' },
       { key: 'public-safe-data-masking', label: 'Public-safe data masking, curated hotspots only mode', phase: 'P4', status: 'done' },
       { key: 'branded-storytelling-scenes', label: 'Branded storytelling scenes, narrated site journey', phase: 'MT', status: 'planned' },
@@ -682,6 +743,18 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
   },
   // All 29 sections populated. Appended historically via
   // `apps/api/scripts/scaffold-section.ts`; do not hand-edit stubs in.
+  {
+    id: 30,
+    slug: 'machinery-equipment',
+    name: 'Machinery & Equipment',
+    phases: ['P2'],
+    status: 'done',
+    features: [
+      { key: 'plan-machinery-inventory', label: 'Machinery inventory CRUD', phase: 'P2', status: 'done' },
+      { key: 'plan-machinery-access-fit', label: 'Machinery access-fit verdicts', phase: 'P2', status: 'done' },
+      { key: 'plan-machinery-housing-fuel', label: 'Machinery housing & fuel coverage', phase: 'P2', status: 'done' },
+    ],
+  },
 ];
 
 /** Lookup by section id. */

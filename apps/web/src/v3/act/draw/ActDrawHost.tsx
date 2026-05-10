@@ -11,6 +11,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import HarvestLogTool from './tools/HarvestLogTool.js';
 import MaintenanceLogTool from './tools/MaintenanceLogTool.js';
+import LivestockMoveTool from './tools/LivestockMoveTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -32,6 +33,9 @@ export default function ActDrawHost({ map, projectId }: Props) {
       break;
     case 'act.maintain.log-event':
       tool = <MaintenanceLogTool map={map} projectId={projectId} />;
+      break;
+    case 'act.livestock.log-move':
+      tool = <LivestockMoveTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

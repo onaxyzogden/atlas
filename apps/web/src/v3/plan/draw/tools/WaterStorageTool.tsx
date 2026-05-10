@@ -10,6 +10,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { STORAGE_LABEL } from '../../cards/water-management/waterMath.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
@@ -27,6 +29,8 @@ export default function WaterStorageTool({ map, projectId }: Props) {
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
@@ -40,9 +44,11 @@ export default function WaterStorageTool({ map, projectId }: Props) {
         projectId,
         name: 'Storage',
         kind: 'storage',
+        center: anchor,
         storageKind,
         capacityL: 0,
         overflowToNodeId: null,
+        phase: phaseDefault || undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -64,16 +70,51 @@ export default function WaterStorageTool({ map, projectId }: Props) {
             required: true,
             suffix: 'L',
           },
+          {
+            key: 'householdLpd',
+            label: 'Household use',
+            kind: 'number',
+            suffix: 'L/day',
+            placeholder: 'e.g. 600',
+          },
+          {
+            key: 'daysOffGrid',
+            label: 'Off-grid days',
+            kind: 'number',
+            suffix: 'd',
+            placeholder: 'e.g. 7',
+          },
+          phaseField,
+          enterpriseField,
         ],
-        initial: { storageKind, capacityL: '' },
+        initial: {
+          storageKind,
+          capacityL: '',
+          householdLpd: '',
+          daysOffGrid: '',
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
+        },
         onSave: (values) => {
           const cap =
             typeof values.capacityL === 'number'
               ? values.capacityL
               : Number(values.capacityL);
+          const hh =
+            typeof values.householdLpd === 'number'
+              ? values.householdLpd
+              : Number(values.householdLpd);
+          const dog =
+            typeof values.daysOffGrid === 'number'
+              ? values.daysOffGrid
+              : Number(values.daysOffGrid);
           updateWaterNode(id, {
             storageKind: values.storageKind as StorageNodeKind,
             capacityL: Number.isFinite(cap) ? cap : 0,
+            householdLpd: Number.isFinite(hh) && hh > 0 ? hh : undefined,
+            daysOffGrid: Number.isFinite(dog) && dog > 0 ? dog : undefined,
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => removeWaterNode(id),

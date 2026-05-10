@@ -15,6 +15,8 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
+import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { DEFAULT_COEFF, SURFACE_LABEL } from '../../cards/water-management/waterMath.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
@@ -33,6 +35,8 @@ export default function WaterCatchmentTool({ map, projectId }: Props) {
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
   const openForm = useInlineFormStore((s) => s.open);
   const closeForm = useInlineFormStore((s) => s.close);
+  const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
 
   useMapboxDrawTool<GeoJSON.Polygon>({
     map,
@@ -47,10 +51,13 @@ export default function WaterCatchmentTool({ map, projectId }: Props) {
         projectId,
         name: 'Catchment',
         kind: 'catchment',
+        center: centroid,
+        geometry: geom,
         surface,
         areaM2,
         runoffCoeff: DEFAULT_COEFF[surface],
         overflowToNodeId: null,
+        phase: phaseDefault || undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -78,11 +85,15 @@ export default function WaterCatchmentTool({ map, projectId }: Props) {
             kind: 'number',
             required: true,
           },
+          phaseField,
+          enterpriseField,
         ],
         initial: {
           surface,
           areaM2: Math.round(areaM2),
           runoffCoeff: DEFAULT_COEFF[surface],
+          phase: phaseDefault,
+          enterprise: enterpriseDefault,
         },
         onSave: (values) => {
           const nextSurface = values.surface as CatchmentSurface;
@@ -96,6 +107,8 @@ export default function WaterCatchmentTool({ map, projectId }: Props) {
             runoffCoeff: Number.isFinite(runoffCoeff)
               ? runoffCoeff
               : DEFAULT_COEFF[nextSurface],
+            phase: String(values.phase ?? '') || undefined,
+            enterprise: String(values.enterprise ?? '') || undefined,
           });
         },
         onCancel: () => removeWaterNode(id),

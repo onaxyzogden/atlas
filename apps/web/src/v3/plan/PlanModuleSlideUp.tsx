@@ -24,6 +24,11 @@ const PermanenceScalesCard    = lazy(() => import('../../features/plan/Permanenc
 // the spatial/relational layer they said was missing — proportional bars +
 // ordering-violation warnings keyed off Yeomans/Keyline prerequisites.
 const PermanenceLadderCard    = lazy(() => import('./cards/dynamic-layering/PermanenceLadderCard.js'));
+// Dynamic Layering (Module 1) — enterprises tab added per project-type
+// toolbar gap audit (Multi-Enterprise checklist items #1, #2, #6). Lets the
+// steward declare enterprises and ties them to the layering lens's
+// enterprise mode.
+const EnterprisesCard         = lazy(() => import('./cards/dynamic-layering/EnterprisesCard.js'));
 // Water Management (Module 2) — fresh build per Permaculture Scholar verdict
 // 2026-05-07. Atlas's RunoffCalculatorCard / SwaleDrainTool / StorageInfraTool
 // remain at apps/web/src/features/plan/ as legacy and are still wired into
@@ -48,6 +53,13 @@ const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/
 // This card surfaces wind from the climate layer + downslope from the
 // elevation layer, with editable fire/view/noise compass pickers.
 const SectorOverlayCard           = lazy(() => import('./cards/zone-circulation/SectorOverlayCard.js'));
+// Machinery (Module 5 — added 2026-05-09 between Structures and Livestock per
+// Yeomans rank 6: equipment housing/access infrastructure precedes animal
+// cells). Three cards live at apps/web/src/v3/plan/cards/machinery/ and take
+// { projectId } — same shape as livestock cards.
+const MachineryInventoryCard      = lazy(() => import('./cards/machinery/MachineryInventoryCard.js'));
+const MachineryAccessFitCard      = lazy(() => import('./cards/machinery/MachineryAccessFitCard.js'));
+const MachineryHousingFuelCard    = lazy(() => import('./cards/machinery/MachineryHousingFuelCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a "future Subdivision/Livestock module per Yeomans
 // Scale of Permanence"). All seven cards live at apps/web/src/features/livestock/
@@ -56,7 +68,7 @@ const LivestockLandFitCard        = lazy(() => import('../../features/livestock/
 const MultiSpeciesPlannerCard     = lazy(() => import('../../features/livestock/MultiSpeciesPlannerCard.js'));
 const PaddockCellDesignCard       = lazy(() => import('../../features/livestock/PaddockCellDesignCard.js'));
 const FencingLayoutCard           = lazy(() => import('../../features/livestock/FencingLayoutCard.js'));
-const MobileTractorZonesCard      = lazy(() => import('../../features/livestock/MobileTractorZonesCard.js'));
+const AnimalTractorZonesCard      = lazy(() => import('../../features/livestock/AnimalTractorZonesCard.js'));
 const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
 const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
 const GuestSafeBufferAuditCard    = lazy(() => import('../../features/livestock/GuestSafeBufferAuditCard.js'));
@@ -123,6 +135,7 @@ function renderCard(
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} onSwitchModule={onSwitchModule} />;
+    case 'plan-enterprises':         return <EnterprisesCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
@@ -130,11 +143,14 @@ function renderCard(
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
+    case 'plan-machinery-inventory':        return <MachineryInventoryCard projectId={project.id} />;
+    case 'plan-machinery-access-fit':       return <MachineryAccessFitCard projectId={project.id} />;
+    case 'plan-machinery-housing-fuel':     return <MachineryHousingFuelCard projectId={project.id} />;
     case 'plan-livestock-land-fit':         return <LivestockLandFitCard projectId={project.id} />;
     case 'plan-livestock-species-mix':      return <MultiSpeciesPlannerCard projectId={project.id} />;
     case 'plan-livestock-paddock-cells':    return <PaddockCellDesignCard projectId={project.id} />;
     case 'plan-livestock-fencing':          return <FencingLayoutCard projectId={project.id} />;
-    case 'plan-livestock-tractor-zones':    return <MobileTractorZonesCard projectId={project.id} />;
+    case 'plan-livestock-tractor-zones':    return <AnimalTractorZonesCard projectId={project.id} />;
     case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
     case 'plan-livestock-buffers':          return (
       <>

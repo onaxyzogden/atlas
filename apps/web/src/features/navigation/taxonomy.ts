@@ -156,7 +156,7 @@ export const STAGE_META: Record<StageKey, { name: string; desc: string; color: s
   },
   S5: {
     name: 'Prepare the Report',
-    desc: 'Public Portal, Investor Summary, Export',
+    desc: 'Public Portal, Capital Partner Summary, Export',
     color: phaseTokens[4],
   },
 };
@@ -635,7 +635,7 @@ export const NAV_ITEMS: NavItem[] = [
     panel: 'scenarios', mapSubItem: 'scenarios',
   },
   {
-    id: 'investor-summary', label: 'Investor Summary',
+    id: 'capital-partner-summary', label: 'Capital Partner Summary',
     phase: 'P3', domainGroup: 'finance', stage: 'S5', stage3: 'act',
     panel: 'economic', mapSubItem: 'economics',
   },

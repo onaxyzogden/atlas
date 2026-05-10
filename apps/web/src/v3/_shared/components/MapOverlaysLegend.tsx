@@ -35,6 +35,8 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
   { key: 'builtEnvironment', label: 'Built environment (buildings · utilities · fences)', swatch: '#8a8e94' },
   { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
+  { key: 'sunPath', label: 'Sun path (solstice + equinox arcs)', swatch: '#d68a4a' },
+  { key: 'zoneRings', label: 'Zone rings (Z1 · Z2 · Z3 from home)', swatch: '#c8a85a' },
 ];
 
 const COLLAPSE_KEY = 'atlas.v3.mapOverlaysLegend.collapsed';

@@ -11,13 +11,15 @@
  * already exists (`act.harvest.log-entry`), it is activated too.
  */
 
-import { Sprout, Droplet, Beef } from 'lucide-react';
+import { Sprout, Droplet, Shuffle } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import {
   useMapToolStore,
   type MapToolId,
 } from '../observe/components/measure/useMapToolStore.js';
 import type { ActModule } from './types.js';
+import { useActTelemetry } from '../../lib/actInteractionLog.js';
+import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import css from './ActTools.module.css';
 
 interface QuickLog {
@@ -49,9 +51,10 @@ const QUICK_LOGS: QuickLog[] = [
   {
     id: 'livestock',
     label: 'Log livestock move',
-    hint: 'Open Livestock · Rotation schedule',
-    Icon: Beef,
+    hint: 'Click a paddock to log a move-in / out / rotate-through',
+    Icon: Shuffle,
     module: 'livestock',
+    toolId: 'act.livestock.log-move',
   },
 ];
 
@@ -70,9 +73,19 @@ export default function ActTools({
   const projectId = params.projectId ?? null;
 
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const { effectiveType } = useEffectivePlanProjectType(projectId);
+  const record = useActTelemetry({
+    projectId: projectId ?? '',
+    projectType: effectiveType,
+  });
 
   const handleClick = (q: QuickLog) => {
     if (!projectId) return;
+    record({
+      module: q.module,
+      eventType: 'quick_log_click',
+      payload: { toolId: q.toolId ?? q.id },
+    });
     onSelectModule(q.module);
     onOpenSlideUp?.();
     if (q.toolId) {

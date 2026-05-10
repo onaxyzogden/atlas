@@ -3,13 +3,21 @@
  * actuals stores. For the Harvest module we substitute a "Recent
  * Harvests" panel because harvests are opportunity-driven, not alert-
  * driven (per plan).
+ *
+ * Project-type-aware ranking: severity is always primary; within the
+ * same severity, items re-rank by per-type Act-module affinity when the
+ * project has an effective project type. Falls back to source-append
+ * order when the project type is null.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Droplet, AlertTriangle, Beef, Sprout } from 'lucide-react';
+import { useActTelemetry } from '../../../lib/actInteractionLog.js';
 import { useHazardsStore } from '../../../store/hazardsStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
+import { useEffectivePlanProjectType } from '../../plan/hooks/useEffectivePlanProjectType.js';
+import { getModuleAffinityRank } from '../data/projectTypeModuleAffinity.js';
 import type { ActModule } from '../types.js';
 import css from './ActOpsAside.module.css';
 
@@ -19,6 +27,8 @@ interface AlertRow {
   meta?: string;
   severity: 'high' | 'medium' | 'low';
   icon: React.ReactNode;
+  module: ActModule | null;
+  _appendOrder: number;
 }
 
 interface Props {
@@ -26,10 +36,14 @@ interface Props {
   activeModule: ActModule | null;
 }
 
+const SEVERITY_RANK = { high: 0, medium: 1, low: 2 } as const;
+
 export default function AlertsPanel({ projectId, activeModule }: Props) {
   const hazardsByProject = useHazardsStore((s) => s.byProject);
   const paddocks = useLivestockStore((s) => s.paddocks);
   const harvestEntries = useHarvestLogStore((s) => s.entries);
+
+  const { effectiveType } = useEffectivePlanProjectType(projectId);
 
   const harvestMode = activeModule === 'harvest';
 
@@ -44,6 +58,10 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
   const alerts = useMemo<AlertRow[]>(() => {
     if (!projectId || harvestMode) return [];
     const rows: AlertRow[] = [];
+    let order = 0;
+    const push = (row: Omit<AlertRow, '_appendOrder'>) => {
+      rows.push({ ...row, _appendOrder: order++ });
+    };
 
     const hazards =
       hazardsByProject.find((p) => p.projectId === projectId)?.hazards ?? [];
@@ -53,12 +71,13 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
       for (const h of hazards) {
         if (h.status === 'mitigated') continue;
         if (h.risk === 'low') continue;
-        rows.push({
+        push({
           id: `hz-${h.id}`,
           title: h.label || h.kind,
           meta: `${h.kind} · ${h.mitigationPct}% mitigated`,
           severity: h.risk === 'high' ? 'high' : 'medium',
           icon: <AlertTriangle size={14} strokeWidth={1.7} />,
+          module: 'review',
         });
       }
     }
@@ -68,21 +87,23 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
       for (const p of paddocks) {
         if (p.projectId !== projectId) continue;
         if (!p.waterPointNote || p.waterPointNote.trim() === '') {
-          rows.push({
+          push({
             id: `pd-water-${p.id}`,
             title: `${p.name} — water point unset`,
             meta: 'No water note recorded for paddock',
             severity: 'medium',
             icon: <Droplet size={14} strokeWidth={1.7} />,
+            module: 'livestock',
           });
         }
         if (p.fencing === 'none') {
-          rows.push({
+          push({
             id: `pd-fence-${p.id}`,
             title: `${p.name} — no fencing`,
             meta: 'Stock cannot be confined',
             severity: 'high',
             icon: <Beef size={14} strokeWidth={1.7} />,
+            module: 'livestock',
           });
         }
       }
@@ -95,8 +116,44 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
       // is computed there. (No mocking per plan.)
     }
 
+    rows.sort((a, b) => {
+      const sa = SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
+      if (sa !== 0) return sa;
+      if (effectiveType) {
+        const ra = getModuleAffinityRank(effectiveType, a.module);
+        const rb = getModuleAffinityRank(effectiveType, b.module);
+        if (ra !== rb) return ra - rb;
+      }
+      return a._appendOrder - b._appendOrder;
+    });
+
     return rows.slice(0, 5);
-  }, [projectId, activeModule, hazardsByProject, paddocks, harvestMode]);
+  }, [projectId, activeModule, hazardsByProject, paddocks, harvestMode, effectiveType]);
+
+  // panel_row_visible: emit only on visible-row-set hash change. See
+  // TodaysPriorities for the dedupe rationale.
+  const record = useActTelemetry({
+    projectId: projectId ?? '',
+    projectType: effectiveType,
+  });
+  const lastHashRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!projectId) return;
+    if (harvestMode) return; // alerts panel is the only telemetry surface here
+    if (alerts.length === 0) return;
+    const hash = alerts.map((a) => a.id).join('|');
+    if (hash === lastHashRef.current) return;
+    lastHashRef.current = hash;
+    record({
+      module: activeModule ?? 'review',
+      eventType: 'panel_row_visible',
+      payload: {
+        panel: 'alerts',
+        modules: alerts.map((a) => a.module),
+        rowIds: alerts.map((a) => a.id),
+      },
+    });
+  }, [alerts, projectId, activeModule, harvestMode, record]);
 
   if (harvestMode) {
     return (
@@ -175,4 +232,3 @@ export default function AlertsPanel({ projectId, activeModule }: Props) {
     </section>
   );
 }
-

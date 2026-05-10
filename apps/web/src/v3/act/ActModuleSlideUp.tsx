@@ -31,7 +31,10 @@ const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkC
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
 const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
+const StructureYieldCard        = lazy(() => import('../../features/act/StructureYieldCard.js'));
 const MaintenanceLogCard        = lazy(() => import('../../features/act/MaintenanceLogCard.js'));
+const WeatherForecastCard       = lazy(() => import('../../features/act/WeatherForecastCard.js'));
+const EventCalendarCard         = lazy(() => import('../../features/act/EventCalendarCard.js'));
 // Livestock (Module — added per Module 3 zones-scholar ADR 2026-05-07 deferral
 // of paddock rotation to a future Subdivision/Livestock module). All seven
 // cards live at apps/web/src/features/livestock/ and take { projectId } except
@@ -55,6 +58,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-irrigation':        return <IrrigationManagerCard project={project} onSwitchToMap={noop} />;
     case 'act-waste-routing':     return <WasteRoutingChecklistCard project={project} onSwitchToMap={noop} />;
     case 'act-harvest-log':       return <HarvestLogCard project={project} onSwitchToMap={noop} />;
+    case 'act-structure-yield':   return <StructureYieldCard project={project} onSwitchToMap={noop} />;
     case 'act-succession':        return <SuccessionTrackerCard project={project} onSwitchToMap={noop} />;
     case 'act-ongoing-swot':      return <OngoingSwotCard project={project} onSwitchToMap={noop} />;
     case 'act-hazard-plans':      return <HazardPlansCard project={project} onSwitchToMap={noop} />;
@@ -69,6 +73,8 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-livestock-predator-risk':   return <PredatorRiskHotspotsCard projectId={project.id} />;
     case 'act-livestock-welfare-audit':   return <WelfareAccessAuditCard projectId={project.id} />;
     case 'act-livestock-corridors':       return <AnimalCorridorGrazingRouteCard projectId={project.id} />;
+    case 'act-weather-forecast':  return <WeatherForecastCard project={project} onSwitchToMap={noop} />;
+    case 'act-event-calendar':    return <EventCalendarCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

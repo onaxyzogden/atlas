@@ -17,7 +17,7 @@ import { useScenarioStore } from '../../store/scenarioStore.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { api } from '../../lib/apiClient.js';
-import InvestorSummaryExport from '../export/InvestorSummaryExport.js';
+import CapitalPartnerSummaryExport from '../export/CapitalPartnerSummaryExport.js';
 import EducationalBookletExport from '../export/EducationalBookletExport.js';
 import ClientHandoffPackageCard from './ClientHandoffPackageCard.js';
 import SiteAssessmentExportPreviewCard from './SiteAssessmentExportPreviewCard.js';
@@ -36,11 +36,11 @@ type ExportTypeId =
   | 'design_brief'
   | 'feature_schedule'
   | 'field_notes'
-  | 'investor_summary'
+  | 'capital_partner_summary'
   | 'scenario_comparison'
   | 'educational_booklet';
 
-type Audience = 'internal' | 'landowner' | 'investor' | 'regulatory';
+type Audience = 'internal' | 'landowner' | 'capital_partner' | 'regulatory';
 
 interface CatalogEntry {
   exportType: ExportTypeId;
@@ -87,18 +87,18 @@ const EXPORT_CATALOG: CatalogEntry[] = [
     audience: ['internal'],
   },
   {
-    exportType: 'investor_summary',
-    name: 'Investor Summary',
-    description: 'Financial overview with cashflow projections, ROI, and mission scores',
+    exportType: 'capital_partner_summary',
+    name: 'Capital Partner Summary',
+    description: 'Capital plan with cashflow projections, project yield, and mission scores',
     estimatedPages: '~5 pages',
-    audience: ['investor'],
+    audience: ['capital_partner'],
   },
   {
     exportType: 'scenario_comparison',
     name: 'Scenario Comparison',
     description: 'Side-by-side comparison of saved design scenarios',
     estimatedPages: '~6 pages',
-    audience: ['internal', 'investor'],
+    audience: ['internal', 'capital_partner'],
   },
   {
     exportType: 'educational_booklet',
@@ -112,7 +112,7 @@ const EXPORT_CATALOG: CatalogEntry[] = [
 const AUDIENCE_LABELS: Record<Audience, { label: string; color: string; bg: string }> = {
   internal:   { label: 'Internal',   color: group.reporting, bg: 'rgba(21,128,61,0.10)' },
   landowner:  { label: 'Landowner',  color: group.reporting, bg: 'rgba(21,128,61,0.10)' },
-  investor:   { label: 'Investor',   color: warning.DEFAULT, bg: 'rgba(202,138,4,0.10)' },
+  capital_partner: { label: 'Capital Partner', color: warning.DEFAULT, bg: 'rgba(202,138,4,0.10)' },
   regulatory: { label: 'Regulatory', color: sage[900], bg: 'rgba(20,83,45,0.10)' },
 };
 
@@ -121,7 +121,7 @@ const TYPE_LABELS: Record<ExportTypeId, string> = {
   design_brief: 'Design Brief',
   feature_schedule: 'Feature Schedule',
   field_notes: 'Field Notes',
-  investor_summary: 'Investor Summary',
+  capital_partner_summary: 'Capital Partner Summary',
   scenario_comparison: 'Scenario Comparison',
   educational_booklet: 'Educational Booklet',
 };
@@ -227,7 +227,7 @@ const EXPORT_ICONS: Record<ExportTypeId, () => JSX.Element> = {
   design_brief: IconClipboard,
   feature_schedule: IconLayers,
   field_notes: IconPencil,
-  investor_summary: IconChart,
+  capital_partner_summary: IconChart,
   scenario_comparison: IconLayers,
   educational_booklet: IconBook,
 };
@@ -249,7 +249,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [history, setHistory] = useState<ExportRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [showInvestor, setShowInvestor] = useState(false);
+  const [showCapitalPartner, setShowCapitalPartner] = useState(false);
   const [showEducational, setShowEducational] = useState(false);
 
   // ── Store data for readiness checks ──
@@ -284,7 +284,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
     field_notes: fieldworkEntries.length > 0
       ? { ready: true }
       : { ready: false, reason: 'Record field observations during a site visit first' },
-    investor_summary: financialModel != null
+    capital_partner_summary: financialModel != null
       ? { ready: true }
       : { ready: false, reason: 'Add design features to generate a financial model' },
     scenario_comparison: scenarios.length >= 2
@@ -295,7 +295,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
   // ── Payload assembly for export types that need client data ──
   const buildPayload = useCallback((exportType: ExportTypeId): { payload?: Record<string, unknown> } => {
-    if (exportType === 'investor_summary' && financialModel) {
+    if (exportType === 'capital_partner_summary' && financialModel) {
       return {
         payload: {
           financial: {
@@ -452,7 +452,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
     <div className={p.container}>
       <h2 className={p.title} style={{ marginBottom: 6 }}>Reports & Export</h2>
       <p className={p.subtitle}>
-        Generate professional PDF reports for presentations, grants, investors, or regulatory filings.
+        Generate professional PDF reports for presentations, grants, capital partners & allies, or regulatory filings.
       </p>
 
       {/* ── Bulk controls ── */}
@@ -699,7 +699,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
       <ClientHandoffPackageCard project={project} />
 
       {/* ── Export modals ── */}
-      {showInvestor && <InvestorSummaryExport project={project} onClose={() => setShowInvestor(false)} />}
+      {showCapitalPartner && <CapitalPartnerSummaryExport project={project} onClose={() => setShowCapitalPartner(false)} />}
       {showEducational && <EducationalBookletExport project={project} onClose={() => setShowEducational(false)} />}
     </div>
   );

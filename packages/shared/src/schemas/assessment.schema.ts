@@ -60,7 +60,7 @@ export const AIOutput = WithConfidence.extend({
     'design_recommendation',
     'risk_flag',
     'planting_guide',
-    'investor_summary',
+    'capital_partner_summary',
     'design_brief',
   ]),
   content: z.string(),
