@@ -4,6 +4,70 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Observe map: draw-boundary becomes Observe-only + edit-mode-aware + icon swap
+
+Three small but related changes to the `MapToolbar` floating dock:
+
+1. **Stage scoping.** Added a `showBoundary?: boolean` prop (default
+   `true`) to `apps/web/src/v3/observe/components/MapToolbar.tsx`.
+   PlanLayout and ActLayout now pass `showBoundary={false}`; ObserveLayout
+   keeps the default. The toolbar still mounts in all three stages
+   (Distance / Elevation / Area / Return-to-property remain everywhere)
+   — only the parcel-boundary draw button + popover are gated. Rationale:
+   parcel definition belongs to Observe; surfacing the draw button in
+   Plan/Act invited stewards to redraw the boundary mid-design.
+
+2. **Edit mode.** `BoundaryTool.tsx` now accepts an `existing?:
+   GeoJSON.Polygon | null` prop. On mount: if `existing` is provided,
+   `draw.add(...)` seeds the feature and `draw.changeMode('direct_select',
+   { featureId })` opens it for vertex-level editing; otherwise the
+   original `draw.changeMode('draw_polygon')` runs. The existing
+   `draw.create / draw.update / draw.delete` listener triplet (already
+   present pre-change) covers the persistence path — no changes to
+   ObserveLayout's `onBoundaryDrawn` callback. `existing` is stashed in a
+   ref alongside `onBoundaryDrawn` to keep the init effect's dep array at
+   `[map]` (re-renders must not re-init the draw control mid-edit).
+
+3. **Icon swap.** Measure-area now uses Lucide `SquareDashed`;
+   draw-boundary uses Lucide `Square`. The dashed silhouette better
+   signals "ephemeral measurement"; the solid square signals
+   "persistent property edge."
+
+Verified end-to-end against the running dev server at :5200:
+`tsc --noEmit` clean; Observe toolbar shows 6 buttons including
+"Draw property boundary"; Plan + Act show 5 (no boundary); icon classes
+on the buttons confirmed (`lucide-square-dashed` for area,
+`lucide-square` for boundary); seeding a `parcelBoundaryGeojson`
+FeatureCollection on a project and reopening the tool produces the
+"Vertices N · Area X.XX ha" readout immediately (proof that
+`direct_select` ran with a populated polygon, rather than the
+"Click points to outline the parcel" hint shown when no boundary
+exists).
+
+---
+
+## 2026-05-09 — Plan stage: drag-time undo coalescing (1 entry per drag)
+
+Wrapped the five MapLibre drag-to-translate handlers in
+`PlanDataLayers.tsx` with a new `beginDragUndoWindow(store)` helper at
+`apps/web/src/v3/plan/layers/dragUndo.ts`. Pauses the underlying zundo
+`temporal()` middleware on first 4 px threshold cross, then on mouseup
+silently rewinds to pre-drag state, resumes, and applies the final
+state — collapsing the prior 30–60 undo entries per drag down to one.
+Covers Guild, Structure, polygon (zone / crop / paddock /
+water_catchment), line/curve (path / utility / water_swale), and
+center-point (fertility / water_storage / water_sink) handlers.
+Decision recorded in
+[decisions/2026-05-09-atlas-plan-drag-undo-coalescing.md](decisions/2026-05-09-atlas-plan-drag-undo-coalescing.md).
+
+Static gates clean: `tsc --noEmit` green; `vite build` green (53.6s,
+667 PWA precache entries). Dev server live at :5200; interactive smoke
+pass (drag → single Cmd-Z) deferred to user verification — programmatic
+drag synthesis on a WebGL map canvas is unreliable for the threshold
+and timing semantics this change hinges on.
+
+---
+
 ## 2026-05-09 — Plan stage: Machinery as a first-class module (Yeomans rank 6)
 
 Added `machinery` as the 5th right-rail Plan module, slotted between
@@ -8883,3 +8947,65 @@ omission rather than ranking it. ADR:
 `wiki/decisions/2026-05-09-atlas-act-affinity-v1-sanity-review.md`.
 Cross-link appended to the v1 ADR. **No code changes** this session —
 review only.
+
+### Atlas Act/Schedule — EventCalendarCard week + agenda views
+
+Follow-up to the 2026-05-09 schedule decision (ADR
+`2026-05-09-atlas-act-schedule-weather-and-calendar.md`). The Schedule
+module shipped month-only; this iteration adds Week and Agenda toggles
+on `EventCalendarCard.tsx` so an operator can pick the time window
+that matches the question they're asking.
+
+Added `type CalendarViewMode = 'month' | 'week' | 'agenda'` (local to
+the component), a `viewMode` `useState`, and a 3-button toggle row
+that reuses the existing `.filterChip` styling alongside the source
+filter chips. Header label, prev/next handlers, and the rendered
+panel branch on `viewMode`:
+
+- **Month** — unchanged 7×6 `date-fns` grid with the existing
+  DayDetail drawer.
+- **Week** — single column of 7 day cards from
+  `startOfWeek(anchor)` → `endOfWeek(anchor)` (Sunday start, matching
+  the month grid). ←/→ controls step `addWeeks(±1)`. Each card shows
+  `EEE · MMM d`, the same colored source dots / overflow count, and
+  `—` when empty. Clicking a card sets `selectedDay` and renders the
+  same DayDetail drawer below.
+- **Agenda** — derives `agendaDays` (next 14 days from
+  `startOfDay(today)`) and renders one `DayDetail` block per
+  non-empty day, or "No upcoming entries in the next 14 days. Toggle
+  filters or extend the window." when none exist. Prev/next disabled
+  in this mode (window is fixed to "next 14 days"). The header label
+  reads "Next 14 days" instead of a month/week range.
+
+Source filter chips (`activeSources: Set<CalendarSource>`) and
+`filteredByDate` are unchanged — both new modes consume the same
+filtered map. `selectedDay` survives mode switches.
+
+CSS additions in `EventCalendarCard.module.css`: `.viewToggle`
+(toggle row), `.weekStrip` + `.weekCell` + `.weekCellLabel` /
+`.weekCellRight` / `.weekCellEmpty` (Week column), `.agendaList`
++ `.agendaDay` (Agenda stack). Reuses `.cellToday`, `.cellSelected`,
+`.cellDots`, `.cellOverflow`, `.dayDetail`, and the dot palette.
+
+**Verification.** `apps/web npx tsc --noEmit` clean (exit 0). DOM
+probes against /v3/project/mtc/act/schedule with the slide-up open
+on the Event-calendar tab confirmed:
+- Toggle row renders with 3 buttons; exactly one carries
+  `aria-pressed="true"` at any time.
+- **Month** → 42 cells in `[class*="_grid_"]`.
+- **Week** → 7 buttons in `[class*="_weekStrip_"]`; header reads
+  `May 3 – May 9, 2026`.
+- **Agenda** → `[class*="_agendaList_"]` present; "No upcoming
+  entries" empty-state visible (mtc has no dated stores seeded);
+  header reads "Next 14 days".
+- Switching `Week → Agenda → Month` round-trips back to a 42-cell
+  grid; `aria-pressed` flag tracks the active mode at every step.
+
+**Deferred.** Phases A (Redis cache `meta.cached: true` demo) and B
+(live forecast UI screenshot on a parcel-bearing project) remain
+runtime/environment work — Redis container not running locally,
+Mapbox renderer is the screenshot blocker. Both are documented in
+the follow-up plan
+(`.claude/plans/the-act-stage-page-declarative-ullman.md`) and can
+land in a session that brings up Docker. No new ADR — this is a
+continuation of the existing schedule decision.

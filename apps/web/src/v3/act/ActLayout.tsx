@@ -32,6 +32,8 @@ import ActModuleBar from './ActModuleBar.js';
 import ActModuleSlideUp from './ActModuleSlideUp.js';
 import ActDrawHost from './draw/ActDrawHost.js';
 import ActDataLayers from './layers/ActDataLayers.js';
+import ActStructureClickHandler from './layers/ActStructureClickHandler.js';
+import ActStructurePopover from './ActStructurePopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
@@ -144,19 +146,28 @@ export default function ActLayout() {
                 projectId={params.projectId ?? null}
                 boundary={boundary ?? null}
                 onBoundaryDrawn={handleBoundaryDrawn}
+                showBoundary={false}
               />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}
               />
               {params.projectId ? (
-                <PlanDataLayers map={map} projectId={params.projectId} />
+                <PlanDataLayers
+                  map={map}
+                  projectId={params.projectId}
+                  editable={false}
+                />
+              ) : null}
+              {params.projectId ? (
+                <ActStructureClickHandler map={map} projectId={params.projectId} />
               ) : null}
               {params.projectId ? (
                 <ActDataLayers map={map} projectId={params.projectId} />
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
+              <ActStructurePopover map={map} projectId={params.projectId ?? null} />
             </>
           )}
         </DiagnoseMap>

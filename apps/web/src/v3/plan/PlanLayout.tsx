@@ -14,9 +14,10 @@
  * The PlanPhaseTabs strip itself overlays the canvas (absolute, top-centre).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore } from '../../store/projectStore.js';
+import { usePhaseStore } from '../../store/phaseStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
@@ -98,6 +99,13 @@ export default function PlanLayout() {
   const [activeView, setActiveView] = useState<PlanView>('current');
   const [activeKind, setActiveKind] = useState<string | null>(null);
 
+  // Plan stage assumes phases exist for phase-tagging on every drawn feature.
+  // Seed the default 4 phases (Phase 1–4) on entry so the inline draw popovers'
+  // Phase select renders real options instead of just "— Unassigned —".
+  useEffect(() => {
+    usePhaseStore.getState().ensureDefaults(id);
+  }, [id]);
+
   const handleSelectModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
@@ -148,6 +156,7 @@ export default function PlanLayout() {
             projectId={id}
             boundary={boundary ?? null}
             onBoundaryDrawn={handleBoundaryDrawn}
+            showBoundary={false}
           />
           <ObserveAnnotationLayers map={map} projectId={id} />
           <PlanDataLayers map={map} projectId={id} />
