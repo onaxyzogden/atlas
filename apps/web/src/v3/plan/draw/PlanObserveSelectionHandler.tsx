@@ -18,9 +18,11 @@
 
 import { useEffect } from 'react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
+import type { BuiltEnvironmentEntity } from '@ogden/shared';
 import { useObserveLinkPopoverStore } from './observeLinkPopoverStore.js';
 import type { ObserveLinkKind } from './observeLinkPopoverStore.js';
 import { useInlineFormStore } from './inlineFormStore.js';
+import type { InlineFormPayload } from './inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import {
   buildBuildingEditSchema,
@@ -32,6 +34,29 @@ import {
   buildGateEditSchema,
   buildDrivewayEditSchema,
 } from '../layers/inlineEditSchemas.js';
+
+/**
+ * Per-kind dispatch table for BE inline-edit popovers. Each entry pairs
+ * a layer-id prefix with the V2 entity kind it represents and the schema
+ * builder from `inlineEditSchemas`. Replaces eight near-identical if-
+ * blocks (Phase 4.3 dedup).
+ */
+interface BeInlineEditDispatch {
+  prefix: string;
+  kind: BuiltEnvironmentEntity['kind'];
+  build: (entity: BuiltEnvironmentEntity) => Omit<InlineFormPayload, 'anchor'>;
+}
+
+const BE_INLINE_EDIT_DISPATCH: readonly BeInlineEditDispatch[] = [
+  { prefix: 'observe-anno-be-buildings', kind: 'building', build: buildBuildingEditSchema },
+  { prefix: 'observe-anno-be-wells', kind: 'well', build: buildWellEditSchema },
+  { prefix: 'observe-anno-be-septics', kind: 'septic', build: buildSepticEditSchema },
+  { prefix: 'observe-anno-be-power-lines', kind: 'power-line', build: buildPowerLineEditSchema },
+  { prefix: 'observe-anno-be-buried-utilities', kind: 'buried-utility', build: buildBuriedUtilityEditSchema },
+  { prefix: 'observe-anno-be-fences', kind: 'fence', build: buildFenceEditSchema },
+  { prefix: 'observe-anno-be-gates', kind: 'gate', build: buildGateEditSchema },
+  { prefix: 'observe-anno-be-driveways', kind: 'driveway', build: buildDrivewayEditSchema },
+];
 
 interface Props {
   map: MaplibreMap;
@@ -146,112 +171,23 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
       e.preventDefault();
       e.originalEvent.stopPropagation();
 
-      // Phase 2: Buildings and Wells open the inline-edit popover
-      // instead of the "Edit in Observe →" link popover. Remaining
-      // Observe kinds keep going through the link popover until their
-      // Phase 2 PRs land.
-      if (
-        top.layer.id.startsWith('observe-anno-be-buildings') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'building');
-        if (entity) {
-          const schema = buildBuildingEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-wells') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'well');
-        if (entity) {
-          const schema = buildWellEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-septics') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'septic');
-        if (entity) {
-          const schema = buildSepticEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-power-lines') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'power-line');
-        if (entity) {
-          const schema = buildPowerLineEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-buried-utilities') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'buried-utility');
-        if (entity) {
-          const schema = buildBuriedUtilityEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-fences') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'fence');
-        if (entity) {
-          const schema = buildFenceEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-gates') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'gate');
-        if (entity) {
-          const schema = buildGateEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
-        }
-      }
-      if (
-        top.layer.id.startsWith('observe-anno-be-driveways') &&
-        featureId
-      ) {
-        const entity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find((x) => x.id === featureId && x.kind === 'driveway');
-        if (entity) {
-          const schema = buildDrivewayEditSchema(entity);
-          openInline({ ...schema, anchor });
-          return;
+      // Phase 4.3: BE kinds open the inline-edit popover instead of the
+      // "Edit in Observe →" link popover. Driven by a per-kind table —
+      // each entry pairs a layer-id prefix with the V2 entity kind and
+      // its `inlineEditSchemas` builder. Remaining Observe kinds keep
+      // going through the link popover until their Phase 2 PRs land.
+      if (featureId) {
+        for (const dispatch of BE_INLINE_EDIT_DISPATCH) {
+          if (!top.layer.id.startsWith(dispatch.prefix)) continue;
+          const entity = useBuiltEnvironmentStoreV2
+            .getState()
+            .entities.find((x) => x.id === featureId && x.kind === dispatch.kind);
+          if (entity) {
+            const schema = dispatch.build(entity);
+            openInline({ ...schema, anchor });
+            return;
+          }
+          break;
         }
       }
 
