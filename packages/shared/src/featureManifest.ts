@@ -753,6 +753,7 @@ export const FEATURE_SECTIONS: readonly FeatureSection[] = [
       { key: 'plan-machinery-inventory', label: 'Machinery inventory CRUD', phase: 'P2', status: 'done' },
       { key: 'plan-machinery-access-fit', label: 'Machinery access-fit verdicts', phase: 'P2', status: 'done' },
       { key: 'plan-machinery-housing-fuel', label: 'Machinery housing & fuel coverage', phase: 'P2', status: 'done' },
+      { key: 'plan-equipment-replacement', label: 'Equipment replacement schedule (lifecycle × phase matrix)', phase: 'P2', status: 'done' },
     ],
   },
 ];

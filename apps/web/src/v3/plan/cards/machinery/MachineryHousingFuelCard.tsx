@@ -11,6 +11,8 @@
 import { useMemo } from 'react';
 import { useMachineryInventoryStore } from '../../../../store/machineryInventoryStore.js';
 import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useSectorStore } from '../../../../store/sectorStore.js';
+import { detectNoiseSectorHits, describeElement } from './noiseSectorOverlap.js';
 import css from './MachineryHousingFuelCard.module.css';
 
 const EMPTY_ITEMS: ReturnType<typeof useMachineryInventoryStore.getState>['byProject'][string] = [];
@@ -48,6 +50,17 @@ export default function MachineryHousingFuelCard({ projectId }: Props) {
     [elements],
   );
 
+  const sectors = useSectorStore((s) => s.byProject[projectId]);
+  const noiseHits = useMemo(
+    () =>
+      detectNoiseSectorHits({
+        elements,
+        noiseDirection: sectors?.noise,
+        noiseHalfWidth: sectors?.noiseHalfWidth,
+      }),
+    [elements, sectors?.noise, sectors?.noiseHalfWidth],
+  );
+
   const orphans = items.filter((it) => !it.housingElementId);
   const fossilItems = items.filter((it) => FOSSIL_FUELS.has(it.fuelType));
 
@@ -65,6 +78,20 @@ export default function MachineryHousingFuelCard({ projectId }: Props) {
         Diesel and petrol items need at least one drawn{' '}
         <code className={css.code}>fuel-station</code> on the canvas.
       </p>
+
+      {noiseHits.length > 0 ? (
+        <div className={css.flag}>
+          <strong>Noise sector siting:</strong>
+          <ul className={css.flagList}>
+            {noiseHits.map((hit, i) => (
+              <li key={`${hit.source.id}-${hit.dwelling.id}-${i}`}>
+                {describeElement(hit.source)} sits within the prevailing-wind
+                noise sector of {describeElement(hit.dwelling)}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {fossilItems.length > 0 && !hasFuelStation ? (
         <div className={css.flag}>

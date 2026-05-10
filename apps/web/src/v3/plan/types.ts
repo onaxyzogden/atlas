@@ -191,6 +191,7 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
     { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
+    { label: 'Equipment replacement',  sectionId: 'plan-equipment-replacement' },
   ],
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },
