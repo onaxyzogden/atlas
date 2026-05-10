@@ -1,4 +1,4 @@
-/* MachineryHousingFuelCard — housing assignment + fuel coverage. */
+/* EquipmentReplacementScheduleCard — phasing-budgeting matrix. */
 
 .card {
   margin-bottom: 16px;
@@ -32,7 +32,7 @@
 }
 
 .intro {
-  margin: 0 0 12px 0;
+  margin: 0 0 14px 0;
   font-size: 12px;
   line-height: 1.55;
   color: rgba(180, 165, 140, 0.7);
@@ -47,30 +47,6 @@
   color: rgba(220, 210, 190, 0.85);
 }
 
-.flag {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(220, 110, 100, 0.08);
-  border: 1px solid rgba(220, 110, 100, 0.25);
-  font-size: 12px;
-  color: rgba(230, 200, 195, 0.92);
-}
-
-.flagList {
-  list-style: disc;
-  margin: 6px 0 0 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.flagList li {
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-
 .empty {
   padding: 18px;
   text-align: center;
@@ -80,39 +56,86 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
-.list {
+.phaseList {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.row {
+.phaseRow {
   padding: 10px 12px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
-.rowMain {
+.phaseHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
+  margin-bottom: 6px;
 }
 
-.rowMain strong {
+.phaseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.phaseName {
   font-size: 13px;
   color: rgba(232, 220, 200, 0.92);
 }
 
-.fuelChip {
-  display: inline-block;
-  padding: 2px 7px;
+.phaseTime {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseCount {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.55);
+}
+
+.phaseEmpty {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.4);
+  padding: 4px 6px;
+}
+
+.itemList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.item strong {
+  color: rgba(232, 220, 200, 0.9);
+}
+
+.kindChip {
+  padding: 1px 6px;
   border-radius: 999px;
   background: rgba(106, 106, 106, 0.25);
   color: rgba(220, 220, 220, 0.85);
@@ -121,50 +144,37 @@
   text-transform: uppercase;
 }
 
-.rowAssign {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.rowAssign label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: rgba(180, 165, 140, 0.7);
-}
-
-.rowAssign label span {
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 9.5px;
+.itemMeta {
+  margin-left: auto;
+  font-size: 10.5px;
   color: rgba(180, 165, 140, 0.55);
+  font-variant-numeric: tabular-nums;
 }
 
-.rowAssign select {
-  background: rgba(15, 17, 19, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 12px;
-  color: rgba(232, 220, 200, 0.92);
-  font-family: inherit;
-}
-
-.stale {
-  font-size: 11px;
-  color: rgba(220, 180, 90, 0.85);
-}
-
-.hint {
-  margin: 12px 0 0 0;
+.unknown {
+  margin-top: 14px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(220, 180, 90, 0.35);
+  background: rgba(220, 180, 90, 0.05);
+}
+
+.unknown strong {
+  font-size: 12px;
+  color: rgba(232, 220, 200, 0.85);
+}
+
+.unknownList {
+  list-style: disc;
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.unknownList li {
   font-size: 11.5px;
+  line-height: 1.5;
   color: rgba(180, 165, 140, 0.7);
-  line-height: 1.55;
 }
