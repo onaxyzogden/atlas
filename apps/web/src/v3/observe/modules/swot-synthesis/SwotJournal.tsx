@@ -58,11 +58,11 @@ export default function SwotJournal() {
     if (exporting) return;
     setExporting(true);
     try {
-      const rec = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(id, {
         exportType: 'swot_journal',
         payload: { swot: { entries } },
       });
-      window.open(rec.storageUrl, '_blank');
+      window.open(data.storageUrl, '_blank');
     } catch (err) {
       console.error('SWOT journal export failed', err);
     } finally {

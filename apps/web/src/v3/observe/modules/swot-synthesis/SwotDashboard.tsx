@@ -45,11 +45,11 @@ export default function SwotDashboard() {
     if (exporting) return;
     setExporting(true);
     try {
-      const rec = await api.exports.generate(id, {
+      const { data } = await api.exports.generate(id, {
         exportType: 'swot_synthesis',
         payload: { swot: { entries } },
       });
-      window.open(rec.storageUrl, '_blank');
+      window.open(data.storageUrl, '_blank');
     } catch (err) {
       console.error('SWOT synthesis export failed', err);
     } finally {
