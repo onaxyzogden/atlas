@@ -111,6 +111,75 @@
   margin-left: 4px;
 }
 
+.driveBlock {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.driveHead {
+  margin-bottom: 10px;
+}
+
+.driveTitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.78);
+  margin-bottom: 3px;
+}
+
+.driveSubtitle {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.55);
+  max-width: 640px;
+}
+
+.driveList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.driveRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 80px 80px;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.025);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+  font-size: 12px;
+  color: rgba(220, 210, 190, 0.88);
+}
+
+.driveName {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driveKind {
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.driveKm {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(180, 165, 140, 0.78);
+}
+
+.driveMin {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(232, 220, 200, 0.92);
+  font-weight: 600;
+}
+
 .verdict {
   margin-top: 14px;
   padding: 10px 12px;
