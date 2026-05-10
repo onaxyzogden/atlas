@@ -89,6 +89,15 @@ export default function InlineFeaturePopover({ map }: Props) {
       const node = popoverRef.current;
       if (!node) return;
       if (e.target instanceof Node && node.contains(e.target)) return;
+      // Clicks on the Plan selection floater are companion UI, not
+      // "outside". Don't dismiss the form when the steward reaches for
+      // Edit vertices / Delete / Clear.
+      if (
+        e.target instanceof Element &&
+        e.target.closest('[role="toolbar"][aria-label="Plan selection actions"]')
+      ) {
+        return;
+      }
       active.onCancel();
       close();
     };
