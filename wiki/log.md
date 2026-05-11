@@ -110,6 +110,14 @@ Follow-up same day (continued): two more deferred items closed.
   plans fulfilled when an actual event lands within ±7 days of
   `plannedDate` (same project + paddock + species). ADR
   Out-of-scope section updated to strike both items.
+- `a2725c3` — Plan editing. `Edit` + `✕` chips on the `Planned:`
+  line. `Edit` reopens the schedule form prefilled with the plan's
+  fields (saves call `updatePlan(id, patch)`); `✕` dismisses the
+  plan via `removePlan(id)` — useful when auto-fulfilment doesn't
+  fire (e.g. species mismatch). Save-button label tri-states: `Save
+  move` / `Schedule move` / `Update plan`. No store changes; reuses
+  existing `updatePlan` / `removePlan` mutators on
+  `scheduledLivestockMoveStore`.
 
 ---
 

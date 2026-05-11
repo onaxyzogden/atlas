@@ -204,6 +204,16 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   event lands within ±7 days of `plannedDate` (same project +
   paddock + species), the plan is marked `fulfilledByEventId` and
   stops rendering.
+- **Plan editing** (followed forward-looking variance the same day).
+  **Closed 2026-05-10 (commit `a2725c3`).** The `Planned:` line now
+  carries `Edit` and `✕` chips after the variance pill. `Edit`
+  reopens the schedule form prefilled with the plan's fields (saves
+  call `updatePlan(id, patch)`); `✕` dismisses the plan via
+  `removePlan(id)` — useful when auto-fulfilment doesn't fire
+  (e.g. species mismatch). Save-button label tri-states: `Save move`
+  (actual) / `Schedule move` (new plan) / `Update plan` (edit). No
+  store changes — reuses existing `updatePlan` / `removePlan`
+  mutators.
 
 ## Related
 
@@ -224,3 +234,5 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
 - `12d72b6` — Forward-looking variance: scheduled-move store +
   `Schedule…` button + `Planned: <date>` line with variance pill +
   ±7d auto-fulfilment.
+- `a2725c3` — Plan editing: `Edit` + `✕` chips on the `Planned:`
+  line (in-place `updatePlan` and manual `removePlan`).
