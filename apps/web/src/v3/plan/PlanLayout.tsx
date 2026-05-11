@@ -31,10 +31,11 @@ import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
 import DesignElementPalette from './canvas/DesignElementPalette.js';
+import DesignToolRail from './canvas/DesignToolRail.js';
+import BaseMapCard from './canvas/BaseMapCard.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
 import StageShell from '../_shell/StageShell.js';
-import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
@@ -163,7 +164,6 @@ export default function PlanLayout() {
     <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
       {({ map }) => (
         <>
-          <MapOverlaysLegend />
           <MapToolbar
             map={map}
             projectId={id}
@@ -171,6 +171,15 @@ export default function PlanLayout() {
             onBoundaryDrawn={handleBoundaryDrawn}
             showBoundary={false}
           />
+          <DesignToolRail
+            map={map}
+            activeKind={null}
+            projectId={id}
+            onDisarmDraw={() => {}}
+            selectedId={null}
+            setSelectedId={() => {}}
+          />
+          <BaseMapCard />
           <ObserveAnnotationLayers map={map} projectId={id} />
           <PlanObserveSelectionHandler map={map} />
           <PlanDataLayers map={map} projectId={id} />

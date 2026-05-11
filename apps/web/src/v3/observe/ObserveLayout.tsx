@@ -53,7 +53,6 @@ import {
   type ObserveModule,
 } from './types.js';
 import StageShell from '../_shell/StageShell.js';
-import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -109,7 +108,6 @@ export default function ObserveLayout() {
         >
           {({ map }) => (
             <>
-              <MapOverlaysLegend />
               {/* Tile overlays from MapTiler / OpenMapTiles. The
                   climatology-driven prevailing wind rose
                   (`WindSectorsOverlay`) is intentionally NOT mounted in

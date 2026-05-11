@@ -1,8 +1,10 @@
 .card {
   position: absolute;
-  bottom: 16px;
+  top: 16px;
   left: 16px;
-  width: 220px;
+  width: 260px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -76,4 +78,52 @@
   height: 10px;
   border-radius: 2px;
   display: inline-block;
+}
+
+.overlaysHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.overlaysHeader:hover .title {
+  opacity: 1;
+}
+
+.overlaysList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #f2ede3;
+}
+
+.rowLabel input[type='checkbox'] {
+  margin: 0;
+  flex: 0 0 auto;
+  accent-color: var(--color-gold-brand, #c4a265);
+}
+
+.text {
+  flex: 1 1 auto;
 }

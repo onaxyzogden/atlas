@@ -38,7 +38,7 @@ import ActStructureClickHandler from './layers/ActStructureClickHandler.js';
 import ActStructurePopover from './ActStructurePopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
-import MapOverlaysLegend from '../_shared/components/MapOverlaysLegend.js';
+import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -172,7 +172,6 @@ export default function ActLayout() {
         >
           {({ map }) => (
             <>
-              <MapOverlaysLegend />
               <MapToolbar
                 map={map}
                 projectId={params.projectId ?? null}
@@ -180,6 +179,7 @@ export default function ActLayout() {
                 onBoundaryDrawn={handleBoundaryDrawn}
                 showBoundary={false}
               />
+              <BaseMapCard />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}
