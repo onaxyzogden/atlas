@@ -304,5 +304,24 @@ the throughput card. To pin the formula:
 - Tests on the throughput / coverage / concentration math (covered
   for peak-week-pack only; coverage/concentration still open).
 - Species-aware sizing fields (cattle dress-out %, lamb hanging weight).
-- Re-threading `computePeakWeekKg` into the two card components so
-  the runtime path matches the tested function.
+- ~~Re-threading `computePeakWeekKg` into the two card components so
+  the runtime path matches the tested function.~~ — closed
+  2026-05-11 (commit 192d814).
+
+### 2026-05-11 follow-up #2 — verdict cascades unit-locked
+
+The helper re-thread also extracted the two cards' verdict cascades
+into pure deriver functions in `agribusinessSizing.ts`:
+
+- `computeColdChainVerdict({ unitCount, totalCapacityM3, requiredM3 })`
+  → `no-units | no-capacity | ok | caution | short`. Thresholds:
+  `>= 120 %` ok, `>= 80 %` caution.
+- `computeMarketVerdict({ nodeCount, totalDemandKg, largestKindKg, weeklyProductKg })`
+  → `no-nodes | no-demand | undersold | oversold | concentrated | ok`.
+  Thresholds: coverage `< 80 %` undersold, `> 120 %` oversold,
+  largest-channel share `> 70 %` concentrated.
+
+14 boundary-walking vitest cases pin each inequality direction
+(exact-80, exact-120, exact-70 plus `±0.001` neighbours). Flipping
+`<` ↔ `<=` or `>` ↔ `>=` in either deriver now breaks at least one
+assertion. Steward-facing verdicts cannot drift silently.
