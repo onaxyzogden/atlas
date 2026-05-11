@@ -1,5 +1,5 @@
-/**
- * Crop store — orchards, gardens, food forests, agroforestry bands.
+﻿/**
+ * Crop store â€” orchards, gardens, food forests, agroforestry bands.
  *
  * Phase 2: Draw crop areas on the map, assign species, plan spacing.
  */
@@ -25,24 +25,24 @@ export interface CropArea {
   irrigationType: 'drip' | 'sprinkler' | 'flood' | 'rain_fed' | 'none';
   phase: string;
   notes: string;
-  /** Computed annual irrigation demand (US gal/yr) — derived from area × waterDemand class. */
+  /** Computed annual irrigation demand (US gal/yr) â€” derived from area Ã— waterDemand class. */
   waterGalYr?: number;
   /** Market-garden bundle id (see marketGardenBundles.ts); set only when type === 'market_garden'. */
   marketGardenBundle?: string;
   /** Optional bed length override (m) for market-garden bed-count math; falls back to ASSUMED_BED_LENGTH_M (30 m) when undefined. */
   marketGardenBedLengthM?: number;
   /**
-   * ACT-stage Module 2 — current irrigation operating mode. Tracks the
+   * ACT-stage Module 2 â€” current irrigation operating mode. Tracks the
    * transition from active watering at install time to passive
    * (rain-fed / swale-fed) operation as perennial systems establish.
    * Optional, additive; legacy crop areas load with `irrigationMode`
    * undefined (treated as `active` by `IrrigationManagerCard`).
    */
   irrigationMode?: 'active' | 'transitioning' | 'passive';
-  /** ISO date when the steward began the active→passive transition. */
+  /** ISO date when the steward began the activeâ†’passive transition. */
   transitionStartDate?: string;
   /**
-   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * PLAN-stage Multi-Enterprise â€” `enterpriseStore` enterprise id this
    * crop area belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
@@ -78,7 +78,7 @@ export const useCropStore = create<CropState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-crops', version: 1 },
+    { name: 'ogden-crops', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

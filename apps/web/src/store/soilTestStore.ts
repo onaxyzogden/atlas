@@ -1,11 +1,11 @@
-/**
- * Soil-test store — PLAN-stage Module 5 (Soil Fertility & Closed-Loop).
+﻿/**
+ * Soil-test store â€” PLAN-stage Module 5 (Soil Fertility & Closed-Loop).
  *
  * Persists the steward's jar-test / percolation / pH readings authored in
  * `SoilBaselineCard`. Per Permaculture Scholar verdict 2026-05-07
  * (`wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`)
- * the Scholar called "soil management areas" — a project usually has more
- * than one reading because soil varies across zones — so each entry
+ * the Scholar called "soil management areas" â€” a project usually has more
+ * than one reading because soil varies across zones â€” so each entry
  * carries an optional `zoneId` plus a free-text label.
  *
  * Selector discipline: subscribers should read `state.byProject` and
@@ -36,7 +36,7 @@ export interface SoilTest {
 }
 
 interface SoilTestState {
-  /** projectId → soil-test list. */
+  /** projectId â†’ soil-test list. */
   byProject: Record<string, SoilTest[]>;
   addTest: (test: SoilTest) => void;
   updateTest: (id: string, patch: Partial<Omit<SoilTest, 'id' | 'projectId' | 'createdAt'>>) => void;
@@ -71,7 +71,7 @@ export const useSoilTestStore = create<SoilTestState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-soil-tests', version: 1 },
+    { name: 'ogden-soil-tests', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

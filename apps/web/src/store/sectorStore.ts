@@ -1,15 +1,15 @@
-/**
- * Sector store — PLAN-stage Module 3 (Zones), Sector overlay tab.
+﻿/**
+ * Sector store â€” PLAN-stage Module 3 (Zones), Sector overlay tab.
  *
  * Persists the editable fire / view / noise compass directions the
  * steward marks in `SectorOverlayCard`. Wind and downslope-aspect
  * sectors are derived live from the climate / elevation layers and
- * are *not* persisted here — only the three steward-authored sectors
+ * are *not* persisted here â€” only the three steward-authored sectors
  * are. Holmgren P1 (*Observe and Interact*): the steward's read of
  * fire approach, view aperture, and noise source is a site-specific
  * observation that survives a page reload.
  *
- * Schema is intentionally small — three optional 8-point compass
+ * Schema is intentionally small â€” three optional 8-point compass
  * fields plus three optional arc half-widths per project. Future
  * expansion (custom sectors beyond fire/view/noise, polar weather
  * roses) would live as additional optional fields on the same record;
@@ -33,9 +33,9 @@ export interface ProjectSectors {
   noise?: Compass8 | null;
   /**
    * Optional per-sector arc half-widths, in degrees. A wildfire arrives
-   * across a wide arc (often 60–80°); a borrowed view through a saddle
-   * may be a narrow 10–15° aperture. Defaults applied at render time
-   * when undefined: fire 30°, view 30°, noise 25°. Holmgren P1
+   * across a wide arc (often 60â€“80Â°); a borrowed view through a saddle
+   * may be a narrow 10â€“15Â° aperture. Defaults applied at render time
+   * when undefined: fire 30Â°, view 30Â°, noise 25Â°. Holmgren P1
    * (*Observe and Interact*): the steward's read of how *wide* a
    * sector enters is part of the same observation as *which* compass
    * direction it enters from.
@@ -49,7 +49,7 @@ type SectorKey = 'fire' | 'view' | 'noise';
 type HalfWidthKey = 'fireHalfWidth' | 'viewHalfWidth' | 'noiseHalfWidth';
 
 interface SectorState {
-  /** projectId → { fire, view, noise, *HalfWidth }. */
+  /** projectId â†’ { fire, view, noise, *HalfWidth }. */
   byProject: Record<string, ProjectSectors>;
   /** Set one sector for a project. Pass `null` to clear. */
   setSector: (projectId: string, key: SectorKey, value: Compass8 | null) => void;
@@ -78,7 +78,7 @@ export const useSectorStore = create<SectorState>()(
             cur[key] = value;
           } else {
             delete cur[key];
-            // Clearing the direction also drops any custom half-width —
+            // Clearing the direction also drops any custom half-width â€”
             // the next time the sector is set, the steward starts from
             // the default arc.
             delete cur[HALF_WIDTH_KEY[key]];
@@ -92,7 +92,7 @@ export const useSectorStore = create<SectorState>()(
           if (halfWidth == null || !Number.isFinite(halfWidth)) {
             delete cur[hwKey];
           } else {
-            // Clamp to (0, 90] — half-widths beyond 90° produce a wedge
+            // Clamp to (0, 90] â€” half-widths beyond 90Â° produce a wedge
             // that wraps past the orthogonal cardinals and stops being
             // legible as a directional sector.
             cur[hwKey] = Math.max(1, Math.min(90, Math.round(halfWidth)));
@@ -117,7 +117,7 @@ export const useSectorStore = create<SectorState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-sectors', version: 1 },
+    { name: 'ogden-sectors', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

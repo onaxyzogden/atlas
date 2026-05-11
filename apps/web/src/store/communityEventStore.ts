@@ -1,5 +1,5 @@
-/**
- * Community-event store — ACT-stage Module 5 (Social Permaculture).
+﻿/**
+ * Community-event store â€” ACT-stage Module 5 (Social Permaculture).
  *
  * Work-days, harvest-shares, meetups, tours. Attendees reference
  * `networkStore.NetworkContact.id` so the same address book powers both
@@ -39,7 +39,7 @@ export const useCommunityEventStore = create<CommunityEventState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-act-community-events', version: 1 },
+    { name: 'ogden-act-community-events', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

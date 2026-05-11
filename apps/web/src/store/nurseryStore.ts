@@ -1,5 +1,5 @@
-/**
- * Nursery store — propagation inventory, stock transfers, seed saving.
+﻿/**
+ * Nursery store â€” propagation inventory, stock transfers, seed saving.
  *
  * Tracks plant stock by species, propagation method, quantity, and growth stage.
  * Zustand with localStorage persistence, same pattern as livestockStore.
@@ -74,7 +74,7 @@ export const useNurseryStore = create<NurseryState>()(
       deleteTransfer: (id) =>
         set((s) => ({ transfers: s.transfers.filter((t) => t.id !== id) })),
     }),
-    { name: 'ogden-nursery', version: 1 },
+    { name: 'ogden-nursery', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

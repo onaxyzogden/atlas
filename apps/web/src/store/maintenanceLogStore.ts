@@ -57,7 +57,13 @@ export const useMaintenanceLogStore = create<MaintenanceLogState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-act-maintenance-log', version: 2 },
+    {
+      name: 'ogden-act-maintenance-log',
+      version: 2,
+      // No-op migrate so legacy v1 state hydrates silently. Bumps
+      // have been additive — undefined slots fall through to []/{}.
+      migrate: (persisted) => persisted as MaintenanceLogState,
+    },
   ),
 );
 

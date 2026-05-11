@@ -1,5 +1,5 @@
-/**
- * designElementsStore — V2-derived facade for PLAN-stage design elements.
+﻿/**
+ * designElementsStore â€” V2-derived facade for PLAN-stage design elements.
  *
  * History: V1 was a single `byProject: Record<projectId, DesignElement[]>`
  * persisted store on `'ogden-atlas-design-elements'` covering ALL design
@@ -12,7 +12,7 @@
  * machinery-shed, fuel-station, equipment-yard, water-tank, parking,
  * prayer-pavilion, fire-circle, compost) moved into
  * `builtEnvironmentStoreV2`. Non-structure kinds (paddock, pond, swale,
- * orchard, path, road, gate, bridge, …) stay in this store.
+ * orchard, path, road, gate, bridge, â€¦) stay in this store.
  *
  * This module is a **bridge / facade** that combines both sources:
  *
@@ -46,7 +46,7 @@ import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 export interface DesignElement {
   id: string;
   category: DesignCategory;
-  /** Stable element kind (`paddock`, `pond`, `barn`, …) — keys into elementCatalog. */
+  /** Stable element kind (`paddock`, `pond`, `barn`, â€¦) â€” keys into elementCatalog. */
   kind: string;
   /** Drawn geometry; geometry.type matches the element spec. */
   geometry: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon;
@@ -65,7 +65,7 @@ export interface DesignElement {
    *
    * Only carried on non-structure kinds with `earthworkDepthCm > 30`
    * (pond, swale, road today). Structure-class entities route through
-   * `builtEnvironmentStoreV2` and don't carry this field today —
+   * `builtEnvironmentStoreV2` and don't carry this field today â€”
    * footings are scoped out of the current veto.
    */
   utilityConflicts?: { id: string; kind: string }[];
@@ -83,11 +83,11 @@ export interface DesignElementsState {
   clear: (projectId: string) => void;
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Structure-class kind set — must match
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Structure-class kind set â€” must match
 // `DESIGN_ELEMENT_STRUCTURE_KINDS` in builtEnvironmentStoreV2.ts and the
 // projection helper. Resolves both canonical kebab and known aliases.
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STRUCTURE_CLASS_KINDS: ReadonlySet<string> = new Set([
   'yurt',
@@ -109,10 +109,10 @@ function isStructureClass(kind: string): boolean {
   return STRUCTURE_CLASS_KINDS.has(canonical);
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Internal non-structure store — owns the legacy `'ogden-atlas-design-elements'`
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Internal non-structure store â€” owns the legacy `'ogden-atlas-design-elements'`
 // localStorage key. Holds only non-structure kinds going forward.
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface NonStructureState {
   byProject: Record<string, DesignElement[]>;
@@ -147,15 +147,15 @@ const useNonStructureStore = create<NonStructureState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-atlas-design-elements', version: 1 },
+    { name: 'ogden-atlas-design-elements', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 
 useNonStructureStore.persist.rehydrate();
 
-// ─────────────────────────────────────────────────────────────────────────
-// V2 → DesignElement projection (structure-class kinds only).
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// V2 â†’ DesignElement projection (structure-class kinds only).
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function projectV2StructureElements(
   entities: BuiltEnvironmentEntity[],
@@ -193,9 +193,9 @@ function mergeByProject(
   return out;
 }
 
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Facade store.
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const initialMerged = mergeByProject(
   projectV2StructureElements(useBuiltEnvironmentStoreV2.getState().entities),
@@ -250,9 +250,9 @@ export const useDesignElementsStore = create<DesignElementsState>()((set, get) =
   },
 }));
 
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Re-merge when either source changes.
-// ─────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function recomputeMerged(): void {
   const v2Slice = projectV2StructureElements(

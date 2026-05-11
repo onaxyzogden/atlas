@@ -1,5 +1,5 @@
-/**
- * Network store — ACT-stage Module 5 (Social Permaculture).
+﻿/**
+ * Network store â€” ACT-stage Module 5 (Social Permaculture).
  *
  * External-network address book: vendors, consultants, tradespeople,
  * nurseries, community contacts. Distinct from `memberStore` (which is the
@@ -48,7 +48,7 @@ export const useNetworkStore = create<NetworkState>()(
       removeContact: (id) =>
         set((s) => ({ contacts: s.contacts.filter((c) => c.id !== id) })),
     }),
-    { name: 'ogden-act-network', version: 1 },
+    { name: 'ogden-act-network', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

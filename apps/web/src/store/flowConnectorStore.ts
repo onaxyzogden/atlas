@@ -1,12 +1,12 @@
-/**
- * Flow connector store — directed line-string connectors that express
+﻿/**
+ * Flow connector store â€” directed line-string connectors that express
  * material / energy flows in a closed-loop fertility system (Plan
  * Toolbar Tier B / B3). Lives under `soil-fertility` in the PLAN
  * toolbar.
  *
  * Stewards drop a connector to express "compost goes from kitchen to
  * orchard" or "manure flows from chicken paddock to garden bed." The
- * line carries flow direction (start → end of geometry) and a
+ * line carries flow direction (start â†’ end of geometry) and a
  * `flowKind` (compost / manure / mulch / water / grain / energy /
  * other), each with its own colour palette so the loop reads at a
  * glance against the underlying fertility infra and crop areas.
@@ -15,7 +15,7 @@
  *   - Regenerative Farm #6 (closed-loop compost / manure / residue)
  *   - Homestead #5 (kitchen / animal / wood-stove fertility loop)
  *
- * v1 scope: free LineString geometry — endpoints are wherever the
+ * v1 scope: free LineString geometry â€” endpoints are wherever the
  * steward clicked, no automatic snap-to-fertility-unit. Optional
  * `fromName` / `toName` strings let the steward describe the endpoints
  * in their own words ("kitchen scraps", "compost tumbler", etc.). A
@@ -43,7 +43,7 @@ export interface FlowConnector {
   name: string;
   flowKind: FlowKind;
   geometry: GeoJSON.LineString;
-  /** Hex colour — defaults to the flow-kind palette entry. */
+  /** Hex colour â€” defaults to the flow-kind palette entry. */
   color: string;
   /** Free-text descriptor for the line's start point ("kitchen"). */
   fromName?: string;
@@ -102,7 +102,7 @@ export const useFlowConnectorStore = create<FlowConnectorState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-flow-connectors', version: 1 },
+    { name: 'ogden-flow-connectors', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

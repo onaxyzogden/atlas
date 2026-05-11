@@ -115,6 +115,7 @@ export const useHazardsStore = create<HazardsState>()(
     {
       name: 'ogden-hazards',
       version: 1,
+      migrate: (persisted) => persisted as never,
       partialize: (state) => ({ byProject: state.byProject }),
     },
   ),

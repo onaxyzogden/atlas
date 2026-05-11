@@ -179,7 +179,15 @@ export const useCommentStore = create<CommentState>()(
         }
       },
     }),
-    { name: 'ogden-comments', version: 2 },
+    {
+      name: 'ogden-comments',
+      version: 2,
+      // No-op migrate so legacy v1 state hydrates silently instead of
+      // logging "couldn't be migrated" on every load. Schema bumps
+      // since v1 have been additive — defaulting the new keys to
+      // their zero value is the right behaviour.
+      migrate: (persisted) => persisted as CommentState,
+    },
   ),
 );
 

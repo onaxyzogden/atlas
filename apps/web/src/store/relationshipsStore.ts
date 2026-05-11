@@ -188,6 +188,9 @@ export const useRelationshipsStore = create<RelationshipsState>()(
         edgesByProject: state.edgesByProject,
         pendingByProject: state.pendingByProject,
       }),
+      // No-op migrate so legacy v1 state hydrates silently. Bumps
+      // have been additive — undefined slots fall through to {}.
+      migrate: (persisted) => persisted as RelationshipsState,
     },
   ),
 );

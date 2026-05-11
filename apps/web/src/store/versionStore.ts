@@ -96,6 +96,7 @@ export const useVersionStore = create<VersionState>()(
     {
       name: 'ogden-versions',
       version: 1,
+      migrate: (persisted) => persisted as never,
       // Limit storage size — strip large attachment data from snapshots
       partialize: (state) => ({
         snapshots: state.snapshots.map((s) => ({
