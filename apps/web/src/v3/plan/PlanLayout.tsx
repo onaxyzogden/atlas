@@ -31,8 +31,8 @@ import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
-import DesignElementPalette from './canvas/DesignElementPalette.js';
 import DesignToolRail from './canvas/DesignToolRail.js';
+import DesignElementLayers from './canvas/layers/DesignElementLayers.js';
 import BaseMapCard from './canvas/BaseMapCard.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
@@ -47,6 +47,7 @@ import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
 import PlanContoursOverlay from './layers/PlanContoursOverlay.js';
 import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
 import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
+import PlanScheduledMovesOverlay from './layers/PlanScheduledMovesOverlay.js';
 import PlanSelectionFloater from './PlanSelectionFloater.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -104,7 +105,6 @@ export default function PlanLayout() {
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('current');
-  const [activeKind, setActiveKind] = useState<string | null>(null);
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedPlanDrawKind =
@@ -162,8 +162,6 @@ export default function PlanLayout() {
       centroid={FALLBACK_CENTROID}
       boundary={boundary}
       view={activeView}
-      activeKind={activeKind}
-      onDrawComplete={() => setActiveKind(null)}
     />
   ) : (
     <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
@@ -188,6 +186,18 @@ export default function PlanLayout() {
           <ObserveAnnotationLayers map={map} projectId={id} />
           <PlanObserveSelectionHandler map={map} />
           <PlanDataLayers map={map} projectId={id} />
+          {/* DesignElementLayers also mounts on Current (2026-05-11) so
+              orchard / silvopasture / pasture-mix polygons drawn from
+              PlanTools persist to designElementsStore and surface their
+              acreage label here, not only on the Vision canvas. Layer
+              prefix is `design-el-*`; coexists with PlanDataLayers'
+              `plan-data-*`. */}
+          <DesignElementLayers
+            map={map}
+            projectId={id}
+            view="current"
+            selectedId={null}
+          />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />
           <PlanSunPathOverlay
@@ -196,6 +206,7 @@ export default function PlanLayout() {
             fallbackCentroid={FALLBACK_CENTROID}
             boundary={boundary}
           />
+          <PlanScheduledMovesOverlay map={map} projectId={id} />
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} />
           <InlineFeaturePopover map={map} />
@@ -215,21 +226,14 @@ export default function PlanLayout() {
   return (
     <StageShell
       canvasLabel="Plan canvas"
-      leftRailLabel={isVisionCanvas ? 'Design elements' : 'Plan tools'}
+      leftRailLabel="Plan tools"
       rightRailLabel="Plan checklist"
       leftRail={
-        isVisionCanvas ? (
-          <DesignElementPalette
-            activeKind={activeKind}
-            onSelect={(k) => setActiveKind(k)}
-          />
-        ) : (
-          <PlanTools
-            activeModule={validModule}
-            onSelectModule={handleSelectModule}
-            onOpenSlideUp={() => setSlideUpOpen(true)}
-          />
-        )
+        <PlanTools
+          activeModule={validModule}
+          onSelectModule={handleSelectModule}
+          onOpenSlideUp={() => setSlideUpOpen(true)}
+        />
       }
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
