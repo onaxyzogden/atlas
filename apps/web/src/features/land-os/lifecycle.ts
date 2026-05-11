@@ -17,7 +17,7 @@ export interface BannerStage {
 }
 
 export const LIFECYCLE_STAGES: readonly BannerStage[] = [
-  { id: 'discover', label: 'Discover', section: 'site-intelligence' },
+  { id: 'discover', label: 'Discover', section: 'map-layers' },
   { id: 'diagnose', label: 'Diagnose', section: 'siting-rules' },
   { id: 'design',   label: 'Design',   section: 'paddock-design' },
   { id: 'prove',    label: 'Prove',    section: 'feasibility' },
