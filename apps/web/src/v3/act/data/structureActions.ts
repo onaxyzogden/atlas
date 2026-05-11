@@ -10,11 +10,15 @@
 
 import type { StructureType } from '../../../store/structureStore.js';
 
-export type StructureActionKind = 'maintenance' | 'livestockMove' | 'harvest';
+export type StructureActionKind =
+  | 'maintenance'
+  | 'livestockMove'
+  | 'scheduleLivestockMove'
+  | 'harvest';
 
 const MAP: Partial<Record<StructureType, StructureActionKind[]>> = {
-  barn:           ['maintenance', 'livestockMove'],
-  animal_shelter: ['maintenance', 'livestockMove'],
+  barn:           ['maintenance', 'livestockMove', 'scheduleLivestockMove'],
+  animal_shelter: ['maintenance', 'livestockMove', 'scheduleLivestockMove'],
   greenhouse:     ['maintenance', 'harvest'],
 };
 
@@ -23,7 +27,8 @@ export function getActionsForType(type: StructureType): StructureActionKind[] {
 }
 
 export const ACTION_LABELS: Record<StructureActionKind, string> = {
-  maintenance:   'Log maintenance',
-  livestockMove: 'Log livestock move',
-  harvest:       'Log harvest',
+  maintenance:           'Log maintenance',
+  livestockMove:         'Log livestock move',
+  scheduleLivestockMove: 'Schedule move',
+  harvest:               'Log harvest',
 };

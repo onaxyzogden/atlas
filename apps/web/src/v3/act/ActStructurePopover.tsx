@@ -20,6 +20,7 @@ import { getActionsForType, ACTION_LABELS } from './data/structureActions.js';
 import {
   startMaintenanceLog,
   startLivestockMoveLog,
+  startScheduledLivestockMove,
   startHarvestLog,
 } from './ActStructurePopover.actions.js';
 import css from './ActStructurePopover.module.css';
@@ -154,6 +155,7 @@ export default function ActStructurePopover({ map, projectId }: Props) {
                 onClick={() => {
                   if (kind === 'maintenance') startMaintenanceLog(structure, projectId);
                   else if (kind === 'livestockMove') startLivestockMoveLog(structure, projectId);
+                  else if (kind === 'scheduleLivestockMove') startScheduledLivestockMove(structure, projectId);
                   else if (kind === 'harvest') startHarvestLog(structure, projectId);
                 }}
               >
