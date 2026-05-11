@@ -191,6 +191,38 @@
   outline-offset: 1px;
 }
 
+.quickLogButtonSecondary {
+  background: rgba(150, 175, 200, 0.08);
+  border-color: rgba(150, 175, 200, 0.22);
+  color: rgba(190, 210, 230, 0.85);
+}
+.quickLogButtonSecondary:hover {
+  background: rgba(150, 175, 200, 0.16);
+  border-color: rgba(150, 175, 200, 0.34);
+}
+
+/* Planned-move line (forward-looking variance) */
+.plannedLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(150, 175, 200, 0.05);
+  border: 1px dashed rgba(150, 175, 200, 0.18);
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.78);
+}
+.plannedLine b {
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(190, 210, 230, 0.85);
+}
+
 .quickLogForm {
   margin-top: 8px;
   padding: 10px 12px;

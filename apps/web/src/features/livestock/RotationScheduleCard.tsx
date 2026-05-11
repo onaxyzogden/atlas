@@ -10,7 +10,7 @@
  * Pure presentation: no shared-package math, no new entities, no map overlay.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLivestockStore, type Paddock, type LivestockSpecies } from '../../store/livestockStore.js';
 import {
   useLivestockMoveLogStore,
@@ -23,6 +23,11 @@ import {
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
+import {
+  useScheduledLivestockMoveStore,
+  nextUnfulfilledPlan,
+  type ScheduledLivestockMove,
+} from '../../store/scheduledLivestockMoveStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import {
@@ -175,6 +180,10 @@ function newMoveId(): string {
   return `lvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function formatTargetDate(d: Date): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
@@ -217,35 +226,84 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
 
   const allEvents = useLivestockMoveLogStore((s) => s.events);
   const addEvent = useLivestockMoveLogStore((s) => s.addEvent);
+  const allPlans = useScheduledLivestockMoveStore((s) => s.plans);
+  const addPlan = useScheduledLivestockMoveStore((s) => s.addPlan);
+  const markFulfilled = useScheduledLivestockMoveStore((s) => s.markFulfilled);
 
-  // Inline quick-log form state — single open form at a time, keyed by paddock id.
-  const [openFormFor, setOpenFormFor] = useState<string | null>(null);
+  // Inline quick-log form state — single open form at a time. The `mode`
+  // discriminant determines which store the form writes to on save.
+  type FormMode = 'actual' | 'planned';
+  const [openForm, setOpenForm] = useState<{ paddockId: string; mode: FormMode } | null>(null);
   const [draft, setDraft] = useState<QuickDraft>(() => emptyQuickDraft([]));
 
-  function openForm(m: UpcomingMove) {
+  function openLogForm(m: UpcomingMove) {
     setDraft(emptyQuickDraft(m.species));
-    setOpenFormFor(m.paddockId);
+    setOpenForm({ paddockId: m.paddockId, mode: 'actual' });
+  }
+  function openScheduleForm(m: UpcomingMove) {
+    setDraft(emptyQuickDraft(m.species));
+    setOpenForm({ paddockId: m.paddockId, mode: 'planned' });
   }
   function closeForm() {
-    setOpenFormFor(null);
+    setOpenForm(null);
   }
   function saveForm(m: UpcomingMove) {
     if (!draft.date) return;
     const head = draft.headCount.trim() === '' ? null : Number(draft.headCount);
-    const ev: LivestockMoveEvent = {
-      id: newMoveId(),
-      projectId,
-      toPaddockId: m.paddockId,
-      date: draft.date,
-      direction: draft.direction,
-      species: draft.species,
-      headCount: head != null && Number.isFinite(head) ? head : null,
-      ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
-      ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
-    };
-    addEvent(ev);
-    setOpenFormFor(null);
+    const headCount = head != null && Number.isFinite(head) ? head : null;
+    if (!openForm) return;
+    if (openForm.mode === 'actual') {
+      const ev: LivestockMoveEvent = {
+        id: newMoveId(),
+        projectId,
+        toPaddockId: m.paddockId,
+        date: draft.date,
+        direction: draft.direction,
+        species: draft.species,
+        headCount,
+        ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
+        ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
+      };
+      addEvent(ev);
+    } else {
+      const plan: ScheduledLivestockMove = {
+        id: `slvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        projectId,
+        toPaddockId: m.paddockId,
+        plannedDate: draft.date,
+        direction: draft.direction,
+        species: draft.species,
+        headCount,
+        ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
+        ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
+        createdAt: new Date().toISOString(),
+      };
+      addPlan(plan);
+    }
+    setOpenForm(null);
   }
+
+  // Auto-fulfilment: when an unfulfilled plan has a matching actual event
+  // (same project + toPaddockId + species, date within ±7 days of plannedDate),
+  // mark it fulfilled so it stops rendering as "Planned". Runs once on each
+  // change to events or plans; first match per plan wins.
+  useEffect(() => {
+    const FULFIL_WINDOW_DAYS = 7;
+    const unfulfilled = allPlans.filter((p) => !p.fulfilledByEventId && p.projectId === projectId);
+    for (const plan of unfulfilled) {
+      const match = allEvents.find((e) => {
+        if (e.projectId !== projectId) return false;
+        const destPid = e.toPaddockId ?? e.paddockId;
+        if (destPid !== plan.toPaddockId) return false;
+        if (e.species !== plan.species) return false;
+        const diff = Math.abs(daysBetween(plan.plannedDate, e.date));
+        return diff <= FULFIL_WINDOW_DAYS;
+      });
+      if (match) {
+        markFulfilled(plan.id, match.id);
+      }
+    }
+  }, [allEvents, allPlans, projectId, markFulfilled]);
 
   const eventsByPaddockId = useMemo(() => {
     const map = new Map<string, LivestockMoveEvent[]>();
@@ -393,7 +451,7 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                       </div>
                       <div className={css.rowAction}>
                         <span className={`${css.actionLabel} ${tone}`}>{ACTION_LABEL[m.action]}</span>
-                        {openFormFor === m.paddockId ? (
+                        {openForm?.paddockId === m.paddockId ? (
                           <button
                             type="button"
                             className={css.quickLogButton}
@@ -403,14 +461,24 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                             Cancel
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            className={css.quickLogButton}
-                            onClick={() => openForm(m)}
-                            aria-label={`Log a move into ${m.paddockName}`}
-                          >
-                            + Log move
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className={css.quickLogButton}
+                              onClick={() => openLogForm(m)}
+                              aria-label={`Log a move into ${m.paddockName}`}
+                            >
+                              + Log move
+                            </button>
+                            <button
+                              type="button"
+                              className={`${css.quickLogButton} ${css.quickLogButtonSecondary}`}
+                              onClick={() => openScheduleForm(m)}
+                              aria-label={`Schedule a move into ${m.paddockName}`}
+                            >
+                              Schedule…
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -435,11 +503,37 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                       </span>
                     </div>
 
-                    {openFormFor === m.paddockId ? (
+                    {(() => {
+                      const plan = nextUnfulfilledPlan(allPlans, projectId, m.paddockId, todayIso());
+                      if (!plan) return null;
+                      const plannedFromToday = daysBetween(todayIso(), plan.plannedDate);
+                      const variance = plannedFromToday - m.daysUntilReady;
+                      const tone = varianceTone(variance);
+                      const toneClass =
+                        tone === 'positive'
+                          ? css.variancePositive
+                          : tone === 'tolerant'
+                            ? css.varianceTolerant
+                            : css.varianceNegative;
+                      return (
+                        <div className={css.plannedLine}>
+                          <span>
+                            <b>Planned</b>
+                            {' \u00b7 '}
+                            {formatLoggedDate(plan.plannedDate)}
+                          </span>
+                          <span className={`${css.varianceBadge} ${toneClass}`}>
+                            {varianceBadgeText(variance)}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {openForm?.paddockId === m.paddockId ? (
                       <div className={css.quickLogForm}>
                         <div className={css.quickLogGrid}>
                           <label className={css.quickLogField}>
-                            <span>Date</span>
+                            <span>{openForm.mode === 'planned' ? 'Planned date' : 'Date'}</span>
                             <input
                               type="date"
                               value={draft.date}
@@ -513,7 +607,7 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                             onClick={() => saveForm(m)}
                             disabled={!draft.date}
                           >
-                            Save move
+                            {openForm.mode === 'planned' ? 'Schedule move' : 'Save move'}
                           </button>
                         </div>
                       </div>
