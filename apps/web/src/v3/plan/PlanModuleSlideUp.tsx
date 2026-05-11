@@ -281,7 +281,11 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
                   ) : null}
                   <button
                     type="button"
-                    className={`${css.tab} ${sectionId === currentId ? css.tabActive : ''}`}
+                    className={[
+                      css.tab,
+                      group ? css.tabGrouped : '',
+                      sectionId === currentId ? css.tabActive : '',
+                    ].filter(Boolean).join(' ')}
                     onClick={() => setActiveSectionId(sectionId)}
                   >
                     {tabLabel}

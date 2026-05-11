@@ -99,9 +99,7 @@
 
 .tabGroupLabel {
   display: inline-block;
-  margin: 0 6px 6px 8px;
-  padding-left: 10px;
-  border-left: 1px solid var(--color-border);
+  margin: 0 4px 6px 10px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -127,6 +125,14 @@
 
 .tab:hover {
   color: var(--color-text);
+}
+
+.tabGrouped {
+  border-bottom-color: rgba(var(--color-gold-rgb), 0.35);
+}
+
+.tabGrouped:hover {
+  border-bottom-color: rgba(var(--color-gold-rgb), 0.6);
 }
 
 .tabActive {
