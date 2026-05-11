@@ -41,7 +41,7 @@ export default function DesignElementLayers({
     (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
   );
 
-  const { polyFC, lineFC, pointFC, labelFC } = useMemo(() => {
+  const { polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC } = useMemo(() => {
     const cap =
       view === 'phase-1' || view === 'phase-2'
         ? phaseIndex(PHASE_VIEW_CAP[view])
@@ -53,6 +53,12 @@ export default function DesignElementLayers({
     const lines: GeoJSON.Feature[] = [];
     const points: GeoJSON.Feature[] = [];
     const labels: GeoJSON.Feature[] = [];
+    // Utility-conflict halos (ADR 2026-05-10) — earthwork elements
+    // whose draw intersected a buried utility carry `utilityConflicts`.
+    // Rendered as a `#c4422a` outline behind the main element so the
+    // conflict reads at a glance.
+    const conflictPolys: GeoJSON.Feature[] = [];
+    const conflictLines: GeoJSON.Feature[] = [];
 
     for (const el of visible) {
       const spec = findElementSpec(el.kind);
@@ -67,8 +73,18 @@ export default function DesignElementLayers({
             ? `${el.label} — ${el.acreage.toFixed(1)} ac`
             : (el.label ?? spec?.label ?? el.kind),
       };
+      const hasConflict =
+        Array.isArray(el.utilityConflicts) && el.utilityConflicts.length > 0;
       if (el.geometry.type === 'Polygon') {
         polys.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
+        if (hasConflict) {
+          conflictPolys.push({
+            type: 'Feature',
+            id: `${el.id}:halo`,
+            properties: { id: el.id, kind: 'utility_conflict' },
+            geometry: el.geometry,
+          });
+        }
         try {
           const c = turf.centroid(el.geometry).geometry;
           labels.push({ type: 'Feature', id: el.id, properties: props, geometry: c });
@@ -77,6 +93,14 @@ export default function DesignElementLayers({
         }
       } else if (el.geometry.type === 'LineString') {
         lines.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
+        if (hasConflict) {
+          conflictLines.push({
+            type: 'Feature',
+            id: `${el.id}:halo`,
+            properties: { id: el.id, kind: 'utility_conflict' },
+            geometry: el.geometry,
+          });
+        }
       } else {
         points.push({ type: 'Feature', id: el.id, properties: props, geometry: el.geometry });
         labels.push({
@@ -92,6 +116,8 @@ export default function DesignElementLayers({
       lineFC: { type: 'FeatureCollection' as const, features: lines },
       pointFC: { type: 'FeatureCollection' as const, features: points },
       labelFC: { type: 'FeatureCollection' as const, features: labels },
+      conflictPolyFC: { type: 'FeatureCollection' as const, features: conflictPolys },
+      conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
   }, [elements, view]);
 
@@ -115,10 +141,35 @@ export default function DesignElementLayers({
       const lineSid = ensureSource('line', lineFC);
       const pointSid = ensureSource('point', pointFC);
       const labelSid = ensureSource('label', labelFC);
+      const conflictPolySid = ensureSource('utility-conflict-poly', conflictPolyFC);
+      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
+
+      // Utility-conflict halos — added first so the `#c4422a` outline
+      // sits behind the main element render. Per ADR 2026-05-10.
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-poly`,
+        type: 'line',
+        source: conflictPolySid,
+        paint: {
+          'line-color': '#c4422a',
+          'line-width': 4,
+          'line-opacity': 0.95,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-line`,
+        type: 'line',
+        source: conflictLineSid,
+        paint: {
+          'line-color': '#c4422a',
+          'line-width': 4,
+          'line-opacity': 0.95,
+        },
+      });
 
       const selFlag: ExpressionSpecification = ['boolean', ['feature-state', 'selected'], false];
       const SEL_GOLD = '#c4a265';
@@ -195,7 +246,7 @@ export default function DesignElementLayers({
         /* map already disposed */
       }
     };
-  }, [map, polyFC, lineFC, pointFC, labelFC]);
+  }, [map, polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC]);
 
   // Drive feature-state highlight off selectedId. Re-runs on FC changes
   // because source.setData() wipes feature-state.

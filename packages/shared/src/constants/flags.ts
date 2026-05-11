@@ -13,4 +13,9 @@ export const FLAGS = {
   // flag until the interaction model is validated. See ADR
   // wiki/decisions/2026-04-28-needs-yields-dependency-graph.md.
   RELATIONSHIPS: process.env['FEATURE_RELATIONSHIPS'] === 'true',
+  // Unified Built Environment store v2 — see ADR
+  // wiki/decisions/2026-05-10-atlas-built-environment-unification.md.
+  // When `true`, Observe + Plan read built-environment data from
+  // `builtEnvironmentStoreV2`; legacy stores stay in place read-only.
+  BUILT_ENV_V2: process.env['ATLAS_BUILT_ENV_V2'] === 'true',
 } as const;

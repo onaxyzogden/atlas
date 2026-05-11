@@ -267,8 +267,101 @@
   color: rgba(180, 165, 140, 0.7);
 }
 
+/* ── Carrying-capacity (Eat a Third / Foul a Third / Leave a Third) ── */
+.thirdsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.thirdCell {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  border-left: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.thirdEat   { border-left-color: rgba(160, 195, 130, 0.7); }
+.thirdFoul  { border-left-color: rgba(196, 162, 101, 0.7); }
+.thirdLeave { border-left-color: rgba(140, 175, 200, 0.7); }
+
+.thirdLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.thirdValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.15;
+}
+
+.thirdNote {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.7);
+  line-height: 1.4;
+}
+
+.headRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  margin-bottom: 8px;
+}
+
+.headRowOver {
+  border-color: rgba(220, 130, 110, 0.45);
+  background: rgba(220, 130, 110, 0.08);
+}
+
+.headRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.headRowLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.headRowValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.headRowWarn {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(235, 165, 140, 0.95);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 720px) {
   .headlineGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .thirdsGrid {
+    grid-template-columns: 1fr;
   }
 }

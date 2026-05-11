@@ -11,8 +11,10 @@
  * already exists (`act.harvest.log-entry`), it is activated too.
  */
 
+import { useState } from 'react';
 import { Sprout, Droplet, Shuffle } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -20,7 +22,13 @@ import {
 import type { ActModule } from './types.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
+import { useV3Project } from '../data/useV3Project.js';
+import CreateFieldTaskDialog from '../components/CreateFieldTaskDialog.js';
+import LogObservationDialog from '../components/LogObservationDialog.js';
+import QuickActions from './ops/QuickActions.js';
 import css from './ActTools.module.css';
+
+const FALLBACK_CENTER: [number, number] = [-78.20, 44.50];
 
 interface QuickLog {
   id: string;
@@ -71,6 +79,7 @@ export default function ActTools({
 }: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const project = useV3Project(projectId ?? undefined);
 
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const { effectiveType } = useEffectivePlanProjectType(projectId);
@@ -78,6 +87,9 @@ export default function ActTools({
     projectId: projectId ?? '',
     projectType: effectiveType,
   });
+
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
 
   const handleClick = (q: QuickLog) => {
     if (!projectId) return;
@@ -103,26 +115,53 @@ export default function ActTools({
         const isActive = activeModule === q.module;
         const Icon = q.Icon;
         return (
-          <button
+          <DelayedTooltip
             key={q.id}
-            type="button"
-            className={css.logBtn}
-            data-kind={q.id}
-            data-active={isActive ? 'true' : 'false'}
-            disabled={!projectId}
-            title={!projectId ? `${q.label} — open a project to use` : q.hint}
-            onClick={() => handleClick(q)}
+            label={!projectId ? `${q.label} — open a project to use` : q.hint}
+            position="right"
           >
-            <span className={css.logGlyph} aria-hidden="true">
-              <Icon size={20} strokeWidth={1.7} />
-            </span>
-            <span className={css.logBody}>
-              <span className={css.logLabel}>{q.label}</span>
-              <span className={css.logHint}>{q.hint}</span>
-            </span>
-          </button>
+            <button
+              type="button"
+              className={css.logBtn}
+              data-kind={q.id}
+              data-active={isActive ? 'true' : 'false'}
+              disabled={!projectId}
+              onClick={() => handleClick(q)}
+            >
+              <span className={css.logGlyph} aria-hidden="true">
+                <Icon size={20} strokeWidth={1.7} />
+              </span>
+              <span className={css.logBody}>
+                <span className={css.logLabel}>{q.label}</span>
+                <span className={css.logHint}>{q.hint}</span>
+              </span>
+            </button>
+          </DelayedTooltip>
         );
       })}
+      <QuickActions
+        disabled={!projectId || !project}
+        onCreateTask={() => setTaskOpen(true)}
+        onLogObservation={() => setLogOpen(true)}
+      />
+
+      {taskOpen && project && (
+        <CreateFieldTaskDialog
+          projectId={project.id}
+          boundary={project.location.boundary}
+          fallbackCenter={FALLBACK_CENTER}
+          onClose={() => setTaskOpen(false)}
+        />
+      )}
+
+      {logOpen && project && (
+        <LogObservationDialog
+          projectId={project.id}
+          boundary={project.location.boundary}
+          fallbackCenter={FALLBACK_CENTER}
+          onClose={() => setLogOpen(false)}
+        />
+      )}
     </div>
   );
 }

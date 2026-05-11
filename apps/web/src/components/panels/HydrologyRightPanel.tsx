@@ -469,8 +469,8 @@ export default function HydrologyRightPanel({ project }: HydrologyRightPanelProp
 // ─── Real-Time Analysis panel ─────────────────────────────────────────────────
 
 function RealtimePanel({ live, metrics, isLoading }: {
-  live: ReturnType<typeof buildLive>;
-  metrics: ReturnType<typeof buildMetrics>;
+  live: HydrologyLive;
+  metrics: HydrologyMetrics;
   isLoading: boolean;
 }) {
   const [storm, setStorm] = useState<'baseline' | 'frequent' | 'active' | 'catastrophic'>('active');
@@ -910,8 +910,8 @@ function RealtimePanel({ live, metrics, isLoading }: {
 // ─── Design Parameters panel ──────────────────────────────────────────────────
 
 function DesignPanel({ live, metrics }: {
-  live: ReturnType<typeof buildLive>;
-  metrics: ReturnType<typeof buildMetrics>;
+  live: HydrologyLive;
+  metrics: HydrologyMetrics;
 }) {
   const catchmentFmt = metrics.catchmentVolume >= 1000
     ? `${(metrics.catchmentVolume / 1000).toFixed(1)}k`
@@ -1016,8 +1016,14 @@ function DesignPanel({ live, metrics }: {
 
 // ─── Utility sub-components ───────────────────────────────────────────────────
 
-// Dummy stubs to satisfy TypeScript return type inference for the panel props
-function buildLive() { return null as unknown as {
+// Shape of the `live` object built inline in the panel's useMemo at line 228.
+// Extracted as a named type so RealtimePanel/DesignPanel props can reference it
+// without `ReturnType<typeof buildLive>` indirection. Previously the panel
+// declared two no-op `buildLive()` / `buildMetrics()` stubs that returned
+// `null as unknown as ...` purely so `ReturnType<typeof ...>` would resolve;
+// that scaffolding was confusing (read like dead runtime code, not type sugar).
+// See wiki/decisions/2026-05-10-deferred-todo-sweep.md (Phase 4.2).
+type HydrologyLive = {
   rainfall: string; rainfallNote: string; watershed: string;
   nearestStream: string; flowDirection: string; floodZone: string;
   wetlandPct: string; retScore: number;
@@ -1038,9 +1044,9 @@ function buildLive() { return null as unknown as {
   infraRoadKm: number | null; infraRoadType: string | null; infraPowerKm: number | null;
   infraHospitalKm: number | null; infraHospitalName: string | null; infraWaterKm: number | null;
   infraProtAreaCount: number; infraProtAreaKm: number | null; infraProtAreaName: string | null;
-}; }
+};
 
-function buildMetrics() { return null as unknown as ReturnType<typeof computeHydrologyMetrics>; }
+type HydrologyMetrics = ReturnType<typeof computeHydrologyMetrics>;
 
 function DataRow({ label, value, note, color }: { label: string; value: string; note?: string; color?: string }) {
   return (

@@ -297,9 +297,6 @@ function RecommendedActions({ counts }: ActionsProps) {
     <SurfaceCard className="ecology-recommended-panel">
       <header>
         <h2>Recommended actions</h2>
-        <button type="button">
-          Prioritize <ChevronDown aria-hidden="true" />
-        </button>
       </header>
       {actions.map(([title, note, level], index) => (
         <p key={title}>
@@ -311,7 +308,6 @@ function RecommendedActions({ counts }: ActionsProps) {
           <em>{level}</em>
         </p>
       ))}
-      <button type="button">View all actions</button>
     </SurfaceCard>
   );
 }

@@ -12,7 +12,24 @@
  * deletes the just-drawn skeleton.)
  */
 
+import type {
+  BuiltEnvironmentEntity,
+  BuiltEnvironmentState,
+} from '@ogden/shared';
+import { getBuiltEnvironmentKind } from '@ogden/shared';
 import type { InlineFormPayload } from '../draw/inlineFormStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import { createFootprintPolygon } from '../../../features/structures/footprints.js';
+import {
+  BUILDING_SUBTYPE_OPTIONS as BE_BUILDING_SUBTYPE_OPTIONS,
+  BUILDING_PHASE_OPTIONS as BE_BUILDING_PHASE_OPTIONS,
+  WELL_KIND_OPTIONS as BE_WELL_KIND_OPTIONS,
+  SEPTIC_SUBTYPE_OPTIONS as BE_SEPTIC_SUBTYPE_OPTIONS,
+  POWER_LINE_PLACEMENT_OPTIONS as BE_POWER_LINE_PLACEMENT_OPTIONS,
+  BURIED_UTILITY_SUBTYPE_OPTIONS as BE_BURIED_UTILITY_SUBTYPE_OPTIONS,
+  FENCE_SUBTYPE_OPTIONS as BE_FENCE_SUBTYPE_OPTIONS,
+  DRIVEWAY_SURFACE_OPTIONS as BE_DRIVEWAY_SURFACE_OPTIONS,
+} from '../../builtEnvironment/schemas/beSchemaRegistry.js';
 import {
   ZONE_CATEGORY_CONFIG,
   type LandZone,
@@ -940,6 +957,590 @@ export function buildMonitoringTransectEditSchema(
     },
     onCancel: () => {
       /* no-op */
+    },
+  };
+}
+
+// ---------- Building (Built Environment V2) ----------
+//
+// Phase 2: a Building footprint placed by Observe (and visible across all
+// Plan views) becomes editable inline from the Plan stage. The schema
+// covers the full 8-field set Observe captures, writing back to the
+// unified `builtEnvironmentStoreV2`. When rotation or footprint dims
+// change, the polygon geometry is regenerated around the existing
+// centroid via `createFootprintPolygon` so the visible footprint follows
+// the form.
+//
+// This is the templated pattern for the remaining seven built-env kinds.
+
+// Plan-side option arrays prepend an empty sentinel ("— unspecified —" /
+// "Unassigned") because we're editing existing records that may not have
+// a subtype/phase set. The four real values for each enum live in the
+// canonical registry at `v3/builtEnvironment/schemas/beSchemaRegistry`.
+const BUILDING_SUBTYPE_OPTIONS = [
+  { value: '', label: '— unspecified —' },
+  ...BE_BUILDING_SUBTYPE_OPTIONS,
+];
+
+const BUILDING_PHASE_OPTIONS = [
+  { value: '', label: 'Unassigned' },
+  ...BE_BUILDING_PHASE_OPTIONS,
+];
+
+/**
+ * Centroid of a polygon's outer ring (mean of vertices, excluding the
+ * closing duplicate). Good enough for re-anchoring a footprint when the
+ * steward tweaks rotation / width / depth.
+ */
+function polygonCentroid(polygon: { coordinates: number[][][] }): [number, number] {
+  const ring = polygon.coordinates[0] ?? [];
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  const verts =
+    ring.length > 1 &&
+    first !== undefined &&
+    last !== undefined &&
+    first[0] === last[0] &&
+    first[1] === last[1]
+      ? ring.slice(0, -1)
+      : ring;
+  let sx = 0;
+  let sy = 0;
+  for (const v of verts) {
+    sx += v[0] ?? 0;
+    sy += v[1] ?? 0;
+  }
+  const n = verts.length || 1;
+  return [sx / n, sy / n];
+}
+
+export function buildBuildingEditSchema(
+  b: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = b.existing ?? {};
+  const prop = b.proposed ?? {};
+  return {
+    title: 'Edit building',
+    fields: [
+      { key: 'label', label: 'Name', kind: 'text', required: true },
+      {
+        key: 'subtype',
+        label: 'Subtype',
+        kind: 'select',
+        options: BUILDING_SUBTYPE_OPTIONS,
+      },
+      {
+        key: 'phase',
+        label: 'Phase',
+        kind: 'select',
+        options: BUILDING_PHASE_OPTIONS,
+      },
+      { key: 'rotationDeg', label: 'Rotation', kind: 'number', suffix: '°' },
+      { key: 'widthM',      label: 'Width',    kind: 'number', suffix: 'm' },
+      { key: 'depthM',      label: 'Depth',    kind: 'number', suffix: 'm' },
+      { key: 'heightM',     label: 'Height',   kind: 'number', suffix: 'm' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label:       b.label ?? '',
+      subtype:     exist.subtype ?? '',
+      phase:       prop.phase ?? '',
+      rotationDeg: prop.rotationDeg ?? 0,
+      widthM:      prop.widthM ?? '',
+      depthM:      prop.depthM ?? '',
+      heightM:     prop.heightM ?? '',
+      notes:       b.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim() || (b.label ?? 'Building');
+      const subtypeRaw = String(values.subtype ?? '').trim();
+      const phaseRaw = String(values.phase ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+
+      const rotRaw = Number(values.rotationDeg);
+      const widthRaw = Number(values.widthM);
+      const depthRaw = Number(values.depthM);
+      const heightRaw = Number(values.heightM);
+
+      const rotationDeg: number | undefined = Number.isFinite(rotRaw)
+        ? rotRaw
+        : prop.rotationDeg;
+      const widthM: number | undefined =
+        Number.isFinite(widthRaw) && widthRaw > 0 ? widthRaw : prop.widthM;
+      const depthM: number | undefined =
+        Number.isFinite(depthRaw) && depthRaw > 0 ? depthRaw : prop.depthM;
+      const heightM: number | undefined =
+        Number.isFinite(heightRaw) && heightRaw >= 0 ? heightRaw : prop.heightM;
+
+      store.updateMetadata(b.id, {
+        label,
+        notes: notesRaw || undefined,
+        existing: { subtype: subtypeRaw || undefined },
+        proposed: {
+          phase: phaseRaw || undefined,
+          rotationDeg,
+          widthM,
+          depthM,
+          heightM,
+        },
+      });
+
+      // Regenerate footprint polygon when rotation/dims changed and we
+      // have a polygon geometry + both dimensions to draw one.
+      const rotChanged = rotationDeg !== prop.rotationDeg;
+      const wChanged = widthM !== prop.widthM;
+      const dChanged = depthM !== prop.depthM;
+      if (
+        (rotChanged || wChanged || dChanged) &&
+        b.geometry.type === 'Polygon' &&
+        typeof widthM === 'number' &&
+        typeof depthM === 'number' &&
+        widthM > 0 &&
+        depthM > 0
+      ) {
+        const center = polygonCentroid(b.geometry);
+        const nextPoly = createFootprintPolygon(
+          center,
+          widthM,
+          depthM,
+          rotationDeg ?? 0,
+        );
+        store.updateGeometry(b.id, nextPoly);
+      }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Well (Built Environment V2) ----------
+//
+// Phase 2 — follow-on to Buildings. Wells are Point geometries, so no
+// footprint regeneration is needed; the popover is a pure metadata edit
+// over the well's `existing` block (kind / depth / flow) plus the
+// shared `label` + `notes`. Schema fields match the legacy Observe
+// `well` field-schema (kind/depthM/flowLpm/label/notes) so the inline
+// form on Plan and the slide-up form on Observe stay 1:1.
+
+const WELL_KIND_OPTIONS = BE_WELL_KIND_OPTIONS;
+
+export function buildWellEditSchema(
+  w: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = w.existing ?? {};
+  return {
+    title: 'Edit well',
+    fields: [
+      { key: 'label', label: 'Label', kind: 'text', placeholder: 'North well' },
+      {
+        key: 'kind',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: WELL_KIND_OPTIONS,
+      },
+      { key: 'depthM',  label: 'Depth', kind: 'number', suffix: 'm' },
+      { key: 'flowLpm', label: 'Flow',  kind: 'number', suffix: 'L/min' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label:   w.label ?? '',
+      kind:    exist.subtype ?? 'unknown',
+      depthM:  exist.depthM ?? '',
+      flowLpm: exist.flowLpm ?? '',
+      notes:   w.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim();
+      const kindRaw = String(values.kind ?? '').trim() || 'unknown';
+      const notesRaw = String(values.notes ?? '').trim();
+
+      const depthRaw = Number(values.depthM);
+      const flowRaw = Number(values.flowLpm);
+      const depthM =
+        Number.isFinite(depthRaw) && depthRaw >= 0 ? depthRaw : undefined;
+      const flowLpm =
+        Number.isFinite(flowRaw) && flowRaw >= 0 ? flowRaw : undefined;
+
+      store.updateMetadata(w.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: {
+          subtype: kindRaw,
+          depthM,
+          flowLpm,
+        },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Septic (Built Environment V2) ----------
+//
+// Polygon geometry; pure metadata edit (kind + label + notes). The
+// drawn polygon stands as-is — no auto-regeneration on field changes
+// (contrast Buildings, which redraw on rotation/dim edits).
+
+const SEPTIC_KIND_OPTIONS = BE_SEPTIC_SUBTYPE_OPTIONS;
+
+export function buildSepticEditSchema(
+  sp: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = sp.existing ?? {};
+  return {
+    title: 'Edit septic',
+    fields: [
+      {
+        key: 'kind',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: SEPTIC_KIND_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      kind:  exist.subtype ?? 'tank',
+      label: sp.label ?? '',
+      notes: sp.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const kindRaw = String(values.kind ?? '').trim() || 'tank';
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(sp.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype: kindRaw },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Power line (Built Environment V2) ----------
+//
+// LineString geometry; metadata edit only — geometry stands as drawn.
+// Uses the typed `existing.placement` enum on V2 ExistingMetadata
+// rather than the free-form `subtype` slot (PowerLine is the only
+// built-env kind with a typed placement axis).
+
+const POWER_LINE_PLACEMENT_OPTIONS = BE_POWER_LINE_PLACEMENT_OPTIONS;
+
+export function buildPowerLineEditSchema(
+  pl: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = pl.existing ?? {};
+  return {
+    title: 'Edit power line',
+    fields: [
+      {
+        key: 'placement',
+        label: 'Placement',
+        kind: 'select',
+        required: true,
+        options: POWER_LINE_PLACEMENT_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      placement: exist.placement ?? 'overhead',
+      label:     pl.label ?? '',
+      notes:     pl.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const placement: 'overhead' | 'buried' =
+        values.placement === 'buried' ? 'buried' : 'overhead';
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(pl.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { placement },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Buried utility (Built Environment V2) ----------
+//
+// LineString; metadata edit only. Subtype values mirror the legacy
+// `BuriedUtilityKind` enum and round-trip via `existing.subtype`.
+
+const BURIED_UTILITY_SUBTYPE_OPTIONS = BE_BURIED_UTILITY_SUBTYPE_OPTIONS;
+
+export function buildBuriedUtilityEditSchema(
+  bu: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = bu.existing ?? {};
+  return {
+    title: 'Edit buried utility',
+    fields: [
+      {
+        key: 'subtype',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: BURIED_UTILITY_SUBTYPE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      subtype: exist.subtype ?? 'water_main',
+      label:   bu.label ?? '',
+      notes:   bu.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const subtype = String(values.subtype ?? 'water_main');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(bu.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Fence (Built Environment V2) ----------
+//
+// LineString; metadata edit only. Subtype mirrors the legacy
+// `FenceKind` enum.
+
+const FENCE_SUBTYPE_OPTIONS = BE_FENCE_SUBTYPE_OPTIONS;
+
+export function buildFenceEditSchema(
+  f: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = f.existing ?? {};
+  return {
+    title: 'Edit fence',
+    fields: [
+      {
+        key: 'subtype',
+        label: 'Kind',
+        kind: 'select',
+        required: true,
+        options: FENCE_SUBTYPE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      subtype: exist.subtype ?? 'page_wire',
+      label:   f.label ?? '',
+      notes:   f.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const subtype = String(values.subtype ?? 'page_wire');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(f.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { subtype },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Gate (Built Environment V2) ----------
+//
+// Point; metadata edit only — gate has no enum axis, just label + notes.
+
+export function buildGateEditSchema(
+  g: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  return {
+    title: 'Edit gate',
+    fields: [
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      label: g.label ?? '',
+      notes: g.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(g.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Driveway (Built Environment V2) ----------
+//
+// LineString; surface enum mirrors the legacy `DrivewaySurface`.
+
+const DRIVEWAY_SURFACE_OPTIONS = BE_DRIVEWAY_SURFACE_OPTIONS;
+
+export function buildDrivewayEditSchema(
+  dw: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const exist = dw.existing ?? {};
+  return {
+    title: 'Edit driveway',
+    fields: [
+      {
+        key: 'surface',
+        label: 'Surface',
+        kind: 'select',
+        required: true,
+        options: DRIVEWAY_SURFACE_OPTIONS,
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      surface: exist.surface ?? 'gravel',
+      label:   dw.label ?? '',
+      notes:   dw.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const surface = String(values.surface ?? 'gravel');
+      const label = String(values.label ?? '').trim();
+      const notesRaw = String(values.notes ?? '').trim();
+      store.updateMetadata(dw.id, {
+        label: label || undefined,
+        notes: notesRaw || undefined,
+        existing: { surface },
+      });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Generic V2 Built-Environment kind (Phase 5.2.B) ----------
+//
+// Floor schema for the 23 BE kinds without a bespoke `buildXxxEditSchema`
+// (cabin, yurt, prayer-pavilion, barn, greenhouse, …). Provides the
+// minimum useful affordances: state toggle (existing ↔ proposed), label,
+// notes. Per-kind subtype enrichment (e.g. `barn.type = dairy|hay|...`)
+// can land later by adding a builder to `SCHEMA_BUILDERS` in
+// `openBeInlineEdit.ts`; until then this builder is the dispatch fallback.
+
+export function buildGenericBeEditSchema(
+  e: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const spec = getBuiltEnvironmentKind(e.kind);
+  const label = spec?.label ?? e.kind;
+  return {
+    title: `Edit ${label}`,
+    fields: [
+      {
+        key: 'state',
+        label: 'State',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'existing', label: 'Existing' },
+          { value: 'proposed', label: 'Proposed' },
+        ],
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      state: e.state,
+      label: e.label ?? '',
+      notes: e.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const labelStr = String(values.label ?? '').trim();
+      const notesStr = String(values.notes ?? '').trim();
+      const nextState = String(values.state ?? e.state) as BuiltEnvironmentState;
+      store.updateMetadata(e.id, {
+        label: labelStr || undefined,
+        notes: notesStr || undefined,
+      });
+      if (nextState !== e.state) {
+        store.setState(e.id, nextState);
+      }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
     },
   };
 }

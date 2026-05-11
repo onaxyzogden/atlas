@@ -67,11 +67,12 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
     ],
   },
   livestock: {
-    why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later.',
+    why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later. The Product Chain sub-section extends this onto the post-farm-gate flow (slaughter → cold chain → market) so the herd / flock is designed against the actual off-take it has to feed, not in isolation.',
     how: [
       'Confirm water lines and access tracks exist on the design before drawing paddock cells.',
       'Size cells to the herd / flock\'s daily grazing demand and target rest period.',
       'Site shelters and water points so each cell has both within reasonable walking distance.',
+      'In the Product Chain tabs, place slaughter / cold-chain / market nodes so capacity and demand size against bird or carcass volume — not the other way round.',
     ],
   },
   'plant-systems': {

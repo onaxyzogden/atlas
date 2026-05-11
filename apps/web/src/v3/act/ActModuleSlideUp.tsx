@@ -31,6 +31,7 @@ const NetworkCrmCard            = lazy(() => import('../../features/act/NetworkC
 const CommunityEventCard        = lazy(() => import('../../features/act/CommunityEventCard.js'));
 const AppropriateTechLogCard    = lazy(() => import('../../features/act/AppropriateTechLogCard.js'));
 const LivestockYieldCard        = lazy(() => import('../../features/act/LivestockYieldCard.js'));
+const LivestockMoveCard         = lazy(() => import('../../features/act/LivestockMoveCard.js'));
 const StructureYieldCard        = lazy(() => import('../../features/act/StructureYieldCard.js'));
 const MaintenanceLogCard        = lazy(() => import('../../features/act/MaintenanceLogCard.js'));
 const WeatherForecastCard       = lazy(() => import('../../features/act/WeatherForecastCard.js'));
@@ -66,6 +67,7 @@ function renderCard(sectionId: string, project: LocalProject) {
     case 'act-community-event':   return <CommunityEventCard project={project} onSwitchToMap={noop} />;
     case 'act-appropriate-tech':  return <AppropriateTechLogCard project={project} onSwitchToMap={noop} />;
     case 'act-livestock-yield':           return <LivestockYieldCard project={project} onSwitchToMap={noop} />;
+    case 'act-livestock-moves':           return <LivestockMoveCard project={project} onSwitchToMap={noop} />;
     case 'act-livestock-rotation':        return <RotationScheduleCard projectId={project.id} />;
     case 'act-livestock-pasture':         return <PastureUtilizationCard projectId={project.id} />;
     case 'act-livestock-forage':          return <ForageQualitySeasonalCard project={project} />;

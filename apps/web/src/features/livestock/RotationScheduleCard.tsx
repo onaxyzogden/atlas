@@ -10,14 +10,26 @@
  * Pure presentation: no shared-package math, no new entities, no map overlay.
  */
 
-import { useMemo } from 'react';
-import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
+import { useEffect, useMemo, useState } from 'react';
+import { useLivestockStore, type Paddock, type LivestockSpecies } from '../../store/livestockStore.js';
 import {
   useLivestockMoveLogStore,
   eventsByPaddock,
+  exitsFromPaddock,
+  structureDestEvents,
+  destStructureId,
+  DIRECTION_OPTIONS,
+  SPECIES_OPTIONS,
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
+import {
+  useScheduledLivestockMoveStore,
+  nextUnfulfilledPlan,
+  type ScheduledLivestockMove,
+} from '../../store/scheduledLivestockMoveStore.js';
+import { useStructureStore } from '../../store/structureStore.js';
+import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import {
   computeRecoveryStatus,
   computeRotationSchedule,
@@ -40,6 +52,8 @@ interface UpcomingMove {
   targetDate: Date;
   status: RecoveryStatus['status'];
   action: RotationEntry['suggestedAction'];
+  /** Species recovery requirement for this paddock — used for rest-period variance. */
+  requiredDays: number;
 }
 
 const ACTION_LABEL: Record<RotationEntry['suggestedAction'], string> = {
@@ -65,6 +79,109 @@ function formatLoggedDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Compute the days between two ISO dates (date-only). Returns a non-negative
+ * integer when `later >= earlier`, or a negative number when reversed.
+ */
+function daysBetween(earlier: string, later: string): number {
+  const a = new Date(earlier).getTime();
+  const b = new Date(later).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
+  return Math.round((b - a) / 86_400_000);
+}
+
+interface RestPair {
+  entryId: string;
+  entryDate: string;
+  exitDate: string;
+  actualRestDays: number;
+  variance: number; // actual − required
+}
+
+/**
+ * Walk this paddock's events oldest→newest, pairing each entry (`toPaddockId === p.id`)
+ * with the most recent prior exit (`fromPaddockId === p.id` *or* legacy paddock-keyed
+ * `direction === 'move_out' | 'rotate_through'`). Returns one RestPair per entry that
+ * had a recorded prior exit; first-ever entries (no prior exit) are skipped.
+ */
+function computeRestPairs(
+  events: LivestockMoveEvent[], // already filtered to this paddock context (entries + exits)
+  paddockId: string,
+  requiredDays: number,
+): RestPair[] {
+  // Sort oldest first.
+  const sorted = events.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const pairs: RestPair[] = [];
+  let lastExitDate: string | null = null;
+  for (const e of sorted) {
+    const isExit =
+      e.fromPaddockId === paddockId ||
+      // Legacy v2 fallback: a paddockId-keyed event with direction move_out / rotate_through
+      // implicitly exited that paddock.
+      ((e.paddockId === paddockId || e.toPaddockId === paddockId) &&
+        (e.direction === 'move_out' || e.direction === 'rotate_through'));
+    const destPid = e.toPaddockId ?? e.paddockId;
+    const isEntry = destPid === paddockId && e.direction !== 'move_out';
+    if (isEntry && lastExitDate) {
+      const actualRestDays = daysBetween(lastExitDate, e.date);
+      pairs.push({
+        entryId: e.id,
+        entryDate: e.date,
+        exitDate: lastExitDate,
+        actualRestDays,
+        variance: actualRestDays - requiredDays,
+      });
+    }
+    if (isExit) {
+      lastExitDate = e.date;
+    }
+  }
+  return pairs;
+}
+
+function varianceTone(variance: number): 'positive' | 'tolerant' | 'negative' {
+  if (variance >= 0) return 'positive';
+  if (variance >= -2) return 'tolerant';
+  return 'negative';
+}
+
+function varianceBadgeText(variance: number): string {
+  if (variance > 0) return `+${variance}d rest`;
+  if (variance === 0) return 'on time';
+  return `${variance}d`;
+}
+
+/** Inline quick-log draft — narrower than `LivestockMoveCard`'s Draft because
+ *  the destination paddock is implicit (this row). */
+interface QuickDraft {
+  date: string;
+  direction: LivestockMoveDirection;
+  species: LivestockSpecies;
+  headCount: string;
+  fromPaddockId: string; // '' = no recorded origin
+  notes: string;
+}
+
+function emptyQuickDraft(species: string[]): QuickDraft {
+  const first = (species[0] as LivestockSpecies | undefined) ?? 'sheep';
+  return {
+    date: new Date().toISOString().slice(0, 10),
+    direction: 'move_in',
+    species: first,
+    headCount: '',
+    fromPaddockId: '',
+    notes: '',
+  };
+}
+
+function newMoveId(): string {
+  return `lvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function formatTargetDate(d: Date): string {
@@ -94,6 +211,7 @@ function projectMoves(paddocks: Paddock[]): UpcomingMove[] {
       targetDate,
       status: recovery.status,
       action: entry.suggestedAction,
+      requiredDays: recovery.requiredDays,
     });
   }
   return moves;
@@ -107,6 +225,86 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   );
 
   const allEvents = useLivestockMoveLogStore((s) => s.events);
+  const addEvent = useLivestockMoveLogStore((s) => s.addEvent);
+  const allPlans = useScheduledLivestockMoveStore((s) => s.plans);
+  const addPlan = useScheduledLivestockMoveStore((s) => s.addPlan);
+  const markFulfilled = useScheduledLivestockMoveStore((s) => s.markFulfilled);
+
+  // Inline quick-log form state — single open form at a time. The `mode`
+  // discriminant determines which store the form writes to on save.
+  type FormMode = 'actual' | 'planned';
+  const [openForm, setOpenForm] = useState<{ paddockId: string; mode: FormMode } | null>(null);
+  const [draft, setDraft] = useState<QuickDraft>(() => emptyQuickDraft([]));
+
+  function openLogForm(m: UpcomingMove) {
+    setDraft(emptyQuickDraft(m.species));
+    setOpenForm({ paddockId: m.paddockId, mode: 'actual' });
+  }
+  function openScheduleForm(m: UpcomingMove) {
+    setDraft(emptyQuickDraft(m.species));
+    setOpenForm({ paddockId: m.paddockId, mode: 'planned' });
+  }
+  function closeForm() {
+    setOpenForm(null);
+  }
+  function saveForm(m: UpcomingMove) {
+    if (!draft.date) return;
+    const head = draft.headCount.trim() === '' ? null : Number(draft.headCount);
+    const headCount = head != null && Number.isFinite(head) ? head : null;
+    if (!openForm) return;
+    if (openForm.mode === 'actual') {
+      const ev: LivestockMoveEvent = {
+        id: newMoveId(),
+        projectId,
+        toPaddockId: m.paddockId,
+        date: draft.date,
+        direction: draft.direction,
+        species: draft.species,
+        headCount,
+        ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
+        ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
+      };
+      addEvent(ev);
+    } else {
+      const plan: ScheduledLivestockMove = {
+        id: `slvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        projectId,
+        toPaddockId: m.paddockId,
+        plannedDate: draft.date,
+        direction: draft.direction,
+        species: draft.species,
+        headCount,
+        ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
+        ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
+        createdAt: new Date().toISOString(),
+      };
+      addPlan(plan);
+    }
+    setOpenForm(null);
+  }
+
+  // Auto-fulfilment: when an unfulfilled plan has a matching actual event
+  // (same project + toPaddockId + species, date within ±7 days of plannedDate),
+  // mark it fulfilled so it stops rendering as "Planned". Runs once on each
+  // change to events or plans; first match per plan wins.
+  useEffect(() => {
+    const FULFIL_WINDOW_DAYS = 7;
+    const unfulfilled = allPlans.filter((p) => !p.fulfilledByEventId && p.projectId === projectId);
+    for (const plan of unfulfilled) {
+      const match = allEvents.find((e) => {
+        if (e.projectId !== projectId) return false;
+        const destPid = e.toPaddockId ?? e.paddockId;
+        if (destPid !== plan.toPaddockId) return false;
+        if (e.species !== plan.species) return false;
+        const diff = Math.abs(daysBetween(plan.plannedDate, e.date));
+        return diff <= FULFIL_WINDOW_DAYS;
+      });
+      if (match) {
+        markFulfilled(plan.id, match.id);
+      }
+    }
+  }, [allEvents, allPlans, projectId, markFulfilled]);
+
   const eventsByPaddockId = useMemo(() => {
     const map = new Map<string, LivestockMoveEvent[]>();
     for (const p of paddocks) {
@@ -114,6 +312,28 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
     }
     return map;
   }, [allEvents, paddocks, projectId]);
+  const exitsByPaddockId = useMemo(() => {
+    const map = new Map<string, LivestockMoveEvent[]>();
+    for (const p of paddocks) {
+      map.set(p.id, exitsFromPaddock(allEvents, projectId, p.id));
+    }
+    return map;
+  }, [allEvents, paddocks, projectId]);
+  const structureEvents = useMemo(
+    () => structureDestEvents(allEvents, projectId),
+    [allEvents, projectId],
+  );
+  const allStructures = useStructureStore((s) => s.structures);
+  const projectStructures = useMemo(
+    () => allStructures.filter((s) => s.projectId === projectId),
+    [allStructures, projectId],
+  );
+  function structureLabel(id: string): string {
+    const s = projectStructures.find((x) => x.id === id);
+    if (!s) return '(deleted structure)';
+    const tpl = STRUCTURE_TEMPLATES[s.type];
+    return `${tpl.icon} ${s.name || tpl.label}`;
+  }
 
   const moves = useMemo(() => projectMoves(paddocks), [paddocks]);
 
@@ -231,6 +451,35 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                       </div>
                       <div className={css.rowAction}>
                         <span className={`${css.actionLabel} ${tone}`}>{ACTION_LABEL[m.action]}</span>
+                        {openForm?.paddockId === m.paddockId ? (
+                          <button
+                            type="button"
+                            className={css.quickLogButton}
+                            onClick={closeForm}
+                            aria-label="Close quick-log form"
+                          >
+                            Cancel
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className={css.quickLogButton}
+                              onClick={() => openLogForm(m)}
+                              aria-label={`Log a move into ${m.paddockName}`}
+                            >
+                              + Log move
+                            </button>
+                            <button
+                              type="button"
+                              className={`${css.quickLogButton} ${css.quickLogButtonSecondary}`}
+                              onClick={() => openScheduleForm(m)}
+                              aria-label={`Schedule a move into ${m.paddockName}`}
+                            >
+                              Schedule…
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -255,34 +504,204 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                     </div>
 
                     {(() => {
-                      const events = eventsByPaddockId.get(m.paddockId) ?? [];
+                      const plan = nextUnfulfilledPlan(allPlans, projectId, m.paddockId, todayIso());
+                      if (!plan) return null;
+                      const plannedFromToday = daysBetween(todayIso(), plan.plannedDate);
+                      const variance = plannedFromToday - m.daysUntilReady;
+                      const tone = varianceTone(variance);
+                      const toneClass =
+                        tone === 'positive'
+                          ? css.variancePositive
+                          : tone === 'tolerant'
+                            ? css.varianceTolerant
+                            : css.varianceNegative;
+                      return (
+                        <div className={css.plannedLine}>
+                          <span>
+                            <b>Planned</b>
+                            {' \u00b7 '}
+                            {formatLoggedDate(plan.plannedDate)}
+                          </span>
+                          <span className={`${css.varianceBadge} ${toneClass}`}>
+                            {varianceBadgeText(variance)}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {openForm?.paddockId === m.paddockId ? (
+                      <div className={css.quickLogForm}>
+                        <div className={css.quickLogGrid}>
+                          <label className={css.quickLogField}>
+                            <span>{openForm.mode === 'planned' ? 'Planned date' : 'Date'}</span>
+                            <input
+                              type="date"
+                              value={draft.date}
+                              onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                            />
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Direction</span>
+                            <select
+                              value={draft.direction}
+                              onChange={(e) =>
+                                setDraft({ ...draft, direction: e.target.value as LivestockMoveDirection })
+                              }
+                            >
+                              {DIRECTION_OPTIONS.map((d) => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Species</span>
+                            <select
+                              value={draft.species}
+                              onChange={(e) =>
+                                setDraft({ ...draft, species: e.target.value as LivestockSpecies })
+                              }
+                            >
+                              {SPECIES_OPTIONS.map((s) => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Head</span>
+                            <input
+                              type="number"
+                              min={0}
+                              placeholder="—"
+                              value={draft.headCount}
+                              onChange={(e) => setDraft({ ...draft, headCount: e.target.value })}
+                            />
+                          </label>
+                          <label className={`${css.quickLogField} ${css.quickLogFieldWide}`}>
+                            <span>From (optional)</span>
+                            <select
+                              value={draft.fromPaddockId}
+                              onChange={(e) => setDraft({ ...draft, fromPaddockId: e.target.value })}
+                            >
+                              <option value="">(no recorded origin)</option>
+                              {paddocks
+                                .filter((p) => p.id !== m.paddockId)
+                                .map((p) => (
+                                  <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                          </label>
+                          <label className={`${css.quickLogField} ${css.quickLogFieldWide}`}>
+                            <span>Notes (optional)</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. moved early — pasture lush"
+                              value={draft.notes}
+                              onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                            />
+                          </label>
+                        </div>
+                        <div className={css.quickLogActions}>
+                          <button
+                            type="button"
+                            className={css.quickLogSave}
+                            onClick={() => saveForm(m)}
+                            disabled={!draft.date}
+                          >
+                            {openForm.mode === 'planned' ? 'Schedule move' : 'Save move'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {(() => {
+                      const entries = eventsByPaddockId.get(m.paddockId) ?? [];
+                      const exits = exitsByPaddockId.get(m.paddockId) ?? [];
+                      // Combine: tag each event as 'in' (destination is this paddock)
+                      // or 'out' (origin is this paddock). Skip an exit if the same event
+                      // is already in entries (rotate-through within the same paddock).
+                      const entryIds = new Set(entries.map((e) => e.id));
+                      type Tagged = { ev: LivestockMoveEvent; tag: 'in' | 'out' };
+                      const combined: Tagged[] = [
+                        ...entries.map((ev) => ({ ev, tag: 'in' as const })),
+                        ...exits.filter((e) => !entryIds.has(e.id)).map((ev) => ({ ev, tag: 'out' as const })),
+                      ].sort((a, b) => (a.ev.date < b.ev.date ? 1 : a.ev.date > b.ev.date ? -1 : 0));
+
+                      // Plan-vs-actual rest-period variance \u2014 pair each entry with the
+                      // most recent prior exit; compute actual rest vs species required.
+                      const pairs = computeRestPairs(
+                        // Union, dedup by id.
+                        Array.from(new Map([...entries, ...exits].map((e) => [e.id, e])).values()),
+                        m.paddockId,
+                        m.requiredDays,
+                      );
+                      const pairByEntryId = new Map(pairs.map((p) => [p.entryId, p]));
+                      const onSchedule = pairs.filter((p) => p.variance >= 0).length;
+                      const avgRest = pairs.length > 0
+                        ? Math.round(pairs.reduce((s, p) => s + p.variance, 0) / pairs.length)
+                        : 0;
+                      const worst = pairs.reduce<RestPair | null>(
+                        (acc, p) => (acc == null || p.variance < acc.variance ? p : acc),
+                        null,
+                      );
+
                       return (
                         <div className={css.loggedMovesSection}>
                           <div className={css.loggedMovesHeading}>Logged moves</div>
-                          {events.length === 0 ? (
+                          {pairs.length > 0 ? (
+                            <div className={css.varianceSummary}>
+                              <span>
+                                <b>{onSchedule} of {pairs.length}</b>{' '}
+                                {pairs.length === 1 ? 'entry' : 'entries'} on schedule
+                                {' \u00b7 '}avg {avgRest >= 0 ? `+${avgRest}` : avgRest}d vs target
+                              </span>
+                              {worst && worst.variance < 0 ? (
+                                <span className={`${css.varianceBadge} ${css.varianceNegative}`}>
+                                  worst {worst.variance}d
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {combined.length === 0 ? (
                             <div className={css.loggedMoveEmpty}>
                               No moves logged for this paddock yet.
                             </div>
                           ) : (
-                            events.map((ev) => (
-                              <div key={ev.id} className={css.loggedMoveRow}>
-                                <div className={css.loggedMoveDirection}>
-                                  <b>{DIRECTION_LABEL[ev.direction]}</b>
-                                  <span>
-                                    {formatLoggedDate(ev.date)}
-                                    {' \u00b7 '}
-                                    {ev.species}
-                                    {ev.headCount != null
-                                      ? ` \u00b7 ${ev.headCount} head`
-                                      : ''}
-                                    {ev.who ? ` \u00b7 ${ev.who}` : ''}
-                                  </span>
+                            combined.map(({ ev, tag }) => {
+                              const pair = tag === 'in' ? pairByEntryId.get(ev.id) : undefined;
+                              const tone = pair ? varianceTone(pair.variance) : null;
+                              const toneClass =
+                                tone === 'positive'
+                                  ? css.variancePositive
+                                  : tone === 'tolerant'
+                                    ? css.varianceTolerant
+                                    : tone === 'negative'
+                                      ? css.varianceNegative
+                                      : '';
+                              return (
+                                <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
+                                  <div className={css.loggedMoveDirection}>
+                                    <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
+                                    <span>
+                                      {formatLoggedDate(ev.date)}
+                                      {' \u00b7 '}
+                                      {ev.species}
+                                      {ev.headCount != null
+                                        ? ` \u00b7 ${ev.headCount} head`
+                                        : ''}
+                                      {ev.who ? ` \u00b7 ${ev.who}` : ''}
+                                    </span>
+                                    {pair ? (
+                                      <span className={`${css.varianceBadge} ${toneClass}`}>
+                                        {varianceBadgeText(pair.variance)}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  {ev.notes ? (
+                                    <div className={css.loggedMoveMeta}>{ev.notes}</div>
+                                  ) : null}
                                 </div>
-                                {ev.notes ? (
-                                  <div className={css.loggedMoveMeta}>{ev.notes}</div>
-                                ) : null}
-                              </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
                       );
@@ -294,6 +713,39 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
           </div>
         );
       })}
+
+      {structureEvents.length > 0 ? (
+        <div className={css.groupBlock}>
+          <div className={css.groupHead}>
+            <span className={css.groupName}>Structure moves</span>
+            <span className={css.groupMeta}>
+              {structureEvents.length} event{structureEvents.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className={css.loggedMovesSection}>
+            {structureEvents.map((ev) => {
+              const sid = destStructureId(ev);
+              return (
+                <div key={ev.id} className={css.loggedMoveRow}>
+                  <div className={css.loggedMoveDirection}>
+                    <b>{DIRECTION_LABEL[ev.direction]}</b>
+                    <span>
+                      {sid ? structureLabel(sid) : '(unknown)'}
+                      {' \u00b7 '}
+                      {formatLoggedDate(ev.date)}
+                      {' \u00b7 '}
+                      {ev.species}
+                      {ev.headCount != null ? ` \u00b7 ${ev.headCount} head` : ''}
+                      {ev.who ? ` \u00b7 ${ev.who}` : ''}
+                    </span>
+                  </div>
+                  {ev.notes ? <div className={css.loggedMoveMeta}>{ev.notes}</div> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <div className={css.assumption}>
         Schedule projects from each paddock{'\u2019'}s last-updated timestamp against species recovery

@@ -73,6 +73,9 @@ export default function GuildTool({ map, projectId }: Props) {
       // Derive `centroidUv` from current map bounds — a coarse anchor that
       // the slide-up's GuildSpatialBuilderCard can refine. Falls back to
       // [0.5, 0.5] if bounds unavailable.
+      // TODO: replace bounds-derived UV with a parcel-relative projection
+      // once a guild map tool (drag-to-place centroid in parcel space)
+      // lands. Tracked in wiki/decisions/2026-05-10-deferred-todo-sweep.md.
       let centroidUv: [number, number] = [0.5, 0.5];
       try {
         const b = map.getBounds();

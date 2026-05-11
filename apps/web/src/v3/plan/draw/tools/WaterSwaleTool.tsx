@@ -10,7 +10,15 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import {
+  checkUtilityConflicts,
+  depthTriggersVeto,
+} from '../../utils/utilityConflicts.js';
+import { useUtilityConflictStore } from '../utilityConflictStore.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
+
+/** Approximate swale excavation depth — drives the utility-veto gate. */
+const SWALE_DEPTH_CM = 60;
 
 interface Props {
   map: MaplibreMap;
@@ -35,21 +43,51 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
       const midIdx = Math.floor(coords.length / 2);
       const anchor = coords[midIdx] as [number, number];
 
-      addWaterNode({
-        id,
-        projectId,
-        name: 'Swale',
-        kind: 'swale',
-        center: anchor,
-        swaleGeometry: geom,
-        swaleLengthM: lengthM,
-        swaleWidthM: 0.6,
-        swaleDepthM: 0.4,
-        overflowToNodeId: null,
-        phase: phaseDefault || undefined,
-        createdAt: new Date().toISOString(),
-      });
+      const conflicts = depthTriggersVeto(SWALE_DEPTH_CM)
+        ? checkUtilityConflicts(geom, projectId)
+        : [];
 
+      const proceed = (extras: {
+        utilityConflicts?: { id: string; kind: string }[];
+        utilityAcknowledgment?: string;
+      }) => {
+        addWaterNode({
+          id,
+          projectId,
+          name: 'Swale',
+          kind: 'swale',
+          center: anchor,
+          swaleGeometry: geom,
+          swaleLengthM: lengthM,
+          swaleWidthM: 0.6,
+          swaleDepthM: 0.4,
+          overflowToNodeId: null,
+          phase: phaseDefault || undefined,
+          createdAt: new Date().toISOString(),
+          ...extras,
+        });
+        openInlineForm(anchor);
+      };
+
+      if (conflicts.length > 0) {
+        useUtilityConflictStore.getState().open({
+          conflicts,
+          anchor,
+          onConfirm: (ack) =>
+            proceed({
+              utilityConflicts: conflicts.map((c) => ({ id: c.id, kind: c.kind })),
+              utilityAcknowledgment: ack,
+            }),
+          onCancel: () => {
+            /* user declined — geom already discarded by useMapboxDrawTool */
+          },
+        });
+        return;
+      }
+
+      proceed({});
+
+      function openInlineForm(_anchor: [number, number]) {
       openForm({
         title: 'Swale',
         anchor,
@@ -97,6 +135,7 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
         },
         onCancel: () => removeWaterNode(id),
       });
+      }
     },
   });
 

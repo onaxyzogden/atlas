@@ -38,8 +38,8 @@ import { usePathStore } from './pathStore.js';
 import { useCropStore } from './cropStore.js';
 import { useLivestockStore } from './livestockStore.js';
 import { useClosedLoopStore } from './closedLoopStore.js';
-import { useStructureStore } from './structureStore.js';
 import { usePolycultureStore } from './polycultureStore.js';
+import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 
 export type UndoableStoreName =
   | 'humanContext'
@@ -54,8 +54,8 @@ export type UndoableStoreName =
   | 'crop'
   | 'livestock'
   | 'closedLoop'
-  | 'structure'
-  | 'polyculture';
+  | 'polyculture'
+  | 'builtEnvironment';
 
 interface UndoCoordinatorState {
   history: UndoableStoreName[];
@@ -107,8 +107,8 @@ const STORES: Record<UndoableStoreName, StoreWithMiddleware> = {
   crop: useCropStore as unknown as StoreWithMiddleware,
   livestock: useLivestockStore as unknown as StoreWithMiddleware,
   closedLoop: useClosedLoopStore as unknown as StoreWithMiddleware,
-  structure: useStructureStore as unknown as StoreWithMiddleware,
   polyculture: usePolycultureStore as unknown as StoreWithMiddleware,
+  builtEnvironment: useBuiltEnvironmentStoreV2 as unknown as StoreWithMiddleware,
 };
 
 export const useUndoCoordinatorStore = create<UndoCoordinatorState>((set, get) => ({

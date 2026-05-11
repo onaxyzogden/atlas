@@ -1,27 +1,25 @@
 /**
- * AnnotationVertexEditHandler — mounts a dedicated MapboxDraw instance in
- * `direct_select` mode when the steward has selected exactly one
- * line/polygon annotation. The user can drag vertices; on `draw.update`
- * the new geometry is patched back into the owning namespace store via
- * `writeLineString` / `writePolygon`.
+ * AnnotationVertexEditHandler — Observe-stage composition of
+ * `SharedVertexEditHandler`. Wires Observe's selection store + the
+ * line/polygon dispatch from `annotationGeometryRegistry` into the shared
+ * MapboxDraw `direct_select` lifecycle.
  *
  * Why a separate MapboxDraw instance from the placement tools? The 14
  * placement tools each spin up their own short-lived MapboxDraw via
  * `useMapboxDrawTool` and unmount on tool-exit. Vertex edit lives outside
  * that lifecycle — it engages from the SelectionFloater, not the tools
- * panel — and only when no placement tool is active (we gate on
+ * panel — and only when no Observe placement tool is active (gate on
  * `useMapToolStore.activeTool` to avoid two MapboxDraw controls fighting
  * over the canvas).
  *
- * Esc / selection clear / unmount → remove the control gracefully.
+ * Observe's gate policy: only `observe.*` tools block — Plan tools (which
+ * may not even exist in the same map context, but defensively) shouldn't
+ * suppress Observe vertex edits.
  */
 
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { MAPLIBRE_DRAW_STYLES } from './mapboxDrawStyles.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
-import { useMapToolStore } from '../measure/useMapToolStore.js';
 import {
   LINESTRING_KINDS,
   POLYGON_KINDS,
@@ -30,112 +28,51 @@ import {
   writeLineString,
   writePolygon,
 } from './annotationGeometryRegistry.js';
+import type { AnnotationKind } from './annotationFieldSchemas.js';
+import SharedVertexEditHandler, {
+  type VertexEditDispatch,
+  type VertexEditTarget,
+} from '../../../builtEnvironment/handlers/SharedVertexEditHandler.js';
 
 interface Props {
   map: MaplibreMap;
 }
 
-interface DrawUpdateEvent {
-  features?: GeoJSON.Feature[];
-  action?: string;
-}
-
 export default function AnnotationVertexEditHandler({ map }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
   const clear = useObserveSelectionStore((s) => s.clear);
-  const activeTool = useMapToolStore((s) => s.activeTool);
 
-  useEffect(() => {
-    if (!map) return;
-    // Single-selection only.
-    if (selected.length !== 1) return;
-    const sole = selected[0];
-    if (!sole) return;
-    const isLine = LINESTRING_KINDS.has(sole.kind);
-    const isPoly = POLYGON_KINDS.has(sole.kind);
-    if (!isLine && !isPoly) return;
-    // Don't fight a placement tool — that tool already owns a MapboxDraw.
-    if (activeTool && activeTool.startsWith('observe.')) return;
+  // Single-selection only; first-and-only entry becomes the vertex-edit target.
+  const target: VertexEditTarget | null =
+    selected.length === 1 && selected[0]
+      ? { kind: selected[0].kind, id: selected[0].id }
+      : null;
 
-    const { kind, id } = sole;
+  const dispatch = useMemo<VertexEditDispatch>(
+    () => ({
+      featureIdPrefix: 'vertex-edit',
+      shouldSuppressForTool: (activeTool) =>
+        activeTool != null && activeTool.startsWith('observe.'),
+      geometryKindFor: (kind) => {
+        const k = kind as AnnotationKind;
+        if (LINESTRING_KINDS.has(k)) return 'line';
+        if (POLYGON_KINDS.has(k)) return 'polygon';
+        return null;
+      },
+      readLine: (kind, id) => readLineString(kind as AnnotationKind, id),
+      readPolygon: (kind, id) => readPolygon(kind as AnnotationKind, id),
+      writeLine: (kind, id, geom) => writeLineString(kind as AnnotationKind, id, geom),
+      writePolygon: (kind, id, geom) => writePolygon(kind as AnnotationKind, id, geom),
+    }),
+    [],
+  );
 
-    // Pull the current geometry. Bail if the record vanished between
-    // selection and effect run.
-    const initialGeom: GeoJSON.LineString | GeoJSON.Polygon | null = isLine
-      ? readLineString(kind, id)
-      : readPolygon(kind, id);
-    if (!initialGeom) return;
-
-    const draw = new MapboxDraw({
-      displayControlsDefault: false,
-      controls: {},
-      styles: MAPLIBRE_DRAW_STYLES,
-    });
-    map.addControl(draw);
-
-    const featureId = `vertex-edit-${kind}-${id}`;
-    const featureToAdd: GeoJSON.Feature = {
-      id: featureId,
-      type: 'Feature',
-      properties: {},
-      geometry: initialGeom,
-    };
-    try {
-      draw.add(featureToAdd);
-      // direct_select takes a featureId option; types are loose.
-      (
-        draw.changeMode as (mode: string, opts?: { featureId: string }) => unknown
-      )('direct_select', { featureId });
-    } catch {
-      // If the geometry happens to be malformed (e.g. polygon with <3
-      // points after a botched migration), MapboxDraw will throw — bail
-      // cleanly without leaving the control attached.
-      try {
-        map.removeControl(draw);
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-
-    const onUpdate = (e: DrawUpdateEvent) => {
-      const feat = e.features?.[0];
-      if (!feat) return;
-      const geom = feat.geometry;
-      if (isLine && geom.type === 'LineString') {
-        writeLineString(kind, id, geom);
-      } else if (isPoly && geom.type === 'Polygon') {
-        writePolygon(kind, id, geom);
-      }
-    };
-
-    // MapboxDraw events are typed loosely on the maplibre map; cast through.
-    (map as unknown as {
-      on: (ev: string, h: (e: DrawUpdateEvent) => void) => void;
-      off: (ev: string, h: (e: DrawUpdateEvent) => void) => void;
-    }).on('draw.update', onUpdate);
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      const target = document.activeElement;
-      const tag = target?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      clear();
-    };
-    document.addEventListener('keydown', onKey);
-
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      (map as unknown as {
-        off: (ev: string, h: (e: DrawUpdateEvent) => void) => void;
-      }).off('draw.update', onUpdate);
-      try {
-        map.removeControl(draw);
-      } catch {
-        /* map disposed */
-      }
-    };
-  }, [map, selected, activeTool, clear]);
-
-  return null;
+  return (
+    <SharedVertexEditHandler
+      map={map}
+      target={target}
+      onClear={clear}
+      dispatch={dispatch}
+    />
+  );
 }

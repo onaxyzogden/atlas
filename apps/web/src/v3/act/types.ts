@@ -85,6 +85,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
   ],
   livestock: [
     { label: 'Yield log',            sectionId: 'act-livestock-yield' },
+    { label: 'Move log',             sectionId: 'act-livestock-moves' },
     { label: 'Rotation schedule',    sectionId: 'act-livestock-rotation' },
     { label: 'Pasture utilization',  sectionId: 'act-livestock-pasture' },
     { label: 'Forage quality',       sectionId: 'act-livestock-forage' },

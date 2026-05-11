@@ -85,6 +85,15 @@ import { renderFieldNotes } from './fieldNotes.js';
 import { renderCapitalPartnerSummary } from './capitalPartnerSummary.js';
 import { renderScenarioComparison } from './scenarioComparison.js';
 import { renderEducationalBooklet } from './educationalBooklet.js';
+import { renderSwotJournal } from './swotJournal.js';
+import { renderSwotDiagnosisReport } from './swotDiagnosisReport.js';
+import { renderSwotSynthesis } from './swotSynthesis.js';
+import { renderTopographyReport } from './topographyReport.js';
+import { renderEarthWaterEcologyReport } from './earthWaterEcologyReport.js';
+import { renderMacroclimateReport } from './macroclimateReport.js';
+import { renderSectorsZonesReport } from './sectorsZonesReport.js';
+import { renderBuiltEnvironmentReport } from './builtEnvironmentReport.js';
+import { renderHumanContextReport } from './humanContextReport.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -94,4 +103,13 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   capital_partner_summary: renderCapitalPartnerSummary,
   scenario_comparison: renderScenarioComparison,
   educational_booklet: renderEducationalBooklet,
+  swot_journal: renderSwotJournal,
+  swot_diagnosis_report: renderSwotDiagnosisReport,
+  swot_synthesis: renderSwotSynthesis,
+  topography_report: renderTopographyReport,
+  earth_water_ecology_report: renderEarthWaterEcologyReport,
+  macroclimate_report: renderMacroclimateReport,
+  sectors_zones_report: renderSectorsZonesReport,
+  built_environment_report: renderBuiltEnvironmentReport,
+  human_context_report: renderHumanContextReport,
 };

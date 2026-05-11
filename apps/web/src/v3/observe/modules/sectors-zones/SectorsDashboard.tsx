@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   Compass,
+  Download,
   Flame,
   Layers,
   Leaf,
@@ -13,7 +14,9 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
+import { pickTruthy } from '@ogden/shared';
 import { SurfaceCard } from '../../_shared/components/index.js';
+import { api } from '../../../../lib/apiClient.js';
 import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
@@ -62,11 +65,68 @@ export default function SectorsDashboard() {
   const sc = sectorCounts(sectors);
   const zc = zoneCounts(zones);
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const wind = dominantWindDir(layers);
+      const totalAreaM2 = zones.reduce((acc, z) => acc + (z.areaM2 || 0), 0);
+      const { data } = await api.exports.generate(id, {
+        exportType: 'sectors_zones_report',
+        payload: {
+          sectorsZones: {
+            sectors: sectors.map((s) => ({
+              id: s.id,
+              type: s.type,
+              bearingDeg: s.bearingDeg,
+              arcDeg: s.arcDeg,
+              ...pickTruthy(s, ['intensity', 'notes']),
+            })),
+            zones: zones.map((z) => ({
+              id: z.id,
+              name: z.name,
+              category: z.category,
+              areaM2: z.areaM2,
+              ...pickTruthy(z, ['primaryUse', 'secondaryUse', 'notes']),
+              ...(z.invasivePressure ? { invasivePressure: z.invasivePressure } : {}),
+              ...(z.successionStage ? { successionStage: z.successionStage } : {}),
+              ...(z.seasonality ? { seasonality: z.seasonality } : {}),
+              ...(z.permacultureZone != null
+                ? { permacultureZone: z.permacultureZone }
+                : {}),
+            })),
+            sectorCounts: {
+              total: sc.total,
+              wind: sc.wind,
+              sun: sc.sun,
+              fire: sc.fire,
+              noise: sc.noise,
+              wildlife: sc.wildlife,
+              view: sc.view,
+            },
+            zoneCounts: {
+              total: zc.total,
+              byCategory: zc.byCategory as Record<string, number>,
+              totalAreaM2,
+            },
+            ...(wind && wind !== '—' ? { prevailingWind: wind } : {}),
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Sectors & Zones report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="detail-page sectors-page">
       <section className="sectors-layout">
         <div className="sectors-main">
-          <SectorsHero />
+          <SectorsHero onExport={handleExport} exporting={exporting} />
           <SectorsMetrics kpis={kpis} />
           <SynthesisBand />
           <SurfaceCard className="sector-radius-card">
@@ -89,7 +149,12 @@ export default function SectorsDashboard() {
   );
 }
 
-function SectorsHero() {
+interface SectorsHeroProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function SectorsHero({ onExport, exporting }: SectorsHeroProps) {
   return (
     <section className="sectors-hero">
       <img src={sectorHero} className="sectors-hero-art" alt="" aria-hidden="true" />
@@ -102,6 +167,10 @@ function SectorsHero() {
             design element belongs on the land.
           </p>
         </div>
+        <button type="button" onClick={onExport} disabled={exporting}>
+          <Download aria-hidden="true" />{' '}
+          {exporting ? 'Generating…' : 'Export sectors report'}
+        </button>
       </div>
     </section>
   );
@@ -290,9 +359,6 @@ function SectorsSidebar() {
             {item}
           </p>
         ))}
-        <button className="green-button" type="button">
-          Go to next: Site Analysis <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
     </aside>
   );

@@ -34,6 +34,31 @@ export type MapToolId =
   | 'observe.built-environment.fence'
   | 'observe.built-environment.gate'
   | 'observe.built-environment.driveway'
+  // Observe Module — Built Environment (Phase 5.2.A: 23 additional registry
+  // kinds, surfaced via the generic `BeV2ExistingTool`)
+  | 'observe.built-environment.cabin'
+  | 'observe.built-environment.yurt'
+  | 'observe.built-environment.tent-glamping'
+  | 'observe.built-environment.prayer-pavilion'
+  | 'observe.built-environment.pavilion'
+  | 'observe.built-environment.classroom'
+  | 'observe.built-environment.bathhouse'
+  | 'observe.built-environment.earthship'
+  | 'observe.built-environment.workshop'
+  | 'observe.built-environment.lookout'
+  | 'observe.built-environment.barn'
+  | 'observe.built-environment.greenhouse'
+  | 'observe.built-environment.shed'
+  | 'observe.built-environment.animal-shelter'
+  | 'observe.built-environment.compost'
+  | 'observe.built-environment.water-tank'
+  | 'observe.built-environment.water-pump-house'
+  | 'observe.built-environment.solar-array'
+  | 'observe.built-environment.machinery-shed'
+  | 'observe.built-environment.fuel-station'
+  | 'observe.built-environment.equipment-yard'
+  | 'observe.built-environment.fire-circle'
+  | 'observe.built-environment.parking'
   // Observe Module 2 — Macroclimate & Hazards
   | 'observe.macroclimate-hazards.frost-pocket'
   | 'observe.macroclimate-hazards.hazard-zone'
@@ -81,6 +106,14 @@ export type MapToolId =
   | 'plan.soil-fertility.flow-connector'
   // Plan Module 4 — Livestock & Subdivision
   | 'plan.livestock.paddock'
+  // Plan Module 4 — Livestock fence-line (Farm-Scholar 2026-05-10: strip-grazing
+  // wire that the polygon Paddock tool cannot represent)
+  | 'plan.livestock.fence-line'
+  // Plan Module 4 — Livestock > Product Chain (post-farm-gate value chain
+  // folded into Livestock 2026-05-10: slaughter → cold chain → market)
+  | 'plan.livestock.slaughter-point'
+  | 'plan.livestock.cold-chain-unit'
+  | 'plan.livestock.market-node'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)

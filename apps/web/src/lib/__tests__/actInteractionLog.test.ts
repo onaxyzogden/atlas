@@ -1,12 +1,16 @@
 /**
- * @vitest-environment jsdom
+ * @vitest-environment happy-dom
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Hoisted mock for apiClient — must be declared before importing the module
-// under test so the module captures the mocked `api`.
-const postActInteractions = vi.fn().mockResolvedValue({ data: { ingested: 0 }, error: null });
+// under test so the module captures the mocked `api`. vi.mock is hoisted to
+// the top of the file, so the factory cannot close over module-level consts;
+// use vi.hoisted() to share the spy reference safely.
+const { postActInteractions } = vi.hoisted(() => ({
+  postActInteractions: vi.fn().mockResolvedValue({ data: { ingested: 0 }, error: null }),
+}));
 vi.mock('../apiClient', () => ({
   api: {
     telemetry: {

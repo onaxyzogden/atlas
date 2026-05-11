@@ -37,6 +37,7 @@ import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
+import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
@@ -140,6 +141,16 @@ const v3EthicsReferenceRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'reference/ethics',
   component: EthicsReferencePage,
+});
+
+// Dev-only: observed Act-module touch counts vs. v1 affinity ranking.
+// Sidebar + Home tile entries are both gated by VITE_ATLAS_TELEMETRY_ENABLED;
+// the route itself stays mounted so direct links keep working in development
+// even when the env flag is off.
+const v3AffinityTelemetryRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'reference/affinity-telemetry',
+  component: AffinityTelemetryDashboard,
 });
 
 const v3IndexRoute = createRoute({
@@ -301,6 +312,7 @@ const routeTree = rootRoute.addChildren([
       v3OperateRoute,
       v3ReportRoute,
       v3EthicsReferenceRoute,
+      v3AffinityTelemetryRoute,
     ]),
     notFoundRoute,
   ]),

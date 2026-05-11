@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Cable,
   CheckCircle2,
   DoorOpen,
+  Download,
   Droplet,
   Fence,
   Home,
@@ -15,8 +16,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
+import { pickTruthy } from '@ogden/shared';
 import { ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
+import { api } from '../../../../lib/apiClient.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import {
   builtEnvironmentKpis,
@@ -102,6 +105,112 @@ export default function BuiltEnvironmentDashboard() {
   const overheadPower = powerLines.filter((p) => p.placement === 'overhead');
   const utilityKm = totalLengthM(powerLines) + totalLengthM(buriedUtilities);
   const accessKm = totalLengthM(existingDriveways) + totalLengthM(fences);
+
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const buildingAreaM2 = buildings.reduce((acc, b) => acc + (b.areaM2 ?? 0), 0);
+      const septicAreaM2 = septics.reduce((acc, s) => acc + (s.areaM2 ?? 0), 0);
+      const wellsWithDepth = wells.filter((w) => typeof w.depthM === 'number');
+      const meanWellDepthM =
+        wellsWithDepth.length > 0
+          ? wellsWithDepth.reduce((acc, w) => acc + (w.depthM ?? 0), 0) / wellsWithDepth.length
+          : null;
+      const { data } = await api.exports.generate(id, {
+        exportType: 'built_environment_report',
+        payload: {
+          builtEnvironment: {
+            buildings: buildings.map((b) => ({
+              id: b.id,
+              subtype: b.subtype,
+              createdAt: b.createdAt,
+              ...pickTruthy(b, ['label', 'notes']),
+              ...(b.areaM2 != null ? { areaM2: b.areaM2 } : {}),
+            })),
+            wells: wells.map((w) => ({
+              id: w.id,
+              kind: w.kind,
+              position: w.position,
+              createdAt: w.createdAt,
+              ...pickTruthy(w, ['label', 'notes']),
+              ...(w.depthM != null ? { depthM: w.depthM } : {}),
+              ...(w.flowLpm != null ? { flowLpm: w.flowLpm } : {}),
+            })),
+            septics: septics.map((s) => ({
+              id: s.id,
+              kind: s.kind,
+              createdAt: s.createdAt,
+              ...pickTruthy(s, ['label', 'notes']),
+              ...(s.areaM2 != null ? { areaM2: s.areaM2 } : {}),
+            })),
+            powerLines: powerLines.map((p) => ({
+              id: p.id,
+              placement: p.placement,
+              lengthM: p.lengthM,
+              createdAt: p.createdAt,
+              ...pickTruthy(p, ['label', 'notes']),
+            })),
+            buriedUtilities: buriedUtilities.map((u) => ({
+              id: u.id,
+              kind: u.kind,
+              lengthM: u.lengthM,
+              createdAt: u.createdAt,
+              ...pickTruthy(u, ['label', 'notes']),
+            })),
+            fences: fences.map((f) => ({
+              id: f.id,
+              kind: f.kind,
+              lengthM: f.lengthM,
+              createdAt: f.createdAt,
+              ...pickTruthy(f, ['label', 'notes']),
+            })),
+            gates: gates.map((g) => ({
+              id: g.id,
+              position: g.position,
+              createdAt: g.createdAt,
+              ...pickTruthy(g, ['label', 'notes']),
+            })),
+            existingDriveways: existingDriveways.map((d) => ({
+              id: d.id,
+              surface: d.surface,
+              lengthM: d.lengthM,
+              createdAt: d.createdAt,
+              ...pickTruthy(d, ['label', 'notes']),
+            })),
+            counts: {
+              total: counts.total,
+              buildings: counts.buildings,
+              wells: counts.wells,
+              septics: counts.septics,
+              powerLines: counts.powerLines,
+              buriedUtilities: counts.buriedUtilities,
+              fences: counts.fences,
+              gates: counts.gates,
+              existingDriveways: counts.existingDriveways,
+            },
+            totals: {
+              buildingAreaM2,
+              septicAreaM2,
+              powerLineLengthM: totalLengthM(powerLines),
+              buriedUtilityLengthM: totalLengthM(buriedUtilities),
+              fenceLengthM: totalLengthM(fences),
+              drivewayLengthM: totalLengthM(existingDriveways),
+              meanWellDepthM,
+              overheadPowerCount: overheadPower.length,
+            },
+            healthPct,
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Built Environment report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const synopsis =
     counts.total === 0
@@ -218,6 +327,15 @@ export default function BuiltEnvironmentDashboard() {
                   next.
                 </p>
               </div>
+              <button
+                type="button"
+                className="built-environment-export-btn"
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" />{' '}
+                {exporting ? 'Generating…' : 'Export built-environment report'}
+              </button>
             </div>
           </header>
 

@@ -82,3 +82,10 @@ Phasing, Principles).
   the popover captures the *primary* species only.
 - Grazing-cell group assignment on draw — slide-up only.
 - Fence-line linear features — deferred until stewards ask.
+
+## Superseded by
+
+- [2026-05-10 atlas-plan-module6-livestock-farm-scholar](2026-05-10-atlas-plan-module6-livestock-farm-scholar.md)
+  — Farm-Scholar (Newman) BUILD_FRESH pass adds the fence-line linear
+  tool, reframes species-mix as Specialization, unmounts agritourism,
+  and adds the "Eat a Third" carrying-capacity readout.

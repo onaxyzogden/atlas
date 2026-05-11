@@ -15,6 +15,7 @@ import { useParams } from '@tanstack/react-router';
 import {
   Activity,
   ArrowRight,
+  Beef,
   Cable,
   CircleDashed,
   Container,
@@ -27,8 +28,10 @@ import {
   MapPin,
   Recycle,
   Route,
+  Snowflake,
   Sprout,
   Square,
+  Store,
   TreeDeciduous,
   Waves,
   type LucideIcon,
@@ -38,6 +41,7 @@ import {
   type MapToolId,
 } from '../observe/components/measure/useMapToolStore.js';
 import { useLayeringLensStore } from '../../store/layeringLensStore.js';
+import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   PLAN_MODULES,
   PLAN_MODULE_FULL_LABEL,
@@ -70,7 +74,15 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'utility-run', label: 'Utility run', Icon: Cable, toolId: 'plan.structures-subsystems.utility-run' },
   ],
   livestock: [
-    { id: 'paddock', label: 'Paddock', Icon: Fence, toolId: 'plan.livestock.paddock' },
+    { id: 'paddock',    label: 'Paddock',    Icon: Square, toolId: 'plan.livestock.paddock' },
+    // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
+    // strip / mob grazing wire that the polygon Paddock tool cannot model.
+    { id: 'fence-line', label: 'Fence line', Icon: Fence,  toolId: 'plan.livestock.fence-line' },
+    // 2026-05-10 Product Chain (sub-module) — Newman's post-farm-gate
+    // value chain folded into Livestock: slaughter → cold chain → market.
+    { id: 'slaughter-point', label: 'Slaughter',  Icon: Beef,      toolId: 'plan.livestock.slaughter-point' },
+    { id: 'cold-chain-unit', label: 'Cold chain', Icon: Snowflake, toolId: 'plan.livestock.cold-chain-unit' },
+    { id: 'market-node',     label: 'Market',     Icon: Store,     toolId: 'plan.livestock.market-node' },
   ],
   'plant-systems': [
     { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
@@ -192,25 +204,29 @@ export default function PlanTools({
                   const isToolActive = activeTool === it.toolId;
                   const disabled = !projectId;
                   return (
-                    <button
+                    <DelayedTooltip
                       key={it.id}
-                      type="button"
-                      className={css.toolItem}
-                      data-active={isToolActive ? 'true' : 'false'}
-                      disabled={disabled}
-                      aria-pressed={isToolActive}
-                      title={
+                      label={
                         disabled
                           ? `${it.label} — open a project to use`
                           : it.label
                       }
-                      onClick={(e) => onToolClick(e, it.toolId)}
+                      position="top"
                     >
-                      <span className={css.toolGlyph} aria-hidden="true">
-                        <it.Icon size={16} strokeWidth={1.6} />
-                      </span>
-                      <span className={css.toolLabel}>{it.label}</span>
-                    </button>
+                      <button
+                        type="button"
+                        className={css.toolItem}
+                        data-active={isToolActive ? 'true' : 'false'}
+                        disabled={disabled}
+                        aria-pressed={isToolActive}
+                        onClick={(e) => onToolClick(e, it.toolId)}
+                      >
+                        <span className={css.toolGlyph} aria-hidden="true">
+                          <it.Icon size={16} strokeWidth={1.6} />
+                        </span>
+                        <span className={css.toolLabel}>{it.label}</span>
+                      </button>
+                    </DelayedTooltip>
                   );
                 })}
               </div>
@@ -227,47 +243,51 @@ export default function PlanTools({
                       ? 'Enterprise lens · ON — click to disable'
                       : 'Recolour features by enterprise tag');
                   return (
-                    <button
-                      key={m}
-                      type="button"
-                      className={css.openModuleBtn}
-                      disabled={!projectId}
-                      aria-pressed={isOn}
-                      data-active={isOn ? 'true' : 'false'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!projectId) return;
-                        if (isOn) {
-                          setLensEnabled(false);
-                        } else {
-                          setLensMode(m);
-                          setLensEnabled(true);
-                        }
-                      }}
-                      title={longLabel}
-                    >
-                      <Layers size={14} strokeWidth={1.6} />
-                      <span>{isOn ? `${label} · ON` : label}</span>
-                    </button>
+                    <DelayedTooltip key={m} label={longLabel} position="top">
+                      <button
+                        type="button"
+                        className={css.openModuleBtn}
+                        disabled={!projectId}
+                        aria-pressed={isOn}
+                        data-active={isOn ? 'true' : 'false'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!projectId) return;
+                          if (isOn) {
+                            setLensEnabled(false);
+                          } else {
+                            setLensMode(m);
+                            setLensEnabled(true);
+                          }
+                        }}
+                      >
+                        <Layers size={14} strokeWidth={1.6} />
+                        <span>{isOn ? `${label} · ON` : label}</span>
+                      </button>
+                    </DelayedTooltip>
                   );
                 })}
               </div>
             ) : (
-              <button
-                type="button"
-                className={css.openModuleBtn}
-                disabled={!projectId}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!projectId) return;
-                  onSelectModule(mod);
-                  onOpenSlideUp?.();
-                }}
-                title={`Open ${headerLabel} module`}
+              <DelayedTooltip
+                label={`Open ${headerLabel} module`}
+                position="top"
               >
-                <FolderOpen size={14} strokeWidth={1.6} />
-                <span>Open module</span>
-              </button>
+                <button
+                  type="button"
+                  className={css.openModuleBtn}
+                  disabled={!projectId}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!projectId) return;
+                    onSelectModule(mod);
+                    onOpenSlideUp?.();
+                  }}
+                >
+                  <FolderOpen size={14} strokeWidth={1.6} />
+                  <span>Open module</span>
+                </button>
+              </DelayedTooltip>
             )}
           </section>
         );

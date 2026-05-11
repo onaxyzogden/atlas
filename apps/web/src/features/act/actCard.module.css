@@ -141,6 +141,16 @@
   padding: 12px 0;
 }
 
+/* Inline hint shown under a form field when the dependent feature list
+ * is empty (e.g. "no barn placed — add one in Plan stage"). Smaller and
+ * tighter than `.empty`, which is used for top-level empty states. */
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(232,220,200,0.5);
+  font-style: italic;
+}
+
 .statRow {
   display: flex;
   justify-content: space-between;

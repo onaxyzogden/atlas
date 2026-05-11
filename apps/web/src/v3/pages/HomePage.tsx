@@ -14,6 +14,7 @@
 
 import { useParams, useNavigate } from "@tanstack/react-router";
 import HomeHero from "../components/HomeHero.js";
+import AffinityTelemetryDashboard from "../../features/dashboard/pages/AffinityTelemetryDashboard.js";
 import ActivityList from "../components/ActivityList.js";
 import ActionList from "../components/ActionList.js";
 import ObservedStamp from "../components/ObservedStamp.js";
@@ -32,6 +33,14 @@ const SCORE_ORDER: ReadonlyArray<keyof ProjectScores> = [
 ];
 
 const LAST_OBSERVED = "April 27, 2026, 4:12 PM";
+
+// Dev-only References & Tools section is gated by the same flag the
+// Act-stage telemetry pipeline uses, so the surface tracks the data
+// collection's lifecycle exactly. In dev the entry is on by default; in
+// production it's off until the consent UX exists (see ADR
+// 2026-05-10-atlas-act-affinity-telemetry-pipeline).
+const TELEMETRY_ENABLED =
+  (import.meta.env.VITE_ATLAS_TELEMETRY_ENABLED ?? (import.meta.env.DEV ? 'true' : 'false')) === 'true';
 
 export default function HomePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -121,6 +130,12 @@ export default function HomePage() {
           <ActionList actions={nextActions} emptyMessage="Nothing queued." />
         </div>
       </section>
+
+      {TELEMETRY_ENABLED && (
+        <section className={css.devEmbed} aria-label="Affinity telemetry">
+          <AffinityTelemetryDashboard />
+        </section>
+      )}
 
       <aside className={css.helpBanner}>
         <div className={css.helpText}>

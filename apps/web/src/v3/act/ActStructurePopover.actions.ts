@@ -20,6 +20,8 @@ import {
 } from '../../store/maintenanceLogStore.js';
 import {
   useLivestockMoveLogStore,
+  DIRECTION_OPTIONS,
+  SPECIES_OPTIONS,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
 import {
@@ -48,24 +50,6 @@ const MAINTENANCE_ACTION_OPTIONS: { value: MaintenanceAction; label: string }[] 
 function isMaintenanceAction(s: string): s is MaintenanceAction {
   return ['inspect', 'clear', 'repair', 'replace', 'flush'].includes(s);
 }
-
-const DIRECTION_OPTIONS: { value: LivestockMoveDirection; label: string }[] = [
-  { value: 'move_in',        label: 'Move in' },
-  { value: 'move_out',       label: 'Move out' },
-  { value: 'rotate_through', label: 'Rotate through' },
-];
-
-const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
-  { value: 'sheep',       label: 'Sheep' },
-  { value: 'cattle',      label: 'Cattle' },
-  { value: 'goats',       label: 'Goats' },
-  { value: 'poultry',     label: 'Poultry' },
-  { value: 'pigs',        label: 'Pigs' },
-  { value: 'horses',      label: 'Horses' },
-  { value: 'ducks_geese', label: 'Ducks & geese' },
-  { value: 'rabbits',     label: 'Rabbits' },
-  { value: 'bees',        label: 'Bees' },
-];
 
 const SPECIES_VALUES = SPECIES_OPTIONS.map((o) => o.value) as string[];
 const DIRECTION_VALUES = DIRECTION_OPTIONS.map((o) => o.value) as string[];
@@ -162,7 +146,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
   addEvent({
     id,
     projectId,
-    structureId: structure.id,
+    toStructureId: structure.id,
     date: todayIso(),
     direction: 'move_in',
     species: defaultSpecies,

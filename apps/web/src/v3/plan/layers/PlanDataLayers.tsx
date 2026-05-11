@@ -19,6 +19,7 @@ import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
 import {
@@ -46,6 +47,7 @@ import {
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
 import type { StructureType } from '../../../store/structureStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
 import {
@@ -196,6 +198,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   );
   const paddocks = useLivestockStore((s) => s.paddocks);
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
+  // Farm-Scholar (Newman) ADR 2026-05-10 — fence lines render on the shared
+  // line source; mobility-keyed dasharray distinguishes permanent perimeters
+  // from moveable temporary-strip wire.
+  const fenceLines = useLivestockStore((s) => s.fenceLines);
+  // Broiler Product Map (Module 7, ADR 2026-05-10) — post-farm-gate value
+  // chain points. Three colour-coded kinds rendered on the shared
+  // `plan-data-point` source: slaughter (red), cold-chain (blue),
+  // market (green).
+  const slaughterPoints = useAgribusinessStore((s) => s.slaughterPoints);
+  const coldChainUnits = useAgribusinessStore((s) => s.coldChainUnits);
+  const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useStructureStore((s) => s.structures);
@@ -226,7 +239,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const selectedGuildId =
     selected?.kind === 'guild' ? selected.id : null;
 
-  const { polyFC, lineFC, pointFC, labelFC, setbackFC, flowFC, transectFC } = useMemo(() => {
+  const {
+    polyFC,
+    lineFC,
+    pointFC,
+    labelFC,
+    setbackFC,
+    flowFC,
+    transectFC,
+    conflictPointFC,
+    conflictLineFC,
+  } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
     const points: GeoJSON.Feature[] = [];
@@ -234,6 +257,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const setbacks: GeoJSON.Feature[] = [];
     const flows: GeoJSON.Feature[] = [];
     const transects: GeoJSON.Feature[] = [];
+    // Utility-conflict hazard halos — earthwork WaterNodes that intersected
+    // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
+    // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
+    // main water-node geometry so the conflict reads at a glance.
+    const conflictPoints: GeoJSON.Feature[] = [];
+    const conflictLines: GeoJSON.Feature[] = [];
 
     // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
     for (const z of zones) {
@@ -307,6 +336,23 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         enterprise: p.enterprise ?? '',
       };
       lines.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+    }
+
+    // Fence lines (line) — Module 4 Livestock & Subdivision, Yeomans rank 9.
+    // Mobility property drives dasharray in the temporary-strip render layer.
+    for (const f of fenceLines) {
+      if (f.projectId !== projectId) continue;
+      const color = f.mobility === 'temporary-strip' ? '#c87a3c' : '#6b5a45';
+      const props = {
+        id: f.id,
+        kind: 'fence-line',
+        color,
+        label: f.name,
+        yeomansRank: 9,
+        enterprise: '',
+        mobility: f.mobility,
+      };
+      lines.push({ type: 'Feature', id: f.id, properties: props, geometry: f.geometry });
     }
 
     // Utility runs (line) — Tier B / B1, under structures-subsystems.
@@ -460,6 +506,29 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 2,
         enterprise: n.enterprise ?? '',
       };
+      // Utility-conflict halo geometry — mirror whatever geometry the
+      // node already renders with (swaleGeometry for swales, center
+      // point for storage / sink / catchment marker).
+      const hasConflict =
+        Array.isArray(n.utilityConflicts) && n.utilityConflicts.length > 0;
+      if (hasConflict) {
+        const haloProps = { id: n.id, kind: 'utility_conflict' };
+        if (n.kind === 'swale' && n.swaleGeometry) {
+          conflictLines.push({
+            type: 'Feature',
+            id: `${n.id}:halo`,
+            properties: haloProps,
+            geometry: n.swaleGeometry,
+          });
+        } else if (n.center) {
+          conflictPoints.push({
+            type: 'Feature',
+            id: `${n.id}:halo`,
+            properties: haloProps,
+            geometry: { type: 'Point', coordinates: n.center },
+          });
+        }
+      }
       if (n.kind === 'catchment') {
         if (n.geometry) {
           polys.push({
@@ -617,6 +686,51 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
     }
 
+    // Slaughter points (Module 7) — red.
+    for (const p of slaughterPoints) {
+      if (p.projectId !== projectId) continue;
+      const props = {
+        id: p.id,
+        kind: 'slaughter_point',
+        color: '#c4422a',
+        label: p.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+      labels.push({ type: 'Feature', id: p.id, properties: props, geometry: p.geometry });
+    }
+
+    // Cold-chain units (Module 7) — blue.
+    for (const u of coldChainUnits) {
+      if (u.projectId !== projectId) continue;
+      const props = {
+        id: u.id,
+        kind: 'cold_chain_unit',
+        color: '#3a78c4',
+        label: u.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: u.id, properties: props, geometry: u.geometry });
+      labels.push({ type: 'Feature', id: u.id, properties: props, geometry: u.geometry });
+    }
+
+    // Market nodes (Module 7) — green.
+    for (const n of marketNodes) {
+      if (n.projectId !== projectId) continue;
+      const props = {
+        id: n.id,
+        kind: 'market_node',
+        color: '#3d8a3d',
+        label: n.name,
+        yeomansRank: 10,
+        enterprise: '',
+      };
+      points.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
+      labels.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
+    }
+
     return {
       polyFC: { type: 'FeatureCollection' as const, features: polys },
       lineFC: { type: 'FeatureCollection' as const, features: lines },
@@ -625,8 +739,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       setbackFC: { type: 'FeatureCollection' as const, features: setbacks },
       flowFC: { type: 'FeatureCollection' as const, features: flows },
       transectFC: { type: 'FeatureCollection' as const, features: transects },
+      conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
+      conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId]);
 
   useEffect(() => {
     if (!map) return;
@@ -651,10 +767,38 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const setbackSid = ensureSource('setback', setbackFC);
       const flowSid = ensureSource('flow', flowFC);
       const transectSid = ensureSource('transect', transectFC);
+      const conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
+      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
+
+      // Utility-conflict hazard halos — added before the main water-node
+      // layers so the `#c4422a` ring sits behind the node's fill/line and
+      // reads as an outline rather than an overlay. Per ADR 2026-05-10.
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-line`,
+        type: 'line',
+        source: conflictLineSid,
+        paint: {
+          'line-color': '#c4422a',
+          'line-width': 4,
+          'line-opacity': 0.95,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}utility-conflict-point`,
+        type: 'circle',
+        source: conflictPointSid,
+        paint: {
+          'circle-radius': 11,
+          'circle-color': 'rgba(0,0,0,0)',
+          'circle-stroke-color': '#c4422a',
+          'circle-stroke-width': 4,
+          'circle-opacity': 1,
+        },
+      });
 
       // Colour expression toggles between per-feature `color` (default) and
       // a lens-mode-driven `match` (when the layering lens is enabled). The
@@ -706,10 +850,41 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}line`,
         type: 'line',
         source: lineSid,
+        // Hide temporary-strip fence lines from the solid-line layer; the
+        // dashed `fence-temp-line` layer below renders them with a dasharray
+        // pattern. Permanent fences and all other lines (paths, utility runs)
+        // render here as solid.
+        filter: [
+          '!',
+          ['all',
+            ['==', ['get', 'kind'], 'fence-line'],
+            ['==', ['get', 'mobility'], 'temporary-strip'],
+          ],
+        ] as never,
         paint: {
           'line-color': colorExpr as never,
           'line-width': 2,
           'line-opacity': 0.9,
+        },
+      });
+      // Farm-Scholar (Newman) ADR 2026-05-10 — temporary-strip fence overlay.
+      // Filtered to fence-line + mobility=temporary-strip so the dashed
+      // pattern reads as "moveable wire that gets rolled up daily" against
+      // the solid-line aesthetic of permanent fences and paths.
+      ensureLayer({
+        id: `${LAYER_PREFIX}fence-temp-line`,
+        type: 'line',
+        source: lineSid,
+        filter: [
+          'all',
+          ['==', ['get', 'kind'], 'fence-line'],
+          ['==', ['get', 'mobility'], 'temporary-strip'],
+        ] as never,
+        paint: {
+          'line-color': colorExpr as never,
+          'line-width': 2,
+          'line-opacity': 0.9,
+          'line-dasharray': [3, 2],
         },
       });
       // Flow connectors — solid line plus directional ▶ symbols spaced
@@ -788,6 +963,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
+        if (map.getLayer(`${LAYER_PREFIX}fence-temp-line`)) {
+          map.setPaintProperty(`${LAYER_PREFIX}fence-temp-line`, 'line-color', colorExpr as never);
+        }
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-color', strokeColorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}point`, 'circle-stroke-width', strokeWidthExpr as never);
@@ -848,6 +1026,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     setbackFC,
     flowFC,
     transectFC,
+    conflictPointFC,
+    conflictLineFC,
     lensEnabled,
     lensMode,
     enterprises,
@@ -1099,7 +1279,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       };
       let lastDLng = 0;
       let lastDLat = 0;
-      const undoWindow = beginDragUndoWindow(useStructureStore);
+      // useStructureStore is now a V2-derived facade with no temporal
+      // middleware of its own; route undo through the canonical V2 store.
+      const undoWindow = beginDragUndoWindow(useBuiltEnvironmentStoreV2);
 
       const onMove = (ev: maplibregl.MapMouseEvent) => {
         if (!down) return;

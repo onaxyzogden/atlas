@@ -15,6 +15,8 @@ import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import {
   useLivestockMoveLogStore,
+  DIRECTION_OPTIONS,
+  SPECIES_OPTIONS,
   type LivestockMoveDirection,
 } from '../../../../store/livestockMoveLogStore.js';
 import {
@@ -30,24 +32,7 @@ interface Props {
   projectId: string;
 }
 
-const DIRECTION_OPTIONS: { value: LivestockMoveDirection; label: string }[] = [
-  { value: 'move_in',         label: 'Move in' },
-  { value: 'move_out',        label: 'Move out' },
-  { value: 'rotate_through',  label: 'Rotate through' },
-];
-
-const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
-  { value: 'sheep',       label: 'Sheep' },
-  { value: 'cattle',      label: 'Cattle' },
-  { value: 'goats',       label: 'Goats' },
-  { value: 'poultry',     label: 'Poultry' },
-  { value: 'pigs',        label: 'Pigs' },
-  { value: 'horses',      label: 'Horses' },
-  { value: 'ducks_geese', label: 'Ducks & geese' },
-  { value: 'rabbits',     label: 'Rabbits' },
-  { value: 'bees',        label: 'Bees' },
-];
-
+// DIRECTION_OPTIONS / SPECIES_OPTIONS canonical lists live in livestockMoveLogStore.
 const SPECIES_VALUES = SPECIES_OPTIONS.map((o) => o.value);
 const DIRECTION_VALUES = DIRECTION_OPTIONS.map((o) => o.value);
 
@@ -103,7 +88,7 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
       addEvent({
         id,
         projectId,
-        paddockId: hitId,
+        toPaddockId: hitId,
         date: todayIso(),
         direction: 'move_in',
         species: defaultSpecies,

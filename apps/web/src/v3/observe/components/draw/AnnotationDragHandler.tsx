@@ -53,6 +53,10 @@ const POINT_LAYER_IDS = [
   'observe-anno-topography-points', // highPoint
   'observe-anno-soil-points', // soilSample
   'observe-anno-swot-points', // swotTag
+  // Built-Environment points (Phase 4.5) — registered by
+  // `ObserveAnnotationLayers` from the V2-facade slice.
+  'observe-anno-be-wells',
+  'observe-anno-be-gates',
 ];
 
 type LayerPointerEvent = (

@@ -186,6 +186,74 @@ export default function PaddockCellDesignCard({ projectId }: PaddockCellDesignCa
     };
   }, [paddocks, groups]);
 
+  /**
+   * "Eat a Third / Foul a Third / Leave a Third" carrying-capacity readout.
+   * Added per Farm-Scholar (Newman) ADR 2026-05-10.
+   *
+   * Newman's framing: the forage a paddock *produces* is not the forage a herd
+   * actually eats. A cow trampling, peeing on, lying on, and ignoring a third
+   * of the standing crop is the biological engine for soil-building — not
+   * waste. Plan as if only a third becomes head-of-cattle, a third feeds the
+   * soil and dung beetles, a third stays standing for rest and regrowth.
+   *
+   * Indicative pasture forage by quality (kg DM / ha / yr — temperate humid):
+   *   poor      ≈ 2,500
+   *   fair      ≈ 4,500
+   *   good      ≈ 7,500   (default when pastureQuality not set)
+   *   excellent ≈ 11,000
+   *
+   * Animal-unit demand: 1 AU ≈ 11,000 kg DM / yr (i.e. one ~450 kg cow-year).
+   *
+   * Outputs are deliberately rough — this is a readout, not an oracle. The
+   * point is to internalise the third/third/third rhythm.
+   */
+  const carryingCapacity = useMemo(() => {
+    const FORAGE_PER_HA_BY_QUALITY: Record<string, number> = {
+      poor: 2_500,
+      fair: 4_500,
+      good: 7_500,
+      excellent: 11_000,
+    };
+    const DEFAULT_FORAGE_PER_HA = 7_500; // kg DM / ha / yr (good pasture)
+    const AU_DM_PER_YR = 11_000;          // kg DM / yr per animal unit
+
+    let totalForageKg = 0;
+    let totalHead = 0;
+    let countedPaddocks = 0;
+
+    for (const p of paddocks) {
+      const areaHa = p.areaM2 / 10_000;
+      const forageHa =
+        (p.pastureQuality && FORAGE_PER_HA_BY_QUALITY[p.pastureQuality]) ||
+        DEFAULT_FORAGE_PER_HA;
+      totalForageKg += areaHa * forageHa;
+
+      if (typeof p.stockingDensity === 'number' && Number.isFinite(p.stockingDensity)) {
+        totalHead += p.stockingDensity * areaHa;
+        countedPaddocks += 1;
+      }
+    }
+
+    const eatKg = totalForageKg / 3;
+    const foulKg = totalForageKg / 3;
+    const leaveKg = totalForageKg / 3;
+    const sustainableHead = eatKg / AU_DM_PER_YR;
+    const declaredHead = totalHead;
+    const overstocked =
+      countedPaddocks > 0 && declaredHead > sustainableHead * 1.1;
+
+    return {
+      totalForageKg,
+      eatKg,
+      foulKg,
+      leaveKg,
+      sustainableHead,
+      declaredHead,
+      countedPaddocks,
+      overstocked,
+    };
+  }, [paddocks]);
+
   if (paddocks.length === 0) {
     return (
       <section className={css.card}>
@@ -290,6 +358,67 @@ export default function PaddockCellDesignCard({ projectId }: PaddockCellDesignCa
           </div>
         </>
       )}
+
+      {/* Carrying capacity — Eat a Third / Foul a Third / Leave a Third */}
+      <div className={css.sectionLabel}>
+        Carrying capacity {'—'} Eat a Third / Foul a Third / Leave a Third
+      </div>
+      <div className={css.thirdsGrid}>
+        <div className={`${css.thirdCell} ${css.thirdEat}`}>
+          <span className={css.thirdLabel}>Eat</span>
+          <span className={css.thirdValue}>
+            {Math.round(carryingCapacity.eatKg).toLocaleString()} kg DM/yr
+          </span>
+          <span className={css.thirdNote}>
+            Forage that becomes meat, milk, or wool.
+          </span>
+        </div>
+        <div className={`${css.thirdCell} ${css.thirdFoul}`}>
+          <span className={css.thirdLabel}>Foul</span>
+          <span className={css.thirdValue}>
+            {Math.round(carryingCapacity.foulKg).toLocaleString()} kg DM/yr
+          </span>
+          <span className={css.thirdNote}>
+            Trampled, dunged, or lain on {'—'} the soil-building third.
+          </span>
+        </div>
+        <div className={`${css.thirdCell} ${css.thirdLeave}`}>
+          <span className={css.thirdLabel}>Leave</span>
+          <span className={css.thirdValue}>
+            {Math.round(carryingCapacity.leaveKg).toLocaleString()} kg DM/yr
+          </span>
+          <span className={css.thirdNote}>
+            Standing crop left for rest and regrowth.
+          </span>
+        </div>
+      </div>
+      <div
+        className={`${css.headRow} ${
+          carryingCapacity.overstocked ? css.headRowOver : ''
+        }`}
+      >
+        <div className={css.headRowMain}>
+          <span className={css.headRowLabel}>Animal-unit capacity</span>
+          <span className={css.headRowValue}>
+            Sustainable {'≈'} {carryingCapacity.sustainableHead.toFixed(1)} AU
+            {carryingCapacity.countedPaddocks > 0 ? (
+              <>
+                {'  '}{'·'}{'  '}declared {carryingCapacity.declaredHead.toFixed(1)} AU
+              </>
+            ) : null}
+          </span>
+        </div>
+        {carryingCapacity.overstocked ? (
+          <span className={css.headRowWarn}>Overstocked</span>
+        ) : null}
+      </div>
+      <div className={css.assumption}>
+        Forage assumed at {'~'}7,500 kg DM/ha/yr good pasture (poor 2,500 {'→'} excellent
+        11,000) and 1 AU {'≈'} 11,000 kg DM/yr (one {'~'}450 kg cow-year). Per Newman
+        (Farm Scholar): plan as if only a third of standing forage feeds the herd {'—'} a
+        third feeds the soil, a third stays for rest and regrowth. Indicative, not an
+        oracle.
+      </div>
 
       {/* Per-cell breakdown */}
       <div className={css.sectionLabel}>Cells</div>

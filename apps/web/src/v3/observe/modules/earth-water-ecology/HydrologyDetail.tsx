@@ -250,9 +250,6 @@ export default function HydrologyDetail() {
                   <em>Low</em>
                 </p>
               )}
-              <button className="green-button" type="button">
-                View all risks <ArrowRight aria-hidden="true" />
-              </button>
             </SurfaceCard>
           </section>
         </div>
@@ -309,12 +306,7 @@ function HydrologySidebar({ wc }: SidebarProps) {
   return (
     <aside className="hydrology-sidebar">
       <SurfaceCard className="hydrology-side-card insights">
-        <h2>
-          Hydrology insights{' '}
-          <button type="button">
-            View full report <ArrowRight aria-hidden="true" />
-          </button>
-        </h2>
+        <h2>Hydrology insights</h2>
         {insights.map((item) => (
           <p key={item}>
             <Leaf aria-hidden="true" />
@@ -331,17 +323,9 @@ function HydrologySidebar({ wc }: SidebarProps) {
             <ArrowRight aria-hidden="true" />
           </p>
         ))}
-        <button className="green-button" type="button">
-          View design overlay <ArrowRight aria-hidden="true" />
-        </button>
       </SurfaceCard>
       <SurfaceCard className="hydrology-side-card hydrology-actions">
-        <h2>
-          Recommended actions{' '}
-          <button type="button">
-            Prioritize <ChevronDown aria-hidden="true" />
-          </button>
-        </h2>
+        <h2>Recommended actions</h2>
         {actions.map(([title, note, level], index) => (
           <p key={title}>
             <b>{index + 1}</b>

@@ -132,7 +132,10 @@ export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
 };
 
 /** Each module maps to one or more plan card section IDs. */
-export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: string }>> = {
+export const MODULE_CARDS: Record<
+  PlanModule,
+  Array<{ label: string; sectionId: string; group?: string }>
+> = {
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
@@ -160,12 +163,15 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
   ],
   livestock: [
     { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },
-    { label: 'Multi-species planner',   sectionId: 'plan-livestock-species-mix' },
+    { label: 'Specialization',          sectionId: 'plan-livestock-species-mix' },
     { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
     { label: 'Fencing layout',          sectionId: 'plan-livestock-fencing' },
     { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
+    { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
+    { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
+    { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

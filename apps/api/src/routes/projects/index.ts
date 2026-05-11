@@ -26,8 +26,9 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       SELECT
         p.id, p.name, p.description, p.status, p.project_type,
         p.country, p.province_state, p.conservation_auth_id,
-        p.address, p.parcel_id, p.acreage,
-        p.data_completeness_score,
+        p.address, p.parcel_id,
+        p.acreage::float8 AS acreage,
+        p.data_completeness_score::float8 AS data_completeness_score,
         (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
         ST_AsGeoJSON(p.parcel_boundary)::jsonb AS parcel_boundary_geojson,
         p.is_builtin,
@@ -167,8 +168,9 @@ export default async function projectRoutes(fastify: FastifyInstance) {
       SELECT DISTINCT ON (p.id)
         p.id, p.name, p.description, p.status, p.project_type,
         p.country, p.province_state, p.conservation_auth_id,
-        p.address, p.parcel_id, p.acreage,
-        p.data_completeness_score,
+        p.address, p.parcel_id,
+        p.acreage::float8 AS acreage,
+        p.data_completeness_score::float8 AS data_completeness_score,
         (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
         p.is_builtin,
         p.created_at, p.updated_at
@@ -195,8 +197,10 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         ${body.units}, ${db.json((body.metadata ?? {}) as never)}
       )
       RETURNING id, name, description, status, project_type, country, province_state,
-                conservation_auth_id, address, parcel_id, acreage,
-                data_completeness_score, parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                conservation_auth_id, address, parcel_id,
+                acreage::float8 AS acreage,
+                data_completeness_score::float8 AS data_completeness_score,
+                parcel_boundary IS NOT NULL AS has_parcel_boundary,
                 metadata, created_at, updated_at
     `;
 
@@ -222,8 +226,9 @@ export default async function projectRoutes(fastify: FastifyInstance) {
         SELECT
           p.id, p.name, p.description, p.status, p.project_type,
           p.country, p.province_state, p.conservation_auth_id,
-          p.address, p.parcel_id, p.acreage,
-          p.data_completeness_score,
+          p.address, p.parcel_id,
+          p.acreage::float8 AS acreage,
+          p.data_completeness_score::float8 AS data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
           p.is_builtin,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
@@ -262,8 +267,10 @@ export default async function projectRoutes(fastify: FastifyInstance) {
                                   )
         WHERE id = ${req.projectId}
         RETURNING id, name, description, status, project_type, country, province_state,
-                  conservation_auth_id, address, parcel_id, acreage,
-                  data_completeness_score, parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
                   created_at, updated_at
       `;
       return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
@@ -287,7 +294,8 @@ export default async function projectRoutes(fastify: FastifyInstance) {
             ST_Transform(ST_GeomFromGeoJSON(${geojsonStr}), 26917)
           ) / 4046.86
         WHERE id = ${req.projectId}
-        RETURNING id, acreage,
+        RETURNING id,
+                  acreage::float8 AS acreage,
                   ST_AsGeoJSON(centroid)::jsonb AS centroid_geojson,
                   parcel_boundary IS NOT NULL AS has_parcel_boundary
       `;

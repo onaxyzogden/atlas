@@ -30,13 +30,21 @@ import ObserveChecklistAside from './components/ObserveChecklistAside.js';
 import ObserveModuleBar from './components/ObserveModuleBar.js';
 import ModuleSlideUp from './components/ModuleSlideUp.js';
 import MapToolbar from './components/MapToolbar.js';
+import DesignToolRail from '../plan/canvas/DesignToolRail.js';
+import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
 import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
 import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
 import AnnotationSectorHandles from './components/draw/AnnotationSectorHandles.js';
 import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
+import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
+import {
+  BeV2GenericLayer,
+  DesignElementExtrusionLayer,
+  DesignElementGlbLayer,
+} from '../builtEnvironment/layers/index.js';
 import SelectionFloater from './components/SelectionFloater.js';
 import ExportButton from './components/ExportButton.js';
 import ImportSiteIntelButton from './components/ImportSiteIntelButton.js';
@@ -135,10 +143,51 @@ export default function ObserveLayout() {
                   });
                 }}
               />
+              <DesignToolRail
+                map={map}
+                activeKind={null}
+                projectId={params.projectId ?? ''}
+                onDisarmDraw={() => {}}
+                selectedId={null}
+                setSelectedId={() => {}}
+              />
+              <BaseMapCard />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}
               />
+              {/* 3D extrusion + GLB layers for Built-Environment entities
+                  in the existing-state slice. Hidden top-down (pitch
+                  collapses extrusions); pitch the camera (or wire a
+                  Terrain3D toggle in MapToolbar) to surface them.
+                  Mounts unconditionally — empty FC when no eligible
+                  entities — so toggling pitch is the only affordance
+                  needed. Phase 4.2 of ADR
+                  2026-05-10-atlas-built-environment-unification.md */}
+              {params.projectId && (
+                <>
+                  <DesignElementExtrusionLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                  <DesignElementGlbLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                  {/* 2D top-down render + click-to-edit for the 23 BE
+                      kinds without bespoke per-kind layers in
+                      ObserveAnnotationLayers. The shared 3D layers above
+                      collapse to nothing top-down; this layer is the
+                      always-visible flat fallback. Phase 5.2.B. */}
+                  <BeV2GenericLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                </>
+              )}
               <ObserveDrawHost
                 map={map}
                 projectId={params.projectId ?? null}
@@ -150,6 +199,7 @@ export default function ObserveLayout() {
                 projectId={params.projectId ?? null}
               />
               <SelectionFloater projectId={params.projectId ?? null} />
+              <InlineFeaturePopover map={map} />
               <ExportButton projectId={params.projectId ?? null} />
               <ImportSiteIntelButton projectId={params.projectId ?? null} />
             </>

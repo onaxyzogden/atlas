@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  ArrowRight,
   CheckCircle2,
   Compass,
+  Download,
   Eye,
   Flag,
   Hammer,
@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
+import { pickTruthy } from '@ogden/shared';
 import {
   CroppedArt,
   ProgressRing,
@@ -22,6 +23,7 @@ import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
+import { api } from '../../../../lib/apiClient.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import {
   archetypeFor,
@@ -47,11 +49,132 @@ export default function HumanContextDashboard() {
     ensureDefaults(id);
   }, [id, ensureDefaults]);
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const steward = vision?.steward;
+      const regional = vision?.regional;
+      const archetype = archetypeFor(steward);
+      const overall = moduleCompleteness(vision);
+      const sw = stewardCompleteness(steward);
+      const rg = regionalCompleteness(regional);
+      const vs = visionCompleteness(vision);
+      const totalHrs = totalHoursPerWeek(steward);
+
+      const stewardPayload = steward
+        ? {
+            ...pickTruthy(steward, [
+              'name',
+              'occupation',
+              'lifestyle',
+              'budget',
+              'vision',
+            ]),
+            ...(steward.age != null ? { age: steward.age } : {}),
+            ...(steward.maintenanceHrsInitial != null
+              ? { maintenanceHrsInitial: steward.maintenanceHrsInitial }
+              : {}),
+            ...(steward.maintenanceHrsOngoing != null
+              ? { maintenanceHrsOngoing: steward.maintenanceHrsOngoing }
+              : {}),
+            ...(steward.skills && steward.skills.length > 0
+              ? { skills: steward.skills }
+              : {}),
+            ...(steward.coreFunctions && steward.coreFunctions.length > 0
+              ? { coreFunctions: steward.coreFunctions }
+              : {}),
+            ...(steward.experienceGoals && steward.experienceGoals.length > 0
+              ? { experienceGoals: steward.experienceGoals }
+              : {}),
+            ...(steward.successMetrics && steward.successMetrics.length > 0
+              ? { successMetrics: steward.successMetrics }
+              : {}),
+            ...(steward.principles && steward.principles.length > 0
+              ? { principles: steward.principles }
+              : {}),
+            ...(steward.guidingValues && steward.guidingValues.length > 0
+              ? { guidingValues: steward.guidingValues }
+              : {}),
+            ...(steward.constraints && steward.constraints.length > 0
+              ? { constraints: steward.constraints }
+              : {}),
+            ...(steward.moodboardImages
+              ? { moodboardImageCount: steward.moodboardImages.length }
+              : {}),
+          }
+        : {};
+
+      const regionalPayload = regional
+        ? {
+            ...(regional.indigenousNames && regional.indigenousNames.length > 0
+              ? { indigenousNames: regional.indigenousNames }
+              : {}),
+            ...(regional.culturalChallenges &&
+            regional.culturalChallenges.length > 0
+              ? { culturalChallenges: regional.culturalChallenges }
+              : {}),
+            ...(regional.culturalStrengths &&
+            regional.culturalStrengths.length > 0
+              ? { culturalStrengths: regional.culturalStrengths }
+              : {}),
+            ...(regional.localNetwork && regional.localNetwork.length > 0
+              ? {
+                  localNetwork: regional.localNetwork.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    ...pickTruthy(c, ['contact']),
+                  })),
+                }
+              : {}),
+          }
+        : {};
+
+      const { data } = await api.exports.generate(id, {
+        exportType: 'human_context_report',
+        payload: {
+          humanContext: {
+            steward: stewardPayload,
+            regional: regionalPayload,
+            phaseNotes: (vision?.phaseNotes ?? []).map((p) => ({
+              phaseKey: p.phaseKey,
+              label: p.label,
+              notes: p.notes,
+            })),
+            milestones: (vision?.milestones ?? []).map((m) => ({
+              id: m.id,
+              phaseId: m.phaseId,
+              note: m.note,
+              targetDate: m.targetDate,
+            })),
+            archetype: { name: archetype.name, blurb: archetype.blurb },
+            totals: {
+              overallPct: overall.pct,
+              stewardPct: sw.pct,
+              regionalPct: rg.pct,
+              visionPct: vs.pct,
+              totalHoursPerWeek: totalHrs,
+              milestonesDefined: vision?.milestones?.length ?? 0,
+              moodboardImageCount: steward?.moodboardImages?.length ?? 0,
+            },
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Human Context report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="human-context-page">
       <div className="human-context-layout">
         <div className="human-context-main">
-          <HumanHero vision={vision} />
+          <HumanHero vision={vision} onExport={handleExport} exporting={exporting} />
           <section className="human-card-grid">
             <StewardCard projectId={id} vision={vision} />
             <RegionalCard projectId={id} vision={vision} />
@@ -81,7 +204,12 @@ interface ProjectVisionProps extends VisionProps {
   projectId: string;
 }
 
-function HumanHero({ vision }: VisionProps) {
+interface HumanHeroProps extends VisionProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
   const overall = moduleCompleteness(vision);
   const phases = phaseNotesCaptured(vision);
   const milestones = vision?.milestones?.length ?? 0;
@@ -100,6 +228,28 @@ function HumanHero({ vision }: VisionProps) {
           context that shapes it, and the long-horizon vision that guides decisions
           across time and generations.
         </p>
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={exporting}
+          style={{
+            marginTop: 12,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: '1px solid #15803D',
+            background: exporting ? '#E5E7EB' : '#15803D',
+            color: exporting ? '#6B7280' : '#fff',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: exporting ? 'wait' : 'pointer',
+          }}
+        >
+          <Download aria-hidden="true" size={14} />{' '}
+          {exporting ? 'Generating…' : 'Export human-context report'}
+        </button>
       </div>
       <div className="human-hero-metrics">
         <ProgressRing value={overall.pct} label={`${overall.pct}%`} />
@@ -447,9 +597,6 @@ function SynthesisPanel({ vision }: VisionProps) {
           <SynthesisSection title="Next steps" numbered items={nextSteps} />
         </>
       )}
-      <button className="green-button" type="button">
-        View full design implications <ArrowRight aria-hidden="true" />
-      </button>
     </SurfaceCard>
   );
 }

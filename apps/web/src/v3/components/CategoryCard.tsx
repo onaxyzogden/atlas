@@ -6,6 +6,7 @@
  */
 
 import type { CategoryStatus, DiagnoseCategory } from "../types.js";
+import { DelayedTooltip } from "../../components/ui/DelayedTooltip.js";
 import css from "./CategoryCard.module.css";
 
 const STATUS_TONE: Record<CategoryStatus, "good" | "watch" | "warning" | "blocked" | "incomplete"> = {
@@ -48,15 +49,20 @@ export default function CategoryCard({ category, onView, hasDetail = true }: Cat
       </div>
 
       <footer className={css.footer}>
-        <button
-          type="button"
-          className={css.viewBtn}
-          onClick={() => hasDetail && onView?.(category.id)}
-          disabled={!hasDetail}
-          title={hasDetail ? undefined : "Detail coming soon"}
+        <DelayedTooltip
+          label="Detail coming soon"
+          position="top"
+          disabled={hasDetail}
         >
-          {hasDetail ? "View →" : "Detail soon"}
-        </button>
+          <button
+            type="button"
+            className={css.viewBtn}
+            onClick={() => hasDetail && onView?.(category.id)}
+            disabled={!hasDetail}
+          >
+            {hasDetail ? "View →" : "Detail soon"}
+          </button>
+        </DelayedTooltip>
       </footer>
     </article>
   );

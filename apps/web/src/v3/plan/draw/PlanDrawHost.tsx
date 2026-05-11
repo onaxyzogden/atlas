@@ -17,12 +17,16 @@ import CropAreaTool from './tools/CropAreaTool.js';
 import FertilityInfraTool from './tools/FertilityInfraTool.js';
 import FlowConnectorTool from './tools/FlowConnectorTool.js';
 import PaddockTool from './tools/PaddockTool.js';
+import FenceLineTool from './tools/FenceLineTool.js';
 import GuildTool from './tools/GuildTool.js';
 import StructureTool from './tools/StructureTool.js';
 import UtilityRunTool from './tools/UtilityRunTool.js';
 import BufferRingTool from './tools/BufferRingTool.js';
 import EcologicalNoteTool from './tools/EcologicalNoteTool.js';
 import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
+import SlaughterPointTool from './tools/SlaughterPointTool.js';
+import ColdChainUnitTool from './tools/ColdChainUnitTool.js';
+import MarketNodeTool from './tools/MarketNodeTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -75,6 +79,9 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     case 'plan.livestock.paddock':
       tool = <PaddockTool map={map} projectId={projectId} />;
       break;
+    case 'plan.livestock.fence-line':
+      tool = <FenceLineTool map={map} projectId={projectId} />;
+      break;
     case 'plan.structures-subsystems.structure':
       tool = <StructureTool map={map} projectId={projectId} />;
       break;
@@ -86,6 +93,15 @@ export default function PlanDrawHost({ map, projectId }: Props) {
       break;
     case 'plan.principle-verification.transect':
       tool = <MonitoringTransectTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.livestock.slaughter-point':
+      tool = <SlaughterPointTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.livestock.cold-chain-unit':
+      tool = <ColdChainUnitTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.livestock.market-node':
+      tool = <MarketNodeTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

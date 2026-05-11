@@ -32,6 +32,15 @@ import {
   type FenceKind,
   type DrivewaySurface,
 } from '../../../../store/builtEnvironmentStore.js';
+import {
+  BUILDING_SUBTYPE_OPTIONS as BE_BUILDING_SUBTYPE_OPTIONS,
+  WELL_KIND_OPTIONS as BE_WELL_KIND_OPTIONS,
+  SEPTIC_SUBTYPE_OPTIONS as BE_SEPTIC_SUBTYPE_OPTIONS,
+  POWER_LINE_PLACEMENT_OPTIONS as BE_POWER_LINE_PLACEMENT_OPTIONS,
+  BURIED_UTILITY_SUBTYPE_OPTIONS as BE_BURIED_UTILITY_SUBTYPE_OPTIONS,
+  FENCE_SUBTYPE_OPTIONS as BE_FENCE_SUBTYPE_OPTIONS,
+  DRIVEWAY_SURFACE_OPTIONS as BE_DRIVEWAY_SURFACE_OPTIONS,
+} from '../../../builtEnvironment/schemas/beSchemaRegistry.js';
 
 export type AnnotationKind =
   | 'neighbourPin'
@@ -819,21 +828,17 @@ const sector: FieldSchema = {
 };
 
 // ── Built Environment ──────────────────────────────────────────────────
+//
+// Phase 4.4 (2026-05-10): the eight BE schemas below now serve **create-mode
+// only**. Edit-mode for BE entities is intercepted in `SelectionFloater.onEdit`
+// → `openBeInlineEditByObserveKind` → floating `<InlineFeaturePopover>` (Plan
+// parity). The slide-up never opens for BE edits anymore. Field shapes still
+// match `beSchemaRegistry.ts` so create + edit stay 1:1 visually.
 
 const building: FieldSchema = {
   title: 'Building',
   fields: [
-    {
-      name: 'subtype',
-      label: 'Subtype',
-      type: 'select',
-      options: [
-        { value: 'residence', label: 'Residence' },
-        { value: 'outbuilding', label: 'Outbuilding' },
-        { value: 'agricultural', label: 'Agricultural' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
+    { name: 'subtype', label: 'Subtype', type: 'select', options: BE_BUILDING_SUBTYPE_OPTIONS },
     { name: 'label', label: 'Label', type: 'text', placeholder: 'Main house' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
@@ -876,16 +881,7 @@ const building: FieldSchema = {
 const well: FieldSchema = {
   title: 'Well',
   fields: [
-    {
-      name: 'kind',
-      label: 'Kind',
-      type: 'select',
-      options: [
-        { value: 'drinking', label: 'Drinking' },
-        { value: 'irrigation', label: 'Irrigation' },
-        { value: 'unknown', label: 'Unknown' },
-      ],
-    },
+    { name: 'kind', label: 'Kind', type: 'select', options: BE_WELL_KIND_OPTIONS },
     { name: 'depthM', label: 'Depth (m)', type: 'number', min: 0, step: 0.5 },
     { name: 'flowLpm', label: 'Flow (L/min)', type: 'number', min: 0, step: 1 },
     { name: 'label', label: 'Label', type: 'text', placeholder: 'North well' },
@@ -936,17 +932,7 @@ const well: FieldSchema = {
 const septic: FieldSchema = {
   title: 'Septic / leach field',
   fields: [
-    {
-      name: 'kind',
-      label: 'Kind',
-      type: 'select',
-      options: [
-        { value: 'tank', label: 'Tank' },
-        { value: 'leach_field', label: 'Leach field' },
-        { value: 'cesspool', label: 'Cesspool' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
+    { name: 'kind', label: 'Kind', type: 'select', options: BE_SEPTIC_SUBTYPE_OPTIONS },
     { name: 'label', label: 'Label', type: 'text' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
@@ -989,15 +975,7 @@ const septic: FieldSchema = {
 const powerLine: FieldSchema = {
   title: 'Power line',
   fields: [
-    {
-      name: 'placement',
-      label: 'Placement',
-      type: 'select',
-      options: [
-        { value: 'overhead', label: 'Overhead' },
-        { value: 'buried', label: 'Buried' },
-      ],
-    },
+    { name: 'placement', label: 'Placement', type: 'select', options: BE_POWER_LINE_PLACEMENT_OPTIONS },
     { name: 'label', label: 'Label', type: 'text' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
@@ -1041,18 +1019,7 @@ const powerLine: FieldSchema = {
 const buriedUtility: FieldSchema = {
   title: 'Buried utility',
   fields: [
-    {
-      name: 'kind',
-      label: 'Kind',
-      type: 'select',
-      options: [
-        { value: 'water_main', label: 'Water main' },
-        { value: 'gas', label: 'Gas' },
-        { value: 'fibre', label: 'Fibre' },
-        { value: 'sewer', label: 'Sewer' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
+    { name: 'kind', label: 'Kind', type: 'select', options: BE_BURIED_UTILITY_SUBTYPE_OPTIONS },
     { name: 'label', label: 'Label', type: 'text' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
@@ -1094,18 +1061,7 @@ const buriedUtility: FieldSchema = {
 const fence: FieldSchema = {
   title: 'Fence',
   fields: [
-    {
-      name: 'kind',
-      label: 'Kind',
-      type: 'select',
-      options: [
-        { value: 'barbed', label: 'Barbed' },
-        { value: 'page_wire', label: 'Page wire' },
-        { value: 'electric', label: 'Electric' },
-        { value: 'privacy', label: 'Privacy' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
+    { name: 'kind', label: 'Kind', type: 'select', options: BE_FENCE_SUBTYPE_OPTIONS },
     { name: 'label', label: 'Label', type: 'text' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
@@ -1179,17 +1135,7 @@ const gate: FieldSchema = {
 const existingDriveway: FieldSchema = {
   title: 'Existing driveway',
   fields: [
-    {
-      name: 'surface',
-      label: 'Surface',
-      type: 'select',
-      options: [
-        { value: 'gravel', label: 'Gravel' },
-        { value: 'paved', label: 'Paved' },
-        { value: 'dirt', label: 'Dirt' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
+    { name: 'surface', label: 'Surface', type: 'select', options: BE_DRIVEWAY_SURFACE_OPTIONS },
     { name: 'label', label: 'Label', type: 'text' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],

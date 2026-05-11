@@ -10,6 +10,15 @@ export const ExportType = z.enum([
   'capital_partner_summary',
   'scenario_comparison',
   'educational_booklet',
+  'swot_journal',
+  'swot_diagnosis_report',
+  'swot_synthesis',
+  'topography_report',
+  'earth_water_ecology_report',
+  'macroclimate_report',
+  'sectors_zones_report',
+  'built_environment_report',
+  'human_context_report',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -121,6 +130,363 @@ export const ScenarioPayload = z.array(z.object({
 }));
 export type ScenarioPayload = z.infer<typeof ScenarioPayload>;
 
+export const SwotPayload = z.object({
+  entries: z.array(z.object({
+    id: z.string(),
+    projectId: z.string(),
+    bucket: z.enum(['S', 'W', 'O', 'T']),
+    title: z.string(),
+    body: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    position: z.tuple([z.number(), z.number()]).optional(),
+    createdAt: z.string(),
+  })),
+});
+export type SwotPayload = z.infer<typeof SwotPayload>;
+
+export const TopographyPayload = z.object({
+  /** Sampled elevation summary from the DEM layer (matches getElevationLayer().summary). */
+  elevationSummary: z.object({
+    min_elevation_m: z.number().nullable().optional(),
+    max_elevation_m: z.number().nullable().optional(),
+    mean_slope_deg: z.number().nullable().optional(),
+    max_slope_deg: z.number().nullable().optional(),
+    predominant_aspect: z.string().nullable().optional(),
+  }).nullable().optional(),
+  contours: z.array(z.object({
+    id: z.string(),
+    elevationM: z.number().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  highPoints: z.array(z.object({
+    id: z.string(),
+    position: z.tuple([z.number(), z.number()]),
+    kind: z.enum(['high', 'low']),
+    elevationM: z.number().optional(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  drainageLines: z.array(z.object({
+    id: z.string(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  transects: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    pointA: z.tuple([z.number(), z.number()]),
+    pointB: z.tuple([z.number(), z.number()]),
+    sampledAt: z.string().optional(),
+    sourceApi: z.string().nullable().optional(),
+    confidence: z.enum(['high', 'medium', 'low']).optional(),
+    totalDistanceM: z.number().optional(),
+    notes: z.string().optional(),
+  })),
+});
+export type TopographyPayload = z.infer<typeof TopographyPayload>;
+
+export const EarthWaterEcologyPayload = z.object({
+  soilSamples: z.array(z.object({
+    id: z.string(),
+    sampleDate: z.string(),
+    label: z.string(),
+    depth: z.string(),
+    ph: z.number().optional(),
+    organicMatterPct: z.number().optional(),
+    texture: z.string().optional(),
+    cecMeq100g: z.number().optional(),
+    ecDsM: z.number().optional(),
+    bulkDensityGCm3: z.number().optional(),
+    biologicalActivity: z.string().optional(),
+    percolationInPerHr: z.number().optional(),
+    depthToBedrockM: z.number().optional(),
+    hasJarTest: z.boolean().optional(),
+    hasRoofCatchment: z.boolean().optional(),
+    notes: z.string().optional(),
+    lab: z.string().optional(),
+    location: z.tuple([z.number(), z.number()]).optional(),
+  })),
+  waterSystems: z.object({
+    earthworks: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      lengthM: z.number().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    storageInfra: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      center: z.tuple([z.number(), z.number()]),
+      capacityL: z.number().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    watercourses: z.array(z.object({
+      id: z.string(),
+      kind: z.string(),
+      perennial: z.boolean().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+  }),
+  ecology: z.object({
+    observations: z.array(z.object({
+      id: z.string(),
+      species: z.string(),
+      trophicLevel: z.string().optional(),
+      notes: z.string().optional(),
+      observedAt: z.string(),
+      location: z.tuple([z.number(), z.number()]).optional(),
+    })),
+    zones: z.array(z.object({
+      id: z.string(),
+      dominantStage: z.string(),
+      label: z.string().optional(),
+      notes: z.string().optional(),
+      createdAt: z.string(),
+    })),
+    successionStage: z.string().optional(),
+  }),
+  siteLayers: z.object({
+    watershed: z.record(z.unknown()).optional(),
+    wetlandsPresent: z.boolean().optional(),
+    criticalHabitatPresent: z.boolean().optional(),
+    soilsSummary: z.record(z.unknown()).optional(),
+  }).optional(),
+});
+export type EarthWaterEcologyPayload = z.infer<typeof EarthWaterEcologyPayload>;
+
+export const MacroclimatePayload = z.object({
+  /** Opaque climate-layer summary blob (hardiness_zone, annual_precip_mm, etc.). */
+  climateSummary: z.record(z.unknown()).optional(),
+  monthlyNormals: z.array(z.object({
+    month: z.string(),
+    precipMm: z.number().optional(),
+    meanMaxC: z.number().optional(),
+    meanMinC: z.number().optional(),
+  })).optional(),
+  solarOpportunities: z.array(z.tuple([z.string(), z.string()])).optional(),
+  hazards: z.array(z.object({
+    id: z.string(),
+    kind: z.string(),
+    label: z.string(),
+    risk: z.enum(['low', 'moderate', 'high']),
+    trend: z.enum(['up', 'flat', 'down']),
+    status: z.enum(['monitoring', 'planned', 'in_progress', 'mitigated']),
+    mitigationPct: z.number(),
+    window: z.string().optional(),
+    notes: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+    createdAt: z.number(),
+    updatedAt: z.number(),
+  })),
+  hazardCounts: z.object({
+    total: z.number(),
+    active: z.number(),
+    mitigated: z.number(),
+    monitoring: z.number(),
+    in_progress: z.number(),
+    planned: z.number(),
+    highRisk: z.number(),
+    moderateRisk: z.number(),
+    lowRisk: z.number(),
+    averageMitigationPct: z.number(),
+  }),
+});
+export type MacroclimatePayload = z.infer<typeof MacroclimatePayload>;
+
+export const SectorsZonesPayload = z.object({
+  sectors: z.array(z.object({
+    id: z.string(),
+    type: z.string(),
+    bearingDeg: z.number(),
+    arcDeg: z.number(),
+    intensity: z.enum(['low', 'med', 'high']).optional(),
+    notes: z.string().optional(),
+  })),
+  zones: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    category: z.string(),
+    primaryUse: z.string().optional(),
+    secondaryUse: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number(),
+    invasivePressure: z.string().optional(),
+    successionStage: z.string().optional(),
+    seasonality: z.string().optional(),
+    permacultureZone: z.number().optional(),
+  })),
+  sectorCounts: z.object({
+    total: z.number(),
+    wind: z.number(),
+    sun: z.number(),
+    fire: z.number(),
+    noise: z.number(),
+    wildlife: z.number(),
+    view: z.number(),
+  }),
+  zoneCounts: z.object({
+    total: z.number(),
+    byCategory: z.record(z.number()),
+    totalAreaM2: z.number(),
+  }),
+  prevailingWind: z.string().optional(),
+});
+export type SectorsZonesPayload = z.infer<typeof SectorsZonesPayload>;
+
+export const BuiltEnvironmentPayload = z.object({
+  buildings: z.array(z.object({
+    id: z.string(),
+    subtype: z.enum(['residence', 'outbuilding', 'agricultural', 'other']),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number().optional(),
+    createdAt: z.string(),
+  })),
+  wells: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['drinking', 'irrigation', 'unknown']),
+    position: z.tuple([z.number(), z.number()]),
+    depthM: z.number().optional(),
+    flowLpm: z.number().optional(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  septics: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['tank', 'leach_field', 'cesspool', 'other']),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    areaM2: z.number().optional(),
+    createdAt: z.string(),
+  })),
+  powerLines: z.array(z.object({
+    id: z.string(),
+    placement: z.enum(['overhead', 'buried']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  buriedUtilities: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['water_main', 'gas', 'fibre', 'sewer', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  fences: z.array(z.object({
+    id: z.string(),
+    kind: z.enum(['barbed', 'page_wire', 'electric', 'privacy', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  gates: z.array(z.object({
+    id: z.string(),
+    position: z.tuple([z.number(), z.number()]),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  existingDriveways: z.array(z.object({
+    id: z.string(),
+    surface: z.enum(['gravel', 'paved', 'dirt', 'other']),
+    lengthM: z.number(),
+    label: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string(),
+  })),
+  counts: z.object({
+    total: z.number(),
+    buildings: z.number(),
+    wells: z.number(),
+    septics: z.number(),
+    powerLines: z.number(),
+    buriedUtilities: z.number(),
+    fences: z.number(),
+    gates: z.number(),
+    existingDriveways: z.number(),
+  }),
+  totals: z.object({
+    buildingAreaM2: z.number(),
+    septicAreaM2: z.number(),
+    powerLineLengthM: z.number(),
+    buriedUtilityLengthM: z.number(),
+    fenceLengthM: z.number(),
+    drivewayLengthM: z.number(),
+    meanWellDepthM: z.number().nullable(),
+    overheadPowerCount: z.number(),
+  }),
+  healthPct: z.number(),
+});
+export type BuiltEnvironmentPayload = z.infer<typeof BuiltEnvironmentPayload>;
+
+export const HumanContextPayload = z.object({
+  steward: z.object({
+    name: z.string().optional(),
+    age: z.number().optional(),
+    occupation: z.string().optional(),
+    lifestyle: z.enum(['active', 'sedentary']).optional(),
+    maintenanceHrsInitial: z.number().optional(),
+    maintenanceHrsOngoing: z.number().optional(),
+    budget: z.string().optional(),
+    skills: z.array(z.string()).optional(),
+    vision: z.string().optional(),
+    coreFunctions: z.array(z.string()).optional(),
+    experienceGoals: z.array(z.string()).optional(),
+    successMetrics: z.array(z.string()).optional(),
+    principles: z.array(z.string()).optional(),
+    guidingValues: z.array(z.string()).optional(),
+    constraints: z.array(z.string()).optional(),
+    moodboardImageCount: z.number().optional(),
+  }),
+  regional: z.object({
+    indigenousNames: z.array(z.string()).optional(),
+    culturalChallenges: z.array(z.string()).optional(),
+    culturalStrengths: z.array(z.string()).optional(),
+    localNetwork: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      type: z.string(),
+      contact: z.string().optional(),
+    })).optional(),
+  }),
+  phaseNotes: z.array(z.object({
+    phaseKey: z.string(),
+    label: z.string(),
+    notes: z.string(),
+  })),
+  milestones: z.array(z.object({
+    id: z.string(),
+    phaseId: z.string(),
+    note: z.string(),
+    targetDate: z.string().nullable(),
+  })),
+  archetype: z.object({
+    name: z.string(),
+    blurb: z.string(),
+  }),
+  totals: z.object({
+    overallPct: z.number(),
+    stewardPct: z.number(),
+    regionalPct: z.number(),
+    visionPct: z.number(),
+    totalHoursPerWeek: z.number(),
+    milestonesDefined: z.number(),
+    moodboardImageCount: z.number(),
+  }),
+});
+export type HumanContextPayload = z.infer<typeof HumanContextPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -130,6 +496,13 @@ export const CreateExportInput = z.object({
     fieldNotes: FieldNotesPayload.optional(),
     financial: FinancialPayload.optional(),
     scenarios: ScenarioPayload.optional(),
+    swot: SwotPayload.optional(),
+    topography: TopographyPayload.optional(),
+    earthWaterEcology: EarthWaterEcologyPayload.optional(),
+    macroclimate: MacroclimatePayload.optional(),
+    sectorsZones: SectorsZonesPayload.optional(),
+    builtEnvironment: BuiltEnvironmentPayload.optional(),
+    humanContext: HumanContextPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;

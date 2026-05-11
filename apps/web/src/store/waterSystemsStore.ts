@@ -128,6 +128,17 @@ export interface WaterNode {
   enterprise?: string;
 
   notes?: string;
+
+  /**
+   * Plan-stage utility-conflict veto record. Set at create time when the
+   * earthwork's geometry intersects (within 3 m) a recorded
+   * `BuriedUtility` line and the tool's `earthworkDepthCm` > 30. Per
+   * ADR 2026-05-10-plan-earthwork-utility-veto.md. Empty / undefined
+   * means no conflict was detected.
+   */
+  utilityConflicts?: { id: string; kind: string }[];
+  /** Free-text acknowledgment captured when overriding the conflict veto. */
+  utilityAcknowledgment?: string;
 }
 
 // ── Watercourses (natural drainage — distinct from built earthworks) ────────

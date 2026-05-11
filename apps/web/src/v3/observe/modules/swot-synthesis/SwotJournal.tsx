@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -20,6 +20,7 @@ import { useParams } from '@tanstack/react-router';
 import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
 import { journalMetrics, type MetricItem } from './derivations.js';
+import { api } from '../../../../lib/apiClient.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strengths',
@@ -52,10 +53,27 @@ export default function SwotJournal() {
     [entries],
   );
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const { data } = await api.exports.generate(id, {
+        exportType: 'swot_journal',
+        payload: { swot: { entries } },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('SWOT journal export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="detail-page swot-journal-page">
       <section className="journal-frame">
-        <JournalHeader />
+        <JournalHeader onExport={handleExport} exporting={exporting} />
         <JournalMetrics metrics={metrics} />
         <section className="journal-layout">
           <div className="journal-main">
@@ -69,24 +87,23 @@ export default function SwotJournal() {
   );
 }
 
-function JournalHeader() {
+interface JournalHeaderProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function JournalHeader({ onExport, exporting }: JournalHeaderProps) {
   return (
     <header className="journal-header">
       <div>
         <h1>SWOT journal</h1>
-        <p>
-          Capture observations and insights about your site using the SWOT framework.{' '}
-          <button type="button">
-            Learn more <ArrowRight aria-hidden="true" />
-          </button>
-        </p>
+        <p>Capture observations and insights about your site using the SWOT framework.</p>
       </div>
       <nav>
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Add journal entry
-        </button>
-        <button type="button">
-          <Download aria-hidden="true" /> Export journal <ChevronDown aria-hidden="true" />
+        <button type="button" onClick={onExport} disabled={exporting}>
+          <Download aria-hidden="true" />{' '}
+          {exporting ? 'Generating…' : 'Export journal'}{' '}
+          {!exporting && <ChevronDown aria-hidden="true" />}
         </button>
         <button type="button">
           <Send aria-hidden="true" /> Send to diagnosis report <ArrowRight aria-hidden="true" />

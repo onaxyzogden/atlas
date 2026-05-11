@@ -24,7 +24,24 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import type { AnnotationKind } from './annotationFieldSchemas.js';
+
+function lineLengthM(geom: GeoJSON.LineString): number {
+  try {
+    return turf.length(turf.lineString(geom.coordinates), { units: 'meters' });
+  } catch {
+    return 0;
+  }
+}
+
+function polygonAreaM2(geom: GeoJSON.Polygon): number {
+  try {
+    return turf.area(turf.feature(geom));
+  } catch {
+    return 0;
+  }
+}
 
 /** Point kinds eligible for drag-reposition. */
 export const POINT_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind>([
@@ -33,6 +50,9 @@ export const POINT_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind>(
   'highPoint',
   'soilSample',
   'swotTag',
+  // Built-Environment points (Phase 4.5)
+  'well',
+  'gate',
 ]);
 
 /** LineString kinds eligible for vertex edit via direct_select. */
@@ -41,6 +61,11 @@ export const LINESTRING_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationK
   'contourLine',
   'drainageLine',
   'watercourse',
+  // Built-Environment lines (Phase 4.5) — lengthM recomputed on edit
+  'powerLine',
+  'buriedUtility',
+  'fence',
+  'existingDriveway',
 ]);
 
 /** Polygon kinds eligible for vertex edit via direct_select. */
@@ -48,6 +73,9 @@ export const POLYGON_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind
   'frostPocket',
   'hazardZone',
   'ecologyZone',
+  // Built-Environment polygons (Phase 4.5) — areaM2 recomputed on edit
+  'building',
+  'septic',
 ]);
 
 /** Reposition a point annotation. Routes to the correct field name
@@ -72,6 +100,12 @@ export function writePointPosition(
       return;
     case 'swotTag':
       useSwotStore.getState().updateSwot(id, { position });
+      return;
+    case 'well':
+      useBuiltEnvironmentStore.getState().updateWell(id, { position });
+      return;
+    case 'gate':
+      useBuiltEnvironmentStore.getState().updateGate(id, { position });
       return;
     default:
       // Non-point kind passed in — caller bug. Silently no-op rather than
@@ -105,6 +139,26 @@ export function writeLineString(
     case 'watercourse':
       useWaterSystemsStore.getState().updateWatercourse(id, { geometry });
       return;
+    case 'powerLine': {
+      const lengthM = lineLengthM(geometry);
+      useBuiltEnvironmentStore.getState().updatePowerLine(id, { geometry, lengthM });
+      return;
+    }
+    case 'buriedUtility': {
+      const lengthM = lineLengthM(geometry);
+      useBuiltEnvironmentStore.getState().updateBuriedUtility(id, { geometry, lengthM });
+      return;
+    }
+    case 'fence': {
+      const lengthM = lineLengthM(geometry);
+      useBuiltEnvironmentStore.getState().updateFence(id, { geometry, lengthM });
+      return;
+    }
+    case 'existingDriveway': {
+      const lengthM = lineLengthM(geometry);
+      useBuiltEnvironmentStore.getState().updateExistingDriveway(id, { geometry, lengthM });
+      return;
+    }
     default:
       return;
   }
@@ -124,6 +178,16 @@ export function writePolygon(
     case 'ecologyZone':
       useEcologyStore.getState().updateEcologyZone(id, { geometry });
       return;
+    case 'building': {
+      const areaM2 = polygonAreaM2(geometry);
+      useBuiltEnvironmentStore.getState().updateBuilding(id, { geometry, areaM2 });
+      return;
+    }
+    case 'septic': {
+      const areaM2 = polygonAreaM2(geometry);
+      useBuiltEnvironmentStore.getState().updateSeptic(id, { geometry, areaM2 });
+      return;
+    }
     default:
       return;
   }
@@ -164,6 +228,18 @@ export function readPointPosition(
       const r = useSwotStore.getState().swot.find((x) => x.id === id);
       return r?.position ?? null;
     }
+    case 'well': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .wells.find((x) => x.id === id);
+      return r ? r.position : null;
+    }
+    case 'gate': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .gates.find((x) => x.id === id);
+      return r ? r.position : null;
+    }
     default:
       return null;
   }
@@ -199,6 +275,30 @@ export function readLineString(
         .watercourses.find((x) => x.id === id);
       return r ? r.geometry : null;
     }
+    case 'powerLine': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .powerLines.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'buriedUtility': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .buriedUtilities.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'fence': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .fences.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'existingDriveway': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .existingDriveways.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
     default:
       return null;
   }
@@ -221,6 +321,18 @@ export function readPolygon(
       const r = useEcologyStore
         .getState()
         .ecologyZones.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'building': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .buildings.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'septic': {
+      const r = useBuiltEnvironmentStore
+        .getState()
+        .septics.find((x) => x.id === id);
       return r ? r.geometry : null;
     }
     default:

@@ -4,10 +4,16 @@
  *
  * Composition:
  *   DiagnoseMap (reused MapLibre container)
- *     ├ DesignElementLayers     — persistent rendering of design features
- *     ├ DesignToolRail          — right-edge floating tool column
- *     ├ BaseMapCard             — bottom-left floating basemap + overlays
- *     ├ DesignElementDrawHost   — mounts the draw hook iff activeKind set
+ *     ├ DesignElementLayers          — flat fill/line/circle/symbol layers
+ *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D fallback (always on;
+ *     │                                 skips kinds rendered by GLB layer)
+ *     ├ DesignElementGlbLayer        — three.js custom layer rendering authored
+ *     │                                 GLB models per kind (always on)
+ *     ├ Terrain3DController          — view==='terrain3d' camera preset
+ *     │                                 (pitch + DEM); unmount restores flat
+ *     ├ DesignToolRail               — right-edge floating tool column
+ *     ├ BaseMapCard                  — bottom-left floating basemap + overlays
+ *     ├ DesignElementDrawHost        — mounts the draw hook iff activeKind set
  *
  * The palette lives in `PlanLayout`'s leftRail slot, not inside the canvas,
  * so it shares the StageShell column with the existing PlanTools rail.
@@ -17,9 +23,19 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
+import {
+  DesignElementExtrusionLayer,
+  DesignElementGlbLayer,
+  Terrain3DController,
+} from '../../builtEnvironment/layers/index.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
+import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
+import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
+import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
+import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
+import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import type { PlanView } from '../types.js';
 
 interface Props {
@@ -70,6 +86,17 @@ export default function VisionLayoutCanvas({
             view={view}
             selectedId={selectedId}
           />
+          <DesignElementExtrusionLayer
+            map={map}
+            projectId={projectId}
+            view={view}
+          />
+          <DesignElementGlbLayer
+            map={map}
+            projectId={projectId}
+            view={view}
+          />
+          {view === 'terrain3d' && <Terrain3DController map={map} />}
           <DesignToolRail
             map={map}
             activeKind={activeKind}
@@ -79,6 +106,15 @@ export default function VisionLayoutCanvas({
             setSelectedId={setSelectedId}
           />
           <BaseMapCard />
+          {/* Phase 2: Observe annotations + inline-edit + link popover
+              mounted across vision / phase / terrain3d views, so the
+              Plan steward can edit Buildings (and link out for other
+              Observe kinds) without bouncing back to Current Land. */}
+          <ObserveAnnotationLayers map={map} projectId={projectId} />
+          <PlanObserveSelectionHandler map={map} />
+          <InlineFeaturePopover map={map} />
+          <UtilityConflictDialog map={map} />
+          <ObserveLinkPopover map={map} />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}

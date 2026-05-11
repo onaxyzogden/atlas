@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Beaker,
   Binoculars,
-  CalendarDays,
-  ChevronDown,
   Download,
   Droplet,
   FlaskConical,
@@ -22,11 +20,16 @@ import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
+import { api } from '../../../../lib/apiClient.js';
+import { pickDefined, pickTruthy } from '@ogden/shared';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
 import {
   earthwaterKpis,
+  getCriticalHabitatLayer,
+  getSoilsLayer,
   getWatershedLayer,
+  getWetlandsLayer,
   waterCounts,
   type KpiIconKey,
 } from './derivations.js';
@@ -52,6 +55,7 @@ export default function EarthWaterEcologyDashboard() {
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
   const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
   const allSamples = useSoilSampleStore((s) => s.samples);
+  const successionStage = useEcologyStore((s) => s.successionStageByProject[id]);
 
   const observations = useMemo(() => allObservations.filter((o) => o.projectId === id), [allObservations, id]);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
@@ -63,6 +67,94 @@ export default function EarthWaterEcologyDashboard() {
   const kpis = earthwaterKpis(layers, samples, observations, earthworks, storage, watercourses);
   const watershed = getWatershedLayer(layers);
   const wc = waterCounts(earthworks, storage, watercourses);
+
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const wetlands = getWetlandsLayer(layers);
+      const habitat = getCriticalHabitatLayer(layers);
+      const soils = getSoilsLayer(layers);
+      const { data } = await api.exports.generate(id, {
+        exportType: 'earth_water_ecology_report',
+        payload: {
+          earthWaterEcology: {
+            soilSamples: samples.map((s) => ({
+              id: s.id,
+              sampleDate: s.sampleDate,
+              label: s.label,
+              depth: s.depth,
+              ...pickDefined(s, [
+                'ph',
+                'organicMatterPct',
+                'texture',
+                'cecMeq100g',
+                'ecDsM',
+                'bulkDensityGCm3',
+                'percolationInPerHr',
+                'depthToBedrockM',
+              ]),
+              ...pickTruthy(s, ['biologicalActivity', 'notes', 'lab', 'location']),
+              ...(s.jarTest != null ? { hasJarTest: true } : {}),
+              ...(s.roofCatchment != null ? { hasRoofCatchment: true } : {}),
+            })),
+            waterSystems: {
+              earthworks: earthworks.map((e) => ({
+                id: e.id,
+                type: e.type,
+                ...pickDefined(e, ['lengthM']),
+                ...pickTruthy(e, ['notes']),
+                createdAt: e.createdAt,
+              })),
+              storageInfra: storage.map((s) => ({
+                id: s.id,
+                type: s.type,
+                center: s.center,
+                ...pickDefined(s, ['capacityL']),
+                ...pickTruthy(s, ['notes']),
+                createdAt: s.createdAt,
+              })),
+              watercourses: watercourses.map((w) => ({
+                id: w.id,
+                kind: w.kind,
+                ...pickDefined(w, ['perennial']),
+                ...pickTruthy(w, ['notes']),
+                createdAt: w.createdAt,
+              })),
+            },
+            ecology: {
+              observations: observations.map((o) => ({
+                id: o.id,
+                species: o.species,
+                trophicLevel: o.trophicLevel,
+                observedAt: o.observedAt,
+                ...pickTruthy(o, ['notes', 'location']),
+              })),
+              zones: zones.map((z) => ({
+                id: z.id,
+                dominantStage: z.dominantStage,
+                ...pickTruthy(z, ['label', 'notes']),
+                createdAt: z.createdAt,
+              })),
+              ...(successionStage ? { successionStage } : {}),
+            },
+            siteLayers: {
+              ...(watershed ? { watershed: watershed.summary as Record<string, unknown> } : {}),
+              ...(wetlands ? { wetlandsPresent: (wetlands.summary.wetland_pct ?? 0) > 0 } : {}),
+              ...(habitat ? { criticalHabitatPresent: habitat.summary.on_site === true } : {}),
+              ...(soils ? { soilsSummary: soils.summary as Record<string, unknown> } : {}),
+            },
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Earth · Water · Ecology report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="detail-page diagnostics-page">
@@ -80,7 +172,7 @@ export default function EarthWaterEcologyDashboard() {
           );
         })}
       </SurfaceCard>
-      <TabsAndActions />
+      <ExportActions onExport={handleExport} exporting={exporting} />
       <section className="diagnostic-grid">
         <SiteMapCard
           boundary={project?.location?.boundary}
@@ -92,11 +184,7 @@ export default function EarthWaterEcologyDashboard() {
         />
         <SoilDiagnosticsCard samples={samples} />
         <HydrologyCard wc={wc} flowDirection={watershed?.summary.flow_direction ?? null} />
-        <EcologyCard
-          observations={observations}
-          boundary={project?.location?.boundary}
-          caption={project?.name}
-        />
+        <EcologyCard observations={observations} />
         <AnnotationListCard
           title="Field annotations"
           projectId={projectId ?? null}
@@ -128,25 +216,22 @@ function ModuleHeader() {
   );
 }
 
-function TabsAndActions() {
-  const tabs = ['Overview', 'Soil', 'Water', 'Ecology', 'Lab Results', 'Trends'];
+interface ExportActionsProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function ExportActions({ onExport, exporting }: ExportActionsProps) {
   return (
     <div className="diagnostic-tabs-row">
-      <nav className="diagnostic-tabs" aria-label="Diagnostics sections">
-        {tabs.map((tab, index) => (
-          <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
-            {tab}
-          </button>
-        ))}
-      </nav>
       <div className="diagnostic-actions">
-        <button className="outlined-button" type="button">
-          <Download aria-hidden="true" /> Export report{' '}
-          <ChevronDown aria-hidden="true" />
-        </button>
-        <button className="outlined-button" type="button">
-          <CalendarDays aria-hidden="true" /> This season{' '}
-          <ChevronDown aria-hidden="true" />
+        <button
+          className="outlined-button"
+          type="button"
+          onClick={onExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" /> {exporting ? 'Generating…' : 'Export report'}
         </button>
       </div>
     </div>
@@ -267,24 +352,14 @@ function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
 
 interface EcologyCardProps {
   observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
-  boundary: GeoJSON.Polygon | undefined;
-  caption: string | undefined;
 }
 
-function EcologyCard({ observations, boundary, caption }: EcologyCardProps) {
-  const tabs = ['All', 'Flora', 'Fauna', 'Fungi'];
+function EcologyCard({ observations }: EcologyCardProps) {
   return (
     <SurfaceCard className="diagnostic-panel ecology-panel">
       <header className="panel-header">
         <h2>Ecology observations</h2>
       </header>
-      <div className="species-tabs">
-        {tabs.map((tab, index) => (
-          <button className={index === 0 ? 'is-active' : ''} type="button" key={tab}>
-            {tab}
-          </button>
-        ))}
-      </div>
       <SpeciesObservationList observations={observations} compact className="species-image" />
       {observations.length === 0 && (
         <p className="biodiversity-note">

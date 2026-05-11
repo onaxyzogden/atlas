@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Compass,
+  Download,
   Droplet,
   Home,
   Layers,
@@ -24,6 +25,8 @@ import {
   type Transect,
 } from '../../../../store/topographyStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
+import { api } from '../../../../lib/apiClient.js';
+import { pickDefined, pickTruthy } from '@ogden/shared';
 import AspectCompass from './AspectCompass.js';
 import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
@@ -71,11 +74,67 @@ export default function TopographyDashboard() {
   const counts = featureCounts({ contours, highPoints, drainageLines, transects });
   const elevationSummary = getElevationLayer(layers)?.summary;
 
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const { data } = await api.exports.generate(id, {
+        exportType: 'topography_report',
+        payload: {
+          topography: {
+            elevationSummary: elevationSummary
+              ? {
+                  min_elevation_m: elevationSummary.min_elevation_m ?? null,
+                  max_elevation_m: elevationSummary.max_elevation_m ?? null,
+                  mean_slope_deg: elevationSummary.mean_slope_deg ?? null,
+                  max_slope_deg: elevationSummary.max_slope_deg ?? null,
+                  predominant_aspect: elevationSummary.predominant_aspect ?? null,
+                }
+              : null,
+            contours: contours.map((c) => ({
+              id: c.id,
+              ...pickDefined(c, ['elevationM']),
+              ...pickTruthy(c, ['notes']),
+              createdAt: c.createdAt,
+            })),
+            highPoints: highPoints.map((h) => ({
+              id: h.id,
+              position: h.position,
+              kind: h.kind,
+              ...pickDefined(h, ['elevationM']),
+              ...pickTruthy(h, ['label', 'notes']),
+              createdAt: h.createdAt,
+            })),
+            drainageLines: drainageLines.map((d) => ({
+              id: d.id,
+              ...pickTruthy(d, ['notes']),
+              createdAt: d.createdAt,
+            })),
+            transects: transects.map((t) => ({
+              id: t.id,
+              name: t.name,
+              pointA: t.pointA,
+              pointB: t.pointB,
+              ...pickDefined(t, ['sourceApi', 'totalDistanceM']),
+              ...pickTruthy(t, ['sampledAt', 'confidence', 'notes']),
+            })),
+          },
+        },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('Topography report export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="detail-page topography-page">
       <section className="topography-layout">
         <div className="topography-main">
-          <TopographyHeader />
+          <TopographyHeader onExport={handleExport} exporting={exporting} />
           <TopographyMetrics layers={layers} transects={transects} />
           <TopographySynthesis summary={elevationSummary} counts={counts} />
           <section className="topography-tool-grid">
@@ -102,7 +161,12 @@ export default function TopographyDashboard() {
   );
 }
 
-function TopographyHeader() {
+interface TopographyHeaderProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function TopographyHeader({ onExport, exporting }: TopographyHeaderProps) {
   return (
     <header className="topography-header">
       <div className="module-title-row">
@@ -114,6 +178,10 @@ function TopographyHeader() {
             to design with the terrain, not against it.
           </p>
         </div>
+        <button type="button" onClick={onExport} disabled={exporting}>
+          <Download aria-hidden="true" />{' '}
+          {exporting ? 'Generating…' : 'Export terrain report'}
+        </button>
       </div>
       <CroppedArt src={heroTerrain} className="topography-hero-art" />
     </header>

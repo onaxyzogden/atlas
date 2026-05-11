@@ -11,7 +11,15 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import {
+  checkUtilityConflicts,
+  depthTriggersVeto,
+} from '../../utils/utilityConflicts.js';
+import { useUtilityConflictStore } from '../utilityConflictStore.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
+
+/** Approximate infiltration-bed / wetland excavation depth. */
+const SINK_DEPTH_CM = 60;
 
 interface Props {
   map: MaplibreMap;
@@ -32,16 +40,47 @@ export default function WaterSinkTool({ map, projectId }: Props) {
     onComplete: (geom) => {
       const id = newAnnotationId('wn-x');
       const anchor = geom.coordinates as [number, number];
-      addWaterNode({
-        id,
-        projectId,
-        name: 'Sink',
-        kind: 'sink',
-        center: anchor,
-        phase: phaseDefault || undefined,
-        createdAt: new Date().toISOString(),
-      });
 
+      const conflicts = depthTriggersVeto(SINK_DEPTH_CM)
+        ? checkUtilityConflicts(geom, projectId)
+        : [];
+
+      const proceed = (extras: {
+        utilityConflicts?: { id: string; kind: string }[];
+        utilityAcknowledgment?: string;
+      }) => {
+        addWaterNode({
+          id,
+          projectId,
+          name: 'Sink',
+          kind: 'sink',
+          center: anchor,
+          phase: phaseDefault || undefined,
+          createdAt: new Date().toISOString(),
+          ...extras,
+        });
+        openInlineForm();
+      };
+
+      if (conflicts.length > 0) {
+        useUtilityConflictStore.getState().open({
+          conflicts,
+          anchor,
+          onConfirm: (ack) =>
+            proceed({
+              utilityConflicts: conflicts.map((c) => ({ id: c.id, kind: c.kind })),
+              utilityAcknowledgment: ack,
+            }),
+          onCancel: () => {
+            /* declined — geom already discarded */
+          },
+        });
+        return;
+      }
+
+      proceed({});
+
+      function openInlineForm() {
       openForm({
         title: 'Sink',
         anchor,
@@ -66,6 +105,7 @@ export default function WaterSinkTool({ map, projectId }: Props) {
         },
         onCancel: () => removeWaterNode(id),
       });
+      }
     },
   });
 

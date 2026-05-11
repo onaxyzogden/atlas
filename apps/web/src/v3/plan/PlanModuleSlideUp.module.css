@@ -84,10 +84,31 @@
 
 .tabs {
   display: flex;
+  align-items: flex-end;
   gap: 4px;
   padding: 8px 16px 0;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
+}
+
+.tabSlot {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.tabGroupLabel {
+  display: inline-block;
+  margin: 0 6px 6px 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--color-border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand);
+  opacity: 0.78;
+  white-space: nowrap;
 }
 
 .tab {

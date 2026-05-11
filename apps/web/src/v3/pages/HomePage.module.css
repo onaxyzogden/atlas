@@ -218,3 +218,97 @@
   cursor: pointer;
 }
 .helpBtn:hover { border-color: var(--color-gold-brand); }
+
+/* Dev-only References & tools section. Visual language echoes helpBanner —
+   subtle gradient, rounded card, gold-on-hover affordances — but uses a
+   tile grid so additional dev surfaces can slot in without re-flow. */
+.devSection {
+  margin-top: var(--space-3);
+  padding: var(--space-5);
+  background: linear-gradient(135deg, rgba(140,160,200,0.06), rgba(120,140,180,0.04));
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.devSectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.devSectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+.devTileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+.devTile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+.devTile:hover {
+  border-color: var(--color-gold-brand);
+  transform: translateY(-1px);
+}
+.devTileLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.devTileDesc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* Inline-embed variants for showing the dashboard directly on Home,
+   without forcing a click-through. The grid component supplies its own
+   chrome — we just give it room to breathe inside the dev section. */
+.devSectionLede {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.devSectionLink {
+  color: var(--color-gold-brand);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-gold-brand);
+}
+.devSectionLink:hover {
+  text-decoration: none;
+  border-bottom-style: solid;
+}
+/* Bento tile housing the embedded Affinity telemetry dashboard.
+   Mirrors the Project Health / threeCol cards' visual language — a
+   rounded card with a hairline border, soft surface fill, and a faint
+   ambient gradient — so the embed feels like a deliberate tile in the
+   Home grid rather than a bare component dropped onto the page. The
+   inner dashboard's own _container card styling reads as a header
+   strip inside the bento, not a duplicate frame. */
+.devEmbed {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background:
+    linear-gradient(135deg, rgba(140,160,200,0.05), rgba(120,140,180,0.03)),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  overflow: auto;
+}

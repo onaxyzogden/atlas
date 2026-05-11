@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -6,6 +6,7 @@ import {
   ClipboardList,
   CloudLightning,
   Compass,
+  Download,
   Leaf,
   Link,
   Mountain,
@@ -21,6 +22,7 @@ import { SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
 import { swotCounts } from './derivations.js';
+import { api } from '../../../../lib/apiClient.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strength',
@@ -37,6 +39,23 @@ export default function SwotDashboard() {
   const entries = useMemo(() => allEntries.filter((e) => e.projectId === id), [allEntries, id]);
 
   const counts = swotCounts(entries);
+
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const { data } = await api.exports.generate(id, {
+        exportType: 'swot_synthesis',
+        payload: { swot: { entries } },
+      });
+      window.open(data.storageUrl, '_blank');
+    } catch (err) {
+      console.error('SWOT synthesis export failed', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="detail-page swot-page">
@@ -56,7 +75,7 @@ export default function SwotDashboard() {
             emptyHint="No SWOT tags pinned to the map yet — drop a strength, weakness, opportunity, or threat with the tools panel."
           />
         </div>
-        <DesignImplications />
+        <DesignImplications onExport={handleExport} exporting={exporting} />
       </section>
       <SwotHealthStrip />
     </div>
@@ -214,7 +233,12 @@ function DiagnosisReportCard() {
   );
 }
 
-function DesignImplications() {
+interface DesignImplicationsProps {
+  onExport: () => void;
+  exporting: boolean;
+}
+
+function DesignImplications({ onExport, exporting }: DesignImplicationsProps) {
   const priorities: Array<[string, string, LucideIcon]> = [
     [
       'Leverage soil fertility & water',
@@ -255,10 +279,10 @@ function DesignImplications() {
           </p>
         ))}
       </section>
-      <button className="green-button" type="button">
-        Create action plan from synthesis <ArrowRight aria-hidden="true" />
+      <button type="button" onClick={onExport} disabled={exporting}>
+        <Download aria-hidden="true" />{' '}
+        {exporting ? 'Generating…' : 'Export synthesis summary'}
       </button>
-      <button type="button">Export synthesis summary</button>
     </SurfaceCard>
   );
 }
