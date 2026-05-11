@@ -204,3 +204,80 @@ instead of expressing one application *of* livestock.
 - Species-aware fields on the cards (e.g. cattle slaughter weight).
 - A separate Dairy-chain or Egg-chain sub-group. Defer until a steward
   requests it.
+
+### 2026-05-10 follow-up — divider polish
+
+Same-day visual polish on the group divider in `PlanModuleSlideUp`.
+Steward picked the "gold accent ribbon" treatment over a two-row
+sub-header, pill enclosure, or stronger inline vertical rule.
+
+- Each grouped `<button>` gains a `css.tabGrouped` class alongside
+  `css.tab` (and `css.tabActive` when current).
+- New CSS rule
+  `.tabGrouped { border-bottom-color: rgba(var(--color-gold-rgb), 0.35); }`
+  gives the three Product Chain tabs a persistent faint-gold underline;
+  `.tabGrouped:hover` bumps to `0.6`. `.tabActive` (declared later)
+  still wins with full `var(--color-gold-brand)`, so the active grouped
+  tab reads as full gold.
+- Eyebrow `.tabGroupLabel` loses its redundant `border-left` rule
+  (the underline ribbon now carries the grouping work) and tightens
+  margins.
+
+Verified via eval over the accessibility tree:
+- 3 Product Chain tabs flagged `tabGrouped`; inactive
+  `border-bottom-color` reads `rgba(212, 175, 95, 0.35)`.
+- 7 livestock tabs unflagged; inactive `border-bottom-color` is
+  `rgba(0, 0, 0, 0)`.
+- Clicking a Product Chain tab promotes it to
+  `border-bottom-color: rgb(212, 175, 95)` — full gold.
+
+`preview_screenshot` was unresponsive again (third timeout this
+sprint) — no visual proof captured.
+
+### 2026-05-10 follow-up — shared per-project sizing slice
+
+Same-day audit pass on the three Product Chain diagnostic cards.
+Original implementation held annual head, dressed weight, processing
+days, pack density, detour multiplier, and avg speed as card-local
+`useState`. Two real problems fell out of that:
+
+1. **Ephemerality.** Every input reset to default the moment the
+   slide-up closed. Nothing the steward tuned persisted to the project.
+2. **Cards disagreed about op size.** `SlaughterThroughputCard` derived
+   peak-week pack from `(annualHead × dressedKg) ÷ (days/5)`, but
+   `ColdChainCoverageCard` and `MarketDistributionCard` each held their
+   own `peakWeekKg` / `weeklyProductKg` input defaulting to 720 — only
+   accidentally correct for the 2,000-bird / 1.8-kg / 40-day baseline.
+   Bumping head count in card 1 left cards 2 and 3 silently stale.
+
+### Refinement
+
+- New `AgribusinessSizing` interface in `agribusinessStore.ts`:
+  `annualHead`, `dressedKg`, `processingDays`, `packDensityKgPerM3`,
+  `detourMultiplier`, `avgSpeedKmh`. Exported alongside `DEFAULT_SIZING`
+  (the 2,000-bird viability-floor numbers from the original ADR).
+- Store gains `sizingByProject: Record<string, AgribusinessSizing>`,
+  `getSizing(projectId)`, and `setSizing(projectId, patch)`. Same
+  `persist` + `temporal` boundary as the entity slices, so sizing
+  participates in undo and survives reloads.
+- Persist version bumped 1 → 2.
+- `SlaughterThroughputCard`: editable fields wire to `setSizing`.
+- `ColdChainCoverageCard`: peak-week pack becomes a read-only derived
+  field (`"<n> (from sizing)"`); pack density is the only editable knob
+  and writes through to `sizing.packDensityKgPerM3`.
+- `MarketDistributionCard`: weekly product becomes read-only derived;
+  detour multiplier and avg speed write through to sizing.
+
+### Verification
+
+- `npm run typecheck` (apps/web) — clean.
+- Preview eval round-trip: set Annual head = 5000 in the Slaughter
+  throughput card; Cold-chain peak-week pack reads `1125 (from sizing)`,
+  Market weekly product reads `1125 (from sizing)`. Derivation matches
+  `5000 × 1.8 ÷ (40/5) = 1125`. Cross-card propagation confirmed.
+
+### Out of scope (carried forward)
+
+- Surfacing `phase` / `notes` fields on the three tool popovers.
+- Tests on the throughput / coverage / concentration math.
+- Species-aware sizing fields (cattle dress-out %, lamb hanging weight).

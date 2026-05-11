@@ -223,6 +223,49 @@
   color: rgba(190, 210, 230, 0.85);
 }
 
+.plannedActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plannedChip {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(150, 175, 200, 0.08);
+  border: 1px solid rgba(150, 175, 200, 0.22);
+  color: rgba(190, 210, 230, 0.85);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+  line-height: 1.3;
+}
+.plannedChip:hover {
+  background: rgba(150, 175, 200, 0.18);
+  border-color: rgba(150, 175, 200, 0.36);
+}
+.plannedChip:focus-visible {
+  outline: 2px solid rgba(150, 175, 200, 0.55);
+  outline-offset: 1px;
+}
+
+.plannedChipDismiss {
+  background: rgba(232, 220, 200, 0.04);
+  border-color: rgba(232, 220, 200, 0.14);
+  color: rgba(220, 210, 185, 0.7);
+  padding: 2px 6px;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+.plannedChipDismiss:hover {
+  background: rgba(220, 120, 80, 0.14);
+  border-color: rgba(220, 120, 80, 0.32);
+  color: rgba(240, 170, 130, 0.95);
+}
+
 .quickLogForm {
   margin-top: 8px;
   padding: 10px 12px;

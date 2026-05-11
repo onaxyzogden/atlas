@@ -30,6 +30,7 @@ import {
   type HarvestQuality,
 } from '../../store/harvestLogStore.js';
 import { type LivestockSpecies } from '../../store/livestockStore.js';
+import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMoveStore.js';
 import { newAnnotationId } from '../../store/site-annotations.js';
 import { useInlineFormStore } from '../plan/draw/inlineFormStore.js';
 import { useActStructurePopoverStore } from '../../store/actStructurePopoverStore.js';
@@ -192,6 +193,79 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       });
     },
     onCancel: () => removeEvent(id),
+  });
+}
+
+/**
+ * Schedule a future livestock move into this structure. Same skeleton-then-
+ * patch pattern as `startLivestockMoveLog`, but writes to the scheduled-move
+ * store instead of the actual log. Cancelling removes the skeleton plan.
+ *
+ * The Plan-stage `Paddock`-centric variance pill (in `RotationScheduleCard`)
+ * does not apply to structures — the recovery model is paddock-centric, so
+ * structure plans render as a plain `Planned: <date>` line in the
+ * Structure-moves tail with an `Edit` / `✕` affordance (matches paddock
+ * plan-editing UX shipped in `a2725c3`).
+ */
+export function startScheduledLivestockMove(structure: Structure, projectId: string): void {
+  const tpl = STRUCTURE_TEMPLATES[structure.type];
+  const label = structure.name && structure.name !== tpl.label ? structure.name : tpl.label;
+  const defaultSpecies: LivestockSpecies = 'sheep';
+
+  useActStructurePopoverStore.getState().close();
+
+  const id = newAnnotationId('slvm');
+  const { addPlan, updatePlan, removePlan } = useScheduledLivestockMoveStore.getState();
+  addPlan({
+    id,
+    projectId,
+    toStructureId: structure.id,
+    plannedDate: todayIso(),
+    direction: 'move_in',
+    species: defaultSpecies,
+    headCount: null,
+    createdAt: new Date().toISOString(),
+  });
+
+  useInlineFormStore.getState().open({
+    title: `Schedule move — ${label}`,
+    anchor: anchorFor(structure),
+    fields: [
+      { key: 'plannedDate', label: 'Planned date', kind: 'text',   required: true, placeholder: 'YYYY-MM-DD' },
+      { key: 'direction',   label: 'Direction',    kind: 'select', required: true, options: DIRECTION_OPTIONS },
+      { key: 'species',     label: 'Species',      kind: 'select', required: true, options: SPECIES_OPTIONS },
+      { key: 'headCount',   label: 'Head',         kind: 'number', placeholder: 'e.g. 24' },
+      { key: 'who',         label: 'Who',          kind: 'text',   placeholder: 'optional' },
+      { key: 'notes',       label: 'Notes',        kind: 'text',   placeholder: 'optional' },
+    ],
+    initial: {
+      plannedDate: todayIso(),
+      direction: 'move_in',
+      species: defaultSpecies,
+      headCount: '',
+      who: '',
+      notes: '',
+    },
+    onSave: (values) => {
+      const rawDir = String(values.direction ?? '').trim();
+      const direction: LivestockMoveDirection = isDirection(rawDir) ? rawDir : 'move_in';
+      const rawSpecies = String(values.species ?? '').trim();
+      const species: LivestockSpecies = isSpecies(rawSpecies) ? rawSpecies : defaultSpecies;
+      const rawHead = String(values.headCount ?? '').trim();
+      const headCount =
+        rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
+      const who = String(values.who ?? '').trim();
+      const notes = String(values.notes ?? '').trim();
+      updatePlan(id, {
+        plannedDate: String(values.plannedDate ?? todayIso()),
+        direction,
+        species,
+        headCount,
+        who: who === '' ? undefined : who,
+        notes: notes === '' ? undefined : notes,
+      });
+    },
+    onCancel: () => removePlan(id),
   });
 }
 

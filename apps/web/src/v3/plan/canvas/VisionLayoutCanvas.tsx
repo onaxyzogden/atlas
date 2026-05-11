@@ -30,6 +30,7 @@ import {
 } from '../../builtEnvironment/layers/index.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
+import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
@@ -106,6 +107,13 @@ export default function VisionLayoutCanvas({
             setSelectedId={setSelectedId}
           />
           <BaseMapCard />
+          <MapToolbar
+            map={map}
+            projectId={projectId}
+            boundary={boundary ?? null}
+            onBoundaryDrawn={() => {}}
+            showBoundary={false}
+          />
           {/* Phase 2: Observe annotations + inline-edit + link popover
               mounted across vision / phase / terrain3d views, so the
               Plan steward can edit Buildings (and link out for other

@@ -12,8 +12,11 @@
  * capacity" line moves.
  */
 
-import { useMemo, useState } from 'react';
-import { useAgribusinessStore } from '../../store/agribusinessStore.js';
+import { useMemo } from 'react';
+import {
+  useAgribusinessStore,
+  DEFAULT_SIZING,
+} from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
 
 interface Props {
@@ -27,11 +30,13 @@ export default function SlaughterThroughputCard({ projectId }: Props) {
     [allPoints, projectId],
   );
 
-  // Steward-tunable inputs. Defaults sized for a 2,000-bird/yr pastured
-  // operation (Newman's "viability floor" for a single-product broiler line).
-  const [annualHead, setAnnualHead] = useState(2000);
-  const [dressedKg, setDressedKg] = useState(1.8);
-  const [processingDays, setProcessingDays] = useState(40);
+  // Sizing lives in the store (per-project, persisted). Defaults from
+  // DEFAULT_SIZING — 2,000-bird pastured viability floor named in the
+  // Module 7 ADR.
+  const sizing =
+    useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
+  const setSizing = useAgribusinessStore((s) => s.setSizing);
+  const { annualHead, dressedKg, processingDays } = sizing;
 
   const view = useMemo(() => {
     const safeDays = Math.max(processingDays, 1);
@@ -77,7 +82,9 @@ export default function SlaughterThroughputCard({ projectId }: Props) {
             type="number"
             min={0}
             value={annualHead}
-            onChange={(e) => setAnnualHead(Number(e.target.value))}
+            onChange={(e) =>
+              setSizing(projectId, { annualHead: Number(e.target.value) })
+            }
           />
         </label>
         <label className={css.inputField}>
@@ -88,7 +95,9 @@ export default function SlaughterThroughputCard({ projectId }: Props) {
             min={0}
             step={0.1}
             value={dressedKg}
-            onChange={(e) => setDressedKg(Number(e.target.value))}
+            onChange={(e) =>
+              setSizing(projectId, { dressedKg: Number(e.target.value) })
+            }
           />
         </label>
         <label className={css.inputField}>
@@ -98,7 +107,9 @@ export default function SlaughterThroughputCard({ projectId }: Props) {
             type="number"
             min={1}
             value={processingDays}
-            onChange={(e) => setProcessingDays(Number(e.target.value))}
+            onChange={(e) =>
+              setSizing(projectId, { processingDays: Number(e.target.value) })
+            }
           />
         </label>
         <label className={css.inputField}>

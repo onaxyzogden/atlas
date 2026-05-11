@@ -8,10 +8,11 @@
  * channel — Newman's "agribusiness interface" warning.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import {
   useAgribusinessStore,
+  DEFAULT_SIZING,
   type MarketKind,
 } from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
@@ -39,14 +40,19 @@ export default function MarketDistributionCard({ projectId }: Props) {
     [allSlaughter, projectId],
   );
 
-  // Steady-state weekly product throughput — defaults to the same
-  // 720 kg/wk peak from the throughput card. Independent input.
-  const [weeklyProductKg, setWeeklyProductKg] = useState(720);
-  // Great-circle distance × detour multiplier ÷ avg speed → drive minutes.
-  // Defaults: 1.3 covers typical rural road meander vs. straight line;
-  // 60 km/h is the steady-state avg between farm-stand drops and town runs.
-  const [detourMultiplier, setDetourMultiplier] = useState(1.3);
-  const [avgSpeedKmh, setAvgSpeedKmh] = useState(60);
+  // Weekly product throughput, detour multiplier, and avg speed live
+  // in the store (shared with the other two Module 7 cards). Weekly
+  // product is derived from sizing rather than entered directly so the
+  // three cards never disagree about op size.
+  const sizing =
+    useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
+  const setSizing = useAgribusinessStore((s) => s.setSizing);
+  const { annualHead, dressedKg, processingDays, detourMultiplier, avgSpeedKmh } =
+    sizing;
+  const weeklyProductKg = useMemo(
+    () => (annualHead * dressedKg) / Math.max(processingDays / 5, 1),
+    [annualHead, dressedKg, processingDays],
+  );
 
   const view = useMemo(() => {
     const totalDemand = nodes.reduce((s, n) => s + (n.weeklyDemandKg || 0), 0);
@@ -143,10 +149,9 @@ export default function MarketDistributionCard({ projectId }: Props) {
           <span className={css.inputLabel}>Weekly product (kg)</span>
           <input
             className={css.inputControl}
-            type="number"
-            min={0}
-            value={weeklyProductKg}
-            onChange={(e) => setWeeklyProductKg(Number(e.target.value))}
+            type="text"
+            readOnly
+            value={`${Math.round(weeklyProductKg)} (from sizing)`}
           />
         </label>
         <label className={css.inputField}>
@@ -207,7 +212,11 @@ export default function MarketDistributionCard({ projectId }: Props) {
               min={1}
               step={0.1}
               value={detourMultiplier}
-              onChange={(e) => setDetourMultiplier(Number(e.target.value))}
+              onChange={(e) =>
+                setSizing(projectId, {
+                  detourMultiplier: Number(e.target.value),
+                })
+              }
             />
           </label>
           <label className={css.inputField}>
@@ -217,7 +226,9 @@ export default function MarketDistributionCard({ projectId }: Props) {
               type="number"
               min={1}
               value={avgSpeedKmh}
-              onChange={(e) => setAvgSpeedKmh(Number(e.target.value))}
+              onChange={(e) =>
+                setSizing(projectId, { avgSpeedKmh: Number(e.target.value) })
+              }
             />
           </label>
           <label className={css.inputField}>

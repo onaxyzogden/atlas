@@ -26,6 +26,7 @@ import {
 import {
   useScheduledLivestockMoveStore,
   nextUnfulfilledPlan,
+  structureDestPlans,
   type ScheduledLivestockMove,
 } from '../../store/scheduledLivestockMoveStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
@@ -228,12 +229,18 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   const addEvent = useLivestockMoveLogStore((s) => s.addEvent);
   const allPlans = useScheduledLivestockMoveStore((s) => s.plans);
   const addPlan = useScheduledLivestockMoveStore((s) => s.addPlan);
+  const updatePlan = useScheduledLivestockMoveStore((s) => s.updatePlan);
+  const removePlan = useScheduledLivestockMoveStore((s) => s.removePlan);
   const markFulfilled = useScheduledLivestockMoveStore((s) => s.markFulfilled);
 
   // Inline quick-log form state — single open form at a time. The `mode`
   // discriminant determines which store the form writes to on save.
+  // `editingPlanId` is set when the form was opened to edit an existing
+  // plan (saves call updatePlan); unset means a new plan/event.
   type FormMode = 'actual' | 'planned';
-  const [openForm, setOpenForm] = useState<{ paddockId: string; mode: FormMode } | null>(null);
+  const [openForm, setOpenForm] = useState<
+    { paddockId: string; mode: FormMode; editingPlanId?: string } | null
+  >(null);
   const [draft, setDraft] = useState<QuickDraft>(() => emptyQuickDraft([]));
 
   function openLogForm(m: UpcomingMove) {
@@ -243,6 +250,17 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   function openScheduleForm(m: UpcomingMove) {
     setDraft(emptyQuickDraft(m.species));
     setOpenForm({ paddockId: m.paddockId, mode: 'planned' });
+  }
+  function openEditPlanForm(m: UpcomingMove, plan: ScheduledLivestockMove) {
+    setDraft({
+      date: plan.plannedDate,
+      direction: plan.direction,
+      species: plan.species,
+      headCount: plan.headCount == null ? '' : String(plan.headCount),
+      fromPaddockId: plan.fromPaddockId ?? '',
+      notes: plan.notes ?? '',
+    });
+    setOpenForm({ paddockId: m.paddockId, mode: 'planned', editingPlanId: plan.id });
   }
   function closeForm() {
     setOpenForm(null);
@@ -265,6 +283,15 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
         ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
       };
       addEvent(ev);
+    } else if (openForm.editingPlanId) {
+      updatePlan(openForm.editingPlanId, {
+        plannedDate: draft.date,
+        direction: draft.direction,
+        species: draft.species,
+        headCount,
+        fromPaddockId: draft.fromPaddockId || undefined,
+        notes: draft.notes.trim() || undefined,
+      });
     } else {
       const plan: ScheduledLivestockMove = {
         id: `slvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -284,17 +311,25 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   }
 
   // Auto-fulfilment: when an unfulfilled plan has a matching actual event
-  // (same project + toPaddockId + species, date within ±7 days of plannedDate),
+  // (same project + destination + species, date within ±7 days of plannedDate),
   // mark it fulfilled so it stops rendering as "Planned". Runs once on each
-  // change to events or plans; first match per plan wins.
+  // change to events or plans; first match per plan wins. Handles both
+  // paddock-destination plans and structure-destination plans (v2).
   useEffect(() => {
     const FULFIL_WINDOW_DAYS = 7;
     const unfulfilled = allPlans.filter((p) => !p.fulfilledByEventId && p.projectId === projectId);
     for (const plan of unfulfilled) {
       const match = allEvents.find((e) => {
         if (e.projectId !== projectId) return false;
-        const destPid = e.toPaddockId ?? e.paddockId;
-        if (destPid !== plan.toPaddockId) return false;
+        if (plan.toPaddockId) {
+          const destPid = e.toPaddockId ?? e.paddockId;
+          if (destPid !== plan.toPaddockId) return false;
+        } else if (plan.toStructureId) {
+          const destSid = e.toStructureId ?? e.structureId;
+          if (destSid !== plan.toStructureId) return false;
+        } else {
+          return false;
+        }
         if (e.species !== plan.species) return false;
         const diff = Math.abs(daysBetween(plan.plannedDate, e.date));
         return diff <= FULFIL_WINDOW_DAYS;
@@ -322,6 +357,10 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   const structureEvents = useMemo(
     () => structureDestEvents(allEvents, projectId),
     [allEvents, projectId],
+  );
+  const structurePlans = useMemo(
+    () => structureDestPlans(allPlans, projectId),
+    [allPlans, projectId],
   );
   const allStructures = useStructureStore((s) => s.structures);
   const projectStructures = useMemo(
@@ -522,8 +561,27 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                             {' \u00b7 '}
                             {formatLoggedDate(plan.plannedDate)}
                           </span>
-                          <span className={`${css.varianceBadge} ${toneClass}`}>
-                            {varianceBadgeText(variance)}
+                          <span className={css.plannedActions}>
+                            <span className={`${css.varianceBadge} ${toneClass}`}>
+                              {varianceBadgeText(variance)}
+                            </span>
+                            <button
+                              type="button"
+                              className={css.plannedChip}
+                              onClick={() => openEditPlanForm(m, plan)}
+                              aria-label={`Edit planned move for ${m.paddockName}`}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className={`${css.plannedChip} ${css.plannedChipDismiss}`}
+                              onClick={() => removePlan(plan.id)}
+                              aria-label={`Dismiss planned move for ${m.paddockName}`}
+                              title="Dismiss this plan"
+                            >
+                              \u2715
+                            </button>
                           </span>
                         </div>
                       );
@@ -607,7 +665,11 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                             onClick={() => saveForm(m)}
                             disabled={!draft.date}
                           >
-                            {openForm.mode === 'planned' ? 'Schedule move' : 'Save move'}
+                            {openForm.mode === 'planned'
+                              ? openForm.editingPlanId
+                                ? 'Update plan'
+                                : 'Schedule move'
+                              : 'Save move'}
                           </button>
                         </div>
                       </div>
@@ -714,15 +776,48 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
         );
       })}
 
-      {structureEvents.length > 0 ? (
+      {structureEvents.length > 0 || structurePlans.length > 0 ? (
         <div className={css.groupBlock}>
           <div className={css.groupHead}>
             <span className={css.groupName}>Structure moves</span>
             <span className={css.groupMeta}>
               {structureEvents.length} event{structureEvents.length === 1 ? '' : 's'}
+              {structurePlans.length > 0
+                ? ` \u00b7 ${structurePlans.length} planned`
+                : ''}
             </span>
           </div>
           <div className={css.loggedMovesSection}>
+            {structurePlans.map((plan) => {
+              const sid = plan.toStructureId;
+              return (
+                <div key={plan.id} className={`${css.loggedMoveRow} ${css.plannedLine}`}>
+                  <div className={css.loggedMoveDirection}>
+                    <b>Planned \u00b7 {DIRECTION_LABEL[plan.direction]}</b>
+                    <span>
+                      {sid ? structureLabel(sid) : '(unknown)'}
+                      {' \u00b7 '}
+                      {formatLoggedDate(plan.plannedDate)}
+                      {' \u00b7 '}
+                      {plan.species}
+                      {plan.headCount != null ? ` \u00b7 ${plan.headCount} head` : ''}
+                      {plan.who ? ` \u00b7 ${plan.who}` : ''}
+                    </span>
+                  </div>
+                  <div className={css.plannedActions}>
+                    <button
+                      type="button"
+                      className={`${css.plannedChip} ${css.plannedChipDismiss}`}
+                      onClick={() => removePlan(plan.id)}
+                      aria-label={`Dismiss planned move into ${sid ? structureLabel(sid) : 'structure'}`}
+                    >
+                      \u2715
+                    </button>
+                  </div>
+                  {plan.notes ? <div className={css.loggedMoveMeta}>{plan.notes}</div> : null}
+                </div>
+              );
+            })}
             {structureEvents.map((ev) => {
               const sid = destStructureId(ev);
               return (

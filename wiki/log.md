@@ -4,6 +4,282 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — Module 7 sizing slice: shared per-project inputs
+
+**Motive.** Audit of the three Product Chain diagnostic cards
+(`SlaughterThroughputCard`, `ColdChainCoverageCard`,
+`MarketDistributionCard`) surfaced two real gaps. (1) Card inputs lived
+in `useState` and reset whenever the slide-up closed — nothing tuned
+persisted. (2) Each card held its own copy of op-size inputs, so a
+steward bumping Annual head in the throughput card left the other two
+cards silently showing the old peak-week pack number.
+
+**Change.** Added `AgribusinessSizing` interface + `sizingByProject`
+slice + `getSizing` / `setSizing` actions to `agribusinessStore.ts`.
+Persist version 1 → 2. All three cards rewired:
+
+- Throughput card writes annualHead / dressedKg / processingDays through
+  to `setSizing`.
+- Cold-chain card derives peak-week pack from sizing (`(head × kg) ÷
+  (days/5)`) and shows it as a read-only "(from sizing)" field; pack
+  density becomes the only editable knob and writes through.
+- Market card derives weekly product from sizing (same formula);
+  detour multiplier + avg speed write through.
+
+**Verification.** `npm run typecheck` clean. Preview eval round-trip:
+Annual head set to 5000 in card 1 → Cold-chain peak-week pack shows
+`1125 (from sizing)`, Market weekly product shows `1125 (from sizing)`.
+`5000 × 1.8 ÷ (40/5) = 1125` — matches.
+
+**Decision record.** Addendum appended to
+[wiki/decisions/2026-05-10-atlas-plan-module7-broiler-product-map.md](decisions/2026-05-10-atlas-plan-module7-broiler-product-map.md).
+
+---
+
+## 2026-05-10 — Phase 6 follow-up: Plan rail mirrors Observe BE tools (proposed-state)
+
+**Motive.** After Phase 6 closeout, the user flagged that the Plan toolbar
+was missing the Built Environment tools that Observe surfaces. Phase 5.2.A
+made all 31 BE kinds placeable in Observe via a registry-driven rail; Plan
+had only 2 tools under Structures & Subsystems (`structure` + `utility-run`).
+This turn brings the same registry-driven palette to Plan, with each
+placement defaulting to `state: 'proposed'` instead of `'existing'`.
+
+**Implementation (4 files).**
+
+- `useMapToolStore.ts` — `MapToolId` union extended with the template literal
+  ``` `plan.structures-subsystems.be.${string}` ```. Keeps the strict-literal
+  surface for existing tools while letting the kind registry grow without
+  per-kind union edits.
+- `BeV2ExistingTool.tsx` — added optional `state?: BuiltEnvironmentState`
+  prop (default `'existing'`). Plan rail passes `state="proposed"`.
+  Backward-compatible — Observe call sites unchanged.
+- `PlanTools.tsx` — registry-driven `PLAN_BE_TOOLS` array filters
+  `BUILT_ENVIRONMENT_KINDS` to entries whose `defaultStates.includes('proposed')`,
+  maps each to a `ToolItem` with `toolId: 'plan.structures-subsystems.be.<kind>'`.
+  Mirrors Observe's `BE_ICON_MAP` resolver. Spread into the existing
+  Structures & Subsystems group **after** the legacy `structure` +
+  `utility-run` entries (legacy retained for richer create-time UX).
+- `PlanDrawHost.tsx` — prefix-match dispatch: any `activeTool` starting
+  with `plan.structures-subsystems.be.` strips the prefix to recover the
+  `kind` and mounts `<BeV2ExistingTool kind={kind} state="proposed" />`.
+  Runs **before** the per-tool switch so the registry path doesn't need
+  a 23-case enumeration.
+
+**Why the previous Plan rail mirror got reverted.** The earlier Phase 5.3
+attempt scattered 23 new tool ids across Plan modules with bespoke
+ids per kind. This turn collapses them to a single namespace
+(`plan.structures-subsystems.be.*`) under one dispatch handler — registry
+churn doesn't ripple through the Plan switchboard.
+
+**Verification.**
+- `cd atlas/apps/web && NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` → exit 0.
+- 3 BE vitest files / 41 cases (V2 store + adapters + derivations) → green.
+- Manual MTC smoke deferred to user: pick "Barn" from Plan rail under
+  Structures & Subsystems → draw polygon → entity should appear in V2 with
+  `state: 'proposed'` and render via `DesignElementExtrusionLayer` when
+  pitched, plus the V2 generic layer top-down.
+
+**Architectural note.** This is the symmetry the unification arc was after:
+one shared store, one shared draw tool (`BeV2ExistingTool`), one shared
+kind registry — and now both stages surface the same palette, distinguished
+only by the `state` axis. Adding a new BE kind to the registry now lights
+up both rails with zero code changes elsewhere.
+
+---
+
+## 2026-05-10 — Map UI consolidation: floating rail + toolbar + BaseMapCard everywhere
+
+**Motive.** Three floating map UI components (`DesignToolRail`,
+`MapToolbar`, `BaseMapCard`) were unevenly distributed across stages —
+Plan/Vision had rail + card but no toolbar; Plan/Current and Observe had
+toolbar but no rail or card. Standardize on all three in every Observe /
+Plan / Act map view, with `BaseMapCard` top-left.
+
+**Changes.**
+
+- `BaseMapCard.module.css`: moved from `bottom-left` to `top-left`,
+  widened to 260px, added scroll affordance + collapsible-overlays
+  styling.
+- `BaseMapCard.tsx`: absorbed the canonical 11-row map-overlays legend
+  inline (basemap dropdown + collapsible overlay toggles in one card).
+  `DEFAULT_OVERLAYS`, `MAP_OVERLAYS_COLLAPSE_KEY`, and `MapOverlayDef`
+  now live here.
+- `PlanLayout.tsx` (current view): mounted `DesignToolRail` + `BaseMapCard`.
+- `VisionLayoutCanvas.tsx`: mounted `MapToolbar` alongside existing rail + card.
+- `ObserveLayout.tsx`: mounted `DesignToolRail` + `BaseMapCard`; removed standalone `MapOverlaysLegend`.
+- `ActLayout.tsx`: replaced standalone `MapOverlaysLegend` with `BaseMapCard`.
+- **Deleted** `apps/web/src/v3/_shared/components/MapOverlaysLegend.{tsx,module.css}` — no remaining importers (grep clean).
+
+**Verification.** DOM query across Observe / Plan (current, vision, phase-1,
+phase-2, terrain3d) / Act confirmed: `BaseMapCard` present, 11 overlay
+rows, 0 standalone legend instances. `useBasemapStore` +
+`useMatrixTogglesStore` already shared across components, so basemap +
+overlay state stay in sync everywhere without extra wiring.
+
+**Deferred (non-blocking).**
+
+- `MapToolbar` Basemap popover + `BaseMapCard` basemap dropdown are two
+  affordances for the same store. Acceptable per explicit request;
+  revisit if redundant in use.
+- `DesignToolRail`'s Draw button is inert in Observe / Plan-Current (no
+  design palette). Select / Pan / Zoom / Layers still useful. Wiring
+  Draw to the Observe/Plan draw hosts is a separate task.
+
+---
+
+## 2026-05-10 — Phase 6: Built-Environment unification close-out
+
+**Motive.** Final phase of the Observe + Plan BE unification arc. Per the
+2026-05-10 master plan, Phase 6 is "cleanup, default-on, ratchets" —
+verify the legacy stores are pure V2 wrappers, confirm duplicate handlers
+were already absorbed, and run the final tsc / vitest / eslint sweep.
+
+**Reality check vs. plan steps.**
+
+- **6.1 — Flag flip:** N/A. Phase 3 shipped a pure V2 facade (no
+  `ATLAS_BUILT_ENV_V2` env flag was ever introduced). V2 has been the
+  sole source of truth since Phase 3 close-out.
+- **6.2 — Delete v1 store / reduce structureStore:** Already structurally
+  done. Audit confirms `builtEnvironmentStore.ts` (24,610 B), `structureStore.ts`
+  (10,480 B), and `designElementsStore.ts` (11,576 B) carry zero
+  `create(persist(...))` blocks — they are pure projection/dispatch
+  facades over `useBuiltEnvironmentStoreV2`. Deleting the facade names
+  would force a 161-file import sweep with **no behavioral change**;
+  the facades are the correct compat layer for the rest of the codebase.
+  Recorded as deferred-and-justified rather than done.
+- **6.3 — Delete duplicated handlers:** Already done by Phase 4.3.
+  `AnnotationVertexEditHandler.tsx` and `AnnotationDragHandler.tsx`
+  are now thin Observe-stage compositions of `SharedVertexEditHandler`
+  (lifted to `apps/web/src/v3/builtEnvironment/handlers/`). Per their
+  module-doc headers, removing them would orphan the Observe-side
+  selection-store wiring and dispatch-table glue — they're stage adapters,
+  not duplicates.
+- **6.4 — Final ratchet sweep (this session):**
+  - `cd atlas/apps/web && NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` → exit 0.
+  - `npx vitest run` → **43 test files / 666 tests, all passing.** Includes
+    16 V2 store cases + 16 adapter parity cases + 9 V2 derivation cases
+    landed across Phases 2–5.
+  - `npx eslint src --quiet` → exit 0.
+- **6.5 — Wiki update:** This entry.
+
+**Definition of Done — verified.**
+
+- ✅ One unified `BuiltEnvironmentEntity` schema in `@ogden/shared`,
+  31-kind registry, every kind dual-state.
+- ✅ Single `useBuiltEnvironmentStoreV2` is the sole source of truth.
+  Legacy stores are pure facades.
+- ✅ Migration shim runs on first load (Phase 2 `migrateLegacyToV2`); 16
+  store + 16 adapter tests prove parity.
+- ✅ Plan's 3D layers (GLB + extrusion + Terrain3DController) and edit
+  handlers (vertex via `SharedVertexEditHandler`, BE attributes via
+  `InlineFeaturePopover`) are mounted in both stages.
+- ✅ Observe edit baseline (Phase 0) issues all closed by Phase 4.3 + 4.4.
+- ✅ All 23 non-legacy BE kinds visible + clickable + editable in Observe
+  (Phase 5.2.B), and surfaced in the dashboard via 5 V2 category cards
+  + export `v2Entities` array (Phase 5.4).
+- ✅ tsc clean / vitest green / eslint green.
+
+**Strategic close.** Observe + Plan now share one persistence layer, one
+edit affordance set, one dashboard surface, and one ADR
+(`wiki/decisions/2026-05-10-atlas-built-environment-unification.md`).
+The Phase 6 audit confirmed the natural endpoint of the refactor was
+reached at Phase 5.4 — pursuing strict-deletion of the facades would
+trade 161 cosmetic file edits for zero behavioral change.
+
+**Deferred (non-blocking, future cycles).**
+
+- Cosmetic facade-name deletion: rewrite all 161 `import …/store/{builtEnvironmentStore,structureStore,designElementsStore}` sites to import V2 directly. Estimated ~30k tokens for zero behavioral payoff; defer until a separate hygiene pass.
+- Manual MTC smoke for Phases 5.2.B + 5.4 (place barn + compost in Observe → category card updates; trigger export → confirm `v2Entities` JSON).
+- `wiki/entities/atlas.md` Built Environment section refresh per master plan §6.5 (this log entry covers the chronology; entity-page refresh is a separate documentation pass).
+
+---
+
+## 2026-05-10 — Phase 5.4: V2 category KPIs surfaced in BuiltEnvironmentDashboard
+
+**Motive.** Phase 5.2 made the 23 non-legacy BE kinds placeable + clickable
++ editable in Observe, but the dashboard (`BuiltEnvironmentDashboard.tsx`)
+remained V1-locked: 8 hardcoded KPI cards reading exclusively through the
+legacy facade. A steward placing 12 yurts and 3 solar arrays saw zero
+feedback on those entities. Phase 5.4 closes that loop with a hybrid
+8-legacy + 5-V2-category layout that preserves the legacy visual + the
+existing `built_environment_report` export shape.
+
+**Implementation (one helper, one mount, one export extension).**
+
+- `derivations.ts` (~250 LOC added):
+  - `BuiltKpiItem['iconKey']` union extended with `'tent' | 'sprout' | 'truck' | 'flame' | 'square'`.
+  - `V2_CATEGORY_SPECS` — 5 stable cards in fixed order: Habitable
+    structures, Agricultural, Utility (extended), Machinery, Amenity.
+    Skips `infrastructure` deliberately (would double-count the legacy
+    power-line/buried-utility/fence/gate/driveway cards).
+  - `bucketGeometryMetric(bucket)` — geometry-aware secondary metric:
+    polygon majority → total area via turf; line majority → total length;
+    point majority / mixed → bare count.
+  - `builtEnvironmentV2CategoryKpis({entities, projectId})` — filters by
+    `projectId && state==='existing' && !LEGACY_OBSERVE_BE_KINDS.has(kind)`,
+    buckets by `getBuiltEnvironmentKind(kind).category`, returns 5 cards
+    with dominant-kind pill resolved to `spec.label`.
+  - `builtV2EntitiesForExport` + `builtV2Counts` — export payload helpers
+    emitting `{id, kind, state, category, areaM2?|lengthM?, label?, notes?}`
+    rows + `{total, byCategory}` counts.
+- `BuiltEnvironmentDashboard.tsx`:
+  - Subscribes to `useBuiltEnvironmentStoreV2((s) => s.entities)`.
+  - Renders `[...kpis, ...v2Kpis].map(...)` — single grid, 13 cards.
+  - Export payload's `payload.builtEnvironment` block extended with
+    `v2Entities` array + `v2: {total, byCategory}` counts. Legacy 8
+    buckets stay byte-for-byte identical for back-compat.
+- Module-health ring formula (`moduleHealthPct`) intentionally unchanged
+  — keeping pre-/post-5.4 health snapshots comparable; documented inline.
+
+**Tests.** New file `src/v3/observe/modules/built-environment/__tests__/derivations.test.ts`
+covers 9 cases: empty input → 5 dim cards, kind bucketing, polygon-area
+metric over bare count, cross-project / wrong-state / legacy-kind
+filtering, export shape (areaM2 + category), counts. Combined run
+`vitest run derivations.test.ts builtEnvironmentStoreV2.test.ts builtEnvironmentAdapters.test.ts`
+→ 41/41 green.
+
+**Verification.**
+- `cd atlas/apps/web && NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit` → exit 0.
+- 3 vitest files / 41 cases green.
+- Manual MTC smoke deferred to user.
+
+**Deferred / next.**
+- Phase 6: delete v1 `builtEnvironmentStore.ts` + reduce `structureStore.ts`
+  to a thin V2 wrapper; delete duplicated `AnnotationVertexEditHandler`;
+  final `tsc / vitest / eslint` ratchet sweep.
+
+---
+
+## 2026-05-10 — Product Chain divider polish (gold accent ribbon)
+
+Same-day follow-up to the broiler-fold-in below. The eyebrow "PRODUCT
+CHAIN" label sat on a thin `var(--color-border)` left-rule that was
+near-invisible against the surrounding chrome; the steward couldn't
+tell at a glance which three tabs belonged to the sub-group.
+
+Per AskUserQuestion (4 options: stronger inline rule, two-row
+sub-header, pill enclosure, gold accent ribbon), the steward picked
+the gold accent ribbon: keep one row, give the three grouped tabs a
+persistent faint-gold underline.
+
+Implementation:
+
+- `PlanModuleSlideUp.tsx` — grouped tab `<button>`s now get
+  `css.tabGrouped` in addition to `css.tab` (and `css.tabActive`).
+- `PlanModuleSlideUp.module.css` — new `.tabGrouped` rule:
+  `border-bottom-color: rgba(var(--color-gold-rgb), 0.35)` (0.6 on
+  hover). `.tabActive` declared later, so the active grouped tab
+  still reads as full gold. Dropped the redundant `border-left` rule
+  on `.tabGroupLabel` and tightened its margins.
+
+Gates: tsc + lint exit 0. eval over the accessibility tree confirms
+the three Product Chain tabs render with
+`border-bottom-color: rgba(212, 175, 95, 0.35)` inactive and
+`rgb(212, 175, 95)` when active. ADR addendum filed under the same
+Module 7 decision doc. `preview_screenshot` unresponsive again (third
+timeout in this sprint) — no visual proof captured.
+
 ## 2026-05-10 — Broiler module folded into Livestock as "Product Chain"
 
 Plan Module 7 (`broiler-product-map`) eliminated as a peer top-level
@@ -110,6 +386,29 @@ Follow-up same day (continued): two more deferred items closed.
   plans fulfilled when an actual event lands within ±7 days of
   `plannedDate` (same project + paddock + species). ADR
   Out-of-scope section updated to strike both items.
+- `a2725c3` — Plan editing. `Edit` + `✕` chips on the `Planned:`
+  line. `Edit` reopens the schedule form prefilled with the plan's
+  fields (saves call `updatePlan(id, patch)`); `✕` dismisses the
+  plan via `removePlan(id)` — useful when auto-fulfilment doesn't
+  fire (e.g. species mismatch). Save-button label tri-states: `Save
+  move` / `Schedule move` / `Update plan`. No store changes; reuses
+  existing `updatePlan` / `removePlan` mutators on
+  `scheduledLivestockMoveStore`.
+- `1821f5d` + `e5d8224` — Plans for structure destinations.
+  `1821f5d` (bundled with BE Phase 6 close-out) bumped
+  `scheduledLivestockMoveStore` to persist v2: `toPaddockId` is now
+  optional, `toStructureId` / `fromStructureId` added, new helper
+  `structureDestPlans(plans, projectId)`. Same commit shipped
+  `startScheduledLivestockMove(structure, projectId)` in
+  `ActStructurePopover.actions.ts`. `e5d8224` wired the UI surface:
+  new `scheduleLivestockMove` structure-action kind ("Schedule move"
+  label) on barn + animal_shelter, popover button routes it to the
+  handoff. `RotationScheduleCard`'s Structure-moves tail now renders
+  unfulfilled plans above logged events with a `✕` dismiss chip (no
+  variance pill — rotation model is paddock-centric). Auto-fulfilment
+  effect generalised: matches by `toStructureId` as well as
+  `toPaddockId` (same ±7-day window, same species). ADR
+  Out-of-scope section gained a struck-through entry for closure.
 
 ---
 

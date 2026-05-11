@@ -64,10 +64,48 @@ export interface MarketNode {
   updatedAt: string;
 }
 
+/**
+ * Per-project sizing inputs shared across the three Module 7 diagnostic
+ * cards. Lives in the store (not card-local `useState`) so that:
+ *   - inputs persist across slide-up open/close and across reloads
+ *     (same `persist` boundary as the entities themselves),
+ *   - the three cards derive consistent rollups (peak-week pack,
+ *     weekly product throughput) from one canonical input rather than
+ *     each holding its own copy that silently goes stale.
+ *
+ * `getSizing(projectId)` returns DEFAULT_SIZING for unknown projects;
+ * `setSizing(projectId, patch)` upserts. Defaults match the 2,000-bird
+ * pastured viability floor named in the ADR.
+ */
+export interface AgribusinessSizing {
+  /** Annual head count produced through this line. */
+  annualHead: number;
+  /** Average dressed weight per bird, kg. */
+  dressedKg: number;
+  /** Processing days per year (i.e. days the slaughter line actually runs). */
+  processingDays: number;
+  /** Carton/freezer pack density, kg/m³. */
+  packDensityKgPerM3: number;
+  /** Detour multiplier for drive-time rollup (great-circle → road km). */
+  detourMultiplier: number;
+  /** Average drive speed for drive-time rollup, km/h. */
+  avgSpeedKmh: number;
+}
+
+export const DEFAULT_SIZING: AgribusinessSizing = {
+  annualHead: 2000,
+  dressedKg: 1.8,
+  processingDays: 40,
+  packDensityKgPerM3: 250,
+  detourMultiplier: 1.3,
+  avgSpeedKmh: 60,
+};
+
 interface AgribusinessState {
   slaughterPoints: SlaughterPoint[];
   coldChainUnits: ColdChainUnit[];
   marketNodes: MarketNode[];
+  sizingByProject: Record<string, AgribusinessSizing>;
 
   addSlaughterPoint: (p: SlaughterPoint) => void;
   updateSlaughterPoint: (id: string, updates: Partial<SlaughterPoint>) => void;
@@ -80,15 +118,19 @@ interface AgribusinessState {
   addMarketNode: (n: MarketNode) => void;
   updateMarketNode: (id: string, updates: Partial<MarketNode>) => void;
   deleteMarketNode: (id: string) => void;
+
+  getSizing: (projectId: string) => AgribusinessSizing;
+  setSizing: (projectId: string, patch: Partial<AgribusinessSizing>) => void;
 }
 
 export const useAgribusinessStore = create<AgribusinessState>()(
   persist(
     temporal(
-      (set) => ({
+      (set, get) => ({
         slaughterPoints: [],
         coldChainUnits: [],
         marketNodes: [],
+        sizingByProject: {},
 
         addSlaughterPoint: (p) =>
           set((s) => ({ slaughterPoints: [...s.slaughterPoints, p] })),
@@ -122,10 +164,23 @@ export const useAgribusinessStore = create<AgribusinessState>()(
           })),
         deleteMarketNode: (id) =>
           set((s) => ({ marketNodes: s.marketNodes.filter((x) => x.id !== id) })),
+
+        getSizing: (projectId) =>
+          get().sizingByProject[projectId] ?? DEFAULT_SIZING,
+        setSizing: (projectId, patch) =>
+          set((s) => ({
+            sizingByProject: {
+              ...s.sizingByProject,
+              [projectId]: {
+                ...(s.sizingByProject[projectId] ?? DEFAULT_SIZING),
+                ...patch,
+              },
+            },
+          })),
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-agribusiness', version: 1 },
+    { name: 'ogden-agribusiness', version: 2 },
   ),
 );
 

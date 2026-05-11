@@ -27,7 +27,11 @@ import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
 import SlaughterPointTool from './tools/SlaughterPointTool.js';
 import ColdChainUnitTool from './tools/ColdChainUnitTool.js';
 import MarketNodeTool from './tools/MarketNodeTool.js';
+import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
+
+/** Prefix used by registry-driven Plan BE tools (mirrors Observe rail). */
+const PLAN_BE_PREFIX = 'plan.structures-subsystems.be.';
 
 interface Props {
   map: MaplibreMap;
@@ -39,6 +43,23 @@ export default function PlanDrawHost({ map, projectId }: Props) {
 
   if (!activeTool || !activeTool.startsWith('plan.') || !projectId) {
     return null;
+  }
+
+  // Registry-driven Plan BE dispatch: tool ids of shape
+  // `plan.structures-subsystems.be.<kind>` mount BeV2ExistingTool with
+  // `state: 'proposed'`. Mirrors the Observe rail's registry-driven path.
+  if (activeTool.startsWith(PLAN_BE_PREFIX)) {
+    const kind = activeTool.slice(PLAN_BE_PREFIX.length);
+    return (
+      <div className={css.dock}>
+        <BeV2ExistingTool
+          map={map}
+          projectId={projectId}
+          kind={kind}
+          state="proposed"
+        />
+      </div>
+    );
   }
 
   let tool: React.ReactNode = null;
