@@ -4,6 +4,79 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-11 — Shared module-nav primitives (Plan + Act)
+
+**Motive.** Plan and Act stages each carried parallel copies of the
+bottom-anchored module slide-up and module-bar tile row. Visuals
+were already aligned but the code was duplicated, drift was setting
+in (Observe, the third stage built off the same template, had
+already diverged on tab grouping and tile chrome), and every CSS
+tweak meant editing two or three files.
+
+**Change.** Extracted two generic primitives into
+`apps/web/src/v3/_shared/moduleNav/`:
+- **`ModuleSlideUp`** — scrim, sheet, header, grouped-tab row,
+  focus trap, Suspense fallback. Card body via `renderCard` render
+  prop. Tab grouping renders a gold uppercase group label when
+  `card.group` changes vs. previous tab, plus a faint gold
+  underline on grouped tabs.
+- **`ModuleBar<TModule>`** — generic tile row. Click semantics
+  shared. Status indicator inside the tile is a render prop
+  (`renderTileIndicator?`) so a future Observe migration keeps its
+  per-task subseg pills inside shared tile chrome. Telemetry via
+  `onTileInteraction(module, eventType)`.
+
+Plan and Act wrappers (`PlanModuleSlideUp`, `PlanModuleBar`,
+`ActModuleSlideUp`, `ActModuleBar`) now own only their lazy card
+imports, `renderCard` switch, and stage label. Four legacy CSS
+modules deleted (Plan + Act × slide-up + bar).
+
+**Observe deferred.** Steward reverted the Observe wrapper edits
+mid-implementation. Observe stays on its local legacy
+`v3/observe/components/ModuleSlideUp.{tsx,module.css}` and
+`ObserveModuleBar.{tsx,module.css}`. The shared primitives are
+already shaped to accept Observe whenever that migration is picked
+back up — `renderTileIndicator` is the seam for the task-status
+subsegments and `OBSERVE_MODULE_CARDS` can gain optional `group?`
+fields without breaking.
+
+**Verification.** `tsc --noEmit` clean for all touched files;
+preexisting branch errors (`matrixTogglesStore`,
+`DesignElementGlbLayer` removal, `MapToolId` enum work) unrelated.
+Pixel-level browser verification recommended pre-merge but not run
+to completion in-session (screenshot tool timeouts); shared CSS is
+copied byte-for-byte from the Plan source, so visible delta is
+expected to be zero for Plan and Act.
+
+**Decision filed:** [2026-05-11-atlas-shared-module-nav.md](decisions/2026-05-11-atlas-shared-module-nav.md)
+
+---
+
+## 2026-05-11 — deck.gl ScenegraphLayer migration + 3D feature coverage
+
+**Motive.** Atlas's bespoke three.js custom MapLibre layer rendered 14
+structure kinds as a shared grey box and excluded vegetation,
+earthworks, and zone markers from 3D entirely. The
+`OGDEN_LandOS_3D_Models_Briefing.md` proposed migrating to deck.gl's
+`ScenegraphLayer` via `MapboxOverlay` to unlock per-instance scenegraph
+URLs, picking, PBR lighting, and instanced rendering.
+
+**Change (Phases 1–5 of ADR 2026-05-11-atlas-deckgl-scenegraph-migration).**
+- **P1.** New `<DeckOverlay>` wraps `MapboxOverlay`; `DesignElementScenegraphLayer.tsx` replaces the retired three.js `DesignElementGlbLayer.tsx`. Mounted in Plan + Observe canvases.
+- **P2.** All 14 structure kinds got per-kind procedural GLBs (yurt with conical roof, prayer-pavilion with dome, fuel-station with canopy, etc.) authored by `scripts/gen-structure-glbs.mjs` against shared `scripts/lib/glb-writer.mjs` + `scripts/lib/primitives.mjs`.
+- **P3.** Vegetation category — 5 new kinds (oak-tree, pine-tree, apple-tree, shrub, hedgerow) wired through `BUILT_ENVIRONMENT_KINDS`, `elementCatalog`, `elementHeights`. 4 procedural GLBs (hedgerow stays flat — line geometry).
+- **P4.** Earthworks (berm, raised-bed, terrace) + zone markers (zone-0…zone-5) — 9 new kinds, procedural GLBs in `public/models/earthworks/` and `public/models/zone-markers/`.
+- **P5.** Per-instance `rotationDeg` + new `scaleMul` on `BuiltEnvironmentEntity.proposed`. `ScenegraphLayer` reads them per instance, `onClick` opens existing inline-edit popover via `openBeInlineEditById`. Generic BE edit schema gained rotation + scale fields for GLB kinds.
+
+**Deferred (P6).** IndexedDB-backed custom GLB upload — substantial standalone slice, deferred to a follow-up session. Palette still shows "coming soon" stub.
+
+**Verification.** `tsc --noEmit` clean across Plan, Observe, shared.
+All asset scripts produce valid GLB byte signatures.
+
+**Decision filed:** [2026-05-11-atlas-deckgl-scenegraph-migration.md](decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md)
+
+---
+
 ## 2026-05-11 — Cross-stage Plan-map overlay for scheduled livestock moves
 
 **Motive.** Plan-stage map showed the design (paddocks, structures)
@@ -12290,3 +12363,21 @@ store back to its configured version. `preview_screenshot` timed out
 console-log evidence is sufficient. ADR
 `wiki/decisions/2026-05-11-atlas-persist-migrate-shim-sweep.md`
 appended with the verification block.
+
+
+## 2026-05-11 — Rotation surface polish (past-due tint + linked-pair hover)
+
+Shipped two deferred items from same-day sibling ADRs. (L)
+PlanScheduledMovesOverlay now tags pastDue = soonest < today on each
+destination feature; TEXT_LAYER paint uses data-driven case
+expressions to swap text colour to #a3401d and halo to #f5cbb8 when
+past-due. (E) RotationScheduleCard gains hoveredLinkedId state; rows
+with a linkedEventId wire hover handlers and the symmetric predicate
+hoveredLinkedId === ev.id || hoveredLinkedId === ev.linkedEventId
+applies .linkedPairHighlight (warm tint + #c4a265 left-border) to
+both legs. Applied to per-paddock logged-moves rows and the
+Structure-moves tail. Paint + CSS depth only — no schema/store
+changes. npm run typecheck clean; preview reload shows zero new
+console errors. Addenda filed in
+wiki/decisions/2026-05-11-atlas-plan-scheduled-moves-overlay.md and
+wiki/decisions/2026-05-11-atlas-livestock-rotate-linked-pair.md.

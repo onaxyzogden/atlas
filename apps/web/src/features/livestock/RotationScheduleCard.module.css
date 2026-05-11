@@ -447,6 +447,15 @@
   border-radius: 4px;
   background: rgba(232, 220, 200, 0.012);
   margin-bottom: 4px;
+  border-left: 2px solid transparent;
+  transition: background 120ms ease, border-left-color 120ms ease;
+}
+
+/* Linked-pair hover grouping: when hovering one leg of a rotate pair, both
+ *  legs light up with a warm tint matching the chain-link glyph palette. */
+.linkedPairHighlight {
+  background: rgba(196, 162, 101, 0.08);
+  border-left-color: rgba(196, 162, 101, 0.55);
 }
 
 .loggedMoveDirection {

@@ -163,8 +163,16 @@ Three call sites mint pairs at write time:
 - **Three-leg rotations** (paddock → stop → paddock with an
   intermediate rest). Pointer-pair generalizes poorly; a future
   schema move to a `pairId` group key would unlock this.
-- **Linked-pair visual grouping** (shared border / hover-highlight).
-  The chain-link glyph is enough signal for now.
+- ~~**Linked-pair visual grouping**~~ **Shipped 2026-05-11
+  (hover-highlight only).** `RotationScheduleCard` now tracks a
+  `hoveredLinkedId` state; rows that own a `linkedEventId` wire
+  `onMouseEnter`/`onMouseLeave` setting/clearing that state, and any
+  row whose `id` *or* `linkedEventId` matches the hovered partner
+  receives `.linkedPairHighlight` (warm background tint +
+  `#c4a265` left-border accent). Symmetric — hovering either leg
+  lights up both. Applied to per-paddock logged-moves rows and the
+  Structure-moves tail. Shared-border styling stayed deferred (the
+  background-tint highlight is enough signal).
 - **Per-leg variance pill** ("trip: 2d" badge when exit and entry
   dates differ). Easy follow-up once operators report whether they
   use the split-date disclosure.

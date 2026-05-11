@@ -122,10 +122,12 @@ events so basemap swaps don't drop the source.
 - **Per-paddock badge stacking.** When a paddock has many plans,
   the single badge collapses them all into a count. Multi-row
   callouts could surface each plan, but that's polish.
-- **Past-due styling.** Badges currently show the soonest date
-  regardless of whether it's in the past. A past-due plan probably
-  deserves a red badge tint; defer until the operator-feedback
-  signal confirms it matters.
+- ~~**Past-due styling.**~~ **Shipped 2026-05-11.** Each destination
+  bucket now tags `pastDue = soonest < today` on the feature, and the
+  `TEXT_LAYER` paint uses data-driven `case` expressions to swap the
+  text colour to `#a3401d` and the halo to `#f5cbb8` when past-due —
+  matching the Plan-stage warning palette. On-time plans keep the
+  default warm-cream halo.
 
 ## Related
 

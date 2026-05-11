@@ -71,6 +71,7 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
       }
     }
 
+    const today = new Date().toISOString().slice(0, 10);
     const features: GeoJSON.Feature[] = [];
     for (const b of buckets.values()) {
       let anchor: [number, number] | null = null;
@@ -89,6 +90,7 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
         anchor = st.center;
       }
       if (!anchor) continue;
+      const pastDue = b.soonest < today;
       const label = `\u{1F4C5} ${b.count} · ${b.soonest}`;
       features.push({
         type: 'Feature',
@@ -99,6 +101,7 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
           destId: b.destId,
           count: b.count,
           soonest: b.soonest,
+          pastDue,
           label,
         },
       });
@@ -146,8 +149,8 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
             'text-padding': 2,
           },
           paint: {
-            'text-color': '#2d2a23',
-            'text-halo-color': '#f7efd8',
+            'text-color': ['case', ['get', 'pastDue'], '#a3401d', '#2d2a23'],
+            'text-halo-color': ['case', ['get', 'pastDue'], '#f5cbb8', '#f7efd8'],
             'text-halo-width': 3,
             'text-halo-blur': 0.5,
           },
