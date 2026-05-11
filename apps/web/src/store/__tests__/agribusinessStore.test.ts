@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SIZING,
   computePeakWeekKg,
+  computeColdChainVerdict,
+  computeMarketVerdict,
   type AgribusinessSizing,
 } from '../agribusinessSizing.js';
 
@@ -54,5 +56,163 @@ describe('computePeakWeekKg', () => {
     // preview eval: head 5000 → 1125 kg/wk in both downstream cards.
     const sizing: AgribusinessSizing = { ...DEFAULT_SIZING, annualHead: 5000 };
     expect(computePeakWeekKg(sizing)).toBe(1125);
+  });
+});
+
+/**
+ * Verdict transitions are the steward-facing output of Module 7. Each
+ * boundary test pins one inequality so flipping `<` ↔ `<=` or `>` ↔
+ * `>=` breaks at least one assertion.
+ */
+describe('computeColdChainVerdict', () => {
+  it('returns no-units when no cold-chain units are placed (ignores capacity)', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 0,
+        totalCapacityM3: 999,
+        requiredM3: 10,
+      }),
+    ).toBe('no-units');
+  });
+
+  it('returns no-capacity when units are placed but capacity is 0', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 3,
+        totalCapacityM3: 0,
+        requiredM3: 10,
+      }),
+    ).toBe('no-capacity');
+  });
+
+  it('returns ok exactly at the 120 % boundary (>= 120)', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 1,
+        totalCapacityM3: 120,
+        requiredM3: 100,
+      }),
+    ).toBe('ok');
+  });
+
+  it('returns caution just under 120 %', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 1,
+        totalCapacityM3: 119.999,
+        requiredM3: 100,
+      }),
+    ).toBe('caution');
+  });
+
+  it('returns caution exactly at the 80 % boundary (>= 80)', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 1,
+        totalCapacityM3: 80,
+        requiredM3: 100,
+      }),
+    ).toBe('caution');
+  });
+
+  it('returns short just under 80 %', () => {
+    expect(
+      computeColdChainVerdict({
+        unitCount: 1,
+        totalCapacityM3: 79.999,
+        requiredM3: 100,
+      }),
+    ).toBe('short');
+  });
+});
+
+describe('computeMarketVerdict', () => {
+  it('returns no-nodes when no market nodes are placed', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 0,
+        totalDemandKg: 999,
+        largestKindKg: 999,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('no-nodes');
+  });
+
+  it('returns no-demand when nodes are placed but total demand is 0', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 3,
+        totalDemandKg: 0,
+        largestKindKg: 0,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('no-demand');
+  });
+
+  it('returns undersold just under 80 % coverage', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 2,
+        totalDemandKg: 79.999,
+        largestKindKg: 40,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('undersold');
+  });
+
+  it('treats coverage = 80 % as ok (boundary is strict `<`)', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 2,
+        totalDemandKg: 80,
+        largestKindKg: 40,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('ok');
+  });
+
+  it('treats coverage = 120 % as ok (boundary is strict `>`)', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 2,
+        totalDemandKg: 120,
+        largestKindKg: 60,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('ok');
+  });
+
+  it('returns oversold just over 120 % coverage', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 2,
+        totalDemandKg: 120.001,
+        largestKindKg: 60,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('oversold');
+  });
+
+  it('returns concentrated when one channel exceeds 70 % of in-band demand', () => {
+    // coverage 100 % (in-band); top channel = 71/100 = 71 %
+    expect(
+      computeMarketVerdict({
+        nodeCount: 4,
+        totalDemandKg: 100,
+        largestKindKg: 71,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('concentrated');
+  });
+
+  it('treats top channel = 70 % as ok (boundary is strict `>`)', () => {
+    expect(
+      computeMarketVerdict({
+        nodeCount: 4,
+        totalDemandKg: 100,
+        largestKindKg: 70,
+        weeklyProductKg: 100,
+      }),
+    ).toBe('ok');
   });
 });

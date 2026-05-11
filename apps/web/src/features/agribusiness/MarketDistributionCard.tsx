@@ -13,6 +13,8 @@ import * as turf from '@turf/turf';
 import {
   useAgribusinessStore,
   DEFAULT_SIZING,
+  computePeakWeekKg,
+  computeMarketVerdict,
   type MarketKind,
 } from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
@@ -47,12 +49,8 @@ export default function MarketDistributionCard({ projectId }: Props) {
   const sizing =
     useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
   const setSizing = useAgribusinessStore((s) => s.setSizing);
-  const { annualHead, dressedKg, processingDays, detourMultiplier, avgSpeedKmh } =
-    sizing;
-  const weeklyProductKg = useMemo(
-    () => (annualHead * dressedKg) / Math.max(processingDays / 5, 1),
-    [annualHead, dressedKg, processingDays],
-  );
+  const { detourMultiplier, avgSpeedKmh } = sizing;
+  const weeklyProductKg = useMemo(() => computePeakWeekKg(sizing), [sizing]);
 
   const view = useMemo(() => {
     const totalDemand = nodes.reduce((s, n) => s + (n.weeklyDemandKg || 0), 0);
@@ -65,24 +63,17 @@ export default function MarketDistributionCard({ projectId }: Props) {
     for (const n of nodes) {
       byKind[n.kind] += n.weeklyDemandKg || 0;
     }
-    const concentration =
-      totalDemand > 0
-        ? Math.max(...Object.values(byKind)) / totalDemand
-        : 0;
+    const largestKindKg =
+      nodes.length > 0 ? Math.max(...Object.values(byKind)) : 0;
+    const concentration = totalDemand > 0 ? largestKindKg / totalDemand : 0;
     const coverage =
       weeklyProductKg > 0 ? (totalDemand / weeklyProductKg) * 100 : 0;
-    const verdict =
-      nodes.length === 0
-        ? 'no-nodes'
-        : totalDemand === 0
-          ? 'no-demand'
-          : coverage < 80
-            ? 'undersold'
-            : coverage > 120
-              ? 'oversold'
-              : concentration > 0.7
-                ? 'concentrated'
-                : 'ok';
+    const verdict = computeMarketVerdict({
+      nodeCount: nodes.length,
+      totalDemandKg: totalDemand,
+      largestKindKg,
+      weeklyProductKg,
+    });
 
     // Drive-time rollup. Hub = arithmetic centroid of slaughter points
     // (great-circle distance is symmetric so a centroid is a good

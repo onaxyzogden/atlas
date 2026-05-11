@@ -74,32 +74,23 @@ export interface MarketNode {
  *     each holding its own copy that silently goes stale.
  *
  * `getSizing(projectId)` returns DEFAULT_SIZING for unknown projects;
- * `setSizing(projectId, patch)` upserts. Defaults match the 2,000-bird
- * pastured viability floor named in the ADR.
+ * `setSizing(projectId, patch)` upserts. Type, defaults, and the
+ * `computePeakWeekKg` helper live in `agribusinessSizing.ts` so they
+ * can be unit-tested without the `persist` middleware.
  */
-export interface AgribusinessSizing {
-  /** Annual head count produced through this line. */
-  annualHead: number;
-  /** Average dressed weight per bird, kg. */
-  dressedKg: number;
-  /** Processing days per year (i.e. days the slaughter line actually runs). */
-  processingDays: number;
-  /** Carton/freezer pack density, kg/m³. */
-  packDensityKgPerM3: number;
-  /** Detour multiplier for drive-time rollup (great-circle → road km). */
-  detourMultiplier: number;
-  /** Average drive speed for drive-time rollup, km/h. */
-  avgSpeedKmh: number;
-}
-
-export const DEFAULT_SIZING: AgribusinessSizing = {
-  annualHead: 2000,
-  dressedKg: 1.8,
-  processingDays: 40,
-  packDensityKgPerM3: 250,
-  detourMultiplier: 1.3,
-  avgSpeedKmh: 60,
-};
+export {
+  DEFAULT_SIZING,
+  computePeakWeekKg,
+  computeColdChainVerdict,
+  computeMarketVerdict,
+  type AgribusinessSizing,
+  type ColdChainVerdict,
+  type ColdChainInputs,
+  type MarketVerdict,
+  type MarketInputs,
+} from './agribusinessSizing.js';
+import type { AgribusinessSizing } from './agribusinessSizing.js';
+import { DEFAULT_SIZING } from './agribusinessSizing.js';
 
 interface AgribusinessState {
   slaughterPoints: SlaughterPoint[];
@@ -180,7 +171,14 @@ export const useAgribusinessStore = create<AgribusinessState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-agribusiness', version: 2 },
+    {
+      name: 'ogden-agribusiness',
+      // v2 added the `sizingByProject` slice; missing-key zustand merge
+      // leaves it `undefined` and consumers fall back to DEFAULT_SIZING,
+      // so v1 → v2 migration is a no-op.
+      version: 2,
+      migrate: (persisted) => persisted as AgribusinessState,
+    },
   ),
 );
 

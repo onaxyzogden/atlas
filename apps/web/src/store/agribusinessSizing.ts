@@ -51,3 +51,72 @@ export function computePeakWeekKg(sizing: AgribusinessSizing): number {
     Math.max(sizing.processingDays / 5, 1)
   );
 }
+
+export type ColdChainVerdict =
+  | 'no-units'
+  | 'no-capacity'
+  | 'ok'
+  | 'caution'
+  | 'short';
+
+export interface ColdChainInputs {
+  unitCount: number;
+  totalCapacityM3: number;
+  requiredM3: number;
+}
+
+/**
+ * Cold-chain coverage verdict. Cascade matches the original card
+ * implementation: empty / zero-capacity cases short-circuit before
+ * the percentage ladder so a "0 placed" steward sees the prompt to
+ * place a unit rather than a misleading "short" verdict.
+ *
+ * Coverage = totalCapacityM3 / requiredM3 × 100. The 120 / 80
+ * thresholds are inclusive (>=) — landing on 120 reads "ok" and
+ * landing on 80 reads "caution". Coverage of 0 (no required volume
+ * AND units placed with capacity) falls through to "short".
+ */
+export function computeColdChainVerdict(i: ColdChainInputs): ColdChainVerdict {
+  if (i.unitCount === 0) return 'no-units';
+  if (i.totalCapacityM3 === 0) return 'no-capacity';
+  const pct = i.requiredM3 > 0 ? (i.totalCapacityM3 / i.requiredM3) * 100 : 0;
+  if (pct >= 120) return 'ok';
+  if (pct >= 80) return 'caution';
+  return 'short';
+}
+
+export type MarketVerdict =
+  | 'no-nodes'
+  | 'no-demand'
+  | 'undersold'
+  | 'oversold'
+  | 'concentrated'
+  | 'ok';
+
+export interface MarketInputs {
+  nodeCount: number;
+  totalDemandKg: number;
+  /** Highest single-channel weekly demand, kg. */
+  largestKindKg: number;
+  weeklyProductKg: number;
+}
+
+/**
+ * Market distribution verdict. Cascade matches the original card:
+ * empty / zero-demand short-circuit; coverage band 80-120 % is "ok"
+ * unless one channel takes more than 70 % of total demand (then
+ * "concentrated"). Strict inequalities (`<` 80, `>` 120, `>` 0.7) —
+ * landing exactly on a boundary reads "ok".
+ */
+export function computeMarketVerdict(i: MarketInputs): MarketVerdict {
+  if (i.nodeCount === 0) return 'no-nodes';
+  if (i.totalDemandKg === 0) return 'no-demand';
+  const coverage =
+    i.weeklyProductKg > 0 ? (i.totalDemandKg / i.weeklyProductKg) * 100 : 0;
+  if (coverage < 80) return 'undersold';
+  if (coverage > 120) return 'oversold';
+  const concentration =
+    i.totalDemandKg > 0 ? i.largestKindKg / i.totalDemandKg : 0;
+  if (concentration > 0.7) return 'concentrated';
+  return 'ok';
+}
