@@ -4,6 +4,56 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-10 — LivestockMoveEvent v3 (from/to) + rotation-card rest variance
+
+Three commits closing Gaps A and C from the LivestockMoveCard
+post-merge audit (sibling ADR
+`2026-05-10-atlas-act-livestock-move-card.md`):
+
+- `5e3f1c4` — S2 lifts canonical `DIRECTION_OPTIONS` /
+  `SPECIES_OPTIONS` to `livestockMoveLogStore` (consumed by
+  `LivestockMoveCard` + `ActStructurePopover.actions`; `LivestockMoveTool`
+  still has inline copies, recorded as deferred). S3 adds a shared
+  `.hint` class on `actCard.module.css` and backports per-kind
+  empty-list hints to `MaintenanceLogCard` for parity.
+- `302f00b` — A2 schema extension. `LivestockMoveEvent` gains
+  `fromPaddockId` / `fromStructureId` / `toPaddockId` / `toStructureId`
+  (legacy `paddockId` / `structureId` kept `@deprecated` for read
+  fallback); persist v2→v3 migrate backfills `to*` from legacy
+  fields. New helpers `destPaddockId(e)` / `destStructureId(e)` /
+  `exitsFromPaddock()` / `structureDestEvents()`. `eventsByPaddock`
+  now matches on destination. `RotationScheduleCard` merges per-row
+  entries + exits (deduped by id; handles `rotate_through`) and
+  adds a *Structure moves* tail section listing structure-destination
+  events. `LivestockMoveCard` form replaced single Feature pair with
+  **To** + optional **From** pickers; conditional From column when
+  any event in a group has a recorded origin. Popover + draw-tool
+  inline-form skeletons updated to `toStructureId` / `toPaddockId`;
+  pragmatic deviation — no From picker added to those cramped
+  floating panels (deferred).
+- `306e182` — Gap C. `requiredDays` piped through `UpcomingMove`
+  from `recovery.requiredDays`. Walk-and-pair algorithm over union
+  of entries + exits (deduped by id, oldest→newest) tracks
+  `lastExitDate` and emits `RestPair` per entry; first-ever entries
+  quietly skip. One-line per-paddock summary
+  (`M of N entries on schedule · avg +Xd vs target`, plus worst-pair
+  callout when any pair was under-rested ≤ −3d) and per-entry
+  color-coded pills (`+Nd rest` green / `on time` neutral /
+  `−1d`/`−2d` amber / `−Nd` red at ≥3 under).
+
+Verification: `NODE_OPTIONS=--max-old-space-size=8192 npx tsc --noEmit`
+from `apps/web` exits 0 at each commit; manual smoke deferred
+(basemap tiles unavailable in dev). Deferred follow-ups recorded in
+the ADR: Gap B (inline write on rotation rows), From picker on
+popover + draw-tool inline forms, lifting `DIRECTION_OPTIONS` /
+`SPECIES_OPTIONS` in `LivestockMoveTool.tsx` (third S2 site),
+linked `rotate_through` exit/entry pair objects, forward-looking
+variance.
+
+ADR: `wiki/decisions/2026-05-10-atlas-livestock-move-event-v3.md`.
+
+---
+
 ## 2026-05-10 — Phase 4.3 retired as superseded
 
 The original Phase 4.3 plan in the BE unification ADR
@@ -11272,3 +11322,139 @@ happening.
   adapter can narrow to.
 - Migrating non-BE kinds (Zone, Crop, Path, Paddock, WaterNode, …)
   to a registry. They're not duplicated today.
+
+
+---
+
+## 2026-05-10 — Phase 4.3 + 4.4 shipped (vertex handler lifted, Observe BE → floating popover)
+
+Closed the remaining Phase-4 work in the BE unification plan. The earlier
+"Phase 4.3 retired as superseded" entry above ratified the schema-only
+unification (`beSchemaRegistry`); this entry covers the structural lift
+and the UX consolidation the user picked over `AskUserQuestion` (Option A:
+"Observe BE edits move to floating popover").
+
+**Phase 4.3 — Vertex-handler lifted to shared composition.**
+- new `apps/web/src/v3/builtEnvironment/handlers/SharedVertexEditHandler.tsx`
+  (~135 LOC) — owns the entire MapboxDraw `direct_select` lifecycle.
+  Takes a `VertexEditDispatch` prop with `geometryKindFor` /
+  `readLine` / `readPolygon` / `writeLine` / `writePolygon` /
+  `shouldSuppressForTool` / `featureIdPrefix`.
+- `apps/web/src/v3/plan/layers/PlanVertexEditHandler.tsx` rewritten as
+  a thin composition (~120 LOC, was 177): keeps Plan's per-kind
+  dispatch (zone / crop / paddock / structure incl. centroid recompute)
+  in this file; delegates lifecycle to the shared handler. Plan's gate
+  policy ("any active tool blocks") preserved.
+- `apps/web/src/v3/observe/components/draw/AnnotationVertexEditHandler.tsx`
+  rewritten as a composition (~75 LOC, was 142): re-uses
+  `LINESTRING_KINDS` / `POLYGON_KINDS` / `read*` / `write*` from
+  `annotationGeometryRegistry`. Observe's gate policy ("only `observe.*`
+  tools block") preserved.
+
+**Phase 4.4 — Observe BE edits unified on Plan's floating popover (Option A).**
+- new `apps/web/src/v3/builtEnvironment/inline/openBeInlineEdit.ts` —
+  single helper `openBeInlineEditByObserveKind(kind, id, fallbackAnchor?)`
+  that maps the legacy Observe `AnnotationKind` (camelCase) → V2
+  `kind` (kebab-case) → the matching `inlineEditSchemas.ts` builder →
+  `useInlineFormStore.open({ ...schema, anchor })`. Anchor defaults to
+  the entity's geometry centroid. Returns `false` for non-BE kinds so
+  callers fall through.
+- `apps/web/src/v3/observe/ObserveLayout.tsx` mounts
+  `<InlineFeaturePopover map={map} />` next to the existing
+  `<SelectionFloater />`. The slide-up `<AnnotationFormSlideUp />` stays
+  mounted in the overlay tray for non-BE Observe kinds.
+- `apps/web/src/v3/observe/components/SelectionFloater.tsx` `onEdit`
+  intercepts BE single-selection: tries `openBeInlineEditByObserveKind`
+  before falling through to `useAnnotationFormStore.open({ mode: 'edit' })`.
+  Batch edit (mixed-kind or multi-feature) still routes to the slide-up
+  unconditionally — the popover is single-feature only.
+- `apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts`
+  BE section gets a comment marker stating that the eight BE entries
+  now serve **create-mode only**; edit-mode is handled by the inline
+  popover. Field shapes still match `beSchemaRegistry` so create + edit
+  stay 1:1 visually.
+
+**Files touched:**
+- new: `apps/web/src/v3/builtEnvironment/handlers/SharedVertexEditHandler.tsx`
+- new: `apps/web/src/v3/builtEnvironment/inline/openBeInlineEdit.ts`
+- modified: `apps/web/src/v3/plan/layers/PlanVertexEditHandler.tsx`
+  (rewritten as composition)
+- modified: `apps/web/src/v3/observe/components/draw/AnnotationVertexEditHandler.tsx`
+  (rewritten as composition)
+- modified: `apps/web/src/v3/observe/ObserveLayout.tsx`
+  (`<InlineFeaturePopover map={map} />` mounted alongside the SelectionFloater)
+- modified: `apps/web/src/v3/observe/components/SelectionFloater.tsx`
+  (BE intercept in `onEdit`)
+- modified: `apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts`
+  (Phase 4.4 comment marker on the BE block)
+
+**Verification:**
+- `NODE_OPTIONS="--max-old-space-size=8192" npx tsc --noEmit` from
+  `apps/web` → exit 0.
+- `npx vitest run src/store/__tests__/builtEnvironmentAdapters.test.ts
+  src/store/__tests__/builtEnvironmentStoreV2.test.ts` → 32/32 pass.
+- Manual MTC smoke deferred to user (Auto Mode).
+
+**Plan posture:** Phases 4.3 + 4.4 closed. Remaining work in the BE
+unification plan: 5.2 (Observe rail extension), 5.3 (Plan taxonomy
+mirror), 5.4 (dashboard widening), Phase 6 (legacy-store deletion +
+final tsc/test/lint sweep).
+
+## 2026-05-10 — Phase 5.2.A: Observe rail surfaces all 31 BE kinds (place-only)
+
+**Outcome.** The Observe `built-environment` toolbar now lists every kind
+in `BUILT_ENVIRONMENT_KINDS` (31 total) instead of only the 8 originally-
+Observe ones. The 23 newly-surfaced kinds (cabin, yurt, tent-glamping,
+prayer-pavilion, pavilion, classroom, bathhouse, earthship, workshop,
+lookout, barn, greenhouse, shed, animal-shelter, compost, water-tank,
+water-pump-house, solar-array, machinery-shed, fuel-station,
+equipment-yard, fire-circle, parking) place directly into V2 with
+`state: 'existing'` via a generic placement tool — enough for
+inventorying brownfield/established sites.
+
+**Mechanism.**
+- New file `apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx`
+  — generic tool that reads `geometryType` from the registry to choose
+  `draw_point`/`draw_line_string`/`draw_polygon`, then on complete calls
+  `useBuiltEnvironmentStoreV2.getState().create({ projectId, kind,
+  state: 'existing', geometry })`.
+- `ObserveDrawHost.tsx` adds a default-case dispatcher: any
+  `observe.built-environment.<kind>` tool id whose `<kind>` is in the
+  registry but not in the bespoke set falls through to
+  `<BeV2ExistingTool kind={kind} />`. The 8 bespoke kinds keep their
+  existing per-kind components (BuildingTool, WellTool, …) so create-
+  time slide-up authoring of subtype/depthM/areaM2/placement/surface is
+  preserved.
+- `ObserveTools.tsx` now generates the rail's `built-environment` group
+  from the registry: bespoke 8 first (hand-picked icons + labels),
+  then the 23 registry-driven entries. Lucide icon names in the
+  registry resolve through a new `BE_ICON_MAP` table.
+- `useMapToolStore.ts` `MapToolId` union extended with the 23 new
+  `observe.built-environment.<kind>` ids.
+
+**What's deferred to 5.2.B (follow-up).** The 23 new kinds have no
+edit-mode schema builder yet — clicking a placed `barn` or `compost`
+in Observe currently does nothing post-Phase-4.4 (the inline popover
+needs an `inlineEditSchemas.ts` builder per kind). Until 5.2.B, the
+new kinds are place-then-vertex-edit only; vertex editing works
+through the shared handler from 4.3 because they're all polygons.
+
+**Files touched (Phase 5.2.A):**
+- *Created*:
+  `apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx`
+- *Modified*:
+  `apps/web/src/v3/observe/components/draw/ObserveDrawHost.tsx`,
+  `apps/web/src/v3/observe/tools/ObserveTools.tsx`,
+  `apps/web/src/v3/observe/components/measure/useMapToolStore.ts`
+
+**Verification:**
+- `NODE_OPTIONS="--max-old-space-size=8192" npx tsc --noEmit` from
+  `apps/web` → exit 0.
+- `npx vitest run src/store/__tests__/builtEnvironmentAdapters.test.ts
+  src/store/__tests__/builtEnvironmentStoreV2.test.ts` → 32/32 pass.
+- Manual MTC smoke deferred to user (Auto Mode).
+
+**Plan posture:** Phase 5.2.A shipped. 5.2.B (V2-existing inline edit
+schemas for the 23 new kinds), 5.3 (Plan taxonomy mirror), 5.4
+(dashboard widening), Phase 6 (legacy-store deletion + final
+tsc/test/lint sweep) remain.
