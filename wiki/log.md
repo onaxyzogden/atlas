@@ -4,6 +4,38 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-11 — Observe Human Context reskinned onto shared stageCard
+
+**Motive.** The Observe slide-up shared chrome with Plan/Act after the
+shared module-nav work, but the body of every Observe module still
+rendered against the monolithic `observe-port.css` — green buttons,
+bespoke hero cards, custom progress rings. Steward asked for the
+Human Context dashboard to "match the theme of the other two stages."
+
+**Change.** New shared `apps/web/src/v3/_shared/stageCard/stageCard.module.css`
+merges `planCard.module.css` and `actCard.module.css` (95% identical,
+Act was the superset) into one source of truth. Hero gradient picked
+by `data-stage="plan|act|observe"` — Observe gets a new earth-green
+hue distinct from Plan bronze and Act violet. All four Human Context
+components (`HumanContextDashboard.tsx`, `StewardSurveyDetail.tsx`,
+`IndigenousRegionalContextDetail.tsx`, `VisionDetail.tsx`) rewritten
+onto the shared primitives + a local `humanContext.module.css` for
+the layout extras (KPI grid, gold conic-gradient `Ring`, eyebrow,
+synthesis block, blockquote, capacity bar, snapshot metric). Green
+inline-styled buttons replaced with gold `.btn`. Plan/Act callsites
+left on the legacy CSS files for now — migration is mechanical but
+high-volume (60+ files including the v1/v2 Observe cards in
+`features/observe/`).
+
+**Outcome.** Human Context dashboard + three detail pages now read
+as visually equivalent to a Plan or Act card slide-up body, with
+just the hero hue differing. Typecheck clean. The other six Observe
+modules still render against `observe-port.css` and will follow the
+same pattern in subsequent sessions. ADR:
+[2026-05-11-atlas-observe-human-context-reskin.md](decisions/2026-05-11-atlas-observe-human-context-reskin.md).
+
+---
+
 ## 2026-05-11 — Custom GLB upload shipped (deck.gl P6)
 
 **Motive.** The deck.gl ScenegraphLayer migration deferred custom user
@@ -27,6 +59,41 @@ it never surfaces as a bare rail button.
 **Verification.** `tsc --noEmit` clean. Vision Layout view at
 `/v3/project/mtc/plan` mounts the palette bottom-right; no console
 errors; `custom-glb` absent from the Built Environment rail.
+
+**Verification addendum (2026-05-11 follow-up).** End-to-end preview
+run drove upload → persist → reload → rehydrate via `preview_eval`
+on commit `2278c4b`:
+
+- *Phase 1 (upload + persist).* Synthesised a `File` from
+  `/models/structures/yurt.glb` (6 652 bytes), assigned to the palette's
+  hidden file input via `DataTransfer`, dispatched `change`. Within
+  ~500 ms the catalog row appeared in `localStorage` under
+  `ogden:custom-models:catalog` (1 entry, `label: "test-yurt"`,
+  `sha256: 2d6447…fee`) and the IDB blob landed in
+  `ogden-custom-models/blobs` keyed by the same UUID. Palette tile
+  rendered. ✅
+- *Phase 2 (arm/toggle).* Tile-click cycled `data-active` false → true
+  → false → true exactly as the `activeTool === CUSTOM_GLB_TOOL_ID &&
+  activeCustomModelId === entry.id` derivation predicts. ✅
+- *Phase 3 (reload + rehydrate).* After `location.reload()` the tile
+  re-appeared with the same UUID; arming it post-reload set
+  `data-active=true` without a console error. Direct IDB read +
+  fresh `URL.createObjectURL` confirmed the blob survived (magic
+  `0x46546c67` = "glTF", 6 652 bytes unchanged). Transient
+  `customDrawSelectionStore` correctly did **not** persist
+  (`tileActive=false` immediately after reload). ✅
+- *Phase 4 (map placement).* Deferred to manual — MapboxDraw point
+  click cannot be cleanly synthesised from `preview_eval` (canvas
+  pixel → lng/lat projection is internal to MapLibre pointer handlers).
+  Screenshot captured of armed tile state. Operator-driven
+  click → render → reload → re-render smoke remains a manual gate.
+- *Phase 5 (cleanup).* Trash button on the tile cleared both
+  `localStorage` catalog (→ `[]`) and IDB `blobs` (→ no keys); palette
+  reverted to the empty-state message. ✅
+- *Issue surfaced (non-blocking).* React `validateDOMNesting` warning:
+  `<button>` cannot appear as a descendant of `<button>` —
+  `CustomModelPalette` nests the trash button inside the tile button.
+  Functional today; logged as a follow-up.
 
 **Reference.** [wiki/decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md](decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md) — P6 section.
 
