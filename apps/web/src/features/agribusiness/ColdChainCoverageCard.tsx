@@ -8,19 +8,16 @@
  * no freezer headroom, the slaughter line backs up.
  */
 
-import { useMemo, useState } from 'react';
-import { useAgribusinessStore } from '../../store/agribusinessStore.js';
+import { useMemo } from 'react';
+import {
+  useAgribusinessStore,
+  DEFAULT_SIZING,
+} from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
 
 interface Props {
   projectId: string;
 }
-
-/**
- * Default pack density — frozen-bird carton averages ~250 kg/m³ once
- * stacked and accounting for circulation gaps. Steward can override.
- */
-const DEFAULT_PACK_DENSITY_KG_PER_M3 = 250;
 
 export default function ColdChainCoverageCard({ projectId }: Props) {
   const allUnits = useAgribusinessStore((s) => s.coldChainUnits);
@@ -29,16 +26,20 @@ export default function ColdChainCoverageCard({ projectId }: Props) {
     [allUnits, projectId],
   );
 
-  // Peak-week pack volume input — defaults to the same 2,000-bird /
-  // 1.8-kg sizing as SlaughterThroughputCard. Cards are intentionally
-  // independent inputs so stewards can what-if one without disturbing
-  // the other.
-  const [peakWeekKg, setPeakWeekKg] = useState(720);
-  const [packDensity, setPackDensity] = useState(DEFAULT_PACK_DENSITY_KG_PER_M3);
+  // Sizing inputs are shared with SlaughterThroughputCard via the
+  // store — bumping annual head in the throughput card now flows
+  // through here automatically. Pack density stays adjustable for
+  // carton-format tuning (frozen-bird carton averages ~250 kg/m³).
+  const sizing =
+    useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
+  const setSizing = useAgribusinessStore((s) => s.setSizing);
+  const { annualHead, dressedKg, processingDays, packDensityKgPerM3 } = sizing;
 
   const view = useMemo(() => {
+    const peakWeekKg =
+      (annualHead * dressedKg) / Math.max(processingDays / 5, 1);
     const totalCapacityM3 = units.reduce((s, u) => s + (u.capacityM3 || 0), 0);
-    const requiredM3 = peakWeekKg / Math.max(packDensity, 1);
+    const requiredM3 = peakWeekKg / Math.max(packDensityKgPerM3, 1);
     const coveragePct =
       requiredM3 > 0 ? Math.min(999, (totalCapacityM3 / requiredM3) * 100) : 0;
     const verdict =
@@ -51,8 +52,8 @@ export default function ColdChainCoverageCard({ projectId }: Props) {
             : coveragePct >= 80
               ? 'caution'
               : 'short';
-    return { totalCapacityM3, requiredM3, coveragePct, verdict };
-  }, [units, peakWeekKg, packDensity]);
+    return { peakWeekKg, totalCapacityM3, requiredM3, coveragePct, verdict };
+  }, [units, annualHead, dressedKg, processingDays, packDensityKgPerM3]);
 
   return (
     <section className={css.card}>
@@ -72,10 +73,9 @@ export default function ColdChainCoverageCard({ projectId }: Props) {
           <span className={css.inputLabel}>Peak-week pack (kg)</span>
           <input
             className={css.inputControl}
-            type="number"
-            min={0}
-            value={peakWeekKg}
-            onChange={(e) => setPeakWeekKg(Number(e.target.value))}
+            type="text"
+            readOnly
+            value={`${Math.round(view.peakWeekKg)} (from sizing)`}
           />
         </label>
         <label className={css.inputField}>
@@ -84,8 +84,12 @@ export default function ColdChainCoverageCard({ projectId }: Props) {
             className={css.inputControl}
             type="number"
             min={1}
-            value={packDensity}
-            onChange={(e) => setPackDensity(Number(e.target.value))}
+            value={packDensityKgPerM3}
+            onChange={(e) =>
+              setSizing(projectId, {
+                packDensityKgPerM3: Number(e.target.value),
+              })
+            }
           />
         </label>
         <label className={css.inputField}>
