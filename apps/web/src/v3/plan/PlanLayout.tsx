@@ -36,6 +36,7 @@ import DesignElementLayers from './canvas/layers/DesignElementLayers.js';
 import BaseMapCard from './canvas/BaseMapCard.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
+import { PlanViewProvider } from './PlanViewContext.js';
 import StageShell from '../_shell/StageShell.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
@@ -224,6 +225,7 @@ export default function PlanLayout() {
   );
 
   return (
+    <PlanViewProvider view={activeView}>
     <StageShell
       canvasLabel="Plan canvas"
       leftRailLabel="Plan tools"
@@ -251,15 +253,13 @@ export default function PlanLayout() {
         />
       }
       bottomTray={
-        isVisionCanvas ? null : (
-          <PlanModuleBar
-            activeModule={validModule}
-            onSelectModule={handleSelectModule}
-            slideUpOpen={slideUpOpen && validModule !== null}
-            onOpenSlideUp={() => setSlideUpOpen(true)}
-            onCloseSlideUp={() => setSlideUpOpen(false)}
-          />
-        )
+        <PlanModuleBar
+          activeModule={validModule}
+          onSelectModule={handleSelectModule}
+          slideUpOpen={slideUpOpen && validModule !== null}
+          onOpenSlideUp={() => setSlideUpOpen(true)}
+          onCloseSlideUp={() => setSlideUpOpen(false)}
+        />
       }
       overlay={
         <PlanModuleSlideUp
@@ -274,5 +274,6 @@ export default function PlanLayout() {
         />
       }
     />
+    </PlanViewProvider>
   );
 }
