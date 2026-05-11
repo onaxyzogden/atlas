@@ -167,8 +167,18 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
 
 ## Out of scope (deferred)
 
-- **Gap B.** Inline write affordance on `RotationScheduleCard` rows
-  (so an operator can log a move without switching tabs).
+- ~~**Gap B.** Inline write affordance on `RotationScheduleCard` rows
+  (so an operator can log a move without switching tabs).~~
+  **Closed 2026-05-10 (commit `4fca1b3`).** Each row gained a
+  "+ Log move" button next to the action label; clicking expands a
+  compact in-row form (Date · Direction · Species · Head · From
+  optional · Notes optional · Save) that calls `addEvent` with
+  `toPaddockId = p.id`. Only one form open at a time. Destination
+  is implicit (this row's paddock), so the form is narrower than
+  `LivestockMoveCard`'s. Species default is the paddock's first
+  declared species (falls back to `sheep`); direction defaults to
+  `move_in`. The logged-moves + rest-variance block below the form
+  refreshes automatically via store subscription.
 - **From picker on popover + draw-tool inline forms.** Pragmatic UX
   deviation; popover/tool are 6-field cramped panels.
 - **Lift `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` in `LivestockMoveTool.tsx`.**
@@ -193,3 +203,5 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
 - `302f00b` — A2 schema extension, persist v3, in-card-form To/From,
   rotation-card exits + Structure-moves tail.
 - `306e182` — Gap C rest-variance summary + per-entry badges.
+- `4fca1b3` — Gap B inline `+ Log move` affordance on each
+  rotation row.
