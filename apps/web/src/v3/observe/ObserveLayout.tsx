@@ -23,6 +23,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
 import WaterOverlay from '../components/overlays/WaterOverlay.js';
 import ObserveTools from './tools/ObserveTools.js';
@@ -70,6 +71,10 @@ export default function ObserveLayout() {
 
   const project = useV3Project(params.projectId);
   const updateProject = useProjectStore((s) => s.updateProject);
+  const activeTool = useMapToolStore((s) => s.activeTool);
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const armedDrawKind =
+    activeTool && activeTool.startsWith('observe.') ? activeTool : null;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
@@ -143,9 +148,9 @@ export default function ObserveLayout() {
               />
               <DesignToolRail
                 map={map}
-                activeKind={null}
+                activeKind={armedDrawKind}
                 projectId={params.projectId ?? ''}
-                onDisarmDraw={() => {}}
+                onDisarmDraw={() => setActiveTool(null)}
                 selectedId={null}
                 setSelectedId={() => {}}
               />

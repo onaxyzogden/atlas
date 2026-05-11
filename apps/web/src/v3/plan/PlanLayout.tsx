@@ -24,6 +24,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
+import { useMapToolStore } from '../observe/components/measure/useMapToolStore.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
@@ -104,6 +105,10 @@ export default function PlanLayout() {
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('current');
   const [activeKind, setActiveKind] = useState<string | null>(null);
+  const activeTool = useMapToolStore((s) => s.activeTool);
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const armedPlanDrawKind =
+    activeTool && activeTool.startsWith('plan.') ? activeTool : null;
 
   // Plan stage assumes phases exist for phase-tagging on every drawn feature.
   // Seed the default 4 phases (Phase 1–4) on entry so the inline draw popovers'
@@ -173,9 +178,9 @@ export default function PlanLayout() {
           />
           <DesignToolRail
             map={map}
-            activeKind={null}
+            activeKind={armedPlanDrawKind}
             projectId={id}
-            onDisarmDraw={() => {}}
+            onDisarmDraw={() => setActiveTool(null)}
             selectedId={null}
             setSelectedId={() => {}}
           />
