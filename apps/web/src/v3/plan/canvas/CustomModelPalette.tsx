@@ -116,21 +116,25 @@ export default function CustomModelPalette() {
                 activeTool === CUSTOM_GLB_TOOL_ID &&
                 activeCustomModelId === entry.id;
               return (
-                <button
+                <div
                   key={entry.id}
-                  type="button"
-                  className={css.tile}
-                  data-active={isActive}
-                  onClick={() => onTileClick(entry.id)}
-                  title={`${entry.label} (${(entry.sizeBytes / 1024).toFixed(0)} KB)`}
+                  style={{ position: 'relative', display: 'flex' }}
                 >
-                  <Upload size={16} strokeWidth={1.75} aria-hidden="true" />
-                  <span className={css.tileLabel}>{entry.label}</span>
+                  <button
+                    type="button"
+                    className={css.tile}
+                    data-active={isActive}
+                    onClick={() => onTileClick(entry.id)}
+                    title={`${entry.label} (${(entry.sizeBytes / 1024).toFixed(0)} KB)`}
+                    style={{ flex: 1 }}
+                  >
+                    <Upload size={16} strokeWidth={1.75} aria-hidden="true" />
+                    <span className={css.tileLabel}>{entry.label}</span>
+                  </button>
                   <button
                     type="button"
                     aria-label={`Remove ${entry.label}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       void remove(entry.id);
                     }}
                     style={{
@@ -142,11 +146,12 @@ export default function CustomModelPalette() {
                       color: 'var(--color-text-muted)',
                       cursor: 'pointer',
                       padding: 2,
+                      lineHeight: 0,
                     }}
                   >
                     <Trash2 size={10} strokeWidth={1.75} />
                   </button>
-                </button>
+                </div>
               );
             })}
           </div>
