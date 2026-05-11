@@ -61,6 +61,24 @@ needs to switch tabs to log a move against a paddock already
 visible on the rotation timeline. ADR Out-of-scope section
 updated to strike Gap B and record the closing commit.
 
+Follow-up same day (continued): two more deferred items closed.
+
+- `e248105` — S2 third-site cleanup. `LivestockMoveTool.tsx` now
+  imports the canonical `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` from
+  `livestockMoveLogStore`. Last duplication site of those constants
+  is gone.
+- `12d72b6` — Forward-looking variance. New persisted store
+  `scheduledLivestockMoveStore.ts` holds `ScheduledLivestockMove`
+  objects (separate from the actual log so its read helpers stay
+  plan-agnostic). `RotationScheduleCard` gained a second per-row
+  button `Schedule…` paired with `+ Log move`; an unfulfilled plan
+  renders a `Planned: <date>` line under `.rowFoot` with a variance
+  pill comparing `plannedDate` against `today + daysUntilReady`
+  (reuses Gap C variance-tone classes). A `useEffect` auto-marks
+  plans fulfilled when an actual event lands within ±7 days of
+  `plannedDate` (same project + paddock + species). ADR
+  Out-of-scope section updated to strike both items.
+
 ---
 
 ## 2026-05-10 — Phase 4.3 retired as superseded

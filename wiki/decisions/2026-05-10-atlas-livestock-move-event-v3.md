@@ -181,15 +181,29 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   refreshes automatically via store subscription.
 - **From picker on popover + draw-tool inline forms.** Pragmatic UX
   deviation; popover/tool are 6-field cramped panels.
-- **Lift `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` in `LivestockMoveTool.tsx`.**
+- ~~**Lift `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` in `LivestockMoveTool.tsx`.**
   Third duplication site missed by the 2026-05-10 S2 cleanup (the
   store now owns the canonical lists for `LivestockMoveCard` and
   `ActStructurePopover.actions`, but the draw tool still has its own
-  inline copies).
+  inline copies).~~ **Closed 2026-05-10 (commit `e248105`).** Local
+  `SPECIES_VALUES` / `DIRECTION_VALUES` / `isDirection` / `isSpecies`
+  guard helpers kept — they're tool-local utilities.
 - **Linked `rotate_through` exit/entry pair objects.** Single-row model
   remains; from/to fields make the linkage implicit.
-- **Forward-looking variance** ("will the *next* move be on time?"). Needs
-  scheduled-move objects, separate session.
+- ~~**Forward-looking variance** ("will the *next* move be on time?"). Needs
+  scheduled-move objects, separate session.~~ **Closed 2026-05-10
+  (commit `12d72b6`).** New persisted store
+  `apps/web/src/store/scheduledLivestockMoveStore.ts` holds
+  `ScheduledLivestockMove` objects (kept separate from
+  `livestockMoveLogStore` so existing read helpers stay plan-agnostic).
+  `RotationScheduleCard` gained a second per-row button (`Schedule…`)
+  that writes a plan via `addPlan`; an unfulfilled plan renders as a
+  `Planned: <date>` line under `.rowFoot` with a variance pill
+  comparing `plannedDate` against `today + daysUntilReady` (reuses
+  the Gap C variance-tone classes). Auto-fulfilment: when an actual
+  event lands within ±7 days of `plannedDate` (same project +
+  paddock + species), the plan is marked `fulfilledByEventId` and
+  stops rendering.
 
 ## Related
 
@@ -205,3 +219,8 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
 - `306e182` — Gap C rest-variance summary + per-entry badges.
 - `4fca1b3` — Gap B inline `+ Log move` affordance on each
   rotation row.
+- `e248105` — S2 third-site cleanup (`LivestockMoveTool` imports
+  canonical OPTIONS from store).
+- `12d72b6` — Forward-looking variance: scheduled-move store +
+  `Schedule…` button + `Planned: <date>` line with variance pill +
+  ±7d auto-fulfilment.
