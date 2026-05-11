@@ -276,8 +276,33 @@ days, pack density, detour multiplier, and avg speed as card-local
   Market weekly product reads `1125 (from sizing)`. Derivation matches
   `5000 × 1.8 ÷ (40/5) = 1125`. Cross-card propagation confirmed.
 
+### 2026-05-11 follow-up — unit lock on the peak-week formula
+
+The arithmetic `(annualHead × dressedKg) ÷ max(processingDays/5, 1)` is
+duplicated across `ColdChainCoverageCard` and `MarketDistributionCard`
+(both derive their headline figure from it). Drift between the two
+copies would silently desynchronise Module 7's downstream rollups from
+the throughput card. To pin the formula:
+
+- New pure module `apps/web/src/store/agribusinessSizing.ts` exports
+  `AgribusinessSizing`, `DEFAULT_SIZING`, and `computePeakWeekKg(sizing)`.
+  No zustand dependency, so vitest can import without crashing on
+  `persist.rehydrate()` under node env (no localStorage).
+- New `apps/web/src/store/__tests__/agribusinessStore.test.ts` — 6
+  tests: ADR baseline (2,000-bird floor → 450 kg/wk), linear scaling
+  with `annualHead` and `dressedKg`, 5-day-per-week processing-cadence
+  treatment, divide-by-zero clamp at `processingDays < 5`, and the
+  live verification round-trip (head=5000 → 1125 kg/wk).
+- Cards continue to inline the same arithmetic by design — the helper
+  is the documented lock, the cards are the runtime path. If the cards
+  ever import `computePeakWeekKg` directly the test also locks the
+  cards; until then it locks the documented formula.
+
 ### Out of scope (carried forward)
 
 - Surfacing `phase` / `notes` fields on the three tool popovers.
-- Tests on the throughput / coverage / concentration math.
+- Tests on the throughput / coverage / concentration math (covered
+  for peak-week-pack only; coverage/concentration still open).
 - Species-aware sizing fields (cattle dress-out %, lamb hanging weight).
+- Re-threading `computePeakWeekKg` into the two card components so
+  the runtime path matches the tested function.
