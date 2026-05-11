@@ -325,3 +325,35 @@ into pure deriver functions in `agribusinessSizing.ts`:
 (exact-80, exact-120, exact-70 plus `±0.001` neighbours). Flipping
 `<` ↔ `<=` or `>` ↔ `>=` in either deriver now breaks at least one
 assertion. Steward-facing verdicts cannot drift silently.
+
+### 2026-05-11 follow-up #3 — Module 7 wrapped
+
+The remaining carried-forward items closed in one pass (commit
+763d7b0):
+
+- **Notes textarea on all three tool popovers.** Schema already
+  carried `notes`; the field was just absent from the inline-form
+  JSX and the `onSave` write-through. Stewards can now capture
+  per-entity context ("shared slot at Greenfield co-op, Tue/Thu
+  only") that survives slide-up close and reload.
+- **Drive-time rollup unit-locked.** Extracted `computeCentroid`
+  (arithmetic mean of `[lon, lat]` pairs, null on empty input) and
+  `computeDriveTime` (great-circle km → road km via detour
+  multiplier → minutes via avg speed, with both factors clamped at
+  1 to survive mid-edit zeros). 10 new vitest cases — empty
+  centroid, single-point identity, two-point mean, four-point
+  square; drive-time default sizing (10 km × 1.3 ÷ 60 km/h = 13
+  min), linear/inverse scaling, the two clamps, and the
+  zero-distance case. `turf.distance` retains the geodesy step in
+  the card; everything after it is pure and tested.
+
+Module 7 is now feature-complete: schema, three tool popovers with
+full field surfaces, three diagnostic cards with shared sizing slice,
+helper-backed runtime arithmetic, and 30 unit tests on every
+formula and verdict transition.
+
+### Carried forward (post-Module 7)
+
+- Species-aware sizing fields (cattle dress-out %, lamb hanging
+  weight) — once a second species lands, `agribusinessStore`'s
+  broiler-specific framing should be renamed too.
