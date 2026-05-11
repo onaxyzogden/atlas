@@ -6,11 +6,16 @@ import {
   Download,
   Droplet,
   Fence,
+  Flame,
   Home,
   Map as MapIcon,
   Recycle,
   Route,
   ShieldAlert,
+  Sprout,
+  Square,
+  Tent,
+  Truck,
   Wrench,
   Zap,
   type LucideIcon,
@@ -21,8 +26,12 @@ import { ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { api } from '../../../../lib/apiClient.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
 import {
   builtEnvironmentKpis,
+  builtEnvironmentV2CategoryKpis,
+  builtV2Counts,
+  builtV2EntitiesForExport,
   featureCounts,
   formatLength,
   healthLabel,
@@ -40,6 +49,12 @@ const ICON_MAP: Record<BuiltKpiItem['iconKey'], LucideIcon> = {
   fence: Fence,
   'door-open': DoorOpen,
   route: Route,
+  // Phase 5.4: V2 category cards
+  tent: Tent,
+  sprout: Sprout,
+  truck: Truck,
+  flame: Flame,
+  square: Square,
 };
 
 export default function BuiltEnvironmentDashboard() {
@@ -100,6 +115,15 @@ export default function BuiltEnvironmentDashboard() {
   };
   const counts = featureCounts(args);
   const kpis = builtEnvironmentKpis(args);
+  // Phase 5.4: V2 category KPI strip — appended after the legacy 8 cards.
+  // Module-health gauge intentionally stays gated on the legacy 8 to keep
+  // pre-/post-5.4 health snapshots comparable; revisit when the V2 kinds
+  // graduate from informational to first-class health inputs.
+  const v2Entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  const v2Kpis = useMemo(
+    () => builtEnvironmentV2CategoryKpis({ entities: v2Entities, projectId: id }),
+    [v2Entities, id],
+  );
   const healthPct = moduleHealthPct(counts);
 
   const overheadPower = powerLines.filter((p) => p.placement === 'overhead');
@@ -190,6 +214,11 @@ export default function BuiltEnvironmentDashboard() {
               gates: counts.gates,
               existingDriveways: counts.existingDriveways,
             },
+            // Phase 5.4: V2 entities + counts appended alongside the legacy
+            // 8 buckets (which stay byte-for-byte identical for backward
+            // compatibility with downstream report consumers).
+            v2Entities: builtV2EntitiesForExport(v2Entities, id),
+            v2: builtV2Counts(v2Entities, id),
             totals: {
               buildingAreaM2,
               septicAreaM2,
@@ -340,7 +369,7 @@ export default function BuiltEnvironmentDashboard() {
           </header>
 
           <section className="built-environment-metric-grid">
-            {kpis.map((item) => {
+            {[...kpis, ...v2Kpis].map((item) => {
               const Icon = ICON_MAP[item.iconKey];
               return (
                 <SurfaceCard

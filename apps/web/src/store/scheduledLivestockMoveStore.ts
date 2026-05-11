@@ -1,16 +1,21 @@
 /**
  * Scheduled livestock move store — ACT-stage Module 3 (Livestock & Rotation).
  *
- * Records *planned* (forward-looking) livestock moves against existing
- * Plan-stage `Paddock` polygons. Pair: `livestockMoveLogStore` records what
- * actually happened; this store records what's intended to happen.
+ * Records *planned* (forward-looking) livestock moves against Plan-stage
+ * targets — either a `Paddock` polygon or a placed `Structure` (barn,
+ * animal shelter). Pair: `livestockMoveLogStore` records what actually
+ * happened; this store records what's intended to happen.
  *
- * Used by `RotationScheduleCard` to surface forward-looking variance: the
- * operator's `plannedDate` for each paddock vs. the recovery-model's
- * projected `targetDate` from `computeRotationSchedule`. Auto-fulfilment:
- * when an actual `LivestockMoveEvent` lands within ±7 days of the planned
- * date (same paddock + species), the plan is marked `fulfilledByEventId`
- * and stops rendering as "Planned".
+ * Used by `RotationScheduleCard` (paddock destinations) and the
+ * Structure-moves tail (structure destinations) to surface forward-looking
+ * variance: the operator's `plannedDate` for each paddock vs. the
+ * recovery-model's projected `targetDate` from `computeRotationSchedule`,
+ * and a plain `Planned: <date>` line for structures (no variance — the
+ * rotation model is paddock-centric, structure plans are just reminders).
+ *
+ * Auto-fulfilment: when an actual `LivestockMoveEvent` lands within ±7 days
+ * of the planned date (same destination + species), the plan is marked
+ * `fulfilledByEventId` and stops rendering as "Planned".
  *
  * Kept separate from `livestockMoveLogStore` so the actual log's read
  * helpers (`eventsByPaddock`, `exitsFromPaddock`, `computeRestPairs`) need
@@ -25,10 +30,14 @@ import type { LivestockSpecies } from './livestockStore.js';
 export interface ScheduledLivestockMove {
   id: string; // 'slvm-<...>'
   projectId: string;
-  /** Destination paddock — required. Structure plans deferred. */
-  toPaddockId: string;
+  /** Destination paddock. Exactly one of `toPaddockId` / `toStructureId` is set. */
+  toPaddockId?: string;
+  /** Destination structure (v2). Exactly one of `toPaddockId` / `toStructureId` is set. */
+  toStructureId?: string;
   /** Origin paddock — optional. */
   fromPaddockId?: string;
+  /** Origin structure (v2) — optional. */
+  fromStructureId?: string;
   /** ISO yyyy-mm-dd. */
   plannedDate: string;
   direction: LivestockMoveDirection;
@@ -37,7 +46,7 @@ export interface ScheduledLivestockMove {
   who?: string;
   notes?: string;
   /** Set when an actual LivestockMoveEvent matches this plan
-   *  (same paddock + species + plannedDate ± 7d window, first match wins). */
+   *  (same destination + species + plannedDate ± 7d window, first match wins). */
   fulfilledByEventId?: string;
   /** ISO timestamp. */
   createdAt: string;
@@ -87,6 +96,46 @@ export function nextUnfulfilledPlan(
   return candidates[0] ?? null;
 }
 
+/**
+ * Unfulfilled plans for `structureId` on this project (v2), sorted by
+ * `plannedDate` ascending.
+ */
+export function plansByStructure(
+  plans: ScheduledLivestockMove[],
+  projectId: string,
+  structureId: string,
+): ScheduledLivestockMove[] {
+  return plans
+    .filter(
+      (p) =>
+        p.projectId === projectId &&
+        p.toStructureId === structureId &&
+        !p.fulfilledByEventId,
+    )
+    .slice()
+    .sort((a, b) => (a.plannedDate < b.plannedDate ? -1 : a.plannedDate > b.plannedDate ? 1 : 0));
+}
+
+/**
+ * All unfulfilled plans on this project whose destination is *any* structure
+ * (v2). Used by the Structure-moves tail in `RotationScheduleCard`. Sorted
+ * by `plannedDate` ascending.
+ */
+export function structureDestPlans(
+  plans: ScheduledLivestockMove[],
+  projectId: string,
+): ScheduledLivestockMove[] {
+  return plans
+    .filter(
+      (p) =>
+        p.projectId === projectId &&
+        p.toStructureId != null &&
+        !p.fulfilledByEventId,
+    )
+    .slice()
+    .sort((a, b) => (a.plannedDate < b.plannedDate ? -1 : a.plannedDate > b.plannedDate ? 1 : 0));
+}
+
 export const useScheduledLivestockMoveStore = create<ScheduledLivestockMoveState>()(
   persist(
     (set) => ({
@@ -104,7 +153,11 @@ export const useScheduledLivestockMoveStore = create<ScheduledLivestockMoveState
     }),
     {
       name: 'ogden-scheduled-livestock-moves',
-      version: 1,
+      version: 2,
+      // v1 → v2: structure-destination fields added. Existing v1 entries
+      // already have `toPaddockId` set; new optional `toStructureId` /
+      // `fromStructureId` simply absent. No data rewrite needed.
+      migrate: (persisted, _from) => persisted as { plans: ScheduledLivestockMove[] },
     },
   ),
 );
