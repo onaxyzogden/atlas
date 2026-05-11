@@ -25,6 +25,7 @@ import {
   SECTOR_TYPE_LABELS,
   removeAnnotation,
 } from './AnnotationRegistry.js';
+import { openBeInlineEditByObserveKind } from '../../builtEnvironment/inline/openBeInlineEdit.js';
 import css from './SelectionFloater.module.css';
 
 interface Props {
@@ -72,6 +73,13 @@ export default function SelectionFloater({ projectId }: Props) {
   const onEdit = () => {
     if (!projectId) return;
     if (single) {
+      // Phase 4.4: Built-Environment kinds open the floating inline-edit
+      // popover (parity with Plan). All other Observe kinds keep using
+      // the slide-up sheet. The helper returns false for non-BE kinds so
+      // we fall through.
+      if (openBeInlineEditByObserveKind(single.kind, single.id)) {
+        return;
+      }
       openForm({
         kind: single.kind,
         geometry: null,

@@ -37,6 +37,11 @@ import BuriedUtilityTool from './BuriedUtilityTool.js';
 import FenceTool from './FenceTool.js';
 import GateTool from './GateTool.js';
 import ExistingDrivewayTool from './ExistingDrivewayTool.js';
+import BeV2ExistingTool from './BeV2ExistingTool.js';
+import {
+  BUILT_ENVIRONMENT_KINDS,
+  LEGACY_OBSERVE_BE_KINDS,
+} from '@ogden/shared';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -198,8 +203,26 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
     case 'observe.built-environment.driveway':
       tool = <ExistingDrivewayTool map={map} projectId={projectId} />;
       break;
-    default:
+    default: {
+      // Phase 5.2.A: dispatch the 23 non-bespoke BE kinds through the
+      // generic V2 placement tool. Tool ids follow
+      // `observe.built-environment.<kind>` matching the registry kind id
+      // exactly.
+      const BE_PREFIX = 'observe.built-environment.';
+      if (activeTool.startsWith(BE_PREFIX)) {
+        const kind = activeTool.slice(BE_PREFIX.length);
+        if (
+          !LEGACY_OBSERVE_BE_KINDS.has(kind) &&
+          BUILT_ENVIRONMENT_KINDS[kind]
+        ) {
+          tool = (
+            <BeV2ExistingTool map={map} projectId={projectId} kind={kind} />
+          );
+          break;
+        }
+      }
       tool = null;
+    }
   }
 
   if (!tool) return null;

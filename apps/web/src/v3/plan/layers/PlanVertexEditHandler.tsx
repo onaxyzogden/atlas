@@ -1,20 +1,23 @@
 /**
- * PlanVertexEditHandler — mounts a MapboxDraw `direct_select` instance
- * on the Plan map when `usePlanVertexEditStore.target` is set, and writes
- * the new polygon back to the owning Plan store on `draw.update`.
+ * PlanVertexEditHandler — Plan-stage composition of `SharedVertexEditHandler`.
  *
- * Mirrors `AnnotationVertexEditHandler` (Observe) but reads/writes Plan
- * stores directly rather than going through the annotation registry.
+ * Resolves Plan's per-kind read/write helpers (`zone | crop | paddock |
+ * structure`) into the dispatch table the shared handler consumes. The
+ * MapboxDraw lifecycle itself lives in the shared handler — this file is
+ * just the dispatch table + the selection wiring.
  *
- * Esc / target cleared / unmount → remove the control gracefully.
+ * Plan's gate policy: ANY active draw tool blocks vertex edit (we don't want
+ * two MapboxDraw controls fighting over the canvas while a placement tool
+ * is in flight).
+ *
+ * Plan's only line/polygon split today: every editable kind here is a
+ * polygon. Lines may join later via the same dispatch table without code
+ * changes.
  */
 
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { MAPLIBRE_DRAW_STYLES } from '../../observe/components/draw/mapboxDrawStyles.js';
-import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import {
   usePlanVertexEditStore,
   type PlanVertexEditKind,
@@ -23,19 +26,23 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
+import SharedVertexEditHandler, {
+  type VertexEditDispatch,
+} from '../../builtEnvironment/handlers/SharedVertexEditHandler.js';
 
-interface Props {
-  map: MaplibreMap;
+const PLAN_KINDS = new Set<PlanVertexEditKind>([
+  'zone',
+  'crop',
+  'paddock',
+  'structure',
+]);
+
+function isPlanKind(kind: string): kind is PlanVertexEditKind {
+  return PLAN_KINDS.has(kind as PlanVertexEditKind);
 }
 
-interface DrawUpdateEvent {
-  features?: GeoJSON.Feature[];
-}
-
-function readGeometry(
-  kind: PlanVertexEditKind,
-  id: string,
-): GeoJSON.Polygon | null {
+function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
+  if (!isPlanKind(kind)) return null;
   if (kind === 'zone') {
     const r = useZoneStore.getState().zones.find((x) => x.id === id);
     return r && r.geometry.type === 'Polygon' ? r.geometry : null;
@@ -48,18 +55,13 @@ function readGeometry(
     const r = useLivestockStore.getState().paddocks.find((x) => x.id === id);
     return r?.geometry ?? null;
   }
-  if (kind === 'structure') {
-    const r = useStructureStore.getState().structures.find((x) => x.id === id);
-    return r?.geometry ?? null;
-  }
-  return null;
+  // structure
+  const r = useStructureStore.getState().structures.find((x) => x.id === id);
+  return r?.geometry ?? null;
 }
 
-function writeGeometry(
-  kind: PlanVertexEditKind,
-  id: string,
-  geom: GeoJSON.Polygon,
-): void {
+function writePolygon(kind: string, id: string, geom: GeoJSON.Polygon): void {
+  if (!isPlanKind(kind)) return;
   if (kind === 'zone') {
     useZoneStore.getState().updateZone(id, { geometry: geom });
     return;
@@ -72,106 +74,56 @@ function writeGeometry(
     useLivestockStore.getState().updatePaddock(id, { geometry: geom });
     return;
   }
-  if (kind === 'structure') {
-    // Vertex-edited structures: persist new geometry and recompute the
-    // canonical `center` from the new polygon. `widthM` / `depthM` /
-    // `rotationDeg` become stale (the polygon is now the source of truth);
-    // the structure drag handler uses `translateByDelta` so they don't
-    // matter for translation. Type/rotation edits in the popover will
-    // still re-author via `createFootprintPolygon` and reset the shape.
-    let center: [number, number];
-    try {
-      const c = turf.centroid(geom).geometry.coordinates as [number, number];
-      center = c;
-    } catch {
-      center = [0, 0];
-    }
-    useStructureStore.getState().updateStructure(id, {
-      geometry: geom,
-      center,
-    });
+  // structure: persist new geometry AND recompute the canonical centre.
+  // `widthM` / `depthM` / `rotationDeg` become stale (the polygon is now the
+  // source of truth); the structure drag handler uses `translateByDelta` so
+  // they don't matter for translation. Type/rotation edits in the popover
+  // will still re-author via `createFootprintPolygon` and reset the shape.
+  let center: [number, number];
+  try {
+    const c = turf.centroid(geom).geometry.coordinates as [number, number];
+    center = c;
+  } catch {
+    center = [0, 0];
   }
+  useStructureStore.getState().updateStructure(id, {
+    geometry: geom,
+    center,
+  });
+}
+
+interface Props {
+  map: MaplibreMap;
 }
 
 export default function PlanVertexEditHandler({ map }: Props) {
   const target = usePlanVertexEditStore((s) => s.target);
   const clear = usePlanVertexEditStore((s) => s.clear);
-  const activeTool = useMapToolStore((s) => s.activeTool);
 
-  useEffect(() => {
-    if (!map) return;
-    if (!target) return;
-    // Don't fight a placement tool — it already owns a MapboxDraw control.
-    if (activeTool != null) return;
+  const dispatch = useMemo<VertexEditDispatch>(
+    () => ({
+      featureIdPrefix: 'plan-vertex-edit',
+      // Plan: gate any active tool. Plan tools may live under the same
+      // `useMapToolStore` namespace as Observe but with non-`observe.`
+      // prefixes; defensively block on any non-null tool.
+      shouldSuppressForTool: (activeTool) => activeTool != null,
+      geometryKindFor: (kind) => (isPlanKind(kind) ? 'polygon' : null),
+      readLine: () => null,
+      readPolygon,
+      writeLine: () => {
+        /* no Plan line kinds today */
+      },
+      writePolygon,
+    }),
+    [],
+  );
 
-    const { kind, id } = target;
-    const initial = readGeometry(kind, id);
-    if (!initial) return;
-
-    const draw = new MapboxDraw({
-      displayControlsDefault: false,
-      controls: {},
-      styles: MAPLIBRE_DRAW_STYLES,
-    });
-    map.addControl(draw);
-
-    const featureId = `plan-vertex-edit-${kind}-${id}`;
-    const feature: GeoJSON.Feature = {
-      id: featureId,
-      type: 'Feature',
-      properties: {},
-      geometry: initial,
-    };
-    try {
-      draw.add(feature);
-      (
-        draw.changeMode as (mode: string, opts?: { featureId: string }) => unknown
-      )('direct_select', { featureId });
-    } catch {
-      try {
-        map.removeControl(draw);
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-
-    const onUpdate = (e: DrawUpdateEvent) => {
-      const feat = e.features?.[0];
-      if (!feat) return;
-      if (feat.geometry.type === 'Polygon') {
-        writeGeometry(kind, id, feat.geometry);
-      }
-    };
-    (
-      map as unknown as {
-        on: (ev: string, h: (e: DrawUpdateEvent) => void) => void;
-      }
-    ).on('draw.update', onUpdate);
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      const target = document.activeElement;
-      const tag = target?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      clear();
-    };
-    document.addEventListener('keydown', onKey);
-
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      (
-        map as unknown as {
-          off: (ev: string, h: (e: DrawUpdateEvent) => void) => void;
-        }
-      ).off('draw.update', onUpdate);
-      try {
-        map.removeControl(draw);
-      } catch {
-        /* map disposed */
-      }
-    };
-  }, [map, target, activeTool, clear]);
-
-  return null;
+  return (
+    <SharedVertexEditHandler
+      map={map}
+      target={target}
+      onClear={clear}
+      dispatch={dispatch}
+    />
+  );
 }

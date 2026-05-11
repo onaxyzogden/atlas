@@ -35,6 +35,7 @@ import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
 import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
 import AnnotationSectorHandles from './components/draw/AnnotationSectorHandles.js';
 import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
+import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import {
@@ -176,6 +177,7 @@ export default function ObserveLayout() {
                 projectId={params.projectId ?? null}
               />
               <SelectionFloater projectId={params.projectId ?? null} />
+              <InlineFeaturePopover map={map} />
               <ExportButton projectId={params.projectId ?? null} />
               <ImportSiteIntelButton projectId={params.projectId ?? null} />
             </>

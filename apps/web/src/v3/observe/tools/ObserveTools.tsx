@@ -19,14 +19,20 @@ import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   Bird,
+  BookOpen,
+  Box,
   Cable,
   DoorOpen,
   Droplet,
+  Droplets,
   Eye,
   Fence,
   Flame,
+  Fuel,
   Home,
+  Leaf,
   MapPin,
+  Minus,
   Mountain,
   PenLine,
   Pencil,
@@ -36,20 +42,27 @@ import {
   ShieldAlert,
   Skull,
   Snowflake,
+  Sparkles,
   Sprout,
+  Square,
   Star,
   Sun,
   Sunrise,
+  Tent,
   TestTube,
   Target,
   Tornado,
+  Truck,
   Users,
   Volume2,
+  Warehouse,
   Waves,
   Wind,
+  Wrench,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
+import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
@@ -82,22 +95,82 @@ interface ToolItem {
   toolId: MapToolId;
 }
 
+/**
+ * Lucide icon resolver for `BUILT_ENVIRONMENT_KINDS[*].icon` strings.
+ * Falls back to `Home` for any registry icon name not mapped below.
+ * (Phase 5.2.A — keeps the rail registry-driven so adding a kind to the
+ * shared registry surfaces it in Observe automatically.)
+ */
+const BE_ICON_MAP: Readonly<Record<string, LucideIcon>> = {
+  Home,
+  Tent,
+  Sparkles,
+  BookOpen,
+  Droplets,
+  Mountain,
+  Wrench,
+  Eye,
+  Warehouse,
+  Sprout,
+  Box,
+  Leaf,
+  Droplet,
+  Sun,
+  Zap,
+  Cable,
+  Minus,
+  DoorOpen,
+  Route,
+  Truck,
+  Fuel,
+  Flame,
+  Square,
+};
+
+/**
+ * Bespoke BE rail entries — the 8 originally-Observe kinds keep their
+ * hand-picked icons + labels. They route through their existing dedicated
+ * tool components in `ObserveDrawHost` (BuildingTool, WellTool, …) so the
+ * slide-up form continues to author kind-specific create-time metadata
+ * (subtype, depthM, areaM2, placement, surface). All other registry kinds
+ * are appended below via `BeV2ExistingTool`.
+ */
+const BESPOKE_BE_TOOLS: ToolItem[] = [
+  { id: 'building',        label: 'Building',             Icon: Home,     toolId: 'observe.built-environment.building' },
+  { id: 'well',            label: 'Well',                 Icon: Droplet,  toolId: 'observe.built-environment.well' },
+  { id: 'septic',          label: 'Septic / leach field', Icon: Recycle,  toolId: 'observe.built-environment.septic' },
+  { id: 'power-line',      label: 'Power line',           Icon: Zap,      toolId: 'observe.built-environment.power-line' },
+  { id: 'buried-utility',  label: 'Buried utility',       Icon: Cable,    toolId: 'observe.built-environment.buried-utility' },
+  { id: 'fence',           label: 'Fence',                Icon: Fence,    toolId: 'observe.built-environment.fence' },
+  { id: 'gate',            label: 'Gate',                 Icon: DoorOpen, toolId: 'observe.built-environment.gate' },
+  { id: 'driveway',        label: 'Driveway',             Icon: Route,    toolId: 'observe.built-environment.driveway' },
+];
+
+const BESPOKE_BE_KIND_IDS: ReadonlySet<string> = new Set(
+  BESPOKE_BE_TOOLS.map((t) => t.id),
+);
+
+/** Registry-driven entries for the 23 BE kinds without bespoke tools. */
+const REGISTRY_BE_TOOLS: ToolItem[] = Object.values(BUILT_ENVIRONMENT_KINDS)
+  .filter(
+    (spec) =>
+      !BESPOKE_BE_KIND_IDS.has(spec.kind) &&
+      spec.defaultStates.includes('existing'),
+  )
+  .map((spec) => ({
+    id: spec.kind,
+    label: spec.label,
+    Icon: BE_ICON_MAP[spec.icon] ?? Home,
+    toolId: `observe.built-environment.${spec.kind}` as MapToolId,
+  }));
+
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
   'human-context': [
     { id: 'neighbour-pin',   label: 'Neighbour pin',       Icon: MapPin,   toolId: 'observe.human-context.neighbour-pin' },
     { id: 'steward',         label: 'Steward / household', Icon: Users,    toolId: 'observe.human-context.steward' },
     { id: 'access-road',     label: 'Access road',         Icon: Pencil,   toolId: 'observe.human-context.access-road' },
   ],
-  'built-environment': [
-    { id: 'building',        label: 'Building',            Icon: Home,     toolId: 'observe.built-environment.building' },
-    { id: 'well',            label: 'Well',                Icon: Droplet,  toolId: 'observe.built-environment.well' },
-    { id: 'septic',          label: 'Septic / leach field',Icon: Recycle,  toolId: 'observe.built-environment.septic' },
-    { id: 'power-line',      label: 'Power line',          Icon: Zap,      toolId: 'observe.built-environment.power-line' },
-    { id: 'buried-utility',  label: 'Buried utility',      Icon: Cable,    toolId: 'observe.built-environment.buried-utility' },
-    { id: 'fence',           label: 'Fence',               Icon: Fence,    toolId: 'observe.built-environment.fence' },
-    { id: 'gate',            label: 'Gate',                Icon: DoorOpen, toolId: 'observe.built-environment.gate' },
-    { id: 'driveway',        label: 'Driveway',            Icon: Route,    toolId: 'observe.built-environment.driveway' },
-  ],
+  'built-environment': [...BESPOKE_BE_TOOLS, ...REGISTRY_BE_TOOLS],
   'macroclimate-hazards': [
     { id: 'frost-pocket',    label: 'Frost pocket',        Icon: Snowflake, toolId: 'observe.macroclimate-hazards.frost-pocket' },
     { id: 'hazard-zone',     label: 'Hazard zone',         Icon: AlertTriangle, toolId: 'observe.macroclimate-hazards.hazard-zone' },

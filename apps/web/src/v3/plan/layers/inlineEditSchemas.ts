@@ -12,7 +12,11 @@
  * deletes the just-drawn skeleton.)
  */
 
-import type { BuiltEnvironmentEntity } from '@ogden/shared';
+import type {
+  BuiltEnvironmentEntity,
+  BuiltEnvironmentState,
+} from '@ogden/shared';
+import { getBuiltEnvironmentKind } from '@ogden/shared';
 import type { InlineFormPayload } from '../draw/inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { createFootprintPolygon } from '../../../features/structures/footprints.js';
@@ -1475,6 +1479,65 @@ export function buildDrivewayEditSchema(
         notes: notesRaw || undefined,
         existing: { surface },
       });
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Generic V2 Built-Environment kind (Phase 5.2.B) ----------
+//
+// Floor schema for the 23 BE kinds without a bespoke `buildXxxEditSchema`
+// (cabin, yurt, prayer-pavilion, barn, greenhouse, …). Provides the
+// minimum useful affordances: state toggle (existing ↔ proposed), label,
+// notes. Per-kind subtype enrichment (e.g. `barn.type = dairy|hay|...`)
+// can land later by adding a builder to `SCHEMA_BUILDERS` in
+// `openBeInlineEdit.ts`; until then this builder is the dispatch fallback.
+
+export function buildGenericBeEditSchema(
+  e: BuiltEnvironmentEntity,
+): Omit<InlineFormPayload, 'anchor'> {
+  const spec = getBuiltEnvironmentKind(e.kind);
+  const label = spec?.label ?? e.kind;
+  return {
+    title: `Edit ${label}`,
+    fields: [
+      {
+        key: 'state',
+        label: 'State',
+        kind: 'select',
+        required: true,
+        options: [
+          { value: 'existing', label: 'Existing' },
+          { value: 'proposed', label: 'Proposed' },
+        ],
+      },
+      { key: 'label', label: 'Label', kind: 'text' },
+      {
+        key: 'notes',
+        label: 'Notes',
+        kind: 'textarea',
+        placeholder: 'Free-form notes…',
+      },
+    ],
+    initial: {
+      state: e.state,
+      label: e.label ?? '',
+      notes: e.notes ?? '',
+    },
+    onSave: (values) => {
+      const store = useBuiltEnvironmentStoreV2.getState();
+      const labelStr = String(values.label ?? '').trim();
+      const notesStr = String(values.notes ?? '').trim();
+      const nextState = String(values.state ?? e.state) as BuiltEnvironmentState;
+      store.updateMetadata(e.id, {
+        label: labelStr || undefined,
+        notes: notesStr || undefined,
+      });
+      if (nextState !== e.state) {
+        store.setState(e.id, nextState);
+      }
     },
     onCancel: () => {
       /* no-op — record already exists */

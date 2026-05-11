@@ -105,7 +105,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Home',
       color: '#a16207',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 4.0,
       glbUrl: GENERIC_GLB,
@@ -118,7 +118,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Tent',
       color: '#b45309',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 3.5,
       defaultFootprintM: 6,
@@ -132,7 +132,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Tent',
       color: '#d97706',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 2.8,
       glbUrl: GENERIC_GLB,
@@ -161,7 +161,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Tent',
       color: '#0284c7',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 3.5,
       glbUrl: GENERIC_GLB,
@@ -174,7 +174,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'BookOpen',
       color: '#0369a1',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 3.5,
       glbUrl: GENERIC_GLB,
@@ -187,7 +187,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Droplets',
       color: '#0891b2',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 3.0,
       glbUrl: GENERIC_GLB,
@@ -200,7 +200,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Mountain',
       color: '#78350f',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 3.5,
       glbUrl: GENERIC_GLB,
@@ -226,7 +226,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       geometryType: 'polygon',
       icon: 'Eye',
       color: '#525252',
-      defaultStates: ['proposed'],
+      defaultStates: ['existing', 'proposed'],
       renderMode: 'glb',
       defaultHeightM: 6.0,
       glbUrl: GENERIC_GLB,
@@ -512,6 +512,33 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
 /** All canonical kind ids. */
 export const BUILT_ENVIRONMENT_KIND_IDS: readonly string[] = Object.freeze(
   Object.keys(BUILT_ENVIRONMENT_KINDS),
+);
+
+/**
+ * The 8 BE kinds that originated in Observe's legacy `builtEnvironmentStore`
+ * and still have bespoke per-kind tools, layer definitions, and edit schemas
+ * (BuildingTool/WellTool/…, the per-kind layer blocks in
+ * `ObserveAnnotationLayers.tsx`, and the eight `buildXxxEditSchema` builders
+ * in `inlineEditSchemas.ts`).
+ *
+ * Phase 5.2 surfaced the other 23 registry kinds in Observe via a generic
+ * placement tool (`BeV2ExistingTool`); Phase 5.2.B adds a generic 2D layer
+ * + a generic edit-schema builder for them. This set is the discriminator
+ * between the two pipelines — keep this lookup centralised so the rail
+ * dispatch (`ObserveDrawHost`), the new generic layer (`BeV2GenericLayer`),
+ * and any future surface stay in agreement.
+ */
+export const LEGACY_OBSERVE_BE_KINDS: ReadonlySet<string> = Object.freeze(
+  new Set([
+    'building',
+    'well',
+    'septic',
+    'power-line',
+    'buried-utility',
+    'fence',
+    'gate',
+    'driveway',
+  ]),
 );
 
 /** Reverse alias map — alias → canonical. Built once at module load. */

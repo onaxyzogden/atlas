@@ -828,6 +828,12 @@ const sector: FieldSchema = {
 };
 
 // ── Built Environment ──────────────────────────────────────────────────
+//
+// Phase 4.4 (2026-05-10): the eight BE schemas below now serve **create-mode
+// only**. Edit-mode for BE entities is intercepted in `SelectionFloater.onEdit`
+// → `openBeInlineEditByObserveKind` → floating `<InlineFeaturePopover>` (Plan
+// parity). The slide-up never opens for BE edits anymore. Field shapes still
+// match `beSchemaRegistry.ts` so create + edit stay 1:1 visually.
 
 const building: FieldSchema = {
   title: 'Building',
