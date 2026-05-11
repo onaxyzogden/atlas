@@ -1199,11 +1199,30 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       map.on('mouseup', onUp);
     };
     const onBgClick = (e: maplibregl.MapMouseEvent) => {
-      if (!map.getLayer(layerId)) return;
+      // Clear selection only when the click hits the map background — i.e.
+      // no selectable Plan feature is under the pointer. Previously this
+      // only checked the guild point layer, which meant clicking a paddock
+      // (or any other selectable kind) would fire `mousedown` → set
+      // selection, then this `click` handler would clear it again on
+      // release. A drag avoided the bug because maplibre suppresses
+      // `click` when down/up points differ — hence the "only stays
+      // visible if I click and drag" symptom.
+      const SELECTABLE_LAYERS = [
+        `${LAYER_PREFIX}poly-fill`,
+        `${LAYER_PREFIX}line`,
+        `${LAYER_PREFIX}point`,
+        `${LAYER_PREFIX}flow-line`,
+        `${LAYER_PREFIX}flow-arrow`,
+        `${LAYER_PREFIX}transect-line`,
+        `${LAYER_PREFIX}setback-fill`,
+        `${LAYER_PREFIX}setback-line`,
+      ].filter((id) => map.getLayer(id));
+      if (SELECTABLE_LAYERS.length === 0) return;
       try {
-        const features = map.queryRenderedFeatures(e.point, { layers: [layerId] });
-        const hit = features.find((feat) => feat.properties?.kind === 'guild');
-        if (!hit) setSelection([]);
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: SELECTABLE_LAYERS,
+        });
+        if (features.length === 0) setSelection([]);
       } catch {
         /* layer may have been removed mid-event */
       }
