@@ -35,6 +35,12 @@ import { newAnnotationId } from '../../store/site-annotations.js';
 import { useInlineFormStore } from '../plan/draw/inlineFormStore.js';
 import { useActStructurePopoverStore } from '../../store/actStructurePopoverStore.js';
 import { STRUCTURE_TEMPLATES } from '../../features/structures/footprints.js';
+import {
+  encodeOriginValue,
+  originDisclosureField,
+  parseOriginValue,
+  type OriginRef,
+} from './originPicker.js';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -164,6 +170,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       { key: 'headCount', label: 'Head',      kind: 'number', placeholder: 'e.g. 24' },
       { key: 'who',       label: 'Who',       kind: 'text',   placeholder: 'optional' },
       { key: 'notes',     label: 'Notes',     kind: 'text',   placeholder: 'optional' },
+      originDisclosureField(projectId, { kind: 'structure', id: structure.id }),
     ],
     initial: {
       date: todayIso(),
@@ -172,6 +179,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       headCount: '',
       who: '',
       notes: '',
+      origin: '',
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -183,6 +191,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
         rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
       const who = String(values.who ?? '').trim();
       const notes = String(values.notes ?? '').trim();
+      const origin = parseOriginValue(values.origin);
       updateEvent(id, {
         date: String(values.date ?? todayIso()),
         direction,
@@ -190,6 +199,8 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
         headCount,
         who: who === '' ? undefined : who,
         notes: notes === '' ? undefined : notes,
+        fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+        fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
       });
     },
     onCancel: () => removeEvent(id),
@@ -251,6 +262,7 @@ export function startScheduledLivestockMove(
       { key: 'headCount',   label: 'Head',         kind: 'number', placeholder: 'e.g. 24' },
       { key: 'who',         label: 'Who',          kind: 'text',   placeholder: 'optional' },
       { key: 'notes',       label: 'Notes',        kind: 'text',   placeholder: 'optional' },
+      originDisclosureField(projectId, { kind: 'structure', id: structure.id }),
     ],
     initial: {
       plannedDate: existing?.plannedDate ?? todayIso(),
@@ -259,6 +271,13 @@ export function startScheduledLivestockMove(
       headCount:   existing?.headCount != null ? String(existing.headCount) : '',
       who:         existing?.who         ?? '',
       notes:       existing?.notes       ?? '',
+      origin: encodeOriginValue(
+        existing?.fromPaddockId
+          ? ({ kind: 'paddock', id: existing.fromPaddockId } as OriginRef)
+          : existing?.fromStructureId
+            ? ({ kind: 'structure', id: existing.fromStructureId } as OriginRef)
+            : null,
+      ),
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -270,6 +289,7 @@ export function startScheduledLivestockMove(
         rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
       const who = String(values.who ?? '').trim();
       const notes = String(values.notes ?? '').trim();
+      const origin = parseOriginValue(values.origin);
       updatePlan(id, {
         plannedDate: String(values.plannedDate ?? todayIso()),
         direction,
@@ -277,6 +297,8 @@ export function startScheduledLivestockMove(
         headCount,
         who: who === '' ? undefined : who,
         notes: notes === '' ? undefined : notes,
+        fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+        fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
       });
     },
     // In edit mode, Cancel must NOT remove the persistent plan.

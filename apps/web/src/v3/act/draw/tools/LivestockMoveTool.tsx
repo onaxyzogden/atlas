@@ -25,6 +25,7 @@ import {
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useInlineFormStore } from '../../../plan/draw/inlineFormStore.js';
+import { originDisclosureField, parseOriginValue } from '../../originPicker.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -105,6 +106,7 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
           { key: 'headCount', label: 'Head',      kind: 'number', placeholder: 'e.g. 24' },
           { key: 'who',       label: 'Who',       kind: 'text',   placeholder: 'optional' },
           { key: 'notes',     label: 'Notes',     kind: 'text',   placeholder: 'optional' },
+          originDisclosureField(projectId, { kind: 'paddock', id: hitId }),
         ],
         initial: {
           date: todayIso(),
@@ -113,6 +115,7 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
           headCount: '',
           who: '',
           notes: '',
+          origin: '',
         },
         onSave: (values) => {
           const rawDir = String(values.direction ?? '').trim();
@@ -124,6 +127,7 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
           const who = String(values.who ?? '').trim();
           const notes = String(values.notes ?? '').trim();
+          const origin = parseOriginValue(values.origin);
           updateEvent(id, {
             date: String(values.date ?? todayIso()),
             direction,
@@ -131,6 +135,8 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
             headCount,
             who: who === '' ? undefined : who,
             notes: notes === '' ? undefined : notes,
+            fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+            fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
           });
         },
         onCancel: () => removeEvent(id),

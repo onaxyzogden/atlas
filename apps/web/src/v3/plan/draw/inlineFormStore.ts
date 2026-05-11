@@ -14,10 +14,12 @@
 
 import { create } from 'zustand';
 
-export type FieldKind = 'text' | 'number' | 'select' | 'textarea';
+export type FieldKind = 'text' | 'number' | 'select' | 'textarea' | 'disclosure';
 
 export interface FieldSpec {
   key: string;
+  /** Label shown above the input. For `disclosure` fields this is unused —
+   *  the trigger row uses `triggerLabel` instead. */
   label: string;
   kind: FieldKind;
   /** For 'select' fields. */
@@ -32,6 +34,15 @@ export interface FieldSpec {
   placeholder?: string;
   /** Whether the field is required. Defaults to false. */
   required?: boolean;
+  /** For 'disclosure' fields: the clickable text shown when collapsed
+   *  (e.g. '+ Add origin'). Required when `kind === 'disclosure'`. */
+  triggerLabel?: string;
+  /** For 'disclosure' fields: optional label shown next to the trigger when
+   *  collapsed AND a child has a non-empty value (e.g. 'Origin: Paddock · …'). */
+  collapsedLabel?: string;
+  /** For 'disclosure' fields: nested fields revealed when expanded. Children
+   *  write into the flat top-level values map (no namespacing). */
+  children?: FieldSpec[];
 }
 
 export interface InlineFormPayload {

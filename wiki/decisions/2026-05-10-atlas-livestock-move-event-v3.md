@@ -179,8 +179,25 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   declared species (falls back to `sheep`); direction defaults to
   `move_in`. The logged-moves + rest-variance block below the form
   refreshes automatically via store subscription.
-- **From picker on popover + draw-tool inline forms.** Pragmatic UX
-  deviation; popover/tool are 6-field cramped panels.
+- ~~**From picker on popover + draw-tool inline forms.** Pragmatic UX
+  deviation; popover/tool are 6-field cramped panels.~~ **Closed
+  2026-05-11 (commit `<PENDING>`).** Resolved via a **disclosure
+  pattern**: `inlineFormStore.FieldSpec` gained a new `kind:
+  'disclosure'` variant (`triggerLabel` + nested `children: FieldSpec[]`);
+  `InlineFeaturePopover` renders the trigger as a single button row when
+  collapsed and reveals the children inline when expanded (auto-expands
+  if any child has a non-empty initial value, so edit-mode flows show
+  the picker already open). New shared helper
+  `apps/web/src/v3/act/originPicker.ts` owns the encoding
+  (`'paddock:<id>'` / `'structure:<id>'` / `''`), builds the combined
+  paddock + livestock-capable-structure option list, and **excludes the
+  current destination** so a plan/event can never self-target.
+  Wired into `startLivestockMoveLog`, `startScheduledLivestockMove`
+  (including edit-mode prefill via `encodeOriginValue` on the existing
+  plan's `fromPaddockId` / `fromStructureId`), and the
+  `LivestockMoveTool` draw-tool. The default form footprint stays at
+  6 fields — the picker only appears when the operator clicks
+  `+ Add origin`.
 - ~~**Lift `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` in `LivestockMoveTool.tsx`.**
   Third duplication site missed by the 2026-05-10 S2 cleanup (the
   store now owns the canonical lists for `LivestockMoveCard` and
