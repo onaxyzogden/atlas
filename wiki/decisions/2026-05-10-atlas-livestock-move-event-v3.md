@@ -181,7 +181,7 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   refreshes automatically via store subscription.
 - ~~**From picker on popover + draw-tool inline forms.** Pragmatic UX
   deviation; popover/tool are 6-field cramped panels.~~ **Closed
-  2026-05-11 (commit `<PENDING>`).** Resolved via a **disclosure
+  2026-05-11 (commit `0d764f9`).** Resolved via a **disclosure
   pattern**: `inlineFormStore.FieldSpec` gained a new `kind:
   'disclosure'` variant (`triggerLabel` + nested `children: FieldSpec[]`);
   `InlineFeaturePopover` renders the trigger as a single button row when
@@ -295,3 +295,8 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   `startScheduledLivestockMove(structure, projectId, existingPlanId?)`
   handles both add and edit; `Edit` chip on Structure-moves tail plan
   rows mirrors the paddock `Planned:` line from `a2725c3`.
+- `0d764f9` — From-picker disclosure on the three livestock-move inline
+  forms (`inlineFormStore` gains `kind: 'disclosure'`,
+  `InlineFeaturePopover` renders collapsed/expanded children, new
+  shared `originPicker` helper encodes refs and excludes the current
+  destination). Closes the last deferred item on this ADR.
