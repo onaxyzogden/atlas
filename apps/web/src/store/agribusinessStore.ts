@@ -83,11 +83,15 @@ export {
   computePeakWeekKg,
   computeColdChainVerdict,
   computeMarketVerdict,
+  computeCentroid,
+  computeDriveTime,
   type AgribusinessSizing,
   type ColdChainVerdict,
   type ColdChainInputs,
   type MarketVerdict,
   type MarketInputs,
+  type DriveTimeInputs,
+  type DriveTime,
 } from './agribusinessSizing.js';
 import type { AgribusinessSizing } from './agribusinessSizing.js';
 import { DEFAULT_SIZING } from './agribusinessSizing.js';

@@ -120,3 +120,60 @@ export function computeMarketVerdict(i: MarketInputs): MarketVerdict {
   if (concentration > 0.7) return 'concentrated';
   return 'ok';
 }
+
+/**
+ * Arithmetic centroid of an array of `[lon, lat]` pairs. Used as a
+ * single-hop proxy for "the slaughter line" when computing drive
+ * times from line → each market node. Returns `null` for an empty
+ * input so callers can branch on hub presence.
+ *
+ * Naive average is correct enough for site-scale clusters (a few
+ * stations within a single farm). For continental spreads a great-
+ * circle Fréchet mean would be more accurate, but Module 7 is sized
+ * for one operation, not a distribution network.
+ */
+export function computeCentroid(
+  points: Array<[number, number]>,
+): [number, number] | null {
+  if (points.length === 0) return null;
+  let lon = 0;
+  let lat = 0;
+  for (const [x, y] of points) {
+    lon += x;
+    lat += y;
+  }
+  return [lon / points.length, lat / points.length];
+}
+
+export interface DriveTimeInputs {
+  /** Great-circle distance, km. */
+  greatCircleKm: number;
+  /** Detour multiplier for road km (clamped at >= 1 inside). */
+  detourMultiplier: number;
+  /** Average drive speed, km/h (clamped at >= 1 inside). */
+  avgSpeedKmh: number;
+}
+
+export interface DriveTime {
+  /** Road km after detour multiplier. */
+  roadKm: number;
+  /** Drive time, minutes. */
+  minutes: number;
+}
+
+/**
+ * Convert a great-circle km figure into road km + minutes.
+ * Detour multiplier and average speed are clamped at 1 so a steward
+ * mid-edit (temporarily 0) never explodes the rollup.
+ *
+ * The card calls turf.distance once per market node to get
+ * `greatCircleKm` then runs this helper — the road-km × minute
+ * arithmetic is the part that's testable without turf's geodesy.
+ */
+export function computeDriveTime(i: DriveTimeInputs): DriveTime {
+  const safeMult = Math.max(i.detourMultiplier, 1);
+  const safeSpeed = Math.max(i.avgSpeedKmh, 1);
+  const roadKm = i.greatCircleKm * safeMult;
+  const minutes = (roadKm / safeSpeed) * 60;
+  return { roadKm, minutes };
+}

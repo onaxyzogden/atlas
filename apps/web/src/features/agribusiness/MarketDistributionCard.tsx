@@ -15,6 +15,8 @@ import {
   DEFAULT_SIZING,
   computePeakWeekKg,
   computeMarketVerdict,
+  computeCentroid,
+  computeDriveTime,
   type MarketKind,
 } from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
@@ -77,29 +79,28 @@ export default function MarketDistributionCard({ projectId }: Props) {
 
     // Drive-time rollup. Hub = arithmetic centroid of slaughter points
     // (great-circle distance is symmetric so a centroid is a good
-    // single-hop proxy for "the line").
-    let hub: GeoJSON.Point | null = null;
-    if (slaughterPoints.length > 0) {
-      let lon = 0;
-      let lat = 0;
-      for (const p of slaughterPoints) {
-        const [lng, lt] = p.geometry.coordinates as [number, number];
-        lon += lng;
-        lat += lt;
-      }
-      hub = {
-        type: 'Point',
-        coordinates: [lon / slaughterPoints.length, lat / slaughterPoints.length],
-      };
-    }
-    const safeSpeed = Math.max(avgSpeedKmh, 1);
-    const safeMult = Math.max(detourMultiplier, 1);
+    // single-hop proxy for "the line"). Centroid + the road-km ÷
+    // speed math live in `agribusinessSizing.ts` so they're unit-
+    // testable without pulling turf's geodesy.
+    const hubCoord = computeCentroid(
+      slaughterPoints.map(
+        (p) => p.geometry.coordinates as [number, number],
+      ),
+    );
+    const hub: GeoJSON.Point | null = hubCoord
+      ? { type: 'Point', coordinates: hubCoord }
+      : null;
     const driveTimes = hub
       ? nodes
           .map((n) => {
-            const km = turf.distance(hub!, n.geometry, { units: 'kilometers' });
-            const roadKm = km * safeMult;
-            const minutes = (roadKm / safeSpeed) * 60;
+            const greatCircleKm = turf.distance(hub, n.geometry, {
+              units: 'kilometers',
+            });
+            const { roadKm, minutes } = computeDriveTime({
+              greatCircleKm,
+              detourMultiplier,
+              avgSpeedKmh,
+            });
             return { id: n.id, name: n.name, kind: n.kind, km: roadKm, minutes };
           })
           .sort((a, b) => a.minutes - b.minutes)

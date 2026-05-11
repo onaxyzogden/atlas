@@ -80,12 +80,14 @@ export default function ColdChainUnitTool({ map, projectId }: Props) {
             placeholder: 'e.g. 2.5',
           },
           phaseField,
+          { key: 'notes', label: 'Notes', kind: 'textarea' },
         ],
         initial: {
           name: 'Cold-chain unit',
           kind: 'freezer',
           capacityM3: 0,
           phase: phaseDefault,
+          notes: '',
         },
         onSave: (values) => {
           updateColdChainUnit(id, {
@@ -93,6 +95,7 @@ export default function ColdChainUnitTool({ map, projectId }: Props) {
             kind: values.kind as ColdChainKind,
             capacityM3: Number(values.capacityM3 ?? 0),
             phase: String(values.phase ?? ''),
+            notes: String(values.notes ?? ''),
           });
         },
         onCancel: () => deleteColdChainUnit(id),

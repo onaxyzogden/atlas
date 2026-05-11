@@ -4,6 +4,8 @@ import {
   computePeakWeekKg,
   computeColdChainVerdict,
   computeMarketVerdict,
+  computeCentroid,
+  computeDriveTime,
   type AgribusinessSizing,
 } from '../agribusinessSizing.js';
 
@@ -214,5 +216,110 @@ describe('computeMarketVerdict', () => {
         weeklyProductKg: 100,
       }),
     ).toBe('ok');
+  });
+});
+
+/**
+ * Drive-time rollup primitives. The card calls turf.distance once per
+ * node to get a great-circle figure; everything after that — centroid
+ * resolution and km × multiplier ÷ speed — is what we test here.
+ */
+describe('computeCentroid', () => {
+  it('returns null for an empty input', () => {
+    expect(computeCentroid([])).toBeNull();
+  });
+
+  it('returns the single point unchanged when one is provided', () => {
+    expect(computeCentroid([[10, 20]])).toEqual([10, 20]);
+  });
+
+  it('averages a symmetric pair (basic two-point arithmetic mean)', () => {
+    expect(computeCentroid([[0, 0], [10, 20]])).toEqual([5, 10]);
+  });
+
+  it('averages a four-point square correctly', () => {
+    // Corners of a unit square around (10, 20).
+    const c = computeCentroid([
+      [9, 19],
+      [11, 19],
+      [11, 21],
+      [9, 21],
+    ]);
+    expect(c).not.toBeNull();
+    expect(c![0]).toBeCloseTo(10, 10);
+    expect(c![1]).toBeCloseTo(20, 10);
+  });
+});
+
+describe('computeDriveTime', () => {
+  it('matches the documented arithmetic at default sizing (10 km × 1.3 ÷ 60 km/h)', () => {
+    // 10 km great-circle × 1.3 detour = 13 road-km; @ 60 km/h = 13 min.
+    const r = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 1.3,
+      avgSpeedKmh: 60,
+    });
+    expect(r.roadKm).toBeCloseTo(13, 10);
+    expect(r.minutes).toBeCloseTo(13, 10);
+  });
+
+  it('scales road-km linearly with detour multiplier', () => {
+    const a = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 1,
+      avgSpeedKmh: 60,
+    });
+    const b = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 2,
+      avgSpeedKmh: 60,
+    });
+    expect(b.roadKm / a.roadKm).toBeCloseTo(2, 10);
+    expect(b.minutes / a.minutes).toBeCloseTo(2, 10);
+  });
+
+  it('scales minutes inversely with avg speed', () => {
+    const a = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 1,
+      avgSpeedKmh: 60,
+    });
+    const b = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 1,
+      avgSpeedKmh: 30,
+    });
+    expect(b.roadKm).toBeCloseTo(a.roadKm, 10);
+    expect(b.minutes / a.minutes).toBeCloseTo(2, 10);
+  });
+
+  it('clamps detour multiplier at 1 (no shortening below great-circle)', () => {
+    const r = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 0.5,
+      avgSpeedKmh: 60,
+    });
+    expect(r.roadKm).toBeCloseTo(10, 10);
+  });
+
+  it('clamps avg speed at 1 km/h (no divide-by-zero mid-edit)', () => {
+    // detour=1, speed clamped to 1 km/h → 10 km / 1 km/h × 60 = 600 min.
+    const r = computeDriveTime({
+      greatCircleKm: 10,
+      detourMultiplier: 1,
+      avgSpeedKmh: 0,
+    });
+    expect(r.roadKm).toBeCloseTo(10, 10);
+    expect(r.minutes).toBeCloseTo(600, 10);
+  });
+
+  it('returns 0 minutes when great-circle distance is 0', () => {
+    const r = computeDriveTime({
+      greatCircleKm: 0,
+      detourMultiplier: 1.3,
+      avgSpeedKmh: 60,
+    });
+    expect(r.roadKm).toBe(0);
+    expect(r.minutes).toBe(0);
   });
 });

@@ -79,12 +79,14 @@ export default function MarketNodeTool({ map, projectId }: Props) {
             placeholder: 'e.g. 120',
           },
           phaseField,
+          { key: 'notes', label: 'Notes', kind: 'textarea' },
         ],
         initial: {
           name: 'Market node',
           kind: 'farmstand',
           weeklyDemandKg: 0,
           phase: phaseDefault,
+          notes: '',
         },
         onSave: (values) => {
           updateMarketNode(id, {
@@ -92,6 +94,7 @@ export default function MarketNodeTool({ map, projectId }: Props) {
             kind: values.kind as MarketKind,
             weeklyDemandKg: Number(values.weeklyDemandKg ?? 0),
             phase: String(values.phase ?? ''),
+            notes: String(values.notes ?? ''),
           });
         },
         onCancel: () => deleteMarketNode(id),

@@ -84,12 +84,14 @@ export default function SlaughterPointTool({ map, projectId }: Props) {
             placeholder: 'e.g. 250',
           },
           phaseField,
+          { key: 'notes', label: 'Notes', kind: 'textarea' },
         ],
         initial: {
           name: 'Slaughter point',
           kind: 'on-farm',
           capacityBirdsPerDay: 0,
           phase: phaseDefault,
+          notes: '',
         },
         onSave: (values) => {
           updateSlaughterPoint(id, {
@@ -97,6 +99,7 @@ export default function SlaughterPointTool({ map, projectId }: Props) {
             kind: values.kind as SlaughterKind,
             capacityBirdsPerDay: Number(values.capacityBirdsPerDay ?? 0),
             phase: String(values.phase ?? ''),
+            notes: String(values.notes ?? ''),
           });
         },
         onCancel: () => deleteSlaughterPoint(id),
