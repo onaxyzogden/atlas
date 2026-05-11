@@ -139,6 +139,10 @@ export default function LivestockMoveCard({ project }: Props) {
 
   const [draft, setDraft] = useState<Draft>(emptyDraft);
 
+  // Linked-pair hover grouping: hovering one leg of a rotate pair lights up
+  //  both legs in the moves table. Holds the partner id of the row hovered.
+  const [hoveredLinkedId, setHoveredLinkedId] = useState<string | null>(null);
+
   function optionsForKind(kind: SourceKind) {
     return kind === 'paddock'
       ? paddocks.map((p) => ({ id: p.id, label: p.name }))
@@ -383,8 +387,23 @@ export default function LivestockMoveCard({ project }: Props) {
                         ? `Linked rotation — partner ${partner.direction === 'move_out' ? 'exited' : 'entered'} on ${partner.date}`
                         : 'Linked rotation — partner event no longer present'
                       : '';
+                    const linkedHi =
+                      e.linkedEventId != null &&
+                      hoveredLinkedId != null &&
+                      (hoveredLinkedId === e.id || hoveredLinkedId === e.linkedEventId);
                     return (
-                    <tr key={e.id}>
+                    <tr
+                      key={e.id}
+                      className={linkedHi ? styles.linkedPairHighlight : undefined}
+                      onMouseEnter={
+                        e.linkedEventId
+                          ? () => setHoveredLinkedId(e.linkedEventId ?? null)
+                          : undefined
+                      }
+                      onMouseLeave={
+                        e.linkedEventId ? () => setHoveredLinkedId(null) : undefined
+                      }
+                    >
                       <td>{e.date}</td>
                       <td>
                         {e.linkedEventId ? (
