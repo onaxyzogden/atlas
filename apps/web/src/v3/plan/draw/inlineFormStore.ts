@@ -43,6 +43,10 @@ export interface FieldSpec {
   /** For 'disclosure' fields: nested fields revealed when expanded. Children
    *  write into the flat top-level values map (no namespacing). */
   children?: FieldSpec[];
+  /** When provided, the field is rendered only when this returns true.
+   *  Receives the current values map; reactive against onValuesChange
+   *  patches. Required-field validation also skips hidden fields. */
+  visibleWhen?: (values: Record<string, string | number>) => boolean;
 }
 
 export interface InlineFormPayload {

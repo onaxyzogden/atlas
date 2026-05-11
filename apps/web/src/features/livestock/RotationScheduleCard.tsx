@@ -120,10 +120,12 @@ function computeRestPairs(
   for (const e of sorted) {
     const isExit =
       e.fromPaddockId === paddockId ||
-      // Legacy v2 fallback: a paddockId-keyed event with direction move_out / rotate_through
-      // implicitly exited that paddock.
+      // Legacy v2 fallback: a paddockId-keyed `move_out` event implicitly
+      //  exited that paddock. (v4 migration split every `rotate_through`
+      //  into a linked move_out/move_in pair, so the `rotate_through`
+      //  branch is no longer needed.)
       ((e.paddockId === paddockId || e.toPaddockId === paddockId) &&
-        (e.direction === 'move_out' || e.direction === 'rotate_through'));
+        e.direction === 'move_out');
     const destPid = e.toPaddockId ?? e.paddockId;
     const isEntry = destPid === paddockId && e.direction !== 'move_out';
     if (isEntry && lastExitDate) {
@@ -743,7 +745,18 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                               return (
                                 <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
                                   <div className={css.loggedMoveDirection}>
-                                    <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
+                                    <b>
+                                      {ev.linkedEventId ? (
+                                        <span
+                                          aria-label="Linked rotation"
+                                          title="Linked rotation — paired with partner event"
+                                          style={{ marginRight: 4 }}
+                                        >
+                                          {'\u{1F517}'}
+                                        </span>
+                                      ) : null}
+                                      {tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}
+                                    </b>
                                     <span>
                                       {formatLoggedDate(ev.date)}
                                       {' \u00b7 '}
@@ -840,7 +853,18 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
               return (
                 <div key={ev.id} className={css.loggedMoveRow}>
                   <div className={css.loggedMoveDirection}>
-                    <b>{DIRECTION_LABEL[ev.direction]}</b>
+                    <b>
+                      {ev.linkedEventId ? (
+                        <span
+                          aria-label="Linked rotation"
+                          title="Linked rotation — paired with partner event"
+                          style={{ marginRight: 4 }}
+                        >
+                          {'\u{1F517}'}
+                        </span>
+                      ) : null}
+                      {DIRECTION_LABEL[ev.direction]}
+                    </b>
                     <span>
                       {sid ? structureLabel(sid) : '(unknown)'}
                       {' \u00b7 '}

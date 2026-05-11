@@ -22,6 +22,7 @@ import {
   useLivestockMoveLogStore,
   DIRECTION_OPTIONS,
   SPECIES_OPTIONS,
+  buildRotatePair,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
 import {
@@ -171,6 +172,21 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       { key: 'who',       label: 'Who',       kind: 'text',   placeholder: 'optional' },
       { key: 'notes',     label: 'Notes',     kind: 'text',   placeholder: 'optional' },
       originDisclosureField(projectId, { kind: 'structure', id: structure.id }),
+      {
+        key: 'exitDateDisclosure',
+        label: 'Exit date',
+        kind: 'disclosure',
+        triggerLabel: '+ Different exit date',
+        visibleWhen: (v) => v.direction === 'rotate_through',
+        children: [
+          {
+            key: 'exitDate',
+            label: 'Exit date',
+            kind: 'text',
+            placeholder: 'YYYY-MM-DD (defaults to date)',
+          },
+        ],
+      },
     ],
     initial: {
       date: todayIso(),
@@ -180,6 +196,7 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       who: '',
       notes: '',
       origin: '',
+      exitDate: '',
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -192,8 +209,34 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       const who = String(values.who ?? '').trim();
       const notes = String(values.notes ?? '').trim();
       const origin = parseOriginValue(values.origin);
+      const date = String(values.date ?? todayIso());
+
+      if (direction === 'rotate_through') {
+        // Rotate is a write-time convenience: discard the move_in skeleton
+        // and persist two cross-pointing legs instead.
+        removeEvent(id);
+        const exitDate = String(values.exitDate ?? '').trim();
+        const [exitLeg, entryLeg] = buildRotatePair({
+          projectId,
+          entryDate: date,
+          exitDate: exitDate || undefined,
+          species,
+          headCount,
+          from: {
+            paddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+            structureId: origin?.kind === 'structure' ? origin.id : undefined,
+          },
+          to: { structureId: structure.id },
+          who: who === '' ? undefined : who,
+          notes: notes === '' ? undefined : notes,
+        });
+        addEvent(exitLeg);
+        addEvent(entryLeg);
+        return;
+      }
+
       updateEvent(id, {
-        date: String(values.date ?? todayIso()),
+        date,
         direction,
         species,
         headCount,

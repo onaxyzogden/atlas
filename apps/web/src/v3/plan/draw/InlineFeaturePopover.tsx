@@ -126,9 +126,12 @@ export default function InlineFeaturePopover({ map }: Props) {
   if (!active || !screen) return null;
 
   // Flatten disclosure children so required validation covers them too.
-  const flatFields: FieldSpec[] = active.fields.flatMap((f) =>
-    f.kind === 'disclosure' ? (f.children ?? []) : [f],
-  );
+  // Skip fields whose visibleWhen predicate is currently false — they are
+  // not rendered so they can't be required.
+  const flatFields: FieldSpec[] = active.fields
+    .filter((f) => !f.visibleWhen || f.visibleWhen(values))
+    .flatMap((f) => (f.kind === 'disclosure' ? (f.children ?? []) : [f]))
+    .filter((f) => !f.visibleWhen || f.visibleWhen(values));
   const requiredOk = flatFields.every((f) => {
     if (!f.required) return true;
     const v = values[f.key];
@@ -217,6 +220,7 @@ export default function InlineFeaturePopover({ map }: Props) {
   };
 
   const renderField = (f: FieldSpec) => {
+    if (f.visibleWhen && !f.visibleWhen(values)) return null;
     if (f.kind !== 'disclosure') return renderLeafField(f);
     const isOpen = !!expanded[f.key];
     const toggle = () => setExpanded((prev) => ({ ...prev, [f.key]: !prev[f.key] }));
@@ -235,7 +239,9 @@ export default function InlineFeaturePopover({ map }: Props) {
     }
     return (
       <div key={f.key} className={css.field}>
-        {(f.children ?? []).map((c) => renderLeafField(c))}
+        {(f.children ?? [])
+          .filter((c) => !c.visibleWhen || c.visibleWhen(values))
+          .map((c) => renderLeafField(c))}
         <button
           type="button"
           className={css.secondaryBtn}
