@@ -55,7 +55,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
-  'structures-subsystems':  'Structures & Subsystems',
+  'structures-subsystems':  'Built Environment',
   machinery:                'Machinery & Equipment',
   livestock:                'Livestock & Subdivision',
   'plant-systems':          'Plant Systems & Polyculture',

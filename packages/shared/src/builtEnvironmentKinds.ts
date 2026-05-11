@@ -322,10 +322,10 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     },
     septic: {
       kind: 'septic',
-      label: 'Septic',
+      label: 'Septic / leach field',
       category: 'utility',
       geometryType: 'polygon',
-      icon: 'Droplets',
+      icon: 'Recycle',
       color: '#71717a',
       defaultStates: ['existing', 'proposed'],
       renderMode: 'flat',
@@ -377,7 +377,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     // ── Infrastructure (lines + driveways) ──────────────────────────────
     'power-line': {
       kind: 'power-line',
-      label: 'Power Line',
+      label: 'Power line',
       category: 'infrastructure',
       geometryType: 'line',
       icon: 'Zap',
@@ -389,7 +389,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     },
     'buried-utility': {
       kind: 'buried-utility',
-      label: 'Buried Utility',
+      label: 'Buried utility',
       category: 'infrastructure',
       geometryType: 'line',
       icon: 'Cable',
@@ -404,7 +404,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       label: 'Fence',
       category: 'infrastructure',
       geometryType: 'line',
-      icon: 'Minus',
+      icon: 'Fence',
       color: '#52525b',
       defaultStates: ['existing', 'proposed'],
       renderMode: 'flat',

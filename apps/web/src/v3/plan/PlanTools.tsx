@@ -16,44 +16,25 @@ import {
   Activity,
   ArrowRight,
   Beef,
-  BookOpen,
-  Box,
-  Cable,
   CircleDashed,
   Container,
   Disc,
-  DoorOpen,
   Droplet,
-  Droplets,
-  Eye,
   Fence,
-  Flame,
   FolderOpen,
-  Fuel,
-  Home,
   Layers,
-  Leaf,
   MapPin,
-  Minus,
-  Mountain,
   Recycle,
   Route,
   Snowflake,
-  Sparkles,
   Sprout,
   Square,
   Store,
-  Sun,
-  Tent,
   TreeDeciduous,
-  Truck,
-  Warehouse,
   Waves,
-  Wrench,
-  Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
+import { BE_TOOL_ITEMS } from '../_shared/builtEnvironmentTools.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -74,30 +55,20 @@ interface ToolItem {
   toolId: MapToolId;
 }
 
-/** Lucide icon resolver for `BUILT_ENVIRONMENT_KINDS[*].icon` strings.
- *  Mirrors `BE_ICON_MAP` in ObserveTools.tsx. Falls back to `Home`. */
-const BE_ICON_MAP: Readonly<Record<string, LucideIcon>> = {
-  Home, Tent, Sparkles, BookOpen, Droplets, Mountain, Wrench, Eye,
-  Warehouse, Sprout, Box, Leaf, Droplet, Sun, Zap, Cable, Minus,
-  DoorOpen, Route, Truck, Fuel, Flame, Square,
-};
-
 /**
- * Plan-stage Built Environment tools — registry-driven, all 31 BE kinds
- * surfaced under "Structures & Subsystems" with `state: 'proposed'`. Tool
- * ids use the `plan.structures-subsystems.be.<kind>` prefix so PlanDrawHost
- * can dispatch them via a single prefix-match handler. Mirrors Observe's
- * BE rail (ObserveTools.tsx) so a kind added to the shared registry surfaces
- * in both stages automatically.
+ * Plan-stage Built Environment tools — driven by the shared registry list
+ * in `_shared/builtEnvironmentTools.ts`. Tool ids use the
+ * `plan.structures-subsystems.be.<kind>` prefix so PlanDrawHost can
+ * dispatch them via a single prefix-match handler. Mirrors Observe's BE
+ * rail so a kind added to the shared registry surfaces in both stages
+ * automatically.
  */
-const PLAN_BE_TOOLS: ToolItem[] = Object.values(BUILT_ENVIRONMENT_KINDS)
-  .filter((spec) => spec.defaultStates.includes('proposed'))
-  .map((spec) => ({
-    id: `be-${spec.kind}`,
-    label: spec.label,
-    Icon: BE_ICON_MAP[spec.icon] ?? Home,
-    toolId: `plan.structures-subsystems.be.${spec.kind}` as MapToolId,
-  }));
+const PLAN_BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
+  id: `be-${it.kind}`,
+  label: it.label,
+  Icon: it.Icon,
+  toolId: `plan.structures-subsystems.be.${it.kind}` as MapToolId,
+}));
 
 /** Modules with map-first draw tools. Others fall back to "Open module". */
 const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
@@ -112,17 +83,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'path',        label: 'Path',        Icon: Route,         toolId: 'plan.zone-circulation.path' },
     { id: 'buffer-ring', label: 'Buffer ring', Icon: CircleDashed,  toolId: 'plan.zone-circulation.buffer-ring' },
   ],
-  'structures-subsystems': [
-    { id: 'structure',   label: 'Structure',   Icon: Home,  toolId: 'plan.structures-subsystems.structure' },
-    { id: 'utility-run', label: 'Utility run', Icon: Cable, toolId: 'plan.structures-subsystems.utility-run' },
-    // Phase 6 follow-up — mirror Observe's full BE registry on the Plan
-    // rail with `state: 'proposed'`. The legacy `structure` tool above
-    // remains for its richer create-time metadata UX (cost / labor /
-    // material estimates); the registry-driven tools below give Plan a
-    // one-click placement parity for every BE kind without having to
-    // route through the slide-up.
-    ...PLAN_BE_TOOLS,
-  ],
+  'structures-subsystems': PLAN_BE_TOOLS,
   livestock: [
     { id: 'paddock',    label: 'Paddock',    Icon: Square, toolId: 'plan.livestock.paddock' },
     // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
