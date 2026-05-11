@@ -31,6 +31,7 @@ import {
 } from '../../store/scheduledLivestockMoveStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
+import { startScheduledLivestockMove } from '../../v3/act/ActStructurePopover.actions.js';
 import {
   computeRecoveryStatus,
   computeRotationSchedule,
@@ -805,6 +806,22 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                     </span>
                   </div>
                   <div className={css.plannedActions}>
+                    {sid
+                      ? (() => {
+                          const structure = projectStructures.find((s) => s.id === sid);
+                          if (!structure) return null;
+                          return (
+                            <button
+                              type="button"
+                              className={css.plannedChip}
+                              onClick={() => startScheduledLivestockMove(structure, projectId, plan.id)}
+                              aria-label={`Edit planned move into ${structureLabel(sid)}`}
+                            >
+                              Edit
+                            </button>
+                          );
+                        })()
+                      : null}
                     <button
                       type="button"
                       className={`${css.plannedChip} ${css.plannedChipDismiss}`}

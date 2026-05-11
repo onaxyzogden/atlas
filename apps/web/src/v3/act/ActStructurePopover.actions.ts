@@ -201,34 +201,48 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
  * patch pattern as `startLivestockMoveLog`, but writes to the scheduled-move
  * store instead of the actual log. Cancelling removes the skeleton plan.
  *
+ * When `existingPlanId` is supplied, opens the form in *edit* mode: no
+ * skeleton is added, fields prefill from the existing plan, Save calls
+ * `updatePlan(existingPlanId, …)`, and Cancel is a true no-op (does NOT
+ * remove the plan). Used by the `RotationScheduleCard` Structure-moves
+ * tail's `Edit` chip — matches the paddock plan-editing UX from `a2725c3`.
+ *
  * The Plan-stage `Paddock`-centric variance pill (in `RotationScheduleCard`)
  * does not apply to structures — the recovery model is paddock-centric, so
  * structure plans render as a plain `Planned: <date>` line in the
- * Structure-moves tail with an `Edit` / `✕` affordance (matches paddock
- * plan-editing UX shipped in `a2725c3`).
+ * Structure-moves tail with an `Edit` / `✕` affordance.
  */
-export function startScheduledLivestockMove(structure: Structure, projectId: string): void {
+export function startScheduledLivestockMove(
+  structure: Structure,
+  projectId: string,
+  existingPlanId?: string,
+): void {
   const tpl = STRUCTURE_TEMPLATES[structure.type];
   const label = structure.name && structure.name !== tpl.label ? structure.name : tpl.label;
   const defaultSpecies: LivestockSpecies = 'sheep';
 
   useActStructurePopoverStore.getState().close();
 
-  const id = newAnnotationId('slvm');
-  const { addPlan, updatePlan, removePlan } = useScheduledLivestockMoveStore.getState();
-  addPlan({
-    id,
-    projectId,
-    toStructureId: structure.id,
-    plannedDate: todayIso(),
-    direction: 'move_in',
-    species: defaultSpecies,
-    headCount: null,
-    createdAt: new Date().toISOString(),
-  });
+  const { plans, addPlan, updatePlan, removePlan } = useScheduledLivestockMoveStore.getState();
+  const existing = existingPlanId ? plans.find((p) => p.id === existingPlanId) ?? null : null;
+  const isEdit = existing != null;
+  const id = isEdit ? existing.id : newAnnotationId('slvm');
+
+  if (!isEdit) {
+    addPlan({
+      id,
+      projectId,
+      toStructureId: structure.id,
+      plannedDate: todayIso(),
+      direction: 'move_in',
+      species: defaultSpecies,
+      headCount: null,
+      createdAt: new Date().toISOString(),
+    });
+  }
 
   useInlineFormStore.getState().open({
-    title: `Schedule move — ${label}`,
+    title: `${isEdit ? 'Edit planned move' : 'Schedule move'} — ${label}`,
     anchor: anchorFor(structure),
     fields: [
       { key: 'plannedDate', label: 'Planned date', kind: 'text',   required: true, placeholder: 'YYYY-MM-DD' },
@@ -239,12 +253,12 @@ export function startScheduledLivestockMove(structure: Structure, projectId: str
       { key: 'notes',       label: 'Notes',        kind: 'text',   placeholder: 'optional' },
     ],
     initial: {
-      plannedDate: todayIso(),
-      direction: 'move_in',
-      species: defaultSpecies,
-      headCount: '',
-      who: '',
-      notes: '',
+      plannedDate: existing?.plannedDate ?? todayIso(),
+      direction:   existing?.direction   ?? 'move_in',
+      species:     existing?.species     ?? defaultSpecies,
+      headCount:   existing?.headCount != null ? String(existing.headCount) : '',
+      who:         existing?.who         ?? '',
+      notes:       existing?.notes       ?? '',
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -265,7 +279,8 @@ export function startScheduledLivestockMove(structure: Structure, projectId: str
         notes: notes === '' ? undefined : notes,
       });
     },
-    onCancel: () => removePlan(id),
+    // In edit mode, Cancel must NOT remove the persistent plan.
+    onCancel: isEdit ? () => {} : () => removePlan(id),
   });
 }
 
