@@ -409,6 +409,16 @@ Follow-up same day (continued): two more deferred items closed.
   effect generalised: matches by `toStructureId` as well as
   `toPaddockId` (same ±7-day window, same species). ADR
   Out-of-scope section gained a struck-through entry for closure.
+- `88ded4c` — Plan-editing parity for structure-destination plans.
+  `startScheduledLivestockMove` gained an optional `existingPlanId`
+  parameter: when set, the action skips the skeleton-add, prefills the
+  inline form from the existing plan, and rebinds Save to
+  `updatePlan(existingPlanId, …)` / Cancel to a no-op. Structure-moves
+  tail's plan row now carries an `Edit` chip alongside the dismiss
+  `✕`; click looks up the destination structure and pops the prefilled
+  inline form anchored at its map center. Closes the recommended-next
+  item from the previous session's debrief; same UX as the paddock
+  `Planned:` line from `a2725c3`.
 
 ---
 
