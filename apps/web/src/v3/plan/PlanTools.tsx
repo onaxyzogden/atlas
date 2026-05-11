@@ -14,6 +14,7 @@ import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   Activity,
+  Apple,
   ArrowRight,
   Beef,
   CircleDashed,
@@ -21,17 +22,25 @@ import {
   Disc,
   Droplet,
   Fence,
+  Flower2,
   FolderOpen,
   Layers,
+  Leaf,
+  Link2,
   MapPin,
+  Milestone,
   Recycle,
+  RotateCw,
   Route,
   Snowflake,
   Sprout,
   Square,
   Store,
   TreeDeciduous,
+  TreePine,
+  Trees,
   Waves,
+  Wheat,
   type LucideIcon,
 } from 'lucide-react';
 import { BE_TOOL_ITEMS } from '../_shared/builtEnvironmentTools.js';
@@ -77,11 +86,24 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'storage',   label: 'Storage',   Icon: Container, toolId: 'plan.water-management.storage' },
     { id: 'swale',     label: 'Swale',     Icon: Waves,     toolId: 'plan.water-management.swale' },
     { id: 'sink',      label: 'Sink',      Icon: Disc,      toolId: 'plan.water-management.sink' },
+    // 2026-05-11 — Yeomans water kind ported from elementCatalog; persists
+    // to designElementsStore via PlanDesignElementHost.
+    { id: 'spring',    label: 'Spring',    Icon: Flower2,   toolId: 'plan.water-management.spring' },
   ],
   'zone-circulation': [
     { id: 'zone',        label: 'Zone',        Icon: Square,        toolId: 'plan.zone-circulation.zone' },
     { id: 'path',        label: 'Path',        Icon: Route,         toolId: 'plan.zone-circulation.path' },
     { id: 'buffer-ring', label: 'Buffer ring', Icon: CircleDashed,  toolId: 'plan.zone-circulation.buffer-ring' },
+    // 2026-05-11 — Access kinds ported from elementCatalog (vehicle road,
+    // bridge crossing). Route through designElementsStore.
+    { id: 'road',        label: 'Road',        Icon: Milestone,     toolId: 'plan.zone-circulation.road' },
+    { id: 'bridge',      label: 'Bridge',      Icon: Link2,         toolId: 'plan.zone-circulation.bridge' },
+  ],
+  // 2026-05-11 — Machinery group surfaces from elementCatalog. Turnaround
+  // is the only machinery kind not already covered by Built Environment's
+  // registry (machinery-shed / equipment-yard / fuel-station live there).
+  machinery: [
+    { id: 'turnaround', label: 'Turnaround', Icon: RotateCw, toolId: 'plan.machinery.turnaround' },
   ],
   'structures-subsystems': PLAN_BE_TOOLS,
   livestock: [
@@ -96,8 +118,22 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'market-node',     label: 'Market',     Icon: Store,     toolId: 'plan.livestock.market-node' },
   ],
   'plant-systems': [
-    { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
-    { id: 'guild',     label: 'Guild',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
+    { id: 'crop-area',    label: 'Crop area',    Icon: Sprout,        toolId: 'plan.plant-systems.crop-area' },
+    { id: 'guild',        label: 'Guild',        Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
+    // 2026-05-11 — Yeomans grazing kinds ported from the Vision-canvas
+    // DesignElementPalette so PlanTools is the single rail across all
+    // four Plan views. Polygon draws persist to designElementsStore and
+    // surface acreage labels via DesignElementLayers.
+    { id: 'orchard',      label: 'Orchard',      Icon: TreeDeciduous, toolId: 'plan.plant-systems.orchard' },
+    { id: 'silvopasture', label: 'Silvopasture', Icon: Trees,         toolId: 'plan.plant-systems.silvopasture' },
+    { id: 'pasture-mix',  label: 'Pasture mix',  Icon: Wheat,         toolId: 'plan.plant-systems.pasture-mix' },
+    // 2026-05-11 — Vegetation kinds ported from elementCatalog (oak / pine /
+    // apple / shrub / hedgerow). Point + line draws via designElementsStore.
+    { id: 'oak-tree',     label: 'Oak tree',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.oak-tree' },
+    { id: 'pine-tree',    label: 'Pine tree',    Icon: TreePine,      toolId: 'plan.plant-systems.pine-tree' },
+    { id: 'apple-tree',   label: 'Apple tree',   Icon: Apple,         toolId: 'plan.plant-systems.apple-tree' },
+    { id: 'shrub',        label: 'Shrub',        Icon: Leaf,          toolId: 'plan.plant-systems.shrub' },
+    { id: 'hedgerow',     label: 'Hedgerow',     Icon: Trees,         toolId: 'plan.plant-systems.hedgerow' },
   ],
   'soil-fertility': [
     { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },

@@ -264,10 +264,26 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const conflictPoints: GeoJSON.Feature[] = [];
     const conflictLines: GeoJSON.Feature[] = [];
 
+    // Acreage helper (2026-05-11) — stamps `acresLabel` on polygon props
+    // so the shared label symbol layer can suffix "— X.X ac" via a
+    // `case`/`has` expression. Returns null when the geometry isn't a
+    // polygon or turf can't compute area. 1 acre = 4046.8564224 m².
+    const acresOf = (geom: GeoJSON.Geometry): string | null => {
+      if (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon') return null;
+      try {
+        const m2 = turf.area(geom as GeoJSON.Polygon | GeoJSON.MultiPolygon);
+        if (!Number.isFinite(m2) || m2 <= 0) return null;
+        const ac = m2 / 4046.8564224;
+        return ac >= 10 ? ac.toFixed(0) : ac.toFixed(1);
+      } catch {
+        return null;
+      }
+    };
+
     // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
     for (const z of zones) {
       if (z.projectId !== projectId) continue;
-      const props = {
+      const props: Record<string, unknown> = {
         id: z.id,
         kind: 'zone',
         color: z.color,
@@ -275,6 +291,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 4,
         enterprise: z.enterprise ?? '',
       };
+      const ac = acresOf(z.geometry);
+      if (ac) props.acresLabel = ac;
       polys.push({ type: 'Feature', id: z.id, properties: props, geometry: z.geometry });
       try {
         const c = turf.centroid(z.geometry).geometry;
@@ -287,7 +305,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // Crop areas (polygon) — Module 5 Plant Systems. Yeomans rank 8.
     for (const c of cropAreas) {
       if (c.projectId !== projectId) continue;
-      const props = {
+      const props: Record<string, unknown> = {
         id: c.id,
         kind: 'crop',
         color: c.color,
@@ -295,6 +313,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 8,
         enterprise: c.enterprise ?? '',
       };
+      const ac = acresOf(c.geometry);
+      if (ac) props.acresLabel = ac;
       polys.push({ type: 'Feature', id: c.id, properties: props, geometry: c.geometry });
       try {
         const ctr = turf.centroid(c.geometry).geometry;
@@ -307,7 +327,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // Paddocks (polygon) — Module 4 Livestock & Subdivision. Yeomans rank 9.
     for (const pd of paddocks) {
       if (pd.projectId !== projectId) continue;
-      const props = {
+      const props: Record<string, unknown> = {
         id: pd.id,
         kind: 'paddock',
         color: pd.color,
@@ -315,6 +335,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 9,
         enterprise: pd.enterprise ?? '',
       };
+      const ac = acresOf(pd.geometry);
+      if (ac) props.acresLabel = ac;
       polys.push({ type: 'Feature', id: pd.id, properties: props, geometry: pd.geometry });
       try {
         const ctr = turf.centroid(pd.geometry).geometry;
@@ -498,7 +520,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         : n.kind === 'storage' ? 'water_storage'
         : n.kind === 'swale' ? 'water_swale'
         : 'water_sink';
-      const props = {
+      const props: Record<string, unknown> = {
         id: n.id,
         kind: planKind,
         color,
@@ -506,6 +528,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 2,
         enterprise: n.enterprise ?? '',
       };
+      if (n.kind === 'catchment' && n.geometry) {
+        const ac = acresOf(n.geometry);
+        if (ac) props.acresLabel = ac;
+      }
       // Utility-conflict halo geometry — mirror whatever geometry the
       // node already renders with (swaleGeometry for swales, center
       // point for storage / sink / catchment marker).
@@ -600,7 +626,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // semantics).
     for (const r of setbackRings) {
       if (r.projectId !== projectId) continue;
-      const props = {
+      const props: Record<string, unknown> = {
         id: r.id,
         kind: 'setback',
         color: r.color,
@@ -608,6 +634,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         yeomansRank: 4,
         enterprise: r.enterprise ?? '',
       };
+      const ac = acresOf(r.geometry);
+      if (ac) props.acresLabel = ac;
       setbacks.push({
         type: 'Feature',
         id: r.id,
@@ -983,7 +1011,18 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         type: 'symbol',
         source: labelSid,
         layout: {
-          'text-field': ['get', 'label'],
+          // 2026-05-11 — Polygon features (zones, paddocks, crop areas,
+          // catchments, setback rings) stamp `acresLabel` on their props
+          // so the symbol layer can suffix "— X.X ac" without a separate
+          // labels source. Non-polygon labels (guild / fertility points,
+          // structure / water / module-7 points) omit the field and
+          // fall through to the bare name.
+          'text-field': [
+            'case',
+            ['has', 'acresLabel'],
+            ['concat', ['get', 'label'], ' — ', ['get', 'acresLabel'], ' ac'],
+            ['get', 'label'],
+          ],
           'text-size': 11,
           'text-offset': [0, 1.1],
           'text-anchor': 'top',

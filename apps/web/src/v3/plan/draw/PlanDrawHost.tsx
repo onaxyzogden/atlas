@@ -19,6 +19,7 @@ import FlowConnectorTool from './tools/FlowConnectorTool.js';
 import PaddockTool from './tools/PaddockTool.js';
 import FenceLineTool from './tools/FenceLineTool.js';
 import GuildTool from './tools/GuildTool.js';
+import PlanDesignElementHost from './tools/PlanDesignElementHost.js';
 import StructureTool from './tools/StructureTool.js';
 import UtilityRunTool from './tools/UtilityRunTool.js';
 import BufferRingTool from './tools/BufferRingTool.js';
@@ -33,6 +34,29 @@ import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 /** Prefix used by registry-driven Plan BE tools (mirrors Observe rail). */
 const PLAN_BE_PREFIX = 'plan.structures-subsystems.be.';
 
+/**
+ * Tool ids that route through the unified `designElementsStore` draw
+ * lifecycle (PlanDesignElementHost). These are elementCatalog kinds
+ * ported into PlanTools 2026-05-11 — Yeomans grazing polygons, water /
+ * access / machinery / vegetation kinds.
+ *
+ * Each id's last `.` segment matches the elementCatalog `kind` string.
+ */
+const DESIGN_ELEMENT_TOOL_IDS = new Set<string>([
+  'plan.plant-systems.orchard',
+  'plan.plant-systems.silvopasture',
+  'plan.plant-systems.pasture-mix',
+  'plan.plant-systems.oak-tree',
+  'plan.plant-systems.pine-tree',
+  'plan.plant-systems.apple-tree',
+  'plan.plant-systems.shrub',
+  'plan.plant-systems.hedgerow',
+  'plan.water-management.spring',
+  'plan.zone-circulation.road',
+  'plan.zone-circulation.bridge',
+  'plan.machinery.turnaround',
+]);
+
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
@@ -43,6 +67,19 @@ export default function PlanDrawHost({ map, projectId }: Props) {
 
   if (!activeTool || !activeTool.startsWith('plan.') || !projectId) {
     return null;
+  }
+
+  // elementCatalog-kind dispatch: tool ids ported from the Vision-canvas
+  // palette route through PlanDesignElementHost so they persist to
+  // `designElementsStore` (same store the Vision canvas writes into).
+  // One source of truth across all four Plan views.
+  if (DESIGN_ELEMENT_TOOL_IDS.has(activeTool)) {
+    const kind = activeTool.split('.').pop()!;
+    return (
+      <div className={css.dock}>
+        <PlanDesignElementHost map={map} projectId={projectId} kind={kind} />
+      </div>
+    );
   }
 
   // Registry-driven Plan BE dispatch: tool ids of shape
