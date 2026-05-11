@@ -173,6 +173,14 @@ Three call sites mint pairs at write time:
   lights up both. Applied to per-paddock logged-moves rows and the
   Structure-moves tail. Shared-border styling stayed deferred (the
   background-tint highlight is enough signal).
+  **Follow-up same day:** extended the same wiring to
+  `LivestockMoveCard.tsx`'s project-wide moves table. The
+  per-paddock blocks on the rotation card render exit and entry
+  legs in *separate* paddock buckets (a paddock-to-paddock rotate
+  pair never co-renders inside one block), so the original wiring
+  alone produced no visible grouping. The moves table on
+  `LivestockMoveCard` co-renders both legs, so the highlight
+  actually fires there.
 - **Per-leg variance pill** ("trip: 2d" badge when exit and entry
   dates differ). Easy follow-up once operators report whether they
   use the split-date disclosure.
