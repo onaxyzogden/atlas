@@ -13,7 +13,6 @@ export type PlanModule =
   | 'structures-subsystems'
   | 'machinery'
   | 'livestock'
-  | 'broiler-product-map'
   | 'plant-systems'
   | 'soil-fertility'
   | 'cross-section-solar'
@@ -27,7 +26,6 @@ export const PLAN_MODULES: PlanModule[] = [
   'structures-subsystems',
   'machinery',
   'livestock',
-  'broiler-product-map',
   'plant-systems',
   'soil-fertility',
   'cross-section-solar',
@@ -46,7 +44,6 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'structures-subsystems':  'Structures',
   machinery:                'Machinery',
   livestock:                'Livestock',
-  'broiler-product-map':    'Broiler Map',
   'plant-systems':          'Plants',
   'soil-fertility':         'Soil',
   'cross-section-solar':    'Cross-section',
@@ -61,7 +58,6 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'structures-subsystems':  'Structures & Subsystems',
   machinery:                'Machinery & Equipment',
   livestock:                'Livestock & Subdivision',
-  'broiler-product-map':    'Broiler Product Map',
   'plant-systems':          'Plant Systems & Polyculture',
   'soil-fertility':         'Soil Fertility & Closed-Loop',
   'cross-section-solar':    'Cross-section & Solar Geometry',
@@ -136,7 +132,10 @@ export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
 };
 
 /** Each module maps to one or more plan card section IDs. */
-export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: string }>> = {
+export const MODULE_CARDS: Record<
+  PlanModule,
+  Array<{ label: string; sectionId: string; group?: string }>
+> = {
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
@@ -170,11 +169,9 @@ export const MODULE_CARDS: Record<PlanModule, Array<{ label: string; sectionId: 
     { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
-  ],
-  'broiler-product-map': [
-    { label: 'Slaughter throughput',  sectionId: 'plan-broiler-slaughter-throughput' },
-    { label: 'Cold-chain coverage',   sectionId: 'plan-broiler-coldchain-coverage' },
-    { label: 'Market distribution',   sectionId: 'plan-broiler-market-distribution' },
+    { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
+    { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
+    { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
   ],
   'plant-systems': [
     { label: 'Plant database',    sectionId: 'plan-plant-database' },

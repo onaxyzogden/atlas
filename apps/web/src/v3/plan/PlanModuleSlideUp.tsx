@@ -166,10 +166,10 @@ function renderCard(
     // per "no deletion in revamps" rule. See
     // wiki/decisions/2026-05-10-atlas-plan-module6-livestock-farm-scholar.md.
     case 'plan-livestock-buffers':          return <BiosecurityBufferCard projectId={project.id} />;
-    // Broiler Product Map (Module 7) — three diagnostic cards.
-    case 'plan-broiler-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
-    case 'plan-broiler-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
-    case 'plan-broiler-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
+    // Product Chain (sub-module under Livestock) — three diagnostic cards.
+    case 'plan-product-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
+    case 'plan-product-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
+    case 'plan-product-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;
@@ -269,16 +269,26 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
 
         {hasMultiple && (
           <nav className={css.tabs} aria-label="Module sub-tools">
-            {cards.map(({ label: tabLabel, sectionId }) => (
-              <button
-                key={sectionId}
-                type="button"
-                className={`${css.tab} ${sectionId === currentId ? css.tabActive : ''}`}
-                onClick={() => setActiveSectionId(sectionId)}
-              >
-                {tabLabel}
-              </button>
-            ))}
+            {cards.map(({ label: tabLabel, sectionId, group }, idx) => {
+              const prevGroup = idx > 0 ? cards[idx - 1]?.group : undefined;
+              const showDivider = group && group !== prevGroup;
+              return (
+                <span key={sectionId} className={css.tabSlot}>
+                  {showDivider ? (
+                    <span className={css.tabGroupLabel} aria-hidden="true">
+                      {group}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={`${css.tab} ${sectionId === currentId ? css.tabActive : ''}`}
+                    onClick={() => setActiveSectionId(sectionId)}
+                  >
+                    {tabLabel}
+                  </button>
+                </span>
+              );
+            })}
           </nav>
         )}
 

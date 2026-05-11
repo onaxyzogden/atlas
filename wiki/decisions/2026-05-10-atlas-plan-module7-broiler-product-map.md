@@ -146,3 +146,61 @@ canvases stay unaffected.
 - [2026-05-10 atlas-plan-module6-livestock-farm-scholar](2026-05-10-atlas-plan-module6-livestock-farm-scholar.md)
   — names the agribusiness gap and tracks this module as the next
   candidate.
+
+---
+
+## 2026-05-10 addendum — fold-in to Livestock, species-agnostic rename
+
+Same-day refinement. The steward's complaint: framing the module as
+"Broiler" presumes every operator runs a chicken-for-meat enterprise.
+The post-farm-gate value chain is species-agnostic — cattle, sheep,
+goats, rabbits all need slaughter → cold chain → market. A top-level
+peer module hard-codes a single enterprise type alongside Livestock
+instead of expressing one application *of* livestock.
+
+### Refinement
+
+- **Drop `broiler-product-map` from the `PlanModule` union.** Plan
+  modules go 12 → 11.
+- **Fold the 3 diagnostic cards into Livestock** as a visually-separated
+  *Product Chain* sub-group. `MODULE_CARDS` card shape gains an optional
+  `group?: string`; `PlanModuleSlideUp` renders a small group-label
+  divider in the tab row when a card's group differs from the previous
+  card's group. Existing tab CSS reused; one extra class
+  (`.tabGroupLabel`) plus `.tabSlot` for slot grouping.
+- **Section IDs rename** `plan-broiler-*` → `plan-product-*`.
+- **Tool IDs rename** `plan.broiler-product-map.*` →
+  `plan.livestock.*`. Livestock's tool group grows from 2 (paddock,
+  fence-line) to 5 (paddock, fence-line, slaughter, cold-chain, market).
+- **What does *not* change.** `agribusinessStore` keeps its name, its
+  interfaces (`SlaughterPoint`, `ColdChainUnit`, `MarketNode`), and its
+  file location — the data layer is already species-neutral and
+  renaming it would be churn for no user benefit. Card files stay in
+  `apps/web/src/features/agribusiness/` as a logical grouping
+  ("agribusiness" = post-farm-gate; still accurate).
+- **Yeomans-rank distinction preserved conceptually** (livestock = 9,
+  agribusiness = 10) via the group-label divider rather than a
+  separate top-level tile. ADR's original rationale section above
+  still holds; this addendum simply reasons that the UI does not need
+  to materialise the rank-9-vs-10 distinction as two tiles when stewards
+  effectively never use the post-farm-gate cards without livestock
+  cards alongside.
+
+### Verification
+
+- `tsc --noEmit`: clean.
+- `npm run lint`: clean.
+- `npx vitest run`: clean.
+- Preview smoke (accessibility tree): PlanModuleBar shows 11 tiles
+  (no Broiler Map); Livestock slide-up exposes 10 tabs in two groups
+  with the "Product Chain" divider before the 8th tab; all three
+  Product Chain cards mount; Livestock draw-tools rail shows 5 tools.
+- Screenshot proof: unavailable — `preview_screenshot` timed out
+  twice. eval-based verification stands in.
+
+### Out of scope (carried forward)
+
+- Renaming `agribusinessStore` / its interfaces.
+- Species-aware fields on the cards (e.g. cattle slaughter weight).
+- A separate Dairy-chain or Egg-chain sub-group. Defer until a steward
+  requests it.

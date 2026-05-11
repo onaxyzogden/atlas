@@ -67,11 +67,12 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
     ],
   },
   livestock: {
-    why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later.',
+    why: 'Subdivision and livestock sit at rank 7 of Yeomans\' Scale of Permanence — fence lines and animal cells are designed *after* climate, landform, water, access, and structures are settled, because they consume the slowest-to-change layers (Mollison, Designers\' Manual ch.8; Yeomans, Water for Every Farm). Locking in cell shapes before water and access exist forces expensive re-fencing later. The Product Chain sub-section extends this onto the post-farm-gate flow (slaughter → cold chain → market) so the herd / flock is designed against the actual off-take it has to feed, not in isolation.',
     how: [
       'Confirm water lines and access tracks exist on the design before drawing paddock cells.',
       'Size cells to the herd / flock\'s daily grazing demand and target rest period.',
       'Site shelters and water points so each cell has both within reasonable walking distance.',
+      'In the Product Chain tabs, place slaughter / cold-chain / market nodes so capacity and demand size against bird or carcass volume — not the other way round.',
     ],
   },
   'plant-systems': {
@@ -113,14 +114,6 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Work through the Holmgren checklist with the full design in front of you.',
       'Flag any principle scoring less than 3 for a design review.',
       'Document the rationale for each score as a project record.',
-    ],
-  },
-  'broiler-product-map': {
-    why: 'Map the broiler value chain from slaughter through cold-chain to market so the steward sees the post-paddock flow as one connected system rather than three disconnected line items.',
-    how: [
-      'Drop a Slaughter point at the on-site or co-op processing location.',
-      'Drop Cold-chain units at every storage and transport step.',
-      'Drop Market nodes at each off-take destination.',
     ],
   },
 };

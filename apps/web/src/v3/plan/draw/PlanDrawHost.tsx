@@ -94,13 +94,13 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     case 'plan.principle-verification.transect':
       tool = <MonitoringTransectTool map={map} projectId={projectId} />;
       break;
-    case 'plan.broiler-product-map.slaughter-point':
+    case 'plan.livestock.slaughter-point':
       tool = <SlaughterPointTool map={map} projectId={projectId} />;
       break;
-    case 'plan.broiler-product-map.cold-chain-unit':
+    case 'plan.livestock.cold-chain-unit':
       tool = <ColdChainUnitTool map={map} projectId={projectId} />;
       break;
-    case 'plan.broiler-product-map.market-node':
+    case 'plan.livestock.market-node':
       tool = <MarketNodeTool map={map} projectId={projectId} />;
       break;
     default:
