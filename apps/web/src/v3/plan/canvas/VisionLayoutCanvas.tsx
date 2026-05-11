@@ -42,6 +42,10 @@ import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js'
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
+import PlanDataLayers from '../layers/PlanDataLayers.js';
+import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
+import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
+import PlanSelectionFloater from '../PlanSelectionFloater.js';
 import type { PlanView } from '../types.js';
 
 interface Props {
@@ -125,6 +129,17 @@ export default function VisionLayoutCanvas({
           <InlineFeaturePopover map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
+          {/* Plan-data layers in non-editable mode: paddocks / zones /
+              crops / fences / structures / setbacks / flows / transects
+              render, but drag-translate + inline-edit popovers are
+              suppressed. A separate lightweight selection handler
+              wires click-to-select + click-empty-to-clear, and
+              PlanVertexEditHandler keeps the floater's Edit-vertices
+              action working under 3D. */}
+          <PlanDataLayers map={map} projectId={projectId} editable={false} />
+          <Plan3DSelectionHandler map={map} />
+          <PlanVertexEditHandler map={map} />
+          <PlanSelectionFloater />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}
