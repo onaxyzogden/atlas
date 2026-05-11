@@ -118,6 +118,11 @@ export type MapToolId =
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)
   | 'plan.structures-subsystems.utility-run'
+  // Plan Module — Built Environment (registry-driven, all 31 BE kinds with
+  // `state: 'proposed'`). Mirrors Observe's BE rail. Pattern keeps the
+  // strict-literal surface small while letting the kind registry grow:
+  // dispatched in PlanDrawHost via prefix-match → BeV2ExistingTool.
+  | `plan.structures-subsystems.be.${string}`
   // Plan Module — Principle Verification (annotation marker, Tier B / B5)
   | 'plan.principle-verification.note'
   // Plan Module — Principle Verification (monitoring transect, Tier B / B4)

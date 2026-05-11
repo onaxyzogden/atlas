@@ -24,6 +24,7 @@ import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentSt
 import {
   getBuiltEnvironmentKind,
   type BuiltEnvironmentGeometryType,
+  type BuiltEnvironmentState,
 } from '@ogden/shared';
 import {
   useMapboxDrawTool,
@@ -37,6 +38,8 @@ interface Props {
   projectId: string;
   /** Canonical kind id from `BUILT_ENVIRONMENT_KINDS`. */
   kind: string;
+  /** Default 'existing' (Observe). Plan rail passes 'proposed'. */
+  state?: BuiltEnvironmentState;
 }
 
 const GEOM_TO_MODE: Readonly<Record<BuiltEnvironmentGeometryType, DrawMode>> = {
@@ -51,7 +54,12 @@ const GEOM_TO_HINT: Readonly<Record<BuiltEnvironmentGeometryType, string>> = {
   polygon: 'Outline the footprint. Double-click to finish.',
 };
 
-export default function BeV2ExistingTool({ map, projectId, kind }: Props) {
+export default function BeV2ExistingTool({
+  map,
+  projectId,
+  kind,
+  state = 'existing',
+}: Props) {
   const spec = getBuiltEnvironmentKind(kind);
 
   const mode: DrawMode = spec ? GEOM_TO_MODE[spec.geometryType] : 'draw_point';
@@ -67,7 +75,7 @@ export default function BeV2ExistingTool({ map, projectId, kind }: Props) {
       useBuiltEnvironmentStoreV2.getState().create({
         projectId,
         kind: spec.kind,
-        state: 'existing',
+        state,
         geometry: geom,
       });
     },
