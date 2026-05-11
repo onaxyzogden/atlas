@@ -3,9 +3,9 @@
  * gen-generic-box-glb.mjs
  *
  * Hand-encodes a unit cube GLB used as the procedural fallback asset for
- * the Plan-stage GLB renderer (`DesignElementGlbLayer`). Every kind in
- * `elementHeights.ts` resolves to this model until per-kind authored GLBs
- * land under `public/models/structures/<kind>.glb`.
+ * the Plan-stage GLB renderer (`DesignElementScenegraphLayer`, deck.gl).
+ * Every kind in `elementHeights.ts` resolves to this model until per-kind
+ * authored GLBs land under `public/models/structures/<kind>.glb`.
  *
  * Geometry:
  *   - 24 vertices (4 per face × 6 faces) for proper flat-shaded normals.

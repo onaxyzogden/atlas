@@ -12,10 +12,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "gen:models": "node scripts/gen-generic-box-glb.mjs"
+    "gen:models": "node scripts/gen-generic-box-glb.mjs && node scripts/gen-structure-glbs.mjs && node scripts/gen-vegetation-glbs.mjs && node scripts/gen-earthworks-glbs.mjs && node scripts/gen-zone-marker-glbs.mjs"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.3.2",
+    "@deck.gl/mapbox": "^9.3.2",
+    "@deck.gl/mesh-layers": "^9.3.2",
     "@hookform/resolvers": "^3.9.0",
+    "@luma.gl/core": "^9.3.3",
     "@mapbox/mapbox-gl-draw": "^1.4.4",
     "@ogden/shared": "workspace:*",
     "@tanstack/react-query": "^5.62.0",

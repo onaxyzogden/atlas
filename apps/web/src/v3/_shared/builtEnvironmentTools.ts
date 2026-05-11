@@ -32,8 +32,12 @@ import {
   Square,
   Sun,
   Tent,
+  TreeDeciduous,
+  TreePine,
+  Trees,
   Truck,
   Warehouse,
+  Wheat,
   Wrench,
   Zap,
   type LucideIcon,
@@ -67,6 +71,10 @@ export const BE_ICON_MAP: Readonly<Record<string, LucideIcon>> = {
   Flame,
   Square,
   Recycle,
+  TreeDeciduous,
+  TreePine,
+  Trees,
+  Wheat,
   Fence,
   AlertTriangle,
 };
@@ -83,8 +91,13 @@ export interface BeToolItem {
  *  every kind in the registry surfaces in both rails. */
 export const BE_TOOL_ITEMS: ReadonlyArray<BeToolItem> = Object.values(
   BUILT_ENVIRONMENT_KINDS,
-).map((spec) => ({
-  kind: spec.kind,
-  label: spec.label,
-  Icon: BE_ICON_MAP[spec.icon] ?? Home,
-}));
+)
+  // `custom-glb` is armed via the floating CustomModelPalette (which stashes
+  // the active model id) — never via a bare rail button, since placement
+  // requires a selected uploaded model.
+  .filter((spec) => spec.kind !== 'custom-glb')
+  .map((spec) => ({
+    kind: spec.kind,
+    label: spec.label,
+    Icon: BE_ICON_MAP[spec.icon] ?? Home,
+  }));

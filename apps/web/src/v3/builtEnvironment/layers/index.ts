@@ -8,7 +8,7 @@
  * `useBuiltEnvironmentStoreV2` and accepts a `stateFilter` prop so
  * either stage can scope the slice it cares about.
  */
-export { default as DesignElementGlbLayer } from './DesignElementGlbLayer.js';
+export { default as DesignElementScenegraphLayer } from './DesignElementScenegraphLayer.js';
 export { default as DesignElementExtrusionLayer } from './DesignElementExtrusionLayer.js';
 export { default as Terrain3DController } from './Terrain3DController.js';
 export { default as BeV2GenericLayer } from './BeV2GenericLayer.js';

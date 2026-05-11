@@ -41,10 +41,11 @@ import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
+import DeckOverlay from '../_shared/deck/DeckOverlay.js';
 import {
   BeV2GenericLayer,
   DesignElementExtrusionLayer,
-  DesignElementGlbLayer,
+  DesignElementScenegraphLayer,
 } from '../builtEnvironment/layers/index.js';
 import SelectionFloater from './components/SelectionFloater.js';
 import ExportButton from './components/ExportButton.js';
@@ -174,11 +175,12 @@ export default function ObserveLayout() {
                     projectId={params.projectId}
                     stateFilter="existing"
                   />
-                  <DesignElementGlbLayer
-                    map={map}
-                    projectId={params.projectId}
-                    stateFilter="existing"
-                  />
+                  <DeckOverlay map={map}>
+                    <DesignElementScenegraphLayer
+                      projectId={params.projectId}
+                      stateFilter="existing"
+                    />
+                  </DeckOverlay>
                   {/* 2D top-down render + click-to-edit for the 23 BE
                       kinds without bespoke per-kind layers in
                       ObserveAnnotationLayers. The shared 3D layers above

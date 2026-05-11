@@ -1500,6 +1500,8 @@ export function buildGenericBeEditSchema(
 ): Omit<InlineFormPayload, 'anchor'> {
   const spec = getBuiltEnvironmentKind(e.kind);
   const label = spec?.label ?? e.kind;
+  const isGlb = spec?.renderMode === 'glb';
+  const prop = e.proposed ?? {};
   return {
     title: `Edit ${label}`,
     fields: [
@@ -1520,20 +1522,41 @@ export function buildGenericBeEditSchema(
         kind: 'textarea',
         placeholder: 'Free-form notes…',
       },
+      ...(isGlb
+        ? ([
+            { key: 'rotationDeg', label: 'Rotation', kind: 'number', suffix: '°' },
+            { key: 'scaleMul',    label: 'Scale',    kind: 'number', suffix: '×', placeholder: '1.0' },
+          ] as const)
+        : []),
     ],
     initial: {
       state: e.state,
       label: e.label ?? '',
       notes: e.notes ?? '',
+      rotationDeg: prop.rotationDeg ?? 0,
+      scaleMul: prop.scaleMul ?? 1,
     },
     onSave: (values) => {
       const store = useBuiltEnvironmentStoreV2.getState();
       const labelStr = String(values.label ?? '').trim();
       const notesStr = String(values.notes ?? '').trim();
       const nextState = String(values.state ?? e.state) as BuiltEnvironmentState;
+
+      let proposedPatch: { rotationDeg?: number; scaleMul?: number } | undefined;
+      if (isGlb) {
+        const rotRaw = Number(values.rotationDeg);
+        const scaleRaw = Number(values.scaleMul);
+        proposedPatch = {
+          rotationDeg: Number.isFinite(rotRaw) ? rotRaw : prop.rotationDeg,
+          scaleMul:
+            Number.isFinite(scaleRaw) && scaleRaw > 0 ? scaleRaw : prop.scaleMul,
+        };
+      }
+
       store.updateMetadata(e.id, {
         label: labelStr || undefined,
         notes: notesStr || undefined,
+        ...(proposedPatch ? { proposed: proposedPatch } : {}),
       });
       if (nextState !== e.state) {
         store.setState(e.id, nextState);

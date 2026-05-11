@@ -7,8 +7,9 @@
  *     ├ DesignElementLayers          — flat fill/line/circle/symbol layers
  *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D fallback (always on;
  *     │                                 skips kinds rendered by GLB layer)
- *     ├ DesignElementGlbLayer        — three.js custom layer rendering authored
- *     │                                 GLB models per kind (always on)
+ *     ├ DeckOverlay                  — singleton @deck.gl/mapbox MapboxOverlay
+ *     │   └ DesignElementScenegraphLayer — deck.gl ScenegraphLayer rendering
+ *     │                                 authored GLB models per kind (always on)
  *     ├ Terrain3DController          — view==='terrain3d' camera preset
  *     │                                 (pitch + DEM); unmount restores flat
  *     ├ DesignToolRail               — right-edge floating tool column
@@ -25,13 +26,17 @@ import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
 import {
   DesignElementExtrusionLayer,
-  DesignElementGlbLayer,
+  DesignElementScenegraphLayer,
   Terrain3DController,
 } from '../../builtEnvironment/layers/index.js';
+import DeckOverlay from '../../_shared/deck/DeckOverlay.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
+import CustomModelPalette from './CustomModelPalette.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
+import { useActiveElementKind } from './useToolIdToElementKind.js';
+import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
@@ -44,10 +49,6 @@ interface Props {
   centroid: [number, number];
   boundary: GeoJSON.Polygon | undefined;
   view: PlanView;
-  /** Currently armed element kind (from the palette). */
-  activeKind: string | null;
-  /** Called once a draw completes so the palette can disarm. */
-  onDrawComplete: () => void;
 }
 
 interface DrawHostProps {
@@ -67,13 +68,12 @@ export default function VisionLayoutCanvas({
   centroid,
   boundary,
   view,
-  activeKind,
-  onDrawComplete,
 }: Props) {
-  // Remount the draw host when kind changes so the underlying useMapboxDrawTool
-  // tears down and re-initialises cleanly.
-  const [drawNonce] = useState(0);
-  void drawNonce;
+  // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
+  // Vision draw lifecycle mounts only when the mapped kind is non-null.
+  const activeKind = useActiveElementKind();
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const onDrawComplete = () => setActiveTool(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -92,11 +92,12 @@ export default function VisionLayoutCanvas({
             projectId={projectId}
             view={view}
           />
-          <DesignElementGlbLayer
-            map={map}
-            projectId={projectId}
-            view={view}
-          />
+          <DeckOverlay map={map}>
+            <DesignElementScenegraphLayer
+              projectId={projectId}
+              view={view}
+            />
+          </DeckOverlay>
           {view === 'terrain3d' && <Terrain3DController map={map} />}
           <DesignToolRail
             map={map}
@@ -107,6 +108,7 @@ export default function VisionLayoutCanvas({
             setSelectedId={setSelectedId}
           />
           <BaseMapCard />
+          <CustomModelPalette />
           <MapToolbar
             map={map}
             projectId={projectId}

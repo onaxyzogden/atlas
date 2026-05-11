@@ -21,6 +21,7 @@
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import { useCustomDrawSelectionStore } from '../../../../store/customDrawSelectionStore.js';
 import {
   getBuiltEnvironmentKind,
   type BuiltEnvironmentGeometryType,
@@ -72,11 +73,19 @@ export default function BeV2ExistingTool({
       // Geometry constraint: useBuiltEnvironmentStoreV2.create asserts the
       // GeoJSON type matches the registry's geometryType. We've already
       // selected `mode` from the registry so this is enforced upstream.
+      // Phase 6: when placing a `custom-glb`, stamp the active customModelId
+      // from `customDrawSelectionStore` so the scenegraph layer can resolve
+      // the right blob URL at render time.
+      const customId =
+        spec.kind === 'custom-glb'
+          ? useCustomDrawSelectionStore.getState().activeCustomModelId
+          : null;
       useBuiltEnvironmentStoreV2.getState().create({
         projectId,
         kind: spec.kind,
         state,
         geometry: geom,
+        ...(customId ? { proposed: { customModelId: customId } } : {}),
       });
     },
   });

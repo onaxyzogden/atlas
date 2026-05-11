@@ -4,6 +4,34 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-11 — Custom GLB upload shipped (deck.gl P6)
+
+**Motive.** The deck.gl ScenegraphLayer migration deferred custom user
+uploads as P6 of the ADR. Closing it makes the 3D pipeline open-ended:
+stewards can drop in authored art for any feature the registry doesn't
+ship out-of-the-box.
+
+**Change.** New IndexedDB-backed `customModelStore` (blobs in IDB,
+catalog in localStorage, blob URLs regenerated on hydrate);
+`customModelValidator` (magic-byte + KHR allowlist + ≤10 MB +
+SHA-256); floating `CustomModelPalette` in `VisionLayoutCanvas`.
+Single canonical `custom-glb` kind in `BUILT_ENVIRONMENT_KINDS`;
+per-instance `proposed.customModelId` rides on the entity. Palette
+tile click arms the kind's BE tool and stashes the modelId in a
+transient `customDrawSelectionStore`; `BeV2ExistingTool` reads the
+stash at draw-complete and stamps it on the new entity;
+`DesignElementScenegraphLayer` swaps `spec.glbUrl` for the per-instance
+blob URL at render. `custom-glb` is filtered out of `BE_TOOL_ITEMS` so
+it never surfaces as a bare rail button.
+
+**Verification.** `tsc --noEmit` clean. Vision Layout view at
+`/v3/project/mtc/plan` mounts the palette bottom-right; no console
+errors; `custom-glb` absent from the Built Environment rail.
+
+**Reference.** [wiki/decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md](decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md) — P6 section.
+
+---
+
 ## 2026-05-11 — Plan-stage left rail unified across all four views
 
 **Motive.** Plan stage rendered two different left rails: `PlanTools`
