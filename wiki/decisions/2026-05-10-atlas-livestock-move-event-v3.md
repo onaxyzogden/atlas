@@ -214,6 +214,26 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   (actual) / `Schedule move` (new plan) / `Update plan` (edit). No
   store changes — reuses existing `updatePlan` / `removePlan`
   mutators.
+- ~~**Plans for structure destinations** (popover handoff). Originally
+  deferred — rotation card is paddock-centric, structure plans add no
+  value on *that* surface.~~ **Closed 2026-05-10 (commits `1821f5d`
+  schema + handoff, `e5d8224` UI wiring).** Schema (`1821f5d`):
+  `scheduledLivestockMoveStore` bumped persist v1 → v2 — `toPaddockId`
+  is now optional, `toStructureId` / `fromStructureId` added; new
+  helper `structureDestPlans(plans, projectId)` returns all
+  unfulfilled structure-destination plans. Handoff (`1821f5d`):
+  `startScheduledLivestockMove(structure, projectId)` in
+  `ActStructurePopover.actions.ts` mirrors `startLivestockMoveLog`'s
+  skeleton-then-patch pattern but writes to the scheduled store with
+  `toStructureId`. UI wiring (`e5d8224`): new structure-action kind
+  `scheduleLivestockMove` (label "Schedule move") on barn +
+  animal_shelter; the popover button row routes the kind to the new
+  action. The `RotationScheduleCard` Structure-moves tail now renders
+  unfulfilled plans above logged events with a `✕` dismiss chip (no
+  variance pill — the rotation model is paddock-centric, so structure
+  plans render as plain `Planned · <direction>` reminders).
+  Auto-fulfilment effect extended to match either `toPaddockId` or
+  `toStructureId` (same ±7-day window, same species match).
 
 ## Related
 
@@ -236,3 +256,12 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   ±7d auto-fulfilment.
 - `a2725c3` — Plan editing: `Edit` + `✕` chips on the `Planned:`
   line (in-place `updatePlan` and manual `removePlan`).
+- `1821f5d` — Plans-for-structure-destinations schema + handoff
+  (scheduled-move store v2 with optional `toPaddockId` +
+  `toStructureId` / `fromStructureId`, `structureDestPlans` helper,
+  `startScheduledLivestockMove` action). Bundled with the BE Phase 6
+  close-out.
+- `e5d8224` — Plans-for-structure-destinations UI wiring: new
+  `scheduleLivestockMove` action kind + popover routing + Structure-
+  moves tail renders unfulfilled plans + auto-fulfilment extended to
+  `toStructureId`.

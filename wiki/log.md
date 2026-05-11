@@ -310,6 +310,21 @@ Follow-up same day (continued): two more deferred items closed.
   move` / `Schedule move` / `Update plan`. No store changes; reuses
   existing `updatePlan` / `removePlan` mutators on
   `scheduledLivestockMoveStore`.
+- `1821f5d` + `e5d8224` — Plans for structure destinations.
+  `1821f5d` (bundled with BE Phase 6 close-out) bumped
+  `scheduledLivestockMoveStore` to persist v2: `toPaddockId` is now
+  optional, `toStructureId` / `fromStructureId` added, new helper
+  `structureDestPlans(plans, projectId)`. Same commit shipped
+  `startScheduledLivestockMove(structure, projectId)` in
+  `ActStructurePopover.actions.ts`. `e5d8224` wired the UI surface:
+  new `scheduleLivestockMove` structure-action kind ("Schedule move"
+  label) on barn + animal_shelter, popover button routes it to the
+  handoff. `RotationScheduleCard`'s Structure-moves tail now renders
+  unfulfilled plans above logged events with a `✕` dismiss chip (no
+  variance pill — rotation model is paddock-centric). Auto-fulfilment
+  effect generalised: matches by `toStructureId` as well as
+  `toPaddockId` (same ±7-day window, same species). ADR
+  Out-of-scope section gained a struck-through entry for closure.
 
 ---
 
