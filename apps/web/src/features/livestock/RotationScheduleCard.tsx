@@ -10,14 +10,16 @@
  * Pure presentation: no shared-package math, no new entities, no map overlay.
  */
 
-import { useMemo } from 'react';
-import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
+import { useMemo, useState } from 'react';
+import { useLivestockStore, type Paddock, type LivestockSpecies } from '../../store/livestockStore.js';
 import {
   useLivestockMoveLogStore,
   eventsByPaddock,
   exitsFromPaddock,
   structureDestEvents,
   destStructureId,
+  DIRECTION_OPTIONS,
+  SPECIES_OPTIONS,
   type LivestockMoveEvent,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
@@ -146,6 +148,33 @@ function varianceBadgeText(variance: number): string {
   return `${variance}d`;
 }
 
+/** Inline quick-log draft — narrower than `LivestockMoveCard`'s Draft because
+ *  the destination paddock is implicit (this row). */
+interface QuickDraft {
+  date: string;
+  direction: LivestockMoveDirection;
+  species: LivestockSpecies;
+  headCount: string;
+  fromPaddockId: string; // '' = no recorded origin
+  notes: string;
+}
+
+function emptyQuickDraft(species: string[]): QuickDraft {
+  const first = (species[0] as LivestockSpecies | undefined) ?? 'sheep';
+  return {
+    date: new Date().toISOString().slice(0, 10),
+    direction: 'move_in',
+    species: first,
+    headCount: '',
+    fromPaddockId: '',
+    notes: '',
+  };
+}
+
+function newMoveId(): string {
+  return `lvm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 function formatTargetDate(d: Date): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
@@ -187,6 +216,37 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   );
 
   const allEvents = useLivestockMoveLogStore((s) => s.events);
+  const addEvent = useLivestockMoveLogStore((s) => s.addEvent);
+
+  // Inline quick-log form state — single open form at a time, keyed by paddock id.
+  const [openFormFor, setOpenFormFor] = useState<string | null>(null);
+  const [draft, setDraft] = useState<QuickDraft>(() => emptyQuickDraft([]));
+
+  function openForm(m: UpcomingMove) {
+    setDraft(emptyQuickDraft(m.species));
+    setOpenFormFor(m.paddockId);
+  }
+  function closeForm() {
+    setOpenFormFor(null);
+  }
+  function saveForm(m: UpcomingMove) {
+    if (!draft.date) return;
+    const head = draft.headCount.trim() === '' ? null : Number(draft.headCount);
+    const ev: LivestockMoveEvent = {
+      id: newMoveId(),
+      projectId,
+      toPaddockId: m.paddockId,
+      date: draft.date,
+      direction: draft.direction,
+      species: draft.species,
+      headCount: head != null && Number.isFinite(head) ? head : null,
+      ...(draft.fromPaddockId ? { fromPaddockId: draft.fromPaddockId } : {}),
+      ...(draft.notes.trim() ? { notes: draft.notes.trim() } : {}),
+    };
+    addEvent(ev);
+    setOpenFormFor(null);
+  }
+
   const eventsByPaddockId = useMemo(() => {
     const map = new Map<string, LivestockMoveEvent[]>();
     for (const p of paddocks) {
@@ -333,6 +393,25 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                       </div>
                       <div className={css.rowAction}>
                         <span className={`${css.actionLabel} ${tone}`}>{ACTION_LABEL[m.action]}</span>
+                        {openFormFor === m.paddockId ? (
+                          <button
+                            type="button"
+                            className={css.quickLogButton}
+                            onClick={closeForm}
+                            aria-label="Close quick-log form"
+                          >
+                            Cancel
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={css.quickLogButton}
+                            onClick={() => openForm(m)}
+                            aria-label={`Log a move into ${m.paddockName}`}
+                          >
+                            + Log move
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -355,6 +434,90 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                           : `${m.daysUntilReady} day${m.daysUntilReady === 1 ? '' : 's'} \u2014 target ${formatTargetDate(m.targetDate)}`}
                       </span>
                     </div>
+
+                    {openFormFor === m.paddockId ? (
+                      <div className={css.quickLogForm}>
+                        <div className={css.quickLogGrid}>
+                          <label className={css.quickLogField}>
+                            <span>Date</span>
+                            <input
+                              type="date"
+                              value={draft.date}
+                              onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                            />
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Direction</span>
+                            <select
+                              value={draft.direction}
+                              onChange={(e) =>
+                                setDraft({ ...draft, direction: e.target.value as LivestockMoveDirection })
+                              }
+                            >
+                              {DIRECTION_OPTIONS.map((d) => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Species</span>
+                            <select
+                              value={draft.species}
+                              onChange={(e) =>
+                                setDraft({ ...draft, species: e.target.value as LivestockSpecies })
+                              }
+                            >
+                              {SPECIES_OPTIONS.map((s) => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={css.quickLogField}>
+                            <span>Head</span>
+                            <input
+                              type="number"
+                              min={0}
+                              placeholder="—"
+                              value={draft.headCount}
+                              onChange={(e) => setDraft({ ...draft, headCount: e.target.value })}
+                            />
+                          </label>
+                          <label className={`${css.quickLogField} ${css.quickLogFieldWide}`}>
+                            <span>From (optional)</span>
+                            <select
+                              value={draft.fromPaddockId}
+                              onChange={(e) => setDraft({ ...draft, fromPaddockId: e.target.value })}
+                            >
+                              <option value="">(no recorded origin)</option>
+                              {paddocks
+                                .filter((p) => p.id !== m.paddockId)
+                                .map((p) => (
+                                  <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                          </label>
+                          <label className={`${css.quickLogField} ${css.quickLogFieldWide}`}>
+                            <span>Notes (optional)</span>
+                            <input
+                              type="text"
+                              placeholder="e.g. moved early — pasture lush"
+                              value={draft.notes}
+                              onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                            />
+                          </label>
+                        </div>
+                        <div className={css.quickLogActions}>
+                          <button
+                            type="button"
+                            className={css.quickLogSave}
+                            onClick={() => saveForm(m)}
+                            disabled={!draft.date}
+                          >
+                            Save move
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {(() => {
                       const entries = eventsByPaddockId.get(m.paddockId) ?? [];
