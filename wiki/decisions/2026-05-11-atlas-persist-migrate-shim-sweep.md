@@ -75,9 +75,26 @@ listed here for completeness): `commentStore`, `maintenanceLogStore`,
 
 `npm run typecheck` → exit 0.
 
-Console verification (clear localStorage → reload → no "couldn't be
-migrated" warnings) is left to the next operator boot; the change is
-defensive and adds no behaviour.
+Operator console verification completed **2026-05-11** via
+`preview_*` MCP tooling on the running Vite server (port 5200):
+
+- **Cold boot** — `localStorage.clear(); location.reload()` →
+  `preview_console_logs level=warn` returned only unrelated
+  `[ATLAS AI] … 401` entries (no API key configured locally).
+  Zero "couldn't be migrated" warnings.
+- **Forced downgrade** — mutated `version: 0` on all eight
+  re-hydrated keys (`ogden-projects`, `ogden-swot`, `ogden-phases`,
+  `ogden-vision`, `ogden-soil-samples`, `ogden-external-forces`,
+  `ogden-topography`, `ogden-ecology`) and reloaded. Mix of stores
+  with pre-existing real migrators (`projects`, `vision`, `phases`,
+  `external-forces`, `topography`, `ecology`) and newly-shimmed ones
+  (`swot`, `soil-samples`). Post-reload all eight re-stamped at their
+  configured versions and the console still showed zero
+  "couldn't be migrated" entries.
+- **Screenshot** — `preview_screenshot` timed out after 30 s (no
+  related console errors); the visual capture step is dropped. The
+  console-log evidence above is the load-bearing signal for the
+  sweep.
 
 ## Out of scope
 
