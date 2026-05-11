@@ -290,6 +290,45 @@
   font-style: italic;
 }
 
+/* ── Plan-vs-actual rest variance ── */
+.varianceSummary {
+  font-size: 10.5px;
+  color: rgba(220, 210, 185, 0.75);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.varianceSummary b { font-weight: 600; color: rgba(232, 220, 200, 0.9); }
+
+.varianceBadge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 1px;
+}
+.variancePositive {
+  background: rgba(80, 180, 120, 0.12);
+  color: rgba(140, 220, 170, 0.95);
+  border: 1px solid rgba(80, 180, 120, 0.28);
+}
+.varianceTolerant {
+  background: rgba(180, 180, 180, 0.08);
+  color: rgba(220, 220, 220, 0.85);
+  border: 1px solid rgba(180, 180, 180, 0.2);
+}
+.varianceNegative {
+  background: rgba(220, 120, 80, 0.14);
+  color: rgba(240, 170, 130, 0.95);
+  border: 1px solid rgba(220, 120, 80, 0.32);
+}
+
 /* ── Assumption footnote ── */
 .assumption {
   margin-top: 14px;

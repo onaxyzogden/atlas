@@ -45,6 +45,8 @@ interface UpcomingMove {
   targetDate: Date;
   status: RecoveryStatus['status'];
   action: RotationEntry['suggestedAction'];
+  /** Species recovery requirement for this paddock — used for rest-period variance. */
+  requiredDays: number;
 }
 
 const ACTION_LABEL: Record<RotationEntry['suggestedAction'], string> = {
@@ -70,6 +72,78 @@ function formatLoggedDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Compute the days between two ISO dates (date-only). Returns a non-negative
+ * integer when `later >= earlier`, or a negative number when reversed.
+ */
+function daysBetween(earlier: string, later: string): number {
+  const a = new Date(earlier).getTime();
+  const b = new Date(later).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return 0;
+  return Math.round((b - a) / 86_400_000);
+}
+
+interface RestPair {
+  entryId: string;
+  entryDate: string;
+  exitDate: string;
+  actualRestDays: number;
+  variance: number; // actual − required
+}
+
+/**
+ * Walk this paddock's events oldest→newest, pairing each entry (`toPaddockId === p.id`)
+ * with the most recent prior exit (`fromPaddockId === p.id` *or* legacy paddock-keyed
+ * `direction === 'move_out' | 'rotate_through'`). Returns one RestPair per entry that
+ * had a recorded prior exit; first-ever entries (no prior exit) are skipped.
+ */
+function computeRestPairs(
+  events: LivestockMoveEvent[], // already filtered to this paddock context (entries + exits)
+  paddockId: string,
+  requiredDays: number,
+): RestPair[] {
+  // Sort oldest first.
+  const sorted = events.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const pairs: RestPair[] = [];
+  let lastExitDate: string | null = null;
+  for (const e of sorted) {
+    const isExit =
+      e.fromPaddockId === paddockId ||
+      // Legacy v2 fallback: a paddockId-keyed event with direction move_out / rotate_through
+      // implicitly exited that paddock.
+      ((e.paddockId === paddockId || e.toPaddockId === paddockId) &&
+        (e.direction === 'move_out' || e.direction === 'rotate_through'));
+    const destPid = e.toPaddockId ?? e.paddockId;
+    const isEntry = destPid === paddockId && e.direction !== 'move_out';
+    if (isEntry && lastExitDate) {
+      const actualRestDays = daysBetween(lastExitDate, e.date);
+      pairs.push({
+        entryId: e.id,
+        entryDate: e.date,
+        exitDate: lastExitDate,
+        actualRestDays,
+        variance: actualRestDays - requiredDays,
+      });
+    }
+    if (isExit) {
+      lastExitDate = e.date;
+    }
+  }
+  return pairs;
+}
+
+function varianceTone(variance: number): 'positive' | 'tolerant' | 'negative' {
+  if (variance >= 0) return 'positive';
+  if (variance >= -2) return 'tolerant';
+  return 'negative';
+}
+
+function varianceBadgeText(variance: number): string {
+  if (variance > 0) return `+${variance}d rest`;
+  if (variance === 0) return 'on time';
+  return `${variance}d`;
 }
 
 function formatTargetDate(d: Date): string {
@@ -99,6 +173,7 @@ function projectMoves(paddocks: Paddock[]): UpcomingMove[] {
       targetDate,
       status: recovery.status,
       action: entry.suggestedAction,
+      requiredDays: recovery.requiredDays,
     });
   }
   return moves;
@@ -293,33 +368,83 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                         ...entries.map((ev) => ({ ev, tag: 'in' as const })),
                         ...exits.filter((e) => !entryIds.has(e.id)).map((ev) => ({ ev, tag: 'out' as const })),
                       ].sort((a, b) => (a.ev.date < b.ev.date ? 1 : a.ev.date > b.ev.date ? -1 : 0));
+
+                      // Plan-vs-actual rest-period variance \u2014 pair each entry with the
+                      // most recent prior exit; compute actual rest vs species required.
+                      const pairs = computeRestPairs(
+                        // Union, dedup by id.
+                        Array.from(new Map([...entries, ...exits].map((e) => [e.id, e])).values()),
+                        m.paddockId,
+                        m.requiredDays,
+                      );
+                      const pairByEntryId = new Map(pairs.map((p) => [p.entryId, p]));
+                      const onSchedule = pairs.filter((p) => p.variance >= 0).length;
+                      const avgRest = pairs.length > 0
+                        ? Math.round(pairs.reduce((s, p) => s + p.variance, 0) / pairs.length)
+                        : 0;
+                      const worst = pairs.reduce<RestPair | null>(
+                        (acc, p) => (acc == null || p.variance < acc.variance ? p : acc),
+                        null,
+                      );
+
                       return (
                         <div className={css.loggedMovesSection}>
                           <div className={css.loggedMovesHeading}>Logged moves</div>
+                          {pairs.length > 0 ? (
+                            <div className={css.varianceSummary}>
+                              <span>
+                                <b>{onSchedule} of {pairs.length}</b>{' '}
+                                {pairs.length === 1 ? 'entry' : 'entries'} on schedule
+                                {' \u00b7 '}avg {avgRest >= 0 ? `+${avgRest}` : avgRest}d vs target
+                              </span>
+                              {worst && worst.variance < 0 ? (
+                                <span className={`${css.varianceBadge} ${css.varianceNegative}`}>
+                                  worst {worst.variance}d
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
                           {combined.length === 0 ? (
                             <div className={css.loggedMoveEmpty}>
                               No moves logged for this paddock yet.
                             </div>
                           ) : (
-                            combined.map(({ ev, tag }) => (
-                              <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
-                                <div className={css.loggedMoveDirection}>
-                                  <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
-                                  <span>
-                                    {formatLoggedDate(ev.date)}
-                                    {' \u00b7 '}
-                                    {ev.species}
-                                    {ev.headCount != null
-                                      ? ` \u00b7 ${ev.headCount} head`
-                                      : ''}
-                                    {ev.who ? ` \u00b7 ${ev.who}` : ''}
-                                  </span>
+                            combined.map(({ ev, tag }) => {
+                              const pair = tag === 'in' ? pairByEntryId.get(ev.id) : undefined;
+                              const tone = pair ? varianceTone(pair.variance) : null;
+                              const toneClass =
+                                tone === 'positive'
+                                  ? css.variancePositive
+                                  : tone === 'tolerant'
+                                    ? css.varianceTolerant
+                                    : tone === 'negative'
+                                      ? css.varianceNegative
+                                      : '';
+                              return (
+                                <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
+                                  <div className={css.loggedMoveDirection}>
+                                    <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
+                                    <span>
+                                      {formatLoggedDate(ev.date)}
+                                      {' \u00b7 '}
+                                      {ev.species}
+                                      {ev.headCount != null
+                                        ? ` \u00b7 ${ev.headCount} head`
+                                        : ''}
+                                      {ev.who ? ` \u00b7 ${ev.who}` : ''}
+                                    </span>
+                                    {pair ? (
+                                      <span className={`${css.varianceBadge} ${toneClass}`}>
+                                        {varianceBadgeText(pair.variance)}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  {ev.notes ? (
+                                    <div className={css.loggedMoveMeta}>{ev.notes}</div>
+                                  ) : null}
                                 </div>
-                                {ev.notes ? (
-                                  <div className={css.loggedMoveMeta}>{ev.notes}</div>
-                                ) : null}
-                              </div>
-                            ))
+                              );
+                            })
                           )}
                         </div>
                       );
