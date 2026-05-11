@@ -11,4 +11,5 @@
 export { default as DesignElementGlbLayer } from './DesignElementGlbLayer.js';
 export { default as DesignElementExtrusionLayer } from './DesignElementExtrusionLayer.js';
 export { default as Terrain3DController } from './Terrain3DController.js';
+export { default as BeV2GenericLayer } from './BeV2GenericLayer.js';
 export type { StateFilter } from './DesignElementExtrusionLayer.js';

@@ -27,9 +27,14 @@ import {
   buildFenceEditSchema,
   buildGateEditSchema,
   buildDrivewayEditSchema,
+  buildGenericBeEditSchema,
 } from '../../plan/layers/inlineEditSchemas.js';
 
 type BeKindV2 = BuiltEnvironmentEntity['kind'];
+
+type SchemaBuilder = (
+  e: BuiltEnvironmentEntity,
+) => ReturnType<typeof buildBuildingEditSchema>;
 
 /**
  * Map from Observe's legacy `AnnotationKind` (camelCase) to V2's kebab-case
@@ -47,9 +52,13 @@ const OBSERVE_KIND_TO_V2: Readonly<Record<string, BeKindV2>> = {
   existingDriveway: 'driveway',
 };
 
-const SCHEMA_BUILDERS: Readonly<
-  Record<BeKindV2, ((e: BuiltEnvironmentEntity) => ReturnType<typeof buildBuildingEditSchema>) | undefined>
-> = {
+/**
+ * Per-kind builders for the 8 BE kinds with bespoke edit forms. Any kind
+ * NOT in this table falls back to `buildGenericBeEditSchema` (Phase 5.2.B
+ * — covers the 23 registry kinds that share the floor schema). Adding a
+ * per-kind builder later is just dropping it in here.
+ */
+const SCHEMA_BUILDERS: Readonly<Partial<Record<string, SchemaBuilder>>> = {
   building: buildBuildingEditSchema,
   well: buildWellEditSchema,
   septic: buildSepticEditSchema,
@@ -59,6 +68,10 @@ const SCHEMA_BUILDERS: Readonly<
   gate: buildGateEditSchema,
   driveway: buildDrivewayEditSchema,
 };
+
+function pickBuilder(kind: string): SchemaBuilder {
+  return SCHEMA_BUILDERS[kind] ?? buildGenericBeEditSchema;
+}
 
 function entityAnchor(entity: BuiltEnvironmentEntity): [number, number] | null {
   const g = entity.geometry;
@@ -90,8 +103,6 @@ export function openBeInlineEditByObserveKind(
 ): boolean {
   const v2Kind = OBSERVE_KIND_TO_V2[observeKind];
   if (!v2Kind) return false;
-  const builder = SCHEMA_BUILDERS[v2Kind];
-  if (!builder) return false;
 
   const entity = useBuiltEnvironmentStoreV2
     .getState()
@@ -101,7 +112,30 @@ export function openBeInlineEditByObserveKind(
   const anchor = fallbackAnchor ?? entityAnchor(entity);
   if (!anchor) return false;
 
-  const schema = builder(entity);
+  const schema = pickBuilder(entity.kind)(entity);
+  useInlineFormStore.getState().open({ ...schema, anchor });
+  return true;
+}
+
+/**
+ * Phase 5.2.B — open the BE inline-edit popover for a V2 entity by id.
+ * Used by the new `BeV2GenericLayer` whose features carry V2 ids directly
+ * (no Observe-AnnotationKind translation step). Returns `true` when
+ * intercepted, `false` if the id isn't in V2 or anchor resolution fails.
+ */
+export function openBeInlineEditById(
+  id: string,
+  fallbackAnchor?: [number, number],
+): boolean {
+  const entity = useBuiltEnvironmentStoreV2
+    .getState()
+    .entities.find((x) => x.id === id);
+  if (!entity) return false;
+
+  const anchor = fallbackAnchor ?? entityAnchor(entity);
+  if (!anchor) return false;
+
+  const schema = pickBuilder(entity.kind)(entity);
   useInlineFormStore.getState().open({ ...schema, anchor });
   return true;
 }

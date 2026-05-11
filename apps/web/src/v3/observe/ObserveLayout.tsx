@@ -30,6 +30,8 @@ import ObserveChecklistAside from './components/ObserveChecklistAside.js';
 import ObserveModuleBar from './components/ObserveModuleBar.js';
 import ModuleSlideUp from './components/ModuleSlideUp.js';
 import MapToolbar from './components/MapToolbar.js';
+import DesignToolRail from '../plan/canvas/DesignToolRail.js';
+import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
 import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
 import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
@@ -39,6 +41,7 @@ import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import {
+  BeV2GenericLayer,
   DesignElementExtrusionLayer,
   DesignElementGlbLayer,
 } from '../builtEnvironment/layers/index.js';
@@ -140,6 +143,15 @@ export default function ObserveLayout() {
                   });
                 }}
               />
+              <DesignToolRail
+                map={map}
+                activeKind={null}
+                projectId={params.projectId ?? ''}
+                onDisarmDraw={() => {}}
+                selectedId={null}
+                setSelectedId={() => {}}
+              />
+              <BaseMapCard />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}
@@ -160,6 +172,16 @@ export default function ObserveLayout() {
                     stateFilter="existing"
                   />
                   <DesignElementGlbLayer
+                    map={map}
+                    projectId={params.projectId}
+                    stateFilter="existing"
+                  />
+                  {/* 2D top-down render + click-to-edit for the 23 BE
+                      kinds without bespoke per-kind layers in
+                      ObserveAnnotationLayers. The shared 3D layers above
+                      collapse to nothing top-down; this layer is the
+                      always-visible flat fallback. Phase 5.2.B. */}
+                  <BeV2GenericLayer
                     map={map}
                     projectId={params.projectId}
                     stateFilter="existing"
