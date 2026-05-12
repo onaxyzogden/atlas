@@ -32,7 +32,6 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import {
   canonicalizeKind,
   projectToDesignElementsByProject,
@@ -42,6 +41,7 @@ import {
 import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
 import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
+import { useLandDesignStore } from './landDesignStore.js';
 
 export interface DesignElement {
   id: string;
@@ -145,78 +145,10 @@ function isStructureClass(kind: string): boolean {
 // localStorage key. Holds only non-structure kinds going forward.
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-interface NonStructureState {
-  byProject: Record<string, DesignElement[]>;
-  add: (projectId: string, el: DesignElement) => void;
-  remove: (projectId: string, id: string) => void;
-  clear: (projectId: string) => void;
-  update: (
-    projectId: string,
-    id: string,
-    patch: Partial<Omit<DesignElement, 'id'>>,
-  ) => void;
-}
-
-const useNonStructureStore = create<NonStructureState>()(
-  persist(
-    (set) => ({
-      byProject: {},
-      add: (projectId, el) =>
-        set((s) => {
-          const list = s.byProject[projectId] ?? [];
-          const next: DesignElement = { view: 'current', ...el };
-          return { byProject: { ...s.byProject, [projectId]: [...list, next] } };
-        }),
-      remove: (projectId, id) =>
-        set((s) => {
-          const list = s.byProject[projectId] ?? [];
-          return {
-            byProject: {
-              ...s.byProject,
-              [projectId]: list.filter((e) => e.id !== id),
-            },
-          };
-        }),
-      clear: (projectId) =>
-        set((s) => {
-          const next = { ...s.byProject };
-          delete next[projectId];
-          return { byProject: next };
-        }),
-      update: (projectId, id, patch) =>
-        set((s) => {
-          const list = s.byProject[projectId] ?? [];
-          let changed = false;
-          const updated = list.map((e) => {
-            if (e.id !== id) return e;
-            changed = true;
-            return { ...e, ...patch } as DesignElement;
-          });
-          if (!changed) return s;
-          return { byProject: { ...s.byProject, [projectId]: updated } };
-        }),
-    }),
-    {
-      name: 'ogden-atlas-design-elements',
-      version: 2,
-      migrate: (persisted, fromVersion) => {
-        // v1 -> v2: backfill `view: 'current'` on every existing element so
-        // the new per-view filter in DesignElementLayers keeps legacy
-        // records visible on Current (and read-only on non-Current views).
-        const state = persisted as { byProject?: Record<string, DesignElement[]> } | undefined;
-        if (!state || !state.byProject) return persisted as never;
-        if (fromVersion >= 2) return persisted as never;
-        const migrated: Record<string, DesignElement[]> = {};
-        for (const [projectId, list] of Object.entries(state.byProject)) {
-          migrated[projectId] = list.map((e) => (e.view ? e : { ...e, view: 'current' }));
-        }
-        return { ...state, byProject: migrated } as never;
-      },
-    },
-  ),
-);
-
-useNonStructureStore.persist.rehydrate();
+// Non-structure design elements (paddock / pond / swale / orchard / path /
+// road / gate / bridge / turnaround) live in `landDesignStore.ts` since
+// 2026-05-12. This facade delegates non-structure reads/writes there;
+// structure-class kinds route into builtEnvironmentStoreV2.
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // V2 â†’ DesignElement projection (structure-class kinds only).
@@ -269,7 +201,7 @@ function mergeByProject(
 
 const initialMerged = mergeByProject(
   projectV2StructureElements(useBuiltEnvironmentStoreV2.getState().entities),
-  useNonStructureStore.getState().byProject,
+  useLandDesignStore.getState().byProject,
 );
 
 export const useDesignElementsStore = create<DesignElementsState>()((set, get) => ({
@@ -290,7 +222,7 @@ export const useDesignElementsStore = create<DesignElementsState>()((set, get) =
       });
       // V2 subscription will re-merge byProject; nothing else to do.
     } else {
-      useNonStructureStore.getState().add(projectId, el);
+      useLandDesignStore.getState().add(projectId, el);
     }
     void get; // kept for symmetry with future hooks
   },
@@ -301,13 +233,13 @@ export const useDesignElementsStore = create<DesignElementsState>()((set, get) =
     if (inV2) {
       v2State.delete(id);
     } else {
-      useNonStructureStore.getState().remove(projectId, id);
+      useLandDesignStore.getState().remove(projectId, id);
     }
   },
 
   clear: (projectId) => {
     // Wipe non-structure entries.
-    useNonStructureStore.getState().clear(projectId);
+    useLandDesignStore.getState().clear(projectId);
     // Wipe structure-class V2 entries for this project.
     const v2 = useBuiltEnvironmentStoreV2.getState();
     const targets = v2.entities.filter(
@@ -322,18 +254,18 @@ export const useDesignElementsStore = create<DesignElementsState>()((set, get) =
   update: (projectId, id, patch) => {
     // Structure-class kinds live in V2 and are edited there; the facade
     // patch path only touches non-structure entries today.
-    useNonStructureStore.getState().update(projectId, id, patch);
+    useLandDesignStore.getState().update(projectId, id, patch);
   },
 
   setHiddenInView: (projectId, id, view, hidden) => {
-    const list = useNonStructureStore.getState().byProject[projectId] ?? [];
+    const list = useLandDesignStore.getState().byProject[projectId] ?? [];
     const el = list.find((e) => e.id === id);
     if (!el) return;
     const current = el.hiddenInViews ?? [];
     const next = hidden
       ? Array.from(new Set([...current, view]))
       : current.filter((v) => v !== view);
-    useNonStructureStore
+    useLandDesignStore
       .getState()
       .update(projectId, id, { hiddenInViews: next });
   },
@@ -347,7 +279,7 @@ function recomputeMerged(): void {
   const v2Slice = projectV2StructureElements(
     useBuiltEnvironmentStoreV2.getState().entities,
   );
-  const nonStruct = useNonStructureStore.getState().byProject;
+  const nonStruct = useLandDesignStore.getState().byProject;
   useDesignElementsStore.setState({ byProject: mergeByProject(v2Slice, nonStruct) });
 }
 
@@ -356,7 +288,7 @@ useBuiltEnvironmentStoreV2.subscribe((s, prev) => {
   recomputeMerged();
 });
 
-useNonStructureStore.subscribe((s, prev) => {
+useLandDesignStore.subscribe((s, prev) => {
   if (s.byProject === prev.byProject) return;
   recomputeMerged();
 });
