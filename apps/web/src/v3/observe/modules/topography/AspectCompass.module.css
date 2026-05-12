@@ -1,0 +1,29 @@
+.compass {
+  display: block;
+}
+
+.compass .ring {
+  fill: none;
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+
+.compass .tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.compass .tick.active {
+  fill: #4c8460;
+  font-weight: 600;
+}
+
+.compass .arrow {
+  stroke: #4c8460;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.compass .hub {
+  fill: #4c8460;
+}

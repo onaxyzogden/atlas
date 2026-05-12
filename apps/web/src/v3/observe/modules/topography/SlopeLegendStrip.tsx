@@ -1,8 +1,12 @@
+import styles from './SlopeLegendStrip.module.css';
+
 interface Props {
   className?: string;
 }
 
-const BANDS: Array<[string, string]> = [
+type BandKey = 'flat' | 'gentle' | 'moderate' | 'steep' | 'severe';
+
+const BANDS: Array<[string, BandKey]> = [
   ['0–3°', 'flat'],
   ['3–8°', 'gentle'],
   ['8–15°', 'moderate'],
@@ -12,11 +16,11 @@ const BANDS: Array<[string, string]> = [
 
 export default function SlopeLegendStrip({ className }: Props) {
   return (
-    <div className={`slope-legend-strip ${className ?? ''}`} role="img" aria-label="Slope legend">
-      <span className="slope-legend-title">Slope</span>
-      <div className="slope-legend-bands">
+    <div className={`${styles.strip} ${className ?? ''}`} role="img" aria-label="Slope legend">
+      <span>Slope</span>
+      <div>
         {BANDS.map(([label, key]) => (
-          <span className={`slope-band band-${key}`} key={key}>
+          <span className={`${styles.band} ${styles[key]}`} key={key}>
             <i />
             <em>{label}</em>
           </span>

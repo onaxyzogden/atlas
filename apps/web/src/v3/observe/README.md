@@ -119,28 +119,20 @@ pages, and one canonical TS implementation is easier to evolve than two.
 
 ## Styling
 
-The OLOS reference stylesheet is ported wholesale into
-`styles/observe-port.css` (~21 k lines, ~4 k rules) and scoped under
-`.observe-port` via the generator at `scripts/scope-observe-styles.mjs`.
-`ModuleSlideUp.tsx` imports the stylesheet once and applies the
-`observe-port` class to the sheet root, so OLOS rules cascade only inside
-the slide-up. The leading `:root` block is rewritten to `.observe-port` so
-`--olos-*` tokens are scope-local; the `font-family`, `color`, and
-`background` declarations and all `*` / `html` / `body` rules were stripped
-during scoping so OLOS does not override atlas's document-root chrome.
+Each component owns a co-located CSS Module (`Foo.module.css`) imported by
+its TSX. Shared tokens (`--olos-*`, fonts, `--olos-focus-ring`, etc.) live
+in the global OLOS token sheet; see app-level styles for the source of
+truth.
 
-To re-run after a reference-side update:
-
-```
-node scripts/scope-observe-styles.mjs
-```
-
-The Cormorant Garamond + Inter Google Fonts `@import` is preserved at the
-top of `observe-port.css` and is the only external font request introduced
-by this surface.
+The original wholesale OLOS port (`styles/observe-port.css` scoped under
+`.observe-port` via `scripts/scope-observe-styles.mjs`) was retired once
+every consumed selector had been migrated into a co-located module. The
+22 k-line generated stylesheet, the `.observe-port` wrapper on the slide-
+up root, and the generator script are all gone.
 
 See [wiki/decisions/2026-05-06-atlas-observe-port-styling.md](../../../../../../wiki/decisions/2026-05-06-atlas-observe-port-styling.md)
-for the option-1 (wholesale port + scope) decision and rationale.
+for the original wholesale-port decision (historical) and the follow-up
+migration to per-component CSS Modules.
 
 ## What lives where outside this folder
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
+import styles from './ActionCard.module.css';
 
 interface ActionCardProps {
   className?: string;
@@ -19,14 +20,14 @@ export function ActionCard({
   action,
 }: ActionCardProps) {
   return (
-    <button className={`action-card ${className}`} type="button">
-      {icon ? <span className="action-icon">{icon}</span> : null}
-      <span className="action-copy">
+    <button className={`${styles.card} ${className}`} type="button">
+      {icon ? <span className={styles.icon}>{icon}</span> : null}
+      <span className={styles.copy}>
         <strong>{title}</strong>
         {body ? <span>{body}</span> : null}
       </span>
       {art}
-      {action ? <ArrowRight className="action-arrow" /> : null}
+      {action ? <ArrowRight className={styles.arrow} /> : null}
     </button>
   );
 }

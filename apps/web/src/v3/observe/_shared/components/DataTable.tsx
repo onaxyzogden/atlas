@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import styles from './DataTable.module.css';
 
 interface DataTableProps {
   columns: ReactNode[];
@@ -7,7 +8,7 @@ interface DataTableProps {
 
 export function DataTable({ columns, rows }: DataTableProps) {
   return (
-    <table className="data-table">
+    <table className={styles.table}>
       <thead>
         <tr>
           {columns.map((column, index) => (

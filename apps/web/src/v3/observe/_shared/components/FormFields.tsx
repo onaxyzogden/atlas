@@ -1,3 +1,5 @@
+import styles from './FormFields.module.css';
+
 interface TextInputProps {
   label: string;
   value: string;
@@ -17,7 +19,7 @@ export function TextInput({
 }: TextInputProps) {
   const controlled = onChange !== undefined;
   return (
-    <label className={wide ? 'form-field wide' : 'form-field'}>
+    <label className={wide ? `${styles.field} wide` : styles.field}>
       <span>{label}</span>
       <input
         type={type}
@@ -41,7 +43,7 @@ export function SelectField({ label, value, options = [], onChange }: SelectFiel
   const controlled = onChange !== undefined;
   const allOptions = [value, ...options.filter((option) => option !== value)];
   return (
-    <label className="form-field">
+    <label className={styles.field}>
       <span>{label}</span>
       <select
         {...(controlled
@@ -73,7 +75,7 @@ export function TextAreaField({
 }: TextAreaFieldProps) {
   const controlled = onChange !== undefined;
   return (
-    <label className="form-field textarea-field">
+    <label className={`${styles.field} textarea-field`}>
       <span>{label}</span>
       <textarea
         maxLength={max}

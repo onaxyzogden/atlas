@@ -24,8 +24,17 @@ import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { api } from '../../../../lib/apiClient.js';
-import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import {
+  useBuildingsForProject,
+  useWellsForProject,
+  useSepticsForProject,
+  usePowerLinesForProject,
+  useBuriedUtilitiesForProject,
+  useFencesForProject,
+  useGatesForProject,
+  useExistingDrivewaysForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
@@ -70,47 +79,18 @@ export default function BuiltEnvironmentDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
 
-  const allBuildings = useBuiltEnvironmentStore((s) => s.buildings);
-  const allWells = useBuiltEnvironmentStore((s) => s.wells);
-  const allSeptics = useBuiltEnvironmentStore((s) => s.septics);
-  const allPowerLines = useBuiltEnvironmentStore((s) => s.powerLines);
-  const allBuriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
-  const allFences = useBuiltEnvironmentStore((s) => s.fences);
-  const allGates = useBuiltEnvironmentStore((s) => s.gates);
-  const allDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
-
-  const buildings = useMemo(
-    () => allBuildings.filter((b) => b.projectId === id),
-    [allBuildings, id],
-  );
-  const wells = useMemo(
-    () => allWells.filter((w) => w.projectId === id),
-    [allWells, id],
-  );
-  const septics = useMemo(
-    () => allSeptics.filter((sp) => sp.projectId === id),
-    [allSeptics, id],
-  );
-  const powerLines = useMemo(
-    () => allPowerLines.filter((p) => p.projectId === id),
-    [allPowerLines, id],
-  );
-  const buriedUtilities = useMemo(
-    () => allBuriedUtilities.filter((u) => u.projectId === id),
-    [allBuriedUtilities, id],
-  );
-  const fences = useMemo(
-    () => allFences.filter((f) => f.projectId === id),
-    [allFences, id],
-  );
-  const gates = useMemo(
-    () => allGates.filter((g) => g.projectId === id),
-    [allGates, id],
-  );
-  const existingDriveways = useMemo(
-    () => allDriveways.filter((d) => d.projectId === id),
-    [allDriveways, id],
-  );
+  // Phase 6.B: read built-environment slices direct from V2 via the typed
+  // selector hooks. Each hook subscribes to V2 `entities`, applies the
+  // shared projection, filters by project, and memoizes so identity is
+  // stable when nothing in this project's slice changed.
+  const buildings = useBuildingsForProject(id);
+  const wells = useWellsForProject(id);
+  const septics = useSepticsForProject(id);
+  const powerLines = usePowerLinesForProject(id);
+  const buriedUtilities = useBuriedUtilitiesForProject(id);
+  const fences = useFencesForProject(id);
+  const gates = useGatesForProject(id);
+  const existingDriveways = useExistingDrivewaysForProject(id);
 
   const args = {
     buildings,

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import styles from './ProgressRing.module.css';
 
 interface ProgressRingProps {
   value: number;
@@ -9,11 +10,11 @@ interface ProgressRingProps {
 export function ProgressRing({
   value,
   label,
-  className = 'progress-ring',
+  className,
 }: ProgressRingProps) {
   const style = { '--progress': `${value}%` } as CSSProperties;
   return (
-    <div className={className} style={style}>
+    <div className={`${styles.ring} ${className ?? ''}`} style={style}>
       <span>{label ?? `${value}%`}</span>
     </div>
   );

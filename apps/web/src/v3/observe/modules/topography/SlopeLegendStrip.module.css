@@ -1,0 +1,22 @@
+.strip {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.strip .band {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #2a2a2a;
+}
+
+.strip .band.flat { background: #e6efe9; }
+.strip .band.gentle { background: #c9e0d1; }
+.strip .band.moderate { background: #f6dba0; }
+.strip .band.steep { background: #e8a878; }
+.strip .band.severe { background: #c97a6a; color: #fff; }

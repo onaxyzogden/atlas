@@ -34,7 +34,7 @@ export interface ModuleSlideUpProps {
   renderCard: (sectionId: string) => ReactNode;
   /** Aria-label for the dialog root. */
   ariaLabel?: string;
-  /** Extra class added to the sheet root (e.g. `observe-port` cascade). */
+  /** Extra class added to the sheet root. */
   sheetClassName?: string;
   /** Optional node rendered under the title (e.g. Plan view badge chip). */
   headerExtra?: ReactNode;

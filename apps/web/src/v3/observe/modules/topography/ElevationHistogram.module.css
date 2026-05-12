@@ -1,0 +1,29 @@
+.histogram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.histogram .bar {
+  fill: rgba(76, 132, 96, 0.6);
+}
+
+.histogram .axis {
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+
+.histogram .tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.histogram.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+}

@@ -1,4 +1,5 @@
 import type { ElementType, HTMLAttributes, ReactNode } from 'react';
+import styles from './SurfaceCard.module.css';
 
 interface SurfaceCardProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType;
@@ -13,7 +14,7 @@ export function SurfaceCard({
   ...props
 }: SurfaceCardProps) {
   return (
-    <Element className={`surface-card ${className}`} {...props}>
+    <Element className={`${styles.card} ${className}`} {...props}>
       {children}
     </Element>
   );

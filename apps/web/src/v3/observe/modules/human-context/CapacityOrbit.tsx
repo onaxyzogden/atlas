@@ -6,6 +6,8 @@
  * both values are unset.
  */
 
+import styles from './CapacityOrbit.module.css';
+
 interface CapacityOrbitProps {
   initialHrs?: number;
   ongoingHrs?: number;
@@ -22,7 +24,7 @@ export function CapacityOrbit({
   ongoingHrs,
   maxHrs = 40,
   size = 160,
-  className = 'capacity-orbit',
+  className = styles.orbit,
 }: CapacityOrbitProps) {
   const initial = initialHrs ?? 0;
   const ongoing = ongoingHrs ?? 0;

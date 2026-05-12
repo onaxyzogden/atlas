@@ -1,0 +1,41 @@
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart .fill {
+  fill: rgba(76, 132, 96, 0.18);
+}
+
+.chart .line {
+  fill: none;
+  stroke: #4c8460;
+  stroke-width: 1.5;
+}
+
+.chart .axis {
+  stroke: var(--olos-border, #d8d8d8);
+  stroke-width: 1;
+}
+
+.chart .tick {
+  font-size: 10px;
+  fill: var(--olos-muted, #888);
+}
+
+.chart .verticalRef {
+  stroke: #b88a3a;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.chart.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: var(--olos-muted, #888);
+  font-style: italic;
+  font-size: 13px;
+}

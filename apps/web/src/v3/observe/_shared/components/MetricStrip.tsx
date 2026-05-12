@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { ProgressRing } from './ProgressRing.js';
+import styles from './MetricStrip.module.css';
 
 export type MetricStripItem =
   | {
@@ -28,16 +29,16 @@ export function MetricStrip({
   ariaLabel = 'Summary metrics',
 }: MetricStripProps) {
   return (
-    <section className="metric-band" aria-label={ariaLabel}>
+    <section className={styles.band} aria-label={ariaLabel}>
       {metrics.map((metric) =>
         metric.type === 'progress' ? (
-          <div className="metric-cell progress-cell" key={metric.label}>
+          <div className={styles.cell} key={metric.label}>
             <ProgressRing value={metric.progress} label={metric.progressLabel} />
             <MetricCopy label={metric.label} value={metric.value} note={metric.note} />
           </div>
         ) : (
-          <div className="metric-cell" key={metric.label}>
-            <metric.icon className="metric-icon" aria-hidden="true" />
+          <div className={styles.cell} key={metric.label}>
+            <metric.icon className={styles.icon} aria-hidden="true" />
             <MetricCopy label={metric.label} value={metric.value} note={metric.note} />
           </div>
         ),

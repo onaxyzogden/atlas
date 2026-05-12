@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CroppedArt } from './CroppedArt.js';
+import styles from './ModuleSummaryCard.module.css';
 
 interface ModuleSummaryCardProps {
   number: string;
@@ -22,19 +23,20 @@ export function ModuleSummaryCard({
   mediaSrc,
   className = '',
 }: ModuleSummaryCardProps) {
+  const pillTone = tone === 'gold' ? styles.gold : '';
   return (
-    <article className={`dashboard-module-card ${className}`}>
+    <article className={`${styles.card} ${className}`}>
       <header>
         <h3>
           <span>{number}</span>
           {title}
         </h3>
-        <b className={`status-pill ${tone}`}>{status}</b>
+        <b className={`${styles.pill} ${pillTone}`}>{status}</b>
       </header>
-      <div className="dashboard-module-card__body">
+      <div className={styles.body}>
         {children}
         {mediaSrc ? (
-          <CroppedArt className="dashboard-module-card__media" src={mediaSrc} />
+          <CroppedArt className={styles.media} src={mediaSrc} />
         ) : null}
       </div>
       {footer ? <footer>{footer}</footer> : null}

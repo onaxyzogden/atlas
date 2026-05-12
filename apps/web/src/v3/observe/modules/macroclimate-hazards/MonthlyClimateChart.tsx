@@ -1,5 +1,6 @@
 import type { MockLayerResult } from '@ogden/shared/scoring';
 import { monthlyClimateSeries } from './derivations.js';
+import styles from './MonthlyClimateChart.module.css';
 
 const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
@@ -12,7 +13,7 @@ export default function MonthlyClimateChart({ layers, className }: Props) {
   const series = monthlyClimateSeries(layers);
   if (series.length === 0) {
     return (
-      <div className={`monthly-climate-chart empty ${className ?? ''}`}>
+      <div className={`${styles.chart} ${styles.empty} ${className ?? ''}`}>
         <span>Climate data pending</span>
       </div>
     );
@@ -46,7 +47,7 @@ export default function MonthlyClimateChart({ layers, className }: Props) {
 
   return (
     <svg
-      className={`monthly-climate-chart ${className ?? ''}`}
+      className={`${styles.chart} ${className ?? ''}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label="Monthly climate chart"
@@ -61,19 +62,19 @@ export default function MonthlyClimateChart({ layers, className }: Props) {
             y={padY + innerH - h}
             width={barW * 0.7}
             height={h}
-            className="precip-bar"
+            className={styles.precipBar}
           />
         );
       })}
-      <path d={maxPath} className="temp-line max" fill="none" />
-      <path d={minPath} className="temp-line min" fill="none" />
+      <path d={maxPath} className={`${styles.tempLine} ${styles.max}`} fill="none" />
+      <path d={minPath} className={`${styles.tempLine} ${styles.min}`} fill="none" />
       {MONTHS.map((m, i) => (
         <text
           key={`${m}-${i}`}
           x={xFor(i) + barW * 0.35}
           y={H - 4}
           textAnchor="middle"
-          className="month-tick"
+          className={styles.monthTick}
         >
           {m}
         </text>

@@ -1,0 +1,71 @@
+.card {
+  min-height: 275px;
+  padding: 14px 13px 10px;
+  border: 1px solid rgba(193, 169, 112, 0.2);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(98, 124, 67, 0.06), transparent 42%),
+    linear-gradient(145deg, rgba(17, 24, 21, 0.94), rgba(8, 12, 11, 0.96));
+}
+
+.card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.card h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--olos-font-display);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.card h3 span {
+  width: 27px;
+  height: 27px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--olos-green);
+  color: #10190d;
+  font-family: var(--olos-font-ui);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pill {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border-radius: 5px;
+  border: 1px solid rgba(110, 151, 70, 0.34);
+  background: rgba(55, 83, 39, 0.22);
+  color: #9fce55;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.pill.gold {
+  color: var(--olos-gold-bright);
+  border-color: rgba(242, 177, 46, 0.32);
+  background: rgba(112, 74, 18, 0.18);
+}
+
+.body {
+  position: relative;
+  min-height: 175px;
+}
+
+.media {
+  position: absolute;
+  right: 9px;
+  top: 5px;
+  width: 47%;
+  max-height: 118px;
+  object-fit: contain;
+}
