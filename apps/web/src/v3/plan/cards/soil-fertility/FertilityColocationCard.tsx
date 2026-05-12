@@ -140,6 +140,33 @@ export default function FertilityColocationCard({ project }: Props) {
     });
   }, [guilds, fertility]);
 
+  /**
+   * Reverse view: for each visible+placed fertility unit, the list of
+   * guilds within Zone-2 reach (≤ 75 m) it could plausibly serve.
+   * Surfaces the load-balance question the forward view can't: a
+   * composter sitting next to zero guilds is over-resourced for its
+   * location; one unit serving every guild is a single point of
+   * failure for the closed loop. Units with no guilds in range still
+   * render so the steward sees the orphan case.
+   */
+  const byFertility = useMemo(() => {
+    const placedGuildEntries = guilds
+      .filter((g) => !!g.center)
+      .map((g) => ({ id: g.id, anchorLabel: anchorLabelFor(g), center: g.center as [number, number] }));
+    const placedFertility = fertility.filter((f) => !!f.center);
+    return placedFertility.map((f) => {
+      const served = placedGuildEntries
+        .map((g) => ({
+          id: g.id,
+          anchorLabel: g.anchorLabel,
+          distanceM: haversineM(g.center, f.center),
+        }))
+        .filter((s) => s.distanceM <= BUCKET_MEDIUM_M)
+        .sort((a, b) => a.distanceM - b.distanceM);
+      return { id: f.id, type: f.type, served };
+    }).sort((a, b) => b.served.length - a.served.length);
+  }, [guilds, fertility]);
+
   const overall = useMemo(() => {
     const total = rows.length;
     const close = rows.filter((r) => r.bucket === 'close').length;
@@ -197,7 +224,11 @@ export default function FertilityColocationCard({ project }: Props) {
           without a centroid, or guilds in a view with no fertility
           infrastructure placed, land in <em>Unplaced or unpaired</em>.
           Year 1 / Year 5 views cap both stores per the Scale of
-          Permanence; Current / Vision views show everything.
+          Permanence; Current / Vision views show everything. The
+          <em> By fertility unit</em> section flips the pairing —
+          per unit, which guilds it could plausibly serve — so the
+          steward catches over-resourced or single-point-of-failure
+          units.
         </p>
       </header>
 
@@ -313,6 +344,72 @@ export default function FertilityColocationCard({ project }: Props) {
               </section>
             );
           })}
+
+          {byFertility.length > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                By fertility unit
+                <span
+                  className={`${styles.pill} ${styles.pillPartial ?? ''}`}
+                  style={{ marginLeft: 8 }}
+                >
+                  {byFertility.length} unit{byFertility.length === 1 ? '' : 's'}
+                </span>
+              </h2>
+              <p className={styles.listMeta} style={{ marginTop: 0 }}>
+                For each placed fertility unit, the guilds it could
+                plausibly serve (within Zone-2 reach, ≤ 75 m), sorted
+                nearest first. A unit with zero guilds in range is
+                over-resourced for its location; a unit serving every
+                guild is a single point of failure for the closed loop.
+              </p>
+              <ul className={styles.list}>
+                {byFertility.map((unit) => {
+                  const servedCount = unit.served.length;
+                  const pillTone =
+                    servedCount === 0    ? styles.pillUnmet :
+                    servedCount >= 3     ? styles.pillMet :
+                                            styles.pillPartial;
+                  return (
+                    <li
+                      key={unit.id}
+                      className={styles.listRow}
+                      style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                        <strong style={{ textTransform: 'capitalize' }}>
+                          {FERTILITY_LABEL[unit.type]}
+                        </strong>
+                        <span className={`${styles.pill} ${pillTone ?? ''}`}>
+                          {servedCount === 0
+                            ? 'no guilds in range'
+                            : `serves ${servedCount} guild${servedCount === 1 ? '' : 's'}`}
+                        </span>
+                      </div>
+                      {servedCount > 0 && (
+                        <ul className={styles.list} style={{ margin: 0 }}>
+                          {unit.served.map((s) => (
+                            <li key={s.id} className={styles.listRow}>
+                              <span>{s.anchorLabel}</span>
+                              <span
+                                className={`${styles.pill} ${
+                                  s.distanceM <= BUCKET_CLOSE_M
+                                    ? styles.pillMet ?? ''
+                                    : styles.pillPartial ?? ''
+                                }`}
+                              >
+                                {Math.round(s.distanceM)} m
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>
