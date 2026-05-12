@@ -2,7 +2,7 @@
  * builtEnvironmentStoreV2 — unified Built Environment store keyed by
  * `state: 'existing' | 'proposed'`.
  *
- * Replaces (gated by `ATLAS_BUILT_ENV_V2`):
+ * Replaces (gate retired 2026-05-12 — V2 is now the unconditional path):
  *   - builtEnvironmentStore.ts          (Observe — 8 existing-infra kinds)
  *   - structureStore.ts                  (Plan — 20 proposed structure types)
  *   - structure-class kinds in
