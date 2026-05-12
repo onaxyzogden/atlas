@@ -129,7 +129,19 @@ export default function BuiltEnvironmentDashboard() {
     () => builtEnvironmentV2CategoryKpis({ entities: v2Entities, projectId: id }),
     [v2Entities, id],
   );
-  const healthPct = moduleHealthPct(counts);
+  // Phase 5.4: feed V2 entity totals into the health bar so a project that
+  // has only V2-class entities (no legacy buildings / wells / etc.) still
+  // moves the dial. `kindsPresent` is the count of distinct registry
+  // categories occupied — keeps the per-slot weight comparable to the
+  // legacy 8-slot calc (which weights each of its 8 slots by 4 points).
+  const v2CountsByCategory = useMemo(
+    () => builtV2Counts(v2Entities, id),
+    [v2Entities, id],
+  );
+  const healthPct = moduleHealthPct(counts, {
+    entityCount: v2CountsByCategory.total,
+    kindsPresent: Object.keys(v2CountsByCategory.byCategory).length,
+  });
 
   const overheadPower = powerLines.filter((p) => p.placement === 'overhead');
   const utilityKm = totalLengthM(powerLines) + totalLengthM(buriedUtilities);

@@ -316,8 +316,25 @@ export function builtEnvironmentKpis(args: BuiltKpiArgs): BuiltKpiItem[] {
   ];
 }
 
-export function moduleHealthPct(counts: BuiltFeatureCounts): number {
-  const kindsPresent = [
+/**
+ * Phase 5.4: widened to include V2 entities alongside the legacy 8.
+ *
+ * Legacy contribution: `counts.total * 8 + kindsPresent * 4` (kindsPresent
+ * is the number of legacy-8 slots with at least one entity).
+ *
+ * V2 contribution: `v2.entityCount * 8 + v2.kindsPresent * 4`. Treats each
+ * canonical V2 kind (e.g. cabin, greenhouse, water-tank) as an additional
+ * "slot" so a project that has only V2-class entities (no legacy buildings
+ * or wells) still moves the health bar.
+ *
+ * `v2` is optional so existing call sites keep their behaviour; the
+ * dashboard passes it explicitly.
+ */
+export function moduleHealthPct(
+  counts: BuiltFeatureCounts,
+  v2?: { entityCount: number; kindsPresent: number },
+): number {
+  const legacyKindsPresent = [
     counts.buildings,
     counts.wells,
     counts.septics,
@@ -327,8 +344,11 @@ export function moduleHealthPct(counts: BuiltFeatureCounts): number {
     counts.gates,
     counts.existingDriveways,
   ].filter((c) => c > 0).length;
-  const raw = counts.total * 8 + kindsPresent * 4;
-  return Math.max(0, Math.min(100, raw));
+  const legacyContribution = counts.total * 8 + legacyKindsPresent * 4;
+  const v2Contribution = v2
+    ? v2.entityCount * 8 + v2.kindsPresent * 4
+    : 0;
+  return Math.max(0, Math.min(100, legacyContribution + v2Contribution));
 }
 
 export function healthLabel(pct: number): 'Empty' | 'Forming' | 'Good' {
