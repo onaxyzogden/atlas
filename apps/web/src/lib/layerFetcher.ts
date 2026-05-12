@@ -21,7 +21,7 @@
  */
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
-import { haversineKm as haversineKmTuple } from './geo.js';
+import { haversineKm } from './geo.js';
 import { toNum, type SpatialLayerPayload } from '@ogden/shared/scoring';
 import type { LayerType } from '@ogden/shared';
 import { geodataCache } from './geodataCache.js';
@@ -4480,17 +4480,6 @@ function zoningUnavailable(country: string, countyName?: string, stateCode?: str
 // ── Infrastructure (Overpass API — OpenStreetMap) ─────────────────────────
 
 /**
- * Haversine distance between two WGS84 points, in km. Scalar-argument
- * adapter — 24 call sites in this file pass `(lat, lng, lat, lng)`.
- * Delegates the math to the shared `lib/geo.ts` helper (which uses
- * `[lng, lat]` tuples per Mapbox / GeoJSON convention); keeping this
- * thin shim avoids transposing 24 remote-data integration points.
- */
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  return haversineKmTuple([lng1, lat1], [lng2, lat2]);
-}
-
-/**
  * Fetch infrastructure POIs from OpenStreetMap Overpass API.
  * Single batched query for 9 categories: hospital, masjid, market,
  * power substation, drinking water, roads, protected areas, nature reserves.
@@ -4584,9 +4573,9 @@ out center;`;
     function findNearest(pois: POI[]): { km: number; name: string | null; subtype: string | null } | null {
       if (pois.length === 0) return null;
       let best: POI = pois[0]!;
-      let bestDist = haversineKm(lat, lng, best.lat, best.lng);
+      let bestDist = haversineKm([lng, lat], [best.lng, best.lat]);
       for (let i = 1; i < pois.length; i++) {
-        const d = haversineKm(lat, lng, pois[i]!.lat, pois[i]!.lng);
+        const d = haversineKm([lng, lat], [pois[i]!.lng, pois[i]!.lat]);
         if (d < bestDist) { bestDist = d; best = pois[i]!; }
       }
       return { km: Math.round(bestDist * 10) / 10, name: best.name, subtype: best.subtype };
@@ -4688,7 +4677,7 @@ async function fetchPgmnGroundwater(lat: number, lng: number): Promise<MockLayer
     const name = String(a['WELL_NAME'] ?? a['STATION_NAME'] ?? a['PGMN_WELL_ID'] ?? a['WELL_ID'] ?? 'PGMN Well');
     const dateRaw = a['SAMPLE_DATE'] ?? a['MEASUREMENT_DATE'] ?? a['DATE_'] ?? a['OBS_DATE'] ?? null;
     const date = dateRaw ? String(dateRaw).split('T')[0]! : new Date().toISOString().split('T')[0]!;
-    const km = (wellLat !== 0 && wellLng !== 0) ? haversineKm(lat, lng, wellLat, wellLng) : Infinity;
+    const km = (wellLat !== 0 && wellLng !== 0) ? haversineKm([lng, lat], [wellLng, wellLat]) : Infinity;
     return { depthM, name, date, km };
   }).filter((w) => isFinite(w.km));
 
@@ -4824,7 +4813,7 @@ async function fetchUSGSNWIS(lat: number, lng: number, country: string): Promise
       wells.push({
         depthFt,
         depthM: Math.round((depthFt / 3.28084) * 10) / 10,
-        km: Math.round(haversineKm(lat, lng, siteLat, siteLng) * 10) / 10,
+        km: Math.round(haversineKm([lng, lat], [siteLng, siteLat]) * 10) / 10,
         name: siteName,
         date: lastValid.dateTime?.split('T')[0] ?? endDT,
       });
@@ -4928,7 +4917,7 @@ async function fetchEcccWaterQuality(lat: number, lng: number): Promise<MockLaye
 
   const p = nearest.properties;
   const [nLng, nLat] = nearest.geometry.coordinates;
-  const stationKm = (nLat !== 0 && nLng !== 0) ? haversineKm(lat, lng, nLat, nLng) : null;
+  const stationKm = (nLat !== 0 && nLng !== 0) ? haversineKm([lng, lat], [nLng, nLat]) : null;
   const stationName = String(p['STATION_NAME'] ?? p['station_name'] ?? p['SITE_NAME']
     ?? p['MONITORING_LOCATION'] ?? p['name'] ?? 'Ontario Monitoring Station');
 
@@ -5013,7 +5002,7 @@ async function fetchEPAWQP(lat: number, lng: number, country: string): Promise<M
         .map((s) => ({
           id: s.MonitoringLocationIdentifier ?? '',
           name: s.MonitoringLocationName ?? 'Unknown station',
-          km: Math.round(haversineKm(lat, lng, Number(s.LatitudeMeasure), Number(s.LongitudeMeasure)) * 10) / 10,
+          km: Math.round(haversineKm([lng, lat], [Number(s.LongitudeMeasure), Number(s.LatitudeMeasure)]) * 10) / 10,
           org: s.OrganizationFormalName ?? '',
         }));
       mapped.sort((a, b) => a.km - b.km);
@@ -5165,7 +5154,7 @@ async function fetchCaContaminatedSites(lat: number, lng: number): Promise<MockL
     const sites = records.map((r) => {
       const siteLat = Number(r['LATITUDE'] ?? r['LAT'] ?? r['_lat'] ?? 0);
       const siteLng = Number(r['LONGITUDE'] ?? r['LNG'] ?? r['LONG'] ?? r['_lng'] ?? 0);
-      const km = (siteLat !== 0 && siteLng !== 0) ? haversineKm(lat, lng, siteLat, siteLng) : Infinity;
+      const km = (siteLat !== 0 && siteLng !== 0) ? haversineKm([lng, lat], [siteLng, siteLat]) : Infinity;
       const name = String(r['SITE_NAME'] ?? r['FEDERAL_SITE_NAME'] ?? r['NAME'] ?? r['SITE'] ?? 'Unknown Site');
       const status = String(r['CLASSIFICATION'] ?? r['STATUS'] ?? r['SITE_STATUS'] ?? r['CLASS'] ?? 'Listed');
       const city = String(r['CITY'] ?? r['MUNICIPALITY'] ?? r['LOCATION'] ?? '');
@@ -5199,9 +5188,9 @@ async function fetchCaContaminatedSites(lat: number, lng: number): Promise<MockL
   // Estimation fallback — Ontario rural areas typically have few contaminated sites
   // Conservative estimate: nearest site ~20 km for rural, ~5 km near urban centres
   const isNearUrban =
-    haversineKm(lat, lng, 43.65, -79.38) < 50 || // Toronto
-    haversineKm(lat, lng, 43.25, -79.87) < 30 || // Hamilton
-    haversineKm(lat, lng, 45.42, -75.69) < 30;   // Ottawa
+    haversineKm([lng, lat], [-79.38, 43.65]) < 50 || // Toronto
+    haversineKm([lng, lat], [-79.87, 43.25]) < 30 || // Hamilton
+    haversineKm([lng, lat], [-75.69, 45.42]) < 30;   // Ottawa
   const estKm = isNearUrban ? 8.0 : 25.0;
 
   return {
@@ -5260,7 +5249,7 @@ async function fetchEPASuperfund(lat: number, lng: number, country: string): Pro
       .filter((s) => s.LATITUDE != null && s.LONGITUDE != null)
       .map((s) => ({
         name: s.SITE_NAME ?? 'Unknown site',
-        km: Math.round(haversineKm(lat, lng, s.LATITUDE!, s.LONGITUDE!) * 10) / 10,
+        km: Math.round(haversineKm([lng, lat], [s.LONGITUDE!, s.LATITUDE!]) * 10) / 10,
         status: s.SITE_STATUS ?? 'Unknown',
         epaId: s.EPA_ID ?? '',
         city: s.CITY_NAME && s.STATE_CODE ? `${s.CITY_NAME}, ${s.STATE_CODE}` : '',
@@ -5332,7 +5321,7 @@ async function fetchEPAUst(lat: number, lng: number, country: string): Promise<M
         .filter((r) => r.LATITUDE != null && r.LONGITUDE != null)
         .map((r) => ({
           name: r.FACILITY_NAME ?? 'UST facility',
-          km: Math.round(haversineKm(lat, lng, r.LATITUDE!, r.LONGITUDE!) * 10) / 10,
+          km: Math.round(haversineKm([lng, lat], [r.LONGITUDE!, r.LATITUDE!]) * 10) / 10,
           id: r.FACILITY_ID ?? '',
           status: r.STATUS ?? '',
           city: r.CITY_NAME && r.STATE_CODE ? `${r.CITY_NAME}, ${r.STATE_CODE}` : '',
@@ -5385,7 +5374,7 @@ async function fetchEPABrownfields(lat: number, lng: number, country: string): P
       .filter((r) => r.LATITUDE != null && r.LONGITUDE != null)
       .map((r) => ({
         name: r.PROPERTY_NAME ?? 'Brownfield property',
-        km: Math.round(haversineKm(lat, lng, r.LATITUDE!, r.LONGITUDE!) * 10) / 10,
+        km: Math.round(haversineKm([lng, lat], [r.LONGITUDE!, r.LATITUDE!]) * 10) / 10,
         status: r.CLEANUP_STATUS ?? 'Unknown',
         city: r.CITY_NAME && r.STATE_CODE ? `${r.CITY_NAME}, ${r.STATE_CODE}` : '',
       }))
@@ -5435,7 +5424,7 @@ async function fetchEPALandfills(lat: number, lng: number, country: string): Pro
         .filter((r) => r.LATITUDE83 != null && r.LONGITUDE83 != null)
         .map((r) => ({
           name: r.PRIMARY_NAME ?? 'Landfill facility',
-          km: Math.round(haversineKm(lat, lng, r.LATITUDE83!, r.LONGITUDE83!) * 10) / 10,
+          km: Math.round(haversineKm([lng, lat], [r.LONGITUDE83!, r.LATITUDE83!]) * 10) / 10,
           naics: r.NAICS_CODES ?? '',
           city: r.CITY_NAME && r.STATE_CODE ? `${r.CITY_NAME}, ${r.STATE_CODE}` : '',
         }))
@@ -5480,7 +5469,7 @@ async function fetchEPALandfills(lat: number, lng: number, country: string): Pro
         .map((f) => {
           const fy = f.geometry?.y ?? 0;
           const fx = f.geometry?.x ?? 0;
-          const km = (fy !== 0 && fx !== 0) ? haversineKm(lat, lng, fy, fx) : Infinity;
+          const km = (fy !== 0 && fx !== 0) ? haversineKm([lng, lat], [fx, fy]) : Infinity;
           const name = String(f.attributes['SITE_NAME'] ?? f.attributes['NAME'] ?? 'Waste Management Site');
           const type = String(f.attributes['SITE_TYPE'] ?? f.attributes['TYPE'] ?? 'Unknown');
           return { name, km: Math.round(km * 10) / 10, type };
@@ -5551,7 +5540,7 @@ async function fetchUsgsMineHazards(lat: number, lng: number, country: string): 
         const coords = f.geometry?.coordinates ?? [0, 0];
         const mlng = coords[0] ?? 0;
         const mlat = coords[1] ?? 0;
-        const km = (mlat !== 0 && mlng !== 0) ? haversineKm(lat, lng, mlat, mlng) : Infinity;
+        const km = (mlat !== 0 && mlng !== 0) ? haversineKm([lng, lat], [mlng, mlat]) : Infinity;
         const name = String(f.properties?.['site_name'] ?? f.properties?.['name'] ?? 'Mine site');
         const commodity = String(f.properties?.['commod1'] ?? f.properties?.['commodity'] ?? 'Unknown');
         const devStat = String(f.properties?.['dev_stat'] ?? f.properties?.['status'] ?? 'Unknown');
@@ -5606,7 +5595,7 @@ async function fetchFuds(lat: number, lng: number, country: string): Promise<Moc
         const coords = f.geometry?.coordinates ?? [0, 0];
         const slng = coords[0] ?? 0;
         const slat = coords[1] ?? 0;
-        const km = (slat !== 0 && slng !== 0) ? haversineKm(lat, lng, slat, slng) : Infinity;
+        const km = (slat !== 0 && slng !== 0) ? haversineKm([lng, lat], [slng, slat]) : Infinity;
         const name = String(f.properties?.['PROPERTY_NAME'] ?? f.properties?.['Property_Name'] ?? f.properties?.['NAME'] ?? 'FUDS site');
         const projectType = String(f.properties?.['PROJECT_TYPE'] ?? f.properties?.['Project_Type'] ?? 'Unknown');
         return { name, km: Math.round(km * 10) / 10, projectType };
@@ -5795,7 +5784,7 @@ async function fetchHeritage(lat: number, lng: number, country: string): Promise
           const c = f.geometry?.coordinates ?? [0, 0];
           const slng = c[0] ?? 0;
           const slat = c[1] ?? 0;
-          const km = (slat !== 0 && slng !== 0) ? haversineKm(lat, lng, slat, slng) : Infinity;
+          const km = (slat !== 0 && slng !== 0) ? haversineKm([lng, lat], [slng, slat]) : Infinity;
           const name = String(f.properties?.['RESNAME'] ?? f.properties?.['NAME'] ?? 'Historic site');
           const designation = String(f.properties?.['LISTING_TYPE'] ?? f.properties?.['DESIGNATION'] ?? 'NRHP Listed');
           return { name, km: Math.round(km * 10) / 10, designation };
@@ -5832,7 +5821,7 @@ async function fetchHeritage(lat: number, lng: number, country: string): Promise
           .map((r) => {
             const slat = Number(r['Latitude'] ?? r['latitude'] ?? 0);
             const slng = Number(r['Longitude'] ?? r['longitude'] ?? 0);
-            const km = (slat !== 0 && slng !== 0) ? haversineKm(lat, lng, slat, slng) : Infinity;
+            const km = (slat !== 0 && slng !== 0) ? haversineKm([lng, lat], [slng, slat]) : Infinity;
             const name = String(r['English name'] ?? r['Name'] ?? 'National Historic Site');
             const designation = String(r['Designation'] ?? 'NHS');
             return { name, km: Math.round(km * 10) / 10, designation };
@@ -6034,7 +6023,7 @@ async function fetchSeasonalFlooding(lat: number, lng: number, country: string):
       gauges.push({
         siteNo: parts[siteNoIdx] ?? '',
         name: nameIdx >= 0 ? (parts[nameIdx] ?? '') : '',
-        km: Math.round(haversineKm(lat, lng, sLat, sLng) * 10) / 10,
+        km: Math.round(haversineKm([lng, lat], [sLng, sLat]) * 10) / 10,
       });
     }
     gauges.sort((a, b) => a.km - b.km);
@@ -7263,7 +7252,7 @@ async function fetchNrcanSeismicHazard(lat: number, lng: number): Promise<MockLa
   // Southern Ontario shield margin: low
   // Canadian Shield: very low
 
-  const distOttawa = haversineKm(lat, lng, 45.42, -75.69);
+  const distOttawa = haversineKm([lng, lat], [-75.69, 45.42]);
   const distStLawrence = Math.abs(lat - 44.3); // St. Lawrence corridor ~44.0–44.6°N
   const isStLawrenceCorridor = distStLawrence < 0.5 && lng > -78 && lng < -74;
 
@@ -7629,7 +7618,7 @@ function nearestOverpass(
     const elLat = el.lat ?? el.center?.lat;
     const elLon = el.lon ?? el.center?.lon;
     if (elLat == null || elLon == null) continue;
-    const km = haversineKm(lat, lng, elLat, elLon);
+    const km = haversineKm([lng, lat], [elLon, elLat]);
     if (best === null || km < best.km) {
       const name = el.tags?.name ?? el.tags?.['name:en'] ?? '';
       best = { km: Math.round(km * 10) / 10, name };
