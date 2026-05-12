@@ -4,11 +4,15 @@
  * Closed-loop proximity check. Permaculture short-loop discipline:
  * guilds that depend on heavy mulch / compost / chop-and-drop input
  * should sit *near* the fertility infrastructure that feeds them,
- * inside a walking radius. PDC Zone 1 / Zone 2 framing maps roughly
- * to:
- *   - close   ≤ 25 m  (Zone 1, daily reach)
- *   - medium  25–75 m (Zone 2, weekly reach)
- *   - far     > 75 m  (Zone 3+ — heavier hauls or a moved unit)
+ * inside a walking radius. PDC Zone 1 / Zone 2 framing maps to:
+ *   - close   ≤ closeM           (Zone 1, daily reach)
+ *   - medium  closeM..mediumM    (Zone 2, weekly reach)
+ *   - far     > mediumM          (Zone 3+ — heavier hauls or a moved unit)
+ *
+ * `closeM` / `mediumM` come from `getZoneThresholds(project)` in
+ * projectStore.ts — per-project design metadata. Defaults are
+ * 25 m / 75 m; a Tune-zones disclosure on the card lets the steward
+ * override per project.
  *
  * Reads `polycultureStore.guilds` + `closedLoopStore.fertilityInfra`
  * (both have absolute `center: [lng, lat]`), computes nearest
@@ -30,7 +34,12 @@
  * See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import {
+  useProjectStore,
+  getZoneThresholds,
+  DEFAULT_ZONE_THRESHOLDS,
+} from '../../../../store/projectStore.js';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import {
   usePolycultureStore,
@@ -51,19 +60,22 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-// Tunable. Centralised so a future steward request to widen Zone 1
-// is a one-line change.
-const BUCKET_CLOSE_M = 25;
-const BUCKET_MEDIUM_M = 75;
+// Bucket boundaries (closeM / mediumM) live on the project via
+// `getZoneThresholds` — see projectStore.ts. They're per-project
+// design metadata, not module-level constants.
+const TUNE_MIN_M = 1;
+const TUNE_MAX_M = 500;
 
 type BucketKey = 'close' | 'medium' | 'far' | 'unpaired';
 
-const BUCKET_LABEL: Record<BucketKey, string> = {
-  close:    'Close (≤ 25 m)',
-  medium:   'Medium (25–75 m)',
-  far:      'Far (> 75 m)',
-  unpaired: 'Unplaced or unpaired',
-};
+function bucketLabelFor(key: BucketKey, closeM: number, mediumM: number): string {
+  switch (key) {
+    case 'close':    return `Close (≤ ${closeM} m)`;
+    case 'medium':   return `Medium (${closeM}–${mediumM} m)`;
+    case 'far':      return `Far (> ${mediumM} m)`;
+    case 'unpaired': return 'Unplaced or unpaired';
+  }
+}
 
 const FERTILITY_LABEL: Record<FertilityInfraType, string> = {
   composter:           'composter',
@@ -101,15 +113,90 @@ interface GuildRow {
   servingUnitTypes: FertilityInfraType[];
 }
 
-function bucketFor(distanceM: number): BucketKey {
-  if (distanceM <= BUCKET_CLOSE_M) return 'close';
-  if (distanceM <= BUCKET_MEDIUM_M) return 'medium';
+function bucketFor(distanceM: number, closeM: number, mediumM: number): BucketKey {
+  if (distanceM <= closeM) return 'close';
+  if (distanceM <= mediumM) return 'medium';
   return 'far';
 }
 
 export default function FertilityColocationCard({ project }: Props) {
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
+  const setZoneThresholds = useProjectStore((s) => s.setZoneThresholds);
+  const clearZoneThresholds = useProjectStore((s) => s.clearZoneThresholds);
+
+  const { closeM, mediumM } = getZoneThresholds(project);
+  const isCustomThresholds =
+    project.zoneThresholds != null &&
+    (project.zoneThresholds.closeM !== DEFAULT_ZONE_THRESHOLDS.closeM ||
+      project.zoneThresholds.mediumM !== DEFAULT_ZONE_THRESHOLDS.mediumM);
+
+  // Local draft state for the Tune-zones inputs. Synced to the
+  // persisted thresholds on every change so a different project (or a
+  // Reset click) re-seeds the inputs without keeping stale strings.
+  // Writes to the store happen only when the parsed pair validates —
+  // partial / invalid input shows an inline message and the store
+  // doesn't update, so the visible card stays on the last valid pair.
+  const [closeDraft, setCloseDraft] = useState<string>(String(closeM));
+  const [mediumDraft, setMediumDraft] = useState<string>(String(mediumM));
+  useEffect(() => {
+    setCloseDraft(String(closeM));
+    setMediumDraft(String(mediumM));
+  }, [closeM, mediumM]);
+
+  function validatePair(rawClose: string, rawMedium: string): {
+    ok: boolean;
+    error: string | null;
+    parsed: { closeM: number; mediumM: number } | null;
+  } {
+    const c = Number(rawClose);
+    const m = Number(rawMedium);
+    if (!Number.isFinite(c) || !Number.isFinite(m)) {
+      return { ok: false, error: 'Both values must be numbers.', parsed: null };
+    }
+    if (c < TUNE_MIN_M || c > TUNE_MAX_M) {
+      return {
+        ok: false,
+        error: `Zone-1 max must be between ${TUNE_MIN_M} and ${TUNE_MAX_M} m.`,
+        parsed: null,
+      };
+    }
+    if (m <= c) {
+      return {
+        ok: false,
+        error: 'Zone-2 max must be greater than Zone-1 max.',
+        parsed: null,
+      };
+    }
+    if (m > TUNE_MAX_M) {
+      return {
+        ok: false,
+        error: `Zone-2 max cannot exceed ${TUNE_MAX_M} m.`,
+        parsed: null,
+      };
+    }
+    return { ok: true, error: null, parsed: { closeM: c, mediumM: m } };
+  }
+
+  const draftValidation = validatePair(closeDraft, mediumDraft);
+
+  function handleCloseChange(v: string): void {
+    setCloseDraft(v);
+    const { ok, parsed } = validatePair(v, mediumDraft);
+    if (ok && parsed) setZoneThresholds(project.id, parsed);
+  }
+
+  function handleMediumChange(v: string): void {
+    setMediumDraft(v);
+    const { ok, parsed } = validatePair(closeDraft, v);
+    if (ok && parsed) setZoneThresholds(project.id, parsed);
+  }
+
+  function handleResetThresholds(): void {
+    clearZoneThresholds(project.id);
+    setCloseDraft(String(DEFAULT_ZONE_THRESHOLDS.closeM));
+    setMediumDraft(String(DEFAULT_ZONE_THRESHOLDS.mediumM));
+  }
 
   const guildsRaw = useMemo(
     () => allGuilds.filter((g) => g.projectId === project.id),
@@ -147,7 +234,7 @@ export default function FertilityColocationCard({ project }: Props) {
           bestM = d;
           bestType = f.type;
         }
-        if (d <= BUCKET_MEDIUM_M) {
+        if (d <= mediumM) {
           servingUnitCount += 1;
           typeSet.add(f.type);
         }
@@ -155,14 +242,14 @@ export default function FertilityColocationCard({ project }: Props) {
       return {
         id: g.id,
         anchorLabel,
-        bucket: bucketFor(bestM),
+        bucket: bucketFor(bestM, closeM, mediumM),
         distanceM: bestM,
         nearestType: bestType,
         servingUnitCount,
         servingUnitTypes: Array.from(typeSet),
       };
     });
-  }, [guilds, fertility]);
+  }, [guilds, fertility, closeM, mediumM]);
 
   /**
    * Reverse view: for each visible+placed fertility unit, the list of
@@ -185,11 +272,11 @@ export default function FertilityColocationCard({ project }: Props) {
           anchorLabel: g.anchorLabel,
           distanceM: haversineM(g.center, f.center),
         }))
-        .filter((s) => s.distanceM <= BUCKET_MEDIUM_M)
+        .filter((s) => s.distanceM <= mediumM)
         .sort((a, b) => a.distanceM - b.distanceM);
       return { id: f.id, type: f.type, served };
     }).sort((a, b) => b.served.length - a.served.length);
-  }, [guilds, fertility]);
+  }, [guilds, fertility, mediumM]);
 
   const overall = useMemo(() => {
     const total = rows.length;
@@ -271,18 +358,21 @@ export default function FertilityColocationCard({ project }: Props) {
           (composter, biochar kiln, hugelkultur, worm bin, cover crop,
           chop-and-drop, dynamic accumulator, rotational-grazing
           paddock) by haversine distance, bucketed into Zone-1
-          (≤ 25 m) / Zone-2 (25–75 m) / Zone-3+ (&gt; 75 m). Guilds
-          without a centroid, or guilds in a view with no fertility
-          infrastructure placed, land in <em>Unplaced or unpaired</em>.
-          Year 1 / Year 5 views cap both stores per the Scale of
-          Permanence; Current / Vision views show everything. The
-          <em> Resilience</em> section counts how many placed guilds
-          have ≥ 2 fertility units within ≤ 75 m (redundant) versus
-          exactly one (single point of failure). The
-          <em> By fertility unit</em> section flips the pairing —
-          per unit, which guilds it could plausibly serve — so the
-          steward catches over-resourced or single-point-of-failure
-          units.
+          (≤ {closeM} m) / Zone-2 ({closeM}–{mediumM} m) / Zone-3+
+          (&gt; {mediumM} m). Guilds without a centroid, or guilds in
+          a view with no fertility infrastructure placed, land in
+          <em> Unplaced or unpaired</em>. Year 1 / Year 5 views cap
+          both stores per the Scale of Permanence; Current / Vision
+          views show everything. The <em>Resilience</em> section
+          counts how many placed guilds have ≥ 2 fertility units
+          within ≤ {mediumM} m (redundant) versus exactly one (single
+          point of failure). The <em>By fertility unit</em> section
+          flips the pairing — per unit, which guilds it could
+          plausibly serve — so the steward catches over-resourced or
+          single-point-of-failure units. Zone boundaries are
+          tunable per project via <em>Tune zones</em> below — they
+          are properties of the land + steward + cart, not UI
+          preferences.
         </p>
       </header>
 
@@ -297,6 +387,87 @@ export default function FertilityColocationCard({ project }: Props) {
         </section>
       ) : (
         <>
+          <section className={styles.section}>
+            <details>
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.95em',
+                  marginBottom: 4,
+                }}
+              >
+                Tune zones (advanced) — currently Zone-1 ≤ {closeM} m, Zone-2 {closeM}–{mediumM} m
+                {isCustomThresholds ? ' · custom' : ' · defaults'}
+              </summary>
+              <p
+                className={styles.listMeta}
+                style={{ marginTop: 8, marginBottom: 8 }}
+              >
+                Zone reach is a property of your land — the slope, the
+                steward's body, the cart actually used — not a UI
+                preference. Steep terrain favours smaller zones; flat
+                ground with a good barrow favours larger. Defaults are
+                {' '}{DEFAULT_ZONE_THRESHOLDS.closeM} m / {DEFAULT_ZONE_THRESHOLDS.mediumM} m.
+              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  alignItems: 'flex-end',
+                  marginTop: 4,
+                }}
+              >
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span className={styles.listMeta}>Zone-1 max (m)</span>
+                  <input
+                    type="number"
+                    min={TUNE_MIN_M}
+                    max={TUNE_MAX_M}
+                    step={1}
+                    value={closeDraft}
+                    onChange={(e) => handleCloseChange(e.target.value)}
+                    style={{ width: 90, padding: '4px 6px' }}
+                    aria-label="Zone-1 maximum distance in metres"
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span className={styles.listMeta}>Zone-2 max (m)</span>
+                  <input
+                    type="number"
+                    min={TUNE_MIN_M}
+                    max={TUNE_MAX_M}
+                    step={1}
+                    value={mediumDraft}
+                    onChange={(e) => handleMediumChange(e.target.value)}
+                    style={{ width: 90, padding: '4px 6px' }}
+                    aria-label="Zone-2 maximum distance in metres"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleResetThresholds}
+                  disabled={!isCustomThresholds}
+                  style={{
+                    padding: '6px 12px',
+                    cursor: isCustomThresholds ? 'pointer' : 'not-allowed',
+                    opacity: isCustomThresholds ? 1 : 0.5,
+                  }}
+                >
+                  Reset to defaults
+                </button>
+              </div>
+              {!draftValidation.ok && draftValidation.error && (
+                <p
+                  className={styles.listMeta}
+                  style={{ color: '#b91c1c', marginTop: 8, marginBottom: 0 }}
+                >
+                  {draftValidation.error} The bucketing below still uses the last valid pair.
+                </p>
+              )}
+            </details>
+          </section>
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>
               Overall
@@ -316,7 +487,7 @@ export default function FertilityColocationCard({ project }: Props) {
               <span>{overall.fertilityCount}</span>
             </div>
             <div className={styles.statRow}>
-              <span>In Zone-1 walking radius (≤ 25 m)</span>
+              <span>In Zone-1 walking radius (≤ {closeM} m)</span>
               <span>{overall.close} / {overall.total}</span>
             </div>
             <div className={styles.statRow}>
@@ -324,7 +495,7 @@ export default function FertilityColocationCard({ project }: Props) {
               <span>{overall.unpaired}</span>
             </div>
             <div className={styles.statRow}>
-              <span>Redundantly served (≥ 2 units, ≤ 75 m)</span>
+              <span>Redundantly served (≥ 2 units, ≤ {mediumM} m)</span>
               <span>
                 {resilience.redundantCount} / {resilience.placedTotal}
               </span>
@@ -349,7 +520,7 @@ export default function FertilityColocationCard({ project }: Props) {
             return (
               <section key={key} className={styles.section}>
                 <h2 className={styles.sectionTitle}>
-                  {BUCKET_LABEL[key]}
+                  {bucketLabelFor(key, closeM, mediumM)}
                   <span
                     className={`${styles.pill} ${pillClassFor(score)}`}
                     style={{ marginLeft: 8 }}
@@ -418,7 +589,7 @@ export default function FertilityColocationCard({ project }: Props) {
               </h2>
               <p className={styles.listMeta} style={{ marginTop: 0 }}>
                 A guild is <em>redundantly served</em> when at least
-                two fertility units sit within ≤ 75 m of it — if one
+                two fertility units sit within ≤ {mediumM} m of it — if one
                 unit fails the loop survives. Guilds served by exactly
                 one unit are listed below: each is a single point of
                 failure for its closed loop. Unplaced guilds are
@@ -484,7 +655,7 @@ export default function FertilityColocationCard({ project }: Props) {
               </h2>
               <p className={styles.listMeta} style={{ marginTop: 0 }}>
                 For each placed fertility unit, the guilds it could
-                plausibly serve (within Zone-2 reach, ≤ 75 m), sorted
+                plausibly serve (within Zone-2 reach, ≤ {mediumM} m), sorted
                 nearest first. A unit with zero guilds in range is
                 over-resourced for its location; a unit serving every
                 guild is a single point of failure for the closed loop.
@@ -519,7 +690,7 @@ export default function FertilityColocationCard({ project }: Props) {
                               <span>{s.anchorLabel}</span>
                               <span
                                 className={`${styles.pill} ${
-                                  s.distanceM <= BUCKET_CLOSE_M
+                                  s.distanceM <= closeM
                                     ? styles.pillMet ?? ''
                                     : styles.pillPartial ?? ''
                                 }`}
