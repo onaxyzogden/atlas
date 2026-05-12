@@ -29,7 +29,7 @@ import {
   formatLitres,
 } from './waterMath.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -106,7 +106,7 @@ export default function WaterStorageCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Storage &amp; overflow routing</h1>
         <p className={styles.lede}>

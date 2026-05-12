@@ -32,7 +32,7 @@ import {
   useExternalForcesStore,
   type SectorType,
 } from '../../../../store/externalForcesStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -325,7 +325,7 @@ export default function SectorOverlayCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 3 · Zones</span>
         <h1 className={styles.title}>Sector overlay</h1>
         <p className={styles.lede}>
