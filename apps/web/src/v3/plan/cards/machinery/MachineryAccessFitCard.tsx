@@ -15,11 +15,10 @@
 
 import { useMemo } from 'react';
 import { useMachineryInventoryStore } from '../../../../store/machineryInventoryStore.js';
-import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import css from './MachineryAccessFitCard.module.css';
 
 const EMPTY_ITEMS: ReturnType<typeof useMachineryInventoryStore.getState>['byProject'][string] = [];
-const EMPTY_ELEMENTS: ReturnType<typeof useDesignElementsStore.getState>['byProject'][string] = [];
 
 const ASSUMED_KIND_WIDTH_M: Record<string, number> = {
   path: 1.2,
@@ -41,9 +40,7 @@ export default function MachineryAccessFitCard({ projectId }: Props) {
   const items = useMachineryInventoryStore(
     (s) => s.byProject[projectId] ?? EMPTY_ITEMS,
   );
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
 
   const widestM = useMemo(
     () =>

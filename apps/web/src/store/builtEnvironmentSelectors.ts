@@ -55,6 +55,11 @@ import {
   type ProjectedExistingDriveway,
 } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
+import {
+  useDesignElementsStore,
+  type DesignElement,
+} from './designElementsStore.js';
+import { useStructureStore, type Structure } from './structureStore.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Non-React, one-shot readers
@@ -185,5 +190,54 @@ export function useExistingDrivewaysForProject(
         (d) => d.projectId === projectId,
       ),
     [entities, projectId],
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 6.B — Structure + DesignElement project-filtered selectors
+//
+// These currently re-export through the V1 facades (useStructureStore /
+// useDesignElementsStore) because:
+//   - `useStructureStore` already projects from V2 internally; consumers
+//     read a narrowed `Structure[]` with `type: StructureType` which the
+//     facade restores from the projection's `type: string`. Reading direct
+//     from V2 would force every consumer to widen narrowing or local-cast.
+//   - `useDesignElementsStore` merges V2 structure-class entities with a
+//     module-private `useNonStructureStore` (paddock / pond / swale / road
+//     and friends — kinds not yet in V2's registry). Reading direct from V2
+//     would silently drop the non-structure half.
+//
+// The facades retire when (a) `Structure` narrowing collapses into a
+// shared `ProjectedStructure` and (b) non-structure kinds extract into a
+// dedicated `landDesignStore` (per the ADR doc-comment on
+// designElementsStore.ts). At that point only the bodies below change;
+// consumer call sites already migrated to these names stay put.
+// ─────────────────────────────────────────────────────────────────────────
+
+const EMPTY_DESIGN_ELEMENTS: DesignElement[] = [];
+
+export function getStructuresForProject(projectId: string): Structure[] {
+  return useStructureStore
+    .getState()
+    .structures.filter((s) => s.projectId === projectId);
+}
+
+export function useStructuresForProject(projectId: string): Structure[] {
+  const structures = useStructureStore((s) => s.structures);
+  return useMemo(
+    () => structures.filter((s) => s.projectId === projectId),
+    [structures, projectId],
+  );
+}
+
+export function getDesignElementsForProject(projectId: string): DesignElement[] {
+  return useDesignElementsStore.getState().byProject[projectId] ?? [];
+}
+
+export function useDesignElementsForProject(
+  projectId: string,
+): DesignElement[] {
+  return useDesignElementsStore(
+    (s) => s.byProject[projectId] ?? EMPTY_DESIGN_ELEMENTS,
   );
 }

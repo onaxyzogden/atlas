@@ -10,13 +10,12 @@
 
 import { useMemo } from 'react';
 import { useMachineryInventoryStore } from '../../../../store/machineryInventoryStore.js';
-import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import { useSectorStore } from '../../../../store/sectorStore.js';
 import { detectNoiseSectorHits, describeElement } from './noiseSectorOverlap.js';
 import css from './MachineryHousingFuelCard.module.css';
 
 const EMPTY_ITEMS: ReturnType<typeof useMachineryInventoryStore.getState>['byProject'][string] = [];
-const EMPTY_ELEMENTS: ReturnType<typeof useDesignElementsStore.getState>['byProject'][string] = [];
 
 const HOUSING_KINDS = new Set([
   'machinery-shed',
@@ -35,9 +34,7 @@ export default function MachineryHousingFuelCard({ projectId }: Props) {
   const items = useMachineryInventoryStore(
     (s) => s.byProject[projectId] ?? EMPTY_ITEMS,
   );
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
   const assignHousing = useMachineryInventoryStore((s) => s.assignHousing);
 
   const housingOptions = useMemo(
