@@ -16,10 +16,8 @@ import {
   useMapboxDrawTool,
   type DrawGeometry,
 } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import {
-  useDesignElementsStore,
-  type DesignElement,
-} from '../../../../store/designElementsStore.js';
+import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import { findElementSpec } from '../elementCatalog.js';
 import {
   checkUtilityConflicts,
@@ -27,8 +25,6 @@ import {
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
 import { usePlanView } from '../../PlanViewContext.js';
-
-const EMPTY_ELEMENTS: DesignElement[] = [];
 
 interface Args {
   map: MaplibreMap;
@@ -85,9 +81,7 @@ export function useDesignElementDrawTool({
 }: Args) {
   const spec = findElementSpec(kind);
   const add = useDesignElementsStore((s) => s.add);
-  const list = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const list = useDesignElementsForProject(projectId);
   const currentView = usePlanView();
 
   const handleComplete = useCallback(

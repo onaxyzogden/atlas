@@ -27,15 +27,11 @@ import {
 } from 'lucide-react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import { useDesignElementsStore } from '../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../store/builtEnvironmentSelectors.js';
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import css from './DesignToolRail.module.css';
-
-/** Stable empty-array reference: a fresh `[]` literal in the selector breaks
- *  Zustand's `useSyncExternalStore` snapshot caching and triggers
- *  "Maximum update depth exceeded" on projects with no design elements. */
-const EMPTY_ELEMENTS: DesignElement[] = [];
 
 interface Props {
   map: MaplibreMap;
@@ -103,9 +99,7 @@ export default function DesignToolRail({
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const railRef = useRef<HTMLDivElement>(null);
 
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
   const addElement = useDesignElementsStore((s) => s.add);
   const setPlanSelection = usePlanSelectionStore((s) => s.set);
   const clearPlanSelection = usePlanSelectionStore((s) => s.clear);

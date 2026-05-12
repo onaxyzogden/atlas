@@ -10,7 +10,7 @@
 import { useEffect, useMemo } from 'react';
 import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
@@ -29,7 +29,6 @@ interface Props {
 
 const SOURCE_PREFIX = 'design-el-';
 const LAYER_PREFIX = 'design-el-';
-const EMPTY_ELEMENTS: DesignElement[] = [];
 
 export default function DesignElementLayers({
   map,
@@ -37,9 +36,7 @@ export default function DesignElementLayers({
   view,
   selectedId,
 }: Props) {
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
 
   const { polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC } = useMemo(() => {
     const cap =

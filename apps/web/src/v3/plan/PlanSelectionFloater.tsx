@@ -34,6 +34,7 @@ import { useSetbackStore } from '../../store/setbackStore.js';
 import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
 import { useDesignElementsStore } from '../../store/designElementsStore.js';
+import { getDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
 import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
@@ -72,7 +73,7 @@ function designElementGeometryType(
   id: string,
 ): GeoJSON.Geometry['type'] | null {
   if (!projectId) return null;
-  const list = useDesignElementsStore.getState().byProject[projectId] ?? [];
+  const list = getDesignElementsForProject(projectId);
   const el = list.find((e) => e.id === id);
   return el?.geometry.type ?? null;
 }
