@@ -42,7 +42,10 @@ import {
   Wind,
   type LucideIcon,
 } from 'lucide-react';
-import { BE_TOOL_ITEMS } from '../../_shared/builtEnvironmentTools.js';
+import {
+  BE_TOOL_ITEMS,
+  BE_TOOL_GROUPS,
+} from '../../_shared/builtEnvironmentTools.js';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
@@ -233,39 +236,103 @@ export default function ObserveTools({
               <span className={css.dot} aria-hidden="true" />
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
-            <div className={css.itemGrid}>
-              {items.map((it) => {
-                const needsHomestead = it.id === 'permaculture';
-                const disabled =
-                  !projectId || (needsHomestead && !homesteadPlaced);
-                const title = !projectId
-                  ? `${it.label} — open a project to use`
-                  : needsHomestead && !homesteadPlaced
-                    ? `${it.label} — place homestead first via the map "Place homestead" control`
-                    : it.label;
-                const isToolActive = activeTool === it.toolId;
+            {mod === 'built-environment' ? (
+              // 31 kinds is too many for one flat 3-col grid — sub-group by
+              // `BuiltEnvironmentCategory` via native <details> so the rail
+              // stays scannable. All categories open by default for discovery;
+              // stewards collapse what they don't need.
+              BE_TOOL_GROUPS.map((group) => {
+                // Each sub-card mirrors the parent .group bento. Build the
+                // ToolItems on the fly so registry order is preserved per
+                // category and the rail stays a pure derivation of the
+                // registry — no manual maintenance.
+                const groupItems: ToolItem[] = group.items.map((bg) => ({
+                  id: bg.kind,
+                  label: bg.label,
+                  Icon: bg.Icon,
+                  toolId: `observe.built-environment.${bg.kind}` as MapToolId,
+                }));
+                if (groupItems.length === 0) return null;
                 return (
-                  <DelayedTooltip key={it.id} label={title} position="top">
-                    <button
-                      type="button"
-                      className={css.toolItem}
-                      data-active={isToolActive ? 'true' : 'false'}
-                      disabled={disabled}
-                      aria-pressed={isToolActive}
-                      onClick={(e) => onToolClick(e, it.toolId)}
-                    >
-                      <span className={css.toolGlyph} aria-hidden="true">
-                        <it.Icon size={16} strokeWidth={1.6} />
-                      </span>
-                      <span className={css.toolLabel}>{it.label}</span>
-                    </button>
-                  </DelayedTooltip>
+                  <details
+                    key={group.category}
+                    className={css.subgroup}
+                    open
+                  >
+                    <summary className={css.subgroupHeader}>
+                      {group.label}
+                    </summary>
+                    <div className={css.itemGrid}>
+                      {groupItems.map((it) =>
+                        renderToolButton(it, {
+                          activeTool,
+                          projectId,
+                          homesteadPlaced,
+                          onToolClick,
+                        }),
+                      )}
+                    </div>
+                  </details>
                 );
-              })}
-            </div>
+              })
+            ) : (
+              <div className={css.itemGrid}>
+                {items.map((it) =>
+                  renderToolButton(it, {
+                    activeTool,
+                    projectId,
+                    homesteadPlaced,
+                    onToolClick,
+                  }),
+                )}
+              </div>
+            )}
           </section>
         );
       })}
     </aside>
+  );
+}
+
+/** Renders a single rail tool button. Extracted from the section loop so
+ *  the BE sub-card sub-grid can reuse the exact same disabled / tooltip /
+ *  active-state logic as the flat case. */
+function renderToolButton(
+  it: ToolItem,
+  ctx: {
+    activeTool: MapToolId | null;
+    projectId: string | null;
+    homesteadPlaced: boolean;
+    onToolClick: (
+      e: React.MouseEvent<HTMLButtonElement>,
+      toolId: MapToolId,
+    ) => void;
+  },
+) {
+  const { activeTool, projectId, homesteadPlaced, onToolClick } = ctx;
+  const needsHomestead = it.id === 'permaculture';
+  const disabled = !projectId || (needsHomestead && !homesteadPlaced);
+  const title = !projectId
+    ? `${it.label} — open a project to use`
+    : needsHomestead && !homesteadPlaced
+      ? `${it.label} — place homestead first via the map "Place homestead" control`
+      : it.label;
+  const isToolActive = activeTool === it.toolId;
+  return (
+    <DelayedTooltip key={it.id} label={title} position="top">
+      <button
+        type="button"
+        className={css.toolItem}
+        data-active={isToolActive ? 'true' : 'false'}
+        disabled={disabled}
+        aria-pressed={isToolActive}
+        onClick={(e) => onToolClick(e, it.toolId)}
+      >
+        <span className={css.toolGlyph} aria-hidden="true">
+          <it.Icon size={16} strokeWidth={1.6} />
+        </span>
+        <span className={css.toolLabel}>{it.label}</span>
+      </button>
+    </DelayedTooltip>
   );
 }

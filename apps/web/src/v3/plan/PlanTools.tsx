@@ -44,7 +44,10 @@ import {
   Wheat,
   type LucideIcon,
 } from 'lucide-react';
-import { BE_TOOL_ITEMS } from '../_shared/builtEnvironmentTools.js';
+import {
+  BE_TOOL_ITEMS,
+  BE_TOOL_GROUPS,
+} from '../_shared/builtEnvironmentTools.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -251,37 +254,51 @@ export default function PlanTools({
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
             {items ? (
-              <div className={css.itemGrid}>
-                {items.map((it) => {
-                  const isToolActive = activeTool === it.toolId;
-                  const disabled = !projectId;
+              mod === 'structures-subsystems' ? (
+                // 31 BE kinds is too many for a flat 3-col grid — sub-group by
+                // `BuiltEnvironmentCategory` via native <details>. Mirrors the
+                // Observe rail (`ObserveTools` BE branch) so both stages stay
+                // parallel as new kinds are added to the registry.
+                BE_TOOL_GROUPS.map((group) => {
+                  const groupItems = group.items.map((bg) => ({
+                    id: `be-${bg.kind}`,
+                    label: bg.label,
+                    Icon: bg.Icon,
+                    toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
+                  }));
+                  if (groupItems.length === 0) return null;
                   return (
-                    <DelayedTooltip
-                      key={it.id}
-                      label={
-                        disabled
-                          ? `${it.label} — open a project to use`
-                          : it.label
-                      }
-                      position="top"
+                    <details
+                      key={group.category}
+                      className={css.subgroup}
+                      open
                     >
-                      <button
-                        type="button"
-                        className={css.toolItem}
-                        data-active={isToolActive ? 'true' : 'false'}
-                        disabled={disabled}
-                        aria-pressed={isToolActive}
-                        onClick={(e) => onToolClick(e, it.toolId)}
-                      >
-                        <span className={css.toolGlyph} aria-hidden="true">
-                          <it.Icon size={16} strokeWidth={1.6} />
-                        </span>
-                        <span className={css.toolLabel}>{it.label}</span>
-                      </button>
-                    </DelayedTooltip>
+                      <summary className={css.subgroupHeader}>
+                        {group.label}
+                      </summary>
+                      <div className={css.itemGrid}>
+                        {groupItems.map((it) =>
+                          renderPlanToolButton(it, {
+                            activeTool,
+                            projectId,
+                            onToolClick,
+                          }),
+                        )}
+                      </div>
+                    </details>
                   );
-                })}
-              </div>
+                })
+              ) : (
+                <div className={css.itemGrid}>
+                  {items.map((it) =>
+                    renderPlanToolButton(it, {
+                      activeTool,
+                      projectId,
+                      onToolClick,
+                    }),
+                  )}
+                </div>
+              )
             ) : mod === 'dynamic-layering' ? (
               <div className={css.lensRow}>
                 {(['yeomans', 'enterprise'] as const).map((m) => {
@@ -345,5 +362,47 @@ export default function PlanTools({
         );
       })}
     </div>
+  );
+}
+
+/** Renders a single Plan-rail tool button. Extracted so the BE sub-card
+ *  sub-grid in `structures-subsystems` reuses the same disabled / tooltip /
+ *  active-state logic as the flat case. */
+function renderPlanToolButton(
+  it: ToolItem,
+  ctx: {
+    activeTool: MapToolId | null;
+    projectId: string | null;
+    onToolClick: (
+      e: React.MouseEvent<HTMLButtonElement>,
+      toolId: MapToolId,
+    ) => void;
+  },
+) {
+  const { activeTool, projectId, onToolClick } = ctx;
+  const isToolActive = activeTool === it.toolId;
+  const disabled = !projectId;
+  return (
+    <DelayedTooltip
+      key={it.id}
+      label={
+        disabled ? `${it.label} — open a project to use` : it.label
+      }
+      position="top"
+    >
+      <button
+        type="button"
+        className={css.toolItem}
+        data-active={isToolActive ? 'true' : 'false'}
+        disabled={disabled}
+        aria-pressed={isToolActive}
+        onClick={(e) => onToolClick(e, it.toolId)}
+      >
+        <span className={css.toolGlyph} aria-hidden="true">
+          <it.Icon size={16} strokeWidth={1.6} />
+        </span>
+        <span className={css.toolLabel}>{it.label}</span>
+      </button>
+    </DelayedTooltip>
   );
 }

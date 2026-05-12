@@ -222,3 +222,54 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/*
+ * Category sub-grouping inside the Built-Environment section. Native
+ * <details> keeps the keyboard + screen-reader semantics free; we only
+ * skin the summary chevron and indent the grid by 0 to keep alignment
+ * consistent with the flat case in other sections.
+ */
+.subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subgroup + .subgroup {
+  margin-top: 6px;
+}
+
+.subgroupHeader {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.subgroupHeader::-webkit-details-marker {
+  display: none;
+}
+
+.subgroupHeader::before {
+  content: '▸';
+  font-size: 9px;
+  color: var(--color-text-subtle);
+  transition: transform 120ms ease;
+  display: inline-block;
+}
+
+.subgroup[open] > .subgroupHeader::before {
+  transform: rotate(90deg);
+}
+
+.subgroupHeader:hover {
+  color: var(--color-text);
+}

@@ -42,7 +42,10 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
+import {
+  BUILT_ENVIRONMENT_KINDS,
+  type BuiltEnvironmentCategory,
+} from '@ogden/shared';
 
 /** Resolves a registry `icon` string to its Lucide component.
  *  Unknown names fall back to a neutral square. */
@@ -101,3 +104,53 @@ export const BE_TOOL_ITEMS: ReadonlyArray<BeToolItem> = Object.values(
     label: spec.label,
     Icon: BE_ICON_MAP[spec.icon] ?? Home,
   }));
+
+/** Display labels for each `BuiltEnvironmentCategory`. Used by rail sub-
+ *  groupings in `ObserveTools` and `PlanTools` to keep 31 kinds scannable. */
+export const BE_CATEGORY_LABEL: Readonly<
+  Record<BuiltEnvironmentCategory, string>
+> = {
+  building: 'Buildings',
+  agricultural: 'Agricultural',
+  utility: 'Utilities',
+  infrastructure: 'Infrastructure',
+  machinery: 'Machinery',
+  amenity: 'Amenities',
+  vegetation: 'Vegetation',
+  earthworks: 'Earthworks',
+  'zone-marker': 'Zone markers',
+};
+
+/** Category sub-grouping derived from the registry. Categories appear in
+ *  the order they first surface in `BUILT_ENVIRONMENT_KINDS`, and items
+ *  within each category preserve registry order — same precedent as the
+ *  flat `BE_TOOL_ITEMS`. Consumed by both Observe and Plan rails so adding
+ *  a kind to the registry auto-lands in its category sub-card. */
+export interface BeToolGroup {
+  category: BuiltEnvironmentCategory;
+  label: string;
+  items: BeToolItem[];
+}
+
+export const BE_TOOL_GROUPS: ReadonlyArray<BeToolGroup> = (() => {
+  const byCategory = new Map<BuiltEnvironmentCategory, BeToolItem[]>();
+  for (const spec of Object.values(BUILT_ENVIRONMENT_KINDS)) {
+    if (spec.kind === 'custom-glb') continue;
+    const item: BeToolItem = {
+      kind: spec.kind,
+      label: spec.label,
+      Icon: BE_ICON_MAP[spec.icon] ?? Home,
+    };
+    const bucket = byCategory.get(spec.category);
+    if (bucket) {
+      bucket.push(item);
+    } else {
+      byCategory.set(spec.category, [item]);
+    }
+  }
+  return Array.from(byCategory.entries()).map(([category, items]) => ({
+    category,
+    label: BE_CATEGORY_LABEL[category],
+    items,
+  }));
+})();
