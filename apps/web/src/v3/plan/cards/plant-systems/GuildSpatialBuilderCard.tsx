@@ -292,6 +292,40 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
                   ))}
                 </select>
               </label>
+              <label className={styles.field}>
+                <span>Establishment cost (USD)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={50}
+                  placeholder="e.g. 250"
+                  value={active.establishmentCostUSD ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    updateGuild(active.id, {
+                      establishmentCostUSD: v === '' ? undefined : Number(v),
+                    });
+                  }}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Establishment labour (hrs)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={1}
+                  placeholder="e.g. 8"
+                  value={active.establishmentLaborHrs ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    updateGuild(active.id, {
+                      establishmentLaborHrs: v === '' ? undefined : Number(v),
+                    });
+                  }}
+                />
+              </label>
             </div>
 
             <div
