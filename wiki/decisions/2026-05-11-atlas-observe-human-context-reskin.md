@@ -142,6 +142,8 @@ Inline `background: #15803D` buttons, `surface-card` wrappers, and
 
 ## Deferred follow-ups
 
+*All three follow-ups closed 2026-05-12; details retained for historical traceability.*
+
 1. **Plan + Act callsite migration.** ~~Two CSS files
    (`features/plan/planCard.module.css`, `features/act/actCard.module.css`)
    are still imported by ~38 + ~25 files including the legacy v1/v2
@@ -151,15 +153,31 @@ Inline `background: #15803D` buttons, `surface-card` wrappers, and
    import `v3/_shared/stageCard/stageCard.module.css` with
    `data-stage` attributes on hero elements. See
    [2026-05-12 log entry](../log.md).
-2. **`observe-port.css` cleanup.** Per-module selectors (`.human-*`,
+2. **`observe-port.css` cleanup.** ~~Per-module selectors (`.human-*`,
    `.topo-*`, etc.) can be pruned now that every Observe module
    renders against `stageCard`. Default to a careful sweep — verify
-   each selector has no remaining consumer before deletion.
-3. **Shared `ProgressRing` gold rollout.** Every Observe module now
+   each selector has no remaining consumer before deletion.~~
+   **Closed 2026-05-12** in commit `93dbaf63`
+   (`atlas(observe): retire observe-port.css — migrate to co-located CSS Modules`).
+   The 22 172-line generated stylesheet plus its `styles/` directory
+   and the `scripts/scope-observe-styles.mjs` generator were all
+   deleted; per-module CSS now lives in co-located `.module.css`
+   files. Follow-on token unification shipped same day in commit
+   `08e10a69` (`atlas(observe): unify --olos-* tokens onto atlas palette`).
+   See the two corresponding ADRs:
+   [2026-05-12-atlas-observe-port-retired.md](2026-05-12-atlas-observe-port-retired.md),
+   [2026-05-12-atlas-observe-token-unification.md](2026-05-12-atlas-observe-token-unification.md).
+3. **Shared `ProgressRing` gold rollout.** ~~Every Observe module now
    defines a local gold `Ring()` helper using `conic-gradient(rgba(
    var(--color-gold-rgb), 0.85) ...)`. A follow-up can lift this back
    into the shared component (replacing its green default) and drop
-   the per-module copies.
+   the per-module copies.~~ **Closed 2026-05-12** in commit
+   `7493557b` (`atlas(observe): lift Ring helper into shared component`).
+   New `apps/web/src/v3/_shared/stageCard/Ring.tsx` (default export)
+   consolidates the 14 byte-identical local copies; the per-module
+   `function Ring(...)` blocks plus the now-unused `type CSSProperties`
+   React imports were all dropped. See
+   [2026-05-12-atlas-observe-ring-helper-lifted.md](2026-05-12-atlas-observe-ring-helper-lifted.md).
 
 ## Files
 
