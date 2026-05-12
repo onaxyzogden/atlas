@@ -108,6 +108,53 @@ export default function PhasingMatrixCard({ project }: Props) {
                   <td style={{ padding: '10px 6px', color: 'rgba(232,220,200,0.92)' }}>
                     <strong>{phase.name}</strong>
                     <div className={styles.listMeta}>{phase.timeframe}</div>
+                    <div
+                      style={{
+                        marginTop: 6,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 4,
+                        maxWidth: 240,
+                      }}
+                      title="Yeomans Scale-of-Permanence cap. Controls what shows on Year 1 / Year 5 views in Water (and future Livestock / Soil) dashboards."
+                    >
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: 'rgba(232,220,200,0.45)',
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.4,
+                          width: '100%',
+                        }}
+                      >
+                        Yeomans cap
+                      </span>
+                      {PHASE_ORDER.map((k) => {
+                        const active = phase.yeomansCap === k;
+                        return (
+                          <button
+                            key={k}
+                            type="button"
+                            onClick={() => setCap(phase.id, k)}
+                            style={active ? CAP_CHIP_BTN_ACTIVE : CAP_CHIP_BTN_BASE}
+                          >
+                            {k}
+                          </button>
+                        );
+                      })}
+                      <button
+                        key="__uncapped"
+                        type="button"
+                        onClick={() => setCap(phase.id, undefined)}
+                        style={
+                          phase.yeomansCap === undefined
+                            ? CAP_CHIP_BTN_ACTIVE
+                            : CAP_CHIP_BTN_BASE
+                        }
+                      >
+                        uncapped
+                      </button>
+                    </div>
                   </td>
                   {SEASONS.map((s) => (
                     <td key={s} style={{ padding: '10px 6px', textAlign: 'center', color: 'rgba(232,220,200,0.88)', fontVariantNumeric: 'tabular-nums' }}>

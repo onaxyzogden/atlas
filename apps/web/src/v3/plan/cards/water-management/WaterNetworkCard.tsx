@@ -28,6 +28,7 @@ import {
   effectiveCapacityL,
   formatLitres,
 } from './waterMath.js';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../../features/plan/planCard.module.css';
 
 interface Props {
@@ -65,10 +66,16 @@ export default function WaterNetworkCard({ project }: Props) {
   // station's design storm.
   const [stormDepthMm, setStormDepthMm] = useState<number>(100);
 
-  const nodes = useMemo(
+  // Project-scoped nodes, then capped by active Plan view (Year 1 / Year 5)
+  // via the phaseStore→Yeomans adapter. Flow + layout downstream both
+  // operate on the filtered array, so a node hidden by the cap drops
+  // from both the SVG graph and the balance totals.
+  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const nodesRaw = useMemo(
     () => all.filter((n) => n.projectId === project.id),
     [all, project.id],
   );
+  const nodes = usePhaseStoreCappedEntities(nodesRaw);
 
   const flow = useMemo(() => computeFlow(nodes, precipMm), [nodes, precipMm]);
 
