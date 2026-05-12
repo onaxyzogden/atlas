@@ -16,8 +16,10 @@ import {
   useMapboxDrawTool,
   type DrawGeometry,
 } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
-import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
+import {
+  addDesignElement,
+  useDesignElementsForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
 import { findElementSpec } from '../elementCatalog.js';
 import {
   checkUtilityConflicts,
@@ -80,7 +82,6 @@ export function useDesignElementDrawTool({
   onComplete,
 }: Args) {
   const spec = findElementSpec(kind);
-  const add = useDesignElementsStore((s) => s.add);
   const list = useDesignElementsForProject(projectId);
   const currentView = usePlanView();
 
@@ -105,7 +106,7 @@ export function useDesignElementDrawTool({
         utilityConflicts?: { id: string; kind: string }[];
         utilityAcknowledgment?: string;
       }) => {
-        add(projectId, {
+        addDesignElement(projectId, {
           id: `de-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           category: spec.category,
           kind: spec.kind,
@@ -146,7 +147,7 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, list, kind, projectId, add, onComplete, currentView],
+    [spec, list, kind, projectId, onComplete, currentView],
   );
 
   useMapboxDrawTool({

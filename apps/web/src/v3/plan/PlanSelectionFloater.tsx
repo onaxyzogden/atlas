@@ -33,8 +33,10 @@ import { useUtilityRunStore } from '../../store/utilityRunStore.js';
 import { useSetbackStore } from '../../store/setbackStore.js';
 import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
-import { useDesignElementsStore } from '../../store/designElementsStore.js';
-import { getDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
+import {
+  getDesignElementsForProject,
+  removeDesignElement,
+} from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
 import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
@@ -121,7 +123,7 @@ function removeOne(item: PlanSelectionItem): void {
       return;
     case 'design-element':
       if (!item.projectId) return;
-      useDesignElementsStore.getState().remove(item.projectId, item.id);
+      removeDesignElement(item.projectId, item.id);
       return;
   }
 }

@@ -46,6 +46,7 @@ import {
   projectToGates,
   projectToExistingDriveways,
   projectToDesignElementsByProject,
+  canonicalizeKind,
   type ProjectedBuilding,
   type ProjectedWell,
   type ProjectedSeptic,
@@ -55,6 +56,7 @@ import {
   type ProjectedGate,
   type ProjectedExistingDriveway,
   type BuiltEnvironmentEntity,
+  type ProposedMetadata,
 } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 import { type DesignElement } from './designElementsStore.js';
@@ -271,4 +273,107 @@ export function useDesignElementsForProject(
     if (land.length === 0) return v2;
     return [...land, ...v2];
   }, [entities, land, projectId]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// DesignElement writers — replicate the V1 facade's add/remove/update
+// routing logic so consumer call sites can migrate off
+// `useDesignElementsStore`. Structure-class kinds route to V2; everything
+// else routes to `useLandDesignStore`. Same behavior the V1 facade
+// implements internally — extracted here so the facade can retire.
+// ─────────────────────────────────────────────────────────────────────────
+
+const STRUCTURE_CLASS_KINDS: ReadonlySet<string> = new Set([
+  'yurt',
+  'greenhouse',
+  'barn',
+  'shed',
+  'machinery-shed',
+  'fuel-station',
+  'equipment-yard',
+  'water-tank',
+  'parking',
+  'prayer-pavilion',
+  'fire-circle',
+  'compost',
+]);
+
+function isStructureClassKind(kind: string): boolean {
+  const canonical = canonicalizeKind(kind) ?? kind;
+  return STRUCTURE_CLASS_KINDS.has(canonical);
+}
+
+/** Add a design element. Structure-class kinds go to V2 as a `proposed`
+ *  entity; everything else goes to `useLandDesignStore`. */
+export function addDesignElement(
+  projectId: string,
+  el: DesignElement,
+): void {
+  if (isStructureClassKind(el.kind)) {
+    const proposed: ProposedMetadata = {};
+    if (typeof el.phase === 'string') proposed.phase = el.phase;
+    const canonical = canonicalizeKind(el.kind) ?? el.kind;
+    useBuiltEnvironmentStoreV2.getState().create({
+      projectId,
+      kind: canonical,
+      state: 'proposed',
+      geometry: el.geometry,
+      label: el.label,
+      proposed,
+    });
+    return;
+  }
+  useLandDesignStore.getState().add(projectId, el);
+}
+
+/** Remove a design element. Tries V2 first (structure-class); if the id
+ *  isn't a V2 entity for this project, falls through to landDesignStore. */
+export function removeDesignElement(projectId: string, id: string): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const inV2 = v2.entities.some(
+    (e) => e.id === id && e.projectId === projectId,
+  );
+  if (inV2) {
+    v2.delete(id);
+    return;
+  }
+  useLandDesignStore.getState().remove(projectId, id);
+}
+
+/** Patch a design element. Structure-class kinds are owned by V2 and
+ *  edited through `useBuiltEnvironmentStoreV2` directly — this writer is a
+ *  no-op for those ids, matching the V1 facade's behavior. */
+export function updateDesignElement(
+  projectId: string,
+  id: string,
+  patch: Partial<Omit<DesignElement, 'id'>>,
+): void {
+  useLandDesignStore.getState().update(projectId, id, patch);
+}
+
+/** Locate a design element by id across every project (ids are globally
+ *  unique). Searches V2 structure-class entities first, then landDesignStore.
+ *  Returns `{ projectId, element } | null`. Non-React; one-shot. */
+export function findDesignElementGlobal(
+  id: string,
+): { projectId: string; element: DesignElement } | null {
+  // V2 first — covers structure-class kinds.
+  const v2Entity = useBuiltEnvironmentStoreV2
+    .getState()
+    .entities.find((e) => e.id === id);
+  if (v2Entity) {
+    const projected = projectV2StructureDesignElements(
+      [v2Entity],
+      v2Entity.projectId,
+    );
+    const element = projected[0];
+    if (element) return { projectId: v2Entity.projectId, element };
+  }
+  // landDesignStore — covers paddock / pond / swale / road / …
+  const byProject = useLandDesignStore.getState().byProject;
+  for (const [projectId, list] of Object.entries(byProject)) {
+    const element = list.find((e) => e.id === id);
+    if (element) return { projectId, element };
+  }
+  return null;
 }

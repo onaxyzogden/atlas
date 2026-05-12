@@ -26,8 +26,10 @@ import {
   Minus,
 } from 'lucide-react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
-import { useDesignElementsStore } from '../../../store/designElementsStore.js';
-import { useDesignElementsForProject } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  addDesignElement,
+  useDesignElementsForProject,
+} from '../../../store/builtEnvironmentSelectors.js';
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
@@ -100,7 +102,6 @@ export default function DesignToolRail({
   const railRef = useRef<HTMLDivElement>(null);
 
   const elements = useDesignElementsForProject(projectId);
-  const addElement = useDesignElementsStore((s) => s.add);
   const setPlanSelection = usePlanSelectionStore((s) => s.set);
   const clearPlanSelection = usePlanSelectionStore((s) => s.clear);
 
@@ -199,7 +200,7 @@ export default function DesignToolRail({
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    addElement(projectId, {
+    addDesignElement(projectId, {
       ...selected,
       id: newId,
       label: selected.label ? `${selected.label} (copy)` : undefined,
@@ -207,7 +208,7 @@ export default function DesignToolRail({
       createdAt: new Date().toISOString(),
     });
     setSelectedId(newId);
-  }, [selected, addElement, projectId]);
+  }, [selected, projectId]);
 
   const drawArmed = activeKind !== null;
   const canDuplicate = selected != null;

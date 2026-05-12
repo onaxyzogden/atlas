@@ -26,7 +26,10 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
-import { useDesignElementsStore } from '../../../store/designElementsStore.js';
+import {
+  findDesignElementGlobal,
+  updateDesignElement,
+} from '../../../store/builtEnvironmentSelectors.js';
 import SharedVertexEditHandler, {
   type VertexEditDispatch,
 } from '../../builtEnvironment/handlers/SharedVertexEditHandler.js';
@@ -44,14 +47,9 @@ function isPlanKind(kind: string): kind is PlanVertexEditKind {
 }
 
 /** Locate a design-element by id across every project (ids are globally
- *  unique) and return `{ projectId, element }`, or `null`. */
+ *  unique). Delegates to the selector library's global-find helper. */
 function findDesignElement(id: string) {
-  const byProject = useDesignElementsStore.getState().byProject;
-  for (const [projectId, list] of Object.entries(byProject)) {
-    const el = list.find((e) => e.id === id);
-    if (el) return { projectId, element: el };
-  }
-  return null;
+  return findDesignElementGlobal(id);
 }
 
 function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
@@ -104,9 +102,7 @@ function writePolygon(kind: string, id: string, geom: GeoJSON.Polygon): void {
     } catch {
       acreage = undefined;
     }
-    useDesignElementsStore
-      .getState()
-      .update(hit.projectId, id, { geometry: geom, acreage });
+    updateDesignElement(hit.projectId, id, { geometry: geom, acreage });
     return;
   }
   // structure: persist new geometry AND recompute the canonical centre.
