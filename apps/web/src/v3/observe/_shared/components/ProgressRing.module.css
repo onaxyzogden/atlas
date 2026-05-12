@@ -6,12 +6,12 @@
   border-radius: 50%;
   background:
     radial-gradient(circle, #091412 0 52%, transparent 53%),
-    conic-gradient(var(--olos-green) 0 var(--progress), rgba(156, 148, 93, 0.34) var(--progress) 100%);
+    conic-gradient(var(--color-sage-600) 0 var(--progress), rgba(156, 148, 93, 0.34) var(--progress) 100%);
   box-shadow: inset 0 0 0 10px rgba(10, 16, 14, 0.9);
 }
 
 .ring span {
-  font-family: var(--olos-font-display);
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
 }

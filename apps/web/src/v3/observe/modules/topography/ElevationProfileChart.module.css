@@ -15,13 +15,13 @@
 }
 
 .chart .axis {
-  stroke: var(--olos-border, #d8d8d8);
+  stroke: var(--color-panel-card-border);
   stroke-width: 1;
 }
 
 .chart .tick {
   font-size: 10px;
-  fill: var(--olos-muted, #888);
+  fill: var(--color-panel-muted);
 }
 
 .chart .verticalRef {
@@ -35,7 +35,7 @@
   align-items: center;
   justify-content: center;
   min-height: 80px;
-  color: var(--olos-muted, #888);
+  color: var(--color-panel-muted);
   font-style: italic;
   font-size: 13px;
 }

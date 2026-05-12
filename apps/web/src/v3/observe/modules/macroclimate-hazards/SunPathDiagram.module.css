@@ -11,7 +11,7 @@
   min-height: 120px;
   background: rgba(0, 0, 0, 0.03);
   border-radius: 8px;
-  color: var(--olos-muted, #888);
+  color: var(--color-panel-muted);
 }
 
 .diagram .horizonLine {
@@ -25,11 +25,11 @@
 }
 
 .diagram .sunArc.summer { stroke: #d7a236; }
-.diagram .sunArc.equinox { stroke: var(--olos-green, #5a8a4a); }
+.diagram .sunArc.equinox { stroke: var(--color-sage-600); }
 .diagram .sunArc.winter { stroke: #6c7a89; }
 
 .diagram .sunLabel,
 .diagram .sunAxis {
   font-size: 10px;
-  fill: var(--olos-muted, #888);
+  fill: var(--color-panel-muted);
 }

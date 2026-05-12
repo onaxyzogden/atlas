@@ -5,7 +5,7 @@
   gap: 4px;
   width: 100%;
   font-size: 11px;
-  color: var(--olos-muted, #888);
+  color: var(--color-panel-muted);
 }
 
 .matrix .yLabel {
@@ -43,8 +43,8 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--olos-card-bg, #fff);
-  color: var(--olos-text, #222);
+  background: var(--color-panel-bg);
+  color: var(--color-panel-text);
   font-weight: 600;
   font-size: 11px;
   display: inline-flex;

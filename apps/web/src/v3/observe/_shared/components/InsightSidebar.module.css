@@ -12,14 +12,14 @@
 .sidebar header svg {
   width: 24px;
   height: 24px;
-  color: var(--olos-gold-bright);
+  color: var(--color-gold-brand);
 }
 
 .sidebar h2 {
   margin: 0;
-  font-family: var(--olos-font-display);
+  font-family: var(--font-display);
   font-size: 24px;
-  color: var(--olos-cream);
+  color: var(--color-earth-100);
 }
 
 .intro {

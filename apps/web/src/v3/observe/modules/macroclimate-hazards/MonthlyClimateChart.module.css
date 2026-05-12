@@ -11,7 +11,7 @@
   min-height: 120px;
   background: rgba(0, 0, 0, 0.03);
   border-radius: 8px;
-  color: var(--olos-muted, #888);
+  color: var(--color-panel-muted);
   font-size: 13px;
 }
 
@@ -29,5 +29,5 @@
 
 .chart .monthTick {
   font-size: 10px;
-  fill: var(--olos-muted, #888);
+  fill: var(--color-panel-muted);
 }

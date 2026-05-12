@@ -9,13 +9,13 @@
   align-items: center;
   justify-content: center;
   min-height: 60px;
-  color: var(--olos-muted, #888);
+  color: var(--color-panel-muted);
   font-style: italic;
   font-size: 13px;
 }
 
 .strip .horizon {
-  stroke: var(--olos-border, #b8b8b8);
+  stroke: var(--color-panel-card-border);
   stroke-width: 1;
 }
 
@@ -30,5 +30,5 @@
 
 .strip .tick {
   font-size: 10px;
-  fill: var(--olos-muted, #888);
+  fill: var(--color-panel-muted);
 }

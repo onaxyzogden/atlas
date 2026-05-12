@@ -15,7 +15,7 @@
 }
 
 .card:focus-visible {
-  outline: var(--olos-focus-ring);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
 }
 
@@ -28,7 +28,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--olos-green);
+  background: var(--color-sage-600);
   color: #10200e;
   font-weight: 800;
 }
@@ -53,7 +53,7 @@
   display: grid;
   gap: 1px;
   color: #eedfc6;
-  font-family: var(--olos-font-display);
+  font-family: var(--font-display);
   font-size: 21px;
   font-weight: 600;
   line-height: 1.05;
@@ -83,11 +83,11 @@
 }
 
 .copy em.active {
-  color: var(--olos-green);
+  color: var(--color-sage-600);
 }
 
 .copy em.active::before {
-  background: var(--olos-green);
+  background: var(--color-sage-600);
 }
 
 @media (max-width: 700px) {

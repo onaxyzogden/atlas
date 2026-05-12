@@ -4,13 +4,13 @@
 
 .compass .ring {
   fill: none;
-  stroke: var(--olos-border, #d8d8d8);
+  stroke: var(--color-panel-card-border);
   stroke-width: 1;
 }
 
 .compass .tick {
   font-size: 10px;
-  fill: var(--olos-muted, #888);
+  fill: var(--color-panel-muted);
 }
 
 .compass .tick.active {
