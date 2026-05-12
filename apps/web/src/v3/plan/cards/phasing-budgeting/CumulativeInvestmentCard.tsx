@@ -22,6 +22,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePhaseStore, type DesignLayer } from '../../../../store/phaseStore.js';
+import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 // Yeomans Keyline ordering on the 4 designLayer tags (earthworks → water →
@@ -84,11 +85,52 @@ function fmtUSD(n: number): string {
 
 export default function CumulativeInvestmentCard({ project }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
+  const allGuilds = usePolycultureStore((s) => s.guilds);
 
   const phases = useMemo(
     () => allPhases.filter((p) => p.projectId === project.id).slice().sort((a, b) => a.order - b.order),
     [allPhases, project.id],
   );
+
+  const projectGuilds = useMemo(
+    () => allGuilds.filter((g) => g.projectId === project.id),
+    [allGuilds, project.id],
+  );
+
+  /**
+   * Per-phase guild rollup — folds steward-entered guild establishment
+   * cost/labor into the Vegetation tier of the per-phase aggregation.
+   * Guilds without a `phase` accumulate into `unassigned`; they can't be
+   * placed on the curve (no phase boundary to anchor them) so the Project
+   * total section surfaces the count instead.
+   */
+  const guildRollup = useMemo(() => {
+    const perPhase = new Map<string, { usd: number; hrs: number; count: number }>();
+    let unassignedCount = 0;
+    let unassignedUSD = 0;
+    let unassignedHrs = 0;
+    let unestimated = 0;
+    for (const g of projectGuilds) {
+      const usd = g.establishmentCostUSD ?? 0;
+      const hrs = g.establishmentLaborHrs ?? 0;
+      if (g.establishmentCostUSD === undefined && g.establishmentLaborHrs === undefined) {
+        unestimated += 1;
+      }
+      if (!g.phase) {
+        unassignedCount += 1;
+        unassignedUSD += usd;
+        unassignedHrs += hrs;
+        continue;
+      }
+      const prev = perPhase.get(g.phase) ?? { usd: 0, hrs: 0, count: 0 };
+      perPhase.set(g.phase, {
+        usd: prev.usd + usd,
+        hrs: prev.hrs + hrs,
+        count: prev.count + 1,
+      });
+    }
+    return { perPhase, unassignedCount, unassignedUSD, unassignedHrs, unestimated };
+  }, [projectGuilds]);
 
   const rows: RowVM[] = useMemo(() => {
     let cumHrs = 0;
@@ -103,6 +145,15 @@ export default function CumulativeInvestmentCard({ project }: Props) {
         const tier: Tier = (t.designLayer ?? 'uncategorised') as Tier;
         byTier[tier].hrs += t.laborHrs;
         byTier[tier].usd += t.costUSD;
+      }
+      // Fold guild establishment into the Vegetation tier — guilds ARE the
+      // Yeomans vegetation tier, so this lines up with Keyline order.
+      const gContrib = guildRollup.perPhase.get(p.id);
+      if (gContrib) {
+        hrs += gContrib.hrs;
+        usd += gContrib.usd;
+        byTier.vegetation.hrs += gContrib.hrs;
+        byTier.vegetation.usd += gContrib.usd;
       }
       return { id: p.id, name: p.name, timeframe: p.timeframe, incHrs: hrs, incUSD: usd, byTier };
     });
@@ -119,7 +170,7 @@ export default function CumulativeInvestmentCard({ project }: Props) {
         shareHrs: totalHrs > 0 ? r.incHrs / totalHrs : 0,
       };
     });
-  }, [phases]);
+  }, [phases, guildRollup.perPhase]);
 
   const totals = useMemo(() => {
     const totalHrs = rows.reduce((a, r) => a + r.incHrs, 0);
@@ -133,10 +184,11 @@ export default function CumulativeInvestmentCard({ project }: Props) {
         <span className={styles.heroTag}>Plan · Module 7 · Phasing</span>
         <h1 className={styles.title}>Cumulative investment</h1>
         <p className={styles.lede}>
-          The same per-phase tasks rolled up as a running curve. Each
-          phase shows its own hours and dollars plus the cumulative
-          since project start, so the steward sees the compounding
-          shape — not just a single phase in isolation.
+          The same per-phase tasks <em>plus guild establishment costs</em>
+          rolled up as a running curve. Each phase shows its own hours
+          and dollars plus the cumulative since project start, so the
+          steward sees the compounding shape — not just a single phase
+          in isolation.
         </p>
       </header>
 
@@ -145,6 +197,24 @@ export default function CumulativeInvestmentCard({ project }: Props) {
         <div className={styles.statRow}><span>Total labor</span><span>{totals.totalHrs} h</span></div>
         <div className={styles.statRow}><span>Total cost</span><span>{fmtUSD(totals.totalUSD)}</span></div>
         <div className={styles.statRow}><span>Phases</span><span>{rows.length}</span></div>
+        <div className={styles.statRow}>
+          <span>Guilds folded in</span>
+          <span>{projectGuilds.length - guildRollup.unassignedCount} / {projectGuilds.length}</span>
+        </div>
+        {guildRollup.unassignedCount > 0 && (
+          <div className={styles.statRow}>
+            <span>Unassigned guilds (off-curve)</span>
+            <span>
+              {guildRollup.unassignedCount} · {guildRollup.unassignedHrs} h · {fmtUSD(guildRollup.unassignedUSD)}
+            </span>
+          </div>
+        )}
+        {guildRollup.unestimated > 0 && (
+          <div className={styles.statRow}>
+            <span>Guilds without estimates</span>
+            <span>{guildRollup.unestimated}</span>
+          </div>
+        )}
       </section>
 
       {rows.length === 0 ? (
@@ -242,11 +312,14 @@ export default function CumulativeInvestmentCard({ project }: Props) {
           share of total labor hours; bottom (warm-cool) is the Yeomans-tier
           composition of THIS phase's dollars — earthworks (sienna) · water
           (blue) · structures (grey) · vegetation (green) · uncategorised
-          (faint). Cumulative columns (cum N h · $N) show the running total as
-          of the end of that phase. The OSU PDC Pro Phasing Plan template uses
-          this shape as the "5-Year Total" rollup; Atlas pivots on phase
-          boundaries instead of strict calendar years to avoid parsing
-          free-text timeframes.
+          (faint). Guild establishment cost &amp; labor (set on each guild in
+          the Guild Builder) folds into the Vegetation tier of the phase the
+          guild is assigned to; guilds without a phase appear off-curve in
+          the Project total section. Cumulative columns (cum N h · $N) show
+          the running total as of the end of that phase. The OSU PDC Pro
+          Phasing Plan template uses this shape as the "5-Year Total" rollup;
+          Atlas pivots on phase boundaries instead of strict calendar years
+          to avoid parsing free-text timeframes.
         </p>
       </section>
     </div>
