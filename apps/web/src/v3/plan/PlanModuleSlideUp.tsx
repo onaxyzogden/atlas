@@ -44,6 +44,7 @@ const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/M
 const PlantDatabaseSiteMatchCard = lazy(() => import('./cards/plant-systems/PlantDatabaseSiteMatchCard.js'));
 const GuildSpatialBuilderCard    = lazy(() => import('./cards/plant-systems/GuildSpatialBuilderCard.js'));
 const CanopySuccessionCard       = lazy(() => import('./cards/plant-systems/CanopySuccessionCard.js'));
+const PlantEstablishmentSequenceCard = lazy(() => import('./cards/plant-systems/PlantEstablishmentSequenceCard.js'));
 const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
 const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
@@ -95,6 +96,7 @@ function renderPlanCard(
     case 'plan-plant-database':      return <PlantDatabaseSiteMatchCard project={project} onSwitchToMap={noop} />;
     case 'plan-guild-builder':       return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     case 'plan-canopy-simulator':    return <CanopySuccessionCard project={project} onSwitchToMap={noop} />;
+    case 'plan-plant-establishment-sequence': return <PlantEstablishmentSequenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
     case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;

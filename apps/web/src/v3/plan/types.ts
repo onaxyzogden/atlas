@@ -174,9 +174,10 @@ export const MODULE_CARDS: Record<
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
   ],
   'plant-systems': [
-    { label: 'Plant database',    sectionId: 'plan-plant-database' },
-    { label: 'Guild builder',     sectionId: 'plan-guild-builder' },
-    { label: 'Canopy simulator',  sectionId: 'plan-canopy-simulator' },
+    { label: 'Plant database',         sectionId: 'plan-plant-database' },
+    { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
+    { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
+    { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
   ],
   'soil-fertility': [
     { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
