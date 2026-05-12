@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -25,6 +25,7 @@ import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   earthwaterKpis,
   getCriticalHabitatLayer,
@@ -43,15 +44,6 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   mountain: Binoculars,
   waves: Waves,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function EarthWaterEcologyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };

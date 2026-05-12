@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BookOpen,
   CalendarDays,
@@ -16,15 +16,7 @@ import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
+import Ring from '../../../_shared/stageCard/Ring.js';
 
 export default function SwotDiagnosisReport() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };

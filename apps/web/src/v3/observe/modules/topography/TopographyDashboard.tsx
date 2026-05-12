@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Compass,
@@ -30,6 +30,7 @@ import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   featureCounts,
   getElevationLayer,
@@ -45,15 +46,6 @@ const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   layers: Layers,
   map: MapIcon,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function TopographyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };

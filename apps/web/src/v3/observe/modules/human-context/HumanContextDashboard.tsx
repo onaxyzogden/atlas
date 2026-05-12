@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircle2,
   Compass,
@@ -22,6 +22,7 @@ import { api } from '../../../../lib/apiClient.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   archetypeFor,
   healthLabel,
@@ -208,15 +209,6 @@ interface ProjectVisionProps extends VisionProps {
 interface HumanHeroProps extends VisionProps {
   onExport: () => void;
   exporting: boolean;
-}
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={hc.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
 }
 
 function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {

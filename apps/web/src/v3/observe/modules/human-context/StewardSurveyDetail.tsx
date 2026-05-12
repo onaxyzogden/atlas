@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   ArrowRight,
@@ -12,6 +12,7 @@ import heroLandscape from '../../assets/steward-survey/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   archetypeFor,
   stewardCompleteness,
@@ -29,15 +30,6 @@ function parseHrs(text: string): number | undefined {
   if (t === '') return undefined;
   const n = Number(t);
   return Number.isFinite(n) ? n : undefined;
-}
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={hc.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
 }
 
 export default function StewardSurveyDetail() {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
@@ -24,6 +24,7 @@ import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   climateKpis,
   getClimateLayer,
@@ -51,15 +52,6 @@ const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   wind: Wind,
   shield: ShieldCheck,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function MacroclimateDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };

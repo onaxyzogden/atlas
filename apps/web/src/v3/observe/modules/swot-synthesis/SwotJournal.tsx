@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BookOpen,
   CloudLightning,
@@ -15,6 +15,7 @@ import { journalMetrics, swotCounts, type MetricItem } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strengths',
@@ -37,15 +38,6 @@ const METRIC_ICONS: Record<string, LucideIcon> = {
   Threats: CloudLightning,
   'Total entries': BookOpen,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function SwotJournal() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
