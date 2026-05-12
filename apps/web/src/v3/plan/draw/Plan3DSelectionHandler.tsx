@@ -90,6 +90,7 @@ export default function Plan3DSelectionHandler({ map }: Props) {
         return;
       }
       const f = features[0];
+      if (!f) return;
       const rawKind = f.properties?.kind;
       const kind = mapKindToSelectionKind(
         typeof rawKind === 'string' ? rawKind : undefined,
