@@ -10,7 +10,7 @@
  *     fences/gates/driveways) — those keep their bespoke styled layers,
  *     selection halo, and slide-up form. The other 23 registry kinds have
  *     no per-kind layer there.
- *   - The shared `DesignElementExtrusionLayer` + `DesignElementGlbLayer`
+ *   - The shared `DesignElementExtrusionLayer` + `DesignElementScenegraphLayer`
  *     cover those 23 kinds in 3D when the camera is pitched, but collapse
  *     to nothing top-down. This generic layer is the flat 2D fallback so
  *     a steward sees the placed entity at default Observe pitch (0°).

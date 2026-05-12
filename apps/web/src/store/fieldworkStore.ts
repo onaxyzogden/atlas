@@ -1,5 +1,5 @@
-/**
- * Fieldwork store — advanced field data collection for site visits.
+﻿/**
+ * Fieldwork store â€” advanced field data collection for site visits.
  * Soil samples, water/structure issues, measurements, walk routes.
  */
 
@@ -101,7 +101,7 @@ export const useFieldworkStore = create<FieldworkState>()(
         pendingUploads: s.pendingUploads.filter((id) => id !== entryId),
       })),
     }),
-    { name: 'ogden-fieldwork', version: 1 },
+    { name: 'ogden-fieldwork', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

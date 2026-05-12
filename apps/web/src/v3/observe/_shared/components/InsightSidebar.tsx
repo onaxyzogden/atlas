@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowRight, type LucideIcon } from 'lucide-react';
 import { SurfaceCard } from './SurfaceCard.js';
+import styles from './InsightSidebar.module.css';
 
 interface InsightSidebarProps {
   title: string;
@@ -18,15 +19,15 @@ export function InsightSidebar({
   cta,
 }: InsightSidebarProps) {
   return (
-    <SurfaceCard className="insight-sidebar">
+    <SurfaceCard className={styles.sidebar}>
       <header>
         {Icon ? <Icon aria-hidden="true" /> : null}
         <h2>{title}</h2>
       </header>
-      {intro ? <p className="insight-sidebar__intro">{intro}</p> : null}
-      <div className="insight-sidebar__body">{children}</div>
+      {intro ? <p className={styles.intro}>{intro}</p> : null}
+      <div>{children}</div>
       {cta ? (
-        <button className="sidebar-cta" type="button">
+        <button className={styles.cta} type="button">
           {cta}
           <ArrowRight aria-hidden="true" />
         </button>

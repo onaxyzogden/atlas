@@ -178,17 +178,22 @@ export default function PredatorRiskHotspotsCard({ projectId }: PredatorRiskHots
       const drivers: string[] = [baseline.reason];
       const mitigations: string[] = [];
 
+      // Defensive: legacy/partial paddock records may lack the required
+      //  `species` array (e.g. import gaps). Treat as empty so the card
+      //  renders a baseline-only risk row instead of crashing.
+      const species = p.species ?? [];
+
       // 1) Species vulnerability
-      const maxVuln = p.species.reduce((m, sp) => Math.max(m, SPECIES_VULNERABILITY[sp] ?? 1), 0);
-      if (maxVuln >= 3 && p.species.length > 0) {
+      const maxVuln = species.reduce((m, sp) => Math.max(m, SPECIES_VULNERABILITY[sp] ?? 1), 0);
+      if (maxVuln >= 3 && species.length > 0) {
         band = bumpBand(band, +1);
-        const tops = p.species
+        const tops = species
           .filter((sp) => (SPECIES_VULNERABILITY[sp] ?? 0) >= 3)
           .map((sp) => SPECIES_LABEL[sp]);
         drivers.push(`High-vulnerability species present (${tops.join(', ')})`);
         mitigations.push('Add a livestock guardian (dog, donkey, or llama)');
         mitigations.push('Lock animals into a predator-proof night shelter');
-      } else if (maxVuln === 2 && p.species.length > 0) {
+      } else if (maxVuln === 2 && species.length > 0) {
         // Sheep / goats / bees — moderate vulnerability, no automatic bump
         // but worth a mitigation hint when the baseline is already moderate+.
         if (band !== 'low') {

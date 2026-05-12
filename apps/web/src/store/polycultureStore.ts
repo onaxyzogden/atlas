@@ -63,6 +63,23 @@ export interface Guild {
    * guild belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
+  /**
+   * PLAN-stage Module 7 (Phasing & Budgeting) — steward's estimate of
+   * one-time establishment cost (USD) for this guild: nursery stock,
+   * mulch, irrigation tie-ins, initial labour cash-cost, etc. Optional;
+   * undefined = not yet estimated. Aggregated alongside PhaseTask costs
+   * in `LaborBudgetSummaryCard` and rolled into the Yeomans Vegetation
+   * tier. No data-derived default — Atlas does not assert species-level
+   * costs because horticultural prices vary too widely by region.
+   */
+  establishmentCostUSD?: number;
+  /**
+   * PLAN-stage Module 7 — steward's estimate of one-time labour hours
+   * for guild establishment (site prep, planting, mulching, staking,
+   * initial watering). Optional; undefined = not yet estimated. Same
+   * aggregation path as `establishmentCostUSD`.
+   */
+  establishmentLaborHrs?: number;
   createdAt: string;
 }
 

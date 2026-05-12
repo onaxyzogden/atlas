@@ -21,13 +21,14 @@ import {
 } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useSiteData, getLayer, getLayerSummary } from '../../../../store/siteDataStore.js';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import {
   DEFAULT_COEFF,
   SURFACE_LABEL,
   catchmentYieldM3,
   formatLitres,
 } from './waterMath.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -62,10 +63,15 @@ export default function WaterCatchmentsCard({ project }: Props) {
 
   const [precipMm, setPrecipMm] = useState<number>(sitePrecipMm ?? 900);
 
-  const catchments = useMemo(
+  // Project-scoped catchment WaterNodes. The Yeomans cap adapter then
+  // filters by the active Plan view (Year 1 / Year 5) using each node's
+  // phaseStore phase id → BuildPhase.yeomansCap → PHASE_VIEW_CAP chain.
+  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const catchmentsRaw = useMemo(
     () => all.filter((n) => n.projectId === project.id && n.kind === 'catchment'),
     [all, project.id],
   );
+  const catchments = usePhaseStoreCappedEntities(catchmentsRaw);
 
   // Draft for new catchment
   const [name, setName] = useState('');
@@ -98,7 +104,7 @@ export default function WaterCatchmentsCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Catchment sources</h1>
         <p className={styles.lede}>

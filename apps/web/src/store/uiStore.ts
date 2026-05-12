@@ -96,7 +96,16 @@ export function migrateUIPersistedState(
   if (fromVersion < 2) {
     const s = persistedState as { sidebarGrouping?: SidebarGrouping } | null;
     if (s && s.sidebarGrouping !== undefined && s.sidebarGrouping !== 'stage3') {
-      return { ...s, sidebarGrouping: 'stage3' as SidebarGrouping };
+      persistedState = { ...s, sidebarGrouping: 'stage3' as SidebarGrouping };
+    }
+  }
+  if (fromVersion < 3) {
+    // 'site-intelligence' dashboard section was retired 2026-05-10. Users
+    // whose persisted state pinned it would land on a 404'd section. Swap
+    // to 'map-layers' (same Site Overview group) on rehydration.
+    const s = persistedState as { activeDashboardSection?: string } | null;
+    if (s && s.activeDashboardSection === 'site-intelligence') {
+      persistedState = { ...s, activeDashboardSection: 'map-layers' };
     }
   }
   return persistedState;
@@ -138,7 +147,7 @@ export const useUIStore = create<UIState>()(
       setSidebarGrouping: (g) => set({ sidebarGrouping: g }),
 
       // Navigation context
-      activeDashboardSection: 'site-intelligence',
+      activeDashboardSection: 'map-layers',
       setActiveDashboardSection: (section) => set({ activeDashboardSection: section }),
       pendingMapContext: false,
       setPendingMapContext: (v) => set({ pendingMapContext: v }),
@@ -188,7 +197,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ogden-ui',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         colorScheme: state.colorScheme,
         sidebarOpen: state.sidebarOpen,

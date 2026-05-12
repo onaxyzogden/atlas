@@ -24,7 +24,8 @@ import {
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useStructureStore } from '../../../../store/structureStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 /** Avg of all vertices across all rings — cheap centroid, fine for layout. */
 function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
@@ -115,6 +116,19 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   const allStructures = useStructureStore((s) => s.structures);
   const allCrops = useCropStore((s) => s.cropAreas);
 
+  // Fertility infra is the only phase-tagged entity in this card.
+  // Capped by Plan view (Year 1 / Year 5) via the phaseStore→Yeomans
+  // adapter. Zones, structures, crops, and vectors stay uncapped:
+  // they have no phase field, and caps are presentational — dangling
+  // edges from a capped-out fertility node are accepted (matches the
+  // principle established for WaterStorageCard overflow targets).
+  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const fertilityRaw = useMemo(
+    () => allFertility.filter((f) => f.projectId === project.id),
+    [allFertility, project.id],
+  );
+  const fertility = usePhaseStoreCappedEntities(fertilityRaw);
+
   const { nodes, vectors } = useMemo(() => {
     const pId = project.id;
     const ns: Node[] = [];
@@ -130,13 +144,12 @@ export default function ClosedLoopGraphCard({ project }: Props) {
       if (c.projectId !== pId) continue;
       ns.push({ id: c.id, label: (c as { name?: string }).name ?? 'crop area', kind: 'crop', lngLat: polygonCentroid(c.geometry) });
     }
-    for (const f of allFertility) {
-      if (f.projectId !== pId) continue;
+    for (const f of fertility) {
       ns.push({ id: f.id, label: `${f.type.replace(/_/g, ' ')}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
     }
     const vs = allVectors.filter((v) => v.projectId === pId);
     return { nodes: ns, vectors: vs };
-  }, [project.id, allZones, allStructures, allCrops, allFertility, allVectors]);
+  }, [project.id, allZones, allStructures, allCrops, fertility, allVectors]);
 
   // Adjacency
   const inDeg = useMemo(() => {
@@ -253,7 +266,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 5 · Soil Fertility</span>
         <h1 className={styles.title}>Closed-loop graph</h1>
         <p className={styles.lede}>

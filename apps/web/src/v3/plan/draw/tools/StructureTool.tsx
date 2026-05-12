@@ -19,6 +19,7 @@
  */
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { getBuiltEnvironmentKind } from '@ogden/shared';
 import {
   useStructureStore,
   type StructureType,
@@ -43,28 +44,45 @@ interface Props {
 // infrastructure. Mirrors the FootprintTemplate.category ordering so the
 // popover dropdown reads top-down by Yeomans rank-5 (dwellings) then
 // rank-6 (subsystems).
-const TYPE_OPTIONS: { value: StructureType; label: string }[] = [
-  { value: 'cabin',            label: 'Cabin' },
-  { value: 'yurt',             label: 'Yurt' },
-  { value: 'earthship',        label: 'Earthship' },
-  { value: 'tent_glamping',    label: 'Tent / Glamping' },
-  { value: 'pavilion',         label: 'Pavilion' },
-  { value: 'classroom',        label: 'Classroom' },
-  { value: 'prayer_space',     label: 'Prayer space' },
-  { value: 'bathhouse',        label: 'Bathhouse' },
-  { value: 'fire_circle',      label: 'Fire circle' },
-  { value: 'lookout',          label: 'Lookout' },
-  { value: 'greenhouse',       label: 'Greenhouse' },
-  { value: 'barn',             label: 'Barn' },
-  { value: 'animal_shelter',   label: 'Animal shelter' },
-  { value: 'workshop',         label: 'Workshop' },
-  { value: 'storage',          label: 'Storage shed' },
-  { value: 'compost_station',  label: 'Compost station' },
-  { value: 'water_pump_house', label: 'Pump house' },
-  { value: 'solar_array',      label: 'Solar array' },
-  { value: 'well',             label: 'Well' },
-  { value: 'water_tank',       label: 'Water tank' },
+//
+// Phase 5.3 (BE V2 unification): labels are derived from the canonical
+// `BUILT_ENVIRONMENT_KINDS` registry via `getBuiltEnvironmentKind`, which
+// resolves the legacy snake_case StructureType ids through the registry's
+// alias map (e.g. `prayer_space` → `prayer-pavilion`, `storage` → `shed`).
+// The `value` (snake_case) is preserved so the structureStore facade keeps
+// its V1-shape API; only the human-facing label is unified.
+// `STRUCTURE_TEMPLATES.label` remains the fallback so a future kind id that
+// is not yet aliased renders something sensible rather than the raw id.
+const STRUCTURE_TYPE_ORDER: readonly StructureType[] = [
+  'cabin',
+  'yurt',
+  'earthship',
+  'tent_glamping',
+  'pavilion',
+  'classroom',
+  'prayer_space',
+  'bathhouse',
+  'fire_circle',
+  'lookout',
+  'greenhouse',
+  'barn',
+  'animal_shelter',
+  'workshop',
+  'storage',
+  'compost_station',
+  'water_pump_house',
+  'solar_array',
+  'well',
+  'water_tank',
 ];
+
+const TYPE_OPTIONS: { value: StructureType; label: string }[] =
+  STRUCTURE_TYPE_ORDER.map((value) => ({
+    value,
+    label:
+      getBuiltEnvironmentKind(value)?.label ??
+      STRUCTURE_TEMPLATES[value].label,
+  }));
 
 function midCost(type: StructureType): number {
   const [lo, hi] = STRUCTURE_TEMPLATES[type].costRange;

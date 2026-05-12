@@ -14,46 +14,40 @@ import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   Activity,
+  Apple,
   ArrowRight,
   Beef,
-  BookOpen,
-  Box,
-  Cable,
+  CalendarClock,
   CircleDashed,
   Container,
   Disc,
-  DoorOpen,
   Droplet,
-  Droplets,
-  Eye,
   Fence,
-  Flame,
+  Flower2,
   FolderOpen,
-  Fuel,
-  Home,
   Layers,
   Leaf,
+  Link2,
   MapPin,
-  Minus,
-  Mountain,
+  Milestone,
   Recycle,
+  RotateCw,
   Route,
   Snowflake,
-  Sparkles,
   Sprout,
   Square,
   Store,
-  Sun,
-  Tent,
   TreeDeciduous,
-  Truck,
-  Warehouse,
+  TreePine,
+  Trees,
   Waves,
-  Wrench,
-  Zap,
+  Wheat,
   type LucideIcon,
 } from 'lucide-react';
-import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
+import {
+  BE_TOOL_ITEMS,
+  BE_TOOL_GROUPS,
+} from '../_shared/builtEnvironmentTools.js';
 import {
   useMapToolStore,
   type MapToolId,
@@ -74,30 +68,20 @@ interface ToolItem {
   toolId: MapToolId;
 }
 
-/** Lucide icon resolver for `BUILT_ENVIRONMENT_KINDS[*].icon` strings.
- *  Mirrors `BE_ICON_MAP` in ObserveTools.tsx. Falls back to `Home`. */
-const BE_ICON_MAP: Readonly<Record<string, LucideIcon>> = {
-  Home, Tent, Sparkles, BookOpen, Droplets, Mountain, Wrench, Eye,
-  Warehouse, Sprout, Box, Leaf, Droplet, Sun, Zap, Cable, Minus,
-  DoorOpen, Route, Truck, Fuel, Flame, Square,
-};
-
 /**
- * Plan-stage Built Environment tools — registry-driven, all 31 BE kinds
- * surfaced under "Structures & Subsystems" with `state: 'proposed'`. Tool
- * ids use the `plan.structures-subsystems.be.<kind>` prefix so PlanDrawHost
- * can dispatch them via a single prefix-match handler. Mirrors Observe's
- * BE rail (ObserveTools.tsx) so a kind added to the shared registry surfaces
- * in both stages automatically.
+ * Plan-stage Built Environment tools — driven by the shared registry list
+ * in `_shared/builtEnvironmentTools.ts`. Tool ids use the
+ * `plan.structures-subsystems.be.<kind>` prefix so PlanDrawHost can
+ * dispatch them via a single prefix-match handler. Mirrors Observe's BE
+ * rail so a kind added to the shared registry surfaces in both stages
+ * automatically.
  */
-const PLAN_BE_TOOLS: ToolItem[] = Object.values(BUILT_ENVIRONMENT_KINDS)
-  .filter((spec) => spec.defaultStates.includes('proposed'))
-  .map((spec) => ({
-    id: `be-${spec.kind}`,
-    label: spec.label,
-    Icon: BE_ICON_MAP[spec.icon] ?? Home,
-    toolId: `plan.structures-subsystems.be.${spec.kind}` as MapToolId,
-  }));
+const PLAN_BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
+  id: `be-${it.kind}`,
+  label: it.label,
+  Icon: it.Icon,
+  toolId: `plan.structures-subsystems.be.${it.kind}` as MapToolId,
+}));
 
 /** Modules with map-first draw tools. Others fall back to "Open module". */
 const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
@@ -106,28 +90,35 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'storage',   label: 'Storage',   Icon: Container, toolId: 'plan.water-management.storage' },
     { id: 'swale',     label: 'Swale',     Icon: Waves,     toolId: 'plan.water-management.swale' },
     { id: 'sink',      label: 'Sink',      Icon: Disc,      toolId: 'plan.water-management.sink' },
+    // 2026-05-11 — Yeomans water kind ported from elementCatalog; persists
+    // to designElementsStore via PlanDesignElementHost.
+    { id: 'spring',    label: 'Spring',    Icon: Flower2,   toolId: 'plan.water-management.spring' },
   ],
   'zone-circulation': [
     { id: 'zone',        label: 'Zone',        Icon: Square,        toolId: 'plan.zone-circulation.zone' },
     { id: 'path',        label: 'Path',        Icon: Route,         toolId: 'plan.zone-circulation.path' },
     { id: 'buffer-ring', label: 'Buffer ring', Icon: CircleDashed,  toolId: 'plan.zone-circulation.buffer-ring' },
+    // 2026-05-11 — Access kinds ported from elementCatalog (vehicle road,
+    // bridge crossing). Route through designElementsStore.
+    { id: 'road',        label: 'Road',        Icon: Milestone,     toolId: 'plan.zone-circulation.road' },
+    { id: 'bridge',      label: 'Bridge',      Icon: Link2,         toolId: 'plan.zone-circulation.bridge' },
   ],
-  'structures-subsystems': [
-    { id: 'structure',   label: 'Structure',   Icon: Home,  toolId: 'plan.structures-subsystems.structure' },
-    { id: 'utility-run', label: 'Utility run', Icon: Cable, toolId: 'plan.structures-subsystems.utility-run' },
-    // Phase 6 follow-up — mirror Observe's full BE registry on the Plan
-    // rail with `state: 'proposed'`. The legacy `structure` tool above
-    // remains for its richer create-time metadata UX (cost / labor /
-    // material estimates); the registry-driven tools below give Plan a
-    // one-click placement parity for every BE kind without having to
-    // route through the slide-up.
-    ...PLAN_BE_TOOLS,
+  // 2026-05-11 — Machinery group surfaces from elementCatalog. Turnaround
+  // is the only machinery kind not already covered by Built Environment's
+  // registry (machinery-shed / equipment-yard / fuel-station live there).
+  machinery: [
+    { id: 'turnaround', label: 'Turnaround', Icon: RotateCw, toolId: 'plan.machinery.turnaround' },
   ],
+  'structures-subsystems': PLAN_BE_TOOLS,
   livestock: [
     { id: 'paddock',    label: 'Paddock',    Icon: Square, toolId: 'plan.livestock.paddock' },
     // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
     // strip / mob grazing wire that the polygon Paddock tool cannot model.
     { id: 'fence-line', label: 'Fence line', Icon: Fence,  toolId: 'plan.livestock.fence-line' },
+    // 2026-05-12 — Plan-stage in-card create flow for `ScheduledLivestockMove`
+    // (paddock or livestock-capable structure destination). Mirrors the
+    // Act-stage move tool but persists to scheduledLivestockMoveStore.
+    { id: 'schedule-move', label: 'Schedule move', Icon: CalendarClock, toolId: 'plan.livestock.schedule-move' },
     // 2026-05-10 Product Chain (sub-module) — Newman's post-farm-gate
     // value chain folded into Livestock: slaughter → cold chain → market.
     { id: 'slaughter-point', label: 'Slaughter',  Icon: Beef,      toolId: 'plan.livestock.slaughter-point' },
@@ -135,8 +126,22 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'market-node',     label: 'Market',     Icon: Store,     toolId: 'plan.livestock.market-node' },
   ],
   'plant-systems': [
-    { id: 'crop-area', label: 'Crop area', Icon: Sprout, toolId: 'plan.plant-systems.crop-area' },
-    { id: 'guild',     label: 'Guild',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
+    { id: 'crop-area',    label: 'Crop area',    Icon: Sprout,        toolId: 'plan.plant-systems.crop-area' },
+    { id: 'guild',        label: 'Guild',        Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
+    // 2026-05-11 — Yeomans grazing kinds ported from the Vision-canvas
+    // DesignElementPalette so PlanTools is the single rail across all
+    // four Plan views. Polygon draws persist to designElementsStore and
+    // surface acreage labels via DesignElementLayers.
+    { id: 'orchard',      label: 'Orchard',      Icon: TreeDeciduous, toolId: 'plan.plant-systems.orchard' },
+    { id: 'silvopasture', label: 'Silvopasture', Icon: Trees,         toolId: 'plan.plant-systems.silvopasture' },
+    { id: 'pasture-mix',  label: 'Pasture mix',  Icon: Wheat,         toolId: 'plan.plant-systems.pasture-mix' },
+    // 2026-05-11 — Vegetation kinds ported from elementCatalog (oak / pine /
+    // apple / shrub / hedgerow). Point + line draws via designElementsStore.
+    { id: 'oak-tree',     label: 'Oak tree',     Icon: TreeDeciduous, toolId: 'plan.plant-systems.oak-tree' },
+    { id: 'pine-tree',    label: 'Pine tree',    Icon: TreePine,      toolId: 'plan.plant-systems.pine-tree' },
+    { id: 'apple-tree',   label: 'Apple tree',   Icon: Apple,         toolId: 'plan.plant-systems.apple-tree' },
+    { id: 'shrub',        label: 'Shrub',        Icon: Leaf,          toolId: 'plan.plant-systems.shrub' },
+    { id: 'hedgerow',     label: 'Hedgerow',     Icon: Trees,         toolId: 'plan.plant-systems.hedgerow' },
   ],
   'soil-fertility': [
     { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },
@@ -249,37 +254,51 @@ export default function PlanTools({
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
             {items ? (
-              <div className={css.itemGrid}>
-                {items.map((it) => {
-                  const isToolActive = activeTool === it.toolId;
-                  const disabled = !projectId;
+              mod === 'structures-subsystems' ? (
+                // 31 BE kinds is too many for a flat 3-col grid — sub-group by
+                // `BuiltEnvironmentCategory` via native <details>. Mirrors the
+                // Observe rail (`ObserveTools` BE branch) so both stages stay
+                // parallel as new kinds are added to the registry.
+                BE_TOOL_GROUPS.map((group) => {
+                  const groupItems = group.items.map((bg) => ({
+                    id: `be-${bg.kind}`,
+                    label: bg.label,
+                    Icon: bg.Icon,
+                    toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
+                  }));
+                  if (groupItems.length === 0) return null;
                   return (
-                    <DelayedTooltip
-                      key={it.id}
-                      label={
-                        disabled
-                          ? `${it.label} — open a project to use`
-                          : it.label
-                      }
-                      position="top"
+                    <details
+                      key={group.category}
+                      className={css.subgroup}
+                      open
                     >
-                      <button
-                        type="button"
-                        className={css.toolItem}
-                        data-active={isToolActive ? 'true' : 'false'}
-                        disabled={disabled}
-                        aria-pressed={isToolActive}
-                        onClick={(e) => onToolClick(e, it.toolId)}
-                      >
-                        <span className={css.toolGlyph} aria-hidden="true">
-                          <it.Icon size={16} strokeWidth={1.6} />
-                        </span>
-                        <span className={css.toolLabel}>{it.label}</span>
-                      </button>
-                    </DelayedTooltip>
+                      <summary className={css.subgroupHeader}>
+                        {group.label}
+                      </summary>
+                      <div className={css.itemGrid}>
+                        {groupItems.map((it) =>
+                          renderPlanToolButton(it, {
+                            activeTool,
+                            projectId,
+                            onToolClick,
+                          }),
+                        )}
+                      </div>
+                    </details>
                   );
-                })}
-              </div>
+                })
+              ) : (
+                <div className={css.itemGrid}>
+                  {items.map((it) =>
+                    renderPlanToolButton(it, {
+                      activeTool,
+                      projectId,
+                      onToolClick,
+                    }),
+                  )}
+                </div>
+              )
             ) : mod === 'dynamic-layering' ? (
               <div className={css.lensRow}>
                 {(['yeomans', 'enterprise'] as const).map((m) => {
@@ -343,5 +362,47 @@ export default function PlanTools({
         );
       })}
     </div>
+  );
+}
+
+/** Renders a single Plan-rail tool button. Extracted so the BE sub-card
+ *  sub-grid in `structures-subsystems` reuses the same disabled / tooltip /
+ *  active-state logic as the flat case. */
+function renderPlanToolButton(
+  it: ToolItem,
+  ctx: {
+    activeTool: MapToolId | null;
+    projectId: string | null;
+    onToolClick: (
+      e: React.MouseEvent<HTMLButtonElement>,
+      toolId: MapToolId,
+    ) => void;
+  },
+) {
+  const { activeTool, projectId, onToolClick } = ctx;
+  const isToolActive = activeTool === it.toolId;
+  const disabled = !projectId;
+  return (
+    <DelayedTooltip
+      key={it.id}
+      label={
+        disabled ? `${it.label} — open a project to use` : it.label
+      }
+      position="top"
+    >
+      <button
+        type="button"
+        className={css.toolItem}
+        data-active={isToolActive ? 'true' : 'false'}
+        disabled={disabled}
+        aria-pressed={isToolActive}
+        onClick={(e) => onToolClick(e, it.toolId)}
+      >
+        <span className={css.toolGlyph} aria-hidden="true">
+          <it.Icon size={16} strokeWidth={1.6} />
+        </span>
+        <span className={css.toolLabel}>{it.label}</span>
+      </button>
+    </DelayedTooltip>
   );
 }

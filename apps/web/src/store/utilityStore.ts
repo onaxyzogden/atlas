@@ -116,6 +116,7 @@ export const useUtilityStore = create<UtilityState>()(
     {
       name: 'ogden-utilities',
       version: 1,
+      migrate: (persisted) => persisted as never,
       partialize: (state) => ({ utilities: state.utilities }),
     },
   ),

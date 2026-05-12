@@ -47,6 +47,8 @@ import {
   type Paddock,
   type PastureQuality,
 } from '../../../store/livestockStore.js';
+import { computePaddockRecommendedStocking } from '../../../features/livestock/livestockAnalysis.js';
+import { LIVESTOCK_SPECIES } from '../../../features/livestock/speciesData.js';
 import {
   type FertilityInfra,
   type FertilityInfraType,
@@ -289,6 +291,30 @@ const PASTURE_QUALITY_OPTIONS: { value: PastureQuality; label: string }[] = [
   { value: 'excellent', label: 'Excellent (3.7+ AUE/ha)' },
 ];
 
+/**
+ * Format the area-based stocking recommendation for a paddock. Reuses the
+ * canonical `computePaddockRecommendedStocking` head/ha formula (pasture-
+ * quality multiplier × species `typicalStocking`) and multiplies by paddock
+ * area to surface a concrete total. Returns `''` when pasture quality is
+ * unassessed so the field renders its placeholder.
+ */
+function formatPaddockStockingRecommendation(
+  species: LivestockSpecies,
+  pastureQuality: PastureQuality | undefined,
+  areaM2: number,
+): string {
+  if (!pastureQuality) return '';
+  const perHa = computePaddockRecommendedStocking({
+    species: [species],
+    pastureQuality,
+  } as Paddock);
+  if (perHa <= 0) return '';
+  const areaHa = areaM2 / 10_000;
+  const total = Math.round(perHa * areaHa);
+  const unit = LIVESTOCK_SPECIES[species]?.stockingUnit ?? 'head';
+  return `${total} ${unit} (${perHa}/ha)`;
+}
+
 export function buildPaddockEditSchema(
   pd: Paddock,
   updatePaddock: (id: string, updates: Partial<Paddock>) => void,
@@ -313,12 +339,6 @@ export function buildPaddockEditSchema(
         options: PADDOCK_FENCE_OPTIONS,
       },
       {
-        key: 'stockingDensity',
-        label: 'Stocking (head/ha)',
-        kind: 'text',
-        placeholder: 'e.g. 12',
-      },
-      {
         key: 'pastureQuality',
         label: 'Pasture quality',
         kind: 'select',
@@ -327,14 +347,50 @@ export function buildPaddockEditSchema(
           ...PASTURE_QUALITY_OPTIONS,
         ],
       },
+      {
+        key: 'stockingRecommendation',
+        label: 'Recommended for this paddock',
+        kind: 'text',
+        readonly: true,
+        placeholder: 'pick pasture quality',
+      },
+      {
+        key: 'stockingDensity',
+        label: 'Stocking (head/ha)',
+        kind: 'text',
+        placeholder: 'e.g. 12',
+      },
     ],
     initial: {
       name: pd.name,
       species: primarySpecies,
       fencing: pd.fencing,
+      pastureQuality: pd.pastureQuality ?? '',
+      stockingRecommendation: formatPaddockStockingRecommendation(
+        primarySpecies,
+        pd.pastureQuality,
+        pd.areaM2,
+      ),
       stockingDensity:
         pd.stockingDensity == null ? '' : String(pd.stockingDensity),
-      pastureQuality: pd.pastureQuality ?? '',
+    },
+    onValuesChange: (next, _prev, changed) => {
+      if (changed.key !== 'species' && changed.key !== 'pastureQuality') {
+        return null;
+      }
+      const sp = String(next.species ?? primarySpecies) as LivestockSpecies;
+      const pqRaw = String(next.pastureQuality ?? '').trim();
+      const pq: PastureQuality | undefined =
+        pqRaw === 'poor' || pqRaw === 'fair' || pqRaw === 'good' || pqRaw === 'excellent'
+          ? pqRaw
+          : undefined;
+      return {
+        stockingRecommendation: formatPaddockStockingRecommendation(
+          sp,
+          pq,
+          pd.areaM2,
+        ),
+      };
     },
     onSave: (values) => {
       const sp = values.species as LivestockSpecies;
@@ -1500,6 +1556,8 @@ export function buildGenericBeEditSchema(
 ): Omit<InlineFormPayload, 'anchor'> {
   const spec = getBuiltEnvironmentKind(e.kind);
   const label = spec?.label ?? e.kind;
+  const isGlb = spec?.renderMode === 'glb';
+  const prop = e.proposed ?? {};
   return {
     title: `Edit ${label}`,
     fields: [
@@ -1520,20 +1578,41 @@ export function buildGenericBeEditSchema(
         kind: 'textarea',
         placeholder: 'Free-form notes…',
       },
+      ...(isGlb
+        ? ([
+            { key: 'rotationDeg', label: 'Rotation', kind: 'number', suffix: '°' },
+            { key: 'scaleMul',    label: 'Scale',    kind: 'number', suffix: '×', placeholder: '1.0' },
+          ] as const)
+        : []),
     ],
     initial: {
       state: e.state,
       label: e.label ?? '',
       notes: e.notes ?? '',
+      rotationDeg: prop.rotationDeg ?? 0,
+      scaleMul: prop.scaleMul ?? 1,
     },
     onSave: (values) => {
       const store = useBuiltEnvironmentStoreV2.getState();
       const labelStr = String(values.label ?? '').trim();
       const notesStr = String(values.notes ?? '').trim();
       const nextState = String(values.state ?? e.state) as BuiltEnvironmentState;
+
+      let proposedPatch: { rotationDeg?: number; scaleMul?: number } | undefined;
+      if (isGlb) {
+        const rotRaw = Number(values.rotationDeg);
+        const scaleRaw = Number(values.scaleMul);
+        proposedPatch = {
+          rotationDeg: Number.isFinite(rotRaw) ? rotRaw : prop.rotationDeg,
+          scaleMul:
+            Number.isFinite(scaleRaw) && scaleRaw > 0 ? scaleRaw : prop.scaleMul,
+        };
+      }
+
       store.updateMetadata(e.id, {
         label: labelStr || undefined,
         notes: notesStr || undefined,
+        ...(proposedPatch ? { proposed: proposedPatch } : {}),
       });
       if (nextState !== e.state) {
         store.setState(e.id, nextState);

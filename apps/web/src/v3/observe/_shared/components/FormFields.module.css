@@ -1,0 +1,42 @@
+.field {
+  display: grid;
+  align-self: start;
+  align-content: start;
+  gap: 7px;
+}
+
+.field span {
+  color: #b6aa98;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(182, 170, 152, 0.2);
+  border-radius: 5px;
+  background: rgba(4, 9, 9, 0.72);
+  color: #f2e5d2;
+  font: inherit;
+  padding: 0 13px;
+}
+
+.field textarea {
+  min-height: 128px;
+  resize: vertical;
+  padding-top: 12px;
+  line-height: 1.5;
+}
+
+.field small {
+  justify-self: end;
+  margin-top: -28px;
+  padding-right: 10px;
+  color: #8f877a;
+  font-size: 12px;
+}

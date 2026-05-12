@@ -8,9 +8,6 @@
  *
  * Pages are lazy-loaded individually keyed by sectionId from
  * `OBSERVE_MODULE_CARDS` (in `../types.ts`).
- *
- * The sheet root retains `observe-port` so that the ported OLOS stylesheet
- * (observe-port.css) cascades to module page bodies without leaking globally.
  */
 
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
@@ -19,7 +16,6 @@ import {
   OBSERVE_MODULE_FULL_LABEL,
   type ObserveModule,
 } from '../types.js';
-import '../styles/observe-port.css';
 import css from './ModuleSlideUp.module.css';
 
 // ── Page lazy imports — Dashboard + each Detail per module ───────────────────
@@ -133,7 +129,7 @@ export default function ModuleSlideUp({ module, open, onClose }: Props) {
   return (
     <div className={css.scrim} role="presentation" onClick={onClose}>
       <aside
-        className={`${css.sheet} observe-port`}
+        className={css.sheet}
         role="dialog"
         aria-modal="true"
         aria-label={`${label} module`}

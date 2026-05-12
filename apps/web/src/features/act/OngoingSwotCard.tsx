@@ -17,7 +17,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSwotStore } from '../../store/swotStore.js';
 import { newAnnotationId, type SwotEntry, type SwotBucket } from '../../store/site-annotations.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -77,7 +77,7 @@ export default function OngoingSwotCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 3 — Ongoing SWOT</span>
         <h1 className={styles.title}>Continuous SWOT Log</h1>
         <p className={styles.lede}>

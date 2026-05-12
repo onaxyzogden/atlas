@@ -14,7 +14,7 @@ import {
   type SuccessionPhase,
 } from '../../store/successionStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -101,7 +101,7 @@ export default function SuccessionTrackerCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 3 — Multi-Year Succession</span>
         <h1 className={styles.title}>Succession Tracker</h1>
         <p className={styles.lede}>

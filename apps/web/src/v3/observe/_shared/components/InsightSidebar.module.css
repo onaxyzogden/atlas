@@ -1,0 +1,46 @@
+.sidebar {
+  padding: 30px 27px;
+  border-color: rgba(183, 131, 45, 0.55);
+}
+
+.sidebar header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar header svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-gold-brand);
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--color-earth-100);
+}
+
+.intro {
+  margin: 18px 0 30px;
+  color: #c8bba7;
+  line-height: 1.55;
+}
+
+.cta {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+@media (max-width: 1180px) {
+  .sidebar {
+    max-width: none;
+  }
+}

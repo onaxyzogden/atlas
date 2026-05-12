@@ -23,6 +23,24 @@ import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../store/builtEnvironmentStore.js';
+import {
+  getBuildingsForProject,
+  getWellsForProject,
+  getSepticsForProject,
+  getPowerLinesForProject,
+  getBuriedUtilitiesForProject,
+  getFencesForProject,
+  getGatesForProject,
+  getExistingDrivewaysForProject,
+  useBuildingsForProject,
+  useWellsForProject,
+  useSepticsForProject,
+  usePowerLinesForProject,
+  useBuriedUtilitiesForProject,
+  useFencesForProject,
+  useGatesForProject,
+  useExistingDrivewaysForProject,
+} from '../../../store/builtEnvironmentSelectors.js';
 import type { AnnotationKind } from './draw/annotationFieldSchemas.js';
 
 /**
@@ -235,9 +253,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'building': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .buildings.filter((r) => r.projectId === projectId)
+      return getBuildingsForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -247,9 +263,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'well': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .wells.filter((r) => r.projectId === projectId)
+      return getWellsForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -259,9 +273,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'septic': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .septics.filter((r) => r.projectId === projectId)
+      return getSepticsForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -271,9 +283,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'powerLine': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .powerLines.filter((r) => r.projectId === projectId)
+      return getPowerLinesForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -283,9 +293,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'buriedUtility': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .buriedUtilities.filter((r) => r.projectId === projectId)
+      return getBuriedUtilitiesForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -295,9 +303,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'fence': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .fences.filter((r) => r.projectId === projectId)
+      return getFencesForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -307,9 +313,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'gate': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .gates.filter((r) => r.projectId === projectId)
+      return getGatesForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -319,9 +323,7 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
         }));
     }
     case 'existingDriveway': {
-      return useBuiltEnvironmentStore
-        .getState()
-        .existingDriveways.filter((r) => r.projectId === projectId)
+      return getExistingDrivewaysForProject(projectId)
         .map((r) => ({
           kind,
           id: r.id,
@@ -355,14 +357,18 @@ export function useAnnotationsForKinds(
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const samples = useSoilSampleStore((s) => s.samples);
   const swot = useSwotStore((s) => s.swot);
-  const buildings = useBuiltEnvironmentStore((s) => s.buildings);
-  const wells = useBuiltEnvironmentStore((s) => s.wells);
-  const septics = useBuiltEnvironmentStore((s) => s.septics);
-  const powerLines = useBuiltEnvironmentStore((s) => s.powerLines);
-  const buriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
-  const fences = useBuiltEnvironmentStore((s) => s.fences);
-  const gates = useBuiltEnvironmentStore((s) => s.gates);
-  const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
+  // Phase 6.B: subscribe to V2 directly via the project-filtered hooks.
+  // These are re-render triggers only — the data is re-read inside
+  // `rowsForKind` via the matching `get*ForProject` non-React selectors.
+  const beProjectId = projectId ?? '';
+  const buildings = useBuildingsForProject(beProjectId);
+  const wells = useWellsForProject(beProjectId);
+  const septics = useSepticsForProject(beProjectId);
+  const powerLines = usePowerLinesForProject(beProjectId);
+  const buriedUtilities = useBuriedUtilitiesForProject(beProjectId);
+  const fences = useFencesForProject(beProjectId);
+  const gates = useGatesForProject(beProjectId);
+  const existingDriveways = useExistingDrivewaysForProject(beProjectId);
 
   return useMemo(() => {
     if (!projectId) return [];

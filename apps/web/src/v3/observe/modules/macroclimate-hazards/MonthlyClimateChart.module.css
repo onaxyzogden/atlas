@@ -1,0 +1,33 @@
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  color: var(--color-panel-muted);
+  font-size: 13px;
+}
+
+.chart .precipBar {
+  fill: rgba(117, 201, 231, 0.55);
+}
+
+.chart .tempLine {
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.chart .tempLine.max { stroke: #d7553a; }
+.chart .tempLine.min { stroke: #4f7cc7; }
+
+.chart .monthTick {
+  font-size: 10px;
+  fill: var(--color-panel-muted);
+}

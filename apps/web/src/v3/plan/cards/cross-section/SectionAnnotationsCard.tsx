@@ -33,7 +33,7 @@ import {
   type SectionAnnotationKind,
   type Transect,
 } from '../../../../store/site-annotations.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -195,7 +195,7 @@ export default function SectionAnnotationsCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 6 · Cross-section</span>
         <h1 className={styles.title}>Section annotations</h1>
         <p className={styles.lede}>

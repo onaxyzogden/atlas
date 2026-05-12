@@ -22,6 +22,7 @@ import {
   useLivestockMoveLogStore,
   DIRECTION_OPTIONS,
   SPECIES_OPTIONS,
+  buildRotatePair,
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
 import {
@@ -35,6 +36,12 @@ import { newAnnotationId } from '../../store/site-annotations.js';
 import { useInlineFormStore } from '../plan/draw/inlineFormStore.js';
 import { useActStructurePopoverStore } from '../../store/actStructurePopoverStore.js';
 import { STRUCTURE_TEMPLATES } from '../../features/structures/footprints.js';
+import {
+  encodeOriginValue,
+  originDisclosureField,
+  parseOriginValue,
+  type OriginRef,
+} from './originPicker.js';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -164,6 +171,22 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       { key: 'headCount', label: 'Head',      kind: 'number', placeholder: 'e.g. 24' },
       { key: 'who',       label: 'Who',       kind: 'text',   placeholder: 'optional' },
       { key: 'notes',     label: 'Notes',     kind: 'text',   placeholder: 'optional' },
+      originDisclosureField(projectId, { kind: 'structure', id: structure.id }),
+      {
+        key: 'exitDateDisclosure',
+        label: 'Exit date',
+        kind: 'disclosure',
+        triggerLabel: '+ Different exit date',
+        visibleWhen: (v) => v.direction === 'rotate_through',
+        children: [
+          {
+            key: 'exitDate',
+            label: 'Exit date',
+            kind: 'text',
+            placeholder: 'YYYY-MM-DD (defaults to date)',
+          },
+        ],
+      },
     ],
     initial: {
       date: todayIso(),
@@ -172,6 +195,8 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
       headCount: '',
       who: '',
       notes: '',
+      origin: '',
+      exitDate: '',
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -183,13 +208,42 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
         rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
       const who = String(values.who ?? '').trim();
       const notes = String(values.notes ?? '').trim();
+      const origin = parseOriginValue(values.origin);
+      const date = String(values.date ?? todayIso());
+
+      if (direction === 'rotate_through') {
+        // Rotate is a write-time convenience: discard the move_in skeleton
+        // and persist two cross-pointing legs instead.
+        removeEvent(id);
+        const exitDate = String(values.exitDate ?? '').trim();
+        const [exitLeg, entryLeg] = buildRotatePair({
+          projectId,
+          entryDate: date,
+          exitDate: exitDate || undefined,
+          species,
+          headCount,
+          from: {
+            paddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+            structureId: origin?.kind === 'structure' ? origin.id : undefined,
+          },
+          to: { structureId: structure.id },
+          who: who === '' ? undefined : who,
+          notes: notes === '' ? undefined : notes,
+        });
+        addEvent(exitLeg);
+        addEvent(entryLeg);
+        return;
+      }
+
       updateEvent(id, {
-        date: String(values.date ?? todayIso()),
+        date,
         direction,
         species,
         headCount,
         who: who === '' ? undefined : who,
         notes: notes === '' ? undefined : notes,
+        fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+        fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
       });
     },
     onCancel: () => removeEvent(id),
@@ -201,34 +255,48 @@ export function startLivestockMoveLog(structure: Structure, projectId: string): 
  * patch pattern as `startLivestockMoveLog`, but writes to the scheduled-move
  * store instead of the actual log. Cancelling removes the skeleton plan.
  *
+ * When `existingPlanId` is supplied, opens the form in *edit* mode: no
+ * skeleton is added, fields prefill from the existing plan, Save calls
+ * `updatePlan(existingPlanId, …)`, and Cancel is a true no-op (does NOT
+ * remove the plan). Used by the `RotationScheduleCard` Structure-moves
+ * tail's `Edit` chip — matches the paddock plan-editing UX from `a2725c3`.
+ *
  * The Plan-stage `Paddock`-centric variance pill (in `RotationScheduleCard`)
  * does not apply to structures — the recovery model is paddock-centric, so
  * structure plans render as a plain `Planned: <date>` line in the
- * Structure-moves tail with an `Edit` / `✕` affordance (matches paddock
- * plan-editing UX shipped in `a2725c3`).
+ * Structure-moves tail with an `Edit` / `✕` affordance.
  */
-export function startScheduledLivestockMove(structure: Structure, projectId: string): void {
+export function startScheduledLivestockMove(
+  structure: Structure,
+  projectId: string,
+  existingPlanId?: string,
+): void {
   const tpl = STRUCTURE_TEMPLATES[structure.type];
   const label = structure.name && structure.name !== tpl.label ? structure.name : tpl.label;
   const defaultSpecies: LivestockSpecies = 'sheep';
 
   useActStructurePopoverStore.getState().close();
 
-  const id = newAnnotationId('slvm');
-  const { addPlan, updatePlan, removePlan } = useScheduledLivestockMoveStore.getState();
-  addPlan({
-    id,
-    projectId,
-    toStructureId: structure.id,
-    plannedDate: todayIso(),
-    direction: 'move_in',
-    species: defaultSpecies,
-    headCount: null,
-    createdAt: new Date().toISOString(),
-  });
+  const { plans, addPlan, updatePlan, removePlan } = useScheduledLivestockMoveStore.getState();
+  const existing = existingPlanId ? plans.find((p) => p.id === existingPlanId) ?? null : null;
+  const isEdit = existing != null;
+  const id = isEdit ? existing.id : newAnnotationId('slvm');
+
+  if (!isEdit) {
+    addPlan({
+      id,
+      projectId,
+      toStructureId: structure.id,
+      plannedDate: todayIso(),
+      direction: 'move_in',
+      species: defaultSpecies,
+      headCount: null,
+      createdAt: new Date().toISOString(),
+    });
+  }
 
   useInlineFormStore.getState().open({
-    title: `Schedule move — ${label}`,
+    title: `${isEdit ? 'Edit planned move' : 'Schedule move'} — ${label}`,
     anchor: anchorFor(structure),
     fields: [
       { key: 'plannedDate', label: 'Planned date', kind: 'text',   required: true, placeholder: 'YYYY-MM-DD' },
@@ -237,14 +305,22 @@ export function startScheduledLivestockMove(structure: Structure, projectId: str
       { key: 'headCount',   label: 'Head',         kind: 'number', placeholder: 'e.g. 24' },
       { key: 'who',         label: 'Who',          kind: 'text',   placeholder: 'optional' },
       { key: 'notes',       label: 'Notes',        kind: 'text',   placeholder: 'optional' },
+      originDisclosureField(projectId, { kind: 'structure', id: structure.id }),
     ],
     initial: {
-      plannedDate: todayIso(),
-      direction: 'move_in',
-      species: defaultSpecies,
-      headCount: '',
-      who: '',
-      notes: '',
+      plannedDate: existing?.plannedDate ?? todayIso(),
+      direction:   existing?.direction   ?? 'move_in',
+      species:     existing?.species     ?? defaultSpecies,
+      headCount:   existing?.headCount != null ? String(existing.headCount) : '',
+      who:         existing?.who         ?? '',
+      notes:       existing?.notes       ?? '',
+      origin: encodeOriginValue(
+        existing?.fromPaddockId
+          ? ({ kind: 'paddock', id: existing.fromPaddockId } as OriginRef)
+          : existing?.fromStructureId
+            ? ({ kind: 'structure', id: existing.fromStructureId } as OriginRef)
+            : null,
+      ),
     },
     onSave: (values) => {
       const rawDir = String(values.direction ?? '').trim();
@@ -256,6 +332,7 @@ export function startScheduledLivestockMove(structure: Structure, projectId: str
         rawHead !== '' && Number.isFinite(Number(rawHead)) ? Number(rawHead) : null;
       const who = String(values.who ?? '').trim();
       const notes = String(values.notes ?? '').trim();
+      const origin = parseOriginValue(values.origin);
       updatePlan(id, {
         plannedDate: String(values.plannedDate ?? todayIso()),
         direction,
@@ -263,9 +340,12 @@ export function startScheduledLivestockMove(structure: Structure, projectId: str
         headCount,
         who: who === '' ? undefined : who,
         notes: notes === '' ? undefined : notes,
+        fromPaddockId: origin?.kind === 'paddock' ? origin.id : undefined,
+        fromStructureId: origin?.kind === 'structure' ? origin.id : undefined,
       });
     },
-    onCancel: () => removePlan(id),
+    // In edit mode, Cancel must NOT remove the persistent plan.
+    onCancel: isEdit ? () => {} : () => removePlan(id),
   });
 }
 

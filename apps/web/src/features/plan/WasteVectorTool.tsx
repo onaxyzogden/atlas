@@ -14,7 +14,7 @@ import { newAnnotationId, type WasteVector, type WasteResourceType } from '../..
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { useCropStore } from '../../store/cropStore.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -75,7 +75,7 @@ export default function WasteVectorTool({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 5 · Soil Fertility</span>
         <h1 className={styles.title}>Waste-to-resource vectors</h1>
         <p className={styles.lede}>

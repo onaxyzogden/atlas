@@ -33,7 +33,17 @@ export type BuiltEnvironmentCategory =
   | 'utility'       // well, septic, water-tank, water-pump-house, solar-array, ...
   | 'infrastructure'// power-line, buried-utility, fence, gate, driveway, road, ...
   | 'machinery'     // machinery-shed, fuel-station, equipment-yard, ...
-  | 'amenity';      // fire-circle, lookout, parking, ...
+  | 'amenity'       // fire-circle, lookout, parking, ...
+  | 'vegetation'    // oak-tree, pine-tree, apple-tree, shrub, hedgerow — Phase 3 of
+                    // ADR 2026-05-11. Strictly speaking trees aren't "built," but
+                    // the registry is the single dispatch for kind metadata, store
+                    // wiring, layer rendering, and inline-edit schemas; forking a
+                    // sibling registry would 3-5x the per-kind code without adding
+                    // capability. The renderer pipeline doesn't distinguish.
+  | 'earthworks'    // berm, raised-bed, terrace — Phase 4 of ADR 2026-05-11.
+                    // Shaped earth; low-profile GLBs read as ground-up forms.
+  | 'zone-marker';  // zone-0 .. zone-5 — Phase 4 of ADR 2026-05-11. Symbolic
+                    // pillars marking Permaculture Zone boundaries on the plan.
 
 export type BuiltEnvironmentGeometryType = 'point' | 'line' | 'polygon';
 export type BuiltEnvironmentRenderMode = 'glb' | 'extrusion' | 'flat';
@@ -322,10 +332,10 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     },
     septic: {
       kind: 'septic',
-      label: 'Septic',
+      label: 'Septic / leach field',
       category: 'utility',
       geometryType: 'polygon',
-      icon: 'Droplets',
+      icon: 'Recycle',
       color: '#71717a',
       defaultStates: ['existing', 'proposed'],
       renderMode: 'flat',
@@ -377,7 +387,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     // ── Infrastructure (lines + driveways) ──────────────────────────────
     'power-line': {
       kind: 'power-line',
-      label: 'Power Line',
+      label: 'Power line',
       category: 'infrastructure',
       geometryType: 'line',
       icon: 'Zap',
@@ -389,7 +399,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
     },
     'buried-utility': {
       kind: 'buried-utility',
-      label: 'Buried Utility',
+      label: 'Buried utility',
       category: 'infrastructure',
       geometryType: 'line',
       icon: 'Cable',
@@ -404,7 +414,7 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       label: 'Fence',
       category: 'infrastructure',
       geometryType: 'line',
-      icon: 'Minus',
+      icon: 'Fence',
       color: '#52525b',
       defaultStates: ['existing', 'proposed'],
       renderMode: 'flat',
@@ -502,6 +512,232 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       defaultStates: ['existing', 'proposed'],
       renderMode: 'flat',
       defaultPhase: 'access',
+    },
+
+    // ── Vegetation ───────────────────────────────────────────────────────
+    'oak-tree': {
+      kind: 'oak-tree',
+      label: 'Oak tree',
+      category: 'vegetation',
+      geometryType: 'point',
+      icon: 'TreeDeciduous',
+      color: '#52784a',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 12,
+      defaultFootprintM: 8,
+      glbUrl: '/models/vegetation/oak-tree.glb',
+      defaultPhase: 'trees',
+      aliases: ['oak'],
+    },
+    'pine-tree': {
+      kind: 'pine-tree',
+      label: 'Pine tree',
+      category: 'vegetation',
+      geometryType: 'point',
+      icon: 'TreePine',
+      color: '#2f5e38',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 15,
+      defaultFootprintM: 5,
+      glbUrl: '/models/vegetation/pine-tree.glb',
+      defaultPhase: 'trees',
+      aliases: ['pine', 'conifer'],
+    },
+    'apple-tree': {
+      kind: 'apple-tree',
+      label: 'Apple tree',
+      category: 'vegetation',
+      geometryType: 'point',
+      icon: 'TreeDeciduous',
+      color: '#7faa54',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 5,
+      defaultFootprintM: 5,
+      glbUrl: '/models/vegetation/apple-tree.glb',
+      defaultPhase: 'trees',
+      aliases: ['apple', 'fruit-tree'],
+    },
+    shrub: {
+      kind: 'shrub',
+      label: 'Shrub',
+      category: 'vegetation',
+      geometryType: 'point',
+      icon: 'Leaf',
+      color: '#6a9648',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 1.5,
+      defaultFootprintM: 2,
+      glbUrl: '/models/vegetation/shrub.glb',
+      defaultPhase: 'trees',
+    },
+    hedgerow: {
+      kind: 'hedgerow',
+      label: 'Hedgerow',
+      category: 'vegetation',
+      geometryType: 'line',
+      icon: 'Trees',
+      color: '#4a7a3a',
+      defaultStates: ['existing', 'proposed'],
+      // Line geometry — no scenegraph rendering. BeV2GenericLayer paints the
+      // flat fill; future work can add a fill-extrusion variant if needed.
+      renderMode: 'flat',
+      defaultHeightM: 2,
+      defaultPhase: 'trees',
+    },
+
+    // ── Earthworks ───────────────────────────────────────────────────────
+    berm: {
+      kind: 'berm',
+      label: 'Berm',
+      category: 'earthworks',
+      geometryType: 'point',
+      icon: 'Mountain',
+      color: '#8c6a4c',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 1.5,
+      defaultFootprintM: 8,
+      glbUrl: '/models/earthworks/berm.glb',
+      defaultPhase: 'landshape',
+    },
+    'raised-bed': {
+      kind: 'raised-bed',
+      label: 'Raised bed',
+      category: 'earthworks',
+      geometryType: 'point',
+      icon: 'Square',
+      color: '#735238',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 0.6,
+      defaultFootprintM: 2,
+      glbUrl: '/models/earthworks/raised-bed.glb',
+      defaultPhase: 'soil',
+    },
+    terrace: {
+      kind: 'terrace',
+      label: 'Terrace',
+      category: 'earthworks',
+      geometryType: 'point',
+      icon: 'Mountain',
+      color: '#806142',
+      defaultStates: ['existing', 'proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 1.2,
+      defaultFootprintM: 10,
+      glbUrl: '/models/earthworks/terrace.glb',
+      defaultPhase: 'landshape',
+    },
+
+    // ── Zone markers (Permaculture Zones 0–5) ────────────────────────────
+    'zone-0': {
+      kind: 'zone-0',
+      label: 'Zone 0',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'Home',
+      color: '#d8d8d8',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-0.glb',
+      defaultPhase: 'subdivision',
+    },
+    'zone-1': {
+      kind: 'zone-1',
+      label: 'Zone 1',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'Sprout',
+      color: '#f3c766',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-1.glb',
+      defaultPhase: 'subdivision',
+    },
+    'zone-2': {
+      kind: 'zone-2',
+      label: 'Zone 2',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'TreeDeciduous',
+      color: '#a6d172',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-2.glb',
+      defaultPhase: 'subdivision',
+    },
+    'zone-3': {
+      kind: 'zone-3',
+      label: 'Zone 3',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'Wheat',
+      color: '#73b366',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-3.glb',
+      defaultPhase: 'subdivision',
+    },
+    'zone-4': {
+      kind: 'zone-4',
+      label: 'Zone 4',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'Trees',
+      color: '#598c4c',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-4.glb',
+      defaultPhase: 'subdivision',
+    },
+    'zone-5': {
+      kind: 'zone-5',
+      label: 'Zone 5',
+      category: 'zone-marker',
+      geometryType: 'point',
+      icon: 'Leaf',
+      color: '#406640',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 2.5,
+      defaultFootprintM: 1.5,
+      glbUrl: '/models/zone-markers/zone-5.glb',
+      defaultPhase: 'subdivision',
+    },
+
+    // ── Custom GLB upload — Phase 6 of ADR 2026-05-11 ──────────────────────
+    // Single canonical kind covering all user-uploaded GLBs. The specific
+    // blob URL is selected at render time by reading
+    // `proposed.customModelId` and looking it up in `customModelStore`.
+    // `glbUrl` here points at the generic-box fallback so an entity whose
+    // blob has been removed from IndexedDB still renders something.
+    'custom-glb': {
+      kind: 'custom-glb',
+      label: 'Custom model',
+      category: 'amenity',
+      geometryType: 'point',
+      icon: 'Upload',
+      color: '#888888',
+      defaultStates: ['proposed'],
+      renderMode: 'glb',
+      defaultHeightM: 3,
+      defaultFootprintM: 3,
+      glbUrl: GENERIC_GLB,
+      defaultPhase: 'buildings',
     },
   });
 

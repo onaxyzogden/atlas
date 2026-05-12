@@ -7,10 +7,9 @@ import {
   Droplet,
   Eye,
   Leaf,
-  Map,
+  Map as MapIcon,
   Mountain,
   Route,
-  Settings,
   SlidersHorizontal,
   Sun,
   Triangle,
@@ -19,12 +18,13 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import SlopeLegendStrip from './SlopeLegendStrip.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   featureCounts,
   getElevationLayer,
@@ -58,90 +58,20 @@ export default function CartographicDetail() {
   );
   const counts = featureCounts({ contours, highPoints, drainageLines, transects });
   const elevation = getElevationLayer(layers)?.summary;
+  const aspect = elevation?.predominant_aspect ?? null;
+  const meanSlope = elevation?.mean_slope_deg ?? null;
+  const slope = slopeBand(meanSlope);
 
-  return (
-    <div className="detail-page cartographic-page">
-      <header className="cartographic-header">
-        <div>
-          <h1>Cartographic detail</h1>
-          <p>
-            Explore the full spatial context of your site. Toggle layers, interrogate patterns,
-            and understand how sectors, microclimates and zones work together.
-          </p>
-        </div>
-        <button type="button">Project settings</button>
-      </header>
-      <SurfaceCard className="cartographic-banner">
-        Cartographic overlays surface here as you build out later modules. Currently showing
-        topography only.
-      </SurfaceCard>
-      <section className="cartographic-layout">
-        <LayerPanel counts={counts} />
-        <div className="cartographic-main">
-          <CartographicKpis counts={counts} />
-          <SurfaceCard className="cartographic-map-card">
-            <TerrainSnapshot
-              boundary={project?.location?.boundary}
-              caption={project?.name}
-              width={520}
-              height={320}
-              overlays={['contours', 'elevation', 'slope']}
-              contours={contours}
-              highPoints={highPoints}
-              drainageLines={drainageLines}
-              className="cartographic-main-map"
-            />
-            <button className="cartographic-workspace-button" type="button">
-              Open map workspace <ArrowRight aria-hidden="true" />
-              <span>Advanced editing &amp; analysis</span>
-            </button>
-          </SurfaceCard>
-          <SurfaceCard className="cartographic-legend-card">
-            <SlopeLegendStrip className="cartographic-legend-image" />
-            <button type="button">
-              Download legend <Download aria-hidden="true" />
-            </button>
-          </SurfaceCard>
-        </div>
-        <CartographicSidebar
-          counts={counts}
-          aspect={elevation?.predominant_aspect ?? null}
-          meanSlope={elevation?.mean_slope_deg ?? null}
-        />
-      </section>
-    </div>
-  );
-}
-
-interface KpiProps {
-  counts: ReturnType<typeof featureCounts>;
-}
-
-function CartographicKpis({ counts }: KpiProps) {
-  const items: Array<[LucideIcon, string, string, string]> = [
+  const kpis: Array<[LucideIcon, string, string, string]> = [
     [Wind, 'Sectors mapped', '—', 'Wired in module 5'],
     [Triangle, 'Microclimate areas', '—', 'Wired in module 4'],
     [Leaf, 'Zone allocations', '—', 'Wired in design phase'],
     [Route, 'Circulation routes', '—', 'Wired in design phase'],
-    [Mountain, 'Topography annotations', String(counts.total), 'Contours, points, drainage'],
+    [Mountain, 'Topo annotations', String(counts.total), 'Contours, points, drainage'],
   ];
-  return (
-    <SurfaceCard className="cartographic-kpi-strip">
-      {items.map(([Icon, label, value, note]) => (
-        <div key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
-  );
-}
 
-function LayerPanel({ counts }: KpiProps) {
-  const layers: Array<[LucideIcon, string, string, boolean]> = [
-    [Map, 'Contours', `${counts.contours} traced`, counts.contours > 0],
+  const layerRows: Array<[LucideIcon, string, string, boolean]> = [
+    [MapIcon, 'Contours', `${counts.contours} traced`, counts.contours > 0],
     [Waves, 'Drainage', `${counts.drainageLines} traced`, counts.drainageLines > 0],
     [Mountain, 'Elevation points', `${counts.highPoints} pinned`, counts.highPoints > 0],
     [Compass, 'Transects', `${counts.transects} drawn`, counts.transects > 0],
@@ -152,39 +82,7 @@ function LayerPanel({ counts }: KpiProps) {
     [SlidersHorizontal, 'Soils', 'Module 4', false],
     [Camera, 'Photos & notes', 'Field tools', false],
   ];
-  return (
-    <SurfaceCard className="cartographic-layer-panel">
-      <header>
-        <h2>Map layers</h2>
-        <button type="button">
-          Reset <Settings aria-hidden="true" />
-        </button>
-      </header>
-      {layers.map(([Icon, title, note, active]) => (
-        <p className={active ? 'is-active' : ''} key={title}>
-          <Icon aria-hidden="true" />
-          <span>
-            {title}
-            <small>{note}</small>
-          </span>
-          <Eye aria-hidden="true" />
-        </p>
-      ))}
-      <button className="green-button" type="button">
-        Edit layers <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
 
-interface SidebarProps {
-  counts: ReturnType<typeof featureCounts>;
-  aspect: string | null;
-  meanSlope: number | null;
-}
-
-function CartographicSidebar({ counts, aspect, meanSlope }: SidebarProps) {
-  const slope = slopeBand(meanSlope);
   const patterns: Array<[string, string]> = [];
   if (aspect) {
     patterns.push([
@@ -227,56 +125,132 @@ function CartographicSidebar({ counts, aspect, meanSlope }: SidebarProps) {
   }
 
   return (
-    <aside className="cartographic-sidebar">
-      <SurfaceCard className="cartographic-side-card patterns">
-        <h2>
-          Detected patterns <b>{patterns.length}</b>
-        </h2>
-        {patterns.map(([title, note]) => (
-          <p key={title}>
-            <Sun aria-hidden="true" />
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Explore the full spatial context of your site. Toggle layers, interrogate patterns,
+              and understand how sectors, microclimates and zones work together.
+            </p>
+            <div className={card.btnRow}>
+              <button type="button" className={card.btn}>Project settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <p className={card.sectionBody}>
+          Cartographic overlays surface here as you build out later modules. Currently showing
+          topography only.
+        </p>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Spatial KPIs</h2>
+        <div className={obsx.kpiGrid}>
+          {kpis.map(([Icon, label, value, note]) => (
+            <div key={label} className={obsx.kpiBlock}>
+              <span className={obsx.label}>
+                <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                {label}
+              </span>
+              <span className={obsx.value}>{value}</span>
+              <span className={obsx.note}>{note}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Site map</h2>
+        <TerrainSnapshot
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          width={520}
+          height={320}
+          overlays={['contours', 'elevation', 'slope']}
+          contours={contours}
+          highPoints={highPoints}
+          drainageLines={drainageLines}
+        />
+        <div className={card.btnRow} style={{ marginTop: 12 }}>
+          <button type="button" className={card.btn}>
+            Open map workspace <ArrowRight aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+          </button>
+        </div>
+        <p className={card.hint} style={{ marginTop: 6 }}>Advanced editing &amp; analysis</p>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Slope legend</h2>
+        <SlopeLegendStrip />
+        <div className={card.btnRow} style={{ marginTop: 12 }}>
+          <button type="button" className={card.btn}>
+            <Download aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Download legend
+          </button>
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Map layers</h2>
+        {layerRows.map(([Icon, title, note, active]) => (
+          <div key={title} className={card.statRow}>
             <span>
+              <Icon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
               {title}
-              <small>{note}</small>
+              <span className={card.hint} style={{ marginLeft: 8 }}>{note}</span>
             </span>
-          </p>
+            <span className={`${card.pill} ${active ? card.pillMet : ''}`}>
+              <Eye aria-hidden="true" size={12} style={{ verticalAlign: 'middle' }} />{' '}
+              {active ? 'On' : 'Off'}
+            </span>
+          </div>
         ))}
-      </SurfaceCard>
-      <SurfaceCard className="cartographic-side-card recommendations">
-        <h2>
-          Recommended next actions <b>{recommendations.length}</b>
-        </h2>
-        {recommendations.map((item) => (
-          <p key={item}>
-            <Leaf aria-hidden="true" />
-            <span>{item}</span>
-          </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="cartographic-side-card map-info">
-        <h2>Map information</h2>
-        <dl>
-          <div>
-            <dt>Projection</dt>
-            <dd>WGS 84</dd>
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            Detected patterns <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{patterns.length}</span>
+          </h2>
+          <div className={obsx.synthesisBlock}>
+            {patterns.map(([title, note]) => (
+              <p key={title}>
+                <Sun aria-hidden="true" size={14} />
+                <span><b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {note}</span>
+              </p>
+            ))}
           </div>
-          <div>
-            <dt>Annotations</dt>
-            <dd>{counts.total}</dd>
-          </div>
-          <div>
-            <dt>Aspect</dt>
-            <dd>{aspect ?? '—'}</dd>
-          </div>
-          <div>
-            <dt>Mean slope</dt>
-            <dd>{meanSlope != null ? `${meanSlope.toFixed(1)}°` : '—'}</dd>
-          </div>
-        </dl>
-        <button className="green-button" type="button">
-          <Download aria-hidden="true" /> Export map <ArrowRight aria-hidden="true" />
-        </button>
-      </SurfaceCard>
-    </aside>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            Recommended next actions <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{recommendations.length}</span>
+          </h2>
+          {recommendations.map((item) => (
+            <div key={item} className={card.statRow}>
+              <span><Leaf aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {item}</span>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Map information</h2>
+        <div className={card.statRow}><span>Projection</span><span>WGS 84</span></div>
+        <div className={card.statRow}><span>Annotations</span><span>{counts.total}</span></div>
+        <div className={card.statRow}><span>Aspect</span><span>{aspect ?? '—'}</span></div>
+        <div className={card.statRow}><span>Mean slope</span><span>{meanSlope != null ? `${meanSlope.toFixed(1)}°` : '—'}</span></div>
+        <div className={card.btnRow} style={{ marginTop: 12 }}>
+          <button type="button" className={card.btn}>
+            <Download aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Export map
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }

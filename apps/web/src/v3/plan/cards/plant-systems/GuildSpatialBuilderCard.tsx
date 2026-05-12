@@ -32,7 +32,7 @@ import {
   findGuildPreset,
 } from '../../../../data/guildPresets.js';
 import { findCompanions } from '../../../../lib/companionPlanting.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 import GuildRingsCanvas from './GuildRingsCanvas.js';
 import {
   LAYER_LABEL,
@@ -47,6 +47,11 @@ interface Props {
 
 const ANCHOR_LAYERS: GuildLayer[] = ['canopy', 'sub_canopy'];
 
+function fmtUSD(n: number): string {
+  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
+  return `$${n}`;
+}
+
 export default function GuildSpatialBuilderCard({ project }: Props) {
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const addGuild = usePolycultureStore((s) => s.addGuild);
@@ -57,6 +62,24 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
     () => allGuilds.filter((g) => g.projectId === project.id),
     [allGuilds, project.id],
   );
+
+  // Project-wide guild-cost totals — surfaced as an inline summary
+  // section near the top so the steward sees the roll-up without
+  // jumping to the Phasing & Budgeting module. Mirrors the "Project
+  // total" pattern in CumulativeInvestmentCard.
+  const guildTotals = useMemo(() => {
+    let totalUSD = 0;
+    let totalHrs = 0;
+    let unestimated = 0;
+    for (const g of guilds) {
+      const usd = g.establishmentCostUSD;
+      const hrs = g.establishmentLaborHrs;
+      if (usd === undefined && hrs === undefined) unestimated += 1;
+      totalUSD += usd ?? 0;
+      totalHrs += hrs ?? 0;
+    }
+    return { totalUSD, totalHrs, unestimated };
+  }, [guilds]);
 
   const [activeGuildId, setActiveGuildId] = useState<string | null>(null);
   const [activeRing, setActiveRing] = useState<GuildLayer | null>(null);
@@ -218,7 +241,7 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Guild builder · spatial</h1>
         <p className={styles.lede}>
@@ -229,6 +252,30 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
           your saved guilds live on the site.
         </p>
       </header>
+
+      {guilds.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Project guild totals</h2>
+          <div className={styles.statRow}>
+            <span>Guilds</span>
+            <span>{guilds.length}</span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Establishment cost</span>
+            <span>{fmtUSD(guildTotals.totalUSD)}</span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Establishment labor</span>
+            <span>{guildTotals.totalHrs} h</span>
+          </div>
+          {guildTotals.unestimated > 0 && (
+            <div className={styles.statRow}>
+              <span>Without estimates</span>
+              <span>{guildTotals.unestimated}</span>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
@@ -291,6 +338,40 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
+              </label>
+              <label className={styles.field}>
+                <span>Establishment cost (USD)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={50}
+                  placeholder="e.g. 250"
+                  value={active.establishmentCostUSD ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    updateGuild(active.id, {
+                      establishmentCostUSD: v === '' ? undefined : Number(v),
+                    });
+                  }}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Establishment labour (hrs)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={1}
+                  placeholder="e.g. 8"
+                  value={active.establishmentLaborHrs ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    updateGuild(active.id, {
+                      establishmentLaborHrs: v === '' ? undefined : Number(v),
+                    });
+                  }}
+                />
               </label>
             </div>
 

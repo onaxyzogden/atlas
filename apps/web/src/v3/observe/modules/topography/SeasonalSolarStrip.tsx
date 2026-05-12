@@ -1,4 +1,5 @@
 import { solsticeAltitudes } from './derivations.js';
+import styles from './SeasonalSolarStrip.module.css';
 
 interface Props {
   lat: number | null | undefined;
@@ -8,7 +9,7 @@ interface Props {
 export default function SeasonalSolarStrip({ lat, className }: Props) {
   if (lat == null) {
     return (
-      <div className={`seasonal-solar-strip empty ${className ?? ''}`}>
+      <div className={`${styles.strip} ${styles.empty} ${className ?? ''}`}>
         <span>Project latitude pending</span>
       </div>
     );
@@ -26,7 +27,7 @@ export default function SeasonalSolarStrip({ lat, className }: Props) {
   const baseY = padY + innerH;
   const r = Math.min(innerW / 2, innerH);
 
-  const arc = (alt: number, cls: string) => {
+  const arc = (alt: number, cls: 'summer' | 'equinox' | 'winter') => {
     const altFrac = Math.max(0, Math.min(1, alt / 90));
     const arcR = r * altFrac;
     if (arcR <= 0) return null;
@@ -34,7 +35,7 @@ export default function SeasonalSolarStrip({ lat, className }: Props) {
       <path
         key={cls}
         d={`M${cx - arcR} ${baseY} A${arcR} ${arcR} 0 0 1 ${cx + arcR} ${baseY}`}
-        className={`solar-arc ${cls}`}
+        className={`${styles.arc} ${styles[cls]}`}
         fill="none"
       />
     );
@@ -42,22 +43,22 @@ export default function SeasonalSolarStrip({ lat, className }: Props) {
 
   return (
     <svg
-      className={`seasonal-solar-strip ${className ?? ''}`}
+      className={`${styles.strip} ${className ?? ''}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label="Seasonal solar altitude"
     >
-      <line x1={padX} x2={W - padX} y1={baseY} y2={baseY} className="solar-horizon" />
+      <line x1={padX} x2={W - padX} y1={baseY} y2={baseY} className={styles.horizon} />
       {arc(summer, 'summer')}
       {arc(equinox, 'equinox')}
       {arc(winter, 'winter')}
-      <text x={padX} y={H - 2} className="solar-tick">
+      <text x={padX} y={H - 2} className={styles.tick}>
         E
       </text>
-      <text x={W - padX} y={H - 2} textAnchor="end" className="solar-tick">
+      <text x={W - padX} y={H - 2} textAnchor="end" className={styles.tick}>
         W
       </text>
-      <text x={cx} y={padY + 8} textAnchor="middle" className="solar-tick">
+      <text x={cx} y={padY + 8} textAnchor="middle" className={styles.tick}>
         Summer {Math.round(summer)}° · Equinox {Math.round(equinox)}° · Winter {Math.round(winter)}°
       </text>
     </svg>

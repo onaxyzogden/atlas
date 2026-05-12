@@ -1,5 +1,6 @@
 import type { Transect } from '../../../../store/topographyStore.js';
 import { transectStats } from './derivations.js';
+import styles from './ElevationProfileChart.module.css';
 
 interface Props {
   transect?: Transect;
@@ -19,7 +20,7 @@ export default function ElevationProfileChart({
 
   if (!profile || profile.length < 2 || !stats) {
     return (
-      <div className={`elevation-profile-chart empty ${className ?? ''}`}>
+      <div className={`${styles.chart} ${styles.empty} ${className ?? ''}`}>
         <span>{transect ? 'Profile not yet sampled' : 'No transect selected'}</span>
       </div>
     );
@@ -48,27 +49,27 @@ export default function ElevationProfileChart({
 
   return (
     <svg
-      className={`elevation-profile-chart ${className ?? ''}`}
+      className={`${styles.chart} ${className ?? ''}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label="Elevation profile"
     >
-      <path d={fillPath} className="profile-fill" />
-      <path d={linePath} className="profile-line" fill="none" />
+      <path d={fillPath} className={styles.fill} />
+      <path d={linePath} className={styles.line} fill="none" />
       <line
         x1={padX}
         x2={W - padX}
         y1={padY + innerH}
         y2={padY + innerH}
-        className="profile-axis"
+        className={styles.axis}
       />
-      <text x={padX} y={padY - 4} className="profile-tick">
+      <text x={padX} y={padY - 4} className={styles.tick}>
         {Math.round(stats.maxM)} m
       </text>
-      <text x={padX} y={H - 2} className="profile-tick">
+      <text x={padX} y={H - 2} className={styles.tick}>
         {Math.round(stats.minM)} m
       </text>
-      <text x={W - padX} y={H - 2} textAnchor="end" className="profile-tick">
+      <text x={W - padX} y={H - 2} textAnchor="end" className={styles.tick}>
         {totalDistance ? `${Math.round(totalDistance)} m` : `${profile.length} samples`}
       </text>
       {verticalRefs.map((r) => {
@@ -81,7 +82,7 @@ export default function ElevationProfileChart({
             x2={x}
             y1={padY}
             y2={padY + innerH}
-            className={`vertical-ref kind-${r.kind}`}
+            className={styles.verticalRef}
           />
         );
       })}

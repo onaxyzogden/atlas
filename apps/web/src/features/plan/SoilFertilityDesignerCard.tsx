@@ -10,7 +10,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { newAnnotationId, type FertilityInfra, type FertilityInfraType } from '../../store/site-annotations.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -69,7 +69,7 @@ export default function SoilFertilityDesignerCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 5 · Soil Fertility</span>
         <h1 className={styles.title}>Soil fertility designer</h1>
         <p className={styles.lede}>

@@ -5,8 +5,9 @@
  * Phase 3 of the Built Environment unification (see ADR
  * `wiki/decisions/2026-05-10-atlas-built-environment-unification.md`)
  * rewrites the legacy store hooks (`useBuiltEnvironmentStore`,
- * `useStructureStore`, `useDesignElementsStore`) in-place as adapters:
- * passthrough when `FLAGS.BUILT_ENV_V2` is off, projection from v2 when on.
+ * `useStructureStore`, `useDesignElementsStore`) in-place as adapters that
+ * project from V2. The `FLAGS.BUILT_ENV_V2` gate was retired on 2026-05-12
+ * after the facades shipped unconditional V2 reads; V2 is now the only path.
  *
  * These helpers are the inverses of the migration helpers in
  * `apps/web/src/store/builtEnvironmentStoreV2.ts`. They share the canonical

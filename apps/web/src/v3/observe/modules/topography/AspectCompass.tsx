@@ -1,4 +1,5 @@
 import { aspectDegrees } from './derivations.js';
+import styles from './AspectCompass.module.css';
 
 interface Props {
   aspect: string | null | undefined;
@@ -34,25 +35,26 @@ export default function AspectCompass({ aspect, className, size = 56 }: Props) {
 
   return (
     <svg
-      className={`aspect-compass ${className ?? ''}`}
+      className={`${styles.compass} ${className ?? ''}`}
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       role="img"
       aria-label={aspect ? `Aspect ${aspect}` : 'Aspect unknown'}
     >
-      <circle cx={cx} cy={cy} r={r} className="compass-ring" />
+      <circle cx={cx} cy={cy} r={r} className={styles.ring} />
       {POINTS.map(([label, d]) => {
         const rad = ((d - 90) * Math.PI) / 180;
         const tx = cx + Math.cos(rad) * (r - 6);
         const ty = cy + Math.sin(rad) * (r - 6) + 2;
+        const isActive = aspect && aspect.toUpperCase() === label;
         return (
           <text
             key={label}
             x={tx}
             y={ty}
             textAnchor="middle"
-            className={`compass-tick ${aspect && aspect.toUpperCase() === label ? 'is-active' : ''}`}
+            className={`${styles.tick} ${isActive ? styles.active : ''}`}
           >
             {label[0]}
           </text>
@@ -64,10 +66,10 @@ export default function AspectCompass({ aspect, className, size = 56 }: Props) {
           y1={cy}
           x2={arrow.x}
           y2={arrow.y}
-          className="compass-arrow"
+          className={styles.arrow}
         />
       ) : null}
-      <circle cx={cx} cy={cy} r={2} className="compass-hub" />
+      <circle cx={cx} cy={cy} r={2} className={styles.hub} />
     </svg>
   );
 }

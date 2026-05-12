@@ -31,6 +31,7 @@ import {
 } from '../../store/scheduledLivestockMoveStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
+import { startScheduledLivestockMove } from '../../v3/act/ActStructurePopover.actions.js';
 import {
   computeRecoveryStatus,
   computeRotationSchedule,
@@ -119,10 +120,12 @@ function computeRestPairs(
   for (const e of sorted) {
     const isExit =
       e.fromPaddockId === paddockId ||
-      // Legacy v2 fallback: a paddockId-keyed event with direction move_out / rotate_through
-      // implicitly exited that paddock.
+      // Legacy v2 fallback: a paddockId-keyed `move_out` event implicitly
+      //  exited that paddock. (v4 migration split every `rotate_through`
+      //  into a linked move_out/move_in pair, so the `rotate_through`
+      //  branch is no longer needed.)
       ((e.paddockId === paddockId || e.toPaddockId === paddockId) &&
-        (e.direction === 'move_out' || e.direction === 'rotate_through'));
+        e.direction === 'move_out');
     const destPid = e.toPaddockId ?? e.paddockId;
     const isEntry = destPid === paddockId && e.direction !== 'move_out';
     if (isEntry && lastExitDate) {
@@ -242,6 +245,16 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
     { paddockId: string; mode: FormMode; editingPlanId?: string } | null
   >(null);
   const [draft, setDraft] = useState<QuickDraft>(() => emptyQuickDraft([]));
+
+  // Linked-pair hover grouping: hovering one leg of a rotate pair lights up
+  //  both legs. Holds the *partner* id of the row currently hovered, so the
+  //  predicate `hoveredLinkedId === ev.id || hoveredLinkedId === ev.linkedEventId`
+  //  matches both legs symmetrically.
+  const [hoveredLinkedId, setHoveredLinkedId] = useState<string | null>(null);
+  function isLinkedHighlight(ev: LivestockMoveEvent): boolean {
+    if (!hoveredLinkedId || !ev.linkedEventId) return false;
+    return hoveredLinkedId === ev.id || hoveredLinkedId === ev.linkedEventId;
+  }
 
   function openLogForm(m: UpcomingMove) {
     setDraft(emptyQuickDraft(m.species));
@@ -739,10 +752,33 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                                     : tone === 'negative'
                                       ? css.varianceNegative
                                       : '';
+                              const linkedHi = isLinkedHighlight(ev);
                               return (
-                                <div key={`${ev.id}-${tag}`} className={css.loggedMoveRow}>
+                                <div
+                                  key={`${ev.id}-${tag}`}
+                                  className={`${css.loggedMoveRow} ${linkedHi ? css.linkedPairHighlight : ''}`}
+                                  onMouseEnter={
+                                    ev.linkedEventId
+                                      ? () => setHoveredLinkedId(ev.linkedEventId ?? null)
+                                      : undefined
+                                  }
+                                  onMouseLeave={
+                                    ev.linkedEventId ? () => setHoveredLinkedId(null) : undefined
+                                  }
+                                >
                                   <div className={css.loggedMoveDirection}>
-                                    <b>{tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}</b>
+                                    <b>
+                                      {ev.linkedEventId ? (
+                                        <span
+                                          aria-label="Linked rotation"
+                                          title="Linked rotation — paired with partner event"
+                                          style={{ marginRight: 4 }}
+                                        >
+                                          {'\u{1F517}'}
+                                        </span>
+                                      ) : null}
+                                      {tag === 'out' ? 'Exit' : DIRECTION_LABEL[ev.direction]}
+                                    </b>
                                     <span>
                                       {formatLoggedDate(ev.date)}
                                       {' \u00b7 '}
@@ -805,6 +841,22 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
                     </span>
                   </div>
                   <div className={css.plannedActions}>
+                    {sid
+                      ? (() => {
+                          const structure = projectStructures.find((s) => s.id === sid);
+                          if (!structure) return null;
+                          return (
+                            <button
+                              type="button"
+                              className={css.plannedChip}
+                              onClick={() => startScheduledLivestockMove(structure, projectId, plan.id)}
+                              aria-label={`Edit planned move into ${structureLabel(sid)}`}
+                            >
+                              Edit
+                            </button>
+                          );
+                        })()
+                      : null}
                     <button
                       type="button"
                       className={`${css.plannedChip} ${css.plannedChipDismiss}`}
@@ -820,10 +872,33 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
             })}
             {structureEvents.map((ev) => {
               const sid = destStructureId(ev);
+              const linkedHi = isLinkedHighlight(ev);
               return (
-                <div key={ev.id} className={css.loggedMoveRow}>
+                <div
+                  key={ev.id}
+                  className={`${css.loggedMoveRow} ${linkedHi ? css.linkedPairHighlight : ''}`}
+                  onMouseEnter={
+                    ev.linkedEventId
+                      ? () => setHoveredLinkedId(ev.linkedEventId ?? null)
+                      : undefined
+                  }
+                  onMouseLeave={
+                    ev.linkedEventId ? () => setHoveredLinkedId(null) : undefined
+                  }
+                >
                   <div className={css.loggedMoveDirection}>
-                    <b>{DIRECTION_LABEL[ev.direction]}</b>
+                    <b>
+                      {ev.linkedEventId ? (
+                        <span
+                          aria-label="Linked rotation"
+                          title="Linked rotation — paired with partner event"
+                          style={{ marginRight: 4 }}
+                        >
+                          {'\u{1F517}'}
+                        </span>
+                      ) : null}
+                      {DIRECTION_LABEL[ev.direction]}
+                    </b>
                     <span>
                       {sid ? structureLabel(sid) : '(unknown)'}
                       {' \u00b7 '}

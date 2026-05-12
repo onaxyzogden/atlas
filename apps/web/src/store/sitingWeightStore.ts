@@ -73,6 +73,7 @@ export const useSitingWeightStore = create<SitingWeightState>()(
     {
       name: 'ogden-siting-weights',
       version: 1,
+      migrate: (persisted) => persisted as never,
       partialize: (state) => ({ weights: state.weights }),
     },
   ),

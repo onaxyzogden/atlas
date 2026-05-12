@@ -41,6 +41,7 @@ export const useFinancialStore = create<FinancialState>()(
     {
       name: 'ogden-financial',
       version: 1,
+      migrate: (persisted) => persisted as never,
       partialize: (state) => ({
         region: state.region,
         missionWeights: state.missionWeights,

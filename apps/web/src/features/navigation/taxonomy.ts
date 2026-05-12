@@ -294,11 +294,6 @@ export const NAV_ITEMS: NavItem[] = [
     panel: 'regulatory', mapSubItem: 'regulatory',
   },
   {
-    id: 'site-intelligence', label: 'Site Intelligence',
-    phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
-    panel: 'intelligence', mapSubItem: 'site-assessment',
-  },
-  {
     id: 'map-layers', label: 'Map Layers',
     phase: 'P1', domainGroup: 'site-overview', stage: 'S1', stage3: 'observe',
     panel: 'layers', mapSubItem: 'terrain-viz',

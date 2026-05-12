@@ -1,5 +1,5 @@
-/**
- * Closed-Loop Systems store — Scholar-aligned namespace consolidation
+﻿/**
+ * Closed-Loop Systems store â€” Scholar-aligned namespace consolidation
  * (plan few-concerns-shiny-quokka.md, ADR
  * 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md).
  *
@@ -13,14 +13,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
 
-// ── Waste-to-resource vectors ───────────────────────────────────────────────
+// â”€â”€ Waste-to-resource vectors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type WasteResourceType = 'organic_matter' | 'manure' | 'greywater' | 'compost';
 
 export interface WasteVector {
   id: string;
   projectId: string;
-  /** Existing feature ids (zone / structure / crop area) — free-form so we
+  /** Existing feature ids (zone / structure / crop area) â€” free-form so we
    *  can connect across stores without a hard FK. */
   fromFeatureId: string;
   toFeatureId: string;
@@ -29,7 +29,7 @@ export interface WasteVector {
   createdAt: string;
 }
 
-// ── Waste-vector runs (ACT-stage Module 2) ──────────────────────────────────
+// â”€â”€ Waste-vector runs (ACT-stage Module 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface WasteVectorRun {
   id: string;
@@ -40,7 +40,7 @@ export interface WasteVectorRun {
   notes?: string;
 }
 
-// ── Fertility infrastructure (point placements) ─────────────────────────────
+// â”€â”€ Fertility infrastructure (point placements) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Fertility-infrastructure node kinds. The four "structural" types
@@ -48,9 +48,9 @@ export interface WasteVectorRun {
  * set. Per Permaculture Scholar verdict 2026-05-07
  * (`wiki/decisions/2026-05-07-atlas-plan-soil-scholar-build-fresh.md`)
  * orthodox permaculture also frames soil fertility through three
- * vegetative/biological practices — cover-cropping, chop-and-drop,
+ * vegetative/biological practices â€” cover-cropping, chop-and-drop,
  * dynamic accumulators (comfrey, persimmon, deep-rooted mineral
- * cyclers) — and an animal-integration practice (rotational grazing).
+ * cyclers) â€” and an animal-integration practice (rotational grazing).
  * They join the union as additive members; legacy entries persist
  * unchanged with their original `composter | hugelkultur | biochar |
  * worm_bin` value, so no schema-version bump is required.
@@ -70,17 +70,17 @@ export interface FertilityInfra {
   projectId: string;
   type: FertilityInfraType;
   center: [number, number];
-  /** Optional capacity / scale note (e.g. "3 m³ pile"). */
+  /** Optional capacity / scale note (e.g. "3 mÂ³ pile"). */
   scaleNote?: string;
   notes?: string;
   /**
-   * PLAN-stage Module 9 — phaseStore phase id this fertility node belongs
+   * PLAN-stage Module 9 â€” phaseStore phase id this fertility node belongs
    * to. Optional; undefined = unassigned. Lets the Phasing dashboard
    * sequence soil-building infrastructure by build phase.
    */
   phase?: string;
   /**
-   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * PLAN-stage Multi-Enterprise â€” `enterpriseStore` enterprise id this
    * fertility unit belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
@@ -130,7 +130,7 @@ export const useClosedLoopStore = create<ClosedLoopState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-closed-loop', version: 1 },
+    { name: 'ogden-closed-loop', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

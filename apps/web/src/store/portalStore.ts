@@ -1,5 +1,5 @@
-/**
- * Portal store — public storytelling portal configuration per project.
+﻿/**
+ * Portal store â€” public storytelling portal configuration per project.
  * Zustand persist (localStorage) + backend sync via api.portal.
  */
 
@@ -62,11 +62,11 @@ export interface PortalConfig {
 interface PortalState {
   configs: PortalConfig[];
 
-  /** Returns a stable stored reference (`.find()` on `configs[]`) — SAFE to call
+  /** Returns a stable stored reference (`.find()` on `configs[]`) â€” SAFE to call
    *  inside a Zustand selector. */
   getConfig: (projectId: string) => PortalConfig | undefined;
   /** Returns a stable stored reference (`.find()` on `configs[]`, filtered to
-   *  `isPublished`) — SAFE to call inside a Zustand selector. */
+   *  `isPublished`) â€” SAFE to call inside a Zustand selector. */
   getBySlug: (slug: string) => PortalConfig | undefined;
   createConfig: (projectId: string, slug: string) => PortalConfig;
   updateConfig: (projectId: string, updates: Partial<PortalConfig>) => void;
@@ -91,7 +91,7 @@ let saveTimers: Record<string, ReturnType<typeof setTimeout>> = {};
 function debouncedSave(projectId: string, saveFn: () => Promise<void>) {
   if (saveTimers[projectId]) clearTimeout(saveTimers[projectId]);
   saveTimers[projectId] = setTimeout(() => {
-    saveFn().catch(() => { /* silent — localStorage is the fallback */ });
+    saveFn().catch(() => { /* silent â€” localStorage is the fallback */ });
   }, 500);
 }
 
@@ -175,7 +175,7 @@ export const usePortalStore = create<PortalState>()(
         debouncedSave(projectId, () => get().saveToBackend(projectId));
       },
 
-      // ── Backend sync ────────────────────────────────────────────────────
+      // â”€â”€ Backend sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
       saveToBackend: async (projectId) => {
         const config = get().getConfig(projectId);
@@ -206,7 +206,7 @@ export const usePortalStore = create<PortalState>()(
             }));
           }
         } catch {
-          // Silent — localStorage is the fallback
+          // Silent â€” localStorage is the fallback
         }
       },
 
@@ -228,7 +228,7 @@ export const usePortalStore = create<PortalState>()(
             ),
           }));
         } catch {
-          // No backend config — use local only
+          // No backend config â€” use local only
         }
       },
 
@@ -261,7 +261,7 @@ export const usePortalStore = create<PortalState>()(
         }
       },
     }),
-    { name: 'ogden-portal', version: 1 },
+    { name: 'ogden-portal', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

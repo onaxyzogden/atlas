@@ -15,7 +15,7 @@ import {
   type NetworkContact,
   type NetworkRole,
 } from '../../store/networkStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -74,7 +74,7 @@ export default function NetworkCrmCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 4 — Social Permaculture</span>
         <h1 className={styles.title}>Network CRM</h1>
         <p className={styles.lede}>

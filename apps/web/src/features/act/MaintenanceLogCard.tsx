@@ -21,7 +21,7 @@ import {
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -141,7 +141,7 @@ export default function MaintenanceLogCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Maintain — Event log</span>
         <h1 className={styles.title}>Maintenance Events</h1>
         <p className={styles.lede}>

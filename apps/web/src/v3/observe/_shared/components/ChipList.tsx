@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import styles from './ChipList.module.css';
 
 export type ChipItem =
   | string
   | {
       label: string;
-      tone?: string;
+      tone?: 'green' | 'gold' | 'orange';
       icon?: LucideIcon;
     };
 
@@ -13,9 +14,7 @@ interface ChipListProps {
   items: ChipItem[];
   className?: string;
   removable?: boolean;
-  /** When provided, clicking the × button on a chip calls this with its index. */
   onRemove?: (index: number) => void;
-  /** When provided, an inline "Add" affordance appears at the end of the list. */
   onAdd?: (value: string) => void;
   addPlaceholder?: string;
 }
@@ -45,14 +44,15 @@ export function ChipList({
   }
 
   return (
-    <div className={`chip-list ${className}`}>
+    <div className={`${styles.list} ${className}`}>
       {items.map((item, idx) => {
         const label = chipLabel(item);
         const tone = typeof item === 'string' ? undefined : item.tone;
         const Icon = typeof item === 'string' ? undefined : item.icon;
         const key = `${label}-${idx}`;
+        const toneClass = tone ? styles[tone] : '';
         return (
-          <span className={tone ? `chip ${tone}` : 'chip'} key={key}>
+          <span className={`${styles.chip} ${toneClass}`} key={key}>
             {Icon ? <Icon aria-hidden="true" /> : null}
             {label}
             {removable ? (
@@ -69,7 +69,7 @@ export function ChipList({
       })}
       {onAdd ? (
         adding ? (
-          <form onSubmit={commit} className="chip-add-form">
+          <form onSubmit={commit} className={styles.addForm}>
             <input
               autoFocus
               value={draft}
@@ -83,7 +83,7 @@ export function ChipList({
         ) : (
           <button
             type="button"
-            className="chip chip-add"
+            className={`${styles.chip} ${styles.chipAdd}`}
             onClick={() => setAdding(true)}
             aria-label={addPlaceholder}
           >

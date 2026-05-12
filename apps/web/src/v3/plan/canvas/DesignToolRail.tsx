@@ -27,14 +27,11 @@ import {
 } from 'lucide-react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import { useDesignElementsStore } from '../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../store/builtEnvironmentSelectors.js';
 import type { DesignElement } from '../../../store/designElementsStore.js';
+import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import css from './DesignToolRail.module.css';
-
-/** Stable empty-array reference: a fresh `[]` literal in the selector breaks
- *  Zustand's `useSyncExternalStore` snapshot caching and triggers
- *  "Maximum update depth exceeded" on projects with no design elements. */
-const EMPTY_ELEMENTS: DesignElement[] = [];
 
 interface Props {
   map: MaplibreMap;
@@ -102,10 +99,10 @@ export default function DesignToolRail({
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const railRef = useRef<HTMLDivElement>(null);
 
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
   const addElement = useDesignElementsStore((s) => s.add);
+  const setPlanSelection = usePlanSelectionStore((s) => s.set);
+  const clearPlanSelection = usePlanSelectionStore((s) => s.clear);
 
   const zoomIn = () => map.zoomIn();
   const zoomOut = () => map.zoomOut();
@@ -117,9 +114,21 @@ export default function DesignToolRail({
       const layerIds = DESIGN_QUERY_LAYERS.filter((id) => map.getLayer(id));
       if (layerIds.length === 0) return;
       const feats = map.queryRenderedFeatures(e.point, { layers: layerIds });
-      const id =
-        (feats[0]?.properties as { id?: string } | undefined)?.id ?? null;
+      const props = feats[0]?.properties as
+        | { id?: string; editable?: boolean }
+        | undefined;
+      const id = props?.id ?? null;
       setSelectedId(id);
+      // Mirror the selection into planSelectionStore so the shared
+      // PlanSelectionFloater appears with Edit-vertices / Delete actions.
+      // Only push when the feature is editable on the active view — a
+      // current-origin element rendered on a non-current view is
+      // read-only and shouldn't fire the edit floater.
+      if (id && props?.editable !== false) {
+        setPlanSelection([{ kind: 'design-element', id, projectId }]);
+      } else {
+        clearPlanSelection();
+      }
     };
     map.on('click', onClick);
     const prevCursor = map.getCanvas().style.cursor;
@@ -132,7 +141,7 @@ export default function DesignToolRail({
         /* map disposed */
       }
     };
-  }, [map, mode, setSelectedId]);
+  }, [map, mode, setSelectedId, setPlanSelection, clearPlanSelection, projectId]);
 
   // ── Layers panel: apply visibility to map layers ───────────────────────
   useEffect(() => {
@@ -176,6 +185,7 @@ export default function DesignToolRail({
   const handlePan = () => {
     setMode('pan');
     setSelectedId(null);
+    clearPlanSelection();
   };
   const handleSelect = () => setMode('select');
 

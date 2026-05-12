@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import css from './ArrivalSequenceDesignCard.module.css';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
 import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { haversineM } from '../../lib/geo.js';
 
 interface ArrivalSequenceDesignCardProps {
   projectId: string;
@@ -40,19 +41,6 @@ const TIER_TONE: Record<Tier, 'caution' | 'good' | 'info'> = {
   curated: 'good',
   crowded: 'caution',
 };
-
-function haversineM(a: [number, number], b: [number, number]): number {
-  const [lng1, lat1] = a;
-  const [lng2, lat2] = b;
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const s1 = Math.sin(dLat / 2);
-  const s2 = Math.sin(dLng / 2);
-  const c = s1 * s1 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * s2 * s2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(c)));
-}
 
 function minDistanceToPath(point: [number, number], path: DesignPath): number {
   const coords = path.geometry.coordinates as [number, number][];

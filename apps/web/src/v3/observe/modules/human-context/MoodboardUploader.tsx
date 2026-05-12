@@ -9,6 +9,7 @@
 import { useRef } from 'react';
 import { Plus, X } from 'lucide-react';
 import type { MoodboardImage } from '../../../../store/visionStore.js';
+import styles from './MoodboardUploader.module.css';
 
 interface MoodboardUploaderProps {
   images: MoodboardImage[];
@@ -74,14 +75,14 @@ export function MoodboardUploader({
   }
 
   return (
-    <div className="moodboard-uploader">
-      <div className="moodboard-grid">
+    <div className={styles.uploader}>
+      <div className={styles.grid}>
         {images.map((image) => (
-          <figure key={image.id} className="moodboard-tile">
+          <figure key={image.id} className={styles.tile}>
             <img src={image.dataUrl} alt={image.caption ?? 'Moodboard image'} />
             <button
               type="button"
-              className="moodboard-remove"
+              className={styles.remove}
               aria-label={`Remove ${image.caption ?? 'image'}`}
               onClick={() => onRemove(image.id)}
             >
@@ -91,7 +92,7 @@ export function MoodboardUploader({
         ))}
         <button
           type="button"
-          className="moodboard-add"
+          className={styles.add}
           onClick={() => inputRef.current?.click()}
         >
           <Plus aria-hidden="true" />
@@ -99,7 +100,7 @@ export function MoodboardUploader({
         </button>
       </div>
       {images.length === 0 ? (
-        <p className="moodboard-empty">
+        <p className={styles.empty}>
           No moodboard images yet — click "Add images" to upload references.
         </p>
       ) : null}

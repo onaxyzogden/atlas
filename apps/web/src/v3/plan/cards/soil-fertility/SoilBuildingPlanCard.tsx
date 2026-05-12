@@ -34,7 +34,7 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useSoilTestStore, type SoilTest } from '../../../../store/soilTestStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useClosedLoopStore, type FertilityInfraType } from '../../../../store/closedLoopStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -177,7 +177,7 @@ export default function SoilBuildingPlanCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 5 · Soil</span>
         <h1 className={styles.title}>Soil-building plan</h1>
         <p className={styles.lede}>

@@ -32,25 +32,16 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { HOLMGREN_PRINCIPLES } from '../../../../data/holmgrenPrinciples.js';
 import { usePrincipleCheckStore } from '../../../../store/principleCheckStore.js';
-import { useZoneStore } from '../../../../store/zoneStore.js';
-import { usePathStore } from '../../../../store/pathStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
-import { useTopographyStore } from '../../../../store/topographyStore.js';
-import { usePolycultureStore } from '../../../../store/polycultureStore.js';
-import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { useCropStore } from '../../../../store/cropStore.js';
-import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
-import { useEcologyStore } from '../../../../store/ecologyStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import {
+  usePrincipleEvidenceVisibleIds,
+  type FeatureKind,
+} from './usePrincipleEvidenceVisibleIds.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
-
-type FeatureKind =
-  | 'zone' | 'path' | 'structure' | 'transect' | 'guild' | 'earthwork'
-  | 'crop' | 'fertility' | 'ecology';
 
 const FEATURE_COLS: Array<{ key: FeatureKind; label: string }> = [
   { key: 'zone',       label: 'Zones' },
@@ -68,32 +59,15 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
   const byProject = usePrincipleCheckStore((s) => s.byProject);
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
-  const allZones = useZoneStore((s) => s.zones);
-  const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
-  const allTransects = useTopographyStore((s) => s.transects);
-  const allGuilds = usePolycultureStore((s) => s.guilds);
-  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
-  const allCrops = useCropStore((s) => s.cropAreas);
-  const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
-  const allEcology = useEcologyStore((s) => s.ecology);
-
-  // Build a fast id → kind map scoped to this project, so we can
-  // classify each linkedFeatureId without N×M scans.
-  const idToKind = useMemo(() => {
-    const m = new Map<string, FeatureKind>();
-    const pId = project.id;
-    for (const z of allZones)      if (z.projectId === pId) m.set(z.id, 'zone');
-    for (const p of allPaths)      if (p.projectId === pId) m.set(p.id, 'path');
-    for (const s of allStructures) if (s.projectId === pId) m.set(s.id, 'structure');
-    for (const t of allTransects)  if (t.projectId === pId) m.set(t.id, 'transect');
-    for (const g of allGuilds)     if (g.projectId === pId) m.set(g.id, 'guild');
-    for (const e of allEarthworks) if (e.projectId === pId) m.set(e.id, 'earthwork');
-    for (const c of allCrops)      if (c.projectId === pId) m.set(c.id, 'crop');
-    for (const f of allFertility)  if (f.projectId === pId) m.set(f.id, 'fertility');
-    for (const o of allEcology)    if (o.projectId === pId) m.set(o.id, 'ecology');
-    return m;
-  }, [project.id, allZones, allPaths, allStructures, allTransects, allGuilds, allEarthworks, allCrops, allFertility, allEcology]);
+  // id → kind map scoped to this project AND capped by the active Plan
+  // view. Phase-tagged features (water nodes/earthworks, paddocks,
+  // fertility infra) drop out on Year 1 / Year 5 views when their
+  // BuildPhase's `yeomansCap` exceeds the view cap. The matrix, radar,
+  // and uncovered/dominant signals are all readouts of "evidence
+  // visible at this view," not data-deletion — the steward's narrative
+  // (PrincipleCheck.linkedFeatureIds) is untouched. See
+  // wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const { idToKind } = usePrincipleEvidenceVisibleIds(project.id);
 
   // 12 × 6 matrix (principle id → feature kind → count of linked features)
   const matrix = useMemo(() => {
@@ -151,14 +125,16 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 8 · Principle Verification</span>
         <h1 className={styles.title}>Principle × feature coverage</h1>
         <p className={styles.lede}>
-          A 12 × 6 grid of which feature types you've cited as evidence for
+          A 12 × 9 grid of which feature types you've cited as evidence for
           each principle. Empty rows are an honest signal that the design
           isn't yet responding to that principle — exactly the feedback
-          loop principle 4 asks for.
+          loop principle 4 asks for. On Year 1 / Year 5 views the matrix
+          counts only evidence visible at that view, so the radar shrinks
+          honestly as the design earns its way up the Scale of Permanence.
         </p>
       </header>
 

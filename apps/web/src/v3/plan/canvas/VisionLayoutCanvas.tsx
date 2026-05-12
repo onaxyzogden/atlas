@@ -7,8 +7,9 @@
  *     ├ DesignElementLayers          — flat fill/line/circle/symbol layers
  *     ├ DesignElementExtrusionLayer  — fill-extrusion 3D fallback (always on;
  *     │                                 skips kinds rendered by GLB layer)
- *     ├ DesignElementGlbLayer        — three.js custom layer rendering authored
- *     │                                 GLB models per kind (always on)
+ *     ├ DeckOverlay                  — singleton @deck.gl/mapbox MapboxOverlay
+ *     │   └ DesignElementScenegraphLayer — deck.gl ScenegraphLayer rendering
+ *     │                                 authored GLB models per kind (always on)
  *     ├ Terrain3DController          — view==='terrain3d' camera preset
  *     │                                 (pitch + DEM); unmount restores flat
  *     ├ DesignToolRail               — right-edge floating tool column
@@ -25,18 +26,27 @@ import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
 import {
   DesignElementExtrusionLayer,
-  DesignElementGlbLayer,
+  DesignElementScenegraphLayer,
   Terrain3DController,
 } from '../../builtEnvironment/layers/index.js';
+import DeckOverlay from '../../_shared/deck/DeckOverlay.js';
 import DesignToolRail from './DesignToolRail.js';
 import BaseMapCard from './BaseMapCard.js';
+import CustomModelPalette from './CustomModelPalette.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
+import { useActiveElementKind } from './useToolIdToElementKind.js';
+import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
+import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
+import PlanDataLayers from '../layers/PlanDataLayers.js';
+import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
+import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
+import PlanSelectionFloater from '../PlanSelectionFloater.js';
 import type { PlanView } from '../types.js';
 
 interface Props {
@@ -44,10 +54,6 @@ interface Props {
   centroid: [number, number];
   boundary: GeoJSON.Polygon | undefined;
   view: PlanView;
-  /** Currently armed element kind (from the palette). */
-  activeKind: string | null;
-  /** Called once a draw completes so the palette can disarm. */
-  onDrawComplete: () => void;
 }
 
 interface DrawHostProps {
@@ -67,13 +73,26 @@ export default function VisionLayoutCanvas({
   centroid,
   boundary,
   view,
-  activeKind,
-  onDrawComplete,
 }: Props) {
-  // Remount the draw host when kind changes so the underlying useMapboxDrawTool
-  // tears down and re-initialises cleanly.
-  const [drawNonce] = useState(0);
-  void drawNonce;
+  // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
+  // Vision draw lifecycle mounts only when the mapped kind is non-null.
+  const activeKind = useActiveElementKind();
+  const activeTool = useMapToolStore((s) => s.activeTool);
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
+  const onDrawComplete = () => setActiveTool(null);
+
+  // BE-prefix dispatch (mirrors PlanDrawHost on the 2D Current canvas):
+  // tool ids of shape `plan.structures-subsystems.be.<kind>` mount
+  // BeV2ExistingTool with state='proposed', so BE placements work in
+  // vision / phase / terrain3d the same way they do on Current. The
+  // 3D layers (extrusion + scenegraph) read from the BE V2 store with
+  // default `stateFilter='all'`, so the placed entity renders
+  // immediately under pitch.
+  const PLAN_BE_PREFIX = 'plan.structures-subsystems.be.';
+  const beKind =
+    activeTool && activeTool.startsWith(PLAN_BE_PREFIX)
+      ? activeTool.slice(PLAN_BE_PREFIX.length)
+      : null;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -92,11 +111,12 @@ export default function VisionLayoutCanvas({
             projectId={projectId}
             view={view}
           />
-          <DesignElementGlbLayer
-            map={map}
-            projectId={projectId}
-            view={view}
-          />
+          <DeckOverlay map={map}>
+            <DesignElementScenegraphLayer
+              projectId={projectId}
+              view={view}
+            />
+          </DeckOverlay>
           {view === 'terrain3d' && <Terrain3DController map={map} />}
           <DesignToolRail
             map={map}
@@ -107,6 +127,7 @@ export default function VisionLayoutCanvas({
             setSelectedId={setSelectedId}
           />
           <BaseMapCard />
+          <CustomModelPalette />
           <MapToolbar
             map={map}
             projectId={projectId}
@@ -123,6 +144,17 @@ export default function VisionLayoutCanvas({
           <InlineFeaturePopover map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
+          {/* Plan-data layers in non-editable mode: paddocks / zones /
+              crops / fences / structures / setbacks / flows / transects
+              render, but drag-translate + inline-edit popovers are
+              suppressed. A separate lightweight selection handler
+              wires click-to-select + click-empty-to-clear, and
+              PlanVertexEditHandler keeps the floater's Edit-vertices
+              action working under 3D. */}
+          <PlanDataLayers map={map} projectId={projectId} editable={false} />
+          <Plan3DSelectionHandler map={map} />
+          <PlanVertexEditHandler map={map} />
+          <PlanSelectionFloater />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}
@@ -130,6 +162,15 @@ export default function VisionLayoutCanvas({
               projectId={projectId}
               kind={activeKind}
               onComplete={onDrawComplete}
+            />
+          )}
+          {beKind && (
+            <BeV2ExistingTool
+              key={`be-${beKind}`}
+              map={map}
+              projectId={projectId}
+              kind={beKind}
+              state="proposed"
             />
           )}
         </>

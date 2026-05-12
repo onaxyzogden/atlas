@@ -8,7 +8,6 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computeHydrologyMetrics, fmtGal, parseHydrologicGroup, HYDRO_DEFAULTS } from '../../lib/hydrologyMetrics.js';
 import MetricCard from './components/MetricCard.js';
-import NextBestActionsPanel from './NextBestActionsPanel.js';
 import { semantic } from '../../lib/tokens.js';
 import css from './DashboardMetrics.module.css';
 
@@ -34,13 +33,15 @@ interface LandCoverSummary { tree_canopy_pct?: number | string; }
 interface DashboardMetricsProps {
   section: string;
   project: LocalProject;
+  /** Retained for caller compatibility after the site-intelligence section
+   *  (sole consumer via NextBestActionsPanel) was retired. */
   onGenerateBrief?: () => void;
+  /** Retained for caller compatibility — see `onGenerateBrief`. */
   onSwitchToMap?: () => void;
 }
 
-export default function DashboardMetrics({ section, project, onGenerateBrief, onSwitchToMap }: DashboardMetricsProps) {
+export default function DashboardMetrics({ section, project }: DashboardMetricsProps) {
   const siteData = useSiteData(project.id);
-  const showNextActions = section === 'site-intelligence';
 
   const hydroCards = useMemo(() => {
     if (section !== 'hydrology-dashboard') return null;
@@ -239,24 +240,14 @@ export default function DashboardMetrics({ section, project, onGenerateBrief, on
 
   return (
     <aside className={css.sidebar}>
-      {showNextActions ? (
-        <NextBestActionsPanel
-          project={project}
-          onGenerateBrief={onGenerateBrief}
-          onSwitchToMap={onSwitchToMap}
-        />
-      ) : (
-        <>
-          <h3 className={css.title}>
-            {SECTION_TITLES[section] ?? 'Regenerative Metrics'}
-          </h3>
-          <div className={css.cards}>
-            {(activeCards ?? getMetricsForSection(section)).map((m, i) => (
-              <MetricCard key={i} {...m} />
-            ))}
-          </div>
-        </>
-      )}
+      <h3 className={css.title}>
+        {SECTION_TITLES[section] ?? 'Regenerative Metrics'}
+      </h3>
+      <div className={css.cards}>
+        {(activeCards ?? getMetricsForSection(section)).map((m, i) => (
+          <MetricCard key={i} {...m} />
+        ))}
+      </div>
 
       {/* Stewardship guidance card */}
       <div className={css.guidanceCard}>

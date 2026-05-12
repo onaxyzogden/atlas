@@ -1,25 +1,24 @@
 import { useMemo } from 'react';
 import {
-  ArrowRight,
   Beaker,
   Binoculars,
-  ChevronDown,
-  Download,
+  CheckCircle2,
   Droplet,
   FlaskConical,
   Leaf,
-  Plus,
   TriangleAlert,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import WaterBalanceBar from './WaterBalanceBar.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   hydrologyKpis,
   waterCounts,
@@ -56,295 +55,297 @@ export default function HydrologyDetail() {
   const wetlands = getWetlandsLayer(layers);
   const wc = waterCounts(earthworks, storage, watercourses);
 
+  const coveragePct = useMemo(() => {
+    const parts = [
+      wc.earthworks > 0 ? 1 : 0,
+      wc.storage > 0 ? 1 : 0,
+      wc.watercourses > 0 ? 1 : 0,
+      watershed != null ? 1 : 0,
+    ];
+    return Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
+  }, [wc.earthworks, wc.storage, wc.watercourses, watershed]);
+
+  interface RiskFlag {
+    icon: LucideIcon;
+    title: string;
+    note: string;
+    level: 'High' | 'Medium' | 'Low';
+  }
+  const risks: RiskFlag[] = [];
+  if (wc.earthworks === 0) {
+    risks.push({
+      icon: TriangleAlert,
+      title: 'No earthworks mapped',
+      note: 'Design swales and diversions to manage runoff.',
+      level: 'High',
+    });
+  }
+  if (wc.storage === 0) {
+    risks.push({
+      icon: TriangleAlert,
+      title: 'No water storage mapped',
+      note: 'Cisterns, ponds, or rain gardens not yet placed.',
+      level: 'Medium',
+    });
+  }
+  if (wetlands?.summary.flood_zone && wetlands.summary.flood_zone !== 'X') {
+    risks.push({
+      icon: TriangleAlert,
+      title: `Flood zone: ${wetlands.summary.flood_zone}`,
+      note: 'Site may be subject to flood risk. Review design with surveyor.',
+      level: 'High',
+    });
+  }
+  if (risks.length === 0) {
+    risks.push({
+      icon: Leaf,
+      title: 'No critical risk flags',
+      note: 'Continue monitoring and map additional features.',
+      level: 'Low',
+    });
+  }
+
+  const actions: Array<[string, string]> = [];
+  if (wc.earthworks === 0) actions.push(['Map earthworks (swales, drains)', 'High']);
+  if (wc.storage === 0) actions.push(['Place water storage features', 'High']);
+  if (wc.watercourses === 0) actions.push(['Trace watercourses', 'Medium']);
+  if (actions.length === 0) {
+    actions.push(['Deepen hydrology analysis', 'Medium']);
+    actions.push(['Establish riparian buffer', 'Medium']);
+  }
+
+  const synthArticles: Array<[LucideIcon, string, string]> = [
+    [
+      Leaf,
+      'Insights',
+      'Map watercourses and earthworks to build a full picture of site hydrology. Use the watershed layer to understand drainage patterns and capture opportunities.',
+    ],
+    [
+      Droplet,
+      'Design moves',
+      'Install contour swales along key drainage paths. Protect riparian corridor with a 20 m buffer. Design pond or cistern placement for water storage.',
+    ],
+    [
+      Waves,
+      'Next steps',
+      'Add roof catchment data via the Jar/Perc/Roof module to estimate annual harvest. Use keyline pattern to naturally disperse water.',
+    ],
+  ];
+
   return (
-    <div className="detail-page hydrology-detail-page">
-      <section className="hydrology-layout">
-        <div className="hydrology-main">
-          <HydrologyHeader />
-          <SurfaceCard className="hydrology-kpi-strip">
-            {kpis.map((item) => {
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Understand how water moves across your site. Analyze runoff, infiltration, drainage
+              patterns and harvesting opportunities to design with water, not against it.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={coveragePct} />
+            <span className={obsx.label}>Hydrology coverage</span>
+            <span className={obsx.value}>
+              {coveragePct >= 70 ? 'Strong' : coveragePct >= 30 ? 'Forming' : 'Sparse'}
+            </span>
+            <span className={obsx.note}>{wc.total} water features mapped</span>
+          </div>
+          {kpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {kpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Watershed &amp; coverage</h2>
+          <div className={obsx.kpiGrid}>
+            {kpis.slice(3).map((item) => {
               const Icon = ICON_MAP[item.iconKey];
               return (
-                <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
-                  <Icon aria-hidden="true" />
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <small>{item.note}</small>
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
                 </div>
               );
             })}
-          </SurfaceCard>
-          <section className="hydrology-content-grid">
-            <SurfaceCard className="hydrology-map-panel">
-              <header>
-                <h2>Site hydrology map</h2>
-                <button type="button">
-                  Flow visualization <ChevronDown aria-hidden="true" />
-                </button>
-              </header>
-              <div className="hydrology-map-wrap">
-                <WaterSystemsSnapshot
-                  boundary={project?.location?.boundary}
-                  caption={project?.name}
-                  width={320}
-                  height={220}
-                  overlays={['contours']}
-                  className="hydrology-detail-map"
-                  earthworks={earthworks}
-                  watercourses={watercourses}
-                  storageInfra={storage}
-                />
-              </div>
-            </SurfaceCard>
-            <div className="hydrology-analysis-column">
-              <SurfaceCard className="hydrology-small-panel hydrology-profile-panel">
-                <h2>
-                  Watershed profile <small>(primary flow path)</small>
-                </h2>
-                <dl className="watershed-stats-dl">
-                  <div>
-                    <dt>Flow direction</dt>
-                    <dd>{watershed?.summary.flow_direction ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Catchment area</dt>
-                    <dd>{watershed?.summary.catchment_area_ha != null ? `${watershed.summary.catchment_area_ha} ha` : '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Stream order</dt>
-                    <dd>{watershed?.summary.stream_order ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Nearest stream</dt>
-                    <dd>{watershed?.summary.nearest_stream_m != null ? `${watershed.summary.nearest_stream_m} m` : '—'}</dd>
-                  </div>
-                </dl>
-              </SurfaceCard>
-              <SurfaceCard className="hydrology-small-panel infiltration-panel">
-                <header>
-                  <h2>Hydrology &amp; coverage</h2>
-                  <button type="button">
-                    Details <ArrowRight aria-hidden="true" />
-                  </button>
-                </header>
-                <div className="infiltration-content">
-                  <dl>
-                    <div>
-                      <dt>Flood zone</dt>
-                      <dd>{wetlands?.summary.flood_zone ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Wetland cover</dt>
-                      <dd>{wetlands?.summary.wetland_pct != null ? `${wetlands.summary.wetland_pct}%` : '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Riparian buffer</dt>
-                      <dd>{wetlands?.summary.riparian_buffer_m != null ? `${wetlands.summary.riparian_buffer_m} m` : '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Regulated area</dt>
-                      <dd>{wetlands?.summary.regulated_area_pct != null ? `${wetlands.summary.regulated_area_pct}%` : '—'}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </SurfaceCard>
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Site hydrology map</h2>
+        <WaterSystemsSnapshot
+          boundary={project?.location?.boundary}
+          caption={project?.name}
+          width={320}
+          height={220}
+          overlays={['contours']}
+          earthworks={earthworks}
+          watercourses={watercourses}
+          storageInfra={storage}
+        />
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Watershed profile</h2>
+          <div className={card.statRow}>
+            <span>Flow direction</span>
+            <span>{watershed?.summary.flow_direction ?? '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Catchment area</span>
+            <span>
+              {watershed?.summary.catchment_area_ha != null
+                ? `${watershed.summary.catchment_area_ha} ha`
+                : '—'}
+            </span>
+          </div>
+          <div className={card.statRow}>
+            <span>Stream order</span>
+            <span>{watershed?.summary.stream_order ?? '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Nearest stream</span>
+            <span>
+              {watershed?.summary.nearest_stream_m != null
+                ? `${watershed.summary.nearest_stream_m} m`
+                : '—'}
+            </span>
+          </div>
+          <div className={card.statRow}>
+            <span>Watershed name</span>
+            <span>{watershed?.summary.watershed_name ?? '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>HUC code</span>
+            <span>{watershed?.summary.huc_code ?? '—'}</span>
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Wetlands &amp; coverage</h2>
+          <div className={card.statRow}>
+            <span>Flood zone</span>
+            <span>{wetlands?.summary.flood_zone ?? '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Wetland cover</span>
+            <span>
+              {wetlands?.summary.wetland_pct != null ? `${wetlands.summary.wetland_pct}%` : '—'}
+            </span>
+          </div>
+          <div className={card.statRow}>
+            <span>Riparian buffer</span>
+            <span>
+              {wetlands?.summary.riparian_buffer_m != null
+                ? `${wetlands.summary.riparian_buffer_m} m`
+                : '—'}
+            </span>
+          </div>
+          <div className={card.statRow}>
+            <span>Regulated area</span>
+            <span>
+              {wetlands?.summary.regulated_area_pct != null
+                ? `${wetlands.summary.regulated_area_pct}%`
+                : '—'}
+            </span>
+          </div>
+          <div className={card.statRow}>
+            <span>Earthworks mapped</span>
+            <span>{wc.earthworks}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Storage</span>
+            <span>{wc.storage}</span>
+          </div>
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Water capture estimate (roof catchment)</h2>
+        <WaterBalanceBar roofCatchment={null} variant="capture" />
+        <p className={card.hint}>
+          <TriangleAlert aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Add roof catchment data via the Jar/Perc/Roof module to estimate water harvest potential.
+        </p>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Risk flags</h2>
+        {risks.map((r) => {
+          const Icon = r.icon;
+          return (
+            <div key={r.title} className={card.statRow}>
+              <span>
+                <Icon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {r.title} <small style={{ opacity: 0.6 }}>· {r.note}</small>
+              </span>
+              <span
+                className={`${card.pill} ${
+                  r.level === 'High' ? card.pillFail : r.level === 'Medium' ? card.pillPartial : card.pillMet
+                }`}
+              >
+                {r.level}
+              </span>
             </div>
-          </section>
-          <section className="hydrology-bottom-grid">
-            <SurfaceCard className="hydrology-bottom-panel water-balance-panel">
-              <header>
-                <h2>
-                  Water capture estimate <small>(roof catchment)</small>
-                </h2>
-                <button type="button">
-                  Monthly <ChevronDown aria-hidden="true" />
-                </button>
-              </header>
-              <WaterBalanceBar roofCatchment={null} variant="capture" className="water-balance-image" />
-              <p className="warning-note">
-                <TriangleAlert aria-hidden="true" /> Add roof catchment data via the Jar/Perc/Roof module to estimate water harvest potential.
+          );
+        })}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Hydrology synthesis</h2>
+        <div className={obsx.synthesisGrid}>
+          {synthArticles.map(([Icon, title, text]) => (
+            <div key={title} className={obsx.synthesisBlock}>
+              <h3>{title}</h3>
+              <p>
+                <Icon aria-hidden="true" size={14} />
+                <span>{text}</span>
               </p>
-            </SurfaceCard>
-            <SurfaceCard className="hydrology-bottom-panel watershed-panel">
-              <header>
-                <h2>Watershed summary</h2>
-                <button type="button">
-                  Details <ArrowRight aria-hidden="true" />
-                </button>
-              </header>
-              <div className="watershed-content">
-                <dl>
-                  <div>
-                    <dt>Watershed name</dt>
-                    <dd>{watershed?.summary.watershed_name ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Catchment area</dt>
-                    <dd>{watershed?.summary.catchment_area_ha != null ? `${watershed.summary.catchment_area_ha} ha` : '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>HUC code</dt>
-                    <dd>{watershed?.summary.huc_code ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Earthworks mapped</dt>
-                    <dd>{wc.earthworks}</dd>
-                  </div>
-                  <div>
-                    <dt>Storage infrastructure</dt>
-                    <dd>{wc.storage}</dd>
-                  </div>
-                </dl>
-                <WaterSystemsSnapshot
-                  boundary={project?.location?.boundary}
-                  caption={project?.name}
-                  width={180}
-                  height={120}
-                  overlays={[]}
-                  className="flow-accumulation-image"
-                  earthworks={earthworks}
-                  watercourses={watercourses}
-                  storageInfra={storage}
-                />
-              </div>
-            </SurfaceCard>
-            <SurfaceCard className="hydrology-bottom-panel risk-flags-panel">
-              <h2>Risk flags</h2>
-              {wc.earthworks === 0 && (
-                <p>
-                  <TriangleAlert aria-hidden="true" />
-                  <b>
-                    No earthworks mapped
-                    <small>Design swales and diversions to manage runoff.</small>
-                  </b>
-                  <em>High</em>
-                </p>
-              )}
-              {wc.storage === 0 && (
-                <p>
-                  <TriangleAlert aria-hidden="true" />
-                  <b>
-                    No water storage mapped
-                    <small>Cisterns, ponds, or rain gardens not yet placed.</small>
-                  </b>
-                  <em>Medium</em>
-                </p>
-              )}
-              {wetlands?.summary.flood_zone && wetlands.summary.flood_zone !== 'X' && (
-                <p>
-                  <TriangleAlert aria-hidden="true" />
-                  <b>
-                    Flood zone: {wetlands.summary.flood_zone}
-                    <small>Site may be subject to flood risk. Review design with surveyor.</small>
-                  </b>
-                  <em>High</em>
-                </p>
-              )}
-              {wc.earthworks > 0 && wc.storage > 0 && (!wetlands?.summary.flood_zone || wetlands.summary.flood_zone === 'X') && (
-                <p>
-                  <Leaf aria-hidden="true" />
-                  <b>
-                    No critical risk flags
-                    <small>Continue monitoring and map additional features.</small>
-                  </b>
-                  <em>Low</em>
-                </p>
-              )}
-            </SurfaceCard>
-          </section>
+            </div>
+          ))}
         </div>
-        <HydrologySidebar wc={wc} />
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Recommended next actions</h2>
+        {actions.map(([label, priority]) => (
+          <div key={label} className={card.statRow}>
+            <span>
+              <CheckCircle2 aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {label}
+            </span>
+            <span
+              className={`${card.pill} ${
+                priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet
+              }`}
+            >
+              {priority}
+            </span>
+          </div>
+        ))}
       </section>
     </div>
-  );
-}
-
-function HydrologyHeader() {
-  return (
-    <header className="hydrology-header">
-      <div className="hydrology-title-row">
-        <Droplet aria-hidden="true" />
-        <div>
-          <h1>Hydrology detail</h1>
-          <p>
-            Understand how water moves across your site. Analyze runoff, infiltration, drainage
-            patterns and harvesting opportunities to design with water, not against it.
-          </p>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-interface SidebarProps {
-  wc: ReturnType<typeof waterCounts>;
-}
-
-function HydrologySidebar({ wc }: SidebarProps) {
-  const insights = [
-    'Map watercourses and earthworks to build a full picture of site hydrology.',
-    'Add roof catchment data via the Jar/Perc/Roof module to estimate annual water harvest.',
-    'Use the watershed layer to understand drainage patterns and capture opportunities.',
-    'Protect riparian zones and install earthworks to slow, spread, and sink water.',
-  ];
-  const recommendations = [
-    'Install contour swales along key drainage paths.',
-    'Protect riparian corridor with a 20 m buffer.',
-    'Design pond or cistern placement for water storage.',
-    'Use keyline pattern to naturally disperse water.',
-  ];
-
-  const actions: Array<[string, string, string]> = [];
-  if (wc.earthworks === 0) actions.push(['Map earthworks (swales, drains)', 'Trace existing features on the site map.', 'High']);
-  if (wc.storage === 0) actions.push(['Place water storage features', 'Add cisterns, ponds, or rain gardens.', 'High']);
-  if (wc.watercourses === 0) actions.push(['Trace watercourses', 'Map streams, creeks, and drainage lines.', 'Medium']);
-  if (actions.length === 0) {
-    actions.push(['Deepen hydrology analysis', 'Model water balance and infiltration rates.', 'Medium']);
-    actions.push(['Establish riparian buffer', 'Fence and revegetate with native species.', 'Medium']);
-  }
-
-  return (
-    <aside className="hydrology-sidebar">
-      <SurfaceCard className="hydrology-side-card insights">
-        <h2>Hydrology insights</h2>
-        {insights.map((item) => (
-          <p key={item}>
-            <Leaf aria-hidden="true" />
-            {item}
-          </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="hydrology-side-card recommendations">
-        <h2>Design recommendations</h2>
-        {recommendations.map((item) => (
-          <p key={item}>
-            <Droplet aria-hidden="true" />
-            {item}
-            <ArrowRight aria-hidden="true" />
-          </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="hydrology-side-card hydrology-actions">
-        <h2>Recommended actions</h2>
-        {actions.map(([title, note, level], index) => (
-          <p key={title}>
-            <b>{index + 1}</b>
-            <span>
-              {title}
-              <small>{note}</small>
-            </span>
-            <em>{level}</em>
-          </p>
-        ))}
-        <button className="green-button" type="button">
-          <Plus aria-hidden="true" /> Add to design plan
-        </button>
-      </SurfaceCard>
-      <SurfaceCard className="hydrology-export-card">
-        <button type="button">
-          <Download aria-hidden="true" /> Export hydrology data <ChevronDown aria-hidden="true" />
-        </button>
-      </SurfaceCard>
-    </aside>
   );
 }

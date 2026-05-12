@@ -28,7 +28,11 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import { useSectorStore } from '../../../../store/sectorStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import {
+  useExternalForcesStore,
+  type SectorType,
+} from '../../../../store/externalForcesStore.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -73,8 +77,8 @@ function parseCompass(s: string | null | undefined): Compass | null {
 }
 
 interface SectorPoly {
-  /** Compass center direction. */
-  dir: Compass;
+  /** Bearing in degrees from N (0 = N, 90 = E). */
+  bearingDeg: number;
   /** Half-width of the wedge in degrees. */
   halfWidth: number;
   /** Visual fill colour. */
@@ -83,7 +87,23 @@ interface SectorPoly {
   stroke: string;
   /** Label drawn on the wedge. */
   label: string;
+  /** Observe-sourced wedges render with a dashed stroke — read-only ref. */
+  dashed?: boolean;
 }
+
+/** Type-specific palette for Observe-authored sector arrows. Mirrors the
+ *  hand-tuned hues already used for the Plan compass entries (fire = red,
+ *  view = gold, noise = violet) and extends with new ones for sun / wildlife. */
+const OBSERVE_SECTOR_STYLE: Record<SectorType, { fill: string; stroke: string; label: string }> = {
+  sun_summer:      { fill: 'rgba(240,170,80,0.22)',  stroke: 'rgba(240,170,80,0.85)',  label: 'sun (summer)' },
+  sun_winter:      { fill: 'rgba(220,140,60,0.20)',  stroke: 'rgba(220,140,60,0.80)',  label: 'sun (winter)' },
+  wind_prevailing: { fill: 'rgba(120,180,210,0.22)', stroke: 'rgba(120,180,210,0.85)', label: 'wind' },
+  wind_storm:      { fill: 'rgba(90,130,200,0.22)',  stroke: 'rgba(90,130,200,0.85)',  label: 'storm wind' },
+  fire:            { fill: 'rgba(220,90,60,0.22)',   stroke: 'rgba(220,90,60,0.85)',   label: 'fire' },
+  noise:           { fill: 'rgba(160,140,200,0.20)', stroke: 'rgba(180,160,220,0.80)', label: 'noise' },
+  wildlife:        { fill: 'rgba(120,180,120,0.22)', stroke: 'rgba(140,200,140,0.85)', label: 'wildlife' },
+  view:            { fill: 'rgba(200,180,90,0.20)',  stroke: 'rgba(220,200,110,0.85)', label: 'view' },
+};
 
 /** Render a wedge as an SVG `<path>` `d` string. cx/cy = compass centre,
  *  r = outer radius. Bearing 0 = N (up); SVG y-down. */
@@ -143,10 +163,19 @@ export default function SectorOverlayCard({ project }: Props) {
   const cy = H / 2;
   const R = 150;
 
+  // Observe-authored sector arrows for this project — read-only reference.
+  // Drawing remains in Observe; here we only render so the steward can reason
+  // about zone polygons against the sectors they already mapped.
+  const observeSectors = useExternalForcesStore((s) => s.sectors);
+  const projectObserveSectors = useMemo(
+    () => observeSectors.filter((s) => s.projectId === project.id),
+    [observeSectors, project.id],
+  );
+
   const sectors: SectorPoly[] = [];
   if (windDir) {
     sectors.push({
-      dir: windDir,
+      bearingDeg: BEARING[windDir],
       halfWidth: 22.5,
       fill: 'rgba(120,180,210,0.28)',
       stroke: 'rgba(120,180,210,0.85)',
@@ -155,7 +184,7 @@ export default function SectorOverlayCard({ project }: Props) {
   }
   if (downslope) {
     sectors.push({
-      dir: downslope,
+      bearingDeg: BEARING[downslope],
       halfWidth: 18,
       fill: 'rgba(80,140,180,0.22)',
       stroke: 'rgba(80,140,180,0.7)',
@@ -164,7 +193,7 @@ export default function SectorOverlayCard({ project }: Props) {
   }
   if (fireDir) {
     sectors.push({
-      dir: fireDir,
+      bearingDeg: BEARING[fireDir],
       halfWidth: fireHalf,
       fill: 'rgba(220,90,60,0.28)',
       stroke: 'rgba(220,90,60,0.85)',
@@ -173,7 +202,7 @@ export default function SectorOverlayCard({ project }: Props) {
   }
   if (viewDir) {
     sectors.push({
-      dir: viewDir,
+      bearingDeg: BEARING[viewDir],
       halfWidth: viewHalf,
       fill: 'rgba(200,180,90,0.22)',
       stroke: 'rgba(220,200,110,0.85)',
@@ -182,11 +211,24 @@ export default function SectorOverlayCard({ project }: Props) {
   }
   if (noiseDir) {
     sectors.push({
-      dir: noiseDir,
+      bearingDeg: BEARING[noiseDir],
       halfWidth: noiseHalf,
       fill: 'rgba(160,140,200,0.22)',
       stroke: 'rgba(180,160,220,0.8)',
       label: `noise ← ${noiseDir}`,
+    });
+  }
+  // Observe-authored arrows render last so their dashed stroke sits on top
+  // of any Plan compass wedges sharing the same bearing.
+  for (const s of projectObserveSectors) {
+    const style = OBSERVE_SECTOR_STYLE[s.type];
+    sectors.push({
+      bearingDeg: s.bearingDeg,
+      halfWidth: Math.max(2.5, s.arcDeg / 2),
+      fill: style.fill,
+      stroke: style.stroke,
+      label: `${style.label} ·obs`,
+      dashed: true,
     });
   }
 
@@ -283,7 +325,7 @@ export default function SectorOverlayCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 3 · Zones</span>
         <h1 className={styles.title}>Sector overlay</h1>
         <p className={styles.lede}>
@@ -292,7 +334,9 @@ export default function SectorOverlayCard({ project }: Props) {
           home centre by visit-frequency). Wind comes from the climate layer
           when fetched; the downslope arrow tracks the elevation aspect.
           Fire / view / noise are editable below: tap a compass direction to
-          toggle. Mollison ch.3 + OSU PDC Week 2.
+          toggle. Sector arrows authored in Observe (`sectors-zones` module)
+          render here as dashed wedges — read-only reference, edit them on
+          the Observe stage. Mollison ch.3 + OSU PDC Week 2.
         </p>
       </header>
 
@@ -348,22 +392,23 @@ export default function SectorOverlayCard({ project }: Props) {
           <text x={cx - R - 12} y={cy + 4} fontSize={11} textAnchor="middle"
             fill="rgba(232,220,200,0.8)">W</text>
           {/* sectors */}
-          {sectors.map((s) => (
+          {sectors.map((s, i) => (
             <path
-              key={s.label}
-              d={wedgePath(cx, cy, R, BEARING[s.dir], s.halfWidth)}
+              key={`${s.label}-${i}`}
+              d={wedgePath(cx, cy, R, s.bearingDeg, s.halfWidth)}
               fill={s.fill}
               stroke={s.stroke}
               strokeWidth={1}
+              strokeDasharray={s.dashed ? '4 3' : undefined}
             />
           ))}
           {/* sector labels — placed at radius * 0.7 in their bearing */}
-          {sectors.map((s) => {
-            const t = (BEARING[s.dir] * Math.PI) / 180;
+          {sectors.map((s, i) => {
+            const t = (s.bearingDeg * Math.PI) / 180;
             const lx = cx + Math.sin(t) * R * 0.7;
             const ly = cy - Math.cos(t) * R * 0.7;
             return (
-              <text key={`${s.label}-lbl`}
+              <text key={`${s.label}-${i}-lbl`}
                 x={lx} y={ly}
                 fontSize={10}
                 textAnchor="middle"
@@ -392,6 +437,14 @@ export default function SectorOverlayCard({ project }: Props) {
             {elev?.predominant_aspect
               ? `${elev.predominant_aspect}${downslope ? ` → ${downslope}` : ''}`
               : 'not fetched'}
+          </span>
+        </div>
+        <div className={styles.statRow}>
+          <span>Observe sectors (read-only)</span>
+          <span>
+            {projectObserveSectors.length > 0
+              ? `${projectObserveSectors.length} authored — edit in Observe › sectors-zones`
+              : 'none authored — draw arrows in Observe › sectors-zones'}
           </span>
         </div>
       </section>

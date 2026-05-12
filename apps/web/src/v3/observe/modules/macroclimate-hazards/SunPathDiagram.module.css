@@ -1,0 +1,35 @@
+.diagram {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.diagram.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  color: var(--color-panel-muted);
+}
+
+.diagram .horizonLine {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1;
+}
+
+.diagram .sunArc {
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.diagram .sunArc.summer { stroke: #d7a236; }
+.diagram .sunArc.equinox { stroke: var(--color-sage-600); }
+.diagram .sunArc.winter { stroke: #6c7a89; }
+
+.diagram .sunLabel,
+.diagram .sunAxis {
+  font-size: 10px;
+  fill: var(--color-panel-muted);
+}

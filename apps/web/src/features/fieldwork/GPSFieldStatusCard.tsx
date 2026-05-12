@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useFieldworkStore } from '../../store/fieldworkStore.js';
 import { useConnectivityStore } from '../../store/connectivityStore.js';
+import { haversineM } from '../../lib/geo.js';
 import css from './GPSFieldStatusCard.module.css';
 
 interface GPSFieldStatusCardProps {
@@ -37,17 +38,6 @@ interface Fix {
 type Permission = 'unsupported' | 'idle' | 'requesting' | 'tracking' | 'denied' | 'error';
 
 const NEAR_RADIUS_M = 50;
-
-function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
-}
 
 function centerFromBoundary(geojson: unknown): { lat: number; lng: number } | null {
   if (!geojson || typeof geojson !== 'object') return null;
@@ -122,7 +112,8 @@ function distanceToBoundaryM(lat: number, lng: number, rings: [number, number][]
   for (const ring of rings) {
     for (const pt of ring) {
       if (!pt) continue;
-      const d = haversineM(lat, lng, pt[1], pt[0]);
+      // pt is [lng, lat] (GeoJSON), call site lat/lng are scalars.
+      const d = haversineM([lng, lat], [pt[0], pt[1]]);
       if (d < best) best = d;
     }
   }
@@ -214,7 +205,7 @@ export default function GPSFieldStatusCard({ project }: GPSFieldStatusCardProps)
 
   const distFromCenterM = useMemo(() => {
     if (!fix || !center) return null;
-    return haversineM(fix.lat, fix.lng, center.lat, center.lng);
+    return haversineM([fix.lng, fix.lat], [center.lng, center.lat]);
   }, [fix, center]);
 
   const insideParcel = useMemo(() => {
@@ -232,7 +223,8 @@ export default function GPSFieldStatusCard({ project }: GPSFieldStatusCardProps)
     return projectEntries
       .map((e) => ({
         entry: e,
-        distM: haversineM(fix.lat, fix.lng, e.location[1], e.location[0]),
+        // e.location is [lng, lat] (GeoJSON convention)
+        distM: haversineM([fix.lng, fix.lat], e.location as [number, number]),
       }))
       .filter((x) => x.distM <= NEAR_RADIUS_M)
       .sort((a, b) => a.distM - b.distM);

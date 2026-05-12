@@ -22,11 +22,22 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
-import { ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { api } from '../../../../lib/apiClient.js';
-import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import {
+  useBuildingsForProject,
+  useWellsForProject,
+  useSepticsForProject,
+  usePowerLinesForProject,
+  useBuriedUtilitiesForProject,
+  useFencesForProject,
+  useGatesForProject,
+  useExistingDrivewaysForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   builtEnvironmentKpis,
   builtEnvironmentV2CategoryKpis,
@@ -49,7 +60,6 @@ const ICON_MAP: Record<BuiltKpiItem['iconKey'], LucideIcon> = {
   fence: Fence,
   'door-open': DoorOpen,
   route: Route,
-  // Phase 5.4: V2 category cards
   tent: Tent,
   sprout: Sprout,
   truck: Truck,
@@ -61,47 +71,18 @@ export default function BuiltEnvironmentDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
 
-  const allBuildings = useBuiltEnvironmentStore((s) => s.buildings);
-  const allWells = useBuiltEnvironmentStore((s) => s.wells);
-  const allSeptics = useBuiltEnvironmentStore((s) => s.septics);
-  const allPowerLines = useBuiltEnvironmentStore((s) => s.powerLines);
-  const allBuriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
-  const allFences = useBuiltEnvironmentStore((s) => s.fences);
-  const allGates = useBuiltEnvironmentStore((s) => s.gates);
-  const allDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
-
-  const buildings = useMemo(
-    () => allBuildings.filter((b) => b.projectId === id),
-    [allBuildings, id],
-  );
-  const wells = useMemo(
-    () => allWells.filter((w) => w.projectId === id),
-    [allWells, id],
-  );
-  const septics = useMemo(
-    () => allSeptics.filter((sp) => sp.projectId === id),
-    [allSeptics, id],
-  );
-  const powerLines = useMemo(
-    () => allPowerLines.filter((p) => p.projectId === id),
-    [allPowerLines, id],
-  );
-  const buriedUtilities = useMemo(
-    () => allBuriedUtilities.filter((u) => u.projectId === id),
-    [allBuriedUtilities, id],
-  );
-  const fences = useMemo(
-    () => allFences.filter((f) => f.projectId === id),
-    [allFences, id],
-  );
-  const gates = useMemo(
-    () => allGates.filter((g) => g.projectId === id),
-    [allGates, id],
-  );
-  const existingDriveways = useMemo(
-    () => allDriveways.filter((d) => d.projectId === id),
-    [allDriveways, id],
-  );
+  // Phase 6.B: read built-environment slices direct from V2 via the typed
+  // selector hooks. Each hook subscribes to V2 `entities`, applies the
+  // shared projection, filters by project, and memoizes so identity is
+  // stable when nothing in this project's slice changed.
+  const buildings = useBuildingsForProject(id);
+  const wells = useWellsForProject(id);
+  const septics = useSepticsForProject(id);
+  const powerLines = usePowerLinesForProject(id);
+  const buriedUtilities = useBuriedUtilitiesForProject(id);
+  const fences = useFencesForProject(id);
+  const gates = useGatesForProject(id);
+  const existingDriveways = useExistingDrivewaysForProject(id);
 
   const args = {
     buildings,
@@ -115,16 +96,24 @@ export default function BuiltEnvironmentDashboard() {
   };
   const counts = featureCounts(args);
   const kpis = builtEnvironmentKpis(args);
-  // Phase 5.4: V2 category KPI strip — appended after the legacy 8 cards.
-  // Module-health gauge intentionally stays gated on the legacy 8 to keep
-  // pre-/post-5.4 health snapshots comparable; revisit when the V2 kinds
-  // graduate from informational to first-class health inputs.
   const v2Entities = useBuiltEnvironmentStoreV2((s) => s.entities);
   const v2Kpis = useMemo(
     () => builtEnvironmentV2CategoryKpis({ entities: v2Entities, projectId: id }),
     [v2Entities, id],
   );
-  const healthPct = moduleHealthPct(counts);
+  // Phase 5.4: feed V2 entity totals into the health bar so a project that
+  // has only V2-class entities (no legacy buildings / wells / etc.) still
+  // moves the dial. `kindsPresent` is the count of distinct registry
+  // categories occupied — keeps the per-slot weight comparable to the
+  // legacy 8-slot calc (which weights each of its 8 slots by 4 points).
+  const v2CountsByCategory = useMemo(
+    () => builtV2Counts(v2Entities, id),
+    [v2Entities, id],
+  );
+  const healthPct = moduleHealthPct(counts, {
+    entityCount: v2CountsByCategory.total,
+    kindsPresent: Object.keys(v2CountsByCategory.byCategory).length,
+  });
 
   const overheadPower = powerLines.filter((p) => p.placement === 'overhead');
   const utilityKm = totalLengthM(powerLines) + totalLengthM(buriedUtilities);
@@ -214,9 +203,6 @@ export default function BuiltEnvironmentDashboard() {
               gates: counts.gates,
               existingDriveways: counts.existingDriveways,
             },
-            // Phase 5.4: V2 entities + counts appended alongside the legacy
-            // 8 buckets (which stay byte-for-byte identical for backward
-            // compatibility with downstream report consumers).
             v2Entities: builtV2EntitiesForExport(v2Entities, id),
             v2: builtV2Counts(v2Entities, id),
             totals: {
@@ -247,11 +233,6 @@ export default function BuiltEnvironmentDashboard() {
       : `${counts.total} asset${counts.total === 1 ? '' : 's'} traced; ${formatLength(
           utilityKm,
         )} of utilities and ${formatLength(accessKm)} of access infrastructure mapped.`;
-
-  const synthesisHeadline =
-    counts.total === 0
-      ? 'Built environment synthesis pending'
-      : `${counts.total} on-site asset${counts.total === 1 ? '' : 's'} shape what's possible.`;
 
   const synthArticles: Array<[LucideIcon, string, string]> = [
     [
@@ -286,7 +267,7 @@ export default function BuiltEnvironmentDashboard() {
     implications.push([
       ShieldAlert,
       'Buried lines mapped',
-      `${buriedUtilities.length} run${buriedUtilities.length === 1 ? '' : 's'} — vetoes earthworks across them; show on Plan layer.`,
+      `${buriedUtilities.length} run${buriedUtilities.length === 1 ? '' : 's'} — vetoes earthworks across them.`,
     ]);
   }
   if (overheadPower.length > 0) {
@@ -341,138 +322,147 @@ export default function BuiltEnvironmentDashboard() {
     [counts.gates === 0 ? 'Drop gate pins' : 'Confirm gate access widths', 'Low'],
   ];
 
+  const allKpis = [...kpis, ...v2Kpis];
+
   return (
-    <div className="detail-page built-environment-page">
-      <section className="built-environment-layout">
-        <div className="built-environment-main">
-          <header className="built-environment-header">
-            <div className="module-title-row">
-              <b>2</b>
-              <div>
-                <h1>Built Environment</h1>
-                <p>
-                  Existing buildings, utilities, and access infrastructure shape what design
-                  moves are even possible. Trace what&apos;s there before you plan what&apos;s
-                  next.
-                </p>
-              </div>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Existing buildings, utilities, and access infrastructure shape what design
+              moves are even possible. Trace what&apos;s there before you plan what&apos;s
+              next.
+            </p>
+            <div className={card.btnRow}>
               <button
                 type="button"
-                className="built-environment-export-btn"
+                className={card.btn}
                 onClick={handleExport}
                 disabled={exporting}
               >
-                <Download aria-hidden="true" />{' '}
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                 {exporting ? 'Generating…' : 'Export built-environment report'}
               </button>
             </div>
-          </header>
+          </div>
+        </div>
+      </div>
 
-          <section className="built-environment-metric-grid">
-            {[...kpis, ...v2Kpis].map((item) => {
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={healthPct} />
+            <span className={obsx.label}>Module health</span>
+            <span className={obsx.value}>{healthLabel(healthPct)}</span>
+            <span className={obsx.note}>{counts.total} assets traced</span>
+          </div>
+          {allKpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {allKpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Asset categories</h2>
+          <div className={obsx.kpiGrid}>
+            {allKpis.slice(3).map((item) => {
               const Icon = ICON_MAP[item.iconKey];
               return (
-                <SurfaceCard
-                  key={item.label}
-                  className={`built-environment-metric-card tone-${item.tone}`}
-                >
-                  <Icon aria-hidden="true" />
-                  <div>
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                    {item.pill ? <em>{item.pill}</em> : null}
-                  </div>
-                  <p>{item.note}</p>
-                </SurfaceCard>
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
               );
             })}
-          </section>
+          </div>
+        </section>
+      ) : null}
 
-          <SurfaceCard className="built-environment-synthesis">
-            <div className="built-environment-synthesis-copy">
-              <span>Built environment synthesis</span>
-              <h2>{synthesisHeadline}</h2>
-              <p>{synopsis}</p>
-            </div>
-            {synthArticles.map(([Icon, title, text]) => (
-              <article key={title}>
-                <Icon aria-hidden="true" />
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
-            ))}
-          </SurfaceCard>
-
-          <AnnotationListCard
-            title="Field annotations"
-            projectId={projectId ?? null}
-            kinds={[
-              'building',
-              'well',
-              'septic',
-              'powerLine',
-              'buriedUtility',
-              'fence',
-              'gate',
-              'existingDriveway',
-            ]}
-            emptyHint="No buildings, utilities, or fences yet — trace one with the tools panel."
-          />
-        </div>
-
-        <aside className="built-environment-sidebar">
-          <SurfaceCard className="built-environment-side-card implications">
-            <h2>Design implications</h2>
-            {implications.map(([Icon, title, text]) => (
-              <p key={title}>
-                <Icon aria-hidden="true" />
-                <b>{title}</b>
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Built environment synthesis</h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>{synopsis}</p>
+        <div className={obsx.synthesisGrid}>
+          {synthArticles.map(([Icon, title, text]) => (
+            <div key={title} className={obsx.synthesisBlock}>
+              <h3>{title}</h3>
+              <p>
+                <Icon aria-hidden="true" size={14} />
                 <span>{text}</span>
               </p>
-            ))}
-          </SurfaceCard>
+            </div>
+          ))}
+        </div>
+      </section>
 
-          <SurfaceCard className="built-environment-side-card feature-list">
-            <h2>
-              Detected built features <b>{counts.total}</b>
-            </h2>
-            {features.map(([label, value]) => (
-              <p key={label}>
-                <MapIcon aria-hidden="true" />
-                <span>{label}</span>
-                <b>{value}</b>
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Design implications</h2>
+          <div className={obsx.synthesisBlock}>
+            {implications.map(([Icon, title, text]) => (
+              <p key={title}>
+                <Icon aria-hidden="true" size={14} />
+                <span><b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}</span>
               </p>
             ))}
-          </SurfaceCard>
+          </div>
+        </section>
 
-          <SurfaceCard className="built-environment-side-card actions-list">
-            <h2>Recommended next actions</h2>
-            {actions.map(([label, priority]) => (
-              <p key={label}>
-                <CheckCircle2 aria-hidden="true" />
-                <span>{label}</span>
-                <em>{priority}</em>
-              </p>
-            ))}
-          </SurfaceCard>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            Detected built features <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{counts.total}</span>
+          </h2>
+          {features.map(([label, value]) => (
+            <div key={label} className={card.statRow}>
+              <span><MapIcon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {label}</span>
+              <span>{value}</span>
+            </div>
+          ))}
+        </section>
+      </div>
 
-          <SurfaceCard className="built-environment-health-card">
-            <h2>
-              Module health <strong>{healthLabel(healthPct)}</strong>
-            </h2>
-            <i>
-              <b />
-            </i>
-            <p>
-              {healthPct >= 70
-                ? 'Built-environment captured. Ready to feed Plan-stage decisions.'
-                : healthPct >= 40
-                  ? 'Some assets traced. Add more kinds to deepen the picture.'
-                  : 'Trace buildings, wells, and utilities to start a base inventory.'}
-            </p>
-            <ProgressRing value={healthPct} label={`${healthPct}%`} />
-          </SurfaceCard>
-        </aside>
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Recommended next actions</h2>
+        {actions.map(([label, priority]) => (
+          <div key={label} className={card.statRow}>
+            <span><CheckCircle2 aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {label}</span>
+            <span className={`${card.pill} ${priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet}`}>{priority}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Field annotations</h2>
+        <AnnotationListCard
+          title=""
+          projectId={projectId ?? null}
+          kinds={[
+            'building',
+            'well',
+            'septic',
+            'powerLine',
+            'buriedUtility',
+            'fence',
+            'gate',
+            'existingDriveway',
+          ]}
+          emptyHint="No buildings, utilities, or fences yet — trace one with the tools panel."
+        />
       </section>
     </div>
   );

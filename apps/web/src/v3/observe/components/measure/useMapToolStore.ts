@@ -87,19 +87,22 @@ export type MapToolId =
   | 'observe.swot-synthesis.weakness'
   | 'observe.swot-synthesis.opportunity'
   | 'observe.swot-synthesis.threat'
-  // Plan Module 2 — Water Management (directed-graph nodes)
-  | 'plan.water-management.catchment'
-  | 'plan.water-management.storage'
-  | 'plan.water-management.swale'
-  | 'plan.water-management.sink'
-  // Plan Module 3 — Zone & Circulation
-  | 'plan.zone-circulation.zone'
-  | 'plan.zone-circulation.path'
-  // Plan Module 3 — Zone & Circulation (buffer rings, Tier B / B2)
-  | 'plan.zone-circulation.buffer-ring'
-  // Plan Module 5 — Plant Systems & Polyculture
-  | 'plan.plant-systems.crop-area'
-  | 'plan.plant-systems.guild'
+  // Plan Module 2 — Water Management. Template-literal so kinds ported
+  // from elementCatalog (spring, 2026-05-11) flow through without growing
+  // the union. Existing per-domain ids: catchment, storage, swale, sink.
+  | `plan.water-management.${string}`
+  // Plan Module 3 — Zone & Circulation. Template-literal: zone, path,
+  // buffer-ring (Tier B / B2), plus elementCatalog ports (road, bridge).
+  | `plan.zone-circulation.${string}`
+  // Plan Module — Machinery & Equipment (turnaround ported 2026-05-11
+  // from elementCatalog; machinery-shed/equipment-yard/fuel-station live
+  // under structures-subsystems via the BE registry).
+  | `plan.machinery.${string}`
+  // Plan Module 5 — Plant Systems & Polyculture. Template-literal type so
+  // new plant-system polygon tools (orchard / silvopasture / pasture-mix
+  // ported from elementCatalog 2026-05-11, plus any future kinds) flow
+  // through without growing the union. Mirrors the BE prefix below.
+  | `plan.plant-systems.${string}`
   // Plan Module 6 — Soil Fertility & Closed-Loop
   | 'plan.soil-fertility.fertility-unit'
   // Plan Module 6 — Soil Fertility (flow connectors, Tier B / B3)
@@ -114,6 +117,10 @@ export type MapToolId =
   | 'plan.livestock.slaughter-point'
   | 'plan.livestock.cold-chain-unit'
   | 'plan.livestock.market-node'
+  // Plan Module 4 — Livestock > Schedule move (in-card create flow for
+  //  `ScheduledLivestockMove` plans; mirrors the Act-stage `LivestockMoveTool`
+  //  but writes to `scheduledLivestockMoveStore`)
+  | 'plan.livestock.schedule-move'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)

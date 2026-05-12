@@ -1,6 +1,7 @@
 import { Droplet, Flame, Snowflake, TriangleAlert, Wind, type LucideIcon } from 'lucide-react';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import type { Hazard, HazardKind } from '../../../../store/hazardsStore.js';
+import styles from './HazardHotspotsMap.module.css';
 
 const KIND_ICON: Record<HazardKind, LucideIcon> = {
   frost: Snowflake,
@@ -33,7 +34,7 @@ export default function HazardHotspotsMap({
   const located = hazards.filter((h) => h.lat != null && h.lng != null);
 
   return (
-    <div className={`hazard-hotspots-map ${className ?? ''}`} style={{ width, height }}>
+    <div className={`${styles.map} ${className ?? ''}`} style={{ width, height }}>
       <ParcelSatelliteSnapshot
         boundary={boundary}
         caption={caption}
@@ -41,18 +42,18 @@ export default function HazardHotspotsMap({
         height={height}
       />
       {located.length > 0 ? (
-        <div className="hotspot-overlay">
+        <div className={styles.overlay}>
           {located.map((h) => {
             const Icon = KIND_ICON[h.kind];
             return (
-              <span className={`hotspot-marker ${h.risk}`} key={h.id} title={h.label}>
+              <span className={`${styles.marker} ${styles[h.risk]}`} key={h.id} title={h.label}>
                 <Icon aria-hidden="true" />
               </span>
             );
           })}
         </div>
       ) : (
-        <span className="hotspot-empty">No geolocated hazards.</span>
+        <span className={styles.empty}>No geolocated hazards.</span>
       )}
     </div>
   );

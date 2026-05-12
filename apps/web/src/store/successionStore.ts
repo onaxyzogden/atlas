@@ -1,8 +1,8 @@
-/**
- * Succession store — ACT-stage Module 4 (Ecological Monitoring & Yield).
+﻿/**
+ * Succession store â€” ACT-stage Module 4 (Ecological Monitoring & Yield).
  *
  * Multi-year canopy / pioneer-species milestones per zone. Permaculture
- * systems evolve from pioneer → mid → climax over decades; this store
+ * systems evolve from pioneer â†’ mid â†’ climax over decades; this store
  * captures the steward's dated observations so the `SuccessionTrackerCard`
  * can render a vertical timeline per zone.
  *
@@ -18,7 +18,7 @@ export type SuccessionPhase = 'pioneer' | 'mid' | 'climax';
 export interface SuccessionMilestone {
   id: string;
   projectId: string;
-  /** `zoneStore.Zone.id` — optional so site-wide milestones are possible. */
+  /** `zoneStore.Zone.id` â€” optional so site-wide milestones are possible. */
   zoneId?: string;
   /** Year of observation (e.g. 2028). Free integer, no validation. */
   year: number;
@@ -47,7 +47,7 @@ export const useSuccessionStore = create<SuccessionState>()(
       removeMilestone: (id) =>
         set((s) => ({ milestones: s.milestones.filter((m) => m.id !== id) })),
     }),
-    { name: 'ogden-act-succession', version: 1 },
+    { name: 'ogden-act-succession', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

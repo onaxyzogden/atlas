@@ -11,7 +11,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useCropStore, type CropArea } from '../../store/cropStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -40,7 +40,7 @@ export default function IrrigationManagerCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 2 — Irrigation Transition</span>
         <h1 className={styles.title}>Irrigation Manager</h1>
         <p className={styles.lede}>

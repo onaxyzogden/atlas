@@ -15,13 +15,36 @@
  * omitted (Scholar called them "ecological theatre" for working
  * stewards). Light-by-layer is computed; everything else stays
  * grounded in the existing PLANT_DATABASE record.
+ *
+ * **Phase-axis cap (2026-05-12).** Two time axes live on this card —
+ * the Yeomans build-phase axis (which guilds are in scope at the
+ * active Plan view) and the ecological succession axis (what those
+ * picks look like after 1 / 5 / 10 / 20 / 30 years). They are
+ * orthogonal and must not be conflated:
+ *
+ *   - The succession **scrubber** is uncapped. Once a species set is
+ *     fixed, its maturation arc is its own.
+ *   - The contributing **species set** is filtered by the active
+ *     phase view via `usePhaseStoreCappedEntities` on the project's
+ *     guilds. A pick contributes if (a) it appears as anchor or
+ *     member of a visible guild, OR (b) it's an *orphan* pick
+ *     (palette-level, not yet used in any guild). Orphan picks pass
+ *     through uncapped because they represent unsequenced planning
+ *     intent — same precedent as the Unassigned bucket in
+ *     `PlantEstablishmentSequenceCard`.
+ *
+ * On Current / Vision / Terrain3D views nothing is hidden; the
+ * adapter passes everything through.
+ *
+ * See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
  */
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { findSpecies, type CanopyLayer } from '../../../../data/plantDatabase.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -93,9 +116,48 @@ function lightByLayer(
 
 export default function CanopySuccessionCard({ project }: Props) {
   const allPicks = usePolycultureStore((s) => s.species);
+  const allGuilds = usePolycultureStore((s) => s.guilds);
   const projectPicks = useMemo(
     () => allPicks.filter((p) => p.projectId === project.id),
     [allPicks, project.id],
+  );
+  const projectGuilds = useMemo(
+    () => allGuilds.filter((g) => g.projectId === project.id),
+    [allGuilds, project.id],
+  );
+  // Cap the guild set by the active Plan view. On uncapped views
+  // this is identity; on phase-1 / phase-2 it drops guilds whose
+  // BuildPhase yeomansCap exceeds the view cap.
+  const visibleGuilds = usePhaseStoreCappedEntities(projectGuilds);
+
+  // Build (1) the set of speciesIds reachable through any visible
+  // guild, and (2) the set of speciesIds used in *any* project
+  // guild — the inverse of (2) is the orphan-pick set, which
+  // passes through uncapped.
+  const { visibleSpeciesIds, guildedSpeciesIds } = useMemo(() => {
+    const visible = new Set<string>();
+    const guilded = new Set<string>();
+    for (const g of projectGuilds) {
+      guilded.add(g.anchorSpeciesId);
+      for (const m of g.members) guilded.add(m.speciesId);
+    }
+    for (const g of visibleGuilds) {
+      visible.add(g.anchorSpeciesId);
+      for (const m of g.members) visible.add(m.speciesId);
+    }
+    return { visibleSpeciesIds: visible, guildedSpeciesIds: guilded };
+  }, [projectGuilds, visibleGuilds]);
+
+  // Picks that contribute at the active view: anything reachable
+  // via a visible guild, plus orphan picks (no guild home yet).
+  const contributingPicks = useMemo(
+    () =>
+      projectPicks.filter(
+        (p) =>
+          visibleSpeciesIds.has(p.speciesId) ||
+          !guildedSpeciesIds.has(p.speciesId),
+      ),
+    [projectPicks, visibleSpeciesIds, guildedSpeciesIds],
   );
 
   const [year, setYear] = useState<number>(10);
@@ -104,26 +166,30 @@ export default function CanopySuccessionCard({ project }: Props) {
 
   const layerCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const pick of projectPicks) {
+    for (const pick of contributingPicks) {
       const sp = findSpecies(pick.speciesId);
       if (!sp) continue;
       c[sp.layer] = (c[sp.layer] ?? 0) + 1;
     }
     return c;
-  }, [projectPicks]);
+  }, [contributingPicks]);
 
   const light = useMemo(() => lightByLayer(layerCounts, year), [layerCounts, year]);
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Canopy &amp; succession</h1>
         <p className={styles.lede}>
           Six layers including a root zone. Step through the 30-year
           succession arc to see how light penetrates each layer as the
-          anchor species mature. Picks come from the Plant Database; this
-          view is a planning aid, not a growth model.
+          anchor species mature. Picks come from the Plant Database;
+          this view is a planning aid, not a growth model. On Year 1 /
+          Year 5 views the contributing species set is filtered to
+          picks reachable through guilds visible at the active phase
+          (plus orphan picks); the succession scrubber itself is
+          unaffected.
         </p>
       </header>
 
@@ -162,15 +228,21 @@ export default function CanopySuccessionCard({ project }: Props) {
           <span>{(m * 100).toFixed(0)}%</span>
         </div>
         <div className={styles.statRow}>
-          <span>Picked species across layers</span>
-          <span>{projectPicks.length}</span>
+          <span>Contributing picks at this view</span>
+          <span>
+            {contributingPicks.length} / {projectPicks.length}
+          </span>
         </div>
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Light-by-layer</h2>
-        {projectPicks.length === 0 ? (
-          <p className={styles.empty}>Add picks in the Plant Database to populate this view.</p>
+        {contributingPicks.length === 0 ? (
+          <p className={styles.empty}>
+            {projectPicks.length === 0
+              ? 'Add picks in the Plant Database to populate this view.'
+              : 'No picks reach this build phase yet. Pick species in the Plant Database, or assign existing guilds to an earlier phase.'}
+          </p>
         ) : (
           <ul className={styles.list}>
             {LAYER_ROWS.map((row) => {
@@ -270,7 +342,7 @@ export default function CanopySuccessionCard({ project }: Props) {
                   })}
                 {/* Root zone: vertical taproots */}
                 {row.layer === 'root_zone' &&
-                  Array.from({ length: Math.min(8, projectPicks.length) }).map((_, j) => {
+                  Array.from({ length: Math.min(8, contributingPicks.length) }).map((_, j) => {
                     const x = 60 + j * 70;
                     return (
                       <line

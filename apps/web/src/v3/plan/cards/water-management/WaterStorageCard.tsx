@@ -28,7 +28,8 @@ import {
   effectiveCapacityL,
   formatLitres,
 } from './waterMath.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -51,11 +52,18 @@ export default function WaterStorageCard({ project }: Props) {
     () => projectNodes.filter((n) => n.kind !== 'catchment'),
     [projectNodes],
   );
-  const storageAndSwale = useMemo(
+  // The ledger of visible storage/swale/sink nodes is capped by the
+  // active Plan view (Year 1 / Year 5) via the phaseStore→Yeomans
+  // adapter. `targets` for the overflow dropdown stays uncapped on
+  // purpose: you can still wire overflow into a node that's hidden by
+  // the current view — caps are presentational, not data-deletion.
+  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const storageAndSwaleRaw = useMemo(
     () =>
       projectNodes.filter((n) => n.kind === 'storage' || n.kind === 'swale' || n.kind === 'sink'),
     [projectNodes],
   );
+  const storageAndSwale = usePhaseStoreCappedEntities(storageAndSwaleRaw);
 
   const [addKind, setAddKind] = useState<AddKind>('storage');
   const [name, setName] = useState('');
@@ -98,7 +106,7 @@ export default function WaterStorageCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Storage &amp; overflow routing</h1>
         <p className={styles.lede}>

@@ -36,7 +36,7 @@ import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSectorStore } from '../../../../store/sectorStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -312,7 +312,7 @@ export default function PermanenceLadderCard({ project, onSwitchModule }: Props)
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 1 · Layering</span>
         <h1 className={styles.title}>Permanence ladder</h1>
         <p className={styles.lede}>

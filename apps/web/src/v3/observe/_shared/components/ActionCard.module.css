@@ -1,0 +1,51 @@
+.card {
+  position: relative;
+  min-height: 90px;
+  padding: 18px 27px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid rgba(151, 105, 35, 0.55);
+  border-radius: 10px;
+  background: rgba(7, 19, 17, 0.84);
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.icon svg {
+  width: 42px;
+  height: 42px;
+  color: #efe8c9;
+  stroke-width: 1.45;
+}
+
+.copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.copy strong {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 600;
+  color: #f2e2ca;
+}
+
+.copy span {
+  color: var(--color-panel-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.arrow {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  color: var(--color-sage-600);
+}

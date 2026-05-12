@@ -1,5 +1,6 @@
 import type { MockLayerResult } from '@ogden/shared/scoring';
 import { getElevationLayer } from './derivations.js';
+import styles from './ElevationHistogram.module.css';
 
 interface Props {
   layers: MockLayerResult[] | undefined;
@@ -20,7 +21,7 @@ export default function ElevationHistogram({ layers, className, bins = 12 }: Pro
 
   if (min == null || max == null || max <= min) {
     return (
-      <div className={`elevation-histogram empty ${className ?? ''}`}>
+      <div className={`${styles.histogram} ${styles.empty} ${className ?? ''}`}>
         <span>Elevation distribution pending</span>
       </div>
     );
@@ -48,7 +49,7 @@ export default function ElevationHistogram({ layers, className, bins = 12 }: Pro
 
   return (
     <svg
-      className={`elevation-histogram ${className ?? ''}`}
+      className={`${styles.histogram} ${className ?? ''}`}
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label="Elevation distribution"
@@ -62,7 +63,7 @@ export default function ElevationHistogram({ layers, className, bins = 12 }: Pro
             y={padY + innerH - barH}
             width={barW * 0.8}
             height={barH}
-            className="hist-bar"
+            className={styles.bar}
           />
         );
       })}
@@ -71,15 +72,15 @@ export default function ElevationHistogram({ layers, className, bins = 12 }: Pro
         x2={W - padX}
         y1={padY + innerH}
         y2={padY + innerH}
-        className="hist-axis"
+        className={styles.axis}
       />
-      <text x={padX} y={H - 2} className="hist-tick">
+      <text x={padX} y={H - 2} className={styles.tick}>
         {Math.round(min)} m
       </text>
-      <text x={W - padX} y={H - 2} textAnchor="end" className="hist-tick">
+      <text x={W - padX} y={H - 2} textAnchor="end" className={styles.tick}>
         {Math.round(max)} m
       </text>
-      <text x={W / 2} y={padY - 2} textAnchor="middle" className="hist-tick">
+      <text x={W / 2} y={padY - 2} textAnchor="middle" className={styles.tick}>
         Synthetic distribution
       </text>
     </svg>

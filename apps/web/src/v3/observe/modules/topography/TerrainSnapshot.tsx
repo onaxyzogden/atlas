@@ -4,6 +4,7 @@ import type {
   DrainageLine,
   HighPoint,
 } from '../../../../store/topographyStore.js';
+import styles from './TerrainSnapshot.module.css';
 
 export type TerrainOverlay =
   | 'slope'
@@ -37,12 +38,15 @@ export default function TerrainSnapshot({
   drainageLines = [],
   className,
 }: Props) {
-  const overlayClasses = overlays.map((o) => `overlay-${o}`).join(' ');
+  const overlayClasses = overlays
+    .map((o) => styles[o])
+    .filter(Boolean)
+    .join(' ');
   const annotationCount =
     contours.length + highPoints.length + drainageLines.length;
 
   return (
-    <div className={`terrain-snapshot ${overlayClasses} ${className ?? ''}`}>
+    <div className={`${styles.snapshot} ${overlayClasses} ${className ?? ''}`}>
       <ParcelSatelliteSnapshot
         boundary={boundary}
         caption={caption}

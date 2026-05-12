@@ -66,6 +66,15 @@ export interface LivestockMoveEvent {
   headCount: number | null;
   who?: string;
   notes?: string;
+  /**
+   * v4 — Linked-pair pointer. Set on both legs of a split rotation; each
+   *  leg's `linkedEventId` points at the partner's `id`. `direction` on
+   *  persisted v4 events is `'move_in'` or `'move_out'` only (never
+   *  `'rotate_through'` — the type union retains the value as a
+   *  write-time picker convenience that the form layer splits into a
+   *  pair before persisting).
+   */
+  linkedEventId?: string;
 }
 
 /** Destination paddock id, with legacy v2 fallback. */
@@ -116,6 +125,91 @@ export function exitsFromPaddock(
 }
 
 /**
+ * Returns the partner leg of a paired rotation, or undefined when the
+ * event has no `linkedEventId` (single-leg move) or the partner has
+ * been removed.
+ */
+export function linkedPartner(
+  events: LivestockMoveEvent[],
+  event: LivestockMoveEvent,
+): LivestockMoveEvent | undefined {
+  if (!event.linkedEventId) return undefined;
+  return events.find((e) => e.id === event.linkedEventId);
+}
+
+/**
+ * Returns the two legs of a pair given either leg's id. `exit` is the
+ * `move_out` leg, `entry` is the `move_in` leg. Either may be undefined
+ * if the event is not part of a pair or its partner was removed.
+ */
+export function getPair(
+  events: LivestockMoveEvent[],
+  eventId: string,
+): { exit?: LivestockMoveEvent; entry?: LivestockMoveEvent } {
+  const a = events.find((e) => e.id === eventId);
+  if (!a) return {};
+  const b = a.linkedEventId ? events.find((e) => e.id === a.linkedEventId) : undefined;
+  const exit = a.direction === 'move_out' ? a : b?.direction === 'move_out' ? b : undefined;
+  const entry = a.direction === 'move_in' ? a : b?.direction === 'move_in' ? b : undefined;
+  return { exit, entry };
+}
+
+/**
+ * Build two cross-pointing events for a write-time rotate_through. Returns
+ * `[exitLeg, entryLeg]`; caller `addEvent`s both. Ids are derived from a
+ * shared seed so re-runs are stable for tests / dev-tools inspection.
+ *
+ * `exitDate` defaults to `entryDate` when omitted (same-day rotation).
+ * Origin and destination are passed as `{paddockId | structureId}`
+ * partial records — exactly one of each pair should be set.
+ */
+export function buildRotatePair(args: {
+  projectId: string;
+  entryDate: string;
+  exitDate?: string;
+  species: LivestockSpecies;
+  headCount: number | null;
+  from: { paddockId?: string; structureId?: string };
+  to: { paddockId?: string; structureId?: string };
+  who?: string;
+  notes?: string;
+  idSeed?: string;
+}): [LivestockMoveEvent, LivestockMoveEvent] {
+  const seed =
+    args.idSeed ??
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const exitId = `lvm-${seed}-out`;
+  const entryId = `lvm-${seed}-in`;
+  const exitDate = args.exitDate && args.exitDate.trim() !== '' ? args.exitDate : args.entryDate;
+  const common = {
+    projectId: args.projectId,
+    species: args.species,
+    headCount: args.headCount,
+    who: args.who,
+    notes: args.notes,
+  };
+  const exitLeg: LivestockMoveEvent = {
+    ...common,
+    id: exitId,
+    date: exitDate,
+    direction: 'move_out',
+    fromPaddockId: args.from.paddockId,
+    fromStructureId: args.from.structureId,
+    linkedEventId: entryId,
+  };
+  const entryLeg: LivestockMoveEvent = {
+    ...common,
+    id: entryId,
+    date: args.entryDate,
+    direction: 'move_in',
+    toPaddockId: args.to.paddockId,
+    toStructureId: args.to.structureId,
+    linkedEventId: exitId,
+  };
+  return [exitLeg, entryLeg];
+}
+
+/**
  * Returns events whose destination is a structure on the given project,
  * sorted most-recent first. Paddock-keyed reads silently drop these.
  */
@@ -136,19 +230,71 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
       addEvent: (e) => set((s) => ({ events: [...s.events, e] })),
       updateEvent: (id, patch) =>
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
-      removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
+      // v4 — cascade removal across linked pairs. Removing either leg of a
+      //  rotation removes the partner too. Operator-facing rationale: a
+      //  paired rotation is one operational act; removing only the exit
+      //  while keeping the entry (or vice-versa) would silently corrupt
+      //  rest-pair accounting on the rotation card.
+      removeEvent: (id) =>
+        set((s) => {
+          const target = s.events.find((e) => e.id === id);
+          if (!target) return { events: s.events };
+          const drop = new Set<string>([id]);
+          if (target.linkedEventId) drop.add(target.linkedEventId);
+          return { events: s.events.filter((e) => !drop.has(e.id)) };
+        }),
     }),
     {
       name: 'ogden-livestock-moves',
-      version: 3,
+      version: 4,
       migrate: (persisted, fromVersion) => {
         const state = persisted as { events?: LivestockMoveEvent[] } | undefined;
         if (state?.events && fromVersion < 3) {
+          // v2 → v3: backfill to* from legacy paddockId / structureId.
           state.events = state.events.map((e) => ({
             ...e,
             toPaddockId:   e.toPaddockId   ?? e.paddockId,
             toStructureId: e.toStructureId ?? e.structureId,
           }));
+        }
+        if (state?.events && fromVersion < 4) {
+          // v3 → v4: split every `direction === 'rotate_through'` event
+          //  into a linked pair (move_out + move_in). Ids are derived from
+          //  the original event id so re-rehydration is idempotent.
+          const out: LivestockMoveEvent[] = [];
+          for (const e of state.events) {
+            if (e.direction !== 'rotate_through') {
+              out.push(e);
+              continue;
+            }
+            const exitId = `${e.id}-out`;
+            const entryId = `${e.id}-in`;
+            const common = {
+              projectId: e.projectId,
+              date: e.date,
+              species: e.species,
+              headCount: e.headCount,
+              who: e.who,
+              notes: e.notes,
+            };
+            out.push({
+              ...common,
+              id: exitId,
+              direction: 'move_out',
+              fromPaddockId: e.fromPaddockId,
+              fromStructureId: e.fromStructureId,
+              linkedEventId: entryId,
+            });
+            out.push({
+              ...common,
+              id: entryId,
+              direction: 'move_in',
+              toPaddockId: e.toPaddockId ?? e.paddockId,
+              toStructureId: e.toStructureId ?? e.structureId,
+              linkedEventId: exitId,
+            });
+          }
+          state.events = out;
         }
         return state as LivestockMoveLogState;
       },

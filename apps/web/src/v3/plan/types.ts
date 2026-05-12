@@ -55,7 +55,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
-  'structures-subsystems':  'Structures & Subsystems',
+  'structures-subsystems':  'Built Environment',
   machinery:                'Machinery & Equipment',
   livestock:                'Livestock & Subdivision',
   'plant-systems':          'Plant Systems & Polyculture',
@@ -174,9 +174,10 @@ export const MODULE_CARDS: Record<
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
   ],
   'plant-systems': [
-    { label: 'Plant database',    sectionId: 'plan-plant-database' },
-    { label: 'Guild builder',     sectionId: 'plan-guild-builder' },
-    { label: 'Canopy simulator',  sectionId: 'plan-canopy-simulator' },
+    { label: 'Plant database',         sectionId: 'plan-plant-database' },
+    { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
+    { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
+    { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
   ],
   'soil-fertility': [
     { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
@@ -185,6 +186,7 @@ export const MODULE_CARDS: Record<
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
     { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
+    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },

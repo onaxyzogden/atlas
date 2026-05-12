@@ -16,18 +16,15 @@ import {
   useMapboxDrawTool,
   type DrawGeometry,
 } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import {
-  useDesignElementsStore,
-  type DesignElement,
-} from '../../../../store/designElementsStore.js';
+import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import { findElementSpec } from '../elementCatalog.js';
 import {
   checkUtilityConflicts,
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
-
-const EMPTY_ELEMENTS: DesignElement[] = [];
+import { usePlanView } from '../../PlanViewContext.js';
 
 interface Args {
   map: MaplibreMap;
@@ -84,9 +81,8 @@ export function useDesignElementDrawTool({
 }: Args) {
   const spec = findElementSpec(kind);
   const add = useDesignElementsStore((s) => s.add);
-  const list = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const list = useDesignElementsForProject(projectId);
+  const currentView = usePlanView();
 
   const handleComplete = useCallback(
     (geom: DrawGeometry) => {
@@ -118,6 +114,7 @@ export function useDesignElementDrawTool({
           label,
           acreage,
           createdAt: new Date().toISOString(),
+          view: currentView,
           ...extras,
         });
         onComplete?.();
@@ -149,7 +146,7 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, list, kind, projectId, add, onComplete],
+    [spec, list, kind, projectId, add, onComplete, currentView],
   );
 
   useMapboxDrawTool({

@@ -16,7 +16,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useActualsStore, type TaskActual } from '../../store/actualsStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -73,7 +73,7 @@ export default function BudgetActualsCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 1 — Budget Actuals</span>
         <h1 className={styles.title}>Estimated vs Actual</h1>
         <p className={styles.lede}>

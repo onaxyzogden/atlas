@@ -1,0 +1,12 @@
+.orbit {
+  width: 250px;
+  height: 244px;
+  object-fit: cover;
+  color: rgb(60, 60, 60);
+}
+
+@media (max-width: 760px) {
+  .orbit {
+    justify-self: center;
+  }
+}

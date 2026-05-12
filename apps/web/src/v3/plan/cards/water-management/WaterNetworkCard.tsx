@@ -28,7 +28,8 @@ import {
   effectiveCapacityL,
   formatLitres,
 } from './waterMath.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -65,10 +66,16 @@ export default function WaterNetworkCard({ project }: Props) {
   // station's design storm.
   const [stormDepthMm, setStormDepthMm] = useState<number>(100);
 
-  const nodes = useMemo(
+  // Project-scoped nodes, then capped by active Plan view (Year 1 / Year 5)
+  // via the phaseStore→Yeomans adapter. Flow + layout downstream both
+  // operate on the filtered array, so a node hidden by the cap drops
+  // from both the SVG graph and the balance totals.
+  // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const nodesRaw = useMemo(
     () => all.filter((n) => n.projectId === project.id),
     [all, project.id],
   );
+  const nodes = usePhaseStoreCappedEntities(nodesRaw);
 
   const flow = useMemo(() => computeFlow(nodes, precipMm), [nodes, precipMm]);
 
@@ -185,7 +192,7 @@ export default function WaterNetworkCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Water network &amp; balance</h1>
         <p className={styles.lede}>

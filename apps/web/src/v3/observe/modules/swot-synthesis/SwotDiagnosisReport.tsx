@@ -1,20 +1,22 @@
 import { useMemo, useState } from 'react';
 import {
-  ArrowRight,
   BookOpen,
   CalendarDays,
   Check,
-  CircleDot,
   Download,
   Flag,
   Leaf,
   Sprout,
   Target,
+  type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
+import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 
 export default function SwotDiagnosisReport() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -22,6 +24,9 @@ export default function SwotDiagnosisReport() {
 
   const allEntries = useSwotStore((s) => s.swot);
   const entries = useMemo(() => allEntries.filter((e) => e.projectId === id), [allEntries, id]);
+  const counts = swotCounts(entries);
+  const total = counts.total;
+  const resilience = total === 0 ? 0 : Math.min(100, Math.round((total / 12) * 100));
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -40,320 +45,251 @@ export default function SwotDiagnosisReport() {
     }
   };
 
-  return (
-    <div className="detail-page diagnosis-report-page">
-      <ReportTopbar onExport={handleExport} exporting={exporting} />
-      <ReportStageBar />
-      <section className="diagnosis-report-frame">
-        <header className="diagnosis-report-hero">
-          <div>
-            <h1>Diagnosis report</h1>
-            <p>Turning observations into a clear diagnosis to guide design decisions.</p>
-          </div>
-          <SurfaceCard className="report-generated-card">
-            <CircleDot aria-hidden="true" />
-            <span>
-              Report generated<small>—</small>
-            </span>
-          </SurfaceCard>
-        </header>
-        <section className="diagnosis-top-grid">
-          <ExecutiveSummary />
-          <SwotOverview entryCount={entries.length} />
-          <TopInsights />
-        </section>
-        <section className="diagnosis-lower-grid">
-          <PrioritizedFindings />
-          <div className="diagnosis-stack">
-            <RiskFlags />
-            <EvidenceCard />
-          </div>
-          <RecommendedReportActions />
-        </section>
-        <p className="diagnosis-report-quote">
-          A clear diagnosis today leads to a regenerative design tomorrow.
-        </p>
-      </section>
-    </div>
-  );
-}
+  const facts: Array<[string, string]> = [
+    ['Site area', '42.6 ha'],
+    ['Climate', 'Temperate'],
+    ['Land use', 'Mixed use'],
+    ['Design stage', 'Pre-concept'],
+  ];
 
-interface ReportTopbarProps {
-  onExport: () => void;
-  exporting: boolean;
-}
+  const quadrants: Array<[string, number, string]> = [
+    ['Strengths', counts.S, 'Strong foundation to build on'],
+    ['Weaknesses', counts.W, 'Limit performance and resilience'],
+    ['Opportunities', counts.O, 'High leverage for improvement'],
+    ['Threats', counts.T, 'External risks to monitor'],
+  ];
 
-function ReportTopbar({ onExport, exporting }: ReportTopbarProps) {
-  return (
-    <header className="report-topbar">
-      <p>
-        Module 6 <ArrowRight aria-hidden="true" /> SWOT Synthesis{' '}
-        <ArrowRight aria-hidden="true" /> <b>Diagnosis report</b>
-      </p>
-      <nav>
-        <button type="button" onClick={onExport} disabled={exporting}>
-          <Download aria-hidden="true" />{' '}
-          {exporting ? 'Generating…' : 'Export report'}
-        </button>
-      </nav>
-    </header>
-  );
-}
-
-function ReportStageBar() {
-  const stages = ['Observe', 'Record', 'Analyse', 'Synthesize', 'Integrate'];
-  return (
-    <SurfaceCard className="report-stage-bar">
-      {stages.map((item, index) => (
-        <span
-          className={index < 3 ? 'is-done' : index === 3 ? 'is-active' : ''}
-          key={item}
-        >
-          <b>{index < 3 ? <Check aria-hidden="true" /> : index + 1}</b>
-          {item}
-        </span>
-      ))}
-    </SurfaceCard>
-  );
-}
-
-function ExecutiveSummary() {
-  const facts = ['Site area 42.6 ha', 'Climate Temperate', 'Land use Mixed use', 'Design stage Pre-concept'];
-  return (
-    <SurfaceCard className="report-card executive-summary">
-      <h2>
-        <Sprout aria-hidden="true" /> Executive summary
-      </h2>
-      <p>
-        Riverbend Land has strong natural assets and stewardship potential, with key opportunities
-        to improve water resilience, soil function, and access layout. Addressing erosion risk and
-        invasive pressure will unlock long-term productivity and ecological stability.
-      </p>
-      <div className="summary-facts">
-        {facts.map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface SwotOverviewProps {
-  entryCount: number;
-}
-
-function SwotOverview({ entryCount }: SwotOverviewProps) {
-  return (
-    <SurfaceCard className="report-card report-swot-overview">
-      <h2>
-        <Leaf aria-hidden="true" /> SWOT overview
-      </h2>
-      <div className="radar-wrap">
-        <div>
-          <b>Strengths</b>
-          <span>Strong foundation to build on</span>
-          <strong>—</strong>
-        </div>
-        <ReportRadar />
-        <div>
-          <b>Weaknesses</b>
-          <span>Limit performance and resilience</span>
-          <strong>—</strong>
-        </div>
-        <div>
-          <b>Opportunities</b>
-          <span>High leverage for improvement</span>
-          <strong>—</strong>
-        </div>
-        <div>
-          <b>Threats</b>
-          <span>External risks to monitor</span>
-          <strong>—</strong>
-        </div>
-      </div>
-      <p>
-        {entryCount > 0
-          ? `Scores reflect synthesis of ${entryCount} journal ${entryCount === 1 ? 'entry' : 'entries'}.`
-          : 'Add journal entries to generate synthesis scores.'}
-      </p>
-    </SurfaceCard>
-  );
-}
-
-function ReportRadar() {
-  return (
-    <svg className="report-radar" viewBox="0 0 180 180" aria-hidden="true">
-      <circle cx="90" cy="90" r="20" />
-      <circle cx="90" cy="90" r="40" />
-      <circle cx="90" cy="90" r="60" />
-      <line x1="90" y1="10" x2="90" y2="170" />
-      <line x1="10" y1="90" x2="170" y2="90" />
-      <polygon points="90,18 165,90 90,154 25,90" />
-      <polygon points="90,28 150,90 90,143 38,90" />
-      <text x="90" y="15">S</text>
-      <text x="166" y="94">W</text>
-      <text x="90" y="170">T</text>
-      <text x="8" y="94">O</text>
-    </svg>
-  );
-}
-
-function TopInsights() {
-  const rows: Array<[string, string]> = [
+  const insights: Array<[LucideIcon, string, string]> = [
     [
+      Leaf,
       'Water is the organizing factor.',
       'Seasonal flows and infiltration opportunities shape most design decisions.',
     ],
     [
-      'Soil biological activity is a key leverage.',
+      Sprout,
+      'Soil biological activity is key leverage.',
       'Build soil organic matter to unlock water holding capacity and fertility.',
     ],
     [
+      Target,
       'Access needs rethinking.',
       'Current circulation creates erosion risk and inefficient movement.',
     ],
   ];
-  return (
-    <SurfaceCard className="report-card top-insights">
-      <h2>
-        <Target aria-hidden="true" /> Top insights
-      </h2>
-      {rows.map(([title, text]) => (
-        <p key={title}>
-          <Leaf aria-hidden="true" />
-          <span>
-            {title}
-            <small>{text}</small>
-          </span>
-        </p>
-      ))}
-      <button type="button">
-        See full analysis in the SWOT journal <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
 
-function PrioritizedFindings() {
-  const rows = [
-    'Water resilience',
-    'Soil health',
-    'Access & circulation',
-    'Biodiversity',
-    'Stewardship capacity',
+  const findings: Array<[string, string, string]> = [
+    ['Water resilience', 'High', 'High'],
+    ['Soil health', 'High', 'Medium'],
+    ['Access & circulation', 'High', 'High'],
+    ['Biodiversity', 'Medium', 'Medium'],
+    ['Stewardship capacity', 'Medium', 'Low'],
   ];
-  return (
-    <SurfaceCard className="report-card findings-card">
-      <h2>
-        <Leaf aria-hidden="true" /> Prioritized findings
-      </h2>
-      <header>
-        <span /> <span>Impact</span>
-        <span>Certainty</span>
-      </header>
-      {rows.map((row) => (
-        <p key={row}>
-          <Leaf aria-hidden="true" />
-          <span>
-            {row}
-            <small>
-              {row === 'Access & circulation'
-                ? 'Access is limited; internal routes cause erosion.'
-                : 'Strong potential with targeted improvement.'}
-            </small>
-          </span>
-          <b>•••••</b>
-          <b>•••••</b>
-          <ArrowRight aria-hidden="true" />
-        </p>
-      ))}
-      <button type="button">
-        View all findings in SWOT journal <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
 
-function RiskFlags() {
-  const rows: Array<[string, string]> = [
-    ['High',   'Erosion risk on north-facing slopes'],
-    ['High',   'Overland flow damaging access track'],
+  const risks: Array<[string, string]> = [
+    ['High', 'Erosion risk on north-facing slopes'],
+    ['High', 'Overland flow damaging access track'],
     ['Medium', 'Invasive species along waterways'],
     ['Medium', 'Limited dry-season water availability'],
-    ['Low',    'Wildfire exposure (low site risk)'],
+    ['Low', 'Wildfire exposure (low site risk)'],
   ];
-  return (
-    <SurfaceCard className="report-card risk-flags-report">
-      <h2>
-        <Flag aria-hidden="true" /> Risk flags
-      </h2>
-      {rows.map(([level, text]) => (
-        <p key={text}>
-          <b>{level}</b>
-          {text}
-        </p>
-      ))}
-      <button type="button">
-        View mitigation ideas in design plan <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
 
-function EvidenceCard() {
-  const items = [
+  const actions: Array<[string, string, string]> = [
+    ['Establish keyline swales on contour in upper slopes', 'High', 'Jun 15'],
+    ['Implement cover cropping + compost program in priority zones', 'High', 'Jun 30'],
+    ['Reroute main access to ridge alignment and stabilize track', 'Medium', 'Jul 15'],
+    ['Remove priority invasive species along waterways', 'Medium', 'Aug 01'],
+    ['Install monitoring for soil moisture + rainfall', 'Low', 'Aug 15'],
+  ];
+
+  const evidence = [
     'Water flows & erosion on lower slope',
-    'Soil tests - low OM in Zone 2',
+    'Soil tests — low OM in Zone 2',
     'Access mapping & constraints',
   ];
-  return (
-    <SurfaceCard className="report-card evidence-card">
-      <h2>
-        <BookOpen aria-hidden="true" /> Evidence from SWOT journal
-      </h2>
-      {items.map((item, index) => (
-        <p key={item}>
-          <time>—</time>
-          {item}
-          <b>W {index + 1}</b>
-        </p>
-      ))}
-      <button type="button">
-        Open SWOT journal <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
 
-function RecommendedReportActions() {
-  const rows: Array<[string, string, string]> = [
-    ['Establish keyline swales on contour in upper slopes',           'High',   'Jun 15'],
-    ['Implement cover cropping + compost program in priority zones',  'High',   'Jun 30'],
-    ['Reroute main access to ridge alignment and stabilize track',    'Medium', 'Jul 15'],
-    ['Remove priority invasive species along waterways',              'Medium', 'Aug 01'],
-    ['Install monitoring for soil moisture + rainfall',               'Low',    'Aug 15'],
-  ];
+  const priorityPill = (priority: string) =>
+    `${card.pill} ${
+      priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet
+    }`;
+
   return (
-    <SurfaceCard className="report-card report-actions-card">
-      <h2>
-        <CalendarDays aria-hidden="true" /> Recommended actions
-      </h2>
-      <header>
-        <span>Action</span>
-        <span>Priority</span>
-        <span>Due</span>
-      </header>
-      {rows.map(([title, priority, due]) => (
-        <p key={title}>
-          <Check aria-hidden="true" />
-          <span>{title}</span>
-          <b>{priority}</b>
-          <time>{due}</time>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Turning observations into a clear diagnosis to guide design decisions. A clear
+              diagnosis today leads to a regenerative design tomorrow.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={resilience} />
+            <span className={obsx.label}>Site resilience</span>
+            <span className={obsx.value}>
+              {resilience >= 70 ? 'Resilient' : resilience >= 30 ? 'Forming' : 'Sparse'}
+            </span>
+            <span className={obsx.note}>Composite score</span>
+          </div>
+          {quadrants.map(([label, count, note]) => (
+            <div key={label} className={obsx.kpiBlock}>
+              <span className={obsx.label}>{label}</span>
+              <span className={obsx.value}>{count > 0 ? count : '—'}</span>
+              <span className={obsx.note}>{note}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <div className={obsx.cardEyebrow}>
+          <Sprout aria-hidden="true" size={12} />
+          Executive summary
+        </div>
+        <h2 className={card.sectionTitle}>Site diagnosis at a glance</h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>
+          Riverbend Land has strong natural assets and stewardship potential, with key
+          opportunities to improve water resilience, soil function, and access layout. Addressing
+          erosion risk and invasive pressure will unlock long-term productivity and ecological
+          stability.
         </p>
-      ))}
-      <button type="button">
-        Add actions to design plan <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
+        {facts.map(([label, value]) => (
+          <div key={label} className={card.statRow}>
+            <span>{label}</span>
+            <span>{value}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <Target aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Top insights
+        </h2>
+        <div className={obsx.synthesisBlock}>
+          {insights.map(([Icon, title, text]) => (
+            <p key={title}>
+              <Icon aria-hidden="true" size={14} />
+              <span>
+                <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}</b> {text}
+              </span>
+            </p>
+          ))}
+        </div>
+        <p className={card.sectionBody}>
+          {total > 0
+            ? `Scores reflect synthesis of ${total} journal ${total === 1 ? 'entry' : 'entries'}.`
+            : 'Add journal entries to generate synthesis scores.'}
+        </p>
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            <Leaf aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Prioritized findings
+          </h2>
+          <table className={card.table}>
+            <thead>
+              <tr>
+                <th>Theme</th>
+                <th>Impact</th>
+                <th>Certainty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {findings.map(([row, impact, certainty]) => (
+                <tr key={row}>
+                  <td>{row}</td>
+                  <td>
+                    <span className={priorityPill(impact)}>{impact}</span>
+                  </td>
+                  <td>
+                    <span className={priorityPill(certainty)}>{certainty}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            <Flag aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Risk flags
+          </h2>
+          {risks.map(([level, text]) => (
+            <div key={text} className={card.statRow}>
+              <span>{text}</span>
+              <span className={priorityPill(level)}>{level}</span>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <BookOpen aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Evidence from SWOT journal
+        </h2>
+        {evidence.length === 0 ? (
+          <p className={card.empty}>No evidence linked yet.</p>
+        ) : (
+          <ul className={card.list}>
+            {evidence.map((item, index) => (
+              <li key={item} className={card.listRow}>
+                <span>{item}</span>
+                <span className={`${card.pill} ${card.pillPartial}`}>W {index + 1}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <CalendarDays aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Recommended actions
+        </h2>
+        <table className={card.table}>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Priority</th>
+              <th>Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            {actions.map(([title, priority, due]) => (
+              <tr key={title}>
+                <td>
+                  <Check aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                  {title}
+                </td>
+                <td>
+                  <span className={priorityPill(priority)}>{priority}</span>
+                </td>
+                <td>{due}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    </div>
   );
 }

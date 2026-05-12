@@ -1,4 +1,5 @@
 import { CroppedArt } from './CroppedArt.js';
+import styles from './ModuleCard.module.css';
 
 interface ModuleCardProps {
   number: string;
@@ -18,16 +19,16 @@ export function ModuleCard({
   artClassName = '',
 }: ModuleCardProps) {
   return (
-    <button className="module-card-handbuilt" type="button">
-      <span className="module-number">{number}</span>
-      <CroppedArt className={`module-art ${artClassName}`} src={artSrc} />
-      <span className="module-copy">
+    <button className={styles.card} type="button">
+      <span className={styles.number}>{number}</span>
+      <CroppedArt className={`${styles.art} ${artClassName}`} src={artSrc} />
+      <span className={styles.copy}>
         <strong>
           {title.split('\n').map((line) => (
             <span key={line}>{line}</span>
           ))}
         </strong>
-        <em className={active ? 'is-active' : ''}>{status}</em>
+        <em className={active ? styles.active : ''}>{status}</em>
       </span>
     </button>
   );

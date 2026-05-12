@@ -99,6 +99,12 @@ export type ExistingMetadata = z.infer<typeof ExistingMetadata>;
 export const ProposedMetadata = z.object({
   /** Rotation around vertical axis, degrees. Polygon kinds with a "front". */
   rotationDeg: z.number().optional(),
+  /** Per-instance scale multiplier applied on top of the kind's default
+   *  footprint/height. 1.0 = unchanged. Per ADR 2026-05-11 Phase 5. */
+  scaleMul: z.number().positive().optional(),
+  /** When `kind === 'custom-glb'`, identifies which uploaded GLB to render
+   *  by looking up the id in `customModelStore`. Per ADR 2026-05-11 Phase 6. */
+  customModelId: z.string().optional(),
   /** Footprint width, metres. */
   widthM: z.number().positive().optional(),
   /** Footprint depth, metres. */

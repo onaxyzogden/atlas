@@ -1,0 +1,88 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.chip {
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  border: 1px solid rgba(184, 133, 39, 0.45);
+  border-radius: 5px;
+  background: rgba(86, 59, 12, 0.36);
+  color: #e4b74b;
+  font-size: 12px;
+}
+
+.chip.green,
+.chip:not(.gold):not(.orange) {
+  border-color: rgba(139, 186, 70, 0.32);
+  background: rgba(45, 71, 33, 0.28);
+  color: #a7cf53;
+}
+
+.chip.gold {
+  color: #e2af36;
+}
+
+.chip.orange {
+  color: #f09523;
+  border-color: rgba(240, 149, 35, 0.42);
+}
+
+.chip svg {
+  width: 15px;
+  height: 15px;
+}
+
+.chip button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.chipAdd {
+  background: transparent;
+  border: 1px dashed rgba(176, 138, 58, 0.5);
+  color: rgb(176, 138, 58);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.chipAdd:hover {
+  background: rgba(176, 138, 58, 0.08);
+}
+
+.addForm {
+  display: inline-flex;
+  align-items: center;
+  margin: 2px;
+}
+
+.addForm input {
+  border: 1px solid rgba(176, 138, 58, 0.4);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  background: white;
+  outline: none;
+  min-width: 140px;
+}
+
+.addForm input:focus {
+  border-color: rgb(176, 138, 58);
+}
+
+@media (max-width: 760px) {
+  .chip {
+    white-space: normal;
+    max-width: 100%;
+  }
+  .list {
+    max-width: 100%;
+  }
+}

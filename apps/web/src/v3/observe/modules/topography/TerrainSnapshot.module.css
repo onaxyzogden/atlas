@@ -1,0 +1,42 @@
+.snapshot {
+  position: relative;
+}
+
+.snapshot.contours::after,
+.snapshot.slope::after,
+.snapshot.hillshade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.snapshot.contours::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 18px,
+      rgba(76, 132, 96, 0.35) 18px,
+      rgba(76, 132, 96, 0.35) 19px
+    );
+  mix-blend-mode: multiply;
+}
+
+.snapshot.slope::after {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 239, 233, 0.25),
+    rgba(201, 122, 106, 0.25)
+  );
+}
+
+.snapshot.hillshade::after {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18),
+    rgba(255, 255, 255, 0.12)
+  );
+  mix-blend-mode: overlay;
+}

@@ -1,0 +1,19 @@
+.panel {
+  padding: 10px 12px;
+  overflow: hidden;
+}
+
+.header {
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}

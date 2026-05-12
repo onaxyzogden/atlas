@@ -1,26 +1,21 @@
 import { useMemo, useState } from 'react';
 import {
-  ArrowRight,
   BookOpen,
-  ChevronDown,
   CloudLightning,
   Download,
-  Filter,
   Leaf,
   Lightbulb,
-  MoreVertical,
-  Plus,
-  Search,
-  Send,
   ShieldCheck,
   TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSwotStore, type SwotEntry } from '../../../../store/swotStore.js';
-import { journalMetrics, type MetricItem } from './derivations.js';
+import { journalMetrics, swotCounts, type MetricItem } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strengths',
@@ -29,11 +24,18 @@ const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   T: 'Threats',
 };
 
+const BUCKET_PILL: Record<SwotEntry['bucket'], string> = {
+  S: 'pillMet',
+  W: 'pillFail',
+  O: 'pillMet',
+  T: 'pillFail',
+};
+
 const METRIC_ICONS: Record<string, LucideIcon> = {
-  Strengths:     ShieldCheck,
-  Weaknesses:    TriangleAlert,
+  Strengths: ShieldCheck,
+  Weaknesses: TriangleAlert,
   Opportunities: Lightbulb,
-  Threats:       CloudLightning,
+  Threats: CloudLightning,
   'Total entries': BookOpen,
 };
 
@@ -42,16 +44,19 @@ export default function SwotJournal() {
   const id = projectId ?? 'mtc';
 
   const allEntries = useSwotStore((s) => s.swot);
+  const removeSwot = useSwotStore((s) => s.removeSwot);
   const entries = useMemo(
     () => allEntries.filter((e) => e.projectId === id),
     [allEntries, id],
   );
 
   const metrics = journalMetrics(entries);
+  const counts = swotCounts(entries);
   const sorted = useMemo(
     () => [...entries].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [entries],
   );
+  const completeness = counts.total === 0 ? 0 : Math.min(100, Math.round((counts.total / 12) * 100));
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -70,212 +75,164 @@ export default function SwotJournal() {
     }
   };
 
-  return (
-    <div className="detail-page swot-journal-page">
-      <section className="journal-frame">
-        <JournalHeader onExport={handleExport} exporting={exporting} />
-        <JournalMetrics metrics={metrics} />
-        <section className="journal-layout">
-          <div className="journal-main">
-            <JournalFilters />
-            <EntriesTable entries={sorted} />
-          </div>
-          <JournalSidebar />
-        </section>
-      </section>
-    </div>
-  );
-}
-
-interface JournalHeaderProps {
-  onExport: () => void;
-  exporting: boolean;
-}
-
-function JournalHeader({ onExport, exporting }: JournalHeaderProps) {
-  return (
-    <header className="journal-header">
-      <div>
-        <h1>SWOT journal</h1>
-        <p>Capture observations and insights about your site using the SWOT framework.</p>
-      </div>
-      <nav>
-        <button type="button" onClick={onExport} disabled={exporting}>
-          <Download aria-hidden="true" />{' '}
-          {exporting ? 'Generating…' : 'Export journal'}{' '}
-          {!exporting && <ChevronDown aria-hidden="true" />}
-        </button>
-        <button type="button">
-          <Send aria-hidden="true" /> Send to diagnosis report <ArrowRight aria-hidden="true" />
-        </button>
-      </nav>
-    </header>
-  );
-}
-
-interface JournalMetricsProps {
-  metrics: MetricItem[];
-}
-
-function JournalMetrics({ metrics }: JournalMetricsProps) {
-  return (
-    <section className="journal-metrics">
-      {metrics.map(({ label, value, delta }) => {
-        const Icon = METRIC_ICONS[label] ?? BookOpen;
-        return (
-          <SurfaceCard className={`journal-metric ${label.toLowerCase().replace(/\s+/g, '-')}`} key={label}>
-            <Icon aria-hidden="true" />
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{delta}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-function JournalFilters() {
-  const buttons = [
-    'Category      All',
-    'Date range      All time',
-    'Zone      All zones',
-    'Status      All',
-  ];
-  return (
-    <SurfaceCard className="journal-filters">
-      <label>
-        <Search aria-hidden="true" />
-        <input placeholder="Search entries..." />
-      </label>
-      {buttons.map((item) => (
-        <button type="button" key={item}>
-          {item}
-          <ChevronDown aria-hidden="true" />
-        </button>
-      ))}
-      <button type="button">
-        <Filter aria-hidden="true" /> Filters
-      </button>
-      <button type="button">Clear</button>
-    </SurfaceCard>
-  );
-}
-
-interface EntriesTableProps {
-  entries: SwotEntry[];
-}
-
-function EntriesTable({ entries }: EntriesTableProps) {
-  return (
-    <SurfaceCard className="entries-table-card">
-      <div className="entries-head">
-        <span>Date</span>
-        <span>Entry</span>
-        <span>Notes</span>
-        <span>Category</span>
-        <span>Tags</span>
-        <span>Zone / Module</span>
-        <span>Status</span>
-        <span />
-      </div>
-      {entries.length === 0 ? (
-        <p className="empty-note">No journal entries yet — add one from the toolbar above.</p>
-      ) : (
-        entries.map((e) => {
-          const category = BUCKET_LABELS[e.bucket];
-          return (
-            <div className="entry-row" key={e.id}>
-              <time>{new Date(e.createdAt).toLocaleDateString()}</time>
-              <b className={category.toLowerCase()}>{e.title}</b>
-              <span>{e.body ?? ''}</span>
-              <em className={category.toLowerCase()}>{category}</em>
-              <p>
-                {(e.tags ?? []).map((tag) => (
-                  <i key={tag}>{tag}</i>
-                ))}
-              </p>
-              <span>—</span>
-              <strong>Logged</strong>
-              <MoreVertical aria-hidden="true" />
-            </div>
-          );
-        })
-      )}
-      <footer>
-        <span>
-          {entries.length === 0
-            ? 'No entries'
-            : `Showing 1–${Math.min(entries.length, 50)} of ${entries.length} entries`}
-        </span>
-        <nav>
-          <button type="button">Prev</button>
-          <button className="is-active" type="button">1</button>
-          <button type="button">Next</button>
-        </nav>
-      </footer>
-    </SurfaceCard>
-  );
-}
-
-function JournalSidebar() {
   const patterns = [
     'Water is a recurring theme in both opportunities and threats.',
     'Erosion and slope appear in 5 recent weaknesses.',
     'Biodiversity and habitat are strong across multiple zones.',
   ];
-  const themes: Array<[string, string]> = [
-    ['Water management',      '—'],
-    ['Slope & erosion',       '—'],
-    ['Biodiversity & habitat','—'],
-    ['Access & infrastructure','—'],
-    ['Climate variability',   '—'],
-  ];
+
   const followups: Array<[string, string]> = [
     ['Investigate erosion control options', 'High'],
-    ['Map seasonal water flows',            'High'],
-    ['Assess water storage potential',      'Med'],
-    ['Plan wildlife protection strategy',   'Med'],
-    ['Explore eco-tourism opportunities',   'Low'],
+    ['Map seasonal water flows', 'High'],
+    ['Assess water storage potential', 'Medium'],
+    ['Plan wildlife protection strategy', 'Medium'],
+    ['Explore eco-tourism opportunities', 'Low'],
   ];
+
   return (
-    <aside className="journal-sidebar">
-      <SurfaceCard className="journal-side-card">
-        <h2>Emerging patterns</h2>
-        {patterns.map((item) => (
-          <p key={item}>
-            <Leaf aria-hidden="true" />
-            {item}
-          </p>
-        ))}
-        <button type="button">
-          View pattern map <ArrowRight aria-hidden="true" />
-        </button>
-      </SurfaceCard>
-      <SurfaceCard className="journal-side-card themes">
-        <h2>Recurring themes</h2>
-        {themes.map(([name, count]) => (
-          <p key={name}>
-            <span>{name}</span>
-            <b>{count}</b>
-          </p>
-        ))}
-        <button type="button">
-          View all themes <ArrowRight aria-hidden="true" />
-        </button>
-      </SurfaceCard>
-      <SurfaceCard className="journal-side-card followups">
-        <h2>Recommended follow-ups</h2>
-        {followups.map(([name, priority]) => (
-          <p key={name}>
-            <span>{name}</span>
-            <b>{priority}</b>
-          </p>
-        ))}
-        <button type="button">
-          View all follow-ups <ArrowRight aria-hidden="true" />
-        </button>
-      </SurfaceCard>
-    </aside>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Capture observations and insights about your site using the SWOT framework. Tag
+              entries with the relevant quadrant and watch patterns emerge across the journal.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export journal'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={completeness} />
+            <span className={obsx.label}>Journal depth</span>
+            <span className={obsx.value}>
+              {completeness >= 70 ? 'Rich' : completeness >= 30 ? 'Building' : 'Sparse'}
+            </span>
+            <span className={obsx.note}>{counts.total} entries</span>
+          </div>
+          {metrics.slice(0, 3).map((item: MetricItem) => {
+            const Icon = METRIC_ICONS[item.label] ?? BookOpen;
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.delta}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {metrics.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Other categories</h2>
+          <div className={obsx.kpiGrid}>
+            {metrics.slice(3).map((item: MetricItem) => {
+              const Icon = METRIC_ICONS[item.label] ?? BookOpen;
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.delta}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <BookOpen aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Journal entries
+        </h2>
+        {sorted.length === 0 ? (
+          <p className={card.empty}>No journal entries yet — add one from the toolbar above.</p>
+        ) : (
+          <ul className={card.list}>
+            {sorted.map((e) => (
+              <li key={e.id} className={card.listRow}>
+                <span>
+                  <strong>{e.title}</strong>
+                  {e.body ? (
+                    <span className={card.listMeta} style={{ display: 'block', marginTop: 2 }}>
+                      {e.body}
+                    </span>
+                  ) : null}
+                  <span className={card.listMeta} style={{ display: 'block', marginTop: 2 }}>
+                    {new Date(e.createdAt).toLocaleDateString()}
+                  </span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className={`${card.pill} ${card[BUCKET_PILL[e.bucket]]}`}>
+                    {BUCKET_LABELS[e.bucket]}
+                  </span>
+                  <button
+                    type="button"
+                    className={card.removeBtn}
+                    onClick={() => removeSwot(e.id)}
+                    aria-label={`Remove ${e.title}`}
+                  >
+                    Remove
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            <Leaf aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Emerging patterns
+          </h2>
+          <div className={obsx.synthesisBlock}>
+            {patterns.map((item) => (
+              <p key={item}>
+                <Leaf aria-hidden="true" size={14} />
+                <span>{item}</span>
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Recommended follow-ups</h2>
+          {followups.map(([name, priority]) => (
+            <div key={name} className={card.statRow}>
+              <span>{name}</span>
+              <span
+                className={`${card.pill} ${
+                  priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet
+                }`}
+              >
+                {priority}
+              </span>
+            </div>
+          ))}
+        </section>
+      </div>
+    </div>
   );
 }

@@ -23,7 +23,7 @@ import {
 import { useStructureStore } from '../../store/structureStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { getActionsForType } from '../../v3/act/data/structureActions.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -122,7 +122,7 @@ export default function StructureYieldCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Harvest — Structure yield</span>
         <h1 className={styles.title}>Structure Yield</h1>
         <p className={styles.lede}>

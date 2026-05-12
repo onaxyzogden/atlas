@@ -107,7 +107,7 @@ export default function AdaptiveDecisionRail({ project }: AdaptiveDecisionRailPr
 
   const openRules = () => setActiveDashboardSection('siting-rules');
   const openFeasibility = () => setActiveDashboardSection('feasibility');
-  const openCompare = () => setActiveDashboardSection('site-intelligence');
+  const openCompare = () => setActiveDashboardSection('map-layers');
 
   // Empty state — no boundary, no evaluation possible
   if (!project.hasParcelBoundary) {

@@ -14,17 +14,15 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
-import {
-  CroppedArt,
-  ProgressRing,
-  SurfaceCard,
-} from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   archetypeFor,
   healthLabel,
@@ -171,25 +169,29 @@ export default function HumanContextDashboard() {
   };
 
   return (
-    <div className="human-context-page">
-      <div className="human-context-layout">
-        <div className="human-context-main">
-          <HumanHero vision={vision} onExport={handleExport} exporting={exporting} />
-          <section className="human-card-grid">
-            <StewardCard projectId={id} vision={vision} />
-            <RegionalCard projectId={id} vision={vision} />
-            <VisionSummaryCard projectId={id} vision={vision} />
-          </section>
-          <HealthStrip vision={vision} />
-          <AnnotationListCard
-            title="Field annotations"
-            projectId={projectId ?? null}
-            kinds={['neighbourPin', 'household', 'accessRoad']}
-            emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
-          />
-        </div>
-        <SynthesisPanel vision={vision} />
+    <div className={card.page}>
+      <HumanHero vision={vision} onExport={handleExport} exporting={exporting} />
+
+      <div className={card.grid}>
+        <StewardCard projectId={id} vision={vision} />
+        <RegionalCard projectId={id} vision={vision} />
       </div>
+
+      <VisionSummaryCard projectId={id} vision={vision} />
+
+      <HealthStrip vision={vision} />
+
+      <SynthesisPanel vision={vision} />
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Field annotations</h2>
+        <AnnotationListCard
+          title=""
+          projectId={projectId ?? null}
+          kinds={['neighbourPin', 'household', 'accessRoad']}
+          emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
+        />
+      </section>
     </div>
   );
 }
@@ -216,121 +218,71 @@ function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
   const regional = regionalCounts(vision?.regional);
 
   return (
-    <SurfaceCard className="human-hero-card">
-      <CroppedArt src={heroLandscape} className="human-hero-image" />
-      <div className="human-hero-copy">
-        <span>Module 1</span>
-        <h1>
-          Human Context <Sprout aria-hidden="true" />
-        </h1>
-        <p>
-          This module captures who is stewarding the land, the regional and cultural
-          context that shapes it, and the long-horizon vision that guides decisions
-          across time and generations.
-        </p>
-        <button
-          type="button"
-          onClick={onExport}
-          disabled={exporting}
-          style={{
-            marginTop: 12,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            borderRadius: 8,
-            border: '1px solid #15803D',
-            background: exporting ? '#E5E7EB' : '#15803D',
-            color: exporting ? '#6B7280' : '#fff',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: exporting ? 'wait' : 'pointer',
-          }}
-        >
-          <Download aria-hidden="true" size={14} />{' '}
-          {exporting ? 'Generating…' : 'Export human-context report'}
-        </button>
+    <>
+      <div className={card.hero} data-stage="observe">
+        <div className={hc.heroRow}>
+          <div>
+            <p className={card.lede}>
+              This module captures who is stewarding the land, the regional and cultural
+              context that shapes it, and the long-horizon vision that guides decisions
+              across time and generations.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={onExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export human-context report'}
+              </button>
+            </div>
+          </div>
+          <img src={heroLandscape} alt="" aria-hidden="true" className={hc.heroArt} />
+        </div>
       </div>
-      <div className="human-hero-metrics">
-        <ProgressRing value={overall.pct} label={`${overall.pct}%`} />
-        <MetricBlock
-          label="Module progress"
-          value={
-            overall.pct >= 70
-              ? 'Well on your way'
-              : overall.pct >= 30
-              ? 'Filling in'
-              : 'Just getting started'
-          }
-          note={`${overall.filled} of ${overall.total} areas captured`}
-          compact
-        />
-        <MetricBlock
-          icon={Eye}
-          label="Vision phases"
-          value={`${phases.filled} / ${phases.total}`}
-          note="Captured"
-        />
-        <MetricBlock
-          icon={Flag}
-          label="Milestones"
-          value={String(milestones)}
-          note="Defined"
-        />
-        <MetricBlock
-          icon={MapPin}
-          label="Regional context"
-          value={regional.total > 0 ? String(regional.total) : '—'}
-          note="Captured"
-        />
-      </div>
-    </SurfaceCard>
+
+      <section className={card.section}>
+        <div className={hc.kpiGrid}>
+          <div className={`${hc.kpiBlock} ${hc.kpiBlockWithRing}`}>
+            <Ring value={overall.pct} />
+            <span className={hc.label}>Module progress</span>
+            <span className={hc.value}>
+              {overall.pct >= 70
+                ? 'Well on your way'
+                : overall.pct >= 30
+                ? 'Filling in'
+                : 'Just getting started'}
+            </span>
+            <span className={hc.note}>{overall.filled} of {overall.total} areas captured</span>
+          </div>
+          <KpiBlock icon={Eye} label="Vision phases" value={`${phases.filled} / ${phases.total}`} note="Captured" />
+          <KpiBlock icon={Flag} label="Milestones" value={String(milestones)} note="Defined" />
+          <KpiBlock icon={MapPin} label="Regional context" value={regional.total > 0 ? String(regional.total) : '—'} note="Captured" />
+        </div>
+      </section>
+    </>
   );
 }
 
-interface MetricBlockProps {
+interface KpiBlockProps {
   icon?: LucideIcon;
   label: string;
   value: string;
   note: string;
-  compact?: boolean;
 }
 
-function MetricBlock({ icon: Icon, label, value, note, compact = false }: MetricBlockProps) {
+function KpiBlock({ icon: Icon, label, value, note }: KpiBlockProps) {
   return (
-    <div className={compact ? 'human-metric-block compact' : 'human-metric-block'}>
-      {Icon ? <Icon aria-hidden="true" /> : null}
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{note}</small>
+    <div className={hc.kpiBlock}>
+      <span className={hc.label}>
+        {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+        {label}
+      </span>
+      <span className={hc.value}>{value}</span>
+      <span className={hc.note}>{note}</span>
     </div>
-  );
-}
-
-interface ModuleCardShellProps {
-  number: string;
-  title: string;
-  icon?: LucideIcon;
-  children: React.ReactNode;
-  tone?: 'green' | 'gold';
-}
-
-function ModuleCardShell({
-  number,
-  title,
-  icon: Icon,
-  children,
-  tone = 'green',
-}: ModuleCardShellProps) {
-  return (
-    <SurfaceCard className={`human-module-card ${tone}`}>
-      <header>
-        <b>{number}</b>
-        <h2>{title}</h2>
-        {Icon ? <Icon aria-hidden="true" /> : null}
-      </header>
-      {children}
-    </SurfaceCard>
   );
 }
 
@@ -350,43 +302,34 @@ function StewardCard({ vision }: ProjectVisionProps) {
       : Users;
 
   return (
-    <ModuleCardShell
-      number="1"
-      title="Steward Survey"
-      icon={Users}
-    >
-      <p>Who is stewarding this land and what they bring.</p>
-      <div className="steward-summary-grid">
-        <div className="mini-profile">
-          <span>Steward Profile</span>
-          <ProgressRing value={completeness.pct} label={`${completeness.pct}%`} />
-          <p>
-            {completeness.pct >= 70
-              ? 'Well on your way'
-              : completeness.pct >= 30
-              ? 'Filling in'
-              : 'Just getting started'}
-            <br />
-            {completeness.filled} of {completeness.total} areas filled
-          </p>
-        </div>
-        <div className="mini-profile">
-          <span>Steward Archetype</span>
-          <ArchetypeIcon aria-hidden="true" />
-          <p>
-            {archetype.name}
-            <br />
-            {archetype.blurb}
-          </p>
-        </div>
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}><b>1</b> Steward Survey</div>
+      <h2 className={card.sectionTitle}>Who is stewarding this land</h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>What they bring.</p>
+
+      <div className={card.statRow}>
+        <span>Profile completeness</span>
+        <span>{completeness.pct}%</span>
       </div>
-      <div className="capacity-mini">
-        <span>Capacity Overview</span>
-        <strong>{totalHrs > 0 ? totalHrs : '—'}</strong>
-        <small>hrs / week total</small>
+      <div className={card.statRow}>
+        <span>Archetype</span>
+        <span><ArchetypeIcon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> {archetype.name}</span>
       </div>
-      <ChipRow items={skills.length > 0 ? skills : ['No skills captured yet.']} />
-    </ModuleCardShell>
+      <div className={card.statRow}>
+        <span>Capacity</span>
+        <span>{totalHrs > 0 ? `${totalHrs} hrs / week` : '—'}</span>
+      </div>
+
+      <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {skills.length > 0 ? (
+          skills.map((s) => (
+            <span key={s} className={`${card.pill} ${card.pillPartial}`}>{s}</span>
+          ))
+        ) : (
+          <span className={card.empty}>No skills captured yet.</span>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -396,35 +339,41 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
   const strengths = (vision?.regional?.culturalStrengths ?? []).slice(0, 3);
 
   return (
-    <ModuleCardShell
-      number="2"
-      title="Indigenous & Regional Context"
-      icon={Sprout}
-      tone="gold"
-    >
-      <p>Honour the land&apos;s story, culture, and regional systems.</p>
-      <div className="regional-summary-grid">
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}><b>2</b> Indigenous &amp; Regional</div>
+      <h2 className={card.sectionTitle}>Honour the land&rsquo;s story</h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>Culture and regional systems.</p>
+
+      <div style={{ marginBottom: 12 }}>
         <ParcelSatelliteSnapshot
           boundary={project?.location?.boundary}
-          width={220}
-          height={160}
+          width={260}
+          height={110}
         />
-        <dl>
-          {[
-            ['Indigenous place-names', counts.placeNames],
-            ['Cultural challenges', counts.challenges],
-            ['Cultural strengths', counts.strengths],
-            ['Local contacts', counts.contacts],
-          ].map(([label, value]) => (
-            <div key={String(label)}>
-              <dt>{label}</dt>
-              <dd>{Number(value) > 0 ? value : '—'}</dd>
-            </div>
-          ))}
-        </dl>
       </div>
-      <ChipRow items={strengths.length > 0 ? strengths : ['No strengths captured yet.']} />
-    </ModuleCardShell>
+
+      {[
+        ['Indigenous place-names', counts.placeNames],
+        ['Cultural challenges', counts.challenges],
+        ['Cultural strengths', counts.strengths],
+        ['Local contacts', counts.contacts],
+      ].map(([label, value]) => (
+        <div key={String(label)} className={card.statRow}>
+          <span>{label}</span>
+          <span>{Number(value) > 0 ? value : '—'}</span>
+        </div>
+      ))}
+
+      <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {strengths.length > 0 ? (
+          strengths.map((s) => (
+            <span key={s} className={`${card.pill} ${card.pillPartial}`}>{s}</span>
+          ))
+        ) : (
+          <span className={card.empty}>No strengths captured yet.</span>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -434,47 +383,38 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
   const themes = (steward?.coreFunctions ?? []).slice(0, 5);
 
   return (
-    <ModuleCardShell
-      number="3"
-      title="Vision Detail"
-      icon={Leaf}
-    >
-      <p>Where we&apos;re going and what success looks like.</p>
-      <div className="vision-summary-grid">
-        <blockquote>{steward?.vision || 'Not yet captured.'}</blockquote>
-        <div>
-          {themes.length > 0 ? (
-            themes.map((item) => <span key={item}>{item}</span>)
-          ) : (
-            <span>No themes yet.</span>
-          )}
-        </div>
-      </div>
-      <div className="vision-counts">
-        <span>
-          <b>{counts.coreFunctions}</b>Core Functions
-        </span>
-        <span>
-          <b>{counts.successMetrics}</b>Success Metrics
-        </span>
-        <span>
-          <b>{counts.moodboardImages}</b>Moodboard Images
-        </span>
-      </div>
-    </ModuleCardShell>
-  );
-}
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}><b>3</b> Vision</div>
+      <h2 className={card.sectionTitle}>Where we&rsquo;re going</h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>And what success looks like.</p>
 
-interface ChipRowProps {
-  items: string[];
-}
-function ChipRow({ items }: ChipRowProps) {
-  return (
-    <div className="human-chip-row">
-      {items.map((item) => (
-        <span key={item}>{item}</span>
-      ))}
-    </div>
+      <blockquote className={hc.blockquote} style={{ marginBottom: 12 }}>
+        {steward?.vision || 'Not yet captured.'}
+      </blockquote>
+
+      <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {themes.length > 0 ? (
+          themes.map((item) => (
+            <span key={item} className={`${card.pill} ${card.pillPartial}`}>{item}</span>
+          ))
+        ) : (
+          <span className={card.empty}>No themes yet.</span>
+        )}
+      </div>
+
+      <div className={card.statRow}>
+        <span>Core functions</span>
+        <span>{counts.coreFunctions}</span>
+      </div>
+      <div className={card.statRow}>
+        <span>Success metrics</span>
+        <span>{counts.successMetrics}</span>
+      </div>
+      <div className={card.statRow}>
+        <span>Moodboard images</span>
+        <span>{counts.moodboardImages}</span>
+      </div>
+    </section>
   );
 }
 
@@ -486,28 +426,35 @@ function HealthStrip({ vision }: VisionProps) {
   const challenges = vision?.regional?.culturalChallenges?.length ?? 0;
 
   return (
-    <SurfaceCard className="human-health-strip">
-      <span>
-        <Leaf /> <b>Overall Module Health</b>
+    <section className={card.section}>
+      <h2 className={card.sectionTitle}>
+        <Leaf aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+        Overall module health
+      </h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>
         {overall.pct >= 70
           ? 'Strong foundation with clear direction.'
           : overall.pct >= 30
           ? 'Forming — keep filling in the picture.'
           : 'Sparse — start with the steward survey.'}
-      </span>
-      <span>
-        People &amp; Capacity <b>{healthLabel(sw.pct)}</b>
-      </span>
-      <span>
-        Place &amp; Culture <b>{healthLabel(rg.pct)}</b>
-      </span>
-      <span>
-        Vision &amp; Purpose <b>{healthLabel(vs.pct)}</b>
-      </span>
-      <span>
-        Risks to Address <b>{challenges}</b>
-      </span>
-    </SurfaceCard>
+      </p>
+      <div className={card.statRow}>
+        <span>People &amp; capacity</span>
+        <span>{healthLabel(sw.pct)}</span>
+      </div>
+      <div className={card.statRow}>
+        <span>Place &amp; culture</span>
+        <span>{healthLabel(rg.pct)}</span>
+      </div>
+      <div className={card.statRow}>
+        <span>Vision &amp; purpose</span>
+        <span>{healthLabel(vs.pct)}</span>
+      </div>
+      <div className={card.statRow}>
+        <span>Risks to address</span>
+        <span>{challenges}</span>
+      </div>
+    </section>
   );
 }
 
@@ -575,47 +522,53 @@ function SynthesisPanel({ vision }: VisionProps) {
   }
 
   return (
-    <SurfaceCard className="human-synthesis-panel">
-      <h2>Human Context Synthesis</h2>
+    <section className={card.section}>
+      <h2 className={card.sectionTitle}>Synthesis</h2>
       {empty ? (
-        <p>Fill in the steward survey, regional context, and vision to see synthesis.</p>
+        <p className={card.sectionBody}>Fill in the steward survey, regional context, and vision to see synthesis.</p>
       ) : (
         <>
-          <div className="synthesis-score">
-            <ProgressRing value={overall.pct} label={`${overall.pct}%`} />
-            <p>
-              <b>Context Alignment</b>
-              {overall.pct >= 70
-                ? 'Strong foundation across people, place, and purpose.'
-                : overall.pct >= 30
-                ? 'Forming — keep building.'
-                : 'Sparse — capture the basics first.'}
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <Ring value={overall.pct} />
+            <div>
+              <div className={hc.cardEyebrow} style={{ margin: 0 }}>Context alignment</div>
+              <p className={card.sectionBody} style={{ margin: 0 }}>
+                {overall.pct >= 70
+                  ? 'Strong foundation.'
+                  : overall.pct >= 30
+                  ? 'Forming — keep building.'
+                  : 'Sparse — capture the basics first.'}
+              </p>
+            </div>
           </div>
-          <SynthesisSection title="Key insights" items={insights} />
-          <SynthesisSection title="Design implications" items={implications} />
-          <SynthesisSection title="Next steps" numbered items={nextSteps} />
+
+          <div className={hc.synthesisGrid}>
+            <SynthesisBlock title="Key insights" items={insights} />
+            <SynthesisBlock title="Design implications" items={implications} />
+            <SynthesisBlock title="Next steps" numbered items={nextSteps} />
+          </div>
         </>
       )}
-    </SurfaceCard>
+    </section>
   );
 }
 
-interface SynthesisSectionProps {
+interface SynthesisBlockProps {
   title: string;
   items: string[];
   numbered?: boolean;
 }
 
-function SynthesisSection({ title, items, numbered = false }: SynthesisSectionProps) {
+function SynthesisBlock({ title, items, numbered = false }: SynthesisBlockProps) {
   return (
-    <section className="synthesis-section">
+    <div className={hc.synthesisBlock}>
       <h3>{title}</h3>
       {items.map((item, index) => (
         <p key={item}>
-          {numbered ? <b>{index + 1}</b> : <CheckCircle2 aria-hidden="true" />} {item}
+          {numbered ? <b>{index + 1}</b> : <CheckCircle2 aria-hidden="true" size={14} />}
+          <span>{item}</span>
         </p>
       ))}
-    </section>
+    </div>
   );
 }

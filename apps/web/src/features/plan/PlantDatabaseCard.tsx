@@ -12,7 +12,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { PLANT_DATABASE, type CanopyLayer, type LightNeeds, type WaterNeeds, type EcologicalFunction } from '../../data/plantDatabase.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { newAnnotationId, type SpeciesPick } from '../../store/site-annotations.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -86,7 +86,7 @@ export default function PlantDatabaseCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Plant database</h1>
         <p className={styles.lede}>

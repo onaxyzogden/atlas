@@ -1,0 +1,35 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-text-muted);
+}
+
+.current .dot   { background: var(--color-text-muted); }
+.vision         { color: var(--color-gold-brand); border-color: rgba(var(--color-gold-rgb), 0.5); }
+.vision .dot    { background: var(--color-gold-brand); }
+.phase1         { color: #4a8fbf; border-color: rgba(74, 143, 191, 0.5); }
+.phase1 .dot    { background: #4a8fbf; }
+.phase2         { color: #8c6fbf; border-color: rgba(140, 111, 191, 0.5); }
+.phase2 .dot    { background: #8c6fbf; }
+.terrain        { color: var(--color-text-muted); }
+.terrain .dot   { background: var(--color-text-muted); }
+.muted          { opacity: 0.7; }

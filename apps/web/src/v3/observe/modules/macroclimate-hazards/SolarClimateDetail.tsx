@@ -15,22 +15,20 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { CroppedArt, SurfaceCard } from '../../_shared/components/index.js';
 import heroSunscape from '../../assets/solar-climate-detail/hero-sunscape.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   climateKpis,
   getClimateLayer,
   polygonCentroid,
   solarOpportunities,
-  type ClimateLayer,
   type KpiItem,
 } from './derivations.js';
-
-type ClimateSummary = ClimateLayer['summary'];
 
 const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   snowflake: Snowflake,
@@ -48,190 +46,41 @@ export default function SolarClimateDetail() {
   const project = useV3Project(id);
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
   const centroid = polygonCentroid(project?.location?.boundary);
-  const climateSummary = getClimateLayer(layers)?.summary;
-
-  return (
-    <div className="detail-page solar-detail-page">
-      <section className="solar-detail-layout">
-        <div className="solar-detail-main">
-          <SolarHero />
-          <SolarKpis layers={layers} />
-          <section className="solar-chart-grid">
-            <ClimateOverviewCard layers={layers} />
-            <SolarPathCard lat={centroid?.lat ?? null} layers={layers} />
-          </section>
-          <section className="solar-bottom-grid">
-            <ExposureCard summary={climateSummary} />
-            <ClimateOpportunitiesCard layers={layers} />
-          </section>
-        </div>
-        <SolarActionRail layers={layers} />
-      </section>
-    </div>
-  );
-}
-
-function SolarHero() {
-  return (
-    <header className="solar-hero">
-      <div>
-        <h1>Solar &amp; Climate detail</h1>
-        <p>
-          Understand sunlight, seasonal rhythms, rainfall, and wind patterns to design with
-          climate, not against it. These insights help you place elements, time actions, and build
-          resilience.
-        </p>
-        <div className="solar-hero-actions">
-          <button className="green-button" type="button">
-            <Download aria-hidden="true" /> Export climate report
-          </button>
-          <button className="outlined-button" type="button">
-            <ExternalLink aria-hidden="true" /> Open climate sources
-          </button>
-        </div>
-      </div>
-      <CroppedArt src={heroSunscape} className="solar-hero-art" />
-    </header>
-  );
-}
-
-interface LayersOnly {
-  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
-}
-
-function SolarKpis({ layers }: LayersOnly) {
-  const items = climateKpis(layers);
-  return (
-    <section className="solar-kpi-grid">
-      {items.map((item) => {
-        const Icon = ICON_MAP[item.iconKey];
-        return (
-          <SurfaceCard className={`solar-kpi ${item.tone}`} key={item.label}>
-            <Icon aria-hidden="true" />
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-            <small>{item.note}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-function ClimateOverviewCard({ layers }: LayersOnly) {
-  return (
-    <SurfaceCard className="solar-panel climate-overview-panel">
-      <header>
-        <h2>Monthly climate overview</h2>
-      </header>
-      <MonthlyClimateChart layers={layers} className="climate-overview-image" />
-    </SurfaceCard>
-  );
-}
-
-interface SolarPathCardProps extends LayersOnly {
-  lat: number | null;
-}
-
-function SolarPathCard({ lat, layers }: SolarPathCardProps) {
   const summary = getClimateLayer(layers)?.summary;
+  const lat = centroid?.lat ?? null;
   const annualHrs = summary?.annual_sunshine_hours;
   const dailyAvg = annualHrs ? (annualHrs / 365).toFixed(1) : '—';
 
-  return (
-    <SurfaceCard className="solar-panel solar-path-panel">
-      <h2>Solar path &amp; seasonal sun angles</h2>
-      <div className="solar-path-content">
-        <SunPathDiagram lat={lat} className="solar-path-image" />
-        <SurfaceCard className="daylight-hours">
-          <h3>Daylight summary</h3>
-          <p>
-            <Sun aria-hidden="true" />
-            <span>Latitude</span>
-            <b>{lat != null ? `${lat.toFixed(2)}°` : '—'}</b>
-          </p>
-          <p>
-            <Sun aria-hidden="true" />
-            <span>Avg daily sunshine</span>
-            <b>{dailyAvg}{annualHrs ? ' hrs' : ''}</b>
-          </p>
-          <strong>
-            {annualHrs ? `${Math.round(annualHrs)} hrs` : '—'}{' '}
-            <small>Annual sunshine</small>
-          </strong>
-        </SurfaceCard>
-      </div>
-    </SurfaceCard>
-  );
-}
+  const items = climateKpis(layers);
+  const opps = solarOpportunities(layers);
 
-interface ExposureCardProps {
-  summary: ClimateSummary | undefined;
-}
-
-function ExposureCard({ summary }: ExposureCardProps) {
-  const items: Array<[string, string, string]> = [];
+  const exposure: Array<[string, string, string]> = [];
   if (summary?.prevailing_wind) {
-    items.push([
+    exposure.push([
       'Prevailing wind',
       `Wind from ${summary.prevailing_wind} — plan windbreaks on this edge.`,
       summary.wind_speed_ms != null ? `${(summary.wind_speed_ms * 3.6).toFixed(0)} km/h` : '—',
     ]);
   }
   if (summary?.last_frost_date) {
-    items.push([
+    exposure.push([
       'Spring frost window',
       `Last frost average: ${summary.last_frost_date}. Protect tender plants until then.`,
       'Plan',
     ]);
   }
   if (summary?.first_frost_date) {
-    items.push([
+    exposure.push([
       'Fall frost window',
       `First frost average: ${summary.first_frost_date}. Harvest before this date.`,
       'Plan',
     ]);
   }
-  if (items.length === 0) {
-    items.push(['Exposure data pending', 'Awaiting climate layer.', '—']);
+  if (exposure.length === 0) {
+    exposure.push(['Exposure data pending', 'Awaiting climate layer.', '—']);
   }
-  return (
-    <SurfaceCard className="solar-panel exposure-panel">
-      <h2>Exposure &amp; shelter</h2>
-      {items.map(([title, text, rating]) => (
-        <p key={title}>
-          <Wind aria-hidden="true" />
-          <b>
-            {title}
-            <small>{text}</small>
-          </b>
-          <em>{rating}</em>
-        </p>
-      ))}
-    </SurfaceCard>
-  );
-}
 
-function ClimateOpportunitiesCard({ layers }: LayersOnly) {
-  const opps = solarOpportunities(layers);
-  return (
-    <SurfaceCard className="solar-panel opportunities-panel">
-      <h2>Climate opportunities &amp; site implications</h2>
-      {opps.map(([title, text]) => (
-        <p key={title}>
-          <Sprout aria-hidden="true" />
-          <b>{title}</b>
-          <span>{text}</span>
-        </p>
-      ))}
-    </SurfaceCard>
-  );
-}
-
-function SolarActionRail({ layers }: LayersOnly) {
-  const summary = getClimateLayer(layers)?.summary;
   const priorities: Array<[string, string]> = [];
-
   if ((summary?.solar_radiation_kwh_m2_day ?? 0) >= 4) {
     priorities.push([
       'Maximize passive solar gain',
@@ -261,27 +110,156 @@ function SolarActionRail({ layers }: LayersOnly) {
   }
 
   return (
-    <aside className="solar-action-rail">
-      <SurfaceCard className="climate-priorities-card">
-        <h2>Climate insights &amp; next actions</h2>
-        <h3>Top priorities</h3>
-        {priorities.map(([title, text], index) => (
-          <p key={title}>
-            <b>{index + 1}</b>
-            <span>
-              {title}
-              <small>{text}</small>
-            </span>
-            <ArrowRight aria-hidden="true" />
-          </p>
-        ))}
-        <button className="green-button" type="button">
-          Add to design plan <Plus aria-hidden="true" />
-        </button>
-        <p className="design-tip">
-          <Leaf aria-hidden="true" /> Match design ambition to local climate, not aspirational hours.
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Understand sunlight, seasonal rhythms, rainfall, and wind patterns to design
+              with climate, not against it. These insights help you place elements, time
+              actions, and build resilience.
+            </p>
+            <div className={card.btnRow}>
+              <button type="button" className={card.btn}>
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                Export climate report
+              </button>
+              <button type="button" className={card.btn}>
+                <ExternalLink aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                Open climate sources
+              </button>
+            </div>
+          </div>
+          <img src={heroSunscape} alt="" aria-hidden="true" className={obsx.heroArt} />
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          {items.slice(0, 4).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {items.length > 4 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Exposure metrics</h2>
+          <div className={obsx.kpiGrid}>
+            {items.slice(4).map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Monthly climate overview</h2>
+        <MonthlyClimateChart layers={layers} />
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Solar path &amp; seasonal sun angles</h2>
+        <div className={card.grid}>
+          <SunPathDiagram lat={lat} />
+          <div>
+            <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Daylight summary</h3>
+            <div className={card.statRow}>
+              <span><Sun aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Latitude</span>
+              <span>{lat != null ? `${lat.toFixed(2)}°` : '—'}</span>
+            </div>
+            <div className={card.statRow}>
+              <span><Sun aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Avg daily sunshine</span>
+              <span>{dailyAvg}{annualHrs ? ' hrs' : ''}</span>
+            </div>
+            <div className={card.statRow}>
+              <span>Annual sunshine</span>
+              <span>{annualHrs ? `${Math.round(annualHrs)} hrs` : '—'}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            <Wind aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Exposure &amp; shelter
+          </h2>
+          <div className={obsx.synthesisBlock}>
+            {exposure.map(([title, text, rating]) => (
+              <p key={title}>
+                <Wind aria-hidden="true" size={14} />
+                <span>
+                  <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text} <em style={{ color: 'rgba(var(--color-gold-rgb), 0.85)', fontStyle: 'normal' }}>{rating}</em>
+                </span>
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            <Sprout aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Climate opportunities
+          </h2>
+          <div className={obsx.synthesisBlock}>
+            {opps.map(([title, text]) => (
+              <p key={title}>
+                <Sprout aria-hidden="true" size={14} />
+                <span>
+                  <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}
+                </span>
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Climate insights &amp; next actions</h2>
+        <div className={obsx.synthesisBlock}>
+          {priorities.map(([title, text], index) => (
+            <p key={title}>
+              <b>{index + 1}</b>
+              <span>
+                <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}
+              </span>
+            </p>
+          ))}
+        </div>
+        <div className={card.btnRow}>
+          <button type="button" className={card.btn}>
+            <Plus aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            Add to design plan
+            <ArrowRight aria-hidden="true" size={12} style={{ marginLeft: 4, verticalAlign: 'middle' }} />
+          </button>
+        </div>
+        <p className={card.sectionBody} style={{ marginTop: 12 }}>
+          <Leaf aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Match design ambition to local climate, not aspirational hours.
         </p>
-      </SurfaceCard>
-    </aside>
+      </section>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { useEcologyStore } from '../../store/ecologyStore.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -101,7 +101,7 @@ export default function HolmgrenChecklistCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 8 · Principle Verification</span>
         <h1 className={styles.title}>Holmgren 12-principle checklist</h1>
         <p className={styles.lede}>

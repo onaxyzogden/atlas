@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 type Frequency = 'daily' | 'weekly' | 'occasional' | 'rare';
 
@@ -42,7 +42,7 @@ export default function PathFrequencyEditor({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 3 · Zone &amp; Circulation</span>
         <h1 className={styles.title}>Path usage frequency</h1>
         <p className={styles.lede}>

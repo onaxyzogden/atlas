@@ -179,8 +179,25 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   declared species (falls back to `sheep`); direction defaults to
   `move_in`. The logged-moves + rest-variance block below the form
   refreshes automatically via store subscription.
-- **From picker on popover + draw-tool inline forms.** Pragmatic UX
-  deviation; popover/tool are 6-field cramped panels.
+- ~~**From picker on popover + draw-tool inline forms.** Pragmatic UX
+  deviation; popover/tool are 6-field cramped panels.~~ **Closed
+  2026-05-11 (commit `0d764f9`).** Resolved via a **disclosure
+  pattern**: `inlineFormStore.FieldSpec` gained a new `kind:
+  'disclosure'` variant (`triggerLabel` + nested `children: FieldSpec[]`);
+  `InlineFeaturePopover` renders the trigger as a single button row when
+  collapsed and reveals the children inline when expanded (auto-expands
+  if any child has a non-empty initial value, so edit-mode flows show
+  the picker already open). New shared helper
+  `apps/web/src/v3/act/originPicker.ts` owns the encoding
+  (`'paddock:<id>'` / `'structure:<id>'` / `''`), builds the combined
+  paddock + livestock-capable-structure option list, and **excludes the
+  current destination** so a plan/event can never self-target.
+  Wired into `startLivestockMoveLog`, `startScheduledLivestockMove`
+  (including edit-mode prefill via `encodeOriginValue` on the existing
+  plan's `fromPaddockId` / `fromStructureId`), and the
+  `LivestockMoveTool` draw-tool. The default form footprint stays at
+  6 fields — the picker only appears when the operator clicks
+  `+ Add origin`.
 - ~~**Lift `DIRECTION_OPTIONS` / `SPECIES_OPTIONS` in `LivestockMoveTool.tsx`.**
   Third duplication site missed by the 2026-05-10 S2 cleanup (the
   store now owns the canonical lists for `LivestockMoveCard` and
@@ -217,7 +234,8 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
 - ~~**Plans for structure destinations** (popover handoff). Originally
   deferred — rotation card is paddock-centric, structure plans add no
   value on *that* surface.~~ **Closed 2026-05-10 (commits `1821f5d`
-  schema + handoff, `e5d8224` UI wiring).** Schema (`1821f5d`):
+  schema + handoff, `e5d8224` UI wiring, `88ded4c` plan-editing
+  parity).** Schema (`1821f5d`):
   `scheduledLivestockMoveStore` bumped persist v1 → v2 — `toPaddockId`
   is now optional, `toStructureId` / `fromStructureId` added; new
   helper `structureDestPlans(plans, projectId)` returns all
@@ -234,6 +252,14 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   plans render as plain `Planned · <direction>` reminders).
   Auto-fulfilment effect extended to match either `toPaddockId` or
   `toStructureId` (same ±7-day window, same species match).
+  **Plan-editing parity (`88ded4c`):** `startScheduledLivestockMove`
+  gained an optional `existingPlanId` parameter — when set, the action
+  skips the skeleton-add, prefills the inline form from the existing
+  plan, and rebinds Save to `updatePlan(existingPlanId, …)` / Cancel
+  to a no-op. The Structure-moves tail's plan row now carries an
+  `Edit` chip alongside the dismiss `✕`; clicking it routes through
+  the existing structure to pop the prefilled form. Same UX as the
+  paddock `Planned:` line from `a2725c3`.
 
 ## Related
 
@@ -265,3 +291,12 @@ First-ever entries (no prior exit) emit no pair — quietly correct.
   `scheduleLivestockMove` action kind + popover routing + Structure-
   moves tail renders unfulfilled plans + auto-fulfilment extended to
   `toStructureId`.
+- `88ded4c` — Plan-editing parity for structure-destination plans:
+  `startScheduledLivestockMove(structure, projectId, existingPlanId?)`
+  handles both add and edit; `Edit` chip on Structure-moves tail plan
+  rows mirrors the paddock `Planned:` line from `a2725c3`.
+- `0d764f9` — From-picker disclosure on the three livestock-move inline
+  forms (`inlineFormStore` gains `kind: 'disclosure'`,
+  `InlineFeaturePopover` renders collapsed/expanded children, new
+  shared `originPicker` helper encodes refs and excludes the current
+  destination). Closes the last deferred item on this ADR.

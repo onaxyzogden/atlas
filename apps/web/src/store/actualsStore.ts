@@ -1,5 +1,5 @@
-/**
- * Actuals store — ACT-stage Module 2 (Phased Implementation & Budgeting).
+﻿/**
+ * Actuals store â€” ACT-stage Module 2 (Phased Implementation & Budgeting).
  *
  * Tracks **actual** labor hours and dollars spent against each PLAN-stage
  * `PhaseTask`. The `BudgetActualsCard` joins this against
@@ -10,7 +10,7 @@
  * `useMemo` to derive their per-project slice (subscribe-then-derive,
  * `wiki/decisions/2026-04-26-zustand-selector-stability.md`).
  *
- * If a `PhaseTask` is deleted in PLAN, the actual entry orphans — by design.
+ * If a `PhaseTask` is deleted in PLAN, the actual entry orphans â€” by design.
  * `BudgetActualsCard` shows orphans at the bottom with a "remove" affordance;
  * we don't auto-cascade so the steward keeps full audit control.
  */
@@ -19,7 +19,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface TaskActual {
-  /** PhaseTask.id — the join key against `phaseStore.BuildPhase.tasks`. */
+  /** PhaseTask.id â€” the join key against `phaseStore.BuildPhase.tasks`. */
   taskId: string;
   actualHrs: number;
   actualUSD: number;
@@ -28,11 +28,11 @@ export interface TaskActual {
   notes?: string;
 }
 
-/** taskId → actual, scoped per project. */
+/** taskId â†’ actual, scoped per project. */
 export type ProjectActuals = Record<string, TaskActual>;
 
 interface ActualsState {
-  /** projectId → taskId → actual. */
+  /** projectId â†’ taskId â†’ actual. */
   byProject: Record<string, ProjectActuals>;
   upsertActual: (projectId: string, actual: TaskActual) => void;
   removeActual: (projectId: string, taskId: string) => void;
@@ -61,7 +61,7 @@ export const useActualsStore = create<ActualsState>()(
           return { byProject: { ...s.byProject, [projectId]: next } };
         }),
     }),
-    { name: 'ogden-act-actuals', version: 1 },
+    { name: 'ogden-act-actuals', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

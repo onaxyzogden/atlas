@@ -14,6 +14,7 @@
 
 import { Pencil, Trash2 } from 'lucide-react';
 import { SurfaceCard } from '../_shared/components/index.js';
+import styles from './AnnotationListCard.module.css';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
 import {
@@ -60,8 +61,8 @@ export default function AnnotationListCard({ title, projectId, kinds, emptyHint 
   };
 
   return (
-    <SurfaceCard className="diagnostic-panel annotation-list-panel">
-      <header className="panel-header">
+    <SurfaceCard className={styles.panel}>
+      <header className={styles.header}>
         <h2>{title}</h2>
         <span style={{ fontSize: 12, color: 'var(--text-muted, #888)' }}>
           {rows.length} {rows.length === 1 ? 'entry' : 'entries'}

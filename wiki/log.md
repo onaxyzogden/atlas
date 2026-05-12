@@ -4,6 +4,1178 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-12 — Observe `Ring` helper lifted to shared component
+
+**Closed.** Closes deferred follow-up 3 from the 2026-05-11 Human Context
+reskin ADR. The gold conic-gradient `Ring({ value })` helper existed as
+14 byte-identical local copies across every Observe dashboard and detail
+page — same JSX, same `--progress` CSS variable, same
+`observeExtras.module.css` `.ring` rule, distinguished only by which
+local alias (`obsx` vs `hc`) the CSS module was imported under. New
+`apps/web/src/v3/_shared/stageCard/Ring.tsx` exports the component as
+default; each consumer dropped its local `function Ring(...)` block plus
+the now-unused `type CSSProperties` React import and added
+`import Ring from '../../../_shared/stageCard/Ring.js'`. The 14 files
+touched: BuiltEnvironment / EarthWaterEcology / Ecological / Hydrology /
+JarPercRoof / HumanContext / StewardSurvey / Macroclimate /
+SectorCompass / Sectors / Swot{Dashboard,DiagnosisReport,Journal} /
+Topography. Net −126 lines of duplicated boilerplate, +12 in the shared
+component. `pnpm --filter @ogden/web typecheck` clean (exit 0). Visual
+end-to-end confirmation of the Ring inside an open dashboard was
+blocked — demo project's Observe dashboards are data-gated ("Site
+Intelligence is available for real projects. The MTC sample ships with
+mock data only.") so the lazy `ModuleSlideUp` dashboards never mount on
+the preview's mock data. Lift is mechanically pure-refactor.
+
+---
+
+## 2026-05-12 — Observe `--olos-*` tokens unified onto atlas palette
+
+**Closed.** Follow-up to the same-day observe-port retirement. The 16
+co-located Observe `.module.css` files still referenced the `--olos-*`
+namespace (49 occurrences across 10 distinct tokens); those declarations
+lived only in the deleted generated stylesheet plus the unimported sibling
+`apps/atlas-ui/src/styles.css`. References with fallbacks rendered flat;
+references without (`--olos-green`, `--olos-font-display`, `--olos-panel`,
+`--olos-focus-ring`, …) silently dropped the property. Per-file token swap
+applied across `_shared/components/` (SurfaceCard, ActionCard, ProgressRing,
+NextStepsPanel, ModuleSummaryCard, ModuleCard, MetricStrip, InsightSidebar),
+`components/AnnotationListCard`, `modules/topography/` (SeasonalSolarStrip,
+ElevationProfileChart, ElevationHistogram, AspectCompass), and
+`modules/macroclimate-hazards/` (SunPathDiagram, MonthlyClimateChart,
+HazardRiskMatrix). Atlas palette adopted over OLOS (`--olos-green` →
+`var(--color-sage-600)`, `--olos-gold-bright` → `var(--color-gold-brand)`,
+`--olos-cream` → `var(--color-earth-100)`, `--olos-muted` →
+`var(--color-panel-muted)`, etc.); `--olos-focus-ring` shorthand restructured
+to `2px solid var(--color-focus-ring)` at its two callsites. No `.tsx` edits.
+Pre-flight grep `var(--olos-` → 0 matches in `apps/web/src/`. Typecheck
+clean. Preview restarted, Topography slide-up + charts render with atlas
+sage/gold/earth tones replacing the previously broken/fallback-grey output.
+Full record:
+[wiki/decisions/2026-05-12-atlas-observe-token-unification.md](decisions/2026-05-12-atlas-observe-token-unification.md).
+
+---
+
+## 2026-05-12 — observe-port stylesheet retired (path C complete)
+
+**Closed.** Phases 8–10 of the observe-port migration shipped. Phase 8
+migrated the eight `_shared/components/` primitives (MetricStrip, ActionCard,
+ChipList, ModuleSummaryCard, InsightSidebar, NextStepsPanel, ModuleCard,
+AnnotationListCard) plus their CSS into co-located `.module.css` files; the
+ModuleCard port dropped ~30 dead SVG-internal selectors (consumers use
+CroppedArt → `<img>`, not inline SVG); ChipList tone narrowed to a
+`'green'|'gold'|'orange'` union with `styles[tone]` lookup. Phase 9 confirmed
+all audit stragglers (`perc-gauge`, `species-observation-list`, etc.) are
+dead className strings with no matching rules — no-op. Phase 10 deleted the
+22 172-line generated `apps/web/src/v3/observe/styles/observe-port.css`, the
+now-empty `styles/` dir, and `scripts/scope-observe-styles.mjs`; removed the
+import and the `observe-port` wrapper class from the Observe `ModuleSlideUp`;
+updated the shared slide-up JSDoc and the Observe README. Preview restarted
+(clears stale HMR); Human Context slide-up renders correctly with no
+`observe-port` class on the sheet root. Typecheck clean for all Observe
+paths. Full record:
+[wiki/decisions/2026-05-12-atlas-observe-port-retired.md](decisions/2026-05-12-atlas-observe-port-retired.md);
+supersedes the styling section of
+[2026-05-06-atlas-observe-port-styling.md](decisions/2026-05-06-atlas-observe-port-styling.md).
+
+---
+
+## 2026-05-12 — observe-port path C: tightened consumer audit + revised phase plan
+
+**Motive.** Phase 1 (built-environment) finding revealed the
+[`scripts/map-observe-port-consumers.py`](../scripts/map-observe-port-consumers.py)
+scanner was matching every identifier-shaped token inside every
+quoted string — false positives like `'sprout'` (ICON_MAP key)
+counted as a `.sprout` class consumer. Before continuing with
+phases 2–7 the audit needed to be honest.
+
+**Change.** Rewrote the scanner to look only at JSX-style consumption:
+
+- `className="literal"` / `className='literal'` — whitespace-split
+  the literal into class tokens.
+- `className={...expr...}` — extract every quoted/backtick string
+  slice from the expression, strip `${...}` template interpolations
+  (those are CSS-module identifier refs, not bare classes), then
+  whitespace-split the remainder.
+- `clsx(...)`, `classnames(...)`, `cn(...)` calls — same string-slice
+  extraction over the call's argument list.
+
+**Result.** Real-consumer count drops from **154 → 90** (-42%);
+orphan count rises from 891 → **955** out of 1045 (91% orphan).
+
+**Revised per-module list:**
+
+| Module | Real classes | Consumer .tsx |
+|---|---:|---|
+| built-environment | **0** | — |
+| sectors-zones | **0** | — |
+| swot-synthesis | **0** | — |
+| earth-water-ecology | 2 | 5 small viz components |
+| human-context | 7 | `CapacityOrbit.tsx`, `MoodboardUploader.tsx` |
+| macroclimate-hazards | 23 | `HazardHotspotsMap`, `HazardRiskMatrix`, `MonthlyClimateChart`, `SunPathDiagram` |
+| topography | 23 | `AspectCompass`, `ElevationHistogram`, `ElevationProfileChart`, `SeasonalSolarStrip`, `SlopeLegendStrip`, `TerrainSnapshot` |
+
+**Surprise: 37 classes consumed outside Observe modules.** The
+`apps/web/src/v3/observe/_shared/components/` cluster (ActionCard,
+ChipList, ModuleSummaryCard, InsightSidebar, MetricStrip,
+ModuleCard, NextStepsPanel, ProgressRing, SurfaceCard, DataTable,
+FormFields, AnnotationListCard) consumes patterns like
+`.action-card`, `.chip-list`, `.dashboard-module-card`,
+`.insight-sidebar`, `.metric-band`, `.module-art`, `.surface-card`.
+These are atlas-wide shared chrome, not per-module. A handful of
+features-tree files also dip in (`.good`, `.green`, `.high`,
+`.warning` in access/climate/portal/rules cards).
+
+**Revised phase plan:**
+
+1. ~~built-environment~~ — no-op (confirmed phase 1).
+2. **sectors-zones** — no-op (confirmed by audit).
+3. **swot-synthesis** — no-op (confirmed by audit).
+4. **earth-water-ecology** — 2 classes (`.compact`,
+   `.is-empty`) across 5 component files. Trivial.
+5. **human-context** — 7 classes, 2 component files
+   (`CapacityOrbit`, `MoodboardUploader`).
+6. **macroclimate-hazards** — 23 classes, 4 component files.
+7. **topography** — 23 classes, 7 component files.
+8. **NEW: observe `_shared/components/`** — 30+ classes across the
+   atlas-wide Observe chrome cluster. Add `_shared/components` to
+   the cleanup before deletion because `observe-port.css` cannot
+   be deleted while these consume it.
+9. **stragglers in `features/`** — `.good`, `.green`, `.high`,
+   `.warning` in 4 unrelated cards. Inline these as small local
+   helpers and drop the cross-tree coupling.
+10. **finalize** — delete `observe-port.css`, the `.observe-port`
+    wrapper class on `ModuleSlideUp.tsx:136`, and the
+    `scripts/scope-observe-styles.mjs` generator. Update Observe
+    README.
+
+**Outcome.** Audit tool rewritten and committed. Phase 1 confirmed
+no-op; phases 2 and 3 are also no-ops per the tightened audit.
+Phases 4–10 carry the real work. Plan revised but not executed.
+
+---
+
+## 2026-05-12 — observe-port path C, phase 1 (built-environment): no-op
+
+**Motive.** Begin phase 1 of the
+[2026-05-12 observe-port pruning plan](#2026-05-12--observe-port-css-pruning-audit--path-c-plan-not-yet-executed)
+— migrate the built-environment module off `observe-port.css` into a
+module-local CSS module.
+
+**Finding — built-environment is already migrated.**
+[`BuiltEnvironmentDashboard.tsx`](../apps/web/src/v3/observe/modules/built-environment/BuiltEnvironmentDashboard.tsx)
+uses only `card.*` (stageCard) and `obsx.*` (observeExtras) CSS
+modules. Zero bare `className="..."` strings. The 13 classes the
+prior audit flagged as "consumed" by built-environment were all
+false positives — string tokens like `'sprout'` inside the ICON_MAP
+keys, not CSS class references. The Panel wrapper is a 9-line
+re-export with no styling.
+
+**Implication for the rest of the plan.** The string-literal
+consumer scan in
+[`scripts/map-observe-port-consumers.py`](../scripts/map-observe-port-consumers.py)
+matches any identifier-shaped token inside any quoted string —
+which overcounts dramatically for common-English class names like
+`.on`, `.red`, `.water`, `.gold`. Before phase 2 (human-context) it
+is worth tightening the scanner to look only at `className=` /
+`clsx(...)` / `classnames(...)` references, so the per-module
+real-consumer count is honest. Otherwise we waste cycles confirming
+false positives on each module.
+
+**Cascade still live.** Built-environment renders inside the
+`.observe-port` wrapper sheet, so the global token block + any
+implicit cascading still applies. That removal is a phase-8
+concern, not phase-1.
+
+**Outcome.** No CSS or TSX edits in built-environment. Audit
+tightening deferred. Plan unchanged: continue lightest-to-heaviest,
+skipping built-environment.
+
+---
+
+## 2026-05-12 — Phase 5.2: BE rail sub-grouped by registry category
+
+**Motive.** Phase 5.1 widened `defaultStates` to `['existing','proposed']`
+for 23 holdout kinds, so the Observe + Plan rails now surface all 31 BE
+kinds via the shared `BE_TOOL_ITEMS` derivation. But "all 31 in a flat
+3-column grid" was the actual surfacing problem — stewards saw a wall of
+buttons that scrolled. Phase 5.2 keeps the rail driven by the registry
+but groups its buttons by `BuiltEnvironmentCategory` so the surface stays
+scannable as new kinds are added.
+
+**Changes.**
+
+- [`builtEnvironmentTools.ts`](../apps/web/src/v3/_shared/builtEnvironmentTools.ts)
+  — exports a new `BE_TOOL_GROUPS` array (and a `BE_CATEGORY_LABEL` map)
+  derived from the registry. Categories appear in the order they first
+  surface in `BUILT_ENVIRONMENT_KINDS`; items inside each category preserve
+  registry order. Adding a kind to the shared registry auto-lands in its
+  category sub-card with no rail-side maintenance.
+- [`ObserveTools.tsx`](../apps/web/src/v3/observe/tools/ObserveTools.tsx)
+  — when the rendered module is `'built-environment'`, the flat
+  `<div className={css.itemGrid}>` is replaced with one `<details open>`
+  per category. Native disclosure → no React state, no a11y wiring, free
+  keyboard support. All sub-cards open by default; stewards collapse
+  what they don't need.
+- [`PlanTools.tsx`](../apps/web/src/v3/plan/PlanTools.tsx) — same
+  pattern for the `'structures-subsystems'` module so the two rails stay
+  parallel.
+- Button-rendering extracted to `renderToolButton` / `renderPlanToolButton`
+  so the flat case and the sub-grouped case share the exact same
+  disabled / tooltip / active-state logic.
+- CSS additions: `.subgroup`, `.subgroupHeader`, plus a chevron skin on
+  `summary::before` that rotates on `[open]`. Added to both module CSS
+  files (`ObserveTools.module.css`, `PlanTools.module.css`).
+
+**Verification.** `apps/web` tsc exit 0. No new warnings.
+
+**Phase 5 status.**
+- **5.1** — registry widened to 31/31 dual-state. ✅ (shipped earlier)
+- **5.2 (this entry)** — Observe + Plan rails sub-grouped by category. ✅
+- **5.3** — Plan structure-type taxonomy mirror. Open.
+- **5.4** — Dashboard derivations widen from 8 to 31 BE cards. Open.
+
+---
+
+## 2026-05-12 — Paddock edit popover: floater label → inline-edit, with area-based stocking recommendation
+
+**Motive.** When a single paddock was selected on the Plan map, the
+`PlanSelectionFloater` showed a plain `Paddock` label with no click handler
+— stewards had to redraw a paddock to fix a typo or change its pasture
+quality. Also, the inline-edit field order ran name → species → fencing →
+**stocking (head/ha)** → pasture quality, which is backwards from the
+order a farmer actually reasons in (look at pasture quality first, then
+decide head count).
+
+**Changes** (landed inside parallel commit `83073fa4`).
+
+- [`PlanSelectionFloater.tsx`](../apps/web/src/v3/plan/PlanSelectionFloater.tsx)
+  — when `single.kind === 'paddock'`, the count label becomes a `<button>`
+  that opens the inline-edit popover anchored at the paddock centroid via
+  `useInlineFormStore` + `buildPaddockEditSchema`. Non-paddock kinds keep
+  the static span.
+- [`inlineEditSchemas.ts` `buildPaddockEditSchema`](../apps/web/src/v3/plan/layers/inlineEditSchemas.ts)
+  — reordered fields to name → species → fencing → **pasture quality** →
+  **recommended for this paddock** (new) → stocking (head/ha). New row is
+  readonly text formatted as `"{total} {unit} ({perHa}/ha)"` so the
+  steward sees both the absolute target and the density it implies.
+- Reactivity: added an `onValuesChange` patch that recomputes the
+  recommendation when species or pasture-quality changes — no need to
+  reopen the form. Uses the existing reactive hook on `InlineFormPayload`
+  (`inlineFormStore.ts:75`).
+
+**Formula reuse.** The recommendation calls
+[`computePaddockRecommendedStocking`](../apps/web/src/features/livestock/livestockAnalysis.ts)
+— the same canonical helper that powers `LivestockMoveCard`,
+`GrazingDashboard`, and `CarryingCapacityCard`. head/ha =
+`LIVESTOCK_SPECIES[species].typicalStocking × PASTURE_QUALITY_MULTIPLIER[pq]`,
+then multiplied by `areaM2 / 10_000` for the total head count. No parallel
+formula introduced.
+
+**Verification.** `apps/web` tsc clean (only pre-existing parallel-agent
+errors in `Plan3DSelectionHandler.tsx`, since fixed in `1cee21ed`).
+
+---
+
+## 2026-05-12 — Per-view design-element editability verification pass
+
+**Motive.** User reported "Paddocks drawn in Vision Layout not editable."
+The per-view design-element pipeline (selection routing, vertex-edit
+dispatch, per-view origin filter, `view`/`hiddenInViews` schema) had
+already shipped in commit `83073fa4` two days prior. This session
+re-confirmed the wiring end-to-end and attempted preview verification.
+
+**Findings.**
+
+- Static review of [PlanSelectionFloater.tsx](../apps/web/src/v3/plan/PlanSelectionFloater.tsx),
+  [PlanVertexEditHandler.tsx](../apps/web/src/v3/plan/layers/PlanVertexEditHandler.tsx),
+  [DesignToolRail.tsx](../apps/web/src/v3/plan/canvas/DesignToolRail.tsx),
+  [DesignElementLayers.tsx](../apps/web/src/v3/plan/canvas/layers/DesignElementLayers.tsx),
+  and [useDesignElementDrawTool.ts](../apps/web/src/v3/plan/canvas/draw/useDesignElementDrawTool.ts)
+  confirms: select-mode in `DesignToolRail` mirrors editable picks into
+  `planSelectionStore`; floater handles the `'design-element'` kind for
+  label/polygon-check/delete; vertex handler cross-project lookup
+  recomputes acreage on write; draw stamps `view: currentView`; layer
+  filter applies the Current-vs-non-Current origin rule with
+  `hiddenInViews` override.
+- Preview verification was partial: harness lost the renderer to
+  `chrome-error://chromewebdata/` mid-session and `preview_screenshot`
+  timed out. Console errors prior to the renderer crash were all
+  pre-existing (ObserveModuleBar nested-button warnings, the cleared
+  Plan3DSelectionHandler HMR failure). No new runtime errors attributable
+  to the design-element changes.
+
+**Status.** Code paths verified by inspection; manual browser smoke
+recommended (Vision: draw paddock → click select → confirm
+`PlanSelectionFloater` bottom pill bar with **Edit vertices** and
+**Delete**; vertex drag persists; switch to Phase-1 → Vision paddock
+hidden, Current-origin paddock visible).
+
+---
+
+## 2026-05-12 — observe-port.css pruning audit + path C plan (not yet executed)
+
+**Motive.** Open the deferred "`observe-port.css` cleanup" follow-up
+from
+[2026-05-11-atlas-observe-human-context-reskin](decisions/2026-05-11-atlas-observe-human-context-reskin.md).
+Steward asked for a mechanical no-consumer sweep.
+
+**Discovery — pruning is not mechanical.**
+
+- `observe-port.css` is **generated**, not authored.
+  [`scripts/scope-observe-styles.mjs`](../scripts/scope-observe-styles.mjs)
+  reads from an OLOS reference repo at
+  `C:/Users/MY OWN AXIS/Documents/OGDEN Land Operating System/src/styles.css`
+  and rewrites every selector under `.observe-port`. Any in-place
+  prune would be wiped on the next regeneration.
+- The `.observe-port` wrapper class is still live: attached to the
+  Observe slide-up sheet root at
+  [`apps/web/src/v3/observe/components/ModuleSlideUp.tsx:136`](../apps/web/src/v3/observe/components/ModuleSlideUp.tsx).
+- Two new audit scripts written:
+  [`scripts/audit-observe-port.py`](../scripts/audit-observe-port.py)
+  (defined vs. referenced) and
+  [`scripts/map-observe-port-consumers.py`](../scripts/map-observe-port-consumers.py)
+  (per-Observe-module consumer map).
+- Audit result: **1045** classes defined, **154** referenced anywhere
+  in `apps/web/src`, **891 orphan** (85%). The string-literal-scoped
+  consumer scan returns **141** classes across 7 modules, but many
+  are false positives — common English tokens like `.on`, `.red`,
+  `.water`, `.gold`, `.high`, `.low` matching unrelated string
+  contents. Real consumers cluster around dataviz patterns:
+  `compass-*`, `matrix-*`, `moodboard-*`, `jar-*`, `hist-*`,
+  `hotspot-*`, `sun-*`, `solar-*`, `slope-*`, `profile-*`,
+  `elevation-*`, `aspect-*`, `capacity-orbit`,
+  `hazard-hotspots-map`, `terrain-snapshot`.
+
+**Three paths surfaced, steward selected (C).**
+
+- (A) Prune the OLOS reference, regenerate — cross-repo, out of scope.
+- (B) Hand-author `observe-port.css` from here on, lose the OLOS sync.
+- (C) **(SELECTED)** Migrate the remaining real consumers into
+  module-local `.module.css` files, then delete `observe-port.css`,
+  the `.observe-port` wrapper class, and the generator script.
+
+**Plan (not yet executed).** 8 phases, lightest to heaviest module:
+built-environment → human-context → swot-synthesis → sectors-zones
+→ earth-water-ecology → macroclimate-hazards → topography → finalize
+(delete `observe-port.css` + wrapper + generator, update Observe
+README). Per-phase gate: typecheck clean, grep confirms no
+remaining bare `className=` for extracted classes outside the new
+local module, preview screenshot matches pre-migration. Token block
+(`--olos-*` CSS variables) decision deferred to phase 1 — likely
+lift into a shared `observe-tokens.css` consumed by all module CSS
+modules.
+
+**Outcome of this session.** Audit + plan only. No `.css` or `.tsx`
+edits this turn. Scripts committed for the next session to start
+from.
+
+---
+
+## 2026-05-12 — Plan3DSelectionHandler typecheck fix + Observe-reskin ADR scope correction
+
+**Motive.** Two trailing items after the Plan+Act callsite migration
+landed: (a) the two pre-existing `TS18048` errors in
+`Plan3DSelectionHandler.tsx` (from commit `78b21bc4`) were still the
+only remaining typecheck failures, and (b) the
+[2026-05-11-atlas-observe-human-context-reskin](decisions/2026-05-11-atlas-observe-human-context-reskin.md)
+ADR still claimed only Human Context had been reskinned and the
+other six Observe modules were deferred, which contradicts the actual
+21-file change set already in `main` history.
+
+**Change.**
+
+- **Plan3DSelectionHandler typecheck.** Added a one-line
+  `if (!f) return;` guard after `const f = features[0];` so TS can
+  narrow `f` for the subsequent `.properties` reads. Resolves both
+  TS18048 errors (lines 93 and 97). Commit `1cee21ed`. `npm run
+  typecheck` in `apps/web` now exits clean.
+- **ADR scope correction.** Renamed the ADR title from "Observe
+  Human Context reskin" to "Observe full reskin"; expanded the
+  Scope, Status, Migrated components, and Files sections to list
+  all 21 module files across human-context, earth-water-ecology,
+  topography, macroclimate-hazards, sectors-zones, swot-synthesis,
+  and built-environment; fixed the "local extras" section to point
+  at `_shared/stageCard/observeExtras.module.css` (promoted from
+  Human-Context-local once the other six modules adopted the same
+  patterns); marked the Plan+Act follow-up as closed against
+  commits `daf1b549` + `2ef6791a`. The file is not renamed —
+  inbound wiki links and the index entry keep their existing slug;
+  a scope-correction note at the top of the doc explains the
+  narrower original framing. Commit `5da4b27b`.
+
+**Outcome.** `apps/web` typecheck is now green for the first time
+since `78b21bc4`. The Observe-reskin ADR matches what shipped, so
+the next pass at `observe-port.css` cleanup or the
+`ProgressRing` gold rollout can plan from accurate scope.
+
+---
+
+## 2026-05-12 — Plan + Act callsite migration off legacy planCard / actCard CSS
+
+**Motive.** Closing the deferred follow-up from
+[2026-05-11-atlas-observe-human-context-reskin](decisions/2026-05-11-atlas-observe-human-context-reskin.md):
+~49 Plan and Act cards still imported the legacy
+`features/plan/planCard.module.css` and `features/act/actCard.module.css`
+modules. The shared
+[`apps/web/src/v3/_shared/stageCard/stageCard.module.css`](../apps/web/src/v3/_shared/stageCard/stageCard.module.css)
+primitive (selected by `data-stage="plan|act|observe"`) had been the
+canonical home since the Observe Human-Context reskin landed, and the
+two legacy CSS files were already deleted in `daf1b549`. Callsites
+still had to be flipped.
+
+**Change.**
+
+- 49 `.tsx` callsites updated: import path swung to the shared
+  stageCard module, and `data-stage="plan"` (or `data-stage="act"`)
+  added to each `<header className={styles.hero}>` element so the
+  attribute-keyed gradient resolves correctly.
+- Touches `apps/web/src/features/plan/*`, `apps/web/src/features/act/*`,
+  and `apps/web/src/v3/plan/cards/**`. Per-file diff is exactly two
+  lines: import path + `data-stage` attribute.
+- Migration tool
+  [`scripts/migrate-stagecard.py`](../scripts/migrate-stagecard.py)
+  committed for traceability. Byte-safe UTF-8 read/write — written
+  after an earlier agent-driven attempt corrupted em-dashes into
+  cp1252 mojibake (BOM prepended, `—` → `â€"`). Cleanly-reverted
+  files were re-migrated through the script; two contaminated files
+  (`WaterCatchmentsCard`, `WaterStorageCard`) were repaired in place
+  by round-tripping through cp1252→utf-8.
+
+**Outcome.** Zero remaining references to the legacy CSS modules
+(grep confirms `planCard.module.css` / `actCard.module.css` survives
+only as the deleted-file name in `daf1b549`'s log and as a comment in
+`stageCard.module.css` itself). `apps/web` typecheck passes for the
+change set — the only errors are the 2 pre-existing
+`Plan3DSelectionHandler.tsx` issues from `78b21bc4`. Plan and Act
+heroes now render off the same `data-stage`-keyed gradient family as
+Observe.
+
+**Commit:** `2ef6791a atlas: migrate remaining Plan + Act callsites to shared stageCard`
+
+---
+
+## 2026-05-12 — phaseStore→Yeomans adapter; Water module honours Year 1 / Year 5 cap
+
+**Motive.** Yesterday's "module bar on every view" ship gave each phased
+module a year-cap chip ("Year 1 · capped at water"), but the chip
+lied: most Plan-module cards read project-axis stores (water,
+livestock, soil) whose `phase` field is a `phaseStore.BuildPhase.id`
+(UUID), not a Yeomans `PhaseKey`. The cap couldn't reach the data.
+
+**Change.**
+
+- **Schema.** `phaseStore.BuildPhase` gains optional `yeomansCap?: PhaseKey`.
+  Default seeds populate it (order 1→water, 2→buildings, 3→subdivision,
+  4→soil). Persist version 2→3 migration backfills the same.
+- **Adapter hook.** New
+  [`apps/web/src/v3/plan/usePhaseStoreCappedEntities.ts`](../apps/web/src/v3/plan/usePhaseStoreCappedEntities.ts)
+  — generic filter for entities tagged with a phaseStore id. Looks up
+  the phase, reads `yeomansCap`, applies `PHASE_VIEW_CAP` for the
+  active view. Uncapped on current / vision / terrain3d.
+- **Phasing UI.** `PhasingMatrixCard` gains a Yeomans-cap chip row
+  inside each phase column (8 PhaseKey chips + Uncapped pill). One
+  click → `usePhaseStore.updatePhase(id, { yeomansCap })`.
+- **Water module retrofit.** WaterCatchmentsCard / WaterStorageCard /
+  WaterNetworkCard wrap their project-scoped WaterNode lists in the
+  adapter. Storage card's overflow-target dropdown stays uncapped
+  on purpose — caps are presentational, not data-deletion.
+
+**Outcome.** Year 1 / Year 5 chips on Water cards are honest. A
+WaterNode assigned to "Phase 3" (default cap `subdivision`)
+disappears from Year 1 and Year 5 views; returns on Vision / Current.
+Stewards override the default cap per phase from the Phasing matrix
+card. `tsc --noEmit` clean for the change (2 pre-existing
+Plan3DSelectionHandler errors unrelated).
+
+**Decision:** [`wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md`](decisions/2026-05-12-plan-phasestore-yeomans-adapter.md)
+
+**Deferred Phase B:** Livestock / Soil retrofits await store audits;
+Plants module needs a product-design conversation (polycultureStore
+has no phase axis); Principles rollup re-design pending; Phasing's own
+Scale-matrix card uses `designLayer` not `yeomansCap`, bridge later.
+
+---
+
+## 2026-05-11 — Shared moduleNav + stageCard primitives; Observe full reskin; per-view design elements
+
+**Motive.** Two parallel drifts surfaced on the same day. (1) Plan and Act
+each carried their own bottom-anchored slide-up + tile-row pair
+(`PlanModuleSlideUp/Bar.{tsx,module.css}` and the Act twins, already
+visually aligned but living as parallel code; Observe a third diverged
+copy). (2) Every Observe module page still rendered against the
+22k-line monolithic `observe-port.css` (green `#15803D` buttons,
+bespoke `module-hero-card` heroes, custom progress rings) while Plan
+and Act shared 95% of one card CSS file. Both drifts made every
+single visual tweak a 2- or 3-file edit.
+
+In parallel, the per-view design-element model needed authoring
+provenance — a structure dropped on *Vision* should not appear on
+*Current Land*, and the reverse needs an opt-out — to support
+upcoming year-1 / year-5 / 3D-terrain plan flows.
+
+**Change.**
+
+- **Shared moduleNav primitives.** New
+  [`apps/web/src/v3/_shared/moduleNav/`](../apps/web/src/v3/_shared/moduleNav)
+  hosts a generic `ModuleSlideUp` (scrim, sheet, eyebrow + title,
+  grouped-tab row, focus trap via shared `useFocusTrap`, Suspense
+  fallback, optional `headerExtra` slot) and `ModuleBar<TModule>` (tile
+  row with shared click semantics + `renderTileIndicator?` render prop
+  + `onTileInteraction(module, eventType)` telemetry hook). Plan and
+  Act each become thin wrappers passing module list, label map, and
+  lazy card imports. Four legacy CSS modules deleted
+  (`PlanModuleSlideUp.module.css`, `PlanModuleBar.module.css`,
+  `ActModuleSlideUp.module.css`, `ActModuleBar.module.css`).
+- **Shared stageCard primitives.** New
+  [`apps/web/src/v3/_shared/stageCard/`](../apps/web/src/v3/_shared/stageCard)
+  promotes the Plan/Act card chrome (~165 + ~221 LOC, 95% identical)
+  into one `stageCard.module.css` selected by a `data-stage` attribute
+  on `.hero`. Hero gradient is per-stage CSS-var-driven
+  (`--stage-hero-{a,mid,b}`): Plan bronze / Act violet / Observe new
+  earth-green. `observeExtras.module.css` holds Observe-only conic
+  gold `ring`, KPI grid, eyebrow chips, synthesis blocks, blockquote,
+  capacity bar.
+- **Observe full reskin (7/7).** All seven Observe modules
+  (`human-context`, `built-environment`, `earth-water-ecology`,
+  `macroclimate-hazards`, `sectors-zones`, `swot-synthesis`,
+  `topography`) now render against `stageCard.module.css` +
+  `observeExtras.module.css` with `data-stage="observe"`. Green
+  `#15803D` inline buttons replaced with gold `.btn`. Shared
+  `ProgressRing` left in place (still green for any future consumer)
+  while a local gold `Ring()` helper using `conic-gradient(rgba(--color-gold-rgb))`
+  is used in-module. (Note: the
+  [Human Context reskin ADR](decisions/2026-05-11-atlas-observe-human-context-reskin.md)
+  describes the other six modules as deferred — that was the
+  intent at ADR-write time; subsequent passes shipped them in-session.
+  Treat this log entry as the authoritative scope record.)
+- **Per-view design elements.**
+  [`designElementsStore`](../apps/web/src/store/designElementsStore.ts)
+  gains `view?: PlanView` (authoring view; defaults to `'current'` on
+  migrate) and `hiddenInViews?: PlanView[]`. New `update(projectId, id, patch)`
+  and `setHiddenInView(projectId, id, view, hidden)` actions. Non-`current`
+  elements are scoped to their authoring view; `current` elements show
+  read-only on every other view unless hidden. Structure-class kinds
+  remain owned by `builtEnvironmentStoreV2` and are passthrough here.
+  Persist version bumped.
+- **Plan schedule-move tool + supporting wiring.** New
+  `PlanScheduleMoveTool.tsx` (Plan-stage scheduling of livestock
+  rotations). Changes ripple through `PlanScheduledMovesOverlay`,
+  `planVertexEditStore`, `PlanSelectionFloater`, `PlanDrawHost`,
+  `InlineFeaturePopover.{tsx,module.css}`, `inlineEditSchemas.ts`,
+  `inlineFormStore.ts`, `PlanVertexEditHandler.tsx`,
+  `DesignToolRail.tsx`, `useDesignElementDrawTool.ts`,
+  `DesignElementLayers.tsx`, `SectorOverlayCard.tsx`, `PlanTools.tsx`,
+  and `PlanLayout.tsx`. `phaseStore`, `planSelectionStore` follow.
+
+**Verification.** Preview restart on
+[http://localhost:5200/](http://localhost:5200/) — Vite v6.4.1, ready
+1259ms, 389 static-copy items collected, landing renders cleanly with
+no console errors. Prior session's stale
+`Plan3DSelectionHandler.tsx` HMR failure cleared with the cold start.
+Pre-existing `<button>` nesting warning on
+`apps/web/src/v3/observe/components/ObserveModuleBar.tsx:32` was
+logged but is out-of-scope for this session.
+
+**Deferred.**
+
+- Plan + Act callsite migration off `features/plan/planCard.module.css`
+  + `features/act/actCard.module.css` onto shared stageCard
+  (mechanical but ~60 files; the legacy CSS files remain in place so
+  Plan/Act consumers don't need TSX edits this session).
+- `observe-port.css` selector pruning — defer until each individual
+  selector has zero remaining consumers; risk of silently breaking a
+  shared rule is real.
+- Per-view design-element UI affordances (hide/show toggle in selection
+  floater, view chip on element popovers) — store layer is in place,
+  card-side UI is the next step.
+- Observe `ObserveModuleBar` migration onto shared `ModuleBar<TModule>`
+  — render-prop seam (`renderTileIndicator?`) is already shaped for
+  Observe's per-task subseg pills.
+
+---
+
+## 2026-05-11 — Plan module bar on every view + per-view scope plumbing
+
+**Motive.** The 11-module Plan rail only rendered on the *Current
+Land* tab — every other Plan view (Vision Layout, Year 1, Year 5,
+3D Terrain) swapped in the floating-panel canvas and lost the bar.
+User wanted the same 11 modules on every view, with content scoped
+to the active year where data supports it.
+
+**Change.**
+
+- `PlanLayout.tsx` removed the `isVisionCanvas ? null :` guard on
+  `<PlanModuleBar />` (formerly line 254) and wrapped the whole
+  rendered tree in `<PlanViewProvider view={activeView}>`.
+- New `apps/web/src/v3/plan/PlanViewContext.tsx` exposes
+  `PlanViewProvider`, `usePlanView()`, and a `PLAN_MODULE_SCOPE`
+  map classifying each of the 11 modules as `'phased'` or
+  `'time-invariant'`.
+- New `apps/web/src/v3/plan/usePhaseCappedEntities.ts` is a generic
+  Yeomans-cap filter hook mirroring the
+  `DesignElementScenegraphLayer` logic for cards whose stores carry
+  `proposed.phase`.
+- New `PlanViewBadge.tsx` renders a header chip in every Plan
+  slide-up — year-coloured label for phased modules, muted
+  "All years · time-invariant" for the four invariant modules.
+- `_shared/moduleNav/ModuleSlideUp.tsx` gained an optional
+  `headerExtra` prop; `PlanModuleSlideUp.tsx` injects
+  `<PlanViewBadge />` there. Act and Observe wrappers untouched.
+
+**Verification.** Preview probe on http://localhost:5200/v3/project/mtc/plan:
+the rail appears on all 5 top-tab views (was previously hidden on
+4 of them). Opening Water on Year 1 shows "YEAR 1 · CAPPED AT
+WATER" chip; opening Zones on Year 1 shows the muted
+"ALL YEARS · TIME-INVARIANT" chip. Screenshot captured of Zone &
+Circulation slide-up with the time-invariant chip.
+
+**Deferred — Phase B (per-card filtering).** The chip on Year 1 /
+Year 5 currently advertises a cap that card data does not yet
+honour. Each phased module needs a per-store translator before
+`usePhaseCappedEntities` can apply: `WaterNode.phase` is a
+`phaseStore` id (not Yeomans), and `livestockStore` /
+`machineryInventoryStore` / `polycultureStore` have no phase axis
+at all. Only `builtEnvironmentStoreV2` and `designElementsStore`
+carry `proposed.phase` in the Yeomans sense — they are the natural
+starting point for the follow-up session.
+
+**Decision record.** `wiki/decisions/2026-05-11-plan-module-bar-all-views.md`.
+
+---
+
+## 2026-05-11 — Rotation surface polish (L+E) + Predator card guard
+
+**Motive.** Two same-day ADRs each closed with deferred-polish lists.
+Operator picked the quick-win bundle: past-due tint on the Plan-map
+scheduled-moves overlay (**L**) and linked-pair hover grouping on the
+rotation card (**E**). Both paint-and-CSS depth, no schema changes.
+
+**Change.**
+
+- **L** — `PlanScheduledMovesOverlay.tsx` `TEXT_LAYER` paint became
+  data-driven via `case` expressions on a per-feature `pastDue` flag
+  (`b.soonest < today`). Past-due text swaps to `#a3401d` with a
+  `#f5cbb8` halo; on-time keeps the cream default.
+- **E** — `RotationScheduleCard.tsx` gained a `hoveredLinkedId`
+  useState; rows that own a `linkedEventId` wire mouseenter/leave;
+  any row whose `id` *or* `linkedEventId` matches the hovered partner
+  gets `.linkedPairHighlight`. Applied to per-paddock logged-moves
+  rows and the Structure-moves tail.
+- **E (follow-up)** — Visual-evidence pass revealed the rotation
+  card's per-paddock blocks never co-render both legs of a paddock-
+  to-paddock rotate pair (exit and entry land in different paddock
+  buckets). Extended the same wiring to `LivestockMoveCard.tsx`'s
+  project-wide moves table where both legs do co-render, with a
+  matching `.linkedPairHighlight td` rule in `actCard.module.css`.
+- **Predator hotspots guard** — Visual-evidence seeding produced a
+  paddock without the (typed-required) `species` field, which
+  surfaced a real crash in `PredatorRiskHotspotsCard.tsx`: the
+  per-paddock analysis called `p.species.reduce(...)` unguarded.
+  Normalized to `const species = p.species ?? []` at the start of
+  the analysis so partial/legacy paddock records render a
+  baseline-only risk row instead of bringing down the whole tab.
+
+**Verified.** typecheck clean across `apps/web`. Live preview:
+both linked legs visibly tinted with warm bronze + inset
+left-border on hover; past-due badge renders red `#a3401d` text vs
+cream `#2d2a23` for on-time at the seeded MTC paddocks; predator
+hotspots tab no longer error-boundaries on species-less paddocks.
+
+**Commits.** `6c0f956` (core L+E), `ac1f0f9` (LivestockMoveCard
+hover extension), `b385be3` (ADR addendum), `ebaf8ee` (predator
+card species fallback).
+
+**Refs.**
+[wiki/decisions/2026-05-11-atlas-plan-scheduled-moves-overlay.md](decisions/2026-05-11-atlas-plan-scheduled-moves-overlay.md),
+[wiki/decisions/2026-05-11-atlas-livestock-rotate-linked-pair.md](decisions/2026-05-11-atlas-livestock-rotate-linked-pair.md).
+
+---
+
+## 2026-05-11 — Observe Human Context reskinned onto shared stageCard
+
+**Motive.** The Observe slide-up shared chrome with Plan/Act after the
+shared module-nav work, but the body of every Observe module still
+rendered against the monolithic `observe-port.css` — green buttons,
+bespoke hero cards, custom progress rings. Steward asked for the
+Human Context dashboard to "match the theme of the other two stages."
+
+**Change.** New shared `apps/web/src/v3/_shared/stageCard/stageCard.module.css`
+merges `planCard.module.css` and `actCard.module.css` (95% identical,
+Act was the superset) into one source of truth. Hero gradient picked
+by `data-stage="plan|act|observe"` — Observe gets a new earth-green
+hue distinct from Plan bronze and Act violet. All four Human Context
+components (`HumanContextDashboard.tsx`, `StewardSurveyDetail.tsx`,
+`IndigenousRegionalContextDetail.tsx`, `VisionDetail.tsx`) rewritten
+onto the shared primitives + a local `humanContext.module.css` for
+the layout extras (KPI grid, gold conic-gradient `Ring`, eyebrow,
+synthesis block, blockquote, capacity bar, snapshot metric). Green
+inline-styled buttons replaced with gold `.btn`. Plan/Act callsites
+left on the legacy CSS files for now — migration is mechanical but
+high-volume (60+ files including the v1/v2 Observe cards in
+`features/observe/`).
+
+**Outcome.** Human Context dashboard + three detail pages now read
+as visually equivalent to a Plan or Act card slide-up body, with
+just the hero hue differing. Typecheck clean. The other six Observe
+modules still render against `observe-port.css` and will follow the
+same pattern in subsequent sessions. ADR:
+[2026-05-11-atlas-observe-human-context-reskin.md](decisions/2026-05-11-atlas-observe-human-context-reskin.md).
+
+---
+
+## 2026-05-11 — Custom GLB upload shipped (deck.gl P6)
+
+**Motive.** The deck.gl ScenegraphLayer migration deferred custom user
+uploads as P6 of the ADR. Closing it makes the 3D pipeline open-ended:
+stewards can drop in authored art for any feature the registry doesn't
+ship out-of-the-box.
+
+**Change.** New IndexedDB-backed `customModelStore` (blobs in IDB,
+catalog in localStorage, blob URLs regenerated on hydrate);
+`customModelValidator` (magic-byte + KHR allowlist + ≤10 MB +
+SHA-256); floating `CustomModelPalette` in `VisionLayoutCanvas`.
+Single canonical `custom-glb` kind in `BUILT_ENVIRONMENT_KINDS`;
+per-instance `proposed.customModelId` rides on the entity. Palette
+tile click arms the kind's BE tool and stashes the modelId in a
+transient `customDrawSelectionStore`; `BeV2ExistingTool` reads the
+stash at draw-complete and stamps it on the new entity;
+`DesignElementScenegraphLayer` swaps `spec.glbUrl` for the per-instance
+blob URL at render. `custom-glb` is filtered out of `BE_TOOL_ITEMS` so
+it never surfaces as a bare rail button.
+
+**Verification.** `tsc --noEmit` clean. Vision Layout view at
+`/v3/project/mtc/plan` mounts the palette bottom-right; no console
+errors; `custom-glb` absent from the Built Environment rail.
+
+**Verification addendum (2026-05-11 follow-up).** End-to-end preview
+run drove upload → persist → reload → rehydrate via `preview_eval`
+on commit `2278c4b`:
+
+- *Phase 1 (upload + persist).* Synthesised a `File` from
+  `/models/structures/yurt.glb` (6 652 bytes), assigned to the palette's
+  hidden file input via `DataTransfer`, dispatched `change`. Within
+  ~500 ms the catalog row appeared in `localStorage` under
+  `ogden:custom-models:catalog` (1 entry, `label: "test-yurt"`,
+  `sha256: 2d6447…fee`) and the IDB blob landed in
+  `ogden-custom-models/blobs` keyed by the same UUID. Palette tile
+  rendered. ✅
+- *Phase 2 (arm/toggle).* Tile-click cycled `data-active` false → true
+  → false → true exactly as the `activeTool === CUSTOM_GLB_TOOL_ID &&
+  activeCustomModelId === entry.id` derivation predicts. ✅
+- *Phase 3 (reload + rehydrate).* After `location.reload()` the tile
+  re-appeared with the same UUID; arming it post-reload set
+  `data-active=true` without a console error. Direct IDB read +
+  fresh `URL.createObjectURL` confirmed the blob survived (magic
+  `0x46546c67` = "glTF", 6 652 bytes unchanged). Transient
+  `customDrawSelectionStore` correctly did **not** persist
+  (`tileActive=false` immediately after reload). ✅
+- *Phase 4 (map placement).* Deferred to manual — MapboxDraw point
+  click cannot be cleanly synthesised from `preview_eval` (canvas
+  pixel → lng/lat projection is internal to MapLibre pointer handlers).
+  Screenshot captured of armed tile state. Operator-driven
+  click → render → reload → re-render smoke remains a manual gate.
+- *Phase 5 (cleanup).* Trash button on the tile cleared both
+  `localStorage` catalog (→ `[]`) and IDB `blobs` (→ no keys); palette
+  reverted to the empty-state message. ✅
+- *Issue surfaced (non-blocking).* React `validateDOMNesting` warning:
+  `<button>` cannot appear as a descendant of `<button>` —
+  `CustomModelPalette` nests the trash button inside the tile button.
+  Functional today; logged as a follow-up.
+
+**Reference.** [wiki/decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md](decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md) — P6 section.
+
+---
+
+## 2026-05-11 — Plan-stage left rail unified across all four views
+
+**Motive.** Plan stage rendered two different left rails: `PlanTools`
+(module-driven) on Current Land, and `DesignElementPalette`
+(categorised element catalog) on Vision / Year 1 / Year 5 / 3D
+Terrain. Drawing the same conceptual feature meant learning two
+different UIs; the Vision-canvas palette also held nine
+elementCatalog kinds with no PlanTools counterpart.
+
+**Change.** Phase 1 wired `PlanTools` on every Plan view and added
+three Yeomans grazing polygons (orchard, silvopasture, pasture-mix)
+to its Plant Systems group. A new `useToolIdToElementKind` bridge
+translates `useMapToolStore.activeTool` into an `elementCatalog`
+kind so a draw armed from PlanTools on the Current canvas persists
+to `designElementsStore` (the same store the Vision canvas writes
+into) — one source of truth across views with on-canvas acreage
+labels via the shared `DesignElementLayers` mount.
+
+Phase 2 ported the remaining nine elementCatalog kinds into
+PlanTools (Spring under Water; Road + Bridge under Zones; Turnaround
+as a new Machinery group; Oak / Pine / Apple / Shrub / Hedgerow
+under Plant Systems). `MapToolId`'s water/zone/machinery/plant-systems
+unions are now template-literal so future ports don't grow the type.
+`PlanDrawHost` dispatches the twelve elementCatalog-backed tool ids
+through the renamed-generic `PlanDesignElementHost`.
+
+Phase 2 also widened the Current-view label pass in `PlanDataLayers`
+to stamp `acresLabel` on Zone, Crop area, Paddock, Catchment polygon,
+and Buffer ring (setback) props. The shared symbol layer's
+`text-field` now appends "— X.X ac" when present, so polygons that
+carry meaningful area read at a glance (e.g., "Zone A — 1.7 ac")
+without disturbing point-feature labels.
+
+**Skipped (redundant)** Pond (covered by Storage), Swale (already
+present). Equipment-yard stays under Built Environment via the BE
+registry.
+
+**Verification.** `tsc` clean for touched files (only the
+pre-existing `DesignElementScenegraphLayer.tsx(152,24)` error
+remains, unrelated to this work). DOM accessibility-tree snapshot
+of `/v3/project/mtc/plan/livestock` confirms all 9 ported tools
+surface in their target groups, and the new `machinery` group
+renders with Turnaround.
+
+**Files.** `apps/web/src/v3/plan/PlanTools.tsx`,
+`apps/web/src/v3/observe/components/measure/useMapToolStore.ts`,
+`apps/web/src/v3/plan/canvas/useToolIdToElementKind.ts` (new),
+`apps/web/src/v3/plan/draw/PlanDrawHost.tsx`,
+`apps/web/src/v3/plan/draw/tools/PlanDesignElementHost.tsx` (new),
+`apps/web/src/v3/plan/draw/tools/PlantSystemsDesignElementHost.tsx`
+(new, retained per no-deletion rule),
+`apps/web/src/v3/plan/layers/PlanDataLayers.tsx`.
+
+---
+
+## 2026-05-11 — Shared module-nav primitives (Plan + Act)
+
+**Motive.** Plan and Act stages each carried parallel copies of the
+bottom-anchored module slide-up and module-bar tile row. Visuals
+were already aligned but the code was duplicated, drift was setting
+in (Observe, the third stage built off the same template, had
+already diverged on tab grouping and tile chrome), and every CSS
+tweak meant editing two or three files.
+
+**Change.** Extracted two generic primitives into
+`apps/web/src/v3/_shared/moduleNav/`:
+- **`ModuleSlideUp`** — scrim, sheet, header, grouped-tab row,
+  focus trap, Suspense fallback. Card body via `renderCard` render
+  prop. Tab grouping renders a gold uppercase group label when
+  `card.group` changes vs. previous tab, plus a faint gold
+  underline on grouped tabs.
+- **`ModuleBar<TModule>`** — generic tile row. Click semantics
+  shared. Status indicator inside the tile is a render prop
+  (`renderTileIndicator?`) so a future Observe migration keeps its
+  per-task subseg pills inside shared tile chrome. Telemetry via
+  `onTileInteraction(module, eventType)`.
+
+Plan and Act wrappers (`PlanModuleSlideUp`, `PlanModuleBar`,
+`ActModuleSlideUp`, `ActModuleBar`) now own only their lazy card
+imports, `renderCard` switch, and stage label. Four legacy CSS
+modules deleted (Plan + Act × slide-up + bar).
+
+**Observe deferred.** Steward reverted the Observe wrapper edits
+mid-implementation. Observe stays on its local legacy
+`v3/observe/components/ModuleSlideUp.{tsx,module.css}` and
+`ObserveModuleBar.{tsx,module.css}`. The shared primitives are
+already shaped to accept Observe whenever that migration is picked
+back up — `renderTileIndicator` is the seam for the task-status
+subsegments and `OBSERVE_MODULE_CARDS` can gain optional `group?`
+fields without breaking.
+
+**Verification.** `tsc --noEmit` clean for all touched files;
+preexisting branch errors (`matrixTogglesStore`,
+`DesignElementGlbLayer` removal, `MapToolId` enum work) unrelated.
+Pixel-level browser verification recommended pre-merge but not run
+to completion in-session (screenshot tool timeouts); shared CSS is
+copied byte-for-byte from the Plan source, so visible delta is
+expected to be zero for Plan and Act.
+
+**Decision filed:** [2026-05-11-atlas-shared-module-nav.md](decisions/2026-05-11-atlas-shared-module-nav.md)
+
+---
+
+## 2026-05-11 — deck.gl ScenegraphLayer migration + 3D feature coverage
+
+**Motive.** Atlas's bespoke three.js custom MapLibre layer rendered 14
+structure kinds as a shared grey box and excluded vegetation,
+earthworks, and zone markers from 3D entirely. The
+`OGDEN_LandOS_3D_Models_Briefing.md` proposed migrating to deck.gl's
+`ScenegraphLayer` via `MapboxOverlay` to unlock per-instance scenegraph
+URLs, picking, PBR lighting, and instanced rendering.
+
+**Change (Phases 1–5 of ADR 2026-05-11-atlas-deckgl-scenegraph-migration).**
+- **P1.** New `<DeckOverlay>` wraps `MapboxOverlay`; `DesignElementScenegraphLayer.tsx` replaces the retired three.js `DesignElementGlbLayer.tsx`. Mounted in Plan + Observe canvases.
+- **P2.** All 14 structure kinds got per-kind procedural GLBs (yurt with conical roof, prayer-pavilion with dome, fuel-station with canopy, etc.) authored by `scripts/gen-structure-glbs.mjs` against shared `scripts/lib/glb-writer.mjs` + `scripts/lib/primitives.mjs`.
+- **P3.** Vegetation category — 5 new kinds (oak-tree, pine-tree, apple-tree, shrub, hedgerow) wired through `BUILT_ENVIRONMENT_KINDS`, `elementCatalog`, `elementHeights`. 4 procedural GLBs (hedgerow stays flat — line geometry).
+- **P4.** Earthworks (berm, raised-bed, terrace) + zone markers (zone-0…zone-5) — 9 new kinds, procedural GLBs in `public/models/earthworks/` and `public/models/zone-markers/`.
+- **P5.** Per-instance `rotationDeg` + new `scaleMul` on `BuiltEnvironmentEntity.proposed`. `ScenegraphLayer` reads them per instance, `onClick` opens existing inline-edit popover via `openBeInlineEditById`. Generic BE edit schema gained rotation + scale fields for GLB kinds.
+
+**Deferred (P6).** IndexedDB-backed custom GLB upload — substantial standalone slice, deferred to a follow-up session. Palette still shows "coming soon" stub.
+
+**Verification.** `tsc --noEmit` clean across Plan, Observe, shared.
+All asset scripts produce valid GLB byte signatures.
+
+**Decision filed:** [2026-05-11-atlas-deckgl-scenegraph-migration.md](decisions/2026-05-11-atlas-deckgl-scenegraph-migration.md)
+
+---
+
+## 2026-05-11 — Cross-stage Plan-map overlay for scheduled livestock moves
+
+**Motive.** Plan-stage map showed the design (paddocks, structures)
+but not the *plans* the steward had scheduled against them in Act
+stage. Closing the loop the other direction: Act-stage features
+already surface on Plan; Act-stage *plans* should too.
+
+**Change.**
+- `matrixTogglesStore` v10→v11: added `scheduledMoves` boolean
+  (default off) to the legend-toggled overlay set.
+- New `PlanScheduledMovesOverlay.tsx`: reads
+  `scheduledLivestockMoveStore` unfulfilled plans, groups by
+  destination (paddock | structure), renders one `📅 N · YYYY-MM-DD`
+  badge at the destination's centroid (paddock polygon centroid or
+  structure `center` anchor).
+- Mounted on the Current branch of `PlanLayout` after
+  `PlanSunPathOverlay`; legend entry added to `BaseMapCard`
+  (`#5a8a6a` swatch).
+- Read-only — click/hover behaviour deferred; editing still happens
+  on the Act-stage Rotation Schedule card.
+
+**Verification.** `tsc --noEmit` clean.
+
+**ADR.** [2026-05-11-atlas-plan-scheduled-moves-overlay](decisions/2026-05-11-atlas-plan-scheduled-moves-overlay.md).
+
+---
+
+## 2026-05-11 — Linked `rotate_through` exit/entry pair objects
+
+**Motive.** The 2026-05-10 livestock-move-event-v3 ADR flagged a
+data-fidelity gap: rotations were persisted as one row with both
+from/to fields, collapsing two operational acts ("herd left A
+Monday", "herd arrived B Wednesday") into one date. The implicit
+linkage blocked true per-leg variance and was the last
+architectural follow-up on the rotation surface.
+
+**Change.**
+- `livestockMoveLogStore` v3→v4: added `linkedEventId?: string` to
+  `LivestockMoveEvent`; migration splits every legacy
+  `rotate_through` event into two cross-pointing legs
+  (`${id}-out` + `${id}-in`); `removeEvent` cascades across pairs;
+  new helpers `linkedPartner`, `getPair`, `buildRotatePair`.
+- Inline-form-store gained a `visibleWhen?: (values) => boolean`
+  predicate on `FieldSpec`; `InlineFeaturePopover` honors it in
+  both render and required-field validation.
+- Three write paths (`LivestockMoveCard.commit`,
+  `ActStructurePopover.actions.startLivestockMoveLog`,
+  `LivestockMoveTool`) branch on rotate_through to call
+  `buildRotatePair` + `addEvent` twice. All three forms gain an
+  optional `+ Different exit date` field (visible only when
+  direction is rotate_through; empty → both legs share the entry
+  date).
+- `RotationScheduleCard.computeRestPairs` drops the legacy
+  `direction === 'rotate_through'` clause from its exit predicate
+  (after migration, nothing persists with that direction).
+- Chain-link glyph (`🔗`) rendered before the direction label on
+  logged-moves rows in `LivestockMoveCard` and `RotationScheduleCard`
+  (per-paddock block + Structure-moves tail) whenever
+  `e.linkedEventId` is set.
+
+**Verification.** `tsc --noEmit` clean. Migration is idempotent via
+deterministic suffix ids.
+
+**ADR.** [2026-05-11-atlas-livestock-rotate-linked-pair](decisions/2026-05-11-atlas-livestock-rotate-linked-pair.md).
+
+---
+
+## 2026-05-11 — Module 7 wrapped: notes field + drive-time unit lock
+
+**Motive.** Two carried-forward items from the Broiler Product Map
+ADR remained: `notes` was in the entity schema but absent from the
+three tool popovers, and the drive-time rollup in
+MarketDistributionCard was the last bit of card math without a unit
+test. Closing both makes Module 7 feature-complete.
+
+**Change.**
+- Added `{ key: 'notes', label: 'Notes', kind: 'textarea' }` to the
+  Slaughter point, Cold-chain unit, and Market node inline-form
+  field arrays + onSave write-through.
+- Extracted `computeCentroid` (arithmetic mean of `[lon, lat]`
+  pairs) and `computeDriveTime` (great-circle km → road km × detour
+  ÷ avg-speed, both clamped at 1) into `agribusinessSizing.ts`.
+  MarketDistributionCard now calls them — turf.distance still owns
+  the geodesy step, but everything after is pure and tested.
+- 10 new vitest cases: empty/single/two/four-point centroid; drive-
+  time default-sizing round-trip (10 km × 1.3 ÷ 60 km/h = 13 min),
+  linear & inverse scaling, two clamps, zero-distance.
+
+**Verification.** 30/30 vitest pass (20 prior + 10 new). typecheck
+clean. lint clean.
+
+**Commit.** `763d7b0` on `feat/atlas-permaculture`. Pushed.
+
+---
+
+## 2026-05-11 — Module 7 helper re-thread + verdict cascade unit-locked
+
+**Motive.** The peak-week unit lock (b06ee21) tested the helper but
+not the runtime path — both cards still inlined the same arithmetic.
+Same risk applied to each card's verdict cascade (threshold ladders
+for steward-facing guidance), which had no tests at all.
+
+**Change.**
+- ColdChainCoverageCard and MarketDistributionCard now import
+  `computePeakWeekKg` from `agribusinessSizing.ts`.
+- Two new pure functions land alongside the formula helper:
+  `computeColdChainVerdict` (no-units → no-capacity → ok/caution/short)
+  and `computeMarketVerdict` (no-nodes → no-demand →
+  undersold/oversold/concentrated/ok). Cards call them in place of
+  the inline ternary ladders.
+- 14 boundary-walking vitest cases — exact 80, 120, 70 thresholds
+  plus `±0.001` neighbours — pin each inequality direction.
+
+**Verification.** 20/20 vitest pass (6 existing + 14 new). typecheck
+clean. lint clean. Preview localStorage check confirms persisted
+agribusiness state is already at v2 with `sizingByProject` slice
+present — migrate ran on a prior session, console is clean of the
+agribusiness-specific "couldn't be migrated" warning (other stores
+still warn — out of scope).
+
+**Commit.** `192d814` on `feat/atlas-permaculture`. Pushed.
+
+---
+
+## 2026-05-11 — Built Environment tool rails unified across Observe + Plan
+
+User flagged that the Observe `BUILT ENVIRONMENT` rail and the Plan
+`STRUCTURES & SUBSYSTEMS` rail "should be the same." They drew from the
+same `BUILT_ENVIRONMENT_KINDS` registry but diverged on header label,
+two legacy Plan-only items (`Structure`, `Utility run`), and icon/label
+casing. Unified by extracting a shared `BE_TOOL_ITEMS` list in
+`apps/web/src/v3/_shared/builtEnvironmentTools.ts`, fixing the registry
+directly (`septic.icon → Recycle`, `fence.icon → Fence`, three
+Title-Case labels normalised to Sentence-case), deleting Observe's
+bespoke icon override layer, dropping the two legacy Plan items (tool
+components and dispatcher branches kept dormant), and renaming the
+Plan module's full label to "Built Environment" (short label
+"Structures" retained for bottom-bar real estate). Both rails now
+render 31 identical tool items in identical order. tsc clean. ADR:
+[2026-05-11-atlas-built-environment-rail-unification.md](decisions/2026-05-11-atlas-built-environment-rail-unification.md).
+
+---
+
+## 2026-05-11 — Mid-session file reverts: root cause identified
+
+**Motive.** Two sessions in a row (map-UI consolidation + Draw-button
+wiring) saw `ObserveLayout.tsx` and `PlanLayout.tsx` silently revert
+to their pre-edit state mid-session, surfaced by Claude Code's
+"X was modified, either by the user or by a linter" system reminder.
+Investigated to stop the recurrence.
+
+**Findings.**
+
+- **Not a hook issue.** No git hooks (`.git/hooks/` is sample-only),
+  no Husky, no `prepare` / `postinstall` scripts, no Claude Code
+  project hooks, no `.vscode/settings.json`, no `.editorconfig`
+  rewrite. Lone scheduled task is one-time for 2026-06-05 — not active.
+- **19+ live `claude.exe` processes** on this machine
+  (`Get-Process claude`); at least **6 concurrent Claude Code CLI
+  sessions** for this Atlas project (jsonl files all mtime'd within
+  seconds of each other).
+- **Parallel sessions committed on the same branch.** Between this
+  session's two map-UI commits, three commits from other sessions
+  landed (`b06ee21` agribusiness Module 7, `2086855` dashboard retire,
+  `88ded4c` / `d2bffcd` livestock plan editing).
+- **Session `ecba4fb9` made 14 Edit/Write tool calls against
+  `ObserveLayout.tsx` / `PlanLayout.tsx`** in its transcript — the
+  only other live session that wrote to those exact files.
+
+**Mechanism.** When two CLI sessions both Read the same file, each
+holds a snapshot. The first to Edit writes new content. The second's
+snapshot is now stale; its next Edit can land based on the stale
+snapshot, effectively reverting the first session's work. Claude
+Code's staleness detector fires the *"modified by user or linter"*
+reminder when this happens — that's the symptom, not the cause.
+
+**Fix (operational, not code).**
+
+- **One session per working tree.** For parallel work, spawn each
+  session in a `git worktree add` — `.claude/worktrees/` already
+  exists for this. Close idle `claude.exe` processes you're not
+  actively using.
+- **Or**, if parallel sessions in one tree are unavoidable, list
+  current sessions and their owned paths up front (e.g. in a
+  conversation preamble) so they don't race on the same files.
+
+**Recommended.** Option 1. Infrastructure (`.claude/worktrees/`) is
+already there — just use it consistently.
+
+---
+
+## 2026-05-11 — Module 7 peak-week formula unit-locked
+
+**Motive.** The peak-week-pack arithmetic
+`(annualHead × dressedKg) ÷ max(processingDays/5, 1)` is duplicated in
+`ColdChainCoverageCard` and `MarketDistributionCard`. Drift between the
+two would silently desynchronise both downstream rollups from the
+throughput card — exactly the bug the 2026-05-10 sizing slice was meant
+to prevent.
+
+**Change.**
+- Extracted `computePeakWeekKg` + `AgribusinessSizing` + `DEFAULT_SIZING`
+  into pure module `apps/web/src/store/agribusinessSizing.ts` (no
+  zustand import — vitest under node env can't construct the persist
+  middleware without localStorage).
+- Added `apps/web/src/store/__tests__/agribusinessStore.test.ts`: 6
+  tests cover the ADR baseline (450 kg/wk), linear scaling on
+  `annualHead` and `dressedKg`, 5-day-per-week processing cadence, the
+  divide-by-zero clamp at `processingDays < 5`, and the live
+  round-trip the prior session verified by preview eval (head=5000 →
+  1125 kg/wk).
+- Cards still inline the arithmetic by design (prior intentional
+  revert preserved). Helper is the documented lock; cards are the
+  runtime path. Re-threading the import is noted in the ADR as
+  carried-forward scope.
+
+**Verification.** `npx vitest run src/store/__tests__/agribusinessStore.test.ts` → 6/6 pass.
+
+**Commit.** `b06ee21` on `feat/atlas-permaculture`. Pushed.
+
+---
+
+## 2026-05-11 — DesignToolRail Draw button wired to useMapToolStore
+
+**Motive.** Follow-up to the 2026-05-10 map-UI consolidation: in
+Observe and Plan-Current, `DesignToolRail` was mounted with
+`activeKind={null}` so the pencil was permanently disabled. Wire it
+to `useMapToolStore` so the rail reflects what `MapToolbar` arms.
+
+**Changes.**
+
+- `ObserveLayout.tsx`: read `activeTool` + `setActiveTool`; pass
+  `armedDrawKind` (filtered to `observe.*` prefix) and an
+  `onDisarmDraw` that calls `setActiveTool(null)`.
+- `PlanLayout.tsx` (current view only — Vision keeps its local
+  `activeKind` path): same wiring with `plan.*` prefix filter.
+- Measure tools (`distance`, `elevation-*`, `area`, `boundary`,
+  `overlays`, `basemap`) are not stage-prefixed, so they don't light
+  up the pencil. Intentional.
+
+**Verification.** Typecheck exit 0. DOM probe on `/observe` confirmed
+initial pencil state: `disabled=true`, `data-active="false"` (no tool
+armed). Wiring follows existing Vision pattern (`activeKind != null
+→ drawArmed`) so a click on a draw tool in MapToolbar will flow
+through Zustand subscription and re-render the rail.
+
+**Deferred (non-blocking).**
+
+- Act stage doesn't mount the rail at all — separate task to add it,
+  then this same `act.*` wiring would apply.
+- Rail's Select mode in Observe/Plan-Current is still effectively a
+  no-op (no `design-el-*` layers); cursor goes crosshair, click does
+  nothing. Either hide Select in non-Vision contexts or wire it to
+  Observe/Plan selection stores — separate task.
+- Two reverts mid-session (same pattern as 2026-05-10): some external
+  process restored ObserveLayout / PlanLayout to their pre-edit state
+  after typecheck. Re-applied and committed immediately. Root cause
+  not investigated.
+
+---
+
 ## 2026-05-10 — Module 7 sizing slice: shared per-project inputs
 
 **Motive.** Audit of the three Product Chain diagnostic cards
@@ -409,6 +1581,16 @@ Follow-up same day (continued): two more deferred items closed.
   effect generalised: matches by `toStructureId` as well as
   `toPaddockId` (same ±7-day window, same species). ADR
   Out-of-scope section gained a struck-through entry for closure.
+- `88ded4c` — Plan-editing parity for structure-destination plans.
+  `startScheduledLivestockMove` gained an optional `existingPlanId`
+  parameter: when set, the action skips the skeleton-add, prefills the
+  inline form from the existing plan, and rebinds Save to
+  `updatePlan(existingPlanId, …)` / Cancel to a no-op. Structure-moves
+  tail's plan row now carries an `Edit` chip alongside the dismiss
+  `✕`; click looks up the destination structure and pops the prefilled
+  inline form anchored at its map center. Closes the recommended-next
+  item from the previous session's debrief; same UX as the paddock
+  `Planned:` line from `a2725c3`.
 
 ---
 
@@ -11894,3 +13076,172 @@ in `inlineEditSchemas.ts` and register it in `SCHEMA_BUILDERS`.
 taxonomy mirror — surface the 23 kinds in Plan rail), 5.4 (dashboard
 widening to N kinds), Phase 6 (legacy-store deletion + final
 tsc/test/lint sweep).
+
+## 2026-05-11 — From-picker disclosure pattern on livestock-move inline forms
+
+**Context.** Final deferred item from
+`wiki/decisions/2026-05-10-atlas-livestock-move-event-v3.md`: the three
+inline livestock-move forms (`startLivestockMoveLog`,
+`startScheduledLivestockMove`, and the `LivestockMoveTool` draw tool)
+omitted any From picker. Only the in-card `LivestockMoveCard` exposed
+origin. ADR's blocker: "20-option paddock+structure select on a 6-field
+cramped panel."
+
+**Resolution.** Disclosure pattern. Default form footprint unchanged at
+6 fields; a new `+ Add origin` trigger row reveals the From-picker on
+demand. Current destination is excluded from origin options so a
+plan/event can never self-target.
+
+**Infra (generic).** `inlineFormStore.FieldSpec` gained a new
+`kind: 'disclosure'` variant with `triggerLabel` + `collapsedLabel` +
+`children: FieldSpec[]`. Children write to the flat top-level values
+map (no namespacing — caller owns key collisions, same rule as today).
+`InlineFeaturePopover` renders disclosures collapsed by default as a
+single `.secondaryBtn` row; expanded state stores per-`key` in component
+state. Auto-expands when any `children[i].key` has a non-empty value in
+`initial` (so edit-mode flows show the picker already open). Required-
+field validation flattens through children.
+
+**Shared helper.** New `apps/web/src/v3/act/originPicker.ts` owns:
+`OriginRef` (discriminated `{kind: 'paddock' | 'structure', id}`),
+`encodeOriginValue` / `parseOriginValue` (encoding
+`'paddock:<id>'` / `'structure:<id>'` / `''`), `buildOriginOptions(
+projectId, exclude)` (paddocks sorted by name, then livestock-capable
+structures sorted by template label; current destination filtered),
+and `originDisclosureField(projectId, exclude)` returning a ready-to-
+spread FieldSpec.
+
+**Wiring.** Three call sites all spread the disclosure field at the end
+of their existing `fields` array and parse `values.origin` in `onSave`,
+merging into `fromPaddockId` / `fromStructureId` on the addEvent /
+updatePlan payload:
+
+- `ActStructurePopover.actions.startLivestockMoveLog` —
+  excludes `{kind: 'structure', id: structure.id}`.
+- `ActStructurePopover.actions.startScheduledLivestockMove` — same
+  exclude; in edit mode, `initial.origin = encodeOriginValue(existing
+  plan's from*)` so the picker auto-expands pre-selected.
+- `LivestockMoveTool` (paddock draw tool) — excludes
+  `{kind: 'paddock', id: hitId}` (destination).
+
+**Files touched:**
+- *Created*: `apps/web/src/v3/act/originPicker.ts`.
+- *Modified*: `apps/web/src/v3/plan/draw/inlineFormStore.ts`,
+  `apps/web/src/v3/plan/draw/InlineFeaturePopover.tsx`,
+  `apps/web/src/v3/act/ActStructurePopover.actions.ts`,
+  `apps/web/src/v3/act/draw/tools/LivestockMoveTool.tsx`,
+  `wiki/decisions/2026-05-10-atlas-livestock-move-event-v3.md`.
+
+**Verification.** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc
+--noEmit` from `apps/web` → exit 0. One unrelated error in
+`ObserveTools.tsx` (`Sprout` icon) untouched by this work. Manual smoke
+deferred to operator (basemap tiles unavailable in dev).
+
+**ADR closeout.** With this commit, every deferred item under the
+2026-05-10 livestock-move-event-v3 ADR is now closed (Gap B, S2 third
+cleanup, forward-looking variance, plan editing, plans for structure
+destinations, plan-editing parity for structures, From picker). Only
+truly architectural follow-ups remain ("linked rotate-through pair
+objects", "cross-stage surfacing") and they are scoped for separate
+sessions.
+
+---
+
+## 2026-05-11 — Persist `migrate` shim sweep (Zustand console clean-up)
+
+**Why.** Reloading the app spammed 60+ Zustand warnings —
+*"State loaded from storage couldn't be migrated since no migrate
+function was provided"* — drowning out real errors. The warning fires
+on any persisted store whose configured `version` mismatches what's in
+localStorage and lacks a `migrate` callback.
+
+**What.** Added the no-op shim `migrate: (persisted) => persisted as
+never` to every store that declared `version:` without `migrate:`.
+The `as never` cast satisfies Zustand's persist generics without
+forcing every options block to import its own State type.
+
+**Stores touched (34 in this commit):**
+- *Single-line persist (29):* actualsStore, appropriateTechStore,
+  closedLoopStore, communityEventStore, compostInventoryStore,
+  cropStore, designElementsStore, ecologicalNoteStore, enterpriseStore,
+  fieldworkStore, flowConnectorStore, humanContextStore, livestockStore,
+  maintenanceStore, monitoringTransectStore, networkStore, nurseryStore,
+  pathStore, pilotPlotStore, portalStore, principleCheckStore,
+  sectorStore, setbackStore, soilSampleStore, soilTestStore,
+  successionStore, swotStore, templateStore, utilityRunStore.
+- *Multi-line persist (5):* financialStore, hazardsStore,
+  sitingWeightStore, utilityStore, versionStore.
+
+`commentStore`, `maintenanceLogStore`, `relationshipsStore` had been
+patched earlier this session in their typed form (`as <StoreState>`),
+unmodified by this sweep.
+
+**Skipped.** `connectivityStore` (no `version` declared, so no
+warning). 16 stores that already had a `migrate` function are untouched.
+
+**ADR.** `wiki/decisions/2026-05-11-atlas-persist-migrate-shim-sweep.md`.
+
+**Verification.** `npm run typecheck` exit 0. Reload-and-eyeball
+console verification deferred to next boot since the change is purely
+defensive.
+
+---
+
+## 2026-05-11 — Migrate-shim sweep verified end-to-end
+
+**What.** Console-clean verification for the 2026-05-11 persist
+migrate-shim sweep (commits 8459006 + 33a2fd1). Ran cold boot
+(`localStorage.clear()` + reload) and forced-downgrade reload
+(mutated `version: 0` across eight stores including newly-shimmed
+ones) — both produced zero "couldn't be migrated" warnings in the
+preview console. Only unrelated `[ATLAS AI] … 401` entries remained
+(expected: no API key in dev). Post-downgrade reload re-stamped every
+store back to its configured version. `preview_screenshot` timed out
+(unresponsive renderer) so the visual evidence step is dropped; the
+console-log evidence is sufficient. ADR
+`wiki/decisions/2026-05-11-atlas-persist-migrate-shim-sweep.md`
+appended with the verification block.
+
+
+## 2026-05-11 — Rotation surface polish (past-due tint + linked-pair hover)
+
+Shipped two deferred items from same-day sibling ADRs. (L)
+PlanScheduledMovesOverlay now tags pastDue = soonest < today on each
+destination feature; TEXT_LAYER paint uses data-driven case
+expressions to swap text colour to #a3401d and halo to #f5cbb8 when
+past-due. (E) RotationScheduleCard gains hoveredLinkedId state; rows
+with a linkedEventId wire hover handlers and the symmetric predicate
+hoveredLinkedId === ev.id || hoveredLinkedId === ev.linkedEventId
+applies .linkedPairHighlight (warm tint + #c4a265 left-border) to
+both legs. Applied to per-paddock logged-moves rows and the
+Structure-moves tail. Paint + CSS depth only — no schema/store
+changes. npm run typecheck clean; preview reload shows zero new
+console errors. Addenda filed in
+wiki/decisions/2026-05-11-atlas-plan-scheduled-moves-overlay.md and
+wiki/decisions/2026-05-11-atlas-livestock-rotate-linked-pair.md.
+
+
+## 2026-05-11 — BE tools dispatch in Plan 3D canvases
+
+**Why.** Built-Environment tools (e.g. `plan.structures-subsystems.be.cabin`)
+worked on the Plan Current 2D canvas but no-op'd on Vision / Phase 1 /
+Phase 2 / Terrain3D. Root cause: 3D canvases route armed tools through
+`useToolIdToElementKind` → `useDesignElementDrawTool`, whose
+`findElementSpec()` lookup short-circuits for ~18 of the 31 BE kinds not
+present in `elementCatalog`.
+
+**What.** `useToolIdToElementKind.ts` now returns `null` for the BE prefix
+(stops `DesignElementDrawHost` from pointlessly mounting). `VisionLayoutCanvas.tsx`
+adds a sibling dispatch that mounts `<BeV2ExistingTool kind state="proposed" />`
+whenever `activeTool` matches `plan.structures-subsystems.be.*` — mirrors
+`PlanDrawHost`'s Current-canvas dispatch verbatim. The 3D layers
+(`DesignElementExtrusionLayer`, `DesignElementScenegraphLayer`) already
+default `stateFilter='all'` against `useBuiltEnvironmentStoreV2`, so
+proposed placements render under pitch with no extra wiring. Follow-up
+section appended to ADR
+`wiki/decisions/2026-05-11-atlas-built-environment-rail-unification.md`.
+
+**Open.** User also reports paddock click-to-select not firing in 3D. Added
+then removed diagnostic console.debug from `Plan3DSelectionHandler`;
+needs hands-on console output to triage (handler mounted? layer present?
+features hit?). Deferred to next session.

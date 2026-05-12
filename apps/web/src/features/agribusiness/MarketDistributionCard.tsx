@@ -13,6 +13,10 @@ import * as turf from '@turf/turf';
 import {
   useAgribusinessStore,
   DEFAULT_SIZING,
+  computePeakWeekKg,
+  computeMarketVerdict,
+  computeCentroid,
+  computeDriveTime,
   type MarketKind,
 } from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
@@ -47,12 +51,8 @@ export default function MarketDistributionCard({ projectId }: Props) {
   const sizing =
     useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
   const setSizing = useAgribusinessStore((s) => s.setSizing);
-  const { annualHead, dressedKg, processingDays, detourMultiplier, avgSpeedKmh } =
-    sizing;
-  const weeklyProductKg = useMemo(
-    () => (annualHead * dressedKg) / Math.max(processingDays / 5, 1),
-    [annualHead, dressedKg, processingDays],
-  );
+  const { detourMultiplier, avgSpeedKmh } = sizing;
+  const weeklyProductKg = useMemo(() => computePeakWeekKg(sizing), [sizing]);
 
   const view = useMemo(() => {
     const totalDemand = nodes.reduce((s, n) => s + (n.weeklyDemandKg || 0), 0);
@@ -65,50 +65,42 @@ export default function MarketDistributionCard({ projectId }: Props) {
     for (const n of nodes) {
       byKind[n.kind] += n.weeklyDemandKg || 0;
     }
-    const concentration =
-      totalDemand > 0
-        ? Math.max(...Object.values(byKind)) / totalDemand
-        : 0;
+    const largestKindKg =
+      nodes.length > 0 ? Math.max(...Object.values(byKind)) : 0;
+    const concentration = totalDemand > 0 ? largestKindKg / totalDemand : 0;
     const coverage =
       weeklyProductKg > 0 ? (totalDemand / weeklyProductKg) * 100 : 0;
-    const verdict =
-      nodes.length === 0
-        ? 'no-nodes'
-        : totalDemand === 0
-          ? 'no-demand'
-          : coverage < 80
-            ? 'undersold'
-            : coverage > 120
-              ? 'oversold'
-              : concentration > 0.7
-                ? 'concentrated'
-                : 'ok';
+    const verdict = computeMarketVerdict({
+      nodeCount: nodes.length,
+      totalDemandKg: totalDemand,
+      largestKindKg,
+      weeklyProductKg,
+    });
 
     // Drive-time rollup. Hub = arithmetic centroid of slaughter points
     // (great-circle distance is symmetric so a centroid is a good
-    // single-hop proxy for "the line").
-    let hub: GeoJSON.Point | null = null;
-    if (slaughterPoints.length > 0) {
-      let lon = 0;
-      let lat = 0;
-      for (const p of slaughterPoints) {
-        const [lng, lt] = p.geometry.coordinates as [number, number];
-        lon += lng;
-        lat += lt;
-      }
-      hub = {
-        type: 'Point',
-        coordinates: [lon / slaughterPoints.length, lat / slaughterPoints.length],
-      };
-    }
-    const safeSpeed = Math.max(avgSpeedKmh, 1);
-    const safeMult = Math.max(detourMultiplier, 1);
+    // single-hop proxy for "the line"). Centroid + the road-km ÷
+    // speed math live in `agribusinessSizing.ts` so they're unit-
+    // testable without pulling turf's geodesy.
+    const hubCoord = computeCentroid(
+      slaughterPoints.map(
+        (p) => p.geometry.coordinates as [number, number],
+      ),
+    );
+    const hub: GeoJSON.Point | null = hubCoord
+      ? { type: 'Point', coordinates: hubCoord }
+      : null;
     const driveTimes = hub
       ? nodes
           .map((n) => {
-            const km = turf.distance(hub!, n.geometry, { units: 'kilometers' });
-            const roadKm = km * safeMult;
-            const minutes = (roadKm / safeSpeed) * 60;
+            const greatCircleKm = turf.distance(hub, n.geometry, {
+              units: 'kilometers',
+            });
+            const { roadKm, minutes } = computeDriveTime({
+              greatCircleKm,
+              detourMultiplier,
+              avgSpeedKmh,
+            });
             return { id: n.id, name: n.name, kind: n.kind, km: roadKm, minutes };
           })
           .sort((a, b) => a.minutes - b.minutes)

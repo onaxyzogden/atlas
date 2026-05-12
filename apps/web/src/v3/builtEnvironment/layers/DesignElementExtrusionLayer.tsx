@@ -12,7 +12,7 @@
  * Behaviour mirrors the previous Plan-only implementation:
  *   - `EXTRUDED_KINDS` membership gates participation.
  *   - Entries with `mode: 'glb'` are skipped here (rendered by
- *     `DesignElementGlbLayer`); this layer is the procedural fallback.
+ *     `DesignElementScenegraphLayer`); this layer is the procedural fallback.
  *   - Polygon kinds extrude as drawn; Point kinds inflate to a
  *     `footprintM`-sided square; LineString kinds are skipped.
  *   - Top-down (pitch 0°) the extrusions collapse to nothing visually

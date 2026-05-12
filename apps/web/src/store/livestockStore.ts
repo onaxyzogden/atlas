@@ -1,5 +1,5 @@
-/**
- * Livestock store — paddocks, grazing cells, species, stocking density.
+﻿/**
+ * Livestock store â€” paddocks, grazing cells, species, stocking density.
  *
  * Phase 2: Draw paddocks on the map, assign species, plan rotational grazing.
  */
@@ -18,10 +18,10 @@ export type LivestockSpecies = 'sheep' | 'cattle' | 'goats' | 'poultry' | 'pigs'
  * warn on overstocking without a second migration.
  *
  * Indicative AUE/ha by class (cool-temperate humid baseline):
- *   poor      ≈ 0.7   (degraded / drought-stressed / weed-dominant)
- *   fair      ≈ 1.2   (recovering / mixed)
- *   good      ≈ 2.5   (well-managed perennial sward)
- *   excellent ≈ 3.7+  (fertile, irrigated, intensively rotated)
+ *   poor      â‰ˆ 0.7   (degraded / drought-stressed / weed-dominant)
+ *   fair      â‰ˆ 1.2   (recovering / mixed)
+ *   good      â‰ˆ 2.5   (well-managed perennial sward)
+ *   excellent â‰ˆ 3.7+  (fertile, irrigated, intensively rotated)
  */
 export type PastureQuality = 'poor' | 'fair' | 'good' | 'excellent';
 
@@ -43,7 +43,7 @@ export interface Paddock {
   scheduleASubcategoryBySpecies?: Partial<Record<LivestockSpecies, string>>;
   stockingDensity: number | null; // head per hectare
   /**
-   * Tier C / C4 — pasture quality class for stocking-rate verification.
+   * Tier C / C4 â€” pasture quality class for stocking-rate verification.
    * Optional; undefined = not yet assessed.
    */
   pastureQuality?: PastureQuality;
@@ -54,7 +54,7 @@ export interface Paddock {
   phase: string;
   notes: string;
   /**
-   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
+   * PLAN-stage Multi-Enterprise â€” `enterpriseStore` enterprise id this
    * paddock belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
@@ -63,7 +63,7 @@ export interface Paddock {
 }
 
 /**
- * Fence-line mobility — added per Farm-Scholar (Newman) ADR 2026-05-10. Strip
+ * Fence-line mobility â€” added per Farm-Scholar (Newman) ADR 2026-05-10. Strip
  * and mob grazing depend on temporary, frequently-moved electric wire that
  * the polygon `Paddock` tool cannot represent. `permanent` fences anchor
  * paddock perimeters; `temporary-strip` fences are the moveable wire used
@@ -78,7 +78,7 @@ export interface FenceLine {
   geometry: GeoJSON.LineString;
   fenceType: FenceType;
   mobility: FenceLineMobility;
-  /** Optional parent paddock id — pure pointer, no schema enforcement. */
+  /** Optional parent paddock id â€” pure pointer, no schema enforcement. */
   paddockId?: string;
   phase: string;
   notes: string;
@@ -106,7 +106,7 @@ export const useLivestockStore = create<LivestockState>()(
         paddocks: [],
         // Default `[]` so existing canvases hydrated under v1 are unaffected.
         // Farm-Scholar (Newman) ADR 2026-05-10 added fence-line linear tool;
-        // version bump from 1 → 2 to claim the new slice.
+        // version bump from 1 â†’ 2 to claim the new slice.
         fenceLines: [],
 
         addPaddock: (paddock) => set((s) => ({ paddocks: [...s.paddocks, paddock] })),
@@ -136,10 +136,10 @@ export const useLivestockStore = create<LivestockState>()(
       }),
       { limit: 200 },
     ),
-    // Version retained at 1 — `fenceLines: []` is supplied by the initializer
+    // Version retained at 1 â€” `fenceLines: []` is supplied by the initializer
     // and Zustand's default shallow merge fills it in for canvases hydrated
     // before this slice existed, so no migration step is needed.
-    { name: 'ogden-livestock', version: 1 },
+    { name: 'ogden-livestock', version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

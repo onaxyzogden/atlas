@@ -10,7 +10,7 @@
 import { useEffect, useMemo } from 'react';
 import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useDesignElementsStore } from '../../../../store/designElementsStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
@@ -29,7 +29,6 @@ interface Props {
 
 const SOURCE_PREFIX = 'design-el-';
 const LAYER_PREFIX = 'design-el-';
-const EMPTY_ELEMENTS: DesignElement[] = [];
 
 export default function DesignElementLayers({
   map,
@@ -37,9 +36,7 @@ export default function DesignElementLayers({
   view,
   selectedId,
 }: Props) {
-  const elements = useDesignElementsStore(
-    (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
-  );
+  const elements = useDesignElementsForProject(projectId);
 
   const { polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC } = useMemo(() => {
     const cap =
@@ -47,7 +44,20 @@ export default function DesignElementLayers({
         ? phaseIndex(PHASE_VIEW_CAP[view])
         : Infinity;
 
-    const visible = elements.filter((el) => phaseIndex(el.phase) <= cap);
+    const visible = elements
+      .filter((el) => phaseIndex(el.phase) <= cap)
+      .filter((el) => {
+        // Per-view origin scoping (2026-05-11):
+        //  - On `current`, show only `current`-origin elements.
+        //  - On non-`current` views, show this view's own elements plus
+        //    `current`-origin ones that have NOT been hidden on this view.
+        const originView = el.view ?? 'current';
+        if (view === 'current') return originView === 'current';
+        if (originView === view) return true;
+        if (originView === 'current')
+          return !(el.hiddenInViews ?? []).includes(view);
+        return false;
+      });
 
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -63,6 +73,8 @@ export default function DesignElementLayers({
     for (const el of visible) {
       const spec = findElementSpec(el.kind);
       const color = spec?.color ?? '#888';
+      const originView = el.view ?? 'current';
+      const editable = originView === view;
       const props = {
         id: el.id,
         kind: el.kind,
@@ -72,6 +84,8 @@ export default function DesignElementLayers({
           el.label && el.acreage != null
             ? `${el.label} — ${el.acreage.toFixed(1)} ac`
             : (el.label ?? spec?.label ?? el.kind),
+        originView,
+        editable,
       };
       const hasConflict =
         Array.isArray(el.utilityConflicts) && el.utilityConflicts.length > 0;

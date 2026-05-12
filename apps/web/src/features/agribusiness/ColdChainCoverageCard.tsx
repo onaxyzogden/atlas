@@ -12,6 +12,8 @@ import { useMemo } from 'react';
 import {
   useAgribusinessStore,
   DEFAULT_SIZING,
+  computePeakWeekKg,
+  computeColdChainVerdict,
 } from '../../store/agribusinessStore.js';
 import css from './AgribusinessCard.module.css';
 
@@ -33,27 +35,21 @@ export default function ColdChainCoverageCard({ projectId }: Props) {
   const sizing =
     useAgribusinessStore((s) => s.sizingByProject[projectId]) ?? DEFAULT_SIZING;
   const setSizing = useAgribusinessStore((s) => s.setSizing);
-  const { annualHead, dressedKg, processingDays, packDensityKgPerM3 } = sizing;
+  const { packDensityKgPerM3 } = sizing;
 
   const view = useMemo(() => {
-    const peakWeekKg =
-      (annualHead * dressedKg) / Math.max(processingDays / 5, 1);
+    const peakWeekKg = computePeakWeekKg(sizing);
     const totalCapacityM3 = units.reduce((s, u) => s + (u.capacityM3 || 0), 0);
     const requiredM3 = peakWeekKg / Math.max(packDensityKgPerM3, 1);
     const coveragePct =
       requiredM3 > 0 ? Math.min(999, (totalCapacityM3 / requiredM3) * 100) : 0;
-    const verdict =
-      units.length === 0
-        ? 'no-units'
-        : totalCapacityM3 === 0
-          ? 'no-capacity'
-          : coveragePct >= 120
-            ? 'ok'
-            : coveragePct >= 80
-              ? 'caution'
-              : 'short';
+    const verdict = computeColdChainVerdict({
+      unitCount: units.length,
+      totalCapacityM3,
+      requiredM3,
+    });
     return { peakWeekKg, totalCapacityM3, requiredM3, coveragePct, verdict };
-  }, [units, annualHead, dressedKg, processingDays, packDensityKgPerM3]);
+  }, [units, sizing, packDensityKgPerM3]);
 
   return (
     <section className={css.card}>

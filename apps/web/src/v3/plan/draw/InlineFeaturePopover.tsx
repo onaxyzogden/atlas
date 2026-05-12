@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import { useInlineFormStore } from './inlineFormStore.js';
+import { useInlineFormStore, type FieldSpec } from './inlineFormStore.js';
 import css from './InlineFeaturePopover.module.css';
 
 interface Props {
@@ -32,6 +32,8 @@ export default function InlineFeaturePopover({ map }: Props) {
   );
   const [prevActive, setPrevActive] = useState(active);
   const [screen, setScreen] = useState<{ x: number; y: number; flipped: boolean } | null>(null);
+  // Per-disclosure expanded state (keyed by disclosure FieldSpec.key).
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const popoverRef = useRef<HTMLFormElement | null>(null);
 
   // Reset draft synchronously when the active payload changes (React's
@@ -41,6 +43,22 @@ export default function InlineFeaturePopover({ map }: Props) {
   if (prevActive !== active) {
     setPrevActive(active);
     setValues(active ? { ...active.initial } : {});
+    // Auto-expand disclosures whose any child carries a non-empty initial value.
+    if (active) {
+      const nextExpanded: Record<string, boolean> = {};
+      for (const f of active.fields) {
+        if (f.kind === 'disclosure' && f.children) {
+          const anyFilled = f.children.some((c) => {
+            const v = active.initial[c.key];
+            return v !== undefined && v !== '' && !(typeof v === 'number' && Number.isNaN(v));
+          });
+          if (anyFilled) nextExpanded[f.key] = true;
+        }
+      }
+      setExpanded(nextExpanded);
+    } else {
+      setExpanded({});
+    }
   }
 
   // Track anchor → screen coords; re-project on map move/zoom/resize.
@@ -107,7 +125,14 @@ export default function InlineFeaturePopover({ map }: Props) {
 
   if (!active || !screen) return null;
 
-  const requiredOk = active.fields.every((f) => {
+  // Flatten disclosure children so required validation covers them too.
+  // Skip fields whose visibleWhen predicate is currently false — they are
+  // not rendered so they can't be required.
+  const flatFields: FieldSpec[] = active.fields
+    .filter((f) => !f.visibleWhen || f.visibleWhen(values))
+    .flatMap((f) => (f.kind === 'disclosure' ? (f.children ?? []) : [f]))
+    .filter((f) => !f.visibleWhen || f.visibleWhen(values));
+  const requiredOk = flatFields.every((f) => {
     if (!f.required) return true;
     const v = values[f.key];
     return v !== undefined && v !== '' && !(typeof v === 'number' && Number.isNaN(v));
@@ -143,6 +168,92 @@ export default function InlineFeaturePopover({ map }: Props) {
     });
   };
 
+  const renderLeafField = (f: FieldSpec) => {
+    const v = values[f.key];
+    const valStr = v === undefined ? '' : String(v);
+    return (
+      <label key={f.key} className={css.field}>
+        <span className={css.fieldLabel}>
+          {f.label}
+          {f.required ? ' *' : ''}
+        </span>
+        <span className={css.inputRow}>
+          {f.kind === 'select' ? (
+            <select
+              className={css.select}
+              value={valStr}
+              onChange={(e) => setVal(f.key, 'select', e.target.value)}
+            >
+              <option value="">— pick —</option>
+              {(f.options ?? []).map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          ) : f.kind === 'textarea' ? (
+            <textarea
+              className={css.input}
+              value={valStr}
+              readOnly={f.readonly}
+              placeholder={f.placeholder}
+              rows={3}
+              onChange={(e) => setVal(f.key, 'textarea', e.target.value)}
+            />
+          ) : (
+            <input
+              className={css.input}
+              type={f.kind === 'number' ? 'number' : 'text'}
+              value={valStr}
+              readOnly={f.readonly}
+              placeholder={f.placeholder}
+              onChange={(e) =>
+                setVal(f.key, f.kind === 'number' ? 'number' : 'text', e.target.value)
+              }
+              step={f.kind === 'number' ? 'any' : undefined}
+            />
+          )}
+          {f.suffix ? <span className={css.suffix}>{f.suffix}</span> : null}
+        </span>
+      </label>
+    );
+  };
+
+  const renderField = (f: FieldSpec) => {
+    if (f.visibleWhen && !f.visibleWhen(values)) return null;
+    if (f.kind !== 'disclosure') return renderLeafField(f);
+    const isOpen = !!expanded[f.key];
+    const toggle = () => setExpanded((prev) => ({ ...prev, [f.key]: !prev[f.key] }));
+    if (!isOpen) {
+      return (
+        <button
+          key={f.key}
+          type="button"
+          className={css.secondaryBtn}
+          onClick={toggle}
+          style={{ alignSelf: 'flex-start' }}
+        >
+          {f.triggerLabel ?? f.label}
+        </button>
+      );
+    }
+    return (
+      <div key={f.key} className={css.field}>
+        {(f.children ?? [])
+          .filter((c) => !c.visibleWhen || c.visibleWhen(values))
+          .map((c) => renderLeafField(c))}
+        <button
+          type="button"
+          className={css.secondaryBtn}
+          onClick={toggle}
+          style={{ alignSelf: 'flex-start' }}
+        >
+          Hide
+        </button>
+      </div>
+    );
+  };
+
   return (
     <form
       ref={popoverRef}
@@ -154,54 +265,7 @@ export default function InlineFeaturePopover({ map }: Props) {
       aria-label={active.title}
     >
       <span className={css.title}>{active.title}</span>
-      {active.fields.map((f) => {
-        const v = values[f.key];
-        const valStr = v === undefined ? '' : String(v);
-        return (
-          <label key={f.key} className={css.field}>
-            <span className={css.fieldLabel}>
-              {f.label}
-              {f.required ? ' *' : ''}
-            </span>
-            <span className={css.inputRow}>
-              {f.kind === 'select' ? (
-                <select
-                  className={css.select}
-                  value={valStr}
-                  onChange={(e) => setVal(f.key, 'select', e.target.value)}
-                >
-                  <option value="">— pick —</option>
-                  {(f.options ?? []).map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              ) : f.kind === 'textarea' ? (
-                <textarea
-                  className={css.input}
-                  value={valStr}
-                  readOnly={f.readonly}
-                  placeholder={f.placeholder}
-                  rows={3}
-                  onChange={(e) => setVal(f.key, 'textarea', e.target.value)}
-                />
-              ) : (
-                <input
-                  className={css.input}
-                  type={f.kind === 'number' ? 'number' : 'text'}
-                  value={valStr}
-                  readOnly={f.readonly}
-                  placeholder={f.placeholder}
-                  onChange={(e) => setVal(f.key, f.kind, e.target.value)}
-                  step={f.kind === 'number' ? 'any' : undefined}
-                />
-              )}
-              {f.suffix ? <span className={css.suffix}>{f.suffix}</span> : null}
-            </span>
-          </label>
-        );
-      })}
+      {active.fields.map((f) => renderField(f))}
       <div className={css.btnRow}>
         <button
           type="button"
@@ -210,6 +274,16 @@ export default function InlineFeaturePopover({ map }: Props) {
         >
           Cancel
         </button>
+        {(active.customActions ?? []).map((a, i) => (
+          <button
+            key={i}
+            type="button"
+            className={a.variant === 'danger' ? css.dangerBtn : css.secondaryBtn}
+            onClick={() => a.onClick(values, close)}
+          >
+            {a.label}
+          </button>
+        ))}
         <button
           type="submit"
           className={css.primaryBtn}

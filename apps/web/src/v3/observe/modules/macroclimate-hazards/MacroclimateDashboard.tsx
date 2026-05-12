@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Download,
   Droplet,
-  Leaf,
   Snowflake,
   Sun,
   TriangleAlert,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { pickDefined, pickTruthy } from '@ogden/shared';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useHazardsStore } from '../../../../store/hazardsStore.js';
@@ -24,6 +22,9 @@ import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
 import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   climateKpis,
   getClimateLayer,
@@ -38,18 +39,8 @@ import {
 } from './derivations.js';
 
 const MONTH_LABELS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
 const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
@@ -79,6 +70,10 @@ export default function MacroclimateDashboard() {
   }, [id, ensureHazards]);
 
   const centroid = polygonCentroid(project?.location?.boundary);
+  const counts = hazardCounts(hazards);
+  const climateItems = climateKpis(layers);
+  const opportunities = solarOpportunities(layers);
+  const top = topRiskPriorities(hazards).slice(0, 3);
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -94,14 +89,13 @@ export default function MacroclimateDashboard() {
         ...(m.meanMaxC != null ? { meanMaxC: m.meanMaxC } : {}),
         ...(m.meanMinC != null ? { meanMinC: m.meanMinC } : {}),
       }));
-      const counts = hazardCounts(hazards);
       const { data } = await api.exports.generate(id, {
         exportType: 'macroclimate_report',
         payload: {
           macroclimate: {
             ...(climateSummary ? { climateSummary } : {}),
             ...(monthly.length > 0 ? { monthlyNormals: monthly } : {}),
-            solarOpportunities: solarOpportunities(layers),
+            solarOpportunities: opportunities,
             hazards: hazards.map((h) => ({
               id: h.id,
               kind: h.kind,
@@ -138,235 +132,216 @@ export default function MacroclimateDashboard() {
     }
   };
 
+  // Pick four headline KPIs for the strip: hardiness, precip, frost-free, solar.
+  const stripKpis = climateItems.slice(0, 4);
+  // Remaining climate KPIs (wind + frost dates).
+  const extraKpis = climateItems.slice(4);
+
+  const riskPill = (risk: 'low' | 'moderate' | 'high') =>
+    risk === 'high' ? card.pillFail : risk === 'moderate' ? card.pillPartial : card.pillMet;
+
   return (
-    <div className="detail-page macroclimate-page">
-      <section className="macroclimate-layout">
-        <div className="macroclimate-main">
-          <MacroHeader onExport={handleExport} exporting={exporting} />
-          <MacroKpis layers={layers} hazards={hazards} />
-          <SolarClimateCard layers={layers} lat={centroid?.lat ?? null} />
-          <HazardsCard
-            hazards={hazards}
-            boundary={project?.location?.boundary}
-            caption={project?.name}
-          />
-          <AnnotationListCard
-            title="Field annotations"
-            projectId={projectId ?? null}
-            kinds={['frostPocket', 'hazardZone']}
-            emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
-          />
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Understand the big-picture climate patterns and natural hazards that shape
+              your site. Use this foundation to design resilient systems that work with
+              your environment, not against it.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export macroclimate report'}
+              </button>
+            </div>
+          </div>
         </div>
-        <MacroSidebar hazards={hazards} />
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={counts.averageMitigationPct} />
+            <span className={obsx.label}>Mitigation coverage</span>
+            <span className={obsx.value}>
+              {counts.total === 0 ? 'No hazards yet' : `${counts.active} active`}
+            </span>
+            <span className={obsx.note}>{counts.total} logged</span>
+          </div>
+          {stripKpis.map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {extraKpis.length > 0 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Climate exposure</h2>
+          <div className={obsx.kpiGrid}>
+            {extraKpis.map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <Sun aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Solar &amp; climate detail
+        </h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>
+          Deep dive into sun, temperature, precipitation, and seasonality to identify
+          opportunities for passive design and productivity.
+        </p>
+        <div className={card.grid}>
+          <div>
+            <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Average monthly climate</h3>
+            <MonthlyClimateChart layers={layers} />
+          </div>
+          <div>
+            <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Sun path</h3>
+            <SunPathDiagram lat={centroid?.lat ?? null} />
+          </div>
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Climate opportunities</h2>
+        {opportunities.map(([label, value]) => (
+          <div key={label} className={card.statRow}>
+            <span>{label}</span>
+            <span>{value}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <TriangleAlert aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Hazards log
+        </h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>
+          Review natural hazards, risk levels, and mitigation strategies for your site.
+        </p>
+        <div className={card.grid}>
+          <div>
+            <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Hazard risk matrix</h3>
+            <HazardRiskMatrix hazards={hazards} />
+          </div>
+          <div>
+            <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Hazard hotspots</h3>
+            <HazardHotspotsMap
+              boundary={project?.location?.boundary}
+              caption={project?.name}
+              hazards={hazards}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          Active hazards <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{counts.active}</span>
+        </h2>
+        {top.length > 0 ? (
+          top.map((h) => (
+            <div key={h.id} className={card.statRow}>
+              <span>
+                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} · {h.mitigationPct}%</span>
+              </span>
+              <span className={`${card.pill} ${riskPill(h.risk)}`}>{riskLabel(h.risk)}</span>
+            </div>
+          ))
+        ) : (
+          <p className={card.empty}>No hazards logged yet.</p>
+        )}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Macroclimate synthesis</h2>
+        <div className={obsx.synthesisGrid}>
+          <div className={obsx.synthesisBlock}>
+            <h3>Key takeaways</h3>
+            {[
+              'Cool temperate climate with strong seasonality and good precipitation.',
+              'Design for passive solar gain, wind protection, and water capture.',
+              'Frost windows shape planting timing and protective infrastructure.',
+            ].map((item) => (
+              <p key={item}>
+                <CheckCircle2 aria-hidden="true" size={14} />
+                <span>{item}</span>
+              </p>
+            ))}
+          </div>
+          <div className={obsx.synthesisBlock}>
+            <h3>Next actions</h3>
+            {[
+              'Review Solar & Climate detail for passive design opportunities.',
+              'Open Hazards log to refine mitigation strategies and track progress.',
+              'Integrate climate insights into Zone & Sector planning.',
+            ].map((item, index) => (
+              <p key={item}>
+                <b>{index + 1}</b>
+                <span>{item}</span>
+              </p>
+            ))}
+          </div>
+          <div className={obsx.synthesisBlock}>
+            <h3>Top risk priorities</h3>
+            {top.length > 0 ? (
+              top.map((h, index) => (
+                <p key={h.id}>
+                  <b>{index + 1}</b>
+                  <span>{h.label}</span>
+                </p>
+              ))
+            ) : (
+              <p>
+                <CheckCircle2 aria-hidden="true" size={14} />
+                <span>No hazards logged yet.</span>
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Field annotations</h2>
+        <AnnotationListCard
+          title=""
+          projectId={projectId ?? null}
+          kinds={['frostPocket', 'hazardZone']}
+          emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
+        />
       </section>
     </div>
-  );
-}
-
-interface MacroHeaderProps {
-  onExport: () => void;
-  exporting: boolean;
-}
-
-function MacroHeader({ onExport, exporting }: MacroHeaderProps) {
-  return (
-    <header className="macro-header">
-      <span>Module 2</span>
-      <div className="macro-header-row">
-        <h1>Macroclimate &amp; Hazards</h1>
-        <button type="button" onClick={onExport} disabled={exporting}>
-          <Download aria-hidden="true" />{' '}
-          {exporting ? 'Generating…' : 'Export macroclimate report'}
-        </button>
-      </div>
-      <p>
-        Understand the big-picture climate patterns and natural hazards that shape your site. Use
-        this foundation to design resilient systems that work with your environment, not against
-        it.
-      </p>
-    </header>
-  );
-}
-
-interface MacroKpisProps {
-  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
-  hazards: ReturnType<ReturnType<typeof useHazardsStore.getState>['getHazards']>;
-}
-
-function MacroKpis({ layers, hazards }: MacroKpisProps) {
-  const climateItems = climateKpis(layers).slice(0, 6);
-  const counts = hazardCounts(hazards);
-  const items: KpiItem[] = [
-    ...climateItems,
-    {
-      iconKey: 'alert',
-      label: 'Logged hazards',
-      value: counts.total === 0 ? '—' : String(counts.active),
-      note: counts.total === 0 ? 'None yet' : `${counts.total} total`,
-      tone: counts.highRisk > 0 ? 'red' : 'gold',
-    },
-  ];
-
-  return (
-    <section className="macro-kpi-grid">
-      {items.map((item) => {
-        const Icon = ICON_MAP[item.iconKey];
-        return (
-          <SurfaceCard className={`macro-kpi-card ${item.tone}`} key={item.label}>
-            <Icon aria-hidden="true" />
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-            <small>{item.note}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-interface SolarClimateCardProps {
-  layers: MacroKpisProps['layers'];
-  lat: number | null;
-}
-
-function SolarClimateCard({ layers, lat }: SolarClimateCardProps) {
-  const opportunities = solarOpportunities(layers);
-
-  return (
-    <SurfaceCard className="macro-section-card solar-card">
-      <header>
-        <div>
-          <h2>
-            <Sun aria-hidden="true" /> Solar &amp; Climate detail
-          </h2>
-          <p>
-            Deep dive into sun, temperature, precipitation, and seasonality to identify
-            opportunities for passive design and productivity.
-          </p>
-        </div>
-      </header>
-      <div className="solar-grid">
-        <div>
-          <h3>Average Monthly Climate</h3>
-          <MonthlyClimateChart layers={layers} />
-        </div>
-        <div>
-          <h3>Sun path</h3>
-          <SunPathDiagram lat={lat} />
-        </div>
-        <SurfaceCard className="climate-opportunities">
-          <h3>Climate opportunities</h3>
-          {opportunities.map(([label, value]) => (
-            <p key={label}>
-              <Leaf aria-hidden="true" />
-              <span>{label}</span>
-              <b>{value}</b>
-            </p>
-          ))}
-        </SurfaceCard>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface HazardsCardProps {
-  hazards: ReturnType<ReturnType<typeof useHazardsStore.getState>['getHazards']>;
-  boundary?: GeoJSON.Polygon;
-  caption?: string;
-}
-
-function HazardsCard({ hazards, boundary, caption }: HazardsCardProps) {
-  const top = topRiskPriorities(hazards).slice(0, 3);
-
-  return (
-    <SurfaceCard className="macro-section-card hazards-card">
-      <header>
-        <div>
-          <h2>
-            <TriangleAlert aria-hidden="true" /> Hazards log
-          </h2>
-          <p>Review natural hazards, risk levels, and mitigation strategies for your site.</p>
-        </div>
-      </header>
-      <div className="hazards-grid">
-        <div>
-          <h3>Hazard risk matrix</h3>
-          <HazardRiskMatrix hazards={hazards} />
-        </div>
-        <div>
-          <h3>Hazard hotspots</h3>
-          <HazardHotspotsMap boundary={boundary} caption={caption} hazards={hazards} />
-        </div>
-        <SurfaceCard className="active-hazards-table">
-          <h3>Active hazards</h3>
-          {top.length > 0 ? (
-            top.map((h, index) => (
-              <p key={h.id}>
-                <b>{index + 1}</b>
-                <span>
-                  {h.label}
-                  <small>{riskLabel(h.risk)} risk</small>
-                </span>
-                <em>{h.trend}</em>
-                <strong>{h.mitigationPct}%</strong>
-                <i>{statusLabel(h.status)}</i>
-              </p>
-            ))
-          ) : (
-            <p className="empty-note">No hazards logged yet.</p>
-          )}
-        </SurfaceCard>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface MacroSidebarProps {
-  hazards: HazardsCardProps['hazards'];
-}
-
-function MacroSidebar({ hazards }: MacroSidebarProps) {
-  const top = topRiskPriorities(hazards).slice(0, 3);
-
-  return (
-    <aside className="macro-sidebar">
-      <SurfaceCard className="macro-insights-card">
-        <h2>Design insights &amp; recommendations</h2>
-        <h3>Key takeaways</h3>
-        {[
-          'Cool temperate climate with strong seasonality and good precipitation.',
-          'Design for passive solar gain, wind protection, and water capture.',
-          'Frost windows shape planting timing and protective infrastructure.',
-        ].map((item) => (
-          <p key={item}>
-            <CheckCircle2 aria-hidden="true" />
-            {item}
-          </p>
-        ))}
-        <h3>Next actions</h3>
-        {[
-          'Review Solar & Climate detail for passive design opportunities.',
-          'Open Hazards log to refine mitigation strategies and track progress.',
-          'Integrate climate insights into Zone & Sector planning.',
-        ].map((item, index) => (
-          <p className="numbered" key={item}>
-            <b>{index + 1}</b>
-            {item}
-          </p>
-        ))}
-        <section className="risk-priorities">
-          <h3>Top risk priorities</h3>
-          {top.length > 0 ? (
-            <ol>
-              {top.map((h) => (
-                <li key={h.id}>{h.label}</li>
-              ))}
-            </ol>
-          ) : (
-            <p className="empty-note">No hazards logged yet.</p>
-          )}
-        </section>
-      </SurfaceCard>
-    </aside>
   );
 }

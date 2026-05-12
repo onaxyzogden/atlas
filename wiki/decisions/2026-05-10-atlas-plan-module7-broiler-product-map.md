@@ -276,8 +276,84 @@ days, pack density, detour multiplier, and avg speed as card-local
   Market weekly product reads `1125 (from sizing)`. Derivation matches
   `5000 × 1.8 ÷ (40/5) = 1125`. Cross-card propagation confirmed.
 
+### 2026-05-11 follow-up — unit lock on the peak-week formula
+
+The arithmetic `(annualHead × dressedKg) ÷ max(processingDays/5, 1)` is
+duplicated across `ColdChainCoverageCard` and `MarketDistributionCard`
+(both derive their headline figure from it). Drift between the two
+copies would silently desynchronise Module 7's downstream rollups from
+the throughput card. To pin the formula:
+
+- New pure module `apps/web/src/store/agribusinessSizing.ts` exports
+  `AgribusinessSizing`, `DEFAULT_SIZING`, and `computePeakWeekKg(sizing)`.
+  No zustand dependency, so vitest can import without crashing on
+  `persist.rehydrate()` under node env (no localStorage).
+- New `apps/web/src/store/__tests__/agribusinessStore.test.ts` — 6
+  tests: ADR baseline (2,000-bird floor → 450 kg/wk), linear scaling
+  with `annualHead` and `dressedKg`, 5-day-per-week processing-cadence
+  treatment, divide-by-zero clamp at `processingDays < 5`, and the
+  live verification round-trip (head=5000 → 1125 kg/wk).
+- Cards continue to inline the same arithmetic by design — the helper
+  is the documented lock, the cards are the runtime path. If the cards
+  ever import `computePeakWeekKg` directly the test also locks the
+  cards; until then it locks the documented formula.
+
 ### Out of scope (carried forward)
 
 - Surfacing `phase` / `notes` fields on the three tool popovers.
-- Tests on the throughput / coverage / concentration math.
+- Tests on the throughput / coverage / concentration math (covered
+  for peak-week-pack only; coverage/concentration still open).
 - Species-aware sizing fields (cattle dress-out %, lamb hanging weight).
+- ~~Re-threading `computePeakWeekKg` into the two card components so
+  the runtime path matches the tested function.~~ — closed
+  2026-05-11 (commit 192d814).
+
+### 2026-05-11 follow-up #2 — verdict cascades unit-locked
+
+The helper re-thread also extracted the two cards' verdict cascades
+into pure deriver functions in `agribusinessSizing.ts`:
+
+- `computeColdChainVerdict({ unitCount, totalCapacityM3, requiredM3 })`
+  → `no-units | no-capacity | ok | caution | short`. Thresholds:
+  `>= 120 %` ok, `>= 80 %` caution.
+- `computeMarketVerdict({ nodeCount, totalDemandKg, largestKindKg, weeklyProductKg })`
+  → `no-nodes | no-demand | undersold | oversold | concentrated | ok`.
+  Thresholds: coverage `< 80 %` undersold, `> 120 %` oversold,
+  largest-channel share `> 70 %` concentrated.
+
+14 boundary-walking vitest cases pin each inequality direction
+(exact-80, exact-120, exact-70 plus `±0.001` neighbours). Flipping
+`<` ↔ `<=` or `>` ↔ `>=` in either deriver now breaks at least one
+assertion. Steward-facing verdicts cannot drift silently.
+
+### 2026-05-11 follow-up #3 — Module 7 wrapped
+
+The remaining carried-forward items closed in one pass (commit
+763d7b0):
+
+- **Notes textarea on all three tool popovers.** Schema already
+  carried `notes`; the field was just absent from the inline-form
+  JSX and the `onSave` write-through. Stewards can now capture
+  per-entity context ("shared slot at Greenfield co-op, Tue/Thu
+  only") that survives slide-up close and reload.
+- **Drive-time rollup unit-locked.** Extracted `computeCentroid`
+  (arithmetic mean of `[lon, lat]` pairs, null on empty input) and
+  `computeDriveTime` (great-circle km → road km via detour
+  multiplier → minutes via avg speed, with both factors clamped at
+  1 to survive mid-edit zeros). 10 new vitest cases — empty
+  centroid, single-point identity, two-point mean, four-point
+  square; drive-time default sizing (10 km × 1.3 ÷ 60 km/h = 13
+  min), linear/inverse scaling, the two clamps, and the
+  zero-distance case. `turf.distance` retains the geodesy step in
+  the card; everything after it is pure and tested.
+
+Module 7 is now feature-complete: schema, three tool popovers with
+full field surfaces, three diagnostic cards with shared sizing slice,
+helper-backed runtime arithmetic, and 30 unit tests on every
+formula and verdict transition.
+
+### Carried forward (post-Module 7)
+
+- Species-aware sizing fields (cattle dress-out %, lamb hanging
+  weight) — once a second species lands, `agribusinessStore`'s
+  broiler-specific framing should be renamed too.

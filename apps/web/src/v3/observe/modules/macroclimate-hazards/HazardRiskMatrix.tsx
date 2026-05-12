@@ -1,4 +1,5 @@
 import type { Hazard } from '../../../../store/hazardsStore.js';
+import styles from './HazardRiskMatrix.module.css';
 
 interface Props {
   hazards: Hazard[];
@@ -22,21 +23,21 @@ export default function HazardRiskMatrix({ hazards, className }: Props) {
   }
 
   return (
-    <div className={`hazard-risk-matrix ${className ?? ''}`}>
-      <div className="matrix-y-label">Likelihood ↑</div>
-      <div className="matrix-grid">
+    <div className={`${styles.matrix} ${className ?? ''}`}>
+      <div className={styles.yLabel}>Likelihood ↑</div>
+      <div className={styles.grid}>
         {cells.map((rowCells, rowIdx) =>
           rowCells.map((cellHazards, colIdx) => {
             const sev = (2 - rowIdx) + colIdx;
-            const tone = sev >= 3 ? 'red' : sev >= 2 ? 'gold' : 'green';
+            const tone: 'red' | 'gold' | 'green' = sev >= 3 ? 'red' : sev >= 2 ? 'gold' : 'green';
             return (
               <div
-                className={`matrix-cell ${tone}`}
+                className={`${styles.cell} ${styles[tone]}`}
                 key={`${rowIdx}-${colIdx}`}
                 aria-label={`Likelihood ${2 - rowIdx}, Impact ${colIdx}`}
               >
                 {cellHazards.map((h) => (
-                  <span className="matrix-dot" key={h.id} title={h.label}>
+                  <span className={styles.dot} key={h.id} title={h.label}>
                     {h.label.charAt(0).toUpperCase()}
                   </span>
                 ))}
@@ -45,8 +46,8 @@ export default function HazardRiskMatrix({ hazards, className }: Props) {
           }),
         )}
       </div>
-      <div className="matrix-x-label">Impact →</div>
-      <div className="matrix-axis-labels">
+      <div className={styles.xLabel}>Impact →</div>
+      <div className={styles.axisLabels}>
         <span>Low</span>
         <span>Mod</span>
         <span>High</span>

@@ -25,7 +25,7 @@ import { booleanIntersects } from '@turf/turf';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../../../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../../../../store/pathStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -266,7 +266,7 @@ export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: 
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 3 · Zone &amp; Circulation</span>
         <h1 className={styles.title}>Zone &amp; circulation overview</h1>
         <p className={styles.lede}>
