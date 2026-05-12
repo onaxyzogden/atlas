@@ -47,6 +47,11 @@ interface Props {
 
 const ANCHOR_LAYERS: GuildLayer[] = ['canopy', 'sub_canopy'];
 
+function fmtUSD(n: number): string {
+  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
+  return `$${n}`;
+}
+
 export default function GuildSpatialBuilderCard({ project }: Props) {
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const addGuild = usePolycultureStore((s) => s.addGuild);
@@ -57,6 +62,24 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
     () => allGuilds.filter((g) => g.projectId === project.id),
     [allGuilds, project.id],
   );
+
+  // Project-wide guild-cost totals — surfaced as an inline summary
+  // section near the top so the steward sees the roll-up without
+  // jumping to the Phasing & Budgeting module. Mirrors the "Project
+  // total" pattern in CumulativeInvestmentCard.
+  const guildTotals = useMemo(() => {
+    let totalUSD = 0;
+    let totalHrs = 0;
+    let unestimated = 0;
+    for (const g of guilds) {
+      const usd = g.establishmentCostUSD;
+      const hrs = g.establishmentLaborHrs;
+      if (usd === undefined && hrs === undefined) unestimated += 1;
+      totalUSD += usd ?? 0;
+      totalHrs += hrs ?? 0;
+    }
+    return { totalUSD, totalHrs, unestimated };
+  }, [guilds]);
 
   const [activeGuildId, setActiveGuildId] = useState<string | null>(null);
   const [activeRing, setActiveRing] = useState<GuildLayer | null>(null);
@@ -229,6 +252,30 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
           your saved guilds live on the site.
         </p>
       </header>
+
+      {guilds.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Project guild totals</h2>
+          <div className={styles.statRow}>
+            <span>Guilds</span>
+            <span>{guilds.length}</span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Establishment cost</span>
+            <span>{fmtUSD(guildTotals.totalUSD)}</span>
+          </div>
+          <div className={styles.statRow}>
+            <span>Establishment labor</span>
+            <span>{guildTotals.totalHrs} h</span>
+          </div>
+          {guildTotals.unestimated > 0 && (
+            <div className={styles.statRow}>
+              <span>Without estimates</span>
+              <span>{guildTotals.unestimated}</span>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
