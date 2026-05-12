@@ -21,6 +21,7 @@
  */
 
 import { generateMockLayers, type MockLayerResult } from './mockLayerData.js';
+import { haversineKm as haversineKmTuple } from './geo.js';
 import { toNum, type SpatialLayerPayload } from '@ogden/shared/scoring';
 import type { LayerType } from '@ogden/shared';
 import { geodataCache } from './geodataCache.js';
@@ -4478,16 +4479,15 @@ function zoningUnavailable(country: string, countyName?: string, stateCode?: str
 
 // ── Infrastructure (Overpass API — OpenStreetMap) ─────────────────────────
 
-/** Haversine distance between two WGS84 points, in km. */
+/**
+ * Haversine distance between two WGS84 points, in km. Scalar-argument
+ * adapter — 24 call sites in this file pass `(lat, lng, lat, lng)`.
+ * Delegates the math to the shared `lib/geo.ts` helper (which uses
+ * `[lng, lat]` tuples per Mapbox / GeoJSON convention); keeping this
+ * thin shim avoids transposing 24 remote-data integration points.
+ */
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371; // Earth radius km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return haversineKmTuple([lng1, lat1], [lng2, lat2]);
 }
 
 /**

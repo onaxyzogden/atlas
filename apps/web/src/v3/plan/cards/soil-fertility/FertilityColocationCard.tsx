@@ -43,6 +43,7 @@ import {
 } from '../../../../store/closedLoopStore.js';
 import { findSpecies } from '../../../../data/plantDatabase.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import { haversineM } from '../../../../lib/geo.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -74,19 +75,6 @@ const FERTILITY_LABEL: Record<FertilityInfraType, string> = {
   dynamic_accumulator: 'dynamic accumulator',
   rotational_grazing:  'rotational grazing',
 };
-
-function haversineM(a: [number, number], b: [number, number]): number {
-  const [lng1, lat1] = a;
-  const [lng2, lat2] = b;
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const s1 = Math.sin(dLat / 2);
-  const s2 = Math.sin(dLng / 2);
-  const c = s1 * s1 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * s2 * s2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(c)));
-}
 
 function anchorLabelFor(g: Guild): string {
   const anchor = findSpecies(g.anchorSpeciesId);
