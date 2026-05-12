@@ -26,6 +26,7 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
+import { useDesignElementsStore } from '../../../store/designElementsStore.js';
 import SharedVertexEditHandler, {
   type VertexEditDispatch,
 } from '../../builtEnvironment/handlers/SharedVertexEditHandler.js';
@@ -35,10 +36,22 @@ const PLAN_KINDS = new Set<PlanVertexEditKind>([
   'crop',
   'paddock',
   'structure',
+  'design-element',
 ]);
 
 function isPlanKind(kind: string): kind is PlanVertexEditKind {
   return PLAN_KINDS.has(kind as PlanVertexEditKind);
+}
+
+/** Locate a design-element by id across every project (ids are globally
+ *  unique) and return `{ projectId, element }`, or `null`. */
+function findDesignElement(id: string) {
+  const byProject = useDesignElementsStore.getState().byProject;
+  for (const [projectId, list] of Object.entries(byProject)) {
+    const el = list.find((e) => e.id === id);
+    if (el) return { projectId, element: el };
+  }
+  return null;
 }
 
 function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
@@ -54,6 +67,12 @@ function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
   if (kind === 'paddock') {
     const r = useLivestockStore.getState().paddocks.find((x) => x.id === id);
     return r?.geometry ?? null;
+  }
+  if (kind === 'design-element') {
+    const hit = findDesignElement(id);
+    return hit && hit.element.geometry.type === 'Polygon'
+      ? hit.element.geometry
+      : null;
   }
   // structure
   const r = useStructureStore.getState().structures.find((x) => x.id === id);
@@ -72,6 +91,22 @@ function writePolygon(kind: string, id: string, geom: GeoJSON.Polygon): void {
   }
   if (kind === 'paddock') {
     useLivestockStore.getState().updatePaddock(id, { geometry: geom });
+    return;
+  }
+  if (kind === 'design-element') {
+    const hit = findDesignElement(id);
+    if (!hit) return;
+    // Recompute acreage so the on-map label stays accurate after a
+    // vertex reshape. Mirrors useDesignElementDrawTool.polygonAcres.
+    let acreage: number | undefined;
+    try {
+      acreage = turf.area(geom) * 0.000247105;
+    } catch {
+      acreage = undefined;
+    }
+    useDesignElementsStore
+      .getState()
+      .update(hit.projectId, id, { geometry: geom, acreage });
     return;
   }
   // structure: persist new geometry AND recompute the canonical centre.

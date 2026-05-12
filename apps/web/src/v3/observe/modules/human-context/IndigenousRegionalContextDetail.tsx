@@ -1,28 +1,21 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   ArrowUpRight,
-  CheckCircle2,
   Mail,
-  Network,
   Sprout,
   Sun,
   Trash2,
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import {
-  ChipList,
-  CroppedArt,
-  DataTable,
-  NextStepsPanel,
-  SurfaceCard,
-} from '../../_shared/components/index.js';
 import heroTerrain from '../../assets/indigenous-regional-context/hero-terrain.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import hc from '../../../_shared/stageCard/observeExtras.module.css';
 import { regionalCounts } from './derivations.js';
 
 const CONTACT_TYPES = ['regulator', 'first_nation', 'community', 'partner', 'other'];
@@ -47,21 +40,22 @@ export default function IndigenousRegionalContextDetail() {
   const network = regional?.localNetwork ?? [];
 
   return (
-    <div className="detail-page regional-page">
-      <div className="detail-layout">
-        <div className="detail-main">
-          <RegionalHero />
-          <SurfaceCard className="content-card place-card">
-            <header className="content-card__header">
-              <div>
-                <b>1</b>
-                <h2>Indigenous Place-Names</h2>
-              </div>
-            </header>
-            <p>Recognize the traditional territories and histories that shape this landscape.</p>
-            <ChipList
-              removable
-              className="place-chip-list"
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={hc.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Honour the land&rsquo;s longer story. Capture indigenous place-names, cultural
+              challenges and strengths in this region, and the local network you can lean on
+              for stewardship.
+            </p>
+          </div>
+          <img src={heroTerrain} alt="" aria-hidden="true" className={hc.heroArt} />
+        </div>
+      </div>
+
+      <Section number="1" title="Indigenous Place-Names" subtitle="Recognize the traditional territories and histories that shape this landscape.">
+            <ChipEditor
               items={placeNames}
               onAdd={(value) =>
                 updateRegional(id, { indigenousNames: [...placeNames, value] })
@@ -71,16 +65,15 @@ export default function IndigenousRegionalContextDetail() {
                   indigenousNames: placeNames.filter((_, i) => i !== idx),
                 })
               }
-              addPlaceholder="New place-name"
+              placeholder="New place-name"
             />
-          </SurfaceCard>
+          </Section>
 
-          <div className="two-card-grid">
-            <EditableKnowledgeCard
+          <div className={card.grid}>
+            <BulletSection
               number="2"
               title="Cultural Challenges"
               icon={AlertTriangle}
-              tone="gold"
               subtitle="Key considerations and risks to address with care."
               items={challenges}
               onAdd={(value) =>
@@ -91,9 +84,9 @@ export default function IndigenousRegionalContextDetail() {
                   culturalChallenges: challenges.filter((_, i) => i !== idx),
                 })
               }
-              addPlaceholder="Add challenge"
+              placeholder="Add challenge"
             />
-            <EditableKnowledgeCard
+            <BulletSection
               number="3"
               title="Cultural Strengths"
               icon={Sprout}
@@ -107,68 +100,66 @@ export default function IndigenousRegionalContextDetail() {
                   culturalStrengths: strengths.filter((_, i) => i !== idx),
                 })
               }
-              addPlaceholder="Add strength"
+              placeholder="Add strength"
             />
           </div>
 
-          <LocalNetworkCard
-            rows={network}
-            onAdd={(c) => addNetworkContact(id, c)}
-            onRemove={(contactId) => removeNetworkContact(id, contactId)}
-          />
-        </div>
-        <RegionalSidebar projectId={id} regional={regional} />
-      </div>
+      <LocalNetworkSection
+        rows={network}
+        onAdd={(c) => addNetworkContact(id, c)}
+        onRemove={(contactId) => removeNetworkContact(id, contactId)}
+      />
+
+      <RegionalSidebar projectId={id} regional={regional} />
     </div>
   );
 }
 
-function RegionalHero() {
+interface SectionProps {
+  number: string;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}
+
+function Section({ number, title, subtitle, children }: SectionProps) {
   return (
-    <SurfaceCard className="module-hero-card regional-hero">
-      <div className="module-hero-copy">
-        <span className="stage-kicker">Module 1 · Human Context</span>
-        <h1>Indigenous &amp; Regional Context</h1>
-        <p>
-          Honour the land&apos;s longer story. Capture indigenous place-names, cultural challenges
-          and strengths in this region, and the local network you can lean on for stewardship.
-        </p>
-        <ChipList
-          items={[
-            { label: 'Consult before earthworks', icon: AlertTriangle, tone: 'gold' },
-            { label: 'Stage 1 archaeology recommended', icon: CheckCircle2, tone: 'orange' },
-            { label: 'Cultural strengths identified', icon: Network },
-          ]}
-        />
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}>
+        <b>{number}</b> Step {number}
       </div>
-      <CroppedArt src={heroTerrain} className="module-hero-image" />
-    </SurfaceCard>
+      <h2 className={card.sectionTitle}>{title}</h2>
+      {subtitle ? (
+        <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+          {subtitle}
+        </p>
+      ) : null}
+      {children}
+    </section>
   );
 }
 
-interface EditableKnowledgeCardProps {
+interface BulletSectionProps {
   number: string;
   title: string;
   subtitle: string;
   items: string[];
   onAdd: (value: string) => void;
-  onRemove: (index: number) => void;
-  addPlaceholder: string;
+  onRemove: (idx: number) => void;
+  placeholder: string;
   icon: LucideIcon;
-  tone?: 'green' | 'gold';
 }
 
-function EditableKnowledgeCard({
+function BulletSection({
   number,
   title,
   subtitle,
   items,
   onAdd,
   onRemove,
-  addPlaceholder,
+  placeholder,
   icon: Icon,
-  tone = 'green',
-}: EditableKnowledgeCardProps) {
+}: BulletSectionProps) {
   const [draft, setDraft] = useState('');
 
   function commit(e: FormEvent) {
@@ -180,44 +171,59 @@ function EditableKnowledgeCard({
   }
 
   return (
-    <SurfaceCard className={`content-card knowledge-card ${tone}`}>
-      <header className="content-card__header">
-        <div>
-          <b>{number}</b>
-          <h2>{title}</h2>
-        </div>
-        <Icon aria-hidden="true" />
-      </header>
-      <p>{subtitle}</p>
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}>
+        <b>{number}</b>
+        <Icon aria-hidden="true" size={12} />
+        {title}
+      </div>
+      <h2 className={card.sectionTitle}>{title}</h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+        {subtitle}
+      </p>
       {items.length > 0 ? (
-        <ul className="editable-bullets">
+        <ul className={card.list}>
           {items.map((bullet, idx) => (
-            <li key={`${bullet}-${idx}`}>
+            <li key={`${bullet}-${idx}`} className={card.listRow}>
               <span>{bullet}</span>
               <button
                 type="button"
-                aria-label={`Remove ${bullet}`}
+                className={card.removeBtn}
                 onClick={() => onRemove(idx)}
+                aria-label={`Remove ${bullet}`}
               >
-                <Trash2 aria-hidden="true" />
+                <Trash2 aria-hidden="true" size={12} />
               </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="empty-note">No entries yet.</p>
+        <p className={card.empty}>No entries yet.</p>
       )}
-      <form className="add-row" onSubmit={commit}>
+      <form
+        onSubmit={commit}
+        style={{ display: 'flex', gap: 8, marginTop: 10 }}
+      >
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder={addPlaceholder}
+          placeholder={placeholder}
+          style={{
+            flex: 1,
+            background: 'rgba(0,0,0,0.25)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 6,
+            padding: '8px 10px',
+            fontSize: 13,
+            color: 'rgba(232,220,200,0.92)',
+            fontFamily: 'inherit',
+          }}
         />
-        <button className="outlined-button" type="submit">
+        <button type="submit" className={card.btn}>
           Add
         </button>
       </form>
-    </SurfaceCard>
+    </section>
   );
 }
 
@@ -228,13 +234,13 @@ interface NetworkRow {
   contact?: string;
 }
 
-interface LocalNetworkCardProps {
+interface LocalNetworkSectionProps {
   rows: NetworkRow[];
   onAdd: (contact: NetworkRow) => void;
   onRemove: (id: string) => void;
 }
 
-function LocalNetworkCard({ rows, onAdd, onRemove }: LocalNetworkCardProps) {
+function LocalNetworkSection({ rows, onAdd, onRemove }: LocalNetworkSectionProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState(CONTACT_TYPES[0] ?? 'community');
   const [contact, setContact] = useState('');
@@ -254,59 +260,158 @@ function LocalNetworkCard({ rows, onAdd, onRemove }: LocalNetworkCardProps) {
   }
 
   return (
-    <SurfaceCard className="content-card local-network-card">
-      <header className="content-card__header">
-        <div>
-          <b>4</b>
-          <h2>Local Network</h2>
-        </div>
-      </header>
-      <p>Organizations and contacts you can lean on for guidance and collaboration.</p>
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}>
+        <b>4</b> Local Network
+      </div>
+      <h2 className={card.sectionTitle}>Local Network</h2>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+        Organizations and contacts you can lean on for guidance and collaboration.
+      </p>
+
       {rows.length > 0 ? (
-        <DataTable
-          columns={['Organization', 'Type', 'Contact', '', '']}
-          rows={rows.map((r) => [
-            r.name,
-            r.type,
-            r.contact ?? '—',
-            r.contact ? <Mail key={`m-${r.id}`} aria-hidden="true" /> : <span key={`m-${r.id}`} />,
-            <button
-              key={`del-${r.id}`}
-              type="button"
-              aria-label={`Remove ${r.name}`}
-              onClick={() => onRemove(r.id)}
-              className="icon-button"
-            >
-              <Trash2 aria-hidden="true" />
-            </button>,
-          ])}
-        />
+        <table className={card.table}>
+          <thead>
+            <tr>
+              <th>Organization</th>
+              <th>Type</th>
+              <th>Contact</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id}>
+                <td>{r.name}</td>
+                <td>
+                  <span className={card.pill}>{r.type}</span>
+                </td>
+                <td>
+                  {r.contact ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Mail aria-hidden="true" size={12} />
+                      {r.contact}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <button
+                    type="button"
+                    className={card.removeBtn}
+                    aria-label={`Remove ${r.name}`}
+                    onClick={() => onRemove(r.id)}
+                  >
+                    <Trash2 aria-hidden="true" size={12} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
-        <p className="empty-note">No contacts yet.</p>
+        <p className={card.empty}>No contacts yet.</p>
       )}
-      <form className="add-network-row" onSubmit={commit}>
-        <input
-          placeholder="Organization name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          {CONTACT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <input
-          placeholder="Email or phone (optional)"
-          value={contact}
-          onChange={(e) => setContact(e.target.value)}
-        />
-        <button className="outlined-button" type="submit">
-          Add contact
-        </button>
+
+      <form
+        onSubmit={commit}
+        className={card.grid}
+        style={{ marginTop: 12 }}
+      >
+        <label className={card.field}>
+          <span>Organization</span>
+          <input
+            placeholder="Organization name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <label className={card.field}>
+          <span>Type</span>
+          <select value={type} onChange={(e) => setType(e.target.value)}>
+            {CONTACT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={`${card.field} ${card.full}`}>
+          <span>Email or phone (optional)</span>
+          <input
+            placeholder="contact@example.org"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+          />
+        </label>
+        <div className={card.btnRow}>
+          <button type="submit" className={card.btn}>
+            Add contact
+          </button>
+        </div>
       </form>
-    </SurfaceCard>
+    </section>
+  );
+}
+
+interface ChipEditorProps {
+  items: string[];
+  onAdd: (value: string) => void;
+  onRemove: (idx: number) => void;
+  placeholder?: string;
+}
+
+function ChipEditor({ items, onAdd, onRemove, placeholder }: ChipEditorProps) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      {items.map((item, idx) => (
+        <span key={`${item}-${idx}`} className={`${card.pill} ${card.pillPartial}`}>
+          {item}
+          <button
+            type="button"
+            onClick={() => onRemove(idx)}
+            style={{
+              marginLeft: 6,
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              fontSize: 12,
+              lineHeight: 1,
+            }}
+            aria-label={`Remove ${item}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        placeholder={placeholder ?? 'Add…'}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            const value = (e.target as HTMLInputElement).value.trim();
+            if (value) {
+              onAdd(value);
+              (e.target as HTMLInputElement).value = '';
+            }
+            e.preventDefault();
+          }
+        }}
+        style={{
+          flex: '1 1 160px',
+          minWidth: 140,
+          background: 'rgba(0,0,0,0.25)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 6,
+          padding: '6px 10px',
+          fontSize: 12,
+          color: 'rgba(232,220,200,0.92)',
+          fontFamily: 'inherit',
+        }}
+      />
+    </div>
   );
 }
 
@@ -319,57 +424,76 @@ function RegionalSidebar({ projectId, regional }: RegionalSidebarProps) {
   const project = useV3Project(projectId);
   const counts = regionalCounts(regional);
 
+  const nextSteps = [
+    'Consult First Nations representatives before any earthworks.',
+    'Complete a Stage 1 archaeological assessment for sensitive areas.',
+    'Reach out to local partners to co-develop stewardship goals.',
+  ];
+
   return (
-    <aside className="regional-sidebar">
-      <SurfaceCard className="regional-map-card">
-        <h2>
-          <Sun aria-hidden="true" /> Regional Snapshot
-        </h2>
+    <aside>
+      <section className={card.section}>
+        <div className={hc.cardEyebrow}>
+          <Sun aria-hidden="true" size={12} /> Regional Snapshot
+        </div>
         <ParcelSatelliteSnapshot
           boundary={project?.location?.boundary}
           caption={project?.name}
           width={320}
-          height={240}
+          height={200}
         />
-      </SurfaceCard>
-      <div className="regional-stat-grid">
-        <RegionalStat icon={AlertTriangle} value={counts.challenges} label="Cultural Challenges" />
-        <RegionalStat icon={Sprout} value={counts.strengths} label="Cultural Strengths" />
-        <RegionalStat icon={Users} value={counts.contacts} label="Local Contacts" />
-      </div>
-      <NextStepsPanel
-        steps={[
-          'Consult First Nations representatives before any earthworks.',
-          'Complete a Stage 1 archaeological assessment for sensitive areas.',
-          'Reach out to local partners to co-develop stewardship goals.',
-        ]}
-      />
-      <SurfaceCard className="toolkit-card">
-        <h2>Build relationships. Design better.</h2>
-        <p>
-          Strong cultural relationships lead to healthier land stewardship and more resilient
-          projects.
+        <div style={{ marginTop: 12 }}>
+          <div className={card.statRow}>
+            <span>
+              <AlertTriangle aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Cultural Challenges
+            </span>
+            <span>{counts.challenges > 0 ? counts.challenges : '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>
+              <Sprout aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Cultural Strengths
+            </span>
+            <span>{counts.strengths > 0 ? counts.strengths : '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>
+              <Users aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Local Contacts
+            </span>
+            <span>{counts.contacts > 0 ? counts.contacts : '—'}</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>Next steps</h3>
+        <div className={hc.synthesisBlock}>
+          {nextSteps.map((step, idx) => (
+            <p key={step}>
+              <b>{idx + 1}</b>
+              <span>{step}</span>
+            </p>
+          ))}
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h3 className={card.sectionTitle} style={{ fontSize: 13 }}>
+          Build relationships. Design better.
+        </h3>
+        <p className={card.sectionBody}>
+          Strong cultural relationships lead to healthier land stewardship and more
+          resilient projects.
         </p>
-        <button className="green-button" type="button">
-          Open Stewardship Toolkit <ArrowUpRight aria-hidden="true" />
-        </button>
-      </SurfaceCard>
+        <div className={card.btnRow}>
+          <button type="button" className={card.btn}>
+            Open Stewardship Toolkit
+            <ArrowUpRight aria-hidden="true" size={12} style={{ marginLeft: 4, verticalAlign: 'middle' }} />
+          </button>
+        </div>
+      </section>
     </aside>
-  );
-}
-
-interface RegionalStatProps {
-  icon: LucideIcon;
-  value: number;
-  label: string;
-}
-
-function RegionalStat({ icon: Icon, value, label }: RegionalStatProps) {
-  return (
-    <SurfaceCard className="regional-stat">
-      <Icon aria-hidden="true" />
-      <strong>{value > 0 ? value : '—'}</strong>
-      <span>{label}</span>
-    </SurfaceCard>
   );
 }

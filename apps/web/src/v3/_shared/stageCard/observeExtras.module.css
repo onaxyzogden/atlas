@@ -1,0 +1,228 @@
+/* Shared extras for all Observe modules — gold-tinted progress ring,
+ * KPI strip, hero row, card eyebrow numbering, synthesis grids, etc.
+ * Pairs with `stageCard.module.css` (the shared chrome primitives)
+ * and is consumed by every Observe module dashboard/detail page. */
+
+.heroRow {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 20px;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .heroRow { grid-template-columns: 1fr; }
+}
+
+.heroArt {
+  width: 100%;
+  height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+@media (max-width: 880px) {
+  .kpiGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .kpiGrid { grid-template-columns: 1fr; }
+}
+
+.kpiBlockWithRing {
+  align-items: center;
+  text-align: center;
+}
+.kpiBlockWithRing .ring { margin-bottom: 4px; }
+
+.synthesisGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .synthesisGrid { grid-template-columns: 1fr; }
+}
+
+.kpiBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+.kpiBlock .label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.55);
+}
+.kpiBlock .value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+}
+.kpiBlock .note {
+  font-size: 11px;
+  color: rgba(232, 220, 200, 0.55);
+}
+
+.ring {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #091412 0 52%, transparent 53%),
+    conic-gradient(rgba(var(--color-gold-rgb), 0.85) 0 var(--progress), rgba(255, 255, 255, 0.08) var(--progress) 100%);
+  box-shadow: inset 0 0 0 7px rgba(10, 16, 14, 0.9);
+}
+.ring span {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(var(--color-gold-rgb), 0.6);
+}
+.cardEyebrow b {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(var(--color-gold-rgb), 0.18);
+  color: rgba(var(--color-gold-rgb), 0.95);
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.synthesisBlock h3 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.85);
+  margin: 0 0 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.synthesisBlock p {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: rgba(232, 220, 200, 0.78);
+  margin: 0 0 6px;
+  line-height: 1.45;
+}
+.synthesisBlock p b {
+  flex: 0 0 18px;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(var(--color-gold-rgb), 0.18);
+  color: rgba(var(--color-gold-rgb), 0.95);
+  font-weight: 700;
+  font-size: 11px;
+}
+.synthesisBlock p svg {
+  color: rgba(var(--color-gold-rgb), 0.7);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.capacityBar {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 8px 0 6px;
+}
+.capacityBar i,
+.capacityBar b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: block;
+}
+.capacityBar i {
+  left: 0;
+  background: rgba(var(--color-gold-rgb), 0.55);
+}
+.capacityBar b {
+  right: 0;
+  background: rgba(var(--color-gold-rgb), 0.9);
+}
+
+.capacityLegend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(232, 220, 200, 0.55);
+}
+
+.snapshotMetric {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.snapshotMetric:last-child { border-bottom: none; }
+.snapshotMetric .icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(var(--color-gold-rgb), 0.12);
+  color: rgba(var(--color-gold-rgb), 0.95);
+  flex-shrink: 0;
+}
+.snapshotMetric .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.snapshotMetric .body strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+}
+.snapshotMetric .body span {
+  font-size: 11px;
+  color: rgba(232, 220, 200, 0.55);
+  line-height: 1.4;
+}
+
+.blockquote {
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 3px solid rgba(var(--color-gold-rgb), 0.5);
+  border-radius: 4px;
+  font-style: italic;
+  color: rgba(232, 220, 200, 0.85);
+  font-size: 13px;
+  line-height: 1.5;
+}

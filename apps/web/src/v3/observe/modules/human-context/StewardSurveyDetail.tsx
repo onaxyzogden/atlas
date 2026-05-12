@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   ArrowRight,
@@ -6,23 +6,12 @@ import {
   Compass,
   Hammer,
   Leaf,
-  Sprout,
-  UserRound,
   Users,
 } from 'lucide-react';
-import {
-  ChipList,
-  CroppedArt,
-  InsightSidebar,
-  ProgressRing,
-  SurfaceCard,
-  TextInput,
-  SelectField,
-  TextAreaField,
-} from '../../_shared/components/index.js';
-import { useVisionStore } from '../../../../store/visionStore.js';
 import heroLandscape from '../../assets/steward-survey/hero-landscape.png';
-import { CapacityOrbit } from './CapacityOrbit.js';
+import { useVisionStore } from '../../../../store/visionStore.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import hc from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   archetypeFor,
   stewardCompleteness,
@@ -42,6 +31,15 @@ function parseHrs(text: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function Ring({ value }: { value: number }) {
+  const style = { '--progress': `${value}%` } as CSSProperties;
+  return (
+    <div className={hc.ring} style={style}>
+      <span>{value}%</span>
+    </div>
+  );
+}
+
 export default function StewardSurveyDetail() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
@@ -56,217 +54,261 @@ export default function StewardSurveyDetail() {
   }, [id, ensureDefaults]);
 
   const skills = steward?.skills ?? [];
+  const coreFunctions = steward?.coreFunctions ?? [];
+
+  const initial = steward?.maintenanceHrsInitial ?? 0;
+  const ongoing = steward?.maintenanceHrsOngoing ?? 0;
+  const totalCapacity = initial + ongoing;
+  const initialPct = totalCapacity > 0 ? (initial / totalCapacity) * 100 : 0;
+  const ongoingPct = totalCapacity > 0 ? (ongoing / totalCapacity) * 100 : 0;
 
   return (
-    <div className="detail-page steward-page">
-      <div className="detail-layout">
-        <div className="detail-main">
-          <ModuleHero
-            kicker="Module 1 · Human Context"
-            title="Steward Survey"
-            copy="A protracted observation begins with the people. Capture who is stewarding this land, what they bring, and what they hope to grow. All fields optional - fill in what you have."
-            image={heroLandscape}
-          />
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={hc.heroRow}>
+          <div>
+            <p className={card.lede}>
+              A protracted observation begins with the people. Capture who is stewarding
+              this land, what they bring, and what they hope to grow. All fields optional —
+              fill in what you have.
+            </p>
+          </div>
+          <img src={heroLandscape} alt="" aria-hidden="true" className={hc.heroArt} />
+        </div>
+      </div>
 
-          <FormCard number="1" title="Identity" icon={UserRound}>
-            <div className="field-grid identity-grid">
-              <TextInput
-                label="Name"
-                value={steward?.name ?? ''}
-                onChange={(v) => updateSteward(id, { name: v })}
-              />
-              <TextInput
-                label="Age"
-                type="number"
-                value={fmt(steward?.age)}
-                onChange={(v) => {
-                  const n = parseHrs(v);
-                  updateSteward(id, { age: n });
-                }}
-              />
-              <TextInput
-                label="Occupation"
-                value={steward?.occupation ?? ''}
-                onChange={(v) => updateSteward(id, { occupation: v })}
-              />
-              <SelectField
-                label="Lifestyle"
-                value={steward?.lifestyle ?? 'active'}
-                options={LIFESTYLE_OPTIONS}
-                onChange={(v) =>
-                  updateSteward(id, {
-                    lifestyle: v === 'sedentary' ? 'sedentary' : 'active',
-                  })
-                }
-              />
+      <div>
+          <FormSection number="1" title="Identity">
+            <div className={card.grid}>
+              <Field label="Name">
+                <input
+                  type="text"
+                  value={steward?.name ?? ''}
+                  onChange={(e) => updateSteward(id, { name: e.target.value })}
+                />
+              </Field>
+              <Field label="Age">
+                <input
+                  type="number"
+                  value={fmt(steward?.age)}
+                  onChange={(e) => updateSteward(id, { age: parseHrs(e.target.value) })}
+                />
+              </Field>
+              <Field label="Occupation">
+                <input
+                  type="text"
+                  value={steward?.occupation ?? ''}
+                  onChange={(e) => updateSteward(id, { occupation: e.target.value })}
+                />
+              </Field>
+              <Field label="Lifestyle">
+                <select
+                  value={steward?.lifestyle ?? 'active'}
+                  onChange={(e) =>
+                    updateSteward(id, {
+                      lifestyle: e.target.value === 'sedentary' ? 'sedentary' : 'active',
+                    })
+                  }
+                >
+                  {LIFESTYLE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
             </div>
-          </FormCard>
+          </FormSection>
 
-          <FormCard
-            number="2"
-            title="Capacity & Resources"
-            icon={Clock3}
-            className="capacity-card"
-          >
-            <div className="capacity-grid">
-              <div className="field-grid capacity-fields">
-                <TextInput
-                  label="Maintenance hrs/wk - initial"
+          <FormSection number="2" title="Capacity & Resources">
+            <div className={card.grid}>
+              <Field label="Maintenance hrs/wk — initial">
+                <input
                   type="number"
                   value={fmt(steward?.maintenanceHrsInitial)}
-                  onChange={(v) =>
-                    updateSteward(id, { maintenanceHrsInitial: parseHrs(v) })
+                  onChange={(e) =>
+                    updateSteward(id, { maintenanceHrsInitial: parseHrs(e.target.value) })
                   }
                 />
-                <TextInput
-                  label="Budget"
-                  value={steward?.budget ?? ''}
-                  onChange={(v) => updateSteward(id, { budget: v })}
-                />
-                <TextInput
-                  label="Maintenance hrs/wk - ongoing"
+              </Field>
+              <Field label="Maintenance hrs/wk — ongoing">
+                <input
                   type="number"
                   value={fmt(steward?.maintenanceHrsOngoing)}
-                  onChange={(v) =>
-                    updateSteward(id, { maintenanceHrsOngoing: parseHrs(v) })
+                  onChange={(e) =>
+                    updateSteward(id, { maintenanceHrsOngoing: parseHrs(e.target.value) })
                   }
                 />
-
-                <CapacityOverview steward={steward} />
-
-                <div className="skills-row">
-                  <span>Skills</span>
-                  <ChipList
-                    removable
-                    items={skills}
-                    onRemove={(idx) =>
-                      setStewardList(
-                        id,
-                        'skills',
-                        skills.filter((_, i) => i !== idx),
-                      )
-                    }
-                    onAdd={(value) =>
-                      setStewardList(id, 'skills', [...skills, value])
-                    }
-                    addPlaceholder="New skill"
-                  />
-                </div>
-              </div>
-
-              <CapacityOrbit
-                initialHrs={steward?.maintenanceHrsInitial}
-                ongoingHrs={steward?.maintenanceHrsOngoing}
-                className="capacity-orbit"
-              />
+              </Field>
+              <Field label="Budget" wide>
+                <input
+                  type="text"
+                  value={steward?.budget ?? ''}
+                  onChange={(e) => updateSteward(id, { budget: e.target.value })}
+                />
+              </Field>
             </div>
-          </FormCard>
 
-          <FormCard number="3" title="Vision" icon={Sprout}>
-            <div className="vision-grid">
-              <TextAreaField
-                label="In your own words"
-                value={steward?.vision ?? ''}
-                placeholder="A small homestead that…"
-                onChange={(v) => updateSteward(id, { vision: v })}
-              />
-              <div className="theme-box">
-                <span>Vision themes</span>
-                <ChipList
-                  removable
-                  items={steward?.coreFunctions ?? []}
+            <div className={card.statRow} style={{ marginTop: 16 }}>
+              <span>Capacity total</span>
+              <span>{totalCapacity > 0 ? `${totalCapacity} hrs / week` : '—'}</span>
+            </div>
+            <div className={hc.capacityBar}>
+              <i style={{ width: `${initialPct}%` }} />
+              <b style={{ width: `${ongoingPct}%` }} />
+            </div>
+            <div className={hc.capacityLegend}>
+              <span>{initial > 0 ? `${initial} hrs initial` : '— initial'}</span>
+              <span>{ongoing > 0 ? `${ongoing} hrs ongoing` : '— ongoing'}</span>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <Field label="Skills">
+                <ChipEditor
+                  items={skills}
+                  onAdd={(value) => setStewardList(id, 'skills', [...skills, value])}
+                  onRemove={(idx) =>
+                    setStewardList(
+                      id,
+                      'skills',
+                      skills.filter((_, i) => i !== idx),
+                    )
+                  }
+                  placeholder="New skill"
+                />
+              </Field>
+            </div>
+          </FormSection>
+
+          <FormSection number="3" title="Vision">
+            <div className={card.grid}>
+              <Field label="In your own words" wide>
+                <textarea
+                  value={steward?.vision ?? ''}
+                  placeholder="A small homestead that…"
+                  maxLength={500}
+                  onChange={(e) => updateSteward(id, { vision: e.target.value })}
+                />
+              </Field>
+              <Field label="Vision themes" wide>
+                <ChipEditor
+                  items={coreFunctions}
                   onAdd={(value) =>
-                    setStewardList(id, 'coreFunctions', [
-                      ...(steward?.coreFunctions ?? []),
-                      value,
-                    ])
+                    setStewardList(id, 'coreFunctions', [...coreFunctions, value])
                   }
                   onRemove={(idx) =>
                     setStewardList(
                       id,
                       'coreFunctions',
-                      (steward?.coreFunctions ?? []).filter((_, i) => i !== idx),
+                      coreFunctions.filter((_, i) => i !== idx),
                     )
                   }
-                  addPlaceholder="New theme"
+                  placeholder="New theme"
                 />
-              </div>
+              </Field>
             </div>
-          </FormCard>
+          </FormSection>
 
-          <div className="detail-note">
-            All fields are optional. You can update this anytime as your understanding deepens.
-          </div>
+          <p className={card.hint}>
+            All fields are optional. You can update this anytime as your understanding
+            deepens.
+          </p>
+
+          <StewardSnapshot />
         </div>
-        <StewardSnapshot />
-      </div>
     </div>
   );
 }
 
-interface ModuleHeroProps {
-  kicker: string;
-  title: string;
-  copy: string;
-  image: string;
-}
-
-function ModuleHero({ kicker, title, copy, image }: ModuleHeroProps) {
-  return (
-    <SurfaceCard className="module-hero-card">
-      <div className="module-hero-copy">
-        <span className="stage-kicker">{kicker}</span>
-        <h1>{title}</h1>
-        <p>{copy}</p>
-      </div>
-      <CroppedArt src={image} className="module-hero-image" />
-    </SurfaceCard>
-  );
-}
-
-interface FormCardProps {
+interface FormSectionProps {
   number: string;
   title: string;
-  icon?: typeof UserRound;
   children: ReactNode;
-  className?: string;
 }
 
-function FormCard({ number, title, icon: Icon, children, className = '' }: FormCardProps) {
+function FormSection({ number, title, children }: FormSectionProps) {
   return (
-    <SurfaceCard className={`form-card ${className}`}>
-      <header className="form-card__header">
-        {Icon ? <Icon aria-hidden="true" /> : null}
-        <b>{number}</b>
-        <h2>{title}</h2>
-      </header>
+    <section className={card.section}>
+      <div className={hc.cardEyebrow}>
+        <b>{number}</b> Step {number}
+      </div>
+      <h2 className={card.sectionTitle}>{title}</h2>
       {children}
-    </SurfaceCard>
+    </section>
   );
 }
 
-interface CapacityOverviewProps {
-  steward: ReturnType<typeof useVisionStore.getState>['visions'][number]['steward'];
+interface FieldProps {
+  label: string;
+  wide?: boolean;
+  children: ReactNode;
 }
 
-function CapacityOverview({ steward }: CapacityOverviewProps) {
-  const initial = steward?.maintenanceHrsInitial ?? 0;
-  const ongoing = steward?.maintenanceHrsOngoing ?? 0;
-  const total = initial + ongoing;
-  const initialPct = total > 0 ? (initial / total) * 100 : 0;
-  const ongoingPct = total > 0 ? (ongoing / total) * 100 : 0;
-
+function Field({ label, wide, children }: FieldProps) {
   return (
-    <div className="capacity-overview">
-      <span>Capacity overview</span>
-      <strong>{total > 0 ? total : '—'}</strong>
-      <small>hrs / week total</small>
-      <div className="stacked-bar">
-        <i style={{ width: `${initialPct}%` }} />
-        <b style={{ width: `${ongoingPct}%` }} />
-      </div>
-      <em>{initial > 0 ? `${initial} hrs initial` : '— initial'}</em>
-      <em>{ongoing > 0 ? `${ongoing} hrs ongoing` : '— ongoing'}</em>
+    <label className={`${card.field} ${wide ? card.full : ''}`}>
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+interface ChipEditorProps {
+  items: string[];
+  onAdd: (value: string) => void;
+  onRemove: (idx: number) => void;
+  placeholder?: string;
+}
+
+function ChipEditor({ items, onAdd, onRemove, placeholder }: ChipEditorProps) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      {items.map((item, idx) => (
+        <span key={`${item}-${idx}`} className={`${card.pill} ${card.pillPartial}`}>
+          {item}
+          <button
+            type="button"
+            onClick={() => onRemove(idx)}
+            style={{
+              marginLeft: 6,
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              fontSize: 12,
+              lineHeight: 1,
+            }}
+            aria-label={`Remove ${item}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        placeholder={placeholder ?? 'Add…'}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            const value = (e.target as HTMLInputElement).value.trim();
+            if (value) {
+              onAdd(value);
+              (e.target as HTMLInputElement).value = '';
+            }
+            e.preventDefault();
+          }
+        }}
+        style={{
+          flex: '1 1 120px',
+          minWidth: 120,
+          background: 'rgba(0,0,0,0.25)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 6,
+          padding: '6px 10px',
+          fontSize: 12,
+          color: 'rgba(232,220,200,0.92)',
+          fontFamily: 'inherit',
+        }}
+      />
     </div>
   );
 }
@@ -281,14 +323,23 @@ function StewardSnapshot() {
   const totalHrs = totalHoursPerWeek(steward);
   const skills = steward?.skills ?? [];
 
+  const ArchetypeIcon =
+    archetype.name === 'Cartographer-Steward'
+      ? Compass
+      : archetype.name === 'Practical Builder'
+      ? Hammer
+      : archetype.name === 'Hands-Off Caretaker'
+      ? Leaf
+      : Users;
+
   const implications: string[] = [];
   if (totalHrs >= 20) {
     implications.push(
-      'Strong implementation capacity - designs can be more build-intensive.',
+      'Strong implementation capacity — designs can be more build-intensive.',
     );
   } else if (totalHrs > 0) {
     implications.push(
-      'Light-touch capacity - prefer durable, low-maintenance systems.',
+      'Light-touch capacity — prefer durable, low-maintenance systems.',
     );
   }
   if (skills.some((s) => /cad|gis|map/i.test(s))) {
@@ -316,14 +367,17 @@ function StewardSnapshot() {
   }
 
   return (
-    <InsightSidebar
-      title="Steward Snapshot"
-      icon={Leaf}
-      intro="A quick read on who you are as a steward and what it means for your design."
-    >
-      <SnapshotMetric label="Profile completeness">
-        <ProgressRing value={completeness.pct} label={`${completeness.pct}%`} />
-        <div>
+    <aside className={card.section}>
+      <div className={hc.cardEyebrow}>
+        <Leaf aria-hidden="true" size={12} /> Steward Snapshot
+      </div>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+        A quick read on who you are as a steward and what it means for your design.
+      </p>
+
+      <div className={hc.snapshotMetric}>
+        <Ring value={completeness.pct} />
+        <div className={hc.body}>
           <strong>
             {completeness.pct >= 70
               ? 'Well on your way.'
@@ -335,27 +389,23 @@ function StewardSnapshot() {
             {completeness.filled} of {completeness.total} areas filled
           </span>
         </div>
-      </SnapshotMetric>
-      <SnapshotMetric label="Steward archetype">
-        <div className="round-icon">
-          {archetype.name === 'Cartographer-Steward' ? (
-            <Compass aria-hidden="true" />
-          ) : archetype.name === 'Practical Builder' ? (
-            <Hammer aria-hidden="true" />
-          ) : (
-            <Users aria-hidden="true" />
-          )}
+      </div>
+
+      <div className={hc.snapshotMetric}>
+        <div className={hc.icon}>
+          <ArchetypeIcon aria-hidden="true" size={18} />
         </div>
-        <div>
+        <div className={hc.body}>
           <strong>{archetype.name}</strong>
           <span>{archetype.blurb}</span>
         </div>
-      </SnapshotMetric>
-      <SnapshotMetric label="Time capacity">
-        <div className="round-icon">
-          <Clock3 aria-hidden="true" />
+      </div>
+
+      <div className={hc.snapshotMetric}>
+        <div className={hc.icon}>
+          <Clock3 aria-hidden="true" size={18} />
         </div>
-        <div>
+        <div className={hc.body}>
           <strong>{totalHrs > 0 ? `${totalHrs} hrs / wk` : '— hrs / wk'}</strong>
           <span>
             {totalHrs >= 20
@@ -365,37 +415,29 @@ function StewardSnapshot() {
               : 'Capacity not yet captured.'}
           </span>
         </div>
-      </SnapshotMetric>
-      <section className="sidebar-list">
+      </div>
+
+      <div className={hc.synthesisBlock} style={{ marginTop: 16 }}>
         <h3>What this implies for design</h3>
         {implications.map((item) => (
-          <p key={item}>✓ {item}</p>
+          <p key={item}>
+            <b>✓</b>
+            <span>{item}</span>
+          </p>
         ))}
-      </section>
-      <div className="design-tip">
-        <b>Design tip</b>
-        <p>
-          Focus on resilient, low-maintenance systems that compound over time. Match
-          ambition to your real capacity, not aspirational hours.
-        </p>
-        <button type="button">
-          View design implications <ArrowRight aria-hidden="true" />
+      </div>
+
+      <blockquote className={hc.blockquote} style={{ marginTop: 12 }}>
+        <strong style={{ display: 'block', marginBottom: 4 }}>Design tip</strong>
+        Focus on resilient, low-maintenance systems that compound over time. Match
+        ambition to your real capacity, not aspirational hours.
+      </blockquote>
+
+      <div className={card.btnRow}>
+        <button type="button" className={card.btn}>
+          View design implications <ArrowRight aria-hidden="true" size={12} />
         </button>
       </div>
-    </InsightSidebar>
-  );
-}
-
-interface SnapshotMetricProps {
-  label: string;
-  children: ReactNode;
-}
-
-function SnapshotMetric({ label, children }: SnapshotMetricProps) {
-  return (
-    <section className="snapshot-metric">
-      <h3>{label}</h3>
-      <div>{children}</div>
-    </section>
+    </aside>
   );
 }

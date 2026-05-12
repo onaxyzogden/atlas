@@ -34,6 +34,12 @@ import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
 import DesignToolRail from './canvas/DesignToolRail.js';
 import DesignElementLayers from './canvas/layers/DesignElementLayers.js';
 import BaseMapCard from './canvas/BaseMapCard.js';
+import DeckOverlay from '../_shared/deck/DeckOverlay.js';
+import {
+  BeV2GenericLayer,
+  DesignElementExtrusionLayer,
+  DesignElementScenegraphLayer,
+} from '../builtEnvironment/layers/index.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
 import { PlanViewProvider } from './PlanViewContext.js';
@@ -185,6 +191,26 @@ export default function PlanLayout() {
           />
           <BaseMapCard />
           <ObserveAnnotationLayers map={map} projectId={id} />
+          {/* Plan Current mirrors Observe's 3D BE stack (existing-state only).
+              Year 1–5 / Vision views layer proposed-state placements on top
+              via VisionLayoutCanvas; Current stays a faithful clone of what
+              Observe shows. 2026-05-11. */}
+          <DesignElementExtrusionLayer
+            map={map}
+            projectId={id}
+            stateFilter="existing"
+          />
+          <DeckOverlay map={map}>
+            <DesignElementScenegraphLayer
+              projectId={id}
+              stateFilter="existing"
+            />
+          </DeckOverlay>
+          <BeV2GenericLayer
+            map={map}
+            projectId={id}
+            stateFilter="existing"
+          />
           <PlanObserveSelectionHandler map={map} />
           <PlanDataLayers map={map} projectId={id} />
           {/* DesignElementLayers also mounts on Current (2026-05-11) so

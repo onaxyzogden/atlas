@@ -77,6 +77,23 @@ export interface InlineFormPayload {
     prev: Record<string, string | number>,
     changed: { key: string; value: string | number },
   ) => Partial<Record<string, string | number>> | void | null;
+  /**
+   * Optional extra buttons rendered in the popover's action row, between
+   * Cancel and Save. Used for in-form actions that aren't the primary save
+   * (e.g. "Remove plan" on the edit-mode scheduled-move popover).
+   *
+   * `variant: 'danger'` renders with the warning palette. The handler
+   * receives current values + a `close` callback the action may call to
+   * dismiss the popover after performing its side-effect.
+   */
+  customActions?: Array<{
+    label: string;
+    variant?: 'default' | 'danger';
+    onClick: (
+      values: Record<string, string | number>,
+      close: () => void,
+    ) => void;
+  }>;
 }
 
 interface InlineFormState {

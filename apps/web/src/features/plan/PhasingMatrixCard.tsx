@@ -15,7 +15,26 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore, type PhaseTask } from '../../store/phaseStore.js';
 import { useUIStore } from '../../store/uiStore.js';
+import { PHASE_ORDER, type PhaseKey } from '../../v3/plan/types.js';
 import styles from './planCard.module.css';
+
+const CAP_CHIP_BTN_BASE: React.CSSProperties = {
+  padding: '2px 8px',
+  borderRadius: 999,
+  fontSize: 11,
+  fontVariantNumeric: 'tabular-nums',
+  border: '1px solid rgba(255,255,255,0.18)',
+  background: 'transparent',
+  color: 'rgba(232,220,200,0.62)',
+  cursor: 'pointer',
+  lineHeight: 1.4,
+};
+const CAP_CHIP_BTN_ACTIVE: React.CSSProperties = {
+  ...CAP_CHIP_BTN_BASE,
+  background: 'rgba(207,160,73,0.18)',
+  borderColor: 'rgba(207,160,73,0.55)',
+  color: 'rgba(232,220,200,0.95)',
+};
 
 interface Props {
   project: LocalProject;
@@ -29,7 +48,13 @@ const SEASON_LABEL: Record<PhaseTask['season'], string> = {
 
 export default function PhasingMatrixCard({ project }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
+  const updatePhase = usePhaseStore((s) => s.updatePhase);
   const setSection = useUIStore((s) => s.setActiveDashboardSection);
+
+  const setCap = (phaseId: string, cap: PhaseKey | undefined) => {
+    // Pass `undefined` via cast to `Partial<BuildPhase>` so the field clears.
+    updatePhase(phaseId, { yeomansCap: cap });
+  };
 
   const phases = useMemo(
     () => allPhases.filter((p) => p.projectId === project.id).slice().sort((a, b) => a.order - b.order),

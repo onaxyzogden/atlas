@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import {
-  ArrowRight,
   Compass,
   Download,
   Flame,
@@ -15,25 +14,23 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { api } from '../../../../lib/apiClient.js';
 import SectorRadiusControl from '../../components/SectorRadiusControl.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
-import TerrainSnapshot from '../topography/TerrainSnapshot.js';
 import SectorCompassDiagram from './SectorCompassDiagram.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   sectorsKpis,
   zoneCounts,
   sectorCounts,
   dominantWindDir,
   type KpiIconKey,
-  type KpiItem,
 } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
-import sectorHero from '../../assets/sectors-dashboard/sector-hero.png';
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   compass: Compass,
@@ -44,6 +41,15 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   mountain: Mountain,
   shield: Shield,
 };
+
+function Ring({ value }: { value: number }) {
+  const style = { '--progress': `${value}%` } as CSSProperties;
+  return (
+    <div className={obsx.ring} style={style}>
+      <span>{value}%</span>
+    </div>
+  );
+}
 
 export default function SectorsDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -64,13 +70,21 @@ export default function SectorsDashboard() {
   const kpis = sectorsKpis(sectors, zones, layers);
   const sc = sectorCounts(sectors);
   const zc = zoneCounts(zones);
+  const wind = dominantWindDir(layers);
+
+  // Module health: 0 sectors+0 zones = 0%, scaled up to a soft cap.
+  const healthPct = Math.min(
+    100,
+    Math.round(((sc.total * 10) + (zc.total * 15))),
+  );
+  const healthLabel =
+    healthPct >= 70 ? 'Well-mapped' : healthPct >= 30 ? 'Forming' : 'Just getting started';
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
     if (exporting) return;
     setExporting(true);
     try {
-      const wind = dominantWindDir(layers);
       const totalAreaM2 = zones.reduce((acc, z) => acc + (z.areaM2 || 0), 0);
       const { data } = await api.exports.generate(id, {
         exportType: 'sectors_zones_report',
@@ -122,244 +136,216 @@ export default function SectorsDashboard() {
     }
   };
 
-  return (
-    <div className="detail-page sectors-page">
-      <section className="sectors-layout">
-        <div className="sectors-main">
-          <SectorsHero onExport={handleExport} exporting={exporting} />
-          <SectorsMetrics kpis={kpis} />
-          <SynthesisBand />
-          <SurfaceCard className="sector-radius-card">
-            <h2 style={{ margin: 0, fontSize: 14 }}>Sector wedge calibration</h2>
-            <SectorRadiusControl projectId={id} />
-          </SurfaceCard>
-          <section className="sectors-tool-grid">
-            <SectorCompassCard sectors={sectors} centroid={centroidTuple} arrowCount={sc.total} />
-            <CartographicCard
-              boundary={project?.location?.boundary}
-              sc={sc}
-              zc={zc}
-              windDir={dominantWindDir(layers)}
-            />
-          </section>
-        </div>
-        <SectorsSidebar />
-      </section>
-    </div>
-  );
-}
+  const synopsis =
+    sc.total === 0 && zc.total === 0
+      ? 'No sectors or zones traced yet — start by dropping sector arrows for the dominant forces (wind, sun, fire), then outline functional zones.'
+      : `${sc.total} sector arrow${sc.total === 1 ? '' : 's'} and ${zc.total} zone${zc.total === 1 ? '' : 's'} mapped — sector + zone analysis guides where each design element belongs.`;
 
-interface SectorsHeroProps {
-  onExport: () => void;
-  exporting: boolean;
-}
-
-function SectorsHero({ onExport, exporting }: SectorsHeroProps) {
-  return (
-    <section className="sectors-hero">
-      <img src={sectorHero} className="sectors-hero-art" alt="" aria-hidden="true" />
-      <div className="sectors-hero-copy">
-        <span>5</span>
-        <div>
-          <h1>Sectors, Microclimates &amp; Zones</h1>
-          <p>
-            Use sector analysis, microclimate patterns, and zones to inform where and how each
-            design element belongs on the land.
-          </p>
-        </div>
-        <button type="button" onClick={onExport} disabled={exporting}>
-          <Download aria-hidden="true" />{' '}
-          {exporting ? 'Generating…' : 'Export sectors report'}
-        </button>
-      </div>
-    </section>
-  );
-}
-
-interface SectorsMetricsProps {
-  kpis: KpiItem[];
-}
-
-function SectorsMetrics({ kpis }: SectorsMetricsProps) {
-  return (
-    <section className="sectors-metrics-row">
-      {kpis.map((item) => {
-        const Icon = ICON_MAP[item.iconKey];
-        return (
-          <SurfaceCard key={item.label} className={`sector-metric-card ${item.tone}`}>
-            <Icon aria-hidden="true" />
-            <p>{item.label}</p>
-            <strong>{item.value}</strong>
-            <span>{item.note}</span>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-function SynthesisBand() {
-  return (
-    <SurfaceCard className="sectors-synthesis-band">
-      <Leaf aria-hidden="true" />
-      <div>
-        <h2>Synthesis</h2>
-        <p>
-          Sectors reveal the external forces and influences acting on your site. Microclimates show
-          how those forces shape local conditions. Zones organize the land into functional areas
-          that support your goals. Together, they guide the placement of buildings, gardens,
-          circulation, and protected areas.
-        </p>
-      </div>
-      <button type="button">
-        <Route aria-hidden="true" /> How it connects{' '}
-        <span>See how this module aligns with your design layers</span>
-        <ArrowRight aria-hidden="true" />
-      </button>
-    </SurfaceCard>
-  );
-}
-
-interface SectorCompassCardProps {
-  sectors: ReturnType<typeof useExternalForcesStore.getState>['sectors'];
-  centroid: [number, number] | null;
-  arrowCount: number;
-}
-
-function SectorCompassCard({ sectors, centroid, arrowCount }: SectorCompassCardProps) {
-  const helps = [
-    'Understand incoming forces & opportunities',
-    'Protect and enhance positive influences',
-    'Reduce or buffer negative impacts',
-    'Position key elements with confidence',
+  const synthArticles: Array<[LucideIcon, string, string]> = [
+    [
+      Wind,
+      'External forces',
+      sc.total > 0
+        ? `${sc.total} arrow${sc.total === 1 ? '' : 's'} captured — wind, sun, fire, and view sectors shape placement decisions.`
+        : 'Drop sector arrows for wind, sun, and fire — they cap where buildings and gardens belong.',
+    ],
+    [
+      Layers,
+      'Functional zones',
+      zc.total > 0
+        ? `${zc.total} zone${zc.total === 1 ? '' : 's'} outlined — organize land into functional areas that support stewardship goals.`
+        : 'Outline zones to group activities by proximity to the homestead and care intensity.',
+    ],
+    [
+      Leaf,
+      'Design implications',
+      sc.fire > 0
+        ? `${sc.fire} fire/hazard sector${sc.fire === 1 ? '' : 's'} — keep tall vegetation and structures out of the fall zone.`
+        : sc.sun > 0
+          ? 'Solar sectors logged — site warm-season gardens and passive-gain glazing accordingly.'
+          : 'Once sectors are placed, design responses surface here.',
+    ],
   ];
+
+  const implications: Array<[LucideIcon, string, string]> = [
+    [Wind, 'Buildings on ridges', 'Capture breezes and views, away from cold air pockets.'],
+    [Sun, 'Gardens in warm pockets', 'Protected microclimates extend the growing season.'],
+    [Layers, 'Water follows the land', 'Systems align with natural flow and infiltration.'],
+    [Route, 'Circulation on contour', 'Follow desire lines, slope, and access constraints.'],
+    [Leaf, 'Protected areas buffer', 'Wind, fire, and noise sectors define buffer zones.'],
+  ];
+
+  const actions: Array<[string, string]> = [
+    [sc.total === 0 ? 'Place sector arrows for dominant forces' : 'Refine sector intensities', 'High'],
+    [zc.total === 0 ? 'Outline core functional zones' : 'Refine zones based on slope & soils', 'High'],
+    ['Place key elements using zone logic', 'Medium'],
+    ['Develop access & circulation plan', 'Medium'],
+    ['Plan water systems & storage', 'Low'],
+  ];
+
   return (
-    <SurfaceCard className="sector-tool-card compass-tool-card">
-      <header>
-        <h2>
-          <span>1</span> Sector compass
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Use sector analysis, microclimate patterns, and zones to inform where and how
+              each design element belongs on the land.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export sectors report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={healthPct} />
+            <span className={obsx.label}>Module health</span>
+            <span className={obsx.value}>{healthLabel}</span>
+            <span className={obsx.note}>{sc.total + zc.total} features mapped</span>
+          </div>
+          {kpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {kpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Sector & climate signals</h2>
+          <div className={obsx.kpiGrid}>
+            {kpis.slice(3).map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Sectors & zones synthesis</h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>{synopsis}</p>
+        <div className={obsx.synthesisGrid}>
+          {synthArticles.map(([Icon, title, text]) => (
+            <div key={title} className={obsx.synthesisBlock}>
+              <h3>{title}</h3>
+              <p>
+                <Icon aria-hidden="true" size={14} />
+                <span>{text}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <Compass aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Sector compass
+          {sc.total > 0 ? (
+            <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{sc.total}</span>
+          ) : null}
         </h2>
-        {arrowCount > 0 && <em>{arrowCount} arrows</em>}
-      </header>
-      <p>Map the forces and influences that arrive at your site.</p>
-      <div className="compass-card-body">
+        <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+          Map the forces and influences that arrive at your site.
+        </p>
         <SectorCompassDiagram
           sectors={sectors}
-          centroid={centroid}
+          centroid={centroidTuple}
           compact
-          className="sector-compass-image"
         />
-        <div>
-          <h3>This analysis helps you:</h3>
-          {helps.map((item) => (
-            <p key={item}>
-              <Leaf aria-hidden="true" />
-              {item}
-            </p>
-          ))}
-        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Sector wedge calibration</h2>
+        <SectorRadiusControl projectId={id} />
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Design implications</h2>
+          <div className={obsx.synthesisBlock}>
+            {implications.map(([Icon, title, text]) => (
+              <p key={title}>
+                <Icon aria-hidden="true" size={14} />
+                <span>
+                  <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}
+                </span>
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Detected features</h2>
+          <div className={card.statRow}>
+            <span><Compass aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Sector arrows</span>
+            <span>{sc.total}</span>
+          </div>
+          <div className={card.statRow}>
+            <span><Wind aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Wind sectors</span>
+            <span>{sc.wind}</span>
+          </div>
+          <div className={card.statRow}>
+            <span><Sun aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Sun sectors</span>
+            <span>{sc.sun}</span>
+          </div>
+          <div className={card.statRow}>
+            <span><Flame aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Fire / hazard</span>
+            <span>{sc.fire}</span>
+          </div>
+          <div className={card.statRow}>
+            <span><Mountain aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> View sectors</span>
+            <span>{sc.view}</span>
+          </div>
+          <div className={card.statRow}>
+            <span><Layers aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Zones outlined</span>
+            <span>{zc.total}</span>
+          </div>
+        </section>
       </div>
-    </SurfaceCard>
-  );
-}
 
-interface CartographicCardProps {
-  boundary?: GeoJSON.Polygon;
-  sc: ReturnType<typeof sectorCounts>;
-  zc: ReturnType<typeof zoneCounts>;
-  windDir: string;
-}
-
-function CartographicCard({ boundary, sc, zc }: CartographicCardProps) {
-  const layers: Array<[string, string]> = [
-    ['Microclimate areas', '—'],
-    ['Functional zones', zc.total > 0 ? String(zc.total) : '—'],
-    ['Circulation links', '—'],
-    ['Water features', '—'],
-    ['Contours & topography', '—'],
-    ['Sector overlays', sc.total > 0 ? String(sc.total) : '—'],
-  ];
-  return (
-    <SurfaceCard className="sector-tool-card cartographic-tool-card">
-      <header>
-        <h2>
-          <Layers aria-hidden="true" />
-          <span>2</span> Cartographic detail
-        </h2>
-      </header>
-      <p>Visualize microclimates, zones, and sector influences on your map.</p>
-      <div className="cartographic-card-body">
-        <TerrainSnapshot
-          boundary={boundary}
-          width={200}
-          height={150}
-          className="cartographic-preview-image"
-        />
-        <div>
-          <h3>Layer summary</h3>
-          {layers.map(([name, count]) => (
-            <p key={name}>
-              <span />
-              {name}
-              <b>{count}</b>
-            </p>
-          ))}
-        </div>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function SectorsSidebar() {
-  const implications: Array<[LucideIcon, string]> = [
-    [Wind, 'Buildings on ridges capture breezes and views, away from cold air pockets.'],
-    [Sun, 'Gardens in warm, protected microclimates for longer seasons.'],
-    [Layers, 'Water systems follow natural flow and infiltration opportunities.'],
-    [Route, 'Circulation aligns with contours, access, and desire lines.'],
-    [Leaf, 'Protected areas buffer risks like wind, fire, and noise.'],
-  ];
-  const opportunities = [
-    'Sheltered north-facing growing pockets',
-    'Solar access for winter passive gain',
-    'Seasonal water capture & infiltration',
-    'Strong views to the valley and ranges',
-    'Reliable access with low-impact entry',
-  ];
-  const actions = [
-    'Refine zones based on slope & soils',
-    'Place key elements using zone logic',
-    'Develop access & circulation plan',
-    'Plan water systems & storage',
-  ];
-  return (
-    <aside className="sectors-sidebar">
-      <SurfaceCard className="sector-side-card implications">
-        <h2>Design implications</h2>
-        {implications.map(([Icon, text]) => (
-          <p key={text}>
-            <Icon aria-hidden="true" />
-            {text}
-          </p>
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Recommended next actions</h2>
+        {actions.map(([label, priority]) => (
+          <div key={label} className={card.statRow}>
+            <span>{label}</span>
+            <span className={`${card.pill} ${priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet}`}>
+              {priority}
+            </span>
+          </div>
         ))}
-      </SurfaceCard>
-      <SurfaceCard className="sector-side-card opportunities">
-        <h2>Detected opportunities</h2>
-        {opportunities.map((item) => (
-          <p key={item}>
-            <Leaf aria-hidden="true" />
-            {item}
-          </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="sector-side-card next-actions">
-        <h2>Recommended next actions</h2>
-        {actions.map((item, index) => (
-          <p key={item}>
-            <b>{index + 1}</b>
-            {item}
-          </p>
-        ))}
-      </SurfaceCard>
-    </aside>
+      </section>
+    </div>
   );
 }

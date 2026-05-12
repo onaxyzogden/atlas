@@ -274,6 +274,16 @@ export default function InlineFeaturePopover({ map }: Props) {
         >
           Cancel
         </button>
+        {(active.customActions ?? []).map((a, i) => (
+          <button
+            key={i}
+            type="button"
+            className={a.variant === 'danger' ? css.dangerBtn : css.secondaryBtn}
+            onClick={() => a.onClick(values, close)}
+          >
+            {a.label}
+          </button>
+        ))}
         <button
           type="submit"
           className={css.primaryBtn}

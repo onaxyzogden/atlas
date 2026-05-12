@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import {
   CheckCircle2,
   Compass,
@@ -7,7 +7,7 @@ import {
   Home,
   Layers,
   Leaf,
-  Map,
+  Map as MapIcon,
   Mountain,
   Ruler,
   ShieldAlert,
@@ -16,13 +16,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { CroppedArt, ProgressRing, SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import {
   useTopographyStore,
-  type Transect,
 } from '../../../../store/topographyStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
@@ -30,6 +28,8 @@ import { pickDefined, pickTruthy } from '@ogden/shared';
 import AspectCompass from './AspectCompass.js';
 import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   featureCounts,
   getElevationLayer,
@@ -43,8 +43,17 @@ const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   ruler: Ruler,
   compass: Compass,
   layers: Layers,
-  map: Map,
+  map: MapIcon,
 };
+
+function Ring({ value }: { value: number }) {
+  const style = { '--progress': `${value}%` } as CSSProperties;
+  return (
+    <div className={obsx.ring} style={style}>
+      <span>{value}%</span>
+    </div>
+  );
+}
 
 export default function TopographyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -73,6 +82,7 @@ export default function TopographyDashboard() {
   );
   const counts = featureCounts({ contours, highPoints, drainageLines, transects });
   const elevationSummary = getElevationLayer(layers)?.summary;
+  const kpis = topographyKpis(layers, transects);
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -130,110 +140,14 @@ export default function TopographyDashboard() {
     }
   };
 
-  return (
-    <div className="detail-page topography-page">
-      <section className="topography-layout">
-        <div className="topography-main">
-          <TopographyHeader onExport={handleExport} exporting={exporting} />
-          <TopographyMetrics layers={layers} transects={transects} />
-          <TopographySynthesis summary={elevationSummary} counts={counts} />
-          <section className="topography-tool-grid">
-            <TerrainToolCard
-              boundary={project?.location?.boundary}
-              caption={project?.name}
-            />
-            <CrossSectionToolCard transect={transects[0]} />
-          </section>
-          <AnnotationListCard
-            title="Field annotations"
-            projectId={projectId ?? null}
-            kinds={['contourLine', 'highPoint', 'drainageLine']}
-            emptyHint="No contours, elevation points, or drainage lines yet — trace one with the tools panel."
-          />
-        </div>
-        <TopographySidebar
-          summary={elevationSummary}
-          counts={counts}
-          aspect={elevationSummary?.predominant_aspect ?? null}
-        />
-      </section>
-    </div>
-  );
-}
-
-interface TopographyHeaderProps {
-  onExport: () => void;
-  exporting: boolean;
-}
-
-function TopographyHeader({ onExport, exporting }: TopographyHeaderProps) {
-  return (
-    <header className="topography-header">
-      <div className="module-title-row">
-        <b>3</b>
-        <div>
-          <h1>Topography &amp; Base Map</h1>
-          <p>
-            Understand the shape of the land. Explore elevation, slope, aspect and cross-sections
-            to design with the terrain, not against it.
-          </p>
-        </div>
-        <button type="button" onClick={onExport} disabled={exporting}>
-          <Download aria-hidden="true" />{' '}
-          {exporting ? 'Generating…' : 'Export terrain report'}
-        </button>
-      </div>
-      <CroppedArt src={heroTerrain} className="topography-hero-art" />
-    </header>
-  );
-}
-
-interface MetricsProps {
-  layers: ReturnType<typeof useSiteDataStore.getState>['dataByProject'][string]['layers'] | undefined;
-  transects: Transect[];
-}
-
-function TopographyMetrics({ layers, transects }: MetricsProps) {
-  const items = topographyKpis(layers, transects);
-  return (
-    <section className="topography-metric-grid">
-      {items.map((item) => {
-        const Icon = ICON_MAP[item.iconKey];
-        return (
-          <SurfaceCard
-            className={`topography-metric-card tone-${item.tone}`}
-            key={item.label}
-          >
-            <Icon aria-hidden="true" />
-            <div>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              {item.pill ? <em>{item.pill}</em> : null}
-            </div>
-            <p>{item.note}</p>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-interface SynthesisProps {
-  summary: ReturnType<typeof getElevationLayer> extends infer L
-    ? L extends { summary: infer S } ? S : undefined
-    : undefined;
-  counts: ReturnType<typeof featureCounts>;
-}
-
-function TopographySynthesis({ summary, counts }: SynthesisProps) {
   const range =
-    summary?.min_elevation_m != null && summary?.max_elevation_m != null
-      ? Math.round(summary.max_elevation_m - summary.min_elevation_m)
+    elevationSummary?.min_elevation_m != null && elevationSummary?.max_elevation_m != null
+      ? Math.round(elevationSummary.max_elevation_m - elevationSummary.min_elevation_m)
       : null;
-  const aspect = summary?.predominant_aspect;
-  const meanSlope = summary?.mean_slope_deg;
+  const aspect = elevationSummary?.predominant_aspect ?? null;
+  const meanSlope = elevationSummary?.mean_slope_deg;
 
-  const synopsis = !summary
+  const synopsis = !elevationSummary
     ? 'Elevation data pending — once a DEM is sampled, the dashboard will summarise the site shape.'
     : `${meanSlope != null ? `Mean slope ${meanSlope.toFixed(1)}°` : 'Slope data partial'}${
         range != null ? `, ${range} m of total relief` : ''
@@ -243,7 +157,7 @@ function TopographySynthesis({ summary, counts }: SynthesisProps) {
           : `${counts.total} field annotation${counts.total === 1 ? '' : 's'} so far.`
       }`;
 
-  const items: Array<[LucideIcon, string, string]> = [
+  const synthArticles: Array<[LucideIcon, string, string]> = [
     [
       Droplet,
       'Water',
@@ -254,7 +168,7 @@ function TopographySynthesis({ summary, counts }: SynthesisProps) {
     [
       Leaf,
       'Soil & stability',
-      summary?.max_slope_deg != null && summary.max_slope_deg > 25
+      elevationSummary?.max_slope_deg != null && elevationSummary.max_slope_deg > 25
         ? 'Steep zones present — protect them with vegetation and avoid cut/fill.'
         : 'Mostly stable slopes; protect any exposed ridge lines and swale entries.',
     ],
@@ -267,101 +181,6 @@ function TopographySynthesis({ summary, counts }: SynthesisProps) {
     ],
   ];
 
-  return (
-    <SurfaceCard className="topography-synthesis">
-      <div className="topography-synthesis-copy">
-        <span>Topography synthesis</span>
-        <h2>
-          {summary
-            ? `${aspect ? `${aspect}-facing` : 'Site'} terrain with ${
-                range != null ? `${range} m relief` : 'partial relief data'
-              }.`
-            : 'Topography synthesis pending'}
-        </h2>
-        <p>{synopsis}</p>
-      </div>
-      {items.map(([Icon, title, text]) => (
-        <article key={title}>
-          <Icon aria-hidden="true" />
-          <h3>{title}</h3>
-          <p>{text}</p>
-        </article>
-      ))}
-    </SurfaceCard>
-  );
-}
-
-interface TerrainToolCardProps {
-  boundary: GeoJSON.Polygon | undefined;
-  caption: string | undefined;
-}
-
-function TerrainToolCard({ boundary, caption }: TerrainToolCardProps) {
-  return (
-    <SurfaceCard className="topography-tool-card">
-      <header>
-        <h2>Terrain detail</h2>
-        <span>Primary map</span>
-      </header>
-      <p>
-        Explore the site in detail with contour maps, slope analysis, aspect, and elevation
-        layers.
-      </p>
-      <div className="tool-card-body">
-        <TerrainSnapshot
-          boundary={boundary}
-          caption={caption}
-          width={240}
-          height={160}
-          className="topography-tool-image"
-        />
-      </div>
-      <div className="tool-card-actions">
-        <small>Best for: Detailed analysis of slope, aspect, elevation and landforms.</small>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface CrossSectionToolCardProps {
-  transect: Transect | undefined;
-}
-
-function CrossSectionToolCard({ transect }: CrossSectionToolCardProps) {
-  return (
-    <SurfaceCard className="topography-tool-card">
-      <header>
-        <h2>Cross-section tool</h2>
-        <span>Advanced analysis</span>
-      </header>
-      <p>
-        Analyze transects across the site to understand elevation change, water flow and solar
-        exposure.
-      </p>
-      <div className="tool-card-body">
-        <ElevationProfileChart
-          transect={transect}
-          compact
-          className="topography-tool-image"
-        />
-      </div>
-      <div className="tool-card-actions">
-        <small>
-          Best for: Understanding elevation change, solar exposure, drainage swales, dams,
-          buildings and cut/fill balance.
-        </small>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface SidebarProps {
-  summary: SynthesisProps['summary'];
-  counts: ReturnType<typeof featureCounts>;
-  aspect: string | null;
-}
-
-function TopographySidebar({ summary, counts, aspect }: SidebarProps) {
   const implications: Array<[LucideIcon, string, string]> = [];
   if (counts.drainageLines > 0) {
     implications.push([
@@ -376,11 +195,11 @@ function TopographySidebar({ summary, counts, aspect }: SidebarProps) {
       'Mark seasonal runoff paths to plan swales and ponds.',
     ]);
   }
-  if (summary?.max_slope_deg != null && summary.max_slope_deg > 25) {
+  if (elevationSummary?.max_slope_deg != null && elevationSummary.max_slope_deg > 25) {
     implications.push([
       ShieldAlert,
       'Steep zones present',
-      `Max slope ${summary.max_slope_deg.toFixed(1)}° — protect with vegetation, avoid cut/fill.`,
+      `Max slope ${elevationSummary.max_slope_deg.toFixed(1)}° — protect with vegetation, avoid cut/fill.`,
     ]);
   } else {
     implications.push([
@@ -431,64 +250,174 @@ function TopographySidebar({ summary, counts, aspect }: SidebarProps) {
     ['Estimate earthworks (cut/fill)', 'Low'],
   ];
 
-  const healthPct = Math.min(100, counts.total * 10 + (summary ? 40 : 0));
+  const healthPct = Math.min(100, counts.total * 10 + (elevationSummary ? 40 : 0));
+  const healthLabel = healthPct >= 70 ? 'Good' : healthPct >= 40 ? 'Forming' : 'Empty';
 
   return (
-    <aside className="topography-sidebar">
-      <SurfaceCard className="topography-side-card implications">
-        <h2>Design implications</h2>
-        {implications.map(([Icon, title, text]) => (
-          <p key={title}>
-            <Icon aria-hidden="true" />
-            <b>{title}</b>
-            <span>{text}</span>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Understand the shape of the land. Explore elevation, slope, aspect and cross-sections
+              to design with the terrain, not against it.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export terrain report'}
+              </button>
+            </div>
+          </div>
+          <img src={heroTerrain} alt="" aria-hidden="true" className={obsx.heroArt} />
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={healthPct} />
+            <span className={obsx.label}>Module health</span>
+            <span className={obsx.value}>{healthLabel}</span>
+            <span className={obsx.note}>{counts.total} annotations</span>
+          </div>
+          {kpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {kpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Terrain metrics</h2>
+          <div className={obsx.kpiGrid}>
+            {kpis.slice(3).map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Topography synthesis</h2>
+        <p className={card.sectionBody} style={{ marginBottom: 14 }}>{synopsis}</p>
+        <div className={obsx.synthesisGrid}>
+          {synthArticles.map(([Icon, title, text]) => (
+            <div key={title} className={obsx.synthesisBlock}>
+              <h3>{title}</h3>
+              <p>
+                <Icon aria-hidden="true" size={14} />
+                <span>{text}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Terrain detail</h2>
+          <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+            Explore contour maps, slope analysis, aspect, and elevation layers.
           </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="topography-side-card feature-list">
-        <h2>
-          Detected terrain features <b>{counts.total}</b>
-        </h2>
-        {features.map(([label, value]) => (
-          <p key={label}>
-            <Map aria-hidden="true" />
-            <span>{label}</span>
-            <b>{value}</b>
+          <TerrainSnapshot
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+            width={520}
+            height={220}
+          />
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Cross-section</h2>
+          <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+            Transects across the site reveal elevation change, water flow and solar exposure.
           </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="topography-side-card actions-list">
-        <h2>Recommended next actions</h2>
-        {actions.map(([label, priority]) => (
-          <p key={label}>
-            <CheckCircle2 aria-hidden="true" />
-            <span>{label}</span>
-            <em>{priority}</em>
-          </p>
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="topography-side-card aspect-card">
-        <h2>Aspect</h2>
-        <AspectCompass aspect={aspect} size={96} />
-        <strong>{aspect ?? '—'}</strong>
-        <small>Predominant facing direction.</small>
-      </SurfaceCard>
-      <SurfaceCard className="topography-health-card">
-        <h2>
-          Module health <strong>{healthPct >= 70 ? 'Good' : healthPct >= 40 ? 'Forming' : 'Empty'}</strong>
-        </h2>
-        <i>
-          <b />
-        </i>
-        <p>
-          {healthPct >= 70
-            ? 'Topographic data captured. You’re ready to move into design.'
-            : healthPct >= 40
-              ? 'Some topographic data present. Add annotations to deepen the picture.'
-              : 'Trace contours, drainage and pin elevation points to start a base map.'}
-        </p>
-        <ProgressRing value={healthPct} label={`${healthPct}%`} />
-      </SurfaceCard>
-    </aside>
+          <ElevationProfileChart transect={transects[0]} compact />
+        </section>
+      </div>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Design implications</h2>
+          <div className={obsx.synthesisBlock}>
+            {implications.map(([Icon, title, text]) => (
+              <p key={title}>
+                <Icon aria-hidden="true" size={14} />
+                <span><b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}</span>
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>
+            Detected terrain features <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{counts.total}</span>
+          </h2>
+          {features.map(([label, value]) => (
+            <div key={label} className={card.statRow}>
+              <span><MapIcon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {label}</span>
+              <span>{value}</span>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Aspect</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <AspectCompass aspect={aspect} size={96} />
+            <strong style={{ color: 'rgba(var(--color-gold-rgb), 0.95)' }}>{aspect ?? '—'}</strong>
+            <small className={card.hint}>Predominant facing direction.</small>
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Recommended next actions</h2>
+          {actions.map(([label, priority]) => (
+            <div key={label} className={card.statRow}>
+              <span><CheckCircle2 aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {label}</span>
+              <span className={`${card.pill} ${priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet}`}>{priority}</span>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Field annotations</h2>
+        <AnnotationListCard
+          title=""
+          projectId={projectId ?? null}
+          kinds={['contourLine', 'highPoint', 'drainageLine']}
+          emptyHint="No contours, elevation points, or drainage lines yet — trace one with the tools panel."
+        />
+      </section>
+    </div>
   );
 }

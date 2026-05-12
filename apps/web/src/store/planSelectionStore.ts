@@ -23,11 +23,16 @@ export type PlanSelectionKind =
   | 'utility'
   | 'setback'
   | 'flow'
-  | 'transect';
+  | 'transect'
+  | 'design-element';
 
 export interface PlanSelectionItem {
   kind: PlanSelectionKind;
   id: string;
+  /** Only required for kinds whose backing store is `byProject` (currently
+   *  `design-element`). Plan-data stores are flat across projects so they
+   *  ignore this field. */
+  projectId?: string;
 }
 
 /** @deprecated kept for transition; prefer `PlanSelectionItem`. */

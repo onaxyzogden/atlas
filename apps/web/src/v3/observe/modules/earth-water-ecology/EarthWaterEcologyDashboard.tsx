@@ -1,19 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import {
   Beaker,
   Binoculars,
+  CheckCircle2,
   Download,
   Droplet,
   FlaskConical,
   Leaf,
-  MapPin,
   Sprout,
   TriangleAlert,
   Waves,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
@@ -24,6 +23,8 @@ import { api } from '../../../../lib/apiClient.js';
 import { pickDefined, pickTruthy } from '@ogden/shared';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   earthwaterKpis,
   getCriticalHabitatLayer,
@@ -42,6 +43,15 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   mountain: Binoculars,
   waves: Waves,
 };
+
+function Ring({ value }: { value: number }) {
+  const style = { '--progress': `${value}%` } as CSSProperties;
+  return (
+    <div className={obsx.ring} style={style}>
+      <span>{value}%</span>
+    </div>
+  );
+}
 
 export default function EarthWaterEcologyDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -67,6 +77,17 @@ export default function EarthWaterEcologyDashboard() {
   const kpis = earthwaterKpis(layers, samples, observations, earthworks, storage, watercourses);
   const watershed = getWatershedLayer(layers);
   const wc = waterCounts(earthworks, storage, watercourses);
+
+  // Module health: rough average of presence of 4 systems (samples, water, observations, watershed layer)
+  const healthPct = useMemo(() => {
+    const parts = [
+      samples.length > 0 ? 1 : 0,
+      wc.total > 0 ? 1 : 0,
+      observations.length > 0 ? 1 : 0,
+      watershed != null ? 1 : 0,
+    ];
+    return Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
+  }, [samples.length, wc.total, observations.length, watershed]);
 
   const [exporting, setExporting] = useState(false);
   const handleExport = async () => {
@@ -156,254 +177,236 @@ export default function EarthWaterEcologyDashboard() {
     }
   };
 
+  const synthArticles: Array<[LucideIcon, string, string]> = [
+    [
+      Beaker,
+      'Soils',
+      samples.length > 0
+        ? `${samples.length} sample${samples.length === 1 ? '' : 's'} on record — run jar, perc and lab tests to round out the picture.`
+        : 'No soil samples yet — start with a jar test and percolation test in each distinct zone.',
+    ],
+    [
+      Droplet,
+      'Hydrology',
+      wc.total > 0
+        ? `${wc.total} water feature${wc.total === 1 ? '' : 's'} mapped — ${wc.earthworks} earthworks, ${wc.storage} storage, ${wc.watercourses} watercourse${wc.watercourses === 1 ? '' : 's'}.`
+        : 'No water features mapped yet — trace watercourses, earthworks and storage to see how water moves.',
+    ],
+    [
+      Leaf,
+      'Ecology',
+      observations.length > 0
+        ? `${observations.length} species observation${observations.length === 1 ? '' : 's'} logged across ${zones.length} mapped zone${zones.length === 1 ? '' : 's'}.`
+        : 'No observations yet — log flora, fauna and fungi to build a trophic picture.',
+    ],
+  ];
+
+  const actions: Array<[string, string]> = [];
+  if (wc.earthworks === 0) actions.push(['Design and install a contour swale', 'High']);
+  if (samples.length === 0) actions.push(['Collect soil samples', 'High']);
+  if (observations.length === 0) actions.push(['Log ecology observations', 'Medium']);
+  if (wc.storage === 0) actions.push(['Plan water storage', 'Medium']);
+  if (actions.length === 0) {
+    actions.push(['Deepen hydrology analysis', 'Medium']);
+    actions.push(['Protect riparian corridor', 'Medium']);
+  }
+
   return (
-    <div className="detail-page diagnostics-page">
-      <ModuleHeader />
-      <SurfaceCard className="diagnostic-kpi-strip">
-        {kpis.map((item) => {
-          const Icon = ICON_MAP[item.iconKey];
-          return (
-            <div className={`diagnostic-kpi tone-${item.tone}`} key={item.label}>
-              <Icon aria-hidden="true" />
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.note}</small>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Understand the living systems of your site. Diagnose soils, hydrology and ecology to
+              reveal opportunities, risks and patterns that inform wise design.
+            </p>
+            <div className={card.btnRow}>
+              <button
+                type="button"
+                className={card.btn}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                {exporting ? 'Generating…' : 'Export earth · water · ecology report'}
+              </button>
             </div>
-          );
-        })}
-      </SurfaceCard>
-      <ExportActions onExport={handleExport} exporting={exporting} />
-      <section className="diagnostic-grid">
-        <SiteMapCard
-          boundary={project?.location?.boundary}
-          caption={project?.name}
-          earthworks={earthworks}
-          watercourses={watercourses}
-          storage={storage}
-          flowDirection={watershed?.summary.flow_direction}
-        />
-        <SoilDiagnosticsCard samples={samples} />
-        <HydrologyCard wc={wc} flowDirection={watershed?.summary.flow_direction ?? null} />
-        <EcologyCard observations={observations} />
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={healthPct} />
+            <span className={obsx.label}>Module health</span>
+            <span className={obsx.value}>
+              {healthPct >= 70 ? 'Strong' : healthPct >= 30 ? 'Forming' : 'Sparse'}
+            </span>
+            <span className={obsx.note}>
+              {samples.length} samples · {observations.length} obs
+            </span>
+          </div>
+          {kpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {kpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Site diagnostics</h2>
+          <div className={obsx.kpiGrid}>
+            {kpis.slice(3).map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Earth · water · ecology synthesis</h2>
+        <div className={obsx.synthesisGrid}>
+          {synthArticles.map(([Icon, title, text]) => (
+            <div key={title} className={obsx.synthesisBlock}>
+              <h3>{title}</h3>
+              <p>
+                <Icon aria-hidden="true" size={14} />
+                <span>{text}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Site map &amp; water systems</h2>
+          <WaterSystemsSnapshot
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+            width={320}
+            height={200}
+            overlays={['contours']}
+            earthworks={earthworks}
+            watercourses={watercourses}
+            storageInfra={storage}
+          />
+          {watershed?.summary.flow_direction ? (
+            <p className={card.hint} style={{ marginTop: 8 }}>
+              Primary flow: {String(watershed.summary.flow_direction)}
+            </p>
+          ) : null}
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Hydrology overview</h2>
+          <div className={card.statRow}>
+            <span>Runoff direction</span>
+            <span>{watershed?.summary.flow_direction ?? '—'}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Watercourses</span>
+            <span>{wc.watercourses}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Earthworks</span>
+            <span>{wc.earthworks}</span>
+          </div>
+          <div className={card.statRow}>
+            <span>Storage</span>
+            <span>{wc.storage}</span>
+          </div>
+          {wc.total === 0 ? (
+            <p className={card.hint}>
+              <TriangleAlert aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Map watercourses, earthworks and storage to build the water picture.
+            </p>
+          ) : null}
+        </section>
+      </div>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Soil diagnostics</h2>
+          {samples.length === 0 ? (
+            <p className={card.empty}>No soil samples yet — add a sample via the tools panel.</p>
+          ) : (
+            samples.slice(0, 5).map((s) => (
+              <div key={s.id} className={card.statRow}>
+                <span>
+                  <Beaker aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                  {s.label}
+                </span>
+                <span>
+                  {s.ph != null ? `pH ${s.ph}` : '—'}
+                  {s.organicMatterPct != null ? ` · OM ${s.organicMatterPct}%` : ''}
+                </span>
+              </div>
+            ))
+          )}
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Ecology observations</h2>
+          <SpeciesObservationList observations={observations} compact />
+          {observations.length === 0 ? (
+            <p className={card.hint}>
+              <Sprout aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Record species observations to build a trophic picture of the site.
+            </p>
+          ) : null}
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Recommended next actions</h2>
+        {actions.map(([label, priority]) => (
+          <div key={label} className={card.statRow}>
+            <span>
+              <CheckCircle2 aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {label}
+            </span>
+            <span
+              className={`${card.pill} ${
+                priority === 'High' ? card.pillFail : priority === 'Medium' ? card.pillPartial : card.pillMet
+              }`}
+            >
+              {priority}
+            </span>
+          </div>
+        ))}
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Field annotations</h2>
         <AnnotationListCard
-          title="Field annotations"
+          title=""
           projectId={projectId ?? null}
           kinds={['soilSample', 'watercourse', 'ecologyZone']}
           emptyHint="No soil samples, watercourses, or ecology zones recorded yet — drop one with the tools panel."
         />
-        <RecommendedActionsCard wc={wc} observationCount={observations.length} sampleCount={samples.length} />
       </section>
     </div>
-  );
-}
-
-function ModuleHeader() {
-  return (
-    <header className="module-header">
-      <div className="module-title-block">
-        <div className="module-title-row">
-          <b>4</b>
-          <div>
-            <h1>Earth, Water &amp; Ecology Diagnostics</h1>
-            <p>
-              Understand the living systems of your site. Diagnose soils, hydrology and ecology to
-              reveal opportunities, risks and patterns that inform wise design.
-            </p>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-interface ExportActionsProps {
-  onExport: () => void;
-  exporting: boolean;
-}
-
-function ExportActions({ onExport, exporting }: ExportActionsProps) {
-  return (
-    <div className="diagnostic-tabs-row">
-      <div className="diagnostic-actions">
-        <button
-          className="outlined-button"
-          type="button"
-          onClick={onExport}
-          disabled={exporting}
-        >
-          <Download aria-hidden="true" /> {exporting ? 'Generating…' : 'Export report'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-interface SiteMapCardProps {
-  boundary: GeoJSON.Polygon | undefined;
-  caption: string | undefined;
-  earthworks: ReturnType<typeof useWaterSystemsStore.getState>['earthworks'];
-  watercourses: ReturnType<typeof useWaterSystemsStore.getState>['watercourses'];
-  storage: ReturnType<typeof useWaterSystemsStore.getState>['storageInfra'];
-  flowDirection: string | undefined;
-}
-
-function SiteMapCard({ boundary, caption, earthworks, watercourses, storage, flowDirection }: SiteMapCardProps) {
-  return (
-    <SurfaceCard className="diagnostic-panel site-map-panel">
-      <header className="panel-header">
-        <h2>Site map &amp; observations</h2>
-      </header>
-      <WaterSystemsSnapshot
-        boundary={boundary}
-        caption={caption}
-        width={320}
-        height={200}
-        overlays={['contours']}
-        className="site-map-image"
-        earthworks={earthworks}
-        watercourses={watercourses}
-        storageInfra={storage}
-      />
-      <div className="map-legend">
-        <span><Droplet /> Water point</span>
-        <span><Leaf /> Soil sample</span>
-        <span><MapPin /> Erosion risk</span>
-        <span><Sprout /> Vegetation</span>
-        {flowDirection && <small>Flow: {flowDirection}</small>}
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface SoilCardProps {
-  samples: ReturnType<typeof useSoilSampleStore.getState>['samples'];
-}
-
-function SoilDiagnosticsCard({ samples }: SoilCardProps) {
-  return (
-    <SurfaceCard className="diagnostic-panel soil-panel">
-      <header className="panel-header">
-        <h2>Soil diagnostics</h2>
-      </header>
-      <div className="soil-row-list">
-        {samples.length === 0 ? (
-          <p className="empty-note">No soil samples yet — add a sample via the tools panel.</p>
-        ) : (
-          samples.slice(0, 5).map((s) => (
-            <div className="soil-row" key={s.id}>
-              <Beaker aria-hidden="true" />
-              <div>
-                <strong>{s.label}</strong>
-                <span>
-                  {s.depth}{s.ph != null ? ` · pH ${s.ph}` : ''}{s.organicMatterPct != null ? ` · OM ${s.organicMatterPct}%` : ''}
-                </span>
-              </div>
-              <b className={s.ph != null && s.ph >= 6 && s.ph <= 7.5 ? 'good' : 'moderate'}>
-                {s.ph != null ? `pH ${s.ph}` : '—'}
-              </b>
-              <i><em style={{ left: `${s.ph != null ? Math.min(100, ((s.ph - 4) / 6) * 100) : 50}%` }} /></i>
-            </div>
-          ))
-        )}
-      </div>
-    </SurfaceCard>
-  );
-}
-
-interface HydrologyCardProps {
-  wc: ReturnType<typeof waterCounts>;
-  flowDirection: string | null;
-}
-
-function HydrologyCard({ wc, flowDirection }: HydrologyCardProps) {
-  return (
-    <SurfaceCard className="diagnostic-panel hydrology-panel">
-      <header className="panel-header">
-        <h2>Hydrology overview</h2>
-      </header>
-      <div className="hydrology-layout">
-        <dl>
-          <div>
-            <dt>Runoff direction</dt>
-            <dd>{flowDirection ?? '—'}<span>Primary flow path</span></dd>
-          </div>
-          <div>
-            <dt>Watercourses</dt>
-            <dd>{wc.watercourses}<span>Mapped</span></dd>
-          </div>
-          <div>
-            <dt>Earthworks</dt>
-            <dd>{wc.earthworks}<span>Swales, drains, diversions</span></dd>
-          </div>
-          <div>
-            <dt>Storage</dt>
-            <dd>{wc.storage}<span>Cisterns, ponds, rain gardens</span></dd>
-          </div>
-        </dl>
-      </div>
-      {wc.total === 0 && (
-        <p className="warning-note">
-          <TriangleAlert aria-hidden="true" /> <b>Tip:</b> Map watercourses, earthworks and storage to build the water picture.
-        </p>
-      )}
-    </SurfaceCard>
-  );
-}
-
-interface EcologyCardProps {
-  observations: ReturnType<typeof useEcologyStore.getState>['ecology'];
-}
-
-function EcologyCard({ observations }: EcologyCardProps) {
-  return (
-    <SurfaceCard className="diagnostic-panel ecology-panel">
-      <header className="panel-header">
-        <h2>Ecology observations</h2>
-      </header>
-      <SpeciesObservationList observations={observations} compact className="species-image" />
-      {observations.length === 0 && (
-        <p className="biodiversity-note">
-          <Leaf aria-hidden="true" /> <b>Tip:</b> Record species observations to build a trophic picture of the site.
-        </p>
-      )}
-    </SurfaceCard>
-  );
-}
-
-interface ActionsCardProps {
-  wc: ReturnType<typeof waterCounts>;
-  observationCount: number;
-  sampleCount: number;
-}
-
-function RecommendedActionsCard({ wc, observationCount, sampleCount }: ActionsCardProps) {
-  const actions: Array<[string, string, string]> = [];
-  if (wc.earthworks === 0) actions.push(['Design and install a contour swale', 'Capture runoff and reduce erosion risk.', 'High']);
-  if (sampleCount === 0) actions.push(['Collect soil samples', 'Run jar, percolation and lab tests.', 'High']);
-  if (observationCount === 0) actions.push(['Log ecology observations', 'Record species and trophic levels.', 'Medium']);
-  if (wc.storage === 0) actions.push(['Plan water storage', 'Site a pond, cistern or rain garden.', 'Medium']);
-  if (actions.length === 0) {
-    actions.push(['Deepen hydrology analysis', 'Model water balance and infiltration.', 'Medium']);
-    actions.push(['Protect riparian corridor', 'Fence and revegetate with natives.', 'Medium']);
-  }
-
-  return (
-    <SurfaceCard className="diagnostic-panel actions-panel">
-      <header className="panel-header">
-        <h2>Recommended next actions</h2>
-      </header>
-      <div className="action-list">
-        {actions.map(([title, note, priority], index) => (
-          <div className="action-item" key={title}>
-            <b>{index + 1}</b>
-            <div>
-              <strong>{title}</strong>
-              <span>{note}</span>
-            </div>
-            <em className={priority.toLowerCase()}>{priority}</em>
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
   );
 }

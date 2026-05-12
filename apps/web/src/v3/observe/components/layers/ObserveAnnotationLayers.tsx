@@ -238,6 +238,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
   const viewsVisible = useMatrixTogglesStore((s) => s.views);
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
+  const scheduledMovesVisible = useMatrixTogglesStore((s) => s.scheduledMoves);
   const subToggles: Record<
     Exclude<MatrixToggleKey, 'observeAnnotations' | 'sunPath' | 'zoneRings'>,
     boolean
@@ -250,6 +251,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     hazards: hazardsVisible,
     views: viewsVisible,
     builtEnvironment: builtEnvironmentVisible,
+    scheduledMoves: scheduledMovesVisible,
   };
 
   // Subscribe by full namespace (per ADR 2026-04-26 — no inline filtering in

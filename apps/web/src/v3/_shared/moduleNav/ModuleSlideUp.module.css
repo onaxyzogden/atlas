@@ -1,4 +1,6 @@
-/* PlanModuleSlideUp — mirrors ModuleSlideUp.module.css */
+/* Shared ModuleSlideUp — used by Plan, Act, Observe stage wrappers.
+   Sourced from PlanModuleSlideUp.module.css (the canonical version with
+   grouped-tab affordances) so all three stages render identical chrome. */
 
 .scrim {
   position: fixed;

@@ -9,11 +9,18 @@
 
 import { create } from 'zustand';
 
-export type PlanVertexEditKind = 'zone' | 'crop' | 'paddock' | 'structure';
+export type PlanVertexEditKind =
+  | 'zone'
+  | 'crop'
+  | 'paddock'
+  | 'structure'
+  | 'design-element';
 
 export interface PlanVertexEditTarget {
   kind: PlanVertexEditKind;
   id: string;
+  /** Required for `design-element` kind; ignored otherwise. */
+  projectId?: string;
 }
 
 interface PlanVertexEditState {

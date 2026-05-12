@@ -28,6 +28,7 @@ import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
 import SlaughterPointTool from './tools/SlaughterPointTool.js';
 import ColdChainUnitTool from './tools/ColdChainUnitTool.js';
 import MarketNodeTool from './tools/MarketNodeTool.js';
+import PlanScheduleMoveTool from './tools/PlanScheduleMoveTool.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import css from '../../observe/components/draw/ObserveDrawHost.module.css';
 
@@ -160,6 +161,9 @@ export default function PlanDrawHost({ map, projectId }: Props) {
       break;
     case 'plan.livestock.market-node':
       tool = <MarketNodeTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.livestock.schedule-move':
+      tool = <PlanScheduleMoveTool map={map} projectId={projectId} />;
       break;
     default:
       tool = null;

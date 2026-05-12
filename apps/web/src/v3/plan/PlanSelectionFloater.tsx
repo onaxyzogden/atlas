@@ -33,6 +33,10 @@ import { useUtilityRunStore } from '../../store/utilityRunStore.js';
 import { useSetbackStore } from '../../store/setbackStore.js';
 import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
+import { useDesignElementsStore } from '../../store/designElementsStore.js';
+import * as turf from '@turf/turf';
+import { useInlineFormStore } from './draw/inlineFormStore.js';
+import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
 import css from '../observe/components/SelectionFloater.module.css';
 
 const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
@@ -48,6 +52,7 @@ const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
   setback: 'Setback ring',
   flow: 'Flow connector',
   transect: 'Monitoring transect',
+  'design-element': 'Design element',
 };
 
 const POLYGON_KINDS: ReadonlySet<PlanSelectionItem['kind']> = new Set([
@@ -55,7 +60,22 @@ const POLYGON_KINDS: ReadonlySet<PlanSelectionItem['kind']> = new Set([
   'crop',
   'paddock',
   'structure',
+  // `design-element` is polygon-eligible too, but only when the specific
+  // record's geometry is a Polygon — checked dynamically below.
+  'design-element',
 ]);
+
+/** Returns the geometry type for a design-element selection (used to
+ *  decide whether Edit-vertices is available). */
+function designElementGeometryType(
+  projectId: string | undefined,
+  id: string,
+): GeoJSON.Geometry['type'] | null {
+  if (!projectId) return null;
+  const list = useDesignElementsStore.getState().byProject[projectId] ?? [];
+  const el = list.find((e) => e.id === id);
+  return el?.geometry.type ?? null;
+}
 
 function removeOne(item: PlanSelectionItem): void {
   switch (item.kind) {
@@ -98,6 +118,10 @@ function removeOne(item: PlanSelectionItem): void {
       // slide-up rather than the floater. Falling through here is
       // intentional — the floater only clears the selection.
       return;
+    case 'design-element':
+      if (!item.projectId) return;
+      useDesignElementsStore.getState().remove(item.projectId, item.id);
+      return;
   }
 }
 
@@ -131,16 +155,23 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
 
   if (items.length === 0) return null;
 
-  const vertexEnabled = Boolean(
-    single && POLYGON_KINDS.has(single.kind),
-  );
+  const isPolygonSelection = (item: PlanSelectionItem): boolean => {
+    if (!POLYGON_KINDS.has(item.kind)) return false;
+    if (item.kind === 'design-element') {
+      return designElementGeometryType(item.projectId, item.id) === 'Polygon';
+    }
+    return true;
+  };
+
+  const vertexEnabled = Boolean(single && isPolygonSelection(single));
 
   const onEditVertices = () => {
     if (!single) return;
-    if (!POLYGON_KINDS.has(single.kind)) return;
+    if (!isPolygonSelection(single)) return;
     setVertexTarget({
       kind: single.kind as PlanVertexEditKind,
       id: single.id,
+      projectId: single.projectId,
     });
   };
 
@@ -165,9 +196,36 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
       : KIND_LABEL[single.kind]
     : `${items.length} selected`;
 
+  const onOpenPaddockEdit = () => {
+    if (!single || single.kind !== 'paddock') return;
+    const pd = useLivestockStore
+      .getState()
+      .paddocks.find((p) => p.id === single.id);
+    if (!pd) return;
+    const centroid = turf.centroid(turf.feature(pd.geometry));
+    const [lng, lat] = centroid.geometry.coordinates as [number, number];
+    const updatePaddock = useLivestockStore.getState().updatePaddock;
+    useInlineFormStore.getState().open({
+      ...buildPaddockEditSchema(pd, updatePaddock),
+      anchor: [lng, lat],
+    });
+  };
+
   return (
     <div className={css.floater} role="toolbar" aria-label="Plan selection actions">
-      <span className={css.count}>{countLabel}</span>
+      {single?.kind === 'paddock' ? (
+        <button
+          type="button"
+          className={css.count}
+          onClick={onOpenPaddockEdit}
+          title="Edit paddock"
+          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
+        >
+          {countLabel}
+        </button>
+      ) : (
+        <span className={css.count}>{countLabel}</span>
+      )}
       <div className={css.divider} aria-hidden="true" />
       <DelayedTooltip
         label={

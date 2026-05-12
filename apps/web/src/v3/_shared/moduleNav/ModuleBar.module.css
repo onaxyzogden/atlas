@@ -1,4 +1,8 @@
-/* PlanModuleBar — 11-column bottom navigator, mirrors ObserveModuleBar */
+/* Shared ModuleBar — bottom-tray module navigator for Plan / Act / Observe.
+   Unifies the rounded-tile chrome from PlanModuleBar / ActModuleBar /
+   ObserveModuleBar. The status indicator inside each tile is a render-prop;
+   the default `.tileBar` placeholder ships here for stages that don't
+   override it (Plan, Act). Observe injects its `.cardProgress` row. */
 
 .rail {
   display: flex;
@@ -12,12 +16,8 @@
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(11, minmax(0, 1fr));
-  gap: 6px;
-}
-
-@media (max-width: 900px) {
-  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  gap: 8px;
+  /* Column count comes from inline style on .tiles — set by stage wrapper. */
 }
 
 .tile {

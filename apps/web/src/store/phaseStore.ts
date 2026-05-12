@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { phase } from '../lib/tokens';
+import type { PhaseKey } from '../v3/plan/types.js';
 
 export interface BuildPhase {
   id: string;
@@ -38,7 +39,33 @@ export interface BuildPhase {
    * migration; legacy phases load with `tasks` undefined.
    */
   tasks?: PhaseTask[];
+  /**
+   * Optional Yeomans Scale of Permanence cap. When set, entities tagged
+   * with this phase's `id` are visible on a Plan view iff the active
+   * view's cap (PHASE_VIEW_CAP) is at or beyond this Yeomans key.
+   *
+   * Undefined = uncapped (always visible). Stewards set this on each
+   * BuildPhase from the Phasing module UI. Default seeds populate it
+   * with sensible defaults (order 1→water, 2→buildings, 3→subdivision,
+   * 4→soil) and the v2→v3 persist migration backfills the same.
+   *
+   * Adapter hook: `apps/web/src/v3/plan/usePhaseStoreCappedEntities.ts`
+   * Decision:    `wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md`
+   */
+  yeomansCap?: PhaseKey;
 }
+
+/**
+ * Default Yeomans caps for the 4 seeded BuildPhases, keyed by `order`.
+ * Mirrors the rough timeline: water-shaping in Year 0-1, structures by
+ * Year 1-3, subdivision/fencing by Year 3-5, soil refinement Year 5+.
+ */
+const DEFAULT_YEOMANS_CAP_BY_ORDER: Record<number, PhaseKey> = {
+  1: 'water',
+  2: 'buildings',
+  3: 'subdivision',
+  4: 'soil',
+};
 
 /**
  * Yeomans Keyline Scale of Permanence categories used by the Plan-stage
@@ -97,10 +124,10 @@ interface PhaseState {
 }
 
 const DEFAULT_PHASES = [
-  { name: 'Phase 1', timeframe: 'Year 0-1', order: 1, description: 'Site Intelligence — Infrastructure & Habitation', color: phase[1] },
-  { name: 'Phase 2', timeframe: 'Year 1-3', order: 2, description: 'Design Atlas — Agricultural Systems', color: phase[2] },
-  { name: 'Phase 3', timeframe: 'Year 3-5', order: 3, description: 'Collaboration & Community — Retreat & Community', color: phase[3] },
-  { name: 'Phase 4', timeframe: 'Year 5+', order: 4, description: 'Full Vision — Maturity & Expansion', color: phase[4] },
+  { name: 'Phase 1', timeframe: 'Year 0-1', order: 1, description: 'Site Intelligence — Infrastructure & Habitation', color: phase[1], yeomansCap: 'water' as PhaseKey },
+  { name: 'Phase 2', timeframe: 'Year 1-3', order: 2, description: 'Design Atlas — Agricultural Systems', color: phase[2], yeomansCap: 'buildings' as PhaseKey },
+  { name: 'Phase 3', timeframe: 'Year 3-5', order: 3, description: 'Collaboration & Community — Retreat & Community', color: phase[3], yeomansCap: 'subdivision' as PhaseKey },
+  { name: 'Phase 4', timeframe: 'Year 5+', order: 4, description: 'Full Vision — Maturity & Expansion', color: phase[4], yeomansCap: 'soil' as PhaseKey },
 ];
 
 export const usePhaseStore = create<PhaseState>()(
@@ -155,7 +182,7 @@ export const usePhaseStore = create<PhaseState>()(
     }),
     {
       name: 'ogden-phases',
-      version: 2,
+      version: 3,
       partialize: (state) => ({ phases: state.phases }),
       migrate: (persisted, version) => {
         const state = persisted as { phases?: Partial<BuildPhase>[] };
@@ -169,6 +196,20 @@ export const usePhaseStore = create<PhaseState>()(
             completedAt: null,
             ...p,
           })) as BuildPhase[];
+        }
+        if (version < 3 && Array.isArray(state.phases)) {
+          // v2 → v3: backfill `yeomansCap` from `order` so the chip on
+          // Year 1 / Year 5 views actually does something for existing
+          // projects. Non-default orders stay undefined (steward will
+          // set them from the Phasing module UI).
+          state.phases = state.phases.map((p) => {
+            if (p.yeomansCap !== undefined) return p as BuildPhase;
+            const order = typeof p.order === 'number' ? p.order : 0;
+            const cap = DEFAULT_YEOMANS_CAP_BY_ORDER[order];
+            return cap !== undefined
+              ? ({ ...p, yeomansCap: cap } as BuildPhase)
+              : (p as BuildPhase);
+          });
         }
         return state;
       },

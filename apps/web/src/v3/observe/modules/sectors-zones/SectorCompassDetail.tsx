@@ -1,25 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import {
-  ArrowRight,
   Check,
   Compass,
   Flame,
+  Layers,
   Mountain,
-  Settings,
   Shield,
   Sun,
   Wind,
-  Layers,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useExternalForcesStore, type SectorArrow } from '../../../../store/externalForcesStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
-import TerrainSnapshot from '../topography/TerrainSnapshot.js';
 import SectorCompassDiagram from './SectorCompassDiagram.js';
-import { compassKpis, type KpiIconKey, type KpiItem } from './derivations.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import { compassKpis, type KpiIconKey } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
@@ -49,6 +47,15 @@ const INTENSITY_LABELS: Record<NonNullable<SectorArrow['intensity']>, string> = 
   low: 'Low',
 };
 
+function Ring({ value }: { value: number }) {
+  const style = { '--progress': `${value}%` } as CSSProperties;
+  return (
+    <div className={obsx.ring} style={style}>
+      <span>{value}%</span>
+    </div>
+  );
+}
+
 export default function SectorCompassDetail() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
@@ -72,170 +79,9 @@ export default function SectorCompassDetail() {
     );
   }, [sectors]);
 
-  return (
-    <div className="detail-page sector-compass-page">
-      <SectorCompassTop />
-      <header className="sector-compass-header">
-        <p>
-          Module 5 <span>Sectors, Microclimates &amp; Zones</span>
-        </p>
-        <div>
-          <h1>Sector compass</h1>
-          <p>Map and analyse the external energies and influences shaping your site.</p>
-        </div>
-      </header>
-      <SectorCompassKpis kpis={kpis} />
-      <section className="sector-compass-layout">
-        <div className="sector-compass-main">
-          <section className="sector-compass-workspace">
-            <SurfaceCard className="sector-compass-chart-card">
-              <h2>Sector compass</h2>
-              <SectorCompassDiagram
-                sectors={sectors}
-                centroid={centroidTuple}
-                className="sector-compass-main-image"
-              />
-              <div className="sector-compass-legend">
-                {[
-                  'Wind & Air',
-                  'Sun & Light',
-                  'Hazards',
-                  'Access & Noise',
-                  'Views & Neighbours',
-                  'Cold air flow',
-                ].map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </SurfaceCard>
-            <SurfaceCard className="sector-context-card">
-              <header>
-                <h2>Site context</h2>
-                <button type="button" aria-label="Settings">
-                  <Settings aria-hidden="true" />
-                </button>
-              </header>
-              <TerrainSnapshot
-                boundary={project?.location?.boundary}
-                caption={project?.name}
-                width={280}
-                height={200}
-                className="sector-context-image"
-              />
-              <p>
-                Arrows indicate the direction of external influences. Use this to guide placement
-                and protection.
-              </p>
-              <button type="button">
-                <Compass aria-hidden="true" /> Calibrate compass
-              </button>
-            </SurfaceCard>
-          </section>
-          <section className="sector-bottom-grid">
-            <PlacementsCard />
-            <DesignResponses />
-          </section>
-        </div>
-        <aside className="sector-compass-rail">
-          <SectorObservations sectors={sortedSectors} />
-          <PriorityActions />
-        </aside>
-      </section>
-    </div>
-  );
-}
+  const coveragePct = Math.min(100, sectors.length * 12);
 
-function SectorCompassTop() {
-  const steps = ['Site & Context', 'Microclimate & Hazards', 'Site Analysis', 'Design', 'Implementation'];
-  return (
-    <nav className="sector-compass-top" aria-label="Design process">
-      {steps.map((item, index) => (
-        <span className={index === 1 ? 'is-active' : ''} key={item}>
-          <b>{index + 1}</b>
-          {item}
-          <ArrowRight aria-hidden="true" />
-        </span>
-      ))}
-      <button type="button">Project settings</button>
-      <button type="button">Data complete</button>
-    </nav>
-  );
-}
-
-interface SectorCompassKpisProps {
-  kpis: KpiItem[];
-}
-
-function SectorCompassKpis({ kpis }: SectorCompassKpisProps) {
-  return (
-    <section className="sector-compass-kpis">
-      {kpis.map((item) => {
-        const Icon = ICON_MAP[item.iconKey];
-        return (
-          <SurfaceCard key={item.label} className={`sector-compass-kpi ${item.tone}`}>
-            <Icon aria-hidden="true" />
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-            <small>{item.note}</small>
-          </SurfaceCard>
-        );
-      })}
-    </section>
-  );
-}
-
-interface SectorObservationsProps {
-  sectors: SectorArrow[];
-}
-
-function SectorObservations({ sectors }: SectorObservationsProps) {
-  return (
-    <SurfaceCard className="sector-observations-card">
-      <h2>
-        Sector observations{' '}
-        {sectors.length > 0 && <b>{sectors.length}</b>}
-      </h2>
-      {sectors.length === 0 ? (
-        <p className="empty-note">No sectors logged yet — add one from the toolbar.</p>
-      ) : (
-        <>
-          <div className="sector-observation-head">
-            <span>Priority</span>
-            <span>Sector</span>
-            <span>Influence</span>
-            <span>Impact</span>
-          </div>
-          {sectors.map((s, index) => (
-            <p key={s.id}>
-              <b>{index + 1}</b>
-              <span>{s.bearingDeg}°</span>
-              <em>{SECTOR_TYPE_LABELS[s.type]}</em>
-              <strong>{INTENSITY_LABELS[s.intensity ?? 'low']}</strong>
-            </p>
-          ))}
-        </>
-      )}
-      <button type="button">Edit sector arrows</button>
-    </SurfaceCard>
-  );
-}
-
-function PlacementsCard() {
-  return (
-    <SurfaceCard className="placements-card">
-      <h2>Recommended placements &amp; interventions</h2>
-      <p className="empty-note">
-        Placements generate as you add sector arrows from the toolbar.
-      </p>
-      <button type="button">
-        <Compass aria-hidden="true" /> Generate design overlay
-      </button>
-    </SurfaceCard>
-  );
-}
-
-function DesignResponses() {
-  const rows: Array<[string, string, string]> = [
+  const designResponses: Array<[string, 'High' | 'Medium' | 'Low', string]> = [
     ['Establish windbreak on NW boundary', 'High', 'Pending'],
     ['Create fire buffer on SW boundary', 'High', 'Planned'],
     ['Site outdoor living in E-SE quadrant', 'High', 'Planned'],
@@ -243,41 +89,177 @@ function DesignResponses() {
     ['Use berms or vegetation to screen road', 'Medium', 'In progress'],
     ['Enhance view corridor to NE', 'Low', 'Planned'],
   ];
-  return (
-    <SurfaceCard className="design-responses-card">
-      <h2>Design responses</h2>
-      {rows.map(([title, priority, status]) => (
-        <p key={title}>
-          <Check aria-hidden="true" />
-          {title}
-          <b>{priority}</b>
-          <span>{status}</span>
-        </p>
-      ))}
-      <button type="button">Manage responses</button>
-    </SurfaceCard>
-  );
-}
 
-function PriorityActions() {
-  const rows: Array<[string, string, string]> = [
-    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1-2 weeks', 'High'],
-    ['Plant windbreak (NW) - 3 row shelterbelt', 'Due in 2-4 weeks', 'High'],
+  const priorityActions: Array<[string, string, 'High' | 'Medium' | 'Low']> = [
+    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1–2 weeks', 'High'],
+    ['Plant windbreak (NW) — 3-row shelterbelt', 'Due in 2–4 weeks', 'High'],
     ['Identify orchard zone & soil prep', 'Due in 1 month', 'Medium'],
-    ['Plan seating area & sun/shade strategy', 'Due in 1-2 months', 'Medium'],
-    ['Install pond & swale to SE', 'Due in 2-3 months', 'Low'],
+    ['Plan seating area & sun/shade strategy', 'Due in 1–2 months', 'Medium'],
+    ['Install pond & swale to SE', 'Due in 2–3 months', 'Low'],
   ];
+
   return (
-    <SurfaceCard className="sector-priority-card">
-      <h2>Priority actions</h2>
-      {rows.map(([title, due, priority], index) => (
-        <p key={title}>
-          <b>{index + 1}</b>
-          <span>{title}</span>
-          <small>{due}</small>
-          <em>{priority}</em>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Map and analyse the external energies and influences shaping your site — wind,
+              sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so
+              you can place, protect, and buffer with confidence.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          <div className={`${obsx.kpiBlock} ${obsx.kpiBlockWithRing}`}>
+            <Ring value={coveragePct} />
+            <span className={obsx.label}>Sector coverage</span>
+            <span className={obsx.value}>
+              {coveragePct >= 70 ? 'Well-mapped' : coveragePct >= 30 ? 'Forming' : 'Sparse'}
+            </span>
+            <span className={obsx.note}>{sectors.length} arrows placed</span>
+          </div>
+          {kpis.slice(0, 3).map((item) => {
+            const Icon = ICON_MAP[item.iconKey];
+            return (
+              <div key={item.label} className={obsx.kpiBlock}>
+                <span className={obsx.label}>
+                  {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                  {item.label}
+                </span>
+                <span className={obsx.value}>{item.value}</span>
+                <span className={obsx.note}>{item.note}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {kpis.length > 3 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Additional signals</h2>
+          <div className={obsx.kpiGrid}>
+            {kpis.slice(3).map((item) => {
+              const Icon = ICON_MAP[item.iconKey];
+              return (
+                <div key={item.label} className={obsx.kpiBlock}>
+                  <span className={obsx.label}>
+                    {Icon ? <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> : null}
+                    {item.label}
+                  </span>
+                  <span className={obsx.value}>{item.value}</span>
+                  <span className={obsx.note}>{item.note}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          <Compass aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Sector compass
+        </h2>
+        <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+          Arrows indicate the direction of external influences. Use this to guide placement
+          and protection.
         </p>
-      ))}
-    </SurfaceCard>
+        <SectorCompassDiagram
+          sectors={sectors}
+          centroid={centroidTuple}
+        />
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>
+          Sector observations
+          {sectors.length > 0 ? (
+            <span style={{ color: 'rgba(var(--color-gold-rgb), 0.95)', marginLeft: 8 }}>{sectors.length}</span>
+          ) : null}
+        </h2>
+        {sortedSectors.length === 0 ? (
+          <p className={card.empty}>No sectors logged yet — add one from the toolbar.</p>
+        ) : (
+          <table className={card.table}>
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Bearing</th>
+                <th>Sector</th>
+                <th>Intensity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedSectors.map((s, index) => {
+                const intensity = s.intensity ?? 'low';
+                const pillClass =
+                  intensity === 'high'
+                    ? card.pillFail
+                    : intensity === 'med'
+                      ? card.pillPartial
+                      : card.pillMet;
+                return (
+                  <tr key={s.id}>
+                    <td>{index + 1}</td>
+                    <td>{s.bearingDeg}°</td>
+                    <td>{SECTOR_TYPE_LABELS[s.type]}</td>
+                    <td>
+                      <span className={`${card.pill} ${pillClass}`}>
+                        {INTENSITY_LABELS[intensity]}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Design responses</h2>
+          {designResponses.map(([title, priority, status]) => {
+            const pillClass =
+              priority === 'High'
+                ? card.pillFail
+                : priority === 'Medium'
+                  ? card.pillPartial
+                  : card.pillMet;
+            return (
+              <div key={title} className={card.statRow}>
+                <span>
+                  <Check aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                  {title}
+                  <span style={{ marginLeft: 8, color: 'rgba(232,220,200,0.55)', fontSize: 11 }}>{status}</span>
+                </span>
+                <span className={`${card.pill} ${pillClass}`}>{priority}</span>
+              </div>
+            );
+          })}
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Priority actions</h2>
+          <div className={obsx.synthesisBlock}>
+            {priorityActions.map(([title, due, priority], index) => (
+              <p key={title}>
+                <b>{index + 1}</b>
+                <span>
+                  {title}
+                  <span style={{ display: 'block', marginTop: 2, color: 'rgba(232,220,200,0.55)', fontSize: 11 }}>
+                    {due} · {priority} priority
+                  </span>
+                </span>
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

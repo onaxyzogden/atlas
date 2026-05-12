@@ -40,7 +40,7 @@ import {
   type ProposedMetadata,
 } from '@ogden/shared';
 import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
-import type { PhaseKey } from '../v3/plan/types.js';
+import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 
 export interface DesignElement {
@@ -71,6 +71,18 @@ export interface DesignElement {
   utilityConflicts?: { id: string; kind: string }[];
   utilityAcknowledgment?: string;
   createdAt: string;
+  /**
+   * Plan view in which this element was authored. Drives per-view visibility
+   * and editability:
+   *   - `current`: appears (read-only) on every non-Current view too, unless
+   *     listed in `hiddenInViews`.
+   *   - non-`current`: appears (editable) only on that view.
+   *
+   * Records persisted before this field existed migrate to `'current'`.
+   */
+  view?: PlanView;
+  /** Non-Current views in which a `view==='current'` element is hidden. */
+  hiddenInViews?: PlanView[];
 }
 
 export interface DesignElementsState {
@@ -81,6 +93,25 @@ export interface DesignElementsState {
   add: (projectId: string, el: DesignElement) => void;
   remove: (projectId: string, id: string) => void;
   clear: (projectId: string) => void;
+  /**
+   * Patch a non-structure element's mutable fields (geometry, label,
+   * hiddenInViews, etc.). Structure-class kinds are owned by
+   * `builtEnvironmentStoreV2` and ignored here; edit them through that
+   * store directly.
+   */
+  update: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void;
+  /** Convenience: toggle a non-Current view in `hiddenInViews`. No-op for
+   *  structure-class kinds. */
+  setHiddenInView: (
+    projectId: string,
+    id: string,
+    view: PlanView,
+    hidden: boolean,
+  ) => void;
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -119,6 +150,11 @@ interface NonStructureState {
   add: (projectId: string, el: DesignElement) => void;
   remove: (projectId: string, id: string) => void;
   clear: (projectId: string) => void;
+  update: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void;
 }
 
 const useNonStructureStore = create<NonStructureState>()(
@@ -128,7 +164,8 @@ const useNonStructureStore = create<NonStructureState>()(
       add: (projectId, el) =>
         set((s) => {
           const list = s.byProject[projectId] ?? [];
-          return { byProject: { ...s.byProject, [projectId]: [...list, el] } };
+          const next: DesignElement = { view: 'current', ...el };
+          return { byProject: { ...s.byProject, [projectId]: [...list, next] } };
         }),
       remove: (projectId, id) =>
         set((s) => {
@@ -146,8 +183,36 @@ const useNonStructureStore = create<NonStructureState>()(
           delete next[projectId];
           return { byProject: next };
         }),
+      update: (projectId, id, patch) =>
+        set((s) => {
+          const list = s.byProject[projectId] ?? [];
+          let changed = false;
+          const updated = list.map((e) => {
+            if (e.id !== id) return e;
+            changed = true;
+            return { ...e, ...patch } as DesignElement;
+          });
+          if (!changed) return s;
+          return { byProject: { ...s.byProject, [projectId]: updated } };
+        }),
     }),
-    { name: 'ogden-atlas-design-elements', version: 1, migrate: (persisted) => persisted as never },
+    {
+      name: 'ogden-atlas-design-elements',
+      version: 2,
+      migrate: (persisted, fromVersion) => {
+        // v1 -> v2: backfill `view: 'current'` on every existing element so
+        // the new per-view filter in DesignElementLayers keeps legacy
+        // records visible on Current (and read-only on non-Current views).
+        const state = persisted as { byProject?: Record<string, DesignElement[]> } | undefined;
+        if (!state || !state.byProject) return persisted as never;
+        if (fromVersion >= 2) return persisted as never;
+        const migrated: Record<string, DesignElement[]> = {};
+        for (const [projectId, list] of Object.entries(state.byProject)) {
+          migrated[projectId] = list.map((e) => (e.view ? e : { ...e, view: 'current' }));
+        }
+        return { ...state, byProject: migrated } as never;
+      },
+    },
   ),
 );
 
@@ -174,6 +239,11 @@ function projectV2StructureElements(
       phase: (p.phase as PhaseKey) ?? ('building' as PhaseKey),
       label: p.label,
       createdAt: p.createdAt,
+      // V2 structure-class entities don't carry a Plan-view origin field
+      // yet — they belong to the project's "Current" reality. Per-view
+      // editing for these kinds lives in builtEnvironmentStoreV2 and is
+      // out of scope for the design-element per-view filter.
+      view: 'current' as PlanView,
     }));
   }
   return out;
@@ -247,6 +317,25 @@ export const useDesignElementsStore = create<DesignElementsState>()((set, get) =
         STRUCTURE_CLASS_KINDS.has(canonicalizeKind(e.kind) ?? e.kind),
     );
     for (const t of targets) v2.delete(t.id);
+  },
+
+  update: (projectId, id, patch) => {
+    // Structure-class kinds live in V2 and are edited there; the facade
+    // patch path only touches non-structure entries today.
+    useNonStructureStore.getState().update(projectId, id, patch);
+  },
+
+  setHiddenInView: (projectId, id, view, hidden) => {
+    const list = useNonStructureStore.getState().byProject[projectId] ?? [];
+    const el = list.find((e) => e.id === id);
+    if (!el) return;
+    const current = el.hiddenInViews ?? [];
+    const next = hidden
+      ? Array.from(new Set([...current, view]))
+      : current.filter((v) => v !== view);
+    useNonStructureStore
+      .getState()
+      .update(projectId, id, { hiddenInViews: next });
   },
 }));
 

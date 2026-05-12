@@ -47,6 +47,8 @@ import {
   type Paddock,
   type PastureQuality,
 } from '../../../store/livestockStore.js';
+import { computePaddockRecommendedStocking } from '../../../features/livestock/livestockAnalysis.js';
+import { LIVESTOCK_SPECIES } from '../../../features/livestock/speciesData.js';
 import {
   type FertilityInfra,
   type FertilityInfraType,
@@ -289,6 +291,30 @@ const PASTURE_QUALITY_OPTIONS: { value: PastureQuality; label: string }[] = [
   { value: 'excellent', label: 'Excellent (3.7+ AUE/ha)' },
 ];
 
+/**
+ * Format the area-based stocking recommendation for a paddock. Reuses the
+ * canonical `computePaddockRecommendedStocking` head/ha formula (pasture-
+ * quality multiplier × species `typicalStocking`) and multiplies by paddock
+ * area to surface a concrete total. Returns `''` when pasture quality is
+ * unassessed so the field renders its placeholder.
+ */
+function formatPaddockStockingRecommendation(
+  species: LivestockSpecies,
+  pastureQuality: PastureQuality | undefined,
+  areaM2: number,
+): string {
+  if (!pastureQuality) return '';
+  const perHa = computePaddockRecommendedStocking({
+    species: [species],
+    pastureQuality,
+  } as Paddock);
+  if (perHa <= 0) return '';
+  const areaHa = areaM2 / 10_000;
+  const total = Math.round(perHa * areaHa);
+  const unit = LIVESTOCK_SPECIES[species]?.stockingUnit ?? 'head';
+  return `${total} ${unit} (${perHa}/ha)`;
+}
+
 export function buildPaddockEditSchema(
   pd: Paddock,
   updatePaddock: (id: string, updates: Partial<Paddock>) => void,
@@ -313,12 +339,6 @@ export function buildPaddockEditSchema(
         options: PADDOCK_FENCE_OPTIONS,
       },
       {
-        key: 'stockingDensity',
-        label: 'Stocking (head/ha)',
-        kind: 'text',
-        placeholder: 'e.g. 12',
-      },
-      {
         key: 'pastureQuality',
         label: 'Pasture quality',
         kind: 'select',
@@ -327,14 +347,50 @@ export function buildPaddockEditSchema(
           ...PASTURE_QUALITY_OPTIONS,
         ],
       },
+      {
+        key: 'stockingRecommendation',
+        label: 'Recommended for this paddock',
+        kind: 'text',
+        readonly: true,
+        placeholder: 'pick pasture quality',
+      },
+      {
+        key: 'stockingDensity',
+        label: 'Stocking (head/ha)',
+        kind: 'text',
+        placeholder: 'e.g. 12',
+      },
     ],
     initial: {
       name: pd.name,
       species: primarySpecies,
       fencing: pd.fencing,
+      pastureQuality: pd.pastureQuality ?? '',
+      stockingRecommendation: formatPaddockStockingRecommendation(
+        primarySpecies,
+        pd.pastureQuality,
+        pd.areaM2,
+      ),
       stockingDensity:
         pd.stockingDensity == null ? '' : String(pd.stockingDensity),
-      pastureQuality: pd.pastureQuality ?? '',
+    },
+    onValuesChange: (next, _prev, changed) => {
+      if (changed.key !== 'species' && changed.key !== 'pastureQuality') {
+        return null;
+      }
+      const sp = String(next.species ?? primarySpecies) as LivestockSpecies;
+      const pqRaw = String(next.pastureQuality ?? '').trim();
+      const pq: PastureQuality | undefined =
+        pqRaw === 'poor' || pqRaw === 'fair' || pqRaw === 'good' || pqRaw === 'excellent'
+          ? pqRaw
+          : undefined;
+      return {
+        stockingRecommendation: formatPaddockStockingRecommendation(
+          sp,
+          pq,
+          pd.areaM2,
+        ),
+      };
     },
     onSave: (values) => {
       const sp = values.species as LivestockSpecies;

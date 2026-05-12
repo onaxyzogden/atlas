@@ -117,6 +117,10 @@ export type MapToolId =
   | 'plan.livestock.slaughter-point'
   | 'plan.livestock.cold-chain-unit'
   | 'plan.livestock.market-node'
+  // Plan Module 4 — Livestock > Schedule move (in-card create flow for
+  //  `ScheduledLivestockMove` plans; mirrors the Act-stage `LivestockMoveTool`
+  //  but writes to `scheduledLivestockMoveStore`)
+  | 'plan.livestock.schedule-move'
   // Plan Module — Structures & Subsystems (Yeomans rank 5+6)
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)

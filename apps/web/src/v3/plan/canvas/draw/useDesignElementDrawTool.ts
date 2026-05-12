@@ -26,6 +26,7 @@ import {
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
+import { usePlanView } from '../../PlanViewContext.js';
 
 const EMPTY_ELEMENTS: DesignElement[] = [];
 
@@ -87,6 +88,7 @@ export function useDesignElementDrawTool({
   const list = useDesignElementsStore(
     (s) => s.byProject[projectId] ?? EMPTY_ELEMENTS,
   );
+  const currentView = usePlanView();
 
   const handleComplete = useCallback(
     (geom: DrawGeometry) => {
@@ -118,6 +120,7 @@ export function useDesignElementDrawTool({
           label,
           acreage,
           createdAt: new Date().toISOString(),
+          view: currentView,
           ...extras,
         });
         onComplete?.();
@@ -149,7 +152,7 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, list, kind, projectId, add, onComplete],
+    [spec, list, kind, projectId, add, onComplete, currentView],
   );
 
   useMapboxDrawTool({

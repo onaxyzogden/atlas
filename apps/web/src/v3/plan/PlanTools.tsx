@@ -17,6 +17,7 @@ import {
   Apple,
   ArrowRight,
   Beef,
+  CalendarClock,
   CircleDashed,
   Container,
   Disc,
@@ -111,6 +112,10 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
     // strip / mob grazing wire that the polygon Paddock tool cannot model.
     { id: 'fence-line', label: 'Fence line', Icon: Fence,  toolId: 'plan.livestock.fence-line' },
+    // 2026-05-12 — Plan-stage in-card create flow for `ScheduledLivestockMove`
+    // (paddock or livestock-capable structure destination). Mirrors the
+    // Act-stage move tool but persists to scheduledLivestockMoveStore.
+    { id: 'schedule-move', label: 'Schedule move', Icon: CalendarClock, toolId: 'plan.livestock.schedule-move' },
     // 2026-05-10 Product Chain (sub-module) — Newman's post-farm-gate
     // value chain folded into Livestock: slaughter → cold chain → market.
     { id: 'slaughter-point', label: 'Slaughter',  Icon: Beef,      toolId: 'plan.livestock.slaughter-point' },

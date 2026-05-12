@@ -10,15 +10,12 @@ import {
   Plus,
   Ruler,
   Save,
-  Settings,
-  SlidersHorizontal,
   Sun,
   Trees,
   Triangle,
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import { SurfaceCard } from '../../_shared/components/index.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import {
   useTopographyStore,
@@ -28,6 +25,8 @@ import { useV3Project } from '../../../data/useV3Project.js';
 import ElevationProfileChart from './ElevationProfileChart.js';
 import SeasonalSolarStrip from './SeasonalSolarStrip.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
+import card from '../../../_shared/stageCard/stageCard.module.css';
+import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import {
   getElevationLayer,
   polygonCentroid,
@@ -54,68 +53,15 @@ export default function CrossSectionDetail() {
   const stats = transectStats(active);
   const lat = polygonCentroid(project?.location?.boundary)?.lat ?? null;
   const elevationSummary = getElevationLayer(layers)?.summary;
-
-  return (
-    <div className="detail-page cross-section-page">
-      <section className="cross-layout">
-        <div className="cross-main">
-          <CrossHeader />
-          <CrossKpis transect={active} />
-          <CrossChartPanel transect={active} />
-          <section className="cross-bottom-grid">
-            <ObservationPanel transect={active} />
-            <TransectLibrary
-              transects={transects}
-              activeId={active?.id}
-              onSelect={(tid) => setActiveId(tid)}
-              onRemove={removeTransect}
-            />
-            <SeasonalPanel lat={lat} />
-          </section>
-        </div>
-        <CrossSidebar
-          boundary={project?.location?.boundary}
-          caption={project?.name}
-          stats={stats}
-          aspect={elevationSummary?.predominant_aspect ?? null}
-        />
-      </section>
-      <CrossActionBar />
-    </div>
-  );
-}
-
-function CrossHeader() {
-  return (
-    <header className="cross-header">
-      <div className="module-title-row">
-        <b>3</b>
-        <div>
-          <h1>Cross-section tool</h1>
-          <p>
-            Analyze terrain profiles along transects to understand land form, place design
-            elements, evaluate solar geometry, and test section-based interventions with
-            confidence.
-          </p>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-interface KpiProps {
-  transect: Transect | undefined;
-}
-
-function CrossKpis({ transect }: KpiProps) {
-  const stats = transectStats(transect);
+  const aspect = elevationSummary?.predominant_aspect ?? null;
   const slope = slopeBand(stats?.meanSlopePct);
-  const items: Array<[LucideIcon, string, string, string]> = [
+
+  const kpis: Array<[LucideIcon, string, string, string]> = [
     [
       Ruler,
       'Transect length',
       stats?.totalDistanceM ? `${Math.round(stats.totalDistanceM)} m` : DASH,
-      transect ? 'A to B' : 'No transect',
+      active ? 'A to B' : 'No transect',
     ],
     [
       Mountain,
@@ -129,262 +75,213 @@ function CrossKpis({ transect }: KpiProps) {
       stats ? `${stats.meanSlopePct.toFixed(1)}%` : DASH,
       stats ? slope.label : '—',
     ],
-    [Sun, 'Solar exposure (ann.)', DASH, 'Needs lat × bearing'],
-    [Trees, 'Vertical elements', String(transect?.verticalRefs?.length ?? 0), 'Pinned along transect'],
+    [Sun, 'Solar exposure', DASH, 'Needs lat × bearing'],
+    [Trees, 'Vertical elements', String(active?.verticalRefs?.length ?? 0), 'Along transect'],
   ];
 
-  return (
-    <SurfaceCard className="cross-kpi-strip">
-      {items.map(([Icon, label, value, note]) => (
-        <div className="cross-kpi" key={label}>
-          <Icon aria-hidden="true" />
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <small>{note}</small>
-        </div>
-      ))}
-    </SurfaceCard>
-  );
-}
-
-function CrossChartPanel({ transect }: KpiProps) {
-  return (
-    <SurfaceCard className="cross-chart-panel">
-      <ElevationProfileChart
-        transect={transect}
-        showVerticalRefs
-        className="cross-chart-image"
-      />
-      {transect ? null : (
-        <p className="empty-note">
-          No transects yet — draw an A–B line on the terrain map to start a cross-section.
-        </p>
-      )}
-    </SurfaceCard>
-  );
-}
-
-function ObservationPanel({ transect }: KpiProps) {
-  const items: Array<[string, string, string]> = [];
-  if (transect?.notes) {
-    items.push(['Field notes', transect.notes, 'green']);
-  }
-  const verticalRefs = transect?.verticalRefs ?? [];
+  const observations: Array<[string, string]> = [];
+  if (active?.notes) observations.push(['Field notes', active.notes]);
+  const verticalRefs = active?.verticalRefs ?? [];
   if (verticalRefs.length > 0) {
-    items.push([
+    observations.push([
       `${verticalRefs.length} pinned element${verticalRefs.length === 1 ? '' : 's'}`,
-      verticalRefs
-        .map((r) => `${r.kind} @ ${Math.round(r.distanceAlongTransectM)} m`)
-        .join(' · '),
-      'green',
+      verticalRefs.map((r) => `${r.kind} @ ${Math.round(r.distanceAlongTransectM)} m`).join(' · '),
     ]);
   }
-  if (items.length === 0) {
-    items.push([
-      transect ? 'No observations yet' : 'No transect selected',
+  if (observations.length === 0) {
+    observations.push([
+      active ? 'No observations yet' : 'No transect selected',
       'Add field notes or pin vertical elements (trees, structures, swales) along the transect.',
-      'blue',
     ]);
   }
 
-  return (
-    <SurfaceCard className="cross-panel">
-      <h2>Section observations</h2>
-      {items.map(([title, text, tone]) => (
-        <p className={tone} key={title}>
-          <Leaf /> <b>{title}</b>
-          <span>{text}</span>
-        </p>
-      ))}
-      <button className="outlined-button" type="button">
-        <Plus /> Add observation
-      </button>
-    </SurfaceCard>
-  );
-}
-
-interface LibraryProps {
-  transects: Transect[];
-  activeId: string | undefined;
-  onSelect: (id: string) => void;
-  onRemove: (id: string) => void;
-}
-
-function TransectLibrary({ transects, activeId, onSelect, onRemove }: LibraryProps) {
-  return (
-    <SurfaceCard className="cross-panel transect-library">
-      <h2>Section library</h2>
-      {transects.length === 0 ? (
-        <p className="empty-note">No transects drawn yet.</p>
-      ) : (
-        transects.map((t, idx) => {
-          const stats = transectStats(t);
-          const note = stats
-            ? `${stats.totalDistanceM ? `${Math.round(stats.totalDistanceM)} m` : '—'} · ${stats.deltaM.toFixed(1)} m drop`
-            : 'Profile pending';
-          const isActive = t.id === activeId;
-          return (
-            <div className="transect-row" key={t.id}>
-              <b>{idx + 1}</b>
-              <button
-                type="button"
-                className="transect-row-select"
-                onClick={() => onSelect(t.id)}
-              >
-                {t.name}
-                <small>{note}</small>
-              </button>
-              {isActive ? <em>Active</em> : null}
-              <button
-                type="button"
-                aria-label={`Remove ${t.name}`}
-                className="icon-button"
-                onClick={() => onRemove(t.id)}
-              >
-                ×
-              </button>
-            </div>
-          );
-        })
-      )}
-      <button className="outlined-button" type="button">
-        <Plus /> New transect
-      </button>
-    </SurfaceCard>
-  );
-}
-
-interface SeasonalProps {
-  lat: number | null;
-}
-
-function SeasonalPanel({ lat }: SeasonalProps) {
-  return (
-    <SurfaceCard className="cross-panel seasonal-panel">
-      <h2>
-        Seasonal comparison <small>(solar altitude at noon)</small>
-      </h2>
-      <SeasonalSolarStrip lat={lat} className="seasonal-chart-image" />
-    </SurfaceCard>
-  );
-}
-
-interface ToggleRowProps {
-  icon: LucideIcon;
-  title: string;
-  note: string;
-}
-
-function ToggleRow({ icon: Icon, title, note }: ToggleRowProps) {
-  return (
-    <div className="toggle-row">
-      <Icon />
-      <span>
-        {title}
-        <small>{note}</small>
-      </span>
-      <button type="button" aria-label={`${title} enabled`}>
-        <i />
-      </button>
-    </div>
-  );
-}
-
-interface CrossSidebarProps {
-  boundary: GeoJSON.Polygon | undefined;
-  caption: string | undefined;
-  stats: ReturnType<typeof transectStats>;
-  aspect: string | null;
-}
-
-function CrossSidebar({ boundary, caption, stats, aspect }: CrossSidebarProps) {
-  const overlays: Array<[LucideIcon, string, string]> = [
-    [Sun, 'Sun path', 'Show solar geometry'],
-    [Triangle, 'Slope segments', 'Color by slope grade'],
-    [Droplet, 'Water flow', 'Flow direction & pathways'],
-    [Layers, 'Soil horizons', 'Soil depth & layers'],
-    [Trees, 'Vegetation', 'Existing & proposed'],
-    [Eye, 'Structures & elements', 'Design features'],
-    [Beaker, 'Cut / fill estimate', 'Volume & balance'],
+  const overlays: Array<[LucideIcon, string]> = [
+    [Sun, 'Sun path'],
+    [Triangle, 'Slope segments'],
+    [Droplet, 'Water flow'],
+    [Layers, 'Soil horizons'],
+    [Trees, 'Vegetation'],
+    [Eye, 'Structures'],
+    [Beaker, 'Cut / fill'],
   ];
-  return (
-    <aside className="cross-sidebar">
-      <SurfaceCard className="transect-map-card">
-        <h2>Transect map</h2>
-        <TerrainSnapshot
-          boundary={boundary}
-          caption={caption}
-          width={280}
-          height={180}
-          overlays={['contours']}
-          className="transect-map-image"
-        />
-        <small className="transect-aspect">Site aspect: {aspect ?? '—'}</small>
-        <button className="outlined-button" type="button">
-          <Settings /> Center on map
-        </button>
-      </SurfaceCard>
-      <SurfaceCard className="tools-panel">
-        <h2>Overlays &amp; tools</h2>
-        {overlays.map(([Icon, title, note]) => (
-          <ToggleRow key={title} icon={Icon} title={title} note={note} />
-        ))}
-      </SurfaceCard>
-      <SurfaceCard className="tools-panel analysis-panel">
-        <h2>Seasonal &amp; analysis</h2>
-        <button type="button">
-          <Sun /> Seasonal comparison <b>Compare</b>
-        </button>
-        <button type="button">
-          <Droplet /> Water simulation <b>Simulate</b>
-        </button>
-        <button type="button">
-          <Download /> Export section <b>Export</b>
-        </button>
-      </SurfaceCard>
-      <SurfaceCard className="earthworks-panel">
-        <h2>Estimated earthworks</h2>
-        <dl>
-          <div>
-            <dt>Cut</dt>
-            <dd>{DASH}</dd>
-          </div>
-          <div>
-            <dt>Fill</dt>
-            <dd>{DASH}</dd>
-          </div>
-          <div>
-            <dt>Net</dt>
-            <dd>{stats ? `${stats.deltaM.toFixed(1)} m drop` : DASH}</dd>
-          </div>
-        </dl>
-        <button className="outlined-button" type="button">
-          Details
-        </button>
-      </SurfaceCard>
-    </aside>
-  );
-}
 
-function CrossActionBar() {
   return (
-    <SurfaceCard className="cross-action-bar">
-      <button type="button">
-        <Plus /> Add design element
-      </button>
-      <button type="button">
-        <Sun /> Toggle solar overlay
-      </button>
-      <button type="button">
-        <Droplet /> Run water simulation
-      </button>
-      <button className="green-button" type="button">
-        <Save /> Save transect
-      </button>
-      <button type="button">Save as...</button>
-      <button type="button" aria-label="More options">
-        <SlidersHorizontal />
-      </button>
-    </SurfaceCard>
+    <div className={card.page}>
+      <div className={card.hero} data-stage="observe">
+        <div className={obsx.heroRow}>
+          <div>
+            <p className={card.lede}>
+              Analyze terrain profiles along transects to understand land form, place design
+              elements, evaluate solar geometry, and test section-based interventions with
+              confidence.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section className={card.section}>
+        <div className={obsx.kpiGrid}>
+          {kpis.map(([Icon, label, value, note]) => (
+            <div key={label} className={obsx.kpiBlock}>
+              <span className={obsx.label}>
+                <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                {label}
+              </span>
+              <span className={obsx.value}>{value}</span>
+              <span className={obsx.note}>{note}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Elevation profile</h2>
+        <ElevationProfileChart transect={active} showVerticalRefs />
+        {active ? null : (
+          <p className={card.empty} style={{ marginTop: 8 }}>
+            No transects yet — draw an A–B line on the terrain map to start a cross-section.
+          </p>
+        )}
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Section observations</h2>
+          <div className={obsx.synthesisBlock}>
+            {observations.map(([title, text]) => (
+              <p key={title}>
+                <Leaf aria-hidden="true" size={14} />
+                <span><b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{title}.</b> {text}</span>
+              </p>
+            ))}
+          </div>
+          <div className={card.btnRow} style={{ marginTop: 12 }}>
+            <button type="button" className={card.btn}>
+              <Plus aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              Add observation
+            </button>
+          </div>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Section library</h2>
+          {transects.length === 0 ? (
+            <p className={card.empty}>No transects drawn yet.</p>
+          ) : (
+            transects.map((t, idx) => {
+              const tStats = transectStats(t);
+              const note = tStats
+                ? `${tStats.totalDistanceM ? `${Math.round(tStats.totalDistanceM)} m` : '—'} · ${tStats.deltaM.toFixed(1)} m drop`
+                : 'Profile pending';
+              const isActive = t.id === active?.id;
+              return (
+                <div key={t.id} className={card.statRow}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveId(t.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      padding: 0,
+                      flex: 1,
+                    }}
+                  >
+                    {idx + 1}. {t.name} <span className={card.hint} style={{ marginLeft: 6 }}>{note}</span>
+                  </button>
+                  <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {isActive ? <span className={`${card.pill} ${card.pillMet}`}>Active</span> : null}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${t.name}`}
+                      onClick={() => removeTransect(t.id)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'rgba(232,220,200,0.7)',
+                        cursor: 'pointer',
+                        fontSize: 16,
+                        lineHeight: 1,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                </div>
+              );
+            })
+          )}
+          <div className={card.btnRow} style={{ marginTop: 12 }}>
+            <button type="button" className={card.btn}>
+              <Plus aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              New transect
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Seasonal comparison <span className={card.hint} style={{ marginLeft: 8 }}>solar altitude at noon</span></h2>
+        <SeasonalSolarStrip lat={lat} />
+      </section>
+
+      <div className={card.grid}>
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Transect map</h2>
+          <TerrainSnapshot
+            boundary={project?.location?.boundary}
+            caption={project?.name}
+            width={280}
+            height={180}
+            overlays={['contours']}
+          />
+          <p className={card.hint} style={{ marginTop: 8 }}>Site aspect: {aspect ?? '—'}</p>
+        </section>
+
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Overlays &amp; tools</h2>
+          {overlays.map(([Icon, title]) => (
+            <div key={title} className={card.statRow}>
+              <span><Icon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} /> {title}</span>
+              <span className={card.pill}>Off</span>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      <section className={card.section}>
+        <h2 className={card.sectionTitle}>Estimated earthworks</h2>
+        <div className={card.statRow}><span>Cut</span><span>{DASH}</span></div>
+        <div className={card.statRow}><span>Fill</span><span>{DASH}</span></div>
+        <div className={card.statRow}><span>Net</span><span>{stats ? `${stats.deltaM.toFixed(1)} m drop` : DASH}</span></div>
+      </section>
+
+      <section className={card.section}>
+        <div className={card.btnRow}>
+          <button type="button" className={card.btn}>
+            <Plus aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Add design element
+          </button>
+          <button type="button" className={card.btn}>
+            <Sun aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Toggle solar overlay
+          </button>
+          <button type="button" className={card.btn}>
+            <Droplet aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Run water simulation
+          </button>
+          <button type="button" className={card.btn}>
+            <Save aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Save transect
+          </button>
+          <button type="button" className={card.btn}>
+            <Download aria-hidden="true" size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Export section
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
