@@ -11,10 +11,7 @@
  *   2. Plan `useStructureStore` — addStructure → V2 with proposed metadata;
  *      facade returns V1 Structure[] with snake_case `type` restored;
  *      updateStructure patches; deleteStructure removes.
- *   3. Plan `useDesignElementsStore` — structure-class kinds route to V2;
- *      non-structure kinds stay in the internal store; merged byProject
- *      returns the union; remove tries V2 first; clear wipes both.
- *   4. KPI parity — seed multiple entities, snapshot dashboard-relevant
+ *   3. KPI parity — seed multiple entities, snapshot dashboard-relevant
  *      derivations from the facade, assert byte-for-byte stability.
  */
 
@@ -32,10 +29,7 @@ import {
   type ExistingDriveway,
 } from '../builtEnvironmentStore.js';
 import { useStructureStore, type Structure } from '../structureStore.js';
-import {
-  useDesignElementsStore,
-  type DesignElement,
-} from '../designElementsStore.js';
+import { useLandDesignStore } from '../landDesignStore.js';
 
 const PROJECT = 'p-adapter';
 
@@ -46,12 +40,10 @@ function resetAll(): void {
       temporal: { getState: () => { clear: () => void } };
     }
   ).temporal.getState().clear();
-  // useDesignElementsStore.clear() drains both v2 and the internal
-  // non-structure store for a project — the safest way to clear the
-  // hidden non-structure substore between tests.
-  useDesignElementsStore.getState().clear(PROJECT);
-  // Belt-and-braces: also reset the merged byProject map directly.
-  useDesignElementsStore.setState({ byProject: {} });
+  // Drain the non-structure substore directly — V2 entities are already
+  // cleared above, and landDesignStore.byProject is the only other
+  // surface that holds Plan-stage design elements.
+  useLandDesignStore.setState({ byProject: {} });
   if (typeof window !== 'undefined' && window.localStorage) {
     window.localStorage.clear();
   }
@@ -257,85 +249,6 @@ describe('useStructureStore facade', () => {
     useStructureStore.getState().setPlacementMode('yurt');
     expect(useStructureStore.getState().placementMode).toBe('yurt');
     expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────
-// Plan facade — useDesignElementsStore
-// ─────────────────────────────────────────────────────────────────────────
-
-describe('useDesignElementsStore facade', () => {
-  function makeEl(over: Partial<DesignElement> = {}): DesignElement {
-    return {
-      id: 'el1',
-      category: 'structure',
-      kind: 'barn',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]],
-      },
-      phase: 'buildings',
-      label: 'A',
-      createdAt: '2026-05-10T00:00:00.000Z',
-      ...over,
-    };
-  }
-
-  it('structure-class add routes to v2 and is reflected in byProject', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl());
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('barn');
-  });
-
-  it('non-structure add stays in the internal store, NOT v2', () => {
-    useDesignElementsStore.getState().add(
-      PROJECT,
-      makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing', phase: 'subdivision' }),
-    );
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('paddock');
-  });
-
-  it('byProject merges v2 structures + non-structure entries', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    const list = useDesignElementsStore.getState().byProject[PROJECT] ?? [];
-    expect(list).toHaveLength(2);
-    const kinds = list.map((e) => e.kind).sort();
-    expect(kinds).toEqual(['barn', 'paddock']);
-  });
-
-  it('remove tries v2 first, then falls through to the internal store', () => {
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    const v2Id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-
-    // Remove the v2 (barn) one — id matches the v2 entity.
-    useDesignElementsStore.getState().remove(PROJECT, v2Id);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    // Paddock survives in the internal store.
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('paddock');
-
-    // Remove the paddock by its V1 id — flows through to internal store.
-    useDesignElementsStore.getState().remove(PROJECT, 'pad1');
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(0);
-  });
-
-  it('clear wipes both v2 structures and internal non-structures for the project', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    useDesignElementsStore.getState().clear(PROJECT);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    expect(useDesignElementsStore.getState().byProject[PROJECT] ?? []).toHaveLength(0);
   });
 });
 
