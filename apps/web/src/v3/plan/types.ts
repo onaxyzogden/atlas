@@ -186,6 +186,7 @@ export const MODULE_CARDS: Record<
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
     { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
+    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
