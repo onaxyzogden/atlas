@@ -25,7 +25,16 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
-import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
+import {
+  useBuildingsForProject,
+  useWellsForProject,
+  useSepticsForProject,
+  usePowerLinesForProject,
+  useBuriedUtilitiesForProject,
+  useFencesForProject,
+  useGatesForProject,
+  useExistingDrivewaysForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
@@ -269,14 +278,20 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
-  const buildings = useBuiltEnvironmentStore((s) => s.buildings);
-  const wells = useBuiltEnvironmentStore((s) => s.wells);
-  const septics = useBuiltEnvironmentStore((s) => s.septics);
-  const powerLines = useBuiltEnvironmentStore((s) => s.powerLines);
-  const buriedUtilities = useBuiltEnvironmentStore((s) => s.buriedUtilities);
-  const fences = useBuiltEnvironmentStore((s) => s.fences);
-  const gates = useBuiltEnvironmentStore((s) => s.gates);
-  const existingDriveways = useBuiltEnvironmentStore((s) => s.existingDriveways);
+  // Phase 6.B: read built-environment slices directly from V2 via the
+  // project-filtered selector hooks. Each hook is already memoized so
+  // identity stays stable when nothing in this project's slice changed —
+  // the `inProject(...)` filter below becomes a no-op for these 8 arrays
+  // (kept in place so the rest of the helper stays uniform).
+  const beProjectId = projectId ?? '';
+  const buildings = useBuildingsForProject(beProjectId);
+  const wells = useWellsForProject(beProjectId);
+  const septics = useSepticsForProject(beProjectId);
+  const powerLines = usePowerLinesForProject(beProjectId);
+  const buriedUtilities = useBuriedUtilitiesForProject(beProjectId);
+  const fences = useFencesForProject(beProjectId);
+  const gates = useGatesForProject(beProjectId);
+  const existingDriveways = useExistingDrivewaysForProject(beProjectId);
   const homesteadByProject = useHomesteadStore((s) => s.byProject);
   const homestead = projectId ? homesteadByProject[projectId] : undefined;
   // Per-project sector wedge outer radius (metres). Falls back to
