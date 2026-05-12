@@ -45,6 +45,7 @@ import {
   projectToFences,
   projectToGates,
   projectToExistingDriveways,
+  projectToDesignElementsByProject,
   type ProjectedBuilding,
   type ProjectedWell,
   type ProjectedSeptic,
@@ -53,13 +54,14 @@ import {
   type ProjectedFence,
   type ProjectedGate,
   type ProjectedExistingDriveway,
+  type BuiltEnvironmentEntity,
 } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
-import {
-  useDesignElementsStore,
-  type DesignElement,
-} from './designElementsStore.js';
+import { type DesignElement } from './designElementsStore.js';
+import { useLandDesignStore } from './landDesignStore.js';
 import { useStructureStore, type Structure } from './structureStore.js';
+import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
+import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Non-React, one-shot readers
@@ -196,22 +198,18 @@ export function useExistingDrivewaysForProject(
 // ─────────────────────────────────────────────────────────────────────────
 // Phase 6.B — Structure + DesignElement project-filtered selectors
 //
-// These currently re-export through the V1 facades (useStructureStore /
-// useDesignElementsStore) because:
-//   - `useStructureStore` already projects from V2 internally; consumers
-//     read a narrowed `Structure[]` with `type: StructureType` which the
-//     facade restores from the projection's `type: string`. Reading direct
-//     from V2 would force every consumer to widen narrowing or local-cast.
-//   - `useDesignElementsStore` merges V2 structure-class entities with a
-//     module-private `useNonStructureStore` (paddock / pond / swale / road
-//     and friends — kinds not yet in V2's registry). Reading direct from V2
-//     would silently drop the non-structure half.
+// Structure: still wraps the V1 `useStructureStore` facade because consumers
+// read a narrowed `Structure[]` with `type: StructureType`; the facade
+// restores that narrowing from V2's `type: string`. Reading direct from V2
+// would force every consumer to widen narrowing or local-cast. Retires when
+// `Structure` collapses into a shared `ProjectedStructure`.
 //
-// The facades retire when (a) `Structure` narrowing collapses into a
-// shared `ProjectedStructure` and (b) non-structure kinds extract into a
-// dedicated `landDesignStore` (per the ADR doc-comment on
-// designElementsStore.ts). At that point only the bodies below change;
-// consumer call sites already migrated to these names stay put.
+// DesignElement (since 2026-05-12 landDesignStore extraction): merges V2
+// structure-class entities (projected here via `projectToDesignElementsByProject`)
+// with non-structure entries sourced directly from `useLandDesignStore`.
+// No longer routes through the V1 `useDesignElementsStore` facade — that
+// facade now exists only for legacy writer call sites until its writer
+// migration phase lands.
 // ─────────────────────────────────────────────────────────────────────────
 
 const EMPTY_DESIGN_ELEMENTS: DesignElement[] = [];
@@ -230,14 +228,47 @@ export function useStructuresForProject(projectId: string): Structure[] {
   );
 }
 
+/** Project V2 structure-class entities to DesignElement shape for a single
+ *  project. Mirrors the projection the V1 facade does internally. */
+function projectV2StructureDesignElements(
+  entities: BuiltEnvironmentEntity[],
+  projectId: string,
+): DesignElement[] {
+  const byProject = projectToDesignElementsByProject(entities);
+  const list = byProject[projectId];
+  if (!list || list.length === 0) return [];
+  return list.map((p) => ({
+    id: p.id,
+    category: 'structure' as DesignCategory,
+    kind: p.kind,
+    geometry: p.geometry,
+    phase: (p.phase as PhaseKey) ?? ('building' as PhaseKey),
+    label: p.label,
+    createdAt: p.createdAt,
+    view: 'current' as PlanView,
+  }));
+}
+
 export function getDesignElementsForProject(projectId: string): DesignElement[] {
-  return useDesignElementsStore.getState().byProject[projectId] ?? [];
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const v2 = projectV2StructureDesignElements(entities, projectId);
+  const land = useLandDesignStore.getState().byProject[projectId] ?? [];
+  if (v2.length === 0) return land;
+  if (land.length === 0) return v2;
+  return [...land, ...v2];
 }
 
 export function useDesignElementsForProject(
   projectId: string,
 ): DesignElement[] {
-  return useDesignElementsStore(
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  const land = useLandDesignStore(
     (s) => s.byProject[projectId] ?? EMPTY_DESIGN_ELEMENTS,
   );
+  return useMemo(() => {
+    const v2 = projectV2StructureDesignElements(entities, projectId);
+    if (v2.length === 0) return land;
+    if (land.length === 0) return v2;
+    return [...land, ...v2];
+  }, [entities, land, projectId]);
 }
