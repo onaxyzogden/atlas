@@ -1,8 +1,17 @@
-# Observe Human Context reskin onto shared stageCard primitives
+# Observe full reskin onto shared stageCard primitives
 
 **Date:** 2026-05-11
-**Scope:** `apps/web/src/v3/_shared/stageCard/`, `apps/web/src/v3/observe/modules/human-context/`
-**Status:** Closed for Human Context. Other six Observe modules deferred.
+**Scope:** `apps/web/src/v3/_shared/stageCard/`, `apps/web/src/v3/observe/modules/**`
+**Status:** Closed. All seven Observe modules migrated.
+
+> **Scope correction (2026-05-12).** The original draft of this ADR
+> claimed only Human Context was reskinned and the other six modules
+> were deferred. In practice the same session migrated all seven
+> Observe modules onto the shared `stageCard` primitive — Human
+> Context, Earth/Water/Ecology, Topography, Macroclimate &amp; Hazards,
+> Sectors &amp; Zones, SWOT Synthesis, and Built Environment. The
+> "Migrated components" and "Deferred follow-ups" sections below have
+> been rewritten to match what actually shipped.
 
 ## Problem
 
@@ -77,10 +86,13 @@ defines a local gold `.ring` class in `humanContext.module.css` using
 pattern, and a final pass can collapse the shared component once
 every consumer has migrated.
 
-### Local extras
+### Observe extras
 
-`apps/web/src/v3/observe/modules/human-context/humanContext.module.css`
-holds the patterns that don't fit the shared `stageCard.module.css`:
+`apps/web/src/v3/_shared/stageCard/observeExtras.module.css`
+holds the Observe-specific patterns that don't fit the shared
+`stageCard.module.css`. Started as a Human-Context-local module
+during the proof-of-concept and promoted to `_shared/stageCard/` once
+the other six modules adopted the same patterns:
 
 - `.heroRow` — image-right hero layout
 - `.heroArt` — 180px banner image
@@ -95,12 +107,21 @@ holds the patterns that don't fit the shared `stageCard.module.css`:
 
 ## Migrated components
 
-All four under `apps/web/src/v3/observe/modules/human-context/`:
+All 21 module files under `apps/web/src/v3/observe/modules/**`:
 
-- `HumanContextDashboard.tsx`
-- `StewardSurveyDetail.tsx`
-- `IndigenousRegionalContextDetail.tsx`
-- `VisionDetail.tsx`
+- **human-context/** — `HumanContextDashboard.tsx`,
+  `StewardSurveyDetail.tsx`, `IndigenousRegionalContextDetail.tsx`,
+  `VisionDetail.tsx`
+- **earth-water-ecology/** — `EarthWaterEcologyDashboard.tsx`,
+  `EcologicalDetail.tsx`, `HydrologyDetail.tsx`, `JarPercRoofDetail.tsx`
+- **topography/** — `TopographyDashboard.tsx`, `CartographicDetail.tsx`,
+  `CrossSectionDetail.tsx`, `TerrainDetail.tsx`
+- **macroclimate-hazards/** — `MacroclimateDashboard.tsx`,
+  `HazardsLogDetail.tsx`, `SolarClimateDetail.tsx`
+- **sectors-zones/** — `SectorsDashboard.tsx`, `SectorCompassDetail.tsx`
+- **swot-synthesis/** — `SwotDashboard.tsx`, `SwotDiagnosisReport.tsx`,
+  `SwotJournal.tsx`
+- **built-environment/** — `BuiltEnvironmentDashboard.tsx`
 
 Each now renders:
 
@@ -117,50 +138,55 @@ Each now renders:
 ```
 
 Inline `background: #15803D` buttons, `surface-card` wrappers, and
-`module-hero-card` heroes are gone from these four files.
+`module-hero-card` heroes are gone from all 21 files.
 
 ## Deferred follow-ups
 
-1. **Plan + Act callsite migration.** Two CSS files
+1. **Plan + Act callsite migration.** ~~Two CSS files
    (`features/plan/planCard.module.css`, `features/act/actCard.module.css`)
    are still imported by ~38 + ~25 files including the legacy v1/v2
-   Observe cards in `features/observe/`. Migration is mechanical
-   (replace the import path, add `data-stage="plan"|"act"` to every
-   `<div className={css.hero}>`) but high-volume. Defer until a
-   session can absorb the churn without diluting the user-visible
-   reskin work.
-2. **Other six Observe modules.** Each still renders against
-   `observe-port.css`. Plan to walk through one at a time, mirroring
-   the Human Context pattern. The shared `ProgressRing` and any
-   exclusively-owned `.detail-page <slug>-page` rules can be deleted
-   once the last consumer migrates.
-3. **`observe-port.css` cleanup.** The Human-Context-only `.human-*`
-   selectors can be pruned in a follow-up cleanup pass. Default to
-   leaving rules in place this session — accidental removal of a
-   selector shared by another Observe module would silently break
-   that module.
+   Observe cards in `features/observe/`.~~ **Closed 2026-05-12** in
+   commits `daf1b549` (Water + Zone cards) and `2ef6791a` (remaining
+   49 callsites). Both legacy CSS files are deleted; all consumers
+   import `v3/_shared/stageCard/stageCard.module.css` with
+   `data-stage` attributes on hero elements. See
+   [2026-05-12 log entry](../log.md).
+2. **`observe-port.css` cleanup.** Per-module selectors (`.human-*`,
+   `.topo-*`, etc.) can be pruned now that every Observe module
+   renders against `stageCard`. Default to a careful sweep — verify
+   each selector has no remaining consumer before deletion.
+3. **Shared `ProgressRing` gold rollout.** Every Observe module now
+   defines a local gold `Ring()` helper using `conic-gradient(rgba(
+   var(--color-gold-rgb), 0.85) ...)`. A follow-up can lift this back
+   into the shared component (replacing its green default) and drop
+   the per-module copies.
 
 ## Files
 
 **New (shared)**
 - `apps/web/src/v3/_shared/stageCard/stageCard.module.css`
+- `apps/web/src/v3/_shared/stageCard/observeExtras.module.css` —
+  Observe-specific extras (`.heroRow`, `.heroArt`, `.kpiGrid`,
+  `.ring`, `.layout`, `.cardEyebrow`, `.synthesisBlock`,
+  `.blockquote`, `.capacityBar`, `.snapshotMetric`). Promoted to
+  shared because every Observe module reuses these patterns.
 - `apps/web/src/v3/_shared/stageCard/index.ts`
 
-**New (local extras)**
-- `apps/web/src/v3/observe/modules/human-context/humanContext.module.css`
-
-**Rewritten**
-- `apps/web/src/v3/observe/modules/human-context/HumanContextDashboard.tsx`
-- `apps/web/src/v3/observe/modules/human-context/StewardSurveyDetail.tsx`
-- `apps/web/src/v3/observe/modules/human-context/IndigenousRegionalContextDetail.tsx`
-- `apps/web/src/v3/observe/modules/human-context/VisionDetail.tsx`
+**Rewritten** — all 21 module files listed under "Migrated components"
+above.
 
 **Untouched (deliberate)**
-- `apps/web/src/features/plan/planCard.module.css`
-- `apps/web/src/features/act/actCard.module.css`
-- `apps/web/src/v3/observe/styles/observe-port.css`
-- `apps/web/src/v3/observe/_shared/components/ProgressRing.*`
-- The other six Observe modules
+- `apps/web/src/v3/observe/styles/observe-port.css` — left in place
+  this session; cleanup tracked under deferred follow-up 2.
+- `apps/web/src/v3/observe/_shared/components/ProgressRing.*` —
+  shared component still green; gold rollout tracked under deferred
+  follow-up 3.
+
+**Resolved since**
+- `apps/web/src/features/plan/planCard.module.css` and
+  `apps/web/src/features/act/actCard.module.css` were originally
+  listed as deliberately untouched; both were deleted on
+  2026-05-12 once their callsites finished migrating.
 
 ## Verification
 
