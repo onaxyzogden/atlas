@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { useLivestockStore, type Paddock, type FenceType } from '../../store/livestockStore.js';
+import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import css from './FencingLayoutCard.module.css';
 
 interface FencingLayoutCardProps {
@@ -153,10 +154,12 @@ function fmtUsd(n: number): string {
 
 export default function FencingLayoutCard({ projectId }: FencingLayoutCardProps) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const paddocks = useMemo(
+  // Cap by active Plan view via phaseStore.BuildPhase.yeomansCap.
+  const paddocksRaw = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
   );
+  const paddocks = usePhaseStoreCappedEntities(paddocksRaw);
 
   const view = useMemo(() => {
     if (paddocks.length === 0) return null;

@@ -27,6 +27,7 @@ import { useMemo } from 'react';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
+import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import css from './AnimalTractorZonesCard.module.css';
 
 /* \u2500\u2500 Tunables (head per hectare for a 1-week rotation) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
@@ -235,10 +236,17 @@ export default function AnimalTractorZonesCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
 
+  // Paddock list capped by Plan view (Year 1 / Year 5) via phaseStore→Yeomans
+  // adapter. See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const paddocksRaw = useMemo(
+    () => allPaddocks.filter((p) => p.projectId === projectId),
+    [allPaddocks, projectId],
+  );
+  const paddocks = usePhaseStoreCappedEntities(paddocksRaw);
+
   const groups = useMemo(() => {
     const crops = allCrops.filter((c) => c.projectId === projectId);
     const zones = allZones.filter((z) => z.projectId === projectId);
-    const paddocks = allPaddocks.filter((p) => p.projectId === projectId);
 
     // For now, "active paddock overlap" = there's any paddock in the
     // project with non-empty species. Without polygon-intersection we
@@ -249,7 +257,7 @@ export default function AnimalTractorZonesCard({ projectId }: Props) {
     const hasActivePaddockOverlap = (_areaId: string) => hasActiveGrazing;
 
     return buildCandidates(crops, zones, hasActivePaddockOverlap);
-  }, [allCrops, allZones, allPaddocks, projectId]);
+  }, [allCrops, allZones, paddocks, projectId]);
 
   const totalCandidates = groups.reduce((s, g) => s + g.candidates.length, 0);
 

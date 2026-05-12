@@ -13,6 +13,7 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type LivestockSpecies } from '../../store/livestockStore.js';
+import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import { LIVESTOCK_SPECIES, AU_FACTORS } from './speciesData.js';
 import css from './MultiSpeciesPlannerCard.module.css';
 
@@ -53,10 +54,14 @@ interface MultiSpeciesPlannerCardProps {
 
 export default function MultiSpeciesPlannerCard({ projectId }: MultiSpeciesPlannerCardProps) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const paddocks = useMemo(
+  // Project-scoped, then capped by active Plan view (Year 1 / Year 5)
+  // via phaseStore.BuildPhase.yeomansCap. See
+  // wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const paddocksRaw = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
   );
+  const paddocks = usePhaseStoreCappedEntities(paddocksRaw);
 
   const view = useMemo(() => {
     if (paddocks.length === 0) return null;

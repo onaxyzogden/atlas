@@ -10,6 +10,7 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock, type LivestockSpecies } from '../../store/livestockStore.js';
+import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import css from './PaddockCellDesignCard.module.css';
 
@@ -72,10 +73,12 @@ function rollupGroup(group: string, paddocks: Paddock[]): GroupRollup {
 
 export default function PaddockCellDesignCard({ projectId }: PaddockCellDesignCardProps) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const paddocks = useMemo(
+  // Cap by active Plan view via phaseStore.BuildPhase.yeomansCap.
+  const paddocksRaw = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
   );
+  const paddocks = usePhaseStoreCappedEntities(paddocksRaw);
 
   const groups = useMemo(() => {
     const map = new Map<string, Paddock[]>();

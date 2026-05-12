@@ -34,6 +34,7 @@ import {
   type PastureQuality,
 } from '../../store/livestockStore.js';
 import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import {
   computeShelterAccess,
   computeWaterPointDistance,
@@ -102,10 +103,12 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
   // the selector rescales the displayed stocking values in real time.
   const [refPastureQuality, setRefPastureQuality] = useState<PastureQuality>('good');
 
-  const paddocks = useMemo(
+  // Cap by active Plan view via phaseStore.BuildPhase.yeomansCap.
+  const paddocksRaw = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
   );
+  const paddocks = usePhaseStoreCappedEntities(paddocksRaw);
   const structures = useMemo(
     () => allStructures.filter((s) => s.projectId === projectId),
     [allStructures, projectId],
