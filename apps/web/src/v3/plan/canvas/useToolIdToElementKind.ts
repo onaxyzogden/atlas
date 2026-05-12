@@ -21,14 +21,14 @@ const PLAN_BE_PREFIX = 'plan.structures-subsystems.be.';
 /** Pure mapping: PlanTools toolId → elementCatalog kind, or null. */
 export function toolIdToElementKind(toolId: MapToolId | null): string | null {
   if (!toolId) return null;
-  // Built-Environment registry tools: kind is the suffix after the prefix.
-  // The elementCatalog covers the structure-class subset; the V2 registry
-  // covers all 31. designElementsStore.add() routes via isStructureClass,
-  // so passing the bare kind is safe — useDesignElementDrawTool's
-  // findElementSpec() lookup will short-circuit (no-op) for any kind not
-  // present in elementCatalog, leaving Vision draw inert for those.
+  // Built-Environment registry tools: dispatched by VisionLayoutCanvas
+  // directly to BeV2ExistingTool (with state='proposed'), mirroring
+  // PlanDrawHost on the Current canvas. We return null here so the
+  // elementCatalog DesignElementDrawHost does NOT also mount — that
+  // path no-ops for the ~18 BE kinds outside elementCatalog and would
+  // double-handle the ~13 that are. Single source of truth: BE V2 store.
   if (toolId.startsWith(PLAN_BE_PREFIX)) {
-    return toolId.slice(PLAN_BE_PREFIX.length);
+    return null;
   }
   switch (toolId) {
     case 'plan.plant-systems.orchard':       return 'orchard';

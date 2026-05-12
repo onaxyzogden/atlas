@@ -37,6 +37,7 @@ import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import { useActiveElementKind } from './useToolIdToElementKind.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
+import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
@@ -76,8 +77,22 @@ export default function VisionLayoutCanvas({
   // Bridge: armed PlanTools tool id → elementCatalog kind (or null).
   // Vision draw lifecycle mounts only when the mapped kind is non-null.
   const activeKind = useActiveElementKind();
+  const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const onDrawComplete = () => setActiveTool(null);
+
+  // BE-prefix dispatch (mirrors PlanDrawHost on the 2D Current canvas):
+  // tool ids of shape `plan.structures-subsystems.be.<kind>` mount
+  // BeV2ExistingTool with state='proposed', so BE placements work in
+  // vision / phase / terrain3d the same way they do on Current. The
+  // 3D layers (extrusion + scenegraph) read from the BE V2 store with
+  // default `stateFilter='all'`, so the placed entity renders
+  // immediately under pitch.
+  const PLAN_BE_PREFIX = 'plan.structures-subsystems.be.';
+  const beKind =
+    activeTool && activeTool.startsWith(PLAN_BE_PREFIX)
+      ? activeTool.slice(PLAN_BE_PREFIX.length)
+      : null;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -147,6 +162,15 @@ export default function VisionLayoutCanvas({
               projectId={projectId}
               kind={activeKind}
               onComplete={onDrawComplete}
+            />
+          )}
+          {beKind && (
+            <BeV2ExistingTool
+              key={`be-${beKind}`}
+              map={map}
+              projectId={projectId}
+              kind={beKind}
+              state="proposed"
             />
           )}
         </>

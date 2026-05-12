@@ -90,3 +90,40 @@ Adding a new BE kind to `BUILT_ENVIRONMENT_KINDS` now surfaces it in both
 stage rails automatically, with one icon string in the registry serving as
 the sole presentation knob. Stage parity for this surface is contract-level,
 not convention-level.
+
+## 2026-05-11 follow-up — Plan Vision / Phase / Terrain3D dispatch
+
+The rail-unification work made the **palette** identical across Observe and
+Plan, but the Plan canvas's **draw-tool dispatch** still diverged: only the
+2D Current canvas's `PlanDrawHost` routed `plan.structures-subsystems.be.*`
+tool ids to `BeV2ExistingTool` with `state: 'proposed'`. The 3D-family
+canvases (Vision / Phase 1 / Phase 2 / Terrain3D) went through
+`useToolIdToElementKind` → `useDesignElementDrawTool`, which calls
+`findElementSpec()` against the elementCatalog. The elementCatalog only
+covers ~13 of the 31 BE kinds (yurt, greenhouse, barn, shed, etc.) — for the
+other ~18 (cabin, earthship, tent_glamping, classroom, prayer_space,
+bathhouse, fire_circle, lookout, workshop, storage, compost_station,
+water_pump_house, solar_array, well, …) the lookup short-circuited and the
+tool no-op'd. Symptom: clicking a BE rail tool in 3D armed the rail but
+nothing drew on the map.
+
+Fix:
+
+- `useToolIdToElementKind.ts` now returns `null` for the BE prefix. The
+  elementCatalog `DesignElementDrawHost` no longer mounts for BE tools at
+  all (would double-handle the 13 in-catalog kinds and no-op the rest).
+- `VisionLayoutCanvas.tsx` adds a sibling BE-prefix dispatch that mounts
+  `<BeV2ExistingTool projectId kind state="proposed" />` whenever
+  `activeTool` matches `plan.structures-subsystems.be.*`. Mirrors
+  `PlanDrawHost`'s Current-canvas dispatch verbatim.
+
+The 3D rendering layers (`DesignElementExtrusionLayer`,
+`DesignElementScenegraphLayer`) already read `useBuiltEnvironmentStoreV2`
+with `stateFilter='all'` by default, so a placed `'proposed'` entry
+renders immediately under pitch — no rendering change needed.
+
+**Single source of truth** for BE placements is now
+`useBuiltEnvironmentStoreV2` regardless of canvas, mirroring the registry-
+driven palette. The Vision-canvas `DesignElementDrawHost` remains active
+for non-BE elementCatalog kinds (orchards, silvopasture, oak/pine/apple
+trees, hedgerow, swale, spring, road, bridge, turnaround, paddock).
