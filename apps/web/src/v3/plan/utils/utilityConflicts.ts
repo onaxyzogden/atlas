@@ -12,11 +12,24 @@
  */
 
 import * as turf from '@turf/turf';
-import {
-  useBuiltEnvironmentStore,
-  type BuriedUtility,
-  type BuriedUtilityKind,
-} from '../../../store/builtEnvironmentStore.js';
+import type { ProjectedBuriedUtility } from '@ogden/shared';
+import { getBuriedUtilitiesForProject } from '../../../store/builtEnvironmentSelectors.js';
+
+// Local copy of the V1 `BuriedUtilityKind` discriminator. The V1 facade
+// narrowed `existing.subtype` to this union (see legacy
+// builtEnvironmentStore.ts:298-301). Kept here so the soft-veto dialog's
+// `KIND_LABEL` map (UtilityConflictDialog.tsx) keeps compiling once the V1
+// facade is deleted.
+type BuriedUtilityKind = 'water_main' | 'gas' | 'fibre' | 'sewer' | 'other';
+
+function narrowBuriedUtilityKind(raw: string): BuriedUtilityKind {
+  return raw === 'water_main' ||
+    raw === 'gas' ||
+    raw === 'fibre' ||
+    raw === 'sewer'
+    ? raw
+    : 'other';
+}
 
 /** Metres of horizontal buffer added around each buried utility line. */
 export const UTILITY_CONFLICT_BUFFER_M = 3;
@@ -40,9 +53,7 @@ export function checkUtilityConflicts(
   geom: GeoJSON.Geometry,
   projectId: string,
 ): UtilityConflict[] {
-  const utilities = useBuiltEnvironmentStore
-    .getState()
-    .buriedUtilities.filter((u) => u.projectId === projectId);
+  const utilities = getBuriedUtilitiesForProject(projectId);
 
   if (utilities.length === 0) return [];
 
@@ -51,7 +62,11 @@ export function checkUtilityConflicts(
 
   for (const util of utilities) {
     if (intersectsUtility(candidate, util)) {
-      conflicts.push({ id: util.id, kind: util.kind, label: util.label });
+      conflicts.push({
+        id: util.id,
+        kind: narrowBuriedUtilityKind(util.kind),
+        label: util.label,
+      });
     }
   }
 
@@ -68,7 +83,7 @@ export function checkUtilityConflicts(
  */
 function intersectsUtility(
   candidate: GeoJSON.Feature<GeoJSON.Geometry>,
-  util: BuriedUtility,
+  util: ProjectedBuriedUtility,
 ): boolean {
   const utilFeature = turf.feature(util.geometry);
   const buffered = turf.buffer(utilFeature, UTILITY_CONFLICT_BUFFER_M, {
