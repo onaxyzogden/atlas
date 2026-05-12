@@ -28,7 +28,7 @@ import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../../store/livestockStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -113,7 +113,7 @@ export default function EnterprisesCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 1 · Layering</span>
         <h1 className={styles.title}>Enterprises</h1>
         <p className={styles.lede}>

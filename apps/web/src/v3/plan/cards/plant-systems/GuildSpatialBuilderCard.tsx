@@ -32,7 +32,7 @@ import {
   findGuildPreset,
 } from '../../../../data/guildPresets.js';
 import { findCompanions } from '../../../../lib/companionPlanting.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 import GuildRingsCanvas from './GuildRingsCanvas.js';
 import {
   LAYER_LABEL,
@@ -218,7 +218,7 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Guild builder · spatial</h1>
         <p className={styles.lede}>

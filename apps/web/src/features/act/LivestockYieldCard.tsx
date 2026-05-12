@@ -15,7 +15,7 @@ import {
   type HarvestQuality,
 } from '../../store/harvestLogStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -105,7 +105,7 @@ export default function LivestockYieldCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Livestock — Yield log</span>
         <h1 className={styles.title}>Livestock Yield</h1>
         <p className={styles.lede}>

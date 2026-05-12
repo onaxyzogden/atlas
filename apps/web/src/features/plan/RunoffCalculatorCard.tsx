@@ -12,7 +12,7 @@
 
 import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -45,7 +45,7 @@ export default function RunoffCalculatorCard({ project: _project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Runoff calculator</h1>
         <p className={styles.lede}>

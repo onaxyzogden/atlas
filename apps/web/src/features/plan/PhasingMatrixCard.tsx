@@ -16,7 +16,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore, type PhaseTask } from '../../store/phaseStore.js';
 import { useUIStore } from '../../store/uiStore.js';
 import { PHASE_ORDER, type PhaseKey } from '../../v3/plan/types.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 const CAP_CHIP_BTN_BASE: React.CSSProperties = {
   padding: '2px 8px',
@@ -77,7 +77,7 @@ export default function PhasingMatrixCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 7 · Phasing</span>
         <h1 className={styles.title}>Phasing matrix</h1>
         <p className={styles.lede}>

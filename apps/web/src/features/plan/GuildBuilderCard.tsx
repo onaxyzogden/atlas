@@ -14,7 +14,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { newAnnotationId, type Guild, type GuildMember, type GuildLayer } from '../../store/site-annotations.js';
 import { PLANT_DATABASE, findSpecies, type CanopyLayer } from '../../data/plantDatabase.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -87,7 +87,7 @@ export default function GuildBuilderCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 4 · Plant Systems</span>
         <h1 className={styles.title}>Guild builder</h1>
         <p className={styles.lede}>

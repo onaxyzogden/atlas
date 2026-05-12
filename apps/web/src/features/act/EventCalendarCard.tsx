@@ -36,7 +36,7 @@ import {
   type CalendarEntry,
   type CalendarSource,
 } from './useEventAggregator.js';
-import shared from './actCard.module.css';
+import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import css from './EventCalendarCard.module.css';
 
 type CalendarViewMode = 'month' | 'week' | 'agenda';
@@ -135,7 +135,7 @@ export default function EventCalendarCard({ project }: Props) {
 
   return (
     <div className={shared.page}>
-      <header className={shared.hero}>
+      <header className={shared.hero} data-stage="act">
         <span className={shared.heroTag}>Schedule · calendar</span>
         <h1 className={shared.title}>Event calendar</h1>
         <p className={shared.lede}>

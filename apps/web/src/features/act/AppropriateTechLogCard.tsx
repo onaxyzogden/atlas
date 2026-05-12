@@ -16,7 +16,7 @@ import {
   type AppropriateTechSystem,
   type AppropriateTechStatus,
 } from '../../store/appropriateTechStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -74,7 +74,7 @@ export default function AppropriateTechLogCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 5 — Appropriate Technology</span>
         <h1 className={styles.title}>Appropriate-Tech Log</h1>
         <p className={styles.lede}>

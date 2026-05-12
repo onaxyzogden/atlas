@@ -19,7 +19,7 @@ import { Wind, Droplets, ThermometerSun, Sunrise } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useForecast } from '../../lib/forecast/useForecast.js';
 import { weatherCodeMeta, type ForecastDay, type ForecastHour } from '../../lib/forecast/types.js';
-import shared from './actCard.module.css';
+import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import css from './WeatherForecastCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
@@ -174,7 +174,7 @@ export default function WeatherForecastCard({ project }: Props) {
 
   return (
     <div className={shared.page}>
-      <header className={shared.hero}>
+      <header className={shared.hero} data-stage="act">
         <span className={shared.heroTag}>Schedule · weather</span>
         <h1 className={shared.title}>Weather forecast</h1>
         <p className={shared.lede}>

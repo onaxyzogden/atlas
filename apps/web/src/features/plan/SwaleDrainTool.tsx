@@ -11,7 +11,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import { newAnnotationId, type Earthwork, type EarthworkType } from '../../store/site-annotations.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -55,7 +55,7 @@ export default function SwaleDrainTool({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 2 · Water</span>
         <h1 className={styles.title}>Swale &amp; drain log</h1>
         <p className={styles.lede}>

@@ -24,7 +24,7 @@ import {
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useStructureStore } from '../../../../store/structureStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 /** Avg of all vertices across all rings — cheap centroid, fine for layout. */
 function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
@@ -253,7 +253,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 5 · Soil Fertility</span>
         <h1 className={styles.title}>Closed-loop graph</h1>
         <p className={styles.lede}>

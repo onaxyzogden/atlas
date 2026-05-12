@@ -13,7 +13,7 @@ import {
   type PilotPlot,
   type PilotStatus,
 } from '../../store/pilotPlotStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -64,7 +64,7 @@ export default function PilotPlotsCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 1 — Small &amp; Slow Pilots</span>
         <h1 className={styles.title}>Pilot Plots</h1>
         <p className={styles.lede}>

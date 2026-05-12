@@ -34,7 +34,7 @@ import {
   type TransectVerticalRefKind,
   type VerticalElementType,
 } from '../../store/site-annotations.js';
-import styles from './planCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -310,7 +310,7 @@ export default function TransectVerticalEditorCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 6 · Cross-section &amp; Solar</span>
         <h1 className={styles.title}>Transect vertical editor</h1>
         <p className={styles.lede}>

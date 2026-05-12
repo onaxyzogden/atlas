@@ -41,7 +41,7 @@ import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
@@ -151,7 +151,7 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 8 · Principle Verification</span>
         <h1 className={styles.title}>Principle × feature coverage</h1>
         <p className={styles.lede}>

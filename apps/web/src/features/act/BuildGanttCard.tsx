@@ -14,7 +14,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useUIStore } from '../../store/uiStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -62,7 +62,7 @@ export default function BuildGanttCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 1 — Phased Implementation</span>
         <h1 className={styles.title}>5-Year Build Gantt</h1>
         <p className={styles.lede}>

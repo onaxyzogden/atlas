@@ -15,7 +15,7 @@ import {
   type CommunityEventType,
 } from '../../store/communityEventStore.js';
 import { useNetworkStore } from '../../store/networkStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -102,7 +102,7 @@ export default function CommunityEventCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 4 — Community Events</span>
         <h1 className={styles.title}>Community Events Planner</h1>
         <p className={styles.lede}>

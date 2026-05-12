@@ -22,7 +22,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePhaseStore, type DesignLayer } from '../../../../store/phaseStore.js';
-import styles from '../../../../features/plan/planCard.module.css';
+import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 // Yeomans Keyline ordering on the 4 designLayer tags (earthworks → water →
 // structures → vegetation), plus an "uncategorised" catchall for legacy
@@ -129,7 +129,7 @@ export default function CumulativeInvestmentCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="plan">
         <span className={styles.heroTag}>Plan · Module 7 · Phasing</span>
         <h1 className={styles.title}>Cumulative investment</h1>
         <p className={styles.lede}>

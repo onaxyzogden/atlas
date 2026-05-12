@@ -13,7 +13,7 @@ import { useExternalForcesStore } from '../../store/externalForcesStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
 import { useAppropriateTechStore } from '../../store/appropriateTechStore.js';
-import styles from './actCard.module.css';
+import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -66,7 +66,7 @@ export default function HazardPlansCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Module 5 — Disaster Preparedness</span>
         <h1 className={styles.title}>Hazard Action Plans</h1>
         <p className={styles.lede}>
