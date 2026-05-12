@@ -91,6 +91,14 @@ interface GuildRow {
   distanceM: number | null;
   /** Type of the nearest fertility unit. null if no pairing. */
   nearestType: FertilityInfraType | null;
+  /** Count of placed fertility units within ≤ 75 m of this guild.
+   *  Used for the resilience signal: ≥ 2 = redundantly served,
+   *  1 = single point of failure, 0 = unserved-but-placed. Always
+   *  0 for unplaced guilds. */
+  servingUnitCount: number;
+  /** Distinct types among serving units (≤ 75 m). Used to surface
+   *  the at-risk list's serving-unit type for single-served guilds. */
+  servingUnitTypes: FertilityInfraType[];
 }
 
 function bucketFor(distanceM: number): BucketKey {
@@ -119,15 +127,29 @@ export default function FertilityColocationCard({ project }: Props) {
     return guilds.map((g) => {
       const anchorLabel = anchorLabelFor(g);
       if (!g.center || placedFertility.length === 0) {
-        return { id: g.id, anchorLabel, bucket: 'unpaired', distanceM: null, nearestType: null };
+        return {
+          id: g.id,
+          anchorLabel,
+          bucket: 'unpaired',
+          distanceM: null,
+          nearestType: null,
+          servingUnitCount: 0,
+          servingUnitTypes: [],
+        };
       }
       let bestM = Infinity;
       let bestType: FertilityInfraType | null = null;
+      let servingUnitCount = 0;
+      const typeSet = new Set<FertilityInfraType>();
       for (const f of placedFertility) {
         const d = haversineM(g.center, f.center);
         if (d < bestM) {
           bestM = d;
           bestType = f.type;
+        }
+        if (d <= BUCKET_MEDIUM_M) {
+          servingUnitCount += 1;
+          typeSet.add(f.type);
         }
       }
       return {
@@ -136,6 +158,8 @@ export default function FertilityColocationCard({ project }: Props) {
         bucket: bucketFor(bestM),
         distanceM: bestM,
         nearestType: bestType,
+        servingUnitCount,
+        servingUnitTypes: Array.from(typeSet),
       };
     });
   }, [guilds, fertility]);
@@ -194,6 +218,33 @@ export default function FertilityColocationCard({ project }: Props) {
     };
   }, [rows, fertility.length]);
 
+  /**
+   * Resilience: a closed loop with one composter feeding every guild
+   * collapses the moment that composter fails. The forward view's
+   * "nearest unit" framing can't see this — it shows the loop is
+   * tight, not that it's brittle. Bucket placed guilds (those with
+   * a centroid) by how many fertility units sit within ≤ 75 m:
+   *   - ≥ 2 = redundantly served (resilient)
+   *   - 1   = single point of failure (at risk)
+   *   - 0   = placed but no fertility in reach
+   * Unplaced guilds excluded — they're the forward view's problem.
+   */
+  const resilience = useMemo(() => {
+    const placed = rows.filter((r) => r.bucket !== 'unpaired');
+    const redundant = placed.filter((r) => r.servingUnitCount >= 2);
+    const single = placed.filter((r) => r.servingUnitCount === 1);
+    const unserved = placed.filter((r) => r.servingUnitCount === 0);
+    const placedPct =
+      placed.length === 0 ? 0 : Math.round((redundant.length / placed.length) * 100);
+    return {
+      placedTotal: placed.length,
+      redundantCount: redundant.length,
+      singleServed: single,
+      unservedCount: unserved.length,
+      placedPct,
+    };
+  }, [rows]);
+
   function pillClassFor(score: number): string {
     if (score >= 70) return styles.pillMet ?? '';
     if (score >= 30) return styles.pillPartial ?? '';
@@ -225,6 +276,9 @@ export default function FertilityColocationCard({ project }: Props) {
           infrastructure placed, land in <em>Unplaced or unpaired</em>.
           Year 1 / Year 5 views cap both stores per the Scale of
           Permanence; Current / Vision views show everything. The
+          <em> Resilience</em> section counts how many placed guilds
+          have ≥ 2 fertility units within ≤ 75 m (redundant) versus
+          exactly one (single point of failure). The
           <em> By fertility unit</em> section flips the pairing —
           per unit, which guilds it could plausibly serve — so the
           steward catches over-resourced or single-point-of-failure
@@ -268,6 +322,12 @@ export default function FertilityColocationCard({ project }: Props) {
             <div className={styles.statRow}>
               <span>Unpaired (no centroid, or no fertility in view)</span>
               <span>{overall.unpaired}</span>
+            </div>
+            <div className={styles.statRow}>
+              <span>Redundantly served (≥ 2 units, ≤ 75 m)</span>
+              <span>
+                {resilience.redundantCount} / {resilience.placedTotal}
+              </span>
             </div>
             {overall.median != null && (
               <div className={styles.statRow}>
@@ -344,6 +404,72 @@ export default function FertilityColocationCard({ project }: Props) {
               </section>
             );
           })}
+
+          {resilience.placedTotal > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                Resilience
+                <span
+                  className={`${styles.pill} ${pillClassFor(resilience.placedPct)}`}
+                  style={{ marginLeft: 8 }}
+                >
+                  {resilience.placedPct}% redundant
+                </span>
+              </h2>
+              <p className={styles.listMeta} style={{ marginTop: 0 }}>
+                A guild is <em>redundantly served</em> when at least
+                two fertility units sit within ≤ 75 m of it — if one
+                unit fails the loop survives. Guilds served by exactly
+                one unit are listed below: each is a single point of
+                failure for its closed loop. Unplaced guilds are
+                excluded; they're handled by the buckets above.
+              </p>
+              <div className={styles.statRow}>
+                <span>Redundantly served (≥ 2 units)</span>
+                <span>{resilience.redundantCount}</span>
+              </div>
+              <div className={styles.statRow}>
+                <span>Single-served (1 unit — at risk)</span>
+                <span>{resilience.singleServed.length}</span>
+              </div>
+              <div className={styles.statRow}>
+                <span>Placed but no fertility in reach (0 units)</span>
+                <span>{resilience.unservedCount}</span>
+              </div>
+
+              {resilience.singleServed.length === 0 ? (
+                <p className={styles.empty} style={{ marginTop: 12 }}>
+                  No single-served guilds at this view. Every placed
+                  guild is either redundantly served or has no
+                  fertility unit in reach.
+                </p>
+              ) : (
+                <ul className={styles.list} style={{ marginTop: 8 }}>
+                  {resilience.singleServed.map((row) => {
+                    const onlyType = row.servingUnitTypes[0];
+                    return (
+                      <li key={row.id} className={styles.listRow}>
+                        <div>
+                          <strong>{row.anchorLabel}</strong>
+                          <span
+                            className={styles.listMeta}
+                            style={{ marginLeft: 8 }}
+                          >
+                            {onlyType
+                              ? `· only ${FERTILITY_LABEL[onlyType]} in reach`
+                              : '· only one unit in reach'}
+                          </span>
+                        </div>
+                        <span className={`${styles.pill} ${styles.pillUnmet ?? ''}`}>
+                          {row.distanceM != null ? `${Math.round(row.distanceM)} m` : 'unpaired'}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
 
           {byFertility.length > 0 && (
             <section className={styles.section}>
