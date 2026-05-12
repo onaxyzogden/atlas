@@ -7,21 +7,19 @@
  */
 
 import * as turf from '@turf/turf';
-import type {
-  Building,
-  BuriedUtility,
-  ExistingDriveway,
-  Fence,
-  Gate,
-  PowerLine,
-  Septic,
-  Well,
-} from '../../../../store/builtEnvironmentStore.js';
 import {
   getBuiltEnvironmentKind,
   LEGACY_OBSERVE_BE_KINDS,
   type BuiltEnvironmentCategory,
   type BuiltEnvironmentEntity,
+  type ProjectedBuilding,
+  type ProjectedBuriedUtility,
+  type ProjectedExistingDriveway,
+  type ProjectedFence,
+  type ProjectedGate,
+  type ProjectedPowerLine,
+  type ProjectedSeptic,
+  type ProjectedWell,
 } from '@ogden/shared';
 
 export interface BuiltKpiItem {
@@ -60,14 +58,14 @@ export interface BuiltFeatureCounts {
 }
 
 export interface BuiltKpiArgs {
-  buildings: Building[];
-  wells: Well[];
-  septics: Septic[];
-  powerLines: PowerLine[];
-  buriedUtilities: BuriedUtility[];
-  fences: Fence[];
-  gates: Gate[];
-  existingDriveways: ExistingDriveway[];
+  buildings: ProjectedBuilding[];
+  wells: ProjectedWell[];
+  septics: ProjectedSeptic[];
+  powerLines: ProjectedPowerLine[];
+  buriedUtilities: ProjectedBuriedUtility[];
+  fences: ProjectedFence[];
+  gates: ProjectedGate[];
+  existingDriveways: ProjectedExistingDriveway[];
 }
 
 export function featureCounts(args: BuiltKpiArgs): BuiltFeatureCounts {
