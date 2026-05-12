@@ -32,6 +32,7 @@ import {
   usePrincipleCheckStore,
   type PrincipleStatus,
 } from '../../../../store/principleCheckStore.js';
+import { usePrincipleEvidenceVisibleIds } from './usePrincipleEvidenceVisibleIds.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -62,12 +63,22 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
   const byProject = usePrincipleCheckStore((s) => s.byProject);
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
+  // Evidence depth is capped to features visible at the active Plan
+  // view: phase-tagged features (water nodes, paddocks, fertility
+  // infra) drop out on Year 1 / Year 5 when their BuildPhase's
+  // `yeomansCap` exceeds the view cap. The steward's `linkedFeatureIds`
+  // narrative is preserved untouched — only the *count* shown here
+  // reflects the view. See
+  // wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
+  const { visibleIds } = usePrincipleEvidenceVisibleIds(project.id);
+
   const rollups: EthicRollup[] = useMemo(() => {
     return PERMACULTURE_ETHICS.map((ethic) => {
       const rows = ethic.principleIds.map((pid) => {
         const principle = HOLMGREN_PRINCIPLES.find((p) => p.id === pid);
         const status: PrincipleStatus = checks[pid]?.status ?? 'unmet';
-        const linkCount = checks[pid]?.linkedFeatureIds?.length ?? 0;
+        const linked = checks[pid]?.linkedFeatureIds ?? [];
+        const linkCount = linked.filter((id) => visibleIds.has(id)).length;
         return {
           id: pid,
           number: principle?.number ?? 0,
@@ -83,7 +94,7 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
       const evidencedPrinciples = rows.filter((r) => r.linkCount > 0).length;
       return { ethic, rows, met, partial, unmet, total: rows.length, evidenceLinks, evidencedPrinciples };
     });
-  }, [checks]);
+  }, [checks, visibleIds]);
 
   // Overall health pill: percentage of (met + 0.5*partial) across all 12.
   const overall = useMemo(() => {
@@ -118,7 +129,10 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
           Permaculture's twelve principles serve three ethics. This view
           rolls your principle-by-principle assessment up to Earth Care,
           People Care, and Fair Share so you can see whether the design
-          honours all three — not just the ones that came easily.
+          honours all three — not just the ones that came easily. On
+          Year 1 / Year 5 views the evidence-depth counts reflect only
+          features visible at that view; your status pills and linked
+          features themselves are unchanged.
         </p>
       </header>
 
